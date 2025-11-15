@@ -323,7 +323,9 @@ export default function PromptPagesTable({
                   {page.review_type === "video" && "Video"}
                   {page.review_type === "event" && "Event"}
                   {page.review_type === "product" && "Product"}
-                  {!["service", "photo", "video", "event", "product"].includes(page.review_type || "") && (page.review_type ? page.review_type.charAt(0).toUpperCase() + page.review_type.slice(1) : "Service")}
+                  {page.review_type === "employee" && "Employee"}
+                  {page.review_type === "review_builder" && "Review builder"}
+                  {!["service", "photo", "video", "event", "product", "employee", "review_builder"].includes(page.review_type || "") && (page.review_type ? page.review_type.charAt(0).toUpperCase() + page.review_type.slice(1) : "Service")}
                 </td>
                 <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-900">
                   {page.contacts || page.contact_id ? (

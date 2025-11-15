@@ -1,4 +1,4 @@
-# Kanban View Implementation for 1-to-1 Prompt Pages
+# Kanban View Implementation for Campaign Prompt Pages
 
 ## Overview
 

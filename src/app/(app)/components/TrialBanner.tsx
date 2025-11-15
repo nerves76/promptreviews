@@ -158,11 +158,8 @@ export default function TrialBanner({
               />
             </div>
             <div className="ml-3">
-              <p className="font-medium">
+              <p className="text-sm font-medium">
                 🎉 You're on a {plan} trial! {timeRemaining}
-              </p>
-              <p className="text-sm opacity-90">
-                Upgrade anytime to unlock all features and continue growing your business
               </p>
             </div>
           </div>

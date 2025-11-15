@@ -78,9 +78,9 @@ export default function AISettingsFeature({
   };
 
   return (
-    <div className="rounded-lg p-4 bg-blue-50 border border-blue-200 flex flex-col gap-4 shadow relative mb-4">
+    <div className="rounded-lg p-2 sm:p-4 bg-blue-50 border border-blue-200 flex flex-col gap-4 shadow relative mb-4">
       {/* AI Review Generation Toggle */}
-      <div className="flex flex-row justify-between items-start px-2 py-2">
+      <div className="flex flex-row justify-between items-start px-2 sm:px-2 py-2">
         <div className="flex flex-col">
           <div className="flex items-center gap-3">
             <Icon name="prompty" className="w-8 h-8 text-slate-blue" size={32} />

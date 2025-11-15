@@ -70,6 +70,10 @@ export interface BasePromptPageFormProps {
     reviewPlatforms?: boolean;
     kickstarters?: boolean;
   };
+  /** Custom help text for the offer feature */
+  offerHelpText?: string;
+  /** Hide advanced fields in review platforms (for review builder) */
+  hideReviewPlatformAdvancedFields?: boolean;
   /** Whether the form is disabled */
   disabled?: boolean;
 }
@@ -130,6 +134,8 @@ export default function BasePromptPageForm({
   campaignType,
   onGenerateReview,
   children,
+  offerHelpText,
+  hideReviewPlatformAdvancedFields = false,
   enabledFeatures = {
     personalizedNote: true,
     emojiSentiment: true,
@@ -609,6 +615,7 @@ export default function BasePromptPageForm({
           description={formData.offer_body}
           url={formData.offer_url}
           timelock={formData.offer_timelock}
+          helpText={offerHelpText}
           onEnabledChange={(enabled) => handleOfferChange(enabled, formData.offer_title, formData.offer_body, formData.offer_url, formData.offer_timelock)}
           onTitleChange={(title) => handleOfferChange(formData.offer_enabled, title, formData.offer_body, formData.offer_url, formData.offer_timelock)}
           onDescriptionChange={(body) => handleOfferChange(formData.offer_enabled, formData.offer_title, body, formData.offer_url, formData.offer_timelock)}
@@ -634,6 +641,7 @@ export default function BasePromptPageForm({
             review_platforms: initialData?.review_platforms,
           }}
           disabled={disabled}
+          hideAdvancedFields={hideReviewPlatformAdvancedFields}
         />
       )}
 

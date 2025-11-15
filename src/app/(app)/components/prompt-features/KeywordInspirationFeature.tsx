@@ -102,14 +102,21 @@ export default function KeywordInspirationFeature({
   const hasNoSelectedKeywords = selected.length === 0;
 
   return (
-    <div className="rounded-lg p-4 bg-green-50 border border-green-200 flex flex-col gap-4 shadow relative">
-      <div className="flex flex-row justify-between items-start mb-2 px-4 py-2">
+    <div className="rounded-lg p-2 sm:p-4 bg-green-50 border border-green-200 flex flex-col gap-4 shadow relative">
+      <div className="flex flex-row justify-between items-start mb-2 px-2 sm:px-4 py-2">
         <div className="flex flex-col">
           <div className="flex items-center gap-3">
             <Icon name="mushroom" className="w-7 h-7 text-slate-blue" size={28} />
             <span className="text-2xl font-bold text-slate-blue">
               Keyword Power-Ups
             </span>
+            <div className="relative group">
+              <Icon name="prompty" className="w-5 h-5 text-slate-blue" size={20} />
+              <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block w-72 px-3 py-2 text-sm text-white bg-gray-900 rounded-lg shadow-lg z-10">
+                Keywords are used by Prompty AI and inserted into reviews for better rankings in Google and LLMs like ChatGPT.
+                <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-gray-900"></div>
+              </div>
+            </div>
           </div>
           <div className="text-sm text-gray-700 mt-[3px] ml-9">
             Show a "Power-up" button on your Prompt Page to encourage users to include your suggested keyword phrases in their review. Displays up to 10 keyword phrases with copy buttons to easily add to a review.

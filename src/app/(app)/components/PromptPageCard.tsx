@@ -28,6 +28,10 @@ export default function PromptPageCard({
       ? "Event"
       : page.review_type === "product"
       ? "Product"
+      : page.review_type === "employee"
+      ? "Employee"
+      : page.review_type === "review_builder"
+      ? "Review builder"
       : page.review_type
       ? page.review_type.charAt(0).toUpperCase() + page.review_type.slice(1)
       : "Service";
@@ -47,9 +51,9 @@ export default function PromptPageCard({
   return (
     <div
       className={`
-        group relative bg-white/95 backdrop-blur-lg border border-gray-200 rounded-lg shadow-lg
+        group relative bg-white border border-gray-200 rounded-lg shadow-lg
         transition-all duration-200 mb-3
-        ${isDragging ? "shadow-2xl rotate-2 scale-105" : "hover:shadow-xl hover:bg-white"}
+        ${isDragging ? "shadow-2xl rotate-2 scale-105 opacity-100" : "hover:shadow-xl"}
         p-4 cursor-grab
       `}
     >

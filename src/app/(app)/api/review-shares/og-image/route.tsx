@@ -7,7 +7,10 @@
 
 import { ImageResponse } from '@vercel/og';
 import { NextRequest } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import { authenticateApiRequest } from '@/utils/apiAuth';
+import { createServiceRoleClient } from '@/auth/providers/supabase';
+import { createSignedLogoUrl } from '@/lib/review-shares/logoProxy';
 
 export const runtime = 'nodejs';
 
@@ -54,6 +57,53 @@ function isBackgroundDark(gradientStart: string, gradientEnd: string): boolean {
   return avgLuminance < 0.5;
 }
 
+async function userHasAccountAccess(
+  serviceSupabase: SupabaseClient,
+  userId: string,
+  accountId: string | null,
+) {
+  if (!accountId) return false;
+  const { data } = await serviceSupabase
+    .from('account_users')
+    .select('account_id')
+    .eq('user_id', userId)
+    .eq('account_id', accountId)
+    .maybeSingle();
+
+  if (data) return true;
+
+  const { data: accountRecord } = await serviceSupabase
+    .from('accounts')
+    .select('created_by')
+    .eq('id', accountId)
+    .maybeSingle();
+
+  return accountRecord?.created_by === userId;
+}
+
+function parseLogoReference(value?: string | null) {
+  if (!value) return null;
+
+  try {
+    const parsed = new URL(value);
+    const match = parsed.pathname.match(/\/storage\/v1\/object\/public\/([^/]+)\/(.+)/);
+    if (match) {
+      return { bucket: match[1], path: match[2] };
+    }
+    return { externalUrl: parsed.toString() };
+  } catch {
+    const sanitized = value
+      .replace(/^storage\/v1\/object\/public\//, '')
+      .replace(/^public\//, '')
+      .replace(/^\/+/, '');
+    const [bucket, ...rest] = sanitized.split('/');
+    if (!bucket || rest.length === 0) {
+      return null;
+    }
+    return { bucket, path: rest.join('/') };
+  }
+}
+
 /**
  * GET /api/review-shares/og-image
  * Generate OG image for review sharing
@@ -82,17 +132,19 @@ export async function GET(request: NextRequest) {
       console.error('[OG Image] Failed to fetch PromptReviews logo:', err);
     }
 
-    // Create Supabase client with service role key
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    const authResult = await authenticateApiRequest(request);
+    if (!authResult.user) {
+      return new Response('Authentication required', { status: 401 });
+    }
+
+    const serviceSupabase = createServiceRoleClient();
 
     let review: any = null;
     let business: any = null;
+    let resolvedAccountId: string | null = null;
 
     // Try review_submissions first (most common from Reviews page)
-    const { data: reviewSubmission } = await supabase
+    const { data: reviewSubmission } = await serviceSupabase
       .from('review_submissions')
       .select('*, prompt_pages!inner(account_id)')
       .eq('id', reviewId)
@@ -100,20 +152,20 @@ export async function GET(request: NextRequest) {
 
     if (reviewSubmission) {
       review = reviewSubmission;
-      const accountId = reviewSubmission.prompt_pages?.account_id;
+      resolvedAccountId = reviewSubmission.prompt_pages?.account_id || null;
 
-      if (accountId) {
-        const { data: businessData } = await supabase
+      if (resolvedAccountId) {
+        const { data: businessData } = await serviceSupabase
           .from('businesses')
           .select('*')
-          .eq('account_id', accountId)
+          .eq('account_id', resolvedAccountId)
           .limit(1)
           .maybeSingle();
         business = businessData;
       }
     } else {
       // Try widget_reviews as fallback
-      const { data: widgetReview } = await supabase
+      const { data: widgetReview } = await serviceSupabase
         .from('widget_reviews')
         .select('*')
         .eq('id', reviewId)
@@ -121,10 +173,11 @@ export async function GET(request: NextRequest) {
 
       if (widgetReview?.account_id) {
         review = widgetReview;
-        const { data: businessData } = await supabase
+        resolvedAccountId = widgetReview.account_id;
+        const { data: businessData } = await serviceSupabase
           .from('businesses')
           .select('*')
-          .eq('account_id', widgetReview.account_id)
+          .eq('account_id', resolvedAccountId)
           .limit(1)
           .maybeSingle();
         business = businessData;
@@ -134,6 +187,15 @@ export async function GET(request: NextRequest) {
     if (!review) {
       console.error('[OG Image] Review not found for ID:', reviewId);
       return new Response('Review not found', { status: 404 });
+    }
+
+    if (!resolvedAccountId) {
+      return new Response('Account not found for this review', { status: 404 });
+    }
+
+    const hasAccess = await userHasAccountAccess(serviceSupabase, authResult.user.id, resolvedAccountId);
+    if (!hasAccess) {
+      return new Response('You do not have access to this review', { status: 403 });
     }
 
     if (!business) {
@@ -158,8 +220,17 @@ export async function GET(request: NextRequest) {
     const secondaryColor = business.secondary_color || '#FFFFFF'; // White for glassy
     const textColor = business.text_color || '#1F2937';
     const businessName = business.name || 'Customer Review';
-    // Skip business logo for now - causing rendering issues
-    const businessLogoUrl = null;
+
+    const logoReference = parseLogoReference(business.logo_url);
+    const businessLogoUrl = logoReference
+      ? 'externalUrl' in logoReference
+        ? logoReference.externalUrl
+        : createSignedLogoUrl(
+            logoReference.bucket,
+            logoReference.path,
+            request.nextUrl.origin
+          )
+      : null;
 
     const backgroundStyle = backgroundType === 'gradient'
       ? `linear-gradient(135deg, ${gradientStart} 0%, ${gradientMiddle} 50%, ${gradientEnd} 100%)`

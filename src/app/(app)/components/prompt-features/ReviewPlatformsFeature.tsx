@@ -43,6 +43,8 @@ export interface ReviewPlatformsFeatureProps {
   };
   /** Whether the component is disabled */
   disabled?: boolean;
+  /** Hide word count and instructions fields (for review builder) */
+  hideAdvancedFields?: boolean;
 }
 
 export const platformOptions = [
@@ -92,6 +94,7 @@ export default function ReviewPlatformsFeature({
   onGenerateReview,
   initialData,
   disabled = false,
+  hideAdvancedFields = false,
 }: ReviewPlatformsFeatureProps) {
   // Initialize state from props and initialData
   const [platformList, setPlatformList] = useState<ReviewPlatform[]>(platforms);
@@ -221,19 +224,21 @@ export default function ReviewPlatformsFeature({
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Word Count
-                  </label>
-                  <Input
-                    type="number"
-                    value={platform.wordCount}
-                    onChange={(e) => handlePlatformChange(idx, "wordCount", clampWordLimit(e.target.value))}
-                    min={PROMPT_PAGE_WORD_LIMITS.MIN}
-                    max={PROMPT_PAGE_WORD_LIMITS.MAX}
-                    disabled={disabled}
-                  />
-                </div>
+                {!hideAdvancedFields && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Word Count
+                    </label>
+                    <Input
+                      type="number"
+                      value={platform.wordCount}
+                      onChange={(e) => handlePlatformChange(idx, "wordCount", clampWordLimit(e.target.value))}
+                      min={PROMPT_PAGE_WORD_LIMITS.MIN}
+                      max={PROMPT_PAGE_WORD_LIMITS.MAX}
+                      disabled={disabled}
+                    />
+                  </div>
+                )}
 
                 {platform.name === "Other" && (
                   <div>

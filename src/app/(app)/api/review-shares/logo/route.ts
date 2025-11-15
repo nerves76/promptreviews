@@ -1,16 +1,26 @@
 import { NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { verifyLogoSignature } from '@/lib/review-shares/logoProxy';
 
-export const runtime = 'edge';
+export const runtime = 'nodejs';
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const bucket = searchParams.get('bucket');
     const path = searchParams.get('path');
+    const token = searchParams.get('token');
 
     if (!bucket || !path) {
       return new Response('Missing bucket or path', { status: 400 });
+    }
+
+    if (path.includes('..') || path.startsWith('/') || path.includes('\\')) {
+      return new Response('Invalid path', { status: 400 });
+    }
+
+    if (!verifyLogoSignature(bucket, path, token)) {
+      return new Response('Invalid signature', { status: 403 });
     }
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;

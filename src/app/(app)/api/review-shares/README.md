@@ -427,21 +427,28 @@ All endpoints follow a consistent error response format:
 
 ## Business Logo Support
 
-The OG image generator now proxies logos through
-`/api/review-shares/logo`, so you no longer need to inline base64 data or modify
-bucket CORS rules. As long as the logo is stored in a public Supabase bucket, the
-edge runtime can fetch and cache it safely.
+Logos are proxied through `/api/review-shares/logo` to avoid exposing the
+service-role key or raw storage paths. The proxy now **requires signed tokens**
+to prevent arbitrary bucket reads.
+
+### Configuration
+
+1. Set `LOGO_PROXY_SIGNING_SECRET` (32+ random bytes) in `.env.local`. The proxy
+   falls back to `EMBED_SESSION_SECRET` for backwards compatibility, but it is
+   recommended to provide a dedicated secret.
+2. Generate signed URLs server-side using `createSignedLogoUrl(bucket, path)`.
+   The helper lives in `src/lib/review-shares/logoProxy.ts`.
 
 ### How logos are resolved
 
-1. If `business.logo_url` is a fully qualified URL, it is used directly.
-2. If it points to a Supabase Storage object (e.g. `logos/company.png` or
-   `storage/v1/object/public/logos/company.png`), the OG route calls the new
-   proxy endpoint which downloads the image with the service-role key and serves
-   it with proper caching headers.
+1. Fully-qualified URLs (e.g. CDN images) are used as-is.
+2. Supabase Storage references (`logos/company.png` or
+   `storage/v1/object/public/logos/company.png`) are converted to signed proxy
+   URLs via `createSignedLogoUrl`. The OG route already performs this conversion.
 
-No additional configuration is required—just ensure the logo bucket is public so
-the service-role client can access the file.
+Because every proxy request must include a valid signature, unauthenticated
+attackers cannot enumerate other buckets even though the proxy runs with the
+service role key.
 
 ---
 

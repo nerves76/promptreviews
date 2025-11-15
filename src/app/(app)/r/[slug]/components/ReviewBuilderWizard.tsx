@@ -12,6 +12,7 @@ import {
   PROMPT_PAGE_WORD_LIMITS,
 } from "@/constants/promptPageWordLimits";
 import dynamic from "next/dynamic";
+import PromptReviewsLogo from "@/app/(app)/dashboard/components/PromptReviewsLogo";
 
 // Dynamically import FallingAnimation
 const FallingAnimation = dynamic(() => import("./FallingAnimation"), {
@@ -25,26 +26,33 @@ interface ReviewBuilderWizardProps {
   currentUser?: any;
 }
 
-const DEFAULT_BUILDER_QUESTIONS = [
+const DEFAULT_BUILDER_QUESTIONS = (businessName?: string) => [
   {
     id: "builder-q1",
-    prompt: "What did we help you accomplish?",
-    helperText: "Share the outcome or transformation you experienced.",
+    prompt: `What stood out about your experience with ${businessName || 'our business'}?`,
+    helperText: "Share the moment that made the biggest impression.",
     required: true,
   },
   {
     id: "builder-q2",
-    prompt: "What detail should future customers know?",
-    helperText: "Mention any numbers, time savings, or memorable moments.",
+    prompt: `What benefits of working with ${businessName || 'our business'} do you think others should know?`,
+    helperText: "Mention results, unique touches, or unexpected perks.",
     required: true,
   },
 ];
 
-const normalizeQuestion = (question: any, index: number) => ({
+const normalizeQuestion = (question: any, index: number, businessName?: string) => ({
   id: question?.id || `review-builder-${index}`,
-  prompt: question?.prompt || DEFAULT_BUILDER_QUESTIONS[index % DEFAULT_BUILDER_QUESTIONS.length].prompt,
+  prompt:
+    question?.prompt ||
+    DEFAULT_BUILDER_QUESTIONS(businessName)[
+      index % DEFAULT_BUILDER_QUESTIONS(businessName).length
+    ].prompt,
   helperText: question?.helperText || question?.helper_text || "",
+  placeholderText: question?.placeholderText || question?.placeholder_text || "Type your answer...",
   required: question?.required !== undefined ? Boolean(question.required) : true,
+  questionType: question?.questionType || question?.question_type || 'text',
+  options: Array.isArray(question?.options) ? question.options : undefined,
 });
 
 const copyToClipboard = async (text: string) => {
@@ -78,13 +86,38 @@ export default function ReviewBuilderWizard({
   const [lastName, setLastName] = useState("");
   const [role, setRole] = useState("");
   const [selectedKeywords, setSelectedKeywords] = useState<string[]>([]);
-  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [answers, setAnswers] = useState<Record<string, string | string[]>>({});
   const [reviewText, setReviewText] = useState("");
   const [aiGenerating, setAiGenerating] = useState(false);
+  const [aiAttemptCount, setAiAttemptCount] = useState(0);
   const [submitIndex, setSubmitIndex] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [showFallingAnimation, setShowFallingAnimation] = useState(false);
+  const [reviewCopied, setReviewCopied] = useState(false);
+  const attemptStorageKey = useMemo(
+    () => (promptPage?.slug ? `reviewBuilderAiAttempts_${promptPage.slug}` : null),
+    [promptPage?.slug],
+  );
+
+  useEffect(() => {
+    if (!attemptStorageKey) return;
+    if (typeof window === "undefined") return;
+    const saved = sessionStorage.getItem(attemptStorageKey);
+    if (saved) {
+      const parsed = parseInt(saved, 10);
+      if (!Number.isNaN(parsed)) {
+        setAiAttemptCount(parsed);
+      }
+    }
+  }, [attemptStorageKey]);
+
+  const persistAttemptCount = (count: number) => {
+    setAiAttemptCount(count);
+    if (attemptStorageKey && typeof window !== "undefined") {
+      sessionStorage.setItem(attemptStorageKey, count.toString());
+    }
+  };
 
   const keywordOptions = useMemo(() => {
     if (
@@ -105,14 +138,16 @@ export default function ReviewBuilderWizard({
     return [];
   }, [promptPage?.selected_keyword_inspirations, promptPage?.keywords, businessProfile?.keywords]);
 
-  const builderQuestions = useMemo(() => {
-    if (Array.isArray(promptPage?.builder_questions) && promptPage.builder_questions.length > 0) {
-      return promptPage.builder_questions.map((question: any, index: number) =>
-        normalizeQuestion(question, index),
-      );
-    }
-    return DEFAULT_BUILDER_QUESTIONS;
-  }, [promptPage?.builder_questions]);
+const businessName = businessProfile?.business_name || businessProfile?.name || "our business";
+
+const builderQuestions = useMemo(() => {
+  if (Array.isArray(promptPage?.builder_questions) && promptPage.builder_questions.length > 0) {
+    return promptPage.builder_questions.map((question: any, index: number) =>
+      normalizeQuestion(question, index, businessName),
+    );
+  }
+  return DEFAULT_BUILDER_QUESTIONS(businessName);
+}, [promptPage?.builder_questions, businessName]);
 
   const activePlatforms = useMemo(() => {
     if (Array.isArray(promptPage?.review_platforms) && promptPage.review_platforms.length > 0) {
@@ -189,7 +224,7 @@ export default function ReviewBuilderWizard({
     });
   };
 
-  const updateAnswer = (questionId: string, value: string) => {
+  const updateAnswer = (questionId: string, value: string | string[]) => {
     setAnswers((prev) => ({ ...prev, [questionId]: value }));
   };
 
@@ -207,9 +242,18 @@ export default function ReviewBuilderWizard({
     }
     if (step === 2) {
       // Step 2 is now questions - validate all required questions are answered
-      const missing = builderQuestions.filter(
-        (question) => question.required && !answers[question.id]?.trim(),
-      );
+      const missing = builderQuestions.filter((question) => {
+        if (!question.required) return false;
+        const answer = answers[question.id];
+
+        // For checkbox/radio, check if at least one option is selected
+        if (question.questionType === 'checkbox') {
+          return !Array.isArray(answer) || answer.length === 0;
+        }
+
+        // For text/radio, check if answer exists and is not empty
+        return !answer || (typeof answer === 'string' && !answer.trim());
+      });
       if (missing.length > 0) {
         setError("Please answer all required questions.");
         return false;
@@ -238,6 +282,10 @@ export default function ReviewBuilderWizard({
 
   const handleGenerateReview = async () => {
     if (!validateCurrentStep()) return;
+    if (aiAttemptCount >= 3) {
+      setError("You've reached the 3 AI generations limit for this session.");
+      return;
+    }
     setAiGenerating(true);
     setError(null);
     setSuccessMessage(null);
@@ -249,7 +297,16 @@ export default function ReviewBuilderWizard({
 
       const answerSummary = builderQuestions
         .map((question) => {
-          const response = answers[question.id]?.trim() || "Not provided";
+          const answer = answers[question.id];
+          let response = "Not provided";
+
+          if (Array.isArray(answer)) {
+            // Checkbox answers
+            response = answer.length > 0 ? answer.join(", ") : "Not provided";
+          } else if (typeof answer === 'string') {
+            response = answer.trim() || "Not provided";
+          }
+
           return `${question.prompt}: ${response}`;
         })
         .join("\n");
@@ -275,6 +332,7 @@ export default function ReviewBuilderWizard({
       );
 
       setReviewText(generated);
+      persistAttemptCount(aiAttemptCount + 1);
       setSuccessMessage("Draft ready! Review the AI copy below.");
       setStep(4);
 
@@ -402,9 +460,13 @@ export default function ReviewBuilderWizard({
         );
       case 2:
         // Show one question at a time in step 2 (moved from step 3)
-        const currentQuestionIndex = Object.keys(answers).filter(id =>
-          builderQuestions.some(q => q.id === id && answers[id]?.trim())
-        ).length;
+        const currentQuestionIndex = Object.keys(answers).filter(id => {
+          const answer = answers[id];
+          return builderQuestions.some(q => q.id === id && (
+            (typeof answer === 'string' && answer.trim()) ||
+            (Array.isArray(answer) && answer.length > 0)
+          ));
+        }).length;
         const currentQuestion = builderQuestions[Math.min(currentQuestionIndex, builderQuestions.length - 1)];
         const isLastQuestion = currentQuestionIndex >= builderQuestions.length - 1;
 
@@ -423,14 +485,52 @@ export default function ReviewBuilderWizard({
               {currentQuestion.helperText && (
                 <p className="text-base text-white/80 text-center">{currentQuestion.helperText}</p>
               )}
-              <Textarea
-                rows={6}
-                value={answers[currentQuestion.id] || ""}
-                onChange={(e) => updateAnswer(currentQuestion.id, e.target.value)}
-                placeholder="Type your answer..."
-                className="text-lg bg-white/90 backdrop-blur"
-                autoFocus
-              />
+
+              {currentQuestion.questionType === 'checkbox' && currentQuestion.options ? (
+                <div className="space-y-3 bg-white/90 backdrop-blur rounded-lg p-4">
+                  {currentQuestion.options.map((option) => (
+                    <label key={option} className="flex items-center gap-3 cursor-pointer hover:bg-white/50 p-2 rounded transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={(answers[currentQuestion.id] as string[] || []).includes(option)}
+                        onChange={(e) => {
+                          const current = (answers[currentQuestion.id] as string[]) || [];
+                          const updated = e.target.checked
+                            ? [...current, option]
+                            : current.filter(o => o !== option);
+                          updateAnswer(currentQuestion.id, updated);
+                        }}
+                        className="w-5 h-5 rounded border-gray-300 text-slate-blue focus:ring-slate-blue"
+                      />
+                      <span className="text-lg text-gray-900">{option}</span>
+                    </label>
+                  ))}
+                </div>
+              ) : currentQuestion.questionType === 'radio' && currentQuestion.options ? (
+                <div className="space-y-3 bg-white/90 backdrop-blur rounded-lg p-4">
+                  {currentQuestion.options.map((option) => (
+                    <label key={option} className="flex items-center gap-3 cursor-pointer hover:bg-white/50 p-2 rounded transition-colors">
+                      <input
+                        type="radio"
+                        name={currentQuestion.id}
+                        checked={answers[currentQuestion.id] === option}
+                        onChange={() => updateAnswer(currentQuestion.id, option)}
+                        className="w-5 h-5 border-gray-300 text-slate-blue focus:ring-slate-blue"
+                      />
+                      <span className="text-lg text-gray-900">{option}</span>
+                    </label>
+                  ))}
+                </div>
+              ) : (
+                <Textarea
+                  rows={6}
+                  value={(answers[currentQuestion.id] as string) || ""}
+                  onChange={(e) => updateAnswer(currentQuestion.id, e.target.value)}
+                  placeholder={currentQuestion.placeholderText || "Type your answer..."}
+                  className="text-lg bg-white/90 backdrop-blur"
+                  autoFocus
+                />
+              )}
             </div>
           </div>
         );
@@ -499,29 +599,97 @@ export default function ReviewBuilderWizard({
             <button
               type="button"
               onClick={handleGenerateReview}
-              disabled={aiGenerating}
+              disabled={aiGenerating || aiAttemptCount >= 3}
               className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white text-base font-medium rounded-lg hover:from-purple-700 hover:to-blue-700 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed transition-all shadow-lg"
             >
               <Icon name="FaSparkles" className="w-4 h-4" size={16} />
-              <span>{aiGenerating ? "Generating..." : reviewText ? "Re-generate Review" : "AI Generate"}</span>
+              <span>
+                {aiGenerating
+                  ? "Generating..."
+                  : reviewText
+                    ? `Re-generate Review${aiAttemptCount > 0 ? ` (${aiAttemptCount}/3)` : ""}`
+                    : `AI Generate${aiAttemptCount > 0 ? ` (${aiAttemptCount}/3)` : ""}`}
+              </span>
             </button>
 
             {activePlatforms.length > 0 && reviewText && (
-              <div className="space-y-3 mt-8">
-                <p className="text-sm font-medium text-white/90 text-center">
-                  Submit your review:
-                </p>
-                {activePlatforms.map((platform, index) => (
+              <div className="mt-8 space-y-6">
+                <h3 className="text-xl font-semibold text-white text-center">
+                  Post your review:
+                </h3>
+
+                {/* Step 1: Copy your review */}
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-white/90">
+                    1. Copy your review
+                  </p>
                   <button
-                    key={`${platform.url}-${index}`}
                     type="button"
-                    disabled={submitIndex === index || !platform.url}
-                    onClick={() => handleCopyAndSubmit(index, platform.url)}
-                    className="w-full rounded-lg bg-white text-slate-900 px-6 py-4 text-base font-medium hover:bg-white/90 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all shadow-lg"
+                    onClick={async () => {
+                      try {
+                        await copyToClipboard(reviewText);
+                        setReviewCopied(true);
+                        setSuccessMessage("Review copied to clipboard!");
+                        setTimeout(() => setSuccessMessage(null), 3000);
+                      } catch (err) {
+                        setError("Failed to copy review");
+                        setTimeout(() => setError(null), 3000);
+                      }
+                    }}
+                    className="w-full rounded-lg bg-white text-slate-900 px-6 py-4 text-base font-medium hover:bg-white/90 transition-all shadow-lg flex items-center justify-center gap-2"
                   >
-                    {submitIndex === index ? "Copying..." : `Copy & Submit to ${platform.platform || platform.name || "Review Platform"}`}
+                    <Icon name="FaCopy" className="w-4 h-4" size={16} />
+                    {reviewCopied ? "Copied!" : "Copy Review"}
                   </button>
-                ))}
+                </div>
+
+                {/* Step 2: Post on platforms */}
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-white/90">
+                    2. Post on one or more of these platforms:
+                  </p>
+                  <div className="space-y-3">
+                    {activePlatforms.map((platform, index) => (
+                      <button
+                        key={`${platform.url}-${index}`}
+                        type="button"
+                        disabled={!platform.url}
+                        onClick={() => {
+                          if (platform.url) {
+                            window.open(platform.url, '_blank', 'noopener,noreferrer');
+                          }
+                        }}
+                        className="w-full rounded-lg bg-white text-slate-900 px-6 py-4 text-base font-medium hover:bg-white/90 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all shadow-lg"
+                      >
+                        Post on {platform.platform || platform.name || "Review Platform"}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Special Offer - Only shown after review is generated */}
+            {reviewText && promptPage?.offer_enabled && promptPage?.offer_title && (
+              <div className="mt-8 rounded-2xl bg-gradient-to-r from-yellow-400 to-orange-400 p-6 shadow-xl">
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                  {promptPage.offer_title}
+                </h3>
+                {promptPage.offer_body && (
+                  <p className="text-gray-800 mb-4 whitespace-pre-line">
+                    {promptPage.offer_body}
+                  </p>
+                )}
+                {promptPage.offer_url && (
+                  <a
+                    href={promptPage.offer_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-block px-6 py-3 bg-gray-900 text-white font-semibold rounded-lg hover:bg-gray-800 transition-colors"
+                  >
+                    Learn More
+                  </a>
+                )}
               </div>
             )}
           </div>
@@ -556,9 +724,48 @@ export default function ReviewBuilderWizard({
         />
       )}
 
+      {/* Back Button - Only visible to authenticated users */}
+      {currentUser && (
+        <div className="fixed left-4 top-4 z-40">
+          <div className="bg-black bg-opacity-20 backdrop-blur-sm rounded-xl p-3">
+            <button
+              onClick={() => window.location.href = '/prompt-pages'}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg shadow-md bg-white hover:bg-gray-50 transition-colors group text-slate-blue font-medium"
+              style={{
+                border: "1px solid #E5E7EB"
+              }}
+              title="Back to prompt pages"
+            >
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              <span className="hidden sm:inline">Back</span>
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="mx-auto max-w-2xl relative z-10">
+        {/* Business Logo */}
+        {businessProfile?.logo_url && (
+          <div className="flex justify-center mb-8">
+            <div className="relative w-24 h-24 rounded-full overflow-hidden bg-white shadow-lg ring-4 ring-white/20">
+              <img
+                src={businessProfile.logo_url}
+                alt={businessProfile.business_name || businessProfile.name || "Business logo"}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          </div>
+        )}
+
         <div className="mb-12 text-center">
-          <h1 className="text-4xl font-bold text-white mb-3">
+          <h1 className="text-3xl font-semibold text-white mb-3">
             Let's create a review for {businessProfile?.business_name || businessProfile?.name || "us"}
           </h1>
           <p className="text-xl text-white/90">
@@ -573,27 +780,31 @@ export default function ReviewBuilderWizard({
               const stepNumber = index + 1;
               const isActive = stepNumber === step;
               const isCompleted = stepNumber < step;
+              const isClickable = isCompleted;
 
               return (
                 <div key={index} className="flex items-center">
                   {/* Station dot */}
                   <div className="flex flex-col items-center">
-                    <div
-                      className={`relative flex h-10 w-10 items-center justify-center rounded-full border-2 transition-all ${
+                    <button
+                      type="button"
+                      onClick={() => isClickable && setStep(stepNumber)}
+                      disabled={!isClickable}
+                      className={`relative flex h-8 w-8 items-center justify-center rounded-full border-2 transition-all ${
                         isActive
                           ? "border-white bg-white text-slate-900 scale-110"
                           : isCompleted
-                          ? "border-white bg-white text-slate-900"
-                          : "border-white/40 bg-transparent text-white/60"
+                          ? "border-white bg-white text-slate-900 hover:scale-105 cursor-pointer"
+                          : "border-white/40 bg-transparent text-white/60 cursor-default"
                       }`}
                     >
                       {isCompleted ? (
-                        <span className="text-lg">✓</span>
+                        <span className="text-sm">✓</span>
                       ) : (
-                        <span className="text-sm font-bold">{stepNumber}</span>
+                        <span className="text-xs font-bold">{stepNumber}</span>
                       )}
-                    </div>
-                    <span className={`mt-2 text-xs font-medium ${
+                    </button>
+                    <span className={`mt-1.5 text-xs font-medium ${
                       isActive ? "text-white" : "text-white/60"
                     }`}>
                       {label}
@@ -603,7 +814,7 @@ export default function ReviewBuilderWizard({
                   {/* Connector line */}
                   {index < stepLabels.length - 1 && (
                     <div
-                      className={`h-0.5 w-12 mx-1 mb-6 transition-all ${
+                      className={`h-0.5 w-10 mx-1 mb-5 transition-all ${
                         isCompleted ? "bg-white" : "bg-white/30"
                       }`}
                     />
@@ -650,6 +861,44 @@ export default function ReviewBuilderWizard({
             {successMessage}
           </div>
         )}
+
+        {/* PromptReviews Footer */}
+        <div className="mt-12 mb-12 rounded-2xl shadow-lg p-4 md:p-8 bg-white/10 backdrop-blur-sm border border-white/20">
+          <div className="flex flex-col md:flex-row items-center text-center md:text-left gap-4 md:gap-8 md:items-center">
+            <div className="flex-shrink-0 flex items-center justify-center w-full md:w-40 mb-0">
+              <a
+                href="https://promptreviews.app"
+                target="_blank"
+                rel="noopener"
+                aria-label="Prompt Reviews Home"
+              >
+                <PromptReviewsLogo
+                  color={businessProfile?.primary_color || "#fff"}
+                  size={240}
+                  className="h-20 w-auto"
+                />
+              </a>
+            </div>
+            <div className="flex-1 flex flex-col justify-center">
+              <div className="flex items-center gap-2 mb-4 justify-center md:justify-start">
+                <span className="text-lg font-semibold text-white">
+                  Powered by Prompt Reviews
+                </span>
+              </div>
+              <p className="max-w-2xl text-sm md:text-base text-white/90">
+                Make it easy and fun for your customers or clients to post reviews online. Grow your online presence on traditional and AI search platforms.
+              </p>
+              <a
+                href="https://promptreviews.app"
+                target="_blank"
+                rel="noopener"
+                className="mt-4 font-medium hover:opacity-80 transition-opacity inline-block underline text-white"
+              >
+                Learn more about Prompt Reviews →
+              </a>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

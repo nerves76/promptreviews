@@ -6,7 +6,88 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from '@supabase/supabase-js';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import { createServerSupabaseClient, createServiceRoleClient } from '@/auth/providers/supabase';
+
+async function getAuthenticatedUser(request: NextRequest) {
+  const supabase = await createServerSupabaseClient();
+
+  // First, honor Authorization header if provided (Share modal fetches via fetch API)
+  const authHeader = request.headers.get('authorization');
+  if (authHeader?.startsWith('Bearer ')) {
+    const token = authHeader.slice(7);
+    const { data, error } = await supabase.auth.getUser(token);
+    if (!error && data.user) {
+      return data.user;
+    }
+  }
+
+  const { data, error } = await supabase.auth.getUser();
+  if (error || !data.user) {
+    return null;
+  }
+  return data.user;
+}
+
+async function userHasAccountAccess(
+  serviceSupabase: SupabaseClient,
+  userId: string,
+  accountId: string | null,
+) {
+  if (!accountId) return false;
+
+  const { data } = await serviceSupabase
+    .from('account_users')
+    .select('account_id')
+    .eq('user_id', userId)
+    .eq('account_id', accountId)
+    .maybeSingle();
+
+  if (data) {
+    return true;
+  }
+
+  const { data: accountRecord } = await serviceSupabase
+    .from('accounts')
+    .select('created_by')
+    .eq('id', accountId)
+    .maybeSingle();
+
+  return accountRecord?.created_by === userId;
+}
+
+async function loadBusinessRecord(
+  serviceSupabase: SupabaseClient,
+  accountParam: string,
+) {
+  // First try to find by account_id
+  const { data: byAccount, error: byAccountError } = await serviceSupabase
+    .from('businesses')
+    .select('*')
+    .eq('account_id', accountParam)
+    .maybeSingle();
+
+  if (byAccount) {
+    return byAccount;
+  }
+
+  if (byAccountError && byAccountError.code && byAccountError.code !== 'PGRST116') {
+    throw byAccountError;
+  }
+
+  // Fall back to treating the param as a business ID
+  const { data: byId, error: byIdError } = await serviceSupabase
+    .from('businesses')
+    .select('*')
+    .eq('id', accountParam)
+    .maybeSingle();
+
+  if (byIdError && byIdError.code && byIdError.code !== 'PGRST116') {
+    throw byIdError;
+  }
+
+  return byId || null;
+}
 
 export async function GET(
   request: NextRequest,
@@ -22,30 +103,24 @@ export async function GET(
       );
     }
 
-
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-    if (!supabaseUrl || !supabaseServiceKey) {
+    const user = await getAuthenticatedUser(request);
+    if (!user) {
       return NextResponse.json(
-        { error: "Server configuration error" },
-        { status: 500 }
+        { error: "Authentication required" },
+        { status: 401 }
       );
     }
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const serviceSupabase = createServiceRoleClient();
+    const business = await loadBusinessRecord(serviceSupabase, accountId);
 
-    const { data: business, error } = await supabase
-      .from('businesses')
-      .select('*')
-      .eq('account_id', accountId)
-      .maybeSingle();
+    const accountIdForAccess = business?.account_id || accountId;
+    const hasAccess = await userHasAccountAccess(serviceSupabase, user.id, accountIdForAccess);
 
-    if (error) {
-      console.error('[BUSINESS-BY-ACCOUNT] Error fetching business:', error);
+    if (!hasAccess) {
       return NextResponse.json(
-        { error: "Failed to fetch business" },
-        { status: 500 }
+        { error: "You do not have access to this account" },
+        { status: 403 }
       );
     }
 
@@ -80,6 +155,14 @@ export async function PUT(
       );
     }
 
+    const user = await getAuthenticatedUser(request);
+    if (!user) {
+      return NextResponse.json(
+        { error: "Authentication required" },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
 
     // Log the incoming request for debugging
@@ -91,45 +174,24 @@ export async function PUT(
       aiDontsType: typeof body.ai_donts
     });
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const serviceSupabase = createServiceRoleClient();
+    const existingBusiness = await loadBusinessRecord(serviceSupabase, accountId);
+    const accountIdForAccess = existingBusiness?.account_id || accountId;
+    const hasAccess = await userHasAccountAccess(serviceSupabase, user.id, accountIdForAccess);
 
-    if (!supabaseUrl || !supabaseServiceKey) {
+    if (!hasAccess) {
       return NextResponse.json(
-        { error: "Server configuration error" },
-        { status: 500 }
+        { error: "You do not have access to this account" },
+        { status: 403 }
       );
     }
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-    // First, try to find business by account_id
-    let { data: existingBusiness, error: fetchError } = await supabase
-      .from('businesses')
-      .select('id, account_id, name')
-      .eq('account_id', accountId)
-      .single();
-
-    // If not found by account_id, try by business id (for backwards compatibility)
-    if (fetchError?.code === 'PGRST116' || !existingBusiness) {
-      const result = await supabase
-        .from('businesses')
-        .select('id, account_id, name')
-        .eq('id', accountId)
-        .single();
-      
-      existingBusiness = result.data;
-      fetchError = result.error;
-    }
-
-    if (fetchError || !existingBusiness) {
-      console.error('[BUSINESS-BY-ACCOUNT] Fetch error:', fetchError);
+    if (!existingBusiness) {
       return NextResponse.json(
         { error: `No business found for account/id ${accountId}` },
         { status: 404 }
       );
     }
-
 
     // Update the business record
     // Filter body to only include valid business table columns
@@ -171,7 +233,7 @@ export async function PUT(
     });
 
     // Use the business id for the update
-    const { data: updatedBusiness, error } = await supabase
+    const { data: updatedBusiness, error } = await serviceSupabase
       .from('businesses')
       .update(filteredBody)
       .eq('id', existingBusiness.id)
@@ -198,7 +260,7 @@ export async function PUT(
     // Also update the business_name in the accounts table if it was changed
     // This ensures the account switcher shows the updated name
     if (body.name && existingBusiness.account_id) {
-      const { error: accountUpdateError } = await supabase
+      const { error: accountUpdateError } = await serviceSupabase
         .from('accounts')
         .update({ business_name: body.name })
         .eq('id', existingBusiness.account_id);

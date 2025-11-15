@@ -9,6 +9,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { createServiceRoleClient } from '@/auth/providers/supabase';
 
 interface RateLimitConfig {
@@ -28,69 +29,79 @@ interface RateLimitResult {
   error?: string;
 }
 
-// In-memory store for rate limit tracking (use Redis in production)
-const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT_TABLE = 'rate_limit_counters';
+let rateLimitClient: SupabaseClient | null = null;
 
-/**
- * Clean up expired entries from the rate limit store
- */
-function cleanupExpiredEntries() {
-  const now = Date.now();
-  for (const [key, value] of rateLimitStore.entries()) {
-    if (now > value.resetTime) {
-      rateLimitStore.delete(key);
-    }
+function getRateLimitClient() {
+  if (!rateLimitClient) {
+    rateLimitClient = createServiceRoleClient();
   }
+  return rateLimitClient;
 }
-
-// Clean up expired entries every 5 minutes
-setInterval(cleanupExpiredEntries, 5 * 60 * 1000);
 
 /**
  * Check rate limit for a given key
  */
-function checkRateLimit(key: string, config: RateLimitConfig): RateLimitResult {
+async function checkRateLimit(key: string, config: RateLimitConfig): Promise<RateLimitResult> {
+  const supabase = getRateLimitClient();
   const now = Date.now();
-  const windowStart = now - config.windowMs;
-  
-  let entry = rateLimitStore.get(key);
-  
-  // If no entry or window expired, create new entry
-  if (!entry || now > entry.resetTime) {
-    entry = {
-      count: 1,
-      resetTime: now + config.windowMs
-    };
-    rateLimitStore.set(key, entry);
-    
+  const resetAt = new Date(now + config.windowMs);
+
+  const { data: existingEntry, error } = await supabase
+    .from(RATE_LIMIT_TABLE)
+    .select('key, count, reset_time')
+    .eq('key', key)
+    .maybeSingle();
+
+  if (error && error.code && error.code !== 'PGRST116') {
+    throw error;
+  }
+
+  if (!existingEntry || new Date(existingEntry.reset_time).getTime() <= now) {
+    await supabase
+      .from(RATE_LIMIT_TABLE)
+      .upsert(
+        [{
+          key,
+          count: 1,
+          reset_time: resetAt.toISOString(),
+        }],
+        { onConflict: 'key' },
+      );
+
     return {
       success: true,
       limit: config.maxRequests,
       remaining: config.maxRequests - 1,
-      reset: new Date(entry.resetTime)
+      reset: resetAt,
     };
   }
-  
-  // Check if limit exceeded
-  if (entry.count >= config.maxRequests) {
+
+  if (existingEntry.count >= config.maxRequests) {
     return {
       success: false,
       limit: config.maxRequests,
       remaining: 0,
-      reset: new Date(entry.resetTime),
+      reset: new Date(existingEntry.reset_time),
       error: config.message || 'Rate limit exceeded. Please try again later.'
     };
   }
-  
-  // Increment counter
-  entry.count++;
-  rateLimitStore.set(key, entry);
-  
+
+  const nextCount = existingEntry.count + 1;
+
+  await supabase
+    .from(RATE_LIMIT_TABLE)
+    .update({
+      count: nextCount,
+      reset_time: existingEntry.reset_time,
+    })
+    .eq('key', key);
+
   return {
     success: true,
     limit: config.maxRequests,
-    remaining: config.maxRequests - entry.count,
-    reset: new Date(entry.resetTime)
+    remaining: Math.max(0, config.maxRequests - nextCount),
+    reset: new Date(existingEntry.reset_time),
   };
 }
 
@@ -171,7 +182,7 @@ export async function applyRateLimit(
       ? config.keyGenerator(request, userId, accountId)
       : KeyGenerators.byIP(request);
       
-    const result = checkRateLimit(key, config);
+    const result = await checkRateLimit(key, config);
     
     // Log rate limit violations
     if (!result.success) {
@@ -281,31 +292,5 @@ export function withRateLimit(
     
     // Add rate limit headers to successful responses
     return addRateLimitHeaders(response, rateLimitResult);
-  };
-}
-
-/**
- * Get current rate limit status for a key (useful for dashboards)
- */
-export function getRateLimitStatus(key: string): {
-  count: number;
-  resetTime: Date;
-  isLimited: boolean;
-} | null {
-  const entry = rateLimitStore.get(key);
-  if (!entry) {
-    return null;
-  }
-  
-  const now = Date.now();
-  if (now > entry.resetTime) {
-    rateLimitStore.delete(key);
-    return null;
-  }
-  
-  return {
-    count: entry.count,
-    resetTime: new Date(entry.resetTime),
-    isLimited: entry.count >= entry.count // This would need the original config to be accurate
   };
 }

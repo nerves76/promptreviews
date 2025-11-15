@@ -91,7 +91,7 @@ const PageCard = React.memo(function PageCard({
   return (
     <div className={`w-full mx-auto px-4 sm:px-6 md:px-8 lg:px-12 ${topMargin} mb-16 flex justify-center items-start`}>
       <div
-        className={`page relative w-full max-w-[1000px] rounded-2xl bg-white/90 shadow-2xl border-2 border-white pt-4 px-8 md:px-12 pb-8 ${className}`}
+        className={`page relative w-full max-w-[1000px] rounded-2xl bg-white/90 shadow-2xl border-2 border-white pt-4 px-4 md:px-8 lg:px-12 pb-8 ${className}`}
         style={{ overflow: "visible" }} // Restore to visible for icon breaching
       >
         {icon && (
@@ -113,8 +113,8 @@ const PageCard = React.memo(function PageCard({
           </>
         )}
         <div
-          className="content w-full px-1 pt-2 sm:pt-0"
-          style={{ 
+          className="content w-full pt-2 sm:pt-0"
+          style={{
             paddingBottom: imageToShow && hasImage ? "400px" : undefined
           }}
         >

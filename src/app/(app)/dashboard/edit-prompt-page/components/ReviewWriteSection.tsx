@@ -21,6 +21,7 @@ interface ReviewWriteSectionProps {
   onGenerateReview: (idx: number) => void;
   errors?: string[];
   hideReviewTemplateFields?: boolean;
+  hideAdvancedFields?: boolean;
   aiGeneratingIndex?: number | null;
 }
 
@@ -78,6 +79,7 @@ const getPlatformIcon = (name: string, url: string) => {
 const ReviewWriteSection: React.FC<ReviewWriteSectionProps> = ({
   value,
   onChange,
+  hideAdvancedFields = false,
   onGenerateReview,
   errors = [],
   hideReviewTemplateFields = false,
@@ -205,46 +207,52 @@ const ReviewWriteSection: React.FC<ReviewWriteSectionProps> = ({
                     required
                   />
                 </div>
-                <div className="flex flex-col w-32">
-                  <label className="text-xs font-semibold text-gray-500 mb-1">
-                    Word Count
-                  </label>
-                  <Input
-                    type="number"
-                    className="w-full border px-3 py-2 rounded-lg bg-white"
-                    placeholder={String(PROMPT_PAGE_WORD_LIMITS.DEFAULT)}
-                    value={platform.wordCount || ""}
-                    min={PROMPT_PAGE_WORD_LIMITS.MIN}
-                    max={PROMPT_PAGE_WORD_LIMITS.MAX}
+                {!hideAdvancedFields && (
+                  <div className="flex flex-col w-32">
+                    <label className="text-xs font-semibold text-gray-500 mb-1">
+                      Word Count
+                    </label>
+                    <Input
+                      type="number"
+                      className="w-full border px-3 py-2 rounded-lg bg-white"
+                      placeholder={String(PROMPT_PAGE_WORD_LIMITS.DEFAULT)}
+                      value={platform.wordCount || ""}
+                      min={PROMPT_PAGE_WORD_LIMITS.MIN}
+                      max={PROMPT_PAGE_WORD_LIMITS.MAX}
+                      onChange={(e) =>
+                        handlePlatformChange(
+                          idx,
+                          "wordCount",
+                          clampWordLimit(e.target.value),
+                        )
+                      }
+                      required
+                    />
+                  </div>
+                )}
+              </div>
+              {/* Platform Instructions */}
+              {!hideAdvancedFields && (
+                <>
+                  <Textarea
+                    className="w-full mt-2 text-sm"
+                    placeholder="Platform instructions (e.g., Log in with Google before leaving a review)"
+                    value={platform.customInstructions || ""}
                     onChange={(e) =>
                       handlePlatformChange(
                         idx,
-                        "wordCount",
-                        clampWordLimit(e.target.value),
+                        "customInstructions",
+                        e.target.value.slice(0, 160),
                       )
                     }
-                    required
+                    rows={2}
+                    maxLength={160}
                   />
-                </div>
-              </div>
-              {/* Platform Instructions */}
-              <Textarea
-                className="w-full mt-2 text-sm"
-                placeholder="Platform instructions (e.g., Log in with Google before leaving a review)"
-                value={platform.customInstructions || ""}
-                onChange={(e) =>
-                  handlePlatformChange(
-                    idx,
-                    "customInstructions",
-                    e.target.value.slice(0, 160),
-                  )
-                }
-                rows={2}
-                maxLength={160}
-              />
-              <div className="text-xs text-gray-400 text-right">
-                {platform.customInstructions?.length || 0}/160
-              </div>
+                  <div className="text-xs text-gray-400 text-right">
+                    {platform.customInstructions?.length || 0}/160
+                  </div>
+                </>
+              )}
               {/* Review Text + AI Button (conditionally rendered) */}
               {!hideReviewTemplateFields && (
                 <div className="flex flex-col gap-2 mt-2">

@@ -2171,7 +2171,7 @@ export default function UploadContactsPage() {
                   <button
                     onClick={() => {
                       setShowBulkSuccessModal(false);
-                      router.push('/prompt-pages?tab=individual');
+                      router.push('/prompt-pages?tab=campaign');
                     }}
                     className="px-6 py-3 bg-slate-blue text-white rounded-lg hover:bg-slate-blue/90 font-semibold transition-colors"
                   >

@@ -55,7 +55,8 @@ export async function GET(request: NextRequest) {
           email
         )
       `)
-      .eq('profiles.email', supabase.from('profiles').select('email').neq('email', ''));
+      .not('profiles.email', 'is', null)
+      .neq('profiles.email', '');
 
     if (gbpError) {
       console.error('Error fetching users with GBP:', gbpError);

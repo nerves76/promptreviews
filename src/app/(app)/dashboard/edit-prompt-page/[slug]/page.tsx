@@ -943,8 +943,8 @@ export default function EditPromptPage() {
       let redirectUrl = '/prompt-pages'; // Default to main page (public tab)
       
       if (promptPage.campaign_type === 'individual') {
-        redirectUrl = '/prompt-pages?tab=individual';
-      } else if (promptPage.campaign_type === 'locations') {
+        redirectUrl = '/prompt-pages?tab=campaign';
+      } else if (promptPage.campaign_type === 'location') {
         redirectUrl = '/prompt-pages?tab=locations';
       }
       // If campaign_type is 'public' or anything else, use default /prompt-pages
@@ -1131,8 +1131,8 @@ export default function EditPromptPage() {
       let redirectUrl = '/prompt-pages'; // Default to main page (public tab)
       
       if (promptPage.campaign_type === 'individual') {
-        redirectUrl = '/prompt-pages?tab=individual';
-      } else if (promptPage.campaign_type === 'locations') {
+        redirectUrl = '/prompt-pages?tab=campaign';
+      } else if (promptPage.campaign_type === 'location') {
         redirectUrl = '/prompt-pages?tab=locations';
       }
       // If campaign_type is 'public' or anything else, use default /prompt-pages
@@ -1332,11 +1332,9 @@ export default function EditPromptPage() {
 
   // Determine the appropriate icon based on page type
   const getPageIcon = () => {
-    if (formData.type === "product" || (formData as any).review_type === "product") {
-      return <svg className="w-9 h-9" style={{ color: "#1A237E" }}><use href="/icons-sprite.svg#FaBox" /></svg>;
-    }
-    if (formData.type === "service" || (formData as any).review_type === "service") {
-      return <svg className="w-9 h-9" style={{ color: "#1A237E" }}><use href="/icons-sprite.svg#FaHandshake" /></svg>;
+    // Check review_type first (more specific)
+    if ((formData as any).review_type === "review_builder") {
+      return <Icon name="FaTools" className="w-9 h-9" style={{ color: "#1A237E" }} size={36} />;
     }
     if ((formData as any).review_type === "photo") {
       return <Icon name="FaCamera" className="w-9 h-9" style={{ color: "#1A237E" }} />;
@@ -1347,8 +1345,18 @@ export default function EditPromptPage() {
     if ((formData as any).review_type === "event") {
       return <Icon name="MdEvent" className="w-9 h-9" style={{ color: "#1A237E" }} />;
     }
-    if ((formData as any).review_type === "review_builder") {
-      return <Icon name="FaTools" className="w-9 h-9" style={{ color: "#1A237E" }} />;
+    if ((formData as any).review_type === "product") {
+      return <svg className="w-9 h-9" style={{ color: "#1A237E" }}><use href="/icons-sprite.svg#FaBox" /></svg>;
+    }
+    if ((formData as any).review_type === "service") {
+      return <svg className="w-9 h-9" style={{ color: "#1A237E" }}><use href="/icons-sprite.svg#FaHandshake" /></svg>;
+    }
+    // Fall back to type field
+    if (formData.type === "product") {
+      return <svg className="w-9 h-9" style={{ color: "#1A237E" }}><use href="/icons-sprite.svg#FaBox" /></svg>;
+    }
+    if (formData.type === "service") {
+      return <svg className="w-9 h-9" style={{ color: "#1A237E" }}><use href="/icons-sprite.svg#FaHandshake" /></svg>;
     }
     if (formData.type === "universal") {
       return <Icon name="FaGlobe" className="w-9 h-9" style={{ color: "#1A237E" }} size={36} />;
@@ -1359,11 +1367,9 @@ export default function EditPromptPage() {
 
   // Determine the page title based on type
   const getPageTitle = () => {
-    if (formData.type === "product" || (formData as any).review_type === "product") {
-      return "Edit Product Prompt Page";
-    }
-    if (formData.type === "service" || (formData as any).review_type === "service") {
-      return "Edit Service Prompt Page";
+    // Check review_type first (more specific)
+    if ((formData as any).review_type === "review_builder") {
+      return "Edit Review Builder Prompt Page";
     }
     if ((formData as any).review_type === "photo") {
       return "Edit Photo Prompt Page";
@@ -1374,8 +1380,18 @@ export default function EditPromptPage() {
     if ((formData as any).review_type === "event") {
       return "Edit Event Review Page";
     }
-    if ((formData as any).review_type === "review_builder") {
-      return "Edit Review Builder";
+    if ((formData as any).review_type === "product") {
+      return "Edit Product Prompt Page";
+    }
+    if ((formData as any).review_type === "service") {
+      return "Edit Service Prompt Page";
+    }
+    // Fall back to type field
+    if (formData.type === "product") {
+      return "Edit Product Prompt Page";
+    }
+    if (formData.type === "service") {
+      return "Edit Service Prompt Page";
     }
     if (formData.type === "universal") {
       return "Edit Universal Prompt Page";

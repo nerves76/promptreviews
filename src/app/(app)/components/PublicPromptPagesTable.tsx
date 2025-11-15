@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import Icon from "@/components/Icon";
 import QRCodeModal from "./QRCodeModal";
+import PromptPageEmbedButton from "./PromptPageEmbedButton";
 
 export interface PromptPage {
   id: string;
@@ -15,6 +16,7 @@ export interface PromptPage {
   is_universal: boolean;
   review_type?: string;
   nfc_text_enabled?: boolean;
+  emoji_sentiment_enabled?: boolean;
 }
 
 interface PublicPromptPagesTableProps {
@@ -196,6 +198,11 @@ export default function PublicPromptPagesTable({
                         <Icon name="MdDownload" size={22} style={{ color: "#b45309" }} />
                         QR code
                       </button>
+                      <PromptPageEmbedButton
+                        slug={page.slug}
+                        emojiSentimentEnabled={page?.emoji_sentiment_enabled}
+                        isUniversal={false}
+                      />
                     </div>
                   </td>
                 </tr>

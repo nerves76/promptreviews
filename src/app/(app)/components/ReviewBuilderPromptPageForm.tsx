@@ -35,7 +35,10 @@ export interface BuilderQuestion {
   id: string;
   prompt: string;
   helperText?: string;
+  placeholderText?: string;
   required?: boolean;
+  questionType?: 'text' | 'checkbox' | 'radio';
+  options?: string[];
 }
 
 const DEFAULT_QUESTIONS: BuilderQuestion[] = [
@@ -43,13 +46,17 @@ const DEFAULT_QUESTIONS: BuilderQuestion[] = [
     id: "builder-q1",
     prompt: "What did we help you accomplish?",
     helperText: "Share the outcome or transformation you experienced.",
+    placeholderText: "Type your answer...",
     required: true,
+    questionType: 'text',
   },
   {
     id: "builder-q2",
     prompt: "What specific detail should the review highlight?",
     helperText: "Mention a service, team member, or detail other prospects should know.",
+    placeholderText: "Type your answer...",
     required: true,
+    questionType: 'text',
   },
 ];
 
@@ -70,7 +77,10 @@ const normalizeQuestions = (rawQuestions?: any): BuilderQuestion[] => {
       id: q?.id || generateQuestionId(),
       prompt: q?.prompt || "",
       helperText: q?.helperText || q?.helper_text || "",
+      placeholderText: q?.placeholderText || q?.placeholder_text || "Type your answer...",
       required: q?.required !== undefined ? Boolean(q.required) : true,
+      questionType: q?.questionType || q?.question_type || 'text',
+      options: Array.isArray(q?.options) ? q.options : undefined,
     }))
     .filter((q) => typeof q.prompt === "string");
 };
@@ -109,6 +119,9 @@ export default function ReviewBuilderPromptPageForm({
         ? initialData.selected_keyword_inspirations
         : [],
     );
+  const [keywordsRequired, setKeywordsRequired] = useState<boolean>(
+    initialData?.keywords_required ?? true
+  );
   const [questions, setQuestions] = useState<BuilderQuestion[]>(
     normalizeQuestions(initialData?.builder_questions),
   );
@@ -352,7 +365,7 @@ export default function ReviewBuilderPromptPageForm({
   const handleQuestionChange = (
     id: string,
     field: keyof BuilderQuestion,
-    value: string | boolean,
+    value: string | boolean | string[] | 'text' | 'checkbox' | 'radio',
   ) => {
     setQuestions((prev) =>
       prev.map((question) =>
@@ -400,7 +413,10 @@ export default function ReviewBuilderPromptPageForm({
         id: question.id || `builder-${index}`,
         prompt: question.prompt.trim(),
         helperText: question.helperText?.trim() || "",
+        placeholderText: question.placeholderText?.trim() || "Type your answer...",
         required: question.required ?? true,
+        questionType: question.questionType || 'text',
+        options: question.options || undefined,
       })),
     [questions],
   );
@@ -459,6 +475,7 @@ export default function ReviewBuilderPromptPageForm({
     keywords,
     selected_keyword_inspirations: selectedKeywordInspirations,
     keyword_inspiration_enabled: true,
+    keywords_required: keywordsRequired,
     builder_questions: questionPayload,
     // Ensure emoji_sentiment features are disabled for review builder
     emoji_sentiment_enabled: false,
@@ -491,37 +508,68 @@ export default function ReviewBuilderPromptPageForm({
   };
 
   return (
-    <BasePromptPageForm
-      mode={mode}
-      initialData={{
-        ...initialData,
-        ...(campaignType === "public" ? { name: campaignName } : {}),
-        keywords,
-        selected_keyword_inspirations: selectedKeywordInspirations,
-        builder_questions: questionPayload,
-        keyword_inspiration_enabled: true,
-        review_type: "review_builder",
-      }}
-      onSave={handleSave}
-      onPublish={onPublish ? handlePublish : undefined}
-      pageTitle={pageTitle}
-      supabase={supabase}
-      businessProfile={businessProfile}
-      isUniversal={isUniversal}
-      onPublishSuccess={onPublishSuccess}
-      campaignType={campaignType}
-      onGenerateReview={onGenerateReview}
-      enabledFeatures={{
-        personalizedNote: false,
-        emojiSentiment: false,
-        fallingStars: true,
-        aiSettings: false,
-        offer: true,
-        reviewPlatforms: false,
-        kickstarters: false,
-      }}
-    >
-      <div className="space-y-10">
+    <div className="max-w-4xl mx-auto px-6 py-8">
+      <BasePromptPageForm
+        mode={mode}
+        initialData={{
+          ...initialData,
+          ...(campaignType === "public" ? { name: campaignName } : {}),
+          keywords,
+          selected_keyword_inspirations: selectedKeywordInspirations,
+          builder_questions: questionPayload,
+          keyword_inspiration_enabled: true,
+          review_type: "review_builder",
+        }}
+        onSave={handleSave}
+        onPublish={onPublish ? handlePublish : undefined}
+        pageTitle={pageTitle}
+        supabase={supabase}
+        businessProfile={businessProfile}
+        isUniversal={isUniversal}
+        onPublishSuccess={onPublishSuccess}
+        campaignType={campaignType}
+        onGenerateReview={onGenerateReview}
+        offerHelpText="The special offer will appear after the customer's review is generated, creating a perfect moment to incentivize them."
+        enabledFeatures={{
+          personalizedNote: false,
+          emojiSentiment: false,
+          fallingStars: true,
+          aiSettings: false,
+          offer: true,
+          reviewPlatforms: false,
+          kickstarters: false,
+        }}
+      >
+        {/* Page Title Section - inside form so submit button works */}
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-8">
+          <div className="flex-1">
+            <div className="mb-3">
+              <div className="flex items-center gap-3">
+                <h1 className="text-3xl font-bold text-slate-blue">
+                  {pageTitle}
+                </h1>
+                <div className="relative group">
+                  <Icon name="prompty" className="w-6 h-6 text-slate-blue" size={24} />
+                  <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block w-64 px-3 py-2 text-sm text-white bg-gray-900 rounded-lg shadow-lg z-10">
+                    This particular Prompt Page needs AI to function so there is no option to turn it off.
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-gray-900"></div>
+                  </div>
+                </div>
+              </div>
+              <p className="text-gray-600 mt-3">
+                Reviewers will complete a guided flow: (1) enter their name & role, (2) answer custom questions, (3) choose highlights, and (4) let AI assemble the review before copying it to your preferred sites.
+              </p>
+            </div>
+          </div>
+          <button
+            type="submit"
+            className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto shrink-0"
+          >
+            Save & publish
+          </button>
+        </div>
+
+        <div className="space-y-10">
         {campaignType === "public" ? (
           <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
             <div className="flex items-center gap-3 mb-3">
@@ -621,109 +669,6 @@ export default function ReviewBuilderPromptPageForm({
         )}
 
         <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="flex items-center gap-3 mb-3">
-            <Icon name="FaSparkles" className="text-slate-blue w-6 h-6" size={24} />
-            <h2 className="text-2xl font-bold text-slate-blue">Review Builder flow</h2>
-          </div>
-          <p className="text-gray-600 mb-4">
-            Reviewers will complete a guided flow: (1) enter their name & role, (2) choose up to three keyword power-ups, (3) answer these custom questions, and (4) let AI assemble the review before copying it to your preferred sites.
-          </p>
-          <ul className="list-disc pl-6 text-sm text-gray-600 space-y-1">
-            <li>Always collects first & last name plus reviewer role</li>
-            <li>Requires at least one keyword for the power-up step</li>
-            <li>Supports 2-5 short answer questions</li>
-          </ul>
-        </section>
-
-        <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
-          <div className="flex items-center gap-3">
-            <Icon name="FaKey" className="text-slate-blue w-6 h-6" size={24} />
-            <h3 className="text-xl font-semibold text-slate-blue">
-              Keyword Power-Ups
-            </h3>
-          </div>
-          <KeywordsInput
-            keywords={keywords}
-            onChange={setKeywords}
-            placeholder="e.g., same-day installation, custom web design, Austin SEO expert"
-            businessInfo={businessInfo}
-          />
-          {globalKeywords.length > 0 && (
-            <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600">
-              <span>
-                Start from your Prompt Page defaults ({globalKeywords.length} saved keyword
-                {globalKeywords.length === 1 ? "" : "s"}).
-              </span>
-              <button
-                type="button"
-                onClick={handleAddGlobalKeywords}
-                className="inline-flex items-center rounded-full border border-slate-300 px-3 py-1 text-xs font-semibold text-slate-blue hover:border-slate-blue hover:bg-slate-blue/5"
-              >
-                Use global keywords
-              </button>
-            </div>
-          )}
-
-          <div className="rounded-lg border border-green-100 bg-green-50 p-4">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <Icon name="FaList" className="w-5 h-5 text-slate-blue" size={20} />
-                <span className="font-semibold text-slate-blue">
-                  Select up to 10 power-ups
-                </span>
-              </div>
-              <span className="text-xs text-gray-500">
-                {selectedKeywordInspirations.length}/10 selected
-              </span>
-            </div>
-            {keywords.length === 0 ? (
-              <div className="rounded border border-yellow-200 bg-yellow-50 px-3 py-2 text-sm text-yellow-800">
-                Add keywords above to make them available here.
-              </div>
-            ) : (
-              <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
-                {keywords.map((keyword) => {
-                  const checked = selectedKeywordInspirations.includes(keyword);
-                  return (
-                    <label
-                      key={keyword}
-                      className="flex items-center gap-3 rounded-md border border-green-200 bg-white px-3 py-2 text-sm text-gray-700"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={checked}
-                        onChange={() => {
-                          setSelectedKeywordInspirations((prev) => {
-                            if (checked) {
-                              return prev.filter((k) => k !== keyword);
-                            }
-                            if (prev.length >= 10) return prev;
-                            return [...prev, keyword];
-                          });
-                        }}
-                        disabled={!checked && selectedKeywordInspirations.length >= 10}
-                        className="h-4 w-4 rounded border-gray-300 text-slate-blue focus:ring-slate-blue"
-                      />
-                      <span className="truncate">{keyword}</span>
-                    </label>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </section>
-
-        <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-          <ReviewWriteSection
-            value={reviewPlatforms}
-            onChange={setReviewPlatforms}
-            onGenerateReview={onGenerateReview || (() => {})}
-            hideReviewTemplateFields
-            aiGeneratingIndex={null}
-          />
-        </section>
-
-        <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="flex items-center gap-3 mb-4">
             <Icon name="FaQuestionCircle" className="text-slate-blue w-6 h-6" size={24} />
             <div>
@@ -797,7 +742,57 @@ export default function ReviewBuilderPromptPageForm({
                   }
                   rows={2}
                   placeholder="Give reviewers extra guidance (e.g., mention any numbers or proof points)."
+                  className="mb-3"
                 />
+
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Placeholder text (optional)
+                </label>
+                <Input
+                  value={question.placeholderText || ""}
+                  onChange={(e) =>
+                    handleQuestionChange(question.id, "placeholderText", e.target.value)
+                  }
+                  placeholder="Type your answer..."
+                />
+
+                <div className="mt-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Question type
+                  </label>
+                  <select
+                    value={question.questionType || 'text'}
+                    onChange={(e) =>
+                      handleQuestionChange(question.id, "questionType", e.target.value as 'text' | 'checkbox' | 'radio')
+                    }
+                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-slate-blue focus:ring-slate-blue"
+                  >
+                    <option value="text">Text answer</option>
+                    <option value="checkbox">Multiple choice (checkboxes)</option>
+                    <option value="radio">Single choice (radio buttons)</option>
+                  </select>
+                </div>
+
+                {(question.questionType === 'checkbox' || question.questionType === 'radio') && (
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Options (one per line)
+                    </label>
+                    <Textarea
+                      value={(question.options || []).join('\n')}
+                      onChange={(e) => {
+                        const options = e.target.value.split('\n').filter(opt => opt.trim());
+                        handleQuestionChange(question.id, "options", options);
+                      }}
+                      rows={4}
+                      placeholder="Option 1&#10;Option 2&#10;Option 3"
+                      className="font-mono text-sm"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      {question.options?.length || 0} option{question.options?.length !== 1 ? 's' : ''} configured
+                    </p>
+                  </div>
+                )}
 
                 <div className="mt-4 flex items-center gap-2">
                   <input
@@ -836,6 +831,121 @@ export default function ReviewBuilderPromptPageForm({
           </div>
         </section>
 
+        <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
+          <div className="flex items-center gap-3 mb-2">
+            <Icon name="FaKey" className="text-slate-blue w-6 h-6" size={24} />
+            <h3 className="text-xl font-semibold text-slate-blue">
+              Keyword select
+            </h3>
+            <div className="relative group">
+              <Icon name="prompty" className="w-5 h-5 text-slate-blue" size={20} />
+              <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block w-72 px-3 py-2 text-sm text-white bg-gray-900 rounded-lg shadow-lg z-10">
+                Keywords are used by Prompty AI and inserted into reviews for better rankings in Google and LLMs like ChatGPT.
+                <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-gray-900"></div>
+              </div>
+            </div>
+          </div>
+          <p className="text-gray-600 text-sm mb-4">
+            Encourage your customers to select 1-3 of these phrases to include in their review.
+          </p>
+          <KeywordsInput
+            keywords={keywords}
+            onChange={setKeywords}
+            placeholder="e.g., same-day installation, custom web design, Austin SEO expert"
+            businessInfo={businessInfo}
+          />
+          {globalKeywords.length > 0 && (
+            <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600">
+              <span>
+                Start from your Prompt Page defaults ({globalKeywords.length} saved keyword
+                {globalKeywords.length === 1 ? "" : "s"}).
+              </span>
+              <button
+                type="button"
+                onClick={handleAddGlobalKeywords}
+                className="inline-flex items-center rounded-full border border-slate-300 px-3 py-1 text-xs font-semibold text-slate-blue hover:border-slate-blue hover:bg-slate-blue/5"
+              >
+                Use global keywords
+              </button>
+            </div>
+          )}
+
+          <div className="rounded-lg border border-green-100 bg-green-50 p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Icon name="FaQuestionCircle" className="w-5 h-5 text-slate-blue" size={20} />
+                <span className="font-semibold text-slate-blue">
+                  Select up to 10 power-ups
+                </span>
+              </div>
+              <span className="text-xs text-gray-500">
+                {selectedKeywordInspirations.length}/10 selected
+              </span>
+            </div>
+            {keywords.length === 0 ? (
+              <div className="rounded border border-yellow-200 bg-yellow-50 px-3 py-2 text-sm text-yellow-800">
+                Add keywords above to make them available here.
+              </div>
+            ) : (
+              <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                {keywords.map((keyword) => {
+                  const checked = selectedKeywordInspirations.includes(keyword);
+                  return (
+                    <label
+                      key={keyword}
+                      className="flex items-center gap-3 rounded-md border border-green-200 bg-white px-3 py-2 text-sm text-gray-700"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => {
+                          setSelectedKeywordInspirations((prev) => {
+                            if (checked) {
+                              return prev.filter((k) => k !== keyword);
+                            }
+                            if (prev.length >= 10) return prev;
+                            return [...prev, keyword];
+                          });
+                        }}
+                        disabled={!checked && selectedKeywordInspirations.length >= 10}
+                        className="h-4 w-4 rounded border-gray-300 text-slate-blue focus:ring-slate-blue"
+                      />
+                      <span className="truncate">{keyword}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          <div className="mt-4 flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="keywords-required"
+              className="rounded border-gray-300 text-slate-blue focus:ring-slate-blue"
+              checked={keywordsRequired}
+              onChange={(e) => setKeywordsRequired(e.target.checked)}
+            />
+            <label
+              htmlFor="keywords-required"
+              className="text-sm text-gray-700"
+            >
+              Required (customers must select at least one keyword)
+            </label>
+          </div>
+        </section>
+
+        <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+          <ReviewWriteSection
+            value={reviewPlatforms}
+            onChange={setReviewPlatforms}
+            onGenerateReview={onGenerateReview || (() => {})}
+            hideReviewTemplateFields
+            hideAdvancedFields
+            aiGeneratingIndex={null}
+          />
+        </section>
+
         {configError && (
           <div className="rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
             {configError}
@@ -843,5 +953,6 @@ export default function ReviewBuilderPromptPageForm({
         )}
       </div>
     </BasePromptPageForm>
+    </div>
   );
 }

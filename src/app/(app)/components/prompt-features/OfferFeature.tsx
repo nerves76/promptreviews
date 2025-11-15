@@ -50,6 +50,8 @@ export interface OfferFeatureProps {
   };
   /** Whether the component is disabled */
   disabled?: boolean;
+  /** Custom help text to override the default description */
+  helpText?: string;
 }
 
 const TITLE_MAX = 40;
@@ -58,6 +60,7 @@ const URL_MAX = 200;
 
 export default function OfferFeature({
   enabled,
+  helpText,
   title,
   description,
   url,
@@ -146,8 +149,8 @@ export default function OfferFeature({
   };
 
   return (
-    <div className="rounded-lg p-4 bg-blue-50 border border-blue-200 flex flex-col gap-4 shadow relative">
-      <div className="flex flex-row justify-between items-start mb-2 px-4 py-2">
+    <div className="rounded-lg p-2 sm:p-4 bg-blue-50 border border-blue-200 flex flex-col gap-4 shadow relative">
+      <div className="flex flex-row justify-between items-start mb-2 px-2 sm:px-4 py-2">
         <div className="flex flex-col">
           <div className="flex items-center gap-3">
             <Icon name="FaGift" className="w-7 h-7" style={{ color: "#1A237E" }} size={28} />
@@ -156,7 +159,7 @@ export default function OfferFeature({
             </span>
           </div>
           <div className="text-sm text-gray-700 mt-[3px] ml-9">
-            Add a banner at the top of your prompt page with a special deal, code, or link.
+            {helpText || "Add a banner at the top of your prompt page with a special deal, code, or link."}
           </div>
         </div>
         <div className="flex flex-col justify-start pt-1">

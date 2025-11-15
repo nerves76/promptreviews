@@ -74,6 +74,36 @@ interface BusinessProfile {
   phone?: string;
 }
 
+type CampaignTypeOption = 'public' | 'individual' | 'universal' | 'location';
+
+const normalizeCampaignTypePreference = (value?: string | null): CampaignTypeOption => {
+  switch (value) {
+    case 'public':
+    case 'individual':
+    case 'universal':
+    case 'location':
+      return value;
+    case 'catch-all':
+      return 'public';
+    case 'campaign':
+      return 'individual';
+    case 'locations':
+      return 'location';
+    default:
+      return 'individual';
+  }
+};
+
+const getStoredCampaignTypePreference = (): CampaignTypeOption => {
+  if (typeof window === 'undefined') return 'individual';
+  const raw = localStorage.getItem('campaign_type');
+  const normalized = normalizeCampaignTypePreference(raw);
+  if (raw !== normalized) {
+    localStorage.setItem('campaign_type', normalized);
+  }
+  return normalized;
+};
+
 const initialFormData = {
   first_name: "",
   last_name: "",
@@ -91,7 +121,7 @@ const initialFormData = {
   offer_url: "",
   offer_timelock: false,
   review_type: "service",
-  campaign_type: typeof window !== 'undefined' ? localStorage.getItem('campaign_type') || 'individual' : 'individual',
+  campaign_type: getStoredCampaignTypePreference(),
   video_recipient: "",
   video_note: "",
   video_tips: "",
@@ -171,10 +201,10 @@ export default function CreatePromptPageClient({
   const [formData, setFormData] = useState(() => {
     // Get campaign type from URL params first, then localStorage, then default to individual
     const urlCampaignType = searchParams.get("campaign_type");
-    const localStorageCampaignType = typeof window !== 'undefined' 
-      ? localStorage.getItem('campaign_type')
+    const normalizedUrlCampaignType = urlCampaignType
+      ? normalizeCampaignTypePreference(urlCampaignType)
       : null;
-    const campaignType = urlCampaignType || localStorageCampaignType || 'individual';
+    const campaignType = normalizedUrlCampaignType ?? getStoredCampaignTypePreference();
     
     // Campaign type determination logic (debug logs removed for production)
     
@@ -862,7 +892,8 @@ export default function CreatePromptPageClient({
   useEffect(() => {
     const urlCampaignType = searchParams.get("campaign_type");
     if (urlCampaignType && typeof window !== 'undefined') {
-      localStorage.setItem('campaign_type', urlCampaignType);
+      const normalized = normalizeCampaignTypePreference(urlCampaignType);
+      localStorage.setItem('campaign_type', normalized);
     }
   }, [searchParams]);
 
@@ -1136,9 +1167,8 @@ export default function CreatePromptPageClient({
       const businessData = businessesData[0];
       
       // Get the campaign type from localStorage or formData
-      const campaignType = formData.campaign_type || (typeof window !== 'undefined' 
-        ? localStorage.getItem('campaign_type') || 'individual'
-        : 'individual');
+      const campaignType: CampaignTypeOption =
+        formData.campaign_type || getStoredCampaignTypePreference();
       
 
       // Prepare the data for insertion
@@ -1146,7 +1176,7 @@ export default function CreatePromptPageClient({
         ...formData,
         account_id: accountId,
         status: formData.review_type === "product" ? "complete" : "draft",
-        campaign_type: formData.campaign_type || campaignType,
+        campaign_type: campaignType,
         // Convert camelCase to snake_case
         emoji_sentiment_enabled: formData.emojiSentimentEnabled,
         emoji_sentiment_question: formData.emojiSentimentQuestion,
@@ -1313,11 +1343,11 @@ export default function CreatePromptPageClient({
           
           // Navigate to prompt-pages based on campaign type
           // Product pages are typically individual, but respect the campaign_type
-          let redirectUrl = '/prompt-pages?tab=individual'; // Default for product pages
-          
+          let redirectUrl = '/prompt-pages?tab=campaign'; // Default for product pages
+
           if (formData.campaign_type === 'public') {
-            redirectUrl = '/prompt-pages';
-          } else if (formData.campaign_type === 'locations') {
+            redirectUrl = '/prompt-pages?tab=catch-all';
+          } else if (formData.campaign_type === 'location') {
             redirectUrl = '/prompt-pages?tab=locations';
           }
           
@@ -1450,9 +1480,10 @@ export default function CreatePromptPageClient({
       // Create complete prompt page data (only include valid prompt_pages columns)
       // Get campaign type from localStorage to determine if contact should be created
       // This ensures the correct campaign type is used regardless of formData.campaign_type state
-      const campaignType = typeof window !== 'undefined' 
-        ? localStorage.getItem('campaign_type') || 'individual'
-        : 'individual';
+      const campaignType: CampaignTypeOption =
+        mergedFormData.campaign_type ||
+        formData.campaign_type ||
+        getStoredCampaignTypePreference();
       
       // Debug logging to see what's in formData
       
@@ -1658,8 +1689,8 @@ export default function CreatePromptPageClient({
       let redirectUrl = '/prompt-pages'; // Default to main page (public tab)
       
       if (data.campaign_type === 'individual' || formData.campaign_type === 'individual') {
-        redirectUrl = '/prompt-pages?tab=individual';
-      } else if (data.campaign_type === 'locations' || formData.campaign_type === 'locations') {
+        redirectUrl = '/prompt-pages?tab=campaign';
+      } else if (data.campaign_type === 'location' || formData.campaign_type === 'location') {
         redirectUrl = '/prompt-pages?tab=locations';
       }
       // If campaign_type is 'public' or anything else, use default /prompt-pages
@@ -1708,10 +1739,9 @@ export default function CreatePromptPageClient({
       setSaveSuccess(null);
       try {
       const supabase = createClient();
-      // Get the campaign type from localStorage - this determines the page's behavior
-      const campaignType = typeof window !== 'undefined'
-        ? localStorage.getItem('campaign_type') || 'individual'
-        : 'individual';
+      // Get the campaign type preference to determine page behavior
+      const campaignType: CampaignTypeOption =
+        formData.campaign_type || getStoredCampaignTypePreference();
 
       // Use centralized data mapping utility
       const updateData = preparePromptPageData({
@@ -1771,8 +1801,8 @@ export default function CreatePromptPageClient({
         let redirectUrl = '/prompt-pages'; // Default to main page (public tab)
         
         if (formData.campaign_type === 'individual') {
-          redirectUrl = '/prompt-pages?tab=individual';
-        } else if (formData.campaign_type === 'locations') {
+          redirectUrl = '/prompt-pages?tab=campaign';
+        } else if (formData.campaign_type === 'location') {
           redirectUrl = '/prompt-pages?tab=locations';
         }
         // If campaign_type is 'public' or anything else, use default /prompt-pages
@@ -1939,8 +1969,8 @@ export default function CreatePromptPageClient({
             let redirectUrl = '/prompt-pages'; // Default to main page (public tab)
             
             if (formData.campaign_type === 'individual') {
-              redirectUrl = '/prompt-pages?tab=individual';
-            } else if (formData.campaign_type === 'locations') {
+              redirectUrl = '/prompt-pages?tab=campaign';
+            } else if (formData.campaign_type === 'location') {
               redirectUrl = '/prompt-pages?tab=locations';
             }
             // If campaign_type is 'public' or anything else, use default /prompt-pages
@@ -1978,8 +2008,8 @@ export default function CreatePromptPageClient({
             let redirectUrl = '/prompt-pages'; // Default to main page (public tab)
             
             if (formData.campaign_type === 'individual') {
-              redirectUrl = '/prompt-pages?tab=individual';
-            } else if (formData.campaign_type === 'locations') {
+              redirectUrl = '/prompt-pages?tab=campaign';
+            } else if (formData.campaign_type === 'location') {
               redirectUrl = '/prompt-pages?tab=locations';
             }
             // If campaign_type is 'public' or anything else, use default /prompt-pages
@@ -2017,8 +2047,8 @@ export default function CreatePromptPageClient({
             let redirectUrl = '/prompt-pages'; // Default to main page (public tab)
             
             if (formData.campaign_type === 'individual') {
-              redirectUrl = '/prompt-pages?tab=individual';
-            } else if (formData.campaign_type === 'locations') {
+              redirectUrl = '/prompt-pages?tab=campaign';
+            } else if (formData.campaign_type === 'location') {
               redirectUrl = '/prompt-pages?tab=locations';
             }
             // If campaign_type is 'public' or anything else, use default /prompt-pages

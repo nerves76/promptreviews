@@ -22,6 +22,7 @@ import {
   getCharacterInfo,
   PLATFORM_LIMITS,
 } from './utils/shareTextBuilder';
+import { createClient } from '@/auth/providers/supabase';
 
 export interface Review {
   id: string;
@@ -66,6 +67,7 @@ export default function ShareModal({
   const [imageLoading, setImageLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
   const [imageTimestamp, setImageTimestamp] = useState(Date.now());
+  const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
   const [shareHistory, setShareHistory] = useState<ShareHistoryItem[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyExpanded, setHistoryExpanded] = useState(false);
@@ -73,9 +75,10 @@ export default function ShareModal({
   const reviewerName = `${review.first_name} ${review.last_name}`;
 
   // Generate dynamic image URL based on includeReviewerName option with cache busting
-  const dynamicImageUrl = imageUrl
+  const dynamicPreviewUrl = imageUrl
     ? `${imageUrl.split('?')[0]}?reviewId=${review.id}${includeReviewerName ? '&includeReviewerName=true' : ''}&t=${imageTimestamp}`
     : undefined;
+  const shareableImageUrl = generatedImageUrl || dynamicPreviewUrl;
 
   // Generate share text when platform or settings change
   useEffect(() => {
@@ -98,12 +101,48 @@ export default function ShareModal({
 
   // Reset image loading and cache-bust when includeReviewerName changes
   useEffect(() => {
-    if (imageUrl) {
+    if (dynamicPreviewUrl) {
       setImageLoading(true);
       setImageError(false);
       setImageTimestamp(Date.now()); // Force new image URL to bypass cache
     }
-  }, [includeReviewerName, imageUrl]);
+  }, [includeReviewerName, dynamicPreviewUrl]);
+
+  useEffect(() => {
+    if (!isOpen || review.id.startsWith('sample-')) return;
+    let cancelled = false;
+
+    const fetchShareImage = async () => {
+      try {
+        const supabase = createClient();
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
+
+        const response = await fetch('/api/review-shares/generate-image', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({
+            review_id: review.id,
+          }),
+        });
+
+        const payload = await response.json();
+        if (!cancelled && payload?.success && payload.image_url) {
+          setGeneratedImageUrl(payload.image_url);
+        }
+      } catch (error) {
+        console.error('Error preparing share image:', error);
+      }
+    };
+
+    fetchShareImage();
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, review.id]);
 
   const handlePlatformClick = async (platform: SharePlatform) => {
     try {
@@ -125,7 +164,7 @@ export default function ShareModal({
         url: shareUrl,
         text: shareText,
         title: productName,
-        imageUrl: dynamicImageUrl,
+        imageUrl: shareableImageUrl,
         emailSubject: buildEmailSubject(productName),
       };
 
@@ -339,18 +378,18 @@ export default function ShareModal({
                     <button
                       key={platform.key}
                       onClick={() => handlePlatformClick(platform.key)}
-                      disabled={platform.requiresImage && !imageUrl}
+                      disabled={platform.requiresImage && !shareableImageUrl}
                       className={`
                         flex flex-col items-center justify-center p-4 rounded-lg border-2
                         transition-all hover:scale-105
                         ${
-                          platform.requiresImage && !imageUrl
+                          platform.requiresImage && !shareableImageUrl
                             ? 'opacity-50 cursor-not-allowed border-gray-200 bg-white'
                             : 'border-gray-200 hover:border-[#452F9F] hover:bg-gray-50 bg-white'
                         }
                       `}
                       title={
-                        platform.requiresImage && !imageUrl
+                        platform.requiresImage && !shareableImageUrl
                           ? 'Image required for Pinterest'
                           : `Share on ${platform.name}`
                       }
@@ -451,7 +490,7 @@ export default function ShareModal({
                 </div>
 
                 {/* Image Preview */}
-                {dynamicImageUrl && (
+                {dynamicPreviewUrl && (
                   <div>
                     <label className="block text-sm font-medium text-white mb-2">
                       Share image preview
@@ -472,8 +511,8 @@ export default function ShareModal({
                       </div>
                     )}
                     <img
-                      key={dynamicImageUrl}
-                      src={dynamicImageUrl}
+                      key={dynamicPreviewUrl}
+                      src={dynamicPreviewUrl}
                       alt="Share preview"
                       className={`w-full max-w-md rounded-lg border border-white/30 shadow-sm ${imageLoading || imageError ? 'hidden' : ''}`}
                       onLoad={() => setImageLoading(false)}
@@ -487,7 +526,7 @@ export default function ShareModal({
                         <button
                           onClick={async () => {
                             try {
-                              const response = await fetch(dynamicImageUrl);
+                              const response = await fetch(dynamicPreviewUrl);
                               const blob = await response.blob();
                               const url = window.URL.createObjectURL(blob);
                               const a = document.createElement('a');

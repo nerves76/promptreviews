@@ -197,8 +197,8 @@ export default function EmojiSentimentFeature({
   };
 
   return (
-    <div className={`${editMode ? 'rounded-lg p-4 bg-blue-50 border border-blue-200 flex flex-col gap-4 shadow relative mb-4' : 'bg-white rounded-lg border border-gray-200 p-6 mb-6'}`}>
-      <div className={`${editMode ? 'flex flex-row justify-between items-start px-2 py-2' : 'flex items-center justify-between mb-4'}`}>
+    <div className={`${editMode ? 'rounded-lg p-2 sm:p-4 bg-blue-50 border border-blue-200 flex flex-col gap-4 shadow relative mb-4' : 'bg-white rounded-lg border border-gray-200 p-6 mb-6'}`}>
+      <div className={`${editMode ? 'flex flex-row justify-between items-start px-2 sm:px-2 py-2' : 'flex items-center justify-between mb-4'}`}>
         <div className="flex flex-col">
           <div className="flex items-center gap-3">
             <FaGrinHearts className={`${editMode ? 'w-7 h-7 text-slate-blue' : 'text-slate-blue text-lg'}`} />

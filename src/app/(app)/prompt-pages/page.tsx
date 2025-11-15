@@ -42,6 +42,43 @@ import { apiClient } from "@/utils/apiClient";
 
 const StylePage = dynamic(() => import("../dashboard/style/StyleModalPage"), { ssr: false });
 
+type PromptPagesTab = 'catch-all' | 'campaign' | 'locations';
+type CampaignType = 'public' | 'individual' | 'universal' | 'location';
+
+const TAB_TO_CAMPAIGN_TYPE: Record<PromptPagesTab, CampaignType> = {
+  'catch-all': 'public',
+  campaign: 'individual',
+  locations: 'location',
+};
+
+function normalizeCampaignTypePreference(value?: string | null): CampaignType {
+  switch (value) {
+    case 'public':
+    case 'individual':
+    case 'universal':
+    case 'location':
+      return value;
+    case 'catch-all':
+      return 'public';
+    case 'campaign':
+      return 'individual';
+    case 'locations':
+      return 'location';
+    default:
+      return 'individual';
+  }
+}
+
+const getStoredCampaignType = (): CampaignType => {
+  if (typeof window === 'undefined') return 'individual';
+  const raw = localStorage.getItem('campaign_type');
+  const normalized = normalizeCampaignTypePreference(raw);
+  if (raw !== normalized) {
+    localStorage.setItem('campaign_type', normalized);
+  }
+  return normalized;
+};
+
 function PromptPagesContent() {
   const supabase = useMemo(() => createClient(), []);
   const router = useRouter();
@@ -94,8 +131,8 @@ function PromptPagesContent() {
   const [locationLimits, setLocationLimits] = useState({ current: 0, max: 0, canCreateMore: false });
   
   // Tab state for prompt pages types - initialize from URL parameter
-  const [promptPagesTab, setPromptPagesTab] = useState<'public' | 'individual' | 'locations'>(
-    (searchParams.get('tab') as 'public' | 'individual' | 'locations') || 'public'
+  const [promptPagesTab, setPromptPagesTab] = useState<PromptPagesTab>(
+    (searchParams.get('tab') as 'catch-all' | 'campaign' | 'locations') || 'catch-all'
   );
   const [isNavigating, setIsNavigating] = useState(false); // Add navigation loading state
   const [showBusinessRequiredModal, setShowBusinessRequiredModal] = useState(false);
@@ -189,7 +226,7 @@ function PromptPagesContent() {
   };
 
   // Handle tab changes and update URL
-  const handleTabChange = (newTab: 'public' | 'individual' | 'locations') => {
+  const handleTabChange = (newTab: PromptPagesTab) => {
     // Only navigate if the tab is actually changing
     if (newTab !== promptPagesTab) {
       setPromptPagesTab(newTab);
@@ -563,7 +600,7 @@ function PromptPagesContent() {
 
           // Check if we're on the right tab
           const currentTab = promptPagesTab;
-          const expectedTab = isForLocation ? 'locations' : (isForIndividual ? 'individual' : 'public');
+          const expectedTab = isForLocation ? 'locations' : (isForIndividual ? 'campaign' : 'catch-all');
 
           // If we're not on the right tab, don't show the modal here
           // The redirect should have put us on the right tab
@@ -686,7 +723,7 @@ function PromptPagesContent() {
   function handlePromptTypeSelect(typeKey: string) {
     setShowTypeModal(false);
     setIsNavigating(true); // Show loading state
-    const campaignType = localStorage.getItem('campaign_type') || 'individual';
+    const campaignType = getStoredCampaignType();
     router.push(`/create-prompt-page?type=${typeKey}&campaign_type=${campaignType}`);
   }
 
@@ -809,27 +846,27 @@ function PromptPagesContent() {
         <div className="flex bg-white/10 backdrop-blur-sm border border-white/30 rounded-full p-1 shadow-lg w-full max-w-xl">
           <button
             type="button"
-            onClick={() => handleTabChange('public')}
+            onClick={() => handleTabChange('catch-all')}
             className={`flex-1 px-4 sm:px-8 py-1.5 font-semibold text-sm focus:outline-none transition-all duration-200 rounded-full flex items-center justify-center gap-2
-              ${promptPagesTab === 'public'
+              ${promptPagesTab === 'catch-all'
                 ? 'bg-slate-blue text-white'
                 : 'bg-transparent text-white'}
             `}
           >
             <Icon name="FaUsers" className="w-5 h-5" size={20} />
-            <span className="whitespace-nowrap">1-to-all</span>
+            <span className="whitespace-nowrap">Catch all</span>
           </button>
           <button
             type="button"
-            onClick={() => handleTabChange('individual')}
+            onClick={() => handleTabChange('campaign')}
             className={`flex-1 px-4 sm:px-8 py-1.5 font-semibold text-sm focus:outline-none transition-all duration-200 rounded-full flex items-center justify-center gap-2
-              ${promptPagesTab === 'individual'
+              ${promptPagesTab === 'campaign'
                 ? 'bg-slate-blue text-white'
                 : 'bg-transparent text-white'}
             `}
           >
             <Icon name="FaUserCircle" className="w-5 h-5" size={20} />
-            <span className="whitespace-nowrap">1-to-1</span>
+            <span className="whitespace-nowrap">Campaign</span>
           </button>
           <button
             type="button"
@@ -846,8 +883,8 @@ function PromptPagesContent() {
         </div>
       </div>
 
-      {/* Public (1-to-all) Tab Content */}
-      {promptPagesTab === 'public' && (
+      {/* Public (Catch all) Tab Content */}
+      {promptPagesTab === 'catch-all' && (
         <div className="mt-12 mb-8 px-4 sm:px-6 lg:px-8">
           {/* Business Profile Banner */}
           <div className="max-w-7xl mx-auto mb-6">
@@ -860,7 +897,7 @@ function PromptPagesContent() {
           {/* Subheading and Description */}
           <div className="max-w-7xl mx-auto mb-6">
             <div className="flex items-center gap-3 mb-3">
-              <h2 className="text-2xl font-bold text-white">1-to-all campaigns</h2>
+              <h2 className="text-2xl font-bold text-white">Catch all campaigns</h2>
             </div>
             <p className="text-white/80 text-sm max-w-2xl">
               Use a single Prompt Page to capture many reviews from many people.
@@ -983,7 +1020,8 @@ function PromptPagesContent() {
               <button
                 type="button"
                 onClick={() => {
-                  localStorage.setItem('campaign_type', promptPagesTab);
+                  const normalized = TAB_TO_CAMPAIGN_TYPE[promptPagesTab] || 'individual';
+                  localStorage.setItem('campaign_type', normalized);
                   setShowTypeModal(true);
                 }}
                 className="inline-flex items-center gap-2 px-4 py-2 bg-slate-blue text-white rounded hover:bg-slate-blue/90 font-medium transition whitespace-nowrap shadow-lg"
@@ -1036,12 +1074,12 @@ function PromptPagesContent() {
       )}
 
             {/* Individual Outreach Content - Full Width */}
-            {promptPagesTab === 'individual' && (
+            {promptPagesTab === 'campaign' && (
               <div className="mt-12 mb-8 px-4 sm:px-6 lg:px-8">
                 {/* Subheading and Description */}
                 <div className="max-w-7xl mx-auto mb-6">
                   <div className="flex items-center gap-3 mb-3">
-                    <h2 className="text-2xl font-bold text-white">1-to-1 campaigns</h2>
+                    <h2 className="text-2xl font-bold text-white">Campaign pages</h2>
                   </div>
                   <p className="text-white/80 text-sm max-w-2xl">
                     Create personalized Prompt Pages for review outreach campaigns.
@@ -1049,20 +1087,134 @@ function PromptPagesContent() {
                 </div>
 
                 {(!account || !hasIndividualAccess(account.plan)) ? (
-                  <div className="text-center py-12">
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 max-w-md mx-auto">
-                      <Icon name="FaUser" className="w-16 h-16 mx-auto mb-4 text-slate-blue" size={64} />
-                      <h3 className="font-semibold text-blue-900 mb-2">Upgrade to Builder</h3>
-                      <p className="text-sm text-blue-700 mb-4">
-                        Individual prompt pages are available with the Builder tier and above. Upgrade your plan to unlock this feature.
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => router.push('/dashboard/plan')}
-                        className="bg-slate-blue text-white px-6 py-2 rounded hover:bg-slate-blue/90 font-medium transition"
-                      >
-                        Upgrade now
-                      </button>
+                  <div className="py-12">
+                    {/* Preview Kanban Board with Fake Data */}
+                    <div className="mb-8 relative">
+                      {/* Overlay with upgrade message */}
+                      <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/30 backdrop-blur-sm rounded-lg">
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 max-w-md mx-auto shadow-xl">
+                          <Icon name="FaColumns" className="w-16 h-16 mx-auto mb-4 text-slate-blue" size={64} />
+                          <h3 className="font-semibold text-blue-900 mb-2">Upgrade to Builder</h3>
+                          <p className="text-sm text-blue-700 mb-4">
+                            Campaign pages let you import contacts, run personalized review outreach campaigns, and track engagement with alerts and reminders. Upgrade to Builder or higher to unlock this feature.
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => router.push('/dashboard/plan')}
+                            className="bg-slate-blue text-white px-6 py-2 rounded hover:bg-slate-blue/90 font-medium transition"
+                          >
+                            Upgrade now
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Preview Kanban */}
+                      <PromptPagesKanban
+                        promptPages={[
+                          {
+                            id: 'preview-1',
+                            slug: 'preview-1',
+                            account_id: account?.id || '',
+                            status: 'draft',
+                            review_type: 'service',
+                            is_universal: false,
+                            campaign_type: 'individual',
+                            created_at: new Date().toISOString(),
+                            updated_at: new Date().toISOString(),
+                            contacts: { first_name: 'Sarah', last_name: 'Johnson', email: 'sarah@example.com' }
+                          },
+                          {
+                            id: 'preview-2',
+                            slug: 'preview-2',
+                            account_id: account?.id || '',
+                            status: 'draft',
+                            review_type: 'service',
+                            is_universal: false,
+                            campaign_type: 'individual',
+                            created_at: new Date().toISOString(),
+                            updated_at: new Date().toISOString(),
+                            contacts: { first_name: 'Mike', last_name: 'Chen', email: 'mike@example.com' }
+                          },
+                          {
+                            id: 'preview-3',
+                            slug: 'preview-3',
+                            account_id: account?.id || '',
+                            status: 'in_queue',
+                            review_type: 'service',
+                            is_universal: false,
+                            campaign_type: 'individual',
+                            created_at: new Date().toISOString(),
+                            updated_at: new Date().toISOString(),
+                            contacts: { first_name: 'Emily', last_name: 'Rodriguez', email: 'emily@example.com' }
+                          },
+                          {
+                            id: 'preview-4',
+                            slug: 'preview-4',
+                            account_id: account?.id || '',
+                            status: 'sent',
+                            review_type: 'service',
+                            is_universal: false,
+                            campaign_type: 'individual',
+                            created_at: new Date().toISOString(),
+                            updated_at: new Date().toISOString(),
+                            contacts: { first_name: 'David', last_name: 'Kim', email: 'david@example.com' }
+                          },
+                          {
+                            id: 'preview-5',
+                            slug: 'preview-5',
+                            account_id: account?.id || '',
+                            status: 'sent',
+                            review_type: 'service',
+                            is_universal: false,
+                            campaign_type: 'individual',
+                            created_at: new Date().toISOString(),
+                            updated_at: new Date().toISOString(),
+                            contacts: { first_name: 'Jessica', last_name: 'Taylor', email: 'jessica@example.com' }
+                          },
+                          {
+                            id: 'preview-6',
+                            slug: 'preview-6',
+                            account_id: account?.id || '',
+                            status: 'follow_up',
+                            review_type: 'service',
+                            is_universal: false,
+                            campaign_type: 'individual',
+                            created_at: new Date().toISOString(),
+                            updated_at: new Date().toISOString(),
+                            contacts: { first_name: 'Robert', last_name: 'Anderson', email: 'robert@example.com' }
+                          },
+                          {
+                            id: 'preview-7',
+                            slug: 'preview-7',
+                            account_id: account?.id || '',
+                            status: 'complete',
+                            review_type: 'service',
+                            is_universal: false,
+                            campaign_type: 'individual',
+                            created_at: new Date().toISOString(),
+                            updated_at: new Date().toISOString(),
+                            contacts: { first_name: 'Amanda', last_name: 'White', email: 'amanda@example.com' }
+                          },
+                          {
+                            id: 'preview-8',
+                            slug: 'preview-8',
+                            account_id: account?.id || '',
+                            status: 'complete',
+                            review_type: 'service',
+                            is_universal: false,
+                            campaign_type: 'individual',
+                            created_at: new Date().toISOString(),
+                            updated_at: new Date().toISOString(),
+                            contacts: { first_name: 'James', last_name: 'Martinez', email: 'james@example.com' }
+                          },
+                        ] as any}
+                        business={business}
+                        account={account}
+                        statusLabels={statusLabels}
+                        selectedType={selectedType}
+                        onStatusUpdate={() => {}}
+                        onEditLabel={() => {}}
+                      />
                     </div>
                   </div>
                 ) : (
@@ -1369,8 +1521,8 @@ function PromptPagesContent() {
                   </button>
                 </div>
 
-                {/* For individual prompt pages with contact info, show CommunicationButtons */}
-                {(postSaveData.first_name || postSaveData.email || postSaveData.phone) && !postSaveData.isLocationCreation ? (
+                {/* For Campaign prompt pages with contact info, show CommunicationButtons */}
+                {(postSaveData.first_name || postSaveData.email || postSaveData.phone) && !postSaveData.isLocationCreation && (
                   <div className="space-y-2 p-3 bg-teal-500/30 backdrop-blur-sm rounded-lg border border-teal-300/30">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium text-white">SMS or Email</span>
@@ -1395,37 +1547,9 @@ function PromptPagesContent() {
                       />
                     </div>
                     <p className="text-xs text-white/80">
-                      CRM tracking, alerts, and reminders are enabled on 1-to-1 Prompt Pages.
+                      CRM tracking, alerts, and reminders are enabled for Campaign pages.
                     </p>
                   </div>
-                ) : (
-                  <>
-                    {/* For non-individual pages, show the original SMS and Email links */}
-                    {/* SMS link */}
-                    <div className="flex items-center justify-between p-3 bg-green-500/30 backdrop-blur-sm rounded-lg border border-green-300/30">
-                      <span className="text-sm font-medium text-white">Send SMS</span>
-                      <a
-                        href={`sms:${postSaveData.phone || ''}?body=Hi ${postSaveData.first_name || 'there'}, I'd love to get your feedback! Please leave a review here: ${postSaveData.url}`}
-                        className="text-white hover:text-white/80 text-sm font-medium"
-                      >
-                        Send
-                      </a>
-                    </div>
-
-                    {/* Email link */}
-                    <div className="flex items-center justify-between p-3 bg-blue-500/30 backdrop-blur-sm rounded-lg border border-blue-300/30">
-                      <span className="text-sm font-medium text-white">Send email</span>
-                      <a
-                        href={`mailto:${postSaveData.email || ''}?subject=Please leave a review&body=Hi ${postSaveData.first_name || 'there'},%0D%0A%0D%0AI'd love to get your feedback! Please leave a review here: ${postSaveData.url}%0D%0A%0D%0AThank you!`}
-                        className="text-white hover:text-white/80 text-sm font-medium"
-                      >
-                        Send
-                      </a>
-                    </div>
-                    <p className="text-xs text-white/80">
-                      CRM tracking and alerts are only available on 1-to-1 Prompt Pages.
-                    </p>
-                  </>
                 )}
 
                 <div className="flex items-center justify-between p-3 bg-amber-500/30 backdrop-blur-sm rounded-lg border border-amber-300/30">
