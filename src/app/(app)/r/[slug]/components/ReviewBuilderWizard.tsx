@@ -141,11 +141,18 @@ export default function ReviewBuilderWizard({
     if (Array.isArray(promptPage?.keywords) && promptPage.keywords.length > 0) {
       return promptPage.keywords;
     }
-    if (typeof businessProfile?.keywords === "string") {
-      return businessProfile.keywords
-        .split(",")
-        .map((keyword: string) => keyword.trim())
-        .filter(Boolean);
+    // Fall back to business profile keywords (global settings)
+    if (businessProfile?.keywords) {
+      // Handle both array and string formats
+      if (Array.isArray(businessProfile.keywords)) {
+        return businessProfile.keywords.filter(Boolean);
+      }
+      if (typeof businessProfile.keywords === "string") {
+        return businessProfile.keywords
+          .split(",")
+          .map((keyword: string) => keyword.trim())
+          .filter(Boolean);
+      }
     }
     return [];
   }, [promptPage?.selected_keyword_inspirations, promptPage?.keywords, businessProfile?.keywords]);
