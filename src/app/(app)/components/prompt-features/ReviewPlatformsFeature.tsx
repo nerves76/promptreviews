@@ -172,14 +172,29 @@ export default function ReviewPlatformsFeature({
       <div className="space-y-4">
         {platformList.map((platform, idx) => {
           const { icon: PlatformIcon, color } = getPlatformIcon(platform.name, platform.url);
-          
+
+          // Generate a meaningful label for the platform
+          const getPlatformLabel = () => {
+            const platformName = platform.customPlatform || platform.name || "Platform";
+            const sameNameCount = platformList.filter((p, i) => {
+              const pName = p.customPlatform || p.name;
+              return i <= idx && pName === platformName;
+            }).length;
+
+            // If there are multiple platforms with the same name, add a number
+            if (platformList.filter(p => (p.customPlatform || p.name) === platformName).length > 1) {
+              return `${platformName} ${sameNameCount}`;
+            }
+            return platformName;
+          };
+
           return (
             <div key={idx} className="border border-gray-200 rounded-lg p-4">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center space-x-3">
                   <Icon name={PlatformIcon as any} className={`w-5 h-5 ${color} flex-shrink-0`} size={20} />
                   <h4 className="font-medium text-gray-900">
-                    Platform {idx + 1}
+                    {getPlatformLabel()}
                   </h4>
                 </div>
                 <button

@@ -44,11 +44,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Fetch business name for slug generation
+    const { data: business } = await supabase
+      .from('businesses')
+      .select('name, business_name')
+      .eq('account_id', accountId)
+      .maybeSingle();
+
+    const businessName = business?.name || business?.business_name || 'business';
+
     // Generate a unique slug from client_name or title
     let slug;
     if (body.review_type === 'review_builder') {
-      // For review builders, use a very simple slug format - just timestamp and random ID
-      slug = `rb-${nanoid(8)}`;
+      // For review builders, use business name with random suffix
+      slug = slugify(businessName, nanoid(8));
     } else if (body.client_name) {
       slug = slugify(body.client_name, Date.now().toString(36));
     } else if (body.title) {

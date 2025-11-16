@@ -1599,16 +1599,26 @@ export default function CreatePromptPageClient({
       }
 
       // Generate slug
-              const businessName = businessData.name || "business";
-      (insertData as any).slug = slugify(
-        businessName +
-          "-" +
-          (mergedFormData.name || mergedFormData.first_name || "service") +
-          "-prompt",
-        typeof window !== "undefined" 
-          ? Date.now() + "-" + Math.random().toString(36).substring(2, 8)
-          : "temp-id",
-      );
+      const businessName = businessData.name || "business";
+
+      // For review builders, use business name + random ID (simpler, cleaner URLs)
+      // For other types (individual campaigns), use client name for personalization
+      if (mergedFormData.review_type === 'review_builder') {
+        const randomId = typeof window !== "undefined"
+          ? Math.random().toString(36).substring(2, 10)  // 8 characters
+          : "temp-id";
+        (insertData as any).slug = slugify(businessName, randomId);
+      } else {
+        (insertData as any).slug = slugify(
+          businessName +
+            "-" +
+            (mergedFormData.name || mergedFormData.first_name || "service") +
+            "-prompt",
+          typeof window !== "undefined"
+            ? Date.now() + "-" + Math.random().toString(36).substring(2, 8)
+            : "temp-id",
+        );
+      }
 
       // Log what we're about to insert
       
