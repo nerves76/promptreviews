@@ -13,6 +13,7 @@ import {
 } from "@/constants/promptPageWordLimits";
 import dynamic from "next/dynamic";
 import PromptReviewsLogo from "@/app/(app)/dashboard/components/PromptReviewsLogo";
+import { getFallingIcon } from "@/app/(app)/components/prompt-modules/fallingStarsConfig";
 
 // Dynamically import FallingAnimation
 const FallingAnimation = dynamic(() => import("./FallingAnimation"), {
@@ -98,6 +99,7 @@ export default function ReviewBuilderWizard({
   const [showReviewAnimation, setShowReviewAnimation] = useState(false);
   const [showPersonalNote, setShowPersonalNote] = useState(true);
   const [canShowPersonalNote, setCanShowPersonalNote] = useState(false);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const attemptStorageKey = useMemo(
     () => (promptPage?.slug ? `reviewBuilderAiAttempts_${promptPage.slug}` : null),
     [promptPage?.slug],
@@ -278,14 +280,53 @@ const builderQuestions = useMemo(() => {
 
   const goToNext = () => {
     if (step === 4) return;
+
+    // Special handling for step 2 (questions) - navigate through questions first
+    if (step === 2) {
+      const isLastQuestion = currentQuestionIndex >= builderQuestions.length - 1;
+
+      if (!isLastQuestion) {
+        // Move to next question within step 2
+        const currentQuestion = builderQuestions[currentQuestionIndex];
+
+        // Validate current question if it's required
+        if (currentQuestion.required) {
+          const answer = answers[currentQuestion.id];
+          const isAnswered = currentQuestion.questionType === 'checkbox'
+            ? Array.isArray(answer) && answer.length > 0
+            : answer && (typeof answer === 'string' ? answer.trim() : true);
+
+          if (!isAnswered) {
+            setError("Please answer this required question.");
+            return;
+          }
+        }
+
+        setError(null);
+        setCurrentQuestionIndex(prev => prev + 1);
+        return;
+      }
+    }
+
+    // Validate the entire current step before moving to next step
     if (!validateCurrentStep()) return;
+
     resetMessages();
+    setCurrentQuestionIndex(0); // Reset question index when moving to a new step
     setStep((prev) => prev + 1);
   };
 
   const goToPrevious = () => {
+    // Special handling for step 2 (questions) - navigate through questions first
+    if (step === 2 && currentQuestionIndex > 0) {
+      setError(null);
+      setCurrentQuestionIndex(prev => prev - 1);
+      return;
+    }
+
     if (step === 1) return;
     resetMessages();
+    setCurrentQuestionIndex(0); // Reset question index when moving to a new step
     setStep((prev) => prev - 1);
   };
 
@@ -438,11 +479,6 @@ const builderQuestions = useMemo(() => {
       case 1:
         return (
           <div className="space-y-6">
-            <div className="text-center mb-6">
-              <p className="text-2xl font-semibold text-white mb-2">
-                First, tell us about yourself
-              </p>
-            </div>
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <Input
@@ -471,32 +507,27 @@ const builderQuestions = useMemo(() => {
           </div>
         );
       case 2:
-        // Show one question at a time in step 2 (moved from step 3)
-        const currentQuestionIndex = Object.keys(answers).filter(id => {
-          const answer = answers[id];
-          return builderQuestions.some(q => q.id === id && (
-            (typeof answer === 'string' && answer.trim()) ||
-            (Array.isArray(answer) && answer.length > 0)
-          ));
-        }).length;
-        const currentQuestion = builderQuestions[Math.min(currentQuestionIndex, builderQuestions.length - 1)];
+        // Show one question at a time in step 2
+        const currentQuestion = builderQuestions[currentQuestionIndex] || builderQuestions[0];
         const isLastQuestion = currentQuestionIndex >= builderQuestions.length - 1;
 
         return (
           <div className="space-y-6">
-            <div className="text-center mb-4">
-              <p className="text-sm text-white/70">
-                Question {Math.min(currentQuestionIndex + 1, builderQuestions.length)} of {builderQuestions.length}
-              </p>
-            </div>
             <div className="space-y-4">
-              <p className="text-2xl font-semibold text-white text-center">
-                {currentQuestion.prompt}
-                {currentQuestion.required && <span className="text-white/80 ml-1">*</span>}
-              </p>
-              {currentQuestion.helperText && (
-                <p className="text-base text-white/80 text-center">{currentQuestion.helperText}</p>
-              )}
+              <div className="relative">
+                <span className="absolute -left-8 text-2xl font-semibold text-white">
+                  {Math.min(currentQuestionIndex + 1, builderQuestions.length)}.
+                </span>
+                <div>
+                  <p className="text-2xl font-semibold text-white">
+                    {currentQuestion.prompt}
+                    {currentQuestion.required && <span className="text-white/80 ml-1">*</span>}
+                  </p>
+                  {currentQuestion.helperText && (
+                    <p className="text-base text-white/80 mt-1">{currentQuestion.helperText}</p>
+                  )}
+                </div>
+              </div>
 
               {currentQuestion.questionType === 'checkbox' && currentQuestion.options ? (
                 <div className="space-y-3 bg-white/90 backdrop-blur rounded-lg p-4">
@@ -543,6 +574,13 @@ const builderQuestions = useMemo(() => {
                   autoFocus
                 />
               )}
+
+              <div className="flex justify-between items-center -mt-8">
+                <p className="text-sm text-white/70">
+                  Question {Math.min(currentQuestionIndex + 1, builderQuestions.length)} of {builderQuestions.length}
+                </p>
+                <div className="flex-1"></div>
+              </div>
             </div>
           </div>
         );
@@ -558,10 +596,10 @@ const builderQuestions = useMemo(() => {
           <div className="space-y-6">
             <div className="text-center mb-6">
               <p className="text-2xl font-semibold text-white mb-2">
-                What stood out most?
+                Choose up to 3 highlights
               </p>
               <p className="text-base text-white/80">
-                Pick up to 3 highlights to emphasize in your review
+                These phrases will help {businessProfile?.business_name || businessProfile?.name || "us"} get found online.
               </p>
             </div>
             <div className="flex flex-wrap gap-3 justify-center">
@@ -590,18 +628,32 @@ const builderQuestions = useMemo(() => {
         );
       case 4:
         return (
-          <div className="space-y-6">
-            <div className="text-center mb-6 animate-fade-in-up">
-              <p className="text-2xl font-semibold text-white mb-2">
-                Your review
-              </p>
+          <div className="space-y-3">
+            {/* Subtitle and AI Generate/Regenerate Button on same line */}
+            <div className="flex justify-between items-center mb-2">
               <p className="text-base text-white/80">
-                Feel free to edit, then copy and submit to your chosen platform
+                Feel free to edit or regenerate before posting.
               </p>
+              <button
+                type="button"
+                onClick={handleGenerateReview}
+                disabled={aiGenerating || aiAttemptCount >= 3}
+                className="flex items-center justify-center gap-2 px-4 py-1 bg-white text-slate-900 text-sm font-medium rounded-lg hover:bg-white/90 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all shadow-lg"
+              >
+                <Icon name="FaSparkles" className="w-3 h-3" size={12} />
+                <span>
+                  {aiGenerating
+                    ? "Generating..."
+                    : reviewText
+                      ? `Re-generate${aiAttemptCount > 0 ? ` (${aiAttemptCount}/3)` : ""}`
+                      : `AI Generate${aiAttemptCount > 0 ? ` (${aiAttemptCount}/3)` : ""}`}
+                </span>
+              </button>
             </div>
+
             <div className={showReviewAnimation ? "animate-scale-in" : ""}>
               <Textarea
-                rows={10}
+                rows={7}
                 value={reviewText}
                 onChange={(e) => setReviewText(e.target.value)}
                 placeholder="Click the button below to generate your personalized review..."
@@ -609,34 +661,12 @@ const builderQuestions = useMemo(() => {
               />
             </div>
 
-            {/* AI Generate/Regenerate Button */}
-            <button
-              type="button"
-              onClick={handleGenerateReview}
-              disabled={aiGenerating || aiAttemptCount >= 3}
-              className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white text-base font-medium rounded-lg hover:from-purple-700 hover:to-blue-700 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed transition-all shadow-lg"
-            >
-              <Icon name="FaSparkles" className="w-4 h-4" size={16} />
-              <span>
-                {aiGenerating
-                  ? "Generating..."
-                  : reviewText
-                    ? `Re-generate Review${aiAttemptCount > 0 ? ` (${aiAttemptCount}/3)` : ""}`
-                    : `AI Generate${aiAttemptCount > 0 ? ` (${aiAttemptCount}/3)` : ""}`}
-              </span>
-            </button>
-
             {activePlatforms.length > 0 && reviewText && (
-              <div className="mt-8 space-y-6">
-                <h3 className="text-xl font-semibold text-white text-center">
-                  Post your review:
-                </h3>
-
+              <div className="mt-4 space-y-3">
                 {/* Step 1: Copy your review */}
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-white/90">
-                    1. Copy your review
-                  </p>
+                <div className="grid grid-cols-[auto_auto_auto_1fr] items-center gap-4">
+                  <span className="text-2xl font-semibold text-white">1.</span>
+                  <p className="text-lg text-white">Click to copy your review</p>
                   <button
                     type="button"
                     onClick={async () => {
@@ -650,60 +680,48 @@ const builderQuestions = useMemo(() => {
                         setTimeout(() => setError(null), 3000);
                       }
                     }}
-                    className="w-full rounded-lg bg-white text-slate-900 px-6 py-4 text-base font-medium hover:bg-white/90 transition-all shadow-lg flex items-center justify-center gap-2"
+                    className="rounded-lg bg-transparent border-2 border-white text-white px-8 py-2 text-base font-medium shadow-[0_0_10px_rgba(255,255,255,0.2)] hover:shadow-[0_0_20px_rgba(255,255,255,0.4)] hover:-translate-y-0.5 transition-all"
                   >
-                    <Icon name="FaCopy" className="w-4 h-4" size={16} />
-                    {reviewCopied ? "Copied!" : "Copy Review"}
+                    Copy
                   </button>
+                  <div></div>
                 </div>
 
-                {/* Step 2: Post on platforms */}
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-white/90">
-                    2. Post on one or more of these platforms:
-                  </p>
-                  <div className="space-y-3">
-                    {activePlatforms.map((platform, index) => (
-                      <button
-                        key={`${platform.url}-${index}`}
-                        type="button"
-                        disabled={!platform.url}
-                        onClick={() => {
-                          if (platform.url) {
-                            window.open(platform.url, '_blank', 'noopener,noreferrer');
-                          }
-                        }}
-                        className="w-full rounded-lg bg-white text-slate-900 px-6 py-4 text-base font-medium hover:bg-white/90 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all shadow-lg"
-                      >
-                        Post on {platform.platform || platform.name || "Review Platform"}
-                      </button>
-                    ))}
+                {/* Step 2: Click to visit review site */}
+                <div className="grid grid-cols-[auto_auto_1fr] items-center gap-4">
+                  <span className="text-2xl font-semibold text-white">2.</span>
+                  <p className="text-lg text-white">Click to visit review site</p>
+                  <div className="flex flex-wrap gap-2">
+                    {activePlatforms.map((platform, index) => {
+                      // Determine button text: use customPlatform for "Other", otherwise use platform or name
+                      const buttonText = platform.name === "Other" && platform.customPlatform
+                        ? platform.customPlatform
+                        : (platform.platform || platform.name || "Review Platform");
+
+                      return (
+                        <button
+                          key={`${platform.url}-${index}`}
+                          type="button"
+                          disabled={!platform.url}
+                          onClick={() => {
+                            if (platform.url) {
+                              window.open(platform.url, '_blank', 'noopener,noreferrer');
+                            }
+                          }}
+                          className="rounded-lg bg-transparent border-2 border-white text-white px-8 py-2 text-base font-medium shadow-[0_0_10px_rgba(255,255,255,0.2)] hover:shadow-[0_0_20px_rgba(255,255,255,0.4)] hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-[0_0_10px_rgba(255,255,255,0.2)] transition-all"
+                        >
+                          {buttonText}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
-              </div>
-            )}
 
-            {/* Special Offer - Only shown after review is generated */}
-            {reviewText && promptPage?.offer_enabled && promptPage?.offer_title && (
-              <div className="mt-8 rounded-2xl bg-gradient-to-r from-yellow-400 to-orange-400 p-6 shadow-xl">
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                  {promptPage.offer_title}
-                </h3>
-                {promptPage.offer_body && (
-                  <p className="text-gray-800 mb-4 whitespace-pre-line">
-                    {promptPage.offer_body}
-                  </p>
-                )}
-                {promptPage.offer_url && (
-                  <a
-                    href={promptPage.offer_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-block px-6 py-3 bg-gray-900 text-white font-semibold rounded-lg hover:bg-gray-800 transition-colors"
-                  >
-                    Learn More
-                  </a>
-                )}
+                {/* Step 3: Paste & post */}
+                <div className="grid grid-cols-[auto_1fr] items-center gap-4">
+                  <span className="text-2xl font-semibold text-white">3.</span>
+                  <p className="text-lg text-white">Paste & post</p>
+                </div>
               </div>
             )}
           </div>
@@ -725,16 +743,18 @@ const builderQuestions = useMemo(() => {
       className="review-builder-container min-h-screen p-6 md:p-12 relative overflow-hidden"
     >
       {/* Falling animation when review is generated */}
-      {showFallingAnimation && promptPage?.falling_enabled !== false && (
+      {promptPage?.falling_enabled !== false && (
         <FallingAnimation
-          icon={promptPage?.falling_icon || 'star'}
-          iconColor={promptPage?.falling_icon_color || '#FFD700'}
+          fallingIcon={promptPage?.falling_icon || 'star'}
+          showStarRain={showFallingAnimation}
+          falling_icon_color={promptPage?.falling_icon_color}
+          getFallingIcon={getFallingIcon}
         />
       )}
 
       {/* Back Button - Only visible to authenticated users */}
       {currentUser && (
-        <div className="fixed left-4 top-4 z-40">
+        <div className="fixed left-4 top-4 z-[60]">
           <div className="bg-black bg-opacity-20 backdrop-blur-sm rounded-xl p-3">
             <button
               onClick={() => window.location.href = '/prompt-pages'}
@@ -762,7 +782,7 @@ const builderQuestions = useMemo(() => {
         {/* Business Logo */}
         {businessProfile?.logo_url && (
           <div className="flex justify-center mb-8">
-            <div className="relative w-28 h-28 rounded-full overflow-hidden bg-white shadow-lg ring-4 ring-white/20">
+            <div className="relative w-28 h-28 rounded-full overflow-hidden bg-white shadow-lg ring-4 ring-white/20 animate-coin-flip">
               <img
                 src={businessProfile.logo_url}
                 alt={businessProfile.business_name || businessProfile.name || "Business logo"}
@@ -773,12 +793,17 @@ const builderQuestions = useMemo(() => {
         )}
 
         <div className="mb-12 text-center">
-          <h1 className="text-3xl font-semibold text-white mb-3">
-            Let's create a review for {businessProfile?.business_name || businessProfile?.name || "us"}
+          <h1 className="text-3xl md:text-4xl font-semibold text-white mb-3">
+            {step === 4
+              ? "Your review"
+              : `Let's create a review for ${businessProfile?.business_name || businessProfile?.name || "us"}`
+            }
           </h1>
-          <p className="text-xl text-white/90">
-            Answer a few questions and we'll help you craft the perfect review.
-          </p>
+          {step === 1 && (
+            <p className="text-xl text-white/90">
+              Answer a few questions and we'll help you craft the perfect review.
+            </p>
+          )}
         </div>
 
         {/* Subway-style progress indicator */}
@@ -800,14 +825,23 @@ const builderQuestions = useMemo(() => {
                       disabled={!isClickable}
                       className={`relative flex h-5 w-5 sm:h-6 sm:w-6 items-center justify-center rounded-full border-2 transition-all ${
                         isActive
-                          ? "border-white bg-white text-slate-900 scale-110"
+                          ? "border-white bg-white text-slate-900 scale-110 animate-gentle-pulse"
                           : isCompleted
                           ? "border-white bg-white text-slate-900 hover:scale-105 cursor-pointer"
                           : "border-white/40 bg-transparent text-white/60 cursor-default"
                       }`}
                     >
                       {isCompleted ? (
-                        <span className="text-xs">✓</span>
+                        <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path
+                            d="M2 6L5 9L10 3"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="animate-checkmark"
+                          />
+                        </svg>
                       ) : (
                         <span className="text-xs font-medium">{stepNumber}</span>
                       )}
@@ -833,11 +867,11 @@ const builderQuestions = useMemo(() => {
           </div>
         </div>
 
-        <div className="mb-8">
+        <div className="mb-8 animate-slide-fade-in" key={step}>
           {renderStepContent()}
         </div>
 
-        <div className="mt-8 flex justify-center gap-3">
+        <div className="mt-0 flex justify-center gap-3">
           {step > 1 && (
             <button
               type="button"
@@ -851,7 +885,7 @@ const builderQuestions = useMemo(() => {
             <button
               type="button"
               onClick={goToNext}
-              className="px-8 py-3 bg-white text-slate-900 text-base font-medium rounded-lg hover:bg-white/90 transition-all shadow-lg"
+              className="px-8 py-3 bg-transparent border-2 border-white text-white text-base font-medium rounded-lg shadow-[0_0_10px_rgba(255,255,255,0.2)] hover:shadow-[0_0_20px_rgba(255,255,255,0.4)] hover:-translate-y-0.5 transition-all"
             >
               Continue →
             </button>
@@ -865,13 +899,13 @@ const builderQuestions = useMemo(() => {
         )}
 
         {successMessage && (
-          <div className="mt-4 rounded-lg bg-green-500/90 backdrop-blur px-4 py-3 text-sm text-white text-center">
+          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 rounded-lg bg-green-500/90 backdrop-blur px-6 py-3 text-base text-white shadow-xl animate-scale-in">
             {successMessage}
           </div>
         )}
 
         {/* PromptReviews Footer */}
-        <div className="mt-12 mb-12 rounded-2xl shadow-lg p-4 md:p-8 bg-black/20 backdrop-blur-sm border border-white/20">
+        <div className="mt-36 mb-12 rounded-2xl shadow-lg p-4 md:p-8 bg-black/20 backdrop-blur-sm border border-white/20">
           <div className="flex flex-col md:flex-row items-center text-center md:text-left gap-4 md:gap-8 md:items-center">
             <div className="flex-shrink-0 flex items-center justify-center w-full md:w-40 mb-0">
               <a

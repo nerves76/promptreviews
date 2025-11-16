@@ -1800,11 +1800,38 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
       );
     }
     return (
-      <ReviewBuilderWizard
-        promptPage={promptPage}
-        businessProfile={businessProfile}
-        currentUser={currentUser}
-      />
+      <div className="w-full">
+        {/* Special Offer Banner - very top, thin, dismissible */}
+        {showBanner && (
+          <div
+            className="w-full flex items-center justify-center relative px-2 py-1 bg-yellow-200 border-b border-yellow-400 shadow-sm z-50"
+            style={{ minHeight: 64, fontSize: "1rem" }}
+          >
+            <OfferCard
+              title={offerTitle}
+              message={offerBody}
+              buttonText={offerLearnMoreUrl ? "Learn more" : undefined}
+              learnMoreUrl={offerLearnMoreUrl || undefined}
+              iconColor="#facc15"
+              isTimelockActive={isTimelockActive}
+              timelockCountdown={timelockCountdown}
+            />
+            <button
+              className="absolute top-2 right-2 text-yellow-900 text-lg font-bold hover:text-yellow-600 focus:outline-none"
+              aria-label="Dismiss"
+              onClick={() => setShowRewardsBanner(false)}
+              style={{ lineHeight: 1 }}
+            >
+              ×
+            </button>
+          </div>
+        )}
+        <ReviewBuilderWizard
+          promptPage={promptPage}
+          businessProfile={businessProfile}
+          currentUser={currentUser}
+        />
+      </div>
     );
   }
 
@@ -1855,7 +1882,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
         {/* Style & Back Buttons - Only visible to authenticated users */}
         {!userLoading && currentUser && (
           <div
-            className={`fixed left-4 z-40 transition-all duration-300 ${showBanner ? "top-28 sm:top-24" : "top-4"}`}
+            className={`fixed left-4 z-[60] transition-all duration-300 ${showBanner ? "top-28 sm:top-24" : "top-4"}`}
           >
             <div className="bg-black bg-opacity-20 backdrop-blur-sm rounded-xl p-3 space-y-2">
               {isOwner && (
