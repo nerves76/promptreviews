@@ -44,6 +44,7 @@ interface PromptPageSettingsModalProps {
   initialSettings?: any;
   businessName?: string;
   accountId: string; // Account ID for security
+  businessInfo?: any; // Full business profile for keyword generation
 }
 
 export default function PromptPageSettingsModal({
@@ -52,7 +53,8 @@ export default function PromptPageSettingsModal({
   onSave,
   initialSettings = {},
   businessName = '',
-  accountId
+  accountId,
+  businessInfo
 }: PromptPageSettingsModalProps) {
   const { user } = useAuthUser();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -331,6 +333,7 @@ export default function PromptPageSettingsModal({
                     keywords={formData.keywords || []}
                     onChange={(keywords) => handleInputChange('keywords', keywords)}
                     placeholder="Enter keyword phrases separated by commas (e.g., best therapist Portland, ADHD specialist, group sessions, insurance accepted)"
+                    businessInfo={businessInfo}
                   />
                   <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                     <p className="text-xs text-blue-800">

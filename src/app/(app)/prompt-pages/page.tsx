@@ -1666,6 +1666,7 @@ function PromptPagesContent() {
         }}
         businessName={business?.name || businessName}
         accountId={selectedAccountId || authAccountId}
+        businessInfo={business}
       />
 
       {/* Welcome Popup for first-time visitors */}
