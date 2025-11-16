@@ -157,7 +157,50 @@ export default function BasePromptPageForm({
     const campaignPart = campaignType || 'unknown';
     return `promptPageForm_${accountIdPart}_${campaignPart}_${idPart}`;
   }, [businessProfile?.account_id, campaignType, initialData?.id]);
-  
+
+  // Memoize initialData objects for feature components to prevent unnecessary re-renders
+  const fallingStarsInitialData = React.useMemo(() => ({
+    falling_enabled: initialData?.falling_enabled,
+    falling_icon: initialData?.falling_icon,
+    falling_icon_color: initialData?.falling_icon_color,
+  }), [initialData?.falling_enabled, initialData?.falling_icon, initialData?.falling_icon_color]);
+
+  const offerInitialData = React.useMemo(() => ({
+    offer_enabled: initialData?.offer_enabled,
+    offer_title: initialData?.offer_title,
+    offer_body: initialData?.offer_body,
+    offer_url: initialData?.offer_url,
+    offer_timelock: initialData?.offer_timelock,
+  }), [initialData?.offer_enabled, initialData?.offer_title, initialData?.offer_body, initialData?.offer_url, initialData?.offer_timelock]);
+
+  const personalizedNoteInitialData = React.useMemo(() => ({
+    show_friendly_note: initialData?.show_friendly_note,
+    friendly_note: initialData?.friendly_note,
+  }), [initialData?.show_friendly_note, initialData?.friendly_note]);
+
+  const emojiSentimentInitialData = React.useMemo(() => ({
+    emoji_sentiment_enabled: initialData?.emoji_sentiment_enabled,
+    emoji_sentiment_question: initialData?.emoji_sentiment_question,
+    emoji_feedback_message: initialData?.emoji_feedback_message,
+    emoji_thank_you_message: initialData?.emoji_thank_you_message,
+    emoji_feedback_popup_header: initialData?.emoji_feedback_popup_header,
+    emoji_feedback_page_header: initialData?.emoji_feedback_page_header,
+  }), [initialData?.emoji_sentiment_enabled, initialData?.emoji_sentiment_question, initialData?.emoji_feedback_message, initialData?.emoji_thank_you_message, initialData?.emoji_feedback_popup_header, initialData?.emoji_feedback_page_header]);
+
+  const aiSettingsInitialData = React.useMemo(() => ({
+    ai_button_enabled: initialData?.ai_button_enabled,
+    fix_grammar_enabled: initialData?.fix_grammar_enabled,
+  }), [initialData?.ai_button_enabled, initialData?.fix_grammar_enabled]);
+
+  const reviewPlatformsInitialData = React.useMemo(() => ({
+    review_platforms: initialData?.review_platforms,
+  }), [initialData?.review_platforms]);
+
+  const kickstartersInitialData = React.useMemo(() => ({
+    kickstarters_enabled: initialData?.kickstarters_enabled,
+    selected_kickstarters: initialData?.selected_kickstarters,
+  }), [initialData?.kickstarters_enabled, initialData?.selected_kickstarters]);
+
   // Initialize form state with defaults, checking localStorage first
   const [formData, setFormData] = useState<BaseFormState>(() => {
     // Try to restore from localStorage if available
@@ -222,18 +265,24 @@ export default function BasePromptPageForm({
   const [errors, setErrors] = useState<string[]>([]);
   const [showPopupConflictModal, setShowPopupConflictModal] = useState<string | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  
+
   // Local state for kickstarters background design to provide immediate UI feedback
   const [localBackgroundDesign, setLocalBackgroundDesign] = useState<boolean>(
     businessProfile?.kickstarters_background_design ?? false
   );
 
-  // Update form data when initialData changes
+  // Track if we've initialized to prevent resetting form data on every initialData change
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // Update form data when initialData changes (only once after initial mount)
   useEffect(() => {
-    if (initialData && Object.keys(initialData).length > 0) {
+    console.log('[BasePromptPageForm] initialData useEffect triggered, isInitialized:', isInitialized);
+    if (!isInitialized && initialData && Object.keys(initialData).length > 0) {
+      console.log('[BasePromptPageForm] Initializing formData from initialData');
       setFormData(prev => ({ ...prev, ...initialData }));
+      setIsInitialized(true);
     }
-  }, [initialData]);
+  }, [initialData, isInitialized]);
 
   // Update local background design when businessProfile changes
   useEffect(() => {
@@ -273,7 +322,12 @@ export default function BasePromptPageForm({
 
   // Generic update function
   const updateFormData = (field: keyof BaseFormState, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    console.log('[BasePromptPageForm] updateFormData:', field, value);
+    setFormData(prev => {
+      const updated = { ...prev, [field]: value };
+      console.log('[BasePromptPageForm] formData updated:', field, 'old:', prev[field], 'new:', updated[field]);
+      return updated;
+    });
   };
 
   // Validation function
@@ -355,6 +409,7 @@ export default function BasePromptPageForm({
 
   // Handle falling stars changes
   const handleFallingStarsChange = (enabled: boolean, icon: string, color: string) => {
+    console.log('[BasePromptPageForm] handleFallingStarsChange called:', { enabled, icon, color });
     updateFormData('falling_enabled', enabled);
     updateFormData('falling_icon', icon);
     updateFormData('falling_icon_color', color);
@@ -370,6 +425,7 @@ export default function BasePromptPageForm({
 
   // Handle offer changes
   const handleOfferChange = (enabled: boolean, title: string, body: string, url: string, timelock: boolean) => {
+    console.log('[BasePromptPageForm] handleOfferChange called:', { enabled, title, body, url, timelock });
     updateFormData('offer_enabled', enabled);
     updateFormData('offer_title', title);
     updateFormData('offer_body', body);
@@ -584,11 +640,7 @@ export default function BasePromptPageForm({
           onEnabledChange={(enabled) => handleFallingStarsChange(enabled, formData.falling_icon, formData.falling_icon_color)}
           onIconChange={(icon) => handleFallingStarsChange(formData.falling_enabled, icon, formData.falling_icon_color)}
           onColorChange={(color) => handleFallingStarsChange(formData.falling_enabled, formData.falling_icon, color)}
-          initialData={{
-            falling_enabled: initialData?.falling_enabled,
-            falling_icon: initialData?.falling_icon,
-            falling_icon_color: initialData?.falling_icon_color,
-          }}
+          initialData={fallingStarsInitialData}
           disabled={disabled}
           editMode={true}
         />
@@ -621,13 +673,7 @@ export default function BasePromptPageForm({
           onDescriptionChange={(body) => handleOfferChange(formData.offer_enabled, formData.offer_title, body, formData.offer_url, formData.offer_timelock)}
           onUrlChange={(url) => handleOfferChange(formData.offer_enabled, formData.offer_title, formData.offer_body, url, formData.offer_timelock)}
           onTimelockChange={(timelock) => handleOfferChange(formData.offer_enabled, formData.offer_title, formData.offer_body, formData.offer_url, timelock)}
-          initialData={{
-            offer_enabled: initialData?.offer_enabled,
-            offer_title: initialData?.offer_title,
-            offer_body: initialData?.offer_body,
-            offer_url: initialData?.offer_url,
-            offer_timelock: initialData?.offer_timelock,
-          }}
+          initialData={offerInitialData}
           disabled={disabled}
         />
       )}

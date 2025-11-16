@@ -16,6 +16,7 @@ import { Textarea } from "@/app/(app)/components/ui/textarea";
 import KeywordsInput from "./KeywordsInput";
 import Icon from "@/components/Icon";
 import ReviewWriteSection, { ReviewWritePlatform } from "../dashboard/edit-prompt-page/components/ReviewWriteSection";
+import PersonalizedNoteFeature from "./prompt-features/PersonalizedNoteFeature";
 
 interface ReviewBuilderPromptPageFormProps {
   mode: "create" | "edit";
@@ -163,6 +164,14 @@ export default function ReviewBuilderPromptPageForm({
 
   const [reviewPlatforms, setReviewPlatforms] = useState<ReviewWritePlatform[]>(
     normalizePlatforms(initialData?.review_platforms || businessProfile?.review_platforms),
+  );
+
+  // Friendly note state
+  const [showFriendlyNote, setShowFriendlyNote] = useState<boolean>(
+    initialData?.show_friendly_note ?? false
+  );
+  const [friendlyNote, setFriendlyNote] = useState<string>(
+    initialData?.friendly_note ?? ""
   );
 
   // Ensure at least the minimum number of questions exist
@@ -485,8 +494,8 @@ export default function ReviewBuilderPromptPageForm({
     emoji_sentiment_enabled: false,
     emoji_labels: [],
     // Ensure other optional features have defaults (use form data if provided)
-    show_friendly_note: baseFormData.show_friendly_note ?? false,
-    friendly_note: baseFormData.friendly_note ?? '',
+    show_friendly_note: showFriendlyNote,
+    friendly_note: friendlyNote,
     falling_enabled: baseFormData.falling_enabled ?? true,
     falling_icon: baseFormData.falling_icon ?? 'star',
     falling_icon_color: baseFormData.falling_icon_color ?? '',
@@ -511,19 +520,37 @@ export default function ReviewBuilderPromptPageForm({
     }
   };
 
+  // Memoize initialData to prevent unnecessary re-renders
+  // Note: We only include showFriendlyNote/friendlyNote in the initial value, not in dependencies
+  // This prevents the entire form from resetting when these values change
+  const memoizedInitialData = useMemo(() => ({
+    ...initialData,
+    ...(campaignType === "public" ? { name: campaignName } : {}),
+    keywords,
+    selected_keyword_inspirations: selectedKeywordInspirations,
+    builder_questions: questionPayload,
+    keyword_inspiration_enabled: true,
+    review_type: "review_builder",
+    show_friendly_note: showFriendlyNote,
+    friendly_note: friendlyNote,
+  }), [initialData, campaignType, campaignName, keywords, selectedKeywordInspirations, questionPayload]);
+
+  // Memoize enabledFeatures to prevent unnecessary re-renders
+  const memoizedEnabledFeatures = useMemo(() => ({
+    personalizedNote: false,
+    emojiSentiment: false,
+    fallingStars: true,
+    aiSettings: false,
+    offer: true,
+    reviewPlatforms: false,
+    kickstarters: false,
+  }), []);
+
   return (
     <div className="max-w-4xl mx-auto px-6 py-8">
       <BasePromptPageForm
         mode={mode}
-        initialData={{
-          ...initialData,
-          ...(campaignType === "public" ? { name: campaignName } : {}),
-          keywords,
-          selected_keyword_inspirations: selectedKeywordInspirations,
-          builder_questions: questionPayload,
-          keyword_inspiration_enabled: true,
-          review_type: "review_builder",
-        }}
+        initialData={memoizedInitialData}
         onSave={handleSave}
         onPublish={onPublish ? handlePublish : undefined}
         pageTitle={pageTitle}
@@ -534,15 +561,7 @@ export default function ReviewBuilderPromptPageForm({
         campaignType={campaignType}
         onGenerateReview={onGenerateReview}
         offerHelpText="The special offer will appear after the customer's review is generated, creating a perfect moment to incentivize them."
-        enabledFeatures={{
-          personalizedNote: false,
-          emojiSentiment: false,
-          fallingStars: true,
-          aiSettings: false,
-          offer: true,
-          reviewPlatforms: false,
-          kickstarters: false,
-        }}
+        enabledFeatures={memoizedEnabledFeatures}
       >
         {/* Page Title Section - inside form so submit button works */}
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-8">
@@ -937,6 +956,23 @@ export default function ReviewBuilderPromptPageForm({
               Required (customers must select at least one keyword)
             </label>
           </div>
+        </section>
+
+        <section>
+          <PersonalizedNoteFeature
+            enabled={showFriendlyNote}
+            note={friendlyNote}
+            emojiSentimentEnabled={false}
+            onEnabledChange={(enabled) => {
+              console.log('[ReviewBuilder] Friendly note toggle:', enabled);
+              setShowFriendlyNote(enabled);
+            }}
+            onNoteChange={(note) => {
+              console.log('[ReviewBuilder] Friendly note text change:', note);
+              setFriendlyNote(note);
+            }}
+            editMode={true}
+          />
         </section>
 
         <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">

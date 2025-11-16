@@ -95,6 +95,9 @@ export default function ReviewBuilderWizard({
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [showFallingAnimation, setShowFallingAnimation] = useState(false);
   const [reviewCopied, setReviewCopied] = useState(false);
+  const [showReviewAnimation, setShowReviewAnimation] = useState(false);
+  const [showPersonalNote, setShowPersonalNote] = useState(true);
+  const [canShowPersonalNote, setCanShowPersonalNote] = useState(false);
   const attemptStorageKey = useMemo(
     () => (promptPage?.slug ? `reviewBuilderAiAttempts_${promptPage.slug}` : null),
     [promptPage?.slug],
@@ -111,6 +114,12 @@ export default function ReviewBuilderWizard({
       }
     }
   }, [attemptStorageKey]);
+
+  // Show friendly note popup after a delay
+  useEffect(() => {
+    const timer = setTimeout(() => setCanShowPersonalNote(true), 700);
+    return () => clearTimeout(timer);
+  }, []);
 
   const persistAttemptCount = (count: number) => {
     setAiAttemptCount(count);
@@ -336,9 +345,12 @@ const builderQuestions = useMemo(() => {
       setSuccessMessage("Draft ready! Review the AI copy below.");
       setStep(4);
 
-      // Trigger falling animation on successful generation
+      // Trigger animations on successful generation
       setShowFallingAnimation(true);
       setTimeout(() => setShowFallingAnimation(false), 5000); // Show for 5 seconds
+
+      setShowReviewAnimation(true);
+      setTimeout(() => setShowReviewAnimation(false), 600); // Match animation duration
     } catch (generationError: any) {
       console.error("Failed to generate review:", generationError);
       setError("Unable to generate the review. Please try again.");
@@ -579,21 +591,23 @@ const builderQuestions = useMemo(() => {
       case 4:
         return (
           <div className="space-y-6">
-            <div className="text-center mb-6">
+            <div className="text-center mb-6 animate-fade-in-up">
               <p className="text-2xl font-semibold text-white mb-2">
-                Your AI-generated review
+                Your review
               </p>
               <p className="text-base text-white/80">
                 Feel free to edit, then copy and submit to your chosen platform
               </p>
             </div>
-            <Textarea
-              rows={10}
-              value={reviewText}
-              onChange={(e) => setReviewText(e.target.value)}
-              placeholder="Click the button below to generate your personalized review..."
-              className="text-base bg-white/90 backdrop-blur"
-            />
+            <div className={showReviewAnimation ? "animate-scale-in" : ""}>
+              <Textarea
+                rows={10}
+                value={reviewText}
+                onChange={(e) => setReviewText(e.target.value)}
+                placeholder="Click the button below to generate your personalized review..."
+                className="text-base bg-white/90 backdrop-blur"
+              />
+            </div>
 
             {/* AI Generate/Regenerate Button */}
             <button
@@ -703,7 +717,7 @@ const builderQuestions = useMemo(() => {
     "Your details",
     "Quick questions",
     "Highlights",
-    "AI review & submit",
+    "Generate & submit",
   ];
 
   return (
@@ -784,7 +798,7 @@ const builderQuestions = useMemo(() => {
                       type="button"
                       onClick={() => isClickable && setStep(stepNumber)}
                       disabled={!isClickable}
-                      className={`relative flex h-8 w-8 items-center justify-center rounded-full border-2 transition-all ${
+                      className={`relative flex h-5 w-5 sm:h-6 sm:w-6 items-center justify-center rounded-full border-2 transition-all ${
                         isActive
                           ? "border-white bg-white text-slate-900 scale-110"
                           : isCompleted
@@ -793,9 +807,9 @@ const builderQuestions = useMemo(() => {
                       }`}
                     >
                       {isCompleted ? (
-                        <span className="text-sm">✓</span>
+                        <span className="text-xs">✓</span>
                       ) : (
-                        <span className="text-xs font-bold">{stepNumber}</span>
+                        <span className="text-xs font-medium">{stepNumber}</span>
                       )}
                     </button>
                     <span className={`mt-1.5 text-xs font-medium ${
@@ -894,6 +908,31 @@ const builderQuestions = useMemo(() => {
           </div>
         </div>
       </div>
+
+      {/* Friendly Note Popup */}
+      {promptPage?.show_friendly_note &&
+        promptPage?.friendly_note &&
+        showPersonalNote &&
+        canShowPersonalNote && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fadein">
+            <div className="bg-slate-50 border border-slate-200 rounded-lg p-6 max-w-lg mx-4 relative animate-slideup shadow-lg">
+              {/* Standardized red X close button */}
+              <button
+                className="absolute -top-3 -right-3 bg-white border border-gray-200 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 flex items-center justify-center hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 z-50"
+                style={{ width: 48, height: 48 }}
+                onClick={() => setShowPersonalNote(false)}
+                aria-label="Close note"
+              >
+                <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+              <div className="text-slate-blue text-base">
+                {promptPage.friendly_note}
+              </div>
+            </div>
+          </div>
+        )}
     </div>
   );
 }
