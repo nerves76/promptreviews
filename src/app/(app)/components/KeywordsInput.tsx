@@ -3,8 +3,8 @@
 import { useState, KeyboardEvent } from 'react';
 import Icon from '@/components/Icon';
 import KeywordGeneratorModal from './KeywordGeneratorModal';
-import MissingBusinessDetailsModal from './MissingBusinessDetailsModal';
 import { validateBusinessForKeywordGeneration } from '@/utils/businessValidation';
+import Link from 'next/link';
 
 interface KeywordsInputProps {
   keywords: string[];
@@ -49,7 +49,7 @@ export default function KeywordsInput({
   const [inputValue, setInputValue] = useState('');
   const [isFocused, setIsFocused] = useState(false);
   const [showGeneratorModal, setShowGeneratorModal] = useState(false);
-  const [showMissingFieldsModal, setShowMissingFieldsModal] = useState(false);
+  const [showMissingFieldsError, setShowMissingFieldsError] = useState(false);
   const [missingFields, setMissingFields] = useState<string[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedKeywords, setGeneratedKeywords] = useState<any[]>([]);
@@ -158,11 +158,11 @@ export default function KeywordsInput({
   const handleGenerateClick = async () => {
     console.log('[KeywordGeneration] handleGenerateClick called, businessInfo exists:', !!businessInfo);
 
-    // If no businessInfo provided at all, show generic message
+    // If no businessInfo provided at all, show error banner
     if (!businessInfo) {
-      console.log('[KeywordGeneration] ❌ MODAL TRIGGER: No businessInfo provided');
+      console.log('[KeywordGeneration] ❌ ERROR: No businessInfo provided');
       setMissingFields(['Business Name', 'Business Type/Industry', 'City', 'State', 'About Us', 'Differentiators', 'Years in Business', 'Services Offered']);
-      setShowMissingFieldsModal(true);
+      setShowMissingFieldsError(true);
       return;
     }
 
@@ -170,9 +170,9 @@ export default function KeywordsInput({
     console.log('[KeywordGeneration] Normalized result exists:', !!normalized);
 
     if (!normalized) {
-      console.log('[KeywordGeneration] ❌ MODAL TRIGGER: Normalization returned null/undefined');
+      console.log('[KeywordGeneration] ❌ ERROR: Normalization returned null/undefined');
       setMissingFields(['Business Name', 'Business Type/Industry', 'City', 'State', 'About Us', 'Differentiators', 'Years in Business', 'Services Offered']);
-      setShowMissingFieldsModal(true);
+      setShowMissingFieldsError(true);
       return;
     }
 
@@ -180,9 +180,9 @@ export default function KeywordsInput({
     console.log('[KeywordGeneration] Validation result:', validation);
 
     if (!validation.isValid) {
-      console.log('[KeywordGeneration] ❌ MODAL TRIGGER: Validation failed with missing fields:', validation.missingFields);
+      console.log('[KeywordGeneration] ❌ ERROR: Validation failed with missing fields:', validation.missingFields);
       setMissingFields(validation.missingFields);
-      setShowMissingFieldsModal(true);
+      setShowMissingFieldsError(true);
       return;
     }
 
@@ -246,6 +246,47 @@ export default function KeywordsInput({
 
   return (
     <div className="space-y-2">
+      {/* Missing Business Info Error Banner */}
+      {showMissingFieldsError && (
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <div className="flex items-start gap-3">
+            <Icon name="FaExclamationTriangle" className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+            <div className="flex-1">
+              <h4 className="text-sm font-semibold text-red-900 mb-2">
+                Complete Your Business Profile
+              </h4>
+              <p className="text-sm text-red-800 mb-3">
+                To use the AI Keyword Generator, please complete the following business information:
+              </p>
+              <ul className="space-y-1 mb-3">
+                {missingFields.map((field, index) => (
+                  <li key={index} className="flex items-start gap-2">
+                    <Icon name="FaTimes" className="w-3.5 h-3.5 text-red-500 mt-0.5 flex-shrink-0" />
+                    <span className="text-sm text-red-800">{field}</span>
+                  </li>
+                ))}
+              </ul>
+              <div className="flex items-center gap-3">
+                <Link
+                  href="/dashboard/business-profile"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
+                >
+                  <Icon name="FaStore" className="w-3.5 h-3.5" />
+                  Go to Business Profile
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => setShowMissingFieldsError(false)}
+                  className="text-sm text-red-700 hover:text-red-900 underline"
+                >
+                  Dismiss
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Generate Button - Always show for discoverability */}
       <div className="flex justify-end mb-2">
         <button
@@ -320,7 +361,7 @@ export default function KeywordsInput({
         </span>
       </div>
 
-      {/* Modals */}
+      {/* Keyword Generator Modal */}
       <KeywordGeneratorModal
         isOpen={showGeneratorModal}
         onClose={() => {
@@ -343,11 +384,6 @@ export default function KeywordsInput({
         industriesServed={businessInfo?.industries_served}
         preGeneratedKeywords={generatedKeywords}
         preGeneratedUsageInfo={usageInfo}
-      />
-      <MissingBusinessDetailsModal
-        isOpen={showMissingFieldsModal}
-        onClose={() => setShowMissingFieldsModal(false)}
-        missingFields={missingFields}
       />
     </div>
   );

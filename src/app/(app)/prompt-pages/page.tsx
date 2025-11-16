@@ -897,7 +897,7 @@ function PromptPagesContent() {
           {/* Subheading and Description */}
           <div className="max-w-7xl mx-auto mb-6">
             <div className="flex items-center gap-3 mb-3">
-              <h2 className="text-2xl font-bold text-white">Catch all campaigns</h2>
+              <h2 className="text-2xl font-bold text-white">Catch-all campaigns</h2>
             </div>
             <p className="text-white/80 text-sm max-w-2xl">
               Use a single Prompt Page to capture many reviews from many people.
