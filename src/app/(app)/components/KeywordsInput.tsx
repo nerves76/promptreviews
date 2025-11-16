@@ -157,7 +157,9 @@ export default function KeywordsInput({
   };
 
   const handleGenerateClick = async () => {
-    console.log('[KeywordGeneration] handleGenerateClick called, businessInfo exists:', !!businessInfo);
+    console.log('[KeywordGeneration] handleGenerateClick called');
+    console.log('[KeywordGeneration] businessInfo exists:', !!businessInfo);
+    console.log('[KeywordGeneration] businessInfo:', businessInfo);
 
     // If no businessInfo provided at all, show error banner
     if (!businessInfo) {
@@ -167,8 +169,16 @@ export default function KeywordsInput({
       return;
     }
 
+    // Check if businessInfo has default/"Your Business" values (indicates data not loaded yet)
+    if (businessInfo.name === 'Your Business' || !businessInfo.name) {
+      console.log('[KeywordGeneration] ⏳ LOADING: Business profile appears to be loading (has default values)');
+      console.log('[KeywordGeneration] businessInfo.name:', businessInfo.name);
+      // Don't show error - the data is probably still loading
+      return;
+    }
+
     const normalized = normalizeBusinessInfo();
-    console.log('[KeywordGeneration] Normalized result exists:', !!normalized);
+    console.log('[KeywordGeneration] Normalized result:', normalized);
 
     if (!normalized) {
       console.log('[KeywordGeneration] ❌ ERROR: Normalization returned null/undefined');
