@@ -261,7 +261,7 @@ export default function KeywordsInput({
               <ul className="space-y-1 mb-3">
                 {missingFields.map((field, index) => (
                   <li key={index} className="flex items-start gap-2">
-                    <Icon name="FaTimes" className="w-3.5 h-3.5 text-red-500 mt-0.5 flex-shrink-0" />
+                    <span className="text-red-500 font-bold text-lg flex-shrink-0">×</span>
                     <span className="text-sm text-red-800">{field}</span>
                   </li>
                 ))}
