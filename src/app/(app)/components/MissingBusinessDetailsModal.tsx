@@ -62,7 +62,7 @@ export default function MissingBusinessDetailsModal({
                 <ul className="space-y-2">
                   {missingFields.map((field, index) => (
                     <li key={index} className="flex items-start space-x-2">
-                      <Icon name="FaTimes" className="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" />
+                      <span className="text-red-400 font-bold text-lg mt-0.5 flex-shrink-0">×</span>
                       <span className="text-sm font-medium text-white">{field}</span>
                     </li>
                   ))}
