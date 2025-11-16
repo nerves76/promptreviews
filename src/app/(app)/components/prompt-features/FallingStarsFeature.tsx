@@ -232,11 +232,11 @@ export default function FallingStarsFeature({
     <div className={`${editMode ? 'rounded-lg p-6 bg-blue-50 border border-blue-200 flex flex-col gap-6 shadow relative mb-4 min-h-[180px]' : 'bg-white rounded-lg border border-gray-200 p-6'}`}>
       {/* Prompty Image - positioned flush right, top, and bottom, grows with card */}
       {editMode && (
-        <img 
+        <img
           src="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/prompty-catching-review-stars.png"
           alt="Prompty catching stars"
-          className="absolute right-0 inset-y-0 w-auto object-cover pointer-events-none z-10"
-          style={{ 
+          className="absolute right-0 inset-y-0 w-auto object-cover pointer-events-none z-10 hidden min-[620px]:block"
+          style={{
             maxWidth: '168px',
             height: '100%'
           }}
