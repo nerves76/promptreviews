@@ -854,7 +854,7 @@ function PromptPagesContent() {
             `}
           >
             <Icon name="FaUsers" className="w-5 h-5" size={20} />
-            <span className="whitespace-nowrap">Catch all</span>
+            <span className="whitespace-nowrap">Catch-all</span>
           </button>
           <button
             type="button"
