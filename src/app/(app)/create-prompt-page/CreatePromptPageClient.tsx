@@ -812,7 +812,7 @@ export default function CreatePromptPageClient({
       }
     };
     loadBusinessProfile();
-  }, []);
+  }, [accountId]); // Re-run when accountId becomes available or changes (account switcher)
 
   // Prefill contact info from query params
   useEffect(() => {
