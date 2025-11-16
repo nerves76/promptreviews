@@ -47,8 +47,8 @@ export async function POST(request: NextRequest) {
     // Generate a unique slug from client_name or title
     let slug;
     if (body.review_type === 'review_builder') {
-      // For review builders, use a simpler slug format
-      slug = `review-builder-${Date.now().toString(36)}-${nanoid(6)}`;
+      // For review builders, use a very simple slug format - just timestamp and random ID
+      slug = `rb-${nanoid(8)}`;
     } else if (body.client_name) {
       slug = slugify(body.client_name, Date.now().toString(36));
     } else if (body.title) {

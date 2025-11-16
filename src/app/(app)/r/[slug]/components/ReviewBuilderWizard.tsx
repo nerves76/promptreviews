@@ -313,6 +313,18 @@ const builderQuestions = useMemo(() => {
 
     resetMessages();
     setCurrentQuestionIndex(0); // Reset question index when moving to a new step
+
+    // Auto-generate review when moving from step 3 to step 4
+    if (step === 3) {
+      setStep(4);
+      // Trigger falling animation immediately
+      setShowFallingAnimation(true);
+      setTimeout(() => setShowFallingAnimation(false), 5000);
+      // Trigger review generation automatically
+      setTimeout(() => handleGenerateReview(), 100);
+      return;
+    }
+
     setStep((prev) => prev + 1);
   };
 
@@ -383,7 +395,8 @@ const builderQuestions = useMemo(() => {
 
       setReviewText(generated);
       persistAttemptCount(aiAttemptCount + 1);
-      setSuccessMessage("Draft ready! Review the AI copy below.");
+      setSuccessMessage("Draft ready! Please edit to add personalized touch.");
+      setTimeout(() => setSuccessMessage(null), 3000); // Clear after 3 seconds
       setStep(4);
 
       // Trigger animations on successful generation
@@ -662,7 +675,7 @@ const builderQuestions = useMemo(() => {
             </div>
 
             {activePlatforms.length > 0 && reviewText && (
-              <div className="mt-4 space-y-3">
+              <div className="mt-6 space-y-3">
                 {/* Step 1: Copy your review */}
                 <div className="grid grid-cols-[auto_auto_auto_1fr] items-center gap-4">
                   <span className="text-2xl font-semibold text-white">1.</span>
