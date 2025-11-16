@@ -5,6 +5,7 @@ import Icon from '@/components/Icon';
 import KeywordGeneratorModal from './KeywordGeneratorModal';
 import { validateBusinessForKeywordGeneration } from '@/utils/businessValidation';
 import Link from 'next/link';
+import { apiClient } from '@/utils/apiClient';
 
 interface KeywordsInputProps {
   keywords: string[];
@@ -193,42 +194,26 @@ export default function KeywordsInput({
 
     // Generate keywords first
     try {
-      const response = await fetch('/api/ai/generate-keywords', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          businessName: normalized.name || '',
-          businessType: (normalized.industry?.[0]) || normalized.industries_other || normalized.industry_other || '',
-          city: normalized.address_city || '',
-          state: normalized.address_state || '',
-          accountId: normalized.accountId || '',
-          aboutUs: normalized.about_us || '',
-          differentiators: normalized.differentiators || '',
-          yearsInBusiness: normalized.years_in_business || '0',
-          servicesOffered: Array.isArray(normalized.services_offered) ? normalized.services_offered.join(', ') : '',
-          industriesServed: normalized.industries_served,
-        }),
+      const data = await apiClient.post('/ai/generate-keywords', {
+        businessName: normalized.name || '',
+        businessType: (normalized.industry?.[0]) || normalized.industries_other || normalized.industry_other || '',
+        city: normalized.address_city || '',
+        state: normalized.address_state || '',
+        aboutUs: normalized.about_us || '',
+        differentiators: normalized.differentiators || '',
+        yearsInBusiness: normalized.years_in_business || '0',
+        servicesOffered: Array.isArray(normalized.services_offered) ? normalized.services_offered.join(', ') : '',
+        industriesServed: normalized.industries_served,
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        // Show error in alert or handle it
-        alert(data.error || 'Failed to generate keywords');
-        setIsGenerating(false);
-        return;
-      }
 
       // Store generated keywords, usage info, and open modal
       setGeneratedKeywords(data.keywords || []);
       setUsageInfo(data.usage || null);
       setIsGenerating(false);
       setShowGeneratorModal(true);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error generating keywords:', err);
-      alert('An error occurred while generating keywords');
+      alert(err?.message || err?.error || 'An error occurred while generating keywords');
       setIsGenerating(false);
     }
   };

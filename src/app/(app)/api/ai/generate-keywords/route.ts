@@ -1,13 +1,14 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 import { createServerSupabaseClient, createServiceRoleClient } from "@/auth/providers/supabase";
+import { getRequestAccountId } from "@/app/(app)/api/utils/getRequestAccountId";
 
 export const dynamic = "force-dynamic";
 
 // Monthly limit per account for keyword generation
 const MONTHLY_KEYWORD_GENERATION_LIMIT = 10;
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   if (!process.env.OPENAI_API_KEY) {
     return NextResponse.json(
       { error: "OPENAI_API_KEY is missing from environment variables." },
@@ -30,12 +31,20 @@ export async function POST(request: Request) {
       );
     }
 
+    // Get account ID from X-Selected-Account header
+    const accountId = await getRequestAccountId(request, user.id, supabase);
+    if (!accountId) {
+      return NextResponse.json(
+        { error: "No valid account found" },
+        { status: 403 },
+      );
+    }
+
     const {
       businessName,
       businessType,
       city,
       state,
-      accountId,
       aboutUs,
       differentiators,
       yearsInBusiness,
@@ -51,28 +60,6 @@ export async function POST(request: Request) {
           details: "Business name, type, city, state, about us, differentiators, years in business, and services offered are required to generate keywords."
         },
         { status: 400 },
-      );
-    }
-
-    if (!accountId) {
-      return NextResponse.json(
-        { error: "Account ID is required" },
-        { status: 400 },
-      );
-    }
-
-    // Verify user has access to this account
-    const { data: accountUser, error: accountError } = await serviceSupabase
-      .from("account_users")
-      .select("*")
-      .eq("account_id", accountId)
-      .eq("user_id", user.id)
-      .single();
-
-    if (accountError || !accountUser) {
-      return NextResponse.json(
-        { error: "Forbidden: You don't have access to this account" },
-        { status: 403 },
       );
     }
 
