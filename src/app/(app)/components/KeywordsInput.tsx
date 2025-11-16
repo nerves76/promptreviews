@@ -156,27 +156,37 @@ export default function KeywordsInput({
   };
 
   const handleGenerateClick = async () => {
+    console.log('[KeywordGeneration] handleGenerateClick called, businessInfo exists:', !!businessInfo);
+
     // If no businessInfo provided at all, show generic message
     if (!businessInfo) {
+      console.log('[KeywordGeneration] ❌ MODAL TRIGGER: No businessInfo provided');
       setMissingFields(['Business Name', 'Business Type/Industry', 'City', 'State', 'About Us', 'Differentiators', 'Years in Business', 'Services Offered']);
       setShowMissingFieldsModal(true);
       return;
     }
 
     const normalized = normalizeBusinessInfo();
+    console.log('[KeywordGeneration] Normalized result exists:', !!normalized);
+
     if (!normalized) {
+      console.log('[KeywordGeneration] ❌ MODAL TRIGGER: Normalization returned null/undefined');
       setMissingFields(['Business Name', 'Business Type/Industry', 'City', 'State', 'About Us', 'Differentiators', 'Years in Business', 'Services Offered']);
       setShowMissingFieldsModal(true);
       return;
     }
 
     const validation = validateBusinessForKeywordGeneration(normalized);
+    console.log('[KeywordGeneration] Validation result:', validation);
 
     if (!validation.isValid) {
+      console.log('[KeywordGeneration] ❌ MODAL TRIGGER: Validation failed with missing fields:', validation.missingFields);
       setMissingFields(validation.missingFields);
       setShowMissingFieldsModal(true);
       return;
     }
+
+    console.log('[KeywordGeneration] ✅ All checks passed, proceeding to generate keywords');
 
     // Start generating (shows spinner on button)
     setIsGenerating(true);
