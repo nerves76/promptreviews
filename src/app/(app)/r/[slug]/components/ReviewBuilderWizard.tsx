@@ -97,6 +97,7 @@ export default function ReviewBuilderWizard({
   const [showFallingAnimation, setShowFallingAnimation] = useState(false);
   const [reviewCopied, setReviewCopied] = useState(false);
   const [showReviewAnimation, setShowReviewAnimation] = useState(false);
+  const [showMagicAnimation, setShowMagicAnimation] = useState(false);
   const [showPersonalNote, setShowPersonalNote] = useState(true);
   const [canShowPersonalNote, setCanShowPersonalNote] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -317,11 +318,15 @@ const builderQuestions = useMemo(() => {
     // Auto-generate review when moving from step 3 to step 4
     if (step === 3) {
       setStep(4);
+      // Start magic loading animation immediately
+      setShowMagicAnimation(true);
       // Trigger falling animation immediately
       setShowFallingAnimation(true);
       setTimeout(() => setShowFallingAnimation(false), 5000);
-      // Trigger review generation automatically
-      setTimeout(() => handleGenerateReview(), 100);
+      // Trigger review generation automatically after state updates (skip validation since we already validated step 3)
+      setTimeout(() => {
+        handleGenerateReview(true);
+      }, 300);
       return;
     }
 
@@ -342,8 +347,8 @@ const builderQuestions = useMemo(() => {
     setStep((prev) => prev - 1);
   };
 
-  const handleGenerateReview = async () => {
-    if (!validateCurrentStep()) return;
+  const handleGenerateReview = async (skipValidation = false) => {
+    if (!skipValidation && !validateCurrentStep()) return;
     if (aiAttemptCount >= 3) {
       setError("You've reached the 3 AI generations limit for this session.");
       return;
@@ -351,6 +356,10 @@ const builderQuestions = useMemo(() => {
     setAiGenerating(true);
     setError(null);
     setSuccessMessage(null);
+
+    // Start magic animation
+    setShowMagicAnimation(true);
+
     try {
       const primaryPlatform = activePlatforms[0];
       const platformName =
@@ -393,21 +402,25 @@ const builderQuestions = useMemo(() => {
         `${keywordInstruction}\n\nReview builder responses:\n${answerSummary}`,
       );
 
+      // Smooth transition: fade out loader, then show review
+      setShowMagicAnimation(false);
+
+      // Wait for loader to fade out completely
+      await new Promise(resolve => setTimeout(resolve, 400));
+
+      // Set text - no additional animation needed
       setReviewText(generated);
       persistAttemptCount(aiAttemptCount + 1);
-      setSuccessMessage("Draft ready! Please edit to add personalized touch.");
-      setTimeout(() => setSuccessMessage(null), 3000); // Clear after 3 seconds
+
       setStep(4);
 
-      // Trigger animations on successful generation
+      // Trigger falling stars animation
       setShowFallingAnimation(true);
-      setTimeout(() => setShowFallingAnimation(false), 5000); // Show for 5 seconds
-
-      setShowReviewAnimation(true);
-      setTimeout(() => setShowReviewAnimation(false), 600); // Match animation duration
+      setTimeout(() => setShowFallingAnimation(false), 5000);
     } catch (generationError: any) {
       console.error("Failed to generate review:", generationError);
       setError("Unable to generate the review. Please try again.");
+      setShowMagicAnimation(false);
     } finally {
       setAiGenerating(false);
     }
@@ -664,7 +677,7 @@ const builderQuestions = useMemo(() => {
               </button>
             </div>
 
-            <div className={showReviewAnimation ? "animate-scale-in" : ""}>
+            <div className="relative">
               <Textarea
                 rows={7}
                 value={reviewText}
@@ -672,10 +685,21 @@ const builderQuestions = useMemo(() => {
                 placeholder="Click the button below to generate your personalized review..."
                 className="text-base bg-white/90 backdrop-blur"
               />
+
+              {/* 3D Rotating rings loader overlay */}
+              {showMagicAnimation && (
+                <div className="absolute inset-0 flex items-center justify-center bg-white/90 backdrop-blur-sm rounded-lg overflow-hidden pointer-events-none transition-opacity duration-300 animate-fade-in">
+                  <div className="relative w-16 h-16" style={{ perspective: '800px' }}>
+                    <div className="absolute box-border w-full h-full rounded-full border-b-4 animate-rotate-one" style={{ borderBottomColor: '#667eea' }} />
+                    <div className="absolute box-border w-full h-full rounded-full border-r-4 animate-rotate-two" style={{ borderRightColor: '#764ba2' }} />
+                    <div className="absolute box-border w-full h-full rounded-full border-t-4 animate-rotate-three" style={{ borderTopColor: '#667eea' }} />
+                  </div>
+                </div>
+              )}
             </div>
 
             {activePlatforms.length > 0 && reviewText && (
-              <div className="mt-6 space-y-3">
+              <div className="mt-6 pt-6 space-y-3">
                 {/* Step 1: Copy your review */}
                 <div className="grid grid-cols-[auto_auto_auto_1fr] items-center gap-4">
                   <span className="text-2xl font-semibold text-white">1.</span>
