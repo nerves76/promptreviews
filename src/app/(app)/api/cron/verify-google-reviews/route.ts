@@ -44,12 +44,7 @@ export async function GET(request: NextRequest) {
         platform,
         platform_url,
         business_id,
-        verification_attempts,
-        businesses (
-          id,
-          account_id,
-          google_location_id
-        )
+        verification_attempts
       `)
       .eq('platform', 'Google Business Profile')
       .eq('auto_verification_status', 'pending')
@@ -75,38 +70,46 @@ export async function GET(request: NextRequest) {
 
     console.log(`📊 Found ${pendingSubmissions.length} pending submissions to verify`);
 
-    // Group submissions by business to batch API calls
-    const submissionsByBusiness = new Map<string, typeof pendingSubmissions>();
+    // Group submissions by account (business_id is actually account_id)
+    const submissionsByAccount = new Map<string, typeof pendingSubmissions>();
 
     for (const submission of pendingSubmissions) {
-      const businessId = (submission.businesses as any)?.id;
-      if (!businessId) continue;
+      const accountId = submission.business_id;
+      if (!accountId) continue;
 
-      if (!submissionsByBusiness.has(businessId)) {
-        submissionsByBusiness.set(businessId, []);
+      if (!submissionsByAccount.has(accountId)) {
+        submissionsByAccount.set(accountId, []);
       }
-      submissionsByBusiness.get(businessId)!.push(submission);
+      submissionsByAccount.get(accountId)!.push(submission);
     }
 
-    console.log(`🏢 Grouped into ${submissionsByBusiness.size} businesses`);
+    console.log(`🏢 Grouped into ${submissionsByAccount.size} accounts`);
 
     let totalVerified = 0;
     let totalNotFound = 0;
     let totalErrors = 0;
 
-    // Process each business
-    for (const [businessId, submissions] of submissionsByBusiness.entries()) {
+    // Process each account
+    for (const [accountId, submissions] of submissionsByAccount.entries()) {
       try {
-        const business = (submissions[0].businesses as any);
-        const accountId = business.account_id;
-        const locationId = business.google_location_id;
+        console.log(`🔄 Processing account ${accountId} with ${submissions.length} submissions`);
 
-        if (!locationId) {
-          console.log(`⚠️ Business ${businessId} has no Google location ID, skipping`);
+        // Fetch Google locations for this account
+        const { data: googleLocations, error: locationsError } = await supabase
+          .from('google_business_locations')
+          .select('id, location_id, location_name')
+          .eq('user_id', accountId); // google_business_locations uses user_id to link
+
+        if (locationsError || !googleLocations || googleLocations.length === 0) {
+          console.log(`⚠️ Account ${accountId} has no Google locations, skipping`);
+          // Mark submissions as failed
+          for (const submission of submissions) {
+            await updateVerificationStatus(submission.id, 'failed', null, 0);
+          }
           continue;
         }
 
-        console.log(`🔄 Processing business ${businessId} with ${submissions.length} submissions`);
+        console.log(`📍 Found ${googleLocations.length} Google location(s) for account ${accountId}`);
 
         // Fetch Google OAuth tokens for this account
         const { data: accountData, error: accountError } = await supabase
@@ -133,17 +136,24 @@ export async function GET(request: NextRequest) {
             : undefined
         });
 
-        // Fetch reviews from Google
-        let googleReviews;
-        try {
-          googleReviews = await gbpClient.getReviews(locationId);
-          console.log(`📥 Fetched ${googleReviews.length} Google reviews for location ${locationId}`);
-        } catch (reviewError: any) {
-          console.error(`❌ Error fetching Google reviews for location ${locationId}:`, reviewError);
-          Sentry.captureException(reviewError, {
-            tags: { endpoint: 'verify-google-reviews', business_id: businessId }
-          });
-          // Mark submissions as failed
+        // Fetch reviews from all Google locations for this account
+        let allGoogleReviews: any[] = [];
+        for (const location of googleLocations) {
+          try {
+            const locationReviews = await gbpClient.getReviews(location.location_id);
+            console.log(`📥 Fetched ${locationReviews.length} reviews for location ${location.location_name}`);
+            allGoogleReviews = allGoogleReviews.concat(locationReviews);
+          } catch (reviewError: any) {
+            console.error(`❌ Error fetching reviews for location ${location.location_name}:`, reviewError);
+            Sentry.captureException(reviewError, {
+              tags: { endpoint: 'verify-google-reviews', account_id: accountId, location_id: location.location_id }
+            });
+            // Continue to next location instead of failing all submissions
+          }
+        }
+
+        if (allGoogleReviews.length === 0) {
+          console.log(`⚠️ No reviews fetched for account ${accountId}, marking submissions as failed`);
           for (const submission of submissions) {
             await updateVerificationStatus(submission.id, 'failed', null, 0);
           }
@@ -151,7 +161,9 @@ export async function GET(request: NextRequest) {
           continue;
         }
 
-        // Match each submission against Google reviews
+        console.log(`📊 Total ${allGoogleReviews.length} reviews across all locations for account ${accountId}`);
+
+        // Match each submission against all Google reviews from all locations
         for (const submission of submissions) {
           try {
             const reviewerName = `${submission.first_name || ''} ${submission.last_name || ''}`.trim();
@@ -170,7 +182,7 @@ export async function GET(request: NextRequest) {
                 reviewText: submission.review_text_copy,
                 submittedDate: new Date(submission.submitted_at),
               },
-              googleReviews
+              allGoogleReviews
             );
 
             if (matchResult && matchResult.isMatch) {
@@ -203,9 +215,11 @@ export async function GET(request: NextRequest) {
             totalErrors++;
           }
         }
-      } catch (businessError: any) {
-        console.error(`❌ Error processing business ${businessId}:`, businessError);
-        Sentry.captureException(businessError);
+      } catch (accountError: any) {
+        console.error(`❌ Error processing account ${accountId}:`, accountError);
+        Sentry.captureException(accountError, {
+          tags: { endpoint: 'verify-google-reviews', account_id: accountId }
+        });
         totalErrors += submissions.length;
       }
     }
