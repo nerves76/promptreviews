@@ -73,12 +73,12 @@ export async function GET(request: NextRequest) {
       `)
       .eq('platform', 'Google Business Profile')
       .eq('auto_verification_status', 'pending')
-      .lt('verification_attempts', 5) // Max 5 attempts
-      .gte('submitted_at', new Date(Date.now() - 180 * 24 * 60 * 60 * 1000).toISOString()) // Last 180 days (extended for initial run)
       .not('business_id', 'is', null)
-      .not('review_text_copy', 'is', null);
+      .not('review_text_copy', 'is', null)
+      .limit(10); // Start with just 10 for testing
 
-    console.log(`📋 Query found ${pendingSubmissions?.length || 0} pending submissions after filters`);
+    console.log(`📋 Query found ${pendingSubmissions?.length || 0} pending submissions`);
+    console.log(`📋 Sample IDs: ${pendingSubmissions?.slice(0, 3).map(s => s.id).join(', ')}`);
 
     if (fetchError) {
       console.error('❌ Error fetching pending submissions:', fetchError);
