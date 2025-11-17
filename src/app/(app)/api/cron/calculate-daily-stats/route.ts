@@ -80,20 +80,24 @@ export async function GET(request: NextRequest) {
       .in('plan', ['grower', 'builder', 'maven']);
 
     // Calculate review metrics
+    // Exclude imported reviews - only count reviews gained through the app
     const { count: reviewsTotal } = await supabaseAdmin
       .from('review_submissions')
-      .select('id', { count: 'exact', head: true });
+      .select('id', { count: 'exact', head: true })
+      .or("imported_from_google.is.null,imported_from_google.eq.false");
 
     const { count: reviewsCapturedToday } = await supabaseAdmin
       .from('review_submissions')
       .select('id', { count: 'exact', head: true })
       .gte('created_at', `${today}T00:00:00Z`)
-      .lt('created_at', `${today}T23:59:59Z`);
+      .lt('created_at', `${today}T23:59:59Z`)
+      .or("imported_from_google.is.null,imported_from_google.eq.false");
 
     // Get reviews by platform
     const { data: platformReviews } = await supabaseAdmin
       .from('review_submissions')
-      .select('platform');
+      .select('platform')
+      .or("imported_from_google.is.null,imported_from_google.eq.false");
 
     const reviewsByPlatform: Record<string, number> = {};
     platformReviews?.forEach(r => {

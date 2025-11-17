@@ -174,10 +174,12 @@ export default function AnalyticsPage() {
         if (eventsError) throw eventsError;
 
         // Fetch all review submissions for these prompt pages
+        // Exclude imported reviews - only count reviews gained through the app
         const { data: reviewSubmissions, error: reviewError } = await supabase
           .from("review_submissions")
           .select("id, prompt_page_id, created_at, verified")
-          .in("prompt_page_id", pageIds);
+          .in("prompt_page_id", pageIds)
+          .or("imported_from_google.is.null,imported_from_google.eq.false");
         if (reviewError) throw reviewError;
 
         // Filter by time range

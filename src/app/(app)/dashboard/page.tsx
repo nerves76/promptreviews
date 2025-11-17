@@ -177,15 +177,17 @@ const Dashboard = React.memo(function Dashboard() {
           try {
             
             // Use a single query with JOIN instead of two sequential queries
+            // Exclude imported reviews - only count reviews gained through the app
             const result = await supabase
               .from("review_submissions")
               .select(`
-                id, 
-                created_at, 
+                id,
+                created_at,
                 verified,
                 prompt_pages!inner(account_id)
               `)
-              .eq("prompt_pages.account_id", currentAccountId);
+              .eq("prompt_pages.account_id", currentAccountId)
+              .or("imported_from_google.is.null,imported_from_google.eq.false");
             
             if (result.error) {
               console.error('❌ Dashboard: review_submissions JOIN query failed:', result.error);
