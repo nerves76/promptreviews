@@ -88,10 +88,16 @@ export async function GET(request: NextRequest) {
 
     if (!pendingSubmissions || pendingSubmissions.length === 0) {
       console.log('✅ No pending submissions to verify');
+      console.log('Fetch error:', fetchError);
+      console.log('Pending submissions data:', pendingSubmissions);
       return NextResponse.json({
         success: true,
         verified: 0,
-        message: 'No pending reviews to verify'
+        message: 'No pending reviews to verify',
+        debug: {
+          fetchError: fetchError?.message || null,
+          dataLength: pendingSubmissions?.length || 0
+        }
       });
     }
 
