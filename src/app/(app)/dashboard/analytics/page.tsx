@@ -12,8 +12,8 @@ import { EMOJI_SENTIMENT_LABELS, EMOJI_SENTIMENT_ICONS } from "@/app/(app)/compo
 import PageCard from "@/app/(app)/components/PageCard";
 import StandardLoader from "@/app/(app)/components/StandardLoader";
 import {
-  LineChart,
-  Line,
+  BarChart,
+  Bar,
   XAxis,
   YAxis,
   Tooltip,
@@ -279,6 +279,8 @@ export default function AnalyticsPage() {
         };
 
         // Timeline data for chart
+        // Use daily granularity for week/month views, monthly for longer periods
+        const useDailyGranularity = ["lastWeek", "thisWeek", "thisMonth"].includes(timeRange);
         const timelineMap: Record<string, number> = {};
 
         filteredEvents.forEach((event: any) => {
@@ -296,7 +298,14 @@ export default function AnalyticsPage() {
           // Timeline for review_submitted
           if (event.event_type === "review_submitted") {
             const d = new Date(event.created_at);
-            const key = `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, "0")}`;
+            let key: string;
+            if (useDailyGranularity) {
+              // Daily format: YYYY-MM-DD
+              key = `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, "0")}-${d.getDate().toString().padStart(2, "0")}`;
+            } else {
+              // Monthly format: YYYY-MM
+              key = `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, "0")}`;
+            }
             timelineMap[key] = (timelineMap[key] || 0) + 1;
           }
 
@@ -448,12 +457,42 @@ export default function AnalyticsPage() {
             (now.getTime() - new Date(r.created_at).getTime()) / (1000 * 60 * 60 * 24) <= 365,
         ).length;
 
-        // Prepare timeline data for chart (sorted by month)
-        const timelineData = Object.entries(timelineMap)
-          .sort(([a], [b]) => a.localeCompare(b))
-          .map(([month, count]) => ({ month, count }));
+        // Prepare timeline data for chart
+        // Fill in missing dates/months with zero values for complete timeline
+        let timelineData: { month: string; count: number }[] = [];
+
+        if (useDailyGranularity && startDate && endDate) {
+          // Generate all days in range
+          const daysList: string[] = [];
+          const currentDay = new Date(startDate);
+          while (currentDay <= endDate) {
+            const key = `${currentDay.getFullYear()}-${(currentDay.getMonth() + 1).toString().padStart(2, "0")}-${currentDay.getDate().toString().padStart(2, "0")}`;
+            daysList.push(key);
+            currentDay.setDate(currentDay.getDate() + 1);
+          }
+          timelineData = daysList.map(day => ({
+            month: day,
+            count: timelineMap[day] || 0
+          }));
+        } else {
+          // Generate last 12 months for monthly view (default)
+          const monthsList: string[] = [];
+          const currentMonth = new Date();
+          currentMonth.setDate(1); // Set to first of month
+          for (let i = 11; i >= 0; i--) {
+            const monthDate = new Date(currentMonth);
+            monthDate.setMonth(currentMonth.getMonth() - i);
+            const key = `${monthDate.getFullYear()}-${(monthDate.getMonth() + 1).toString().padStart(2, "0")}`;
+            monthsList.push(key);
+          }
+          timelineData = monthsList.map(month => ({
+            month,
+            count: timelineMap[month] || 0
+          }));
+        }
 
         (analyticsData as any).timelineData = timelineData;
+        (analyticsData as any).useDailyGranularity = useDailyGranularity;
 
         setAnalytics(analyticsData);
       } catch (err) {
@@ -542,21 +581,32 @@ export default function AnalyticsPage() {
         <div className="mb-12 bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold mb-4">Reviews Over Time</h3>
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart
+            <BarChart
               data={(analytics as any).timelineData}
               margin={{ top: 10, right: 30, left: 0, bottom: 20 }}
             >
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis
                 dataKey="month"
-                tickFormatter={(month) => {
-                  const [year, m] = month.split("-");
-                  return format(
-                    new Date(Number(year), Number(m) - 1, 1),
-                    "MMM yyyy",
-                  );
+                tickFormatter={(dateKey) => {
+                  if ((analytics as any).useDailyGranularity) {
+                    // Daily format: show MM/DD
+                    const [year, month, day] = dateKey.split("-");
+                    return `${month}/${day}`;
+                  } else {
+                    // Monthly format: show MMM yyyy
+                    const [year, month] = dateKey.split("-");
+                    return format(
+                      new Date(Number(year), Number(month) - 1, 1),
+                      "MMM yyyy",
+                    );
+                  }
                 }}
-                label={{ value: "Month", position: "insideBottom", offset: -5 }}
+                label={{
+                  value: (analytics as any).useDailyGranularity ? "Date" : "Month",
+                  position: "insideBottom",
+                  offset: -5
+                }}
               />
               <YAxis
                 allowDecimals={false}
@@ -567,15 +617,29 @@ export default function AnalyticsPage() {
                   offset: 10,
                 }}
               />
-              <Tooltip />
-              <Line
-                type="monotone"
-                dataKey="count"
-                stroke="#6366f1"
-                strokeWidth={3}
-                dot={{ r: 4 }}
+              <Tooltip
+                labelFormatter={(dateKey) => {
+                  if ((analytics as any).useDailyGranularity) {
+                    const [year, month, day] = dateKey.split("-");
+                    return format(
+                      new Date(Number(year), Number(month) - 1, Number(day)),
+                      "MMM d, yyyy",
+                    );
+                  } else {
+                    const [year, month] = dateKey.split("-");
+                    return format(
+                      new Date(Number(year), Number(month) - 1, 1),
+                      "MMMM yyyy",
+                    );
+                  }
+                }}
               />
-            </LineChart>
+              <Bar
+                dataKey="count"
+                fill="#6366f1"
+                radius={[4, 4, 0, 0]}
+              />
+            </BarChart>
           </ResponsiveContainer>
         </div>
       )}
