@@ -93,12 +93,16 @@ export async function GET(request: NextRequest) {
       `)
       .eq('platform', 'Google Business Profile')
       .eq('auto_verification_status', 'pending')
-      .not('business_id', 'is', null)
-      .not('review_text_copy', 'is', null)
-      .limit(10); // Start with just 10 for testing
+      .limit(50); // pull extra rows, filter in code
 
-    console.log(`📋 Query found ${pendingSubmissions?.length || 0} pending submissions`);
-    console.log(`📋 Sample IDs: ${pendingSubmissions?.slice(0, 3).map(s => s.id).join(', ')}`);
+    const eligibleSubmissions = pendingSubmissions?.filter(submission =>
+      submission.business_id &&
+      submission.review_text_copy &&
+      submission.verification_attempts < 5
+    ) || [];
+
+    console.log(`📋 Query returned ${pendingSubmissions?.length || 0} rows, ${eligibleSubmissions.length} eligible after filtering`);
+    console.log(`📋 Sample eligible IDs: ${eligibleSubmissions.slice(0, 3).map(s => s.id).join(', ')}`);
 
     if (fetchError) {
       console.error('❌ Error fetching pending submissions:', fetchError);
@@ -106,8 +110,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Database error' }, { status: 500 });
     }
 
-    if (!pendingSubmissions || pendingSubmissions.length === 0) {
-      console.log('✅ No pending submissions to verify');
+    if (!eligibleSubmissions || eligibleSubmissions.length === 0) {
+      console.log('✅ No eligible pending submissions to verify');
       console.log('Fetch error:', fetchError);
       console.log('Pending submissions data:', pendingSubmissions);
       return NextResponse.json({
@@ -117,6 +121,7 @@ export async function GET(request: NextRequest) {
         debug: {
           fetchError: fetchError?.message || null,
           dataLength: pendingSubmissions?.length || 0,
+          eligibleLength: eligibleSubmissions.length,
           samplePendingCount: samplePending?.length || 0,
           samplePendingIds: samplePending?.map(r => r.id).slice(0, 3) || [],
           totalGoogleCount,
@@ -125,12 +130,12 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    console.log(`📊 Found ${pendingSubmissions.length} pending submissions to verify`);
+    console.log(`📊 Found ${eligibleSubmissions.length} pending submissions to verify`);
 
     // Group submissions by account (business_id is actually account_id)
-    const submissionsByAccount = new Map<string, typeof pendingSubmissions>();
+    const submissionsByAccount = new Map<string, typeof eligibleSubmissions>();
 
-    for (const submission of pendingSubmissions) {
+    for (const submission of eligibleSubmissions) {
       const accountId = submission.business_id;
       if (!accountId) continue;
 

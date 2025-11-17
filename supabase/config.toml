@@ -1,8 +1,7 @@
 # For detailed configuration reference documentation, visit:
 # https://supabase.com/docs/guides/cli/config
-# A string used to distinguish different Supabase projects on the same host. Defaults to the
-# working directory name when running `supabase init`.
-project_id = "kkejemfchqaprtihvgon"
+# prod Supabase project (matches NEXT_PUBLIC_SUPABASE_URL)
+project_id = "ltneloufqjktdplodvao"
 
 [api]
 enabled = true

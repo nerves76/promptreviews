@@ -32,10 +32,10 @@ NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
 SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU
 
-# For Remote Development (optional - when connecting directly to production)
-# NEXT_PUBLIC_SUPABASE_URL=https://kkejemfchqaprtihvgon.supabase.co
-# NEXT_PUBLIC_SUPABASE_ANON_KEY=your_remote_anon_key_here
-# SUPABASE_SERVICE_ROLE_KEY=your_remote_service_role_key_here
+# For Remote Development (production data / cron parity)
+# NEXT_PUBLIC_SUPABASE_URL=https://ltneloufqjktdplodvao.supabase.co
+# NEXT_PUBLIC_SUPABASE_ANON_KEY=prod_anon_key_here
+# SUPABASE_SERVICE_ROLE_KEY=prod_service_role_key_here
 
 # Application URL
 NEXT_PUBLIC_APP_URL=http://localhost:3002
@@ -69,7 +69,7 @@ In production, email confirmations are enabled:
 
 ### Database Migrations
 
-When developing locally, use the standard Supabase migration workflow:
+When developing locally, use the standard Supabase migration workflow (CLI now targets `ltneloufqjktdplodvao` as set in `supabase/config.toml`; pass `--project-ref <ref>` if you need to target a different environment):
 
 ```bash
 # Reset local database with all migrations
