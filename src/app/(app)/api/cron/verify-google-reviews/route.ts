@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    console.log('🔍 Starting Google review verification job (v2)...');
+    console.log('🔍 Starting Google review verification job (v3 - with 79 pending reviews)...');
 
     // Debug: Count all Google reviews
     const { count: totalGoogleCount } = await supabase
