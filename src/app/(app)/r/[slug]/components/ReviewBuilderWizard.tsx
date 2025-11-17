@@ -327,9 +327,7 @@ const builderQuestions = useMemo(() => {
       setStep(4);
       // Start magic loading animation immediately
       setShowMagicAnimation(true);
-      // Trigger falling animation immediately
-      setShowFallingAnimation(true);
-      setTimeout(() => setShowFallingAnimation(false), 5000);
+      // Don't trigger falling animation here - wait until review is revealed
       // Trigger review generation automatically after state updates (skip validation since we already validated step 3)
       setTimeout(() => {
         handleGenerateReview(true);
