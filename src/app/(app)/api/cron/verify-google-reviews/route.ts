@@ -46,12 +46,22 @@ export async function GET(request: NextRequest) {
       .select('auto_verification_status, verified, business_id')
       .eq('platform', 'Google Business Profile');
 
+    // DEBUG: Show unique status values
+    const uniqueStatuses = [...new Set(statusBreakdown?.map(r => r.auto_verification_status))];
+    console.log(`🔍 Unique auto_verification_status values:`, uniqueStatuses);
+    console.log(`🔍 Sample status values (first 5):`, statusBreakdown?.slice(0, 5).map(r => ({
+      id: r.auto_verification_status,
+      type: typeof r.auto_verification_status,
+      stringified: JSON.stringify(r.auto_verification_status)
+    })));
+
     const stats = {
       total: statusBreakdown?.length || 0,
       pending: statusBreakdown?.filter(r => r.auto_verification_status === 'pending').length || 0,
       verified: statusBreakdown?.filter(r => r.auto_verification_status === 'verified').length || 0,
       nullBusinessId: statusBreakdown?.filter(r => !r.business_id).length || 0,
       alreadyVerified: statusBreakdown?.filter(r => r.verified === true).length || 0,
+      uniqueStatuses
     };
 
     console.log(`📊 Breakdown: ${JSON.stringify(stats)}`);
