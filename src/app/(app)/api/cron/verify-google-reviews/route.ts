@@ -32,6 +32,30 @@ export async function GET(request: NextRequest) {
 
     console.log('🔍 Starting Google review verification job...');
 
+    // Debug: Count all Google reviews
+    const { count: totalGoogleCount } = await supabase
+      .from('review_submissions')
+      .select('*', { count: 'exact', head: true })
+      .eq('platform', 'Google Business Profile');
+
+    console.log(`📊 Total Google Business Profile reviews: ${totalGoogleCount}`);
+
+    // Debug: Count by verification status
+    const { data: statusBreakdown } = await supabase
+      .from('review_submissions')
+      .select('auto_verification_status, verified, business_id')
+      .eq('platform', 'Google Business Profile');
+
+    const stats = {
+      total: statusBreakdown?.length || 0,
+      pending: statusBreakdown?.filter(r => r.auto_verification_status === 'pending').length || 0,
+      verified: statusBreakdown?.filter(r => r.auto_verification_status === 'verified').length || 0,
+      nullBusinessId: statusBreakdown?.filter(r => !r.business_id).length || 0,
+      alreadyVerified: statusBreakdown?.filter(r => r.verified === true).length || 0,
+    };
+
+    console.log(`📊 Breakdown: ${JSON.stringify(stats)}`);
+
     // Find pending review submissions that need verification
     const { data: pendingSubmissions, error: fetchError } = await supabase
       .from('review_submissions')
@@ -44,7 +68,8 @@ export async function GET(request: NextRequest) {
         platform,
         platform_url,
         business_id,
-        verification_attempts
+        verification_attempts,
+        verified
       `)
       .eq('platform', 'Google Business Profile')
       .eq('auto_verification_status', 'pending')
@@ -53,7 +78,7 @@ export async function GET(request: NextRequest) {
       .not('business_id', 'is', null)
       .not('review_text_copy', 'is', null);
 
-    console.log(`📋 Query found ${pendingSubmissions?.length || 0} pending submissions`);
+    console.log(`📋 Query found ${pendingSubmissions?.length || 0} pending submissions after filters`);
 
     if (fetchError) {
       console.error('❌ Error fetching pending submissions:', fetchError);
