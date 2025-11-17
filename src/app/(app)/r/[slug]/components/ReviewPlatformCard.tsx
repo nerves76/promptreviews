@@ -581,7 +581,20 @@ export default function ReviewPlatformCard({
               )}
             </button>
           </div>
-          
+
+          {/* Compliance text */}
+          <p className="mt-3 text-xs text-gray-500 text-center">
+            By submitting, you agree to our{" "}
+            <a href="/terms" target="_blank" className="underline hover:text-gray-700">
+              Terms
+            </a>{" "}
+            and{" "}
+            <a href="/privacy" target="_blank" className="underline hover:text-gray-700">
+              Privacy Policy
+            </a>
+            , and confirm the review reflects your genuine experience.
+          </p>
+
           {/* Error message display */}
           {submitError && (
             <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
