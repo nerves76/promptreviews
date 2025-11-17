@@ -288,7 +288,9 @@ export async function GET(request: NextRequest) {
       verified: totalVerified,
       notFound: totalNotFound,
       errors: totalErrors,
-      totalProcessed: totalVerified + totalNotFound + totalErrors
+      totalProcessed: totalVerified + totalNotFound + totalErrors,
+      timestamp: new Date().toISOString(),
+      version: 'v3-2024-12-21'
     });
 
   } catch (error: any) {
