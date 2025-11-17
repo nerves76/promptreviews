@@ -106,7 +106,11 @@ export async function GET(request: NextRequest) {
         message: 'No pending reviews to verify',
         debug: {
           fetchError: fetchError?.message || null,
-          dataLength: pendingSubmissions?.length || 0
+          dataLength: pendingSubmissions?.length || 0,
+          samplePendingCount: samplePending?.length || 0,
+          samplePendingIds: samplePending?.map(r => r.id).slice(0, 3) || [],
+          totalGoogleCount,
+          stats
         }
       });
     }
