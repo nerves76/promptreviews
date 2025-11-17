@@ -95,11 +95,14 @@ export async function GET(request: NextRequest) {
       .eq('auto_verification_status', 'pending')
       .limit(50); // pull extra rows, filter in code
 
-    const eligibleSubmissions = pendingSubmissions?.filter(submission =>
-      submission.business_id &&
-      submission.review_text_copy &&
-      submission.verification_attempts < 5
-    ) || [];
+    const eligibleSubmissions = pendingSubmissions?.filter(submission => {
+      const hasBusiness = !!submission.business_id;
+      const hasText = typeof submission.review_text_copy === 'string'
+        ? submission.review_text_copy.trim().length > 0
+        : !!submission.review_text_copy;
+      const attempts = submission.verification_attempts ?? 0;
+      return hasBusiness && hasText && attempts < 5;
+    }) || [];
 
     console.log(`📋 Query returned ${pendingSubmissions?.length || 0} rows, ${eligibleSubmissions.length} eligible after filtering`);
     console.log(`📋 Sample eligible IDs: ${eligibleSubmissions.slice(0, 3).map(s => s.id).join(', ')}`);
