@@ -3042,11 +3042,11 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
               {/* Compliance text */}
               <p className="mt-4 text-xs text-gray-500 text-center">
                 By submitting, you agree to our{" "}
-                <a href="/terms" target="_blank" className="underline hover:text-gray-700">
+                <a href="https://promptreviews.app/terms" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-700">
                   Terms
                 </a>{" "}
                 and{" "}
-                <a href="/privacy" target="_blank" className="underline hover:text-gray-700">
+                <a href="https://promptreviews.app/privacy" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-700">
                   Privacy Policy
                 </a>
                 , and confirm the review reflects your genuine experience.
