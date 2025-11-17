@@ -56,6 +56,16 @@ export async function GET(request: NextRequest) {
 
     console.log(`📊 Breakdown: ${JSON.stringify(stats)}`);
 
+    // DEBUG: Sample some pending reviews to see their data
+    const { data: samplePending } = await supabase
+      .from('review_submissions')
+      .select('id, platform, auto_verification_status, business_id, review_text_copy, first_name, last_name')
+      .eq('platform', 'Google Business Profile')
+      .eq('auto_verification_status', 'pending')
+      .limit(3);
+
+    console.log(`🔍 Sample pending reviews:`, JSON.stringify(samplePending, null, 2));
+
     // Find pending review submissions that need verification
     const { data: pendingSubmissions, error: fetchError } = await supabase
       .from('review_submissions')
