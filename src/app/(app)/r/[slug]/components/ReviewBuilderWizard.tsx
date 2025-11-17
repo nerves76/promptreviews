@@ -735,24 +735,23 @@ const builderQuestions = useMemo(() => {
                   <p className="text-lg text-white">Click to visit review site</p>
                   <div className="flex flex-wrap gap-2">
                     {activePlatforms.map((platform, index) => {
-                      // Determine button text: use customPlatform for "Other", otherwise use platform or name
-                      const buttonText = platform.name === "Other" && platform.customPlatform
+                      // Determine platform name for button text
+                      const platformName = platform.name === "Other" && platform.customPlatform
                         ? platform.customPlatform
                         : (platform.platform || platform.name || "Review Platform");
+
+                      // Format button text as "[Business Name] on [Platform]"
+                      const buttonText = `${businessName} on ${platformName}`;
 
                       return (
                         <button
                           key={`${platform.url}-${index}`}
                           type="button"
-                          disabled={!platform.url}
-                          onClick={() => {
-                            if (platform.url) {
-                              window.open(platform.url, '_blank', 'noopener,noreferrer');
-                            }
-                          }}
+                          disabled={!platform.url || submitIndex === index}
+                          onClick={() => handleCopyAndSubmit(index, platform.url)}
                           className="rounded-lg bg-transparent border-2 border-white text-white px-8 py-2 text-base font-medium shadow-[0_0_10px_rgba(255,255,255,0.2)] hover:shadow-[0_0_20px_rgba(255,255,255,0.4)] hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-[0_0_10px_rgba(255,255,255,0.2)] transition-all"
                         >
-                          {buttonText}
+                          {submitIndex === index ? 'Copying...' : buttonText}
                         </button>
                       );
                     })}
