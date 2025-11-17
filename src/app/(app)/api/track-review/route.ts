@@ -83,12 +83,11 @@ export async function POST(request: NextRequest) {
     const normalizedBuilderKeywords = Array.isArray(builderKeywords) ? builderKeywords : null;
 
     // Insert review with business_id (source of truth for stats)
-    // NOTE: Temporarily setting business_id to NULL to avoid foreign key constraint issues
     const { data, error } = await supabase
       .from("review_submissions")
       .insert({
         prompt_page_id: promptPageId,
-        business_id: null, // Set to NULL temporarily to avoid FK constraint issues
+        business_id: business_id, // Account ID for proper business association
         platform,
         status,
         reviewer_name, // Use combined name to satisfy constraint
@@ -105,6 +104,10 @@ export async function POST(request: NextRequest) {
         ip_address: ipAddress,
         builder_answers: normalizedBuilderAnswers,
         builder_keywords: normalizedBuilderKeywords,
+        // Auto-verification fields for Google reviews
+        review_text_copy: reviewContent, // Store copy for matching
+        auto_verification_status: 'pending', // Will be verified by cron job
+        verification_attempts: 0,
       })
       .select()
       .single();
