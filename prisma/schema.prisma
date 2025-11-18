@@ -1348,7 +1348,8 @@ model prompt_pages {
   keywords                                                                 String[]                  @default([])
   keyword_inspiration_enabled                                              Boolean?                  @default(false)
   selected_keyword_inspirations                                            String[]                  @default([])
-  builder_questions                                                        Json?                     @default(dbgenerated("'[]'::jsonb"))
+  sort_order                                                               Int?                      @default(0)
+  builder_questions                                                        Json?                     @default("[]")
   analytics_events                                                         analytics_events[]
   business_locations_business_locations_prompt_page_idToprompt_pages       business_locations[]      @relation("business_locations_prompt_page_idToprompt_pages")
   campaign_actions                                                         campaign_actions[]
@@ -1387,6 +1388,7 @@ model prompt_pages {
   @@index([email])
   @@index([phone])
   @@index([keywords], map: "idx_prompt_pages_keywords", type: Gin)
+  @@index([account_id, status, sort_order], map: "idx_prompt_pages_sort_order")
   @@schema("public")
 }
 
@@ -1487,8 +1489,6 @@ model review_submissions {
   phone                                            String?       @db.VarChar(50)
   prompt_page_type                                 String?
   review_type                                      String?
-  builder_answers                                  Json?
-  builder_keywords                                 String[]      @default([])
   verified                                         Boolean?      @default(false)
   verified_at                                      DateTime?     @db.Timestamptz(6)
   platform_url                                     String?
@@ -1498,6 +1498,14 @@ model review_submissions {
   star_rating                                      Int?
   contact_id                                       String?       @db.Uuid
   account_id                                       String?       @db.Uuid
+  auto_verification_status                         String?       @default("pending")
+  auto_verified_at                                 DateTime?     @db.Timestamptz(6)
+  verification_attempts                            Int?          @default(0)
+  last_verification_attempt_at                     DateTime?     @db.Timestamptz(6)
+  review_text_copy                                 String?
+  verification_match_score                         Decimal?      @db.Decimal(3, 2)
+  builder_answers                                  Json?
+  builder_keywords                                 String[]      @default([])
   businesses                                       businesses?   @relation(fields: [business_id], references: [id], onUpdate: NoAction, map: "fk_review_submissions_business_id")
   contacts_review_submissions_contact_idTocontacts contacts?     @relation("review_submissions_contact_idTocontacts", fields: [contact_id], references: [id], onUpdate: NoAction, map: "fk_review_submissions_contact_id")
   prompt_pages                                     prompt_pages? @relation(fields: [prompt_page_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
@@ -1518,6 +1526,8 @@ model review_submissions {
   @@index([verified], map: "idx_review_submissions_verified")
   @@index([account_id], map: "idx_review_submissions_account_id")
   @@index([account_id, status, created_at(sort: Desc)], map: "idx_review_submissions_account_status")
+  @@index([auto_verification_status], map: "idx_review_submissions_auto_verification_status")
+  @@index([last_verification_attempt_at], map: "idx_review_submissions_last_verification_attempt")
   @@schema("public")
 }
 
@@ -2313,6 +2323,17 @@ model campaign_actions {
   @@index([activity_type], map: "idx_campaign_actions_activity_type")
   @@index([created_at(sort: Desc)], map: "idx_campaign_actions_created_at")
   @@index([prompt_page_id], map: "idx_campaign_actions_prompt_page_id")
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model rate_limit_counters {
+  key        String   @id
+  count      Int      @default(0)
+  reset_time DateTime @db.Timestamptz(6)
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @default(now()) @db.Timestamptz(6)
+
   @@schema("public")
 }
 
