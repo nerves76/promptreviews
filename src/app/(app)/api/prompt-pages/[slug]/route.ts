@@ -213,13 +213,14 @@ export async function GET(
       
       promptPage = mockData;
     } else {
-      // First, get the prompt page using regular client (respects RLS)
-      const { data: dbPromptPage, error: dbPromptError } = await supabaseAnon
+      // First, get the prompt page using service role client to bypass RLS
+      // This matches the behavior of the server component in page.tsx
+      const { data: dbPromptPage, error: dbPromptError } = await supabaseService
         .from('prompt_pages')
         .select('*')
         .eq('slug', slug)
         .maybeSingle();
-      
+
       promptPage = dbPromptPage;
       promptError = dbPromptError;
     }
