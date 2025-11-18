@@ -338,7 +338,7 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
       tools: [
         {
           name: 'AI Generate',
-          iconName: 'FaRobot' as const,
+          iconName: 'prompty' as const,
           description: 'Armed with deep info on your business the AI Generate button can create a keyword enhanced review that customers can edit, copy, and post on any platform.',
           highlight: 'Sparks curiosity',
           learnMore: 'https://promptreviews.app/ai-assistance',
