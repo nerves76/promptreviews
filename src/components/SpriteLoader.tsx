@@ -25,7 +25,7 @@ export default function SpriteLoader() {
 
       try {
         // Use version-based caching instead of cache busting for better performance
-        const response = await fetch(`/icons-sprite.svg?v=1.0.6`);
+        const response = await fetch(`/icons-sprite.svg?v=1.0.7`);
         
         if (!response.ok) {
           throw new Error(`Failed to fetch sprite: ${response.status} ${response.statusText}`);

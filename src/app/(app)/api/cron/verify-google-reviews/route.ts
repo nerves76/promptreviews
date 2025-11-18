@@ -298,7 +298,7 @@ export async function GET(request: NextRequest) {
       errors: totalErrors,
       totalProcessed: totalVerified + totalNotFound + totalErrors,
       timestamp: new Date().toISOString(),
-      version: 'v3-2024-12-21'
+      version: 'v4-2025-01-17'
     });
 
   } catch (error: any) {
