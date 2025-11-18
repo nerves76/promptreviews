@@ -153,6 +153,8 @@ export async function GET(request: NextRequest) {
     let totalVerified = 0;
     let totalNotFound = 0;
     let totalErrors = 0;
+    let skippedNoLocations = 0;
+    let skippedNoTokens = 0;
 
     // Process each account
     for (const [accountId, submissions] of submissionsByAccount.entries()) {
@@ -166,11 +168,11 @@ export async function GET(request: NextRequest) {
           .eq('user_id', accountId); // google_business_locations uses user_id to link
 
         if (locationsError || !googleLocations || googleLocations.length === 0) {
-          console.log(`⚠️ Account ${accountId} has no Google locations, skipping`);
-          // Mark submissions as failed
+          console.log(`⚠️ Account ${accountId} has no Google locations, leaving submissions pending`);
           for (const submission of submissions) {
-            await updateVerificationStatus(submission.id, 'failed', null, 0);
+            await incrementVerificationAttempt(submission.id);
           }
+          skippedNoLocations += submissions.length;
           continue;
         }
 
@@ -184,11 +186,11 @@ export async function GET(request: NextRequest) {
           .single();
 
         if (accountError || !accountData?.google_access_token) {
-          console.log(`⚠️ No Google OAuth tokens for account ${accountId}, skipping`);
-          // Mark submissions as failed
+          console.log(`⚠️ No Google OAuth tokens for account ${accountId}, leaving submissions pending`);
           for (const submission of submissions) {
-            await updateVerificationStatus(submission.id, 'failed', null, 0);
+            await incrementVerificationAttempt(submission.id);
           }
+          skippedNoTokens += submissions.length;
           continue;
         }
 
@@ -296,6 +298,8 @@ export async function GET(request: NextRequest) {
       verified: totalVerified,
       notFound: totalNotFound,
       errors: totalErrors,
+      skippedNoLocations,
+      skippedNoTokens,
       totalProcessed: totalVerified + totalNotFound + totalErrors,
       timestamp: new Date().toISOString(),
       version: 'v4-2025-01-17'
@@ -345,10 +349,23 @@ async function updateVerificationStatus(
  * Increment verification attempt count
  */
 async function incrementVerificationAttempt(submissionId: string) {
+  const { data, error: fetchError } = await supabase
+    .from('review_submissions')
+    .select('verification_attempts')
+    .eq('id', submissionId)
+    .single();
+
+  if (fetchError) {
+    console.error(`❌ Error fetching attempt count for ${submissionId}:`, fetchError);
+    return;
+  }
+
+  const attempts = (data?.verification_attempts ?? 0) + 1;
+
   const { error } = await supabase
     .from('review_submissions')
     .update({
-      verification_attempts: supabase.rpc('increment'),
+      verification_attempts: attempts,
       last_verification_attempt_at: new Date().toISOString(),
     })
     .eq('id', submissionId);
