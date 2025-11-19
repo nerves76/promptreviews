@@ -301,6 +301,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
   const [showSentimentModal, setShowSentimentModal] = useState(false);
   const [showRecentReviewsModal, setShowRecentReviewsModal] = useState(false);
   const [showKeywordInspirationModal, setShowKeywordInspirationModal] = useState(false);
+  const [keywordInspirationPlatformIndex, setKeywordInspirationPlatformIndex] = useState<number>(0);
   const [kickstarterQuestions, setKickstarterQuestions] = useState<any[]>([]);
   const [sentiment, setSentiment] = useState<string | null>(null);
   const [feedback, setFeedback] = useState("");
@@ -2638,7 +2639,10 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                   onFixGrammar={handleFixGrammar}
                   onCopyAndSubmit={handleCopyAndSubmit}
                   onToggleInstructions={(idx) => setOpenInstructionsIdx(idx)}
-                  onOpenKeywordInspiration={() => setShowKeywordInspirationModal(true)}
+                  onOpenKeywordInspiration={() => {
+                    setKeywordInspirationPlatformIndex(idx);
+                    setShowKeywordInspirationModal(true);
+                  }}
                   getPlatformIcon={getPlatformIcon}
                   getFontClass={getFontClass}
                 />
@@ -3235,6 +3239,14 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
           isOpen={showKeywordInspirationModal}
           onClose={() => setShowKeywordInspirationModal(false)}
           keywords={promptPage.selected_keyword_inspirations}
+          reviewText={platformReviewTexts[keywordInspirationPlatformIndex] || ''}
+          onAddKeyword={(keyword) => {
+            const currentText = platformReviewTexts[keywordInspirationPlatformIndex] || '';
+            const newText = currentText
+              ? `${currentText} ${keyword}`
+              : keyword;
+            handleReviewTextChange(keywordInspirationPlatformIndex, newText);
+          }}
           businessProfile={businessProfile}
         />
       )}

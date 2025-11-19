@@ -20,6 +20,10 @@ interface KeywordInspirationModalProps {
   onClose: () => void;
   /** Selected keywords to display */
   keywords: string[];
+  /** Current review text */
+  reviewText?: string;
+  /** Function to update review text */
+  onAddKeyword?: (keyword: string) => void;
   /** Business profile for branding */
   businessProfile?: {
     primary_color?: string;
@@ -36,24 +40,38 @@ export default function KeywordInspirationModal({
   isOpen,
   onClose,
   keywords,
+  reviewText,
+  onAddKeyword,
   businessProfile,
 }: KeywordInspirationModalProps) {
-  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const [addedIndex, setAddedIndex] = useState<number | null>(null);
   const secondaryColor = businessProfile?.secondary_color || "#4F46E5";
   const hoverTextColor = getContrastTextColor(secondaryColor);
 
-  // Copy keyword to clipboard
-  const copyToClipboard = async (keyword: string, index: number) => {
-    try {
-      await navigator.clipboard.writeText(keyword);
-      setCopiedIndex(index);
+  // Add keyword to review or copy to clipboard as fallback
+  const handleAddKeyword = async (keyword: string, index: number) => {
+    // If onAddKeyword callback is provided, use it to insert
+    if (onAddKeyword) {
+      onAddKeyword(keyword);
+      setAddedIndex(index);
 
-      // Reset copied state after 2 seconds
+      // Reset added state after 2 seconds
       setTimeout(() => {
-        setCopiedIndex(null);
+        setAddedIndex(null);
       }, 2000);
-    } catch (err) {
-      console.error('Failed to copy keyword:', err);
+    } else {
+      // Fallback to clipboard copy
+      try {
+        await navigator.clipboard.writeText(keyword);
+        setAddedIndex(index);
+
+        // Reset added state after 2 seconds
+        setTimeout(() => {
+          setAddedIndex(null);
+        }, 2000);
+      } catch (err) {
+        console.error('Failed to add keyword:', err);
+      }
     }
   };
 
@@ -109,32 +127,31 @@ export default function KeywordInspirationModal({
                   {keyword}
                 </span>
 
-                {/* Copy Button */}
+                {/* Add Button */}
                 <button
-                  onClick={() => copyToClipboard(keyword, index)}
+                  onClick={() => handleAddKeyword(keyword, index)}
                   className="ml-3 px-2.5 py-1.5 rounded-md border font-medium text-xs transition-all duration-200 flex items-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-opacity-50 hover:shadow-md"
                   style={{
-                    borderColor: copiedIndex === index ? "#6EE7B7" : secondaryColor,
-                    backgroundColor: copiedIndex === index ? "#6EE7B7" : "transparent",
-                    color: copiedIndex === index ? "#065F46" : secondaryColor,
+                    borderColor: addedIndex === index ? "#6EE7B7" : secondaryColor,
+                    backgroundColor: addedIndex === index ? "#6EE7B7" : "transparent",
+                    color: addedIndex === index ? "#065F46" : secondaryColor,
                     fontFamily: businessProfile?.primary_font || "Inter",
                   }}
-                  aria-label={`Copy ${keyword}`}
+                  aria-label={`Add ${keyword}`}
                 >
-                  {copiedIndex === index ? (
+                  {addedIndex === index ? (
                     <>
                       <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                       </svg>
-                      <span>Copied!</span>
+                      <span>Added!</span>
                     </>
                   ) : (
                     <>
                       <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
-                        <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
+                        <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
                       </svg>
-                      <span>Copy</span>
+                      <span>Add</span>
                     </>
                   )}
                 </button>
