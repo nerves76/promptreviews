@@ -3051,7 +3051,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                 <a href="https://promptreviews.app/privacy" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-700">
                   Privacy Policy
                 </a>
-                , and confirm the review reflects your genuine experience.
+                , and confirm the review reflects your experience.
               </p>
             </div>
           </div>
