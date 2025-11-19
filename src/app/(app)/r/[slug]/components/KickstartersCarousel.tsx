@@ -15,6 +15,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import Icon from '@/components/Icon';
+import { DraggableModal } from '@/app/(app)/dashboard/widget/components/DraggableModal';
 
 export interface KickstarterQuestion {
   id: string;
@@ -259,51 +260,62 @@ export default function KickstartersCarousel({
       </div>
 
       {/* View All Modal */}
-      {showViewAll && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] flex flex-col relative">
-            {/* Standard close button - white circle breaching top right */}
-            <button
-              onClick={() => setShowViewAll(false)}
-              className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-white border border-gray-200 hover:bg-gray-50 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-gray-300 z-10 shadow-sm"
-              aria-label="Close"
-            >
-              <Icon name="FaTimes" className="w-4 h-4 text-gray-600" />
-            </button>
+      <DraggableModal
+        isOpen={showViewAll}
+        onClose={() => setShowViewAll(false)}
+        title={
+          <div className="flex items-center space-x-2">
+            <Icon name="FaLightbulb" className="w-7 h-7 text-slate-600" size={28} />
+            <span>Kickstarters</span>
+          </div>
+        }
+        maxWidth="max-w-2xl"
+        opaqueBody={true}
+        lightBackdrop={true}
+      >
+        {/* Subheader */}
+        <div className="mb-3">
+          <h3 className="text-2xl font-semibold text-gray-900">
+            All Kickstarter Questions
+          </h3>
+        </div>
 
-            {/* Modal Header */}
-            <div className="p-6 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-900">
-                All Questions
-              </h2>
-            </div>
+        {/* Description */}
+        <div className="mb-4">
+          <p className="text-sm text-gray-700">
+            Use these questions to help inspire your review and share specific details about your experience.
+          </p>
+        </div>
 
-            {/* Modal Content */}
-            <div className="flex-1 overflow-y-auto p-6">
-              <div className="space-y-4">
-                {questions.map((question, index) => (
-                  <div 
-                    key={question.id} 
-                    className="p-4 rounded-lg border border-gray-200 transition-colors hover:bg-gray-50"
+        {/* Modal Content */}
+        <div className="overflow-y-auto max-h-[60vh]">
+          <div className="space-y-2">
+            {questions.map((question, index) => (
+              <div
+                key={question.id}
+                className="rounded-lg p-3 transition-all duration-200 bg-white shadow-sm hover:shadow-md hover:-translate-y-0.5"
+              >
+                <div className="flex items-start justify-between mb-2">
+                  <span
+                    className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${getCategoryBg(question.category)} ${getCategoryColor(question.category)}`}
                   >
-                    <div className="flex items-start justify-between mb-2">
-                      <span 
-                        className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${getCategoryBg(question.category)} ${getCategoryColor(question.category)}`}
-                      >
-                        {question.category.toLowerCase()}
-                      </span>
-                      <span className="text-xs text-gray-500">#{index + 1}</span>
-                    </div>
-                    <p className="text-sm text-gray-700">
-                      {replaceBusinessName(question.question)}
-                    </p>
-                  </div>
-                ))}
+                    {question.category.toLowerCase()}
+                  </span>
+                  <span className="text-xs text-gray-500">#{index + 1}</span>
+                </div>
+                <p
+                  className="text-sm text-gray-800 font-medium"
+                  style={{
+                    fontFamily: businessProfile?.primary_font || "Inter",
+                  }}
+                >
+                  {replaceBusinessName(question.question)}
+                </p>
               </div>
-            </div>
+            ))}
           </div>
         </div>
-      )}
+      </DraggableModal>
     </>
   );
 } 
