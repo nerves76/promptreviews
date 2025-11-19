@@ -201,10 +201,11 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
   const [businessProfile, setBusinessProfile] = useState<BusinessProfile>(initialData?.businessProfile ? {
     ...initialData.businessProfile,
     // Ensure glassmorphic properties are present with defaults
-    background_type: initialData.businessProfile.background_type || 'gradient',
-    gradient_start: initialData.businessProfile.gradient_start || '#2563EB',
-    gradient_middle: initialData.businessProfile.gradient_middle || '#7864C8',
-    gradient_end: initialData.businessProfile.gradient_end || '#914AAE',
+    // Use ?? instead of || to preserve "solid" value when present
+    background_type: initialData.businessProfile.background_type ?? 'gradient',
+    gradient_start: initialData.businessProfile.gradient_start ?? '#2563EB',
+    gradient_middle: initialData.businessProfile.gradient_middle ?? '#7864C8',
+    gradient_end: initialData.businessProfile.gradient_end ?? '#914AAE',
     card_transparency: initialData.businessProfile.card_transparency ?? 0.95,
     card_border_width: initialData.businessProfile.card_border_width ?? 1,
     card_border_color: initialData.businessProfile.card_border_color || '#FFFFFF',
@@ -494,10 +495,11 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
             card_shadow_color: businessProfile.card_shadow_color,
             card_shadow_intensity: businessProfile.card_shadow_intensity,
             // Ensure gradient properties are included
-            background_type: businessProfile.background_type || 'gradient',
-            gradient_start: businessProfile.gradient_start || '#2563EB',
-            gradient_middle: businessProfile.gradient_middle || '#7864C8',
-            gradient_end: businessProfile.gradient_end || '#914AAE',
+            // Use ?? instead of || to preserve "solid" value when present
+            background_type: businessProfile.background_type ?? 'gradient',
+            gradient_start: businessProfile.gradient_start ?? '#2563EB',
+            gradient_middle: businessProfile.gradient_middle ?? '#7864C8',
+            gradient_end: businessProfile.gradient_end ?? '#914AAE',
             card_transparency: businessProfile.card_transparency ?? 0.95,
             card_border_width: businessProfile.card_border_width ?? 1,
             card_border_color: businessProfile.card_border_color || '#FFFFFF',
@@ -2049,7 +2051,6 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                 reviewType={promptPage?.review_type}
                 promptPage={promptPage}
                 onOpenRecentReviews={() => setShowRecentReviewsModal(true)}
-                onOpenKeywordInspiration={() => setShowKeywordInspirationModal(true)}
               />
               {/* Product Module for Product Pages */}
               <ProductModule
@@ -2637,6 +2638,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                   onFixGrammar={handleFixGrammar}
                   onCopyAndSubmit={handleCopyAndSubmit}
                   onToggleInstructions={(idx) => setOpenInstructionsIdx(idx)}
+                  onOpenKeywordInspiration={() => setShowKeywordInspirationModal(true)}
                   getPlatformIcon={getPlatformIcon}
                   getFontClass={getFontClass}
                 />

@@ -40,6 +40,7 @@ interface ReviewPlatformCardProps {
   onFixGrammar: (idx: number) => void;
   onCopyAndSubmit: (idx: number, url: string) => void;
   onToggleInstructions: (idx: number | null) => void;
+  onOpenKeywordInspiration?: () => void; // Callback to open keyword inspiration modal
   getPlatformIcon: (url: string, platform: string) => { icon: IconName; label: string };
   getFontClass: (fontName: string) => string;
 }
@@ -74,6 +75,7 @@ export default function ReviewPlatformCard({
   onFixGrammar,
   onCopyAndSubmit,
   onToggleInstructions,
+  onOpenKeywordInspiration,
   getPlatformIcon,
   getFontClass,
 }: ReviewPlatformCardProps) {
@@ -84,6 +86,8 @@ export default function ReviewPlatformCard({
   const isUniversal = !!promptPage.is_universal;
   const aiButtonEnabled = promptPage?.ai_button_enabled !== false;
   const fixGrammarEnabled = promptPage?.fix_grammar_enabled !== false;
+  const keywordInspirationEnabled = promptPage?.keyword_inspiration_enabled &&
+    promptPage?.selected_keyword_inspirations?.length > 0;
   const reviewText = platformReviewTexts[idx] || '';
   const configuredMin = typeof platform?.minWordCount === 'number'
     ? Math.max(platform.minWordCount, PROMPT_PAGE_WORD_LIMITS.MIN_REVIEW_WORDS)
@@ -376,6 +380,7 @@ export default function ReviewPlatformCard({
                       borderColor: businessProfile?.secondary_color || "#6B7280",
                       color: businessProfile?.secondary_color || "#6B7280",
                     }}
+                    title="AI will check and correct spelling and grammar errors in your review"
                     onMouseEnter={(e) => {
                       if (fixGrammarLoading !== idx && fixGrammarCounts[idx] < 3) {
                         e.currentTarget.style.backgroundColor = businessProfile?.secondary_color || "#6B7280";
@@ -411,6 +416,29 @@ export default function ReviewPlatformCard({
                         Fix grammar {fixGrammarCounts[idx] > 0 && `(${fixGrammarCounts[idx]}/3)`}
                       </>
                     )}
+                  </button>
+                )}
+                {keywordInspirationEnabled && onOpenKeywordInspiration && (
+                  <button
+                    type="button"
+                    onClick={onOpenKeywordInspiration}
+                    className="px-3 py-1 border border-gray-300 rounded text-xs font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 flex items-center gap-1 transition-all duration-200 hover:text-white"
+                    style={{
+                      borderColor: businessProfile?.secondary_color || "#6B7280",
+                      color: businessProfile?.secondary_color || "#6B7280",
+                    }}
+                    title="Boost online visibility of your review by adding any of these suggested phrases"
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = businessProfile?.secondary_color || "#6B7280";
+                      e.currentTarget.style.color = getContrastTextColor(businessProfile?.secondary_color || "#4F46E5");
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = "transparent";
+                      e.currentTarget.style.color = businessProfile?.secondary_color || "#6B7280";
+                    }}
+                  >
+                    <Icon name="mushroom" className="w-3.5 h-3.5" size={14} />
+                    <span>Power-up phrases</span>
                   </button>
                 )}
                 {platform.customInstructions && platform.customInstructions.trim() && (
