@@ -82,9 +82,9 @@ export function generateReviewPrompt(
   }
 
   return `You are a satisfied ${safeReviewerType} writing a review for ${businessName}.
-Please write a genuine, detailed, and positive review based on the following information:
+Write a genuine review based on the following information:
 
-Business Information (the business you are reviewing):
+Business Information:
 - Business Name: ${businessName}
 ${city ? `- City: ${city}\n` : ""}${state ? `- State: ${state}\n` : ""}${zip ? `- ZIP: ${zip}\n` : ""}- Years in Business: ${yearsInBusiness}
 - Services: ${services}
@@ -92,39 +92,48 @@ ${city ? `- City: ${city}\n` : ""}${state ? `- State: ${state}\n` : ""}${zip ? `
 - What Makes Them Different: ${differentiators}
 - Industries Served: ${industriesServed}
 ${industryInfo ? industryInfo + "\n" : ""}- Team/Founder Info: ${teamFounderInfo}
-- Keywords to Include: ${keywords}
+- Keywords: ${keywords}
 
-Your Experience (you are the reviewer, NOT the business):
+Your Experience (you are the reviewer):
 ${reviewerName}${reviewerRole}- Service Received: ${projectType}
 - Outcome/Results: ${productDescription}
 
 Platform: ${safePlatform}
-Word Count Limit: ${wordCountLimit} words
+Word Limit: ${wordCountLimit} words
 ${safeCustomInstructions ? `\nCustom Instructions: ${safeCustomInstructions}` : ""}
 ${aiDos ? `\nDos: ${aiDos}` : ""}
 ${additionalDos ? `\nAdditional Dos: ${additionalDos}` : ""}
 ${aiDonts ? `\nDon'ts: ${aiDonts}` : ""}
 ${additionalDonts ? `\nAdditional Don'ts: ${additionalDonts}` : ""}
 
-Important: The reviewer is a ${safeReviewerType}
+WRITING STYLE - Make it sound human:
+- Use active voice. Say "They fixed my issue" not "My issue was fixed by them"
+- Be direct and concise. Cut the fluff.
+- Vary sentence length. Mix short punchy sentences with longer ones.
+- Start mid-thought, not with "I". Instead of "I recently visited..." try "Called them when my pipe burst..." or "Third time using them and..."
+- Sound conversational, not polished. Real reviews aren't perfect prose.
+- Include at least one keyword naturally. Add more (up to 3) only if they fit without forcing.
 
-Please write a review that:
-1. Sounds authentic and personal
-2. Includes specific details about the service and outcome
-3. Mentions the business name and relevant keywords naturally
-4. Highlights the company's values and differentiators
-5. Is appropriate for the specified platform
-6. Maintains a professional but warm tone
-7. Stays within the ${wordCountLimit} word limit
-8. Contains ONLY the review text itself - no meta text like "Here is your review" or introductions
-9. Can be posted directly to ${safePlatform} without any editing
-10. NEVER use brackets, placeholders, or variables like [specific service], [business], or [outcome]
-11. NEVER include instructions or suggestions for the user to edit or fill in details
-12. Use ONLY the concrete information provided above - if specific details are missing, be general but natural
+THINGS TO AVOID - These make reviews sound fake:
+- NO marketing language ("exceptional", "unparalleled", "top-notch", "exceeded expectations")
+- NO superlative stacking (don't use "amazing", "incredible", "outstanding" all in one review)
+- NO AI filler phrases ("I had the pleasure of", "I cannot recommend them enough", "From start to finish")
+- NO clichés ("went above and beyond", "exceeded my expectations", "top-notch service")
+- NO summary endings ("Highly recommend!", "Will definitely be back!", "5 stars!")
+- NO semicolons, em-dashes, or overly complex punctuation
+- NO hashtags or emojis
+- NO brackets, placeholders, or variables like [specific service]
+- NO meta text like "Here is your review"
 
-CRITICAL: The review must be complete and ready to publish as-is. Do not include ANY placeholder text in brackets or ANY instructions for editing. Write naturally about the actual information provided.
+WHAT MAKES IT FEEL REAL:
+- If team/founder info is provided above, you may reference them by name
+- Use only concrete details that were explicitly provided - never invent names, dates, or specifics
+- It's okay to mention a minor friction point if it makes sense ("parking was tough but worth it", "took a couple days but they got it right")
+- End naturally. Real reviews often just stop. No wrap-up needed.
 
-The review should be detailed and specific, focusing on the actual experience and results. Start writing the review immediately without any preamble.`;
+The review must be complete and ready to post. Use only the information provided. If details are missing, write generally but naturally without indicating anything is missing.
+
+Write the review now:`;
 }
 
 export async function generateAIReview(
