@@ -12,6 +12,12 @@ interface OAuthTokens {
   expiresAt?: number | null;
 }
 
+export interface PostData {
+  createTime: string;
+  topicType: string;
+  summary?: string;
+}
+
 export interface GoogleOverviewResult {
   businessInfo: {
     name: string;
@@ -38,6 +44,7 @@ export interface GoogleOverviewResult {
   reviewsAvailable: boolean;
   insightsAvailable: boolean;
   locationData?: any;
+  postsData?: PostData[];
 }
 
 function mapBusinessInfo(location: any, fallbackName: string) {
@@ -93,11 +100,12 @@ export async function buildOverviewData({ tokens, locationId }: { tokens: OAuthT
   }
 
   const cleanLocationId = targetLocationIdCanonical.replace('locations/', '');
+  const cleanAccountId = targetAccount?.name?.replace('accounts/', '') || '';
 
   const [reviewsResult, photosResult, postsResult, insightsResult] = await Promise.allSettled([
     client.getReviews(targetLocation.name),
     client.getMedia(targetLocation.name),
-    targetAccount ? client.listLocalPosts(targetAccount.name, cleanLocationId) : Promise.resolve([]),
+    targetAccount && cleanAccountId ? client.listLocalPosts(cleanAccountId, cleanLocationId) : Promise.resolve([]),
     client.getLocationInsights(targetLocation.name, 'THIRTY_DAYS'),
   ]);
 
@@ -156,6 +164,15 @@ export async function buildOverviewData({ tokens, locationId }: { tokens: OAuthT
     photosData,
   );
 
+  // Map posts data for the posting frequency chart
+  const mappedPostsData: PostData[] = postsData
+    .filter((post: any) => post.createTime)
+    .map((post: any) => ({
+      createTime: post.createTime,
+      topicType: post.topicType || 'STANDARD',
+      summary: post.summary,
+    }));
+
   return {
     businessInfo: mapBusinessInfo(targetLocation, targetLocation.name),
     profileData,
@@ -166,6 +183,7 @@ export async function buildOverviewData({ tokens, locationId }: { tokens: OAuthT
     reviewsAvailable,
     insightsAvailable,
     locationData: targetLocation,
+    postsData: mappedPostsData,
   };
 }
 function canonicalizeLocationId(id: string) {

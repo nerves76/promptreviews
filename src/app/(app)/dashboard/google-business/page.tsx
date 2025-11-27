@@ -21,6 +21,7 @@ import { getMaxLocationsForPlan, getPlanDisplayName } from '@/auth/utils/planUti
 // Using V2 to force webpack to reload
 import LocationSelectionModal from '@/components/GoogleBusinessProfile/LocationSelectionModalV2';
 import OverviewStats from '@/components/GoogleBusinessProfile/OverviewStats';
+import PostingFrequencyChart from '@/components/GoogleBusinessProfile/PostingFrequencyChart';
 import BusinessHealthMetrics from '@/components/GoogleBusinessProfile/BusinessHealthMetrics';
 import HelpModal from '@/app/(app)/components/help/HelpModal';
 import ButtonSpinner from '@/components/ButtonSpinner';
@@ -246,11 +247,24 @@ export default function SocialPostingDashboard() {
   const initialLoadDone = useRef(false); // Track if initial load has been completed
 
   // Overview page state - with localStorage persistence
+  // Cache version: increment to invalidate old cached data when adding new fields
+  const OVERVIEW_CACHE_VERSION = 3; // v3 adds postsData
   const [overviewData, setOverviewData] = useState<any>(() => {
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem('google-business-overview-data');
       try {
-        return stored ? JSON.parse(stored) : null;
+        const parsed = stored ? JSON.parse(stored) : null;
+        // Invalidate cache if version is outdated or missing
+        if (parsed && parsed._cacheVersion !== OVERVIEW_CACHE_VERSION) {
+          localStorage.removeItem('google-business-overview-data');
+          return null;
+        }
+        // Also invalidate if postsData is missing
+        if (parsed && !('postsData' in parsed)) {
+          localStorage.removeItem('google-business-overview-data');
+          return null;
+        }
+        return parsed;
       } catch {
         return null;
       }
@@ -505,7 +519,11 @@ export default function SocialPostingDashboard() {
 
   useEffect(() => {
     if (overviewData) {
-      localStorage.setItem('google-business-overview-data', JSON.stringify(overviewData));
+      // Add cache version when saving
+      localStorage.setItem('google-business-overview-data', JSON.stringify({
+        ...overviewData,
+        _cacheVersion: OVERVIEW_CACHE_VERSION
+      }));
     }
   }, [overviewData]);
 
@@ -547,28 +565,64 @@ export default function SocialPostingDashboard() {
   }, [rateLimitedUntil]);
 
   // Auto-select first location when locations load
+  const initialFetchDone = useRef(false);
+
   useEffect(() => {
+    let locationToUse: string | null = null;
+
     if (selectedLocations.length > 0) {
       if (!selectedLocations.includes(selectedLocationId)) {
-        setSelectedLocationId(selectedLocations[0]);
+        locationToUse = selectedLocations[0];
+        setSelectedLocationId(locationToUse);
+      } else {
+        locationToUse = selectedLocationId; // Already selected
       }
-      return;
+    } else if (scopedLocations.length > 0) {
+      if (!selectedLocationId) {
+        locationToUse = scopedLocations[0].id;
+        setSelectedLocationId(locationToUse);
+      } else {
+        locationToUse = selectedLocationId; // Already selected
+      }
     }
 
-    if (!selectedLocationId && scopedLocations.length > 0) {
-      setSelectedLocationId(scopedLocations[0].id);
+    // Trigger initial overview fetch on overview tab
+    if (locationToUse && activeTab === 'overview' && isConnected && !initialFetchDone.current) {
+      // Check if we need to fetch (no data or outdated cache)
+      const needsFetch = !overviewData ||
+        overviewData.locationId !== locationToUse ||
+        !('postsData' in overviewData) ||
+        overviewData._cacheVersion !== OVERVIEW_CACHE_VERSION;
+
+      if (needsFetch) {
+        initialFetchDone.current = true;
+        fetchOverviewData(locationToUse);
+      } else {
+        initialFetchDone.current = true;
+      }
     }
-  }, [selectedLocations, selectedLocationId, scopedLocations]);
+  }, [selectedLocations, selectedLocationId, scopedLocations, activeTab, isConnected, overviewData]);
 
   // Fetch overview data when tab becomes active (only if not already cached)
+  // Track whether we have a valid account ID to trigger refetch
+  const hasValidAccountId = !!(selectedAccountId || account?.id);
+
   useEffect(() => {
-    if (activeTab === 'overview' && selectedLocationId && isConnected && accountIdRef.current) {
-      // Only fetch if we don't have data or if the selected location changed
-      if (!overviewData || overviewData.locationId !== selectedLocationId) {
-        fetchOverviewData(selectedLocationId);
-      }
+    // Wait until account context is ready
+    if (!hasValidAccountId) return;
+
+    // Check all conditions
+    if (activeTab !== 'overview' || !selectedLocationId || !isConnected) return;
+
+    // Only fetch if we don't have data, if the selected location changed, or if postsData is missing
+    const needsFetch = !overviewData ||
+      overviewData.locationId !== selectedLocationId ||
+      !('postsData' in overviewData);
+
+    if (needsFetch) {
+      fetchOverviewData(selectedLocationId);
     }
-  }, [activeTab, selectedLocationId, isConnected, selectedAccountId, account?.id]);
+  }, [activeTab, selectedLocationId, isConnected, hasValidAccountId, overviewData, locations.length]);
 
   // REMOVED: Auto-switch to overview tab - let users stay on the tab they choose
   // This was causing confusion when users fetched locations and got moved away from Connect tab
@@ -1590,16 +1644,15 @@ export default function SocialPostingDashboard() {
   const fetchOverviewData = async (locationId: string) => {
     if (!locationId) return;
 
+    // Get account ID directly to avoid stale ref issues
+    const activeAccountId = selectedAccountId || account?.id || accountIdRef.current;
+
+    if (!activeAccountId) return;
+
     setOverviewLoading(true);
     setOverviewError(null);
 
     try {
-      const activeAccountId = accountIdRef.current;
-
-      if (!activeAccountId) {
-        return;
-      }
-
       const response = await fetch(`/api/google-business-profile/overview?locationId=${encodeURIComponent(locationId)}`, {
         credentials: 'same-origin',
         headers: {
@@ -2446,6 +2499,14 @@ export default function SocialPostingDashboard() {
                     />
                   )}
 
+                  {/* Posting Frequency Chart */}
+                  {!overviewError && (
+                    <PostingFrequencyChart
+                      postsData={overviewData?.postsData || []}
+                      isLoading={overviewLoading}
+                    />
+                  )}
+
                   <BusinessHealthMetrics
                     locationId={selectedLocationId || 'demo'}
                     profileData={overviewData?.profileData || {
@@ -2510,6 +2571,10 @@ export default function SocialPostingDashboard() {
                         reviewTrend={0}
                         averageRating={0}
                         monthlyReviewData={[]}
+                        isLoading={true}
+                      />
+                      <PostingFrequencyChart
+                        postsData={[]}
                         isLoading={true}
                       />
                       <BusinessHealthMetrics

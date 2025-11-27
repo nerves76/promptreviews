@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Icon from '@/components/Icon';
 import OverviewStats from '@/components/GoogleBusinessProfile/OverviewStats';
+import PostingFrequencyChart from '@/components/GoogleBusinessProfile/PostingFrequencyChart';
 import BusinessHealthMetrics from '@/components/GoogleBusinessProfile/BusinessHealthMetrics';
 
 const RESIZE_EVENT_TYPE = 'google-business-optimizer:resize';
@@ -1090,6 +1091,14 @@ const overviewStatsData = useMemo(() => {
           />
         )}
 
+        {/* Posting Frequency Chart */}
+        {!isLoadingBusinessData && !showLocationSelector && (
+          <PostingFrequencyChart
+            postsData={googleBusinessData?.postsData || []}
+            isLoading={isLoadingBusinessData}
+          />
+        )}
+
         {insightsUnavailable && (
           <div className="mt-6 rounded-lg border border-blue-200 bg-blue-50 p-6 shadow-sm text-sm text-blue-900">
             <div className="flex items-start gap-3">
@@ -1097,7 +1106,7 @@ const overviewStatsData = useMemo(() => {
               <div>
                 <h3 className="text-base font-semibold text-slate-800">No performance insights from Google</h3>
                 <p className="mt-1">
-                  Google didn’t return view or action metrics for this listing. This is common for newly verified profiles. We’ll keep checking each time you reconnect.
+                  Google didn't return view or action metrics for this listing. This is common for newly verified profiles. We'll keep checking each time you reconnect.
                 </p>
               </div>
             </div>
