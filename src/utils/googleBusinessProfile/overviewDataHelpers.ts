@@ -402,7 +402,7 @@ export function identifyOptimizationOpportunities(
     opportunities.push({
       id: 'slow-response-time',
       title: 'Respond to Reviews Faster',
-      description: `Your average response time is ${timeStr}. Responding within 24 hours shows customers you value their feedback and improves your reputation`,
+      description: `Your average response time is ${timeStr}. Potential customers notice quick responses when reading reviews—it signals that you're attentive and care about customer satisfaction`,
       priority: 'medium',
       actionUrl: '/dashboard/google-business?tab=reviews'
     });
