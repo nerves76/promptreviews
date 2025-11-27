@@ -396,9 +396,19 @@ export function identifyOptimizationOpportunities(
   // Check if average response time is over 24 hours (86400000 ms)
   const twentyFourHoursMs = 24 * 60 * 60 * 1000;
   if (engagementData.averageResponseTimeMs && engagementData.averageResponseTimeMs > twentyFourHoursMs) {
-    const days = Math.floor(engagementData.averageResponseTimeMs / (24 * 60 * 60 * 1000));
-    const hours = Math.floor((engagementData.averageResponseTimeMs % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
-    const timeStr = days > 0 ? `${days} day${days !== 1 ? 's' : ''}${hours > 0 ? ` ${hours} hr${hours !== 1 ? 's' : ''}` : ''}` : `${hours} hours`;
+    const totalHours = Math.floor(engagementData.averageResponseTimeMs / (60 * 60 * 1000));
+    const days = Math.floor(totalHours / 24);
+    const hours = totalHours % 24;
+
+    let timeStr: string;
+    if (days > 0 && hours > 0) {
+      timeStr = `${days} day${days !== 1 ? 's' : ''} ${hours} hr${hours !== 1 ? 's' : ''}`;
+    } else if (days > 0) {
+      timeStr = `${days} day${days !== 1 ? 's' : ''}`;
+    } else {
+      timeStr = `${hours} hour${hours !== 1 ? 's' : ''}`;
+    }
+
     opportunities.push({
       id: 'slow-response-time',
       title: 'Respond to Reviews Faster',
