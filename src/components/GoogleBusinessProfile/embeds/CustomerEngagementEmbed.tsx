@@ -85,12 +85,12 @@ interface CustomerEngagementEmbedProps {
 }
 
 export default function CustomerEngagementEmbed({
-  title = "Customer Engagement",
+  title = "Review Responses",
   showHeader = true,
   className = ""
 }: CustomerEngagementEmbedProps) {
   const { ref: cardRef, isVisible: cardIsVisible } = useIntersectionObserver();
-  
+
   // Sample data showcasing active engagement
   const sampleData = {
     unrespondedReviews: 2,
@@ -105,20 +105,20 @@ export default function CustomerEngagementEmbed({
       posts: 3
     }
   };
-  
+
   const animatedUnrespondedReviews = useCountUp(sampleData.unrespondedReviews, 2500, cardIsVisible);
   const animatedTotalReviews = useCountUp(sampleData.totalReviews, 3000, cardIsVisible);
   const animatedResponseRate = useCountUp(Math.round(sampleData.responseRate), 2800, cardIsVisible);
   const animatedTotalQuestions = useCountUp(sampleData.totalQuestions, 2600, cardIsVisible);
   const animatedUnansweredQuestions = useCountUp(sampleData.unansweredQuestions, 2400, cardIsVisible);
-  
+
   return (
     <div ref={cardRef} className={`bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow ${className}`}>
       {showHeader && (
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center">
-              <Icon name="FaUsers" className="w-6 h-6 text-slate-blue" />
+              <Icon name="FaCommentAlt" className="w-6 h-6 text-slate-blue" />
             </div>
             <h3 className="text-lg font-semibold text-slate-blue">{title}</h3>
           </div>

@@ -275,10 +275,10 @@ export default function BusinessHealthMetrics({
 
   return (
     <div className="space-y-6">
-      {/* Customer Engagement - Full Width */}
+      {/* Review Responses - Full Width */}
       <MetricCard
-        title="Customer Engagement"
-        icon="FaUsers"
+        title="Review Responses"
+        icon="FaCommentAlt"
         actions={
           <button
             onClick={() => onQuickAction?.('manage-reviews')}
@@ -292,6 +292,36 @@ export default function BusinessHealthMetrics({
           const responseRate = engagementData?.totalReviews && engagementData.totalReviews > 0
             ? ((engagementData.totalReviews - engagementData.unrespondedReviews) / engagementData.totalReviews) * 100
             : 0;
+
+          // Format average response time
+          const formatResponseTime = (ms: number | null | undefined): string => {
+            if (!ms || ms <= 0) return 'N/A';
+
+            const seconds = Math.floor(ms / 1000);
+            const minutes = Math.floor(seconds / 60);
+            const hours = Math.floor(minutes / 60);
+            const days = Math.floor(hours / 24);
+
+            if (days > 0) {
+              const remainingHours = hours % 24;
+              if (remainingHours > 0) {
+                return `${days} day${days !== 1 ? 's' : ''} ${remainingHours} hr${remainingHours !== 1 ? 's' : ''}`;
+              }
+              return `${days} day${days !== 1 ? 's' : ''}`;
+            } else if (hours > 0) {
+              const remainingMinutes = minutes % 60;
+              if (remainingMinutes > 0) {
+                return `${hours} hr${hours !== 1 ? 's' : ''} ${remainingMinutes} min`;
+              }
+              return `${hours} hr${hours !== 1 ? 's' : ''}`;
+            } else if (minutes > 0) {
+              return `${minutes} min`;
+            }
+            return '< 1 min';
+          };
+
+          const avgResponseTime = formatResponseTime(engagementData?.averageResponseTimeMs);
+          const isGoodResponseTime = engagementData?.averageResponseTimeMs && engagementData.averageResponseTimeMs < 24 * 60 * 60 * 1000; // Less than 24 hours
 
           return (
             <div className="space-y-4">
@@ -324,6 +354,21 @@ export default function BusinessHealthMetrics({
                 />
               </div>
             )}
+
+            {/* Average Response Time */}
+            <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+              <div className="flex items-center space-x-3">
+                <Icon name="FaClock" className="w-5 h-5 text-blue-600" />
+                <span className="text-sm font-medium text-blue-800">Avg. Response Time</span>
+              </div>
+              <span className={`text-sm font-bold ${
+                engagementData?.averageResponseTimeMs
+                  ? (isGoodResponseTime ? 'text-green-600' : 'text-yellow-600')
+                  : 'text-gray-500'
+              }`}>
+                {avgResponseTime}
+              </span>
+            </div>
 
             {/* Unresponded Reviews */}
             <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">

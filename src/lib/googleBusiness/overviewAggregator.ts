@@ -144,6 +144,21 @@ export async function buildOverviewData({ tokens, locationId }: { tokens: OAuthT
     return dates.length > 0 ? dates[0].toISOString() : undefined;
   };
 
+  // Calculate average response time for reviews that have been responded to
+  const respondedReviews = reviewsData.filter((review: any) =>
+    review.reviewReply?.updateTime && review.createTime
+  );
+
+  let averageResponseTimeMs: number | null = null;
+  if (respondedReviews.length > 0) {
+    const totalResponseTime = respondedReviews.reduce((sum: number, review: any) => {
+      const reviewTime = new Date(review.createTime).getTime();
+      const replyTime = new Date(review.reviewReply.updateTime).getTime();
+      return sum + (replyTime - reviewTime);
+    }, 0);
+    averageResponseTimeMs = totalResponseTime / respondedReviews.length;
+  }
+
   const engagementData = {
     unrespondedReviews: reviewsData.filter((review: any) => !review.reviewReply).length,
     totalReviews: reviewsData.length,
@@ -153,6 +168,8 @@ export async function buildOverviewData({ tokens, locationId }: { tokens: OAuthT
     recentPhotos: recentPhotos.length,
     lastPostDate: getLatestDate(postsData, 'createTime'),
     lastPhotoDate: getLatestDate(photosData, 'createTime'),
+    averageResponseTimeMs,
+    respondedReviewsCount: respondedReviews.length,
   };
 
   const performanceData = formatPerformanceData(insightsData, []);
