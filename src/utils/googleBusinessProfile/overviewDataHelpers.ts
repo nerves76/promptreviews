@@ -51,6 +51,8 @@ export interface EngagementData {
   unansweredQuestions: number;
   recentPosts: number;
   lastPostDate?: string;
+  averageResponseTimeMs?: number | null;  // Average time to respond to reviews in milliseconds
+  respondedReviewsCount?: number;  // Number of reviews that have been responded to
 }
 
 export interface PerformanceData {
@@ -387,6 +389,21 @@ export function identifyOptimizationOpportunities(
       title: 'Respond to Reviews',
       description: `${engagementData.unrespondedReviews} reviews need responses to improve customer relations`,
       priority: 'high',
+      actionUrl: '/dashboard/google-business?tab=reviews'
+    });
+  }
+
+  // Check if average response time is over 24 hours (86400000 ms)
+  const twentyFourHoursMs = 24 * 60 * 60 * 1000;
+  if (engagementData.averageResponseTimeMs && engagementData.averageResponseTimeMs > twentyFourHoursMs) {
+    const days = Math.floor(engagementData.averageResponseTimeMs / (24 * 60 * 60 * 1000));
+    const hours = Math.floor((engagementData.averageResponseTimeMs % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
+    const timeStr = days > 0 ? `${days} day${days !== 1 ? 's' : ''}${hours > 0 ? ` ${hours} hr${hours !== 1 ? 's' : ''}` : ''}` : `${hours} hours`;
+    opportunities.push({
+      id: 'slow-response-time',
+      title: 'Respond to Reviews Faster',
+      description: `Your average response time is ${timeStr}. Responding within 24 hours shows customers you value their feedback and improves your reputation`,
+      priority: 'medium',
       actionUrl: '/dashboard/google-business?tab=reviews'
     });
   }
