@@ -154,16 +154,22 @@ export async function POST(request: NextRequest) {
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3002';
     const ogImageUrl = `${baseUrl}${OG_IMAGE_ENDPOINT}?reviewId=${review_id}`;
 
-    // Fetch the generated OG image
-    const imageResponse = await fetch(ogImageUrl);
+    // Fetch the generated OG image (pass auth header for authentication)
+    const imageResponse = await fetch(ogImageUrl, {
+      headers: {
+        'Authorization': authHeader,
+      },
+    });
 
     if (!imageResponse.ok) {
-      console.error('Failed to generate OG image:', imageResponse.statusText);
+      const errorText = await imageResponse.text();
+      console.error('Failed to generate OG image:', imageResponse.status, imageResponse.statusText, errorText);
       return NextResponse.json(
         {
           error: 'Failed to generate quote card image',
           fallback: true,
           message: 'Image generation failed - use text-only share',
+          details: errorText,
         },
         { status: 500 }
       );

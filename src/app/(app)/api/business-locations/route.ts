@@ -106,20 +106,18 @@ export async function POST(request: NextRequest) {
   try {
     // 🔧 CONSOLIDATED: Use shared client creation function
     const supabase = await createAuthenticatedSupabaseClient();
-    
+
     // Get authenticated user
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-
     // Get account ID respecting client selection if provided
     const accountId = await getRequestAccountId(request, user.id, supabase);
     if (!accountId) {
       return NextResponse.json({ error: 'No account found' }, { status: 404 });
     }
-
 
     // Check if user can create more locations (use service role client to bypass RLS)
     const serviceRoleClient = createServiceRoleClient();
@@ -318,6 +316,20 @@ export async function POST(request: NextRequest) {
     if (promptPageError) {
       console.error('Error creating location prompt page:', promptPageError);
       // Don't fail the whole operation, but log the error
+    }
+
+    // Auto-link existing reviews that have a matching location_name
+    const { error: linkError } = await serviceRoleClient
+      .from('review_submissions')
+      .update({ business_location_id: location.id })
+      .eq('account_id', accountId)
+      .is('business_location_id', null)
+      .not('location_name', 'is', null)
+      .ilike('location_name', location.name);
+
+    if (linkError) {
+      console.error('Error linking existing reviews to new location:', linkError);
+      // Don't fail the operation, just log it
     }
 
     return NextResponse.json({

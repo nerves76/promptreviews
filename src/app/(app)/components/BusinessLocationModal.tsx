@@ -180,15 +180,15 @@ export default function BusinessLocationModal({
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
-    
+
     if (!formData.name?.trim()) {
       newErrors.name = 'Location name is required';
     }
-    
+
     if (reviewPlatforms.length === 0) {
       newErrors.reviewPlatforms = 'At least one review platform is required';
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -433,6 +433,20 @@ export default function BusinessLocationModal({
 
           {/* Form Content */}
           <div className="px-6 py-4 max-h-[60vh] overflow-y-auto">
+            {/* Validation Error Banner */}
+            {Object.keys(errors).filter(k => k !== 'submit').length > 0 && (
+              <div className="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-3">
+                <Icon name="FaExclamationTriangle" className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" size={20} />
+                <div>
+                  <p className="text-sm font-medium text-amber-800">Please fill in the required fields:</p>
+                  <ul className="mt-1 text-sm text-amber-700 list-disc list-inside">
+                    {errors.name && <li>{errors.name}</li>}
+                    {errors.reviewPlatforms && <li>{errors.reviewPlatforms}</li>}
+                  </ul>
+                </div>
+              </div>
+            )}
+
             {errors.submit && (
               <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-md text-sm">
                 {errors.submit}

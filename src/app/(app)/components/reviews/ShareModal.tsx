@@ -66,7 +66,6 @@ export default function ShareModal({
   const [includeReviewerName, setIncludeReviewerName] = useState(false);
   const [imageLoading, setImageLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
-  const [imageTimestamp, setImageTimestamp] = useState(Date.now());
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
   const [shareHistory, setShareHistory] = useState<ShareHistoryItem[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
@@ -74,11 +73,8 @@ export default function ShareModal({
 
   const reviewerName = `${review.first_name} ${review.last_name}`;
 
-  // Generate dynamic image URL based on includeReviewerName option with cache busting
-  const dynamicPreviewUrl = imageUrl
-    ? `${imageUrl.split('?')[0]}?reviewId=${review.id}${includeReviewerName ? '&includeReviewerName=true' : ''}&t=${imageTimestamp}`
-    : undefined;
-  const shareableImageUrl = generatedImageUrl || dynamicPreviewUrl;
+  // Use the generated image URL (from Supabase Storage) for sharing
+  const shareableImageUrl = generatedImageUrl;
 
   // Generate share text when platform or settings change
   useEffect(() => {
@@ -99,25 +95,29 @@ export default function ShareModal({
     setShareText(generatedText);
   }, [selectedPlatform, includeReviewerName, review, shareUrl, productName, reviewerName]);
 
-  // Reset image loading and cache-bust when includeReviewerName changes
-  useEffect(() => {
-    if (dynamicPreviewUrl) {
-      setImageLoading(true);
-      setImageError(false);
-      setImageTimestamp(Date.now()); // Force new image URL to bypass cache
-    }
-  }, [includeReviewerName, dynamicPreviewUrl]);
-
+  // Fetch share image when modal opens
   useEffect(() => {
     if (!isOpen || review.id.startsWith('sample-')) return;
     let cancelled = false;
 
     const fetchShareImage = async () => {
+      console.log('[ShareModal] Starting image fetch for review:', review.id);
+      setImageLoading(true);
+      setImageError(false);
+      setGeneratedImageUrl(null);
+
       try {
         const supabase = createClient();
         const { data: { session } } = await supabase.auth.getSession();
-        if (!session) return;
+        console.log('[ShareModal] Session exists:', !!session);
+        if (!session) {
+          console.error('[ShareModal] No session available');
+          setImageError(true);
+          setImageLoading(false);
+          return;
+        }
 
+        console.log('[ShareModal] Calling generate-image API...');
         const response = await fetch('/api/review-shares/generate-image', {
           method: 'POST',
           headers: {
@@ -126,15 +126,42 @@ export default function ShareModal({
           },
           body: JSON.stringify({
             review_id: review.id,
+            regenerate: true, // Always regenerate to get latest design
           }),
         });
 
-        const payload = await response.json();
-        if (!cancelled && payload?.success && payload.image_url) {
-          setGeneratedImageUrl(payload.image_url);
+        console.log('[ShareModal] API response status:', response.status);
+        const responseText = await response.text();
+        console.log('[ShareModal] API response text:', responseText);
+
+        let payload;
+        try {
+          payload = JSON.parse(responseText);
+        } catch (e) {
+          console.error('[ShareModal] Failed to parse response as JSON:', responseText);
+          payload = null;
+        }
+        console.log('[ShareModal] API response payload:', payload);
+
+        if (!cancelled) {
+          if (payload?.success && payload.image_url) {
+            console.log('[ShareModal] Setting generated image URL:', payload.image_url);
+            setGeneratedImageUrl(payload.image_url);
+          } else {
+            console.error('[ShareModal] Failed to generate share image:', payload);
+            if (payload?.details) {
+              console.error('[ShareModal] Error details:', payload.details);
+            }
+            setImageError(true);
+          }
+          setImageLoading(false);
         }
       } catch (error) {
-        console.error('Error preparing share image:', error);
+        console.error('[ShareModal] Error preparing share image:', error);
+        if (!cancelled) {
+          setImageError(true);
+          setImageLoading(false);
+        }
       }
     };
 
@@ -145,15 +172,7 @@ export default function ShareModal({
   }, [isOpen, review.id]);
 
   const handlePlatformClick = async (platform: SharePlatform) => {
-    try {
-      setSelectedPlatform(platform);
-      // Reset image loading state when platform changes
-      setImageLoading(true);
-      setImageError(false);
-    } catch (error) {
-      console.error('Error selecting platform:', error);
-      onShareError('Failed to prepare share');
-    }
+    setSelectedPlatform(platform);
   };
 
   const handleConfirmShare = async () => {
@@ -406,24 +425,33 @@ export default function ShareModal({
                   ))}
                 </div>
 
-                {/* Review Preview */}
-                <div className="mt-8 p-4 bg-white rounded-lg border border-gray-200">
-                  <h3 className="text-sm font-semibold text-gray-700 mb-2">
-                    Review preview
+                {/* Image Preview */}
+                <div className="mt-6">
+                  <h3 className="text-sm font-semibold text-white mb-3">
+                    Share image preview
                   </h3>
-                  <div className="space-y-2">
-                    <p className="text-sm text-gray-600">
-                      <span className="font-medium">From:</span> {reviewerName}
-                    </p>
-                    <p className="text-sm text-gray-800 italic">
-                      "{review.review_content}"
-                    </p>
-                    {review.platform && (
-                      <p className="text-xs text-gray-500">
-                        Original platform: {review.platform}
+                  {!generatedImageUrl && !imageError && (
+                    <div className="w-full h-48 bg-white/5 rounded-lg border border-white/20 flex items-center justify-center backdrop-blur-sm">
+                      <div className="text-center">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-2"></div>
+                        <p className="text-sm text-white/70">Generating image...</p>
+                      </div>
+                    </div>
+                  )}
+                  {imageError && (
+                    <div className="w-full p-4 bg-amber-500/20 border border-amber-400/40 rounded-lg backdrop-blur-sm">
+                      <p className="text-sm text-amber-100">
+                        Could not load preview image. Share will still work.
                       </p>
-                    )}
-                  </div>
+                    </div>
+                  )}
+                  {generatedImageUrl && (
+                    <img
+                      src={generatedImageUrl}
+                      alt="Share preview"
+                      className="w-full rounded-lg border border-white/30 shadow-sm"
+                    />
+                  )}
                 </div>
               </div>
             ) : (
@@ -490,12 +518,12 @@ export default function ShareModal({
                 </div>
 
                 {/* Image Preview */}
-                {dynamicPreviewUrl && (
+                {imageUrl && (
                   <div>
                     <label className="block text-sm font-medium text-white mb-2">
                       Share image preview
                     </label>
-                    {imageLoading && !imageError && (
+                    {!generatedImageUrl && !imageError && (
                       <div className="w-full max-w-md h-48 bg-white/5 rounded-lg border border-white/20 flex items-center justify-center backdrop-blur-sm">
                         <div className="text-center">
                           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-2"></div>
@@ -510,23 +538,23 @@ export default function ShareModal({
                         </p>
                       </div>
                     )}
-                    <img
-                      key={dynamicPreviewUrl}
-                      src={dynamicPreviewUrl}
-                      alt="Share preview"
-                      className={`w-full max-w-md rounded-lg border border-white/30 shadow-sm ${imageLoading || imageError ? 'hidden' : ''}`}
-                      onLoad={() => setImageLoading(false)}
-                      onError={() => {
-                        setImageLoading(false);
-                        setImageError(true);
-                      }}
-                    />
-                    {!imageLoading && !imageError && (
+                    {generatedImageUrl && (
                       <>
+                        <img
+                          key={generatedImageUrl}
+                          src={generatedImageUrl}
+                          alt="Share preview"
+                          className="w-full max-w-md rounded-lg border border-white/30 shadow-sm"
+                          onLoad={() => setImageLoading(false)}
+                          onError={() => {
+                            setImageLoading(false);
+                            setImageError(true);
+                          }}
+                        />
                         <button
                           onClick={async () => {
                             try {
-                              const response = await fetch(dynamicPreviewUrl);
+                              const response = await fetch(generatedImageUrl);
                               const blob = await response.blob();
                               const url = window.URL.createObjectURL(blob);
                               const a = document.createElement('a');

@@ -88,9 +88,16 @@ const ReviewPlatformsSection: React.FC<ReviewPlatformsSectionProps> = ({
       <div className="flex items-center justify-between mb-12">
         <h2 className="text-2xl font-bold text-slate-blue flex items-center gap-3 m-0">
           <Icon name="FaStar" className="w-7 h-7 text-slate-blue" size={28} />
-          Review platforms
+          Review platforms <span className="text-red-500">*</span>
         </h2>
       </div>
+      {errors.length > 0 && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+          {errors.map((error, idx) => (
+            <p key={idx} className="text-sm text-red-600">{error}</p>
+          ))}
+        </div>
+      )}
       <div className="space-y-10">
         {safeValue.map((platform, idx) => (
           <div

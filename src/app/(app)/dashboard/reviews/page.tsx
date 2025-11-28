@@ -5,6 +5,8 @@ import { createClient } from "@/auth/providers/supabase";
 import { useAuthGuard } from "@/utils/authGuard";
 import { getAccountIdForUser } from "@/auth/utils/accounts";
 import { useAccountData } from "@/auth/hooks/granularAuthHooks";
+import { Dialog } from "@headlessui/react";
+import { useRouter } from "next/navigation";
 import Icon, { IconName } from "@/components/Icon";
 import PageCard from "@/app/(app)/components/PageCard";
 import StandardLoader from "@/app/(app)/components/StandardLoader";
@@ -35,6 +37,9 @@ interface Review {
   imported_from_google?: boolean;
   contact_id?: string;
   last_shared_at?: string | null;
+  star_rating?: number | null;
+  location_name?: string | null;
+  business_location_id?: string | null;
 }
 
 interface ReviewerGroup {
@@ -228,6 +233,22 @@ function getPlatformIcon(platform: string): { icon: any; label: string } {
   return { icon: "FaStar", label: platform || "Other" };
 }
 
+// Helper to render star rating from Google
+function StarRating({ rating }: { rating: number }) {
+  const stars = [];
+  for (let i = 1; i <= 5; i++) {
+    stars.push(
+      <span
+        key={i}
+        className={i <= rating ? "text-yellow-400" : "text-gray-300"}
+      >
+        ★
+      </span>
+    );
+  }
+  return <span className="text-sm">{stars}</span>;
+}
+
 // Helper to check if a review is new (within 7 days)
 function isNewReview(created_at: string) {
   const created = new Date(created_at);
@@ -276,6 +297,7 @@ function getSentimentIcon(sentiment: string) {
 export default function ReviewsPage() {
   const { loading: authLoading, shouldRedirect } = useAuthGuard();
   const supabase = createClient();
+  const router = useRouter();
   const { selectedAccountId } = useAccountData();
   const { toasts, closeToast, success, error: showError } = useToast();
 
@@ -305,10 +327,22 @@ export default function ReviewsPage() {
   const [showEmojiDropdown, setShowEmojiDropdown] = useState(false);
   const [sampleNotice, setSampleNotice] = useState<string | null>(null);
   const [accountId, setAccountId] = useState<string | null>(null);
+  const [locationFilter, setLocationFilter] = useState<string>("");
+  const [businessLocations, setBusinessLocations] = useState<{ id: string; name: string }[]>([]);
 
   // Add a ref map to store review refs
   const reviewRefs = useRef<{ [id: string]: HTMLDivElement | null }>({});
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
+
+  // Import modal state
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const [importPreview, setImportPreview] = useState<string[][]>([]);
+  const [importError, setImportError] = useState<string | null>(null);
+  const [importSuccess, setImportSuccess] = useState<string | null>(null);
+  const [isImporting, setIsImporting] = useState(false);
+  const [hasGbpConnected, setHasGbpConnected] = useState(false);
+  const [gbpLocations, setGbpLocations] = useState<{ id: string; location_id: string; location_name: string }[]>([]);
 
   // Using singleton Supabase client from supabaseClient.ts
 
@@ -322,6 +356,56 @@ export default function ReviewsPage() {
       setAccountId(null);
     }
   }, [selectedAccountId]);
+
+  // Check if GBP is connected for import modal
+  useEffect(() => {
+    const checkGbpConnection = async () => {
+      if (!accountId) return;
+
+      try {
+        const { data: locations } = await supabase
+          .from('google_business_locations')
+          .select('id, location_id, location_name')
+          .eq('account_id', accountId);
+
+        if (locations && locations.length > 0) {
+          setHasGbpConnected(true);
+          setGbpLocations(locations);
+        } else {
+          setHasGbpConnected(false);
+          setGbpLocations([]);
+        }
+      } catch (err) {
+        console.error('Error checking GBP connection:', err);
+        setHasGbpConnected(false);
+      }
+    };
+
+    checkGbpConnection();
+  }, [accountId, supabase]);
+
+  // Fetch business locations for location filter
+  useEffect(() => {
+    const fetchBusinessLocations = async () => {
+      if (!accountId) return;
+
+      try {
+        const { data: locations } = await supabase
+          .from('business_locations')
+          .select('id, name')
+          .eq('account_id', accountId)
+          .order('name');
+
+        if (locations) {
+          setBusinessLocations(locations.filter(l => l.name));
+        }
+      } catch (err) {
+        console.error('Error fetching business locations:', err);
+      }
+    };
+
+    fetchBusinessLocations();
+  }, [accountId, supabase]);
 
   useEffect(() => {
     const fetchReviews = async () => {
@@ -367,29 +451,16 @@ export default function ReviewsPage() {
         let reviewsQuery = supabase
           .from("review_submissions")
           .select(
-            "id, prompt_page_id, first_name, last_name, reviewer_role, platform, review_content, created_at, status, emoji_sentiment_selection, verified, verified_at, platform_url, imported_from_google, contact_id"
+            "id, prompt_page_id, first_name, last_name, reviewer_role, platform, review_content, created_at, status, emoji_sentiment_selection, verified, verified_at, platform_url, imported_from_google, contact_id, star_rating, location_name, business_location_id"
           );
 
-        // Apply filtering based on what data we have
-        if (promptPageIds.length > 0 && businessData?.id) {
-          // Include reviews from prompt pages OR imported Google reviews for this business
-          countQuery = countQuery.or(`prompt_page_id.in.(${promptPageIds.join(',')}),and(prompt_page_id.is.null,imported_from_google.eq.true,business_id.eq.${businessData.id})`);
-          reviewsQuery = reviewsQuery.or(`prompt_page_id.in.(${promptPageIds.join(',')}),and(prompt_page_id.is.null,imported_from_google.eq.true,business_id.eq.${businessData.id})`);
-        } else if (promptPageIds.length > 0) {
-          // Only include reviews from prompt pages
-          countQuery = countQuery.in('prompt_page_id', promptPageIds);
-          reviewsQuery = reviewsQuery.in('prompt_page_id', promptPageIds);
-        } else if (businessData?.id) {
-          // Only include imported Google reviews for this business
-          countQuery = countQuery.is('prompt_page_id', null).eq('imported_from_google', true).eq('business_id', businessData.id);
-          reviewsQuery = reviewsQuery.is('prompt_page_id', null).eq('imported_from_google', true).eq('business_id', businessData.id);
-        } else {
-          // No prompt pages and no business = no reviews
-          setReviews([]);
-          setTotalPages(1);
-          setLoading(false);
-          return;
-        }
+        // Apply filtering based on account_id
+        // Include ALL reviews for this account:
+        // 1. Reviews submitted through prompt pages (prompt_page_id matches)
+        // 2. Imported Google reviews (imported_from_google = true)
+        // 3. Manually uploaded reviews (account_id matches)
+        countQuery = countQuery.eq('account_id', accountId);
+        reviewsQuery = reviewsQuery.eq('account_id', accountId);
 
         // First, get total count with account filtering
         const { count, error: countError } = await countQuery;
@@ -513,10 +584,257 @@ export default function ReviewsPage() {
     }
   };
 
-  // Placeholder for export
-  const handleExport = () => {
-    // TODO: Implement CSV export
-    alert("Export to CSV coming soon!");
+  // Export reviews as CSV
+  const handleExport = async () => {
+    try {
+      // For blob responses, we need to use raw fetch with authentication
+      const { tokenManager } = await import('@/auth/services/TokenManager');
+      const token = await tokenManager.getAccessToken();
+
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+
+        // Get selected account
+        try {
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          if (payload.sub) {
+            const accountKey = `promptreviews_selected_account_${payload.sub}`;
+            const selectedAccount = localStorage.getItem(accountKey);
+            if (selectedAccount) {
+              headers['X-Selected-Account'] = selectedAccount;
+            }
+          }
+        } catch (e) {
+          // Token parsing failed, ignore
+        }
+      }
+
+      const response = await fetch('/api/reviews/export', { headers });
+
+      if (!response.ok) {
+        throw new Error('Export failed');
+      }
+
+      // Create download
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const currentDate = new Date().toISOString().split('T')[0];
+      a.download = `reviews-${currentDate}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Export error:', error);
+      alert('Failed to export reviews. Please try again.');
+    }
+  };
+
+  // Import handlers
+  const handleImportFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setImportFile(file);
+    setImportError(null);
+    setImportSuccess(null);
+
+    // Parse preview
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target?.result as string;
+      const lines = text.split('\n').filter(line => line.trim());
+      const preview = lines.slice(0, 6).map(line => {
+        // Simple CSV parsing for preview (handles basic cases)
+        const cells: string[] = [];
+        let current = '';
+        let inQuotes = false;
+        for (const char of line) {
+          if (char === '"') {
+            inQuotes = !inQuotes;
+          } else if (char === ',' && !inQuotes) {
+            cells.push(current.trim());
+            current = '';
+          } else {
+            current += char;
+          }
+        }
+        cells.push(current.trim());
+        return cells;
+      });
+      setImportPreview(preview);
+    };
+    reader.readAsText(file);
+  };
+
+  const handleDownloadTemplate = async () => {
+    try {
+      // Include auth headers so template includes user's location names
+      const { tokenManager } = await import('@/auth/services/TokenManager');
+      const token = await tokenManager.getAccessToken();
+
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+        try {
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          if (payload.sub) {
+            const accountKey = `promptreviews_selected_account_${payload.sub}`;
+            const selectedAccount = localStorage.getItem(accountKey);
+            if (selectedAccount) {
+              headers['X-Selected-Account'] = selectedAccount;
+            }
+          }
+        } catch (e) {
+          // Token parsing failed
+        }
+      }
+
+      const response = await fetch('/api/reviews/upload', { headers });
+      if (!response.ok) throw new Error('Failed to download template');
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'review-upload-template.csv';
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (err) {
+      console.error('Template download error:', err);
+      setImportError('Failed to download template');
+    }
+  };
+
+  const handleImportUpload = async () => {
+    if (!importFile) return;
+
+    setIsImporting(true);
+    setImportError(null);
+    setImportSuccess(null);
+
+    try {
+      const { tokenManager } = await import('@/auth/services/TokenManager');
+      const token = await tokenManager.getAccessToken();
+
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+        try {
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          if (payload.sub) {
+            const accountKey = `promptreviews_selected_account_${payload.sub}`;
+            const selectedAccount = localStorage.getItem(accountKey);
+            if (selectedAccount) {
+              headers['X-Selected-Account'] = selectedAccount;
+            }
+          }
+        } catch (e) {
+          // Token parsing failed
+        }
+      }
+
+      const formData = new FormData();
+      formData.append('file', importFile);
+
+      const response = await fetch('/api/reviews/upload', {
+        method: 'POST',
+        headers,
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Upload failed');
+      }
+
+      // Success
+      let successMsg = `Successfully imported ${result.reviewsCreated} review${result.reviewsCreated !== 1 ? 's' : ''}`;
+      if (result.duplicatesSkipped > 0) {
+        successMsg += ` (${result.duplicatesSkipped} duplicate${result.duplicatesSkipped !== 1 ? 's' : ''} skipped)`;
+      }
+      if (result.contactsCreated > 0) {
+        successMsg += `, created ${result.contactsCreated} new contact${result.contactsCreated !== 1 ? 's' : ''}`;
+      }
+      if (result.contactsLinked > 0) {
+        successMsg += `, linked to ${result.contactsLinked} existing contact${result.contactsLinked !== 1 ? 's' : ''}`;
+      }
+      setImportSuccess(successMsg);
+
+      // Reset file selection
+      setImportFile(null);
+      setImportPreview([]);
+
+      // Refresh reviews list
+      window.location.reload();
+
+    } catch (err: any) {
+      console.error('Import error:', err);
+      setImportError(err.message || 'Failed to import reviews');
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
+  const handleImportFromGoogle = async (locationId: string) => {
+    setIsImporting(true);
+    setImportError(null);
+
+    try {
+      const { tokenManager } = await import('@/auth/services/TokenManager');
+      const token = await tokenManager.getAccessToken();
+
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+        try {
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          if (payload.sub) {
+            const accountKey = `promptreviews_selected_account_${payload.sub}`;
+            const selectedAccount = localStorage.getItem(accountKey);
+            if (selectedAccount) {
+              headers['X-Selected-Account'] = selectedAccount;
+            }
+          }
+        } catch (e) {
+          // Token parsing failed
+        }
+      }
+
+      const response = await fetch('/api/google-business-profile/import-reviews', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          locationId,
+          importType: 'new',
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Import failed');
+      }
+
+      setImportSuccess(`Successfully imported ${result.reviewsImported || 0} new reviews from Google`);
+
+      // Refresh reviews list
+      window.location.reload();
+
+    } catch (err: any) {
+      console.error('Google import error:', err);
+      setImportError(err.message || 'Failed to import from Google');
+    } finally {
+      setIsImporting(false);
+    }
   };
 
   // Auto-scroll and highlight review if hash matches
@@ -543,7 +861,12 @@ export default function ReviewsPage() {
       (verifiedFilter === "not_verified" && !r.verified);
     const emojiMatch =
       !emojiFilter || r.emoji_sentiment_selection === emojiFilter;
-    return platformMatch && verifiedMatch && emojiMatch;
+    // Location filter: match by business_location_id or by location_name text
+    const locationMatch =
+      !locationFilter ||
+      r.business_location_id === locationFilter ||
+      (locationFilter === "__other__" && r.location_name && !r.business_location_id);
+    return platformMatch && verifiedMatch && emojiMatch && locationMatch;
   });
 
   // Close popover on outside click
@@ -716,7 +1039,7 @@ export default function ReviewsPage() {
       <ToastContainer toasts={toasts} onClose={closeToast} />
       <PageCard>
         {/* Title Row */}
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-16 w-full gap-2 relative">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-6 w-full gap-2 relative">
         <div className="absolute z-10" style={{ left: "-69px", top: "-37px" }}>
           <div className="rounded-full bg-white w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center shadow-lg">
             <Icon name="FaStar" className="w-6 h-6 sm:w-7 sm:h-7 text-slate-blue" size={28} />
@@ -726,9 +1049,24 @@ export default function ReviewsPage() {
           <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">
             Reviews
           </h1>
-          <p className="text-gray-600 text-base max-w-md mt-0 mb-10">
+          <p className="text-gray-600 text-base max-w-md mt-0 mb-4">
             Manage and track all your customer reviews in one place. Share your reviews on Bluesky, Pinterest, Facebook, and more.
           </p>
+        </div>
+        {/* Action Buttons - Top Right */}
+        <div className="flex items-center gap-2 sm:mt-0 mt-4">
+          <button
+            className="flex items-center gap-2 px-3 py-2 border-2 border-slate-blue text-slate-blue rounded hover:bg-indigo-50 text-sm font-semibold"
+            onClick={() => setShowImportModal(true)}
+          >
+            <Icon name="FaUpload" className="w-4 h-4" size={16} /> Import
+          </button>
+          <button
+            className="flex items-center gap-2 px-3 py-2 bg-slate-blue text-white rounded hover:bg-indigo-900 text-sm font-semibold"
+            onClick={handleExport}
+          >
+            <Icon name="MdDownload" className="w-4 h-4" size={16} /> Export
+          </button>
         </div>
       </div>
 
@@ -747,7 +1085,7 @@ export default function ReviewsPage() {
               <input
                 type="text"
                 placeholder="Search by reviewer, platform, or text..."
-                className="pl-8 pr-3 w-60 rounded border border-gray-200 px-2 py-1 shadow-sm focus:ring-2 focus:ring-[#1A237E] focus:outline-none text-sm"
+                className="pl-8 pr-3 w-52 rounded border border-gray-200 px-2 py-1 shadow-sm focus:ring-2 focus:ring-[#1A237E] focus:outline-none text-sm"
               />
             </div>
           </div>
@@ -782,6 +1120,29 @@ export default function ReviewsPage() {
               <option value="not_verified">Not Verified</option>
             </select>
           </div>
+          {/* Location Filter - only show if there are locations or reviews have location data */}
+          {(businessLocations.length > 0 || reviews.some(r => r.location_name || r.business_location_id)) && (
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 mb-1">
+                Location
+              </label>
+              <select
+                className="border rounded px-2 py-1 max-w-[150px] truncate"
+                value={locationFilter}
+                onChange={(e) => setLocationFilter(e.target.value)}
+              >
+                <option value="">All</option>
+                {businessLocations.map((loc) => (
+                  <option key={loc.id} value={loc.id} title={loc.name}>
+                    {loc.name.length > 20 ? loc.name.substring(0, 20) + '...' : loc.name}
+                  </option>
+                ))}
+                {reviews.some(r => r.location_name && !r.business_location_id) && (
+                  <option value="__other__">Other (unmatched)</option>
+                )}
+              </select>
+            </div>
+          )}
           {/* Emoji Filter */}
           <div>
             <label className="block text-xs font-semibold text-gray-500 mb-1 flex items-center gap-1">
@@ -867,12 +1228,6 @@ export default function ReviewsPage() {
             </div>
           </div>
         </div>
-        <button
-          className="flex items-center gap-2 px-3 py-2 bg-slate-blue text-white rounded hover:bg-indigo-900 text-sm font-semibold ml-auto"
-          onClick={handleExport}
-        >
-          <Icon name="MdDownload" className="w-4 h-4" size={16} /> Download CSV
-        </button>
       </div>
 
       {/* Card List */}
@@ -954,6 +1309,23 @@ export default function ReviewsPage() {
                         Imported
                       </span>
                     )}
+                    {(review.location_name || review.business_location_id) && (() => {
+                      const locationName = review.business_location_id
+                        ? businessLocations.find(l => l.id === review.business_location_id)?.name || review.location_name
+                        : review.location_name;
+                      const truncated = locationName && locationName.length > 15
+                        ? locationName.substring(0, 15) + '...'
+                        : locationName;
+                      return (
+                        <span
+                          className="ml-2 inline-flex items-center gap-1 px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded"
+                          title={locationName || undefined}
+                        >
+                          <Icon name="FaMapMarker" className="w-3 h-3" size={12} />
+                          {truncated}
+                        </span>
+                      );
+                    })()}
                   </div>
                   <span className="ml-4 text-gray-400">
                     {isExpanded ? (
@@ -976,6 +1348,12 @@ export default function ReviewsPage() {
                         {review.review_content}
                       </span>
                     </div>
+                    {review.star_rating && (
+                      <div className="flex items-center gap-2 mb-2">
+                        <StarRating rating={review.star_rating} />
+                        <span className="text-xs text-gray-500">(From Google)</span>
+                      </div>
+                    )}
                     {review.reviewer_role && (
                       <div className="text-xs text-gray-500 mb-1">
                         Role: {review.reviewer_role}
@@ -1102,6 +1480,233 @@ export default function ReviewsPage() {
         {/* Add responsive bottom padding to the card */}
         <div className="pb-8 md:pb-12 lg:pb-16" />
       </PageCard>
+
+      {/* Import Reviews Modal */}
+      <Dialog
+        open={showImportModal}
+        onClose={() => {
+          setShowImportModal(false);
+          setImportFile(null);
+          setImportPreview([]);
+          setImportError(null);
+          setImportSuccess(null);
+        }}
+        className="fixed z-50 inset-0 overflow-y-auto"
+      >
+        <div className="flex items-center justify-center min-h-screen px-4">
+          <div
+            className="fixed inset-0 bg-black opacity-30"
+            aria-hidden="true"
+          />
+          <div className="relative bg-white rounded-lg shadow-xl max-w-3xl w-full mx-auto p-8 z-10 max-h-[90vh] overflow-y-auto">
+            {/* Close button */}
+            <button
+              className="absolute -top-4 -right-4 bg-white border border-gray-200 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-100 focus:outline-none"
+              style={{ zIndex: 20, width: 40, height: 40 }}
+              onClick={() => {
+                setShowImportModal(false);
+                setImportFile(null);
+                setImportPreview([]);
+                setImportError(null);
+                setImportSuccess(null);
+              }}
+              aria-label="Close"
+            >
+              <Icon name="FaTimes" className="w-5 h-5 text-red-600" />
+            </button>
+
+            <h2 className="text-2xl font-bold text-slate-blue flex items-center gap-3 mb-6">
+              <Icon name="FaUpload" className="w-7 h-7 text-slate-blue" />
+              Import Reviews
+            </h2>
+
+            {/* Error/Success Messages */}
+            {importError && (
+              <div className="mb-4 p-4 bg-red-50 text-red-700 rounded-lg">
+                {importError}
+              </div>
+            )}
+            {importSuccess && (
+              <div className="mb-4 p-4 bg-green-50 text-green-700 rounded-lg">
+                {importSuccess}
+              </div>
+            )}
+
+            {/* Section 1: Import from Google */}
+            <div className="mb-8 bg-blue-50 rounded-lg p-6 border border-blue-100">
+              <h3 className="text-lg font-semibold text-slate-blue flex items-center gap-2 mb-4">
+                <Icon name="FaGoogle" className="w-5 h-5" />
+                Import from Google Business Profile
+              </h3>
+
+              {hasGbpConnected ? (
+                <div>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Pull reviews directly from your connected Google Business Profile locations.
+                  </p>
+                  <div className="space-y-2">
+                    {gbpLocations.map((location) => (
+                      <button
+                        key={location.id}
+                        onClick={() => handleImportFromGoogle(location.location_id)}
+                        disabled={isImporting}
+                        className="w-full flex items-center justify-between px-4 py-3 bg-white border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors disabled:opacity-50"
+                      >
+                        <span className="text-gray-700">{location.location_name || 'Unnamed Location'}</span>
+                        <span className="text-sm text-blue-600 font-medium">
+                          {isImporting ? 'Importing...' : 'Import Reviews'}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Connect your Google Business Profile to import reviews directly from Google.
+                  </p>
+                  <button
+                    onClick={() => router.push('/dashboard/google-business')}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    <Icon name="FaGoogle" className="w-4 h-4" />
+                    Connect Google Business Profile
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Divider */}
+            <div className="flex items-center gap-4 mb-8">
+              <div className="flex-1 h-px bg-gray-200" />
+              <span className="text-sm text-gray-500">or</span>
+              <div className="flex-1 h-px bg-gray-200" />
+            </div>
+
+            {/* Section 2: Upload from CSV */}
+            <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
+              <h3 className="text-lg font-semibold text-slate-blue flex items-center gap-2 mb-4">
+                <Icon name="FaUpload" className="w-5 h-5" />
+                Upload from CSV
+              </h3>
+
+              <p className="text-sm text-gray-600 mb-4">
+                Upload reviews from a spreadsheet. This will:
+              </p>
+              <ul className="text-sm text-gray-600 mb-6 space-y-1">
+                <li className="flex items-center gap-2">
+                  <Icon name="FaCheck" className="w-4 h-4 text-green-500" />
+                  Create review records in your database
+                </li>
+                <li className="flex items-center gap-2">
+                  <Icon name="FaCheck" className="w-4 h-4 text-green-500" />
+                  Automatically create contacts for reviewers with email or phone
+                </li>
+                <li className="flex items-center gap-2">
+                  <Icon name="FaCheck" className="w-4 h-4 text-green-500" />
+                  Link reviews to existing contacts when email/phone matches
+                </li>
+              </ul>
+
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-4">
+                  <label className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                    <Icon name="FaUpload" className="text-slate-blue" />
+                    <span className="text-gray-700">Choose CSV file</span>
+                    <input
+                      type="file"
+                      accept=".csv"
+                      onChange={handleImportFileSelect}
+                      className="hidden"
+                    />
+                  </label>
+                  {importFile && (
+                    <div className="text-sm text-gray-600 max-w-[200px] truncate">
+                      Selected: {importFile.name}
+                    </div>
+                  )}
+                </div>
+                <button
+                  onClick={handleDownloadTemplate}
+                  className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <Icon name="MdDownload" className="text-slate-blue" />
+                  Download Template
+                </button>
+              </div>
+
+              {/* Preview Section */}
+              {importPreview.length > 0 && (
+                <div className="mt-6">
+                  <h4 className="text-sm font-semibold text-gray-700 mb-2">Preview</h4>
+                  <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          {importPreview[0]?.map((header: string, index: number) => (
+                            <th
+                              key={index}
+                              className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap"
+                            >
+                              {header}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {importPreview.slice(1).map((row: string[], rowIndex: number) => (
+                          <tr key={rowIndex}>
+                            {row.map((cell: string, cellIndex: number) => (
+                              <td
+                                key={cellIndex}
+                                className="px-3 py-2 text-sm text-gray-500 max-w-[200px] truncate"
+                              >
+                                {cell}
+                              </td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  {importPreview.length > 1 && (
+                    <p className="text-xs text-gray-500 mt-2">
+                      Showing first {importPreview.length - 1} row(s)
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* Upload Button */}
+              {importFile && (
+                <div className="mt-6 flex justify-end">
+                  <button
+                    onClick={handleImportUpload}
+                    disabled={isImporting}
+                    className="px-6 py-2 bg-slate-blue text-white rounded-lg hover:bg-indigo-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo transition-colors disabled:opacity-50"
+                  >
+                    {isImporting ? 'Importing...' : 'Upload Reviews'}
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Close button at bottom */}
+            <button
+              className="w-full mt-6 py-2 px-4 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 font-semibold"
+              onClick={() => {
+                setShowImportModal(false);
+                setImportFile(null);
+                setImportPreview([]);
+                setImportError(null);
+                setImportSuccess(null);
+              }}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </Dialog>
     </>
   );
 }

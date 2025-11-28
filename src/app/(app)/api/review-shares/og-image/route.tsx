@@ -118,15 +118,19 @@ export async function GET(request: NextRequest) {
       return new Response('Missing reviewId parameter', { status: 400 });
     }
 
-    // Fetch the logo image with error handling
-    let logoDataUrl = '';
+    // Fetch the logo image with error handling - use SVG for better transparency support
+    let logoDataUrlDark = ''; // Black logo for light backgrounds
+    let logoDataUrlLight = ''; // White logo for dark backgrounds
     try {
-      const logoUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3002'}/images/prompt-reviews-logo.png`;
+      const logoUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3002'}/images/prompt-reviews-logo.svg`;
       const logoResponse = await fetch(logoUrl);
       if (logoResponse.ok) {
-        const logoArrayBuffer = await logoResponse.arrayBuffer();
-        const logoBase64 = Buffer.from(logoArrayBuffer).toString('base64');
-        logoDataUrl = `data:image/png;base64,${logoBase64}`;
+        const logoText = await logoResponse.text();
+        // Create dark (black) version
+        logoDataUrlDark = `data:image/svg+xml;base64,${Buffer.from(logoText).toString('base64')}`;
+        // Create light (white) version by replacing fill color
+        const whiteLogo = logoText.replace(/fill="#000000"/g, 'fill="#FFFFFF"');
+        logoDataUrlLight = `data:image/svg+xml;base64,${Buffer.from(whiteLogo).toString('base64')}`;
       }
     } catch (err) {
       console.error('[OG Image] Failed to fetch PromptReviews logo:', err);
@@ -144,15 +148,17 @@ export async function GET(request: NextRequest) {
     let resolvedAccountId: string | null = null;
 
     // Try review_submissions first (most common from Reviews page)
+    // Use LEFT JOIN (no !inner) to include reviews without prompt_pages (like imported Google reviews)
     const { data: reviewSubmission } = await serviceSupabase
       .from('review_submissions')
-      .select('*, prompt_pages!inner(account_id)')
+      .select('*, prompt_pages(account_id)')
       .eq('id', reviewId)
       .maybeSingle();
 
     if (reviewSubmission) {
       review = reviewSubmission;
-      resolvedAccountId = reviewSubmission.prompt_pages?.account_id || null;
+      // Get account_id directly from review (preferred) or from prompt_pages (fallback)
+      resolvedAccountId = reviewSubmission.account_id || reviewSubmission.prompt_pages?.account_id || null;
 
       if (resolvedAccountId) {
         const { data: businessData } = await serviceSupabase
@@ -244,11 +250,11 @@ export async function GET(request: NextRequest) {
         stars.push(
           <svg
             key={i}
-            width="36"
-            height="36"
+            width="56"
+            height="56"
             viewBox="0 0 24 24"
             fill={filled ? '#F59E0B' : '#D1D5DB'}
-            style={{ marginRight: '4px' }}
+            style={{ marginRight: '8px' }}
           >
             <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
           </svg>
@@ -258,10 +264,10 @@ export async function GET(request: NextRequest) {
     };
 
     // Adjust card padding and font size based on review length
-    const cardPadding = '40px 50px 50px 50px'; // Top padding for logo overlap
-    const reviewFontSize = truncatedText.length > 120 ? '32px' : '36px';
-    const quoteSize = '80px'; // Decorative quote marks
-    const quoteOpacity = 0.12;
+    const cardPadding = '70px 80px 70px 80px'; // Top padding for logo overlap
+    const reviewFontSize = truncatedText.length > 120 ? '38px' : '42px';
+    const quoteSize = '120px'; // Decorative curly quote marks
+    const quoteOpacity = 0.15;
     const logoSize = 120; // Size of the circular business logo
 
     // Determine logo color based on background
@@ -276,7 +282,7 @@ export async function GET(request: NextRequest) {
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            padding: '60px 80px',
+            padding: '10px 25px',
             background: backgroundStyle,
             position: 'relative',
           }}
@@ -292,7 +298,7 @@ export async function GET(request: NextRequest) {
               borderRadius: '24px',
               padding: cardPadding,
               boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
-              maxWidth: '900px',
+              maxWidth: '1050px',
               width: '100%',
               position: 'relative',
             }}
@@ -319,42 +325,45 @@ export async function GET(request: NextRequest) {
               />
             )}
 
-            {/* Opening Quote - Top Left - always show */}
-            <span
+            {/* Opening Quote - Top Left - curly double quote (66) */}
+            <svg
+              width="70"
+              height="70"
+              viewBox="0 0 100 100"
               style={{
                 position: 'absolute',
-                top: '30px',
-                left: '40px',
-                fontSize: quoteSize,
-                fontFamily: 'Georgia, serif',
-                color: textColor,
+                top: '20px',
+                left: '25px',
                 opacity: quoteOpacity,
-                lineHeight: '1',
-                display: 'flex',
               }}
             >
-              "
-            </span>
+              <path
+                fill={textColor}
+                d="M30 65c-11 0-20-9-20-20s9-20 20-20c3 0 5.5.6 8 1.8C33 15 22 7 10 7V0c22 0 40 18 40 40v10c0 8.3-6.7 15-15 15h-5zm50 0c-11 0-20-9-20-20s9-20 20-20c3 0 5.5.6 8 1.8C83 15 72 7 60 7V0c22 0 40 18 40 40v10c0 8.3-6.7 15-15 15h-5z"
+                transform="rotate(180 50 50)"
+              />
+            </svg>
 
-            {/* Closing Quote - Bottom Right */}
-            <span
+            {/* Closing Quote - Bottom Right - curly double quote (99) */}
+            <svg
+              width="70"
+              height="70"
+              viewBox="0 0 100 100"
               style={{
                 position: 'absolute',
-                bottom: '30px',
-                right: '40px',
-                fontSize: quoteSize,
-                fontFamily: 'Georgia, serif',
-                color: textColor,
+                bottom: '15px',
+                right: '25px',
                 opacity: quoteOpacity,
-                lineHeight: '1',
-                display: 'flex',
               }}
             >
-              "
-            </span>
+              <path
+                fill={textColor}
+                d="M30 65c-11 0-20-9-20-20s9-20 20-20c3 0 5.5.6 8 1.8C33 15 22 7 10 7V0c22 0 40 18 40 40v10c0 8.3-6.7 15-15 15h-5zm50 0c-11 0-20-9-20-20s9-20 20-20c3 0 5.5.6 8 1.8C83 15 72 7 60 7V0c22 0 40 18 40 40v10c0 8.3-6.7 15-15 15h-5z"
+              />
+            </svg>
 
             {/* Star Rating */}
-            <div style={{ display: 'flex', marginBottom: '24px', marginTop: businessLogoUrl ? `${logoSize / 2 + 20}px` : '0' }}>
+            <div style={{ display: 'flex', marginBottom: '28px', marginTop: businessLogoUrl ? `${logoSize / 2 + 10}px` : '-30px' }}>
               {renderStars()}
             </div>
 
@@ -393,21 +402,20 @@ export async function GET(request: NextRequest) {
           </div>
 
           {/* Logo - Bottom Right */}
-          {logoDataUrl && (
+          {(logoDataUrlDark || logoDataUrlLight) && (
             <div
               style={{
                 position: 'absolute',
-                bottom: '20px',
-                right: '28px',
+                bottom: '8px',
+                right: '20px',
                 display: 'flex',
               }}
             >
               <img
-                src={logoDataUrl}
-                width={140}
+                src={isDark ? logoDataUrlLight : logoDataUrlDark}
+                width={100}
                 alt="Prompt Reviews logo"
                 style={{
-                  filter: isDark ? 'invert(1)' : 'none',
                   opacity: isDark ? 0.9 : 0.7,
                 }}
               />
