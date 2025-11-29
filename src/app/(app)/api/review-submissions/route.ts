@@ -142,6 +142,12 @@ export async function POST(request: NextRequest) {
       sanitizedData.location_name = promptPageData.locationName;
     }
 
+    // Copy review_content to review_text_copy for auto-verification matching
+    // The cron job uses review_text_copy to match against Google reviews
+    if (sanitizedData.review_content) {
+      sanitizedData.review_text_copy = sanitizedData.review_content;
+    }
+
     const { data: submission, error } = await supabase
       .from('review_submissions')
       .insert(sanitizedData)
