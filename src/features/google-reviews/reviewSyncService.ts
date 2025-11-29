@@ -62,6 +62,8 @@ export class GoogleReviewSyncService {
       return this.existingGoogleReviewIds;
     }
 
+    console.log(`🔍 Checking existing reviews for account ${this.context.accountId}`);
+
     const { data, error } = await this.supabase
       .from('review_submissions')
       .select('google_review_id')
@@ -81,6 +83,8 @@ export class GoogleReviewSyncService {
         .map((row: { google_review_id: string | null }) => row.google_review_id || '')
         .filter(Boolean),
     );
+
+    console.log(`📊 Found ${ids.size} existing Google review IDs for account ${this.context.accountId}`);
 
     this.existingGoogleReviewIds = ids;
     return ids;
@@ -214,11 +218,19 @@ export class GoogleReviewSyncService {
 
         if (reviewError || !insertedReview) {
           if (reviewError?.code === '23505') {
+            console.log(`⏭️ Review ${googleReviewId} already exists (duplicate key), skipping`);
             skippedCount++;
             existingIds.add(googleReviewId);
             continue;
           }
-          console.error('❌ Failed to insert review submission:', reviewError);
+          console.error('❌ Failed to insert review submission:', {
+            error: reviewError,
+            code: reviewError?.code,
+            message: reviewError?.message,
+            details: reviewError?.details,
+            googleReviewId,
+            accountId: this.context.accountId
+          });
           errors.push(`Failed to insert review ${googleReviewId}: ${reviewError?.message || 'Unknown error'}`);
           skippedCount++;
           continue;
