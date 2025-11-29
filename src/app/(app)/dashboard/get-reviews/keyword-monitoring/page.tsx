@@ -104,15 +104,16 @@ export default function KeywordTrackerPage() {
       }
 
       try {
-        const data = await apiClient.get(`/businesses/${selectedAccountId}`) as {
-          business?: { keywords?: string | string[] };
+        // API returns business object directly (not wrapped)
+        const business = await apiClient.get(`/businesses/${selectedAccountId}`) as {
+          keywords?: string | string[];
         };
 
-        if (data.business?.keywords) {
-          const kws = Array.isArray(data.business.keywords)
-            ? data.business.keywords
-            : typeof data.business.keywords === 'string' && data.business.keywords
-              ? data.business.keywords.split(',').map((k: string) => k.trim()).filter(Boolean)
+        if (business?.keywords) {
+          const kws = Array.isArray(business.keywords)
+            ? business.keywords
+            : typeof business.keywords === 'string' && business.keywords
+              ? business.keywords.split(',').map((k: string) => k.trim()).filter(Boolean)
               : [];
           setKeywords(kws);
         } else {
