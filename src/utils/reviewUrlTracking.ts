@@ -93,6 +93,7 @@ export function generateEmailTrackedUrl(
     source: 'email',
     communicationRecordId,
     utmMedium: 'email',
+    utmSource: 'email',
   });
 }
 
@@ -108,6 +109,7 @@ export function generateSmsTrackedUrl(
     source: 'sms',
     communicationRecordId,
     utmMedium: 'sms',
+    utmSource: 'sms',
   });
 }
 
@@ -123,6 +125,7 @@ export function generateWidgetTrackedUrl(
     source: 'widget',
     widgetId,
     utmMedium: 'widget',
+    utmSource: 'widget',
   });
 }
 
@@ -138,6 +141,7 @@ export function generateQrTrackedUrl(
     source: 'qr',
     qrId,
     utmMedium: 'qr',
+    utmSource: 'qr',
   });
 }
 

@@ -8,6 +8,9 @@
 
 import { NextRequest, NextResponse } from "next/server";
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const isValidUuid = (value?: string | null): value is string => !!value && UUID_REGEX.test(value);
+
 // Fields that clients are allowed to submit
 const ALLOWED_FIELDS = new Set([
   'prompt_page_id',
@@ -172,6 +175,40 @@ export async function POST(request: NextRequest) {
     }
     if (sanitizedData.utm_params && typeof sanitizedData.utm_params !== 'object') {
       sanitizedData.utm_params = {};
+    }
+
+    // Validate foreign IDs against account to avoid FK failures/cross-account leakage
+    if (sanitizedData.communication_record_id && isValidUuid(sanitizedData.communication_record_id)) {
+      const { data: commRecord } = await supabase
+        .from('communication_records')
+        .select('id')
+        .eq('id', sanitizedData.communication_record_id)
+        .eq('account_id', promptPageData.accountId)
+        .eq('prompt_page_id', sanitizedData.prompt_page_id)
+        .maybeSingle();
+      if (!commRecord?.id) {
+        sanitizedData.communication_record_id = null;
+      }
+    } else {
+      sanitizedData.communication_record_id = null;
+    }
+
+    if (sanitizedData.widget_id && isValidUuid(sanitizedData.widget_id)) {
+      const { data: widgetRecord } = await supabase
+        .from('widgets')
+        .select('id')
+        .eq('id', sanitizedData.widget_id)
+        .eq('account_id', promptPageData.accountId)
+        .maybeSingle();
+      if (!widgetRecord?.id) {
+        sanitizedData.widget_id = null;
+      }
+    } else {
+      sanitizedData.widget_id = null;
+    }
+
+    if (sanitizedData.source_id && !isValidUuid(sanitizedData.source_id)) {
+      sanitizedData.source_id = null;
     }
 
     const { data: submission, error } = await supabase

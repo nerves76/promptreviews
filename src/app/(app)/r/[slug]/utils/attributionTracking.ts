@@ -36,12 +36,21 @@ export interface AttributionData {
  * Maps URL `src` parameter values to source channels
  */
 const SOURCE_PARAM_MAP: Record<string, SourceChannel> = {
+  'direct': 'prompt_page_direct',
   'email': 'email_campaign',
   'sms': 'sms_campaign',
   'qr': 'prompt_page_qr',
   'widget': 'widget_cta',
   'social': 'social_share',
   'referral': 'referral',
+};
+
+const UTM_MEDIUM_MAP: Record<string, SourceChannel> = {
+  email: 'email_campaign',
+  sms: 'sms_campaign',
+  widget: 'widget_cta',
+  qr: 'prompt_page_qr',
+  social: 'social_share',
 };
 
 /**
@@ -55,11 +64,16 @@ export function extractAttributionFromParams(
     return getDefaultAttribution(referrer);
   }
 
-  // Get source channel from 'src' param
+  // Get source channel from 'src' param, fall back to UTM medium inference
   const srcParam = searchParams.get('src');
-  const sourceChannel: SourceChannel = srcParam && SOURCE_PARAM_MAP[srcParam]
+  const utmMediumParam = searchParams.get('utm_medium') || undefined;
+  let sourceChannel: SourceChannel | null = srcParam && SOURCE_PARAM_MAP[srcParam]
     ? SOURCE_PARAM_MAP[srcParam]
-    : 'prompt_page_direct';
+    : null;
+
+  if (!sourceChannel && utmMediumParam && UTM_MEDIUM_MAP[utmMediumParam]) {
+    sourceChannel = UTM_MEDIUM_MAP[utmMediumParam];
+  }
 
   // Get specific source IDs
   const communicationRecordId = searchParams.get('crid') || null;
@@ -79,7 +93,7 @@ export function extractAttributionFromParams(
   // Extract UTM parameters
   const utmParams = {
     source: searchParams.get('utm_source') || null,
-    medium: searchParams.get('utm_medium') || null,
+    medium: utmMediumParam || null,
     campaign: searchParams.get('utm_campaign') || null,
     content: searchParams.get('utm_content') || null,
     term: searchParams.get('utm_term') || null,
@@ -92,7 +106,8 @@ export function extractAttributionFromParams(
   const referrerUrl = referrer || (typeof document !== 'undefined' ? document.referrer : null) || null;
 
   return {
-    source_channel: sourceChannel,
+    // If we still can't infer, treat empty referrer as direct, otherwise unknown
+    source_channel: sourceChannel || (referrer ? 'unknown' : 'prompt_page_direct'),
     source_id: sourceId,
     communication_record_id: communicationRecordId,
     widget_id: widgetId,
@@ -107,7 +122,7 @@ export function extractAttributionFromParams(
  */
 function getDefaultAttribution(referrer?: string): AttributionData {
   return {
-    source_channel: 'prompt_page_direct',
+    source_channel: referrer ? 'unknown' : 'prompt_page_direct',
     source_id: null,
     communication_record_id: null,
     widget_id: null,

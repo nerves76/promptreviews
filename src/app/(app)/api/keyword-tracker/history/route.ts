@@ -36,8 +36,12 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const limit = Math.min(parseInt(searchParams.get('limit') || '10'), 50);
 
+    console.log('[keyword-tracker/history] Creating service client...');
+
     // Use service role to bypass RLS - we've already verified account access above
     const serviceSupabase = createServiceRoleClient();
+
+    console.log('[keyword-tracker/history] Service client created, fetching data for accountId:', accountId);
 
     // Fetch analysis history
     const { data: analyses, error: fetchError } = await serviceSupabase
@@ -46,6 +50,8 @@ export async function GET(request: NextRequest) {
       .eq('account_id', accountId)
       .order('run_date', { ascending: false })
       .limit(limit);
+
+    console.log('[keyword-tracker/history] Query completed. Has error:', !!fetchError, 'Has data:', !!analyses, 'Data count:', analyses?.length ?? 0);
 
     if (fetchError) {
       console.error('[keyword-tracker/history] Error fetching keyword analysis history:', {

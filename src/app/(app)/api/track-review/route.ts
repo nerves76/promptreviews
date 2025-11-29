@@ -6,6 +6,9 @@ import { standardReviewRateLimit } from "@/utils/reviewRateLimit";
 // Use service role client to bypass RLS for anonymous review submissions
 const supabase = createServiceRoleClient();
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const isValidUuid = (value?: string | null): value is string => !!value && UUID_REGEX.test(value);
+
 export async function POST(request: NextRequest) {
   try {
     // Apply rate limiting first
@@ -120,6 +123,45 @@ export async function POST(request: NextRequest) {
       ? utm_params
       : {};
 
+    // Validate/authorize attribution IDs to avoid FK failures or cross-account tampering
+    let validatedCommunicationRecordId: string | null = null;
+    if (isValidUuid(communication_record_id)) {
+      const { data: commRecord, error: commError } = await supabase
+        .from("communication_records")
+        .select("id")
+        .eq("id", communication_record_id)
+        .eq("account_id", business_id)
+        .eq("prompt_page_id", promptPageId)
+        .maybeSingle();
+      if (commError) {
+        console.warn("[track-review] Communication record validation failed:", commError);
+      }
+      validatedCommunicationRecordId = commRecord?.id || null;
+    }
+
+    let validatedWidgetId: string | null = null;
+    if (isValidUuid(widget_id)) {
+      const { data: widgetRecord, error: widgetError } = await supabase
+        .from("widgets")
+        .select("id")
+        .eq("id", widget_id)
+        .eq("account_id", business_id)
+        .maybeSingle();
+      if (widgetError) {
+        console.warn("[track-review] Widget validation failed:", widgetError);
+      }
+      validatedWidgetId = widgetRecord?.id || null;
+    }
+
+    const validatedSourceId =
+      normalizedSourceChannel === 'email_campaign' || normalizedSourceChannel === 'sms_campaign'
+        ? validatedCommunicationRecordId
+        : normalizedSourceChannel === 'widget_cta'
+          ? validatedWidgetId
+          : normalizedSourceChannel === 'prompt_page_qr' && isValidUuid(source_id)
+            ? source_id
+            : null;
+
     // Insert review with account_id and business_id
     const { data, error } = await supabase
       .from("review_submissions")
@@ -151,9 +193,9 @@ export async function POST(request: NextRequest) {
         location_name,
         // Attribution tracking fields
         source_channel: normalizedSourceChannel,
-        source_id: source_id || null,
-        communication_record_id: communication_record_id || null,
-        widget_id: widget_id || null,
+        source_id: validatedSourceId,
+        communication_record_id: validatedCommunicationRecordId,
+        widget_id: validatedWidgetId,
         referrer_url: referrer_url || null,
         utm_params: normalizedUtmParams,
         entry_url: entry_url || null,

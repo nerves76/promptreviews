@@ -53,61 +53,59 @@ export async function GET(request: NextRequest) {
     const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
     const oneYearAgo = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
 
-    // Fetch all reviews for this account with source_channel
-    const { data: reviews, error } = await supabase
-      .from("review_submissions")
-      .select("id, source_channel, created_at")
-      .eq("account_id", accountId)
-      .eq("status", "submitted")
-      .neq("review_type", "feedback");
+    const fetchRangeStats = async (since?: Date) => {
+      let query = supabase
+        .from("review_submissions")
+        .select("source_channel, count:id", { head: false })
+        .eq("account_id", accountId)
+        .eq("status", "submitted")
+        .neq("review_type", "feedback")
+        .group("source_channel");
 
-    if (error) {
-      console.error("[reviews/sources] Error fetching reviews:", error);
-      return NextResponse.json({ error: "Failed to fetch review sources" }, { status: 500 });
-    }
-
-    // Group by time ranges
-    const weekReviews = reviews?.filter(r => new Date(r.created_at) >= oneWeekAgo) || [];
-    const monthReviews = reviews?.filter(r => new Date(r.created_at) >= oneMonthAgo) || [];
-    const yearReviews = reviews?.filter(r => new Date(r.created_at) >= oneYearAgo) || [];
-    const allReviews = reviews || [];
-
-    // Calculate stats for each time range
-    const calculateStats = (reviewList: typeof reviews): SourceStats[] => {
-      if (!reviewList || reviewList.length === 0) {
-        return [];
+      if (since) {
+        query = query.gte("created_at", since.toISOString());
       }
 
-      const counts: Record<string, number> = {};
-      reviewList.forEach(r => {
-        const channel = r.source_channel || "unknown";
-        counts[channel] = (counts[channel] || 0) + 1;
-      });
+      const { data, error } = await query;
+      if (error) {
+        console.error("[reviews/sources] Error fetching grouped stats:", error);
+        throw error;
+      }
 
-      const total = reviewList.length;
-      return Object.entries(counts)
-        .map(([channel, count]) => ({
-          source_channel: channel,
-          label: SOURCE_CHANNEL_LABELS[channel] || channel,
-          count,
-          percentage: Math.round((count / total) * 100),
+      const total = (data || []).reduce((sum, row: any) => sum + (row.count || 0), 0);
+
+      const stats = (data || [])
+        .map((row: any) => ({
+          source_channel: row.source_channel || "unknown",
+          label: SOURCE_CHANNEL_LABELS[row.source_channel] || row.source_channel || "unknown",
+          count: row.count || 0,
+          percentage: total > 0 ? Math.round((row.count || 0) / total * 100) : 0,
         }))
         .sort((a, b) => b.count - a.count);
+
+      return { stats, total };
     };
 
+    const [weekStats, monthStats, yearStats, allTimeStats] = await Promise.all([
+      fetchRangeStats(oneWeekAgo),
+      fetchRangeStats(oneMonthAgo),
+      fetchRangeStats(oneYearAgo),
+      fetchRangeStats(),
+    ]);
+
     const stats: TimeRangeStats = {
-      week: calculateStats(weekReviews),
-      month: calculateStats(monthReviews),
-      year: calculateStats(yearReviews),
-      all_time: calculateStats(allReviews),
+      week: weekStats.stats,
+      month: monthStats.stats,
+      year: yearStats.stats,
+      all_time: allTimeStats.stats,
     };
 
     // Also return totals for summary
     const totals = {
-      week: weekReviews.length,
-      month: monthReviews.length,
-      year: yearReviews.length,
-      all_time: allReviews.length,
+      week: weekStats.total,
+      month: monthStats.total,
+      year: yearStats.total,
+      all_time: allTimeStats.total,
     };
 
     return NextResponse.json({ stats, totals, labels: SOURCE_CHANNEL_LABELS });
