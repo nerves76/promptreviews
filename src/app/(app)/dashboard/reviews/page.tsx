@@ -1493,16 +1493,17 @@ export default function ReviewsPage() {
         }}
         className="fixed z-50 inset-0 overflow-y-auto"
       >
-        <div className="flex items-center justify-center min-h-screen px-4">
+        <div className="flex items-center justify-center min-h-screen px-4 py-8">
           <div
             className="fixed inset-0 bg-black opacity-30"
             aria-hidden="true"
           />
-          <div className="relative bg-white rounded-lg shadow-xl max-w-3xl w-full mx-auto p-8 z-10 max-h-[90vh] overflow-y-auto">
-            {/* Close button */}
+          {/* Wrapper div to allow close button to overflow */}
+          <div className="relative z-10">
+            {/* Close button - outside the scrollable area */}
             <button
-              className="absolute -top-4 -right-4 bg-white border border-gray-200 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-100 focus:outline-none"
-              style={{ zIndex: 20, width: 40, height: 40 }}
+              className="absolute -top-3 -right-3 bg-white border border-gray-200 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-100 focus:outline-none z-20"
+              style={{ width: 40, height: 40 }}
               onClick={() => {
                 setShowImportModal(false);
                 setImportFile(null);
@@ -1515,7 +1516,8 @@ export default function ReviewsPage() {
               <Icon name="FaTimes" className="w-5 h-5 text-red-600" />
             </button>
 
-            <h2 className="text-2xl font-bold text-slate-blue flex items-center gap-3 mb-6">
+            <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full mx-auto p-8 max-h-[85vh] overflow-y-auto">
+              <h2 className="text-2xl font-bold text-slate-blue flex items-center gap-3 mb-6">
               <Icon name="FaUpload" className="w-7 h-7 text-slate-blue" />
               Import Reviews
             </h2>
@@ -1705,6 +1707,7 @@ export default function ReviewsPage() {
               Close
             </button>
           </div>
+          </div>{/* End wrapper div */}
         </div>
       </Dialog>
     </>
