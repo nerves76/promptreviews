@@ -1510,7 +1510,7 @@ export default function ReviewsPage() {
             <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full mx-auto p-8 max-h-[85vh] overflow-y-auto">
               <h2 className="text-2xl font-bold text-slate-blue flex items-center gap-3 mb-6">
               <Icon name="FaUpload" className="w-7 h-7 text-slate-blue" />
-              Import Reviews
+              Import reviews
             </h2>
 
             {/* Error/Success Messages */}
@@ -1529,13 +1529,13 @@ export default function ReviewsPage() {
             <div className="mb-8 bg-blue-50 rounded-lg p-6 border border-blue-100">
               <h3 className="text-lg font-semibold text-slate-blue flex items-center gap-2 mb-4">
                 <Icon name="FaGoogle" className="w-5 h-5" />
-                Import from Google Business Profile
+                Import & verify from Google Business Profile
               </h3>
 
               {hasGbpConnected ? (
                 <div>
                   <p className="text-sm text-gray-600 mb-4">
-                    Pull reviews directly from your connected Google Business Profile locations.
+                    Pull reviews directly from your connected Google Business Profile locations. This also automatically verifies any matching Prompt Page submissions.
                   </p>
                   <div className="space-y-2">
                     {gbpLocations.map((location) => {
@@ -1549,7 +1549,7 @@ export default function ReviewsPage() {
                         >
                           <span className="text-gray-700">{location.location_name || 'Unnamed Location'}</span>
                           <span className="text-sm text-blue-600 font-medium">
-                            {isThisLocationImporting ? 'Importing...' : 'Import Reviews'}
+                            {isThisLocationImporting ? 'Importing & verifying...' : 'Import & verify'}
                           </span>
                         </button>
                       );
