@@ -21,10 +21,21 @@ const FallingAnimation = dynamic(() => import("./FallingAnimation"), {
   loading: () => null
 });
 
+interface AttributionData {
+  source_channel: string;
+  source_id: string | null;
+  communication_record_id: string | null;
+  widget_id: string | null;
+  referrer_url: string | null;
+  utm_params: Record<string, string | null>;
+  entry_url: string | null;
+}
+
 interface ReviewBuilderWizardProps {
   promptPage: any;
   businessProfile: any;
   currentUser?: any;
+  attributionData?: AttributionData | null;
 }
 
 const DEFAULT_BUILDER_QUESTIONS = (businessName?: string) => [
@@ -81,6 +92,7 @@ export default function ReviewBuilderWizard({
   promptPage,
   businessProfile,
   currentUser,
+  attributionData,
 }: ReviewBuilderWizardProps) {
   const [step, setStep] = useState(1);
   const [firstName, setFirstName] = useState("");
@@ -487,6 +499,8 @@ const builderQuestions = useMemo(() => {
           role,
           builderAnswers: builderAnswersPayload,
           builderKeywords: selectedKeywords,
+          // Include attribution tracking data
+          ...(attributionData || {}),
         }),
       });
 

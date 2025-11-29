@@ -12,10 +12,10 @@
   
   // Only define initializeWidget if it doesn't already exist (to avoid conflicts with multi widget)
   if (!window.PromptReviewsSingle.initializeWidget) {
-    window.PromptReviewsSingle.initializeWidget = function(containerId, reviews, design, businessSlug) {
+    window.PromptReviewsSingle.initializeWidget = function(containerId, reviews, design, businessSlug, actualWidgetId) {
       console.log('--- WIDGET INITIALIZATION - BUILD VERSION 5.0 ---');
       console.log('🚀 SingleWidget: Initializing widget', { containerId, reviewsCount: reviews?.length, design });
-      
+
       if (!reviews || reviews.length === 0) {
         console.warn('⚠️ SingleWidget: No reviews provided');
         return;
@@ -32,7 +32,7 @@
       single_setCSSVariables(widgetElement, design);
 
       // Create and insert the widget HTML
-      const widgetHTML = single_createCarouselHTML(containerId, reviews, design, businessSlug);
+      const widgetHTML = single_createCarouselHTML(containerId, reviews, design, businessSlug, actualWidgetId);
       widgetElement.innerHTML = widgetHTML;
       
       // Add the main CSS classes to the container so styles are applied
@@ -376,8 +376,8 @@
     return `<script type="application/ld+json">${JSON.stringify(schema)}</script>`;
   }
 
-  function single_createCarouselHTML(widgetId, reviews, design, businessSlug) {
-    const carouselItemsHTML = reviews.map(review => 
+  function single_createCarouselHTML(widgetId, reviews, design, businessSlug, actualWidgetId) {
+    const carouselItemsHTML = reviews.map(review =>
         `<div class="pr-single-carousel-item">${single_createReviewCard(review, design)}</div>`
     ).join('');
 
@@ -389,9 +389,14 @@
       </div>
     `;
 
+    // Generate tracked URL for attribution analytics
+    const trackedReviewUrl = actualWidgetId
+      ? `https://app.promptreviews.app/r/${businessSlug}?src=widget&wid=${actualWidgetId}&utm_medium=widget`
+      : `https://app.promptreviews.app/r/${businessSlug}?src=widget&utm_medium=widget`;
+
     const submitReviewHTML = `
       <div class="pr-single-submit-review-container">
-        <a href="https://promptreviews.app/r/${businessSlug}?source=widget" target="_blank" class="pr-single-submit-btn">
+        <a href="${trackedReviewUrl}" target="_blank" class="pr-single-submit-btn">
           Submit a Review
         </a>
       </div>
@@ -413,8 +418,8 @@
   }
 
   // Expose the render function for direct use
-  window.PromptReviewsSingle.renderSingleWidget = function(containerId, reviews, design, businessSlug) {
-    window.PromptReviewsSingle.initializeWidget(containerId, reviews, design, businessSlug);
+  window.PromptReviewsSingle.renderSingleWidget = function(containerId, reviews, design, businessSlug, actualWidgetId) {
+    window.PromptReviewsSingle.initializeWidget(containerId, reviews, design, businessSlug, actualWidgetId);
   };
 
   // Main function to initialize all widgets on the page
@@ -478,7 +483,7 @@
             single_setCSSVariables(container, design);
             
             // Set content and classes
-            container.innerHTML = single_createCarouselHTML(container.id, reviews, design, businessSlug);
+            container.innerHTML = single_createCarouselHTML(container.id, reviews, design, businessSlug, widgetId);
             container.classList.add('pr-widget-container', 'pr-single-widget');
             
             // Initialize functionality

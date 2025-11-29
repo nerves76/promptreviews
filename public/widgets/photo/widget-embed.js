@@ -13,9 +13,9 @@
   
   // Only define initializeWidget if it doesn't already exist (to avoid conflicts with other widgets)
   if (!window.PromptReviewsPhoto.initializeWidget) {
-    window.PromptReviewsPhoto.initializeWidget = function(containerId, reviews, design, businessSlug) {
+    window.PromptReviewsPhoto.initializeWidget = function(containerId, reviews, design, businessSlug, actualWidgetId) {
       console.log('🚀 PhotoWidget: Initializing widget', { containerId, reviewsCount: reviews?.length, design });
-      
+
       injectCSS(design); // Inject the CSS rules directly
 
       if (!reviews || reviews.length === 0) {
@@ -33,7 +33,7 @@
       initializingWidgets.add(containerId);
 
       // Create and insert the widget HTML
-      const widgetHTML = createCarouselHTML(containerId, reviews, design, businessSlug);
+      const widgetHTML = createCarouselHTML(containerId, reviews, design, businessSlug, actualWidgetId);
       widgetElement.innerHTML = widgetHTML;
       
       // Add the main CSS class to the container so styles are applied
@@ -440,7 +440,7 @@
     return `<script type="application/ld+json">${JSON.stringify(schema)}</script>`;
   }
 
-  function createCarouselHTML(widgetId, reviews, design, businessSlug) {
+  function createCarouselHTML(widgetId, reviews, design, businessSlug, actualWidgetId) {
     initCarouselState(widgetId, reviews, design);
     const state = carouselState[widgetId];
 
@@ -547,9 +547,14 @@
       </div>
     ` : '';
 
+    // Generate tracked URL for attribution analytics
+    const trackedReviewUrl = actualWidgetId
+      ? `https://app.promptreviews.app/r/${businessSlug}?src=widget&wid=${actualWidgetId}&utm_medium=widget`
+      : `https://app.promptreviews.app/r/${businessSlug}?src=widget&utm_medium=widget`;
+
     const submitReviewHTML = design.showSubmitReviewButton ? `
       <div class="pr-photo-submit-review-container">
-        <a href="https://promptreviews.app/r/${businessSlug}?source=widget" target="_blank" class="pr-photo-submit-btn" style="${submitButtonStyle}">
+        <a href="${trackedReviewUrl}" target="_blank" class="pr-photo-submit-btn" style="${submitButtonStyle}">
           Submit a Review
         </a>
       </div>
@@ -573,8 +578,8 @@
   }
 
   // Expose the render function for direct use
-  window.PromptReviewsPhoto.renderPhotoWidget = function(containerId, reviews, design, businessSlug) {
-    window.PromptReviewsPhoto.initializeWidget(containerId, reviews, design, businessSlug);
+  window.PromptReviewsPhoto.renderPhotoWidget = function(containerId, reviews, design, businessSlug, actualWidgetId) {
+    window.PromptReviewsPhoto.initializeWidget(containerId, reviews, design, businessSlug, actualWidgetId);
   };
 
   // Main function to initialize all widgets on the page
@@ -609,7 +614,7 @@
         const { reviews, design, businessSlug } = await response.json();
         
         if (reviews && reviews.length > 0) {
-          window.PromptReviewsPhoto.initializeWidget(widgetContainer.id, reviews, design, businessSlug);
+          window.PromptReviewsPhoto.initializeWidget(widgetContainer.id, reviews, design, businessSlug, widgetId);
         } else {
           widgetContainer.innerHTML = `
         <div style="display: flex; align-items: center; justify-content: center; min-height: 200px; color: white; font-size: 18px;">

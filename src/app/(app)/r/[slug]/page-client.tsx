@@ -81,6 +81,7 @@ import ReviewBuilderWizard from "./components/ReviewBuilderWizard";
 import { getFontClass } from "./utils/fontUtils";
 import { getPlatformIcon, splitName, sendAnalyticsEvent, isOffWhiteOrCream } from "./utils/helperFunctions";
 import { sentimentOptions } from "./utils/sentimentConfig";
+import { getAttributionData, flattenAttributionForApi, AttributionData } from "./utils/attributionTracking";
 import { EMOJI_SENTIMENT_ICONS } from "@/app/(app)/components/prompt-modules/emojiSentimentConfig";
 
 interface StyleSettings {
@@ -342,6 +343,17 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
   // Add state for tracking font loading status
   const [fontsLoaded, setFontsLoaded] = useState(false);
   const [styleInitialized, setStyleInitialized] = useState(false);
+
+  // Attribution tracking - capture on page load
+  const [attributionData, setAttributionData] = useState<AttributionData | null>(null);
+
+  // Capture attribution data on initial load (runs once)
+  useEffect(() => {
+    if (!attributionData && searchParams) {
+      const attribution = getAttributionData(searchParams);
+      setAttributionData(attribution);
+    }
+  }, [searchParams, attributionData]);
 
   // Fetch kickstarters based on prompt page and business settings
   const fetchKickstarters = async (promptPage: any, businessProfile: any) => {
@@ -916,6 +928,8 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
           reviewContent: platformReviewTexts[idx] || "",
           promptPageType: promptPage.is_universal ? "universal" : "custom",
           review_type: "review",
+          // Include attribution tracking data
+          ...(attributionData ? flattenAttributionForApi(attributionData) : {}),
         }),
       });
       if (!response.ok) {
@@ -1488,7 +1502,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
         body: JSON.stringify({
           promptPageId: promptPage.id,
           platform: "feedback",
-          status: "feedback", 
+          status: "feedback",
           first_name: feedbackFirstName,
           last_name: feedbackLastName,
           reviewContent: feedback,
@@ -1497,6 +1511,8 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
           sentiment: sentiment,
           email: feedbackEmail,
           phone: feedbackPhone,
+          // Include attribution tracking data
+          ...(attributionData ? flattenAttributionForApi(attributionData) : {}),
         }),
       });
 
@@ -1833,6 +1849,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
           promptPage={promptPage}
           businessProfile={businessProfile}
           currentUser={currentUser}
+          attributionData={attributionData}
         />
       </div>
     );

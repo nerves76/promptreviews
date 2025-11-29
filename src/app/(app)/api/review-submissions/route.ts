@@ -163,6 +163,17 @@ export async function POST(request: NextRequest) {
       sanitizedData.review_text_copy = sanitizedData.review_content;
     }
 
+    // Validate and normalize attribution fields
+    if (sanitizedData.source_channel && !VALID_SOURCE_CHANNELS.has(sanitizedData.source_channel)) {
+      sanitizedData.source_channel = 'unknown';
+    }
+    if (!sanitizedData.source_channel) {
+      sanitizedData.source_channel = 'unknown';
+    }
+    if (sanitizedData.utm_params && typeof sanitizedData.utm_params !== 'object') {
+      sanitizedData.utm_params = {};
+    }
+
     const { data: submission, error } = await supabase
       .from('review_submissions')
       .insert(sanitizedData)

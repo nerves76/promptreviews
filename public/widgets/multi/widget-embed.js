@@ -361,7 +361,7 @@
     return `<script type="application/ld+json">${JSON.stringify(schema)}</script>`;
   }
 
-  function createCarouselHTML(widgetId, reviews, design, businessSlug) {
+  function createCarouselHTML(widgetId, reviews, design, businessSlug, actualWidgetId) {
     initCarouselState(widgetId, reviews, design);
     const state = carouselState[widgetId];
 
@@ -462,9 +462,14 @@
       }
     `;
 
+    // Generate tracked URL for attribution analytics
+    const trackedReviewUrl = actualWidgetId
+      ? `https://app.promptreviews.app/r/${businessSlug}?src=widget&wid=${actualWidgetId}&utm_medium=widget`
+      : `https://app.promptreviews.app/r/${businessSlug}?src=widget&utm_medium=widget`;
+
     const submitReviewButton = design.showSubmitReviewButton ? `
       <div class="pr-submit-review-container">
-        <a href="https://app.promptreviews.app/r/${businessSlug}" target="_blank" rel="noopener noreferrer" class="pr-submit-btn"
+        <a href="${trackedReviewUrl}" target="_blank" rel="noopener noreferrer" class="pr-submit-btn"
            style="
              background-color: ${buttonBackgroundColor};
              ${design.border ? `border: ${borderWidth}px solid ${borderColorWithOpacity};` : 'border: none;'}
@@ -835,9 +840,9 @@
           throw new Error(`Failed to fetch widget data: ${response.statusText}`);
         }
         const { reviews, design, businessSlug } = await response.json();
-        
+
         if (reviews && reviews.length > 0) {
-          widgetContainer.innerHTML = createCarouselHTML(widgetContainer.id, reviews, design, businessSlug);
+          widgetContainer.innerHTML = createCarouselHTML(widgetContainer.id, reviews, design, businessSlug, widgetId);
           initializeCarousel(widgetContainer.id);
         } else {
           widgetContainer.innerHTML = `

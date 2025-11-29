@@ -8,6 +8,7 @@ import { Textarea } from "@/app/(app)/components/ui/textarea";
 import { Card } from "@/app/(app)/components/ui/card";
 import Icon from "@/components/Icon";
 import CommunicationProcessIndicator from "./CommunicationProcessIndicator";
+import { generateEmailTrackedUrl, generateSmsTrackedUrl } from "@/utils/reviewUrlTracking";
 
 interface Contact {
   id: string;
@@ -99,14 +100,21 @@ export default function CommunicationTrackingModal({
   // Generate default message based on active tab and prompt page
   useEffect(() => {
     if (!isOpen) return;
-    
+
     const businessName = promptPage?.location || promptPage?.client_name || 'Our Business';
     const customerName = contact?.first_name || 'there';
-    const reviewUrl = `${window.location.origin}/r/${promptPage?.slug}`;
-    
+    const baseUrl = window.location.origin;
+
+    // Generate tracked URL based on communication type
+    // Note: communicationRecordId will be available after the record is created
+    // For now we use the basic tracking params; the full tracking happens server-side
+    const reviewUrl = activeTab === 'email'
+      ? generateEmailTrackedUrl(baseUrl, promptPage?.slug)
+      : generateSmsTrackedUrl(baseUrl, promptPage?.slug);
+
     const baseMessage =
       `Hi ${customerName}, could you take 1–3 minutes to leave a review for ${businessName}? ` +
-      `I’ve prewritten a draft to make it easy, and you can edit it however you’d like, or use the AI feature to kickstart your own review. ` +
+      `I've prewritten a draft to make it easy, and you can edit it however you'd like, or use the AI feature to kickstart your own review. ` +
       `Reviews make a huge difference for small businesses trying to get found online. Really appreciate your help! ${reviewUrl}`;
 
     if (activeTab === 'email') {

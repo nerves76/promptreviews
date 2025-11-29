@@ -365,7 +365,7 @@ model users {
   google_api_rate_limits                     google_api_rate_limits[]
   google_business_locations                  google_business_locations[]
   google_business_media_uploads              google_business_media_uploads[]
-  google_business_profiles                   google_business_profiles[]
+  google_business_profiles                   google_business_profiles?
   google_business_scheduled_posts            google_business_scheduled_posts[]
   keyword_sets                               keyword_sets[]
   media_assets                               media_assets[]
@@ -377,7 +377,7 @@ model users {
   posts                                      posts[]
   quotes                                     quotes[]
   review_reminder_logs                       review_reminder_logs[]
-  review_reminder_settings                   review_reminder_settings[]
+  review_reminder_settings                   review_reminder_settings?
   selected_gbp_locations                     selected_gbp_locations[]
   social_platform_connections                social_platform_connections[]
 
@@ -503,6 +503,8 @@ model accounts {
   created_by                      String?                           @db.Uuid
   sentiment_analyses_this_month   Int?                              @default(0)
   sentiment_last_reset_date       DateTime?                         @default(dbgenerated("CURRENT_DATE")) @db.Date
+  keyword_analyses_this_month     Int?                              @default(0)
+  keyword_last_reset_date         DateTime?                         @db.Date
   account_events                  account_events[]
   account_invitations             account_invitations[]
   account_users                   account_users[]
@@ -523,6 +525,7 @@ model accounts {
   gbp_location_snapshots          gbp_location_snapshots[]
   gbp_protection_settings         gbp_protection_settings?
   google_business_scheduled_posts google_business_scheduled_posts[]
+  keyword_analysis_runs           keyword_analysis_runs[]
   keyword_sets                    keyword_sets[]
   notification_preferences        notification_preferences?
   notifications                   notifications[]
@@ -566,7 +569,6 @@ model ai_usage {
   accounts          accounts? @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   users             users?    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_ai_usage_user_id")
 
-  @@index([account_id, feature_type, created_at], map: "idx_ai_usage_account_feature")
   @@index([account_id], map: "idx_ai_usage_account_id")
   @@index([created_at], map: "idx_ai_usage_created_at")
   @@index([feature_type], map: "idx_ai_usage_feature_type")
@@ -751,8 +753,8 @@ model billing_audit_log {
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model business_locations {
-  id                                                                 String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  account_id                                                         String         @db.Uuid
+  id                                                                 String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  account_id                                                         String               @db.Uuid
   name                                                               String
   business_name                                                      String?
   address_street                                                     String?
@@ -777,38 +779,39 @@ model business_locations {
   primary_color                                                      String?
   secondary_color                                                    String?
   custom_css                                                         String?
-  is_active                                                          Boolean?       @default(true)
-  created_at                                                         DateTime?      @default(now()) @db.Timestamptz(6)
-  updated_at                                                         DateTime?      @default(now()) @db.Timestamptz(6)
-  emoji_sentiment_enabled                                            Boolean?       @default(false)
-  emoji_sentiment_question                                           String?        @default("How was your experience?")
-  emoji_feedback_message                                             String?        @default("How can we improve?")
-  emoji_thank_you_message                                            String?        @default("Thank you for your feedback. It's important to us.")
-  emoji_labels                                                       String[]       @default(["Excellent", "Satisfied", "Neutral", "Unsatisfied", "Frustrated"])
-  falling_enabled                                                    Boolean?       @default(true)
-  falling_icon                                                       String?        @default("star")
-  offer_enabled                                                      Boolean?       @default(false)
-  offer_title                                                        String?        @default("")
-  offer_body                                                         String?        @default("")
-  offer_url                                                          String?        @default("")
-  ai_review_enabled                                                  Boolean?       @default(true)
-  show_friendly_note                                                 Boolean?       @default(false)
-  friendly_note                                                      String?        @default("")
-  emoji_feedback_popup_header                                        String?        @default("How can we Improve?")
-  emoji_feedback_page_header                                         String?        @default("Your feedback helps us grow")
+  is_active                                                          Boolean?             @default(true)
+  created_at                                                         DateTime?            @default(now()) @db.Timestamptz(6)
+  updated_at                                                         DateTime?            @default(now()) @db.Timestamptz(6)
+  emoji_sentiment_enabled                                            Boolean?             @default(false)
+  emoji_sentiment_question                                           String?              @default("How was your experience?")
+  emoji_feedback_message                                             String?              @default("How can we improve?")
+  emoji_thank_you_message                                            String?              @default("Thank you for your feedback. It's important to us.")
+  emoji_labels                                                       String[]             @default(["Excellent", "Satisfied", "Neutral", "Unsatisfied", "Frustrated"])
+  falling_enabled                                                    Boolean?             @default(true)
+  falling_icon                                                       String?              @default("star")
+  offer_enabled                                                      Boolean?             @default(false)
+  offer_title                                                        String?              @default("")
+  offer_body                                                         String?              @default("")
+  offer_url                                                          String?              @default("")
+  ai_review_enabled                                                  Boolean?             @default(true)
+  show_friendly_note                                                 Boolean?             @default(false)
+  friendly_note                                                      String?              @default("")
+  emoji_feedback_popup_header                                        String?              @default("How can we Improve?")
+  emoji_feedback_page_header                                         String?              @default("Your feedback helps us grow")
   location_photo_url                                                 String?
-  falling_icon_color                                                 String?        @default("#fbbf24")
+  falling_icon_color                                                 String?              @default("#fbbf24")
   prompt_page_slug                                                   String?
-  prompt_page_id                                                     String?        @db.Uuid
+  prompt_page_id                                                     String?              @db.Uuid
   kickstarters_enabled                                               Boolean?
   selected_kickstarters                                              Json?
-  kickstarters_background_design                                     Boolean?       @default(false)
+  kickstarters_background_design                                     Boolean?             @default(false)
   recent_reviews_enabled                                             Boolean?
-  offer_timelock                                                     Boolean?       @default(false)
+  offer_timelock                                                     Boolean?             @default(false)
   custom_kickstarters                                                Json?
-  accounts                                                           accounts       @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  prompt_pages_business_locations_prompt_page_idToprompt_pages       prompt_pages?  @relation("business_locations_prompt_page_idToprompt_pages", fields: [prompt_page_id], references: [id], onUpdate: NoAction)
-  prompt_pages_prompt_pages_business_location_idTobusiness_locations prompt_pages[] @relation("prompt_pages_business_location_idTobusiness_locations")
+  accounts                                                           accounts             @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  prompt_pages_business_locations_prompt_page_idToprompt_pages       prompt_pages?        @relation("business_locations_prompt_page_idToprompt_pages", fields: [prompt_page_id], references: [id], onUpdate: NoAction)
+  prompt_pages_prompt_pages_business_location_idTobusiness_locations prompt_pages[]       @relation("prompt_pages_business_location_idTobusiness_locations")
+  review_submissions                                                 review_submissions[]
 
   @@index([account_id, id], map: "idx_business_locations_account")
   @@index([account_id], map: "idx_business_locations_account_id")
@@ -1037,6 +1040,7 @@ model communication_records {
   contacts            contacts              @relation(fields: [contact_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   prompt_pages        prompt_pages?         @relation(fields: [prompt_page_id], references: [id], onUpdate: NoAction)
   follow_up_reminders follow_up_reminders[]
+  review_submissions  review_submissions[]
 
   @@index([account_id], map: "idx_communication_records_account_id")
   @@index([contact_id], map: "idx_communication_records_contact_id")
@@ -1081,7 +1085,6 @@ model community_profiles {
   created_at             DateTime? @default(now()) @db.Timestamptz(6)
   updated_at             DateTime? @default(now()) @db.Timestamptz(6)
   business_name_override String?
-  profile_photo_url      String?
   users                  users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([username], map: "idx_community_profiles_username")
@@ -1466,16 +1469,13 @@ model gbp_protection_settings {
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model google_api_rate_limits {
   id               BigInt   @id @default(autoincrement())
-  project_id       String
+  project_id       String   @unique
   last_api_call_at DateTime @default(now()) @db.Timestamptz(6)
   user_id          String?  @db.Uuid
   created_at       DateTime @default(now()) @db.Timestamptz(6)
   updated_at       DateTime @default(now()) @db.Timestamptz(6)
-  account_id       String   @db.Uuid
   users            users?   @relation(fields: [user_id], references: [id], onUpdate: NoAction)
 
-  @@unique([project_id, account_id], map: "google_api_rate_limits_project_account_unique")
-  @@index([account_id, project_id], map: "idx_google_api_rate_limits_account_project")
   @@index([project_id], map: "idx_google_api_rate_limits_project_id")
   @@schema("public")
 }
@@ -1494,14 +1494,12 @@ model google_business_locations {
   created_at             DateTime?                @default(now()) @db.Timestamptz(6)
   updated_at             DateTime?                @default(now()) @db.Timestamptz(6)
   account_name           String?
-  account_id             String                   @db.Uuid
   users                  users                    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   keyword_set_locations  keyword_set_locations[]
   review_keyword_matches review_keyword_matches[]
   review_submissions     review_submissions[]
 
-  @@unique([account_id, location_id], map: "google_business_locations_account_location")
-  @@index([account_id], map: "idx_google_business_locations_account_id")
+  @@unique([user_id, location_id])
   @@index([account_name], map: "idx_google_business_locations_account_name")
   @@index([location_id], map: "idx_google_business_locations_location_id")
   @@index([user_id], map: "idx_google_business_locations_user_id")
@@ -1536,7 +1534,7 @@ model google_business_media_uploads {
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model google_business_profiles {
   id                    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_id               String    @db.Uuid
+  user_id               String    @unique @db.Uuid
   access_token          String
   refresh_token         String?
   expires_at            DateTime  @db.Timestamptz(6)
@@ -1546,10 +1544,8 @@ model google_business_profiles {
   google_email          String?
   selected_account_id   String?
   selected_account_name String?
-  account_id            String    @unique @db.Uuid
   users                 users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
-  @@index([account_id], map: "idx_google_business_profiles_account_id")
   @@index([google_email], map: "idx_google_business_profiles_google_email")
   @@index([user_id], map: "idx_google_business_profiles_user_id")
   @@schema("public")
@@ -1653,6 +1649,7 @@ model keyword_set_terms {
   @@schema("public")
 }
 
+/// This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
 model keyword_sets {
   id                     String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   account_id             String                   @db.Uuid
@@ -1828,6 +1825,8 @@ model notifications {
   @@index([created_at(sort: Desc)], map: "idx_notifications_created_at")
   @@index([type], map: "idx_notifications_type")
   @@index([user_id], map: "idx_notifications_user_id")
+  @@index([account_id, user_id, read, dismissed], map: "idx_notifications_account_user")
+  @@index([created_at, read, dismissed], map: "idx_notifications_cleanup")
   @@schema("public")
 }
 
@@ -2125,7 +2124,6 @@ model prompt_pages {
   keyword_inspiration_enabled                                              Boolean?                  @default(false)
   selected_keyword_inspirations                                            String[]                  @default([])
   sort_order                                                               Int?                      @default(0)
-  builder_questions                                                        Json?                     @default("[]")
   analytics_events                                                         analytics_events[]
   business_locations_business_locations_prompt_page_idToprompt_pages       business_locations[]      @relation("business_locations_prompt_page_idToprompt_pages")
   campaign_actions                                                         campaign_actions[]
@@ -2241,7 +2239,7 @@ model review_keyword_matches {
 model review_reminder_logs {
   id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   user_id       String?   @db.Uuid
-  account_id    String    @db.Uuid
+  account_id    String?   @db.Uuid
   location_id   String?
   review_ids    String[]
   reminder_type String?   @default("monthly_review")
@@ -2250,7 +2248,7 @@ model review_reminder_logs {
   error_message String?
   email_sent_to String?
   review_count  Int?      @default(0)
-  accounts      accounts  @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  accounts      accounts? @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   users         users?    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([account_id], map: "idx_review_reminder_logs_account_id")
@@ -2264,14 +2262,13 @@ model review_reminder_logs {
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model review_reminder_settings {
   id                 String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_id            String?   @db.Uuid
+  user_id            String?   @unique @db.Uuid
   enabled            Boolean?  @default(true)
   frequency          String?   @default("monthly")
   last_reminder_sent DateTime? @db.Timestamp(6)
   last_review_check  DateTime? @db.Timestamp(6)
   created_at         DateTime? @default(now()) @db.Timestamp(6)
   updated_at         DateTime? @default(now()) @db.Timestamp(6)
-  account_id         String    @unique(map: "review_reminder_settings_account_unique") @db.Uuid
   users              users?    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([user_id], map: "idx_review_reminder_settings_user_id")
@@ -2360,14 +2357,24 @@ model review_submissions {
   last_verification_attempt_at DateTime?                  @db.Timestamptz(6)
   review_text_copy             String?
   verification_match_score     Decimal?                   @db.Decimal(3, 2)
-  builder_answers              Json?
-  builder_keywords             String[]                   @default([])
   google_business_location_id  String?                    @db.Uuid
   google_location_id           String?
   google_location_name         String?
+  location_name                String?
+  business_location_id         String?                    @db.Uuid
+  source_channel               review_source_channel?     @default(unknown)
+  source_id                    String?                    @db.Uuid
+  communication_record_id      String?                    @db.Uuid
+  widget_id                    String?                    @db.Uuid
+  referrer_url                 String?
+  utm_params                   Json?                      @default("{}")
+  entry_url                    String?
   review_keyword_matches       review_keyword_matches[]
   businesses                   businesses?                @relation(fields: [business_id], references: [id], onUpdate: NoAction, map: "fk_review_submissions_business_id")
+  communication_records        communication_records?     @relation(fields: [communication_record_id], references: [id], onUpdate: NoAction, map: "fk_review_submissions_communication_record")
   contacts                     contacts?                  @relation(fields: [contact_id], references: [id], onUpdate: NoAction, map: "fk_review_submissions_contact_id")
+  widgets                      widgets?                   @relation(fields: [widget_id], references: [id], onUpdate: NoAction, map: "fk_review_submissions_widget")
+  business_locations           business_locations?        @relation(fields: [business_location_id], references: [id], onUpdate: NoAction)
   google_business_locations    google_business_locations? @relation(fields: [google_business_location_id], references: [id], onUpdate: NoAction)
   prompt_pages                 prompt_pages?              @relation(fields: [prompt_page_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
@@ -2391,6 +2398,13 @@ model review_submissions {
   @@index([star_rating], map: "idx_review_submissions_star_rating")
   @@index([submitted_at], map: "idx_review_submissions_submitted_at")
   @@index([verified], map: "idx_review_submissions_verified")
+  @@index([account_id, source_channel, created_at(sort: Desc)], map: "idx_review_submissions_account_source_created")
+  @@index([business_location_id], map: "idx_review_submissions_business_location")
+  @@index([communication_record_id], map: "idx_review_submissions_communication_record_id")
+  @@index([location_name], map: "idx_review_submissions_location_name")
+  @@index([source_channel], map: "idx_review_submissions_source_channel")
+  @@index([utm_params], map: "idx_review_submissions_utm_params", type: Gin)
+  @@index([widget_id], map: "idx_review_submissions_widget_id")
   @@schema("public")
 }
 
@@ -2533,20 +2547,21 @@ model widget_reviews {
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model widgets {
-  id                     String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  account_id             String           @db.Uuid
+  id                     String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  account_id             String               @db.Uuid
   type                   String
-  created_at             DateTime?        @default(now()) @db.Timestamptz(6)
-  updated_at             DateTime?        @default(now()) @db.Timestamptz(6)
-  theme                  Json?            @default("{}")
-  review_count           Int?             @default(5)
-  widget_type            String?          @default("multi")
-  submit_reviews_enabled Boolean          @default(true)
-  config                 Json?            @default("{}")
-  is_active              Boolean?         @default(true)
+  created_at             DateTime?            @default(now()) @db.Timestamptz(6)
+  updated_at             DateTime?            @default(now()) @db.Timestamptz(6)
+  theme                  Json?                @default("{}")
+  review_count           Int?                 @default(5)
+  widget_type            String?              @default("multi")
+  submit_reviews_enabled Boolean              @default(true)
+  config                 Json?                @default("{}")
+  is_active              Boolean?             @default(true)
   name                   String
+  review_submissions     review_submissions[]
   widget_reviews         widget_reviews[]
-  accounts               accounts         @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  accounts               accounts             @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([account_id], map: "idx_widgets_account_id")
   @@index([account_id, type, created_at(sort: Desc)], map: "idx_widgets_account_type")
@@ -2556,6 +2571,28 @@ model widgets {
   @@index([theme], map: "idx_widgets_theme", type: Gin)
   @@index([type], map: "idx_widgets_type")
   @@index([widget_type], map: "idx_widgets_widget_type")
+  @@schema("public")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model keyword_analysis_runs {
+  id                     String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  account_id             String    @db.Uuid
+  run_date               DateTime  @default(now()) @db.Timestamptz(6)
+  review_count_analyzed  Int       @default(0)
+  date_range_start       DateTime? @db.Timestamptz(6)
+  date_range_end         DateTime? @db.Timestamptz(6)
+  keywords_analyzed      String[]  @default([])
+  results_json           Json      @default("[]")
+  total_mentions         Int       @default(0)
+  keywords_with_mentions Int       @default(0)
+  created_at             DateTime  @default(now()) @db.Timestamptz(6)
+  accounts               accounts  @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([account_id, run_date(sort: Desc)], map: "idx_keyword_analysis_runs_account_date")
+  @@index([account_id], map: "idx_keyword_analysis_runs_account_id")
+  @@index([run_date(sort: Desc)], map: "idx_keyword_analysis_runs_run_date")
   @@schema("public")
 }
 
@@ -2724,6 +2761,20 @@ enum social_platform_type {
   bluesky
   twitter
   slack
+
+  @@schema("public")
+}
+
+enum review_source_channel {
+  prompt_page_direct
+  prompt_page_qr
+  email_campaign
+  sms_campaign
+  widget_cta
+  gbp_import
+  social_share
+  referral
+  unknown
 
   @@schema("public")
 }
