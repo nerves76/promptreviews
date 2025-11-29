@@ -10,6 +10,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { FaExclamationTriangle, FaComments, FaArrowRight } from 'react-icons/fa';
 import Link from 'next/link';
+import { apiClient } from '@/utils/apiClient';
 
 interface UnrespondedReviewsData {
   summary: {
@@ -103,10 +104,12 @@ export default function UnrespondedReviewsWidget({ className = '', locationIds =
         ? `?locationIds=${encodeURIComponent(filterIds.join(','))}`
         : '';
 
-      const response = await fetch(`/api/reviews-management/unresponded-reviews${query}`);
-      const result = await response.json();
+      // Use apiClient to include proper account isolation headers
+      const result = await apiClient.get<UnrespondedReviewsData & { success?: boolean; error?: string }>(
+        `/reviews-management/unresponded-reviews${query}`
+      );
 
-      if (!response.ok || result.success === false) {
+      if (result.success === false) {
         throw new Error(result.error || 'Failed to fetch unresponded reviews');
       }
 

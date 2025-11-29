@@ -1,17 +1,17 @@
 /**
  * API Route: Get Unresponded Reviews
- * 
+ *
  * Fetches unresponded reviews from the last 30 days for dashboard widget
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
+import { createServerSupabaseClient } from '@/auth/providers/supabase';
 import { GoogleBusinessProfileClient } from '@/features/social-posting/platforms/google-business-profile/googleBusinessProfileClient';
+import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 
 export async function GET(request: NextRequest) {
   try {
-    
+
     // Resolve optional location filters from query params
     const searchParams = request.nextUrl.searchParams;
     const locationIdsParam = searchParams.get('locationIds');
@@ -22,19 +22,8 @@ export async function GET(request: NextRequest) {
       : undefined;
 
     // Create server-side Supabase client that handles session cookies
-    const cookieStore = await cookies();
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          get(name: string) {
-            return cookieStore.get(name)?.value;
-          },
-        },
-      }
-    );
-    
+    const supabase = await createServerSupabaseClient();
+
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {
@@ -45,12 +34,20 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Get the account ID from the request header for proper account isolation
+    const accountId = await getRequestAccountId(request, user.id, supabase);
+    if (!accountId) {
+      return NextResponse.json(
+        { error: 'No valid account found' },
+        { status: 403 }
+      );
+    }
 
-    // Get Google Business Profile tokens for the user
+    // Get Google Business Profile tokens for the account (not user)
     const { data: tokenData, error: tokenError } = await supabase
       .from('google_business_profiles')
       .select('access_token, refresh_token, expires_at')
-      .eq('user_id', user.id)
+      .eq('account_id', accountId)
       .single();
 
     if (tokenError || !tokenData) {

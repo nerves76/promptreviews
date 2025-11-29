@@ -144,19 +144,29 @@ export async function buildOverviewData({ tokens, locationId }: { tokens: OAuthT
     return dates.length > 0 ? dates[0].toISOString() : undefined;
   };
 
-  // Calculate average response time for reviews that have been responded to
-  const respondedReviews = reviewsData.filter((review: any) =>
-    review.reviewReply?.updateTime && review.createTime
-  );
+  // Calculate median response time for reviews responded to in the last 12 months
+  const twelveMonthsAgo = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000);
+
+  const respondedReviews = reviewsData.filter((review: any) => {
+    if (!review.reviewReply?.updateTime || !review.createTime) return false;
+    const replyDate = new Date(review.reviewReply.updateTime);
+    return replyDate >= twelveMonthsAgo;
+  });
 
   let averageResponseTimeMs: number | null = null;
   if (respondedReviews.length > 0) {
-    const totalResponseTime = respondedReviews.reduce((sum: number, review: any) => {
+    // Calculate response times and sort for median
+    const responseTimes = respondedReviews.map((review: any) => {
       const reviewTime = new Date(review.createTime).getTime();
       const replyTime = new Date(review.reviewReply.updateTime).getTime();
-      return sum + (replyTime - reviewTime);
-    }, 0);
-    averageResponseTimeMs = totalResponseTime / respondedReviews.length;
+      return replyTime - reviewTime;
+    }).sort((a: number, b: number) => a - b);
+
+    // Use median (middle value) - resistant to outliers
+    const mid = Math.floor(responseTimes.length / 2);
+    averageResponseTimeMs = responseTimes.length % 2 === 0
+      ? (responseTimes[mid - 1] + responseTimes[mid]) / 2
+      : responseTimes[mid];
   }
 
   const engagementData = {
