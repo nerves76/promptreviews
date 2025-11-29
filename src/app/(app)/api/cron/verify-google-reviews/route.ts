@@ -1,11 +1,10 @@
 /**
  * Cron job to automatically verify Google Business Profile reviews
  *
- * This job:
- * 1. Finds pending review submissions (status='pending', attempts < 5, age < 14 days)
- * 2. Groups by business and fetches latest Google reviews
- * 3. Uses fuzzy matching to find corresponding reviews
- * 4. Updates verification status based on match confidence
+ * OPTIMIZED VERSION:
+ * - Processes only ONE account per run to fit within timeout
+ * - Fetches Google reviews directly (skips full sync)
+ * - Uses fuzzy matching to verify submissions
  *
  * Runs daily via Vercel Cron
  */
@@ -17,8 +16,6 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { GoogleBusinessProfileClient } from '@/features/social-posting/platforms/google-business-profile/googleBusinessProfileClient';
-import { GoogleReviewSyncService, ensureBusinessForAccount } from '@/features/google-reviews/reviewSyncService';
-import { KeywordMatchService } from '@/features/keywords/keywordMatchService';
 import { findBestMatch } from '@/utils/reviewVerification';
 import * as Sentry from '@sentry/nextjs';
 
@@ -29,6 +26,8 @@ const supabase = createClient(
 );
 
 export async function GET(request: NextRequest) {
+  const startTime = Date.now();
+
   try {
     // Verify cron secret
     const authHeader = request.headers.get('authorization');
@@ -36,85 +35,27 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    console.log('🔍 Starting Google review verification job (v3 - with 79 pending reviews)...');
+    console.log('🔍 Starting optimized Google review verification...');
 
-    // Debug: Count all Google reviews
-    const { count: totalGoogleCount } = await supabase
-      .from('review_submissions')
-      .select('*', { count: 'exact', head: true })
-      .eq('platform', 'Google Business Profile');
-
-    console.log(`📊 Total Google Business Profile reviews: ${totalGoogleCount}`);
-
-    // Debug: Count by verification status
-    const { data: statusBreakdown } = await supabase
-      .from('review_submissions')
-      .select('auto_verification_status, verified, business_id')
-      .eq('platform', 'Google Business Profile');
-
-    // DEBUG: Show unique status values
-    const uniqueStatuses = [...new Set(statusBreakdown?.map(r => r.auto_verification_status))];
-    console.log(`🔍 Unique auto_verification_status values:`, uniqueStatuses);
-    console.log(`🔍 Sample status values (first 5):`, statusBreakdown?.slice(0, 5).map(r => ({
-      id: r.auto_verification_status,
-      type: typeof r.auto_verification_status,
-      stringified: JSON.stringify(r.auto_verification_status)
-    })));
-
-    const stats = {
-      total: statusBreakdown?.length || 0,
-      pending: statusBreakdown?.filter(r => r.auto_verification_status === 'pending').length || 0,
-      verified: statusBreakdown?.filter(r => r.auto_verification_status === 'verified').length || 0,
-      nullBusinessId: statusBreakdown?.filter(r => !r.business_id).length || 0,
-      alreadyVerified: statusBreakdown?.filter(r => r.verified === true).length || 0,
-      uniqueStatuses
-    };
-
-    console.log(`📊 Breakdown: ${JSON.stringify(stats)}`);
-
-    // DEBUG: Sample some pending reviews to see their data
-    const { data: samplePending } = await supabase
-      .from('review_submissions')
-      .select('id, platform, auto_verification_status, business_id, review_text_copy, first_name, last_name')
-      .eq('platform', 'Google Business Profile')
-      .eq('auto_verification_status', 'pending')
-      .limit(3);
-
-    console.log(`🔍 Sample pending reviews:`, JSON.stringify(samplePending, null, 2));
-
-    // Find pending review submissions that need verification
+    // Find ONE account with pending reviews to process
+    // This ensures we stay within timeout limits
     const { data: pendingSubmissions, error: fetchError } = await supabase
       .from('review_submissions')
       .select(`
         id,
         account_id,
-        business_id,
         first_name,
         last_name,
         review_text_copy,
         submitted_at,
-        platform,
-        platform_url,
-        verification_attempts,
-        verified
+        verification_attempts
       `)
       .eq('platform', 'Google Business Profile')
       .eq('auto_verification_status', 'pending')
-      .order('submitted_at', { ascending: false }) // Process newest first
-      .limit(5); // Very small batch to test within 30s timeout
-
-    const eligibleSubmissions = pendingSubmissions?.filter(submission => {
-      const accountKey = submission.account_id || submission.business_id;
-      const hasAccount = !!accountKey;
-      const hasText = typeof submission.review_text_copy === 'string'
-        ? submission.review_text_copy.trim().length > 0
-        : !!submission.review_text_copy;
-      const attempts = submission.verification_attempts ?? 0;
-      return hasAccount && hasText && attempts < 5;
-    }) || [];
-
-    console.log(`📋 Query returned ${pendingSubmissions?.length || 0} rows, ${eligibleSubmissions.length} eligible after filtering`);
-    console.log(`📋 Sample eligible IDs: ${eligibleSubmissions.slice(0, 3).map(s => s.id).join(', ')}`);
+      .not('review_text_copy', 'is', null)
+      .lt('verification_attempts', 5)
+      .order('submitted_at', { ascending: false })
+      .limit(20);
 
     if (fetchError) {
       console.error('❌ Error fetching pending submissions:', fetchError);
@@ -122,236 +63,184 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Database error' }, { status: 500 });
     }
 
-    if (!eligibleSubmissions || eligibleSubmissions.length === 0) {
-      console.log('✅ No eligible pending submissions to verify');
-      console.log('Fetch error:', fetchError);
-      console.log('Pending submissions data:', pendingSubmissions);
+    if (!pendingSubmissions || pendingSubmissions.length === 0) {
       return NextResponse.json({
         success: true,
         verified: 0,
         message: 'No pending reviews to verify',
-        debug: {
-          fetchError: fetchError?.message || null,
-          dataLength: pendingSubmissions?.length || 0,
-          eligibleLength: eligibleSubmissions.length,
-          samplePendingCount: samplePending?.length || 0,
-          samplePendingIds: samplePending?.map(r => r.id).slice(0, 3) || [],
-          totalGoogleCount,
-          stats
-        }
+        duration: Date.now() - startTime
       });
     }
 
-    console.log(`📊 Found ${eligibleSubmissions.length} pending submissions to verify`);
-
-    // Group submissions by account
-    const submissionsByAccount = new Map<string, typeof eligibleSubmissions>();
-
-    for (const submission of eligibleSubmissions) {
-      const accountId = submission.account_id || submission.business_id;
-      if (!accountId) continue;
-
-      if (!submissionsByAccount.has(accountId)) {
-        submissionsByAccount.set(accountId, []);
-      }
-      submissionsByAccount.get(accountId)!.push(submission);
+    // Get the first account ID to process
+    const firstAccountId = pendingSubmissions.find(s => s.account_id)?.account_id;
+    if (!firstAccountId) {
+      return NextResponse.json({
+        success: true,
+        verified: 0,
+        message: 'No reviews with account_id found',
+        duration: Date.now() - startTime
+      });
     }
 
-    console.log(`🏢 Grouped into ${submissionsByAccount.size} accounts`);
+    // Filter to just this account's submissions
+    const accountSubmissions = pendingSubmissions.filter(s => s.account_id === firstAccountId);
+    console.log(`📋 Processing ${accountSubmissions.length} reviews for account ${firstAccountId}`);
 
-    let totalVerified = 0;
-    let totalNotFound = 0;
-    let totalErrors = 0;
-    let skippedNoLocations = 0;
-    let skippedNoTokens = 0;
+    // Get Google locations for this account
+    const { data: googleLocations, error: locationsError } = await supabase
+      .from('google_business_locations')
+      .select('id, location_id, location_name')
+      .eq('account_id', firstAccountId);
 
-    // Process each account
-    for (const [accountId, submissions] of submissionsByAccount.entries()) {
+    if (locationsError || !googleLocations || googleLocations.length === 0) {
+      console.log(`⚠️ Account ${firstAccountId} has no Google locations`);
+      // Increment attempts for these submissions
+      for (const submission of accountSubmissions) {
+        await incrementVerificationAttempt(submission.id);
+      }
+      return NextResponse.json({
+        success: true,
+        verified: 0,
+        skippedNoLocations: accountSubmissions.length,
+        message: 'Account has no Google locations',
+        duration: Date.now() - startTime
+      });
+    }
+
+    // Get OAuth tokens
+    const { data: profileTokens, error: tokenError } = await supabase
+      .from('google_business_profiles')
+      .select('access_token, refresh_token, expires_at')
+      .eq('account_id', firstAccountId)
+      .maybeSingle();
+
+    if (tokenError || !profileTokens?.access_token) {
+      console.log(`⚠️ No Google OAuth tokens for account ${firstAccountId}`);
+      for (const submission of accountSubmissions) {
+        await incrementVerificationAttempt(submission.id);
+      }
+      return NextResponse.json({
+        success: true,
+        verified: 0,
+        skippedNoTokens: accountSubmissions.length,
+        message: 'Account has no Google OAuth tokens',
+        duration: Date.now() - startTime
+      });
+    }
+
+    // Initialize Google Business Profile client
+    const gbpClient = new GoogleBusinessProfileClient({
+      accessToken: profileTokens.access_token,
+      refreshToken: profileTokens.refresh_token || undefined,
+      expiresAt: profileTokens.expires_at ? new Date(profileTokens.expires_at).getTime() : undefined
+    });
+
+    // Fetch reviews from Google directly (skip sync service for speed)
+    let allGoogleReviews: any[] = [];
+    for (const location of googleLocations) {
       try {
-        console.log(`🔄 Processing account ${accountId} with ${submissions.length} submissions`);
+        console.log(`📥 Fetching reviews for location: ${location.location_name}`);
+        const reviews = await gbpClient.getReviews(location.location_id);
+        console.log(`   Got ${reviews.length} reviews`);
+        allGoogleReviews = allGoogleReviews.concat(reviews);
+      } catch (reviewError: any) {
+        console.error(`❌ Error fetching reviews for ${location.location_name}:`, reviewError.message);
+        // Continue with other locations
+      }
+    }
 
-        // Fetch Google locations for this account
-        const { data: googleLocations, error: locationsError } = await supabase
-          .from('google_business_locations')
-          .select('id, location_id, location_name')
-          .eq('account_id', accountId);
+    if (allGoogleReviews.length === 0) {
+      console.log(`⚠️ No Google reviews found for account ${firstAccountId}`);
+      for (const submission of accountSubmissions) {
+        await incrementVerificationAttempt(submission.id);
+      }
+      return NextResponse.json({
+        success: true,
+        verified: 0,
+        message: 'No Google reviews found to match against',
+        duration: Date.now() - startTime
+      });
+    }
 
-        if (locationsError || !googleLocations || googleLocations.length === 0) {
-          console.log(`⚠️ Account ${accountId} has no Google locations, leaving submissions pending`);
-          for (const submission of submissions) {
-            await incrementVerificationAttempt(submission.id);
-          }
-          skippedNoLocations += submissions.length;
+    console.log(`📊 Total ${allGoogleReviews.length} Google reviews to match against`);
+
+    // Match submissions against Google reviews
+    let verified = 0;
+    let notFound = 0;
+    let errors = 0;
+
+    for (const submission of accountSubmissions) {
+      try {
+        const reviewerName = `${submission.first_name || ''} ${submission.last_name || ''}`.trim();
+
+        if (!reviewerName || !submission.review_text_copy) {
+          await updateVerificationStatus(submission.id, 'failed', null, 0);
+          errors++;
           continue;
         }
 
-        console.log(`📍 Found ${googleLocations.length} Google location(s) for account ${accountId}`);
-
-        // Fetch Google OAuth tokens for this account
-        const { data: profileTokens, error: tokenError } = await supabase
-          .from('google_business_profiles')
-          .select('access_token, refresh_token, expires_at')
-          .eq('account_id', accountId)
-          .maybeSingle();
-
-        if (tokenError || !profileTokens?.access_token) {
-          console.log(`⚠️ No Google OAuth tokens for account ${accountId}, leaving submissions pending`);
-          for (const submission of submissions) {
-            await incrementVerificationAttempt(submission.id);
-          }
-          skippedNoTokens += submissions.length;
-          continue;
-        }
-
-        let businessId: string;
-        try {
-          const business = await ensureBusinessForAccount(supabase, accountId);
-          businessId = business.id;
-        } catch (businessError) {
-          console.error(`❌ Failed to ensure business record for account ${accountId}:`, businessError);
-          for (const submission of submissions) {
-            await updateVerificationStatus(submission.id, 'failed', null, 0);
-          }
-          totalErrors += submissions.length;
-          continue;
-        }
-
-        // Initialize Google Business Profile client & shared sync service
-        const gbpClient = new GoogleBusinessProfileClient({
-          accessToken: profileTokens.access_token,
-          refreshToken: profileTokens.refresh_token || undefined,
-          expiresAt: profileTokens.expires_at ? new Date(profileTokens.expires_at).getTime() : undefined
-        });
-
-        const keywordMatcher = new KeywordMatchService(supabase, accountId);
-        const reviewSyncService = new GoogleReviewSyncService(
-          supabase,
-          gbpClient,
+        const matchResult = findBestMatch(
           {
-            accountId,
-            businessId,
-            defaultPromptPageId: null
+            reviewerName,
+            reviewText: submission.review_text_copy,
+            submittedDate: new Date(submission.submitted_at),
           },
-          keywordMatcher
+          allGoogleReviews
         );
 
-        // Fetch reviews from all Google locations for this account and import missing ones
-        let allGoogleReviews: any[] = [];
-        for (const location of googleLocations) {
-          try {
-            const syncResult = await reviewSyncService.syncLocation({
-              locationId: location.location_id,
-              locationName: location.location_name || undefined,
-              googleBusinessLocationId: location.id,
-              importType: 'new'
-            });
-            console.log(`📥 Synced ${syncResult.googleReviews.length} reviews for location ${location.location_name}`);
-            allGoogleReviews = allGoogleReviews.concat(syncResult.googleReviews);
-          } catch (reviewError: any) {
-            console.error(`❌ Error syncing reviews for location ${location.location_name}:`, reviewError);
-            Sentry.captureException(reviewError, {
-              tags: { endpoint: 'verify-google-reviews', account_id: accountId, location_id: location.location_id }
-            });
+        if (matchResult && matchResult.isMatch) {
+          console.log(`✅ Match found for ${reviewerName}: score ${matchResult.score}`);
+          await updateVerificationStatus(
+            submission.id,
+            'verified',
+            matchResult.googleReviewId,
+            matchResult.score,
+            matchResult.starRating
+          );
+          verified++;
+        } else {
+          // Increment attempts or mark as not_found
+          if ((submission.verification_attempts ?? 0) >= 4) {
+            await updateVerificationStatus(submission.id, 'not_found', null, 0);
+            notFound++;
+          } else {
+            await incrementVerificationAttempt(submission.id);
           }
         }
-
-        if (allGoogleReviews.length === 0) {
-          console.log(`⚠️ No reviews fetched for account ${accountId}, marking submissions as failed`);
-          for (const submission of submissions) {
-            await updateVerificationStatus(submission.id, 'failed', null, 0);
-          }
-          totalErrors += submissions.length;
-          continue;
-        }
-
-        console.log(`📊 Total ${allGoogleReviews.length} reviews across all locations for account ${accountId}`);
-
-        // Match each submission against all Google reviews from all locations
-        for (const submission of submissions) {
-          try {
-            const reviewerName = `${submission.first_name || ''} ${submission.last_name || ''}`.trim();
-
-            if (!reviewerName || !submission.review_text_copy) {
-              console.log(`⚠️ Submission ${submission.id} missing name or text, skipping`);
-              await updateVerificationStatus(submission.id, 'failed', null, 0);
-              totalErrors++;
-              continue;
-            }
-
-            // Find best match
-            const matchResult = findBestMatch(
-              {
-                reviewerName,
-                reviewText: submission.review_text_copy,
-                submittedDate: new Date(submission.submitted_at),
-              },
-              allGoogleReviews
-            );
-
-            if (matchResult && matchResult.isMatch) {
-              console.log(`✅ Found match for submission ${submission.id}: ${matchResult.confidence} confidence (score: ${matchResult.score})${matchResult.starRating ? `, ${matchResult.starRating} stars` : ''}`);
-
-              await updateVerificationStatus(
-                submission.id,
-                'verified',
-                matchResult.googleReviewId,
-                matchResult.score,
-                matchResult.starRating
-              );
-
-              totalVerified++;
-            } else {
-              console.log(`❌ No match found for submission ${submission.id}`);
-
-              // If we've tried 5 times and still no match, mark as not_found
-              if (submission.verification_attempts >= 4) {
-                await updateVerificationStatus(submission.id, 'not_found', null, 0);
-                totalNotFound++;
-              } else {
-                // Increment attempt count, keep as pending
-                await incrementVerificationAttempt(submission.id);
-              }
-            }
-          } catch (matchError: any) {
-            console.error(`❌ Error matching submission ${submission.id}:`, matchError);
-            Sentry.captureException(matchError);
-            await updateVerificationStatus(submission.id, 'failed', null, 0);
-            totalErrors++;
-          }
-        }
-      } catch (accountError: any) {
-        console.error(`❌ Error processing account ${accountId}:`, accountError);
-        Sentry.captureException(accountError, {
-          tags: { endpoint: 'verify-google-reviews', account_id: accountId }
-        });
-        totalErrors += submissions.length;
+      } catch (matchError: any) {
+        console.error(`❌ Error matching submission:`, matchError.message);
+        Sentry.captureException(matchError);
+        await updateVerificationStatus(submission.id, 'failed', null, 0);
+        errors++;
       }
     }
 
-    console.log(`✅ Verification job complete: ${totalVerified} verified, ${totalNotFound} not found, ${totalErrors} errors`);
+    const duration = Date.now() - startTime;
+    console.log(`✅ Done in ${duration}ms: ${verified} verified, ${notFound} not found, ${errors} errors`);
 
     return NextResponse.json({
       success: true,
-      verified: totalVerified,
-      notFound: totalNotFound,
-      errors: totalErrors,
-      skippedNoLocations,
-      skippedNoTokens,
-      totalProcessed: totalVerified + totalNotFound + totalErrors,
-      timestamp: new Date().toISOString(),
-      version: 'v4-2025-01-17'
+      verified,
+      notFound,
+      errors,
+      accountProcessed: firstAccountId,
+      reviewsChecked: accountSubmissions.length,
+      googleReviewsCount: allGoogleReviews.length,
+      duration,
+      version: 'v5-optimized'
     });
 
   } catch (error: any) {
-    console.error('❌ Fatal error in verification job:', error);
+    console.error('❌ Fatal error:', error);
     Sentry.captureException(error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({
+      error: error.message,
+      duration: Date.now() - startTime
+    }, { status: 500 });
   }
 }
 
-/**
- * Update verification status for a submission
- */
 async function updateVerificationStatus(
   submissionId: string,
   status: 'verified' | 'not_found' | 'failed',
@@ -366,11 +255,10 @@ async function updateVerificationStatus(
 
   if (status === 'verified') {
     updates.auto_verified_at = new Date().toISOString();
-    updates.verified = true; // Also set manual verified field
+    updates.verified = true;
     updates.verified_at = new Date().toISOString();
     updates.google_review_id = googleReviewId;
     updates.verification_match_score = matchScore;
-    // Set star rating from Google review if available
     if (starRating !== undefined) {
       updates.star_rating = starRating;
     }
@@ -383,13 +271,9 @@ async function updateVerificationStatus(
 
   if (error) {
     console.error(`❌ Error updating submission ${submissionId}:`, error);
-    Sentry.captureException(error);
   }
 }
 
-/**
- * Increment verification attempt count
- */
 async function incrementVerificationAttempt(submissionId: string) {
   const { data, error: fetchError } = await supabase
     .from('review_submissions')
@@ -398,7 +282,7 @@ async function incrementVerificationAttempt(submissionId: string) {
     .single();
 
   if (fetchError) {
-    console.error(`❌ Error fetching attempt count for ${submissionId}:`, fetchError);
+    console.error(`❌ Error fetching attempt count:`, fetchError);
     return;
   }
 
@@ -413,6 +297,6 @@ async function incrementVerificationAttempt(submissionId: string) {
     .eq('id', submissionId);
 
   if (error) {
-    console.error(`❌ Error incrementing attempt for ${submissionId}:`, error);
+    console.error(`❌ Error incrementing attempt:`, error);
   }
 }
