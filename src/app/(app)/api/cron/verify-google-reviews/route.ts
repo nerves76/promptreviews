@@ -10,6 +10,10 @@
  * Runs daily via Vercel Cron
  */
 
+// Route segment config for Vercel - set max duration to 60 seconds
+export const maxDuration = 60;
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { GoogleBusinessProfileClient } from '@/features/social-posting/platforms/google-business-profile/googleBusinessProfileClient';
