@@ -136,17 +136,41 @@ export async function GET(request: NextRequest) {
       expiresAt: profileTokens.expires_at ? new Date(profileTokens.expires_at).getTime() : undefined
     });
 
-    // Fetch reviews from Google directly (skip sync service for speed)
+    // First try: Use already-imported Google reviews from our database
+    // This is MUCH faster than fetching from Google API
+    const { data: importedReviews, error: importedError } = await supabase
+      .from('review_submissions')
+      .select('id, first_name, last_name, review_content, google_review_id, submitted_at, star_rating')
+      .eq('account_id', firstAccountId)
+      .eq('imported_from_google', true)
+      .not('google_review_id', 'is', null);
+
     let allGoogleReviews: any[] = [];
-    for (const location of googleLocations) {
-      try {
-        console.log(`📥 Fetching reviews for location: ${location.location_name}`);
-        const reviews = await gbpClient.getReviews(location.location_id);
-        console.log(`   Got ${reviews.length} reviews`);
-        allGoogleReviews = allGoogleReviews.concat(reviews);
-      } catch (reviewError: any) {
-        console.error(`❌ Error fetching reviews for ${location.location_name}:`, reviewError.message);
-        // Continue with other locations
+
+    if (importedReviews && importedReviews.length > 0) {
+      // Convert imported reviews to match the Google API format for findBestMatch
+      allGoogleReviews = importedReviews.map(r => ({
+        reviewId: r.google_review_id,
+        reviewer: {
+          displayName: `${r.first_name || ''} ${r.last_name || ''}`.trim()
+        },
+        comment: r.review_content,
+        createTime: r.submitted_at,
+        starRating: r.star_rating ? `${['ONE', 'TWO', 'THREE', 'FOUR', 'FIVE'][r.star_rating - 1]}` : undefined
+      }));
+      console.log(`📊 Using ${allGoogleReviews.length} imported Google reviews from database`);
+    } else {
+      // Fallback: Fetch from Google API (slower, may timeout)
+      console.log(`⚠️ No imported reviews found, fetching from Google API...`);
+      for (const location of googleLocations) {
+        try {
+          console.log(`📥 Fetching reviews for location: ${location.location_name}`);
+          const reviews = await gbpClient.getReviews(location.location_id);
+          console.log(`   Got ${reviews.length} reviews`);
+          allGoogleReviews = allGoogleReviews.concat(reviews);
+        } catch (reviewError: any) {
+          console.error(`❌ Error fetching reviews for ${location.location_name}:`, reviewError.message);
+        }
       }
     }
 
