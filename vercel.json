@@ -5,14 +5,6 @@
       "staging": true
     }
   },
-  "functions": {
-    "api/**": {
-      "maxDuration": 30
-    },
-    "api/cron/**": {
-      "maxDuration": 60
-    }
-  },
   "crons": [
     {
       "path": "/api/cron/send-trial-reminders",
