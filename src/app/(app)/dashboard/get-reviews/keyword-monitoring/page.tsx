@@ -408,7 +408,6 @@ export default function KeywordTrackerPage() {
       {/* Header with Run Analysis button */}
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">
         <div>
-          <p className="text-xs uppercase tracking-widest text-slate-400 mb-2">Get reviews</p>
           <h1 className="text-4xl font-bold text-slate-blue mb-3">Review Keyword Tracker</h1>
           <p className="text-gray-600 max-w-2xl">
             Track when customers mention your keywords in reviews and see trends over time.

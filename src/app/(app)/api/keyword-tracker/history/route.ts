@@ -5,7 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerSupabaseClient } from '@/auth/providers/supabase';
+import { createServerSupabaseClient, createServiceRoleClient } from '@/auth/providers/supabase';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 
 export const dynamic = 'force-dynamic';
@@ -36,8 +36,11 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const limit = Math.min(parseInt(searchParams.get('limit') || '10'), 50);
 
+    // Use service role to bypass RLS - we've already verified account access above
+    const serviceSupabase = createServiceRoleClient();
+
     // Fetch analysis history
-    const { data: analyses, error: fetchError } = await supabase
+    const { data: analyses, error: fetchError } = await serviceSupabase
       .from('keyword_analysis_runs')
       .select('*')
       .eq('account_id', accountId)
