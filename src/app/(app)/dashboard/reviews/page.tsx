@@ -364,14 +364,20 @@ export default function ReviewsPage() {
       if (!accountId) return;
 
       try {
-        const { data: locations } = await supabase
-          .from('google_business_locations')
-          .select('id, location_id, location_name')
-          .eq('account_id', accountId);
+        // Use API endpoint to ensure proper account isolation
+        const { apiClient } = await import('@/utils/apiClient');
+        const response = await apiClient.get('/social-posting/platforms/google-business-profile/locations');
 
-        if (locations && locations.length > 0) {
+        const locations = response.data?.locations || response.locations || [];
+        console.log('[Reviews] GBP locations for account', accountId, ':', locations.length, 'locations', locations.map((l: any) => l.location_name));
+
+        if (locations.length > 0) {
           setHasGbpConnected(true);
-          setGbpLocations(locations);
+          setGbpLocations(locations.map((loc: any) => ({
+            id: loc.id,
+            location_id: loc.location_id || loc.name,
+            location_name: loc.location_name || loc.title || loc.name
+          })));
         } else {
           setHasGbpConnected(false);
           setGbpLocations([]);
@@ -379,11 +385,12 @@ export default function ReviewsPage() {
       } catch (err) {
         console.error('Error checking GBP connection:', err);
         setHasGbpConnected(false);
+        setGbpLocations([]);
       }
     };
 
     checkGbpConnection();
-  }, [accountId, supabase]);
+  }, [accountId]);
 
   // Fetch business locations for location filter
   useEffect(() => {
