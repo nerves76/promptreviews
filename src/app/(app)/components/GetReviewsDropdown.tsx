@@ -112,7 +112,7 @@ const GetReviewsDropdown: React.FC<GetReviewsDropdownProps> = ({
   const menuItems = [
     { href: "/prompt-pages", label: "Prompt Pages", icon: PromptPagesIcon, description: "Create review collection pages" },
     { href: "/dashboard/contacts", label: "Contacts", icon: "FaUsers", description: "Upload and manage contacts" },
-    { href: "/dashboard/reviews", label: "Reviews", icon: "FaStar", description: "Manage, verify, and share" },
+    { href: "/dashboard/reviews", label: "Reviews", icon: "FaStar", description: "Manage, verify, upload, and share" },
     { href: "/dashboard/widget", label: "Widgets", icon: "FaCode", description: "Embed review widgets on your website" },
     { href: "/dashboard/get-reviews/keyword-monitoring", label: "Review Keyword Tracker", icon: "FaKey", description: "Tracks and discovers keywords across stored reviews" },
     { href: "/dashboard/get-reviews/sentiment-analyzer", label: "Sentiment Analyzer", icon: "FaSentimentAnalyzer", description: "AI-powered insights from your reviews" }
