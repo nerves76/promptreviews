@@ -13,6 +13,7 @@ import { useState, useEffect } from 'react';
 import Icon from '@/components/Icon';
 import ReviewResponseGenerator from './ReviewResponseGenerator';
 import LocationPicker from '@/components/GoogleBusinessProfile/LocationPicker';
+import { apiClient } from '@/utils/apiClient';
 
 interface GoogleBusinessLocation {
   id: string;
@@ -88,21 +89,9 @@ export default function ReviewManagement({ locations, isConnected }: ReviewManag
   const fetchReviews = async (locationId: string) => {
     setIsLoadingReviews(true);
     setError(null);
-    
+
     try {
-      const response = await fetch('/api/reviews-management/fetch-reviews', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ locationId }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch reviews: ${response.status}`);
-      }
-
-      const data = await response.json();
+      const data = await apiClient.post<{ reviews: Review[]; success: boolean }>('/reviews-management/fetch-reviews', { locationId });
       setReviews(data.reviews || []);
     } catch (error) {
       console.error('Error fetching reviews:', error);
@@ -120,21 +109,11 @@ export default function ReviewManagement({ locations, isConnected }: ReviewManag
     setError(null);
 
     try {
-      const response = await fetch('/api/reviews-management/respond-review', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          locationId: selectedLocation,
-          reviewId,
-          replyText: replyText.trim(),
-        }),
+      await apiClient.post('/reviews-management/respond-review', {
+        locationId: selectedLocation,
+        reviewId,
+        replyText: replyText.trim(),
       });
-
-      if (!response.ok) {
-        throw new Error(`Failed to submit reply: ${response.status}`);
-      }
 
       // Refresh reviews to show the new reply
       await fetchReviews(selectedLocation);
@@ -159,21 +138,11 @@ export default function ReviewManagement({ locations, isConnected }: ReviewManag
     setError(null);
 
     try {
-      const response = await fetch('/api/reviews-management/update-review-reply', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          locationId: selectedLocation,
-          reviewId,
-          updatedReplyText: editReplyText.trim(),
-        }),
+      await apiClient.put('/reviews-management/update-review-reply', {
+        locationId: selectedLocation,
+        reviewId,
+        updatedReplyText: editReplyText.trim(),
       });
-
-      if (!response.ok) {
-        throw new Error(`Failed to update reply: ${response.status}`);
-      }
 
       // Refresh reviews to show the updated reply
       await fetchReviews(selectedLocation);
@@ -227,46 +196,35 @@ export default function ReviewManagement({ locations, isConnected }: ReviewManag
       // First, try to fetch Google Business Profile data for richer context
       let businessContext = undefined;
       try {
-        const profileResponse = await fetch(`/api/google-business-profile/business-information/location-details?locationId=${encodeURIComponent(selectedLocation)}`);
-        if (profileResponse.ok) {
-          const profileData = await profileResponse.json();
-          if (profileData.success && profileData.data) {
-            const location = profileData.data;
-            // Extract relevant business context from Google Business Profile
-            businessContext = {
-              businessName: location.title || location.locationName || '',
-              city: location.address?.locality || '',
-              industry: location.categories?.primaryCategory?.displayName ? 
-                [location.categories.primaryCategory.displayName] : 
-                (location.primaryCategory?.displayName ? [location.primaryCategory.displayName] : []),
-              companyValues: location.profile?.description || '',
-              differentiators: location.serviceItems?.map((s: any) => s.structuredServiceItem?.serviceName || s.freeFormServiceItem?.label?.displayName || '').filter(Boolean).join(', ') || '',
-              taglines: location.profile?.shortDescription || '',
-              websiteUrl: location.websiteUri || '',
-              phoneNumber: location.phoneNumbers?.primaryPhone || location.primaryPhone || '',
-              // Add more specific details that can help personalize responses
-              regularHours: location.regularHours ? 'mentioned' : undefined,
-              specialHours: location.specialHours ? 'has special hours' : undefined,
-            };
-          }
+        const profileData = await apiClient.get<{ success: boolean; data: any }>(`/google-business-profile/business-information/location-details?locationId=${encodeURIComponent(selectedLocation)}`);
+        if (profileData.success && profileData.data) {
+          const location = profileData.data;
+          // Extract relevant business context from Google Business Profile
+          businessContext = {
+            businessName: location.title || location.locationName || '',
+            city: location.address?.locality || '',
+            industry: location.categories?.primaryCategory?.displayName ?
+              [location.categories.primaryCategory.displayName] :
+              (location.primaryCategory?.displayName ? [location.primaryCategory.displayName] : []),
+            companyValues: location.profile?.description || '',
+            differentiators: location.serviceItems?.map((s: any) => s.structuredServiceItem?.serviceName || s.freeFormServiceItem?.label?.displayName || '').filter(Boolean).join(', ') || '',
+            taglines: location.profile?.shortDescription || '',
+            websiteUrl: location.websiteUri || '',
+            phoneNumber: location.phoneNumbers?.primaryPhone || location.primaryPhone || '',
+            // Add more specific details that can help personalize responses
+            regularHours: location.regularHours ? 'mentioned' : undefined,
+            specialHours: location.specialHours ? 'has special hours' : undefined,
+          };
         }
       } catch (profileError) {
       }
 
-      const response = await fetch('/api/ai/google-business/generate-review-response', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          reviewText: review.comment || '',
-          reviewRating: STAR_RATINGS[review.starRating],
-          reviewerName: review.reviewer.displayName,
-          businessContext: businessContext,
-        }),
+      const result = await apiClient.post<{ success: boolean; response: string; error?: string }>('/ai/google-business/generate-review-response', {
+        reviewText: review.comment || '',
+        reviewRating: STAR_RATINGS[review.starRating],
+        reviewerName: review.reviewer.displayName,
+        businessContext: businessContext,
       });
-
-      const result = await response.json();
 
       if (result.success) {
         setReplyText(result.response);
@@ -290,46 +248,35 @@ export default function ReviewManagement({ locations, isConnected }: ReviewManag
       // First, try to fetch Google Business Profile data for richer context
       let businessContext = undefined;
       try {
-        const profileResponse = await fetch(`/api/google-business-profile/business-information/location-details?locationId=${encodeURIComponent(selectedLocation)}`);
-        if (profileResponse.ok) {
-          const profileData = await profileResponse.json();
-          if (profileData.success && profileData.data) {
-            const location = profileData.data;
-            // Extract relevant business context from Google Business Profile
-            businessContext = {
-              businessName: location.title || location.locationName || '',
-              city: location.address?.locality || '',
-              industry: location.categories?.primaryCategory?.displayName ? 
-                [location.categories.primaryCategory.displayName] : 
-                (location.primaryCategory?.displayName ? [location.primaryCategory.displayName] : []),
-              companyValues: location.profile?.description || '',
-              differentiators: location.serviceItems?.map((s: any) => s.structuredServiceItem?.serviceName || s.freeFormServiceItem?.label?.displayName || '').filter(Boolean).join(', ') || '',
-              taglines: location.profile?.shortDescription || '',
-              websiteUrl: location.websiteUri || '',
-              phoneNumber: location.phoneNumbers?.primaryPhone || location.primaryPhone || '',
-              // Add more specific details that can help personalize responses
-              regularHours: location.regularHours ? 'mentioned' : undefined,
-              specialHours: location.specialHours ? 'has special hours' : undefined,
-            };
-          }
+        const profileData = await apiClient.get<{ success: boolean; data: any }>(`/google-business-profile/business-information/location-details?locationId=${encodeURIComponent(selectedLocation)}`);
+        if (profileData.success && profileData.data) {
+          const location = profileData.data;
+          // Extract relevant business context from Google Business Profile
+          businessContext = {
+            businessName: location.title || location.locationName || '',
+            city: location.address?.locality || '',
+            industry: location.categories?.primaryCategory?.displayName ?
+              [location.categories.primaryCategory.displayName] :
+              (location.primaryCategory?.displayName ? [location.primaryCategory.displayName] : []),
+            companyValues: location.profile?.description || '',
+            differentiators: location.serviceItems?.map((s: any) => s.structuredServiceItem?.serviceName || s.freeFormServiceItem?.label?.displayName || '').filter(Boolean).join(', ') || '',
+            taglines: location.profile?.shortDescription || '',
+            websiteUrl: location.websiteUri || '',
+            phoneNumber: location.phoneNumbers?.primaryPhone || location.primaryPhone || '',
+            // Add more specific details that can help personalize responses
+            regularHours: location.regularHours ? 'mentioned' : undefined,
+            specialHours: location.specialHours ? 'has special hours' : undefined,
+          };
         }
       } catch (profileError) {
       }
 
-      const response = await fetch('/api/ai/google-business/generate-review-response', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          reviewText: review.comment || '',
-          reviewRating: STAR_RATINGS[review.starRating],
-          reviewerName: review.reviewer.displayName,
-          businessContext: businessContext,
-        }),
+      const result = await apiClient.post<{ success: boolean; response: string; error?: string }>('/ai/google-business/generate-review-response', {
+        reviewText: review.comment || '',
+        reviewRating: STAR_RATINGS[review.starRating],
+        reviewerName: review.reviewer.displayName,
+        businessContext: businessContext,
       });
-
-      const result = await response.json();
 
       if (result.success) {
         setEditReplyText(result.response);
