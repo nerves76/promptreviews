@@ -9,7 +9,10 @@
     "src/app/api/**/*.ts": {
       "maxDuration": 30
     },
-    "src/app/api/cron/**/*.ts": {
+    "src/app/(app)/api/**/*.ts": {
+      "maxDuration": 30
+    },
+    "src/app/(app)/api/cron/**/*.ts": {
       "maxDuration": 60
     }
   },
