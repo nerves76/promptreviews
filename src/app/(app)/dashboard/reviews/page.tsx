@@ -341,6 +341,7 @@ export default function ReviewsPage() {
   const [importError, setImportError] = useState<string | null>(null);
   const [importSuccess, setImportSuccess] = useState<string | null>(null);
   const [isImporting, setIsImporting] = useState(false);
+  const [importingLocationId, setImportingLocationId] = useState<string | null>(null);
   const [hasGbpConnected, setHasGbpConnected] = useState(false);
   const [gbpLocations, setGbpLocations] = useState<{ id: string; location_id: string; location_name: string }[]>([]);
 
@@ -784,56 +785,39 @@ export default function ReviewsPage() {
 
   const handleImportFromGoogle = async (locationId: string) => {
     setIsImporting(true);
+    setImportingLocationId(locationId);
     setImportError(null);
+    setImportSuccess(null);
 
     try {
-      const { tokenManager } = await import('@/auth/services/TokenManager');
-      const token = await tokenManager.getAccessToken();
+      const { apiClient } = await import('@/utils/apiClient');
 
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      };
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-        try {
-          const payload = JSON.parse(atob(token.split('.')[1]));
-          if (payload.sub) {
-            const accountKey = `promptreviews_selected_account_${payload.sub}`;
-            const selectedAccount = localStorage.getItem(accountKey);
-            if (selectedAccount) {
-              headers['X-Selected-Account'] = selectedAccount;
-            }
-          }
-        } catch (e) {
-          // Token parsing failed
-        }
-      }
-
-      const response = await fetch('/api/google-business-profile/import-reviews', {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
-          locationId,
-          importType: 'new',
-        }),
+      const result = await apiClient.post('/google-business-profile/import-reviews', {
+        locationId,
+        importType: 'new',
       });
 
-      const result = await response.json();
+      // API returns count (imported) and skipped
+      const imported = result.count || 0;
+      const skipped = result.skipped || 0;
 
-      if (!response.ok) {
-        throw new Error(result.error || 'Import failed');
+      if (imported > 0) {
+        setImportSuccess(`Successfully imported ${imported} new reviews from Google`);
+        // Only reload if we actually imported something
+        setTimeout(() => window.location.reload(), 1500);
+      } else if (skipped > 0) {
+        setImportSuccess(`All ${skipped} reviews already exist in your database`);
+        // Don't reload - nothing new to show
+      } else {
+        setImportSuccess(result.message || 'No reviews found to import');
       }
-
-      setImportSuccess(`Successfully imported ${result.reviewsImported || 0} new reviews from Google`);
-
-      // Refresh reviews list
-      window.location.reload();
 
     } catch (err: any) {
       console.error('Google import error:', err);
       setImportError(err.message || 'Failed to import from Google');
     } finally {
       setIsImporting(false);
+      setImportingLocationId(null);
     }
   };
 
@@ -1547,19 +1531,22 @@ export default function ReviewsPage() {
                     Pull reviews directly from your connected Google Business Profile locations.
                   </p>
                   <div className="space-y-2">
-                    {gbpLocations.map((location) => (
-                      <button
-                        key={location.id}
-                        onClick={() => handleImportFromGoogle(location.location_id)}
-                        disabled={isImporting}
-                        className="w-full flex items-center justify-between px-4 py-3 bg-white border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors disabled:opacity-50"
-                      >
-                        <span className="text-gray-700">{location.location_name || 'Unnamed Location'}</span>
-                        <span className="text-sm text-blue-600 font-medium">
-                          {isImporting ? 'Importing...' : 'Import Reviews'}
-                        </span>
-                      </button>
-                    ))}
+                    {gbpLocations.map((location) => {
+                      const isThisLocationImporting = importingLocationId === location.location_id;
+                      return (
+                        <button
+                          key={location.id}
+                          onClick={() => handleImportFromGoogle(location.location_id)}
+                          disabled={isImporting}
+                          className="w-full flex items-center justify-between px-4 py-3 bg-white border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors disabled:opacity-50"
+                        >
+                          <span className="text-gray-700">{location.location_name || 'Unnamed Location'}</span>
+                          <span className="text-sm text-blue-600 font-medium">
+                            {isThisLocationImporting ? 'Importing...' : 'Import Reviews'}
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               ) : (
