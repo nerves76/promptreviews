@@ -1875,7 +1875,7 @@ export default function SocialPostingDashboard() {
                   onClick={() => setShowImportModal(true)}
                   className="w-full sm:w-auto px-4 py-2 text-sm text-green-700 border border-green-300 rounded-md hover:bg-green-50 transition-colors"
                 >
-                  Import & Verify Reviews
+                  Import & verify reviews
                 </button>
               )}
             </div>
@@ -3476,7 +3476,7 @@ export default function SocialPostingDashboard() {
 
             {/* Modal Header */}
             <div className="px-6 pt-6 pb-4 border-b border-gray-100">
-              <h3 className="text-xl font-semibold text-gray-900">Import & Verify Google Reviews</h3>
+              <h3 className="text-xl font-semibold text-gray-900">Import & verify Google reviews</h3>
             </div>
 
             {/* Modal Body */}
@@ -3573,12 +3573,12 @@ export default function SocialPostingDashboard() {
                   {isImportingReviews ? (
                     <>
                       <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
-                      <span>Importing & Verifying...</span>
+                      <span>Importing & verifying...</span>
                     </>
                   ) : (
                     <>
                       <Icon name="FaDownload" className="w-4 h-4" />
-                      <span>Import & Verify Reviews</span>
+                      <span>Import & verify reviews</span>
                     </>
                   )}
                 </button>
