@@ -1875,7 +1875,7 @@ export default function SocialPostingDashboard() {
                   onClick={() => setShowImportModal(true)}
                   className="w-full sm:w-auto px-4 py-2 text-sm text-green-700 border border-green-300 rounded-md hover:bg-green-50 transition-colors"
                 >
-                  Import Reviews
+                  Import & Verify Reviews
                 </button>
               )}
             </div>
@@ -3476,26 +3476,31 @@ export default function SocialPostingDashboard() {
 
             {/* Modal Header */}
             <div className="px-6 pt-6 pb-4 border-b border-gray-100">
-              <h3 className="text-xl font-semibold text-gray-900">Import Google Reviews</h3>
+              <h3 className="text-xl font-semibold text-gray-900">Import & Verify Google Reviews</h3>
             </div>
 
             {/* Modal Body */}
             <div className="px-6 py-5 space-y-5">
               {/* Description */}
-              <p className="text-sm text-gray-600 leading-relaxed">
-                Import your existing Google Business Profile reviews into Prompt Reviews. Showcase them in a widget, launch a double-dip campaign
-                <span className="relative inline-block ml-1 group">
-                  <Icon
-                    name="FaQuestionCircle"
-                    className="w-4 h-4 text-blue-500 cursor-help hover:text-blue-700 transition-colors"
-                  />
-                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none w-64 z-50">
-                    A double-dip campaign is just my silly terminology for asking contacts to take a review they've already written and edit/alter/improve and post on another review site. My advice? Go for the "triple-dip." YOLO! - Chris
-                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800"></div>
-                  </div>
-                </span>
-                , or filter out contacts who have already reviewed you.
-              </p>
+              <div className="text-sm text-gray-600 leading-relaxed space-y-3">
+                <p>
+                  Import your Google Business Profile reviews and <strong>automatically verify</strong> any matching Prompt Page submissions. This links reviews submitted through your Prompt Pages to the actual Google reviews.
+                </p>
+                <p>
+                  You can also showcase imported reviews in a widget, launch a double-dip campaign
+                  <span className="relative inline-block ml-1 group">
+                    <Icon
+                      name="FaQuestionCircle"
+                      className="w-4 h-4 text-blue-500 cursor-help hover:text-blue-700 transition-colors"
+                    />
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none w-64 z-50">
+                      A double-dip campaign is just my silly terminology for asking contacts to take a review they've already written and edit/alter/improve and post on another review site. My advice? Go for the "triple-dip." YOLO! - Chris
+                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800"></div>
+                    </div>
+                  </span>
+                  , or filter out contacts who have already reviewed you.
+                </p>
+              </div>
 
               {/* Location Selection */}
               <div>
@@ -3568,12 +3573,12 @@ export default function SocialPostingDashboard() {
                   {isImportingReviews ? (
                     <>
                       <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
-                      <span>Importing...</span>
+                      <span>Importing & Verifying...</span>
                     </>
                   ) : (
                     <>
                       <Icon name="FaDownload" className="w-4 h-4" />
-                      <span>Import Reviews</span>
+                      <span>Import & Verify Reviews</span>
                     </>
                   )}
                 </button>
