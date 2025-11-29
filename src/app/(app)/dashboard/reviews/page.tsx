@@ -487,13 +487,6 @@ export default function ReviewsPage() {
             currentPage * ITEMS_PER_PAGE - 1,
           );
 
-        console.log('[Reviews] Fetch result:', {
-          count,
-          existingReviewsLength: existingReviews?.length,
-          fetchError: fetchError?.message,
-          accountId
-        });
-
         if (fetchError) throw fetchError;
 
         // If no reviews exist, show sample reviews in-memory only
@@ -865,17 +858,6 @@ export default function ReviewsPage() {
       r.business_location_id === locationFilter ||
       (locationFilter === "__other__" && r.location_name && !r.business_location_id);
     return platformMatch && verifiedMatch && emojiMatch && locationMatch;
-  });
-
-  // Debug: Log reviews state
-  console.log('[Reviews] State:', {
-    reviewsCount: reviews.length,
-    filteredReviewsCount: filteredReviews.length,
-    platformFilter,
-    verifiedFilter,
-    emojiFilter,
-    locationFilter,
-    firstReview: reviews[0]
   });
 
   // Close popover on outside click
