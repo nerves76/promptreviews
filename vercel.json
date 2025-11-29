@@ -49,18 +49,15 @@
     },
     {
       "path": "/api/cron/monitor-gbp-changes",
-      "schedule": "0 8 * * *",
-      "name": "GBP Profile Protection Monitor"
+      "schedule": "0 8 * * *"
     },
     {
       "path": "/api/cron/cleanup-notifications",
-      "schedule": "0 3 * * *",
-      "name": "Notification Cleanup"
+      "schedule": "0 3 * * *"
     },
     {
       "path": "/api/cron/keyword-tracker-analysis",
-      "schedule": "0 6 1 * *",
-      "name": "Monthly Keyword Analysis"
+      "schedule": "0 6 1 * *"
     }
   ],
   "buildCommand": "npm run build",
