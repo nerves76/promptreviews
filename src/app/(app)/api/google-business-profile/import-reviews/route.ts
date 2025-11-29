@@ -201,6 +201,14 @@ export async function POST(request: NextRequest) {
     });
 
     const keywordMatcher = new KeywordMatchService(serviceSupabase, accountId);
+
+    console.log('🔧 Creating GoogleReviewSyncService with context:', {
+      accountId,
+      businessId,
+      defaultPromptPageId,
+      locationId: canonicalLocationId
+    });
+
     const reviewSyncService = new GoogleReviewSyncService(
       serviceSupabase,
       client,

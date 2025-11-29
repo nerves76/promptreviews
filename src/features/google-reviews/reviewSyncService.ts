@@ -59,10 +59,29 @@ export class GoogleReviewSyncService {
    */
   private async getExistingReviewIds(): Promise<Set<string>> {
     if (this.existingGoogleReviewIds) {
+      console.log(`📋 Using cached existing review IDs (${this.existingGoogleReviewIds.size} IDs) for account ${this.context.accountId}`);
       return this.existingGoogleReviewIds;
     }
 
     console.log(`🔍 Checking existing reviews for account ${this.context.accountId}`);
+    console.log(`🔍 Query params: account_id=${this.context.accountId}, platform='Google Business Profile', imported_from_google=true`);
+
+    // Debug: Check total Google reviews across ALL accounts (should be more than per-account)
+    const { data: allData, error: allError } = await this.supabase
+      .from('review_submissions')
+      .select('google_review_id, account_id')
+      .eq('platform', 'Google Business Profile')
+      .eq('imported_from_google', true)
+      .not('google_review_id', 'is', null)
+      .limit(100);
+
+    if (!allError && allData) {
+      const accountCounts = allData.reduce((acc: Record<string, number>, row: any) => {
+        acc[row.account_id] = (acc[row.account_id] || 0) + 1;
+        return acc;
+      }, {});
+      console.log(`🔍 DEBUG: Total Google reviews across accounts:`, accountCounts);
+    }
 
     const { data, error } = await this.supabase
       .from('review_submissions')
@@ -78,6 +97,8 @@ export class GoogleReviewSyncService {
       return this.existingGoogleReviewIds;
     }
 
+    console.log(`📊 Raw query result: ${data?.length || 0} rows returned`);
+
     const ids = new Set(
       (data || [])
         .map((row: { google_review_id: string | null }) => row.google_review_id || '')
@@ -85,6 +106,11 @@ export class GoogleReviewSyncService {
     );
 
     console.log(`📊 Found ${ids.size} existing Google review IDs for account ${this.context.accountId}`);
+    if (ids.size > 0 && ids.size <= 5) {
+      console.log(`📊 Existing IDs: ${Array.from(ids).join(', ')}`);
+    } else if (ids.size > 5) {
+      console.log(`📊 First 5 existing IDs: ${Array.from(ids).slice(0, 5).join(', ')}...`);
+    }
 
     this.existingGoogleReviewIds = ids;
     return ids;
@@ -142,6 +168,15 @@ export class GoogleReviewSyncService {
     const errors: string[] = [];
     let importedCount = 0;
     let skippedCount = 0;
+
+    // Log the Google review IDs we're about to process
+    const incomingIds = googleReviews.map((r: any) => r.reviewId).filter(Boolean);
+    console.log(`📥 Processing ${googleReviews.length} reviews from Google`);
+    if (incomingIds.length <= 5) {
+      console.log(`📥 Incoming review IDs: ${incomingIds.join(', ')}`);
+    } else {
+      console.log(`📥 First 5 incoming review IDs: ${incomingIds.slice(0, 5).join(', ')}...`);
+    }
 
     for (const review of googleReviews) {
       try {
