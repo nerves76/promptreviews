@@ -417,7 +417,7 @@ export default function KeywordTrackerPage() {
         <button
           onClick={handleRunAnalysis}
           disabled={!hasAccount || analyzing || keywords.length === 0}
-          className="inline-flex items-center justify-center gap-2 rounded-full bg-slate-blue px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-blue/20 hover:bg-slate-blue/90 disabled:opacity-60 disabled:cursor-not-allowed transition-all whitespace-nowrap"
+          className="inline-flex items-center justify-center gap-2 rounded-lg bg-slate-blue px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-blue/20 hover:bg-slate-blue/90 disabled:opacity-60 disabled:cursor-not-allowed transition-all whitespace-nowrap"
         >
           {analyzing ? (
             <>
@@ -425,10 +425,7 @@ export default function KeywordTrackerPage() {
               Analyzing...
             </>
           ) : (
-            <>
-              <Icon name="FaSearch" className="w-4 h-4" size={16} />
-              Run analysis
-            </>
+            'Run analysis'
           )}
         </button>
       </div>
