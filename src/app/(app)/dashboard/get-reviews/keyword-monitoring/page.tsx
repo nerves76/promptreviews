@@ -474,7 +474,7 @@ export default function KeywordTrackerPage() {
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-blue bg-slate-blue/10 rounded-full hover:bg-slate-blue/20 transition-all"
                 >
                   <Icon name={keywordsExpanded ? "FaTimes" : "FaPlus"} className="w-3 h-3" size={12} />
-                  {keywordsExpanded ? "Close" : "Add / Manage"}
+                  {keywordsExpanded ? "Close" : "Add Keywords"}
                 </button>
               </div>
             </div>
