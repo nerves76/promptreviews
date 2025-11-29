@@ -508,6 +508,13 @@ const DashboardContent = React.memo(function DashboardContent({
                     <span className="text-xs text-gray-500 mt-1">This year</span>
                   </div>
                 </div>
+                <Link
+                  href="/dashboard/reviews/sources"
+                  className="mt-4 text-sm text-indigo-600 hover:text-indigo-800 flex items-center gap-1 transition-colors"
+                >
+                  View by source
+                  <Icon name="FaArrowRight" size={12} />
+                </Link>
               </div>
               <div className="bg-blue-50 rounded-lg p-6 flex flex-col items-center w-full">
                 <p className="text-lg font-semibold text-green-700 mb-2 flex items-center gap-1">
