@@ -1,5 +1,3 @@
-"use server";
-
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { GoogleBusinessProfileClient } from '@/features/social-posting/platforms/google-business-profile/googleBusinessProfileClient';
 import { KeywordMatchService } from '@/features/keywords/keywordMatchService';
