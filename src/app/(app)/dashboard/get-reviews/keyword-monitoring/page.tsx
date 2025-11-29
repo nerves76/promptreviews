@@ -129,6 +129,13 @@ export default function KeywordTrackerPage() {
     loadKeywords();
   }, [hasAccount, selectedAccountId]);
 
+  // Auto-expand the add panel when there are no keywords
+  useEffect(() => {
+    if (!keywordsLoading && keywords.length === 0) {
+      setKeywordsExpanded(true);
+    }
+  }, [keywordsLoading, keywords.length]);
+
   // Load analysis history
   useEffect(() => {
     const loadHistory = async () => {
@@ -448,16 +455,6 @@ export default function KeywordTrackerPage() {
         <div className="rounded-2xl border border-slate-100 bg-white/80 p-8">
           <StandardLoader isLoading mode="inline" />
         </div>
-      ) : keywords.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 p-8 text-center">
-          <div className="w-16 h-16 rounded-full bg-slate-blue/10 flex items-center justify-center mx-auto mb-4">
-            <Icon name="FaKey" className="w-8 h-8 text-slate-blue" size={32} />
-          </div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Add keywords to get started</h3>
-          <p className="text-sm text-gray-600 max-w-md mx-auto mb-4">
-            Add keywords in your <Link href="/prompt-pages" className="text-slate-blue hover:underline">Prompt page settings</Link> to start tracking.
-          </p>
-        </div>
       ) : (
         <div className="space-y-8">
           {/* Keywords two-column list */}
@@ -485,32 +482,38 @@ export default function KeywordTrackerPage() {
               </div>
             </div>
 
-            {!latestAnalysis && (
+            {keywords.length === 0 ? (
+              <p className="text-sm text-gray-500 mb-4">
+                Add keywords below to start tracking mentions in your reviews.
+              </p>
+            ) : !latestAnalysis ? (
               <p className="text-sm text-gray-500 mb-4">
                 Click "Run analysis" to see mention counts for each keyword.
               </p>
-            )}
+            ) : null}
 
-            <div className="grid grid-cols-2 gap-x-8 gap-y-1">
-              {keywords.map((keyword) => {
-                const result = latestAnalysis?.results.find(r => r.keyword === keyword);
-                const count = result?.mentionCount;
-                return (
-                  <div
-                    key={keyword}
-                    className="flex items-center justify-between py-2 border-b border-slate-50"
-                  >
-                    <span className="text-sm text-gray-700 truncate mr-2">{keyword}</span>
-                    <span className={`text-sm font-semibold tabular-nums ${
-                      count === undefined ? 'text-gray-300' :
-                      count > 0 ? 'text-emerald-600' : 'text-gray-300'
-                    }`}>
-                      {count === undefined ? '—' : count}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
+            {keywords.length > 0 && (
+              <div className="grid grid-cols-2 gap-x-8 gap-y-1">
+                {keywords.map((keyword) => {
+                  const result = latestAnalysis?.results.find(r => r.keyword === keyword);
+                  const count = result?.mentionCount;
+                  return (
+                    <div
+                      key={keyword}
+                      className="flex items-center justify-between py-2 border-b border-slate-50"
+                    >
+                      <span className="text-sm text-gray-700 truncate mr-2">{keyword}</span>
+                      <span className={`text-sm font-semibold tabular-nums ${
+                        count === undefined ? 'text-gray-300' :
+                        count > 0 ? 'text-emerald-600' : 'text-gray-300'
+                      }`}>
+                        {count === undefined ? '—' : count}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
 
             {latestAnalysis && (
               <div className="flex items-center gap-6 mt-4 pt-4 border-t border-slate-100 text-sm">
