@@ -26,6 +26,21 @@ const ALLOWED_FIELDS = new Set([
   'email',
   'phone',
   'prompt_page_type',
+  // Attribution tracking fields
+  'source_channel',
+  'source_id',
+  'communication_record_id',
+  'widget_id',
+  'referrer_url',
+  'utm_params',
+  'entry_url',
+]);
+
+// Valid source channel values
+const VALID_SOURCE_CHANNELS = new Set([
+  'prompt_page_direct', 'prompt_page_qr', 'email_campaign',
+  'sms_campaign', 'widget_cta', 'gbp_import', 'social_share',
+  'referral', 'unknown'
 ]);
 
 // Fields that should NEVER be set by clients (security-sensitive)

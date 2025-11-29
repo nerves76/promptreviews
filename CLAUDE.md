@@ -579,6 +579,42 @@ Before submitting ANY code that touches multi-tenant data:
 5. ✅ Verified API routes use `getRequestAccountId()`
 6. ✅ Verified frontend uses `apiClient` or properly filtered queries
 
+### Account-Scoped Tables (MUST filter by account_id)
+
+These tables contain account-specific data and MUST always be queried with `account_id`:
+
+| Table | Description |
+|-------|-------------|
+| `google_business_profiles` | GBP OAuth tokens per account |
+| `google_business_locations` | Selected GBP locations |
+| `widgets` | Review widgets |
+| `widget_reviews` | Reviews in widgets |
+| `businesses` | Business profiles |
+| `contacts` | Customer contacts |
+| `prompt_pages` | Review collection pages |
+| `review_submissions` | Customer-submitted reviews |
+| `communication_records` | Email/SMS history |
+| `scheduled_posts` | Social media posts |
+
+**Example - WRONG:**
+```typescript
+// ❌ Queries ALL accounts' GBP connections
+const { data } = await supabase
+  .from('google_business_profiles')
+  .select('*')
+  .eq('user_id', user.id);  // WRONG - user can have multiple accounts
+```
+
+**Example - CORRECT:**
+```typescript
+// ✅ Queries only the selected account's GBP connection
+const accountId = await getRequestAccountId(request, user.id, supabase);
+const { data } = await supabase
+  .from('google_business_profiles')
+  .select('*')
+  .eq('account_id', accountId);  // CORRECT
+```
+
 ### Common Mistakes to Avoid
 
 1. **Using `getAccountIdForUser()`** - This function bypasses the account switcher
@@ -586,6 +622,7 @@ Before submitting ANY code that touches multi-tenant data:
 3. **Bare fetch() calls** - Missing auth headers and account context
 4. **Browser client in API routes** - Cannot read HTTP-only cookies
 5. **Unfiltered Supabase queries** - Must always filter by `account_id`
+6. **Querying `google_business_profiles` by `user_id`** - Must use `account_id` (each account has its own GBP connection)
 
 ### See Also
 - `/docs/ACCOUNT_ISOLATION_AND_INHERITED_SETTINGS.md` - Comprehensive guide
@@ -593,6 +630,20 @@ Before submitting ANY code that touches multi-tenant data:
 - `/src/utils/apiClient.ts` - Authenticated fetch wrapper
 
 ## Recent Issues Log
+
+### 2025-11-29 - Google Business Reviews Account Isolation Fix
+- **Issue:** "Failed to fetch reviews" and "Review Data Unavailable" errors on GBP Reviews tab
+- **Root Cause:** All `reviews-management` APIs were querying `google_business_profiles` by `user_id` instead of `account_id`
+- **Also Fixed:** Response time metric now uses median of last 12 months (was mean of all time, skewed by outliers)
+- **Files Fixed:**
+  - `/api/reviews-management/fetch-reviews/route.ts`
+  - `/api/reviews-management/respond-review/route.ts`
+  - `/api/reviews-management/update-review-reply/route.ts`
+  - `/api/reviews-management/unresponded-reviews/route.ts`
+  - `/components/ReviewManagement.tsx` - Now uses `apiClient`
+  - `/components/UnrespondedReviewsWidget.tsx` - Now uses `apiClient`
+  - `/lib/googleBusiness/overviewAggregator.ts` - Median + 12-month filter
+- **Status:** RESOLVED
 
 ### 2025-01-13 - Communication & Contacts Account Isolation Fixes
 - **Issues Found:** Communication records, reminders, and contacts not isolated by account

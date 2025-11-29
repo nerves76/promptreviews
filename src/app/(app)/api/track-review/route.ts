@@ -32,6 +32,14 @@ export async function POST(request: NextRequest) {
       role,
       builderAnswers,
       builderKeywords,
+      // Attribution tracking fields
+      source_channel,
+      source_id,
+      communication_record_id,
+      widget_id,
+      referrer_url,
+      utm_params,
+      entry_url,
     } = body;
 
     if (!promptPageId) {
@@ -99,6 +107,19 @@ export async function POST(request: NextRequest) {
     const normalizedBuilderAnswers = Array.isArray(builderAnswers) ? builderAnswers : null;
     const normalizedBuilderKeywords = Array.isArray(builderKeywords) ? builderKeywords : null;
 
+    // Normalize attribution data
+    const validSourceChannels = [
+      'prompt_page_direct', 'prompt_page_qr', 'email_campaign',
+      'sms_campaign', 'widget_cta', 'gbp_import', 'social_share',
+      'referral', 'unknown'
+    ];
+    const normalizedSourceChannel = validSourceChannels.includes(source_channel)
+      ? source_channel
+      : 'unknown';
+    const normalizedUtmParams = utm_params && typeof utm_params === 'object'
+      ? utm_params
+      : {};
+
     // Insert review with account_id and business_id
     const { data, error } = await supabase
       .from("review_submissions")
@@ -128,6 +149,14 @@ export async function POST(request: NextRequest) {
         verification_attempts: 0,
         // Location tracking
         location_name,
+        // Attribution tracking fields
+        source_channel: normalizedSourceChannel,
+        source_id: source_id || null,
+        communication_record_id: communication_record_id || null,
+        widget_id: widget_id || null,
+        referrer_url: referrer_url || null,
+        utm_params: normalizedUtmParams,
+        entry_url: entry_url || null,
       })
       .select()
       .single();
@@ -254,6 +283,11 @@ export async function POST(request: NextRequest) {
             review_type || (status === "feedback" ? "feedback" : "review"),
           sentiment,
           reviewer: [first_name, last_name].filter(Boolean).join(" "),
+          // Attribution data for analytics
+          source_channel: normalizedSourceChannel,
+          utm_source: normalizedUtmParams.source || null,
+          utm_medium: normalizedUtmParams.medium || null,
+          utm_campaign: normalizedUtmParams.campaign || null,
         },
       });
     if (analyticsError) {
