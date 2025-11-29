@@ -96,7 +96,8 @@ export async function GET(request: NextRequest) {
       `)
       .eq('platform', 'Google Business Profile')
       .eq('auto_verification_status', 'pending')
-      .limit(50); // pull extra rows, filter in code
+      .order('submitted_at', { ascending: false }) // Process newest first
+      .limit(15); // Keep limit low to fit within 60s timeout
 
     const eligibleSubmissions = pendingSubmissions?.filter(submission => {
       const accountKey = submission.account_id || submission.business_id;
