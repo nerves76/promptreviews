@@ -95,7 +95,7 @@ const PageCard = React.memo(function PageCard({
         style={{ overflow: "visible" }} // Restore to visible for icon breaching
       >
         {icon && (
-          <div key="page-card-icon" className="icon absolute -top-4 -left-4 sm:-top-6 sm:-left-6 z-10 bg-white/60 backdrop-blur-xl rounded-full shadow-lg w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center">
+          <div key="page-card-icon" className="icon absolute -top-4 left-2 sm:-top-6 sm:-left-6 z-10 bg-white/60 backdrop-blur-xl rounded-full shadow-lg w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center">
             {icon}
           </div>
         )}
