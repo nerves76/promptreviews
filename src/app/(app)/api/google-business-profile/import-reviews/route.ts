@@ -240,11 +240,17 @@ export async function POST(request: NextRequest) {
       message = 'No reviews found to import';
     }
 
+    // Add verification info to message
+    if (syncResult.verifiedCount > 0) {
+      message += `. Auto-verified ${syncResult.verifiedCount} Prompt Page submission${syncResult.verifiedCount === 1 ? '' : 's'}`;
+    }
+
     return NextResponse.json({
       success: syncResult.importedCount > 0 || syncResult.errors.length === 0,
       message,
       count: syncResult.importedCount,
       skipped: syncResult.skippedCount,
+      verified: syncResult.verifiedCount,
       errors: syncResult.errors.length > 0 ? syncResult.errors.slice(0, 5) : undefined,
       totalErrorCount: syncResult.errors.length,
     });

@@ -27,6 +27,7 @@ export interface LocationSyncResult {
   googleReviews: any[];
   importedCount: number;
   skippedCount: number;
+  verifiedCount: number;
   errors: string[];
   normalizedReviews: SyncedReviewRecord[];
 }
@@ -159,6 +160,7 @@ export class GoogleReviewSyncService {
         googleReviews: [],
         importedCount: 0,
         skippedCount: 0,
+        verifiedCount: 0,
         errors: [],
         normalizedReviews: [],
       };
@@ -169,6 +171,7 @@ export class GoogleReviewSyncService {
     const errors: string[] = [];
     let importedCount = 0;
     let skippedCount = 0;
+    let verifiedCount = 0;
 
     // Log the Google review IDs we're about to process
     const incomingIds = googleReviews.map((r: any) => r.reviewId).filter(Boolean);
@@ -313,14 +316,14 @@ export class GoogleReviewSyncService {
 
       // Auto-verify pending Prompt Page submissions against newly imported reviews
       try {
-        await this.verifyPendingSubmissions(googleReviews);
+        verifiedCount = await this.verifyPendingSubmissions(googleReviews);
       } catch (verifyError) {
         console.error('⚠️ Auto-verification failed after review sync:', verifyError);
       }
     }
 
     console.log(
-      `✅ Sync complete for ${locationId}: ${importedCount} imported, ${skippedCount} skipped, ${errors.length} errors`,
+      `✅ Sync complete for ${locationId}: ${importedCount} imported, ${skippedCount} skipped, ${verifiedCount} verified, ${errors.length} errors`,
     );
 
     return {
@@ -329,6 +332,7 @@ export class GoogleReviewSyncService {
       googleReviews,
       importedCount,
       skippedCount,
+      verifiedCount,
       errors,
       normalizedReviews: normalized,
     };
@@ -338,10 +342,11 @@ export class GoogleReviewSyncService {
    * Verifies pending Prompt Page submissions against imported Google reviews.
    * Called automatically after importing Google reviews.
    * This is the best practice approach - verify at import time, not via cron.
+   * Returns the number of submissions that were verified.
    */
-  private async verifyPendingSubmissions(googleReviews: any[]): Promise<void> {
+  private async verifyPendingSubmissions(googleReviews: any[]): Promise<number> {
     if (!googleReviews || googleReviews.length === 0) {
-      return;
+      return 0;
     }
 
     // Find pending submissions for this account that need verification
@@ -356,7 +361,7 @@ export class GoogleReviewSyncService {
       .lt('verification_attempts', 5);
 
     if (fetchError || !pendingSubmissions || pendingSubmissions.length === 0) {
-      return;
+      return 0;
     }
 
     console.log(`🔍 Checking ${pendingSubmissions.length} pending submissions against ${googleReviews.length} Google reviews`);
@@ -404,6 +409,8 @@ export class GoogleReviewSyncService {
     if (verifiedCount > 0) {
       console.log(`🎉 Auto-verified ${verifiedCount} Prompt Page submissions`);
     }
+
+    return verifiedCount;
   }
 }
 
