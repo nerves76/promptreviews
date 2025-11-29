@@ -117,62 +117,51 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // TODO: Uncomment when selected_gbp_locations table is created
-    // For now, just log what we would save
-    
-    // Temporarily skip database operations since table doesn't exist yet
-    /*
-    // Start a transaction to replace all selected locations
-    // First, delete existing selected locations for this account
-    const { error: deleteError } = await supabase
-      .from('selected_gbp_locations')
-      .delete()
-      .eq('account_id', accountId);
+    // Create service role client for database operations (bypasses RLS)
+    const serviceSupabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      {
+        cookies: {
+          get: (name) => cookieStore.get(name)?.value,
+          set: () => {},
+          remove: () => {},
+        },
+      }
+    );
 
-    if (deleteError) {
-      console.error('Error deleting existing locations:', deleteError);
-      return NextResponse.json(
-        { error: 'Failed to update selected locations' },
-        { status: 500 }
-      );
-    }
+    // Get the location IDs that were selected
+    const selectedLocationIds = locations.map((loc: { id: string }) => loc.id);
 
-    // Insert new selected locations
-    if (locations.length > 0) {
-      const locationsToInsert = locations.map(location => ({
-        account_id: accountId,
-        user_id: user.id,
-        location_id: location.id,
-        location_name: location.name || `Location ${location.id}`,
-        address: location.address || null,
-        include_in_insights: true
-      }));
+    console.log('[save-selected-locations] Saving locations for account:', accountId);
+    console.log('[save-selected-locations] Selected location IDs:', selectedLocationIds);
 
-      const { error: insertError } = await supabase
-        .from('selected_gbp_locations')
-        .insert(locationsToInsert);
+    // Delete locations for this account that were NOT selected
+    // This ensures only selected locations remain associated with this account
+    if (selectedLocationIds.length > 0) {
+      const { error: deleteError } = await serviceSupabase
+        .from('google_business_locations')
+        .delete()
+        .eq('account_id', accountId)
+        .not('location_id', 'in', `(${selectedLocationIds.map((id: string) => `"${id}"`).join(',')})`);
 
-      if (insertError) {
-        console.error('Error inserting selected locations:', insertError);
-        
-        // Check if it's a limit error from our trigger
-        if (insertError.message?.includes('limit')) {
-          return NextResponse.json(
-            { 
-              error: insertError.message,
-              maxAllowed: maxLocations
-            },
-            { status: 400 }
-          );
-        }
-        
-        return NextResponse.json(
-          { error: 'Failed to save selected locations' },
-          { status: 500 }
-        );
+      if (deleteError) {
+        console.error('[save-selected-locations] Error deleting unselected locations:', deleteError);
+        // Continue anyway - the selected locations should still work
+      } else {
+        console.log('[save-selected-locations] Cleaned up unselected locations');
+      }
+    } else {
+      // No locations selected - delete all locations for this account
+      const { error: deleteAllError } = await serviceSupabase
+        .from('google_business_locations')
+        .delete()
+        .eq('account_id', accountId);
+
+      if (deleteAllError) {
+        console.error('[save-selected-locations] Error deleting all locations:', deleteAllError);
       }
     }
-    */
 
     // Auto-create protection snapshots for eligible accounts (Builder/Maven)
     const isEligible = account.plan === 'builder' || account.plan === 'maven';
