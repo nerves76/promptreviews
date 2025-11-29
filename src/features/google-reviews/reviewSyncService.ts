@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { GoogleBusinessProfileClient } from '@/features/social-posting/platforms/google-business-profile/googleBusinessProfileClient';
 import { KeywordMatchService } from '@/features/keywords/keywordMatchService';
+import { findBestMatch } from '@/utils/reviewVerification';
 
 type SupabaseServiceClient = SupabaseClient<any, 'public', any>;
 
@@ -309,6 +310,13 @@ export class GoogleReviewSyncService {
           console.error('⚠️ Keyword matcher failed after review sync:', keywordError);
         }
       }
+
+      // Auto-verify pending Prompt Page submissions against newly imported reviews
+      try {
+        await this.verifyPendingSubmissions(googleReviews);
+      } catch (verifyError) {
+        console.error('⚠️ Auto-verification failed after review sync:', verifyError);
+      }
     }
 
     console.log(
@@ -324,6 +332,78 @@ export class GoogleReviewSyncService {
       errors,
       normalizedReviews: normalized,
     };
+  }
+
+  /**
+   * Verifies pending Prompt Page submissions against imported Google reviews.
+   * Called automatically after importing Google reviews.
+   * This is the best practice approach - verify at import time, not via cron.
+   */
+  private async verifyPendingSubmissions(googleReviews: any[]): Promise<void> {
+    if (!googleReviews || googleReviews.length === 0) {
+      return;
+    }
+
+    // Find pending submissions for this account that need verification
+    const { data: pendingSubmissions, error: fetchError } = await this.supabase
+      .from('review_submissions')
+      .select('id, first_name, last_name, review_text_copy, submitted_at, verification_attempts')
+      .eq('account_id', this.context.accountId)
+      .eq('platform', 'Google Business Profile')
+      .eq('auto_verification_status', 'pending')
+      .eq('imported_from_google', false) // Only Prompt Page submissions
+      .not('review_text_copy', 'is', null)
+      .lt('verification_attempts', 5);
+
+    if (fetchError || !pendingSubmissions || pendingSubmissions.length === 0) {
+      return;
+    }
+
+    console.log(`🔍 Checking ${pendingSubmissions.length} pending submissions against ${googleReviews.length} Google reviews`);
+
+    let verifiedCount = 0;
+
+    for (const submission of pendingSubmissions) {
+      const reviewerName = `${submission.first_name || ''} ${submission.last_name || ''}`.trim();
+
+      if (!reviewerName || !submission.review_text_copy) {
+        continue;
+      }
+
+      const matchResult = findBestMatch(
+        {
+          reviewerName,
+          reviewText: submission.review_text_copy,
+          submittedDate: new Date(submission.submitted_at),
+        },
+        googleReviews
+      );
+
+      if (matchResult && matchResult.isMatch) {
+        const { error: updateError } = await this.supabase
+          .from('review_submissions')
+          .update({
+            auto_verification_status: 'verified',
+            auto_verified_at: new Date().toISOString(),
+            verified: true,
+            verified_at: new Date().toISOString(),
+            google_review_id: matchResult.googleReviewId,
+            verification_match_score: matchResult.score,
+            star_rating: matchResult.starRating,
+            last_verification_attempt_at: new Date().toISOString(),
+          })
+          .eq('id', submission.id);
+
+        if (!updateError) {
+          verifiedCount++;
+          console.log(`✅ Auto-verified submission ${submission.id} (score: ${matchResult.score})`);
+        }
+      }
+    }
+
+    if (verifiedCount > 0) {
+      console.log(`🎉 Auto-verified ${verifiedCount} Prompt Page submissions`);
+    }
   }
 }
 
