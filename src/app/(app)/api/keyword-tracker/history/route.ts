@@ -48,9 +48,21 @@ export async function GET(request: NextRequest) {
       .limit(limit);
 
     if (fetchError) {
-      console.error('Error fetching keyword analysis history:', fetchError);
+      console.error('[keyword-tracker/history] Error fetching keyword analysis history:', {
+        error: fetchError,
+        code: fetchError.code,
+        message: fetchError.message,
+        details: fetchError.details,
+        hint: fetchError.hint,
+        accountId,
+      });
       return NextResponse.json(
-        { success: false, error: 'Failed to fetch analysis history' },
+        {
+          success: false,
+          error: 'Failed to fetch analysis history',
+          details: fetchError.message,
+          code: fetchError.code
+        },
         { status: 500 }
       );
     }
@@ -75,12 +87,14 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Keyword history error:', error);
+    console.error('[keyword-tracker/history] Unexpected error:', error);
+    console.error('[keyword-tracker/history] Error stack:', error instanceof Error ? error.stack : 'no stack');
 
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to fetch history'
+        error: error instanceof Error ? error.message : 'Failed to fetch history',
+        stack: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.stack : undefined) : undefined
       },
       { status: 500 }
     );
