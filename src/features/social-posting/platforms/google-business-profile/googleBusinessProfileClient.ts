@@ -1299,4 +1299,163 @@ export class GoogleBusinessProfileClient {
       end: end.toISOString().split('T')[0]      // Return YYYY-MM-DD format
     };
   }
+
+  // ============================================
+  // GBP Profile Protection Methods
+  // ============================================
+
+  /**
+   * Check if a location has pending Google updates
+   * Uses the metadata.hasGoogleUpdated flag from the location response
+   */
+  async hasGoogleUpdates(locationId: string): Promise<boolean> {
+    try {
+      // Clean the location ID
+      const cleanLocationId = locationId.replace('locations/', '');
+
+      // Get location with metadata
+      const endpoint = `/v1/locations/${cleanLocationId}`;
+      const readMask = 'name,metadata';
+      const endpointWithParams = `${endpoint}?readMask=${encodeURIComponent(readMask)}`;
+
+      const response = await this.makeRequest(endpointWithParams, { method: 'GET' }) as any;
+
+      return response?.metadata?.hasGoogleUpdated === true;
+    } catch (error) {
+      console.error('❌ Failed to check for Google updates:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Get the specific fields that Google updated
+   * Returns the diffMask (changed fields) and the Google-suggested values
+   */
+  async getGoogleUpdates(locationId: string): Promise<{
+    diffMask: string;
+    location: any;
+  } | null> {
+    try {
+      // Clean the location ID
+      const cleanLocationId = locationId.replace('locations/', '');
+
+      // Call the getGoogleUpdated endpoint
+      const endpoint = `/v1/locations/${cleanLocationId}:getGoogleUpdated`;
+
+      const response = await this.makeRequest(endpoint, { method: 'GET' }) as any;
+
+      if (!response) {
+        return null;
+      }
+
+      return {
+        diffMask: response.diffMask || '',
+        location: response.location || response
+      };
+    } catch (error) {
+      console.error('❌ Failed to get Google updates:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Reject Google's suggested changes by patching with original values
+   * This overwrites Google's suggestions with the owner's preferred values
+   */
+  async rejectGoogleUpdates(
+    locationId: string,
+    fieldMask: string,
+    originalValues: Record<string, any>
+  ): Promise<boolean> {
+    try {
+      // Clean the location ID
+      const cleanLocationId = locationId.replace('locations/', '');
+
+      // Patch the location with original values
+      const endpoint = `/v1/locations/${cleanLocationId}?updateMask=${encodeURIComponent(fieldMask)}`;
+
+      await this.makeRequest(endpoint, {
+        method: 'PATCH',
+        body: JSON.stringify(originalValues)
+      });
+
+      // Verify the update was successful
+      const hasUpdates = await this.hasGoogleUpdates(locationId);
+      return !hasUpdates; // Success if no more pending updates
+    } catch (error) {
+      console.error('❌ Failed to reject Google updates:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Accept Google's suggested changes by patching with their values
+   */
+  async acceptGoogleUpdates(
+    locationId: string,
+    diffMask: string,
+    newValues: Record<string, any>
+  ): Promise<boolean> {
+    try {
+      // Clean the location ID
+      const cleanLocationId = locationId.replace('locations/', '');
+
+      // Patch the location with Google's suggested values
+      const endpoint = `/v1/locations/${cleanLocationId}?updateMask=${encodeURIComponent(diffMask)}`;
+
+      await this.makeRequest(endpoint, {
+        method: 'PATCH',
+        body: JSON.stringify(newValues)
+      });
+
+      // Verify the update was successful
+      const hasUpdates = await this.hasGoogleUpdates(locationId);
+      return !hasUpdates; // Success if no more pending updates
+    } catch (error) {
+      console.error('❌ Failed to accept Google updates:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Get full location data for creating a snapshot
+   * Returns all monitored fields in a consistent format
+   */
+  async getLocationSnapshot(locationId: string): Promise<{
+    title: string | null;
+    address: any | null;
+    phone: string | null;
+    website: string | null;
+    hours: any | null;
+    description: string | null;
+    categories: any | null;
+  } | null> {
+    try {
+      // Clean the location ID
+      const cleanLocationId = locationId.replace('locations/', '');
+
+      // Get full location details
+      const readMask = 'name,title,storefrontAddress,phoneNumbers,websiteUri,regularHours,profile,categories';
+      const endpoint = `/v1/locations/${cleanLocationId}?readMask=${encodeURIComponent(readMask)}`;
+
+      const response = await this.makeRequest(endpoint, { method: 'GET' }) as any;
+
+      if (!response) {
+        return null;
+      }
+
+      return {
+        title: response.title || null,
+        address: response.storefrontAddress || null,
+        phone: response.phoneNumbers?.primaryPhone || null,
+        website: response.websiteUri || null,
+        hours: response.regularHours || null,
+        description: response.profile?.description || null,
+        categories: response.categories || null
+      };
+    } catch (error) {
+      console.error('❌ Failed to get location snapshot:', error);
+      return null;
+    }
+  }
 } 

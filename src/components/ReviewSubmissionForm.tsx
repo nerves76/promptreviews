@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { createClient } from "@/auth/providers/supabase";
 import { useReviewer } from "@/contexts/ReviewerContext";
 import type { PromptPage } from "@/auth/providers/supabase";
 
@@ -36,7 +35,6 @@ export default function ReviewSubmissionForm({
   onSuccess,
   onError,
 }: ReviewSubmissionFormProps) {
-  const supabase = createClient();
   const { reviewerInfo, updateReviewerInfo } = useReviewer();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -79,9 +77,10 @@ export default function ReviewSubmissionForm({
     setIsSubmitting(true);
     setError(null);
     try {
-      const { error: submissionError } = await supabase
-        .from("review_submissions")
-        .insert({
+      const response = await fetch("/api/review-submissions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
           prompt_page_id: promptPageId,
           platform: platformToSave,
           status: "submitted",
@@ -91,9 +90,12 @@ export default function ReviewSubmissionForm({
           review_content: reviewContent,
           review_group_id: getReviewGroupId(),
           user_agent: navigator.userAgent,
-          ip_address: null, // This will be handled server-side for security
-        });
-      if (submissionError) throw submissionError;
+        }),
+      });
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to submit review");
+      }
       onSuccess?.();
     } catch (err) {
       console.error("Error submitting review:", err);

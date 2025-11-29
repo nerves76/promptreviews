@@ -379,4 +379,135 @@ export async function updateEmailTemplate(
   }
 
   return { success: true };
+}
+
+/**
+ * Send GBP profile protection alert email
+ * @param changeSource - 'google' for Google suggestions, 'owner' for direct profile edits
+ */
+export async function sendGbpProtectionAlertEmail(
+  email: string,
+  firstName: string,
+  locationName: string,
+  fieldChanged: string,
+  oldValue: string,
+  newValue: string,
+  changeSource: 'google' | 'owner' = 'google'
+): Promise<{ success: boolean; error?: string }> {
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.promptreviews.app';
+  const protectionUrl = `${baseUrl}/dashboard/google-business?tab=protection`;
+
+  const isGoogleChange = changeSource === 'google';
+
+  // Dynamic content based on change source
+  const headline = isGoogleChange
+    ? 'Google Suggested a Change to Your Business Profile'
+    : 'Your Business Profile Was Changed';
+  const headerColor = isGoogleChange ? '#f59e0b' : '#3b82f6';
+  const borderColor = isGoogleChange ? '#f59e0b' : '#3b82f6';
+  const bgColor = isGoogleChange ? '#fef3c7' : '#eff6ff';
+  const labelColor = isGoogleChange ? '#92400e' : '#1e40af';
+  const description = isGoogleChange
+    ? `Google has suggested a change to <strong>${locationName}</strong>. Review the change and decide whether to accept or reject it.`
+    : `A change was made to <strong>${locationName}</strong>. This may have been done by you, a team member, or a third party with access to your Google Business Profile.`;
+  const newValueLabel = isGoogleChange ? "Google's Suggestion" : 'New Value';
+  const buttonText = isGoogleChange ? 'Review This Change' : 'View Change Details';
+  const whyText = isGoogleChange
+    ? 'You have GBP Profile Protection enabled, which monitors your Google Business Profile for changes suggested by Google and allows you to accept or reject them with one click.'
+    : 'You have GBP Profile Protection enabled, which monitors your Google Business Profile for any changes and keeps you informed.';
+
+  // Use fallback HTML since template may not exist yet
+  const fallbackHtml = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <h2 style="color: ${headerColor}; margin-bottom: 20px;">${headline}</h2>
+
+      <p style="color: #475569; margin-bottom: 20px;">
+        Hi ${firstName || 'there'},
+      </p>
+
+      <p style="color: #475569; margin-bottom: 20px;">
+        ${description}
+      </p>
+
+      <div style="background: ${bgColor}; padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid ${borderColor};">
+        <p style="margin: 0 0 10px 0; font-weight: bold; color: ${labelColor};">
+          ${fieldChanged}
+        </p>
+        <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+          <div style="flex: 1; min-width: 200px;">
+            <p style="color: #dc2626; margin: 0 0 5px 0; font-size: 12px; text-transform: uppercase;">Previous Value</p>
+            <p style="color: #475569; margin: 0; padding: 10px; background: #fff; border-radius: 4px;">${oldValue || 'Not set'}</p>
+          </div>
+          <div style="flex: 1; min-width: 200px;">
+            <p style="color: #16a34a; margin: 0 0 5px 0; font-size: 12px; text-transform: uppercase;">${newValueLabel}</p>
+            <p style="color: #475569; margin: 0; padding: 10px; background: #fff; border-radius: 4px;">${newValue || 'Not set'}</p>
+          </div>
+        </div>
+      </div>
+
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="${protectionUrl}"
+           style="background: ${headerColor}; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold;">
+          ${buttonText}
+        </a>
+      </div>
+
+      <p style="color: #64748b; font-size: 14px; margin-top: 30px;">
+        <strong>Why am I receiving this?</strong><br>
+        ${whyText}
+      </p>
+
+      <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 30px 0;">
+
+      <p style="color: #94a3b8; font-size: 12px; text-align: center;">
+        Prompt Reviews | <a href="${protectionUrl}" style="color: #94a3b8;">Manage Protection Settings</a>
+      </p>
+    </div>
+  `;
+
+  const fallbackText = `
+${headline}
+
+Hi ${firstName || 'there'},
+
+${isGoogleChange
+  ? `Google has suggested a change to ${locationName}. Review the change and decide whether to accept or reject it.`
+  : `A change was made to ${locationName}. This may have been done by you, a team member, or a third party with access to your Google Business Profile.`}
+
+${fieldChanged}
+Previous: ${oldValue || 'Not set'}
+${newValueLabel}: ${newValue || 'Not set'}
+
+Review this change: ${protectionUrl}
+
+Why am I receiving this?
+${whyText}
+  `;
+
+  const subject = isGoogleChange
+    ? `Google suggested a change to ${locationName}`
+    : `Your profile "${locationName}" was changed`;
+
+  return sendTemplatedEmail({
+    templateName: isGoogleChange ? 'gbp_protection_alert' : 'gbp_protection_alert_owner',
+    to: email,
+    variables: {
+      firstName,
+      locationName,
+      fieldChanged,
+      oldValue,
+      newValue,
+      newValueLabel,
+      protectionUrl,
+      headline,
+      description: isGoogleChange
+        ? `Google has suggested a change to <strong>${locationName}</strong>. Review the change and decide whether to accept or reject it.`
+        : `A change was made to <strong>${locationName}</strong>. This may have been done by you, a team member, or a third party with access to your Google Business Profile.`,
+      buttonText,
+      whyText
+    },
+    fallbackSubject: subject,
+    fallbackHtml,
+    fallbackText
+  });
 } 

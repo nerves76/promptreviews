@@ -13,6 +13,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { GoogleBusinessProfileClient } from '@/features/social-posting/platforms/google-business-profile/googleBusinessProfileClient';
+import { GoogleReviewSyncService, ensureBusinessForAccount } from '@/features/google-reviews/reviewSyncService';
+import { KeywordMatchService } from '@/features/keywords/keywordMatchService';
 import { findBestMatch } from '@/utils/reviewVerification';
 import * as Sentry from '@sentry/nextjs';
 
@@ -81,13 +83,14 @@ export async function GET(request: NextRequest) {
       .from('review_submissions')
       .select(`
         id,
+        account_id,
+        business_id,
         first_name,
         last_name,
         review_text_copy,
         submitted_at,
         platform,
         platform_url,
-        business_id,
         verification_attempts,
         verified
       `)
@@ -96,12 +99,13 @@ export async function GET(request: NextRequest) {
       .limit(50); // pull extra rows, filter in code
 
     const eligibleSubmissions = pendingSubmissions?.filter(submission => {
-      const hasBusiness = !!submission.business_id;
+      const accountKey = submission.account_id || submission.business_id;
+      const hasAccount = !!accountKey;
       const hasText = typeof submission.review_text_copy === 'string'
         ? submission.review_text_copy.trim().length > 0
         : !!submission.review_text_copy;
       const attempts = submission.verification_attempts ?? 0;
-      return hasBusiness && hasText && attempts < 5;
+      return hasAccount && hasText && attempts < 5;
     }) || [];
 
     console.log(`📋 Query returned ${pendingSubmissions?.length || 0} rows, ${eligibleSubmissions.length} eligible after filtering`);
@@ -135,11 +139,11 @@ export async function GET(request: NextRequest) {
 
     console.log(`📊 Found ${eligibleSubmissions.length} pending submissions to verify`);
 
-    // Group submissions by account (business_id is actually account_id)
+    // Group submissions by account
     const submissionsByAccount = new Map<string, typeof eligibleSubmissions>();
 
     for (const submission of eligibleSubmissions) {
-      const accountId = submission.business_id;
+      const accountId = submission.account_id || submission.business_id;
       if (!accountId) continue;
 
       if (!submissionsByAccount.has(accountId)) {
@@ -165,7 +169,7 @@ export async function GET(request: NextRequest) {
         const { data: googleLocations, error: locationsError } = await supabase
           .from('google_business_locations')
           .select('id, location_id, location_name')
-          .eq('user_id', accountId); // google_business_locations uses user_id to link
+          .eq('account_id', accountId);
 
         if (locationsError || !googleLocations || googleLocations.length === 0) {
           console.log(`⚠️ Account ${accountId} has no Google locations, leaving submissions pending`);
@@ -179,13 +183,13 @@ export async function GET(request: NextRequest) {
         console.log(`📍 Found ${googleLocations.length} Google location(s) for account ${accountId}`);
 
         // Fetch Google OAuth tokens for this account
-        const { data: accountData, error: accountError } = await supabase
-          .from('accounts')
-          .select('google_access_token, google_refresh_token, google_token_expires_at')
-          .eq('id', accountId)
-          .single();
+        const { data: profileTokens, error: tokenError } = await supabase
+          .from('google_business_profiles')
+          .select('access_token, refresh_token, expires_at')
+          .eq('account_id', accountId)
+          .maybeSingle();
 
-        if (accountError || !accountData?.google_access_token) {
+        if (tokenError || !profileTokens?.access_token) {
           console.log(`⚠️ No Google OAuth tokens for account ${accountId}, leaving submissions pending`);
           for (const submission of submissions) {
             await incrementVerificationAttempt(submission.id);
@@ -194,28 +198,55 @@ export async function GET(request: NextRequest) {
           continue;
         }
 
-        // Initialize Google Business Profile client
+        let businessId: string;
+        try {
+          const business = await ensureBusinessForAccount(supabase, accountId);
+          businessId = business.id;
+        } catch (businessError) {
+          console.error(`❌ Failed to ensure business record for account ${accountId}:`, businessError);
+          for (const submission of submissions) {
+            await updateVerificationStatus(submission.id, 'failed', null, 0);
+          }
+          totalErrors += submissions.length;
+          continue;
+        }
+
+        // Initialize Google Business Profile client & shared sync service
         const gbpClient = new GoogleBusinessProfileClient({
-          accessToken: accountData.google_access_token,
-          refreshToken: accountData.google_refresh_token,
-          expiresAt: accountData.google_token_expires_at
-            ? new Date(accountData.google_token_expires_at).getTime()
-            : undefined
+          accessToken: profileTokens.access_token,
+          refreshToken: profileTokens.refresh_token || undefined,
+          expiresAt: profileTokens.expires_at ? new Date(profileTokens.expires_at).getTime() : undefined
         });
 
-        // Fetch reviews from all Google locations for this account
+        const keywordMatcher = new KeywordMatchService(supabase, accountId);
+        const reviewSyncService = new GoogleReviewSyncService(
+          supabase,
+          gbpClient,
+          {
+            accountId,
+            businessId,
+            defaultPromptPageId: null
+          },
+          keywordMatcher
+        );
+
+        // Fetch reviews from all Google locations for this account and import missing ones
         let allGoogleReviews: any[] = [];
         for (const location of googleLocations) {
           try {
-            const locationReviews = await gbpClient.getReviews(location.location_id);
-            console.log(`📥 Fetched ${locationReviews.length} reviews for location ${location.location_name}`);
-            allGoogleReviews = allGoogleReviews.concat(locationReviews);
+            const syncResult = await reviewSyncService.syncLocation({
+              locationId: location.location_id,
+              locationName: location.location_name || undefined,
+              googleBusinessLocationId: location.id,
+              importType: 'new'
+            });
+            console.log(`📥 Synced ${syncResult.googleReviews.length} reviews for location ${location.location_name}`);
+            allGoogleReviews = allGoogleReviews.concat(syncResult.googleReviews);
           } catch (reviewError: any) {
-            console.error(`❌ Error fetching reviews for location ${location.location_name}:`, reviewError);
+            console.error(`❌ Error syncing reviews for location ${location.location_name}:`, reviewError);
             Sentry.captureException(reviewError, {
               tags: { endpoint: 'verify-google-reviews', account_id: accountId, location_id: location.location_id }
             });
-            // Continue to next location instead of failing all submissions
           }
         }
 
@@ -253,13 +284,14 @@ export async function GET(request: NextRequest) {
             );
 
             if (matchResult && matchResult.isMatch) {
-              console.log(`✅ Found match for submission ${submission.id}: ${matchResult.confidence} confidence (score: ${matchResult.score})`);
+              console.log(`✅ Found match for submission ${submission.id}: ${matchResult.confidence} confidence (score: ${matchResult.score})${matchResult.starRating ? `, ${matchResult.starRating} stars` : ''}`);
 
               await updateVerificationStatus(
                 submission.id,
                 'verified',
                 matchResult.googleReviewId,
-                matchResult.score
+                matchResult.score,
+                matchResult.starRating
               );
 
               totalVerified++;
@@ -319,7 +351,8 @@ async function updateVerificationStatus(
   submissionId: string,
   status: 'verified' | 'not_found' | 'failed',
   googleReviewId: string | undefined | null,
-  matchScore: number
+  matchScore: number,
+  starRating?: number
 ) {
   const updates: any = {
     auto_verification_status: status,
@@ -332,6 +365,10 @@ async function updateVerificationStatus(
     updates.verified_at = new Date().toISOString();
     updates.google_review_id = googleReviewId;
     updates.verification_match_score = matchScore;
+    // Set star rating from Google review if available
+    if (starRating !== undefined) {
+      updates.star_rating = starRating;
+    }
   }
 
   const { error } = await supabase

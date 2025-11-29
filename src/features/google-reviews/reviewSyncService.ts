@@ -1,0 +1,319 @@
+"use server";
+
+import type { SupabaseClient } from '@supabase/supabase-js';
+import { GoogleBusinessProfileClient } from '@/features/social-posting/platforms/google-business-profile/googleBusinessProfileClient';
+import { KeywordMatchService } from '@/features/keywords/keywordMatchService';
+
+type SupabaseServiceClient = SupabaseClient<any, 'public', any>;
+
+export type ReviewImportType = 'all' | 'new';
+
+export interface SyncedReviewRecord {
+  reviewSubmissionId: string;
+  googleReviewId: string;
+  reviewerName: string;
+  reviewText: string;
+  starRating: number;
+  sentiment: 'positive' | 'neutral' | 'negative';
+  submittedAt: string;
+  locationId: string;
+  locationName?: string;
+  googleBusinessLocationId?: string | null;
+  accountId: string;
+}
+
+export interface LocationSyncResult {
+  locationId: string;
+  locationName?: string;
+  googleReviews: any[];
+  importedCount: number;
+  skippedCount: number;
+  errors: string[];
+  normalizedReviews: SyncedReviewRecord[];
+}
+
+interface ReviewSyncContext {
+  accountId: string;
+  businessId: string;
+  defaultPromptPageId?: string | null;
+}
+
+interface SyncLocationOptions {
+  locationId: string;
+  locationName?: string;
+  googleBusinessLocationId?: string | null;
+  importType?: ReviewImportType;
+  afterInsert?: (records: SyncedReviewRecord[]) => Promise<void> | void;
+}
+
+export class GoogleReviewSyncService {
+  private existingGoogleReviewIds: Set<string> | null = null;
+
+  constructor(
+    private readonly supabase: SupabaseServiceClient,
+    private readonly client: GoogleBusinessProfileClient,
+    private readonly context: ReviewSyncContext,
+    private readonly keywordMatcher?: KeywordMatchService
+  ) {}
+
+  /**
+   * Ensures we only fetch the google_review_id list once per service instance
+   */
+  private async getExistingReviewIds(): Promise<Set<string>> {
+    if (this.existingGoogleReviewIds) {
+      return this.existingGoogleReviewIds;
+    }
+
+    const { data, error } = await this.supabase
+      .from('review_submissions')
+      .select('google_review_id')
+      .eq('account_id', this.context.accountId)
+      .eq('platform', 'Google Business Profile')
+      .eq('imported_from_google', true)
+      .not('google_review_id', 'is', null);
+
+    if (error) {
+      console.error('❌ Failed to load existing Google review IDs:', error);
+      this.existingGoogleReviewIds = new Set();
+      return this.existingGoogleReviewIds;
+    }
+
+    const ids = new Set(
+      (data || [])
+        .map((row: { google_review_id: string | null }) => row.google_review_id || '')
+        .filter(Boolean),
+    );
+
+    this.existingGoogleReviewIds = ids;
+    return ids;
+  }
+
+  private mapStarRating(rawRating: string | number | undefined): number {
+    if (typeof rawRating === 'number') {
+      return rawRating;
+    }
+
+    if (typeof rawRating === 'string') {
+      const map: Record<string, number> = {
+        FIVE: 5,
+        FOUR: 4,
+        THREE: 3,
+        TWO: 2,
+        ONE: 1,
+      };
+      return map[rawRating] || 0;
+    }
+
+    return 0;
+  }
+
+  private mapSentiment(starRating: number): 'positive' | 'neutral' | 'negative' {
+    if (starRating <= 2) return 'negative';
+    if (starRating === 3) return 'neutral';
+    return 'positive';
+  }
+
+  /**
+   * Syncs a single GBP location by fetching reviews, inserting missing ones, and
+   * returning both normalized records and the raw Google reviews for downstream use.
+   */
+  async syncLocation(options: SyncLocationOptions): Promise<LocationSyncResult> {
+    const { locationId, locationName, googleBusinessLocationId, importType = 'new', afterInsert } = options;
+    console.log(`🔄 Syncing Google reviews for location ${locationId} (type=${importType})`);
+
+    const googleReviews = await this.client.getReviews(locationId);
+    if (!googleReviews || googleReviews.length === 0) {
+      console.log(`ℹ️ No Google reviews returned for location ${locationId}`);
+      return {
+        locationId,
+        locationName,
+        googleReviews: [],
+        importedCount: 0,
+        skippedCount: 0,
+        errors: [],
+        normalizedReviews: [],
+      };
+    }
+
+    const existingIds = await this.getExistingReviewIds();
+    const normalized: SyncedReviewRecord[] = [];
+    const errors: string[] = [];
+    let importedCount = 0;
+    let skippedCount = 0;
+
+    for (const review of googleReviews) {
+      try {
+        const googleReviewId = review.reviewId as string | undefined;
+        if (!googleReviewId) {
+          errors.push('Review missing google review ID, skipping.');
+          continue;
+        }
+
+        if (existingIds.has(googleReviewId)) {
+          skippedCount++;
+          continue;
+        }
+
+        const reviewerName = review.reviewer?.displayName || 'Google User';
+        const reviewText = review.comment || '';
+        const starRating = this.mapStarRating(review.starRating);
+        const sentiment = this.mapSentiment(starRating);
+        const createTime = review.createTime || new Date().toISOString();
+
+        const { data: contact, error: contactError } = await this.supabase
+          .from('contacts')
+          .insert({
+            account_id: this.context.accountId,
+            first_name: 'Google User',
+            last_name: '',
+            google_reviewer_name: reviewerName,
+            email: '',
+            phone: '',
+            notes: `Contact created from Google review import${locationName ? ` (${locationName})` : ''}`,
+            created_at: new Date().toISOString(),
+            imported_from_google: true,
+          })
+          .select('id')
+          .single();
+
+        if (contactError || !contact) {
+          console.error('❌ Failed to create contact for Google review:', contactError);
+          errors.push(`Failed to create contact for ${reviewerName}: ${contactError?.message || 'Unknown error'}`);
+          skippedCount++;
+          continue;
+        }
+
+        const { data: insertedReview, error: reviewError } = await this.supabase
+          .from('review_submissions')
+          .insert({
+            account_id: this.context.accountId,
+            prompt_page_id: this.context.defaultPromptPageId ?? null,
+            business_id: this.context.businessId,
+            contact_id: contact.id,
+            first_name: reviewerName,
+            last_name: '',
+            reviewer_name: reviewerName,
+            review_content: reviewText,
+            review_text_copy: reviewText,
+            platform: 'Google Business Profile',
+            star_rating: starRating,
+            emoji_sentiment_selection: sentiment,
+            review_type: 'review',
+            created_at: createTime,
+            submitted_at: createTime,
+            google_review_id: googleReviewId,
+            imported_from_google: true,
+            verified: true,
+            verified_at: createTime,
+            status: 'submitted',
+            google_location_id: locationId,
+            google_location_name: locationName ?? null,
+            google_business_location_id: googleBusinessLocationId ?? null,
+            location_name: locationName ?? null
+          })
+          .select('id, created_at, google_review_id, review_content')
+          .single();
+
+        if (reviewError || !insertedReview) {
+          if (reviewError?.code === '23505') {
+            skippedCount++;
+            existingIds.add(googleReviewId);
+            continue;
+          }
+          console.error('❌ Failed to insert review submission:', reviewError);
+          errors.push(`Failed to insert review ${googleReviewId}: ${reviewError?.message || 'Unknown error'}`);
+          skippedCount++;
+          continue;
+        }
+
+        importedCount++;
+        existingIds.add(googleReviewId);
+        normalized.push({
+          reviewSubmissionId: insertedReview.id,
+          googleReviewId,
+          reviewerName,
+          reviewText,
+          starRating,
+          sentiment,
+          submittedAt: insertedReview.created_at || createTime,
+          locationId,
+          locationName,
+          googleBusinessLocationId: googleBusinessLocationId ?? null,
+          accountId: this.context.accountId
+        });
+      } catch (error: any) {
+        console.error(`❌ Unexpected error syncing review for location ${locationId}:`, error);
+        errors.push(error?.message || 'Unexpected error during sync');
+        skippedCount++;
+      }
+    }
+
+    if (normalized.length > 0) {
+      if (afterInsert) {
+        try {
+          await afterInsert(normalized);
+        } catch (hookError) {
+          console.error('⚠️ Post-insert hook failed for Google review sync:', hookError);
+        }
+      }
+
+      if (this.keywordMatcher) {
+        try {
+          await this.keywordMatcher.process(normalized);
+        } catch (keywordError) {
+          console.error('⚠️ Keyword matcher failed after review sync:', keywordError);
+        }
+      }
+    }
+
+    console.log(
+      `✅ Sync complete for ${locationId}: ${importedCount} imported, ${skippedCount} skipped, ${errors.length} errors`,
+    );
+
+    return {
+      locationId,
+      locationName,
+      googleReviews,
+      importedCount,
+      skippedCount,
+      errors,
+      normalizedReviews: normalized,
+    };
+  }
+}
+
+export async function ensureBusinessForAccount(
+  supabase: SupabaseServiceClient,
+  accountId: string,
+): Promise<{ id: string; name: string }> {
+  const { data: existingBusiness, error: fetchError } = await supabase
+    .from('businesses')
+    .select('id, name')
+    .eq('account_id', accountId)
+    .limit(1)
+    .maybeSingle();
+
+  if (fetchError && fetchError.code !== 'PGRST116') {
+    throw new Error(`Failed to fetch business for account ${accountId}: ${fetchError.message}`);
+  }
+
+  if (existingBusiness) {
+    return existingBusiness;
+  }
+
+  const { data: newBusiness, error: insertError } = await supabase
+    .from('businesses')
+    .insert({
+      account_id: accountId,
+      name: 'My Business',
+      created_at: new Date().toISOString(),
+    })
+    .select('id, name')
+    .single();
+
+  if (insertError || !newBusiness) {
+    throw new Error(`Failed to create business record for account ${accountId}: ${insertError?.message || 'Unknown error'}`);
+  }
+
+  return newBusiness;
+}

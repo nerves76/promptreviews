@@ -114,6 +114,7 @@ const GetReviewsDropdown: React.FC<GetReviewsDropdownProps> = ({
     { href: "/dashboard/contacts", label: "Contacts", icon: "FaUsers", description: "Upload and manage contacts" },
     { href: "/dashboard/reviews", label: "Reviews", icon: "FaStar", description: "Manage, verify, and share" },
     { href: "/dashboard/widget", label: "Widgets", icon: "FaCode", description: "Embed review widgets on your website" },
+    { href: "/dashboard/get-reviews/keyword-monitoring", label: "Review Keyword Tracker", icon: "FaKey", description: "Track mentions across your stored reviews" },
     { href: "/dashboard/get-reviews/sentiment-analyzer", label: "Sentiment Analyzer", icon: "FaSentimentAnalyzer", description: "AI-powered insights from your reviews" }
   ];
 

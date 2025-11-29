@@ -1,12 +1,21 @@
 /**
  * API endpoint to save selected Google Business Profile locations
  * Called after user selects which locations to manage from the selection modal
+ *
+ * Also auto-creates protection snapshots for eligible accounts (Builder/Maven)
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
+import { GoogleBusinessProfileClient } from '@/features/social-posting/platforms/google-business-profile/googleBusinessProfileClient';
+import crypto from 'crypto';
+
+function createSnapshotHash(data: Record<string, any>): string {
+  const sortedJson = JSON.stringify(data, Object.keys(data).sort());
+  return crypto.createHash('md5').update(sortedJson).digest('hex');
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -165,12 +174,76 @@ export async function POST(request: NextRequest) {
     }
     */
 
+    // Auto-create protection snapshots for eligible accounts (Builder/Maven)
+    const isEligible = account.plan === 'builder' || account.plan === 'maven';
+    let snapshotsCreated = 0;
+
+    if (isEligible && locations.length > 0) {
+      try {
+        // Get GBP profile tokens
+        const { data: gbpProfile } = await supabase
+          .from('google_business_profiles')
+          .select('access_token, refresh_token, expires_at')
+          .eq('account_id', accountId)
+          .single();
+
+        if (gbpProfile?.access_token) {
+          const client = new GoogleBusinessProfileClient({
+            accessToken: gbpProfile.access_token,
+            refreshToken: gbpProfile.refresh_token || undefined,
+            expiresAt: gbpProfile.expires_at ? new Date(gbpProfile.expires_at).getTime() : undefined
+          });
+
+          // Create snapshots for each location (in parallel, limited)
+          const snapshotPromises = locations.slice(0, 5).map(async (location: { id: string; name: string }) => {
+            try {
+              const snapshotData = await client.getLocationSnapshot(location.id);
+              if (snapshotData) {
+                const hash = createSnapshotHash(snapshotData);
+
+                await supabase
+                  .from('gbp_location_snapshots')
+                  .upsert({
+                    account_id: accountId,
+                    location_id: location.id,
+                    location_name: location.name || null,
+                    title: snapshotData.title,
+                    address: snapshotData.address,
+                    phone: snapshotData.phone,
+                    website: snapshotData.website,
+                    hours: snapshotData.hours,
+                    description: snapshotData.description,
+                    categories: snapshotData.categories,
+                    snapshot_hash: hash,
+                    snapshot_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                  }, {
+                    onConflict: 'account_id,location_id'
+                  });
+
+                return true;
+              }
+            } catch (err) {
+              console.error(`Failed to create snapshot for location ${location.id}:`, err);
+            }
+            return false;
+          });
+
+          const results = await Promise.all(snapshotPromises);
+          snapshotsCreated = results.filter(Boolean).length;
+        }
+      } catch (snapshotError) {
+        // Log but don't fail the request - snapshots can be created later
+        console.error('Error creating protection snapshots:', snapshotError);
+      }
+    }
 
     return NextResponse.json({
       success: true,
       message: `Successfully saved ${locations.length} selected location${locations.length !== 1 ? 's' : ''}`,
       count: locations.length,
-      maxAllowed: maxLocations
+      maxAllowed: maxLocations,
+      protectionSnapshotsCreated: snapshotsCreated
     });
 
   } catch (error) {

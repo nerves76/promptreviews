@@ -235,6 +235,29 @@ export interface GoogleReview {
   };
   comment?: string;
   createTime: string;
+  starRating?: string | number; // e.g., "FIVE", "FOUR", or 5, 4
+}
+
+export interface FindBestMatchResult extends ReviewMatchResult {
+  googleReviewId?: string;
+  starRating?: number;
+}
+
+/**
+ * Map Google's star rating format to a number
+ */
+function mapStarRating(rating: string | number | undefined): number | undefined {
+  if (rating === undefined || rating === null) return undefined;
+  if (typeof rating === 'number') return rating;
+
+  const map: Record<string, number> = {
+    FIVE: 5,
+    FOUR: 4,
+    THREE: 3,
+    TWO: 2,
+    ONE: 1,
+  };
+  return map[rating] || undefined;
 }
 
 export function findBestMatch(
@@ -244,8 +267,8 @@ export function findBestMatch(
     submittedDate: Date;
   },
   googleReviews: GoogleReview[]
-): ReviewMatchResult & { googleReviewId?: string } | null {
-  let bestMatch: (ReviewMatchResult & { googleReviewId?: string }) | null = null;
+): FindBestMatchResult | null {
+  let bestMatch: FindBestMatchResult | null = null;
 
   for (const googleReview of googleReviews) {
     const matchResult = calculateReviewMatch({
@@ -261,6 +284,7 @@ export function findBestMatch(
       bestMatch = {
         ...matchResult,
         googleReviewId: googleReview.reviewId,
+        starRating: mapStarRating(googleReview.starRating),
       };
     }
   }

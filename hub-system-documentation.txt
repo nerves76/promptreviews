@@ -1,0 +1,303 @@
+Learning Hub System Guide
+
+This guide explains how to maintain, expand, and update the Learning Hub on TeffCo.com. It covers:
+	•	How the hub system works
+	•	The list of existing hubs and their tags
+	•	How to assign articles to hubs
+	•	How to add a new hub (including required code changes)
+	•	How the Hub Article Template is used
+	•	What to redo after a theme update so the hub sidebar keeps working
+
+⸻
+
+1. Overview of the Learning Hub System
+
+TeffCo uses a single Shopify blog for all Learning Hub content:
+	•	Blog: Learn
+
+Not all articles in the Learn blog show the hub sidebar.
+The hub sidebar appears only when:
+	1.	The article belongs to the Learn blog
+	2.	The article uses the Hub Article Template (e.g. article.hub)
+	3.	The article has one hub tag that is also defined in the hub-sidebar.liquid snippet
+
+The hub sidebar logic lives in the snippet:
+	•	Snippets → hub-sidebar.liquid
+
+This snippet:
+	•	Detects which hub the current article belongs to (based on tag)
+	•	Looks up a hardcoded title/description for that hub
+	•	Finds all other Learn articles with the same hub tag
+	•	Displays them as navigation links in the sidebar
+	•	Highlights the current article as “active”
+
+Note: Recipes live in a separate blog and are not part of this system.
+
+⸻
+
+2. Existing TeffCo Hubs and Tags
+
+These are the hubs currently supported by the code (hardcoded in hub-sidebar.liquid). Only these tags are recognized as hubs.
+
+Hub Name	Tag
+What Is Teff	what-is-teff
+What Is Injera	what-is-injera
+Teff Nutrition	teff-nutrition
+Teff Flour	teff-flour
+Teff Compare	teff-compare
+Growing Teff	growing-teff
+
+Each hub article must have exactly one of these tags. One hub per article.
+
+If you add a new tag that is not added in the snippet, the sidebar will not show the correct hub title/description, and that tag will not be treated as a proper hub.
+
+⸻
+
+3. Requirements for a Hub Article
+
+For an article to behave as part of a hub and show the sidebar:
+	1.	Blog must be Learn
+	•	In the article settings, the Blog field should be set to Learn.
+	2.	Template must be the Hub Article Template
+	•	On the right side (Theme template), choose your hub template (e.g. article.hub).
+	3.	Article must have one hub tag from the list in Section 2
+	•	E.g. teff-nutrition, what-is-teff, growing-teff, etc.
+
+If any of these are missing:
+	•	The hub sidebar may not appear
+	•	Or it may not group the article into the correct hub
+
+⸻
+
+4. Applying the Hub Template to an Article
+
+Use this when you want an article to behave like a hub article (with sidebar).
+	1.	In Shopify, go to Online Store → Blog posts
+	2.	Open the article you want
+	3.	Confirm Blog = Learn
+	4.	On the right side, under Theme template, choose the Hub Article Template (for example: article.hub)
+	5.	Save
+
+After saving, assuming the tag is set correctly, the hub sidebar will appear on that article.
+
+⸻
+
+5. Adding an Article to an Existing Hub
+
+To add a new article into one of your existing hubs:
+	1.	Create or edit an article
+	2.	Set Blog to Learn
+	3.	In Tags, add one of the hub tags from Section 2, for example:
+	•	what-is-teff
+	•	what-is-injera
+	•	teff-nutrition
+	•	teff-flour
+	•	teff-compare
+	•	growing-teff
+	4.	Set the Theme template to the Hub Article Template (e.g. article.hub)
+	5.	Save
+
+The sidebar will:
+	•	Show the hub header/description for that tag
+	•	List all Learn articles sharing that tag
+	•	Highlight the current article as active
+
+⸻
+
+6. Creating a New Hub (Hardcoded System)
+
+Because the hub system is currently hardcoded in hub-sidebar.liquid, you cannot create a brand new hub just by adding a new tag.
+
+To create a new hub, you must:
+	1.	Choose a new hub tag
+	•	Example: teff-farming
+	2.	Add this tag to the relevant Learn articles
+	•	Each article in this hub should:
+	•	Be in the Learn blog
+	•	Use the Hub Article Template
+	•	Include the new tag teff-farming
+	3.	Update the hub-sidebar.liquid snippet to recognize the new hub
+In Snippets → hub-sidebar.liquid:
+	•	Find the block that looks like:
+
+{% case hub_tag %}
+  {% when 'what-is-teff' %}
+    ...
+  {% when 'what-is-injera' %}
+    ...
+  {% when 'teff-nutrition' %}
+    ...
+  {% when 'teff-flour' %}
+    ...
+  {% when 'teff-compare' %}
+    ...
+  {% when 'growing-teff' %}
+    ...
+{% endcase %}
+
+	•	Add a new when branch for your new hub tag, for example:
+
+{% when 'teff-farming' %}
+  <div class="hub-sidebar-header">
+    <h3>Teff Farming</h3>
+    <p>Articles about how teff is grown, field practices, and sustainability.</p>
+  </div>
+
+	•	Save the snippet
+
+	4.	(If present) Update any hub tag detection logic
+If the snippet has a loop that explicitly checks for known tags, be sure to include the new tag there too.
+
+Once these steps are complete, your new hub tag (teff-farming) will behave like the existing hubs and show the correct header + sidebar navigation.
+
+Summary: Adding a new hub requires both:
+(1) tagging articles, and
+(2) updating hub-sidebar.liquid to add a new when clause for that tag.
+
+⸻
+
+7. Sidebar Header and Description
+
+Hub titles and descriptions are not dynamic today. They are defined in code inside hub-sidebar.liquid in the {% case hub_tag %} block.
+
+For example:
+
+{% when 'teff-nutrition' %}
+  <div class="hub-sidebar-header">
+    <h3>Teff Nutrition</h3>
+    <p>Dive into the nutritional profile of teff and its health benefits.</p>
+  </div>
+
+To change a hub’s title or description, you must:
+	1.	Go to Snippets → hub-sidebar.liquid
+	2.	Find the correct {% when 'your-tag' %} block
+	3.	Edit the <h3> text or <p> description
+	4.	Save
+
+Updates take effect immediately on all hub articles with that tag.
+
+⸻
+
+8. Theme Update Instructions (IMPORTANT)
+
+When your Shopify theme is updated (e.g., a new version of the theme is added), your custom hub code is not automatically copied. You must manually migrate the hub-related pieces into the new theme.
+
+Use this checklist every time the theme updates:
+
+Step 1 — Duplicate the current working theme
+	1.	Go to Online Store → Themes
+	2.	Find your current live theme
+	3.	Click Actions → Duplicate
+	4.	This duplicate is your backup with all working hub customizations
+
+Step 2 — Install or add the new theme version
+	•	Install/update the new theme as usual
+	•	It will appear as an unpublished theme
+
+Step 3 — Copy the hub-sidebar.liquid snippet
+
+From the working (duplicated) theme:
+	1.	Go to Edit code → Snippets → hub-sidebar.liquid
+	2.	Select all and copy the entire file contents
+
+In the new theme:
+	1.	Go to Snippets → Add a new snippet (if it doesn’t exist)
+	2.	Name it: hub-sidebar
+	3.	Paste the contents from the working theme
+	4.	Save
+
+This restores all hub logic, including the hardcoded hub list.
+
+Step 4 — Reconnect the sidebar in the article template
+
+In your working theme, the Hub Article Template (or template--article.liquid if you wired it there) includes this line inside the sidebar <aside>:
+
+{% render 'hub-sidebar' %}
+
+In the new theme:
+	1.	Go to Sections → the relevant article template file (e.g. template--article.liquid or your custom hub article template)
+	2.	Find the <aside class="template-article__sidebar"> block
+	3.	Insert the line:
+
+{% render 'hub-sidebar' %}
+
+	4.	Save
+
+Important: Make sure this is placed inside the sidebar <aside>, alongside the newsletter/recent posts/sidebar description blocks, not inside a <form>.
+
+Step 5 — Reapply Custom CSS
+
+Your styling (background, rounded corners, link styles, active state, etc.) is stored in Theme Settings → Custom CSS.
+
+From the working theme:
+	1.	Open the Theme Editor → Theme Settings → Custom CSS
+	2.	Copy everything related to:
+	•	.template-article__sidebar (sidebar background, padding, width)
+	•	.hub-sidebar-list, .hub-sidebar-item (spacing)
+	•	.hub-sidebar-item--active (active background)
+	•	Any hub header styles (e.g. .hub-sidebar-header h3)
+
+In the new theme:
+	1.	Open the Theme Editor → Theme Settings → Custom CSS
+	2.	Paste that CSS
+	3.	Save
+
+Step 6 — Do NOT re-add old experimental sections
+
+Earlier in development, there may have been a test section like article-hub-sidebar. This is no longer used.
+	•	Do not add or enable this section in the new theme.
+	•	The hub system now relies entirely on the hub-sidebar snippet + your article template.
+
+Step 7 — Preview and verify
+
+Use the theme preview on a few hub articles and check:
+	•	Sidebar appears on hub articles (but not on non-hub articles)
+	•	All hub links show up in the sidebar
+	•	Active article is highlighted correctly
+	•	Desktop layout looks good
+	•	Mobile layout is readable and stacked correctly
+
+If something is off, compare the new theme’s files to the duplicated working theme.
+
+Step 8 — Publish the new theme
+
+Once everything matches your expectations, click Actions → Publish on the new theme.
+
+⸻
+
+9. Troubleshooting
+
+Sidebar not showing?
+	•	Check: Is the article in the Learn blog?
+	•	Check: Is the Hub Article Template applied?
+	•	Check: Does the article have one of the hub tags from Section 2?
+	•	Check: Is {% render 'hub-sidebar' %} present in the article sidebar <aside> in the new theme?
+
+Sidebar shows, but wrong or missing header?
+	•	Check that the tag you used exactly matches a {% when 'tag-name' %} block in hub-sidebar.liquid.
+	•	If not, add a new when block for that tag.
+
+New hub tag doesn’t work?
+	•	Make sure you:
+	•	Added the tag to Learn articles
+	•	Added a corresponding {% when 'your-tag' %} block in hub-sidebar.liquid
+
+Bullets or weird formatting appear in the hub nav?
+	•	Confirm that the markup in hub-sidebar.liquid uses <div class="hub-sidebar-list"> and .hub-sidebar-item, not <ul><li>.
+	•	Confirm hub CSS is present in Theme Settings → Custom CSS.
+
+Sidebar width looks wrong after update?
+	•	Check .template-article__sidebar CSS for max-width and padding
+	•	Adjust as needed to match TeffCo’s layout
+
+⸻
+
+10. Future Improvements (Optional)
+
+If you ever want to make the hub system more flexible and less hardcoded, you can:
+	•	Move hub titles/descriptions into Shopify metafields
+	•	Store hub definitions in a JSON-like structure in the snippet
+	•	Auto-generate hub names from tags (e.g. teff-nutrition → “Teff Nutrition”)
+	•	Add a collapsible mobile accordion for the sidebar
+
+For now, this guide documents the current, hardcoded hub system so that you (or anyone on the team) can maintain and extend it safely.

@@ -46,10 +46,18 @@ export async function POST(request: NextRequest) {
       "";
 
     
-    // Fetch business_id (account_id) from prompt_pages
+    // Fetch business_id (account_id) and location info from prompt_pages
     const { data: promptPage, error: promptPageError } = await supabase
       .from("prompt_pages")
-      .select("account_id")
+      .select(`
+        account_id,
+        business_location_id,
+        business_locations (
+          address_city,
+          address_state,
+          address_zip
+        )
+      `)
       .eq("id", promptPageId)
       .single();
     
@@ -70,7 +78,16 @@ export async function POST(request: NextRequest) {
     
     const business_id = promptPage.account_id;
 
-    
+    // Derive location_name from business_location if available
+    let location_name: string | null = null;
+    if (promptPage.business_locations) {
+      const loc = promptPage.business_locations as { address_city?: string; address_state?: string; address_zip?: string };
+      if (loc.address_city) {
+        const stateZip = [loc.address_state, loc.address_zip].filter(Boolean).join(' ');
+        location_name = [loc.address_city, stateZip].filter(Boolean).join(', ');
+      }
+    }
+
     // Combine first_name and last_name into reviewer_name for the constraint
     const reviewer_name = [first_name, last_name].filter(Boolean).join(' ').trim();
     
@@ -82,12 +99,13 @@ export async function POST(request: NextRequest) {
     const normalizedBuilderAnswers = Array.isArray(builderAnswers) ? builderAnswers : null;
     const normalizedBuilderKeywords = Array.isArray(builderKeywords) ? builderKeywords : null;
 
-    // Insert review with business_id (source of truth for stats)
+    // Insert review with account_id and business_id
     const { data, error } = await supabase
       .from("review_submissions")
       .insert({
         prompt_page_id: promptPageId,
-        business_id: business_id, // Account ID for proper business association
+        account_id: business_id, // Primary account association
+        business_id: business_id, // Legacy field, kept for compatibility
         platform,
         status,
         reviewer_name, // Use combined name to satisfy constraint
@@ -108,6 +126,8 @@ export async function POST(request: NextRequest) {
         review_text_copy: reviewContent, // Store copy for matching
         auto_verification_status: 'pending', // Will be verified by cron job
         verification_attempts: 0,
+        // Location tracking
+        location_name,
       })
       .select()
       .single();

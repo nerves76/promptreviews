@@ -1,0 +1,9 @@
+platform,star_rating,review_content,reviewer_first_name,reviewer_last_name,reviewer_role,reviewer_email,reviewer_phone,review_date,location
+Google Business Profile,5,"Absolutely fantastic service! The team went above and beyond to help us. Highly recommend to anyone looking for quality work.",Sarah,Johnson,Homeowner,sarah.johnson@example.com,503-555-1234,2024-11-15,Portland
+Yelp,4,"Great experience overall. Professional staff and fair pricing. Only minor issue was scheduling took a bit longer than expected.",Mike,Chen,Business Owner,mike.chen@example.com,,2024-11-10,Vancouver
+Facebook,5,"Been using their services for 3 years now. Always reliable and trustworthy. Can't imagine going anywhere else!",Jennifer,Williams,Repeat Customer,,360-555-9876,2024-11-08,
+Google Business Profile,5,"Quick response time and excellent communication throughout the project. Very pleased with the results.",Robert,Martinez,Customer,robert.m@example.com,503-555-4567,2024-11-05,Portland
+TripAdvisor,4,"Visited while traveling and was impressed by the friendly staff and quality of service. Would definitely return.",Amanda,Taylor,Tourist,,,2024-11-01,Seattle
+Yelp,5,"Top notch! From start to finish, everything was handled professionally. The attention to detail is remarkable.",David,Brown,First-time Customer,david.brown@example.com,206-555-3333,2024-10-28,Portland
+Google Business Profile,3,"Decent service but communication could be improved. The end result was satisfactory though.",Lisa,Anderson,Customer,lisa.a@example.com,,2024-10-25,Vancouver
+Facebook,5,"Wow! Just wow! These folks really know what they're doing. My neighbors are all jealous now!",Chris,Wilson,Homeowner,,,2024-10-20,Portland

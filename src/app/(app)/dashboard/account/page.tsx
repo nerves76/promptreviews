@@ -11,6 +11,14 @@ import { useAuth } from "@/auth";
 import { canCreateAccounts } from "@/config/adminConfig";
 import PricingModal from "@/app/(app)/components/PricingModal";
 import { evaluateTrialEligibility } from "@/lib/billing/trialEligibility";
+import { apiClient } from "@/utils/apiClient";
+
+interface NotificationPreferences {
+  email_gbp_changes: boolean;
+  in_app_gbp_changes: boolean;
+  email_new_reviews: boolean;
+  in_app_new_reviews: boolean;
+}
 
 export default function AccountPage() {
   const supabase = createClient();
@@ -213,6 +221,45 @@ export default function AccountPage() {
       });
     }
     setGbpSaving(false);
+  };
+
+  // GBP Protection notification preferences
+  const [notifPrefs, setNotifPrefs] = useState<NotificationPreferences | null>(null);
+  const [gbpProtectionSaving, setGbpProtectionSaving] = useState(false);
+
+  // Fetch notification preferences
+  useEffect(() => {
+    const fetchNotifPrefs = async () => {
+      if (!account) return;
+      try {
+        const response = await apiClient.get('/notifications/preferences') as { preferences: NotificationPreferences };
+        setNotifPrefs(response.preferences);
+      } catch (error) {
+        console.error('Error fetching notification preferences:', error);
+      }
+    };
+    fetchNotifPrefs();
+  }, [account?.id]);
+
+  const handleGbpProtectionToggle = async () => {
+    if (!notifPrefs) return;
+    setGbpProtectionSaving(true);
+    try {
+      const newValue = !notifPrefs.email_gbp_changes;
+      await apiClient.put('/notifications/preferences', {
+        email_gbp_changes: newValue,
+        in_app_gbp_changes: newValue
+      });
+      setNotifPrefs({
+        ...notifPrefs,
+        email_gbp_changes: newValue,
+        in_app_gbp_changes: newValue
+      });
+    } catch (error) {
+      console.error('Error updating GBP protection notifications:', error);
+      setError('Failed to update notification settings');
+    }
+    setGbpProtectionSaving(false);
   };
 
   const handleCreateAccount = async (e: React.FormEvent) => {
@@ -628,6 +675,43 @@ export default function AccountPage() {
               />
             </button>
           </div>
+
+          {/* GBP Protection Notifications Toggle */}
+          {(account?.plan === 'builder' || account?.plan === 'maven') && (
+            <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+              <div>
+                <label className="text-sm font-medium text-gray-900">
+                  GBP Profile Protection alerts
+                </label>
+                <p className="text-sm text-gray-500">Get notified when your Google Business Profile changes</p>
+              </div>
+              <button
+                onClick={handleGbpProtectionToggle}
+                disabled={gbpProtectionSaving || !notifPrefs}
+                className={`
+                  relative inline-flex h-6 w-11 items-center rounded-full
+                  transition-colors focus:outline-none focus:ring-2
+                  focus:ring-slate-blue focus:ring-offset-2
+                  ${(notifPrefs?.email_gbp_changes ?? true)
+                    ? "bg-slate-blue"
+                    : "bg-gray-200"
+                  }
+                  ${gbpProtectionSaving || !notifPrefs ? "opacity-50 cursor-not-allowed" : ""}
+                `}
+              >
+                <span
+                  className={`
+                    inline-block h-4 w-4 transform rounded-full bg-white
+                    transition-transform
+                    ${(notifPrefs?.email_gbp_changes ?? true)
+                      ? "translate-x-6"
+                      : "translate-x-1"
+                    }
+                  `}
+                />
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

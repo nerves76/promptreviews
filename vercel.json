@@ -46,6 +46,21 @@
     {
       "path": "/api/cron/verify-google-reviews",
       "schedule": "0 2 * * *"
+    },
+    {
+      "path": "/api/cron/monitor-gbp-changes",
+      "schedule": "0 8 * * *",
+      "name": "GBP Profile Protection Monitor"
+    },
+    {
+      "path": "/api/cron/cleanup-notifications",
+      "schedule": "0 3 * * *",
+      "name": "Notification Cleanup"
+    },
+    {
+      "path": "/api/cron/keyword-tracker-analysis",
+      "schedule": "0 6 1 * *",
+      "name": "Monthly Keyword Analysis"
     }
   ],
   "buildCommand": "npm run build",

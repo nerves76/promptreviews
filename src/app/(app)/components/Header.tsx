@@ -9,11 +9,25 @@ import { createClient, getUserOrMock } from "@/auth/providers/supabase";
 import { useAuth } from "@/auth";
 import { trackEvent, GA_EVENTS } from '@/utils/analytics';
 import { fetchOnboardingTasks } from "@/utils/onboardingTasks";
+import { apiClient } from '@/utils/apiClient';
 import PromptReviewsLogo from "@/app/(app)/dashboard/components/PromptReviewsLogo";
 import { AccountSwitcher } from './AccountSwitcher';
 import GetReviewsDropdown from './GetReviewsDropdown';
 import { useAccountSelection } from '@/utils/accountSelectionHooks';
 import DropdownPortal from './DropdownPortal';
+
+// Notification type from the database
+interface Notification {
+  id: string;
+  type: string;
+  title: string;
+  message: string;
+  action_url?: string;
+  action_label?: string;
+  read: boolean;
+  created_at: string;
+  metadata?: Record<string, any>;
+}
 
 const CowboyUserIcon = () => {
   const [imageError, setImageError] = useState(false);
@@ -50,7 +64,9 @@ const Header = React.memo(function Header() {
   const pathname = usePathname();
   const [user, setUser] = useState<any>(null);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [notifications, setNotifications] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [notificationsLoading, setNotificationsLoading] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [mobileAccountSwitcherOpen, setMobileAccountSwitcherOpen] = useState(false);
@@ -239,22 +255,113 @@ const Header = React.memo(function Header() {
     return false;
   };
 
-  function isRecentNotification(created_at: string | Date) {
-    const now = new Date();
-    const created = new Date(created_at);
-    return now.getTime() - created.getTime() < 7 * 24 * 60 * 60 * 1000;
-  }
-
-  const recentNotifications = notifications
-    .filter((n) => isRecentNotification(n.created_at))
-    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-    .slice(0, 7);
-
-  useEffect(() => {
-    if (showNotifications && notifications.some((n) => !n.read)) {
-      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+  // Fetch notifications from API
+  const fetchNotifications = async () => {
+    if (!hasBusiness) return;
+    try {
+      setNotificationsLoading(true);
+      const response = await apiClient.get('/notifications?limit=20') as {
+        notifications: Notification[];
+        unreadCount: number;
+      };
+      setNotifications(response.notifications || []);
+      setUnreadCount(response.unreadCount || 0);
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    } finally {
+      setNotificationsLoading(false);
     }
-    setNotifications((prev) => prev.filter((n) => isRecentNotification(n.created_at)));
+  };
+
+  // Mark notifications as read when dropdown opens
+  const markAllAsRead = async () => {
+    if (unreadCount === 0) return;
+    try {
+      await apiClient.post('/notifications', { action: 'mark_all_read' });
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+      setUnreadCount(0);
+    } catch (error) {
+      console.error('Error marking notifications as read:', error);
+    }
+  };
+
+  // Dismiss a single notification
+  const dismissNotification = async (notificationId: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      await apiClient.post('/notifications', { action: 'dismiss', notificationIds: [notificationId] });
+      setNotifications(prev => prev.filter(n => n.id !== notificationId));
+      // Update unread count if the dismissed notification was unread
+      const dismissedNotif = notifications.find(n => n.id === notificationId);
+      if (dismissedNotif && !dismissedNotif.read) {
+        setUnreadCount(prev => Math.max(0, prev - 1));
+      }
+    } catch (error) {
+      console.error('Error dismissing notification:', error);
+    }
+  };
+
+  // Fetch notifications on mount and when account changes
+  // Uses Page Visibility API to pause polling when tab is hidden
+  useEffect(() => {
+    if (!user || !hasBusiness) return;
+
+    let intervalId: NodeJS.Timeout | null = null;
+    let isTabVisible = !document.hidden;
+
+    const startPolling = () => {
+      if (intervalId) return; // Already polling
+      // Poll for new notifications every 2 minutes
+      intervalId = setInterval(() => {
+        if (!document.hidden) {
+          fetchNotifications();
+        }
+      }, 2 * 60 * 1000);
+    };
+
+    const stopPolling = () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+        intervalId = null;
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        // Tab became hidden - stop polling
+        stopPolling();
+        isTabVisible = false;
+      } else {
+        // Tab became visible - fetch immediately and restart polling
+        isTabVisible = true;
+        fetchNotifications(); // Fetch immediately when tab becomes visible
+        startPolling();
+      }
+    };
+
+    // Initial fetch
+    fetchNotifications();
+
+    // Start polling if tab is visible
+    if (isTabVisible) {
+      startPolling();
+    }
+
+    // Listen for visibility changes
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      stopPolling();
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [user, hasBusiness, selectedAccount?.account_id]);
+
+  // Mark as read when dropdown opens
+  useEffect(() => {
+    if (showNotifications && unreadCount > 0) {
+      markAllAsRead();
+    }
   }, [showNotifications]);
 
   useEffect(() => {
@@ -481,9 +588,9 @@ const Header = React.memo(function Header() {
                   aria-label="Show notifications"
                   >
                   <Icon name="FaBell" className={`w-6 h-6 ${hasBusiness ? 'text-white hover:text-white/80' : 'text-white/50'} transition-colors`} size={24} />
-                  {notifications.filter((n) => !n.read).length > 0 && (
+                  {unreadCount > 0 && (
                     <span className="absolute -top-1 -right-1 bg-pink-300 text-slate-blue text-[10px] rounded-full w-4 h-4 flex items-center justify-center font-bold border border-white">
-                      {notifications.filter((n) => !n.read).length}
+                      {unreadCount > 9 ? '9+' : unreadCount}
                     </span>
                   )}
                 </button>
@@ -502,24 +609,46 @@ const Header = React.memo(function Header() {
                   }}
                 >
                   <div className="p-4">
-                      <h3 className="text-lg font-semibold text-white mb-3">Recent activity</h3>
-                      {recentNotifications.length === 0 ? (
+                      <h3 className="text-lg font-semibold text-white mb-3">Notifications</h3>
+                      {notificationsLoading ? (
+                        <div className="text-center py-8">
+                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mx-auto"></div>
+                        </div>
+                      ) : notifications.length === 0 ? (
                         <div className="text-center py-8 text-gray-400">
                           <Icon name="FaBell" className="w-8 h-8 mx-auto mb-2 opacity-50 text-white" size={32} />
-                          <p className="text-white">No recent activity</p>
-                          <p className="text-sm mt-1 text-gray-400">Check back later for new reviews and feedback.</p>
+                          <p className="text-white">No notifications</p>
+                          <p className="text-sm mt-1 text-gray-400">You're all caught up!</p>
                         </div>
                       ) : (
                         <div className="space-y-3">
-                          {recentNotifications.map((notification) => (
-                            <div key={notification.id} className="p-3 bg-white/10 rounded-lg border border-white/20">
-                              <p className="text-sm font-medium text-white">{notification.message}</p>
-                              {notification.preview && (
-                                <p className="text-xs text-gray-400 mt-1">{notification.preview}...</p>
-                              )}
-                              <p className="text-xs text-gray-400 mt-2">
-                                {new Date(notification.created_at).toLocaleDateString()}
-                              </p>
+                          {notifications.map((notification) => (
+                            <div
+                              key={notification.id}
+                              className={`relative group p-3 rounded-lg border transition-colors ${
+                                notification.read
+                                  ? 'bg-white/5 border-white/10 hover:bg-white/10'
+                                  : 'bg-white/15 border-white/30 hover:bg-white/20'
+                              }`}
+                            >
+                              <Link
+                                href={notification.action_url || '#'}
+                                onClick={() => setShowNotifications(false)}
+                                className="block pr-6"
+                              >
+                                <p className="text-sm font-medium text-white">{notification.title}</p>
+                                <p className="text-xs text-gray-300 mt-1">{notification.message}</p>
+                                <p className="text-xs text-gray-400 mt-2">
+                                  {new Date(notification.created_at).toLocaleDateString()}
+                                </p>
+                              </Link>
+                              <button
+                                onClick={(e) => dismissNotification(notification.id, e)}
+                                className="absolute top-2 right-2 p-1 rounded-full opacity-0 group-hover:opacity-100 hover:bg-white/20 transition-opacity"
+                                aria-label="Dismiss notification"
+                              >
+                                <Icon name="FaTimes" className="w-3 h-3 text-gray-400 hover:text-white" size={12} />
+                              </button>
                             </div>
                           ))}
                         </div>
@@ -902,6 +1031,27 @@ const Header = React.memo(function Header() {
                           } block px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200`}
                         >
                           Sentiment Analyzer
+                        </Link>
+                        <Link
+                          href={hasBusiness ? "/dashboard/get-reviews/keyword-monitoring" : "#"}
+                          onClick={(e) => {
+                            if (!hasBusiness) {
+                              e.preventDefault();
+                              router.push("/dashboard/create-business");
+                              setMenuOpen(false);
+                            } else {
+                              setMenuOpen(false);
+                            }
+                          }}
+                          className={`${
+                            isActive("/dashboard/get-reviews/keyword-monitoring")
+                              ? "bg-white/20 text-white"
+                              : hasBusiness
+                                ? "text-white hover:bg-white/10"
+                                : "text-gray-500 cursor-not-allowed"
+                          } block px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200`}
+                        >
+                          Keyword Monitoring
                         </Link>
                       </div>
                     </div>

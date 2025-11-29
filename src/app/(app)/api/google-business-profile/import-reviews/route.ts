@@ -11,8 +11,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { createClient } from '@supabase/supabase-js';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 import { GoogleBusinessProfileClient } from '@/features/social-posting/platforms/google-business-profile/googleBusinessProfileClient';
+import { GoogleReviewSyncService, ensureBusinessForAccount } from '@/features/google-reviews/reviewSyncService';
+import { KeywordMatchService } from '@/features/keywords/keywordMatchService';
 import * as Sentry from '@sentry/nextjs';
 
 export async function POST(request: NextRequest) {
@@ -139,42 +142,15 @@ export async function POST(request: NextRequest) {
 
     // Get or create business record
     let businessId: string;
-    const { data: existingBusiness, error: fetchError } = await serviceSupabase
-      .from('businesses')
-      .select('id')
-      .eq('account_id', accountId)
-      .single();
-
-    if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 is "no rows returned"
-      console.error('❌ Error fetching business:', fetchError);
-    }
-
-    if (existingBusiness) {
-      businessId = existingBusiness.id;
-    } else {
-      // Create a business record if it doesn't exist
-      const { data: newBusiness, error: businessError } = await serviceSupabase
-        .from('businesses')
-        .insert({
-          account_id: accountId,
-          name: 'My Business', // Default name
-          created_at: new Date().toISOString()
-        })
-        .select('id')
-        .single();
-
-      if (businessError || !newBusiness) {
-        console.error('❌ Error creating business:', businessError);
-        console.error('Business data attempted:', {
-          account_id: accountId,
-          name: 'My Business'
-        });
-        return NextResponse.json(
-          { success: false, error: `Failed to create business record: ${businessError?.message || 'Unknown error'}` },
-          { status: 500 }
-        );
-      }
-      businessId = newBusiness.id;
+    try {
+      const business = await ensureBusinessForAccount(serviceSupabase, accountId);
+      businessId = business.id;
+    } catch (businessError: any) {
+      console.error('❌ Error ensuring business record:', businessError);
+      return NextResponse.json(
+        { success: false, error: `Failed to prepare business record: ${businessError?.message || 'Unknown error'}` },
+        { status: 500 }
+      );
     }
 
     // Imported reviews don't need to be associated with a prompt page
@@ -196,6 +172,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    let locationRecord;
+    try {
+      locationRecord = await resolveAccountLocation(serviceSupabase, accountId, locationId);
+    } catch (locationError: any) {
+      console.error('❌ Error looking up Google Business location:', locationError);
+      return NextResponse.json(
+        { success: false, error: `Failed to look up Google Business location: ${locationError?.message || 'Unknown error'}` },
+        { status: 500 }
+      );
+    }
+
+    if (!locationRecord) {
+      return NextResponse.json(
+        { success: false, error: 'Google Business location not found for this account' },
+        { status: 404 }
+      );
+    }
+
+    const canonicalLocationId = locationRecord.location_id || locationId;
+
     // Use the GoogleBusinessProfileClient for proper API handling
     console.log('🔍 Creating Google Business Profile client');
     const client = new GoogleBusinessProfileClient({
@@ -204,197 +200,45 @@ export async function POST(request: NextRequest) {
       expiresAt: platformData.expires_at ? new Date(platformData.expires_at).getTime() : undefined,
     });
 
-    // Fetch reviews using the client
-    console.log('🔍 Fetching reviews from Google API for location:', locationId);
-    const googleReviews = await client.getReviews(locationId);
+    const keywordMatcher = new KeywordMatchService(serviceSupabase, accountId);
+    const reviewSyncService = new GoogleReviewSyncService(
+      serviceSupabase,
+      client,
+      {
+        accountId,
+        businessId,
+        defaultPromptPageId,
+      },
+      keywordMatcher
+    );
 
-    console.log('✅ Reviews fetched from Google:', googleReviews.length);
-    
-
-    if (googleReviews.length === 0) {
-      return NextResponse.json({
-        success: true,
-        message: 'No reviews found to import',
-        count: 0
-      });
-    }
-
-    // If import type is "new", check for existing reviews to avoid duplicates
-    let existingReviewIds: string[] = [];
-    if (importType === 'new') {
-      const { data: existingReviews } = await serviceSupabase
-        .from('review_submissions')
-        .select('google_review_id')
-        .eq('business_id', businessId)
-        .not('google_review_id', 'is', null);
-      
-      existingReviewIds = (existingReviews || []).map(r => r.google_review_id).filter(Boolean);
-    }
-
-    let importedCount = 0;
-    let skippedCount = 0;
-    const errors: string[] = [];
-
-    // Process each review
-    for (const review of googleReviews) {
-      try {
-        // Skip if this is a "new" import and review already exists
-        if (importType === 'new' && existingReviewIds.includes(review.reviewId)) {
-          skippedCount++;
-          continue;
-        }
-
-        const reviewerDisplayName = review.reviewer?.displayName || 'Anonymous';
-        const reviewText = review.comment || '';
-        
-        // Convert Google's star rating format (e.g., "FIVE", "FOUR") to numbers
-        const starRatingMap: { [key: string]: number } = {
-          'FIVE': 5,
-          'FOUR': 4,
-          'THREE': 3,
-          'TWO': 2,
-          'ONE': 1
-        };
-        const starRating = typeof review.starRating === 'string' 
-          ? (starRatingMap[review.starRating] || 0)
-          : (review.starRating || 0);
-        
-        const createTime = review.createTime || new Date().toISOString();
-
-        // Always create a new contact for Google reviews
-        // Google only provides display names like "John S." which are impossible to match reliably
-        let contactId: string | null = null;
-        
-        // Log the first contact creation attempt for debugging
-        if (importedCount === 0 && errors.length === 0) {
-          console.log('🔍 First contact creation attempt:', {
-            accountId,
-            reviewerDisplayName,
-            accountIdType: typeof accountId,
-            accountIdLength: accountId?.length
-          });
-        }
-
-        const { data: newContact, error: contactError } = await serviceSupabase
-          .from('contacts')
-          .insert({
-            account_id: accountId, // Use proper account ID from request context
-            first_name: `Google User`, // Generic first name for system contact
-            last_name: '',
-            google_reviewer_name: reviewerDisplayName, // Store actual Google display name here
-            email: '', // Google doesn't provide email
-            phone: '', // Google doesn't provide phone
-            notes: `Contact created from Google Business Profile review import. Original reviewer name: "${reviewerDisplayName}"`,
-            created_at: new Date().toISOString(),
-            imported_from_google: true
-          })
-          .select('id')
-          .single();
-
-        if (contactError) {
-          console.error('❌ Error creating contact:', contactError);
-          console.error('Contact data attempted:', {
-            account_id: accountId,
-            first_name: 'Google User',
-            google_reviewer_name: reviewerDisplayName,
-            errorCode: contactError.code,
-            errorDetails: contactError.details
-          });
-
-          // Log first error with more detail
-          if (errors.length === 0) {
-            console.error('❌ First contact error - full details:', {
-              error: contactError,
-              accountId,
-              constraint: contactError.message
-            });
-          }
-
-          errors.push(`Failed to create contact for ${reviewerDisplayName}: ${contactError.message}`);
-          continue;
-        }
-
-        contactId = newContact.id;
-
-        // Convert star rating to sentiment
-        let sentiment = 'positive';
-        if (starRating <= 2) {
-          sentiment = 'negative';
-        } else if (starRating === 3) {
-          sentiment = 'neutral';
-        }
-
-        // Import review into review_submissions table
-        const { error: reviewError } = await serviceSupabase
-          .from('review_submissions')
-          .insert({
-            account_id: accountId, // Required for RLS to work correctly
-            prompt_page_id: defaultPromptPageId, // Use the default prompt page for imports
-            business_id: businessId, // Use the business ID, not account ID
-            contact_id: contactId,
-            first_name: reviewerDisplayName,
-            last_name: '',
-            reviewer_name: reviewerDisplayName, // Required field
-            review_content: reviewText,
-            platform: 'Google Business Profile',
-            star_rating: starRating,
-            emoji_sentiment_selection: sentiment,
-            review_type: 'review',
-            created_at: createTime,
-            google_review_id: review.reviewId,
-            imported_from_google: true,
-            verified: true, // Auto-verify Google imported reviews
-            verified_at: createTime, // Set verification time to review creation time
-            status: 'submitted'
-          });
-
-        if (reviewError) {
-          // Check if it's a duplicate error
-          if (reviewError.code === '23505' && reviewError.message.includes('idx_review_submissions_google_review_id_unique')) {
-            skippedCount++;
-          } else {
-            console.error('❌ Error importing review:', reviewError);
-            console.error('Review data attempted:', {
-              business_id: businessId,
-              contact_id: contactId,
-              star_rating: starRating,
-              google_review_id: review.reviewId,
-              platform: 'Google Business Profile'
-            });
-            errors.push(`Failed to import review from ${reviewerDisplayName}: ${reviewError.message}`);
-          }
-          continue;
-        }
-
-        importedCount++;
-        
-      } catch (error) {
-        console.error('❌ Error processing review:', error);
-        errors.push(`Error processing review: ${error}`);
-      }
-    }
-
+    const syncResult = await reviewSyncService.syncLocation({
+      locationId: canonicalLocationId,
+      locationName: locationRecord.location_name || undefined,
+      googleBusinessLocationId: locationRecord.id,
+      importType,
+    });
 
     let message = '';
-    if (importedCount > 0 && skippedCount > 0) {
-      message = `Successfully imported ${importedCount} new reviews (${skippedCount} already existed)`;
-    } else if (importedCount > 0) {
-      message = `Successfully imported ${importedCount} new reviews`;
-    } else if (skippedCount > 0) {
-      message = `All ${skippedCount} reviews already exist in your database`;
-    } else if (errors.length > 0) {
-      message = `Import failed with ${errors.length} errors`;
+    if (syncResult.importedCount > 0 && syncResult.skippedCount > 0) {
+      message = `Successfully imported ${syncResult.importedCount} new reviews (${syncResult.skippedCount} already existed)`;
+    } else if (syncResult.importedCount > 0) {
+      message = `Successfully imported ${syncResult.importedCount} new reviews`;
+    } else if (syncResult.skippedCount > 0) {
+      message = `All ${syncResult.skippedCount} reviews already exist in your database`;
+    } else if (syncResult.errors.length > 0) {
+      message = `Import failed with ${syncResult.errors.length} errors`;
     } else {
       message = 'No reviews found to import';
     }
 
     return NextResponse.json({
-      success: errors.length === 0 || importedCount > 0,
+      success: syncResult.importedCount > 0 || syncResult.errors.length === 0,
       message,
-      count: importedCount,
-      skipped: skippedCount,
-      errors: errors.length > 0 ? errors.slice(0, 5) : undefined, // Return first 5 errors for debugging
-      totalErrorCount: errors.length
+      count: syncResult.importedCount,
+      skipped: syncResult.skippedCount,
+      errors: syncResult.errors.length > 0 ? syncResult.errors.slice(0, 5) : undefined,
+      totalErrorCount: syncResult.errors.length,
     });
 
   } catch (error: any) {
@@ -428,4 +272,45 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+type GoogleLocationRow = {
+  id: string;
+  location_id: string;
+  location_name: string | null;
+};
+
+async function resolveAccountLocation(
+  supabase: SupabaseClient<any, 'public', any>,
+  accountId: string,
+  requestedLocationId: string
+): Promise<GoogleLocationRow | null> {
+  const columns = 'id, location_id, location_name';
+
+  const { data: directMatch, error: directError } = await supabase
+    .from('google_business_locations')
+    .select(columns)
+    .eq('account_id', accountId)
+    .eq('location_id', requestedLocationId)
+    .maybeSingle();
+
+  if (directError && directError.code !== 'PGRST116') {
+    throw directError;
+  }
+  if (directMatch) {
+    return directMatch;
+  }
+
+  const { data: fallbackMatch, error: fallbackError } = await supabase
+    .from('google_business_locations')
+    .select(columns)
+    .eq('account_id', accountId)
+    .eq('id', requestedLocationId)
+    .maybeSingle();
+
+  if (fallbackError && fallbackError.code !== 'PGRST116') {
+    throw fallbackError;
+  }
+
+  return fallbackMatch ?? null;
 }

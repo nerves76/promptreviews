@@ -28,6 +28,7 @@ import ButtonSpinner from '@/components/ButtonSpinner';
 import LocationPicker from '@/components/GoogleBusinessProfile/LocationPicker';
 import GoogleBusinessScheduler from '@/app/(app)/components/GoogleBusinessProfile/Scheduler/GoogleBusinessScheduler';
 import BlueskyConnection from '@/app/(app)/components/GoogleBusinessProfile/BlueskyConnection';
+import ProtectionTab from '@/components/GoogleBusinessProfile/ProtectionTab';
 import { exportOverviewToPDF } from '@/utils/googleBusinessProfile/pdfExport';
 // Using built-in alert for notifications instead of react-toastify
 
@@ -283,12 +284,12 @@ export default function SocialPostingDashboard() {
   }, [imageUrls]);
 
   // Tab state with URL parameter support and dynamic default based on connection
-  const [activeTab, setActiveTab] = useState<'connect' | 'overview' | 'create-post' | 'schedule' | 'photos' | 'business-info' | 'services' | 'more' | 'reviews'>(() => {
+  const [activeTab, setActiveTab] = useState<'connect' | 'overview' | 'create-post' | 'schedule' | 'photos' | 'business-info' | 'services' | 'more' | 'reviews' | 'protection'>(() => {
     // Initialize from URL parameter if available
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
-      const tabParam = urlParams.get('tab') as 'connect' | 'overview' | 'create-post' | 'schedule' | 'photos' | 'business-info' | 'services' | 'more' | 'reviews';
-      if (tabParam && ['connect', 'overview', 'create-post', 'schedule', 'photos', 'business-info', 'services', 'more', 'reviews'].includes(tabParam)) {
+      const tabParam = urlParams.get('tab') as 'connect' | 'overview' | 'create-post' | 'schedule' | 'photos' | 'business-info' | 'services' | 'more' | 'reviews' | 'protection';
+      if (tabParam && ['connect', 'overview', 'create-post', 'schedule', 'photos', 'business-info', 'services', 'more', 'reviews', 'protection'].includes(tabParam)) {
         return tabParam;
       }
     }
@@ -323,7 +324,7 @@ export default function SocialPostingDashboard() {
   }, [currentPlan]);
 
   // Update URL when tab changes
-  const changeTab = (newTab: 'connect' | 'overview' | 'create-post' | 'schedule' | 'photos' | 'business-info' | 'services' | 'more' | 'reviews') => {
+  const changeTab = (newTab: 'connect' | 'overview' | 'create-post' | 'schedule' | 'photos' | 'business-info' | 'services' | 'more' | 'reviews' | 'protection') => {
     setActiveTab(newTab);
     setIsMobileMenuOpen(false); // Close mobile menu when tab changes
     
@@ -2002,6 +2003,16 @@ export default function SocialPostingDashboard() {
               >
                 More
               </button>
+              <button
+                onClick={() => changeTab('protection')}
+                className={`py-2 px-3 border-b-2 font-medium text-sm rounded-t-md transition-colors whitespace-nowrap ${
+                  activeTab === 'protection'
+                    ? 'border-slate-blue text-slate-blue bg-white shadow-sm'
+                    : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-100'
+                }`}
+              >
+                Protection
+              </button>
             </nav>
 
             {/* Mobile Navigation Menu */}
@@ -2060,12 +2071,22 @@ export default function SocialPostingDashboard() {
                     className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium ${
                       activeTab === 'more' && isConnected
                         ? 'bg-slate-blue text-white'
-                        : isConnected 
+                        : isConnected
                           ? 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                           : 'text-gray-400 cursor-not-allowed'
                     }`}
                   >
                     More
+                  </button>
+                  <button
+                    onClick={() => changeTab('protection')}
+                    className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium ${
+                      activeTab === 'protection'
+                        ? 'bg-slate-blue text-white'
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                    }`}
+                  >
+                    Protection
                   </button>
                   <button
                     onClick={() => changeTab('create-post')}
@@ -3335,6 +3356,11 @@ export default function SocialPostingDashboard() {
                 </div>
               )}
             </div>
+          )}
+
+          {/* Protection Tab - GBP Profile Protection */}
+          {activeTab === 'protection' && (
+            <ProtectionTab accountPlan={currentPlan} />
           )}
 
           {/* Reviews Management Tab */}

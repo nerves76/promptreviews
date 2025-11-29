@@ -281,9 +281,20 @@ export default function IndividualOutreach() {
     }
   }, [authLoading, selectedAccountId, authAccountId, supabase]);
 
-  const fetchLocations = async (accountId: string) => {
+  const fetchLocations = async (fetchedAccountId: string) => {
     try {
-      const response = await fetch('/api/business-locations');
+      const { data: { session } } = await supabase.auth.getSession();
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      if (session?.access_token) {
+        headers['Authorization'] = `Bearer ${session.access_token}`;
+      }
+      if (fetchedAccountId) {
+        headers['X-Selected-Account'] = fetchedAccountId;
+      }
+
+      const response = await fetch('/api/business-locations', { headers });
       if (response.ok) {
         const data = await response.json();
         setLocations(data.locations || []);
@@ -300,17 +311,28 @@ export default function IndividualOutreach() {
 
   const handleCreateLocation = async (locationData: Partial<BusinessLocation>) => {
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      if (session?.access_token) {
+        headers['Authorization'] = `Bearer ${session.access_token}`;
+      }
+      if (accountId) {
+        headers['X-Selected-Account'] = accountId;
+      }
+
       const response = await fetch('/api/business-locations', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify(locationData),
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         setLocations(prev => [...prev, data.location]);
         setLocationLimits(prev => ({ ...prev, current: prev.current + 1 }));
-        
+
         // If a prompt page was created, add it to locationPromptPages
         if (data.location.prompt_page_id) {
           const { data: newPromptPage } = await supabase
@@ -318,14 +340,14 @@ export default function IndividualOutreach() {
             .select("*")
             .eq("id", data.location.prompt_page_id)
             .single();
-          
+
           if (newPromptPage) {
             setLocationPromptPages(prev => [...prev, newPromptPage]);
           }
         }
       } else {
         const error = await response.json();
-        throw new Error(error.message || 'Failed to create location');
+        throw new Error(error.message || error.error || 'Failed to create location');
       }
     } catch (error) {
       console.error('Error creating location:', error);
@@ -335,22 +357,33 @@ export default function IndividualOutreach() {
 
   const handleUpdateLocation = async (locationData: Partial<BusinessLocation>) => {
     if (!editingLocation?.id) return;
-    
+
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      if (session?.access_token) {
+        headers['Authorization'] = `Bearer ${session.access_token}`;
+      }
+      if (accountId) {
+        headers['X-Selected-Account'] = accountId;
+      }
+
       const response = await fetch(`/api/business-locations/${editingLocation.id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify(locationData),
       });
-      
+
       if (response.ok) {
         const data = await response.json();
-        setLocations(prev => prev.map(loc => 
+        setLocations(prev => prev.map(loc =>
           loc.id === editingLocation.id ? data.location : loc
         ));
       } else {
         const error = await response.json();
-        throw new Error(error.message || 'Failed to update location');
+        throw new Error(error.message || error.error || 'Failed to update location');
       }
     } catch (error) {
       console.error('Error updating location:', error);
@@ -362,25 +395,35 @@ export default function IndividualOutreach() {
     if (!confirm('Are you sure you want to delete this location? This will also delete its prompt page.')) {
       return;
     }
-    
+
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const headers: Record<string, string> = {};
+      if (session?.access_token) {
+        headers['Authorization'] = `Bearer ${session.access_token}`;
+      }
+      if (accountId) {
+        headers['X-Selected-Account'] = accountId;
+      }
+
       const response = await fetch(`/api/business-locations/${locationId}`, {
         method: 'DELETE',
+        headers,
       });
-      
+
       if (response.ok) {
         setLocations(prev => prev.filter(loc => loc.id !== locationId));
-        setLocationLimits(prev => ({ 
-          ...prev, 
+        setLocationLimits(prev => ({
+          ...prev,
           current: prev.current - 1,
           canCreateMore: prev.current - 1 < prev.max
         }));
-        
+
         // Remove associated prompt pages
         setLocationPromptPages(prev => prev.filter(page => page.business_location_id !== locationId));
       } else {
         const error = await response.json();
-        throw new Error(error.message || 'Failed to delete location');
+        throw new Error(error.message || error.error || 'Failed to delete location');
       }
     } catch (error) {
       console.error('Error deleting location:', error);
