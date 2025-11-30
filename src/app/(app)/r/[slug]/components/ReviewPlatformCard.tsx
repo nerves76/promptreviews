@@ -579,7 +579,6 @@ export default function ReviewPlatformCard({
                 borderColor: businessProfile?.secondary_color || "#4F46E5",
                 color: getContrastTextColor(businessProfile?.secondary_color || "#4F46E5"),
               }}
-              title={wordCount > 0 && !canSubmit ? `Reviews must be between ${configuredMin} and ${wordLimit} words.` : undefined}
               onMouseEnter={(e) => {
                 if (isSubmitting !== idx && isCopied !== idx && isRedirecting !== idx && !e.currentTarget.disabled) {
                   e.currentTarget.style.backgroundColor = "transparent";
