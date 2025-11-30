@@ -223,6 +223,8 @@ export default function KeywordTrackerPage() {
   }, [analysisHistory]);
 
   // Handle adding new keywords
+  const MAX_KEYWORDS = 20;
+
   const handleKeywordsChange = async (newKeywords: string[]) => {
     if (!hasAccount || !selectedAccountId) return;
 
@@ -232,6 +234,15 @@ export default function KeywordTrackerPage() {
       setStatusMessage({
         type: "error",
         text: "To remove keywords, go to Prompt page settings.",
+      });
+      return;
+    }
+
+    // Enforce cap
+    if (newKeywords.length > MAX_KEYWORDS) {
+      setStatusMessage({
+        type: "error",
+        text: `Maximum ${MAX_KEYWORDS} keywords allowed.`,
       });
       return;
     }
@@ -362,6 +373,15 @@ export default function KeywordTrackerPage() {
   // Add a suggested keyword
   const handleAddSuggestion = async (keyword: string) => {
     if (!hasAccount || !selectedAccountId) return;
+
+    // Check cap before adding
+    if (keywords.length >= MAX_KEYWORDS) {
+      setStatusMessage({
+        type: "error",
+        text: `Maximum ${MAX_KEYWORDS} keywords allowed.`,
+      });
+      return;
+    }
 
     setAddingKeyword(keyword);
 
