@@ -819,7 +819,7 @@ export default function IndividualOutreach() {
               {/* Sharing Options */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between p-3 bg-purple-500/30 backdrop-blur-sm rounded-lg border border-purple-300/30">
-                  <span className="text-sm font-medium text-white">Share link</span>
+                  <span className="text-sm font-medium text-white">Get link</span>
                   <button
                     onClick={() => {
                       navigator.clipboard.writeText(postSaveData.url);

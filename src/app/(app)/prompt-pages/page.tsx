@@ -32,6 +32,7 @@ import WelcomePopup from "@/app/(app)/components/WelcomePopup";
 import HelpModal from "@/app/(app)/components/help/HelpModal";
 
 import PromptPageEmbedButton from "@/app/(app)/components/PromptPageEmbedButton";
+import PromptPageEmbedModal from "@/app/(app)/components/PromptPageEmbedModal";
 // Page-level loading uses global overlay
 import { useGlobalLoader } from "@/app/(app)/components/GlobalLoaderProvider";
 import BusinessProfileBanner from "@/app/(app)/components/BusinessProfileBanner";
@@ -108,6 +109,11 @@ function PromptPagesContent() {
     clientName: string;
     logoUrl?: string;
     showNfcText?: boolean;
+  } | null>(null);
+  const [embedModal, setEmbedModal] = useState<{
+    open: boolean;
+    slug: string;
+    isUniversal: boolean;
   } | null>(null);
   const [selectedFrameSize, setSelectedFrameSize] = useState(QR_FRAME_SIZES[0]);
   const [selectedPages, setSelectedPages] = useState<string[]>([]);
@@ -1070,6 +1076,14 @@ function PromptPagesContent() {
             logoUrl={qrModal?.logoUrl}
             showNfcText={qrModal?.showNfcText}
           />
+
+          {/* Embed Modal */}
+          <PromptPageEmbedModal
+            isOpen={embedModal?.open || false}
+            onClose={() => setEmbedModal(null)}
+            slug={embedModal?.slug || ""}
+            isUniversal={embedModal?.isUniversal || false}
+          />
         </div>
       )}
 
@@ -1510,7 +1524,7 @@ function PromptPagesContent() {
               {/* Sharing Options */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between p-3 bg-purple-500/30 backdrop-blur-sm rounded-lg border border-purple-300/30">
-                  <span className="text-sm font-medium text-white">Share link</span>
+                  <span className="text-sm font-medium text-white">Get link</span>
                   <button
                     onClick={() => {
                       navigator.clipboard.writeText(postSaveData.url);
@@ -1518,6 +1532,50 @@ function PromptPagesContent() {
                     className="text-white hover:text-white/80 text-sm font-medium"
                   >
                     Copy
+                  </button>
+                </div>
+
+                {/* Generate QR Code option */}
+                <div className="flex items-center justify-between p-3 bg-indigo-500/30 backdrop-blur-sm rounded-lg border border-indigo-300/30">
+                  <span className="text-sm font-medium text-white">Generate QR code</span>
+                  <button
+                    onClick={() => {
+                      // Close this modal and open QR modal
+                      const url = postSaveData.url;
+                      const clientName = postSaveData.first_name || postSaveData.locationName || '';
+                      setPostSaveData(null);
+                      setQrModal({
+                        open: true,
+                        url,
+                        clientName,
+                        logoUrl: businessProfile?.logo_url || undefined,
+                        showNfcText: false,
+                      });
+                    }}
+                    className="text-white hover:text-white/80 text-sm font-medium"
+                  >
+                    Create
+                  </button>
+                </div>
+
+                {/* Embed option */}
+                <div className="flex items-center justify-between p-3 bg-rose-500/30 backdrop-blur-sm rounded-lg border border-rose-300/30">
+                  <span className="text-sm font-medium text-white">Embed on website or email</span>
+                  <button
+                    onClick={() => {
+                      // Close this modal and open embed modal
+                      const slug = postSaveData.slug || (postSaveData.url ? postSaveData.url.split('/r/')[1] : '');
+                      const isUniversal = postSaveData.is_universal || false;
+                      setPostSaveData(null);
+                      setEmbedModal({
+                        open: true,
+                        slug,
+                        isUniversal,
+                      });
+                    }}
+                    className="text-white hover:text-white/80 text-sm font-medium"
+                  >
+                    Get code
                   </button>
                 </div>
 
@@ -1687,10 +1745,6 @@ When a customer writes a review and clicks "Copy & open" a few important things 
 **Prompt Page Types**
 
 There are different kinds of Prompt Pages for different use cases. If this is your first Prompt Reviews rodeo, we recommend [checking out the full Prompt Page tutorial|help:prompt-overview].
-
-**[Prompt Page Settings|settings]**
-
-These are global settings for all of your Prompt Pages. If you are using AI, you will want to fill out AI Dos and Don'ts as thoroughly as possible.
 
 Also, the help bubble in the bottom-right of your screen is always there for you when you get stuck!`}
         imageUrl="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/prompty-teaching-about-your-business.png"
