@@ -97,6 +97,9 @@ export default function KeywordTrackerPage() {
   const [suggestionsUsage, setSuggestionsUsage] = useState<number>(0);
   const [monthlyLimit, setMonthlyLimit] = useState<number>(3);
 
+  // Review count state
+  const [reviewCount, setReviewCount] = useState<number | null>(null);
+
   // Load keywords from business data via API
   const [keywordsLoading, setKeywordsLoading] = useState(true);
 
@@ -834,9 +837,9 @@ export default function KeywordTrackerPage() {
           <div className="rounded-2xl border border-slate-100 bg-white p-6">
             <div className="flex items-start justify-between mb-4">
               <div>
-                <h2 className="text-lg font-semibold text-slate-blue">Discovered keywords</h2>
+                <h2 className="text-lg font-semibold text-slate-blue">Discover Keywords</h2>
                 <p className="text-sm text-gray-500 mt-1">
-                  AI finds keywords in your reviews, verified with fuzzy matching
+                  We'll scan your reviews to find valuable keyword phrases in your existing reviews
                 </p>
               </div>
               <div className="flex flex-col items-end gap-1">

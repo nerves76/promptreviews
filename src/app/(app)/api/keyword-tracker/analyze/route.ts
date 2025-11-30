@@ -215,7 +215,6 @@ export async function POST(request: NextRequest) {
     const keywordsWithMentions = results.filter(r => r.mentionCount > 0).length;
 
     // Store analysis run
-    const now = new Date();
     const analysisId = crypto.randomUUID();
 
     const { error: insertError } = await serviceSupabase
