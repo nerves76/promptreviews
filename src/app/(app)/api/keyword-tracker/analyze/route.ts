@@ -91,6 +91,42 @@ export async function POST(request: NextRequest) {
 
     const serviceSupabase = createServiceRoleClient();
 
+    // Check usage limit before proceeding
+    const MONTHLY_LIMIT = 3;
+    const now = new Date();
+
+    const { data: accountData } = await serviceSupabase
+      .from('accounts')
+      .select('keyword_analyses_this_month, keyword_last_reset_date')
+      .eq('id', accountId)
+      .single();
+
+    let usageThisMonth = accountData?.keyword_analyses_this_month || 0;
+    const lastResetDate = accountData?.keyword_last_reset_date
+      ? new Date(accountData.keyword_last_reset_date)
+      : null;
+
+    // Check if we need to reset the counter (new month)
+    if (lastResetDate) {
+      const isNewMonth = now.getMonth() !== lastResetDate.getMonth() ||
+                        now.getFullYear() !== lastResetDate.getFullYear();
+      if (isNewMonth) {
+        usageThisMonth = 0;
+      }
+    }
+
+    if (usageThisMonth >= MONTHLY_LIMIT) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `You've reached your limit of ${MONTHLY_LIMIT} analyses this month. Your limit resets on the 1st of next month.`,
+          usageThisMonth,
+          monthlyLimit: MONTHLY_LIMIT,
+        },
+        { status: 429 }
+      );
+    }
+
     // Fetch business to get keywords
     const { data: business, error: businessError } = await serviceSupabase
       .from('businesses')
@@ -202,31 +238,12 @@ export async function POST(request: NextRequest) {
       // Don't fail the request, just log the error
     }
 
-    // Update usage tracking
-    const { data: account } = await serviceSupabase
-      .from('accounts')
-      .select('keyword_analyses_this_month, keyword_last_reset_date')
-      .eq('id', accountId)
-      .single();
-
-    let usageThisMonth = account?.keyword_analyses_this_month || 0;
-    const lastResetDate = account?.keyword_last_reset_date
-      ? new Date(account.keyword_last_reset_date)
-      : null;
-
-    // Check if we need to reset the counter (new month)
-    if (lastResetDate) {
-      const isNewMonth = now.getMonth() !== lastResetDate.getMonth() ||
-                        now.getFullYear() !== lastResetDate.getFullYear();
-      if (isNewMonth) {
-        usageThisMonth = 0;
-      }
-    }
-
+    // Update usage tracking (increment the counter we already fetched)
+    const newUsageCount = usageThisMonth + 1;
     await serviceSupabase
       .from('accounts')
       .update({
-        keyword_analyses_this_month: usageThisMonth + 1,
+        keyword_analyses_this_month: newUsageCount,
         keyword_last_reset_date: now.toISOString().split('T')[0]
       })
       .eq('id', accountId);
@@ -245,7 +262,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      analysis: analysisResult
+      analysis: analysisResult,
+      usageThisMonth: newUsageCount,
+      monthlyLimit: MONTHLY_LIMIT,
     });
 
   } catch (error) {

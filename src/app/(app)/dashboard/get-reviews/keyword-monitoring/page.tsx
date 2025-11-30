@@ -92,6 +92,10 @@ export default function KeywordTrackerPage() {
   const [suggestionsExpanded, setSuggestionsExpanded] = useState<string | null>(null);
   const [addingKeyword, setAddingKeyword] = useState<string | null>(null);
 
+  // Usage tracking state
+  const [usageThisMonth, setUsageThisMonth] = useState<number>(0);
+  const [monthlyLimit, setMonthlyLimit] = useState<number>(3);
+
   // Load keywords from business data via API
   const [keywordsLoading, setKeywordsLoading] = useState(true);
 
@@ -136,6 +140,30 @@ export default function KeywordTrackerPage() {
       setKeywordsExpanded(true);
     }
   }, [keywordsLoading, keywords.length]);
+
+  // Load usage data
+  useEffect(() => {
+    const loadUsage = async () => {
+      if (!hasAccount) return;
+
+      try {
+        const data = await apiClient.get('/keyword-tracker/usage') as {
+          success: boolean;
+          usageThisMonth: number;
+          monthlyLimit: number;
+        };
+
+        if (data.success) {
+          setUsageThisMonth(data.usageThisMonth);
+          setMonthlyLimit(data.monthlyLimit);
+        }
+      } catch (error) {
+        console.error("Failed to load usage data:", error);
+      }
+    };
+
+    loadUsage();
+  }, [hasAccount, selectedAccountId]);
 
   // Load analysis history
   useEffect(() => {
@@ -278,6 +306,15 @@ export default function KeywordTrackerPage() {
   const handleRunAnalysis = async () => {
     if (!hasAccount || keywords.length === 0) return;
 
+    // Check if at limit before making the request
+    if (usageThisMonth >= monthlyLimit) {
+      setStatusMessage({
+        type: "error",
+        text: `You've used all ${monthlyLimit} analyses this month. Your limit resets on the 1st of next month.`,
+      });
+      return;
+    }
+
     setAnalyzing(true);
     setStatusMessage(null);
 
@@ -285,12 +322,21 @@ export default function KeywordTrackerPage() {
       const data = await apiClient.post('/keyword-tracker/analyze', {}) as {
         success: boolean;
         analysis: AnalysisResult;
+        usageThisMonth?: number;
+        monthlyLimit?: number;
         error?: string;
       };
 
       if (data.success && data.analysis) {
         setLatestAnalysis(data.analysis);
         setAnalysisHistory(prev => [data.analysis, ...prev]);
+        // Update usage from response
+        if (data.usageThisMonth !== undefined) {
+          setUsageThisMonth(data.usageThisMonth);
+        }
+        if (data.monthlyLimit !== undefined) {
+          setMonthlyLimit(data.monthlyLimit);
+        }
         setStatusMessage({
           type: "success",
           text: `Analysis complete! Scanned ${data.analysis.reviewCountAnalyzed} reviews.`,
@@ -464,20 +510,25 @@ export default function KeywordTrackerPage() {
             Track when customers mention your keywords in reviews and see trends over time.
           </p>
         </div>
-        <button
-          onClick={handleRunAnalysis}
-          disabled={!hasAccount || analyzing || keywords.length === 0}
-          className="inline-flex items-center justify-center gap-2 rounded-lg bg-slate-blue px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-blue/20 hover:bg-slate-blue/90 disabled:opacity-60 disabled:cursor-not-allowed transition-all whitespace-nowrap"
-        >
-          {analyzing ? (
-            <>
-              <Icon name="FaSpinner" className="w-4 h-4 animate-spin" size={16} />
-              Analyzing...
-            </>
-          ) : (
-            'Run analysis'
-          )}
-        </button>
+        <div className="flex flex-col items-end gap-2">
+          <button
+            onClick={handleRunAnalysis}
+            disabled={!hasAccount || analyzing || keywords.length === 0 || usageThisMonth >= monthlyLimit}
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-slate-blue px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-blue/20 hover:bg-slate-blue/90 disabled:opacity-60 disabled:cursor-not-allowed transition-all whitespace-nowrap"
+          >
+            {analyzing ? (
+              <>
+                <Icon name="FaSpinner" className="w-4 h-4 animate-spin" size={16} />
+                Analyzing...
+              </>
+            ) : (
+              'Run analysis'
+            )}
+          </button>
+          <span className={`text-xs ${usageThisMonth >= monthlyLimit ? 'text-red-500' : 'text-gray-500'}`}>
+            {usageThisMonth} of {monthlyLimit} used this month
+          </span>
+        </div>
       </div>
 
       {!hasAccount && (
