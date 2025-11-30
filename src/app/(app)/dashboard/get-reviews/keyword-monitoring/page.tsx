@@ -155,12 +155,14 @@ export default function KeywordTrackerPage() {
           success: boolean;
           analyses: { usageThisMonth: number; monthlyLimit: number };
           suggestions: { usageThisMonth: number; monthlyLimit: number };
+          reviewCount: number;
         };
 
         if (data.success) {
           setAnalysesUsage(data.analyses.usageThisMonth);
           setSuggestionsUsage(data.suggestions.usageThisMonth);
           setMonthlyLimit(data.analyses.monthlyLimit);
+          setReviewCount(data.reviewCount);
         }
       } catch (error) {
         console.error("Failed to load usage data:", error);
@@ -529,6 +531,11 @@ export default function KeywordTrackerPage() {
           <p className="text-gray-600 max-w-2xl">
             Track when customers mention your keywords in reviews and see trends over time.
           </p>
+          {reviewCount !== null && (
+            <p className="text-sm text-slate-blue mt-2">
+              <span className="font-semibold">{reviewCount}</span> reviews available to scan
+            </p>
+          )}
         </div>
         <div className="flex flex-col items-end gap-2">
           <button

@@ -72,6 +72,13 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // Get count of reviews available to scan
+    const { count: reviewCount } = await serviceSupabase
+      .from('review_submissions')
+      .select('id', { count: 'exact', head: true })
+      .eq('account_id', accountId)
+      .not('review_content', 'is', null);
+
     return NextResponse.json({
       success: true,
       analyses: {
@@ -84,6 +91,7 @@ export async function GET(request: NextRequest) {
         monthlyLimit: MONTHLY_LIMIT,
         remaining: Math.max(0, MONTHLY_LIMIT - suggestionsUsage),
       },
+      reviewCount: reviewCount || 0,
       // Keep backwards compatibility
       usageThisMonth: analysesUsage,
       monthlyLimit: MONTHLY_LIMIT,
