@@ -120,7 +120,7 @@ const EmojiSentimentModal: React.FC<EmojiSentimentModalProps> = ({
                   className={`w-12 h-12 ${color}`}
                   style={{ filter: selected === i ? "drop-shadow(0 0 8px rgba(59, 130, 246, 0.5))" : "none" }}
                 />
-                <span className="text-sm mt-2 text-gray-700">{label}</span>
+                <span className="text-sm mt-2" style={{ color: cardText }}>{label}</span>
               </button>
             );
           })}

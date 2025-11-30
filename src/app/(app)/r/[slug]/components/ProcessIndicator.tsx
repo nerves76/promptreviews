@@ -492,7 +492,7 @@ export default function ProcessIndicator({ primaryColor = "#4F46E5", cardBackgro
                 </div>
                 
                 {/* Step Text - Responsive sizing */}
-                <div className={`ml-1 sm:ml-1.5 md:ml-2 font-medium transition-colors ${
+                <div className={`ml-2 sm:ml-2.5 md:ml-3 font-medium transition-colors ${
                   isFadingOut ? 'duration-1000' : 'duration-500'
                 }`}
                 style={{ color: cardTextColor }}>
