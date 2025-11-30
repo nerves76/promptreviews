@@ -255,12 +255,34 @@ ${existingKeywords.length > 0 ? `\nAlready tracked keywords (DO NOT include thes
       (s: string) => !existingLower.includes(s.toLowerCase())
     );
 
-    // Format suggestions - trust the AI found these in reviews
-    const formattedSuggestions = newSuggestions.slice(0, 10).map((keyword: string) => ({
-      keyword,
-      count: 0, // We don't have exact count without re-scanning
-      sampleExcerpts: [],
-    }));
+    // Count occurrences and collect excerpts for each suggestion
+    const formattedSuggestions = newSuggestions.slice(0, 10).map((keyword: string) => {
+      const lowerKeyword = keyword.toLowerCase();
+      const matches: string[] = [];
+
+      for (const review of reviews) {
+        const lowerContent = review.content.toLowerCase();
+        if (lowerContent.includes(lowerKeyword)) {
+          // Extract excerpt around the match
+          const index = lowerContent.indexOf(lowerKeyword);
+          const excerptStart = Math.max(0, index - 30);
+          const excerptEnd = Math.min(review.content.length, index + keyword.length + 30);
+          let excerpt = review.content.substring(excerptStart, excerptEnd);
+          if (excerptStart > 0) excerpt = '...' + excerpt;
+          if (excerptEnd < review.content.length) excerpt = excerpt + '...';
+          matches.push(excerpt);
+        }
+      }
+
+      return {
+        keyword,
+        count: matches.length,
+        sampleExcerpts: matches.slice(0, 3),
+      };
+    });
+
+    // Sort by count descending so most relevant appear first
+    formattedSuggestions.sort((a, b) => b.count - a.count);
 
     console.log('[keyword-tracker/suggest] Returning suggestions:', formattedSuggestions.length);
 
