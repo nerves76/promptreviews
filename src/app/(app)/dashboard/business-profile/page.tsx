@@ -353,8 +353,15 @@ export default function BusinessProfilePage() {
           setLogoUrl(null);
           setNoProfile(true);
         } else if (businessData) {
+          if (process.env.NODE_ENV === 'development') {
+            console.log("=== Loading business data into form ===");
+            console.log("businessData.about_us:", businessData.about_us);
+            console.log("businessData.services_offered:", businessData.services_offered);
+          }
           setForm({
             ...businessData,
+            // Explicitly set about_us to ensure it's loaded (handles null case)
+            about_us: businessData.about_us || "",
             business_website: businessData.business_website || "",
             phone: businessData.phone || "",
             address_street: businessData.address_street || "",
@@ -583,12 +590,14 @@ export default function BusinessProfilePage() {
       return;
     }
 
-    if (process.env.NODE_ENV === 'development') {
-      console.log("=== handleSubmit START ===");
-      console.log("Selected Account ID:", selectedAccountId);
-      console.log("Form about_us:", form.about_us);
-      console.log("Services state:", services);
-    }
+    // Debug logging - always enabled to help troubleshoot save issues
+    console.log("=== handleSubmit START ===");
+    console.log("Selected Account ID:", selectedAccountId);
+    console.log("Business ID:", businessId);
+    console.log("Form about_us:", form.about_us);
+    console.log("Form about_us length:", form.about_us?.length);
+    console.log("Services state:", services);
+    console.log("Services length:", services?.length);
 
     setIsSubmitting(true);
     setLoading(true);
@@ -730,6 +739,11 @@ export default function BusinessProfilePage() {
         industries_other: form.industries_other || null,
       };
 
+      // Debug logging - always enabled to help troubleshoot save issues
+      console.log("=== Update Payload ===");
+      console.log("about_us in payload:", updatePayload.about_us);
+      console.log("services_offered in payload:", updatePayload.services_offered);
+
       let updateData, updateError;
 
       // If we have a business ID, update by ID (more reliable)
@@ -739,7 +753,7 @@ export default function BusinessProfilePage() {
           .from("businesses")
           .update(updatePayload)
           .eq("id", businessId)
-          .select("services_offered")
+          .select("services_offered, about_us")
           .single();
         updateData = result.data;
         updateError = result.error;
@@ -751,7 +765,7 @@ export default function BusinessProfilePage() {
             ...updatePayload,
             account_id: selectedAccountId,
           })
-          .select("id, services_offered")
+          .select("id, services_offered, about_us")
           .single();
         updateData = result.data;
         updateError = result.error;
@@ -783,6 +797,12 @@ export default function BusinessProfilePage() {
         clearTimeout(timeoutId);
         return;
       }
+
+      // Debug logging - always enabled
+      console.log("=== Update Response ===");
+      console.log("updateData:", updateData);
+      console.log("services_offered returned:", updateData.services_offered);
+      console.log("about_us returned:", updateData.about_us);
       
       
       // Also update the business_name in the accounts table to sync with account switcher
