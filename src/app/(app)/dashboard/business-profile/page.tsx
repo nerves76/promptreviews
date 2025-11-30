@@ -744,34 +744,79 @@ export default function BusinessProfilePage() {
       console.log("about_us in payload:", updatePayload.about_us);
       console.log("services_offered in payload:", updatePayload.services_offered);
 
-      let updateData, updateError;
+      let updateData: any = null;
+      let updateError: any = null;
 
-      // If we have a business ID, update by ID (more reliable)
-      // Otherwise fall back to account_id for new businesses
+      // Use API endpoint to update business (bypasses RLS issues)
       if (businessId) {
-        const result = await supabase
-          .from("businesses")
-          .update(updatePayload)
-          .eq("id", businessId)
-          .select("services_offered, about_us")
-          .single();
-        updateData = result.data;
-        updateError = result.error;
+        try {
+          const response = await fetch('/api/businesses', {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Selected-Account': selectedAccountId,
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+              businessId,
+              ...updatePayload,
+            }),
+          });
+
+          const result = await response.json();
+
+          if (!response.ok) {
+            updateError = {
+              message: result.error || 'Failed to update business',
+              details: result.details,
+              code: response.status.toString(),
+            };
+          } else {
+            updateData = result.business;
+          }
+        } catch (fetchError) {
+          console.error("API call failed:", fetchError);
+          updateError = {
+            message: fetchError instanceof Error ? fetchError.message : 'Network error',
+            code: 'NETWORK_ERROR',
+          };
+        }
       } else {
-        // Create new business for this account
-        const result = await supabase
-          .from("businesses")
-          .insert({
-            ...updatePayload,
-            account_id: selectedAccountId,
-          })
-          .select("id, services_offered, about_us")
-          .single();
-        updateData = result.data;
-        updateError = result.error;
-        // Store the new business ID for future saves
-        if (result.data?.id) {
-          setBusinessId(result.data.id);
+        // Create new business via API
+        try {
+          const response = await fetch('/api/businesses', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Selected-Account': selectedAccountId,
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+              ...updatePayload,
+            }),
+          });
+
+          const result = await response.json();
+
+          if (!response.ok) {
+            updateError = {
+              message: result.error || 'Failed to create business',
+              details: result.details,
+              code: response.status.toString(),
+            };
+          } else {
+            updateData = result.business;
+            // Store the new business ID for future saves
+            if (result.business?.id) {
+              setBusinessId(result.business.id);
+            }
+          }
+        } catch (fetchError) {
+          console.error("API call failed:", fetchError);
+          updateError = {
+            message: fetchError instanceof Error ? fetchError.message : 'Network error',
+            code: 'NETWORK_ERROR',
+          };
         }
       }
 
@@ -780,7 +825,6 @@ export default function BusinessProfilePage() {
         console.error("Error code:", updateError.code);
         console.error("Error message:", updateError.message);
         console.error("Error details:", updateError.details);
-        console.error("Error hint:", updateError.hint);
         setError(`Database update failed: ${updateError.message}`);
         setLoading(false);
         setIsSubmitting(false);

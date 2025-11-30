@@ -76,6 +76,119 @@ export async function GET(request: NextRequest) {
   }
 }
 
+/**
+ * PUT - Update an existing business profile
+ * Uses service role to bypass RLS policies
+ */
+export async function PUT(request: NextRequest) {
+  try {
+    // Verify authentication and get authorized account
+    const authResult = await verifyAccountAuth(request);
+    if (!authResult.success) {
+      return NextResponse.json(
+        { error: authResult.error },
+        { status: authResult.errorCode || 401 }
+      );
+    }
+
+    const { accountId } = authResult;
+    if (!accountId) {
+      return NextResponse.json(
+        { error: "Account access required" },
+        { status: 403 }
+      );
+    }
+
+    const updateData = await request.json();
+    const { businessId, ...fieldsToUpdate } = updateData;
+
+    if (!businessId) {
+      return NextResponse.json(
+        { error: "Missing required field: businessId" },
+        { status: 400 }
+      );
+    }
+
+    console.log('[BUSINESSES PUT] Updating business:', {
+      businessId,
+      accountId,
+      fieldsCount: Object.keys(fieldsToUpdate).length
+    });
+
+    const supabase = createServiceRoleClient();
+
+    // First verify this business belongs to the user's account
+    const { data: existingBusiness, error: verifyError } = await supabase
+      .from('businesses')
+      .select('id, account_id')
+      .eq('id', businessId)
+      .single();
+
+    if (verifyError || !existingBusiness) {
+      console.error('[BUSINESSES PUT] Business not found:', verifyError);
+      return NextResponse.json(
+        { error: "Business not found" },
+        { status: 404 }
+      );
+    }
+
+    if (existingBusiness.account_id !== accountId) {
+      console.error('[BUSINESSES PUT] Account mismatch:', {
+        businessAccountId: existingBusiness.account_id,
+        requestAccountId: accountId
+      });
+      return NextResponse.json(
+        { error: "You don't have permission to update this business" },
+        { status: 403 }
+      );
+    }
+
+    // Perform the update using service role (bypasses RLS)
+    const { data: updatedBusiness, error: updateError } = await supabase
+      .from('businesses')
+      .update({
+        ...fieldsToUpdate,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', businessId)
+      .select('*')
+      .single();
+
+    if (updateError) {
+      console.error('[BUSINESSES PUT] Update error:', updateError);
+      return NextResponse.json(
+        { error: "Failed to update business", details: updateError.message },
+        { status: 500 }
+      );
+    }
+
+    console.log('[BUSINESSES PUT] Business updated successfully');
+
+    // Also update business_name in accounts table if name changed
+    if (fieldsToUpdate.name) {
+      const { error: accountUpdateError } = await supabase
+        .from('accounts')
+        .update({ business_name: fieldsToUpdate.name })
+        .eq('id', accountId);
+
+      if (accountUpdateError) {
+        console.error('[BUSINESSES PUT] Warning: Failed to update account business_name:', accountUpdateError);
+      }
+    }
+
+    return NextResponse.json({
+      success: true,
+      business: updatedBusiness
+    });
+  } catch (error) {
+    console.error('[BUSINESSES PUT] Unexpected error:', error);
+    return NextResponse.json(
+      { error: "Internal server error", details: error instanceof Error ? error.message : "Unknown error" },
+      { status: 500 }
+    );
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     // For business creation, we need basic auth but account might not exist yet
