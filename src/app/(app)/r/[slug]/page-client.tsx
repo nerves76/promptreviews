@@ -273,6 +273,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
   const [isSubmitting, setIsSubmitting] = useState<number | null>(null);
   const [isCopied, setIsCopied] = useState<number | null>(null);
   const [isRedirecting, setIsRedirecting] = useState<number | null>(null);
+  const [hasSubmitted, setHasSubmitted] = useState<Set<number>>(new Set());
   const [reviewerFirstNames, setReviewerFirstNames] = useState<string[]>(
     () => promptPage?.review_platforms?.map(() => "") || [],
   );
@@ -971,6 +972,8 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
           if (url) {
             window.open(url, "_blank", "noopener,noreferrer");
           }
+          // Mark this platform as submitted so we can show helper buttons
+          setHasSubmitted(prev => new Set(prev).add(idx));
         } catch (err) {
           // Show custom fallback modal
           setFallbackModalText(platformReviewTexts[idx]);
@@ -2626,6 +2629,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                   isSubmitting={isSubmitting}
                   isCopied={isCopied}
                   isRedirecting={isRedirecting}
+                  hasSubmitted={hasSubmitted.has(idx)}
                   aiRewriteCounts={aiRewriteCounts}
                   fixGrammarCounts={fixGrammarCounts}
                   openInstructionsIdx={openInstructionsIdx}

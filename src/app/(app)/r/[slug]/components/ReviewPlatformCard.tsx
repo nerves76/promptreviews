@@ -26,6 +26,7 @@ interface ReviewPlatformCardProps {
   isSubmitting: number | null;
   isCopied: number | null;
   isRedirecting: number | null;
+  hasSubmitted?: boolean;
   aiRewriteCounts: number[];
   fixGrammarCounts: number[];
   openInstructionsIdx: number | null;
@@ -61,6 +62,7 @@ export default function ReviewPlatformCard({
   isSubmitting,
   isCopied,
   isRedirecting,
+  hasSubmitted,
   aiRewriteCounts,
   fixGrammarCounts,
   openInstructionsIdx,
@@ -569,43 +571,82 @@ export default function ReviewPlatformCard({
                 )}
               </button>
             )}
-            <button
-              type="button"
-              onClick={() => onCopyAndSubmit(idx, platform.url)}
-              disabled={isSubmitting === idx || isCopied === idx || isRedirecting === idx}
-              className="flex-1 px-4 py-2 rounded-lg text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all duration-200 border-2"
-              style={{
-                backgroundColor: businessProfile?.secondary_color || "#4F46E5",
-                borderColor: businessProfile?.secondary_color || "#4F46E5",
-                color: getContrastTextColor(businessProfile?.secondary_color || "#4F46E5"),
-              }}
-              onMouseEnter={(e) => {
-                if (isSubmitting !== idx && isCopied !== idx && isRedirecting !== idx && !e.currentTarget.disabled) {
-                  e.currentTarget.style.backgroundColor = "transparent";
-                  e.currentTarget.style.color = businessProfile?.secondary_color || "#4F46E5";
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (isSubmitting !== idx && isCopied !== idx && isRedirecting !== idx && !e.currentTarget.disabled) {
-                  e.currentTarget.style.backgroundColor = businessProfile?.secondary_color || "#4F46E5";
-                  e.currentTarget.style.color = getContrastTextColor(businessProfile?.secondary_color || "#4F46E5");
-                }
-              }}
-            >
-              {isSubmitting === idx ? (
-                <>
-                  <ButtonSpinner size={16} />
-                  Copying review...
-                </>
-              ) : isRedirecting === idx ? (
-                <>
-                  <ButtonSpinner size={16} />
-                  Redirecting...
-                </>
-              ) : (
-                <span className="text-center">Copy & open {label}</span>
-              )}
-            </button>
+            {hasSubmitted ? (
+              <>
+                {/* Copy review button */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (platformReviewTexts[idx]) {
+                      navigator.clipboard.writeText(platformReviewTexts[idx]);
+                    }
+                  }}
+                  className="flex-1 px-4 py-2 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 flex items-center justify-center gap-2 transition-all duration-200 border-2"
+                  style={{
+                    backgroundColor: "transparent",
+                    borderColor: businessProfile?.secondary_color || "#4F46E5",
+                    color: businessProfile?.secondary_color || "#4F46E5",
+                  }}
+                >
+                  Copy review
+                </button>
+                {/* Visit platform button */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (platform.url) {
+                      window.open(platform.url, "_blank", "noopener,noreferrer");
+                    }
+                  }}
+                  className="flex-1 px-4 py-2 rounded-lg text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 flex items-center justify-center gap-2 transition-all duration-200 border-2"
+                  style={{
+                    backgroundColor: businessProfile?.secondary_color || "#4F46E5",
+                    borderColor: businessProfile?.secondary_color || "#4F46E5",
+                    color: getContrastTextColor(businessProfile?.secondary_color || "#4F46E5"),
+                  }}
+                >
+                  <span className="text-center">Visit {label}</span>
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                onClick={() => onCopyAndSubmit(idx, platform.url)}
+                disabled={isSubmitting === idx || isCopied === idx || isRedirecting === idx}
+                className="flex-1 px-4 py-2 rounded-lg text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all duration-200 border-2"
+                style={{
+                  backgroundColor: businessProfile?.secondary_color || "#4F46E5",
+                  borderColor: businessProfile?.secondary_color || "#4F46E5",
+                  color: getContrastTextColor(businessProfile?.secondary_color || "#4F46E5"),
+                }}
+                onMouseEnter={(e) => {
+                  if (isSubmitting !== idx && isCopied !== idx && isRedirecting !== idx && !e.currentTarget.disabled) {
+                    e.currentTarget.style.backgroundColor = "transparent";
+                    e.currentTarget.style.color = businessProfile?.secondary_color || "#4F46E5";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (isSubmitting !== idx && isCopied !== idx && isRedirecting !== idx && !e.currentTarget.disabled) {
+                    e.currentTarget.style.backgroundColor = businessProfile?.secondary_color || "#4F46E5";
+                    e.currentTarget.style.color = getContrastTextColor(businessProfile?.secondary_color || "#4F46E5");
+                  }
+                }}
+              >
+                {isSubmitting === idx ? (
+                  <>
+                    <ButtonSpinner size={16} />
+                    Copying review...
+                  </>
+                ) : isRedirecting === idx ? (
+                  <>
+                    <ButtonSpinner size={16} />
+                    Redirecting...
+                  </>
+                ) : (
+                  <span className="text-center">Copy & open {label}</span>
+                )}
+              </button>
+            )}
           </div>
 
           {/* Compliance text */}
