@@ -1677,7 +1677,7 @@ function PromptPagesContent() {
         title="Prompt Pages and YOU!"
         message={`Prompt Pages are brand-able and customizable review collection pages. You can enable a variety of features to make it easy for your customers to provide valuable reviews, testimonials, and feedback.
 
-When a customer writes a review and clicks "Copy & continue" a few important things happen:
+When a customer writes a review and clicks "Copy & open" a few important things happen:
 
 1. The review is saved to your Prompt Reviews account.
 2. The review is copied to the users clipboard

@@ -1593,7 +1593,7 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
                                 color: promptPageStep >= 3 ? 'rgba(255, 255, 255, 0.9)' : 'rgba(156, 163, 175, 0.5)'
                               }}
                             >
-                              Copy & continue
+                              Copy & open
                             </span>
                           </div>
                         </div>

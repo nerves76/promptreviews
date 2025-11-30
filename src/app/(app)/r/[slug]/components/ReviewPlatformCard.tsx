@@ -603,9 +603,7 @@ export default function ReviewPlatformCard({
                   Redirecting...
                 </>
               ) : (
-                <>
-                  Copy & continue
-                </>
+                <span className="text-center">Copy & open {label}</span>
               )}
             </button>
           </div>
