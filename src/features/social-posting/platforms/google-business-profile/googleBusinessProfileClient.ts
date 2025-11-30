@@ -658,7 +658,7 @@ export class GoogleBusinessProfileClient {
       let allReviews: any[] = [];
       let pageToken: string | undefined = undefined;
       let pageCount = 0;
-      const maxPages = 20; // Safety limit to prevent infinite loops
+      const maxPages = 100; // Safety limit: 100 pages × 50 = 5000 reviews max
 
       // Fetch all pages of reviews
       do {
