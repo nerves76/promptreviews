@@ -96,7 +96,7 @@ export default function RecentReviewsFeature({
             </span>
           </div>
           <div className="text-sm text-gray-700 mt-[3px] ml-9">
-            Show a "Recent reviews" button below on your Prompt Page to inspire visitors or help them come up with ideas for their own review. Displays the latest 5 reviews with only the reviewer's initials for privacy. Note: Button only appears when you have 3+ reviews.
+            Show a "Recent reviews" button on your Prompt Page to inspire visitors or help them come up with ideas for their own review. Displays the latest 5 reviews with only the reviewer's initials for privacy. Note: Button only appears when you have 3+ reviews.
           </div>
         </div>
         <div className="flex flex-col justify-start pt-1">

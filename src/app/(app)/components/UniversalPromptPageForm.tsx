@@ -137,6 +137,71 @@ export default function UniversalPromptPageForm({
     return [];
   });
 
+  // Local state for kickstarters background design (synced with business profile)
+  const [localBackgroundDesign, setLocalBackgroundDesign] = useState(
+    businessProfile?.kickstarters_background_design ?? false
+  );
+
+  // Handle kickstarters background design changes (updates global business setting)
+  const handleKickstartersBackgroundDesignChange = async (backgroundDesign: boolean) => {
+    // Update local state immediately for UI feedback
+    setLocalBackgroundDesign(backgroundDesign);
+
+    try {
+      // Update the global business setting
+      const { error } = await supabase
+        .from('businesses')
+        .update({ kickstarters_background_design: backgroundDesign })
+        .eq('account_id', businessProfile?.account_id);
+
+      if (error) {
+        console.error('Error updating kickstarters background design:', error);
+        // Revert local state if database update failed
+        setLocalBackgroundDesign(businessProfile?.kickstarters_background_design ?? false);
+      } else {
+        // Update the business profile object for immediate sync with live page
+        if (businessProfile) {
+          businessProfile.kickstarters_background_design = backgroundDesign;
+        }
+      }
+    } catch (error) {
+      console.error('Error updating kickstarters background design:', error);
+      // Revert local state if database update failed
+      setLocalBackgroundDesign(businessProfile?.kickstarters_background_design ?? false);
+    }
+  };
+
+  // Handle kickstarters color changes (updates global business setting)
+  const handleKickstartersColorChange = async (color: string) => {
+    try {
+      // Use the API endpoint for proper account isolation and authentication
+      const response = await fetch('/api/businesses/update-style', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Selected-Account': businessProfile?.account_id || '',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          businessId: businessProfile?.id,
+          kickstarters_primary_color: color,
+        }),
+      });
+
+      if (!response.ok) {
+        const result = await response.json();
+        console.error('Error updating kickstarters primary color:', result.error);
+      } else {
+        // Update the business profile object for immediate sync with live page
+        if (businessProfile) {
+          businessProfile.kickstarters_primary_color = color;
+        }
+      }
+    } catch (error) {
+      console.error('Error updating kickstarters primary color:', error);
+    }
+  };
+
   // Synchronize form data with initialData when it changes
   useEffect(() => {
     if (initialData?.motivational_nudge_enabled !== undefined) {
@@ -421,6 +486,10 @@ export default function UniversalPromptPageForm({
         onKickstartersChange={(kickstarters) => {
           setFormData((prev: any) => ({ ...prev, selected_kickstarters: kickstarters }));
         }}
+        backgroundDesign={localBackgroundDesign}
+        onBackgroundDesignChange={handleKickstartersBackgroundDesignChange}
+        onKickstartersColorChange={handleKickstartersColorChange}
+        businessName={businessProfile?.name || businessProfile?.business_name || "Business Name"}
         businessProfile={businessProfile}
         initialData={initialData}
         editMode={true}
