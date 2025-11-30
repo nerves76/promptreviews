@@ -295,6 +295,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
   const [isTimelockActive, setIsTimelockActive] = useState(false);
   const [photoSuccess, setPhotoSuccess] = useState(false);
   const [photoError, setPhotoError] = useState<string | null>(null);
+  const [showReturnSuccess, setShowReturnSuccess] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const [aiLoadingPhoto, setAiLoadingPhoto] = useState(false);
@@ -996,9 +997,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
           // Show "Redirecting" state
           setIsSubmitting(null);
           setIsRedirecting(idx);
-          setCopySuccess(
-            "Copied to clipboard! Now paste it on the review site.",
-          );
+          setCopySuccess("Copied!");
           
           // Wait briefly to show "Redirecting" state, then open URL
           await new Promise(resolve => setTimeout(resolve, 800));
@@ -1950,7 +1949,47 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
           falling_icon_color={promptPage?.falling_icon_color}
           getFallingIcon={getFallingIcon}
         />
-        
+
+        {/* Success Toast - shown after confirming review was posted */}
+        {showReturnSuccess && (
+          <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[70] animate-fade-in">
+            <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-sm relative text-center">
+              <img
+                src="/images/prompty-success.png"
+                alt="Success"
+                className="w-16 h-16 mx-auto mb-3"
+              />
+              <h3 className="text-lg font-bold text-gray-900 mb-1">Success!</h3>
+              <p className="text-sm text-gray-600">
+                Thank you for supporting {businessProfile?.name || businessProfile?.business_name || 'us'}. Reviews help small businesses grow.
+              </p>
+              {/* Circular close button that exceeds modal borders */}
+              <button
+                className="absolute -top-3 -right-3 bg-white/70 backdrop-blur-sm border border-white/40 rounded-full shadow-lg flex items-center justify-center hover:bg-white/90 focus:outline-none z-20 transition-colors p-2"
+                style={{ width: 36, height: 36 }}
+                onClick={() => setShowReturnSuccess(false)}
+                aria-label="Close"
+              >
+                <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Copy Success Toast - shown when review is copied to clipboard */}
+        {copySuccess && !showFallbackModal && (
+          <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[70] animate-fade-in">
+            <div className="bg-green-600 text-white px-6 py-3 rounded-lg shadow-xl flex items-center gap-2">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              <span className="font-medium">{copySuccess}</span>
+            </div>
+          </div>
+        )}
+
         {/* Style & Back Buttons - Only visible to authenticated users */}
         {!userLoading && currentUser && (
           <div
@@ -2658,33 +2697,61 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                 />
               )}
 
+              {/* Return State Overlay - shows when user returns from external review site */}
+              {activeReturnState !== null && pendingReturnStates.has(activeReturnState) && (
+                <ReturnStateCard
+                  submissionId={pendingReturnStates.get(activeReturnState)!.submissionId}
+                  platformName={pendingReturnStates.get(activeReturnState)!.platformName}
+                  reviewText={pendingReturnStates.get(activeReturnState)!.reviewText}
+                  platformUrl={pendingReturnStates.get(activeReturnState)!.platformUrl}
+                  businessName={businessProfile?.name || businessProfile?.business_name}
+                  backgroundSettings={{
+                    type: businessProfile?.background_type || 'gradient',
+                    color: businessProfile?.background_color,
+                    gradientStart: businessProfile?.gradient_start,
+                    gradientMiddle: businessProfile?.gradient_middle,
+                    gradientEnd: businessProfile?.gradient_end,
+                  }}
+                  onConfirmed={() => {
+                    // Clear the overlay and show success message on prompt page
+                    const idx = activeReturnState;
+                    setPendingReturnStates(prev => {
+                      const newMap = new Map(prev);
+                      newMap.delete(idx);
+                      return newMap;
+                    });
+                    setActiveReturnState(null);
+                    setShowReturnSuccess(true);
+                    // Auto-hide after 5 seconds
+                    setTimeout(() => setShowReturnSuccess(false), 5000);
+                  }}
+                  onNeedsHelp={() => {
+                    // Keep showing the help UI, don't clear immediately
+                    // User can still retry from the help state
+                  }}
+                  onBack={() => {
+                    // Clear this return state and go back to review creation
+                    const idx = activeReturnState;
+                    setPendingReturnStates(prev => {
+                      const newMap = new Map(prev);
+                      newMap.delete(idx);
+                      return newMap;
+                    });
+                    setActiveReturnState(null);
+                  }}
+                  onTriggerStarRain={() => {
+                    // Trigger falling star animation if enabled
+                    if (promptPage?.falling_icon || promptPage?.falling_enabled) {
+                      setShowStarRain(false);
+                      setTimeout(() => setShowStarRain(true), 50);
+                    }
+                  }}
+                />
+              )}
+
               {/* Review Platforms Section - only for non-photo review types */}
               {sentimentComplete && !showFeedbackForm && promptPage?.review_type !== "photo" &&
                 mergedReviewPlatforms?.map((platform: any, idx: number) => (
-                activeReturnState === idx && pendingReturnStates.has(idx) ? (
-                  <ReturnStateCard
-                    key={`return-${platform.id || idx}`}
-                    submissionId={pendingReturnStates.get(idx)!.submissionId}
-                    platformName={pendingReturnStates.get(idx)!.platformName}
-                    reviewText={pendingReturnStates.get(idx)!.reviewText}
-                    platformUrl={pendingReturnStates.get(idx)!.platformUrl}
-                    businessName={businessProfile?.name || businessProfile?.business_name}
-                    businessProfile={businessProfile}
-                    onConfirmed={() => {
-                      // Clear this platform from pending states
-                      setPendingReturnStates(prev => {
-                        const newMap = new Map(prev);
-                        newMap.delete(idx);
-                        return newMap;
-                      });
-                      setActiveReturnState(null);
-                    }}
-                    onNeedsHelp={() => {
-                      // Keep showing the help UI, don't clear immediately
-                      // User can still retry from the help state
-                    }}
-                  />
-                ) : (
                 <ReviewPlatformCard
                   key={platform.id || idx}
                   platform={platform}
@@ -2754,8 +2821,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                   getPlatformIcon={getPlatformIcon}
                   getFontClass={getFontClass}
                 />
-                ))
-              )}
+                ))}
               
               {/* Limit Modal */}
               {showLimitModal && (
