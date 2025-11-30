@@ -616,6 +616,7 @@ const DashboardContent = React.memo(function DashboardContent({
                             slug={universalPromptPage.slug}
                             emojiSentimentEnabled={universalPromptPage?.emoji_sentiment_enabled}
                             isUniversal={true}
+                            business={business}
                           />
                         )}
                         

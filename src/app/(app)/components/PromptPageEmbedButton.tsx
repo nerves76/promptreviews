@@ -4,11 +4,27 @@ import React, { useState } from "react";
 import Icon from "@/components/Icon";
 import PromptPageEmbedModal from "./PromptPageEmbedModal";
 
+interface BusinessData {
+  name?: string;
+  logo_url?: string;
+  business_email?: string;
+  phone?: string;
+  business_website?: string;
+  facebook_url?: string;
+  instagram_url?: string;
+  linkedin_url?: string;
+  tiktok_url?: string;
+  youtube_url?: string;
+  bluesky_url?: string;
+  pinterest_url?: string;
+}
+
 interface PromptPageEmbedButtonProps {
   slug: string;
   question?: string;
   emojiSentimentEnabled?: boolean;
   isUniversal?: boolean;
+  business?: BusinessData | null;
 }
 
 /**
@@ -27,6 +43,7 @@ const PromptPageEmbedButton: React.FC<PromptPageEmbedButtonProps> = ({
   question = "How was your experience?",
   emojiSentimentEnabled = false,
   isUniversal = false,
+  business = null,
 }) => {
   const [showModal, setShowModal] = useState(false);
 
@@ -53,6 +70,7 @@ const PromptPageEmbedButton: React.FC<PromptPageEmbedButtonProps> = ({
         question={question}
         emojiSentimentEnabled={emojiSentimentEnabled}
         isUniversal={isUniversal}
+        business={business}
       />
     </>
   );

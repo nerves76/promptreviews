@@ -4,7 +4,23 @@ import React, { useState } from "react";
 import { EMOJI_SENTIMENT_LABELS } from "./prompt-modules/emojiSentimentConfig";
 import EmojiSentimentEmbed from "./EmojiSentimentEmbed";
 import FiveStarEmbedGenerator from "./FiveStarEmbedGenerator";
+import EmailSignatureEmbedGenerator from "./EmailSignatureEmbedGenerator";
 import Icon from "@/components/Icon";
+
+interface BusinessData {
+  name?: string;
+  logo_url?: string;
+  business_email?: string;
+  phone?: string;
+  business_website?: string;
+  facebook_url?: string;
+  instagram_url?: string;
+  linkedin_url?: string;
+  tiktok_url?: string;
+  youtube_url?: string;
+  bluesky_url?: string;
+  pinterest_url?: string;
+}
 
 interface PromptPageEmbedModalProps {
   isOpen: boolean;
@@ -13,9 +29,10 @@ interface PromptPageEmbedModalProps {
   question?: string;
   emojiSentimentEnabled?: boolean;
   isUniversal?: boolean;
+  business?: BusinessData | null;
 }
 
-type TabType = "5-star" | "emoji";
+type TabType = "5-star" | "emoji" | "signature";
 
 /**
  * PromptPageEmbedModal Component
@@ -30,6 +47,7 @@ const PromptPageEmbedModal: React.FC<PromptPageEmbedModalProps> = ({
   question = "How was your experience?",
   emojiSentimentEnabled = false,
   isUniversal = false,
+  business = null,
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>("5-star");
 
@@ -155,6 +173,16 @@ const PromptPageEmbedModal: React.FC<PromptPageEmbedModalProps> = ({
                 5-Star Embed
               </button>
               <button
+                onClick={() => setActiveTab("signature")}
+                className={`px-6 py-3 font-medium text-sm border-b-2 transition-colors ${
+                  activeTab === "signature"
+                    ? "border-slate-600 text-slate-700"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }`}
+              >
+                Email Signature
+              </button>
+              <button
                 onClick={() => setActiveTab("emoji")}
                 className={`px-6 py-3 font-medium text-sm border-b-2 transition-colors ${
                   activeTab === "emoji"
@@ -196,7 +224,8 @@ const PromptPageEmbedModal: React.FC<PromptPageEmbedModalProps> = ({
                 <>
                   {/* Live Preview section */}
                   <div className="mb-8">
-                <h3 className="text-lg font-medium text-gray-800 mb-4 text-center">Live preview</h3>
+                <h3 className="text-lg font-medium text-gray-800 mb-1 text-center">Live preview</h3>
+                <p className="text-sm text-gray-500 text-center mb-4">Note: changes made here are not saved to your account. Be sure to copy your code before closing.</p>
                 <div className="border border-gray-200 rounded-lg p-8 bg-gray-50 flex justify-center">
                   <EmojiSentimentEmbed
                     header={question}
@@ -336,6 +365,13 @@ const PromptPageEmbedModal: React.FC<PromptPageEmbedModalProps> = ({
                 </>
               )}
             </>
+          )}
+
+          {activeTab === "signature" && (
+            <EmailSignatureEmbedGenerator
+              promptPageUrl={promptPageUrl}
+              business={business}
+            />
           )}
         </div>
       </div>

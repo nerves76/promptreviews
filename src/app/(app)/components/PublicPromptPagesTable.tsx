@@ -204,6 +204,7 @@ export default function PublicPromptPagesTable({
                         slug={page.slug}
                         emojiSentimentEnabled={page?.emoji_sentiment_enabled}
                         isUniversal={false}
+                        business={business}
                       />
                     </div>
                   </td>

@@ -38,6 +38,8 @@ const FiveStarEmbedGenerator: React.FC<FiveStarEmbedGeneratorProps> = ({
   const [buttonColor, setButtonColor] = useState(DEFAULT_BUTTON_COLOR);
   const [buttonTextColor, setButtonTextColor] = useState(DEFAULT_BUTTON_TEXT_COLOR);
   const [showStarImage, setShowStarImage] = useState(true);
+  const [starSize, setStarSize] = useState(240); // Star image width in pixels (160-320)
+  const [starGap, setStarGap] = useState(-40); // Gap between stars and heading (-50 to 32px)
   const [copyStatus, setCopyStatus] = useState("");
   const [customUrl, setCustomUrl] = useState(promptPageUrl);
 
@@ -46,11 +48,11 @@ const FiveStarEmbedGenerator: React.FC<FiveStarEmbedGeneratorProps> = ({
   const generateEmbedHTML = () => {
     return `<!-- 5-star review embed by Prompt Reviews promptreviews.app -->
 <div style="max-width:600px;margin:0 auto;background:transparent;text-align:center;font-family:Arial,sans-serif;">
-  ${showStarImage ? `<div style="margin-bottom:0px;">
-    <img src="${FIVE_STAR_IMAGE_URL}" alt="5 Stars" style="width:240px;height:auto;display:inline-block;" />
+  ${showStarImage ? `<div style="margin-bottom:${starGap}px;">
+    <img src="${FIVE_STAR_IMAGE_URL}" alt="5 Stars" style="width:${starSize}px;height:auto;display:inline-block;" />
   </div>` : ''}
   <div style="margin-bottom:0px;">
-    <h2 style="font-size:24px;font-weight:bold;color:${textColor};margin:4px 0 16px 0;">${heading}</h2>
+    <h2 style="font-size:24px;font-weight:bold;color:${textColor};margin:0 0 16px 0;">${heading}</h2>
   </div>
   <div style="margin-bottom:20px;">
     <p style="font-size:16px;line-height:1.5;color:${textColor};margin:0;">${subcopy}</p>
@@ -84,7 +86,8 @@ const FiveStarEmbedGenerator: React.FC<FiveStarEmbedGeneratorProps> = ({
     <div className="space-y-6">
       {/* Live Preview */}
       <div>
-        <h3 className="text-lg font-medium text-gray-800 mb-4 text-center">Live preview</h3>
+        <h3 className="text-lg font-medium text-gray-800 mb-1 text-center">Live preview</h3>
+        <p className="text-sm text-gray-500 text-center mb-4">Note: changes made here are not saved to your account. Be sure to copy your code before closing.</p>
         <div className="border border-gray-200 rounded-lg p-8 bg-gray-50">
           <div
             style={{
@@ -95,11 +98,11 @@ const FiveStarEmbedGenerator: React.FC<FiveStarEmbedGeneratorProps> = ({
             }}
           >
             {showStarImage && (
-              <div style={{ marginBottom: '0px' }}>
+              <div style={{ marginBottom: `${starGap}px` }}>
                 <img
                   src={FIVE_STAR_IMAGE_URL}
                   alt="5 Stars"
-                  style={{ width: '240px', height: 'auto', display: 'inline-block' }}
+                  style={{ width: `${starSize}px`, height: 'auto', display: 'inline-block' }}
                 />
               </div>
             )}
@@ -108,7 +111,7 @@ const FiveStarEmbedGenerator: React.FC<FiveStarEmbedGeneratorProps> = ({
                 fontSize: '24px',
                 fontWeight: 'bold',
                 color: textColor,
-                margin: '4px 0 16px 0'
+                margin: '0 0 16px 0'
               }}>
                 {heading}
               </h2>
@@ -143,6 +146,74 @@ const FiveStarEmbedGenerator: React.FC<FiveStarEmbedGeneratorProps> = ({
               </a>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Colors, Sliders, and Copy Buttons */}
+      <div className="flex items-end justify-between gap-6 bg-gray-50 p-4 rounded-lg">
+        <div className="flex gap-6 items-end">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Text</label>
+            <input
+              type="color"
+              value={textColor}
+              onChange={(e) => setTextColor(e.target.value)}
+              className="w-10 h-10 border border-gray-300 rounded-md cursor-pointer"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Button</label>
+            <input
+              type="color"
+              value={buttonColor}
+              onChange={(e) => setButtonColor(e.target.value)}
+              className="w-10 h-10 border border-gray-300 rounded-md cursor-pointer"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Btn Text</label>
+            <input
+              type="color"
+              value={buttonTextColor}
+              onChange={(e) => setButtonTextColor(e.target.value)}
+              className="w-10 h-10 border border-gray-300 rounded-md cursor-pointer"
+            />
+          </div>
+          <div className="w-28">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Stars {starSize}px</label>
+            <input
+              type="range"
+              min="160"
+              max="320"
+              step="10"
+              value={starSize}
+              onChange={(e) => setStarSize(Number(e.target.value))}
+              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+              disabled={!showStarImage}
+            />
+          </div>
+          <div className="w-28">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Gap {starGap}px</label>
+            <input
+              type="range"
+              min="-50"
+              max="32"
+              step="2"
+              value={starGap}
+              onChange={(e) => setStarGap(Number(e.target.value))}
+              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+              disabled={!showStarImage}
+            />
+          </div>
+        </div>
+        <div className="text-right">
+          <button
+            type="button"
+            className="px-5 py-2.5 bg-slate-blue text-white rounded-md hover:bg-blue-700 transition-colors font-medium text-sm"
+            onClick={handleCopy}
+          >
+            {copyStatus || 'Copy HTML'}
+          </button>
         </div>
       </div>
 
@@ -229,37 +300,6 @@ const FiveStarEmbedGenerator: React.FC<FiveStarEmbedGeneratorProps> = ({
           )}
         </div>
 
-        {/* Color Pickers */}
-        <div className="grid grid-cols-3 gap-4 mb-4">
-          <div>
-            <label className="block font-medium text-gray-700 mb-2">Text color:</label>
-            <input
-              type="color"
-              value={textColor}
-              onChange={(e) => setTextColor(e.target.value)}
-              className="w-12 h-10 border border-gray-300 rounded-md cursor-pointer"
-            />
-          </div>
-          <div>
-            <label className="block font-medium text-gray-700 mb-2">Button fill:</label>
-            <input
-              type="color"
-              value={buttonColor}
-              onChange={(e) => setButtonColor(e.target.value)}
-              className="w-12 h-10 border border-gray-300 rounded-md cursor-pointer"
-            />
-          </div>
-          <div>
-            <label className="block font-medium text-gray-700 mb-2">Button text:</label>
-            <input
-              type="color"
-              value={buttonTextColor}
-              onChange={(e) => setButtonTextColor(e.target.value)}
-              className="w-12 h-10 border border-gray-300 rounded-md cursor-pointer"
-            />
-          </div>
-        </div>
-
         {/* Show 5-Star Image Checkbox */}
         <div className="flex items-center gap-3">
           <input
@@ -270,30 +310,6 @@ const FiveStarEmbedGenerator: React.FC<FiveStarEmbedGeneratorProps> = ({
           />
           <label className="font-medium text-gray-700">Show 5-star image</label>
         </div>
-      </div>
-
-      {/* HTML Code Output */}
-      <div>
-        <h3 className="text-lg font-medium text-gray-800 mb-4">Embed code</h3>
-        <textarea
-          id="five-star-embed-html"
-          className="w-full border border-gray-300 rounded-md p-4 font-mono text-sm bg-white resize-none"
-          rows={8}
-          value={generateEmbedHTML()}
-          readOnly
-          placeholder="HTML embed code will appear here..."
-        />
-      </div>
-
-      {/* Copy Button */}
-      <div className="flex justify-start">
-        <button
-          type="button"
-          className="px-6 py-3 bg-slate-blue text-white rounded-md hover:bg-blue-700 transition-colors font-medium"
-          onClick={handleCopy}
-        >
-          {copyStatus || 'Copy HTML'}
-        </button>
       </div>
     </div>
   );

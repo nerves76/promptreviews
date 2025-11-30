@@ -976,6 +976,7 @@ function PromptPagesContent() {
                             slug={universalPromptPage.slug}
                             emojiSentimentEnabled={universalPromptPage?.emoji_sentiment_enabled}
                             isUniversal={true}
+                            business={business}
                           />
                         )}
 
@@ -1083,6 +1084,7 @@ function PromptPagesContent() {
             onClose={() => setEmbedModal(null)}
             slug={embedModal?.slug || ""}
             isUniversal={embedModal?.isUniversal || false}
+            business={business}
           />
         </div>
       )}
