@@ -411,6 +411,37 @@ export default function KeywordTrackerPage() {
     }
   };
 
+  // Remove a keyword
+  const [removingKeyword, setRemovingKeyword] = useState<string | null>(null);
+
+  const handleRemoveKeyword = async (keyword: string) => {
+    if (!hasAccount || !selectedAccountId) return;
+
+    setRemovingKeyword(keyword);
+
+    try {
+      const newKeywords = keywords.filter(k => k !== keyword);
+      await apiClient.put(`/businesses/${selectedAccountId}`, {
+        keywords: newKeywords,
+      });
+
+      setKeywords(newKeywords);
+
+      setStatusMessage({
+        type: "success",
+        text: `Removed "${keyword}" from your keywords.`,
+      });
+    } catch (error) {
+      console.error("Failed to remove keyword:", error);
+      setStatusMessage({
+        type: "error",
+        text: error instanceof Error ? error.message : "Failed to remove keyword",
+      });
+    } finally {
+      setRemovingKeyword(null);
+    }
+  };
+
   if (authLoading || authInitializing || keywordsLoading) {
     return (
       <PageCard>
@@ -517,15 +548,29 @@ export default function KeywordTrackerPage() {
                   return (
                     <div
                       key={keyword}
-                      className="flex items-center justify-between py-2 border-b border-slate-50"
+                      className="flex items-center justify-between py-2 border-b border-slate-50 group"
                     >
                       <span className="text-sm text-gray-700 truncate mr-2">{keyword}</span>
-                      <span className={`text-sm font-semibold tabular-nums ${
-                        count === undefined ? 'text-gray-300' :
-                        count > 0 ? 'text-emerald-600' : 'text-gray-300'
-                      }`}>
-                        {count === undefined ? '—' : count}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className={`text-sm font-semibold tabular-nums ${
+                          count === undefined ? 'text-gray-300' :
+                          count > 0 ? 'text-emerald-600' : 'text-gray-300'
+                        }`}>
+                          {count === undefined ? '—' : count}
+                        </span>
+                        <button
+                          onClick={() => handleRemoveKeyword(keyword)}
+                          disabled={removingKeyword === keyword}
+                          className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-500 transition-all disabled:opacity-50"
+                          title="Remove keyword"
+                        >
+                          {removingKeyword === keyword ? (
+                            <Icon name="FaSpinner" className="w-3 h-3 animate-spin" size={12} />
+                          ) : (
+                            <Icon name="FaTimes" className="w-3 h-3" size={12} />
+                          )}
+                        </button>
+                      </div>
                     </div>
                   );
                 })}
