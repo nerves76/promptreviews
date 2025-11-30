@@ -231,6 +231,7 @@ export default function ReviewPlatformCard({
               cardBackgroundColor={businessProfile?.card_bg}
               cardTransparency={businessProfile?.card_transparency ?? 0.30}
               cardTextColor={businessProfile?.card_text || "#1A1A1A"}
+              platformName={label}
             />
           </div>
           

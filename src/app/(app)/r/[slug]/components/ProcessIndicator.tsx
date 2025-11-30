@@ -7,18 +7,19 @@ interface ProcessIndicatorProps {
   cardBackgroundColor?: string;
   cardTransparency?: number;
   cardTextColor?: string;
+  platformName?: string;
 }
 
-export default function ProcessIndicator({ primaryColor = "#4F46E5", cardBackgroundColor = "#FFFFFF", cardTransparency = 1, cardTextColor = "#1A1A1A" }: ProcessIndicatorProps) {
+export default function ProcessIndicator({ primaryColor = "#4F46E5", cardBackgroundColor = "#FFFFFF", cardTransparency = 1, cardTextColor = "#1A1A1A", platformName }: ProcessIndicatorProps) {
   const [activeStep, setActiveStep] = useState(0);
   const [animationPhase, setAnimationPhase] = useState<'waiting' | 'highlight' | 'drawLine' | 'pause' | 'fadeOut'>('waiting');
   const [drawnLines, setDrawnLines] = useState<number[]>([]);
   const [isFirstRun, setIsFirstRun] = useState(true);
-  
+
   const steps = [
     "Create review",
-    "Click \"Copy & open\"",
-    "Paste & post"
+    platformName ? `Copy & open ${platformName}` : "Copy & open",
+    "Paste & submit"
   ];
 
   useEffect(() => {
