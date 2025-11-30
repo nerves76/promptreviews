@@ -133,8 +133,8 @@ const PromptPageEmbedModal: React.FC<PromptPageEmbedModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl max-w-5xl w-full mx-12 my-12 max-h-[85vh] relative border-2 border-white">
-        {/* Standardized red X close button */}
+      <div className="relative max-w-5xl w-full mx-12 my-12">
+        {/* Standardized red X close button - outside overflow container */}
         <button
           onClick={onClose}
           className="absolute -top-3 -right-3 bg-white border border-gray-200 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 flex items-center justify-center hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 z-50"
@@ -146,8 +146,10 @@ const PromptPageEmbedModal: React.FC<PromptPageEmbedModalProps> = ({
           </svg>
         </button>
 
-        {/* Scrollable content area */}
-        <div className="p-8 overflow-y-auto max-h-[85vh]">
+        {/* Modal content with overflow hidden */}
+        <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl max-h-[85vh] border-2 border-white overflow-hidden">
+          {/* Scrollable content area */}
+          <div className="p-8 overflow-y-auto max-h-[85vh]">
           {/* Header section */}
           <div className="mb-6">
             <h2 className="text-2xl font-semibold text-slate-700 flex items-center gap-3">
@@ -373,6 +375,7 @@ const PromptPageEmbedModal: React.FC<PromptPageEmbedModalProps> = ({
               business={business}
             />
           )}
+          </div>
         </div>
       </div>
     </div>
