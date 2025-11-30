@@ -239,14 +239,24 @@ ${business?.industry ? `\nBusiness industry: ${business.industry}` : ''}`,
 
     console.log('[keyword-tracker/suggest] AI suggested keywords:', aiSuggestions.length, aiSuggestions);
 
-    // Verify each suggestion actually exists in reviews
-    const verified = verifySuggestions(aiSuggestions, reviews, existingKeywords);
+    // Filter out existing keywords (AI should do this, but double-check)
+    const existingLower = existingKeywords.map(k => k.toLowerCase());
+    const newSuggestions = aiSuggestions.filter(
+      (s: string) => !existingLower.includes(s.toLowerCase())
+    );
 
-    console.log('[keyword-tracker/suggest] Verified suggestions (found in 2+ reviews):', verified.length, verified.map(v => `${v.keyword}(${v.count})`));
+    // Format suggestions - trust the AI found these in reviews
+    const formattedSuggestions = newSuggestions.slice(0, 10).map((keyword: string) => ({
+      keyword,
+      count: 0, // We don't have exact count without re-scanning
+      sampleExcerpts: [],
+    }));
+
+    console.log('[keyword-tracker/suggest] Returning suggestions:', formattedSuggestions.length);
 
     return NextResponse.json({
       success: true,
-      suggestions: verified.slice(0, 10), // Return top 10 verified suggestions
+      suggestions: formattedSuggestions,
       reviewsAnalyzed: reviews.length,
     });
 
