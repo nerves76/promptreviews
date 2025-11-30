@@ -1,7 +1,7 @@
 /**
  * Keyword Tracker Usage Endpoint
  *
- * Returns current usage count and monthly limit for keyword analyses.
+ * Returns current usage count and monthly limit for keyword analyses and suggestions.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -38,30 +38,56 @@ export async function GET(request: NextRequest) {
 
     const { data: accountData } = await serviceSupabase
       .from('accounts')
-      .select('keyword_analyses_this_month, keyword_last_reset_date')
+      .select('keyword_analyses_this_month, keyword_last_reset_date, keyword_suggestions_this_month, keyword_suggestions_last_reset_date')
       .eq('id', accountId)
       .single();
 
-    let usageThisMonth = accountData?.keyword_analyses_this_month || 0;
-    const lastResetDate = accountData?.keyword_last_reset_date
+    const now = new Date();
+
+    // Process analyses usage
+    let analysesUsage = accountData?.keyword_analyses_this_month || 0;
+    const analysesLastReset = accountData?.keyword_last_reset_date
       ? new Date(accountData.keyword_last_reset_date)
       : null;
 
-    // Check if we need to reset the counter (new month)
-    const now = new Date();
-    if (lastResetDate) {
-      const isNewMonth = now.getMonth() !== lastResetDate.getMonth() ||
-                        now.getFullYear() !== lastResetDate.getFullYear();
+    if (analysesLastReset) {
+      const isNewMonth = now.getMonth() !== analysesLastReset.getMonth() ||
+                        now.getFullYear() !== analysesLastReset.getFullYear();
       if (isNewMonth) {
-        usageThisMonth = 0;
+        analysesUsage = 0;
+      }
+    }
+
+    // Process suggestions usage
+    let suggestionsUsage = accountData?.keyword_suggestions_this_month || 0;
+    const suggestionsLastReset = accountData?.keyword_suggestions_last_reset_date
+      ? new Date(accountData.keyword_suggestions_last_reset_date)
+      : null;
+
+    if (suggestionsLastReset) {
+      const isNewMonth = now.getMonth() !== suggestionsLastReset.getMonth() ||
+                        now.getFullYear() !== suggestionsLastReset.getFullYear();
+      if (isNewMonth) {
+        suggestionsUsage = 0;
       }
     }
 
     return NextResponse.json({
       success: true,
-      usageThisMonth,
+      analyses: {
+        usageThisMonth: analysesUsage,
+        monthlyLimit: MONTHLY_LIMIT,
+        remaining: Math.max(0, MONTHLY_LIMIT - analysesUsage),
+      },
+      suggestions: {
+        usageThisMonth: suggestionsUsage,
+        monthlyLimit: MONTHLY_LIMIT,
+        remaining: Math.max(0, MONTHLY_LIMIT - suggestionsUsage),
+      },
+      // Keep backwards compatibility
+      usageThisMonth: analysesUsage,
       monthlyLimit: MONTHLY_LIMIT,
-      remaining: Math.max(0, MONTHLY_LIMIT - usageThisMonth),
+      remaining: Math.max(0, MONTHLY_LIMIT - analysesUsage),
     });
 
   } catch (error) {

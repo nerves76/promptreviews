@@ -93,7 +93,8 @@ export default function KeywordTrackerPage() {
   const [addingKeyword, setAddingKeyword] = useState<string | null>(null);
 
   // Usage tracking state
-  const [usageThisMonth, setUsageThisMonth] = useState<number>(0);
+  const [analysesUsage, setAnalysesUsage] = useState<number>(0);
+  const [suggestionsUsage, setSuggestionsUsage] = useState<number>(0);
   const [monthlyLimit, setMonthlyLimit] = useState<number>(3);
 
   // Load keywords from business data via API
@@ -149,13 +150,14 @@ export default function KeywordTrackerPage() {
       try {
         const data = await apiClient.get('/keyword-tracker/usage') as {
           success: boolean;
-          usageThisMonth: number;
-          monthlyLimit: number;
+          analyses: { usageThisMonth: number; monthlyLimit: number };
+          suggestions: { usageThisMonth: number; monthlyLimit: number };
         };
 
         if (data.success) {
-          setUsageThisMonth(data.usageThisMonth);
-          setMonthlyLimit(data.monthlyLimit);
+          setAnalysesUsage(data.analyses.usageThisMonth);
+          setSuggestionsUsage(data.suggestions.usageThisMonth);
+          setMonthlyLimit(data.analyses.monthlyLimit);
         }
       } catch (error) {
         console.error("Failed to load usage data:", error);
@@ -307,7 +309,7 @@ export default function KeywordTrackerPage() {
     if (!hasAccount || keywords.length === 0) return;
 
     // Check if at limit before making the request
-    if (usageThisMonth >= monthlyLimit) {
+    if (analysesUsage >= monthlyLimit) {
       setStatusMessage({
         type: "error",
         text: `You've used all ${monthlyLimit} analyses this month. Your limit resets on the 1st of next month.`,
@@ -332,7 +334,7 @@ export default function KeywordTrackerPage() {
         setAnalysisHistory(prev => [data.analysis, ...prev]);
         // Update usage from response
         if (data.usageThisMonth !== undefined) {
-          setUsageThisMonth(data.usageThisMonth);
+          setAnalysesUsage(data.usageThisMonth);
         }
         if (data.monthlyLimit !== undefined) {
           setMonthlyLimit(data.monthlyLimit);
@@ -383,6 +385,15 @@ export default function KeywordTrackerPage() {
   const handleGetSuggestions = async () => {
     if (!hasAccount) return;
 
+    // Check if at limit before making the request
+    if (suggestionsUsage >= monthlyLimit) {
+      setStatusMessage({
+        type: "error",
+        text: `You've used all ${monthlyLimit} keyword discoveries this month. Your limit resets on the 1st of next month.`,
+      });
+      return;
+    }
+
     setLoadingSuggestions(true);
     setSuggestions([]);
 
@@ -392,10 +403,16 @@ export default function KeywordTrackerPage() {
         suggestions: KeywordSuggestion[];
         message?: string;
         error?: string;
+        usageThisMonth?: number;
+        monthlyLimit?: number;
       };
 
       if (data.success && data.suggestions) {
         setSuggestions(data.suggestions);
+        // Update usage from response
+        if (data.usageThisMonth !== undefined) {
+          setSuggestionsUsage(data.usageThisMonth);
+        }
         if (data.suggestions.length === 0) {
           setStatusMessage({
             type: "success",
@@ -513,7 +530,7 @@ export default function KeywordTrackerPage() {
         <div className="flex flex-col items-end gap-2">
           <button
             onClick={handleRunAnalysis}
-            disabled={!hasAccount || analyzing || keywords.length === 0 || usageThisMonth >= monthlyLimit}
+            disabled={!hasAccount || analyzing || keywords.length === 0 || analysesUsage >= monthlyLimit}
             className="inline-flex items-center justify-center gap-2 rounded-lg bg-slate-blue px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-blue/20 hover:bg-slate-blue/90 disabled:opacity-60 disabled:cursor-not-allowed transition-all whitespace-nowrap"
           >
             {analyzing ? (
@@ -525,8 +542,8 @@ export default function KeywordTrackerPage() {
               'Run analysis'
             )}
           </button>
-          <span className={`text-xs ${usageThisMonth >= monthlyLimit ? 'text-red-500' : 'text-gray-500'}`}>
-            {usageThisMonth} of {monthlyLimit} used this month
+          <span className={`text-xs ${analysesUsage >= monthlyLimit ? 'text-red-500' : 'text-gray-500'}`}>
+            {analysesUsage} of {monthlyLimit} used this month
           </span>
         </div>
       </div>
@@ -822,23 +839,28 @@ export default function KeywordTrackerPage() {
                   AI finds keywords in your reviews, verified with fuzzy matching
                 </p>
               </div>
-              <button
-                onClick={handleGetSuggestions}
-                disabled={loadingSuggestions}
-                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-blue bg-slate-blue/10 rounded-full hover:bg-slate-blue/20 disabled:opacity-60 transition-all"
-              >
-                {loadingSuggestions ? (
-                  <>
-                    <Icon name="FaSpinner" className="w-4 h-4 animate-spin" size={16} />
-                    Scanning...
-                  </>
-                ) : (
-                  <>
-                    <Icon name="FaSparkles" className="w-4 h-4" size={16} />
-                    Discover keywords
-                  </>
-                )}
-              </button>
+              <div className="flex flex-col items-end gap-1">
+                <button
+                  onClick={handleGetSuggestions}
+                  disabled={loadingSuggestions || suggestionsUsage >= monthlyLimit}
+                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-blue bg-slate-blue/10 rounded-full hover:bg-slate-blue/20 disabled:opacity-60 transition-all"
+                >
+                  {loadingSuggestions ? (
+                    <>
+                      <Icon name="FaSpinner" className="w-4 h-4 animate-spin" size={16} />
+                      Scanning...
+                    </>
+                  ) : (
+                    <>
+                      <Icon name="FaSparkles" className="w-4 h-4" size={16} />
+                      Discover keywords
+                    </>
+                  )}
+                </button>
+                <span className={`text-xs ${suggestionsUsage >= monthlyLimit ? 'text-red-500' : 'text-gray-500'}`}>
+                  {suggestionsUsage} of {monthlyLimit} used this month
+                </span>
+              </div>
             </div>
 
             {suggestions.length > 0 ? (

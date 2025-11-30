@@ -139,6 +139,42 @@ export async function POST(request: NextRequest) {
 
     const serviceSupabase = createServiceRoleClient();
 
+    // Check usage limit before proceeding
+    const MONTHLY_LIMIT = 3;
+    const now = new Date();
+
+    const { data: accountData } = await serviceSupabase
+      .from('accounts')
+      .select('keyword_suggestions_this_month, keyword_suggestions_last_reset_date')
+      .eq('id', accountId)
+      .single();
+
+    let usageThisMonth = accountData?.keyword_suggestions_this_month || 0;
+    const lastResetDate = accountData?.keyword_suggestions_last_reset_date
+      ? new Date(accountData.keyword_suggestions_last_reset_date)
+      : null;
+
+    // Check if we need to reset the counter (new month)
+    if (lastResetDate) {
+      const isNewMonth = now.getMonth() !== lastResetDate.getMonth() ||
+                        now.getFullYear() !== lastResetDate.getFullYear();
+      if (isNewMonth) {
+        usageThisMonth = 0;
+      }
+    }
+
+    if (usageThisMonth >= MONTHLY_LIMIT) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `You've reached your limit of ${MONTHLY_LIMIT} keyword discoveries this month. Your limit resets on the 1st of next month.`,
+          usageThisMonth,
+          monthlyLimit: MONTHLY_LIMIT,
+        },
+        { status: 429 }
+      );
+    }
+
     // Get existing keywords and business info for context
     const { data: business } = await serviceSupabase
       .from('businesses')
@@ -284,12 +320,24 @@ ${existingKeywords.length > 0 ? `\nAlready tracked keywords (DO NOT include thes
     // Sort by count descending so most relevant appear first
     formattedSuggestions.sort((a, b) => b.count - a.count);
 
+    // Update usage tracking
+    const newUsageCount = usageThisMonth + 1;
+    await serviceSupabase
+      .from('accounts')
+      .update({
+        keyword_suggestions_this_month: newUsageCount,
+        keyword_suggestions_last_reset_date: now.toISOString().split('T')[0]
+      })
+      .eq('id', accountId);
+
     console.log('[keyword-tracker/suggest] Returning suggestions:', formattedSuggestions.length);
 
     return NextResponse.json({
       success: true,
       suggestions: formattedSuggestions,
       reviewsAnalyzed: reviews.length,
+      usageThisMonth: newUsageCount,
+      monthlyLimit: MONTHLY_LIMIT,
     });
 
   } catch (error) {
