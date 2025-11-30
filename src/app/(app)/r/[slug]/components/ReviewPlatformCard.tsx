@@ -647,13 +647,28 @@ export default function ReviewPlatformCard({
           </div>
 
           {/* Compliance text */}
-          <p className="mt-3 text-xs text-gray-500 text-center">
+          <p
+            className="mt-3 text-xs text-center"
+            style={{ color: businessProfile?.card_text || "#1A1A1A", opacity: 0.7 }}
+          >
             By submitting, you agree to our{" "}
-            <a href="https://promptreviews.app/terms" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-700">
+            <a
+              href="https://promptreviews.app/terms"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:opacity-100"
+              style={{ opacity: 0.9 }}
+            >
               Terms
             </a>{" "}
             and{" "}
-            <a href="https://promptreviews.app/privacy" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-700">
+            <a
+              href="https://promptreviews.app/privacy"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:opacity-100"
+              style={{ opacity: 0.9 }}
+            >
               Privacy Policy
             </a>
             , and confirm the review reflects your experience.
