@@ -195,6 +195,7 @@ export default function BusinessProfilePage() {
   const [rawLogoPrintFile, setRawLogoPrintFile] = useState<File | null>(null);
   const [copySuccess, setCopySuccess] = useState("");
   const [accountId, setAccountId] = useState<string | null>(null);
+  const [businessId, setBusinessId] = useState<string | null>(null);
   const [showWelcomePopup, setShowWelcomePopup] = useState(false);
 
   // Handler for closing the welcome popup
@@ -388,8 +389,9 @@ export default function BusinessProfilePage() {
                 : [],
           );
           setLogoUrl(businessData.logo_url || null);
+          setBusinessId(businessData.id); // Store business ID for updates
           setNoProfile(false);
-          
+
           // Set page to ready immediately when business data is loaded
           setPageState('ready');
         }
@@ -683,54 +685,81 @@ export default function BusinessProfilePage() {
         .map(s => s?.trim())
         .filter(s => s && s.length > 0);
 
-      const { data: updateData, error: updateError } = await supabase
-        .from("businesses")
-        .update({
-          name: form.name,
-          company_values: form.company_values,
-          differentiators: form.differentiators,
-          years_in_business: form.years_in_business,
-          industries_served: form.industries_served,
-          taglines: form.taglines,
-          keywords: form.keywords,
-          team_info: form.team_info,
-          about_us: form.about_us,
-          review_platforms: form.review_platforms || [],
-          platform_word_counts: form.platform_word_counts,
-          logo_url: uploadedLogoUrl,
-          logo_print_url: uploadedLogoPrintUrl,
-          facebook_url: form.facebook_url,
-          instagram_url: form.instagram_url,
-          bluesky_url: form.bluesky_url,
-          tiktok_url: form.tiktok_url,
-          youtube_url: form.youtube_url,
-          linkedin_url: form.linkedin_url,
-          pinterest_url: form.pinterest_url,
-          default_offer_enabled: form.default_offer_enabled,
-          default_offer_title: form.default_offer_title,
-          default_offer_body: form.default_offer_body,
-          default_offer_url: form.default_offer_url,
-          address_street: form.address_street,
-          address_city: form.address_city,
-          address_state: form.address_state,
-          address_zip: form.address_zip,
-          address_country: form.address_country,
-          phone: form.phone,
-          business_website: form.business_website,
-          offer_learn_more_url: form.offer_learn_more_url,
-          business_email: form.business_email,
-          ai_dos: form.ai_dos,
-          ai_donts: form.ai_donts,
-          kickstarters_enabled: form.kickstarters_enabled,
-          selected_kickstarters: form.selected_kickstarters,
-          kickstarters_background_design: form.kickstarters_background_design,
-          services_offered: filteredServices,
-          industry: form.industry || [],
-          industries_other: form.industries_other || null,
-        })
-        .eq("account_id", selectedAccountId)
-        .select("services_offered")
-        .single();
+      // Build the update payload
+      const updatePayload = {
+        name: form.name,
+        company_values: form.company_values,
+        differentiators: form.differentiators,
+        years_in_business: form.years_in_business,
+        industries_served: form.industries_served,
+        taglines: form.taglines,
+        keywords: form.keywords,
+        team_info: form.team_info,
+        about_us: form.about_us,
+        review_platforms: form.review_platforms || [],
+        platform_word_counts: form.platform_word_counts,
+        logo_url: uploadedLogoUrl,
+        logo_print_url: uploadedLogoPrintUrl,
+        facebook_url: form.facebook_url,
+        instagram_url: form.instagram_url,
+        bluesky_url: form.bluesky_url,
+        tiktok_url: form.tiktok_url,
+        youtube_url: form.youtube_url,
+        linkedin_url: form.linkedin_url,
+        pinterest_url: form.pinterest_url,
+        default_offer_enabled: form.default_offer_enabled,
+        default_offer_title: form.default_offer_title,
+        default_offer_body: form.default_offer_body,
+        default_offer_url: form.default_offer_url,
+        address_street: form.address_street,
+        address_city: form.address_city,
+        address_state: form.address_state,
+        address_zip: form.address_zip,
+        address_country: form.address_country,
+        phone: form.phone,
+        business_website: form.business_website,
+        offer_learn_more_url: form.offer_learn_more_url,
+        business_email: form.business_email,
+        ai_dos: form.ai_dos,
+        ai_donts: form.ai_donts,
+        kickstarters_enabled: form.kickstarters_enabled,
+        selected_kickstarters: form.selected_kickstarters,
+        kickstarters_background_design: form.kickstarters_background_design,
+        services_offered: filteredServices,
+        industry: form.industry || [],
+        industries_other: form.industries_other || null,
+      };
+
+      let updateData, updateError;
+
+      // If we have a business ID, update by ID (more reliable)
+      // Otherwise fall back to account_id for new businesses
+      if (businessId) {
+        const result = await supabase
+          .from("businesses")
+          .update(updatePayload)
+          .eq("id", businessId)
+          .select("services_offered")
+          .single();
+        updateData = result.data;
+        updateError = result.error;
+      } else {
+        // Create new business for this account
+        const result = await supabase
+          .from("businesses")
+          .insert({
+            ...updatePayload,
+            account_id: selectedAccountId,
+          })
+          .select("id, services_offered")
+          .single();
+        updateData = result.data;
+        updateError = result.error;
+        // Store the new business ID for future saves
+        if (result.data?.id) {
+          setBusinessId(result.data.id);
+        }
+      }
 
       if (updateError) {
         console.error("Database update error:", updateError);
