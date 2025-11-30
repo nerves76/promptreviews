@@ -2659,6 +2659,18 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                   onRewriteWithAI={handleRewriteWithAI}
                   onFixGrammar={handleFixGrammar}
                   onCopyAndSubmit={handleCopyAndSubmit}
+                  onCopyReview={async (idx) => {
+                    if (platformReviewTexts[idx]) {
+                      try {
+                        await navigator.clipboard.writeText(platformReviewTexts[idx]);
+                        setCopySuccess("Copied to clipboard!");
+                        setTimeout(() => setCopySuccess(null), 3000);
+                      } catch {
+                        setCopySuccess("Failed to copy");
+                        setTimeout(() => setCopySuccess(null), 3000);
+                      }
+                    }
+                  }}
                   onToggleInstructions={(idx) => setOpenInstructionsIdx(idx)}
                   onOpenKeywordInspiration={() => {
                     setKeywordInspirationPlatformIndex(idx);

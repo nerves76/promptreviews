@@ -40,6 +40,7 @@ interface ReviewPlatformCardProps {
   onRewriteWithAI: (idx: number) => void;
   onFixGrammar: (idx: number) => void;
   onCopyAndSubmit: (idx: number, url: string) => void;
+  onCopyReview?: (idx: number) => void; // Callback for secondary copy button
   onToggleInstructions: (idx: number | null) => void;
   onOpenKeywordInspiration?: () => void; // Callback to open keyword inspiration modal
   getPlatformIcon: (url: string, platform: string) => { icon: IconName; label: string };
@@ -76,6 +77,7 @@ export default function ReviewPlatformCard({
   onRewriteWithAI,
   onFixGrammar,
   onCopyAndSubmit,
+  onCopyReview,
   onToggleInstructions,
   onOpenKeywordInspiration,
   getPlatformIcon,
@@ -576,11 +578,7 @@ export default function ReviewPlatformCard({
                 {/* Copy review button */}
                 <button
                   type="button"
-                  onClick={() => {
-                    if (platformReviewTexts[idx]) {
-                      navigator.clipboard.writeText(platformReviewTexts[idx]);
-                    }
-                  }}
+                  onClick={() => onCopyReview?.(idx)}
                   className="flex-1 px-4 py-2 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 flex items-center justify-center gap-2 transition-all duration-200 border-2"
                   style={{
                     backgroundColor: "transparent",
