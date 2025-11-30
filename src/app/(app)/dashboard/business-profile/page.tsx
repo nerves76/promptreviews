@@ -568,18 +568,32 @@ export default function BusinessProfilePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Prevent multiple submissions
     if (isSubmitting) {
       return;
     }
-    
+
+    // Verify account is selected before saving
+    if (!selectedAccountId) {
+      console.error("No account selected - cannot save");
+      setError("No account selected. Please refresh the page and try again.");
+      return;
+    }
+
+    if (process.env.NODE_ENV === 'development') {
+      console.log("=== handleSubmit START ===");
+      console.log("Selected Account ID:", selectedAccountId);
+      console.log("Form about_us:", form.about_us);
+      console.log("Services state:", services);
+    }
+
     setIsSubmitting(true);
     setLoading(true);
     setError("");
     setSuccess("");
     setLogoError("");
-    
+
     // Add timeout to prevent endless loading
     const timeoutId = setTimeout(() => {
       setError("Request timed out. Please try again.");
@@ -664,7 +678,12 @@ export default function BusinessProfilePage() {
       }
       
       
-      const { error: updateError } = await supabase
+      // Filter out empty services before saving
+      const filteredServices = services
+        .map(s => s?.trim())
+        .filter(s => s && s.length > 0);
+
+      const { data: updateData, error: updateError } = await supabase
         .from("businesses")
         .update({
           name: form.name,
@@ -705,12 +724,14 @@ export default function BusinessProfilePage() {
           kickstarters_enabled: form.kickstarters_enabled,
           selected_kickstarters: form.selected_kickstarters,
           kickstarters_background_design: form.kickstarters_background_design,
-          services_offered: services,
+          services_offered: filteredServices,
           industry: form.industry || [],
           industries_other: form.industries_other || null,
         })
-        .eq("account_id", selectedAccountId);
-        
+        .eq("account_id", selectedAccountId)
+        .select("services_offered")
+        .single();
+
       if (updateError) {
         console.error("Database update error:", updateError);
         console.error("Error code:", updateError.code);
@@ -718,6 +739,16 @@ export default function BusinessProfilePage() {
         console.error("Error details:", updateError.details);
         console.error("Error hint:", updateError.hint);
         setError(`Database update failed: ${updateError.message}`);
+        setLoading(false);
+        setIsSubmitting(false);
+        clearTimeout(timeoutId);
+        return;
+      }
+
+      // Verify the update was successful
+      if (!updateData) {
+        console.error("No data returned from update - business profile may not exist for this account");
+        setError("Could not update business profile. Please refresh and try again.");
         setLoading(false);
         setIsSubmitting(false);
         clearTimeout(timeoutId);
