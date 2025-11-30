@@ -49,7 +49,7 @@ function getPlatformIcon(platform: string): { icon: IconName; label: string } {
   if (lowerPlatform.includes("amazon"))
     return { icon: "FaAmazon", label: "Amazon" };
   if (lowerPlatform.includes("bbb") || lowerPlatform.includes("better business"))
-    return { icon: "FaBbb", label: "Better Business Bureau" };
+    return { icon: "FaBbb", label: "BBB" };
   if (lowerPlatform.includes("g2"))
     return { icon: "SiG2", label: "G2" };
   return { icon: "FaStar", label: "Other" };
