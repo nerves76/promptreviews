@@ -74,6 +74,7 @@ const ProductModule = dynamic(() => import("./components/ProductModule"), {
 // Import critical components normally (needed for LCP)
 import BusinessInfoCard from "./components/BusinessInfoCard";
 import ReviewPlatformCard from "./components/ReviewPlatformCard";
+import ReturnStateCard from "./components/ReturnStateCard";
 import SaveMenu from "./components/SaveMenu";
 import TopActionButtons from "./components/TopActionButtons";
 import FontLoader from "../../components/FontLoader";
@@ -348,6 +349,15 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
   // Attribution tracking - capture on page load
   const [attributionData, setAttributionData] = useState<AttributionData | null>(null);
 
+  // Return state tracking - for asking if review was posted after customer returns from external site
+  const [pendingReturnStates, setPendingReturnStates] = useState<Map<number, {
+    submissionId: string;
+    reviewText: string;
+    platformUrl: string;
+    platformName: string;
+  }>>(new Map());
+  const [activeReturnState, setActiveReturnState] = useState<number | null>(null);
+
   // Capture attribution data on initial load (runs once)
   useEffect(() => {
     if (!attributionData && searchParams) {
@@ -414,12 +424,30 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
     if (savedCounts) {
       setAiRewriteCounts(JSON.parse(savedCounts));
     }
-    
+
     const savedGrammarCounts = sessionStorage.getItem('fixGrammarCounts');
     if (savedGrammarCounts) {
       setFixGrammarCounts(JSON.parse(savedGrammarCounts));
     }
   }, []);
+
+  // Return state: detect when user returns to tab after submitting review
+  useEffect(() => {
+    if (pendingReturnStates.size === 0) return;
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && pendingReturnStates.size > 0) {
+        // Show return state for the most recently submitted platform
+        const latestIdx = Array.from(pendingReturnStates.keys()).pop();
+        if (latestIdx !== undefined) {
+          setActiveReturnState(latestIdx);
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [pendingReturnStates]);
 
   // ⚡ PERFORMANCE: Prefetch API endpoint as soon as component mounts
   useEffect(() => {
@@ -938,6 +966,11 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
         setIsSubmitting(null);
         return;
       }
+
+      // Get submission ID from response for return state tracking
+      const responseData = await response.json();
+      const submissionId = responseData?.data?.id;
+
       // Try to copy with monitoring
       let copied = false;
       if (platformReviewTexts[idx]) {
@@ -974,6 +1007,22 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
           }
           // Mark this platform as submitted so we can show helper buttons
           setHasSubmitted(prev => new Set(prev).add(idx));
+
+          // Store pending return state for when user comes back to tab
+          if (submissionId) {
+            const platform = promptPage.review_platforms[idx];
+            const platformName = (platform.platform || platform.name) === "Google Business Profile"
+              ? "Google"
+              : (platform.platform || platform.name) === "Other" && platform.customPlatform
+                ? platform.customPlatform
+                : (platform.platform || platform.name);
+            setPendingReturnStates(prev => new Map(prev).set(idx, {
+              submissionId,
+              reviewText: platformReviewTexts[idx],
+              platformUrl: url,
+              platformName: platformName || "the review site",
+            }));
+          }
         } catch (err) {
           // Show custom fallback modal
           setFallbackModalText(platformReviewTexts[idx]);
@@ -2612,6 +2661,30 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
               {/* Review Platforms Section - only for non-photo review types */}
               {sentimentComplete && !showFeedbackForm && promptPage?.review_type !== "photo" &&
                 mergedReviewPlatforms?.map((platform: any, idx: number) => (
+                activeReturnState === idx && pendingReturnStates.has(idx) ? (
+                  <ReturnStateCard
+                    key={`return-${platform.id || idx}`}
+                    submissionId={pendingReturnStates.get(idx)!.submissionId}
+                    platformName={pendingReturnStates.get(idx)!.platformName}
+                    reviewText={pendingReturnStates.get(idx)!.reviewText}
+                    platformUrl={pendingReturnStates.get(idx)!.platformUrl}
+                    businessName={businessProfile?.name || businessProfile?.business_name}
+                    businessProfile={businessProfile}
+                    onConfirmed={() => {
+                      // Clear this platform from pending states
+                      setPendingReturnStates(prev => {
+                        const newMap = new Map(prev);
+                        newMap.delete(idx);
+                        return newMap;
+                      });
+                      setActiveReturnState(null);
+                    }}
+                    onNeedsHelp={() => {
+                      // Keep showing the help UI, don't clear immediately
+                      // User can still retry from the help state
+                    }}
+                  />
+                ) : (
                 <ReviewPlatformCard
                   key={platform.id || idx}
                   platform={platform}
@@ -2681,7 +2754,8 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                   getPlatformIcon={getPlatformIcon}
                   getFontClass={getFontClass}
                 />
-              ))}
+                ))
+              )}
               
               {/* Limit Modal */}
               {showLimitModal && (
