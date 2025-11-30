@@ -139,10 +139,10 @@ export async function POST(request: NextRequest) {
 
     const serviceSupabase = createServiceRoleClient();
 
-    // Get existing keywords
+    // Get existing keywords and business info for context
     const { data: business } = await serviceSupabase
       .from('businesses')
-      .select('keywords, name, industry')
+      .select('keywords, name, industry, about, city, state')
       .eq('account_id', accountId)
       .single();
 
@@ -185,6 +185,14 @@ export async function POST(request: NextRequest) {
     // Combine reviews for AI analysis (limit to avoid token limits)
     const reviewSample = reviews.slice(0, 50).map(r => r.content).join('\n---\n');
 
+    // Build business context
+    const businessContext = [
+      business?.name ? `Business name: ${business.name}` : '',
+      business?.industry ? `Industry: ${business.industry}` : '',
+      business?.city || business?.state ? `Location: ${[business.city, business.state].filter(Boolean).join(', ')}` : '',
+      business?.about ? `About: ${business.about}` : '',
+    ].filter(Boolean).join('\n');
+
     // Ask AI to find keyword phrases
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
@@ -192,6 +200,8 @@ export async function POST(request: NextRequest) {
         {
           role: 'system',
           content: `You are a keyword extraction expert. Extract specific, meaningful keyword phrases from customer reviews that would be valuable for SEO and business insights.
+
+The goal is to find keywords that potential customers might type into a search engine to find this business.
 
 Focus on:
 - Service/product names and types
@@ -202,13 +212,13 @@ Focus on:
 
 Rules:
 - Extract 10-20 keyword phrases
-- Each phrase should be 1-4 words
-- Be specific, not generic (avoid "good", "nice", "great" alone)
+- Each phrase should be 2-6 words
+- Be specific, not generic
 - Only extract phrases that actually appear in the reviews
 - Return as a JSON array of strings
 
-${existingKeywords.length > 0 ? `\nAlready tracked keywords (DO NOT include these): ${existingKeywords.join(', ')}` : ''}
-${business?.industry ? `\nBusiness industry: ${business.industry}` : ''}`,
+${businessContext ? `\nBusiness context:\n${businessContext}` : ''}
+${existingKeywords.length > 0 ? `\nAlready tracked keywords (DO NOT include these): ${existingKeywords.join(', ')}` : ''}`,
         },
         {
           role: 'user',
