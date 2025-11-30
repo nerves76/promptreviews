@@ -360,13 +360,68 @@ export default function ReviewPlatformCard({
               </div>
             )}
             <div className="flex items-center justify-between mb-2">
-              <label
-                htmlFor={`reviewText-${idx}`}
-                className="block text-sm font-medium"
-                style={{ color: businessProfile?.card_text || "#1A1A1A" }}
-              >
-                Your review <span className="text-red-500">*</span>
-              </label>
+              <div className="flex items-center gap-3">
+                <label
+                  htmlFor={`reviewText-${idx}`}
+                  className="block text-sm font-medium"
+                  style={{ color: businessProfile?.card_text || "#1A1A1A" }}
+                >
+                  Your review <span className="text-red-500">*</span>
+                </label>
+                {aiButtonEnabled && (
+                  <button
+                    type="button"
+                    onClick={() => onRewriteWithAI(idx)}
+                    disabled={aiLoading === idx || aiRewriteCounts[idx] >= 3}
+                    className="px-2 py-0.5 rounded text-xs font-medium focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 transition-all duration-200 border"
+                    style={{
+                      backgroundColor: "transparent",
+                      borderColor: businessProfile?.primary_color || "#2563EB",
+                      color: businessProfile?.primary_color || "#2563EB",
+                    }}
+                    onMouseEnter={(e) => {
+                      if (aiLoading !== idx && aiRewriteCounts[idx] < 3) {
+                        e.currentTarget.style.backgroundColor = businessProfile?.primary_color || "#2563EB";
+                        e.currentTarget.style.color = getContrastTextColor(businessProfile?.primary_color || "#2563EB");
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (aiLoading !== idx && aiRewriteCounts[idx] < 3) {
+                        e.currentTarget.style.backgroundColor = "transparent";
+                        e.currentTarget.style.color = businessProfile?.primary_color || "#2563EB";
+                      }
+                    }}
+                  >
+                    {aiLoading === idx ? (
+                      <>
+                        <ButtonSpinner size={12} />
+                        <span className="hidden sm:inline">Generating...</span>
+                      </>
+                    ) : (
+                      <>
+                        <svg
+                          width="12"
+                          height="12"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          className="w-3 h-3"
+                        >
+                          <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .962 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.582a.5.5 0 0 1 0 .962L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.962 0L9.937 15.5Z"/>
+                          <path d="M20 3v4"/>
+                          <path d="M22 5h-4"/>
+                          <path d="M4 17v2"/>
+                          <path d="M5 18H3"/>
+                        </svg>
+                        <span className="hidden sm:inline">Generate with AI</span>
+                        <span className="sm:hidden">AI</span>
+                        {aiRewriteCounts[idx] > 0 && <span className="hidden sm:inline">({aiRewriteCounts[idx]}/3)</span>}
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
               <div className="flex items-center gap-2">
                 {keywordInspirationEnabled && onOpenKeywordInspiration && (
                   <button
@@ -455,7 +510,7 @@ export default function ReviewPlatformCard({
                   style={{
                     // Calculate contrast against input background (which is card_bg with added opacity)
                     color: getContrastTextColor(businessProfile?.card_bg || "#FFFFFF"),
-                    backgroundColor: 'transparent',
+                    backgroundColor: applyCardTransparency(businessProfile?.card_bg || "#FFFFFF", 0.85),
                   }}
                   title="AI will check and correct spelling and grammar errors in your review"
                 >
@@ -477,13 +532,14 @@ export default function ReviewPlatformCard({
               {/* Word count indicator - appears at 70%+ inside textarea */}
               {progressValue >= 0.7 && (
                 <div
-                  className="absolute bottom-2 left-3 text-xs font-medium transition-opacity duration-300"
+                  className="absolute bottom-2 left-3 text-xs font-medium transition-opacity duration-300 px-1.5 py-0.5 rounded"
                   style={{
                     color: progressValue >= 0.95
                       ? '#dc2626' // red at 95%+
                       : progressValue >= 0.8
                         ? '#f97316' // soft orange at 80%+
                         : '#22c55e', // light green at 70%+
+                    backgroundColor: applyCardTransparency(businessProfile?.card_bg || "#FFFFFF", 0.85),
                     opacity: 1,
                     animation: 'fadeIn 0.3s ease-in-out',
                   }}
@@ -496,57 +552,6 @@ export default function ReviewPlatformCard({
 
           {/* Action buttons */}
           <div className="flex flex-col sm:flex-row gap-3 mt-4">
-            {aiButtonEnabled && (
-              <button
-                type="button"
-                onClick={() => onRewriteWithAI(idx)}
-                disabled={aiLoading === idx || aiRewriteCounts[idx] >= 3}
-                className="flex-1 px-4 py-2 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all duration-200 border-2"
-                style={{
-                  backgroundColor: "rgba(255, 255, 255, 0.1)",
-                  borderColor: businessProfile?.primary_color || "#2563EB",
-                  color: businessProfile?.primary_color || "#2563EB",
-                }}
-                onMouseEnter={(e) => {
-                  if (aiLoading !== idx && aiRewriteCounts[idx] < 3) {
-                    e.currentTarget.style.backgroundColor = businessProfile?.primary_color || "#2563EB";
-                    e.currentTarget.style.color = getContrastTextColor(businessProfile?.primary_color || "#2563EB");
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (aiLoading !== idx && aiRewriteCounts[idx] < 3) {
-                    e.currentTarget.style.backgroundColor = "transparent";
-                    e.currentTarget.style.color = businessProfile?.primary_color || "#2563EB";
-                  }
-                }}
-              >
-                {aiLoading === idx ? (
-                  <>
-                    <ButtonSpinner size={16} />
-                    Generating...
-                  </>
-                ) : (
-                  <>
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      className="w-4 h-4"
-                    >
-                      <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .962 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.582a.5.5 0 0 1 0 .962L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.962 0L9.937 15.5Z"/>
-                      <path d="M20 3v4"/>
-                      <path d="M22 5h-4"/>
-                      <path d="M4 17v2"/>
-                      <path d="M5 18H3"/>
-                    </svg>
-                    Generate with AI {aiRewriteCounts[idx] > 0 && `(${aiRewriteCounts[idx]}/3)`}
-                  </>
-                )}
-              </button>
-            )}
             {hasSubmitted ? (
               <>
                 {/* Copy review button */}
