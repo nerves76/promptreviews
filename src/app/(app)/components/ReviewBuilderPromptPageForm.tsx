@@ -17,6 +17,7 @@ import KeywordsInput from "./KeywordsInput";
 import Icon from "@/components/Icon";
 import ReviewWriteSection, { ReviewWritePlatform } from "../dashboard/edit-prompt-page/components/ReviewWriteSection";
 import PersonalizedNoteFeature from "./prompt-features/PersonalizedNoteFeature";
+import MotivationalNudgeFeature from "./prompt-features/MotivationalNudgeFeature";
 
 interface ReviewBuilderPromptPageFormProps {
   mode: "create" | "edit";
@@ -174,6 +175,14 @@ export default function ReviewBuilderPromptPageForm({
     initialData?.friendly_note ?? ""
   );
 
+  // Motivational nudge state
+  const [motivationalNudgeEnabled, setMotivationalNudgeEnabled] = useState<boolean>(
+    initialData?.motivational_nudge_enabled ?? true
+  );
+  const [motivationalNudgeText, setMotivationalNudgeText] = useState<string>(
+    initialData?.motivational_nudge_text || "Your review helps us get found online and hold our own against bigger brands"
+  );
+
   // Ensure at least the minimum number of questions exist
   useEffect(() => {
     if (questions.length < MIN_QUESTIONS) {
@@ -208,6 +217,16 @@ export default function ReviewBuilderPromptPageForm({
       setCampaignName(initialData.name);
     }
   }, [initialData?.name]);
+
+  // Synchronize motivational nudge state with initialData
+  useEffect(() => {
+    if (initialData?.motivational_nudge_enabled !== undefined) {
+      setMotivationalNudgeEnabled(initialData.motivational_nudge_enabled);
+    }
+    if (initialData?.motivational_nudge_text !== undefined) {
+      setMotivationalNudgeText(initialData.motivational_nudge_text || "Your review helps us get found online and hold our own against bigger brands");
+    }
+  }, [initialData?.motivational_nudge_enabled, initialData?.motivational_nudge_text]);
 
   useEffect(() => {
     if (
@@ -502,6 +521,9 @@ export default function ReviewBuilderPromptPageForm({
     fix_grammar_enabled: baseFormData.fix_grammar_enabled ?? false,
     kickstarters_enabled: baseFormData.kickstarters_enabled ?? false,
     selected_kickstarters: baseFormData.selected_kickstarters ?? [],
+    // Motivational nudge
+    motivational_nudge_enabled: motivationalNudgeEnabled,
+    motivational_nudge_text: motivationalNudgeText,
   });
 
   const handleSave = async (baseFormData: any) => {
@@ -970,6 +992,18 @@ export default function ReviewBuilderPromptPageForm({
             onNoteChange={(note) => {
               console.log('[ReviewBuilder] Friendly note text change:', note);
               setFriendlyNote(note);
+            }}
+            editMode={true}
+          />
+
+          <MotivationalNudgeFeature
+            enabled={motivationalNudgeEnabled}
+            text={motivationalNudgeText}
+            onEnabledChange={(enabled) => {
+              setMotivationalNudgeEnabled(enabled);
+            }}
+            onTextChange={(text) => {
+              setMotivationalNudgeText(text);
             }}
             editMode={true}
           />

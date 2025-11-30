@@ -261,7 +261,7 @@ const StepAnimation = ({ step, color }: { step: number; color: string }) => {
 const stepTooltips = [
   "Fill out form",
   "", // Step 2 has animated text
-  "Paste & done!"
+  "Paste & submit!"
 ];
 
 // Animated tooltip text component with fade-in delay

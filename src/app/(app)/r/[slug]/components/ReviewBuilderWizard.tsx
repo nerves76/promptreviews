@@ -983,7 +983,7 @@ const builderQuestions = useMemo(() => {
                 </span>
               </div>
               <p className="max-w-2xl text-sm md:text-base text-white/90">
-                Make it easy and fun for your customers or clients to post reviews online. Grow your online presence on traditional and AI search platforms.
+                Power your business with the voice of your customers. Collect authentic, keyword-rich reviews that boost your visibility online.
               </p>
               <a
                 href="https://promptreviews.app"

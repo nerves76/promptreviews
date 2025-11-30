@@ -1,10 +1,11 @@
 import React, { useState, useEffect, forwardRef } from "react";
 import OfferToggle from "../components/OfferToggle";
-import { 
+import {
   OfferFeature,
   EmojiSentimentFeature,
   FallingStarsFeature,
-  AISettingsFeature
+  AISettingsFeature,
+  MotivationalNudgeFeature
 } from "@/app/(app)/components/prompt-features";
 import ReviewWriteSection, {
   ReviewWritePlatform,
@@ -32,6 +33,8 @@ export interface ServicePromptFormState {
   fixGrammarEnabled: boolean;
   notePopupEnabled: boolean;
   friendlyNote: string;
+  motivationalNudgeEnabled: boolean;
+  motivationalNudgeText: string;
 }
 
 interface ServicePromptPageFormProps {
@@ -104,11 +107,27 @@ const ServicePromptPageForm = forwardRef<any, ServicePromptPageFormProps>(
     const [friendlyNote, setFriendlyNote] = useState(
       initialData?.friendlyNote ?? "",
     );
+    const [motivationalNudgeEnabled, setMotivationalNudgeEnabled] = useState(
+      initialData?.motivationalNudgeEnabled ?? true,
+    );
+    const [motivationalNudgeText, setMotivationalNudgeText] = useState(
+      initialData?.motivationalNudgeText ?? "Your review helps us get found online and hold our own against bigger brands",
+    );
 
     // Add state for warning modal
     const [showPopupConflictModal, setShowPopupConflictModal] = useState<
       null | "emoji" | "note"
     >(null);
+
+    // Synchronize motivational nudge state with initialData
+    useEffect(() => {
+      if (initialData?.motivationalNudgeEnabled !== undefined) {
+        setMotivationalNudgeEnabled(initialData.motivationalNudgeEnabled);
+      }
+      if (initialData?.motivationalNudgeText !== undefined) {
+        setMotivationalNudgeText(initialData.motivationalNudgeText || "Your review helps us get found online and hold our own against bigger brands");
+      }
+    }, [initialData?.motivationalNudgeEnabled, initialData?.motivationalNudgeText]);
 
     // Expose a submit function via ref
     React.useImperativeHandle(
@@ -132,6 +151,8 @@ const ServicePromptPageForm = forwardRef<any, ServicePromptPageFormProps>(
             fixGrammarEnabled,
             notePopupEnabled,
             friendlyNote,
+            motivationalNudgeEnabled,
+            motivationalNudgeText,
           });
         },
       }),
@@ -152,6 +173,8 @@ const ServicePromptPageForm = forwardRef<any, ServicePromptPageFormProps>(
         fixGrammarEnabled,
         notePopupEnabled,
         friendlyNote,
+        motivationalNudgeEnabled,
+        motivationalNudgeText,
         onSave,
       ],
     );
@@ -195,7 +218,7 @@ const ServicePromptPageForm = forwardRef<any, ServicePromptPageFormProps>(
               return;
             }
             onSave({
-              fixGrammarEnabled: false,
+              fixGrammarEnabled,
               offerEnabled,
               offerTitle,
               offerBody,
@@ -210,9 +233,11 @@ const ServicePromptPageForm = forwardRef<any, ServicePromptPageFormProps>(
               fallingIcon,
               fallingIconColor,
               aiButtonEnabled,
-                              notePopupEnabled,
-                friendlyNote,
-              });
+              notePopupEnabled,
+              friendlyNote,
+              motivationalNudgeEnabled,
+              motivationalNudgeText,
+            });
           }}
         >
           {/* Review Platforms Section with review and AI (Service only) */}
@@ -255,11 +280,19 @@ const ServicePromptPageForm = forwardRef<any, ServicePromptPageFormProps>(
           />
           {/* AI Review Generation Toggle */}
           <AISettingsFeature
-              aiGenerationEnabled={aiButtonEnabled}
-              fixGrammarEnabled={fixGrammarEnabled}
-              onAIEnabledChange={(enabled) => setAiButtonEnabled(enabled)}
-              onGrammarEnabledChange={(enabled) => setFixGrammarEnabled(enabled)}
-            />
+            aiGenerationEnabled={aiButtonEnabled}
+            fixGrammarEnabled={fixGrammarEnabled}
+            onAIEnabledChange={(enabled) => setAiButtonEnabled(enabled)}
+            onGrammarEnabledChange={(enabled) => setFixGrammarEnabled(enabled)}
+          />
+          {/* Motivational Nudge Section */}
+          <MotivationalNudgeFeature
+            enabled={motivationalNudgeEnabled}
+            text={motivationalNudgeText}
+            onEnabledChange={setMotivationalNudgeEnabled}
+            onTextChange={setMotivationalNudgeText}
+            editMode={true}
+          />
           {/* Falling Stars Section (full module) */}
           <FallingStarsFeature
             enabled={fallingEnabled}

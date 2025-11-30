@@ -23,7 +23,8 @@ import {
   PersonalizedNoteFeature,
   KickstartersFeature,
   RecentReviewsFeature,
-  KeywordInspirationFeature
+  KeywordInspirationFeature,
+  MotivationalNudgeFeature
 } from "./prompt-features";
 import { useFallingStars } from "@/hooks/useFallingStars";
 import { Input } from "@/app/(app)/components/ui/input";
@@ -125,6 +126,14 @@ export default function EmployeePromptPageForm({
     initialData?.fix_grammar_enabled !== false
   );
 
+  // Motivational Nudge state
+  const [motivationalNudgeEnabled, setMotivationalNudgeEnabled] = useState(
+    initialData?.motivational_nudge_enabled ?? true
+  );
+  const [motivationalNudgeText, setMotivationalNudgeText] = useState(
+    initialData?.motivational_nudge_text || "Your review helps us get found online and hold our own against bigger brands"
+  );
+
   // Keywords state
   const [keywords, setKeywords] = useState<string[]>(() => {
     if (Array.isArray(initialData?.keywords) && initialData.keywords.length > 0) {
@@ -139,11 +148,21 @@ export default function EmployeePromptPageForm({
   useEffect(() => {
     const isInitialLoad = !formData || Object.keys(formData).length === 0;
     const isDifferentRecord = initialData?.id && formData?.id && initialData.id !== formData.id;
-    
+
     if (!isSaving && initialData && (isInitialLoad || isDifferentRecord)) {
       setFormData(safeInitialData);
     }
   }, [initialData, isSaving]);
+
+  // Synchronize motivational nudge state with initialData
+  useEffect(() => {
+    if (initialData?.motivational_nudge_enabled !== undefined) {
+      setMotivationalNudgeEnabled(initialData.motivational_nudge_enabled);
+    }
+    if (initialData?.motivational_nudge_text !== undefined) {
+      setMotivationalNudgeText(initialData.motivational_nudge_text || "Your review helps us get found online and hold our own against bigger brands");
+    }
+  }, [initialData?.motivational_nudge_enabled, initialData?.motivational_nudge_text]);
 
   // Form data update helper
   const updateFormData = (field: string, value: any) => {
@@ -316,6 +335,9 @@ export default function EmployeePromptPageForm({
         selected_keyword_inspirations: formData.selected_keyword_inspirations,
         // Keywords
         keywords: keywords,
+        // Motivational Nudge
+        motivational_nudge_enabled: motivationalNudgeEnabled,
+        motivational_nudge_text: motivationalNudgeText,
       };
       const result = await onSave(saveData);
       if (onPublishSuccess && (result as any)?.slug) {
@@ -860,6 +882,14 @@ export default function EmployeePromptPageForm({
             fixGrammarEnabled={formData.fix_grammar_enabled ?? true}
             onAIEnabledChange={(enabled) => updateFormData('ai_generation_enabled', enabled)}
             onGrammarEnabledChange={(enabled) => updateFormData('fix_grammar_enabled', enabled)}
+          />
+
+          <MotivationalNudgeFeature
+            enabled={motivationalNudgeEnabled}
+            text={motivationalNudgeText}
+            onEnabledChange={setMotivationalNudgeEnabled}
+            onTextChange={setMotivationalNudgeText}
+            editMode={true}
           />
 
         </div>

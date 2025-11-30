@@ -31,6 +31,8 @@ interface ReviewPlatformCardProps {
   openInstructionsIdx: number | null;
   submitError: string | null;
   showAiToast: number | null;
+  motivationalNudgeEnabled?: boolean;
+  motivationalNudgeText?: string;
   onToggleAccordion: (idx: number) => void;
   onFirstNameChange: (idx: number, value: string) => void;
   onLastNameChange: (idx: number, value: string) => void;
@@ -68,6 +70,8 @@ export default function ReviewPlatformCard({
   openInstructionsIdx,
   submitError,
   showAiToast,
+  motivationalNudgeEnabled = true,
+  motivationalNudgeText = "Your review helps us get found online and hold our own against bigger brands",
   onToggleAccordion,
   onFirstNameChange,
   onLastNameChange,
@@ -415,7 +419,7 @@ export default function ReviewPlatformCard({
                           <path d="M5 18H3"/>
                         </svg>
                         <span className="hidden sm:inline">Generate with AI</span>
-                        <span className="sm:hidden">AI</span>
+                        <span className="sm:hidden">Generate</span>
                         {aiRewriteCounts[idx] > 0 && <span className="hidden sm:inline">({aiRewriteCounts[idx]}/3)</span>}
                       </>
                     )}
@@ -550,15 +554,28 @@ export default function ReviewPlatformCard({
             </div>
           </div>
 
+          {/* Motivational Nudge */}
+          {motivationalNudgeEnabled && motivationalNudgeText && (
+            <div
+              className="mt-4 text-center text-base italic px-4"
+              style={{
+                color: businessProfile?.card_text || "#1A1A1A",
+                textShadow: '0 0 8px rgba(255,255,255,0.8)',
+              }}
+            >
+              {motivationalNudgeText}
+            </div>
+          )}
+
           {/* Action buttons */}
-          <div className="flex flex-col sm:flex-row gap-3 mt-4">
+          <div className="flex flex-col sm:flex-row gap-3 mt-4 max-w-xl mx-auto w-full">
             {hasSubmitted ? (
               <>
                 {/* Copy review button */}
                 <button
                   type="button"
                   onClick={() => onCopyReview?.(idx)}
-                  className="flex-1 px-4 py-2 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 flex items-center justify-center gap-2 transition-all duration-200 border-2"
+                  className="flex-1 px-4 py-3 rounded-lg text-base font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 flex items-center justify-center gap-2 transition-all duration-200 border-2"
                   style={{
                     backgroundColor: "transparent",
                     borderColor: businessProfile?.secondary_color || "#4F46E5",
@@ -575,7 +592,7 @@ export default function ReviewPlatformCard({
                       window.open(platform.url, "_blank", "noopener,noreferrer");
                     }
                   }}
-                  className="flex-1 px-4 py-2 rounded-lg text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 flex items-center justify-center gap-2 transition-all duration-200 border-2"
+                  className="flex-1 px-4 py-3 rounded-lg text-base font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 flex items-center justify-center gap-2 transition-all duration-200 border-2"
                   style={{
                     backgroundColor: businessProfile?.secondary_color || "#4F46E5",
                     borderColor: businessProfile?.secondary_color || "#4F46E5",
@@ -590,7 +607,7 @@ export default function ReviewPlatformCard({
                 type="button"
                 onClick={() => onCopyAndSubmit(idx, platform.url)}
                 disabled={isSubmitting === idx || isCopied === idx || isRedirecting === idx}
-                className="flex-1 px-4 py-2 rounded-lg text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all duration-200 border-2"
+                className="flex-1 px-4 py-3 rounded-lg text-base font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all duration-200 border-2"
                 style={{
                   backgroundColor: businessProfile?.secondary_color || "#4F46E5",
                   borderColor: businessProfile?.secondary_color || "#4F46E5",

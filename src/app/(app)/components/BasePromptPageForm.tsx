@@ -24,6 +24,7 @@ import {
   OfferFeature,
   ReviewPlatformsFeature,
   KickstartersFeature,
+  MotivationalNudgeFeature,
   type PersonalizedNoteFeatureProps,
   type EmojiSentimentFeatureProps,
   type FallingStarsFeatureProps,
@@ -69,6 +70,7 @@ export interface BasePromptPageFormProps {
     offer?: boolean;
     reviewPlatforms?: boolean;
     kickstarters?: boolean;
+    motivationalNudge?: boolean;
   };
   /** Custom help text for the offer feature */
   offerHelpText?: string;
@@ -113,7 +115,11 @@ export interface BaseFormState {
   // Kickstarters
   kickstarters_enabled: boolean;
   selected_kickstarters: string[];
-  
+
+  // Motivational Nudge
+  motivational_nudge_enabled: boolean;
+  motivational_nudge_text: string;
+
   // Common fields
   slug?: string;
   is_active?: boolean;
@@ -144,6 +150,7 @@ export default function BasePromptPageForm({
     offer: true,
     reviewPlatforms: true,
     kickstarters: true,
+    motivationalNudge: true,
   },
   disabled = false,
 }: BasePromptPageFormProps) {
@@ -252,7 +259,11 @@ export default function BasePromptPageForm({
     // Kickstarters - Use business defaults if no initialData
     kickstarters_enabled: initialData?.kickstarters_enabled ?? businessProfile?.kickstarters_enabled ?? true,
     selected_kickstarters: initialData?.selected_kickstarters ?? businessProfile?.selected_kickstarters ?? [],
-    
+
+    // Motivational Nudge - default to ON
+    motivational_nudge_enabled: initialData?.motivational_nudge_enabled ?? true,
+    motivational_nudge_text: initialData?.motivational_nudge_text || "Your review helps us get found online and hold our own against bigger brands",
+
     // Common fields
     slug: initialData?.slug,
     is_active: initialData?.is_active ?? true,
@@ -657,6 +668,17 @@ export default function BasePromptPageForm({
             fix_grammar_enabled: initialData?.fix_grammar_enabled,
           }}
           disabled={disabled}
+        />
+      )}
+
+      {enabledFeatures.motivationalNudge && (
+        <MotivationalNudgeFeature
+          enabled={formData.motivational_nudge_enabled}
+          text={formData.motivational_nudge_text}
+          onEnabledChange={(enabled) => updateFormData('motivational_nudge_enabled', enabled)}
+          onTextChange={(text) => updateFormData('motivational_nudge_text', text)}
+          disabled={disabled}
+          editMode={true}
         />
       )}
 

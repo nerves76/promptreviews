@@ -1031,6 +1031,10 @@ export default function EditPromptPage() {
         kickstarters_enabled: formState.kickstarters_enabled ?? formState.kickstartersEnabled ?? false,
         selected_kickstarters: formState.selected_kickstarters || formState.selectedKickstarters || null,
         recent_reviews_enabled: formState.recent_reviews_enabled ?? formState.recentReviewsEnabled ?? false,
+
+        // Motivational Nudge
+        motivational_nudge_enabled: formState.motivational_nudge_enabled ?? formState.motivationalNudgeEnabled ?? true,
+        motivational_nudge_text: formState.motivational_nudge_text || formState.motivationalNudgeText || "Your review helps us get found online and hold our own against bigger brands",
       };
       
       // Only include valid columns in the payload
@@ -1070,6 +1074,8 @@ export default function EditPromptPage() {
         "kickstarters_enabled",
         "selected_kickstarters",
         "recent_reviews_enabled",
+        "motivational_nudge_enabled",
+        "motivational_nudge_text",
       ];
       const payload = Object.fromEntries(
         Object.entries(updateData).filter(([key]) =>

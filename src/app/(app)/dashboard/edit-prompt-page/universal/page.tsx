@@ -47,6 +47,8 @@ interface UniversalPromptFormState {
   keywords?: string[];
   keyword_inspiration_enabled?: boolean;
   selected_keyword_inspirations?: string[];
+  motivational_nudge_enabled?: boolean;
+  motivational_nudge_text?: string;
 }
 
 // Helper to normalize platform names to match dropdown options
@@ -160,7 +162,7 @@ export default function UniversalEditPromptPage() {
           setIsLoading(false);
           return;
         }
-        
+
         // CRITICAL: Verify the prompt page belongs to the correct account
         if (universalPage && universalPage.account_id !== accountId) {
           setError("Account data mismatch detected. Please refresh the page.");
@@ -238,9 +240,12 @@ export default function UniversalEditPromptPage() {
           keyword_inspiration_enabled: universalPage?.keyword_inspiration_enabled ?? businessProfile?.default_keyword_inspiration_enabled ?? false,
           selected_keyword_inspirations: universalPage?.selected_keyword_inspirations ??
             (Array.isArray(businessProfile?.default_selected_keyword_inspirations) ? businessProfile.default_selected_keyword_inspirations : []),
+
+          // Motivational Nudge
+          motivational_nudge_enabled: universalPage?.motivational_nudge_enabled ?? true,
+          motivational_nudge_text: universalPage?.motivational_nudge_text ?? "Your review helps us get found online and hold our own against bigger brands",
         };
-        
-        
+
         // Show reset button only if universal page has saved platforms (not null/undefined)
         // This allows resetting back to business defaults
         const hasUniversalPlatformsSaved = universalPage?.review_platforms !== null && universalPage?.review_platforms !== undefined;
@@ -364,6 +369,8 @@ export default function UniversalEditPromptPage() {
         keywords: formState.keywords,
         keyword_inspiration_enabled: formState.keyword_inspiration_enabled,
         selected_keyword_inspirations: formState.selected_keyword_inspirations,
+        motivational_nudge_enabled: formState.motivational_nudge_enabled,
+        motivational_nudge_text: formState.motivational_nudge_text,
         updated_at: new Date().toISOString()
       };
       
@@ -402,6 +409,8 @@ export default function UniversalEditPromptPage() {
         keywords: formState.keywords,
         keyword_inspiration_enabled: formState.keyword_inspiration_enabled,
         selected_keyword_inspirations: formState.selected_keyword_inspirations,
+        motivational_nudge_enabled: formState.motivational_nudge_enabled,
+        motivational_nudge_text: formState.motivational_nudge_text,
       }).eq("id", universalPage.id);
       
       error = dbError;

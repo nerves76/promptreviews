@@ -22,7 +22,8 @@ import {
   AISettingsFeature,
   KickstartersFeature,
   RecentReviewsFeature,
-  KeywordInspirationFeature
+  KeywordInspirationFeature,
+  MotivationalNudgeFeature
 } from "./prompt-features";
 import { useFallingStars } from "@/hooks/useFallingStars";
 import { Input } from "@/app/(app)/components/ui/input";
@@ -136,6 +137,8 @@ export default function ServicePromptPageForm({
   });
   
   const [fixGrammarEnabled, setFixGrammarEnabled] = useState(initialData?.fix_grammar_enabled ?? true);
+  const [motivationalNudgeEnabled, setMotivationalNudgeEnabled] = useState(initialData?.motivational_nudge_enabled ?? true);
+  const [motivationalNudgeText, setMotivationalNudgeText] = useState(initialData?.motivational_nudge_text || "Your review helps us get found online and hold our own against bigger brands");
   const [isSaving, setIsSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [emojiSentimentEnabled, setEmojiSentimentEnabled] = useState(
@@ -201,6 +204,16 @@ export default function ServicePromptPageForm({
       setEmojiSentimentEnabled(formData.emoji_sentiment_enabled);
     }
   }, [formData.emoji_sentiment_enabled, emojiSentimentEnabled]);
+
+  // Synchronize motivational nudge state with initialData
+  useEffect(() => {
+    if (initialData?.motivational_nudge_enabled !== undefined) {
+      setMotivationalNudgeEnabled(initialData.motivational_nudge_enabled);
+    }
+    if (initialData?.motivational_nudge_text !== undefined) {
+      setMotivationalNudgeText(initialData.motivational_nudge_text || "Your review helps us get found online and hold our own against bigger brands");
+    }
+  }, [initialData?.motivational_nudge_enabled, initialData?.motivational_nudge_text]);
 
   // Check for conflicts on initial load
   useEffect(() => {
@@ -343,11 +356,14 @@ export default function ServicePromptPageForm({
           // Explicitly include keyword inspiration fields
           keyword_inspiration_enabled: formData.keyword_inspiration_enabled,
           selected_keyword_inspirations: formData.selected_keyword_inspirations,
+          // Motivational Nudge
+          motivational_nudge_enabled: motivationalNudgeEnabled,
+          motivational_nudge_text: motivationalNudgeText,
         };
 
 
 
-        
+
         const result = await onSave(saveData);
         
         // Call success callback if provided
@@ -782,7 +798,16 @@ export default function ServicePromptPageForm({
           onAIEnabledChange={(enabled) => updateFormData('aiButtonEnabled', enabled)}
           onGrammarEnabledChange={(enabled) => setFixGrammarEnabled(enabled)}
         />
-        
+
+        {/* Motivational Nudge */}
+        <MotivationalNudgeFeature
+          enabled={motivationalNudgeEnabled}
+          text={motivationalNudgeText}
+          onEnabledChange={setMotivationalNudgeEnabled}
+          onTextChange={setMotivationalNudgeText}
+          editMode={true}
+        />
+
         {/* Falling Stars Section */}
         <FallingStarsFeature
           enabled={formData.falling_enabled}

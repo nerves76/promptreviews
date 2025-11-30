@@ -24,7 +24,8 @@ import {
   KickstartersFeature,
   AISettingsFeature,
   RecentReviewsFeature,
-  KeywordInspirationFeature
+  KeywordInspirationFeature,
+  MotivationalNudgeFeature
 } from "./prompt-features";
 
 // Helper function to get falling icon
@@ -154,6 +155,14 @@ export default function PhotoPromptPageForm({
     initialData.fix_grammar_enabled ?? true,
   );
 
+  // Motivational Nudge state
+  const [motivationalNudgeEnabled, setMotivationalNudgeEnabled] = useState(
+    initialData?.motivational_nudge_enabled ?? true
+  );
+  const [motivationalNudgeText, setMotivationalNudgeText] = useState(
+    initialData?.motivational_nudge_text || "Your review helps us get found online and hold our own against bigger brands"
+  );
+
   // Keywords state
   const [keywords, setKeywords] = useState<string[]>(() => {
     if (Array.isArray(initialData?.keywords) && initialData.keywords.length > 0) {
@@ -164,7 +173,15 @@ export default function PhotoPromptPageForm({
     return [];
   });
 
-
+  // Synchronize motivational nudge state with initialData
+  useEffect(() => {
+    if (initialData?.motivational_nudge_enabled !== undefined) {
+      setMotivationalNudgeEnabled(initialData.motivational_nudge_enabled);
+    }
+    if (initialData?.motivational_nudge_text !== undefined) {
+      setMotivationalNudgeText(initialData.motivational_nudge_text || "Your review helps us get found online and hold our own against bigger brands");
+    }
+  }, [initialData?.motivational_nudge_enabled, initialData?.motivational_nudge_text]);
 
   // Form validation
   const validateForm = () => {
@@ -269,10 +286,13 @@ export default function PhotoPromptPageForm({
         selected_keyword_inspirations: formData.selected_keyword_inspirations,
         // Keywords
         keywords: keywords,
+        // Motivational Nudge
+        motivational_nudge_enabled: motivationalNudgeEnabled,
+        motivational_nudge_text: motivationalNudgeText,
       };
-      
+
       const result = await onSave(saveData);
-      
+
       // Call success callback if provided (this triggers redirect)
       if (onPublishSuccess && result && typeof result === 'object' && 'slug' in result) {
         const typedResult = result as { slug: string };
@@ -537,6 +557,14 @@ export default function PhotoPromptPageForm({
             fixGrammarEnabled={fixGrammarEnabled}
             onAIEnabledChange={setAiButtonEnabled}
             onGrammarEnabledChange={setFixGrammarEnabled}
+          />
+
+          <MotivationalNudgeFeature
+            enabled={motivationalNudgeEnabled}
+            text={motivationalNudgeText}
+            onEnabledChange={setMotivationalNudgeEnabled}
+            onTextChange={setMotivationalNudgeText}
+            editMode={true}
           />
 
         </div>

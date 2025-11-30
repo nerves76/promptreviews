@@ -24,7 +24,7 @@ const enableDebugTools =
 export const metadata: Metadata = {
   title: "PromptReviews - Get More Reviews",
   description:
-    "Make it easy and fun for your customers to post reviews online. Grow your presence on traditional and AI search platforms.",
+    "Power your business with the voice of your customers. Collect authentic, keyword-rich reviews that boost your visibility online.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

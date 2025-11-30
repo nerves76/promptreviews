@@ -14,6 +14,7 @@ export { default as KickstartersFeature } from './KickstartersFeature';
 export { default as ReviewPlatformsFeature } from './ReviewPlatformsFeature';
 export { default as RecentReviewsFeature } from './RecentReviewsFeature';
 export { default as KeywordInspirationFeature } from './KeywordInspirationFeature';
+export { default as MotivationalNudgeFeature } from './MotivationalNudgeFeature';
 
 // Export types
 export type { PersonalizedNoteFeatureProps } from './PersonalizedNoteFeature';
@@ -23,4 +24,5 @@ export type { AISettingsFeatureProps } from './AISettingsFeature';
 export type { OfferFeatureProps } from './OfferFeature';
 export type { ReviewPlatformsFeatureProps, ReviewPlatform } from './ReviewPlatformsFeature';
 export type { KickstartersFeatureProps, Kickstarter } from './KickstartersFeature';
-export type { KeywordInspirationFeatureProps } from './KeywordInspirationFeature'; 
+export type { KeywordInspirationFeatureProps } from './KeywordInspirationFeature';
+export type { MotivationalNudgeFeatureProps } from './MotivationalNudgeFeature'; 

@@ -26,6 +26,7 @@ import {
   KickstartersFeature,
   RecentReviewsFeature,
   KeywordInspirationFeature,
+  MotivationalNudgeFeature,
   type ReviewPlatform
 } from "./prompt-features";
 import { generateContextualReview } from "@/utils/aiReviewGeneration";
@@ -116,6 +117,10 @@ export default function UniversalPromptPageForm({
     selected_keyword_inspirations: Array.isArray(initialData?.selected_keyword_inspirations)
       ? initialData.selected_keyword_inspirations
       : (Array.isArray(businessProfile?.default_selected_keyword_inspirations) ? businessProfile.default_selected_keyword_inspirations : []),
+
+    // Motivational Nudge
+    motivational_nudge_enabled: initialData?.motivational_nudge_enabled ?? true,
+    motivational_nudge_text: initialData?.motivational_nudge_text ?? "Your review helps us get found online and hold our own against bigger brands",
   });
 
   const [aiGeneratingIndex, setAiGeneratingIndex] = useState<number | null>(null);
@@ -131,6 +136,22 @@ export default function UniversalPromptPageForm({
     }
     return [];
   });
+
+  // Synchronize form data with initialData when it changes
+  useEffect(() => {
+    if (initialData?.motivational_nudge_enabled !== undefined) {
+      setFormData(prev => ({
+        ...prev,
+        motivational_nudge_enabled: initialData.motivational_nudge_enabled,
+      }));
+    }
+    if (initialData?.motivational_nudge_text !== undefined) {
+      setFormData(prev => ({
+        ...prev,
+        motivational_nudge_text: initialData.motivational_nudge_text,
+      }));
+    }
+  }, [initialData?.motivational_nudge_enabled, initialData?.motivational_nudge_text]);
 
   // Handle AI review generation with simplified Universal context
   const handleGenerateAIReview = async (index: number) => {
@@ -432,7 +453,20 @@ export default function UniversalPromptPageForm({
         }}
         initialData={initialData}
       />
-      
+
+      {/* Motivational Nudge */}
+      <MotivationalNudgeFeature
+        enabled={formData.motivational_nudge_enabled}
+        text={formData.motivational_nudge_text}
+        onEnabledChange={(enabled) => {
+          setFormData((prev: any) => ({ ...prev, motivational_nudge_enabled: enabled }));
+        }}
+        onTextChange={(text) => {
+          setFormData((prev: any) => ({ ...prev, motivational_nudge_text: text }));
+        }}
+        editMode={true}
+      />
+
       {/* Bottom Save Button */}
       <div className="flex justify-end pt-8 border-t border-gray-200">
         <button

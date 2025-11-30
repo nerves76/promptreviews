@@ -2635,6 +2635,8 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                   openInstructionsIdx={openInstructionsIdx}
                   submitError={submitError}
                   showAiToast={showAiToast}
+                  motivationalNudgeEnabled={promptPage?.motivational_nudge_enabled ?? true}
+                  motivationalNudgeText={promptPage?.motivational_nudge_text || "Your review helps us get found online and hold our own against bigger brands"}
                   onToggleAccordion={(idx) => {
                     const newOpenPlatforms = [...openPlatforms];
                     newOpenPlatforms[idx] = !newOpenPlatforms[idx];
@@ -2969,7 +2971,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                       className="max-w-2xl text-sm md:text-base"
                       style={{ color: businessProfile?.primary_color || "#fff" }}
                     >
-                      Make it easy and fun for your customers or clients to post reviews online. Grow your online presence on traditional and AI search platforms.
+                      Power your business with the voice of your customers. Collect authentic, keyword-rich reviews that boost your visibility online.
                     </p>
                     <a
                       href="https://promptreviews.app"

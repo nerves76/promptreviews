@@ -1040,7 +1040,6 @@ model communication_records {
   contacts            contacts              @relation(fields: [contact_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   prompt_pages        prompt_pages?         @relation(fields: [prompt_page_id], references: [id], onUpdate: NoAction)
   follow_up_reminders follow_up_reminders[]
-  review_submissions  review_submissions[]
 
   @@index([account_id], map: "idx_communication_records_account_id")
   @@index([contact_id], map: "idx_communication_records_contact_id")
@@ -2124,6 +2123,8 @@ model prompt_pages {
   keyword_inspiration_enabled                                              Boolean?                  @default(false)
   selected_keyword_inspirations                                            String[]                  @default([])
   sort_order                                                               Int?                      @default(0)
+  motivational_nudge_enabled                                               Boolean?                  @default(true)
+  motivational_nudge_text                                                  String?                   @default("Your review helps us get found online and hold our own against bigger brands")
   analytics_events                                                         analytics_events[]
   business_locations_business_locations_prompt_page_idToprompt_pages       business_locations[]      @relation("business_locations_prompt_page_idToprompt_pages")
   campaign_actions                                                         campaign_actions[]
@@ -2362,18 +2363,9 @@ model review_submissions {
   google_location_name         String?
   location_name                String?
   business_location_id         String?                    @db.Uuid
-  source_channel               review_source_channel?     @default(unknown)
-  source_id                    String?                    @db.Uuid
-  communication_record_id      String?                    @db.Uuid
-  widget_id                    String?                    @db.Uuid
-  referrer_url                 String?
-  utm_params                   Json?                      @default("{}")
-  entry_url                    String?
   review_keyword_matches       review_keyword_matches[]
   businesses                   businesses?                @relation(fields: [business_id], references: [id], onUpdate: NoAction, map: "fk_review_submissions_business_id")
-  communication_records        communication_records?     @relation(fields: [communication_record_id], references: [id], onUpdate: NoAction, map: "fk_review_submissions_communication_record")
   contacts                     contacts?                  @relation(fields: [contact_id], references: [id], onUpdate: NoAction, map: "fk_review_submissions_contact_id")
-  widgets                      widgets?                   @relation(fields: [widget_id], references: [id], onUpdate: NoAction, map: "fk_review_submissions_widget")
   business_locations           business_locations?        @relation(fields: [business_location_id], references: [id], onUpdate: NoAction)
   google_business_locations    google_business_locations? @relation(fields: [google_business_location_id], references: [id], onUpdate: NoAction)
   prompt_pages                 prompt_pages?              @relation(fields: [prompt_page_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
@@ -2398,13 +2390,8 @@ model review_submissions {
   @@index([star_rating], map: "idx_review_submissions_star_rating")
   @@index([submitted_at], map: "idx_review_submissions_submitted_at")
   @@index([verified], map: "idx_review_submissions_verified")
-  @@index([account_id, source_channel, created_at(sort: Desc)], map: "idx_review_submissions_account_source_created")
   @@index([business_location_id], map: "idx_review_submissions_business_location")
-  @@index([communication_record_id], map: "idx_review_submissions_communication_record_id")
   @@index([location_name], map: "idx_review_submissions_location_name")
-  @@index([source_channel], map: "idx_review_submissions_source_channel")
-  @@index([utm_params], map: "idx_review_submissions_utm_params", type: Gin)
-  @@index([widget_id], map: "idx_review_submissions_widget_id")
   @@schema("public")
 }
 
@@ -2547,21 +2534,20 @@ model widget_reviews {
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model widgets {
-  id                     String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  account_id             String               @db.Uuid
+  id                     String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  account_id             String           @db.Uuid
   type                   String
-  created_at             DateTime?            @default(now()) @db.Timestamptz(6)
-  updated_at             DateTime?            @default(now()) @db.Timestamptz(6)
-  theme                  Json?                @default("{}")
-  review_count           Int?                 @default(5)
-  widget_type            String?              @default("multi")
-  submit_reviews_enabled Boolean              @default(true)
-  config                 Json?                @default("{}")
-  is_active              Boolean?             @default(true)
+  created_at             DateTime?        @default(now()) @db.Timestamptz(6)
+  updated_at             DateTime?        @default(now()) @db.Timestamptz(6)
+  theme                  Json?            @default("{}")
+  review_count           Int?             @default(5)
+  widget_type            String?          @default("multi")
+  submit_reviews_enabled Boolean          @default(true)
+  config                 Json?            @default("{}")
+  is_active              Boolean?         @default(true)
   name                   String
-  review_submissions     review_submissions[]
   widget_reviews         widget_reviews[]
-  accounts               accounts             @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  accounts               accounts         @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([account_id], map: "idx_widgets_account_id")
   @@index([account_id, type, created_at(sort: Desc)], map: "idx_widgets_account_type")
@@ -2761,20 +2747,6 @@ enum social_platform_type {
   bluesky
   twitter
   slack
-
-  @@schema("public")
-}
-
-enum review_source_channel {
-  prompt_page_direct
-  prompt_page_qr
-  email_campaign
-  sms_campaign
-  widget_cta
-  gbp_import
-  social_share
-  referral
-  unknown
 
   @@schema("public")
 }

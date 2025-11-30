@@ -27,7 +27,8 @@ import {
   AISettingsFeature,
   KickstartersFeature,
   RecentReviewsFeature,
-  KeywordInspirationFeature
+  KeywordInspirationFeature,
+  MotivationalNudgeFeature
 } from "./prompt-features";
 import Icon from "@/components/Icon";
 import SectionHeader from "./SectionHeader";
@@ -138,6 +139,8 @@ export default function ProductPromptPageForm({
   const [recentReviewsScope, setRecentReviewsScope] = useState(initialData?.recent_reviews_scope || initialData?.recentReviewsScope || "current_page");
   const [selectedKickstarters, setSelectedKickstarters] = useState<string[]>(initialData?.selected_kickstarters ?? []);
   const [keywordInspirationEnabled, setKeywordInspirationEnabled] = useState(initialData?.keyword_inspiration_enabled ?? businessProfile?.default_keyword_inspiration_enabled ?? false);
+  const [motivationalNudgeEnabled, setMotivationalNudgeEnabled] = useState(initialData?.motivational_nudge_enabled ?? true);
+  const [motivationalNudgeText, setMotivationalNudgeText] = useState(initialData?.motivational_nudge_text || "Your review helps us get found online and hold our own against bigger brands");
   const [selectedKeywordInspirations, setSelectedKeywordInspirations] = useState<string[]>(
     Array.isArray(initialData?.selected_keyword_inspirations)
       ? initialData.selected_keyword_inspirations
@@ -162,6 +165,16 @@ export default function ProductPromptPageForm({
       });
     }
   }, [initialData]);
+
+  // Synchronize motivational nudge state with initialData
+  useEffect(() => {
+    if (initialData?.motivational_nudge_enabled !== undefined) {
+      setMotivationalNudgeEnabled(initialData.motivational_nudge_enabled);
+    }
+    if (initialData?.motivational_nudge_text !== undefined) {
+      setMotivationalNudgeText(initialData.motivational_nudge_text || "Your review helps us get found online and hold our own against bigger brands");
+    }
+  }, [initialData?.motivational_nudge_enabled, initialData?.motivational_nudge_text]);
 
   // Sync product name with form data
   useEffect(() => {
@@ -396,8 +409,10 @@ export default function ProductPromptPageForm({
         keyword_inspiration_enabled: keywordInspirationEnabled,
         selected_keyword_inspirations: selectedKeywordInspirations,
         keywords: keywords, // Include page-level keywords
+        motivational_nudge_enabled: motivationalNudgeEnabled,
+        motivational_nudge_text: motivationalNudgeText,
       };
-      
+
       await onSave(saveData);
     } catch (error: any) {
       console.error(`🔥 Save failed:`, error);
@@ -731,6 +746,15 @@ export default function ProductPromptPageForm({
               fixGrammarEnabled={fixGrammarEnabled}
               onAIEnabledChange={(enabled) => setAiReviewEnabled(enabled)}
               onGrammarEnabledChange={(enabled) => setFixGrammarEnabled(enabled)}
+            />
+
+            {/* Motivational Nudge */}
+            <MotivationalNudgeFeature
+              enabled={motivationalNudgeEnabled}
+              text={motivationalNudgeText}
+              onEnabledChange={setMotivationalNudgeEnabled}
+              onTextChange={setMotivationalNudgeText}
+              editMode={true}
             />
 
         {/* Falling Stars Section */}
