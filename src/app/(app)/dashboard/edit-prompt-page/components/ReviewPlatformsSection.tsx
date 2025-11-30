@@ -231,9 +231,10 @@ const ReviewPlatformsSection: React.FC<ReviewPlatformsSectionProps> = ({
         <button
           type="button"
           onClick={addPlatform}
-          className="text-blue-600 underline mt-2"
+          className="inline-flex items-center px-4 py-2 border border-slate-blue text-sm font-medium rounded-md text-slate-blue bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue mt-2"
         >
-          + Add Platform
+          <Icon name="FaPlus" className="mr-2 h-4 w-4" size={16} />
+          Add Platform
         </button>
       </div>
 

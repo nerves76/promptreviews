@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Icon, { IconName } from '@/components/Icon';
 import { applyCardTransparency, getContrastTextColor } from '@/utils/colorUtils';
 import ProcessIndicator from './ProcessIndicator';
@@ -6,7 +6,6 @@ import ButtonSpinner from '@/components/ButtonSpinner';
 import {
   countWords,
   getWordLimitOrDefault,
-  isNearWordLimit,
   PROMPT_PAGE_WORD_LIMITS,
 } from '@/constants/promptPageWordLimits';
 
@@ -83,10 +82,15 @@ export default function ReviewPlatformCard({
   getPlatformIcon,
   getFontClass,
 }: ReviewPlatformCardProps) {
-  const { icon: iconName, label } = getPlatformIcon(
+  const { icon: iconName, label: platformLabel } = getPlatformIcon(
     platform.url,
     platform.platform || platform.name,
   );
+  // Use customPlatform name if platform is "Other", otherwise use the detected label
+  const platformName = platform.platform || platform.name;
+  const label = platformName === "Other" && platform.customPlatform
+    ? platform.customPlatform
+    : platformLabel;
   const isUniversal = !!promptPage.is_universal;
   const aiButtonEnabled = promptPage?.ai_button_enabled !== false;
   const fixGrammarEnabled = promptPage?.fix_grammar_enabled !== false;
@@ -100,23 +104,12 @@ export default function ReviewPlatformCard({
   const wordCount = countWords(reviewText);
   const isOverLimit = wordCount > wordLimit;
   const isUnderMin = wordCount > 0 && wordCount < configuredMin;
-  const nearLimit = !isOverLimit && isNearWordLimit(wordCount, wordLimit);
   const canSubmit = wordCount >= configuredMin && wordCount <= wordLimit;
   const progressValue = wordLimit > 0 ? Math.min(1, Math.max(0, wordCount / wordLimit)) : 0;
-  const baseTextColor = businessProfile?.card_text || '#1A1A1A';
-  const lineColor = isOverLimit
-    ? '#dc2626'
-    : isUnderMin
-      ? businessProfile?.secondary_color || baseTextColor
-      : baseTextColor;
-  const trackColor = applyCardTransparency(baseTextColor, 0.15);
-  const progressColor = isOverLimit
-    ? '#dc2626'
-    : nearLimit
-      ? businessProfile?.secondary_color || '#f97316'
-      : progressValue >= 0.5
-        ? '#16a34a'
-        : businessProfile?.primary_color || '#2563EB';
+
+  // State for textarea focus (controls grammar button collapse)
+  const [isTextareaFocused, setIsTextareaFocused] = useState(false);
+  const [isGrammarHovered, setIsGrammarHovered] = useState(false);
 
   // Helper function to get card border style
   const getCardBorderStyle = () => {
@@ -375,54 +368,6 @@ export default function ReviewPlatformCard({
                 Your review <span className="text-red-500">*</span>
               </label>
               <div className="flex items-center gap-2">
-                {fixGrammarEnabled && (
-                  <button
-                    type="button"
-                    onClick={() => onFixGrammar(idx)}
-                    disabled={fixGrammarLoading === idx || fixGrammarCounts[idx] >= 3}
-                    className="px-3 py-1 border border-gray-300 rounded text-xs font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 transition-all duration-200 hover:text-white"
-                    style={{
-                      borderColor: businessProfile?.secondary_color || "#6B7280",
-                      color: businessProfile?.secondary_color || "#6B7280",
-                    }}
-                    title="AI will check and correct spelling and grammar errors in your review"
-                    onMouseEnter={(e) => {
-                      if (fixGrammarLoading !== idx && fixGrammarCounts[idx] < 3) {
-                        e.currentTarget.style.backgroundColor = businessProfile?.secondary_color || "#6B7280";
-                        e.currentTarget.style.color = getContrastTextColor(businessProfile?.secondary_color || "#4F46E5");
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (fixGrammarLoading !== idx && fixGrammarCounts[idx] < 3) {
-                        e.currentTarget.style.backgroundColor = "transparent";
-                        e.currentTarget.style.color = businessProfile?.secondary_color || "#6B7280";
-                      }
-                    }}
-                  >
-                    {fixGrammarLoading === idx ? (
-                      <>
-                        <ButtonSpinner size={12} />
-                        Fixing...
-                      </>
-                    ) : (
-                      <>
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          className="w-4 h-4"
-                        >
-                          <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
-                          <path d="M6 12v5c3 3 9 3 12 0v-5"/>
-                        </svg>
-                        Fix grammar {fixGrammarCounts[idx] > 0 && `(${fixGrammarCounts[idx]}/3)`}
-                      </>
-                    )}
-                  </button>
-                )}
                 {keywordInspirationEnabled && onOpenKeywordInspiration && (
                   <button
                     type="button"
@@ -477,46 +422,75 @@ export default function ReviewPlatformCard({
                 )}
               </div>
             </div>
-            <textarea
-              id={`reviewText-${idx}`}
-              value={platformReviewTexts[idx]}
-              onChange={(e) => onReviewTextChange(idx, e.target.value)}
-              placeholder="Share your experience..."
-              className="w-full p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 sm:text-sm"
-              rows={4}
-              style={{
-                background: applyCardTransparency(
-                  businessProfile?.card_bg || "#F9FAFB",
-                  Math.min(1, (businessProfile?.card_transparency ?? 0.30) + 0.4)
-                ),
-                color: businessProfile?.input_text_color || "#1A1A1A",
-                boxShadow: "inset 0 2px 4px 0 rgba(0,0,0,0.2), inset 0 1px 2px 0 rgba(0,0,0,0.15)",
-                border: "none",
-              }}
-              required
-            />
-            <div
-              className="mt-2 text-xs font-semibold flex items-center gap-2"
-              style={{ color: lineColor }}
-            >
-              <span>{`Word count ${wordCount}/${wordLimit}`}</span>
-              <div
-                className="h-2 rounded-full overflow-hidden flex-1"
-                role="progressbar"
-                aria-valuemin={0}
-                aria-valuemax={wordLimit}
-                aria-valuenow={Math.min(wordCount, wordLimit)}
-                aria-label={`Review word count ${wordCount} of ${wordLimit} words`}
-                style={{ backgroundColor: trackColor, minWidth: '80px' }}
-              >
-                <div
-                  className="h-full transition-all duration-200"
+            <div className="relative">
+              <textarea
+                id={`reviewText-${idx}`}
+                value={platformReviewTexts[idx]}
+                onChange={(e) => onReviewTextChange(idx, e.target.value)}
+                onFocus={() => setIsTextareaFocused(true)}
+                onBlur={() => setIsTextareaFocused(false)}
+                placeholder="Share your experience..."
+                className="w-full p-3 pb-8 rounded-lg focus:ring-2 focus:ring-indigo-500 sm:text-sm"
+                rows={4}
+                style={{
+                  background: applyCardTransparency(
+                    businessProfile?.card_bg || "#F9FAFB",
+                    Math.min(1, (businessProfile?.card_transparency ?? 0.30) + 0.4)
+                  ),
+                  color: businessProfile?.input_text_color || "#1A1A1A",
+                  boxShadow: "inset 0 2px 4px 0 rgba(0,0,0,0.2), inset 0 1px 2px 0 rgba(0,0,0,0.15)",
+                  border: "none",
+                }}
+                required
+              />
+              {/* Fix Grammar button - inside textarea, top-right corner */}
+              {fixGrammarEnabled && (
+                <button
+                  type="button"
+                  onClick={() => onFixGrammar(idx)}
+                  disabled={fixGrammarLoading === idx || fixGrammarCounts[idx] >= 3}
+                  onMouseEnter={() => setIsGrammarHovered(true)}
+                  onMouseLeave={() => setIsGrammarHovered(false)}
+                  className="absolute top-2 right-2 px-2 py-1 rounded text-xs font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 transition-all duration-200"
                   style={{
-                    width: `${Math.min(100, progressValue * 100)}%`,
-                    backgroundColor: progressColor,
+                    // Calculate contrast against input background (which is card_bg with added opacity)
+                    color: getContrastTextColor(businessProfile?.card_bg || "#FFFFFF"),
+                    backgroundColor: 'transparent',
                   }}
-                />
-              </div>
+                  title="AI will check and correct spelling and grammar errors in your review"
+                >
+                  {fixGrammarLoading === idx ? (
+                    <>
+                      <ButtonSpinner size={14} />
+                      {(!isTextareaFocused || isGrammarHovered) && <span>Fixing...</span>}
+                    </>
+                  ) : (
+                    <>
+                      <Icon name="FaSpellCheck" className="w-4 h-4" size={16} />
+                      {(!isTextareaFocused || isGrammarHovered) && (
+                        <span>Fix grammar{fixGrammarCounts[idx] > 0 && ` (${fixGrammarCounts[idx]}/3)`}</span>
+                      )}
+                    </>
+                  )}
+                </button>
+              )}
+              {/* Word count indicator - appears at 70%+ inside textarea */}
+              {progressValue >= 0.7 && (
+                <div
+                  className="absolute bottom-2 left-3 text-xs font-medium transition-opacity duration-300"
+                  style={{
+                    color: progressValue >= 0.95
+                      ? '#dc2626' // red at 95%+
+                      : progressValue >= 0.8
+                        ? '#f97316' // soft orange at 80%+
+                        : '#22c55e', // light green at 70%+
+                    opacity: 1,
+                    animation: 'fadeIn 0.3s ease-in-out',
+                  }}
+                >
+                  {wordCount}/{wordLimit}
+                </div>
+              )}
             </div>
           </div>
 
@@ -617,6 +591,7 @@ export default function ReviewPlatformCard({
                   borderColor: businessProfile?.secondary_color || "#4F46E5",
                   color: getContrastTextColor(businessProfile?.secondary_color || "#4F46E5"),
                 }}
+                title={`We'll copy your review and open ${label}. Just paste and post.`}
                 onMouseEnter={(e) => {
                   if (isSubmitting !== idx && isCopied !== idx && isRedirecting !== idx && !e.currentTarget.disabled) {
                     e.currentTarget.style.backgroundColor = "transparent";
