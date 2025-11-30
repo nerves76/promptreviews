@@ -131,7 +131,7 @@ export default function ReviewSubmissionForm({
             htmlFor="reviewerRole"
             className="block text-sm font-medium text-gray-700"
           >
-            Role/Position/Occupation
+            Role or occupation
           </label>
           <input
             type="text"

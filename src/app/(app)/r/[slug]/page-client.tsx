@@ -2445,7 +2445,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                               htmlFor="photoReviewerRole"
                               className="block text-sm font-medium text-gray-700"
                             >
-                              Role/Position/Occupation
+                              Role or occupation
                             </label>
                             <input
                               type="text"

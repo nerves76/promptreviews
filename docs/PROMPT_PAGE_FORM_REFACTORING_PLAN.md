@@ -819,3 +819,174 @@ features_or_benefits JSONB DEFAULT '[]'
 builder_questions JSONB DEFAULT '[]'
 keywords_required BOOLEAN DEFAULT true
 ```
+
+---
+
+## Appendix: Lessons Learned from Motivational Nudge Implementation
+
+The Motivational Nudge feature was added in November 2024 and highlighted several pain points that this refactoring will address.
+
+### Problem 1: Multiple Save Handlers
+
+**Issue:** The Universal Prompt Page has its own `handleFormSave` in `edit-prompt-page/universal/page.tsx` that explicitly lists every field to save. New fields must be added to:
+1. The `UniversalPromptFormState` interface
+2. The `merged` object when loading data
+3. The database update call in `handleFormSave`
+
+**Impact:** Forgetting any of these locations causes the feature to silently fail (data not saved or not loaded).
+
+**Solution:** BasePromptPageForm should handle all shared field persistence. Parent pages should only add page-level metadata (id, account_id, status).
+
+### Problem 2: Operator Confusion (`||` vs `??`)
+
+**Issue:** Using `||` (logical OR) instead of `??` (nullish coalescing) caused saved values to be overwritten with defaults.
+
+```typescript
+// WRONG - empty string or false gets replaced with default
+motivational_nudge_text: initialData?.motivational_nudge_text || "default"
+
+// CORRECT - only null/undefined gets replaced
+motivational_nudge_text: initialData?.motivational_nudge_text ?? "default"
+```
+
+**Impact:** Users save a value, but on reload the default appears instead.
+
+**Solution:** Standardize on `??` for all optional fields in BasePromptPageForm. Add linting rule or documentation.
+
+### Problem 3: State Synchronization with useEffect
+
+**Issue:** Each form has its own `useState` initialization and `useEffect` hooks to sync with `initialData`. When `initialData` loads asynchronously, the initial state is wrong.
+
+```typescript
+// Form mounts with initialData=undefined → uses default
+const [enabled, setEnabled] = useState(initialData?.field ?? true);
+
+// Later: initialData loads with field=false
+// But useState initial value already ran, state stays true
+
+// Fix: Add useEffect to sync
+useEffect(() => {
+  if (initialData?.field !== undefined) {
+    setEnabled(initialData.field);
+  }
+}, [initialData?.field]);
+```
+
+**Impact:** Features appear "stuck" on their default values despite having saved values in the database.
+
+**Solution:** BasePromptPageForm handles all state initialization and synchronization in one place. Child forms don't manage shared feature state.
+
+### Problem 4: Duplicate Save Locations
+
+**Issue:** The `edit-prompt-page/[slug]/page.tsx` has `handleGeneralSave` with a `validColumns` array. The `edit-prompt-page/universal/page.tsx` has its own complete save handler. Both must be updated for new features.
+
+**Impact:** Feature works in one context but not another.
+
+**Solution:** Consolidate save logic. BasePromptPageForm provides the complete form data; parent pages only add metadata and call the database.
+
+### Problem 5: Controlled vs Uncontrolled Components
+
+**Issue:** The initial MotivationalNudgeFeature component had internal state AND accepted props, causing state to get out of sync.
+
+```typescript
+// PROBLEMATIC: Component has internal state that shadows props
+function MotivationalNudgeFeature({ enabled, text, ... }) {
+  const [isEnabled, setIsEnabled] = useState(enabled);
+  const [nudgeText, setNudgeText] = useState(text);
+
+  // Multiple useEffects trying to sync internal state with props
+  useEffect(() => { setIsEnabled(enabled); }, [enabled]);
+  useEffect(() => { setNudgeText(text); }, [text]);
+  // Conflicts and race conditions ensue
+}
+
+// CORRECT: Fully controlled component
+function MotivationalNudgeFeature({ enabled, text, onEnabledChange, onTextChange }) {
+  // No internal state - just use props directly
+  return (
+    <div>
+      <Toggle checked={enabled} onChange={() => onEnabledChange(!enabled)} />
+      <Textarea value={text} onChange={(e) => onTextChange(e.target.value)} />
+    </div>
+  );
+}
+```
+
+**Impact:** Toggle states appear to revert, text changes don't persist.
+
+**Solution:** All prompt-features components should be fully controlled (no internal state for values that come from props). State lives in the parent form.
+
+### Problem 6: Interface Mismatches
+
+**Issue:** The `UniversalPromptFormState` interface in `page.tsx` didn't include motivational nudge fields, so TypeScript didn't catch the missing fields.
+
+**Impact:** Runtime behavior is correct but code doesn't communicate intent.
+
+**Solution:** Share a single `BaseFormState` interface that all forms extend. TypeScript catches missing fields at compile time.
+
+### Checklist for Adding New Shared Features
+
+Based on the Motivational Nudge experience, here's the complete checklist:
+
+#### Database
+- [ ] Create migration file with correct timestamp
+- [ ] Add columns with appropriate defaults
+- [ ] Run `npx prisma db pull` to update schema
+- [ ] Run `npx prisma generate` to update types
+
+#### BasePromptPageForm (after refactoring)
+- [ ] Add to `BaseFormState` interface
+- [ ] Add to form state initialization (use `??` not `||`)
+- [ ] Add feature component to render section
+- [ ] Add to save data mapping
+
+#### Feature Component
+- [ ] Create in `/components/prompt-features/`
+- [ ] Make fully controlled (no internal state)
+- [ ] Export from `index.ts`
+
+#### Public Display
+- [ ] Add props to `ReviewPlatformCard` or relevant display component
+- [ ] Add rendering logic with proper styling
+
+#### Testing
+- [ ] Test create flow (default values)
+- [ ] Test edit flow (saved values load correctly)
+- [ ] Test save with feature disabled
+- [ ] Test save with feature enabled and custom values
+- [ ] Test on Universal page (different save handler)
+- [ ] Test on individual prompt pages
+
+### Files Modified for Motivational Nudge (Evidence of Duplication)
+
+This single feature required changes to **22 files**:
+
+1. `supabase/migrations/20251129000000_add_motivational_nudge.sql`
+2. `prisma/schema.prisma` (auto-generated)
+3. `src/app/(app)/components/prompt-features/MotivationalNudgeFeature.tsx` (new)
+4. `src/app/(app)/components/prompt-features/index.ts`
+5. `src/app/(app)/components/BasePromptPageForm.tsx`
+6. `src/app/(app)/components/ServicePromptPageForm.tsx`
+7. `src/app/(app)/components/ProductPromptPageForm.tsx`
+8. `src/app/(app)/components/PhotoPromptPageForm.tsx`
+9. `src/app/(app)/components/EmployeePromptPageForm.tsx`
+10. `src/app/(app)/components/EventPromptPageForm.tsx`
+11. `src/app/(app)/components/UniversalPromptPageForm.tsx`
+12. `src/app/(app)/components/ReviewBuilderPromptPageForm.tsx`
+13. `src/app/(app)/dashboard/edit-prompt-page/[slug]/page.tsx`
+14. `src/app/(app)/dashboard/edit-prompt-page/[slug]/ServicePromptPageForm.tsx`
+15. `src/app/(app)/dashboard/edit-prompt-page/universal/page.tsx`
+16. `src/app/(app)/r/[slug]/components/ReviewPlatformCard.tsx`
+17. `src/app/(app)/r/[slug]/page-client.tsx`
+18. `src/app/(app)/r/[slug]/components/ReviewBuilderWizard.tsx`
+19. `src/app/layout.tsx`
+20-22. Various other files for UI tweaks
+
+**After refactoring**, the same feature would require changes to only:
+1. Database migration
+2. `BasePromptPageForm.tsx` (state + component)
+3. `prompt-features/MotivationalNudgeFeature.tsx` (new component)
+4. `prompt-features/index.ts` (export)
+5. Display component (`ReviewPlatformCard.tsx`)
+
+That's **5 files instead of 22** - a 77% reduction in files to modify.

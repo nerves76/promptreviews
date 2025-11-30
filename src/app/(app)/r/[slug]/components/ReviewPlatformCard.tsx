@@ -326,7 +326,7 @@ export default function ReviewPlatformCard({
                 className="block text-sm font-medium"
                 style={{ color: businessProfile?.card_text || "#1A1A1A" }}
               >
-                Role/Position/Occupation
+                Role or occupation
               </label>
               <input
                 type="text"
@@ -363,8 +363,8 @@ export default function ReviewPlatformCard({
                 </p>
               </div>
             )}
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-3">
+            <div className="flex items-center justify-between mb-2 gap-2">
+              <div className="flex items-center gap-2 sm:gap-3">
                 <label
                   htmlFor={`reviewText-${idx}`}
                   className="block text-sm font-medium"
@@ -377,7 +377,8 @@ export default function ReviewPlatformCard({
                     type="button"
                     onClick={() => onRewriteWithAI(idx)}
                     disabled={aiLoading === idx || aiRewriteCounts[idx] >= 3}
-                    className="px-2 py-0.5 rounded text-xs font-medium focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 transition-all duration-200 border"
+                    className="px-3 py-1 rounded text-xs font-medium focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 transition-all duration-200 border"
+                    title="Use AI to generate a review you can modify and make your own"
                     style={{
                       backgroundColor: "transparent",
                       borderColor: businessProfile?.primary_color || "#2563EB",
@@ -447,7 +448,8 @@ export default function ReviewPlatformCard({
                     }}
                   >
                     <Icon name="mushroom" className="w-3.5 h-3.5" size={14} />
-                    <span>Power-up phrases</span>
+                    <span className="hidden sm:inline">Power-up phrases</span>
+                    <span className="sm:hidden">Power-up</span>
                   </button>
                 )}
                 {platform.customInstructions && platform.customInstructions.trim() && (
