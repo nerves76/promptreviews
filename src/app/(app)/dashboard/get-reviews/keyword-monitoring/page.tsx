@@ -242,7 +242,7 @@ export default function KeywordTrackerPage() {
     if (newKeywords.length > MAX_KEYWORDS) {
       setStatusMessage({
         type: "error",
-        text: `Maximum ${MAX_KEYWORDS} keywords allowed.`,
+        text: `You can track up to ${MAX_KEYWORDS} keywords. Remove some to add more.`,
       });
       return;
     }
@@ -378,7 +378,7 @@ export default function KeywordTrackerPage() {
     if (keywords.length >= MAX_KEYWORDS) {
       setStatusMessage({
         type: "error",
-        text: `Maximum ${MAX_KEYWORDS} keywords allowed.`,
+        text: `You can track up to ${MAX_KEYWORDS} keywords. Remove some to add more.`,
       });
       return;
     }
