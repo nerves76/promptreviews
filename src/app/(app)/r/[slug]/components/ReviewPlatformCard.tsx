@@ -648,7 +648,7 @@ export default function ReviewPlatformCard({
 
           {/* Compliance text */}
           <p
-            className="mt-3 text-xs text-center"
+            className="mt-6 -mb-2 text-xs text-center"
             style={{ color: businessProfile?.card_text || "#1A1A1A", opacity: 0.7 }}
           >
             By submitting, you agree to our{" "}
