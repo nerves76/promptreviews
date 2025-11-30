@@ -171,7 +171,10 @@ export async function POST(request: NextRequest) {
         content: r.review_content || '',
       }));
 
+    console.log('[keyword-tracker/suggest] Reviews found:', reviews.length, 'Existing keywords:', existingKeywords.length);
+
     if (reviews.length < 5) {
+      console.log('[keyword-tracker/suggest] Not enough reviews, need at least 5');
       return NextResponse.json({
         success: true,
         suggestions: [],
@@ -234,8 +237,12 @@ ${business?.industry ? `\nBusiness industry: ${business.industry}` : ''}`,
       }, { status: 500 });
     }
 
+    console.log('[keyword-tracker/suggest] AI suggested keywords:', aiSuggestions.length, aiSuggestions);
+
     // Verify each suggestion actually exists in reviews
     const verified = verifySuggestions(aiSuggestions, reviews, existingKeywords);
+
+    console.log('[keyword-tracker/suggest] Verified suggestions (found in 2+ reviews):', verified.length, verified.map(v => `${v.keyword}(${v.count})`));
 
     return NextResponse.json({
       success: true,
