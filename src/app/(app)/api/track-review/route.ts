@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
       .select(`
         account_id,
         business_location_id,
-        business_locations (
+        business_locations!prompt_pages_business_location_id_fkey (
           address_city,
           address_state,
           address_zip
@@ -86,8 +86,18 @@ export async function POST(request: NextRequest) {
       console.error("[track-review] ERROR: No account_id found in prompt page:", promptPage);
       return NextResponse.json({ error: "Could not determine business_id for review." }, { status: 400 });
     }
-    
-    const business_id = promptPage.account_id;
+
+    const account_id = promptPage.account_id;
+
+    // Fetch the actual business_id from businesses table
+    const { data: business } = await supabase
+      .from("businesses")
+      .select("id")
+      .eq("account_id", account_id)
+      .limit(1)
+      .single();
+
+    const business_id = business?.id || null;
 
     // Derive location_name from business_location if available
     let location_name: string | null = null;
@@ -130,7 +140,7 @@ export async function POST(request: NextRequest) {
         .from("communication_records")
         .select("id")
         .eq("id", communication_record_id)
-        .eq("account_id", business_id)
+        .eq("account_id", account_id)
         .eq("prompt_page_id", promptPageId)
         .maybeSingle();
       if (commError) {
@@ -145,7 +155,7 @@ export async function POST(request: NextRequest) {
         .from("widgets")
         .select("id")
         .eq("id", widget_id)
-        .eq("account_id", business_id)
+        .eq("account_id", account_id)
         .maybeSingle();
       if (widgetError) {
         console.warn("[track-review] Widget validation failed:", widgetError);
@@ -167,8 +177,8 @@ export async function POST(request: NextRequest) {
       .from("review_submissions")
       .insert({
         prompt_page_id: promptPageId,
-        account_id: business_id, // Primary account association
-        business_id: business_id, // Legacy field, kept for compatibility
+        account_id: account_id, // Primary account association
+        business_id: business_id, // References businesses table
         platform,
         status,
         reviewer_name, // Use combined name to satisfy constraint
@@ -227,7 +237,7 @@ export async function POST(request: NextRequest) {
         let existingContactQuery = supabase
           .from("contacts")
           .select("id, review_verification_status, source")
-          .eq("account_id", business_id);
+          .eq("account_id", account_id);
 
         if (email) {
           existingContactQuery = existingContactQuery.eq("email", email);
@@ -269,9 +279,9 @@ export async function POST(request: NextRequest) {
           }
         } else {
           // Create new contact from review submission
-          
+
           const contactData: any = {
-            account_id: business_id,
+            account_id: account_id,
             first_name: first_name || '',
             last_name: last_name || '',
             email: email || null,
@@ -347,7 +357,7 @@ export async function POST(request: NextRequest) {
     const { data: account, error: accountError } = await supabase
       .from("accounts")
       .select("email, first_name, review_notifications_enabled")
-      .eq("id", business_id)
+      .eq("id", account_id)
       .single();
 
     if (accountError || !account) {
