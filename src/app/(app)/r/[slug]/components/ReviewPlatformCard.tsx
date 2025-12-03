@@ -523,12 +523,12 @@ export default function ReviewPlatformCard({
                   {fixGrammarLoading === idx ? (
                     <>
                       <ButtonSpinner size={14} />
-                      {(!isTextareaFocused || isGrammarHovered) && <span>Fixing...</span>}
+                      {((!isTextareaFocused && !platformReviewTexts[idx]) || isGrammarHovered) && <span>Fixing...</span>}
                     </>
                   ) : (
                     <>
                       <Icon name="FaSpellCheck" className="w-4 h-4" size={16} />
-                      {(!isTextareaFocused || isGrammarHovered) && (
+                      {((!isTextareaFocused && !platformReviewTexts[idx]) || isGrammarHovered) && (
                         <span>Fix grammar{fixGrammarCounts[idx] > 0 && ` (${fixGrammarCounts[idx]}/3)`}</span>
                       )}
                     </>
