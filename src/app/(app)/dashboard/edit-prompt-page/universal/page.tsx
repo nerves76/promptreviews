@@ -245,6 +245,9 @@ export default function UniversalEditPromptPage() {
           // Motivational Nudge
           motivational_nudge_enabled: universalPage?.motivational_nudge_enabled ?? true,
           motivational_nudge_text: universalPage?.motivational_nudge_text ?? "{business_name} needs your STAR POWER so more people can find them online!",
+
+          // Role Field - default to false for universal/catch-all pages
+          role_field_enabled: universalPage?.role_field_enabled ?? false,
         };
 
         // Show reset button only if universal page has saved platforms (not null/undefined)
@@ -372,9 +375,10 @@ export default function UniversalEditPromptPage() {
         selected_keyword_inspirations: formState.selected_keyword_inspirations,
         motivational_nudge_enabled: formState.motivational_nudge_enabled,
         motivational_nudge_text: formState.motivational_nudge_text,
+        role_field_enabled: formState.role_field_enabled,
         updated_at: new Date().toISOString()
       };
-      
+
       localStorage.setItem('dev_universal_page_data', JSON.stringify(devUniversalPageData));
       
       // Verify it was saved
