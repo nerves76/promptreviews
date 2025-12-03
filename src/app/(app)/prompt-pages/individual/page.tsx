@@ -818,20 +818,22 @@ export default function IndividualOutreach() {
 
               {/* Sharing Options */}
               <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 bg-purple-500/30 backdrop-blur-sm rounded-lg border border-purple-300/30">
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(postSaveData.url);
+                    setCopySuccess("Copied!");
+                    setTimeout(() => setCopySuccess(""), 2000);
+                  }}
+                  className="w-full flex items-center justify-between p-3 bg-purple-500/30 hover:bg-purple-500/50 backdrop-blur-sm rounded-lg border border-purple-300/30 transition-colors cursor-pointer"
+                >
                   <span className="text-sm font-medium text-white">Get link</span>
-                  <button
-                    onClick={() => {
-                      navigator.clipboard.writeText(postSaveData.url);
-                    }}
-                    className="text-white hover:text-white/80 text-sm font-medium"
-                  >
-                    Copy
-                  </button>
-                </div>
+                  <span className="text-white text-sm font-medium">
+                    {copySuccess ? copySuccess : "Copy"}
+                  </span>
+                </button>
 
                 {/* Communication Buttons with Tracking */}
-                <div className="p-3 bg-teal-500/30 backdrop-blur-sm rounded-lg border border-teal-300/30">
+                <div className="p-3 bg-teal-500/30 hover:bg-teal-500/50 backdrop-blur-sm rounded-lg border border-teal-300/30 transition-colors">
                   <div className="text-sm font-medium text-white mb-3">Send Review Request</div>
                   <CommunicationButtons
                     contact={{
@@ -859,17 +861,15 @@ export default function IndividualOutreach() {
                   />
                 </div>
 
-                <div className="flex items-center justify-between p-3 bg-amber-500/30 backdrop-blur-sm rounded-lg border border-amber-300/30">
+                <a
+                  href={postSaveData.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full flex items-center justify-between p-3 bg-amber-500/30 hover:bg-amber-500/50 backdrop-blur-sm rounded-lg border border-amber-300/30 transition-colors cursor-pointer"
+                >
                   <span className="text-sm font-medium text-white">View Prompt Page</span>
-                  <a
-                    href={postSaveData.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-white hover:text-white/80 text-sm font-medium"
-                  >
-                    Open
-                  </a>
-                </div>
+                  <span className="text-white text-sm font-medium">Open</span>
+                </a>
               </div>
 
               <div className="mt-6 flex justify-end">
