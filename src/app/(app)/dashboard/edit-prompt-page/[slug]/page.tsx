@@ -753,13 +753,24 @@ export default function EditPromptPage() {
         "selected_kickstarters",
         "emoji_thank_you_message",
         "falling_icon",
+        "falling_icon_color",
+        "falling_enabled",
         "is_universal",
         "slug",
         "account_id",
         "category",
         "no_platform_review_template",
         "ai_button_enabled",
+        "fix_grammar_enabled",
         "show_friendly_note",
+        "recent_reviews_enabled",
+        "recent_reviews_scope",
+        "keyword_inspiration_enabled",
+        "selected_keyword_inspirations",
+        "keywords",
+        "motivational_nudge_enabled",
+        "motivational_nudge_text",
+        "role_field_enabled",
       ];
       const payload = Object.fromEntries(
         Object.entries(updateData).filter(([key]) =>
@@ -864,7 +875,7 @@ export default function EditPromptPage() {
       const validColumns = [
         "first_name",
         "last_name",
-        "email", 
+        "email",
         "phone",
         "role",
         "friendly_note",
@@ -879,7 +890,10 @@ export default function EditPromptPage() {
         "emoji_thank_you_message",
         "review_platforms",
         "falling_icon",
+        "falling_icon_color",
+        "falling_enabled",
         "ai_button_enabled",
+        "fix_grammar_enabled",
         "show_friendly_note",
         "product_name",
         "product_description",
@@ -888,6 +902,13 @@ export default function EditPromptPage() {
         "kickstarters_enabled",
         "selected_kickstarters",
         "recent_reviews_enabled",
+        "recent_reviews_scope",
+        "keyword_inspiration_enabled",
+        "selected_keyword_inspirations",
+        "keywords",
+        "motivational_nudge_enabled",
+        "motivational_nudge_text",
+        "role_field_enabled",
         "status"
       ];
       const payload = Object.fromEntries(
@@ -1035,6 +1056,9 @@ export default function EditPromptPage() {
         // Motivational Nudge
         motivational_nudge_enabled: formState.motivational_nudge_enabled ?? formState.motivationalNudgeEnabled ?? true,
         motivational_nudge_text: formState.motivational_nudge_text || formState.motivationalNudgeText || "{business_name} needs your STAR POWER so more people can find them online!",
+
+        // Role Field
+        role_field_enabled: formState.role_field_enabled ?? formState.roleFieldEnabled ?? true,
       };
       
       // Only include valid columns in the payload
@@ -1074,8 +1098,13 @@ export default function EditPromptPage() {
         "kickstarters_enabled",
         "selected_kickstarters",
         "recent_reviews_enabled",
+        "recent_reviews_scope",
+        "keyword_inspiration_enabled",
+        "selected_keyword_inspirations",
+        "keywords",
         "motivational_nudge_enabled",
         "motivational_nudge_text",
+        "role_field_enabled",
       ];
       const payload = Object.fromEntries(
         Object.entries(updateData).filter(([key]) =>

@@ -49,6 +49,7 @@ interface UniversalPromptFormState {
   selected_keyword_inspirations?: string[];
   motivational_nudge_enabled?: boolean;
   motivational_nudge_text?: string;
+  role_field_enabled?: boolean;
 }
 
 // Helper to normalize platform names to match dropdown options
@@ -411,6 +412,8 @@ export default function UniversalEditPromptPage() {
         selected_keyword_inspirations: formState.selected_keyword_inspirations,
         motivational_nudge_enabled: formState.motivational_nudge_enabled,
         motivational_nudge_text: formState.motivational_nudge_text,
+        role_field_enabled: formState.role_field_enabled,
+        falling_enabled: formState.falling_enabled,
       }).eq("id", universalPage.id);
       
       error = dbError;

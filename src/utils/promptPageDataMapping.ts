@@ -263,9 +263,10 @@ export function filterToAllowedColumns(data: DatabaseRow): DatabaseRow {
     "emoji_labels", "falling_enabled", "falling_icon", "falling_icon_color",
     "offer_enabled", "offer_title", "offer_body", "offer_url", "friendly_note",
     "nfc_text_enabled", "note_popup_enabled", "show_friendly_note",
-    "kickstarters_enabled", "selected_kickstarters",
+    "kickstarters_enabled", "selected_kickstarters", "recent_reviews_enabled", "recent_reviews_scope",
     "facebook_url", "instagram_url", "bluesky_url", "tiktok_url", "youtube_url", "linkedin_url", "pinterest_url",
-    "keywords", "selected_keyword_inspirations", "builder_questions", "keyword_inspiration_enabled", "visibility"
+    "keywords", "selected_keyword_inspirations", "builder_questions", "keyword_inspiration_enabled", "visibility",
+    "motivational_nudge_enabled", "motivational_nudge_text", "role_field_enabled"
   ];
   
   const filtered: DatabaseRow = {};
