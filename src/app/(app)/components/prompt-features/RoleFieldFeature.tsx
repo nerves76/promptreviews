@@ -29,7 +29,7 @@ export default function RoleFieldFeature({
         <div className="flex flex-col">
           <div className="flex items-center gap-3">
             <Icon name="FaBriefcase" className={`${editMode ? 'w-7 h-7' : 'text-lg'}`} style={{ color: "#334D6E" }} size={editMode ? 28 : 18} />
-            <h3 className={`${editMode ? 'text-2xl font-bold text-sky-700' : 'text-lg font-semibold text-gray-900'}`}>
+            <h3 className={`${editMode ? 'text-2xl font-bold text-slate-blue' : 'text-lg font-semibold text-gray-900'}`}>
               Role / Occupation Field
             </h3>
           </div>
