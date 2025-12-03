@@ -71,7 +71,7 @@ export default function ReviewPlatformCard({
   submitError,
   showAiToast,
   motivationalNudgeEnabled = true,
-  motivationalNudgeText = "Your review helps us get found online and hold our own against bigger brands",
+  motivationalNudgeText = "{business_name} needs your STAR POWER so more people can find them online!",
   onToggleAccordion,
   onFirstNameChange,
   onLastNameChange,
@@ -565,7 +565,7 @@ export default function ReviewPlatformCard({
                 textShadow: '0 0 8px rgba(255,255,255,0.8)',
               }}
             >
-              {motivationalNudgeText}
+              {motivationalNudgeText.replace(/\{business_name\}/gi, businessProfile?.business_name || 'We')}
             </div>
           )}
 

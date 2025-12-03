@@ -120,7 +120,7 @@ export default function UniversalPromptPageForm({
 
     // Motivational Nudge
     motivational_nudge_enabled: initialData?.motivational_nudge_enabled ?? true,
-    motivational_nudge_text: initialData?.motivational_nudge_text ?? "Your review helps us get found online and hold our own against bigger brands",
+    motivational_nudge_text: initialData?.motivational_nudge_text ?? "{business_name} needs your STAR POWER so more people can find them online!",
   });
 
   const [aiGeneratingIndex, setAiGeneratingIndex] = useState<number | null>(null);
@@ -534,6 +534,7 @@ export default function UniversalPromptPageForm({
           setFormData((prev: any) => ({ ...prev, motivational_nudge_text: text }));
         }}
         editMode={true}
+        businessName={businessProfile?.business_name}
       />
 
       {/* Bottom Save Button */}

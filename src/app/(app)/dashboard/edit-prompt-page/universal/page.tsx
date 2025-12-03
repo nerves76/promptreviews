@@ -243,7 +243,7 @@ export default function UniversalEditPromptPage() {
 
           // Motivational Nudge
           motivational_nudge_enabled: universalPage?.motivational_nudge_enabled ?? true,
-          motivational_nudge_text: universalPage?.motivational_nudge_text ?? "Your review helps us get found online and hold our own against bigger brands",
+          motivational_nudge_text: universalPage?.motivational_nudge_text ?? "{business_name} needs your STAR POWER so more people can find them online!",
         };
 
         // Show reset button only if universal page has saved platforms (not null/undefined)
@@ -455,7 +455,7 @@ export default function UniversalEditPromptPage() {
     if (updatedPage?.slug) setSlug(updatedPage.slug);
     if (updatedPage?.slug) {
       const modalData = {
-        url: `/r/${updatedPage.slug}`,
+        url: `${window.location.origin}/r/${updatedPage.slug}`,
         first_name: "", // Universal pages don't have specific customer info
         phone: "",
         email: "",

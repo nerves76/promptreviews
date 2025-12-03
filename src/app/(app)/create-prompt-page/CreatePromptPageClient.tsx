@@ -1333,8 +1333,8 @@ export default function CreatePromptPageClient({
         // For product pages, set success message and then redirect
         if (formData.review_type === "product") {
           // Set success modal data before navigation
-          const modalData = { 
-            url: `/r/${data.slug}`,
+          const modalData = {
+            url: `${window.location.origin}/r/${data.slug}`,
             first_name: formData.first_name,
             phone: formData.phone,
             email: formData.email
@@ -1793,11 +1793,11 @@ export default function CreatePromptPageClient({
         throw error;
       }
       if (data && data.slug) {
-        setSavedPromptPageUrl(`/r/${data.slug}`);
+        setSavedPromptPageUrl(`${window.location.origin}/r/${data.slug}`);
         localStorage.setItem(
           "showPostSaveModal",
-          JSON.stringify({ 
-            url: `/r/${data.slug}`,
+          JSON.stringify({
+            url: `${window.location.origin}/r/${data.slug}`,
             slug: data.slug,
             prompt_page_id: data.id,
             contact_id: data.contact_id || formData.contact_id,
@@ -1964,11 +1964,11 @@ export default function CreatePromptPageClient({
           businessProfile={businessProfile}
           isLoading={isSaving}
           onPublishSuccess={(slug) => {
-            setSavedPromptPageUrl(`/r/${slug}`);
+            setSavedPromptPageUrl(`${window.location.origin}/r/${slug}`);
             localStorage.setItem(
               "showPostSaveModal",
-              JSON.stringify({ 
-                url: `/r/${slug}`,
+              JSON.stringify({
+                url: `${window.location.origin}/r/${slug}`,
                 slug: slug,
                 first_name: formData.first_name,
                 last_name: formData.last_name,
@@ -1977,14 +1977,14 @@ export default function CreatePromptPageClient({
               }),
             );
             let redirectUrl = '/prompt-pages'; // Default to main page (public tab)
-            
+
             if (formData.campaign_type === 'individual') {
               redirectUrl = '/prompt-pages?tab=campaign';
             } else if (formData.campaign_type === 'location') {
               redirectUrl = '/prompt-pages?tab=locations';
             }
             // If campaign_type is 'public' or anything else, use default /prompt-pages
-            
+
             router.push(redirectUrl);
           }}
           campaignType={formData.campaign_type || 'individual'}
@@ -2003,11 +2003,11 @@ export default function CreatePromptPageClient({
           supabase={createClient()}
           businessProfile={businessProfile}
           onPublishSuccess={(slug) => {
-            setSavedPromptPageUrl(`/r/${slug}`);
+            setSavedPromptPageUrl(`${window.location.origin}/r/${slug}`);
             localStorage.setItem(
               "showPostSaveModal",
-              JSON.stringify({ 
-                url: `/r/${slug}`,
+              JSON.stringify({
+                url: `${window.location.origin}/r/${slug}`,
                 slug: slug,
                 first_name: formData.first_name,
                 last_name: formData.last_name,
@@ -2016,14 +2016,14 @@ export default function CreatePromptPageClient({
               }),
             );
             let redirectUrl = '/prompt-pages'; // Default to main page (public tab)
-            
+
             if (formData.campaign_type === 'individual') {
               redirectUrl = '/prompt-pages?tab=campaign';
             } else if (formData.campaign_type === 'location') {
               redirectUrl = '/prompt-pages?tab=locations';
             }
             // If campaign_type is 'public' or anything else, use default /prompt-pages
-            
+
             router.push(redirectUrl);
           }}
           campaignType={formData.campaign_type || 'individual'}
@@ -2042,11 +2042,11 @@ export default function CreatePromptPageClient({
           supabase={createClient()}
           businessProfile={businessProfile}
           onPublishSuccess={(slug) => {
-            setSavedPromptPageUrl(`/r/${slug}`);
+            setSavedPromptPageUrl(`${window.location.origin}/r/${slug}`);
             localStorage.setItem(
               "showPostSaveModal",
-              JSON.stringify({ 
-                url: `/r/${slug}`,
+              JSON.stringify({
+                url: `${window.location.origin}/r/${slug}`,
                 slug: slug,
                 first_name: formData.first_name,
                 last_name: formData.last_name,
@@ -2055,14 +2055,14 @@ export default function CreatePromptPageClient({
               }),
             );
             let redirectUrl = '/prompt-pages'; // Default to main page (public tab)
-            
+
             if (formData.campaign_type === 'individual') {
               redirectUrl = '/prompt-pages?tab=campaign';
             } else if (formData.campaign_type === 'location') {
               redirectUrl = '/prompt-pages?tab=locations';
             }
             // If campaign_type is 'public' or anything else, use default /prompt-pages
-            
+
             router.push(redirectUrl);
           }}
           campaignType={formData.campaign_type || 'individual'}

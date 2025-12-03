@@ -16,9 +16,11 @@ export interface MotivationalNudgeFeatureProps {
   disabled?: boolean;
   /** Whether to use edit interface styling */
   editMode?: boolean;
+  /** Business name for substitution in default text */
+  businessName?: string;
 }
 
-const DEFAULT_NUDGE_TEXT = "Your review helps us get found online and hold our own against bigger brands";
+const DEFAULT_NUDGE_TEXT = "{business_name} needs your STAR POWER so more people can find them online!";
 
 export default function MotivationalNudgeFeature({
   enabled,
@@ -27,8 +29,14 @@ export default function MotivationalNudgeFeature({
   onTextChange,
   disabled = false,
   editMode = false,
+  businessName,
 }: MotivationalNudgeFeatureProps) {
-  const displayText = text || DEFAULT_NUDGE_TEXT;
+  // Replace {business_name} placeholder with actual business name
+  const substituteBusinessName = (str: string) =>
+    str.replace(/\{business_name\}/gi, businessName || 'Your business');
+
+  const rawText = text || DEFAULT_NUDGE_TEXT;
+  const displayText = substituteBusinessName(rawText);
 
   const handleToggle = () => {
     onEnabledChange(!enabled);
@@ -78,7 +86,7 @@ export default function MotivationalNudgeFeature({
             onChange={handleTextChange}
             rows={2}
             className="block w-full"
-            placeholder={DEFAULT_NUDGE_TEXT}
+            placeholder={substituteBusinessName(DEFAULT_NUDGE_TEXT)}
             disabled={disabled}
             maxLength={200}
           />

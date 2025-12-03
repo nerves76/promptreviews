@@ -262,7 +262,7 @@ export default function BasePromptPageForm({
 
     // Motivational Nudge - default to ON
     motivational_nudge_enabled: initialData?.motivational_nudge_enabled ?? true,
-    motivational_nudge_text: initialData?.motivational_nudge_text || "Your review helps us get found online and hold our own against bigger brands",
+    motivational_nudge_text: initialData?.motivational_nudge_text || "{business_name} needs your STAR POWER so more people can find them online!",
 
     // Common fields
     slug: initialData?.slug,
@@ -679,6 +679,7 @@ export default function BasePromptPageForm({
           onTextChange={(text) => updateFormData('motivational_nudge_text', text)}
           disabled={disabled}
           editMode={true}
+          businessName={businessProfile?.business_name}
         />
       )}
 

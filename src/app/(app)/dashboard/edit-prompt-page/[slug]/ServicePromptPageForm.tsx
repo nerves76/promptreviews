@@ -45,6 +45,7 @@ interface ServicePromptPageFormProps {
   businessReviewPlatforms?: ReviewWritePlatform[];
   onGenerateReview: (idx: number) => void;
   slug?: string;
+  businessName?: string;
 }
 
 const ServicePromptPageForm = forwardRef<any, ServicePromptPageFormProps>(
@@ -57,6 +58,7 @@ const ServicePromptPageForm = forwardRef<any, ServicePromptPageFormProps>(
       businessReviewPlatforms = [],
       onGenerateReview,
       slug,
+      businessName,
     },
     ref,
   ) => {
@@ -111,7 +113,7 @@ const ServicePromptPageForm = forwardRef<any, ServicePromptPageFormProps>(
       initialData?.motivationalNudgeEnabled ?? true,
     );
     const [motivationalNudgeText, setMotivationalNudgeText] = useState(
-      initialData?.motivationalNudgeText ?? "Your review helps us get found online and hold our own against bigger brands",
+      initialData?.motivationalNudgeText ?? "{business_name} needs your STAR POWER so more people can find them online!",
     );
 
     // Add state for warning modal
@@ -125,7 +127,7 @@ const ServicePromptPageForm = forwardRef<any, ServicePromptPageFormProps>(
         setMotivationalNudgeEnabled(initialData.motivationalNudgeEnabled);
       }
       if (initialData?.motivationalNudgeText !== undefined) {
-        setMotivationalNudgeText(initialData.motivationalNudgeText || "Your review helps us get found online and hold our own against bigger brands");
+        setMotivationalNudgeText(initialData.motivationalNudgeText || "{business_name} needs your STAR POWER so more people can find them online!");
       }
     }, [initialData?.motivationalNudgeEnabled, initialData?.motivationalNudgeText]);
 
@@ -292,6 +294,7 @@ const ServicePromptPageForm = forwardRef<any, ServicePromptPageFormProps>(
             onEnabledChange={setMotivationalNudgeEnabled}
             onTextChange={setMotivationalNudgeText}
             editMode={true}
+            businessName={businessName}
           />
           {/* Falling Stars Section (full module) */}
           <FallingStarsFeature

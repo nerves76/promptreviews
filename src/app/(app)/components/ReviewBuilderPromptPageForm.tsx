@@ -180,7 +180,7 @@ export default function ReviewBuilderPromptPageForm({
     initialData?.motivational_nudge_enabled ?? true
   );
   const [motivationalNudgeText, setMotivationalNudgeText] = useState<string>(
-    initialData?.motivational_nudge_text || "Your review helps us get found online and hold our own against bigger brands"
+    initialData?.motivational_nudge_text || "{business_name} needs your STAR POWER so more people can find them online!"
   );
 
   // Ensure at least the minimum number of questions exist
@@ -224,7 +224,7 @@ export default function ReviewBuilderPromptPageForm({
       setMotivationalNudgeEnabled(initialData.motivational_nudge_enabled);
     }
     if (initialData?.motivational_nudge_text !== undefined) {
-      setMotivationalNudgeText(initialData.motivational_nudge_text || "Your review helps us get found online and hold our own against bigger brands");
+      setMotivationalNudgeText(initialData.motivational_nudge_text || "{business_name} needs your STAR POWER so more people can find them online!");
     }
   }, [initialData?.motivational_nudge_enabled, initialData?.motivational_nudge_text]);
 
@@ -1006,6 +1006,7 @@ export default function ReviewBuilderPromptPageForm({
               setMotivationalNudgeText(text);
             }}
             editMode={true}
+            businessName={businessProfile?.business_name}
           />
         </section>
 

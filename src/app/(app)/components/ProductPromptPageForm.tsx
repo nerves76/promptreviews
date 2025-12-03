@@ -191,7 +191,7 @@ export default function ProductPromptPageForm({
   const [selectedKickstarters, setSelectedKickstarters] = useState<string[]>(initialData?.selected_kickstarters ?? []);
   const [keywordInspirationEnabled, setKeywordInspirationEnabled] = useState(initialData?.keyword_inspiration_enabled ?? businessProfile?.default_keyword_inspiration_enabled ?? false);
   const [motivationalNudgeEnabled, setMotivationalNudgeEnabled] = useState(initialData?.motivational_nudge_enabled ?? true);
-  const [motivationalNudgeText, setMotivationalNudgeText] = useState(initialData?.motivational_nudge_text || "Your review helps us get found online and hold our own against bigger brands");
+  const [motivationalNudgeText, setMotivationalNudgeText] = useState(initialData?.motivational_nudge_text || "{business_name} needs your STAR POWER so more people can find them online!");
   const [selectedKeywordInspirations, setSelectedKeywordInspirations] = useState<string[]>(
     Array.isArray(initialData?.selected_keyword_inspirations)
       ? initialData.selected_keyword_inspirations
@@ -223,7 +223,7 @@ export default function ProductPromptPageForm({
       setMotivationalNudgeEnabled(initialData.motivational_nudge_enabled);
     }
     if (initialData?.motivational_nudge_text !== undefined) {
-      setMotivationalNudgeText(initialData.motivational_nudge_text || "Your review helps us get found online and hold our own against bigger brands");
+      setMotivationalNudgeText(initialData.motivational_nudge_text || "{business_name} needs your STAR POWER so more people can find them online!");
     }
   }, [initialData?.motivational_nudge_enabled, initialData?.motivational_nudge_text]);
 
@@ -810,6 +810,7 @@ export default function ProductPromptPageForm({
               onEnabledChange={setMotivationalNudgeEnabled}
               onTextChange={setMotivationalNudgeText}
               editMode={true}
+              businessName={businessProfile?.business_name}
             />
 
         {/* Falling Stars Section */}

@@ -131,7 +131,7 @@ export default function EmployeePromptPageForm({
     initialData?.motivational_nudge_enabled ?? true
   );
   const [motivationalNudgeText, setMotivationalNudgeText] = useState(
-    initialData?.motivational_nudge_text || "Your review helps us get found online and hold our own against bigger brands"
+    initialData?.motivational_nudge_text || "{business_name} needs your STAR POWER so more people can find them online!"
   );
 
   // Keywords state
@@ -211,7 +211,7 @@ export default function EmployeePromptPageForm({
       setMotivationalNudgeEnabled(initialData.motivational_nudge_enabled);
     }
     if (initialData?.motivational_nudge_text !== undefined) {
-      setMotivationalNudgeText(initialData.motivational_nudge_text || "Your review helps us get found online and hold our own against bigger brands");
+      setMotivationalNudgeText(initialData.motivational_nudge_text || "{business_name} needs your STAR POWER so more people can find them online!");
     }
   }, [initialData?.motivational_nudge_enabled, initialData?.motivational_nudge_text]);
 
@@ -945,6 +945,7 @@ export default function EmployeePromptPageForm({
             onEnabledChange={setMotivationalNudgeEnabled}
             onTextChange={setMotivationalNudgeText}
             editMode={true}
+            businessName={businessProfile?.business_name}
           />
 
         </div>

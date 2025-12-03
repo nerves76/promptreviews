@@ -138,7 +138,7 @@ export default function ServicePromptPageForm({
   
   const [fixGrammarEnabled, setFixGrammarEnabled] = useState(initialData?.fix_grammar_enabled ?? true);
   const [motivationalNudgeEnabled, setMotivationalNudgeEnabled] = useState(initialData?.motivational_nudge_enabled ?? true);
-  const [motivationalNudgeText, setMotivationalNudgeText] = useState(initialData?.motivational_nudge_text || "Your review helps us get found online and hold our own against bigger brands");
+  const [motivationalNudgeText, setMotivationalNudgeText] = useState(initialData?.motivational_nudge_text || "{business_name} needs your STAR POWER so more people can find them online!");
   const [isSaving, setIsSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [emojiSentimentEnabled, setEmojiSentimentEnabled] = useState(
@@ -262,7 +262,7 @@ export default function ServicePromptPageForm({
       setMotivationalNudgeEnabled(initialData.motivational_nudge_enabled);
     }
     if (initialData?.motivational_nudge_text !== undefined) {
-      setMotivationalNudgeText(initialData.motivational_nudge_text || "Your review helps us get found online and hold our own against bigger brands");
+      setMotivationalNudgeText(initialData.motivational_nudge_text || "{business_name} needs your STAR POWER so more people can find them online!");
     }
   }, [initialData?.motivational_nudge_enabled, initialData?.motivational_nudge_text]);
 
@@ -861,6 +861,7 @@ export default function ServicePromptPageForm({
           onEnabledChange={setMotivationalNudgeEnabled}
           onTextChange={setMotivationalNudgeText}
           editMode={true}
+          businessName={businessProfile?.business_name}
         />
 
         {/* Falling Stars Section */}

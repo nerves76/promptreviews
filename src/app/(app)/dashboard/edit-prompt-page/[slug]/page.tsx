@@ -925,8 +925,8 @@ export default function EditPromptPage() {
       
       // Set localStorage flag for post-save modal and redirect to prompt-pages
       if (promptPage?.slug) {
-        const modalData = { 
-          url: `/r/${promptPage.slug}`,
+        const modalData = {
+          url: `${window.location.origin}/r/${promptPage.slug}`,
           first_name: formData.first_name,
           phone: formData.phone,
           email: formData.email
@@ -1034,7 +1034,7 @@ export default function EditPromptPage() {
 
         // Motivational Nudge
         motivational_nudge_enabled: formState.motivational_nudge_enabled ?? formState.motivationalNudgeEnabled ?? true,
-        motivational_nudge_text: formState.motivational_nudge_text || formState.motivationalNudgeText || "Your review helps us get found online and hold our own against bigger brands",
+        motivational_nudge_text: formState.motivational_nudge_text || formState.motivationalNudgeText || "{business_name} needs your STAR POWER so more people can find them online!",
       };
       
       // Only include valid columns in the payload
@@ -1120,8 +1120,8 @@ export default function EditPromptPage() {
       
       // Set localStorage flag for post-save modal and redirect to dashboard
       if (promptPage?.slug) {
-        const modalData = { 
-          url: `/r/${promptPage.slug}`,
+        const modalData = {
+          url: `${window.location.origin}/r/${promptPage.slug}`,
           first_name: formData.first_name,
           phone: formData.phone,
           email: formData.email
