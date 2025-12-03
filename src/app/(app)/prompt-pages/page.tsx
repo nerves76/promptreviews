@@ -1525,61 +1525,59 @@ function PromptPagesContent() {
 
               {/* Sharing Options */}
               <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 bg-purple-500/30 backdrop-blur-sm rounded-lg border border-purple-300/30">
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(postSaveData.url);
+                    setCopySuccess("Copied!");
+                    setTimeout(() => setCopySuccess(""), 2000);
+                  }}
+                  className="w-full flex items-center justify-between p-3 bg-purple-500/30 hover:bg-purple-500/50 backdrop-blur-sm rounded-lg border border-purple-300/30 transition-colors cursor-pointer"
+                >
                   <span className="text-sm font-medium text-white">Get link</span>
-                  <button
-                    onClick={() => {
-                      navigator.clipboard.writeText(postSaveData.url);
-                    }}
-                    className="text-white hover:text-white/80 text-sm font-medium"
-                  >
-                    Copy
-                  </button>
-                </div>
+                  <span className="text-white text-sm font-medium">
+                    {copySuccess ? copySuccess : "Copy"}
+                  </span>
+                </button>
 
                 {/* Generate QR Code option */}
-                <div className="flex items-center justify-between p-3 bg-indigo-500/30 backdrop-blur-sm rounded-lg border border-indigo-300/30">
+                <button
+                  onClick={() => {
+                    // Close this modal and open QR modal
+                    const url = postSaveData.url;
+                    const clientName = postSaveData.first_name || postSaveData.locationName || '';
+                    setPostSaveData(null);
+                    setQrModal({
+                      open: true,
+                      url,
+                      clientName,
+                      logoUrl: businessProfile?.logo_url || undefined,
+                      showNfcText: false,
+                    });
+                  }}
+                  className="w-full flex items-center justify-between p-3 bg-indigo-500/30 hover:bg-indigo-500/50 backdrop-blur-sm rounded-lg border border-indigo-300/30 transition-colors cursor-pointer"
+                >
                   <span className="text-sm font-medium text-white">Generate QR code</span>
-                  <button
-                    onClick={() => {
-                      // Close this modal and open QR modal
-                      const url = postSaveData.url;
-                      const clientName = postSaveData.first_name || postSaveData.locationName || '';
-                      setPostSaveData(null);
-                      setQrModal({
-                        open: true,
-                        url,
-                        clientName,
-                        logoUrl: businessProfile?.logo_url || undefined,
-                        showNfcText: false,
-                      });
-                    }}
-                    className="text-white hover:text-white/80 text-sm font-medium"
-                  >
-                    Create
-                  </button>
-                </div>
+                  <span className="text-white text-sm font-medium">Create</span>
+                </button>
 
                 {/* Embed option */}
-                <div className="flex items-center justify-between p-3 bg-rose-500/30 backdrop-blur-sm rounded-lg border border-rose-300/30">
+                <button
+                  onClick={() => {
+                    // Close this modal and open embed modal
+                    const slug = postSaveData.slug || (postSaveData.url ? postSaveData.url.split('/r/')[1] : '');
+                    const isUniversal = postSaveData.is_universal || false;
+                    setPostSaveData(null);
+                    setEmbedModal({
+                      open: true,
+                      slug,
+                      isUniversal,
+                    });
+                  }}
+                  className="w-full flex items-center justify-between p-3 bg-rose-500/30 hover:bg-rose-500/50 backdrop-blur-sm rounded-lg border border-rose-300/30 transition-colors cursor-pointer"
+                >
                   <span className="text-sm font-medium text-white">Embed on website or email</span>
-                  <button
-                    onClick={() => {
-                      // Close this modal and open embed modal
-                      const slug = postSaveData.slug || (postSaveData.url ? postSaveData.url.split('/r/')[1] : '');
-                      const isUniversal = postSaveData.is_universal || false;
-                      setPostSaveData(null);
-                      setEmbedModal({
-                        open: true,
-                        slug,
-                        isUniversal,
-                      });
-                    }}
-                    className="text-white hover:text-white/80 text-sm font-medium"
-                  >
-                    Get code
-                  </button>
-                </div>
+                  <span className="text-white text-sm font-medium">Get code</span>
+                </button>
 
                 {/* For Campaign prompt pages with contact info, show CommunicationButtons */}
                 {(postSaveData.first_name || postSaveData.email || postSaveData.phone) && !postSaveData.isLocationCreation && (
@@ -1612,17 +1610,15 @@ function PromptPagesContent() {
                   </div>
                 )}
 
-                <div className="flex items-center justify-between p-3 bg-amber-500/30 backdrop-blur-sm rounded-lg border border-amber-300/30">
+                <a
+                  href={postSaveData.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full flex items-center justify-between p-3 bg-amber-500/30 hover:bg-amber-500/50 backdrop-blur-sm rounded-lg border border-amber-300/30 transition-colors cursor-pointer"
+                >
                   <span className="text-sm font-medium text-white">View prompt page</span>
-                  <a
-                    href={postSaveData.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-white hover:text-white/80 text-sm font-medium"
-                  >
-                    Open
-                  </a>
-                </div>
+                  <span className="text-white text-sm font-medium">Open</span>
+                </a>
               </div>
             </div>
           </div>
