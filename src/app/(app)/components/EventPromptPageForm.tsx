@@ -24,7 +24,8 @@ import {
   KickstartersFeature,
   RecentReviewsFeature,
   KeywordInspirationFeature,
-  MotivationalNudgeFeature
+  MotivationalNudgeFeature,
+  RoleFieldFeature
 } from "./prompt-features";
 import { useFallingStars } from "@/hooks/useFallingStars";
 import { Input } from "@/app/(app)/components/ui/input";
@@ -125,6 +126,10 @@ export default function EventPromptPageForm({
   );
   const [motivationalNudgeText, setMotivationalNudgeText] = useState(
     initialData?.motivational_nudge_text || "{business_name} needs your STAR POWER so more people can find them online!"
+  );
+  // Role field - default ON for campaign/individual pages, OFF for public/catch-all
+  const [roleFieldEnabled, setRoleFieldEnabled] = useState(
+    initialData?.role_field_enabled ?? (campaignType === 'individual' ? true : false)
   );
 
   // Keywords state
@@ -344,6 +349,8 @@ export default function EventPromptPageForm({
         // Motivational Nudge
         motivational_nudge_enabled: motivationalNudgeEnabled,
         motivational_nudge_text: motivationalNudgeText,
+        // Role Field
+        role_field_enabled: roleFieldEnabled,
       };
       const result = await onSave(saveData);
       if (onPublishSuccess && (result as any)?.slug) {
@@ -812,6 +819,13 @@ export default function EventPromptPageForm({
             onTextChange={setMotivationalNudgeText}
             editMode={true}
             businessName={businessProfile?.business_name}
+          />
+
+          {/* Role Field */}
+          <RoleFieldFeature
+            enabled={roleFieldEnabled}
+            onEnabledChange={setRoleFieldEnabled}
+            editMode={true}
           />
 
         </div>

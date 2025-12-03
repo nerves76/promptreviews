@@ -33,6 +33,7 @@ interface ReviewPlatformCardProps {
   showAiToast: number | null;
   motivationalNudgeEnabled?: boolean;
   motivationalNudgeText?: string;
+  roleFieldEnabled?: boolean;
   onToggleAccordion: (idx: number) => void;
   onFirstNameChange: (idx: number, value: string) => void;
   onLastNameChange: (idx: number, value: string) => void;
@@ -72,6 +73,7 @@ export default function ReviewPlatformCard({
   showAiToast,
   motivationalNudgeEnabled = true,
   motivationalNudgeText = "{business_name} needs your STAR POWER so more people can find them online!",
+  roleFieldEnabled = true,
   onToggleAccordion,
   onFirstNameChange,
   onLastNameChange,
@@ -319,34 +321,36 @@ export default function ReviewPlatformCard({
           </div>
 
           {/* Role Field Row - Full width on mobile */}
-          <div className="w-full mb-4">
-            <div className="flex-1">
-              <label
-                htmlFor={`reviewerRole-${idx}`}
-                className="block text-sm font-medium"
-                style={{ color: businessProfile?.card_text || "#1A1A1A" }}
-              >
-                Role or occupation
-              </label>
-              <input
-                type="text"
-                id={`reviewerRole-${idx}`}
-                value={reviewerRoles[idx]}
-                onChange={(e) => onRoleChange(idx, e.target.value)}
-                placeholder="Zoo Director"
-                className="w-full mt-1 mb-2 p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 sm:text-sm"
-                style={{
-                  background: applyCardTransparency(
-                    businessProfile?.card_bg || "#F9FAFB",
-                    Math.min(1, (businessProfile?.card_transparency ?? 0.30) + 0.4)
-                  ),
-                  color: businessProfile?.input_text_color || "#1A1A1A",
-                  boxShadow: "inset 0 2px 4px 0 rgba(0,0,0,0.2), inset 0 1px 2px 0 rgba(0,0,0,0.15)",
-                  border: "none",
-                }}
-              />
+          {roleFieldEnabled && (
+            <div className="w-full mb-4">
+              <div className="flex-1">
+                <label
+                  htmlFor={`reviewerRole-${idx}`}
+                  className="block text-sm font-medium"
+                  style={{ color: businessProfile?.card_text || "#1A1A1A" }}
+                >
+                  Role or occupation
+                </label>
+                <input
+                  type="text"
+                  id={`reviewerRole-${idx}`}
+                  value={reviewerRoles[idx]}
+                  onChange={(e) => onRoleChange(idx, e.target.value)}
+                  placeholder="Zoo Director"
+                  className="w-full mt-1 mb-2 p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 sm:text-sm"
+                  style={{
+                    background: applyCardTransparency(
+                      businessProfile?.card_bg || "#F9FAFB",
+                      Math.min(1, (businessProfile?.card_transparency ?? 0.30) + 0.4)
+                    ),
+                    color: businessProfile?.input_text_color || "#1A1A1A",
+                    boxShadow: "inset 0 2px 4px 0 rgba(0,0,0,0.2), inset 0 1px 2px 0 rgba(0,0,0,0.15)",
+                    border: "none",
+                  }}
+                />
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Review text area */}
           <div className="mb-4 relative">
@@ -491,9 +495,11 @@ export default function ReviewPlatformCard({
                 onFocus={() => setIsTextareaFocused(true)}
                 onBlur={() => setIsTextareaFocused(false)}
                 placeholder="Share your experience..."
-                className="w-full py-3 px-4 pb-8 rounded-lg focus:ring-2 focus:ring-indigo-500 sm:text-sm"
+                className="w-full py-3 pb-8 rounded-lg focus:ring-2 focus:ring-indigo-500 sm:text-sm"
                 rows={4}
                 style={{
+                  paddingLeft: '20px',
+                  paddingRight: '20px',
                   background: applyCardTransparency(
                     businessProfile?.card_bg || "#F9FAFB",
                     Math.min(1, (businessProfile?.card_transparency ?? 0.30) + 0.4)
@@ -512,7 +518,7 @@ export default function ReviewPlatformCard({
                   disabled={fixGrammarLoading === idx || fixGrammarCounts[idx] >= 3}
                   onMouseEnter={() => setIsGrammarHovered(true)}
                   onMouseLeave={() => setIsGrammarHovered(false)}
-                  className="absolute top-2 right-2 px-2 py-1 rounded text-xs font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 transition-all duration-200"
+                  className="absolute top-1.5 right-1.5 px-1.5 py-1 rounded text-xs font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 transition-all duration-200"
                   style={{
                     // Calculate contrast against input background (which is card_bg with added opacity)
                     color: getContrastTextColor(businessProfile?.card_bg || "#FFFFFF"),
@@ -538,7 +544,7 @@ export default function ReviewPlatformCard({
               {/* Word count indicator - appears at 70%+ inside textarea */}
               {progressValue >= 0.7 && (
                 <div
-                  className="absolute bottom-2 left-3 text-xs font-medium transition-opacity duration-300 px-1.5 py-0.5 rounded"
+                  className="absolute bottom-1.5 left-1.5 text-xs font-medium transition-opacity duration-300 px-1.5 py-0.5 rounded"
                   style={{
                     color: progressValue >= 0.95
                       ? '#dc2626' // red at 95%+
@@ -565,7 +571,7 @@ export default function ReviewPlatformCard({
                 textShadow: '0 0 8px rgba(255,255,255,0.8)',
               }}
             >
-              {motivationalNudgeText.replace(/\{business_name\}/gi, businessProfile?.business_name || 'We')}
+              {motivationalNudgeText.replace(/\{business_name\}/gi, businessProfile?.name || businessProfile?.business_name || 'We')}
             </div>
           )}
 

@@ -23,7 +23,8 @@ import {
   KickstartersFeature,
   RecentReviewsFeature,
   KeywordInspirationFeature,
-  MotivationalNudgeFeature
+  MotivationalNudgeFeature,
+  RoleFieldFeature
 } from "./prompt-features";
 import { useFallingStars } from "@/hooks/useFallingStars";
 import { Input } from "@/app/(app)/components/ui/input";
@@ -139,6 +140,8 @@ export default function ServicePromptPageForm({
   const [fixGrammarEnabled, setFixGrammarEnabled] = useState(initialData?.fix_grammar_enabled ?? true);
   const [motivationalNudgeEnabled, setMotivationalNudgeEnabled] = useState(initialData?.motivational_nudge_enabled ?? true);
   const [motivationalNudgeText, setMotivationalNudgeText] = useState(initialData?.motivational_nudge_text || "{business_name} needs your STAR POWER so more people can find them online!");
+  // Role field - default ON for campaign/individual pages, OFF for public/catch-all
+  const [roleFieldEnabled, setRoleFieldEnabled] = useState(initialData?.role_field_enabled ?? (initialData?.campaign_type === 'individual' ? true : false));
   const [isSaving, setIsSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [emojiSentimentEnabled, setEmojiSentimentEnabled] = useState(
@@ -410,6 +413,8 @@ export default function ServicePromptPageForm({
           // Motivational Nudge
           motivational_nudge_enabled: motivationalNudgeEnabled,
           motivational_nudge_text: motivationalNudgeText,
+          // Role Field
+          role_field_enabled: roleFieldEnabled,
         };
 
 
@@ -740,7 +745,7 @@ export default function ServicePromptPageForm({
         <RecentReviewsFeature
           enabled={formData.recent_reviews_enabled}
           onEnabledChange={(enabled) => updateFormData('recent_reviews_enabled', enabled)}
-          scope={formData.recent_reviews_scope || formData.recentReviewsScope || 'current_page'}
+          scope={formData.recent_reviews_scope || 'current_page'}
           onScopeChange={(scope) => updateFormData('recent_reviews_scope', scope)}
           initialData={{
             recent_reviews_enabled: initialData?.recent_reviews_enabled || initialData?.recentReviewsEnabled,
@@ -862,6 +867,13 @@ export default function ServicePromptPageForm({
           onTextChange={setMotivationalNudgeText}
           editMode={true}
           businessName={businessProfile?.business_name}
+        />
+
+        {/* Role Field */}
+        <RoleFieldFeature
+          enabled={roleFieldEnabled}
+          onEnabledChange={setRoleFieldEnabled}
+          editMode={true}
         />
 
         {/* Falling Stars Section */}

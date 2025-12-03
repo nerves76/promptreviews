@@ -27,6 +27,7 @@ import {
   RecentReviewsFeature,
   KeywordInspirationFeature,
   MotivationalNudgeFeature,
+  RoleFieldFeature,
   type ReviewPlatform
 } from "./prompt-features";
 import { generateContextualReview } from "@/utils/aiReviewGeneration";
@@ -121,6 +122,9 @@ export default function UniversalPromptPageForm({
     // Motivational Nudge
     motivational_nudge_enabled: initialData?.motivational_nudge_enabled ?? true,
     motivational_nudge_text: initialData?.motivational_nudge_text ?? "{business_name} needs your STAR POWER so more people can find them online!",
+
+    // Role Field - off by default for universal/catch-all pages
+    role_field_enabled: initialData?.role_field_enabled ?? false,
   });
 
   const [aiGeneratingIndex, setAiGeneratingIndex] = useState<number | null>(null);
@@ -535,6 +539,15 @@ export default function UniversalPromptPageForm({
         }}
         editMode={true}
         businessName={businessProfile?.business_name}
+      />
+
+      {/* Role Field */}
+      <RoleFieldFeature
+        enabled={formData.role_field_enabled}
+        onEnabledChange={(enabled) => {
+          setFormData((prev: any) => ({ ...prev, role_field_enabled: enabled }));
+        }}
+        editMode={true}
       />
 
       {/* Bottom Save Button */}

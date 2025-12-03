@@ -75,7 +75,7 @@ export default function MotivationalNudgeFeature({
       </div>
 
       <div className="text-sm text-gray-700 mb-3 max-w-[85ch] px-2">
-        Display a motivational message below the review input to encourage customers to submit their review.
+        Display a motivational message above the call-to-action button to encourage customers to submit their review.
       </div>
 
       {enabled && (

@@ -28,7 +28,8 @@ import {
   KickstartersFeature,
   RecentReviewsFeature,
   KeywordInspirationFeature,
-  MotivationalNudgeFeature
+  MotivationalNudgeFeature,
+  RoleFieldFeature
 } from "./prompt-features";
 import Icon from "@/components/Icon";
 import SectionHeader from "./SectionHeader";
@@ -192,6 +193,8 @@ export default function ProductPromptPageForm({
   const [keywordInspirationEnabled, setKeywordInspirationEnabled] = useState(initialData?.keyword_inspiration_enabled ?? businessProfile?.default_keyword_inspiration_enabled ?? false);
   const [motivationalNudgeEnabled, setMotivationalNudgeEnabled] = useState(initialData?.motivational_nudge_enabled ?? true);
   const [motivationalNudgeText, setMotivationalNudgeText] = useState(initialData?.motivational_nudge_text || "{business_name} needs your STAR POWER so more people can find them online!");
+  // Role field - default ON for campaign/individual pages, OFF for public/catch-all
+  const [roleFieldEnabled, setRoleFieldEnabled] = useState(initialData?.role_field_enabled ?? (campaignType === 'individual' ? true : false));
   const [selectedKeywordInspirations, setSelectedKeywordInspirations] = useState<string[]>(
     Array.isArray(initialData?.selected_keyword_inspirations)
       ? initialData.selected_keyword_inspirations
@@ -462,6 +465,7 @@ export default function ProductPromptPageForm({
         keywords: keywords, // Include page-level keywords
         motivational_nudge_enabled: motivationalNudgeEnabled,
         motivational_nudge_text: motivationalNudgeText,
+        role_field_enabled: roleFieldEnabled,
       };
 
       await onSave(saveData);
@@ -811,6 +815,13 @@ export default function ProductPromptPageForm({
               onTextChange={setMotivationalNudgeText}
               editMode={true}
               businessName={businessProfile?.business_name}
+            />
+
+            {/* Role Field */}
+            <RoleFieldFeature
+              enabled={roleFieldEnabled}
+              onEnabledChange={setRoleFieldEnabled}
+              editMode={true}
             />
 
         {/* Falling Stars Section */}

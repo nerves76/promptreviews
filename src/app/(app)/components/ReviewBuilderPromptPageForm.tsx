@@ -18,6 +18,7 @@ import Icon from "@/components/Icon";
 import ReviewWriteSection, { ReviewWritePlatform } from "../dashboard/edit-prompt-page/components/ReviewWriteSection";
 import PersonalizedNoteFeature from "./prompt-features/PersonalizedNoteFeature";
 import MotivationalNudgeFeature from "./prompt-features/MotivationalNudgeFeature";
+import RoleFieldFeature from "./prompt-features/RoleFieldFeature";
 
 interface ReviewBuilderPromptPageFormProps {
   mode: "create" | "edit";
@@ -181,6 +182,10 @@ export default function ReviewBuilderPromptPageForm({
   );
   const [motivationalNudgeText, setMotivationalNudgeText] = useState<string>(
     initialData?.motivational_nudge_text || "{business_name} needs your STAR POWER so more people can find them online!"
+  );
+  // Role field - default ON for individual campaigns, OFF for public/catch-all
+  const [roleFieldEnabled, setRoleFieldEnabled] = useState<boolean>(
+    initialData?.role_field_enabled ?? (campaignType === 'individual' ? true : false)
   );
 
   // Ensure at least the minimum number of questions exist
@@ -524,6 +529,8 @@ export default function ReviewBuilderPromptPageForm({
     // Motivational nudge
     motivational_nudge_enabled: motivationalNudgeEnabled,
     motivational_nudge_text: motivationalNudgeText,
+    // Role field
+    role_field_enabled: roleFieldEnabled,
   });
 
   const handleSave = async (baseFormData: any) => {
@@ -1007,6 +1014,13 @@ export default function ReviewBuilderPromptPageForm({
             }}
             editMode={true}
             businessName={businessProfile?.business_name}
+          />
+
+          {/* Role Field */}
+          <RoleFieldFeature
+            enabled={roleFieldEnabled}
+            onEnabledChange={setRoleFieldEnabled}
+            editMode={true}
           />
         </section>
 
