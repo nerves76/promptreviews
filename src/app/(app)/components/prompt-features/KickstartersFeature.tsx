@@ -428,7 +428,7 @@ export default function KickstartersFeature({
               {/* Match current carousel design - Centered vertically */}
               <div className="relative w-full">
                 {/* Left Arrow */}
-                <button 
+                <button
                   type="button"
                   onClick={(e) => {
                     e.preventDefault();
@@ -436,16 +436,14 @@ export default function KickstartersFeature({
                     handlePreviousPreview();
                   }}
                   className={`absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full flex items-center justify-center transition-all focus:outline-none ${
-                    localBackgroundDesign 
-                      ? 'bg-white hover:bg-gray-50' 
+                    localBackgroundDesign
+                      ? 'bg-white hover:bg-gray-50'
                       : 'border-2 hover:opacity-80'
                   }`}
                   style={{
-                    color: localBackgroundDesign
-                      ? localKickstartersColor
-                      : applyCardTransparency(businessProfile?.card_bg || "#F9FAFB", businessProfile?.card_transparency ?? 1.0),
+                    color: localKickstartersColor,
                     borderColor: !localBackgroundDesign
-                      ? applyCardTransparency(businessProfile?.card_bg || "#F9FAFB", businessProfile?.card_transparency ?? 1.0)
+                      ? localKickstartersColor
                       : undefined
                   }}
                 >
@@ -468,11 +466,9 @@ export default function KickstartersFeature({
                       : 'border-2 hover:opacity-80'
                   }`}
                   style={{
-                    color: localBackgroundDesign
-                      ? localKickstartersColor
-                      : applyCardTransparency(businessProfile?.card_bg || "#F9FAFB", businessProfile?.card_transparency ?? 1.0),
+                    color: localKickstartersColor,
                     borderColor: !localBackgroundDesign
-                      ? applyCardTransparency(businessProfile?.card_bg || "#F9FAFB", businessProfile?.card_transparency ?? 1.0)
+                      ? localKickstartersColor
                       : undefined
                   }}
                 >
@@ -499,9 +495,7 @@ export default function KickstartersFeature({
                     <span
                       className="text-xs tracking-wide font-medium"
                       style={{
-                        color: localBackgroundDesign
-                          ? localKickstartersColor
-                          : applyCardTransparency(businessProfile?.card_bg || "#F9FAFB", businessProfile?.card_transparency ?? 1.0)
+                        color: localKickstartersColor
                       }}
                     >
                       Inspiration
@@ -509,18 +503,18 @@ export default function KickstartersFeature({
                   </div>
 
                   {/* Question - Compact, no quotes, no italics */}
-                  <div 
+                  <div
                     className={`cursor-pointer transition-colors text-center mb-2 ${
-                      localBackgroundDesign 
-                        ? 'text-gray-700 hover:text-gray-900' 
+                      localBackgroundDesign
+                        ? 'text-gray-700 hover:text-gray-900'
                         : 'hover:opacity-80'
                     }`}
                     style={{
                       fontSize: '1rem',
                       lineHeight: '1.5rem',
-                      color: localBackgroundDesign 
+                      color: localBackgroundDesign
                         ? undefined
-                        : applyCardTransparency(businessProfile?.card_bg || "#F9FAFB", businessProfile?.card_transparency ?? 1.0)
+                        : localKickstartersColor
                     }}
                   >
                     {replaceBusinessName(getExampleKickstarter())}
@@ -535,9 +529,7 @@ export default function KickstartersFeature({
                       onClick={() => setShowViewAll(true)}
                       className="text-[10px] font-medium hover:underline transition-colors focus:outline-none rounded px-1"
                       style={{
-                        color: localBackgroundDesign
-                          ? localKickstartersColor
-                          : applyCardTransparency(businessProfile?.card_bg || "#F9FAFB", businessProfile?.card_transparency ?? 1.0)
+                        color: localKickstartersColor
                       }}
                     >
                       View All
