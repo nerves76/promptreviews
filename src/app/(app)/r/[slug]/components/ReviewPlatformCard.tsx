@@ -491,7 +491,7 @@ export default function ReviewPlatformCard({
                 onFocus={() => setIsTextareaFocused(true)}
                 onBlur={() => setIsTextareaFocused(false)}
                 placeholder="Share your experience..."
-                className="w-full p-3 pr-8 pb-8 rounded-lg focus:ring-2 focus:ring-indigo-500 sm:text-sm"
+                className="w-full py-3 px-4 pb-8 rounded-lg focus:ring-2 focus:ring-indigo-500 sm:text-sm"
                 rows={4}
                 style={{
                   background: applyCardTransparency(
