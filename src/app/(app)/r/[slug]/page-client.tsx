@@ -3410,11 +3410,15 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
       )}
 
       {/* Keyword Inspiration Modal */}
-      {showKeywordInspirationModal && promptPage?.selected_keyword_inspirations && (
+      {showKeywordInspirationModal && (
         <KeywordInspirationModal
           isOpen={showKeywordInspirationModal}
           onClose={() => setShowKeywordInspirationModal(false)}
-          keywords={promptPage.selected_keyword_inspirations}
+          keywords={
+            promptPage?.selected_keyword_inspirations?.length > 0
+              ? promptPage.selected_keyword_inspirations
+              : (promptPage?.keywords || []).slice(0, 10)
+          }
           reviewText={platformReviewTexts[keywordInspirationPlatformIndex] || ''}
           onAddKeyword={(keyword) => {
             const currentText = platformReviewTexts[keywordInspirationPlatformIndex] || '';

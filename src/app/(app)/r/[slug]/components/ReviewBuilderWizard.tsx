@@ -144,26 +144,28 @@ export default function ReviewBuilderWizard({
   };
 
   const keywordOptions = useMemo(() => {
+    // Power-Ups: use selected_keyword_inspirations if set, otherwise fall back to first 10 keywords
     if (
       Array.isArray(promptPage?.selected_keyword_inspirations) &&
       promptPage.selected_keyword_inspirations.length > 0
     ) {
-      return promptPage.selected_keyword_inspirations;
+      return promptPage.selected_keyword_inspirations.slice(0, 10);
     }
     if (Array.isArray(promptPage?.keywords) && promptPage.keywords.length > 0) {
-      return promptPage.keywords;
+      return promptPage.keywords.slice(0, 10);
     }
     // Fall back to business profile keywords (global settings)
     if (businessProfile?.keywords) {
       // Handle both array and string formats
       if (Array.isArray(businessProfile.keywords)) {
-        return businessProfile.keywords.filter(Boolean);
+        return businessProfile.keywords.filter(Boolean).slice(0, 10);
       }
       if (typeof businessProfile.keywords === "string") {
         return businessProfile.keywords
           .split(",")
           .map((keyword: string) => keyword.trim())
-          .filter(Boolean);
+          .filter(Boolean)
+          .slice(0, 10);
       }
     }
     return [];

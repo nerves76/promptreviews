@@ -100,8 +100,12 @@ export default function ReviewPlatformCard({
   const isUniversal = !!promptPage.is_universal;
   const aiButtonEnabled = promptPage?.ai_button_enabled !== false;
   const fixGrammarEnabled = promptPage?.fix_grammar_enabled !== false;
+  // Power-Ups: use selected_keyword_inspirations if set, otherwise fall back to first 10 keywords
+  const powerUpKeywords = (promptPage?.selected_keyword_inspirations?.length > 0
+    ? promptPage.selected_keyword_inspirations
+    : (promptPage?.keywords || []).slice(0, 10));
   const keywordInspirationEnabled = promptPage?.keyword_inspiration_enabled &&
-    promptPage?.selected_keyword_inspirations?.length > 0;
+    powerUpKeywords.length > 0;
   const reviewText = platformReviewTexts[idx] || '';
   const configuredMin = typeof platform?.minWordCount === 'number'
     ? Math.max(platform.minWordCount, PROMPT_PAGE_WORD_LIMITS.MIN_REVIEW_WORDS)

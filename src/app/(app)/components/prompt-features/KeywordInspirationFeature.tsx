@@ -1,15 +1,16 @@
 /**
  * KeywordInspirationFeature Component
  *
- * A reusable component for the Keyword Inspiration feature that appears across all prompt page types.
- * This component handles the toggle for showing/hiding keyword inspiration on public prompt pages.
- * Only shows the "Keyword inspiration" button when keywords are selected.
+ * A reusable component for the Keyword Power-Ups feature that appears across all prompt page types.
+ * This component handles the toggle for showing/hiding keyword power-ups on public prompt pages.
+ *
+ * Simplified: Automatically uses the first 10 keywords from the Keywords section.
+ * No manual selection needed - just toggle on/off.
  *
  * Features:
- * - Toggle to enable/disable the keyword inspiration button
- * - Select up to 10 keywords from the page's keywords
- * - Displays keywords with copy buttons on the public page
- * - Helpful hints when no keywords are available
+ * - Toggle to enable/disable the power-ups button on public page
+ * - Automatically displays the first 10 keywords from the page
+ * - Shows preview of which keywords will be displayed
  */
 
 "use client";
@@ -23,9 +24,9 @@ export interface KeywordInspirationFeatureProps {
   onEnabledChange?: (enabled: boolean) => void;
   /** Alternative callback for toggle (same as onEnabledChange) */
   onToggle?: (enabled: boolean) => void;
-  /** Selected keywords to display (max 10) */
+  /** Selected keywords to display (max 10) - kept for backwards compatibility but now auto-populated */
   selectedKeywords?: string[];
-  /** Callback when the selected keywords change */
+  /** Callback when the selected keywords change - auto-updates with first 10 */
   onKeywordsChange?: (keywords: string[]) => void;
   /** Available keywords from the page */
   availableKeywords: string[];
@@ -53,17 +54,14 @@ export default function KeywordInspirationFeature({
 }: KeywordInspirationFeatureProps) {
   // Initialize state from props and initialData
   const [isEnabled, setIsEnabled] = useState(enabled);
-  const [selected, setSelected] = useState<string[]>(selectedKeywords);
-  const [showKeywordList, setShowKeywordList] = useState(false);
+
+  // Auto-select first 10 keywords
+  const autoSelectedKeywords = availableKeywords.slice(0, 10);
 
   // Update state when props change
   useEffect(() => {
     setIsEnabled(enabled);
   }, [enabled]);
-
-  useEffect(() => {
-    setSelected(selectedKeywords);
-  }, [selectedKeywords]);
 
   // Initialize from initialData if provided
   useEffect(() => {
@@ -71,11 +69,15 @@ export default function KeywordInspirationFeature({
       if (initialData.keyword_inspiration_enabled !== undefined) {
         setIsEnabled(initialData.keyword_inspiration_enabled);
       }
-      if (initialData.selected_keyword_inspirations !== undefined) {
-        setSelected(initialData.selected_keyword_inspirations);
-      }
     }
   }, [initialData]);
+
+  // Auto-update selected keywords when available keywords change
+  useEffect(() => {
+    if (onKeywordsChange && availableKeywords.length > 0) {
+      onKeywordsChange(autoSelectedKeywords);
+    }
+  }, [availableKeywords.join(',')]); // Only trigger when keywords actually change
 
   const handleToggle = () => {
     const newEnabled = !isEnabled;
@@ -84,22 +86,7 @@ export default function KeywordInspirationFeature({
     onToggle?.(newEnabled);
   };
 
-  const handleKeywordToggle = (keyword: string) => {
-    let newSelected: string[];
-    if (selected.includes(keyword)) {
-      newSelected = selected.filter(k => k !== keyword);
-    } else {
-      if (selected.length >= 10) {
-        return; // Max 10 keywords
-      }
-      newSelected = [...selected, keyword];
-    }
-    setSelected(newSelected);
-    onKeywordsChange?.(newSelected);
-  };
-
   const hasNoKeywords = availableKeywords.length === 0;
-  const hasNoSelectedKeywords = selected.length === 0;
 
   return (
     <div className="rounded-lg p-2 sm:p-4 bg-green-50 border border-green-200 flex flex-col gap-4 shadow relative">
@@ -119,17 +106,17 @@ export default function KeywordInspirationFeature({
             </div>
           </div>
           <div className="text-sm text-gray-700 mt-[3px] ml-9">
-            Show a "Power-up" button on your Prompt Page to encourage users to include your suggested keyword phrases in their review. Displays up to 10 keyword phrases with copy buttons to easily add to a review.
+            Show a "Power-up" button on your Prompt Page that displays your first 10 keywords with copy buttons, encouraging customers to include them in their review.
           </div>
         </div>
         <div className="flex flex-col justify-start pt-1">
           <button
             type="button"
             onClick={handleToggle}
-            disabled={disabled}
+            disabled={disabled || hasNoKeywords}
             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
               isEnabled ? "bg-slate-blue" : "bg-gray-200"
-            } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
+            } ${disabled || hasNoKeywords ? "opacity-50 cursor-not-allowed" : ""}`}
             aria-pressed={isEnabled}
           >
             <span
@@ -143,7 +130,7 @@ export default function KeywordInspirationFeature({
 
       {/* Feature Details when enabled */}
       {isEnabled && (
-        <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200 space-y-4">
+        <div className="mt-2 p-4 bg-white/50 rounded-lg border border-green-200 space-y-4">
           {/* No keywords warning */}
           {hasNoKeywords && (
             <div className="flex items-start space-x-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
@@ -154,75 +141,41 @@ export default function KeywordInspirationFeature({
               />
               <div className="text-sm text-yellow-800">
                 <p className="font-medium mb-1">No keywords available</p>
-                <p>You need to add some keywords above in the "Keywords" section, then save your changes so you can select them here.</p>
+                <p>Add keywords in the "Keywords" section above. The first 10 will automatically appear in Power-Ups.</p>
               </div>
             </div>
           )}
 
-          {/* Keyword Selection */}
+          {/* Preview of keywords that will be shown */}
           {!hasNoKeywords && (
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label className="block text-sm font-medium text-green-800">
-                  Select Keywords to Display ({selected.length}/10)
+                  Keywords that will be shown ({autoSelectedKeywords.length} of {availableKeywords.length})
                 </label>
-                <button
-                  type="button"
-                  onClick={() => setShowKeywordList(!showKeywordList)}
-                  className="text-sm text-blue-600 hover:text-blue-700 underline"
-                >
-                  {showKeywordList ? 'Hide' : 'Show'} keyword list
-                </button>
               </div>
 
-              {showKeywordList && (
-                <div className="space-y-2 max-h-64 overflow-y-auto p-3 bg-white rounded border border-green-300">
-                  {availableKeywords.map((keyword) => (
-                    <label key={keyword} className="flex items-center hover:bg-green-50 p-2 rounded cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={selected.includes(keyword)}
-                        onChange={() => handleKeywordToggle(keyword)}
-                        disabled={disabled || (!selected.includes(keyword) && selected.length >= 10)}
-                        className="mr-3 text-green-600"
-                      />
-                      <span className="text-sm text-gray-800">{keyword}</span>
-                    </label>
-                  ))}
-                </div>
-              )}
+              <div className="flex flex-wrap gap-2">
+                {autoSelectedKeywords.map((keyword) => (
+                  <span
+                    key={keyword}
+                    className="inline-flex items-center px-3 py-1 bg-green-100 border border-green-300 rounded-full text-sm text-green-800"
+                  >
+                    {keyword}
+                  </span>
+                ))}
+              </div>
 
-              {hasNoSelectedKeywords && (
+              {availableKeywords.length > 10 && (
                 <p className="text-xs text-green-600 mt-2">
-                  Click "Show keyword list" above to select keywords you want to display.
+                  +{availableKeywords.length - 10} more keywords not shown in Power-Ups (only first 10 displayed)
                 </p>
-              )}
-
-              {!hasNoSelectedKeywords && (
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {selected.map((keyword) => (
-                    <span
-                      key={keyword}
-                      className="inline-flex items-center gap-2 px-3 py-1 bg-green-100 border border-green-300 rounded-full text-sm text-green-800"
-                    >
-                      {keyword}
-                      <button
-                        type="button"
-                        onClick={() => handleKeywordToggle(keyword)}
-                        className="hover:text-red-600"
-                        aria-label={`Remove ${keyword}`}
-                      >
-                        ×
-                      </button>
-                    </span>
-                  ))}
-                </div>
               )}
             </div>
           )}
 
           {/* How it works info */}
-          <div className="flex items-start space-x-3 pt-2 border-t border-green-200">
+          <div className="flex items-start space-x-3 pt-3 border-t border-green-200">
             <Icon
               name="FaInfoCircle"
               className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0"
@@ -231,12 +184,10 @@ export default function KeywordInspirationFeature({
             <div className="text-sm text-green-800">
               <p className="font-medium mb-1">How it works:</p>
               <ul className="space-y-1 text-green-700">
-                <li>• Activates "Power-up" button on your Prompt Page</li>
-                <li>• Button appears on the left side below the hero area</li>
-                <li>• On click, displays your selected keywords in a modal</li>
-                <li>• Each keyword has a copy button for easy use</li>
-                <li>• Select up to 10 keywords to help inspire better reviews</li>
-                <li>• Keywords must be saved above before selecting them here</li>
+                <li>• Adds a "Power-up" button to your Prompt Page</li>
+                <li>• Customers click it to see keyword suggestions</li>
+                <li>• Each keyword has a copy button to add to their review</li>
+                <li>• Automatically uses your first 10 keywords</li>
               </ul>
             </div>
           </div>

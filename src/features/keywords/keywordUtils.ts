@@ -271,3 +271,43 @@ export function transformGroupToResponse(
       : new Date().toISOString(),
   };
 }
+
+/**
+ * Helper to ensure "General" group exists for an account.
+ * Creates the group if it doesn't exist, returns the group ID.
+ *
+ * @param accountId - The account ID
+ * @param serviceSupabase - Supabase client with service role
+ * @returns The group ID
+ */
+export async function ensureGeneralGroup(
+  accountId: string,
+  serviceSupabase: ReturnType<typeof import('@supabase/supabase-js').createClient>
+): Promise<string> {
+  const { data: existingGroup } = await serviceSupabase
+    .from('keyword_groups')
+    .select('id')
+    .eq('account_id', accountId)
+    .eq('name', DEFAULT_GROUP_NAME)
+    .maybeSingle();
+
+  if (existingGroup) {
+    return existingGroup.id;
+  }
+
+  const { data: newGroup, error } = await serviceSupabase
+    .from('keyword_groups')
+    .insert({
+      account_id: accountId,
+      name: DEFAULT_GROUP_NAME,
+      display_order: 0,
+    })
+    .select('id')
+    .single();
+
+  if (error) {
+    throw new Error('Failed to create General group');
+  }
+
+  return newGroup.id;
+}

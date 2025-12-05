@@ -2,10 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { createServerSupabaseClient } from '@/auth/providers/supabase';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
-import {
-  transformGroupToResponse,
-  DEFAULT_GROUP_NAME,
-} from '@/features/keywords/keywordUtils';
+import { transformGroupToResponse } from '@/features/keywords/keywordUtils';
 
 // Service client for privileged operations
 const serviceSupabase = createClient(
@@ -161,37 +158,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
-
-/**
- * Helper endpoint to ensure "General" group exists for account.
- * Called internally when needed.
- */
-export async function ensureGeneralGroup(accountId: string): Promise<string> {
-  const { data: existingGroup } = await serviceSupabase
-    .from('keyword_groups')
-    .select('id')
-    .eq('account_id', accountId)
-    .eq('name', DEFAULT_GROUP_NAME)
-    .maybeSingle();
-
-  if (existingGroup) {
-    return existingGroup.id;
-  }
-
-  const { data: newGroup, error } = await serviceSupabase
-    .from('keyword_groups')
-    .insert({
-      account_id: accountId,
-      name: DEFAULT_GROUP_NAME,
-      display_order: 0,
-    })
-    .select('id')
-    .single();
-
-  if (error) {
-    throw new Error('Failed to create General group');
-  }
-
-  return newGroup.id;
 }
