@@ -23,7 +23,7 @@ import Icon from "@/components/Icon";
 import RobotTooltip from './RobotTooltip';
 import { markTaskAsCompleted } from '@/utils/onboardingTasks';
 import { useAuthUser } from '@/auth/hooks/granularAuthHooks';
-import KeywordsInput from './KeywordsInput';
+import { KeywordsInputLegacyAdapter as KeywordsInput } from '@/features/keywords/components';
 
 // Import all the existing prompt feature modules
 import {
@@ -118,9 +118,10 @@ export default function PromptPageSettingsModal({
     ...initialSettings
   });
 
-  // Update form data when initial settings change
+  // Update form data when modal opens (not on every initialSettings change)
+  // This prevents the form from resetting while the user is editing
   useEffect(() => {
-    if (initialSettings) {
+    if (isOpen && initialSettings) {
       // Convert keywords from string to array if needed
       const keywords = Array.isArray(initialSettings.keywords)
         ? initialSettings.keywords
@@ -134,7 +135,8 @@ export default function PromptPageSettingsModal({
         keywords
       }));
     }
-  }, [initialSettings]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]); // Only run when modal opens, not when initialSettings changes
 
   // Center modal on mount
   useEffect(() => {
@@ -268,10 +270,10 @@ export default function PromptPageSettingsModal({
             <div className="w-1/3">
               <div>
                 <h2 className="text-xl font-semibold text-white">
-                  Prompt page settings
+                  Prompt Page Settings
                 </h2>
                 <p className="text-xs text-white/80 mt-1">
-                  Configure global AI settings and defaults for new prompt pages
+                  Set global defaults for keywords, AI, review platforms, and more.
                 </p>
               </div>
             </div>
@@ -325,26 +327,24 @@ export default function PromptPageSettingsModal({
                   
                   {/* Keyword Phrases Section */}
                   <section className="mb-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                  <h3 className="text-lg font-semibold text-slate-blue mb-2 flex items-center">
                     Keyword-Powered Reviews
                     <RobotTooltip text="These keyword phrases will be pre-populated on all new prompt pages. Each page can then customize their keyword phrases without affecting these global defaults." />
                   </h3>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Add phrases that you would like to appear in your reviews. These can be added manually by your customers or included in AI generations.
+                  </p>
                   <KeywordsInput
                     keywords={formData.keywords || []}
                     onChange={(keywords) => handleInputChange('keywords', keywords)}
-                    placeholder="Enter keyword phrases separated by commas (e.g., best therapist Portland, ADHD specialist, group sessions, insurance accepted)"
+                    placeholder="Enter phrases separated by comma: best tax accountant in Bend, save money on taxes, affordable tax services"
                     businessInfo={businessInfo}
                   />
-                  <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <p className="text-xs text-blue-800">
-                      <strong>How it works:</strong> Add keyword-powered review suggestions to help guide reviewers and improve your SEO.
-                    </p>
-                  </div>
                 </section>
 
                 {/* AI Dos and Don'ts Section */}
                 <section className="mb-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                  <h3 className="text-lg font-semibold text-slate-blue mb-4 flex items-center">
                     AI guidelines
                     <RobotTooltip text="These guidelines help AI generate better content across all prompt pages." />
                   </h3>

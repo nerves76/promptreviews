@@ -347,6 +347,7 @@ export default function BusinessProfileForm({
             value={form.years_in_business || ""}
             onChange={handleChange}
             placeholder="e.g., 5"
+            min="0"
           />
         </div>
         <div className="mb-4">

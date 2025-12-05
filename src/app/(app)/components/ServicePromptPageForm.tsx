@@ -35,7 +35,7 @@ import { generateContextualReview } from "@/utils/aiReviewGeneration";
 import Icon from "@/components/Icon";
 import { getWordLimitOrDefault } from "@/constants/promptPageWordLimits";
 import FiveStarSpinner from "./FiveStarSpinner";
-import KeywordsInput from "./KeywordsInput";
+import { KeywordsInputLegacyAdapter as KeywordsInput } from "@/features/keywords/components";
 
 /**
  * ServicePromptPageForm component
@@ -702,12 +702,6 @@ export default function ServicePromptPageForm({
                 industries_served: businessProfile?.industries_served
               }}
             />
-          </div>
-          <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-            <p className="text-xs text-blue-800">
-              <strong>How it works:</strong> Keywords are pre-populated from your global settings for new pages.
-              You can add, remove, or customize them for this specific prompt page without affecting your global keywords.
-            </p>
           </div>
         </div>
 

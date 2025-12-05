@@ -22,14 +22,40 @@ const deriveSentiment = (rating?: number | null): 'positive' | 'neutral' | 'nega
 /**
  * Rebuilds keyword matches for all reviews in an account so existing reviews
  * (from any platform) immediately contribute to keyword stats.
+ *
+ * This function:
+ * 1. Clears existing matches for the account (optional, via clearExisting param)
+ * 2. Paginates through all reviews
+ * 3. Runs keyword matching using the unified keywords table
+ * 4. Updates usage counts on keywords table
  */
 export async function reprocessKeywordMatchesForAccount(
   supabase: SupabaseServiceClient,
   accountId: string,
+  options?: {
+    clearExisting?: boolean;
+    updateUsageCounts?: boolean;
+  }
 ) {
+  const { clearExisting = false, updateUsageCounts = true } = options || {};
+
+  // Optionally clear existing matches first
+  if (clearExisting) {
+    const { error: deleteError } = await supabase
+      .from('keyword_review_matches_v2')
+      .delete()
+      .eq('account_id', accountId);
+
+    if (deleteError) {
+      console.error('❌ Failed to clear existing keyword matches:', deleteError);
+      throw deleteError;
+    }
+  }
+
   const matcher = new KeywordMatchService(supabase, accountId);
   const pageSize = 250;
   let offset = 0;
+  let totalProcessed = 0;
 
   for (;;) {
     const { data, error } = await supabase
@@ -91,6 +117,7 @@ export async function reprocessKeywordMatchesForAccount(
 
     if (records.length > 0) {
       await matcher.process(records);
+      totalProcessed += records.length;
     }
 
     if (data.length < pageSize) {
@@ -99,4 +126,114 @@ export async function reprocessKeywordMatchesForAccount(
 
     offset += pageSize;
   }
+
+  // Update usage counts if requested
+  if (updateUsageCounts) {
+    await syncKeywordUsageCounts(supabase, accountId);
+  }
+
+  return { totalProcessed };
+}
+
+/**
+ * Syncs the review_usage_count and last_used_in_review_at fields for all
+ * keywords in an account based on the keyword_review_matches_v2 table.
+ *
+ * This is designed to be run as a batch job or after reprocessing.
+ */
+export async function syncKeywordUsageCounts(
+  supabase: SupabaseServiceClient,
+  accountId: string
+) {
+  // Get all keywords for this account
+  const { data: keywords, error: keywordsError } = await supabase
+    .from('keywords')
+    .select('id')
+    .eq('account_id', accountId);
+
+  if (keywordsError) {
+    console.error('❌ Failed to fetch keywords for usage sync:', keywordsError);
+    throw keywordsError;
+  }
+
+  if (!keywords || keywords.length === 0) {
+    return { keywordsUpdated: 0 };
+  }
+
+  let keywordsUpdated = 0;
+
+  // For each keyword, count matches and get last match time
+  for (const keyword of keywords) {
+    // Count matches
+    const { count, error: countError } = await supabase
+      .from('keyword_review_matches_v2')
+      .select('*', { count: 'exact', head: true })
+      .eq('keyword_id', keyword.id);
+
+    if (countError) {
+      console.error(`❌ Failed to count matches for keyword ${keyword.id}:`, countError);
+      continue;
+    }
+
+    // Get last match time
+    const { data: lastMatch, error: lastMatchError } = await supabase
+      .from('keyword_review_matches_v2')
+      .select('matched_at')
+      .eq('keyword_id', keyword.id)
+      .order('matched_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (lastMatchError) {
+      console.error(`❌ Failed to get last match for keyword ${keyword.id}:`, lastMatchError);
+      continue;
+    }
+
+    // Update keyword
+    const { error: updateError } = await supabase
+      .from('keywords')
+      .update({
+        review_usage_count: count || 0,
+        last_used_in_review_at: lastMatch?.matched_at || null,
+      })
+      .eq('id', keyword.id);
+
+    if (updateError) {
+      console.error(`❌ Failed to update usage for keyword ${keyword.id}:`, updateError);
+      continue;
+    }
+
+    keywordsUpdated++;
+  }
+
+  return { keywordsUpdated };
+}
+
+/**
+ * Syncs usage counts for all accounts.
+ * Useful for batch cron jobs.
+ */
+export async function syncAllKeywordUsageCounts(
+  supabase: SupabaseServiceClient
+) {
+  // Get all accounts with keywords
+  const { data: accounts, error: accountsError } = await supabase
+    .from('keywords')
+    .select('account_id')
+    .limit(1000);
+
+  if (accountsError) {
+    console.error('❌ Failed to fetch accounts with keywords:', accountsError);
+    throw accountsError;
+  }
+
+  const uniqueAccountIds = Array.from(new Set((accounts || []).map(a => a.account_id)));
+  let totalUpdated = 0;
+
+  for (const accountId of uniqueAccountIds) {
+    const result = await syncKeywordUsageCounts(supabase, accountId);
+    totalUpdated += result.keywordsUpdated;
+  }
+
+  return { accountsProcessed: uniqueAccountIds.length, totalUpdated };
 }

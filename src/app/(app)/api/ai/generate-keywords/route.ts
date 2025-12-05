@@ -95,10 +95,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Build the prompt for OpenAI
-    const prompt = `Generate 10 long-tail keyword ideas for a ${businessType} in ${city}, ${state}.
+    const prompt = `Generate 10 SEO-optimized keyword ideas for a ${businessType} business.
 
 Business Information:
 - Name: ${businessName}
+- Location: ${city}, ${state}
 - About: ${aboutUs}
 - Differentiators: ${differentiators}
 - Years in Business: ${yearsInBusiness}
@@ -106,27 +107,34 @@ Business Information:
 
 These keywords will be used to help customers find this business when searching for reviews.
 
+IMPORTANT: Generate a MIX of keyword types:
+• 4-5 keywords should be LOCATION-SPECIFIC (include city name, "near me", neighborhood names, etc.)
+• 5-6 keywords should be GENERAL/SERVICE-FOCUSED (no location, focus on service quality, specializations, or differentiators)
+
 The keywords should:
-• Sound like real search phrases people would use when looking for reviews (e.g., "best family dentist near me reviews" or "affordable root canal Portland OR reviews").
-• Include location modifiers ("near me," neighborhood names, zip codes, landmarks, etc.).
-• Focus on review-oriented search intent - how customers search when researching businesses.
-• Reflect how customers talk (not marketing-speak).
-• Include service + location + review intent combos (e.g., "teeth whitening reviews SE Portland").
-• Consider the business's unique differentiators and specific services/offerings.
+• Sound like real search phrases people would use when looking for reviews
+• Focus on review-oriented search intent - how customers search when researching businesses
+• Reflect how customers talk (not marketing-speak)
+• Consider the business's unique differentiators and specific services/offerings
+• Include a variety of lengths and styles
 
 For each keyword, also provide a natural-sounding review phrase that incorporates that keyword organically.
 
 IMPORTANT: Keep review phrases SHORT and punchy - ideally one short sentence or fragment (5-12 words max).
 
-Examples:
-- Search term: "Portland car accident lawyer reviews for disabled"
-- Review phrase: "Best Portland car accident lawyer for disabled clients!"
+Examples of LOCATION-SPECIFIC:
+- Search term: "best family dentist Portland OR"
+- Review phrase: "Best family dentist in Portland - highly recommend!"
 
-- Search term: "affordable root canal Portland OR reviews"
-- Review phrase: "Affordable root canal in Portland - highly recommend!"
+Examples of GENERAL/SERVICE-FOCUSED:
+- Search term: "emergency dental care same day appointment"
+- Review phrase: "Got same day emergency dental care - lifesaver!"
 
-- Search term: "best family dentist near me"
-- Review phrase: "Found the best family dentist near me!"
+- Search term: "gentle dentist for anxious patients"
+- Review phrase: "Finally found a gentle dentist for my dental anxiety!"
+
+- Search term: "professional photography for small business"
+- Review phrase: "Amazing professional photography for my small business!"
 
 Format your output as a JSON array of objects with these fields:
 - searchTerm: The keyword phrase someone would search for
@@ -143,7 +151,7 @@ Return ONLY valid JSON, no additional text or markdown formatting.`;
         {
           role: "system",
           content:
-            "You are an SEO expert that generates authentic, location-specific keyword ideas for local businesses. You understand how real customers search for services and products. Always return valid JSON output.",
+            "You are an SEO expert that generates authentic keyword ideas for businesses. You understand how real customers search for services and products, including both location-based and general service-focused searches. Always return valid JSON output.",
         },
         {
           role: "user",

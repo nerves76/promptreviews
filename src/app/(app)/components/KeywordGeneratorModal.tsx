@@ -225,7 +225,7 @@ export default function KeywordGeneratorModal({
                 <Icon name="FaSpinner" className="w-12 h-12 text-white animate-spin mb-4" />
                 <p className="text-white text-lg font-medium">Generating keywords...</p>
                 <p className="text-white/90 text-sm mt-2">
-                  AI is creating 10 location-specific keyword ideas for {businessName}
+                  AI is creating 10 SEO-optimized keyword ideas for {businessName}
                 </p>
               </div>
             )}

@@ -1,145 +1,230 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { SyncedReviewRecord } from '@/features/google-reviews/reviewSyncService';
+import { normalizePhrase, escapeRegex } from './keywordUtils';
 
 type SupabaseServiceClient = SupabaseClient<any, 'public', any>;
 
-type LoadedKeywordTerm = {
+/**
+ * Loaded keyword from the unified keywords table.
+ * Unlike the old system, the new unified system has simpler scoping:
+ * - Keywords are account-wide
+ * - Association to specific prompt pages is via keyword_prompt_page_usage junction table
+ * - No more keyword_set_locations scope; keywords match any review in the account
+ */
+type LoadedKeyword = {
   id: string;
   phrase: string;
   normalized: string;
-  keywordSetId: string;
-  scopeType: string;
-  locationIds: Set<string>;
+  wordCount: number;
+  status: 'active' | 'paused';
 };
 
+/**
+ * KeywordMatchService - Unified Keyword Matching
+ *
+ * Matches keywords from the unified `keywords` table against review text.
+ * Uses word-boundary regex matching for accuracy.
+ *
+ * This service is used during:
+ * - Google review sync (real-time matching)
+ * - Review reprocessing (batch matching)
+ *
+ * Usage count updates are handled separately via batch job to avoid
+ * transaction overhead during sync operations.
+ */
 export class KeywordMatchService {
-  private terms: LoadedKeywordTerm[] | null = null;
+  private keywords: LoadedKeyword[] | null = null;
 
   constructor(
     private readonly supabase: SupabaseServiceClient,
     private readonly accountId: string
   ) {}
 
-  private normalizePhrase(phrase: string): string {
-    return phrase
-      .toLowerCase()
-      .trim()
-      .replace(/\s+/g, ' ');
-  }
-
-  private async loadTerms(): Promise<LoadedKeywordTerm[]> {
-    if (this.terms) {
-      return this.terms;
+  /**
+   * Load active keywords for this account.
+   * Results are cached for the lifetime of this service instance.
+   */
+  private async loadKeywords(): Promise<LoadedKeyword[]> {
+    if (this.keywords) {
+      return this.keywords;
     }
 
     const { data, error } = await this.supabase
-      .from('keyword_sets')
+      .from('keywords')
       .select(`
         id,
-        scope_type,
-        is_active,
-        keyword_set_terms (
-          id,
-          phrase,
-          normalized_phrase
-        ),
-        keyword_set_locations (
-          google_business_location_id
-        )
+        phrase,
+        normalized_phrase,
+        word_count,
+        status
       `)
       .eq('account_id', this.accountId)
-      .eq('is_active', true);
+      .eq('status', 'active');
 
     if (error) {
-      console.error('❌ Failed to load keyword sets:', error);
-      this.terms = [];
-      return this.terms;
+      console.error('❌ Failed to load keywords:', error);
+      this.keywords = [];
+      return this.keywords;
     }
 
-    const flattened: LoadedKeywordTerm[] = [];
-    for (const set of data || []) {
-      const scopeType = set.scope_type || 'account';
-      const locationIds = new Set<string>(
-        (set.keyword_set_locations || [])
-          .map((loc: { google_business_location_id: string | null }) => loc?.google_business_location_id)
-          .filter(Boolean)
-      );
+    this.keywords = (data || []).map((kw) => ({
+      id: kw.id,
+      phrase: kw.phrase,
+      normalized: kw.normalized_phrase,
+      wordCount: kw.word_count,
+      status: kw.status as 'active' | 'paused',
+    }));
 
-      for (const term of set.keyword_set_terms || []) {
-        const normalized = term.normalized_phrase
-          ? term.normalized_phrase
-          : this.normalizePhrase(term.phrase || '');
-        if (!term.phrase || !normalized) continue;
-
-        flattened.push({
-          id: term.id,
-          phrase: term.phrase,
-          normalized,
-          keywordSetId: set.id,
-          scopeType,
-          locationIds
-        });
-      }
-    }
-
-    this.terms = flattened;
-    return this.terms;
+    return this.keywords;
   }
 
-  private appliesToLocation(term: LoadedKeywordTerm, googleBusinessLocationId?: string | null): boolean {
-    if (!googleBusinessLocationId) {
-      return term.scopeType === 'account';
-    }
-
-    if (term.scopeType === 'selected') {
-      return term.locationIds.has(googleBusinessLocationId);
-    }
-
-    return true;
-  }
-
+  /**
+   * Process a batch of synced reviews and find keyword matches.
+   *
+   * For each review:
+   * 1. Normalizes the review text
+   * 2. Tests each active keyword using word-boundary regex
+   * 3. Inserts matches into keyword_review_matches_v2
+   *
+   * Note: This does NOT update usage counts. That is handled by
+   * a separate batch job to keep sync operations fast.
+   *
+   * @param records - Array of synced review records to process
+   */
   async process(records: SyncedReviewRecord[]): Promise<void> {
     if (!records.length) return;
 
-    const terms = await this.loadTerms();
-    if (!terms.length) return;
+    const keywords = await this.loadKeywords();
+    if (!keywords.length) return;
 
-    const inserts: any[] = [];
-
-    const escapeRegex = (text: string) =>
-      text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const inserts: {
+      keyword_id: string;
+      review_submission_id: string | null;
+      google_review_id: string | null;
+      account_id: string;
+      google_business_location_id: string | null;
+      matched_phrase: string;
+      matched_at: string;
+    }[] = [];
 
     for (const record of records) {
       const body = (record.reviewText || '').toLowerCase();
       if (!body) continue;
 
-      for (const term of terms) {
-        if (!this.appliesToLocation(term, record.googleBusinessLocationId)) continue;
-        const regex = new RegExp(`\\b${escapeRegex(term.normalized)}\\b`, 'i');
+      for (const keyword of keywords) {
+        // Use word-boundary matching for accuracy
+        const regex = new RegExp(`\\b${escapeRegex(keyword.normalized)}\\b`, 'i');
         if (!regex.test(body)) continue;
 
         inserts.push({
-          review_id: record.reviewSubmissionId,
-          keyword_term_id: term.id,
-          keyword_set_id: term.keywordSetId,
+          keyword_id: keyword.id,
+          review_submission_id: record.reviewSubmissionId || null,
+          google_review_id: record.googleReviewId || null,
           account_id: record.accountId,
           google_business_location_id: record.googleBusinessLocationId || null,
-          google_location_id: record.locationId || null,
-          google_location_name: record.locationName || null,
-          matched_phrase: term.phrase,
-          matched_at: new Date().toISOString()
+          matched_phrase: keyword.phrase,
+          matched_at: new Date().toISOString(),
         });
       }
     }
 
     if (!inserts.length) return;
 
+    // Insert into the new matches table
     const { error } = await this.supabase
-      .from('review_keyword_matches')
-      .upsert(inserts, { onConflict: 'review_id,keyword_term_id' });
+      .from('keyword_review_matches_v2')
+      .upsert(inserts, {
+        onConflict: 'keyword_id,review_submission_id',
+        ignoreDuplicates: true,
+      });
 
     if (error) {
-      console.error('❌ Failed to upsert review keyword matches:', error);
+      console.error('❌ Failed to upsert keyword review matches:', error);
     }
+  }
+
+  /**
+   * Process a single review submission (not a Google review).
+   * This is used when processing reviews submitted through prompt pages.
+   *
+   * @param reviewSubmissionId - The review_submissions.id
+   * @param reviewContent - The text content of the review
+   * @returns Array of matched keyword IDs
+   */
+  async processSubmission(
+    reviewSubmissionId: string,
+    reviewContent: string
+  ): Promise<string[]> {
+    const keywords = await this.loadKeywords();
+    if (!keywords.length) return [];
+
+    const body = (reviewContent || '').toLowerCase();
+    if (!body) return [];
+
+    const matchedKeywordIds: string[] = [];
+    const inserts: {
+      keyword_id: string;
+      review_submission_id: string;
+      google_review_id: null;
+      account_id: string;
+      google_business_location_id: null;
+      matched_phrase: string;
+      matched_at: string;
+    }[] = [];
+
+    for (const keyword of keywords) {
+      const regex = new RegExp(`\\b${escapeRegex(keyword.normalized)}\\b`, 'i');
+      if (!regex.test(body)) continue;
+
+      matchedKeywordIds.push(keyword.id);
+      inserts.push({
+        keyword_id: keyword.id,
+        review_submission_id: reviewSubmissionId,
+        google_review_id: null,
+        account_id: this.accountId,
+        google_business_location_id: null,
+        matched_phrase: keyword.phrase,
+        matched_at: new Date().toISOString(),
+      });
+    }
+
+    if (inserts.length > 0) {
+      const { error } = await this.supabase
+        .from('keyword_review_matches_v2')
+        .upsert(inserts, {
+          onConflict: 'keyword_id,review_submission_id',
+          ignoreDuplicates: true,
+        });
+
+      if (error) {
+        console.error('❌ Failed to upsert keyword matches for submission:', error);
+      }
+    }
+
+    return matchedKeywordIds;
+  }
+
+  /**
+   * Get all keyword IDs that match the given text.
+   * Does not persist matches - useful for preview/testing.
+   *
+   * @param text - The text to search for keywords
+   * @returns Array of keyword objects that match
+   */
+  async findMatchesInText(text: string): Promise<LoadedKeyword[]> {
+    const keywords = await this.loadKeywords();
+    if (!keywords.length || !text) return [];
+
+    const body = text.toLowerCase();
+    const matches: LoadedKeyword[] = [];
+
+    for (const keyword of keywords) {
+      const regex = new RegExp(`\\b${escapeRegex(keyword.normalized)}\\b`, 'i');
+      if (regex.test(body)) {
+        matches.push(keyword);
+      }
+    }
+
+    return matches;
   }
 }
