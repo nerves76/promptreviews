@@ -450,6 +450,26 @@ export default function KeywordsInputLegacyAdapter({
         </button>
       </div>
 
+      {/* Input field - moved above keywords */}
+      <div className={`relative ${isFocused ? 'ring-2 ring-indigo-500 rounded-md' : ''}`}>
+        <input
+          type="text"
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          onKeyDown={handleInputKeyDown}
+          onFocus={() => setIsFocused(true)}
+          onBlur={handleInputBlur}
+          placeholder={placeholder}
+          disabled={disabled}
+          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+        />
+        {inputValue && (
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">
+            Press Enter to add
+          </div>
+        )}
+      </div>
+
       {/* Keywords chips display with usage indicators */}
       {enrichedKeywords.length > 0 && (
         <div className="flex flex-wrap gap-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
@@ -496,26 +516,6 @@ export default function KeywordsInputLegacyAdapter({
           ))}
         </div>
       )}
-
-      {/* Input field */}
-      <div className={`relative ${isFocused ? 'ring-2 ring-indigo-500 rounded-md' : ''}`}>
-        <input
-          type="text"
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          onKeyDown={handleInputKeyDown}
-          onFocus={() => setIsFocused(true)}
-          onBlur={handleInputBlur}
-          placeholder={placeholder}
-          disabled={disabled}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-        />
-        {inputValue && (
-          <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">
-            Press Enter to add
-          </div>
-        )}
-      </div>
 
       {/* Helper text */}
       <div className="flex items-center justify-between text-xs text-gray-500">
