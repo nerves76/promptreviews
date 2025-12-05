@@ -13,7 +13,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import BasePromptPageForm from "./BasePromptPageForm";
 import { Input } from "@/app/(app)/components/ui/input";
 import { Textarea } from "@/app/(app)/components/ui/textarea";
-import KeywordsInput from "./KeywordsInput";
+import { KeywordsInputLegacyAdapter as KeywordsInput } from "@/features/keywords/components";
 import Icon from "@/components/Icon";
 import ReviewWriteSection, { ReviewWritePlatform } from "../dashboard/edit-prompt-page/components/ReviewWriteSection";
 import PersonalizedNoteFeature from "./prompt-features/PersonalizedNoteFeature";

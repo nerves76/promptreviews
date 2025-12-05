@@ -19,7 +19,7 @@ const HEADING_CHAR_LIMIT = 60;
 const SUBCOPY_CHAR_LIMIT = 300;
 const BUTTON_TEXT_CHAR_LIMIT = 30;
 
-const FIVE_STAR_IMAGE_URL = "https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/app-assets/5-stars-prompt-reviews.png";
+const FIVE_STAR_IMAGE_URL = "/images/5-stars-prompt-reviews.png";
 
 /**
  * FiveStarEmbedGenerator Component

@@ -38,11 +38,6 @@ export default function CreateBusinessClient() {
   // Ref to trigger form submission from top button
   const formRef = useRef<HTMLFormElement>(null);
   
-  // Preload welcome image to prevent loading delay
-  useEffect(() => {
-    const img = new Image();
-    img.src = "https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/prompty-telescope-capturing-reviews.png";
-  }, []);
 
   // Redirect to dashboard after business creation
   const redirectToDashboard = useCallback(() => {
@@ -469,7 +464,7 @@ export default function CreateBusinessClient() {
         isOpen={showWelcomePopup}
         onClose={handleWelcomeClose}
         userName={getUserDisplayName()}
-        imageUrl="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/prompty-telescope-capturing-reviews.png"
+        imageUrl="/images/prompty-telescope-capturing-reviews.png"
         imageAlt="Prompty with telescope capturing reviews"
         buttonText="Let's wrangle some stars!"
         onButtonClick={handleWelcomeClose}

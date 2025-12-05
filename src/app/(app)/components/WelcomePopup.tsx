@@ -186,48 +186,81 @@ Here's your first tip: [icon] <— click here`;
         return <div key={index} className="h-1" />;
       }
       
+      // Check if this is the Carl Sagan quote
+      if (paragraph.startsWith('"The cosmos is within us.') || paragraph.startsWith('"The cosmos')) {
+        return (
+          <div key={index} className="relative bg-sky-100 rounded-lg p-5 my-4 border border-sky-200">
+            {/* Opening curly quote mark */}
+            <div className="absolute top-2 left-3 text-5xl text-sky-400 leading-none font-serif select-none">&ldquo;</div>
+
+            <p className="text-base md:text-lg text-slate-700 font-medium italic leading-relaxed pl-8 pr-6">
+              {paragraph.replace(/^"|"$/g, '')}
+            </p>
+
+            {/* Closing curly quote mark */}
+            <div className="absolute bottom-1 right-3 text-5xl text-sky-400 leading-none font-serif select-none">&rdquo;</div>
+          </div>
+        );
+      }
+
       // Check if this paragraph contains the robot icon placeholder
       if (paragraph.includes('[icon]')) {
         return (
-          <div key={index} className="text-sm flex items-center gap-2">
-            {paragraph.split('[icon]').map((part, partIndex, arr) => (
-              <React.Fragment key={partIndex}>
-                {parseMarkdown(part)}
-                {partIndex < arr.length - 1 && (
-                  <span className="relative inline-block align-middle">
-                    <button
-                      ref={iconRef}
-                      onClick={() => setShowTooltip(!showTooltip)}
-                      className="inline-block align-middle text-slate-blue hover:text-indigo-600 focus:outline-none"
-                      aria-label="Click for AI tip"
-                      tabIndex={0}
-                      type="button"
-                    >
-                      <Icon name="prompty" className="inline w-5 h-5 align-middle cursor-pointer" size={20} style={{ color: '#2E4A7D' }} />
-                    </button>
-                    {showTooltip && (
-                      <div 
-                        ref={tooltipRef}
-                        className="absolute z-30 left-1/2 -translate-x-1/2 bottom-full mb-2 w-80 p-4 bg-white border border-gray-200 rounded-lg shadow-lg text-sm text-gray-700"
+          <div key={index} className="text-base font-medium flex items-center gap-2">
+            {paragraph.split('[icon]').map((part, partIndex, arr) => {
+              // Check if this part contains the arrow
+              const hasArrow = part.includes('<—');
+              if (hasArrow) {
+                const [beforeArrow, afterArrow] = part.split('<—');
+                return (
+                  <React.Fragment key={partIndex}>
+                    {parseMarkdown(beforeArrow)}
+                    <span className="inline-flex items-center">
+                      <span className="animate-bounce-x text-slate-blue text-lg">&larr;</span>
+                      <span className="ml-1 font-bold">{afterArrow}</span>
+                    </span>
+                  </React.Fragment>
+                );
+              }
+              return (
+                <React.Fragment key={partIndex}>
+                  {parseMarkdown(part)}
+                  {partIndex < arr.length - 1 && (
+                    <span className="relative inline-block align-middle">
+                      <button
+                        ref={iconRef}
+                        onClick={() => setShowTooltip(!showTooltip)}
+                        className="inline-block align-middle text-slate-blue hover:text-indigo-600 focus:outline-none"
+                        aria-label="Click for AI tip"
+                        tabIndex={0}
+                        type="button"
                       >
-                        <div className="space-y-2">
-                          <p>
-                            Whenever you see me <Icon name="prompty" className="inline w-5 h-5 align-middle" size={20} style={{ color: '#2E4A7D' }} />, it means this field will help me learn about your business.
-                          </p>
-                          <p>
-                            This will come in handy when you are responding to reviews or updating your Google Business Profile and need some copywriting help. It's also how I create review templates for your customers or clients.
-                          </p>
-                          <p>
-                            Just remember, using Prompty AI is also totally optional and you have complete control of when and how to use it.
-                          </p>
+                        <Icon name="prompty" className="inline w-5 h-5 align-middle cursor-pointer" size={20} style={{ color: '#2E4A7D' }} />
+                      </button>
+                      {showTooltip && (
+                        <div
+                          ref={tooltipRef}
+                          className="absolute z-30 left-1/2 -translate-x-1/2 bottom-full mb-2 w-80 p-4 bg-white border border-gray-200 rounded-lg shadow-lg text-sm text-gray-700"
+                        >
+                          <div className="space-y-2">
+                            <p>
+                              Whenever you see me <Icon name="prompty" className="inline w-5 h-5 align-middle" size={20} style={{ color: '#2E4A7D' }} />, it means this field will help me learn about your business.
+                            </p>
+                            <p>
+                              This will come in handy when you are responding to reviews or updating your Google Business Profile and need some copywriting help. It's also how I create review templates for your customers or clients.
+                            </p>
+                            <p>
+                              Just remember, using Prompty AI is also totally optional and you have complete control of when and how to use it.
+                            </p>
+                          </div>
+                          <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-200"></div>
                         </div>
-                        <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-200"></div>
-                      </div>
-                    )}
-                  </span>
-                )}
-              </React.Fragment>
-            ))}
+                      )}
+                    </span>
+                  )}
+                </React.Fragment>
+              );
+            })}
           </div>
         );
       }

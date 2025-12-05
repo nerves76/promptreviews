@@ -1,131 +1,121 @@
 const { createClient } = require('@supabase/supabase-js');
 
-// Supabase local configuration
 const supabaseUrl = 'http://127.0.0.1:54321';
 const supabaseServiceKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU';
 
-const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false
-  }
-});
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-async function createTestUser() {
+const email = 'nerves76@gmail.com';
+const password = 'Prcamus9721!';
+const first_name = 'Chris';
+const last_name = 'Nerves';
+
+async function ensureTestUser() {
+  console.log('Setting up test user...');
+  let userId;
   try {
-    console.log('🔧 Creating test user account...');
-    
-    // Use admin API to create user
-    const { data: user, error: userError } = await supabase.auth.admin.createUser({
-      email: 'chris@diviner.agency',
-      password: 'testpassword123',
-      email_confirm: true,
-      user_metadata: {
-        first_name: 'Chris',
-        last_name: 'Test'
+    // List all users and find by email
+    let foundUser = null;
+    let nextPage = null;
+    do {
+      const { data, error } = await supabase.auth.admin.listUsers({ page: nextPage });
+      if (error) throw error;
+      foundUser = data.users.find(u => u.email === email);
+      nextPage = data.nextPage;
+    } while (!foundUser && nextPage);
+
+    if (foundUser) {
+      userId = foundUser.id;
+      // Update password and confirm email
+      console.log('Updating existing user password and confirming email...');
+      const { error: updateError } = await supabase.auth.admin.updateUserById(userId, {
+        password,
+        email_confirm: true,
+        user_metadata: { first_name, last_name }
+      });
+      if (updateError) {
+        console.log('❌ Error updating user:', updateError);
+        return;
       }
-    });
-
-    if (userError) {
-      console.error('❌ Error creating user:', userError);
-      return;
+      console.log('✅ User password updated and email confirmed.');
+    } else {
+      // Create new user
+      console.log('Creating new user...');
+      const { data: userData, error: userError } = await supabase.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
+        user_metadata: { first_name, last_name }
+      });
+      if (userError) {
+        console.log('❌ Error creating user:', userError);
+        return;
+      }
+      userId = userData.user.id;
+      console.log('✅ User created:', userData.user.email);
     }
 
-    console.log('✅ User created successfully:', {
-      id: user.user.id,
-      email: user.user.email,
-      confirmed: user.user.email_confirmed_at ? 'YES' : 'NO'
-    });
-
-    // Check if account was created by trigger
-    const { data: account, error: accountError } = await supabase
+    // Ensure account record
+    const { data: existingAccount } = await supabase
       .from('accounts')
-      .select('*')
-      .eq('id', user.user.id)
+      .select('id')
+      .eq('id', userId)
       .single();
-
-    if (accountError && accountError.code !== 'PGRST116') {
-      console.error('❌ Error checking account:', accountError);
-      return;
-    }
-
-    if (!account) {
-      console.log('🔧 Account not found, creating manually...');
-      
-      // Create account manually
-      const { data: newAccount, error: createAccountError } = await supabase
+    if (!existingAccount) {
+      const { error: accountError } = await supabase
         .from('accounts')
         .insert({
-          id: user.user.id,
-          email: user.user.email,
-          first_name: 'Chris',
-          last_name: 'Test',
-          plan: 'no_plan',
+          id: userId,
+          email,
+          first_name,
+          last_name,
           trial_start: new Date().toISOString(),
           trial_end: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
           is_free_account: false,
           custom_prompt_page_count: 0,
           contact_count: 0,
-          review_notifications_enabled: true,
-          user_id: user.user.id
-        })
-        .select()
-        .single();
-
-      if (createAccountError) {
-        console.error('❌ Error creating account:', createAccountError);
-        return;
+          plan: 'grower',
+          max_users: 1
+        });
+      if (accountError) {
+        console.log('❌ Error creating account:', accountError);
+      } else {
+        console.log('✅ Account record created.');
       }
-
-      console.log('✅ Account created manually');
     } else {
-      console.log('✅ Account already exists (created by trigger)');
+      console.log('✅ Account record already exists.');
     }
 
-    // Check account_users relationship
-    const { data: accountUser, error: accountUserError } = await supabase
+    // Ensure account_user record
+    const { data: existingAccountUser } = await supabase
       .from('account_users')
-      .select('*')
-      .eq('user_id', user.user.id)
-      .eq('account_id', user.user.id)
+      .select('user_id')
+      .eq('user_id', userId)
+      .eq('account_id', userId)
       .single();
-
-    if (accountUserError && accountUserError.code !== 'PGRST116') {
-      console.error('❌ Error checking account_users:', accountUserError);
-      return;
-    }
-
-    if (!accountUser) {
-      console.log('🔧 Account_users relationship not found, creating...');
-      
-      const { error: createAccountUserError } = await supabase
+    if (!existingAccountUser) {
+      const { error: accountUserError } = await supabase
         .from('account_users')
         .insert({
-          account_id: user.user.id,
-          user_id: user.user.id,
+          user_id: userId,
+          account_id: userId,
           role: 'owner'
         });
-
-      if (createAccountUserError) {
-        console.error('❌ Error creating account_users:', createAccountUserError);
-        return;
+      if (accountUserError) {
+        console.log('❌ Error creating account_user:', accountUserError);
+      } else {
+        console.log('✅ Account user record created.');
       }
-
-      console.log('✅ Account_users relationship created');
     } else {
-      console.log('✅ Account_users relationship already exists');
+      console.log('✅ Account user record already exists.');
     }
 
-    console.log('');
-    console.log('🎉 SUCCESS! Test account is ready:');
-    console.log('📧 Email: chris@diviner.agency');
-    console.log('🔑 Password: testpassword123');
-    console.log('');
-    console.log('You can now sign in at: http://localhost:3002/auth/sign-in');
-
+    console.log('\n🎉 Test user setup complete!');
+    console.log('Email:', email);
+    console.log('Password:', password);
   } catch (error) {
-    console.error('❌ Unexpected error:', error);
+    console.log('❌ Error:', error.message);
   }
 }
 
-createTestUser();
+ensureTestUser(); 

@@ -459,7 +459,7 @@ const DashboardContent = React.memo(function DashboardContent({
 
       {/* Getting Started Checklist */}
       <div className="mb-8">
-        <GettingStarted 
+        <GettingStarted
           hasBusiness={hasBusiness}
           hasCustomPromptPages={hasCustomPromptPages}
           hasUniversalPromptPage={hasUniversalPromptPage}
@@ -467,6 +467,8 @@ const DashboardContent = React.memo(function DashboardContent({
             // Optional: Handle completion if needed
           }}
           accountId={accountId}
+          businessData={business}
+          universalPromptPageData={universalPromptPage}
         />
       </div>
 

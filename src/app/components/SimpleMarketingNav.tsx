@@ -8,7 +8,7 @@ export default function SimpleMarketingNav() {
       <div className="mx-auto max-w-[1000px] w-full flex items-center justify-between px-4 py-2">
         <Link href="/">
           <img
-            src="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/prompt-reviews-get-more-reviews-logo.png"
+            src="/images/prompt-reviews-get-more-reviews-logo.png"
             alt="Prompt Reviews Logo"
             className="h-10 w-auto max-w-full object-contain"
             style={{ maxWidth: "200px" }}

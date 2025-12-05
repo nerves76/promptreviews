@@ -43,7 +43,7 @@ const CowboyUserIcon = () => {
   return (
     <div className="w-8 h-8 border-2 border-white rounded-full relative hover:opacity-80 transition-opacity p-0.5">
       <img
-        src="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/new-cowboy-icon.png"
+        src="/images/new-cowboy-icon.png"
         alt="Account"
         className="w-full h-full object-contain"
         style={{ filter: 'brightness(0) invert(1)' }}

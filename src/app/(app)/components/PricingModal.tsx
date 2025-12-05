@@ -125,7 +125,7 @@ export default function PricingModal({
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(
     null,
   );
-  const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'annual'>('monthly');
+  const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'annual'>('annual');
   const trialMetadata = trialEligibility
     ? deriveTrialMetadata(trialEligibility)
     : { hasConsumedTrial: false, blockedByActivePlan: false };

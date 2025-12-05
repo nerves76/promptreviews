@@ -12,12 +12,46 @@ import Link from "next/link";
 import { fetchOnboardingTasks, markTaskAsCompleted, markTaskAsIncomplete } from "@/utils/onboardingTasks";
 import { createClient } from '@/auth/providers/supabase';
 
+interface BusinessData {
+  id?: string;
+  name?: string;
+  keywords?: string[];
+  ai_dos?: string;
+  ai_donts?: string;
+  about_us?: string;
+  services_offered?: string[] | string;
+  logo_url?: string;
+  review_platforms?: string[];
+  // Style settings
+  primary_color?: string;
+  secondary_color?: string;
+  background_color?: string;
+  primary_font?: string;
+  secondary_font?: string;
+  style_preset?: string;
+  [key: string]: unknown;
+}
+
+interface UniversalPromptPageData {
+  id?: string;
+  created_at?: string;
+  updated_at?: string;
+  review_platforms?: unknown;
+  friendly_note?: string;
+  show_friendly_note?: boolean;
+  offer_enabled?: boolean;
+  kickstarters_enabled?: boolean;
+  [key: string]: unknown;
+}
+
 interface GettingStartedProps {
   onComplete?: () => void;
   hasBusiness: boolean;
   hasCustomPromptPages: boolean;
   hasUniversalPromptPage: boolean;
   accountId?: string;
+  businessData?: BusinessData | null;
+  universalPromptPageData?: UniversalPromptPageData | null;
 }
 
 interface Task {
@@ -34,7 +68,9 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
   hasBusiness,
   hasCustomPromptPages,
   hasUniversalPromptPage,
-  accountId
+  accountId,
+  businessData,
+  universalPromptPageData
 }) => {
   const supabase = createClient();
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -134,6 +170,65 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
     return () => clearTimeout(timer);
   }, [accountId]);
 
+  // Helper function to check if business profile has meaningful data
+  const checkBusinessProfileComplete = (data: BusinessData | null | undefined): boolean => {
+    if (!data) return false;
+    // Consider complete if they have a name AND at least one of: about_us, services
+    const hasName = !!(data.name && data.name.trim().length > 0);
+    const hasAboutUs = !!(data.about_us && data.about_us.trim().length > 0);
+    const hasServices = Array.isArray(data.services_offered)
+      ? data.services_offered.filter(s => s && s.trim()).length > 0
+      : !!(data.services_offered && String(data.services_offered).trim().length > 0);
+    return hasName && (hasAboutUs || hasServices);
+  };
+
+  // Helper function to check if keywords/AI guidelines have been added
+  const checkKeywordsAndGuidelinesComplete = (data: BusinessData | null | undefined): boolean => {
+    if (!data) return false;
+    const hasKeywords = Array.isArray(data.keywords) && data.keywords.length > 0;
+    const hasAiDos = !!(data.ai_dos && data.ai_dos.trim().length > 0);
+    const hasAiDonts = !!(data.ai_donts && data.ai_donts.trim().length > 0);
+    // Complete if they have keywords OR any AI guidelines
+    return hasKeywords || hasAiDos || hasAiDonts;
+  };
+
+  // Helper function to check if universal prompt page has been customized
+  const checkUniversalPromptPageCustomized = (data: UniversalPromptPageData | null | undefined): boolean => {
+    if (!data) return false;
+
+    // Check if updated_at is significantly different from created_at (more than 1 minute)
+    if (data.created_at && data.updated_at) {
+      const createdAt = new Date(data.created_at).getTime();
+      const updatedAt = new Date(data.updated_at).getTime();
+      const diffMinutes = (updatedAt - createdAt) / (1000 * 60);
+      if (diffMinutes > 1) return true;
+    }
+
+    // Also check for specific customizations that indicate editing
+    const hasCustomNote = !!(data.friendly_note && data.friendly_note.trim().length > 0);
+    const hasFriendlyNoteEnabled = data.show_friendly_note === true;
+    const hasOfferEnabled = data.offer_enabled === true;
+    const hasKickstartersEnabled = data.kickstarters_enabled === true;
+    const hasReviewPlatforms = Array.isArray(data.review_platforms) && data.review_platforms.length > 0;
+
+    return hasCustomNote || hasFriendlyNoteEnabled || hasOfferEnabled || hasKickstartersEnabled || hasReviewPlatforms;
+  };
+
+  // Helper function to check if styling has been customized
+  const checkStylingComplete = (data: BusinessData | null | undefined): boolean => {
+    if (!data) return false;
+    // Check if any style settings have been changed from defaults
+    const hasCustomPrimaryColor = !!(data.primary_color && data.primary_color !== '#4F46E5');
+    const hasCustomSecondaryColor = !!(data.secondary_color && data.secondary_color !== '#818CF8');
+    const hasCustomBackgroundColor = !!(data.background_color && data.background_color !== '#FFFFFF');
+    const hasCustomPrimaryFont = !!(data.primary_font && data.primary_font !== 'Inter');
+    const hasCustomSecondaryFont = !!(data.secondary_font && data.secondary_font !== 'Inter');
+    const hasStylePreset = !!(data.style_preset && data.style_preset.trim().length > 0);
+
+    return hasCustomPrimaryColor || hasCustomSecondaryColor || hasCustomBackgroundColor ||
+           hasCustomPrimaryFont || hasCustomSecondaryFont || hasStylePreset;
+  };
+
   // Fetch task completion status from database
   useEffect(() => {
     const loadTaskStatus = async () => {
@@ -144,8 +239,15 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
 
       try {
         const taskStatus = await fetchOnboardingTasks(accountId);
-        
+
+        // Check actual data for smart task completion
+        const businessProfileComplete = checkBusinessProfileComplete(businessData);
+        const keywordsComplete = checkKeywordsAndGuidelinesComplete(businessData);
+        const stylingComplete = checkStylingComplete(businessData);
+        const universalPageCustomized = checkUniversalPromptPageCustomized(universalPromptPageData);
+
         // Initialize tasks based on current state and database status
+        // Use actual data checks OR manual completion status from database
         const initialTasks: Task[] = [
           {
             id: "business-profile",
@@ -153,7 +255,7 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
             description: "Complete your business information",
             link: "/dashboard/business-profile",
             icon: <Icon name="FaStore" className="w-5 h-5" size={20} />,
-            completed: taskStatus["business-profile"] || false
+            completed: businessProfileComplete || taskStatus["business-profile"] || false
           },
           {
             id: "style-prompt-pages",
@@ -161,7 +263,7 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
             description: "Match your brand with custom styling",
             link: "/prompt-pages",
             icon: <Icon name="FaPalette" className="w-5 h-5" size={20} />,
-            completed: taskStatus["style-prompt-pages"] || false
+            completed: stylingComplete || taskStatus["style-prompt-pages"] || false
           },
           {
             id: "prompt-page-settings",
@@ -169,7 +271,7 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
             description: "Set keywords, dos and don'ts for better AI responses",
             link: "/prompt-pages?openSettings=true",
             icon: <Icon name="FaCog" className="w-5 h-5" size={20} />,
-            completed: taskStatus["prompt-page-settings"] || false
+            completed: keywordsComplete || taskStatus["prompt-page-settings"] || false
           },
           {
             id: "customize-universal",
@@ -177,7 +279,7 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
             description: "Configure your Universal Prompt Page settings",
             link: "/dashboard/edit-prompt-page/universal",
             icon: <Icon name="FaGlobe" className="w-5 h-5" size={20} />,
-            completed: taskStatus["customize-universal"] || false
+            completed: universalPageCustomized || taskStatus["customize-universal"] || false
           },
           {
             id: "create-prompt-page",
@@ -185,7 +287,7 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
             description: "Build your first custom prompt page",
             link: "/dashboard/create-prompt-page",
             icon: <Icon name="FaPlus" className="w-5 h-5" size={20} />,
-            completed: taskStatus["create-prompt-page"] || false
+            completed: hasCustomPromptPages || taskStatus["create-prompt-page"] || false
           },
           {
             id: "share",
@@ -256,7 +358,7 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
     };
 
     loadTaskStatus();
-  }, [accountId, hasBusiness, hasCustomPromptPages, hasUniversalPromptPage]);
+  }, [accountId, hasBusiness, hasCustomPromptPages, hasUniversalPromptPage, businessData, universalPromptPageData]);
 
   useEffect(() => {
     // Check if all tasks are completed
@@ -345,23 +447,30 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
           <div
             key={task.id}
             className={`flex items-center p-3 rounded-lg transition-all duration-200 relative ${
-              task.completed 
-                ? 'bg-white bg-opacity-20' 
+              task.completed
+                ? 'bg-white bg-opacity-20'
                 : task.id === 'business-profile' && !task.completed
-                  ? 'bg-white bg-opacity-15 hover:bg-opacity-20 cursor-pointer border-2 border-yellow-300 border-dashed animate-pulse'
-                  : 'bg-white bg-opacity-10 hover:bg-opacity-15 cursor-pointer'
+                  ? 'bg-white bg-opacity-15 border-2 border-yellow-300 border-dashed animate-pulse'
+                  : 'bg-white bg-opacity-10'
             }`}
-            onClick={() => handleTaskClick(task.id)}
           >
-            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-white bg-opacity-20 mr-3">
+            <button
+              type="button"
+              onClick={() => handleTaskClick(task.id)}
+              className="group flex items-center justify-center w-8 h-8 rounded-full bg-white bg-opacity-20 mr-3 cursor-pointer hover:bg-opacity-40 transition-all"
+              aria-label={task.completed ? `Mark "${task.title}" as incomplete` : `Mark "${task.title}" as complete`}
+            >
               {task.completed ? (
                 <Icon name="FaCheck" className="w-4 h-4 text-green-300" size={16} />
               ) : (
-                <div className="text-white">
-                  {task.icon}
-                </div>
+                <>
+                  <div className="text-white group-hover:hidden">
+                    {task.icon}
+                  </div>
+                  <Icon name="FaCheck" className="w-4 h-4 text-white opacity-50 hidden group-hover:block" size={16} />
+                </>
               )}
-            </div>
+            </button>
             
             <div className="flex-1">
               <div className="flex items-center justify-between">
@@ -393,7 +502,7 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
                 )}
                 {!task.link && !task.completed && (
                   <span className="text-xs bg-white bg-opacity-20 rounded px-2 py-1">
-                    Click to complete
+                    Click icon to complete
                   </span>
                 )}
               </div>

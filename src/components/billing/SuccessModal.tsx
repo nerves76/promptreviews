@@ -51,7 +51,7 @@ export default function SuccessModal({
         <div className="mb-6 flex justify-center">
           {action === 'new' ? (
             <img
-              src="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/small-prompty-success.png"
+              src="/images/small-prompty-success.png"
               alt="Crompty Success"
               className="w-24 h-24 object-contain"
             />

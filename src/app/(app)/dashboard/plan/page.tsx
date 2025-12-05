@@ -46,7 +46,7 @@ export default function PlanPage() {
   const [isExpired, setIsExpired] = useState(false);
   const [upgrading, setUpgrading] = useState(false);
   const [upgradingPlan, setUpgradingPlan] = useState<string>('');
-  const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'annual'>('monthly');
+  const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'annual'>('annual');
   const [isAdminAccount, setIsAdminAccount] = useState(false);
   const prevPlanRef = useRef<string | null>(null);
   const successModalShownRef = useRef(false);

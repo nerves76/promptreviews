@@ -800,7 +800,7 @@ export default function IndividualOutreach() {
                 {/* Prompty Success Image */}
                 <div className="mb-3 flex justify-center">
                   <img
-                    src="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/small-prompty-success.png"
+                    src="/images/small-prompty-success.png"
                     alt="Prompty Success"
                     className="w-24 h-24 object-contain"
                   />

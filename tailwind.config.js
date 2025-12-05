@@ -122,6 +122,7 @@ module.exports = {
       animation: {
         fadeIn: 'fadeIn 0.2s ease-out',
         scaleIn: 'scaleIn 0.2s ease-out',
+        'bounce-x': 'bounceX 1s ease-in-out infinite',
       },
       keyframes: {
         fadeIn: {
@@ -131,6 +132,10 @@ module.exports = {
         scaleIn: {
           '0%': { transform: 'scale(0.95)', opacity: '0' },
           '100%': { transform: 'scale(1)', opacity: '1' },
+        },
+        bounceX: {
+          '0%, 100%': { transform: 'translateX(0)' },
+          '50%': { transform: 'translateX(-6px)' },
         },
       },
     },

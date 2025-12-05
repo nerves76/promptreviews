@@ -940,6 +940,9 @@ export default function BusinessProfilePage() {
       setLoading(false);
       setIsSubmitting(false);
       clearTimeout(timeoutId);
+
+      // Redirect to dashboard after successful save
+      router.push("/dashboard");
     } catch (error) {
       console.error("Unexpected error during form submission:", error);
       console.error("Error type:", typeof error);
