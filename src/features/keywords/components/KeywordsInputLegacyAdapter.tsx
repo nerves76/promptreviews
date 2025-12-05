@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, KeyboardEvent } from 'react';
+import { useState, useEffect, useMemo, useRef, KeyboardEvent } from 'react';
 import Icon from '@/components/Icon';
 import KeywordChip from './KeywordChip';
 import { useKeywords } from '../hooks/useKeywords';
@@ -69,6 +69,7 @@ export default function KeywordsInputLegacyAdapter({
   const [isFocused, setIsFocused] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const libraryRef = useRef<HTMLDivElement>(null);
 
   // AI Generation state
   const [showGeneratorPanel, setShowGeneratorPanel] = useState(false);
@@ -424,7 +425,16 @@ export default function KeywordsInputLegacyAdapter({
       <div className="flex justify-end gap-2 mb-2">
         <button
           type="button"
-          onClick={() => setShowPicker(!showPicker)}
+          onClick={() => {
+            const newState = !showPicker;
+            setShowPicker(newState);
+            if (newState) {
+              // Scroll to library after it renders
+              setTimeout(() => {
+                libraryRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+              }, 100);
+            }
+          }}
           disabled={disabled || isLoading}
           className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
             showPicker
@@ -530,31 +540,46 @@ export default function KeywordsInputLegacyAdapter({
 
       {/* Library picker dropdown */}
       {showPicker && (
-        <div className="border border-gray-200 rounded-lg bg-white shadow-lg overflow-hidden">
-          <div className="p-3 border-b border-gray-100">
-            <p className="text-xs text-gray-600 mb-2">Click keywords to add them to your Prompt Page</p>
+        <div ref={libraryRef} className="border border-blue-200 rounded-lg bg-blue-50 shadow-lg overflow-hidden">
+          {/* Header */}
+          <div className="bg-blue-100 px-4 py-3 flex items-center justify-between border-b border-blue-200">
+            <div className="flex items-center gap-2">
+              <Icon name="FaBookmark" className="w-4 h-4 text-blue-700" />
+              <h4 className="text-sm font-semibold text-blue-900">Keyword Library</h4>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowPicker(false)}
+              className="w-6 h-6 flex items-center justify-center rounded-full bg-blue-200 hover:bg-blue-300 transition-colors"
+              aria-label="Close library"
+            >
+              <Icon name="FaTimes" className="w-3 h-3 text-blue-700" />
+            </button>
+          </div>
+          <div className="p-3 border-b border-blue-100">
+            <p className="text-xs text-blue-700 mb-2">Click keywords to add them to your Prompt Page</p>
             <div className="relative">
               <Icon
                 name="FaSearch"
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400"
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-blue-400"
               />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search library..."
-                className="w-full pl-10 pr-4 py-1.5 text-sm border border-gray-200 rounded focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-1.5 text-sm border border-blue-200 rounded bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
           </div>
-          <div className="overflow-y-auto max-h-48 p-2">
+          <div className="overflow-y-auto max-h-48 p-2 bg-white/50">
             {isLoading ? (
-              <div className="flex items-center justify-center py-4 text-gray-500">
+              <div className="flex items-center justify-center py-4 text-blue-600">
                 <Icon name="FaSpinner" className="w-4 h-4 animate-spin mr-2" />
                 Loading...
               </div>
             ) : availableKeywords.length === 0 ? (
-              <div className="text-center py-4 text-sm text-gray-500">
+              <div className="text-center py-4 text-sm text-blue-600">
                 {searchQuery ? 'No matching keywords' : 'No more keywords available'}
               </div>
             ) : (
@@ -564,7 +589,7 @@ export default function KeywordsInputLegacyAdapter({
                     key={kw.id}
                     type="button"
                     onClick={() => handleSelectFromLibrary(kw.phrase)}
-                    className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-gray-700 bg-gray-100 border border-gray-200 rounded-full hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 transition-colors"
+                    className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-blue-700 bg-white border border-blue-200 rounded-full hover:bg-blue-100 hover:border-blue-300 transition-colors"
                   >
                     {kw.phrase}
                     {kw.showUsageIndicator && kw.reviewUsageCount > 0 && (
@@ -587,15 +612,6 @@ export default function KeywordsInputLegacyAdapter({
                 ))}
               </div>
             )}
-          </div>
-          <div className="p-2 border-t border-gray-100 bg-gray-50">
-            <button
-              type="button"
-              onClick={() => setShowPicker(false)}
-              className="w-full py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded transition-colors"
-            >
-              Close
-            </button>
           </div>
         </div>
       )}
