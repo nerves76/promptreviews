@@ -351,7 +351,7 @@ export default function UniversalPromptPageForm({
         </div>
         <div className="mb-2">
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Improve your online visibility with keyword-powered reviews. Both "AI Generate" and "Keyword Power-Ups" use this feature.
+            Select which keywords can be used by Prompty AI and/or the Keyword Power-Ups menu.
           </label>
           <KeywordsInput
             keywords={keywords}

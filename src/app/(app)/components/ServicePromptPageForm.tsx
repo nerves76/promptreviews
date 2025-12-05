@@ -681,7 +681,7 @@ export default function ServicePromptPageForm({
           </div>
           <div className="mb-2">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Suggest keyword-powered phrases that your customers can use in reviews. This will improve your visibility in search and AI engines
+              Select which keywords can be used by Prompty AI and/or the Keyword Power-Ups menu.
             </label>
             <KeywordsInput
               keywords={Array.isArray(formData.keywords) ? formData.keywords : []}
