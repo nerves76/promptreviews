@@ -29,6 +29,8 @@ interface GeoGridResultsTableProps {
   lastCheckedAt?: string | null;
   /** Callback when a result row is clicked */
   onResultClick?: (result: GGCheckResult) => void;
+  /** Map of keyword ID to review usage count */
+  keywordUsageCounts?: Record<string, number>;
 }
 
 interface KeywordGroup {
@@ -39,6 +41,15 @@ interface KeywordGroup {
   avgPosition: number | null;
   pointsInTop3: number;
   pointsInTop10: number;
+  topCompetitors: Array<{
+    name: string;
+    avgPosition: number;
+    rating: number | null;
+    reviewCount: number | null;
+    appearances: number;
+    address: string | null;
+    category: string | null;
+  }>;
 }
 
 type SortField = 'keyword' | 'bestBucket' | 'avgPosition';
@@ -116,6 +127,54 @@ function groupByKeyword(results: GGCheckResult[]): KeywordGroup[] {
       (r) => r.positionBucket === 'top3' || r.positionBucket === 'top10'
     ).length;
 
+    // Aggregate competitors across all check points
+    const competitorMap = new Map<string, {
+      name: string;
+      positions: number[];
+      rating: number | null;
+      reviewCount: number | null;
+      address: string | null;
+      category: string | null;
+    }>();
+
+    for (const result of keywordResults) {
+      for (const competitor of result.topCompetitors) {
+        const key = competitor.name.toLowerCase();
+        const existing = competitorMap.get(key);
+        if (existing) {
+          existing.positions.push(competitor.position);
+          // Keep latest rating/review count/address/category
+          if (competitor.rating !== null) existing.rating = competitor.rating;
+          if (competitor.reviewCount !== null) existing.reviewCount = competitor.reviewCount;
+          if (competitor.address) existing.address = competitor.address;
+          if (competitor.category) existing.category = competitor.category;
+        } else {
+          competitorMap.set(key, {
+            name: competitor.name,
+            positions: [competitor.position],
+            rating: competitor.rating,
+            reviewCount: competitor.reviewCount,
+            address: competitor.address ?? null,
+            category: competitor.category ?? null,
+          });
+        }
+      }
+    }
+
+    // Calculate average position for each competitor and get top 5 by best avg
+    const topCompetitors = Array.from(competitorMap.values())
+      .map((c) => ({
+        name: c.name,
+        avgPosition: c.positions.reduce((a, b) => a + b, 0) / c.positions.length,
+        rating: c.rating,
+        reviewCount: c.reviewCount,
+        appearances: c.positions.length,
+        address: c.address,
+        category: c.category,
+      }))
+      .sort((a, b) => a.avgPosition - b.avgPosition)
+      .slice(0, 5);
+
     return {
       keywordId,
       keyword: keywordResults[0]?.keywordPhrase || 'Unknown',
@@ -124,6 +183,7 @@ function groupByKeyword(results: GGCheckResult[]): KeywordGroup[] {
       avgPosition,
       pointsInTop3,
       pointsInTop10,
+      topCompetitors,
     };
   });
 }
@@ -137,6 +197,7 @@ export function GeoGridResultsTable({
   isLoading,
   lastCheckedAt,
   onResultClick,
+  keywordUsageCounts = {},
 }: GeoGridResultsTableProps) {
   const [expandedKeywords, setExpandedKeywords] = useState<Set<string>>(new Set());
   const [sortField, setSortField] = useState<SortField>('keyword');
@@ -303,7 +364,19 @@ export function GeoGridResultsTable({
                       <ChevronRightIcon className="w-5 h-5 text-gray-500" />
                     )}
                   </td>
-                  <td className="px-4 py-3 font-medium text-gray-900">{group.keyword}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-gray-900">{group.keyword}</span>
+                      {keywordUsageCounts[group.keywordId] > 0 && (
+                        <span
+                          className="inline-flex items-center justify-center w-5 h-5 bg-slate-200 text-slate-600 rounded-full text-xs font-bold"
+                          title={`Used in ${keywordUsageCounts[group.keywordId]} review${keywordUsageCounts[group.keywordId] === 1 ? '' : 's'}`}
+                        >
+                          {keywordUsageCounts[group.keywordId] > 99 ? '99+' : keywordUsageCounts[group.keywordId]}
+                        </span>
+                      )}
+                    </div>
+                  </td>
                   <td className="px-4 py-3">
                     <span
                       className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${BUCKET_COLORS[group.bestBucket]}`}
@@ -352,7 +425,82 @@ export function GeoGridResultsTable({
                 {/* Expanded Point Details */}
                 {expandedKeywords.has(group.keywordId) && (
                   <tr>
-                    <td colSpan={5} className="bg-gray-50 px-8 py-3">
+                    <td colSpan={5} className="bg-gray-50 px-8 py-4">
+                      {/* Your Average Ranking & Top Competitors */}
+                      <div className="flex gap-6 mb-4">
+                        {/* Your Business Average */}
+                        <div className="bg-white rounded-lg p-4 border border-gray-200 flex-shrink-0">
+                          <div className="text-xs font-medium text-gray-500 mb-1">Your Avg Ranking</div>
+                          <div className={`text-2xl font-bold ${
+                            group.avgPosition !== null && group.avgPosition <= 3 ? 'text-green-600' :
+                            group.avgPosition !== null && group.avgPosition <= 10 ? 'text-yellow-600' :
+                            group.avgPosition !== null && group.avgPosition <= 20 ? 'text-orange-600' :
+                            'text-red-500'
+                          }`}>
+                            {group.avgPosition !== null ? `#${group.avgPosition.toFixed(1)}` : 'N/A'}
+                          </div>
+                          <div className="text-xs text-gray-400 mt-1">
+                            across {group.results.length} points
+                          </div>
+                        </div>
+
+                        {/* Top 3 Competitors */}
+                        {group.topCompetitors.length > 0 && (
+                          <div className="bg-white rounded-lg p-4 border border-gray-200 flex-1">
+                            <div className="text-xs font-medium text-gray-500 mb-3">Top Competitors (by avg ranking)</div>
+                            <div className="space-y-3">
+                              {group.topCompetitors.map((competitor, idx) => (
+                                <div key={idx} className="border-b border-gray-100 pb-2 last:border-0 last:pb-0">
+                                  <div className="flex items-start justify-between">
+                                    <div className="flex items-start gap-2">
+                                      <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5 ${
+                                        idx === 0 ? 'bg-yellow-100 text-yellow-700' :
+                                        idx === 1 ? 'bg-gray-100 text-gray-600' :
+                                        'bg-orange-100 text-orange-700'
+                                      }`}>
+                                        {idx + 1}
+                                      </span>
+                                      <div className="min-w-0">
+                                        <div className="font-medium text-gray-900 text-sm">
+                                          {competitor.name}
+                                        </div>
+                                        {competitor.category && (
+                                          <div className="text-xs text-blue-600 mt-0.5">
+                                            {competitor.category}
+                                          </div>
+                                        )}
+                                        {competitor.address && (
+                                          <div className="text-xs text-gray-400 mt-0.5 truncate max-w-[250px]">
+                                            {competitor.address}
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                    <div className="flex items-center gap-2 text-gray-500 flex-shrink-0 ml-2">
+                                      <span className="font-medium text-gray-700 text-sm">
+                                        #{competitor.avgPosition.toFixed(1)}
+                                      </span>
+                                      {competitor.rating !== null && (
+                                        <span className="text-xs">
+                                          ★ {competitor.rating.toFixed(1)}
+                                        </span>
+                                      )}
+                                      {competitor.reviewCount !== null && (
+                                        <span className="text-xs">
+                                          ({competitor.reviewCount})
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Grid Points */}
+                      <div className="text-xs font-medium text-gray-500 mb-2">Ranking by Location</div>
                       <div className="grid grid-cols-5 gap-4">
                         {(['center', 'n', 's', 'e', 'w'] as CheckPoint[]).map((point) => {
                           const result = group.results.find((r) => r.checkPoint === point);
@@ -361,7 +509,7 @@ export function GeoGridResultsTable({
                           return (
                             <div
                               key={point}
-                              className="bg-white rounded-lg p-3 border border-gray-200"
+                              className="bg-white rounded-lg p-3 border border-gray-200 cursor-pointer hover:border-gray-300"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 onResultClick?.(result);

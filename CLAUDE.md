@@ -13,6 +13,14 @@ This file provides important context for AI assistants working on the PromptRevi
 - The `npm run dev` command has been modified to run WITHOUT Turbopack
 - If server fails to load pages properly, ensure Turbopack is disabled
 
+## ⚠️ DEPLOYMENT TODO: API Key Security
+- **GOOGLE_MAPS_API_KEY is currently unrestricted** for local development
+- Before deploying geo-grid feature to production, restrict this key:
+  1. Go to https://console.cloud.google.com/apis/credentials
+  2. Set "IP addresses" restriction to production server IP
+  3. Or use "API restrictions" to limit to Geocoding API only
+- This key is used for geocoding business addresses in `/api/geo-grid/geocode`
+
 ## Project Overview
 PromptReviews is a review management platform that allows businesses to collect, manage, and display customer reviews through customizable widgets.
 

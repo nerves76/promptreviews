@@ -15,6 +15,12 @@ import { GGCheckResult, CheckPoint, PositionBucket } from '../utils/types';
 // Types
 // ============================================
 
+export interface ViewAsBusiness {
+  placeId: string;
+  name: string;
+  isOwnBusiness: boolean;
+}
+
 interface GeoGridGoogleMapProps {
   /** Check results to display */
   results: GGCheckResult[];
@@ -31,6 +37,8 @@ interface GeoGridGoogleMapProps {
   height?: string;
   /** Callback when a marker is clicked */
   onMarkerClick?: (point: CheckPoint, result: GGCheckResult) => void;
+  /** View the grid from a specific business's perspective */
+  viewAs?: ViewAsBusiness | null;
 }
 
 interface PointData {
@@ -110,13 +118,25 @@ function getPointCoordinates(
 }
 
 /**
+ * Convert position to bucket
+ */
+function positionToBucketLocal(position: number | null): PositionBucket {
+  if (position === null || position <= 0) return 'none';
+  if (position <= 3) return 'top3';
+  if (position <= 10) return 'top10';
+  if (position <= 20) return 'top20';
+  return 'none';
+}
+
+/**
  * Calculate point data from results
  */
 function calculatePointData(
   results: GGCheckResult[],
   center: { lat: number; lng: number },
   radiusMiles: number,
-  selectedKeywordId?: string
+  selectedKeywordId?: string,
+  viewAs?: ViewAsBusiness | null
 ): PointData[] {
   const filteredResults = selectedKeywordId
     ? results.filter((r) => r.keywordId === selectedKeywordId)
@@ -136,6 +156,40 @@ function calculatePointData(
     const pointResults = grouped.get(point) || [];
     const coords = getPointCoordinates(center.lat, center.lng, radiusMiles, point);
 
+    // If viewing as a competitor (not own business), find their position in topCompetitors
+    if (viewAs && !viewAs.isOwnBusiness) {
+      let competitorPosition: number | null = null;
+      let competitorResult: GGCheckResult | null = null;
+      let hasCheckData = pointResults.length > 0; // We have check data for this point
+
+      for (const result of pointResults) {
+        const competitor = result.topCompetitors.find(
+          (c) => c.placeId === viewAs.placeId
+        );
+        if (competitor) {
+          competitorPosition = competitor.position;
+          competitorResult = result;
+          break;
+        }
+        // Even if not found in competitors, we still have check data
+        if (!competitorResult) {
+          competitorResult = result;
+        }
+      }
+
+      // If we have check data but competitor not in top 5, show as "not in top 5" (red/none)
+      // The result being set indicates we have data, position null means not in top 5
+      return {
+        point,
+        lat: coords.lat,
+        lng: coords.lng,
+        bucket: competitorPosition !== null ? positionToBucketLocal(competitorPosition) : (hasCheckData ? 'none' : 'none'),
+        position: competitorPosition, // null means "not in stored top 5"
+        result: competitorResult, // Set to indicate we have check data
+      };
+    }
+
+    // Default: show own business rankings
     // Get best result for this point (if multiple keywords, use the best ranking)
     let bestBucket: PositionBucket = 'none';
     let bestPosition: number | null = null;
@@ -183,6 +237,7 @@ export function GeoGridGoogleMap({
   selectedKeywordId,
   height = '400px',
   onMarkerClick,
+  viewAs,
 }: GeoGridGoogleMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
@@ -193,8 +248,8 @@ export function GeoGridGoogleMap({
   const [loadError, setLoadError] = useState<string | null>(null);
 
   const pointData = useMemo(
-    () => calculatePointData(results, center, radiusMiles, selectedKeywordId),
-    [results, center, radiusMiles, selectedKeywordId]
+    () => calculatePointData(results, center, radiusMiles, selectedKeywordId, viewAs),
+    [results, center, radiusMiles, selectedKeywordId, viewAs]
   );
 
   // Initialize Google Maps
@@ -305,6 +360,10 @@ export function GeoGridGoogleMap({
       // Show position number if found
       if (data.position !== null) {
         markerContent.textContent = String(data.position);
+      } else if (hasData && viewAs && !viewAs.isOwnBusiness) {
+        // Viewing as competitor but they're not in top 10 at this point
+        markerContent.textContent = '>10';
+        markerContent.style.fontSize = '10px';
       } else if (!hasData) {
         markerContent.textContent = '?';
         markerContent.style.opacity = '0.5';
@@ -318,13 +377,23 @@ export function GeoGridGoogleMap({
         markerContent.style.transform = 'scale(1)';
       });
 
+      // Build title/tooltip
+      let markerTitle = `${data.point.toUpperCase()}: No data`;
+      if (hasData) {
+        if (data.position !== null) {
+          markerTitle = `${data.point.toUpperCase()}: ${BUCKET_LABELS[data.bucket]} (#${data.position})`;
+        } else if (viewAs && !viewAs.isOwnBusiness) {
+          markerTitle = `${data.point.toUpperCase()}: Not in top 10 stored competitors`;
+        } else {
+          markerTitle = `${data.point.toUpperCase()}: ${BUCKET_LABELS[data.bucket]}`;
+        }
+      }
+
       const marker = new google.maps.marker.AdvancedMarkerElement({
         map,
         position: { lat: data.lat, lng: data.lng },
         content: markerContent,
-        title: hasData
-          ? `${data.point.toUpperCase()}: ${BUCKET_LABELS[data.bucket]}${data.position ? ` (#${data.position})` : ''}`
-          : `${data.point.toUpperCase()}: No data`,
+        title: markerTitle,
       });
 
       // Add click handler
@@ -395,6 +464,16 @@ export function GeoGridGoogleMap({
 
       {/* Legend */}
       <div className="px-4 py-3 border-t border-gray-200 bg-gray-50">
+        {viewAs && !viewAs.isOwnBusiness && (
+          <div className="text-center mb-2">
+            <p className="text-sm font-medium text-blue-600">
+              Viewing as: {viewAs.name}
+            </p>
+            <p className="text-xs text-gray-500">
+              &quot;&gt;10&quot; = not in top 10 stored competitors at that point
+            </p>
+          </div>
+        )}
         <div className="flex flex-wrap justify-center gap-4">
           {(Object.entries(BUCKET_COLORS) as [PositionBucket, string][]).map(([bucket, color]) => (
             <div key={bucket} className="flex items-center gap-2">

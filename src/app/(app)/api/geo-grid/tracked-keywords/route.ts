@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
           id,
           phrase,
           normalized_phrase,
-          word_count,
+          review_usage_count,
           status
         )
       `)

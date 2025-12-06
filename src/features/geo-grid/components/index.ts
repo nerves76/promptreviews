@@ -7,6 +7,7 @@
 export { GeoGridSetupWizard } from './GeoGridSetupWizard';
 export { GeoGridMap } from './GeoGridMap';
 export { GeoGridGoogleMap } from './GeoGridGoogleMap';
+export type { ViewAsBusiness } from './GeoGridGoogleMap';
 export { GeoGridPointModal } from './GeoGridPointModal';
 export { GeoGridResultsTable } from './GeoGridResultsTable';
 export { GeoGridTrendCard } from './GeoGridTrendCard';

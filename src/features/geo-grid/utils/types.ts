@@ -89,6 +89,7 @@ export interface GGTrackedKeyword {
   // Joined from keywords table
   phrase?: string;
   normalizedPhrase?: string;
+  reviewUsageCount?: number;
 }
 
 // ============================================
@@ -101,6 +102,8 @@ export interface GGCompetitor {
   reviewCount: number | null;
   position: number;
   placeId: string | null;
+  address: string | null;
+  category: string | null;
 }
 
 export interface GGCheckResult {
@@ -179,6 +182,7 @@ export interface DataForSEOMapsItem {
   address?: string;
   phone?: string;
   domain?: string;
+  category?: string;
 }
 
 export interface DataForSEOTaskResult {

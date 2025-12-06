@@ -70,6 +70,7 @@ export function transformTrackedKeywordToResponse(row: {
   keywords?: {
     phrase: string;
     normalized_phrase: string;
+    review_usage_count?: number | null;
   };
 }): GGTrackedKeyword {
   return {
@@ -81,6 +82,7 @@ export function transformTrackedKeywordToResponse(row: {
     createdAt: row.created_at,
     phrase: row.keywords?.phrase,
     normalizedPhrase: row.keywords?.normalized_phrase,
+    reviewUsageCount: row.keywords?.review_usage_count ?? 0,
   };
 }
 

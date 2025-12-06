@@ -105,3 +105,4 @@ export {
   GeoGridTrendCard,
   GeoGridKeywordPicker,
 } from './components';
+export type { ViewAsBusiness } from './components';

@@ -718,7 +718,27 @@ function PromptPagesContent() {
       // Use authAccountId directly since that's the account we're authenticated as
       const updatedBusiness = await apiClient.put(`/businesses/${authAccountId}`, settingsData);
       setBusiness(updatedBusiness);
-      
+
+      // Sync keywords to the unified keywords table
+      // This ensures keywords are available for geo-grid and other features that use the keywords table
+      if (settingsData.keywords && Array.isArray(settingsData.keywords)) {
+        const keywordPhrases = settingsData.keywords as string[];
+
+        // Create each keyword in the unified keywords table (API handles duplicates)
+        for (const phrase of keywordPhrases) {
+          if (phrase && phrase.trim()) {
+            try {
+              await apiClient.post('/keywords', { phrase: phrase.trim() });
+            } catch (err: any) {
+              // 409 means keyword already exists - that's fine
+              if (err?.status !== 409) {
+                console.warn('Failed to sync keyword to keywords table:', phrase, err);
+              }
+            }
+          }
+        }
+      }
+
       // Don't show success message here - it's shown in the modal
     } catch (error) {
       console.error('Error saving settings:', error);

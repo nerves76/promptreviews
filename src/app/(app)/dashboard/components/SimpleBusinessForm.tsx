@@ -284,7 +284,7 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
     setPromotionCodeSuccess("");
 
     if (!accountId) {
-      setError("Account not found. Please try again.");
+      setError("Account not found. Your session may have expired. Please sign out and sign back in.");
       setLoading(false);
       setLoadingState(null);
       return;

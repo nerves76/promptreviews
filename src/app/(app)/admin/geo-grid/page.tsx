@@ -29,6 +29,7 @@ import {
   GGCheckResult,
   CheckPoint,
   GGPointSummary,
+  ViewAsBusiness,
 } from '@/features/geo-grid';
 import { ArrowLeftIcon, Cog6ToothIcon } from '@heroicons/react/24/outline';
 
@@ -68,6 +69,7 @@ export default function AdminGeoGridPage() {
   const [isCheckRunning, setIsCheckRunning] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [selectedMapKeywordId, setSelectedMapKeywordId] = useState<string | null>(null);
+  const [viewAs, setViewAs] = useState<ViewAsBusiness | null>(null);
 
   // Modal state
   const [selectedPointResult, setSelectedPointResult] = useState<GGCheckResult | null>(null);
@@ -114,6 +116,35 @@ export default function AdminGeoGridPage() {
     removeKeyword,
     refresh: refreshKeywords,
   } = useTrackedKeywords();
+
+  // Build keyword usage counts map for results table
+  const keywordUsageCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const tk of trackedKeywords) {
+      counts[tk.keywordId] = tk.reviewUsageCount ?? 0;
+    }
+    return counts;
+  }, [trackedKeywords]);
+
+  // Collect unique competitors from all results for "View As" dropdown
+  const uniqueCompetitors = useMemo(() => {
+    const competitorMap = new Map<string, { placeId: string; name: string }>();
+
+    for (const result of results) {
+      for (const competitor of result.topCompetitors) {
+        if (competitor.placeId && !competitorMap.has(competitor.placeId)) {
+          competitorMap.set(competitor.placeId, {
+            placeId: competitor.placeId,
+            name: competitor.name,
+          });
+        }
+      }
+    }
+
+    return Array.from(competitorMap.values()).sort((a, b) =>
+      a.name.localeCompare(b.name)
+    );
+  }, [results]);
 
   // Check admin access
   useEffect(() => {
@@ -361,25 +392,69 @@ export default function AdminGeoGridPage() {
         {/* Google Maps Grid View */}
         {config && (
           <div className="mb-8">
-            {/* Keyword Selector for Map */}
+            {/* Keyword & View As Selectors for Map */}
             {trackedKeywords.length > 0 && (
               <div className="bg-white rounded-xl border-2 border-gray-200 p-4 mb-4">
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium text-gray-700">
-                    View Grid Map for Keyword
-                  </label>
-                  <select
-                    value={selectedMapKeywordId || ''}
-                    onChange={(e) => setSelectedMapKeywordId(e.target.value || null)}
-                    className="w-64 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                  >
-                    <option value="">Select a keyword...</option>
-                    {trackedKeywords.map((tk) => (
-                      <option key={tk.keywordId} value={tk.keywordId}>
-                        {tk.phrase || tk.keywordId}
-                      </option>
-                    ))}
-                  </select>
+                <div className="flex flex-wrap items-center gap-4">
+                  {/* Keyword Selector */}
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm font-medium text-gray-700">
+                      Keyword
+                    </label>
+                    <select
+                      value={selectedMapKeywordId || ''}
+                      onChange={(e) => setSelectedMapKeywordId(e.target.value || null)}
+                      className="w-52 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                    >
+                      <option value="">Select a keyword...</option>
+                      {trackedKeywords.map((tk) => (
+                        <option key={tk.keywordId} value={tk.keywordId}>
+                          {tk.phrase || tk.keywordId}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* View As Selector */}
+                  {uniqueCompetitors.length > 0 && (
+                    <div className="flex items-center gap-2">
+                      <label className="text-sm font-medium text-gray-700">
+                        View As
+                      </label>
+                      <select
+                        value={viewAs?.placeId || ''}
+                        onChange={(e) => {
+                          const placeId = e.target.value;
+                          if (!placeId) {
+                            setViewAs(null);
+                          } else if (placeId === config.targetPlaceId) {
+                            setViewAs({
+                              placeId,
+                              name: googleBusinessLocation?.name || 'Your Business',
+                              isOwnBusiness: true,
+                            });
+                          } else {
+                            const competitor = uniqueCompetitors.find((c) => c.placeId === placeId);
+                            if (competitor) {
+                              setViewAs({
+                                placeId: competitor.placeId,
+                                name: competitor.name,
+                                isOwnBusiness: false,
+                              });
+                            }
+                          }
+                        }}
+                        className="w-56 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                      >
+                        <option value="">Your Business</option>
+                        {uniqueCompetitors.map((competitor) => (
+                          <option key={competitor.placeId} value={competitor.placeId}>
+                            {competitor.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -393,6 +468,7 @@ export default function AdminGeoGridPage() {
                 selectedKeywordId={selectedMapKeywordId}
                 height="450px"
                 onMarkerClick={handleMarkerClick}
+                viewAs={viewAs}
               />
             ) : (
               <div className="bg-white rounded-xl border-2 border-gray-200 p-12 text-center">
@@ -426,6 +502,7 @@ export default function AdminGeoGridPage() {
           results={results}
           isLoading={resultsLoading}
           lastCheckedAt={lastCheckedAt}
+          keywordUsageCounts={keywordUsageCounts}
         />
 
         {/* Config Info (Debug) */}

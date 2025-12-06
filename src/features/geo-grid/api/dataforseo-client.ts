@@ -236,16 +236,18 @@ export async function checkRankForBusiness(
     }
   }
 
-  // Get top 3 competitors (excluding our business)
+  // Get top 10 competitors (excluding our business)
   const topCompetitors: GGCompetitor[] = searchResult.items
     .filter((item) => item.place_id !== targetPlaceId)
-    .slice(0, 3)
+    .slice(0, 10)
     .map((item) => ({
       name: item.title,
       rating: item.rating?.value ?? null,
       reviewCount: item.rating?.votes_count ?? null,
       position: item.rank_absolute,
       placeId: item.place_id ?? null,
+      address: item.address ?? null,
+      category: item.category ?? null,
     }));
 
   return {
