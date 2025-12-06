@@ -607,6 +607,14 @@ export default function AdminPage() {
             <h4 className="font-medium text-gray-900">Free accounts</h4>
             <p className="text-sm text-gray-600">Create and manage free accounts with specific plan levels</p>
           </button>
+
+          <button
+            onClick={() => router.push("/admin/geo-grid")}
+            className="w-full text-left p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            <h4 className="font-medium text-gray-900">Geo Grid Rank Tracker</h4>
+            <p className="text-sm text-gray-600">Track Google Maps visibility across geographic points</p>
+          </button>
         </div>
       </div>
 

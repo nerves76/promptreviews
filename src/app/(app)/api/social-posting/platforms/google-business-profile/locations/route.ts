@@ -75,14 +75,15 @@ export async function GET(request: NextRequest) {
 
 
     // Get locations from database using service role
+    // Include google_place_id, lat, lng for geo-grid tracking
     const { data: locations, error: locationError } = await serviceSupabase
       .from('google_business_locations')
-      .select('*')
+      .select('id, user_id, location_id, location_name, account_name, address, status, primary_phone, website_uri, google_place_id, lat, lng, created_at, updated_at')
       .eq('account_id', accountId);
 
     if (locationError) {
       console.error('Error fetching locations:', locationError);
-      return NextResponse.json({ 
+      return NextResponse.json({
         error: 'Failed to fetch locations',
         locations: []
       });

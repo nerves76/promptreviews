@@ -206,6 +206,11 @@ export async function POST(request: NextRequest) {
               status = 'UNVERIFIED';
             }
             
+            // Extract Google Place ID and coordinates from metadata
+            const googlePlaceId = location.metadata?.placeId || null;
+            const lat = location.latlng?.latitude || null;
+            const lng = location.latlng?.longitude || null;
+
             const locationData = {
               user_id: user.id,
               account_id: accountId,
@@ -216,6 +221,9 @@ export async function POST(request: NextRequest) {
               status: status,
               primary_phone: primaryPhone,
               website_uri: location.websiteUri || '',
+              google_place_id: googlePlaceId, // Google Maps Place ID for rank tracking
+              lat: lat,                       // Latitude from GBP
+              lng: lng,                       // Longitude from GBP
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString()
             };

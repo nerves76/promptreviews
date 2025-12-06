@@ -367,6 +367,7 @@ model users {
   google_business_media_uploads              google_business_media_uploads[]
   google_business_profiles                   google_business_profiles[]
   google_business_scheduled_posts            google_business_scheduled_posts[]
+  keyword_rotation_log                       keyword_rotation_log[]
   keyword_sets                               keyword_sets[]
   media_assets                               media_assets[]
   mentions_mentions_author_idTousers         mentions[]                        @relation("mentions_author_idTousers")
@@ -526,11 +527,16 @@ model accounts {
   gbp_change_alerts                   gbp_change_alerts[]
   gbp_location_snapshots              gbp_location_snapshots[]
   gbp_protection_settings             gbp_protection_settings?
+  gg_checks                           gg_checks[]
+  gg_configs                          gg_configs?
+  gg_daily_summary                    gg_daily_summary[]
+  gg_tracked_keywords                 gg_tracked_keywords[]
   google_business_scheduled_posts     google_business_scheduled_posts[]
   keyword_analysis_runs               keyword_analysis_runs[]
   keyword_groups                      keyword_groups[]
   keyword_prompt_page_usage           keyword_prompt_page_usage[]
   keyword_review_matches_v2           keyword_review_matches_v2[]
+  keyword_rotation_log                keyword_rotation_log[]
   keyword_sets                        keyword_sets[]
   keywords                            keywords[]
   notification_preferences            notification_preferences?
@@ -1505,7 +1511,11 @@ model google_business_locations {
   created_at             DateTime?                @default(now()) @db.Timestamptz(6)
   updated_at             DateTime?                @default(now()) @db.Timestamptz(6)
   account_name           String?
+  google_place_id        String?
+  lat                    Float?
+  lng                    Float?
   account_id             String                   @db.Uuid
+  gg_configs             gg_configs[]
   users                  users                    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   keyword_set_locations  keyword_set_locations[]
   review_keyword_matches review_keyword_matches[]
@@ -2143,11 +2153,15 @@ model prompt_pages {
   motivational_nudge_text                                                  String?                     @default("{business_name} needs your STAR POWER so more people can find them online!")
   role_field_enabled                                                       Boolean?                    @default(true)
   builder_questions                                                        Json?                       @default("[]")
+  keyword_auto_rotate_enabled                                              Boolean?                    @default(false)
+  keyword_auto_rotate_threshold                                            Int?                        @default(16)
+  keyword_active_pool_size                                                 Int?                        @default(10)
   analytics_events                                                         analytics_events[]
   business_locations_business_locations_prompt_page_idToprompt_pages       business_locations[]        @relation("business_locations_prompt_page_idToprompt_pages")
   campaign_actions                                                         campaign_actions[]
   communication_records                                                    communication_records[]
   keyword_prompt_page_usage                                                keyword_prompt_page_usage[]
+  keyword_rotation_log                                                     keyword_rotation_log[]
   accounts                                                                 accounts                    @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   business_locations_prompt_pages_business_location_idTobusiness_locations business_locations?         @relation("prompt_pages_business_location_idTobusiness_locations", fields: [business_location_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   contacts                                                                 contacts?                   @relation(fields: [contact_id], references: [id], onUpdate: NoAction)
@@ -2650,6 +2664,9 @@ model keyword_prompt_page_usage {
   is_in_active_pool Boolean?     @default(true)
   display_order     Int?         @default(0)
   added_at          DateTime?    @default(now()) @db.Timestamptz(6)
+  rotated_out_at    DateTime?    @db.Timestamptz(6)
+  rotated_in_at     DateTime?    @db.Timestamptz(6)
+  rotation_count    Int?         @default(0)
   accounts          accounts     @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   keywords          keywords     @relation(fields: [keyword_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   prompt_pages      prompt_pages @relation(fields: [prompt_page_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
@@ -2686,27 +2703,158 @@ model keyword_review_matches_v2 {
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model keywords {
-  id                        String                      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  account_id                String                      @db.Uuid
-  group_id                  String?                     @db.Uuid
-  phrase                    String
-  normalized_phrase         String
-  word_count                Int
-  status                    String?                     @default("active")
-  review_usage_count        Int?                        @default(0)
-  last_used_in_review_at    DateTime?                   @db.Timestamptz(6)
-  created_at                DateTime?                   @default(now()) @db.Timestamptz(6)
-  updated_at                DateTime?                   @default(now()) @db.Timestamptz(6)
-  keyword_prompt_page_usage keyword_prompt_page_usage[]
-  keyword_review_matches_v2 keyword_review_matches_v2[]
-  accounts                  accounts                    @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  keyword_groups            keyword_groups?             @relation(fields: [group_id], references: [id], onUpdate: NoAction)
+  id                                                                         String                      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  account_id                                                                 String                      @db.Uuid
+  group_id                                                                   String?                     @db.Uuid
+  phrase                                                                     String
+  normalized_phrase                                                          String
+  word_count                                                                 Int
+  status                                                                     String?                     @default("active")
+  review_usage_count                                                         Int?                        @default(0)
+  last_used_in_review_at                                                     DateTime?                   @db.Timestamptz(6)
+  created_at                                                                 DateTime?                   @default(now()) @db.Timestamptz(6)
+  updated_at                                                                 DateTime?                   @default(now()) @db.Timestamptz(6)
+  gg_checks                                                                  gg_checks[]
+  gg_tracked_keywords                                                        gg_tracked_keywords[]
+  keyword_prompt_page_usage                                                  keyword_prompt_page_usage[]
+  keyword_review_matches_v2                                                  keyword_review_matches_v2[]
+  keyword_rotation_log_keyword_rotation_log_rotated_in_keyword_idTokeywords  keyword_rotation_log[]      @relation("keyword_rotation_log_rotated_in_keyword_idTokeywords")
+  keyword_rotation_log_keyword_rotation_log_rotated_out_keyword_idTokeywords keyword_rotation_log[]      @relation("keyword_rotation_log_rotated_out_keyword_idTokeywords")
+  accounts                                                                   accounts                    @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  keyword_groups                                                             keyword_groups?             @relation(fields: [group_id], references: [id], onUpdate: NoAction)
 
   @@unique([account_id, normalized_phrase])
   @@index([account_id], map: "idx_keywords_account")
   @@index([group_id], map: "idx_keywords_group")
   @@index([account_id, normalized_phrase], map: "idx_keywords_normalized")
   @@index([account_id, review_usage_count(sort: Desc)], map: "idx_keywords_usage")
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model gg_checks {
+  id               String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  account_id       String     @db.Uuid
+  config_id        String     @db.Uuid
+  keyword_id       String     @db.Uuid
+  check_point      String
+  point_lat        Decimal    @db.Decimal(10, 7)
+  point_lng        Decimal    @db.Decimal(10, 7)
+  position         Int?
+  position_bucket  String?
+  business_found   Boolean?   @default(false)
+  top_competitors  Json?
+  our_rating       Decimal?   @db.Decimal(2, 1)
+  our_review_count Int?
+  our_place_id     String?
+  checked_at       DateTime?  @default(now()) @db.Timestamptz(6)
+  api_cost_usd     Decimal?   @db.Decimal(10, 6)
+  raw_response     Json?
+  created_at       DateTime?  @default(now()) @db.Timestamptz(6)
+  accounts         accounts   @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  gg_configs       gg_configs @relation(fields: [config_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  keywords         keywords   @relation(fields: [keyword_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([account_id, checked_at(sort: Desc)], map: "idx_gg_checks_account_date")
+  @@index([config_id, checked_at(sort: Desc)], map: "idx_gg_checks_config_date")
+  @@index([keyword_id, checked_at(sort: Desc)], map: "idx_gg_checks_keyword")
+  @@index([config_id, check_point, checked_at(sort: Desc)], map: "idx_gg_checks_point")
+  @@schema("public")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model gg_configs {
+  id                          String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  account_id                  String                     @unique @db.Uuid
+  google_business_location_id String?                    @db.Uuid
+  center_lat                  Decimal                    @db.Decimal(10, 7)
+  center_lng                  Decimal                    @db.Decimal(10, 7)
+  radius_miles                Decimal?                   @default(3.0) @db.Decimal(5, 2)
+  check_points                Json?                      @default("[\"center\", \"n\", \"s\", \"e\", \"w\"]")
+  target_place_id             String?
+  is_enabled                  Boolean?                   @default(true)
+  last_checked_at             DateTime?                  @db.Timestamptz(6)
+  created_at                  DateTime?                  @default(now()) @db.Timestamptz(6)
+  updated_at                  DateTime?                  @default(now()) @db.Timestamptz(6)
+  gg_checks                   gg_checks[]
+  accounts                    accounts                   @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  google_business_locations   google_business_locations? @relation(fields: [google_business_location_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  gg_daily_summary            gg_daily_summary[]
+  gg_tracked_keywords         gg_tracked_keywords[]
+
+  @@index([account_id], map: "idx_gg_configs_account")
+  @@schema("public")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model gg_daily_summary {
+  id                     String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  account_id             String     @db.Uuid
+  config_id              String     @db.Uuid
+  check_date             DateTime   @db.Date
+  total_keywords_checked Int?
+  keywords_in_top3       Int?
+  keywords_in_top10      Int?
+  keywords_in_top20      Int?
+  keywords_not_found     Int?
+  point_summaries        Json?
+  total_api_cost_usd     Decimal?   @db.Decimal(10, 6)
+  created_at             DateTime?  @default(now()) @db.Timestamptz(6)
+  accounts               accounts   @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  gg_configs             gg_configs @relation(fields: [config_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([account_id, check_date])
+  @@index([account_id, check_date(sort: Desc)], map: "idx_gg_daily_summary_account")
+  @@index([config_id, check_date(sort: Desc)], map: "idx_gg_daily_summary_config")
+  @@schema("public")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model gg_tracked_keywords {
+  id         String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  config_id  String     @db.Uuid
+  keyword_id String     @db.Uuid
+  account_id String     @db.Uuid
+  is_enabled Boolean?   @default(true)
+  created_at DateTime?  @default(now()) @db.Timestamptz(6)
+  accounts   accounts   @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  gg_configs gg_configs @relation(fields: [config_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  keywords   keywords   @relation(fields: [keyword_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([config_id, keyword_id])
+  @@index([account_id], map: "idx_gg_tracked_keywords_account")
+  @@index([config_id], map: "idx_gg_tracked_keywords_config")
+  @@index([keyword_id], map: "idx_gg_tracked_keywords_keyword")
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model keyword_rotation_log {
+  id                                                             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  account_id                                                     String       @db.Uuid
+  prompt_page_id                                                 String       @db.Uuid
+  rotated_out_keyword_id                                         String?      @db.Uuid
+  rotated_in_keyword_id                                          String?      @db.Uuid
+  trigger_type                                                   String
+  usage_count_at_rotation                                        Int?
+  threshold_at_rotation                                          Int?
+  created_at                                                     DateTime?    @default(now()) @db.Timestamptz(6)
+  created_by                                                     String?      @db.Uuid
+  accounts                                                       accounts     @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users                                                          users?       @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  prompt_pages                                                   prompt_pages @relation(fields: [prompt_page_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  keywords_keyword_rotation_log_rotated_in_keyword_idTokeywords  keywords?    @relation("keyword_rotation_log_rotated_in_keyword_idTokeywords", fields: [rotated_in_keyword_id], references: [id], onUpdate: NoAction)
+  keywords_keyword_rotation_log_rotated_out_keyword_idTokeywords keywords?    @relation("keyword_rotation_log_rotated_out_keyword_idTokeywords", fields: [rotated_out_keyword_id], references: [id], onUpdate: NoAction)
+
+  @@index([account_id], map: "idx_krl_account")
+  @@index([created_at(sort: Desc)], map: "idx_krl_created_at")
+  @@index([prompt_page_id], map: "idx_krl_prompt_page")
   @@schema("public")
 }
 
