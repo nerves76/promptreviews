@@ -74,7 +74,8 @@ export default function KeywordChip({
   const tooltip = getUsageTooltip(keyword.wordCount, keyword.reviewUsageCount);
 
   // Should we show the usage bubble?
-  const shouldShowBubble = showUsageBubble && keyword.showUsageIndicator;
+  // Only show for 4+ word keywords with at least 1 usage
+  const shouldShowBubble = showUsageBubble && keyword.showUsageIndicator && keyword.reviewUsageCount > 0;
 
   // Base chip styles
   const baseClasses = `

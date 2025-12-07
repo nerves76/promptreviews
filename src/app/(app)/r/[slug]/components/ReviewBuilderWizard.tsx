@@ -99,6 +99,7 @@ export default function ReviewBuilderWizard({
   const [lastName, setLastName] = useState("");
   const [role, setRole] = useState("");
   const [selectedKeywords, setSelectedKeywords] = useState<string[]>([]);
+  const [unifiedKeywords, setUnifiedKeywords] = useState<{ id: string; phrase: string; displayText: string }[]>([]);
   const [answers, setAnswers] = useState<Record<string, string | string[]>>({});
   const [reviewText, setReviewText] = useState("");
   const [aiGenerating, setAiGenerating] = useState(false);
@@ -136,6 +137,28 @@ export default function ReviewBuilderWizard({
     return () => clearTimeout(timer);
   }, []);
 
+  // Fetch unified keywords with review phrases from API
+  useEffect(() => {
+    if (!promptPage?.id) return;
+
+    const fetchUnifiedKeywords = async () => {
+      try {
+        const response = await fetch(`/api/prompt-pages/${promptPage.id}/keywords?limit=10`);
+        if (response.ok) {
+          const data = await response.json();
+          if (Array.isArray(data.keywords) && data.keywords.length > 0) {
+            setUnifiedKeywords(data.keywords);
+          }
+        }
+      } catch (error) {
+        // Silently fail - will fall back to legacy keywords
+        console.debug('Could not fetch unified keywords, using legacy:', error);
+      }
+    };
+
+    fetchUnifiedKeywords();
+  }, [promptPage?.id]);
+
   const persistAttemptCount = (count: number) => {
     setAiAttemptCount(count);
     if (attemptStorageKey && typeof window !== "undefined") {
@@ -143,33 +166,51 @@ export default function ReviewBuilderWizard({
     }
   };
 
-  const keywordOptions = useMemo(() => {
+  // Keyword display options - prefer unified keywords with review_phrase, fall back to legacy
+  const keywordDisplayOptions = useMemo(() => {
+    // If we have unified keywords from the API, use them (they include displayText = review_phrase)
+    if (unifiedKeywords.length > 0) {
+      return unifiedKeywords.map(kw => ({
+        key: kw.id,
+        displayText: kw.displayText, // This is review_phrase when set, or falls back to phrase
+        value: kw.displayText, // Use displayText for selection tracking
+      }));
+    }
+
+    // Fall back to legacy keywords
     // Power-Ups: use selected_keyword_inspirations if set, otherwise fall back to first 10 keywords
+    let legacyKeywords: string[] = [];
     if (
       Array.isArray(promptPage?.selected_keyword_inspirations) &&
       promptPage.selected_keyword_inspirations.length > 0
     ) {
-      return promptPage.selected_keyword_inspirations.slice(0, 10);
-    }
-    if (Array.isArray(promptPage?.keywords) && promptPage.keywords.length > 0) {
-      return promptPage.keywords.slice(0, 10);
-    }
-    // Fall back to business profile keywords (global settings)
-    if (businessProfile?.keywords) {
+      legacyKeywords = promptPage.selected_keyword_inspirations.slice(0, 10);
+    } else if (Array.isArray(promptPage?.keywords) && promptPage.keywords.length > 0) {
+      legacyKeywords = promptPage.keywords.slice(0, 10);
+    } else if (businessProfile?.keywords) {
       // Handle both array and string formats
       if (Array.isArray(businessProfile.keywords)) {
-        return businessProfile.keywords.filter(Boolean).slice(0, 10);
-      }
-      if (typeof businessProfile.keywords === "string") {
-        return businessProfile.keywords
+        legacyKeywords = businessProfile.keywords.filter(Boolean).slice(0, 10);
+      } else if (typeof businessProfile.keywords === "string") {
+        legacyKeywords = businessProfile.keywords
           .split(",")
           .map((keyword: string) => keyword.trim())
           .filter(Boolean)
           .slice(0, 10);
       }
     }
-    return [];
-  }, [promptPage?.selected_keyword_inspirations, promptPage?.keywords, businessProfile?.keywords]);
+
+    return legacyKeywords.map((kw, index) => ({
+      key: `legacy-${index}`,
+      displayText: kw,
+      value: kw,
+    }));
+  }, [unifiedKeywords, promptPage?.selected_keyword_inspirations, promptPage?.keywords, businessProfile?.keywords]);
+
+  // Keep legacy keywordOptions for backwards compatibility (used in AI generation, etc.)
+  const keywordOptions = useMemo(() => {
+    return keywordDisplayOptions.map(opt => opt.value);
+  }, [keywordDisplayOptions]);
 
 const businessName = businessProfile?.business_name || businessProfile?.name || "our business";
 
@@ -633,7 +674,7 @@ const builderQuestions = useMemo(() => {
         );
       case 3:
         // Highlights (keywords) moved to step 3
-        return keywordOptions.length === 0 ? (
+        return keywordDisplayOptions.length === 0 ? (
           <div className="text-center py-8">
             <p className="text-white/80">
               No highlights configured yet.
@@ -650,20 +691,20 @@ const builderQuestions = useMemo(() => {
               </p>
             </div>
             <div className="flex flex-wrap gap-3 justify-center">
-              {keywordOptions.map((keyword) => {
-                const active = selectedKeywords.includes(keyword);
+              {keywordDisplayOptions.map((option) => {
+                const active = selectedKeywords.includes(option.value);
                 return (
                   <button
                     type="button"
-                    key={keyword}
-                    onClick={() => handleKeywordToggle(keyword)}
+                    key={option.key}
+                    onClick={() => handleKeywordToggle(option.value)}
                     className={`rounded-full px-6 py-3 text-base font-medium transition-all ${
                       active
                         ? "bg-white text-slate-900 ring-2 ring-white ring-offset-2 ring-offset-transparent scale-105 shadow-lg"
                         : "bg-white/20 text-white hover:bg-white/30 border-2 border-white/40 hover:border-white/60 backdrop-blur"
                     }`}
                   >
-                    {keyword}
+                    {option.displayText}
                   </button>
                 );
               })}

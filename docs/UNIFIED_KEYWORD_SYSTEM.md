@@ -23,12 +23,20 @@ The unified system consolidates keywords into a central library with:
 keywords                      # Central keyword library
 ├── id (uuid)
 ├── account_id (uuid)
-├── phrase (text)             # The keyword itself
+├── phrase (text)             # Canonical keyword phrase
 ├── group_id (uuid)           # Optional grouping
 ├── word_count (int)          # Cached word count
 ├── review_usage_count (int)  # How many reviews contain this keyword
-├── status (text)             # active/archived
-└── created_at, updated_at
+├── status (text)             # active/paused
+├── created_at, updated_at
+│
+│   # Keyword Concept Fields (added 2024-12)
+├── review_phrase (text)      # Customer-facing persuasive text (e.g., "best marketing consultant in Portland")
+├── search_query (text)       # Text optimized for geo-grid search tracking
+├── aliases (text[])          # Alternative phrasings that should match
+├── location_scope (text)     # Geographic scope: local/city/region/state/national
+├── ai_generated (boolean)    # Whether AI helped fill these fields
+└── ai_suggestions (jsonb)    # Cached AI suggestions for review
 
 keyword_groups                # Keyword organization
 ├── id (uuid)
@@ -73,6 +81,58 @@ Added to `prompt_pages` table:
 - `keyword_auto_rotate_enabled` (bool) - Enable auto-rotation
 - `keyword_auto_rotate_threshold` (int, default 16) - Rotate after N uses
 - `keyword_active_pool_size` (int, default 10) - Max active keywords
+
+## Keyword Concepts
+
+Keywords can have multiple "faces" for different contexts:
+
+| Field | Purpose | Example |
+|-------|---------|---------|
+| `phrase` | Canonical identifier | "marketing consultant portland" |
+| `review_phrase` | Customer-facing (persuasive) | "best marketing consultant in Portland" |
+| `search_query` | Geo-grid tracking | "marketing consultant near me Portland OR" |
+| `aliases` | Alternative matches | ["portland marketing expert", "marketing agency portland"] |
+
+### Location Scope
+
+The `location_scope` field indicates geographic targeting:
+
+- **local** - Neighborhood/area specific (e.g., "downtown Portland plumber")
+- **city** - City-level (e.g., "Portland marketing consultant")
+- **region** - Multi-city area (e.g., "Pacific Northwest web design")
+- **state** - State-level (e.g., "Oregon tax attorney")
+- **national** - No location specified (e.g., "best SaaS marketing")
+
+### AI Enrichment
+
+Use the `/api/ai/enrich-keyword` endpoint to auto-generate concept fields:
+
+```typescript
+const response = await fetch('/api/ai/enrich-keyword', {
+  method: 'POST',
+  body: JSON.stringify({
+    phrase: 'marketing consultant',
+    businessName: 'Acme Marketing',
+    businessCity: 'Portland',
+    businessState: 'OR'
+  })
+});
+
+// Returns:
+{
+  success: true,
+  data: {
+    review_phrase: "best marketing consultant in Portland",
+    search_query: "marketing consultant Portland OR",
+    aliases: ["portland marketing expert"],
+    location_scope: "city"
+  }
+}
+```
+
+### Public Display
+
+On public prompt pages, customers see the `review_phrase` (when set) instead of the canonical phrase. The API endpoint `/api/prompt-pages/[id]/keywords` returns keywords with `displayText` containing the appropriate customer-facing text.
 
 ## Usage Indicators
 

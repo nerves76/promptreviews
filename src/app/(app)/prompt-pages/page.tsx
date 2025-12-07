@@ -38,15 +38,14 @@ import { useGlobalLoader } from "@/app/(app)/components/GlobalLoaderProvider";
 import BusinessProfileBanner from "@/app/(app)/components/BusinessProfileBanner";
 import { useAuth } from "@/auth";
 import { useBusinessData, useAuthUser, useAccountData, useAuthLoading } from "@/auth/hooks/granularAuthHooks";
-import PromptPageSettingsModal from "@/app/(app)/components/PromptPageSettingsModal";
 import { apiClient } from "@/utils/apiClient";
 
 const StylePage = dynamic(() => import("../dashboard/style/StyleModalPage"), { ssr: false });
 
-type PromptPagesTab = 'catch-all' | 'campaign' | 'locations';
+type PromptPagesTab = 'catch-all' | 'campaign' | 'locations' | 'settings';
 type CampaignType = 'public' | 'individual' | 'universal' | 'location';
 
-const TAB_TO_CAMPAIGN_TYPE: Record<PromptPagesTab, CampaignType> = {
+const TAB_TO_CAMPAIGN_TYPE: Record<Exclude<PromptPagesTab, 'settings'>, CampaignType> = {
   'catch-all': 'public',
   campaign: 'individual',
   locations: 'location',
@@ -142,7 +141,6 @@ function PromptPagesContent() {
   );
   const [isNavigating, setIsNavigating] = useState(false); // Add navigation loading state
   const [showBusinessRequiredModal, setShowBusinessRequiredModal] = useState(false);
-  const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showWelcomePopup, setShowWelcomePopup] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
 
@@ -227,12 +225,17 @@ function PromptPagesContent() {
       setShowHelpModal(true);
     } else if (action === 'settings') {
       setShowWelcomePopup(false);
-      setShowSettingsModal(true);
+      router.push('/dashboard/prompt-page-settings');
     }
   };
 
   // Handle tab changes and update URL
   const handleTabChange = (newTab: PromptPagesTab) => {
+    // Settings tab navigates to a different page
+    if (newTab === 'settings') {
+      router.push('/dashboard/prompt-page-settings');
+      return;
+    }
     // Only navigate if the tab is actually changing
     if (newTab !== promptPagesTab) {
       setPromptPagesTab(newTab);
@@ -272,15 +275,10 @@ function PromptPagesContent() {
     }
   }, [searchParams]);
 
-  // Auto-open Settings modal when openSettings=true is in URL
+  // Auto-redirect to Settings page when openSettings=true is in URL
   useEffect(() => {
     if (searchParams.get('openSettings') === 'true' && !loading && business) {
-      setShowSettingsModal(true);
-      // Remove the query parameter after opening to avoid reopening on refresh
-      const params = new URLSearchParams(searchParams);
-      params.delete('openSettings');
-      const newUrl = params.toString() ? `/prompt-pages?${params.toString()}` : '/prompt-pages';
-      router.replace(newUrl, { scroll: false });
+      router.push('/dashboard/prompt-page-settings');
     }
   }, [searchParams, loading, business, router]);
 
@@ -708,43 +706,6 @@ function PromptPagesContent() {
     }
   };
 
-  // Handle settings save
-  const handleSettingsSave = async (settingsData: any) => {
-    if (!authAccountId || !business) {
-      throw new Error('Business data not available');
-    }
-
-    try {
-      // Use authAccountId directly since that's the account we're authenticated as
-      const updatedBusiness = await apiClient.put(`/businesses/${authAccountId}`, settingsData);
-      setBusiness(updatedBusiness);
-
-      // Sync keywords to the unified keywords table
-      // This ensures keywords are available for geo-grid and other features that use the keywords table
-      if (settingsData.keywords && Array.isArray(settingsData.keywords)) {
-        const keywordPhrases = settingsData.keywords as string[];
-
-        // Create each keyword in the unified keywords table (API handles duplicates)
-        for (const phrase of keywordPhrases) {
-          if (phrase && phrase.trim()) {
-            try {
-              await apiClient.post('/keywords', { phrase: phrase.trim() });
-            } catch (err: any) {
-              // 409 means keyword already exists - that's fine
-              if (err?.status !== 409) {
-                console.warn('Failed to sync keyword to keywords table:', phrase, err);
-              }
-            }
-          }
-        }
-      }
-
-      // Don't show success message here - it's shown in the modal
-    } catch (error) {
-      console.error('Error saving settings:', error);
-      throw error;
-    }
-  };
 
   function handlePromptTypeSelect(typeKey: string) {
     setShowTypeModal(false);
@@ -838,42 +799,32 @@ function PromptPagesContent() {
               Prompt Pages
             </h1>
 
-            {/* Settings Icons */}
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => {
-                  if (universalPromptPage?.slug) {
-                    router.push(`/r/${universalPromptPage.slug}?openStyleModal=true`);
-                  } else {
-                    setShowStyleModal(true);
-                  }
-                }}
-                className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-sm border border-white/30 flex items-center justify-center hover:bg-white/20 transition"
-                title="Style settings"
-              >
-                <Icon name="FaPalette" className="w-5 h-5 text-white" size={20} />
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowSettingsModal(true)}
-                className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-sm border border-white/30 flex items-center justify-center hover:bg-white/20 transition"
-                title="Prompt page settings"
-              >
-                <Icon name="FaCog" className="w-5 h-5 text-white" size={20} />
-              </button>
-            </div>
+            {/* Style Icon */}
+            <button
+              type="button"
+              onClick={() => {
+                if (universalPromptPage?.slug) {
+                  router.push(`/r/${universalPromptPage.slug}?openStyleModal=true`);
+                } else {
+                  setShowStyleModal(true);
+                }
+              }}
+              className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-sm border border-white/30 flex items-center justify-center hover:bg-white/20 transition"
+              title="Style settings"
+            >
+              <Icon name="FaPalette" className="w-5 h-5 text-white" size={20} />
+            </button>
           </div>
         </div>
       </div>
 
        {/* Campaign Type Selector - Tab navigation */}
        <div className="flex justify-center w-full mt-0 mb-0 z-20 px-4">
-        <div className="flex bg-white/10 backdrop-blur-sm border border-white/30 rounded-full p-1 shadow-lg w-full max-w-xl">
+        <div className="grid grid-cols-2 sm:flex bg-white/10 backdrop-blur-sm border border-white/30 rounded-2xl sm:rounded-full p-1 shadow-lg w-full max-w-2xl gap-1 sm:gap-0">
           <button
             type="button"
             onClick={() => handleTabChange('catch-all')}
-            className={`flex-1 px-4 sm:px-8 py-1.5 font-semibold text-sm focus:outline-none transition-all duration-200 rounded-full flex items-center justify-center gap-2
+            className={`px-3 sm:px-6 py-2 sm:py-1.5 font-semibold text-sm focus:outline-none transition-all duration-200 rounded-xl sm:rounded-full flex items-center justify-center gap-2 sm:flex-1
               ${promptPagesTab === 'catch-all'
                 ? 'bg-slate-blue text-white'
                 : 'bg-transparent text-white'}
@@ -885,7 +836,7 @@ function PromptPagesContent() {
           <button
             type="button"
             onClick={() => handleTabChange('campaign')}
-            className={`flex-1 px-4 sm:px-8 py-1.5 font-semibold text-sm focus:outline-none transition-all duration-200 rounded-full flex items-center justify-center gap-2
+            className={`px-3 sm:px-6 py-2 sm:py-1.5 font-semibold text-sm focus:outline-none transition-all duration-200 rounded-xl sm:rounded-full flex items-center justify-center gap-2 sm:flex-1
               ${promptPagesTab === 'campaign'
                 ? 'bg-slate-blue text-white'
                 : 'bg-transparent text-white'}
@@ -897,7 +848,7 @@ function PromptPagesContent() {
           <button
             type="button"
             onClick={() => handleTabChange('locations')}
-            className={`flex-1 px-4 sm:px-8 py-1.5 font-semibold text-sm focus:outline-none transition-all duration-200 rounded-full flex items-center justify-center gap-2
+            className={`px-3 sm:px-6 py-2 sm:py-1.5 font-semibold text-sm focus:outline-none transition-all duration-200 rounded-xl sm:rounded-full flex items-center justify-center gap-2 sm:flex-1
               ${promptPagesTab === 'locations'
                 ? 'bg-slate-blue text-white'
                 : 'bg-transparent text-white'}
@@ -905,6 +856,18 @@ function PromptPagesContent() {
           >
             <Icon name="FaMapMarker" className="w-5 h-5" size={20} />
             <span className="whitespace-nowrap">Locations</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => handleTabChange('settings')}
+            className={`px-3 sm:px-6 py-2 sm:py-1.5 font-semibold text-sm focus:outline-none transition-all duration-200 rounded-xl sm:rounded-full flex items-center justify-center gap-2 sm:flex-1
+              ${promptPagesTab === 'settings'
+                ? 'bg-slate-blue text-white'
+                : 'bg-transparent text-white'}
+            `}
+          >
+            <Icon name="FaCog" className="w-5 h-5" size={20} />
+            <span className="whitespace-nowrap">Settings</span>
           </button>
         </div>
       </div>
@@ -1685,65 +1648,6 @@ function PromptPagesContent() {
           </div>
         </div>
       )}
-
-      {/* Settings Modal */}
-      <PromptPageSettingsModal
-        isOpen={showSettingsModal}
-        onClose={() => setShowSettingsModal(false)}
-        onSave={handleSettingsSave}
-        initialSettings={{
-          // Review Platforms
-          review_platforms: business?.review_platforms || [],
-
-          // Keywords
-          keywords: business?.keywords || '',
-
-          // AI Dos and Don'ts
-          ai_dos: business?.ai_dos || '',
-          ai_donts: business?.ai_donts || '',
-
-          // Special Offer
-          default_offer_enabled: business?.default_offer_enabled || false,
-          default_offer_title: business?.default_offer_title || 'Special Offer',
-          default_offer_body: business?.default_offer_body || '',
-          default_offer_url: business?.default_offer_url || '',
-          default_offer_timelock: business?.default_offer_timelock || false,
-
-          // AI Settings
-          ai_button_enabled: business?.ai_button_enabled || false,
-          fix_grammar_enabled: business?.fix_grammar_enabled || false,
-
-          // Emoji Sentiment
-          emoji_sentiment_enabled: business?.emoji_sentiment_enabled || false,
-          emoji_sentiment_question: business?.emoji_sentiment_question || 'How was your experience?',
-          emoji_feedback_message: business?.emoji_feedback_message || 'Please tell us more about your experience',
-          emoji_thank_you_message: business?.emoji_thank_you_message || 'Thank you for your feedback!',
-          emoji_feedback_popup_header: business?.emoji_feedback_popup_header || 'How can we improve?',
-          emoji_feedback_page_header: business?.emoji_feedback_page_header || 'Your feedback helps us grow',
-
-          // Falling Stars (corrected field names)
-          falling_enabled: business?.falling_enabled !== undefined ? business.falling_enabled : true,
-          falling_icon: business?.falling_icon || 'star',
-          falling_icon_color: business?.falling_icon_color || '#FFD700',
-
-          // Friendly Note (corrected field names)
-          show_friendly_note: business?.show_friendly_note || false,
-          friendly_note: business?.friendly_note || '',
-
-          // Recent Reviews
-          recent_reviews_enabled: business?.recent_reviews_enabled || false,
-          recent_reviews_scope: business?.recent_reviews_scope || 'current_page',
-
-          // Kickstarters
-          kickstarters_enabled: business?.kickstarters_enabled !== undefined ? business.kickstarters_enabled : true,
-          selected_kickstarters: business?.selected_kickstarters || [],
-          custom_kickstarters: business?.custom_kickstarters || [],
-          kickstarters_background_design: business?.kickstarters_background_design || false,
-        }}
-        businessName={business?.name || businessName}
-        accountId={selectedAccountId || authAccountId}
-        businessInfo={business}
-      />
 
       {/* Welcome Popup for first-time visitors */}
       <WelcomePopup

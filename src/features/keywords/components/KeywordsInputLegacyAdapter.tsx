@@ -36,6 +36,8 @@ interface KeywordsInputLegacyAdapterProps {
   };
   /** Optional prompt page ID for linking keywords */
   promptPageId?: string;
+  /** Callback when a keyword chip is clicked (for showing details) */
+  onKeywordClick?: (phrase: string) => void;
 }
 
 /**
@@ -62,6 +64,7 @@ export default function KeywordsInputLegacyAdapter({
   disabled = false,
   businessInfo,
   promptPageId,
+  onKeywordClick,
 }: KeywordsInputLegacyAdapterProps) {
   const { keywords: allKeywords, isLoading, createKeyword, refresh } = useKeywords();
 
@@ -486,7 +489,12 @@ export default function KeywordsInputLegacyAdapter({
           {enrichedKeywords.map((keyword, index) => (
             <div
               key={index}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-full hover:bg-indigo-100 transition-colors group"
+              onClick={() => {
+                if (!disabled && onKeywordClick) {
+                  onKeywordClick(keyword.phrase);
+                }
+              }}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-full hover:bg-indigo-100 transition-colors group ${onKeywordClick ? 'cursor-pointer' : ''}`}
             >
               <span>{keyword.phrase}</span>
               {/* Usage indicator for 4+ word keywords - only show if count > 0 */}
@@ -515,7 +523,10 @@ export default function KeywordsInputLegacyAdapter({
               {!disabled && (
                 <button
                   type="button"
-                  onClick={() => removeKeyword(index)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removeKeyword(index);
+                  }}
                   className="flex items-center justify-center w-4 h-4 rounded-full hover:bg-indigo-200 transition-colors"
                   aria-label={`Remove keyword: ${keyword.phrase}`}
                 >

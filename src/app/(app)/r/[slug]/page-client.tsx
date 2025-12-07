@@ -306,6 +306,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
   const [showRecentReviewsModal, setShowRecentReviewsModal] = useState(false);
   const [showKeywordInspirationModal, setShowKeywordInspirationModal] = useState(false);
   const [keywordInspirationPlatformIndex, setKeywordInspirationPlatformIndex] = useState<number>(0);
+  const [unifiedKeywords, setUnifiedKeywords] = useState<string[]>([]);
   const [kickstarterQuestions, setKickstarterQuestions] = useState<any[]>([]);
   const [sentiment, setSentiment] = useState<string | null>(null);
   const [feedback, setFeedback] = useState("");
@@ -366,6 +367,29 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
       setAttributionData(attribution);
     }
   }, [searchParams, attributionData]);
+
+  // Fetch unified keywords with review phrases from API
+  useEffect(() => {
+    if (!promptPage?.id) return;
+
+    const fetchUnifiedKeywords = async () => {
+      try {
+        const response = await fetch(`/api/prompt-pages/${promptPage.id}/keywords?limit=10`);
+        if (response.ok) {
+          const data = await response.json();
+          if (Array.isArray(data.keywords) && data.keywords.length > 0) {
+            // Extract displayText (review_phrase or phrase fallback) for the modal
+            setUnifiedKeywords(data.keywords.map((kw: any) => kw.displayText));
+          }
+        }
+      } catch (error) {
+        // Silently fail - will fall back to legacy keywords
+        console.debug('Could not fetch unified keywords, using legacy:', error);
+      }
+    };
+
+    fetchUnifiedKeywords();
+  }, [promptPage?.id]);
 
   // Fetch kickstarters based on prompt page and business settings
   const fetchKickstarters = async (promptPage: any, businessProfile: any) => {
@@ -3415,9 +3439,12 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
           isOpen={showKeywordInspirationModal}
           onClose={() => setShowKeywordInspirationModal(false)}
           keywords={
-            promptPage?.selected_keyword_inspirations?.length > 0
-              ? promptPage.selected_keyword_inspirations
-              : (promptPage?.keywords || []).slice(0, 10)
+            // Prefer unified keywords (with review_phrase), fall back to legacy
+            unifiedKeywords.length > 0
+              ? unifiedKeywords
+              : promptPage?.selected_keyword_inspirations?.length > 0
+                ? promptPage.selected_keyword_inspirations
+                : (promptPage?.keywords || []).slice(0, 10)
           }
           reviewText={platformReviewTexts[keywordInspirationPlatformIndex] || ''}
           onAddKeyword={(keyword) => {

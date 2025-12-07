@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
     const promptPageId = searchParams.get('promptPageId');
     const includeUsage = searchParams.get('includeUsage') === 'true';
 
-    // Build query
+    // Build query - include new concept fields
     let query = serviceSupabase
       .from('keywords')
       .select(`
@@ -58,6 +58,12 @@ export async function GET(request: NextRequest) {
         group_id,
         created_at,
         updated_at,
+        review_phrase,
+        search_query,
+        aliases,
+        location_scope,
+        ai_generated,
+        ai_suggestions,
         keyword_groups (
           id,
           name
@@ -170,7 +176,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { phrase, groupId, promptPageId } = body;
+    const { phrase, groupId, promptPageId, review_phrase, search_query, aliases, location_scope, ai_generated } = body;
 
     if (!phrase || typeof phrase !== 'string' || phrase.trim().length === 0) {
       return NextResponse.json(
@@ -271,7 +277,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create the keyword
+    // Create the keyword with concept fields
     const { data: newKeyword, error: insertError } = await serviceSupabase
       .from('keywords')
       .insert({
@@ -282,6 +288,12 @@ export async function POST(request: NextRequest) {
         word_count: wordCount,
         status: 'active',
         review_usage_count: 0,
+        // New concept fields
+        review_phrase: review_phrase || null,
+        search_query: search_query || null,
+        aliases: aliases || [],
+        location_scope: location_scope || null,
+        ai_generated: ai_generated || false,
       })
       .select(`
         id,
@@ -294,6 +306,12 @@ export async function POST(request: NextRequest) {
         group_id,
         created_at,
         updated_at,
+        review_phrase,
+        search_query,
+        aliases,
+        location_scope,
+        ai_generated,
+        ai_suggestions,
         keyword_groups (
           id,
           name

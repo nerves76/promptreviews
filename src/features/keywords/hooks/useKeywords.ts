@@ -30,8 +30,27 @@ interface UseKeywordsResult {
   refresh: () => Promise<void>;
   /** Create a new keyword */
   createKeyword: (phrase: string, groupId?: string, promptPageId?: string) => Promise<KeywordData | null>;
+  /** Create a keyword with concept fields (AI enriched) */
+  createEnrichedKeyword: (data: {
+    phrase: string;
+    review_phrase: string;
+    search_query: string;
+    aliases?: string[];
+    location_scope?: string | null;
+    ai_generated?: boolean;
+    groupId?: string;
+    promptPageId?: string;
+  }) => Promise<KeywordData | null>;
   /** Update a keyword */
-  updateKeyword: (id: string, updates: Partial<{ phrase: string; groupId: string; status: 'active' | 'paused' }>) => Promise<KeywordData | null>;
+  updateKeyword: (id: string, updates: Partial<{
+    phrase: string;
+    groupId: string;
+    status: 'active' | 'paused';
+    reviewPhrase: string;
+    searchQuery: string;
+    aliases: string[];
+    locationScope: string | null;
+  }>) => Promise<KeywordData | null>;
   /** Delete a keyword */
   deleteKeyword: (id: string) => Promise<boolean>;
   /** Create a new group */
@@ -139,11 +158,59 @@ export function useKeywords(options: UseKeywordsOptions = {}): UseKeywordsResult
     []
   );
 
+  // Create enriched keyword with concept fields
+  const createEnrichedKeyword = useCallback(
+    async (data: {
+      phrase: string;
+      review_phrase: string;
+      search_query: string;
+      aliases?: string[];
+      location_scope?: string | null;
+      ai_generated?: boolean;
+      groupId?: string;
+      promptPageId?: string;
+    }): Promise<KeywordData | null> => {
+      try {
+        const body: Record<string, unknown> = {
+          phrase: data.phrase,
+          review_phrase: data.review_phrase,
+          search_query: data.search_query,
+          aliases: data.aliases || [],
+          location_scope: data.location_scope || null,
+          ai_generated: data.ai_generated ?? false,
+        };
+        if (data.groupId) body.groupId = data.groupId;
+        if (data.promptPageId) body.promptPageId = data.promptPageId;
+
+        const response = await apiClient.post('/keywords', body);
+        const newKeyword = response.keyword;
+
+        // Optimistically update local state
+        setKeywords((prev) => [newKeyword, ...prev]);
+
+        return newKeyword;
+      } catch (err: any) {
+        console.error('Failed to create enriched keyword:', err);
+        setError(err?.message || 'Failed to create keyword');
+        return null;
+      }
+    },
+    []
+  );
+
   // Update keyword
   const updateKeyword = useCallback(
     async (
       id: string,
-      updates: Partial<{ phrase: string; groupId: string; status: 'active' | 'paused' }>
+      updates: Partial<{
+        phrase: string;
+        groupId: string;
+        status: 'active' | 'paused';
+        reviewPhrase: string;
+        searchQuery: string;
+        aliases: string[];
+        locationScope: string | null;
+      }>
     ): Promise<KeywordData | null> => {
       try {
         const data = await apiClient.put(`/keywords/${id}`, updates);
@@ -286,6 +353,7 @@ export function useKeywords(options: UseKeywordsOptions = {}): UseKeywordsResult
     error,
     refresh,
     createKeyword,
+    createEnrichedKeyword,
     updateKeyword,
     deleteKeyword,
     createGroup,

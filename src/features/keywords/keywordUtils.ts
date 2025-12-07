@@ -170,6 +170,11 @@ export const DEFAULT_GROUP_NAME = 'General';
 export type KeywordStatus = 'active' | 'paused';
 
 /**
+ * Location scope for keywords.
+ */
+export type LocationScope = 'local' | 'city' | 'region' | 'state' | 'national';
+
+/**
  * Keyword data structure for API responses.
  */
 export interface KeywordData {
@@ -187,6 +192,13 @@ export interface KeywordData {
   // Computed fields for UI
   usageColor: UsageColor;
   showUsageIndicator: boolean;
+  // Keyword concept fields
+  reviewPhrase: string | null;
+  searchQuery: string | null;
+  aliases: string[];
+  locationScope: LocationScope | null;
+  aiGenerated: boolean;
+  aiSuggestions: Record<string, unknown> | null;
 }
 
 /**
@@ -204,6 +216,13 @@ export function transformKeywordToResponse(
     group_id: string | null;
     created_at: Date | string | null;
     updated_at: Date | string | null;
+    // New concept fields
+    review_phrase?: string | null;
+    search_query?: string | null;
+    aliases?: string[] | null;
+    location_scope?: string | null;
+    ai_generated?: boolean | null;
+    ai_suggestions?: Record<string, unknown> | null;
   },
   groupName: string | null = null
 ): KeywordData {
@@ -230,6 +249,13 @@ export function transformKeywordToResponse(
       : new Date().toISOString(),
     usageColor: getUsageColor(wordCount, usageCount),
     showUsageIndicator: shouldShowUsageIndicator(wordCount),
+    // New concept fields
+    reviewPhrase: keyword.review_phrase ?? null,
+    searchQuery: keyword.search_query ?? null,
+    aliases: keyword.aliases ?? [],
+    locationScope: (keyword.location_scope as LocationScope) ?? null,
+    aiGenerated: keyword.ai_generated ?? false,
+    aiSuggestions: keyword.ai_suggestions ?? null,
   };
 }
 
@@ -292,7 +318,7 @@ export async function ensureGeneralGroup(
     .maybeSingle();
 
   if (existingGroup) {
-    return existingGroup.id;
+    return (existingGroup as { id: string }).id;
   }
 
   const { data: newGroup, error } = await serviceSupabase
@@ -309,5 +335,5 @@ export async function ensureGeneralGroup(
     throw new Error('Failed to create General group');
   }
 
-  return newGroup.id;
+  return (newGroup as { id: string }).id;
 }

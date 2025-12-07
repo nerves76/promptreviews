@@ -2231,7 +2231,7 @@ model rate_limit_counters {
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model review_drafts {
-  id                 String    @id @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  id                 String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   prompt_page_id     String?   @db.Uuid
   platform           String?
   review_text        String?
@@ -2474,7 +2474,7 @@ model selected_gbp_locations {
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model sentiment_analysis_runs {
-  id                      String    @id @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  id                      String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   account_id              String    @db.Uuid
   run_date                DateTime? @default(now()) @db.Timestamptz(6)
   review_count_analyzed   Int
@@ -2714,6 +2714,12 @@ model keywords {
   last_used_in_review_at                                                     DateTime?                   @db.Timestamptz(6)
   created_at                                                                 DateTime?                   @default(now()) @db.Timestamptz(6)
   updated_at                                                                 DateTime?                   @default(now()) @db.Timestamptz(6)
+  review_phrase                                                              String?
+  search_query                                                               String?
+  aliases                                                                    String[]                    @default([])
+  location_scope                                                             String?
+  ai_generated                                                               Boolean?                    @default(false)
+  ai_suggestions                                                             Json?
   gg_checks                                                                  gg_checks[]
   gg_tracked_keywords                                                        gg_tracked_keywords[]
   keyword_prompt_page_usage                                                  keyword_prompt_page_usage[]

@@ -51,6 +51,12 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         group_id,
         created_at,
         updated_at,
+        review_phrase,
+        search_query,
+        aliases,
+        location_scope,
+        ai_generated,
+        ai_suggestions,
         keyword_groups (
           id,
           name
@@ -138,6 +144,10 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
  * - phrase?: string
  * - groupId?: string
  * - status?: 'active' | 'paused'
+ * - reviewPhrase?: string
+ * - searchQuery?: string
+ * - aliases?: string[]
+ * - locationScope?: 'local' | 'city' | 'region' | 'state' | 'national' | null
  */
 export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
@@ -167,7 +177,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     }
 
     const body = await request.json();
-    const { phrase, groupId, status } = body;
+    const { phrase, groupId, status, reviewPhrase, searchQuery, aliases, locationScope } = body;
 
     // Build update object
     const updates: Record<string, any> = {};
@@ -233,6 +243,36 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       updates.status = status;
     }
 
+    // Handle concept fields
+    if (reviewPhrase !== undefined) {
+      updates.review_phrase = reviewPhrase?.trim() || null;
+    }
+
+    if (searchQuery !== undefined) {
+      updates.search_query = searchQuery?.trim() || null;
+    }
+
+    if (aliases !== undefined) {
+      if (!Array.isArray(aliases)) {
+        return NextResponse.json(
+          { error: 'Aliases must be an array of strings' },
+          { status: 400 }
+        );
+      }
+      updates.aliases = aliases.map((a: string) => a.trim()).filter(Boolean);
+    }
+
+    if (locationScope !== undefined) {
+      const validScopes = ['local', 'city', 'region', 'state', 'national', null];
+      if (!validScopes.includes(locationScope)) {
+        return NextResponse.json(
+          { error: 'Invalid location scope' },
+          { status: 400 }
+        );
+      }
+      updates.location_scope = locationScope;
+    }
+
     if (Object.keys(updates).length === 0) {
       return NextResponse.json(
         { error: 'No valid fields to update' },
@@ -256,6 +296,12 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         group_id,
         created_at,
         updated_at,
+        review_phrase,
+        search_query,
+        aliases,
+        location_scope,
+        ai_generated,
+        ai_suggestions,
         keyword_groups (
           id,
           name
