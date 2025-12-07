@@ -623,15 +623,15 @@ export default function ProductPromptPageForm({
               aiGeneratingIndex={aiGeneratingIndex}
             />
 
-        {/* Keyword Phrases Section */}
+        {/* Suggested Phrases Section */}
         <div className="rounded-lg p-6 bg-green-50 border border-green-200 shadow">
           <div className="flex items-center gap-2 mb-4">
             <Icon name="FaKey" className="w-7 h-7 text-slate-blue" size={28} />
-            <h3 className="text-2xl font-bold text-slate-blue">Keyword-Powered Reviews</h3>
+            <h3 className="text-2xl font-bold text-slate-blue">Suggested Phrases</h3>
           </div>
           <div className="mb-2">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Select which keywords can be used by Prompty AI and/or the Keyword Power-Ups menu.
+              Select which phrases can be used by Prompty AI and/or the Phrase Power-Ups menu.
             </label>
             <KeywordsInput
               keywords={keywords}

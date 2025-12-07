@@ -362,14 +362,14 @@ export default function PromptPageSettingsPage() {
             <h2 className="text-xl font-bold text-slate-blue mb-1">Global Settings</h2>
             <p className="text-sm text-gray-600 mb-6">These settings apply immediately to all prompt pages.</p>
 
-            {/* Keyword Phrases Section */}
+            {/* Suggested Phrases Section */}
             <section className="mb-6">
               <h3 className="text-lg font-semibold text-slate-blue mb-2 flex items-center">
-                Keyword-Powered Reviews
-                <RobotTooltip text="These keyword phrases will be pre-populated on all new prompt pages. Each page can then customize their keyword phrases without affecting these global defaults." />
+                Suggested Phrases
+                <RobotTooltip text="These suggested phrases will be pre-populated on all new prompt pages. Each page can then customize their phrases without affecting these global defaults." />
               </h3>
               <p className="text-sm text-gray-600 mb-4">
-                Add phrases that you would like to appear in your reviews. Click on any keyword to view and edit its details.
+                Add phrases that you would like to appear in your reviews. Click on any phrase to view and edit its details.
               </p>
               <KeywordsInput
                 keywords={formData.keywords || []}
