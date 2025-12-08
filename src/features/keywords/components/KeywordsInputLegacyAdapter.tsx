@@ -457,7 +457,7 @@ export default function KeywordsInputLegacyAdapter({
           {isGenerating ? (
             <Icon name="FaSpinner" className="w-3.5 h-3.5 animate-spin" />
           ) : (
-            <Icon name="FaLightbulb" className="w-3.5 h-3.5" />
+            <Icon name="prompty" className="w-3.5 h-3.5" />
           )}
           <span>{isGenerating ? 'Generating...' : 'AI Generate'}</span>
         </button>

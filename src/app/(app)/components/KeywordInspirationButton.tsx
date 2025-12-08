@@ -62,8 +62,10 @@ export default function KeywordInspirationButton({
         }}
         aria-label="View keyword inspiration"
       >
-        <Icon name="mushroom" className="w-3.5 h-3.5 sm:w-4 sm:h-4" size={16} />
-        <span>Power-up</span>
+        <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="currentColor" viewBox="0 0 20 20">
+          <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+        </svg>
+        <span>Suggested phrases</span>
       </button>
     </div>
   );

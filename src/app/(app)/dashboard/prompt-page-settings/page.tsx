@@ -369,7 +369,7 @@ export default function PromptPageSettingsPage() {
                 <RobotTooltip text="These suggested phrases will be pre-populated on all new prompt pages. Each page can then customize their phrases without affecting these global defaults." />
               </h3>
               <p className="text-sm text-gray-600 mb-4">
-                Add phrases that you would like to appear in your reviews. Click on any phrase to view and edit its details.
+                Add keyword phrases that you would like to appear in your reviews. Using commonly searched phrases can increase your visibility in search engines and LLMs like ChatGPT. Track usage of keyword phrases across your reviews and measure impact. Click on any phrase to view and edit its details.
               </p>
               <KeywordsInput
                 keywords={formData.keywords || []}
@@ -595,7 +595,7 @@ export default function PromptPageSettingsPage() {
         </div>
       </div>
 
-      {/* Keyword Details Sidebar */}
+      {/* Phrase Details Sidebar */}
       {selectedKeyword && (
         <KeywordDetailsSidebar
           keyword={selectedKeyword}
@@ -608,7 +608,7 @@ export default function PromptPageSettingsPage() {
 }
 
 // ============================================
-// Keyword Details Sidebar Component
+// Phrase Details Sidebar Component
 // ============================================
 
 interface KeywordDetailsSidebarProps {
@@ -682,7 +682,7 @@ function KeywordDetailsSidebar({
       <div className="p-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-800">Keyword Details</h3>
+          <h3 className="text-lg font-semibold text-gray-800">Phrase Details</h3>
           <button
             onClick={onClose}
             className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors"

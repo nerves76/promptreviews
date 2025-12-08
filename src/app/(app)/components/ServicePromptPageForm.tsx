@@ -681,7 +681,7 @@ export default function ServicePromptPageForm({
           </div>
           <div className="mb-2">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Select which phrases can be used by Prompty AI and/or the Phrase Power-Ups menu.
+              Select which keyword phrases can be used by Prompty AI and/or the Suggested Phrases Menu.
             </label>
             <KeywordsInput
               keywords={Array.isArray(formData.keywords) ? formData.keywords : []}

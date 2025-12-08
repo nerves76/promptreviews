@@ -1,8 +1,8 @@
 /**
  * KeywordInspirationFeature Component
  *
- * A reusable component for the Keyword Power-Ups feature that appears across all prompt page types.
- * This component handles the toggle for showing/hiding keyword power-ups on public prompt pages.
+ * A reusable component for the Suggested Phrases Menu feature that appears across all prompt page types.
+ * This component handles the toggle for showing/hiding the suggested phrases menu on public prompt pages.
  *
  * Simplified: Automatically uses the first 10 keywords from the Keywords section.
  * No manual selection needed - just toggle on/off.
@@ -54,6 +54,7 @@ export default function KeywordInspirationFeature({
 }: KeywordInspirationFeatureProps) {
   // Initialize state from props and initialData
   const [isEnabled, setIsEnabled] = useState(enabled);
+  const [showNoKeywordsModal, setShowNoKeywordsModal] = useState(false);
 
   // Auto-select first 10 keywords
   const autoSelectedKeywords = availableKeywords.slice(0, 10);
@@ -79,23 +80,32 @@ export default function KeywordInspirationFeature({
     }
   }, [availableKeywords.join(',')]); // Only trigger when keywords actually change
 
+  const hasNoKeywords = availableKeywords.length === 0;
+
   const handleToggle = () => {
     const newEnabled = !isEnabled;
+
+    // Show modal if trying to enable but no keywords available
+    if (newEnabled && hasNoKeywords) {
+      setShowNoKeywordsModal(true);
+      return;
+    }
+
     setIsEnabled(newEnabled);
     onEnabledChange?.(newEnabled);
     onToggle?.(newEnabled);
   };
-
-  const hasNoKeywords = availableKeywords.length === 0;
 
   return (
     <div className="rounded-lg p-2 sm:p-4 bg-green-50 border border-green-200 flex flex-col gap-4 shadow relative">
       <div className="flex flex-row justify-between items-start mb-2 px-2 sm:px-4 py-2">
         <div className="flex flex-col">
           <div className="flex items-center gap-3">
-            <Icon name="mushroom" className="w-7 h-7 text-slate-blue" size={28} />
+            <svg className="w-7 h-7 text-slate-blue" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+            </svg>
             <span className="text-2xl font-bold text-slate-blue">
-              Keyword Power-Ups
+              Suggested Phrases Menu
             </span>
             <div className="relative group">
               <Icon name="prompty" className="w-5 h-5 text-slate-blue" size={20} />
@@ -106,17 +116,17 @@ export default function KeywordInspirationFeature({
             </div>
           </div>
           <div className="text-sm text-gray-700 mt-[3px] ml-9">
-            Show a "Power-up" button on your Prompt Page that displays your first 10 keywords with copy buttons, encouraging customers to include them in their review.
+            Show a "Suggested phrases" button on your Prompt Page that displays your first 10 keyword phrases with copy buttons, encouraging customers to include them in their review.
           </div>
         </div>
         <div className="flex flex-col justify-start pt-1">
           <button
             type="button"
             onClick={handleToggle}
-            disabled={disabled || hasNoKeywords}
+            disabled={disabled}
             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
               isEnabled ? "bg-slate-blue" : "bg-gray-200"
-            } ${disabled || hasNoKeywords ? "opacity-50 cursor-not-allowed" : ""}`}
+            } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
             aria-pressed={isEnabled}
           >
             <span
@@ -140,8 +150,8 @@ export default function KeywordInspirationFeature({
                 size={20}
               />
               <div className="text-sm text-yellow-800">
-                <p className="font-medium mb-1">No keywords available</p>
-                <p>Add keywords in the "Keywords" section above. The first 10 will automatically appear in Power-Ups.</p>
+                <p className="font-medium mb-1">No keyword phrases available</p>
+                <p>Add keyword phrases in the "Suggested Phrases" section above. The first 10 will automatically appear in the menu.</p>
               </div>
             </div>
           )}
@@ -151,7 +161,7 @@ export default function KeywordInspirationFeature({
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label className="block text-sm font-medium text-green-800">
-                  Keywords that will be shown ({autoSelectedKeywords.length} of {availableKeywords.length})
+                  Phrases that will be shown ({autoSelectedKeywords.length} of {availableKeywords.length})
                 </label>
               </div>
 
@@ -168,7 +178,7 @@ export default function KeywordInspirationFeature({
 
               {availableKeywords.length > 10 && (
                 <p className="text-xs text-green-600 mt-2">
-                  +{availableKeywords.length - 10} more keywords not shown in Power-Ups (only first 10 displayed)
+                  +{availableKeywords.length - 10} more phrases not shown in menu (only first 10 displayed)
                 </p>
               )}
             </div>
@@ -184,12 +194,39 @@ export default function KeywordInspirationFeature({
             <div className="text-sm text-green-800">
               <p className="font-medium mb-1">How it works:</p>
               <ul className="space-y-1 text-green-700">
-                <li>• Adds a "Power-up" button to your Prompt Page</li>
-                <li>• Customers click it to see keyword suggestions</li>
-                <li>• Each keyword has a copy button to add to their review</li>
-                <li>• Automatically uses your first 10 keywords</li>
+                <li>• Adds a "Suggested phrases" button to your Prompt Page</li>
+                <li>• Customers click it to see phrase suggestions</li>
+                <li>• Each phrase has a copy button to add to their review</li>
+                <li>• Automatically uses your first 10 keyword phrases</li>
               </ul>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* No Keywords Modal */}
+      {showNoKeywordsModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center relative">
+            <button
+              className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-xl"
+              onClick={() => setShowNoKeywordsModal(false)}
+              aria-label="Close"
+            >
+              &times;
+            </button>
+            <h2 className="text-2xl font-bold text-amber-700 mb-4">
+              No Suggested Phrases
+            </h2>
+            <p className="mb-6 text-gray-700">
+              You must add keyword phrases to <strong>Suggested Phrases</strong> first before enabling this feature.
+            </p>
+            <button
+              onClick={() => setShowNoKeywordsModal(false)}
+              className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 font-semibold mt-2"
+            >
+              OK
+            </button>
           </div>
         </div>
       )}

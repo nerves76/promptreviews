@@ -8,6 +8,8 @@ import StandardLoader from "@/app/(app)/components/StandardLoader";
 import { useAuthGuard } from "@/utils/authGuard";
 import { useAccountData, useAuthLoading } from "@/auth/hooks/granularAuthHooks";
 import { apiClient } from "@/utils/apiClient";
+import { useKeywords, useKeywordDetails } from "@/features/keywords/hooks/useKeywords";
+import { type KeywordData, type LocationScope } from "@/features/keywords/keywordUtils";
 import {
   LineChart,
   Line,
@@ -66,13 +68,36 @@ const CHART_COLORS = [
   "#6366f1", // indigo
 ];
 
+// Location scope options for the sidebar
+const LOCATION_SCOPES: { value: LocationScope | null; label: string }[] = [
+  { value: null, label: 'Not set' },
+  { value: 'local', label: 'Local (neighborhood)' },
+  { value: 'city', label: 'City' },
+  { value: 'region', label: 'Region' },
+  { value: 'state', label: 'State' },
+  { value: 'national', label: 'National' },
+];
+
 export default function KeywordTrackerPage() {
   const { loading: authLoading, shouldRedirect } = useAuthGuard();
   const { selectedAccountId } = useAccountData();
   const { isLoading: authInitializing } = useAuthLoading();
   const hasAccount = Boolean(selectedAccountId);
 
-  const [keywords, setKeywords] = useState<string[]>([]);
+  // Use the unified keywords system
+  const {
+    keywords: keywordData,
+    isLoading: keywordsLoading,
+    createKeyword,
+    createEnrichedKeyword,
+    updateKeyword,
+    deleteKeyword,
+    refresh: refreshKeywords
+  } = useKeywords({ includeUsage: true });
+
+  // Derive simple keyword strings from the unified system
+  const keywords = keywordData.map(k => k.phrase);
+
   const [saving, setSaving] = useState(false);
   const [statusMessage, setStatusMessage] = useState<StatusMessage | null>(null);
 
@@ -100,43 +125,9 @@ export default function KeywordTrackerPage() {
   // Review count state
   const [reviewCount, setReviewCount] = useState<number | null>(null);
 
-  // Load keywords from business data via API
-  const [keywordsLoading, setKeywordsLoading] = useState(true);
-
-  useEffect(() => {
-    const loadKeywords = async () => {
-      if (!hasAccount || !selectedAccountId) {
-        setKeywords([]);
-        setKeywordsLoading(false);
-        return;
-      }
-
-      try {
-        // API returns business object directly (not wrapped)
-        const business = await apiClient.get(`/businesses/${selectedAccountId}`) as {
-          keywords?: string | string[];
-        };
-
-        if (business?.keywords) {
-          const kws = Array.isArray(business.keywords)
-            ? business.keywords
-            : typeof business.keywords === 'string' && business.keywords
-              ? business.keywords.split(',').map((k: string) => k.trim()).filter(Boolean)
-              : [];
-          setKeywords(kws);
-        } else {
-          setKeywords([]);
-        }
-      } catch (error) {
-        console.error("Failed to load keywords:", error);
-        setKeywords([]);
-      } finally {
-        setKeywordsLoading(false);
-      }
-    };
-
-    loadKeywords();
-  }, [hasAccount, selectedAccountId]);
+  // Keyword details sidebar state
+  const [selectedKeywordId, setSelectedKeywordId] = useState<string | null>(null);
+  const { keyword: selectedKeyword } = useKeywordDetails(selectedKeywordId);
 
   // Auto-expand the add panel when there are no keywords
   useEffect(() => {
@@ -257,27 +248,27 @@ export default function KeywordTrackerPage() {
     return [...keywordSet];
   }, [analysisHistory]);
 
-  // Handle adding new keywords
+  // Handle adding new keywords using unified keyword system
   const MAX_KEYWORDS = 20;
 
-  const handleKeywordsChange = async (newKeywords: string[]) => {
+  const handleAddKeyword = async (phrase: string) => {
     if (!hasAccount || !selectedAccountId) return;
+    if (!phrase.trim()) return;
 
-    // Only allow adding, not removing (removal done in Prompt Page Settings)
-    const addedKeywords = newKeywords.filter(k => !keywords.includes(k));
-    if (addedKeywords.length === 0 && newKeywords.length < keywords.length) {
+    // Check if keyword already exists
+    if (keywords.some(k => k.toLowerCase() === phrase.toLowerCase())) {
       setStatusMessage({
         type: "error",
-        text: "To remove keywords, go to Prompt page settings.",
+        text: "This phrase already exists in your library.",
       });
       return;
     }
 
     // Enforce cap
-    if (newKeywords.length > MAX_KEYWORDS) {
+    if (keywords.length >= MAX_KEYWORDS) {
       setStatusMessage({
         type: "error",
-        text: `You can track up to ${MAX_KEYWORDS} keywords. Remove some to add more.`,
+        text: `You can track up to ${MAX_KEYWORDS} phrases. Remove some to add more.`,
       });
       return;
     }
@@ -286,26 +277,27 @@ export default function KeywordTrackerPage() {
     setStatusMessage(null);
 
     try {
-      await apiClient.put(`/businesses/${selectedAccountId}`, {
-        keywords: newKeywords,
+      await createKeyword(phrase.trim());
+      setStatusMessage({
+        type: "success",
+        text: `Added "${phrase.trim()}" to your library.`,
       });
-
-      setKeywords(newKeywords);
-
-      if (addedKeywords.length > 0) {
-        setStatusMessage({
-          type: "success",
-          text: `Added ${addedKeywords.length} keyword${addedKeywords.length > 1 ? 's' : ''}.`,
-        });
-      }
     } catch (error) {
-      console.error("Failed to save keywords:", error);
+      console.error("Failed to add keyword:", error);
       setStatusMessage({
         type: "error",
-        text: error instanceof Error ? error.message : "Failed to save keywords",
+        text: error instanceof Error ? error.message : "Failed to add phrase",
       });
     } finally {
       setSaving(false);
+    }
+  };
+
+  // Handle clicking on a keyword to open details sidebar
+  const handleKeywordClick = (phrase: string) => {
+    const keyword = keywordData.find(kw => kw.phrase.toLowerCase() === phrase.toLowerCase());
+    if (keyword) {
+      setSelectedKeywordId(keyword.id);
     }
   };
 
@@ -438,72 +430,65 @@ export default function KeywordTrackerPage() {
     }
   };
 
-  // Add a suggested keyword
-  const handleAddSuggestion = async (keyword: string) => {
+  // Add a suggested keyword to the unified library
+  const handleAddSuggestion = async (phrase: string) => {
     if (!hasAccount || !selectedAccountId) return;
 
     // Check cap before adding
     if (keywords.length >= MAX_KEYWORDS) {
       setStatusMessage({
         type: "error",
-        text: `You can track up to ${MAX_KEYWORDS} keywords. Remove some to add more.`,
+        text: `You can track up to ${MAX_KEYWORDS} phrases. Remove some to add more.`,
       });
       return;
     }
 
-    setAddingKeyword(keyword);
+    setAddingKeyword(phrase);
 
     try {
-      const newKeywords = [...keywords, keyword];
-      await apiClient.put(`/businesses/${selectedAccountId}`, {
-        keywords: newKeywords,
-      });
-
-      setKeywords(newKeywords);
+      await createKeyword(phrase.trim());
 
       // Remove from suggestions
-      setSuggestions(prev => prev.filter(s => s.keyword !== keyword));
+      setSuggestions(prev => prev.filter(s => s.keyword !== phrase));
 
       setStatusMessage({
         type: "success",
-        text: `Added "${keyword}" to your keywords.`,
+        text: `Added "${phrase}" to your library.`,
       });
     } catch (error) {
       console.error("Failed to add keyword:", error);
       setStatusMessage({
         type: "error",
-        text: error instanceof Error ? error.message : "Failed to add keyword",
+        text: error instanceof Error ? error.message : "Failed to add phrase",
       });
     } finally {
       setAddingKeyword(null);
     }
   };
 
-  // Remove a keyword
+  // Remove a keyword from the unified library
   const [removingKeyword, setRemovingKeyword] = useState<string | null>(null);
 
-  const handleRemoveKeyword = async (keyword: string) => {
+  const handleRemoveKeyword = async (phrase: string) => {
     if (!hasAccount || !selectedAccountId) return;
 
-    setRemovingKeyword(keyword);
+    const keywordObj = keywordData.find(k => k.phrase.toLowerCase() === phrase.toLowerCase());
+    if (!keywordObj) return;
+
+    setRemovingKeyword(phrase);
 
     try {
-      const newKeywords = keywords.filter(k => k !== keyword);
-      await apiClient.put(`/businesses/${selectedAccountId}`, {
-        keywords: newKeywords,
-      });
-
-      setKeywords(newKeywords);
+      await deleteKeyword(keywordObj.id);
 
       setStatusMessage({
         type: "success",
-        text: `Removed "${keyword}" from your keywords.`,
+        text: `Removed "${phrase}" from your library.`,
       });
     } catch (error) {
       console.error("Failed to remove keyword:", error);
       setStatusMessage({
         type: "error",
-        text: error instanceof Error ? error.message : "Failed to remove keyword",
+        text: error instanceof Error ? error.message : "Failed to remove phrase",
       });
     } finally {
       setRemovingKeyword(null);
@@ -527,9 +512,9 @@ export default function KeywordTrackerPage() {
       {/* Header with Run Analysis button */}
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-4xl font-bold text-slate-blue mb-3">Review Keyword Tracker</h1>
+          <h1 className="text-4xl font-bold text-slate-blue mb-3">Keyword Phrase Tracker</h1>
           <p className="text-gray-600 max-w-2xl">
-            Track when customers mention your keywords in reviews and see trends over time.
+            Track when customers mention your keyword phrases in reviews and see trends over time.
           </p>
           {reviewCount !== null && (
             <p className="text-sm text-slate-blue mt-2">
@@ -560,7 +545,7 @@ export default function KeywordTrackerPage() {
 
       {!hasAccount && (
         <div className="border border-amber-200 bg-amber-50 rounded-xl p-4 text-amber-900 text-sm mb-6">
-          Add a business profile to unlock keyword tracking.
+          Add a business profile to unlock phrase tracking.
         </div>
       )}
 
@@ -587,7 +572,7 @@ export default function KeywordTrackerPage() {
           <div className="rounded-2xl border border-slate-100 bg-white p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <h2 className="text-lg font-semibold text-slate-blue">Keywords</h2>
+                <h2 className="text-lg font-semibold text-slate-blue">Suggested Phrases</h2>
                 <span className="text-xs text-gray-400 bg-gray-50 px-2 py-1 rounded">
                   {keywords.length} tracked
                 </span>
@@ -603,18 +588,18 @@ export default function KeywordTrackerPage() {
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-blue bg-slate-blue/10 rounded-full hover:bg-slate-blue/20 transition-all"
                 >
                   <Icon name={keywordsExpanded ? "FaTimes" : "FaPlus"} className="w-3 h-3" size={12} />
-                  {keywordsExpanded ? "Close" : "Add Keywords"}
+                  {keywordsExpanded ? "Close" : "Add Phrase"}
                 </button>
               </div>
             </div>
 
             {keywords.length === 0 ? (
               <p className="text-sm text-gray-500 mb-4">
-                Add keywords below to start tracking mentions in your reviews.
+                Add keyword phrases below to start tracking mentions in your reviews.
               </p>
             ) : !latestAnalysis ? (
               <p className="text-sm text-gray-500 mb-4">
-                Click "Run analysis" to see mention counts for each keyword.
+                Click "Run analysis" to see mention counts for each phrase.
               </p>
             ) : null}
 
@@ -628,7 +613,13 @@ export default function KeywordTrackerPage() {
                       key={keyword}
                       className="flex items-center justify-between py-2 border-b border-slate-50 group"
                     >
-                      <span className="text-sm text-gray-700 truncate mr-2">{keyword}</span>
+                      <button
+                        onClick={() => handleKeywordClick(keyword)}
+                        className="text-sm text-gray-700 truncate mr-2 hover:text-indigo-600 hover:underline text-left cursor-pointer"
+                        title="Click to view phrase details"
+                      >
+                        {keyword}
+                      </button>
                       <div className="flex items-center gap-2">
                         <span className={`text-sm font-semibold tabular-nums ${
                           count === undefined ? 'text-gray-300' :
@@ -640,7 +631,7 @@ export default function KeywordTrackerPage() {
                           onClick={() => handleRemoveKeyword(keyword)}
                           disabled={removingKeyword === keyword}
                           className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-500 transition-all disabled:opacity-50"
-                          title="Remove keyword"
+                          title="Remove phrase"
                         >
                           {removingKeyword === keyword ? (
                             <Icon name="FaSpinner" className="w-3 h-3 animate-spin" size={12} />
@@ -666,19 +657,19 @@ export default function KeywordTrackerPage() {
                   <span className="font-semibold text-emerald-600">{latestAnalysis.totalMentions}</span>
                 </div>
                 <div>
-                  <span className="text-gray-500">Keywords found: </span>
+                  <span className="text-gray-500">Phrases found: </span>
                   <span className="font-semibold text-amber-600">{latestAnalysis.keywordsWithMentions}</span>
                 </div>
               </div>
             )}
 
-            {/* Add Keywords Panel */}
+            {/* Add Phrase Panel */}
             {keywordsExpanded && (
               <div className="mt-4 pt-4 border-t border-slate-100">
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-sm font-medium text-gray-700">Add a keyword</span>
+                  <span className="text-sm font-medium text-gray-700">Add a keyword phrase</span>
                   <Link
-                    href="/prompt-pages"
+                    href="/dashboard/prompt-page-settings"
                     className="text-xs text-gray-500 hover:text-slate-blue"
                   >
                     Manage all in Prompt page settings →
@@ -690,8 +681,8 @@ export default function KeywordTrackerPage() {
                     const form = e.target as HTMLFormElement;
                     const input = form.elements.namedItem('newKeyword') as HTMLInputElement;
                     const value = input.value.trim();
-                    if (value && !keywords.includes(value)) {
-                      handleKeywordsChange([...keywords, value]);
+                    if (value) {
+                      handleAddKeyword(value);
                       input.value = '';
                     }
                   }}
@@ -700,7 +691,7 @@ export default function KeywordTrackerPage() {
                   <input
                     type="text"
                     name="newKeyword"
-                    placeholder="Type a keyword and press Enter..."
+                    placeholder="Type a phrase and press Enter..."
                     disabled={!hasAccount || saving}
                     className="flex-1 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-blue/20 focus:border-slate-blue disabled:opacity-50"
                   />
@@ -724,7 +715,7 @@ export default function KeywordTrackerPage() {
           {analysisHistory.length >= 2 && (
             <div className="rounded-2xl border border-slate-100 bg-white p-6">
               <div className="flex items-start justify-between mb-4">
-                <h2 className="text-lg font-semibold text-slate-blue">Keyword trends over time</h2>
+                <h2 className="text-lg font-semibold text-slate-blue">Phrase trends over time</h2>
                 <span className="text-xs text-gray-400 bg-gray-50 px-2 py-1 rounded">
                   Exact text matching
                 </span>
@@ -801,7 +792,7 @@ export default function KeywordTrackerPage() {
               </div>
 
               <p className="text-xs text-gray-400 mt-3">
-                Click keywords to show/hide. Counts are from your latest analysis. Matches are case-insensitive exact text matches in review content.
+                Click phrases to show/hide. Counts are from your latest analysis. Matches are case-insensitive exact text matches in review content.
               </p>
             </div>
           )}
@@ -840,11 +831,11 @@ export default function KeywordTrackerPage() {
             </div>
           )}
 
-          {/* AI Keyword Suggestions */}
+          {/* AI Phrase Suggestions */}
           <div className="rounded-2xl border border-slate-100 bg-white p-6">
             <div className="flex items-start justify-between mb-4">
               <div>
-                <h2 className="text-lg font-semibold text-slate-blue">Discover Keywords</h2>
+                <h2 className="text-lg font-semibold text-slate-blue">Discover Phrases</h2>
                 <p className="text-sm text-gray-500 mt-1">
                   We'll scan your reviews to find valuable keyword phrases in your existing reviews
                 </p>
@@ -863,7 +854,7 @@ export default function KeywordTrackerPage() {
                   ) : (
                     <>
                       <Icon name="FaSparkles" className="w-4 h-4" size={16} />
-                      Discover keywords
+                      Discover phrases
                     </>
                   )}
                 </button>
@@ -909,7 +900,7 @@ export default function KeywordTrackerPage() {
                           ) : (
                             <Icon name="FaPlus" className="w-3 h-3" size={12} />
                           )}
-                          Add
+                          Add to Library
                         </button>
                       </div>
 
@@ -933,13 +924,281 @@ export default function KeywordTrackerPage() {
               <div className="text-center py-6 text-gray-500">
                 <Icon name="FaLightbulb" className="w-8 h-8 mx-auto mb-2 text-gray-300" size={32} />
                 <p className="text-sm">
-                  Click "Discover keywords" to find keywords your customers are using
+                  Click "Discover phrases" to find phrases your customers are using
                 </p>
               </div>
             )}
           </div>
         </div>
       )}
+
+      {/* Phrase Details Sidebar */}
+      {selectedKeyword && (
+        <KeywordDetailsSidebar
+          keyword={selectedKeyword}
+          onClose={() => setSelectedKeywordId(null)}
+          onUpdate={updateKeyword}
+        />
+      )}
     </PageCard>
+  );
+}
+
+// ============================================
+// Phrase Details Sidebar Component
+// ============================================
+
+interface KeywordDetailsSidebarProps {
+  keyword: KeywordData;
+  onClose: () => void;
+  onUpdate: (id: string, updates: Partial<{
+    phrase: string;
+    groupId: string;
+    status: 'active' | 'paused';
+    reviewPhrase: string;
+    searchQuery: string;
+    aliases: string[];
+    locationScope: string | null;
+  }>) => Promise<KeywordData | null>;
+}
+
+function KeywordDetailsSidebar({
+  keyword,
+  onClose,
+  onUpdate,
+}: KeywordDetailsSidebarProps) {
+  // Local state for editing
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [editedReviewPhrase, setEditedReviewPhrase] = useState(keyword.reviewPhrase || '');
+  const [editedSearchQuery, setEditedSearchQuery] = useState(keyword.searchQuery || '');
+  const [editedAliasesInput, setEditedAliasesInput] = useState((keyword.aliases || []).join(', '));
+  const [editedLocationScope, setEditedLocationScope] = useState<LocationScope | null>(keyword.locationScope);
+
+  // Reset editing state when keyword changes
+  useEffect(() => {
+    setEditedReviewPhrase(keyword.reviewPhrase || '');
+    setEditedSearchQuery(keyword.searchQuery || '');
+    setEditedAliasesInput((keyword.aliases || []).join(', '));
+    setEditedLocationScope(keyword.locationScope);
+    setIsEditing(false);
+  }, [keyword.id, keyword.reviewPhrase, keyword.searchQuery, keyword.aliases, keyword.locationScope]);
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      const aliases = editedAliasesInput
+        .split(',')
+        .map(a => a.trim())
+        .filter(Boolean);
+
+      await onUpdate(keyword.id, {
+        reviewPhrase: editedReviewPhrase || '',
+        searchQuery: editedSearchQuery || '',
+        aliases,
+        locationScope: editedLocationScope,
+      });
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Failed to save keyword:', error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setEditedReviewPhrase(keyword.reviewPhrase || '');
+    setEditedSearchQuery(keyword.searchQuery || '');
+    setEditedAliasesInput((keyword.aliases || []).join(', '));
+    setEditedLocationScope(keyword.locationScope);
+    setIsEditing(false);
+  };
+
+  return (
+    <div className="fixed inset-y-0 right-0 w-96 bg-white shadow-xl border-l border-gray-200 z-50 overflow-y-auto">
+      <div className="p-6">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-gray-800">Phrase Details</h3>
+          <button
+            onClick={onClose}
+            className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors"
+          >
+            <Icon name="FaTimes" className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="space-y-4">
+          {/* Keyword phrase */}
+          <div>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-full">
+              {keyword.phrase}
+            </div>
+            {keyword.aiGenerated && (
+              <span className="inline-flex items-center gap-1 text-xs text-indigo-500 mt-2 ml-2">
+                <Icon name="FaSparkles" className="w-3 h-3" />
+                AI Generated
+              </span>
+            )}
+          </div>
+
+          {/* Stats grid */}
+          <div className="grid grid-cols-2 gap-3 text-sm p-3 bg-gray-50 rounded-lg">
+            <div>
+              <span className="text-gray-500 block text-xs">Word count</span>
+              <span className="font-medium">{keyword.wordCount}</span>
+            </div>
+            <div>
+              <span className="text-gray-500 block text-xs">Status</span>
+              <span className={`font-medium ${keyword.status === 'active' ? 'text-green-600' : 'text-gray-400'}`}>
+                {keyword.status}
+              </span>
+            </div>
+            <div>
+              <span className="text-gray-500 block text-xs">Uses in reviews</span>
+              <span className="font-medium">{keyword.reviewUsageCount}</span>
+            </div>
+            <div>
+              <span className="text-gray-500 block text-xs">Group</span>
+              <span className="font-medium">{keyword.groupName || 'None'}</span>
+            </div>
+          </div>
+
+          {/* Editable fields section */}
+          <div className="border-t border-gray-200 pt-4">
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="text-sm font-medium text-gray-700">Keyword Concept</h4>
+              {!isEditing ? (
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="text-xs text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
+                >
+                  <Icon name="FaEdit" className="w-3 h-3" />
+                  Edit
+                </button>
+              ) : (
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleCancel}
+                    disabled={isSaving}
+                    className="text-xs text-gray-500 hover:text-gray-700"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSave}
+                    disabled={isSaving}
+                    className="text-xs text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1"
+                  >
+                    {isSaving && <Icon name="FaSpinner" className="w-3 h-3 animate-spin" />}
+                    Save
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-3">
+              {/* Review Phrase */}
+              <div>
+                <label className="text-xs font-medium text-gray-600 block mb-1">
+                  Review Phrase (customer-facing)
+                </label>
+                {isEditing ? (
+                  <input
+                    type="text"
+                    value={editedReviewPhrase}
+                    onChange={(e) => setEditedReviewPhrase(e.target.value)}
+                    placeholder="e.g., best marketing consultant in Portland"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  />
+                ) : (
+                  <div className="text-sm text-gray-700 bg-gray-50 px-3 py-2 rounded-lg min-h-[36px]">
+                    {keyword.reviewPhrase || <span className="text-gray-400 italic">Not set</span>}
+                  </div>
+                )}
+              </div>
+
+              {/* Search Query */}
+              <div>
+                <label className="text-xs font-medium text-gray-600 block mb-1">
+                  Search Query (for Geo Grid tracking)
+                </label>
+                {isEditing ? (
+                  <input
+                    type="text"
+                    value={editedSearchQuery}
+                    onChange={(e) => setEditedSearchQuery(e.target.value)}
+                    placeholder="e.g., portland marketing consultant"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  />
+                ) : (
+                  <div className="text-sm text-gray-700 bg-gray-50 px-3 py-2 rounded-lg min-h-[36px]">
+                    {keyword.searchQuery || <span className="text-gray-400 italic">Not set</span>}
+                  </div>
+                )}
+              </div>
+
+              {/* Aliases */}
+              <div>
+                <label className="text-xs font-medium text-gray-600 block mb-1">
+                  Aliases (alternative matching phrases)
+                </label>
+                {isEditing ? (
+                  <input
+                    type="text"
+                    value={editedAliasesInput}
+                    onChange={(e) => setEditedAliasesInput(e.target.value)}
+                    placeholder="alias1, alias2, alias3"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  />
+                ) : (
+                  <div className="text-sm text-gray-700 bg-gray-50 px-3 py-2 rounded-lg min-h-[36px]">
+                    {keyword.aliases && keyword.aliases.length > 0 ? (
+                      <div className="flex flex-wrap gap-1">
+                        {keyword.aliases.map((alias, idx) => (
+                          <span key={idx} className="px-2 py-0.5 bg-white border border-gray-200 rounded text-xs">
+                            {alias}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-gray-400 italic">No aliases</span>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Location Scope */}
+              <div>
+                <label className="text-xs font-medium text-gray-600 block mb-1">
+                  Location Scope
+                </label>
+                {isEditing ? (
+                  <select
+                    value={editedLocationScope || ''}
+                    onChange={(e) => setEditedLocationScope((e.target.value || null) as LocationScope | null)}
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  >
+                    {LOCATION_SCOPES.map((scope) => (
+                      <option key={scope.value || 'null'} value={scope.value || ''}>
+                        {scope.label}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <div className="text-sm text-gray-700 bg-gray-50 px-3 py-2 rounded-lg">
+                    {keyword.locationScope ? (
+                      <span className="capitalize">{keyword.locationScope}</span>
+                    ) : (
+                      <span className="text-gray-400 italic">Not set</span>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

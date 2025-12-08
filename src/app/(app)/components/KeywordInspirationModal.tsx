@@ -81,8 +81,10 @@ export default function KeywordInspirationModal({
       onClose={onClose}
       title={
         <div className="flex items-center space-x-2">
-          <Icon name="mushroom" className="w-7 h-7 text-slate-600" size={28} />
-          <span>Power-ups</span>
+          <svg className="w-7 h-7 text-slate-600" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+          </svg>
+          <span>Suggested Phrases Menu</span>
         </div>
       }
       maxWidth="max-w-lg"
@@ -92,7 +94,7 @@ export default function KeywordInspirationModal({
       {/* Subheader */}
       <div className="mb-3">
         <h3 className="text-2xl font-semibold text-gray-900">
-          Power-up your review with keywords
+          Add suggested phrases to your review
         </h3>
       </div>
 
@@ -107,8 +109,10 @@ export default function KeywordInspirationModal({
       <div className="overflow-y-auto max-h-[60vh]">
         {keywords.length === 0 ? (
           <div className="text-center py-8">
-            <Icon name="mushroom" className="w-8 h-8 text-gray-400 mx-auto mb-3" size={32} />
-            <p className="text-gray-700">No keywords available</p>
+            <svg className="w-8 h-8 text-gray-400 mx-auto mb-3" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+            </svg>
+            <p className="text-gray-700">No phrases available</p>
           </div>
         ) : (
           <div className="space-y-2">
