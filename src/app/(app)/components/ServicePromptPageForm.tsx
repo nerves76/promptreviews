@@ -24,7 +24,8 @@ import {
   RecentReviewsFeature,
   KeywordInspirationFeature,
   MotivationalNudgeFeature,
-  RoleFieldFeature
+  RoleFieldFeature,
+  SuggestedPhrasesFeature
 } from "./prompt-features";
 import { useFallingStars } from "@/hooks/useFallingStars";
 import { Input } from "@/app/(app)/components/ui/input";
@@ -35,7 +36,6 @@ import { generateContextualReview } from "@/utils/aiReviewGeneration";
 import Icon from "@/components/Icon";
 import { getWordLimitOrDefault } from "@/constants/promptPageWordLimits";
 import FiveStarSpinner from "./FiveStarSpinner";
-import { KeywordsInputLegacyAdapter as KeywordsInput } from "@/features/keywords/components";
 
 /**
  * ServicePromptPageForm component
@@ -131,6 +131,7 @@ export default function ServicePromptPageForm({
       client_name: initialData?.client_name || "",
       location: initialData?.location || "",
       keywords: initialKeywords,
+      keyword_auto_rotate_enabled: initialData?.keyword_auto_rotate_enabled ?? false,
       date_completed: initialData?.date_completed || "",
       team_member: initialData?.team_member || "",
       assigned_team_members: initialData?.assigned_team_members || [],
@@ -674,36 +675,27 @@ export default function ServicePromptPageForm({
         />
 
         {/* Suggested Phrases Section */}
-        <div className="rounded-lg p-6 bg-green-50 border border-green-200 shadow">
-          <div className="flex items-center gap-2 mb-4">
-            <Icon name="FaKey" className="w-7 h-7 text-slate-blue" size={28} />
-            <h3 className="text-2xl font-bold text-slate-blue">Suggested Phrases</h3>
-          </div>
-          <div className="mb-2">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Select which keyword phrases can be used by Prompty AI and/or the Suggested Phrases Menu.
-            </label>
-            <KeywordsInput
-              keywords={Array.isArray(formData.keywords) ? formData.keywords : []}
-              onChange={(keywords) => updateFormData('keywords', keywords)}
-              placeholder="Enter keywords separated by commas (e.g., best pizza Seattle, wood-fired oven, authentic Italian)"
-              businessInfo={{
-                name: businessProfile?.name,
-                industry: businessProfile?.industry,
-                industries_other: businessProfile?.industries_other,
-                industry_other: businessProfile?.industry_other,
-                address_city: businessProfile?.address_city,
-                address_state: businessProfile?.address_state,
-                accountId: businessProfile?.account_id,
-                about_us: businessProfile?.about_us,
-                differentiators: businessProfile?.differentiators,
-                years_in_business: businessProfile?.years_in_business,
-                services_offered: businessProfile?.services_offered,
-                industries_served: businessProfile?.industries_served
-              }}
-            />
-          </div>
-        </div>
+        <SuggestedPhrasesFeature
+          keywords={Array.isArray(formData.keywords) ? formData.keywords : []}
+          onKeywordsChange={(keywords) => updateFormData('keywords', keywords)}
+          autoRotateEnabled={formData.keyword_auto_rotate_enabled}
+          onAutoRotateEnabledChange={(enabled) => updateFormData('keyword_auto_rotate_enabled', enabled)}
+          businessInfo={{
+            name: businessProfile?.name,
+            industry: businessProfile?.industry,
+            industries_other: businessProfile?.industries_other,
+            industry_other: businessProfile?.industry_other,
+            address_city: businessProfile?.address_city,
+            address_state: businessProfile?.address_state,
+            accountId: businessProfile?.account_id,
+            about_us: businessProfile?.about_us,
+            differentiators: businessProfile?.differentiators,
+            years_in_business: businessProfile?.years_in_business,
+            services_offered: businessProfile?.services_offered,
+            industries_served: businessProfile?.industries_served
+          }}
+          initialData={initialData}
+        />
 
         {/* Keyword Inspiration Section */}
         <KeywordInspirationFeature

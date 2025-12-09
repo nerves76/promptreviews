@@ -16,7 +16,6 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import ReviewWriteSection from "../dashboard/edit-prompt-page/components/ReviewWriteSection";
-import { KeywordsInputLegacyAdapter as KeywordsInput } from "@/features/keywords/components";
 import {
   OfferFeature,
   EmojiSentimentFeature,
@@ -28,6 +27,7 @@ import {
   KeywordInspirationFeature,
   MotivationalNudgeFeature,
   RoleFieldFeature,
+  SuggestedPhrasesFeature,
   type ReviewPlatform
 } from "./prompt-features";
 import { generateContextualReview } from "@/utils/aiReviewGeneration";
@@ -125,6 +125,9 @@ export default function UniversalPromptPageForm({
 
     // Role Field - off by default for universal/catch-all pages
     role_field_enabled: initialData?.role_field_enabled ?? false,
+
+    // Suggested Phrases auto-rotation - tracks phrase usage and rotates overused ones
+    keyword_auto_rotate_enabled: initialData?.keyword_auto_rotate_enabled ?? false,
   });
 
   const [aiGeneratingIndex, setAiGeneratingIndex] = useState<number | null>(null);
@@ -344,36 +347,27 @@ export default function UniversalPromptPageForm({
       />
 
       {/* Suggested Phrases Section */}
-      <div className="rounded-lg p-6 bg-green-50 border border-green-200 shadow">
-        <div className="flex items-center gap-2 mb-4">
-          <Icon name="FaKey" className="w-7 h-7 text-slate-blue" size={28} />
-          <h3 className="text-2xl font-bold text-slate-blue">Suggested Phrases</h3>
-        </div>
-        <div className="mb-2">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Select which keyword phrases can be used by Prompty AI and/or the Suggested Phrases Menu.
-          </label>
-          <KeywordsInput
-            keywords={keywords}
-            onChange={setKeywords}
-            placeholder="Enter keywords separated by commas (e.g., best pizza Seattle, wood-fired oven, authentic Italian)"
-            businessInfo={{
-              name: businessProfile?.name,
-              industry: businessProfile?.industry,
-                industries_other: businessProfile?.industries_other,
-                industry_other: businessProfile?.industry_other,
-              address_city: businessProfile?.address_city,
-              address_state: businessProfile?.address_state,
-              accountId: businessProfile?.account_id,
-                about_us: businessProfile?.about_us,
-                differentiators: businessProfile?.differentiators,
-                years_in_business: businessProfile?.years_in_business,
-                services_offered: businessProfile?.services_offered,
-                industries_served: businessProfile?.industries_served
-            }}
-          />
-        </div>
-      </div>
+      <SuggestedPhrasesFeature
+        keywords={keywords}
+        onKeywordsChange={setKeywords}
+        autoRotateEnabled={formData.keyword_auto_rotate_enabled}
+        onAutoRotateEnabledChange={(enabled) => setFormData((prev: any) => ({ ...prev, keyword_auto_rotate_enabled: enabled }))}
+        businessInfo={{
+          name: businessProfile?.name,
+          industry: businessProfile?.industry,
+          industries_other: businessProfile?.industries_other,
+          industry_other: businessProfile?.industry_other,
+          address_city: businessProfile?.address_city,
+          address_state: businessProfile?.address_state,
+          accountId: businessProfile?.account_id,
+          about_us: businessProfile?.about_us,
+          differentiators: businessProfile?.differentiators,
+          years_in_business: businessProfile?.years_in_business,
+          services_offered: businessProfile?.services_offered,
+          industries_served: businessProfile?.industries_served
+        }}
+        initialData={initialData}
+      />
 
       {/* Keyword Inspiration Feature */}
       <KeywordInspirationFeature

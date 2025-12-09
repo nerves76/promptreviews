@@ -26,14 +26,15 @@ keywords                      # Central keyword library
 ├── phrase (text)             # Canonical keyword phrase
 ├── group_id (uuid)           # Optional grouping
 ├── word_count (int)          # Cached word count
-├── review_usage_count (int)  # How many reviews contain this keyword
+├── review_usage_count (int)  # Exact phrase matches (used for rotation)
+├── alias_match_count (int)   # Alias matches (SEO tracking only, no rotation impact)
 ├── status (text)             # active/paused
 ├── created_at, updated_at
 │
 │   # Keyword Concept Fields (added 2024-12)
 ├── review_phrase (text)      # Customer-facing persuasive text (e.g., "best marketing consultant in Portland")
 ├── search_query (text)       # Text optimized for geo-grid search tracking
-├── aliases (text[])          # Alternative phrasings that should match
+├── aliases (text[])          # Alternative phrasings for SEO matching
 ├── location_scope (text)     # Geographic scope: local/city/region/state/national
 ├── ai_generated (boolean)    # Whether AI helped fill these fields
 └── ai_suggestions (jsonb)    # Cached AI suggestions for review
@@ -58,9 +59,11 @@ keyword_prompt_page_usage     # Links keywords to prompt pages
 keyword_review_matches_v2     # Tracks keyword matches in reviews
 ├── id (uuid)
 ├── keyword_id (uuid)
-├── review_id (uuid)
+├── review_submission_id (uuid)  # For prompt page submissions
+├── google_review_id (text)      # For GBP reviews
 ├── account_id (uuid)
-├── match_count (int)         # Times keyword appears in review
+├── matched_phrase (text)        # The actual phrase that matched
+├── match_type (text)            # 'exact' or 'alias'
 └── matched_at (timestamp)
 
 keyword_rotation_log          # Audit trail for rotations
@@ -91,7 +94,27 @@ Keywords can have multiple "faces" for different contexts:
 | `phrase` | Canonical identifier | "marketing consultant portland" |
 | `review_phrase` | Customer-facing (persuasive) | "best marketing consultant in Portland" |
 | `search_query` | Geo-grid tracking | "marketing consultant near me Portland OR" |
-| `aliases` | Alternative matches | ["portland marketing expert", "marketing agency portland"] |
+| `aliases` | Alternative phrasings for SEO | ["portland marketing expert", "marketing agency portland"] |
+
+## Matching and Usage Tracking
+
+The system tracks two types of keyword matches separately:
+
+### Exact Matches (`review_usage_count`)
+- Matched when the exact `phrase` appears in a review
+- **Used for rotation**: When this count exceeds threshold, keyword rotates out
+- Prevents suggested phrases from appearing too often and looking automated
+
+### Alias Matches (`alias_match_count`)
+- Matched when any phrase in the `aliases` array appears in a review
+- **SEO tracking only**: Does NOT affect rotation
+- Helps track keyword concept effectiveness across different phrasings
+- Example: If phrase is "portland seo consultant" and aliases include "seo expert portland", both are tracked but only exact matches trigger rotation
+
+### Why Separate Counts?
+- **Rotation** should be based on exact phrase repetition (looks unnatural if same phrase appears 10+ times)
+- **SEO effectiveness** benefits from fuzzy matching (customers may use different wording for same concept)
+- Keeping them separate gives you accurate data for both use cases
 
 ### Location Scope
 

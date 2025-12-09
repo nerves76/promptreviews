@@ -14,7 +14,6 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import CustomerDetailsSection from "./sections/CustomerDetailsSection";
 import ReviewWriteSection from "../dashboard/edit-prompt-page/components/ReviewWriteSection";
-import { KeywordsInputLegacyAdapter as KeywordsInput } from "@/features/keywords/components";
 import {
   OfferFeature,
   EmojiSentimentFeature,
@@ -25,7 +24,8 @@ import {
   RecentReviewsFeature,
   KeywordInspirationFeature,
   MotivationalNudgeFeature,
-  RoleFieldFeature
+  RoleFieldFeature,
+  SuggestedPhrasesFeature
 } from "./prompt-features";
 import { useFallingStars } from "@/hooks/useFallingStars";
 import { Input } from "@/app/(app)/components/ui/input";
@@ -141,6 +141,9 @@ export default function EventPromptPageForm({
     }
     return [];
   });
+  const [keywordAutoRotateEnabled, setKeywordAutoRotateEnabled] = useState(
+    initialData?.keyword_auto_rotate_enabled ?? false
+  );
 
   // Local state for kickstarters background design (synced with business profile)
   const [localBackgroundDesign, setLocalBackgroundDesign] = useState(
@@ -346,6 +349,7 @@ export default function EventPromptPageForm({
         selected_keyword_inspirations: formData.selected_keyword_inspirations,
         // Keywords
         keywords: keywords,
+        keyword_auto_rotate_enabled: keywordAutoRotateEnabled,
         // Motivational Nudge
         motivational_nudge_enabled: motivationalNudgeEnabled,
         motivational_nudge_text: motivationalNudgeText,
@@ -672,36 +676,30 @@ export default function EventPromptPageForm({
         />
 
         {/* Suggested Phrases Section */}
-        <div className="rounded-lg p-6 bg-green-50 border border-green-200 shadow">
-          <div className="flex items-center gap-2 mb-4">
-            <Icon name="FaKey" className="w-7 h-7 text-slate-blue" size={28} />
-            <h3 className="text-2xl font-bold text-slate-blue">Suggested Phrases</h3>
-          </div>
-          <div className="mb-2">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Select which keyword phrases can be used by Prompty AI and/or the Suggested Phrases Menu.
-            </label>
-            <KeywordsInput
-              keywords={keywords}
-              onChange={setKeywords}
-              placeholder="Enter keywords separated by commas (e.g., best pizza Seattle, wood-fired oven, authentic Italian)"
-              businessInfo={{
-                name: businessProfile?.name,
-                industry: businessProfile?.industry,
-                industries_other: businessProfile?.industries_other,
-                industry_other: businessProfile?.industry_other,
-                address_city: businessProfile?.address_city,
-                address_state: businessProfile?.address_state,
-                accountId: businessProfile?.account_id,
-                about_us: businessProfile?.about_us,
-                differentiators: businessProfile?.differentiators,
-                years_in_business: businessProfile?.years_in_business,
-                services_offered: businessProfile?.services_offered,
-                industries_served: businessProfile?.industries_served
-              }}
-            />
-          </div>
-        </div>
+        <SuggestedPhrasesFeature
+          keywords={keywords}
+          onKeywordsChange={setKeywords}
+          autoRotateEnabled={keywordAutoRotateEnabled}
+          onAutoRotateEnabledChange={setKeywordAutoRotateEnabled}
+          businessInfo={{
+            name: businessProfile?.name,
+            industry: businessProfile?.industry,
+            industries_other: businessProfile?.industries_other,
+            industry_other: businessProfile?.industry_other,
+            address_city: businessProfile?.address_city,
+            address_state: businessProfile?.address_state,
+            accountId: businessProfile?.account_id,
+            about_us: businessProfile?.about_us,
+            differentiators: businessProfile?.differentiators,
+            years_in_business: businessProfile?.years_in_business,
+            services_offered: businessProfile?.services_offered,
+            industries_served: businessProfile?.industries_served,
+          }}
+          initialData={{
+            keywords: initialData?.keywords,
+            keyword_auto_rotate_enabled: initialData?.keyword_auto_rotate_enabled,
+          }}
+        />
 
         {/* Shared Feature Components */}
         <div className="space-y-8">

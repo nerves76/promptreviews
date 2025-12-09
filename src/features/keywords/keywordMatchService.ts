@@ -17,7 +17,15 @@ type LoadedKeyword = {
   normalized: string;
   wordCount: number;
   status: 'active' | 'paused';
+  aliases: string[];
 };
+
+/**
+ * Match result indicating how a keyword was found in review text.
+ * - 'exact': Matched the normalized_phrase directly (affects rotation)
+ * - 'alias': Matched one of the aliases (SEO tracking only, no rotation impact)
+ */
+type MatchType = 'exact' | 'alias';
 
 /**
  * KeywordMatchService - Unified Keyword Matching
@@ -56,7 +64,8 @@ export class KeywordMatchService {
         phrase,
         normalized_phrase,
         word_count,
-        status
+        status,
+        aliases
       `)
       .eq('account_id', this.accountId)
       .eq('status', 'active');
@@ -73,9 +82,32 @@ export class KeywordMatchService {
       normalized: kw.normalized_phrase,
       wordCount: kw.word_count,
       status: kw.status as 'active' | 'paused',
+      aliases: (kw.aliases || []).map((a: string) => normalizePhrase(a)),
     }));
 
     return this.keywords;
+  }
+
+  /**
+   * Check if text matches a keyword (exact or alias).
+   * Returns the match type if found, null otherwise.
+   */
+  private matchKeyword(keyword: LoadedKeyword, text: string): { type: MatchType; matchedPhrase: string } | null {
+    // Check exact match first
+    const exactRegex = new RegExp(`\\b${escapeRegex(keyword.normalized)}\\b`, 'i');
+    if (exactRegex.test(text)) {
+      return { type: 'exact', matchedPhrase: keyword.phrase };
+    }
+
+    // Check aliases
+    for (const alias of keyword.aliases) {
+      const aliasRegex = new RegExp(`\\b${escapeRegex(alias)}\\b`, 'i');
+      if (aliasRegex.test(text)) {
+        return { type: 'alias', matchedPhrase: alias };
+      }
+    }
+
+    return null;
   }
 
   /**
@@ -83,8 +115,8 @@ export class KeywordMatchService {
    *
    * For each review:
    * 1. Normalizes the review text
-   * 2. Tests each active keyword using word-boundary regex
-   * 3. Inserts matches into keyword_review_matches_v2
+   * 2. Tests each active keyword (exact phrase and aliases) using word-boundary regex
+   * 3. Inserts matches into keyword_review_matches_v2 with match_type
    *
    * Note: This does NOT update usage counts. That is handled by
    * a separate batch job to keep sync operations fast.
@@ -104,6 +136,7 @@ export class KeywordMatchService {
       account_id: string;
       google_business_location_id: string | null;
       matched_phrase: string;
+      match_type: MatchType;
       matched_at: string;
     }[] = [];
 
@@ -112,9 +145,8 @@ export class KeywordMatchService {
       if (!body) continue;
 
       for (const keyword of keywords) {
-        // Use word-boundary matching for accuracy
-        const regex = new RegExp(`\\b${escapeRegex(keyword.normalized)}\\b`, 'i');
-        if (!regex.test(body)) continue;
+        const match = this.matchKeyword(keyword, body);
+        if (!match) continue;
 
         inserts.push({
           keyword_id: keyword.id,
@@ -122,7 +154,8 @@ export class KeywordMatchService {
           google_review_id: record.googleReviewId || null,
           account_id: record.accountId,
           google_business_location_id: record.googleBusinessLocationId || null,
-          matched_phrase: keyword.phrase,
+          matched_phrase: match.matchedPhrase,
+          match_type: match.type,
           matched_at: new Date().toISOString(),
         });
       }
@@ -130,16 +163,36 @@ export class KeywordMatchService {
 
     if (!inserts.length) return;
 
-    // Insert into the new matches table
-    const { error } = await this.supabase
-      .from('keyword_review_matches_v2')
-      .upsert(inserts, {
-        onConflict: 'keyword_id,review_submission_id',
-        ignoreDuplicates: true,
-      });
+    // Split inserts by type - each has a different unique constraint
+    const submissionInserts = inserts.filter(i => i.review_submission_id !== null);
+    const googleInserts = inserts.filter(i => i.google_review_id !== null && i.review_submission_id === null);
 
-    if (error) {
-      console.error('❌ Failed to upsert keyword review matches:', error);
+    // Upsert submission-based matches
+    if (submissionInserts.length > 0) {
+      const { error } = await this.supabase
+        .from('keyword_review_matches_v2')
+        .upsert(submissionInserts, {
+          onConflict: 'keyword_id,review_submission_id',
+          ignoreDuplicates: true,
+        });
+
+      if (error) {
+        console.error('❌ Failed to upsert submission keyword matches:', error);
+      }
+    }
+
+    // Upsert Google review-based matches
+    if (googleInserts.length > 0) {
+      const { error } = await this.supabase
+        .from('keyword_review_matches_v2')
+        .upsert(googleInserts, {
+          onConflict: 'keyword_id,google_review_id',
+          ignoreDuplicates: true,
+        });
+
+      if (error) {
+        console.error('❌ Failed to upsert Google review keyword matches:', error);
+      }
     }
   }
 
@@ -149,7 +202,7 @@ export class KeywordMatchService {
    *
    * @param reviewSubmissionId - The review_submissions.id
    * @param reviewContent - The text content of the review
-   * @returns Array of matched keyword IDs
+   * @returns Array of matched keyword IDs (both exact and alias matches)
    */
   async processSubmission(
     reviewSubmissionId: string,
@@ -169,12 +222,13 @@ export class KeywordMatchService {
       account_id: string;
       google_business_location_id: null;
       matched_phrase: string;
+      match_type: MatchType;
       matched_at: string;
     }[] = [];
 
     for (const keyword of keywords) {
-      const regex = new RegExp(`\\b${escapeRegex(keyword.normalized)}\\b`, 'i');
-      if (!regex.test(body)) continue;
+      const match = this.matchKeyword(keyword, body);
+      if (!match) continue;
 
       matchedKeywordIds.push(keyword.id);
       inserts.push({
@@ -183,7 +237,8 @@ export class KeywordMatchService {
         google_review_id: null,
         account_id: this.accountId,
         google_business_location_id: null,
-        matched_phrase: keyword.phrase,
+        matched_phrase: match.matchedPhrase,
+        match_type: match.type,
         matched_at: new Date().toISOString(),
       });
     }
@@ -209,7 +264,7 @@ export class KeywordMatchService {
    * Does not persist matches - useful for preview/testing.
    *
    * @param text - The text to search for keywords
-   * @returns Array of keyword objects that match
+   * @returns Array of keyword objects that match (includes both exact and alias matches)
    */
   async findMatchesInText(text: string): Promise<LoadedKeyword[]> {
     const keywords = await this.loadKeywords();
@@ -219,9 +274,45 @@ export class KeywordMatchService {
     const matches: LoadedKeyword[] = [];
 
     for (const keyword of keywords) {
-      const regex = new RegExp(`\\b${escapeRegex(keyword.normalized)}\\b`, 'i');
-      if (regex.test(body)) {
+      const match = this.matchKeyword(keyword, body);
+      if (match) {
         matches.push(keyword);
+      }
+    }
+
+    return matches;
+  }
+
+  /**
+   * Get detailed match information for text.
+   * Useful for debugging or displaying which phrase matched.
+   *
+   * @param text - The text to search for keywords
+   * @returns Array of match details including match type
+   */
+  async findDetailedMatchesInText(text: string): Promise<Array<{
+    keyword: LoadedKeyword;
+    matchType: MatchType;
+    matchedPhrase: string;
+  }>> {
+    const keywords = await this.loadKeywords();
+    if (!keywords.length || !text) return [];
+
+    const body = text.toLowerCase();
+    const matches: Array<{
+      keyword: LoadedKeyword;
+      matchType: MatchType;
+      matchedPhrase: string;
+    }> = [];
+
+    for (const keyword of keywords) {
+      const match = this.matchKeyword(keyword, body);
+      if (match) {
+        matches.push({
+          keyword,
+          matchType: match.type,
+          matchedPhrase: match.matchedPhrase,
+        });
       }
     }
 

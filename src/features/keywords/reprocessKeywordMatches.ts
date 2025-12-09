@@ -136,8 +136,11 @@ export async function reprocessKeywordMatchesForAccount(
 }
 
 /**
- * Syncs the review_usage_count and last_used_in_review_at fields for all
- * keywords in an account based on the keyword_review_matches_v2 table.
+ * Syncs the review_usage_count, alias_match_count, and last_used_in_review_at
+ * fields for all keywords in an account based on the keyword_review_matches_v2 table.
+ *
+ * Important: review_usage_count only includes 'exact' matches (used for rotation).
+ * alias_match_count only includes 'alias' matches (for SEO tracking, no rotation impact).
  *
  * This is designed to be run as a batch job or after reprocessing.
  */
@@ -162,20 +165,33 @@ export async function syncKeywordUsageCounts(
 
   let keywordsUpdated = 0;
 
-  // For each keyword, count matches and get last match time
+  // For each keyword, count matches by type and get last match time
   for (const keyword of keywords) {
-    // Count matches
-    const { count, error: countError } = await supabase
+    // Count exact matches (for rotation)
+    const { count: exactCount, error: exactCountError } = await supabase
       .from('keyword_review_matches_v2')
       .select('*', { count: 'exact', head: true })
-      .eq('keyword_id', keyword.id);
+      .eq('keyword_id', keyword.id)
+      .eq('match_type', 'exact');
 
-    if (countError) {
-      console.error(`❌ Failed to count matches for keyword ${keyword.id}:`, countError);
+    if (exactCountError) {
+      console.error(`❌ Failed to count exact matches for keyword ${keyword.id}:`, exactCountError);
       continue;
     }
 
-    // Get last match time
+    // Count alias matches (for SEO tracking)
+    const { count: aliasCount, error: aliasCountError } = await supabase
+      .from('keyword_review_matches_v2')
+      .select('*', { count: 'exact', head: true })
+      .eq('keyword_id', keyword.id)
+      .eq('match_type', 'alias');
+
+    if (aliasCountError) {
+      console.error(`❌ Failed to count alias matches for keyword ${keyword.id}:`, aliasCountError);
+      continue;
+    }
+
+    // Get last match time (either type)
     const { data: lastMatch, error: lastMatchError } = await supabase
       .from('keyword_review_matches_v2')
       .select('matched_at')
@@ -189,11 +205,12 @@ export async function syncKeywordUsageCounts(
       continue;
     }
 
-    // Update keyword
+    // Update keyword with separate counts
     const { error: updateError } = await supabase
       .from('keywords')
       .update({
-        review_usage_count: count || 0,
+        review_usage_count: exactCount || 0,
+        alias_match_count: aliasCount || 0,
         last_used_in_review_at: lastMatch?.matched_at || null,
       })
       .eq('id', keyword.id);

@@ -2231,7 +2231,7 @@ model rate_limit_counters {
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model review_drafts {
-  id                 String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id                 String    @id @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
   prompt_page_id     String?   @db.Uuid
   platform           String?
   review_text        String?
@@ -2474,7 +2474,7 @@ model selected_gbp_locations {
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model sentiment_analysis_runs {
-  id                      String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id                      String    @id @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
   account_id              String    @db.Uuid
   run_date                DateTime? @default(now()) @db.Timestamptz(6)
   review_count_analyzed   Int
@@ -2687,6 +2687,8 @@ model keyword_review_matches_v2 {
   review_submission_id String?             @db.Uuid
   google_review_id     String?
   matched_at           DateTime?           @default(now()) @db.Timestamptz(6)
+  matched_phrase       String?
+  match_type           String?             @default("exact")
   accounts             accounts            @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   keywords             keywords            @relation(fields: [keyword_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   review_submissions   review_submissions? @relation(fields: [review_submission_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
@@ -2696,6 +2698,7 @@ model keyword_review_matches_v2 {
   @@index([account_id], map: "idx_krm_v2_account")
   @@index([keyword_id], map: "idx_krm_v2_keyword")
   @@index([review_submission_id], map: "idx_krm_v2_review")
+  @@index([keyword_id, match_type], map: "idx_krm_v2_match_type")
   @@schema("public")
 }
 
@@ -2720,6 +2723,7 @@ model keywords {
   location_scope                                                             String?
   ai_generated                                                               Boolean?                    @default(false)
   ai_suggestions                                                             Json?
+  alias_match_count                                                          Int?                        @default(0)
   gg_checks                                                                  gg_checks[]
   gg_tracked_keywords                                                        gg_tracked_keywords[]
   keyword_prompt_page_usage                                                  keyword_prompt_page_usage[]
