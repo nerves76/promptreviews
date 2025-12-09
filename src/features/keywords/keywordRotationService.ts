@@ -65,7 +65,7 @@ export async function getRotationStatus(
     return null;
   }
 
-  const threshold = promptPage.keyword_auto_rotate_threshold ?? 16;
+  const threshold = promptPage.keyword_auto_rotate_threshold ?? 5;
   const activePoolSize = promptPage.keyword_active_pool_size ?? 10;
 
   // Get keywords in active pool with usage counts
@@ -102,9 +102,18 @@ export async function getRotationStatus(
   }
 
   // Find overused keywords (usage >= threshold)
+  // Only consider phrases with 5+ words for rotation (shorter phrases are less noticeable when repeated)
+  const MIN_WORDS_FOR_ROTATION = 5;
   const overusedKeywords: RotationSuggestion[] = [];
   for (const kw of activeKeywords || []) {
     const keyword = kw.keywords as any;
+    const wordCount = keyword.phrase.trim().split(/\s+/).length;
+
+    // Skip phrases with fewer than 5 words - they don't need rotation
+    if (wordCount < MIN_WORDS_FOR_ROTATION) {
+      continue;
+    }
+
     if (keyword.review_usage_count >= threshold) {
       overusedKeywords.push({
         keywordId: keyword.id,
@@ -209,7 +218,7 @@ export async function rotateKeyword(
     return { success: false, message: 'Prompt page not found' };
   }
 
-  const threshold = promptPage.keyword_auto_rotate_threshold ?? 16;
+  const threshold = promptPage.keyword_auto_rotate_threshold ?? 5;
 
   // Get the keyword being rotated out
   const { data: outKeyword, error: outError } = await supabase
