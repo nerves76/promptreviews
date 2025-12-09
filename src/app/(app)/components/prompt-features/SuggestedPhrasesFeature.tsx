@@ -132,7 +132,7 @@ export default function SuggestedPhrasesFeature({
           <div>
             <span className="text-sm font-medium text-gray-700">Auto-rotate phrases</span>
             <p className="text-xs text-gray-500 mt-0.5">
-              Track how often each phrase appears in reviews and automatically rotate out overused phrases to keep reviews looking natural.
+              Automatically rotate out phrases that get used 5 or more times in your reviews. This only applies to phrases that have at least 5 words.
             </p>
           </div>
         </label>
