@@ -66,7 +66,7 @@ const SAMPLE_REVIEWS = [
   {
     prompt_page_id: "00000000-0000-0000-0000-000000000000",
     first_name: "John",
-    last_name: "Smith",
+    last_name: "Doe",
     platform: "Google",
     review_content:
       "Absolutely amazing service! The team was professional, efficient, and completed the project ahead of schedule.",
@@ -75,8 +75,8 @@ const SAMPLE_REVIEWS = [
   },
   {
     prompt_page_id: "00000000-0000-0000-0000-000000000000",
-    first_name: "Emily",
-    last_name: "Davis",
+    first_name: "Jane",
+    last_name: "Doe",
     platform: "Google",
     review_content:
       "I've worked with many contractors, but this team stands out. Their expertise and attention to detail are unmatched.",
