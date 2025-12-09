@@ -546,7 +546,6 @@ export default function KeywordsInputLegacyAdapter({
             : 'No keywords yet'}
           {maxKeywords && ` (max: ${maxKeywords})`}
         </span>
-        <span className="text-gray-400">Phrases with 4+ words show a count when found in reviews</span>
       </div>
 
       {/* Library picker dropdown */}
