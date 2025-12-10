@@ -18,6 +18,8 @@ interface NotificationPreferences {
   in_app_gbp_changes: boolean;
   email_new_reviews: boolean;
   in_app_new_reviews: boolean;
+  email_review_auto_verified: boolean;
+  in_app_review_auto_verified: boolean;
 }
 
 export default function AccountPage() {
@@ -226,6 +228,7 @@ export default function AccountPage() {
   // GBP Protection notification preferences
   const [notifPrefs, setNotifPrefs] = useState<NotificationPreferences | null>(null);
   const [gbpProtectionSaving, setGbpProtectionSaving] = useState(false);
+  const [autoVerifiedSaving, setAutoVerifiedSaving] = useState(false);
 
   // Fetch notification preferences
   useEffect(() => {
@@ -260,6 +263,27 @@ export default function AccountPage() {
       setError('Failed to update notification settings');
     }
     setGbpProtectionSaving(false);
+  };
+
+  const handleAutoVerifiedToggle = async () => {
+    if (!notifPrefs) return;
+    setAutoVerifiedSaving(true);
+    try {
+      const newValue = !notifPrefs.email_review_auto_verified;
+      await apiClient.put('/notifications/preferences', {
+        email_review_auto_verified: newValue,
+        in_app_review_auto_verified: newValue
+      });
+      setNotifPrefs({
+        ...notifPrefs,
+        email_review_auto_verified: newValue,
+        in_app_review_auto_verified: newValue
+      });
+    } catch (error) {
+      console.error('Error updating auto-verified notifications:', error);
+      setError('Failed to update notification settings');
+    }
+    setAutoVerifiedSaving(false);
   };
 
   const handleCreateAccount = async (e: React.FormEvent) => {
@@ -712,6 +736,41 @@ export default function AccountPage() {
               </button>
             </div>
           )}
+
+          {/* Auto-Verified Review Notifications Toggle */}
+          <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+            <div>
+              <label className="text-sm font-medium text-gray-900">
+                Auto-verified review alerts
+              </label>
+              <p className="text-sm text-gray-500">Get notified when a Prompt Page review is verified on Google</p>
+            </div>
+            <button
+              onClick={handleAutoVerifiedToggle}
+              disabled={autoVerifiedSaving || !notifPrefs}
+              className={`
+                relative inline-flex h-6 w-11 items-center rounded-full
+                transition-colors focus:outline-none focus:ring-2
+                focus:ring-slate-blue focus:ring-offset-2
+                ${(notifPrefs?.email_review_auto_verified ?? true)
+                  ? "bg-slate-blue"
+                  : "bg-gray-200"
+                }
+                ${autoVerifiedSaving || !notifPrefs ? "opacity-50 cursor-not-allowed" : ""}
+              `}
+            >
+              <span
+                className={`
+                  inline-block h-4 w-4 transform rounded-full bg-white
+                  transition-transform
+                  ${(notifPrefs?.email_review_auto_verified ?? true)
+                    ? "translate-x-6"
+                    : "translate-x-1"
+                  }
+                `}
+              />
+            </button>
+          </div>
         </div>
       </div>
 

@@ -1,5 +1,22 @@
 # Database Migrations Changelog
 
+## [2025-12-09]
+### Migrations Added
+
+#### 20251226000000_add_review_auto_verified_notifications.sql
+- **NEW FEATURE**: Auto-verified review notification system
+- **notification_type enum**: Added `review_auto_verified` value for when Prompt Page reviews are verified on Google
+- **notification_preferences table**: Added `in_app_review_auto_verified` and `email_review_auto_verified` columns (both default TRUE)
+- **email_templates table**: Added `review_auto_verified` template with green success styling
+  - Subject: "Great news! {{reviewerName}}'s review is now live on Google"
+  - Variables: firstName, reviewerName, reviewContent, starRatingStars, reviewsUrl, accountUrl
+- **Purpose**: Notify account owners when their customers' Prompt Page submissions are auto-verified against published Google reviews
+- **Triggers**:
+  - Primary: `reviewSyncService.ts` during Google review import
+  - Fallback: `verify-google-reviews` daily cron job
+- **UI**: Toggle added to Account settings page under Notification settings
+- **Related Refactor**: Notifications system refactored to use centralized registry pattern (see `/docs/NOTIFICATIONS_SYSTEM.md`)
+
 ## [2025-10-12]
 ### Migrations Added
 

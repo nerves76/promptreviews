@@ -80,11 +80,13 @@ export async function PUT(request: NextRequest) {
       'in_app_team_updates',
       'in_app_subscription_updates',
       'in_app_announcements',
+      'in_app_review_auto_verified',
       'email_gbp_changes',
       'email_new_reviews',
       'email_team_updates',
       'email_subscription_updates',
       'email_announcements',
+      'email_review_auto_verified',
       'email_digest_frequency'
     ];
 

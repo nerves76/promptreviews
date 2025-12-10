@@ -14,6 +14,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { findBestMatch } from '@/utils/reviewVerification';
+import { sendNotificationToAccountOwner } from '@/utils/notifications';
 import * as Sentry from '@sentry/nextjs';
 
 const supabase = createClient(
@@ -134,6 +135,20 @@ export async function GET(request: NextRequest) {
             })
             .eq('id', submission.id);
           verified++;
+
+          // Send notification to account owner
+          try {
+            const reviewerName = `${submission.first_name || ''} ${submission.last_name || ''}`.trim();
+            await sendNotificationToAccountOwner(accountId, 'review_auto_verified', {
+              reviewerName: reviewerName || 'A customer',
+              reviewContent: submission.review_text_copy || '',
+              starRating: match.starRating || 5,
+              submissionId: submission.id,
+            });
+          } catch (notifError) {
+            console.error('Failed to send auto-verified notification:', notifError);
+            // Don't fail verification if notification fails
+          }
         } else {
           // Increment attempt counter
           const attempts = (submission.verification_attempts ?? 0) + 1;

@@ -2,6 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { GoogleBusinessProfileClient } from '@/features/social-posting/platforms/google-business-profile/googleBusinessProfileClient';
 import { KeywordMatchService } from '@/features/keywords/keywordMatchService';
 import { findBestMatch } from '@/utils/reviewVerification';
+import { sendNotificationToAccountOwner } from '@/utils/notifications';
 
 type SupabaseServiceClient = SupabaseClient<any, 'public', any>;
 
@@ -402,6 +403,19 @@ export class GoogleReviewSyncService {
         if (!updateError) {
           verifiedCount++;
           console.log(`✅ Auto-verified submission ${submission.id} (score: ${matchResult.score})`);
+
+          // Send notification to account owner
+          try {
+            await sendNotificationToAccountOwner(this.context.accountId, 'review_auto_verified', {
+              reviewerName,
+              reviewContent: submission.review_text_copy,
+              starRating: matchResult.starRating || 5,
+              submissionId: submission.id,
+            });
+          } catch (notifError) {
+            console.error('Failed to send auto-verified notification:', notifError);
+            // Don't fail the verification if notification fails
+          }
         }
       }
     }
