@@ -149,7 +149,7 @@ This automatically:
 
 ### Send to All Account Users
 
-For notifications visible to all team members (email goes to owner):
+For notifications that should be visible and emailed to all team members:
 
 ```typescript
 import { sendNotificationToAccount } from '@/utils/notifications';
@@ -163,8 +163,8 @@ await sendNotificationToAccount(accountId, 'review_auto_verified', {
 
 This automatically:
 1. Creates in-app notification visible to ALL users on the account
-2. Gets the account owner's email from Supabase auth
-3. Sends email to account owner only
+2. Gets email addresses for ALL users on the account from Supabase auth
+3. Sends email to each user on the account
 
 ### Send to Account Owner Only
 
