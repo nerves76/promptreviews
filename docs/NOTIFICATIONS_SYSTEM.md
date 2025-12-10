@@ -147,14 +147,14 @@ This automatically:
 3. Uses the correct email template based on notification type
 4. Marks the notification as email sent
 
-### Send to Account Owner Only
+### Send to All Account Users
 
-For notifications that should only go to the account owner:
+For notifications visible to all team members (email goes to owner):
 
 ```typescript
-import { sendNotificationToAccountOwner } from '@/utils/notifications';
+import { sendNotificationToAccount } from '@/utils/notifications';
 
-await sendNotificationToAccountOwner(accountId, 'review_auto_verified', {
+await sendNotificationToAccount(accountId, 'review_auto_verified', {
   reviewerName: 'Jane Doe',
   reviewContent: 'Great service!',
   starRating: 5,
@@ -162,10 +162,25 @@ await sendNotificationToAccountOwner(accountId, 'review_auto_verified', {
 ```
 
 This automatically:
+1. Creates in-app notification visible to ALL users on the account
+2. Gets the account owner's email from Supabase auth
+3. Sends email to account owner only
+
+### Send to Account Owner Only
+
+For notifications that should only go to the account owner:
+
+```typescript
+import { sendNotificationToAccountOwner } from '@/utils/notifications';
+
+await sendNotificationToAccountOwner(accountId, 'some_type', { ... });
+```
+
+This automatically:
 1. Finds the account owner from `account_users` table
 2. Gets their email from Supabase auth
-3. Gets their first name from the account
-4. Sends notification only to them
+3. Creates notification visible only to them
+4. Sends email to them
 
 ### Legacy Functions (Deprecated)
 

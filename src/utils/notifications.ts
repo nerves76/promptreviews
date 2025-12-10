@@ -263,6 +263,68 @@ export async function sendNotification(params: SendNotificationParams): Promise<
 }
 
 /**
+ * Send notification to all users on an account
+ *
+ * In-app notification visible to all team members.
+ * Email is sent to account owner only (since we need a specific email address).
+ */
+export async function sendNotificationToAccount(
+  accountId: string,
+  type: NotificationType,
+  data: NotificationData
+): Promise<SendNotificationResult> {
+  try {
+    const supabase = createServiceRoleClient();
+
+    // Get account owner for email
+    const { data: ownerData } = await supabase
+      .from('account_users')
+      .select('user_id')
+      .eq('account_id', accountId)
+      .eq('role', 'owner')
+      .single();
+
+    let ownerEmail: string | undefined;
+    let firstName = 'there';
+
+    if (ownerData) {
+      // Get owner's email
+      const { data: userData } = await supabase.auth.admin.getUserById(ownerData.user_id);
+      ownerEmail = userData?.user?.email;
+
+      // Get account first name
+      const { data: account } = await supabase
+        .from('accounts')
+        .select('first_name')
+        .eq('id', accountId)
+        .single();
+      firstName = account?.first_name || 'there';
+    }
+
+    // Add user info to data for email (email goes to owner)
+    const enrichedData = {
+      ...data,
+      email: ownerEmail,
+      firstName,
+    };
+
+    // userId: null means notification is visible to ALL users on account
+    return sendNotification({
+      accountId,
+      userId: null,
+      type,
+      data: enrichedData,
+    });
+  } catch (error) {
+    console.error('Error in sendNotificationToAccount:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    };
+  }
+}
+
+/**
  * Send notification to account owner only
  *
  * Useful for notifications that should only go to the account owner,
