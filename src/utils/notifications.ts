@@ -266,7 +266,7 @@ export async function sendNotification(params: SendNotificationParams): Promise<
  * Send notification to all users on an account
  *
  * In-app notification visible to all team members.
- * Email is sent to account owner only (since we need a specific email address).
+ * Email is sent to all users on the account.
  */
 export async function sendNotificationToAccount(
   accountId: string,
@@ -276,45 +276,104 @@ export async function sendNotificationToAccount(
   try {
     const supabase = createServiceRoleClient();
 
-    // Get account owner for email
-    const { data: ownerData } = await supabase
+    // Get all users on this account
+    const { data: accountUsers } = await supabase
       .from('account_users')
       .select('user_id')
-      .eq('account_id', accountId)
-      .eq('role', 'owner')
+      .eq('account_id', accountId);
+
+    // Get account first name (for email personalization)
+    const { data: account } = await supabase
+      .from('accounts')
+      .select('first_name')
+      .eq('id', accountId)
       .single();
+    const firstName = account?.first_name || 'there';
 
-    let ownerEmail: string | undefined;
-    let firstName = 'there';
-
-    if (ownerData) {
-      // Get owner's email
-      const { data: userData } = await supabase.auth.admin.getUserById(ownerData.user_id);
-      ownerEmail = userData?.user?.email;
-
-      // Get account first name
-      const { data: account } = await supabase
-        .from('accounts')
-        .select('first_name')
-        .eq('id', accountId)
-        .single();
-      firstName = account?.first_name || 'there';
+    // Collect all user emails
+    const emails: string[] = [];
+    if (accountUsers) {
+      for (const user of accountUsers) {
+        const { data: userData } = await supabase.auth.admin.getUserById(user.user_id);
+        if (userData?.user?.email) {
+          emails.push(userData.user.email);
+        }
+      }
     }
 
-    // Add user info to data for email (email goes to owner)
-    const enrichedData = {
-      ...data,
-      email: ownerEmail,
-      firstName,
-    };
+    // Create in-app notification (visible to all users)
+    const config = NOTIFICATION_REGISTRY[type];
+    if (!config) {
+      return { success: false, error: `Unknown notification type: ${type}` };
+    }
 
-    // userId: null means notification is visible to ALL users on account
-    return sendNotification({
-      accountId,
-      userId: null,
-      type,
-      data: enrichedData,
-    });
+    // Fetch preferences once
+    const { data: preferences } = await supabase
+      .from('notification_preferences')
+      .select('*')
+      .eq('account_id', accountId)
+      .single();
+
+    // Check if in-app notification is enabled
+    const inAppEnabled = !preferences || preferences[config.inAppPrefField] !== false;
+
+    let notificationId: string | undefined;
+
+    if (inAppEnabled) {
+      const { data: notifData, error: notifError } = await supabase
+        .from('notifications')
+        .insert({
+          account_id: accountId,
+          user_id: null, // null = visible to all users on account
+          type,
+          title: config.getTitle(data),
+          message: config.getMessage(data),
+          action_url: config.actionUrl || null,
+          action_label: config.actionLabel || null,
+          metadata: data,
+        })
+        .select('id')
+        .single();
+
+      if (notifError) {
+        console.error('Error creating notification:', notifError);
+        return { success: false, error: notifError.message };
+      }
+
+      notificationId = notifData.id;
+    }
+
+    // Check if email is enabled and send to all users
+    const emailEnabled = !preferences || preferences[config.emailPrefField] !== false;
+    let emailSent = false;
+
+    if (emailEnabled && emails.length > 0) {
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.promptreviews.app';
+      const templateName = config.emailTemplate || type;
+      const emailVariables = config.getEmailVariables
+        ? config.getEmailVariables({ ...data, firstName }, baseUrl)
+        : { ...data, firstName, baseUrl };
+
+      // Send email to each user on the account
+      for (const email of emails) {
+        try {
+          await sendTemplatedEmail(templateName, email, emailVariables);
+        } catch (emailError) {
+          console.error(`Failed to send email to ${email}:`, emailError);
+        }
+      }
+      emailSent = true;
+
+      if (notificationId) {
+        await markNotificationEmailSent(notificationId);
+      }
+    }
+
+    return {
+      success: true,
+      notificationId,
+      emailSent,
+    };
   } catch (error) {
     console.error('Error in sendNotificationToAccount:', error);
     return {
