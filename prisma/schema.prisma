@@ -1819,6 +1819,8 @@ model notification_preferences {
   email_digest_frequency      String?   @default("immediate")
   created_at                  DateTime? @default(now()) @db.Timestamptz(6)
   updated_at                  DateTime? @default(now()) @db.Timestamptz(6)
+  in_app_review_auto_verified Boolean?  @default(true)
+  email_review_auto_verified  Boolean?  @default(true)
   accounts                    accounts  @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@schema("public")
@@ -2959,6 +2961,7 @@ enum notification_type {
   team_invitation
   subscription_update
   system_announcement
+  review_auto_verified
 
   @@schema("public")
 }
