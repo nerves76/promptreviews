@@ -225,7 +225,7 @@ export default function CreditsPage() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Credits</h1>
-          <p className="text-gray-400">
+          <p className="text-white/70">
             Manage your credits for geo grid checks and other features
           </p>
         </div>
@@ -245,17 +245,17 @@ export default function CreditsPage() {
 
               <div className="space-y-3">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-400">Included credits</span>
+                  <span className="text-white/70">Included credits</span>
                   <span>{balance?.balance.included ?? 0}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-400">Purchased credits</span>
+                  <span className="text-white/70">Purchased credits</span>
                   <span>{balance?.balance.purchased ?? 0}</span>
                 </div>
 
                 {balance?.includedCreditsExpireAt && (
                   <div className="pt-3 border-t border-white/10">
-                    <p className="text-xs text-gray-400">
+                    <p className="text-xs text-white/60">
                       Included credits reset on{" "}
                       {new Date(
                         balance.includedCreditsExpireAt
@@ -284,7 +284,7 @@ export default function CreditsPage() {
 
                 {!balance?.isFreeAccount && (
                   <div className="pt-3 border-t border-white/10">
-                    <p className="text-xs text-gray-400">
+                    <p className="text-xs text-white/60">
                       Your{" "}
                       <span className="capitalize">{balance?.plan}</span> plan
                       includes {balance?.monthlyCredits} credits/month
@@ -296,12 +296,27 @@ export default function CreditsPage() {
 
             {/* Credit Info */}
             <div className="mt-4 bg-blue-900/20 rounded-xl p-4 border border-blue-500/20">
-              <h3 className="font-medium text-blue-300 mb-2">How credits work</h3>
-              <ul className="text-sm text-gray-300 space-y-1">
+              <h3 className="font-medium text-blue-300 mb-3">How credits work</h3>
+              <ul className="text-sm text-white/80 space-y-1 mb-4">
                 <li>• Included credits reset monthly</li>
                 <li>• Purchased credits never expire</li>
                 <li>• Included credits are used first</li>
               </ul>
+              <h4 className="font-medium text-blue-300 text-sm mb-2">Monthly credits by plan</h4>
+              <div className="text-sm text-white/80 space-y-1">
+                <div className="flex justify-between">
+                  <span>Grower</span>
+                  <span className="font-medium">100</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Builder</span>
+                  <span className="font-medium">200</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Maven</span>
+                  <span className="font-medium">400</span>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -325,7 +340,7 @@ export default function CreditsPage() {
                     className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                       purchaseType === "one_time"
                         ? "bg-white/20 text-white"
-                        : "text-gray-400 hover:text-white"
+                        : "text-white/60 hover:text-white"
                     }`}
                   >
                     One-time
@@ -335,7 +350,7 @@ export default function CreditsPage() {
                     className={`px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${
                       purchaseType === "subscription"
                         ? "bg-white/20 text-white"
-                        : "text-gray-400 hover:text-white"
+                        : "text-white/60 hover:text-white"
                     }`}
                   >
                     Monthly
@@ -344,7 +359,7 @@ export default function CreditsPage() {
                     </span>
                   </button>
                 </div>
-                <p className="text-xs text-gray-400 mt-2">
+                <p className="text-xs text-white/60 mt-2">
                   {purchaseType === "one_time"
                     ? "Pay once, credits never expire"
                     : "Auto-refill monthly at 10% off. Cancel anytime."}
@@ -391,17 +406,17 @@ export default function CreditsPage() {
                       <div className="text-2xl font-bold mb-1">
                         {pack.credits.toLocaleString()}
                       </div>
-                      <div className="text-gray-400 text-sm mb-1">
+                      <div className="text-white/70 text-sm mb-1">
                         credits{isSubscription ? "/mo" : ""}
                       </div>
-                      <div className="text-xs text-gray-500 mb-3">
+                      <div className="text-xs text-white/50 mb-3">
                         ${perCredit.toFixed(3)}/credit
                       </div>
                       <div className="text-xl font-semibold mb-4">
                         ${(discountedPriceCents / 100).toFixed(0)}
-                        {isSubscription && <span className="text-sm text-gray-400">/mo</span>}
+                        {isSubscription && <span className="text-sm text-white/70">/mo</span>}
                         {isSubscription && (
-                          <span className="block text-xs text-gray-500 line-through">
+                          <span className="block text-xs text-white/40 line-through">
                             ${(pack.priceCents / 100).toFixed(0)}
                           </span>
                         )}
@@ -436,14 +451,14 @@ export default function CreditsPage() {
                 <Icon name="FaHistory" className="text-purple-400" size={20} />
                 Transaction History
                 {ledgerTotal > 0 && (
-                  <span className="text-sm text-gray-400 font-normal">
+                  <span className="text-sm text-white/60 font-normal">
                     ({ledgerTotal} total)
                   </span>
                 )}
               </h2>
 
               {ledger.length === 0 ? (
-                <div className="text-center py-8 text-gray-400">
+                <div className="text-center py-8 text-white/60">
                   <Icon
                     name="FaHistory"
                     className="mx-auto mb-3 opacity-50"
@@ -464,7 +479,7 @@ export default function CreditsPage() {
                       <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
                         <Icon
                           name={getTransactionIcon(entry.transactionType)}
-                          className="text-gray-400"
+                          className="text-white/60"
                           size={16}
                         />
                       </div>
@@ -473,7 +488,7 @@ export default function CreditsPage() {
                           {entry.description ||
                             entry.transactionType.replace(/_/g, " ")}
                         </p>
-                        <p className="text-sm text-gray-400">
+                        <p className="text-sm text-white/60">
                           {formatDate(entry.createdAt)}
                         </p>
                       </div>
@@ -504,20 +519,20 @@ export default function CreditsPage() {
             <p className="text-gray-300 mb-2">
               <strong className="text-white">How geo grid costs work:</strong> Larger grids and more keywords use more credits.
             </p>
-            <ul className="text-sm text-gray-400 space-y-1">
+            <ul className="text-sm text-white/70 space-y-1">
               <li>• <strong className="text-gray-300">Grid size</strong> = how many points we check around your location (3×3 = 9 points, 5×5 = 25 points, etc.)</li>
               <li>• <strong className="text-gray-300">Keywords</strong> = search terms we check your ranking for (e.g., "plumber near me", "emergency plumber")</li>
               <li>• Bigger coverage area + more keywords = more comprehensive data = more credits</li>
             </ul>
           </div>
 
-          <p className="text-gray-400 mb-2 text-sm">
+          <p className="text-white/70 mb-2 text-sm">
             Credits per geo grid check:
           </p>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-gray-400 border-b border-white/10">
+                <tr className="text-white/70 border-b border-white/10">
                   <th className="text-left py-2 px-3">Grid Size</th>
                   <th className="text-center py-2 px-3">1 keyword</th>
                   <th className="text-center py-2 px-3">5 keywords</th>
@@ -535,7 +550,7 @@ export default function CreditsPage() {
                   <tr key={grid.size} className="border-b border-white/5">
                     <td className="py-2 px-3">
                       <span className="font-semibold">{grid.size}</span>
-                      <span className="text-gray-500 text-xs ml-2">({grid.points} points)</span>
+                      <span className="text-white/50 text-xs ml-2">({grid.points} points)</span>
                     </td>
                     <td className="py-2 px-3 text-center text-blue-400">{10 + grid.cells + 2}</td>
                     <td className="py-2 px-3 text-center text-blue-400">{10 + grid.cells + 10}</td>
@@ -548,8 +563,8 @@ export default function CreditsPage() {
           </div>
 
           <div className="mt-4 p-3 bg-white/5 rounded-lg">
-            <p className="text-sm text-gray-400">
-              <strong className="text-gray-300">Example:</strong> A 5×5 grid with 5 keywords costs <span className="text-blue-400 font-semibold">45 credits</span>.
+            <p className="text-sm text-white/70">
+              <strong className="text-white">Example:</strong> A 5×5 grid with 5 keywords costs <span className="text-blue-400 font-semibold">45 credits</span>.
               With the 200 credit pack ($20), you could run <span className="text-green-400 font-semibold">4 checks</span> at this size.
               With the 2,300 credit pack ($180), you could run <span className="text-green-400 font-semibold">51 checks</span>.
             </p>
