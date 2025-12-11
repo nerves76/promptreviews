@@ -267,21 +267,6 @@ export default function CreditsPage() {
                   </div>
                 )}
 
-                {balance?.isFreeAccount && (
-                  <div className="pt-3 border-t border-white/10">
-                    <p className="text-xs text-amber-400">
-                      Free accounts don't receive monthly credits.{" "}
-                      <a
-                        href="/dashboard/plan"
-                        className="underline hover:text-amber-300"
-                      >
-                        Upgrade your plan
-                      </a>{" "}
-                      to get monthly included credits.
-                    </p>
-                  </div>
-                )}
-
                 {!balance?.isFreeAccount && (
                   <div className="pt-3 border-t border-white/10">
                     <p className="text-xs text-white/60">
