@@ -13,6 +13,7 @@ import { apiClient } from '@/utils/apiClient';
 import PromptReviewsLogo from "@/app/(app)/dashboard/components/PromptReviewsLogo";
 import { AccountSwitcher } from './AccountSwitcher';
 import GetReviewsDropdown from './GetReviewsDropdown';
+import YourBusinessDropdown from './YourBusinessDropdown';
 import { useAccountSelection } from '@/utils/accountSelectionHooks';
 import DropdownPortal from './DropdownPortal';
 
@@ -496,32 +497,13 @@ const Header = React.memo(function Header() {
               </Link>
               {!businessLoading && (
                 <>
-                  <Link
-                    href={hasBusiness ? "/dashboard/business-profile" : "#"}
-                    onClick={(e) => {
-                      if (!hasBusiness) {
-                        e.preventDefault();
-                        router.push("/dashboard/create-business");
-                      }
-                    }}
-                    className={`${
-                      isActive("/dashboard/business-profile")
-                        ? "border-white text-white"
-                        : hasBusiness 
-                          ? "border-transparent text-white hover:border-white/30 hover:text-white/90"
-                          : "border-transparent text-white/50 cursor-not-allowed"
-                    } inline-flex items-center px-1 pt-1 border-b-4 text-base font-medium transition-colors duration-200 h-16 relative group`}
-                      >
-                    Your business
-                    {hasBusiness && businessProfileLoaded && !businessProfileCompleted && (
-                      <>
-                        {/* Start Here Badge */}
-                        <span className="absolute -top-1 -right-2 bg-yellow-400 text-yellow-900 text-xs px-2 py-1 rounded-full font-bold animate-pulse shadow-lg">
-                          Start here!
-                        </span>
-                      </>
-                    )}
-                  </Link>
+                  <YourBusinessDropdown
+                    hasBusiness={hasBusiness}
+                    businessLoading={businessLoading}
+                    businessProfileCompleted={businessProfileCompleted}
+                    businessProfileLoaded={businessProfileLoaded}
+                    onNavigate={() => {}}
+                  />
                   <GetReviewsDropdown 
                     hasBusiness={hasBusiness}
                     businessLoading={businessLoading}
@@ -940,34 +922,61 @@ const Header = React.memo(function Header() {
                 </Link>
                 {!businessLoading && (
                   <>
-                    <Link
-                      href={hasBusiness ? "/dashboard/business-profile" : "#"}
-                      onClick={(e) => {
-                        if (!hasBusiness) {
-                          e.preventDefault();
-                          router.push("/dashboard/create-business");
-                          setMenuOpen(false);
-                        } else {
-                          setMenuOpen(false);
-                        }
-                      }}
-                      className={`${
-                        isActive("/dashboard/business-profile")
-                          ? "bg-white/20 text-white"
-                          : hasBusiness 
-                            ? "text-white hover:bg-white/10"
-                            : "text-gray-500 cursor-not-allowed"
-                      } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 relative`}
-                    >
-                      Your business
-                      {hasBusiness && businessProfileLoaded && !businessProfileCompleted && (
-                        <>
-                          <span className="absolute top-0 -right-1 bg-yellow-400 text-yellow-900 text-xs px-2 py-1 rounded-full font-bold animate-pulse">
+                    {/* Your Business Section */}
+                    <div className={`px-3 py-2 ${!hasBusiness ? 'opacity-50' : ''}`}>
+                      <div className={`text-sm font-medium ${hasBusiness ? 'text-gray-400' : 'text-gray-600'} mb-2 relative inline-block`}>
+                        Your business
+                        {hasBusiness && businessProfileLoaded && !businessProfileCompleted && (
+                          <span className="absolute -top-1 -right-16 bg-yellow-400 text-yellow-900 text-xs px-2 py-1 rounded-full font-bold animate-pulse">
                             Start here!
                           </span>
-                        </>
-                      )}
-                    </Link>
+                        )}
+                      </div>
+                      <div className="space-y-1">
+                        <Link
+                          href={hasBusiness ? "/dashboard/business-profile" : "#"}
+                          onClick={(e) => {
+                            if (!hasBusiness) {
+                              e.preventDefault();
+                              router.push("/dashboard/create-business");
+                              setMenuOpen(false);
+                            } else {
+                              setMenuOpen(false);
+                            }
+                          }}
+                          className={`${
+                            isActive("/dashboard/business-profile")
+                              ? "bg-white/20 text-white"
+                              : hasBusiness
+                                ? "text-white hover:bg-white/10"
+                                : "text-gray-500 cursor-not-allowed"
+                          } block px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200`}
+                        >
+                          Business Profile
+                        </Link>
+                        <Link
+                          href={hasBusiness ? "/admin/geo-grid" : "#"}
+                          onClick={(e) => {
+                            if (!hasBusiness) {
+                              e.preventDefault();
+                              router.push("/dashboard/create-business");
+                              setMenuOpen(false);
+                            } else {
+                              setMenuOpen(false);
+                            }
+                          }}
+                          className={`${
+                            isActive("/admin/geo-grid")
+                              ? "bg-white/20 text-white"
+                              : hasBusiness
+                                ? "text-white hover:bg-white/10"
+                                : "text-gray-500 cursor-not-allowed"
+                          } block px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200`}
+                        >
+                          Local Ranking Grids
+                        </Link>
+                      </div>
+                    </div>
                     {/* Get Reviews Section */}
                     <div className={`px-3 py-2 ${!hasBusiness ? 'opacity-50' : ''}`}>
                       <div className={`text-sm font-medium ${hasBusiness ? 'text-gray-400' : 'text-gray-600'} mb-2`}>Get reviews</div>
