@@ -330,7 +330,7 @@ export default function AdminGeoGridPage() {
             className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6"
           >
             <ArrowLeftIcon className="w-4 h-4" />
-            {hasConfig ? 'Back to Geo Grid' : 'Back to Admin'}
+            {hasConfig ? 'Back to Local Ranking Grid' : 'Back to Admin'}
           </button>
 
           <GeoGridSetupWizard

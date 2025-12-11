@@ -226,7 +226,7 @@ export default function CreditsPage() {
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Credits</h1>
           <p className="text-white/70">
-            Manage your credits for geo grid checks and other features
+            Manage your credits for Local Ranking Grid checks and other features
           </p>
         </div>
 
@@ -481,16 +481,16 @@ export default function CreditsPage() {
           </div>
         </div>
 
-        {/* Geo Grid Pricing */}
+        {/* Local Ranking Grid Pricing */}
         <div className="mt-8 bg-white/5 rounded-xl p-6 border border-white/10">
           <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <Icon name="FaMapMarkedAlt" className="text-blue-400" size={20} />
-            Geo Grid Pricing
+            Local Ranking Grid Pricing
           </h2>
 
           <div className="mb-6 p-4 bg-blue-900/20 rounded-lg border border-blue-500/20">
             <p className="text-gray-300 mb-2">
-              <strong className="text-white">How geo grid costs work:</strong> Larger grids and more keywords use more credits.
+              <strong className="text-white">How Local Ranking Grid costs work:</strong> Larger grids and more keywords use more credits.
             </p>
             <ul className="text-sm text-white/70 space-y-1">
               <li>• <strong className="text-gray-300">Grid size</strong> = how many points we check around your location (3×3 = 9 points, 5×5 = 25 points, etc.)</li>
@@ -500,7 +500,7 @@ export default function CreditsPage() {
           </div>
 
           <p className="text-white/70 mb-2 text-sm">
-            Credits per geo grid check:
+            Credits per Local Ranking Grid check:
           </p>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">

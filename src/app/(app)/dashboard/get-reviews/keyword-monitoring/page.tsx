@@ -1121,7 +1121,7 @@ function KeywordDetailsSidebar({
               {/* Search Query */}
               <div>
                 <label className="text-xs font-medium text-gray-600 block mb-1">
-                  Search Query (for Geo Grid tracking)
+                  Search Query (for Local Ranking Grid tracking)
                 </label>
                 {isEditing ? (
                   <input

@@ -164,7 +164,7 @@ export const NOTIFICATION_REGISTRY: Record<NotificationType, NotificationConfig>
     emailPrefField: 'email_credit_warnings',
     getTitle: () => 'Low Credit Balance',
     getMessage: (data) =>
-      `Your scheduled geo-grid check needs ${data.required} credits but you only have ${data.available}.`,
+      `Your scheduled Local Ranking Grid check needs ${data.required} credits but you only have ${data.available}.`,
     actionUrl: '/dashboard/credits',
     actionLabel: 'Buy Credits',
     getEmailVariables: (data, baseUrl) => ({
@@ -180,9 +180,9 @@ export const NOTIFICATION_REGISTRY: Record<NotificationType, NotificationConfig>
   'credit_check_skipped': {
     inAppPrefField: 'in_app_credit_warnings',
     emailPrefField: 'email_credit_warnings',
-    getTitle: () => 'Geo-Grid Check Skipped',
+    getTitle: () => 'Local Ranking Grid Check Skipped',
     getMessage: (data) =>
-      `Your scheduled geo-grid check was skipped - needed ${data.required} credits but only ${data.available} available.`,
+      `Your scheduled Local Ranking Grid check was skipped - needed ${data.required} credits but only ${data.available} available.`,
     actionUrl: '/dashboard/credits',
     actionLabel: 'Buy Credits',
     getEmailVariables: (data, baseUrl) => ({

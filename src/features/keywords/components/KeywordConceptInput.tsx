@@ -217,7 +217,7 @@ export default function KeywordConceptInput({
           <div className="space-y-1">
             <label className="block text-xs font-medium text-gray-500">
               Search Query
-              <span className="text-gray-400 font-normal ml-1">(used for geo-grid tracking)</span>
+              <span className="text-gray-400 font-normal ml-1">(used for Local Ranking Grid tracking)</span>
             </label>
             <input
               type="text"
