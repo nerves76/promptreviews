@@ -355,6 +355,7 @@ model users {
   comment_reactions                          comment_reactions[]
   comments                                   comments[]
   community_profiles                         community_profiles?
+  credit_ledger                              credit_ledger[]
   critical_function_errors                   critical_function_errors[]
   critical_function_successes                critical_function_successes[]
   email_domain_policies                      email_domain_policies[]
@@ -522,6 +523,8 @@ model accounts {
   communication_records               communication_records[]
   communication_templates             communication_templates[]
   contacts                            contacts[]
+  credit_balances                     credit_balances?
+  credit_ledger                       credit_ledger[]
   email_domain_policies               email_domain_policies[]
   follow_up_reminders                 follow_up_reminders[]
   gbp_change_alerts                   gbp_change_alerts[]
@@ -2867,6 +2870,103 @@ model keyword_rotation_log {
   @@index([account_id], map: "idx_krl_account")
   @@index([created_at(sort: Desc)], map: "idx_krl_created_at")
   @@index([prompt_page_id], map: "idx_krl_prompt_page")
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model credit_balances {
+  id                         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  account_id                 String    @unique(map: "credit_balances_account_unique") @db.Uuid
+  included_credits           Int       @default(0)
+  purchased_credits          Int       @default(0)
+  included_credits_expire_at DateTime? @db.Timestamptz(6)
+  last_monthly_grant_at      DateTime? @db.Timestamptz(6)
+  created_at                 DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at                 DateTime  @default(now()) @db.Timestamptz(6)
+  accounts                   accounts  @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([account_id], map: "idx_credit_balances_account_id")
+  @@index([included_credits_expire_at], map: "idx_credit_balances_expire_at")
+  @@schema("public")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model credit_included_by_tier {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tier            String   @unique @db.VarChar(30)
+  monthly_credits Int      @default(0)
+  description     String?
+  created_at      DateTime @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime @default(now()) @db.Timestamptz(6)
+
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model credit_ledger {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  account_id        String   @db.Uuid
+  amount            Int
+  balance_after     Int
+  credit_type       String   @db.VarChar(20)
+  transaction_type  String   @db.VarChar(30)
+  feature_type      String?  @db.VarChar(30)
+  feature_metadata  Json?
+  idempotency_key   String?  @db.VarChar(255)
+  stripe_session_id String?  @db.VarChar(255)
+  stripe_invoice_id String?  @db.VarChar(255)
+  stripe_charge_id  String?  @db.VarChar(255)
+  description       String?
+  created_at        DateTime @default(now()) @db.Timestamptz(6)
+  created_by        String?  @db.Uuid
+  accounts          accounts @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users             users?   @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([account_id], map: "idx_credit_ledger_account_id")
+  @@index([created_at(sort: Desc)], map: "idx_credit_ledger_created_at")
+  @@index([feature_type], map: "idx_credit_ledger_feature_type")
+  @@index([transaction_type], map: "idx_credit_ledger_transaction_type")
+  @@schema("public")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model credit_packs {
+  id                        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                      String   @db.VarChar(100)
+  credits                   Int
+  price_cents               Int
+  stripe_price_id           String?  @db.VarChar(255)
+  stripe_price_id_recurring String?  @db.VarChar(255)
+  is_active                 Boolean  @default(true)
+  display_order             Int      @default(0)
+  created_at                DateTime @default(now()) @db.Timestamptz(6)
+  updated_at                DateTime @default(now()) @db.Timestamptz(6)
+
+  @@schema("public")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model credit_pricing_rules {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  feature_type String    @db.VarChar(30)
+  rule_key     String    @db.VarChar(50)
+  credit_cost  Int
+  description  String?
+  is_active    Boolean   @default(true)
+  active_from  DateTime  @default(now()) @db.Timestamptz(6)
+  active_until DateTime? @db.Timestamptz(6)
+  created_at   DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at   DateTime  @default(now()) @db.Timestamptz(6)
+
+  @@unique([feature_type, rule_key, active_from], map: "credit_pricing_rules_unique")
+  @@index([feature_type, is_active, active_from(sort: Desc)], map: "idx_credit_pricing_rules_active")
   @@schema("public")
 }
 

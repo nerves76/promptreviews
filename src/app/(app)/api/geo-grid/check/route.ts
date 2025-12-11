@@ -5,6 +5,14 @@ import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 import { transformConfigToResponse } from '@/features/geo-grid/utils/transforms';
 import { runRankChecks } from '@/features/geo-grid/services/rank-checker';
 import { generateDailySummary } from '@/features/geo-grid/services/summary-aggregator';
+import {
+  calculateGeogridCost,
+  checkGeogridCredits,
+  debit,
+  refundFeature,
+  ensureBalanceExists,
+  InsufficientCreditsError,
+} from '@/lib/credits';
 
 // Service client for privileged operations
 const serviceSupabase = createClient(
@@ -104,17 +112,91 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Estimate cost (rough estimate: $0.002 per API call)
+    // Calculate grid size from check points
     const pointCount = config.checkPoints.length;
-    const estimatedCalls = (keywordIds?.length || keywordCount) * pointCount;
-    const estimatedCost = estimatedCalls * 0.002;
+    const gridSize = Math.sqrt(pointCount);
 
-    if (estimatedCost > MAX_COST_PER_RUN_USD) {
+    // Determine actual keyword count to check
+    const actualKeywordCount = keywordIds?.length || keywordCount;
+
+    // Calculate credit cost: 10 base + 1 per cell + 1 per keyword
+    const creditCost = calculateGeogridCost(gridSize, actualKeywordCount);
+
+    // Ensure balance record exists for this account
+    await ensureBalanceExists(serviceSupabase, accountId);
+
+    // Check if account has sufficient credits
+    const creditCheck = await checkGeogridCredits(serviceSupabase, accountId, gridSize, actualKeywordCount);
+
+    if (!creditCheck.hasCredits) {
+      console.log(`❌ [GeoGrid] Insufficient credits for account ${accountId}: need ${creditCheck.required}, have ${creditCheck.available}`);
       return NextResponse.json(
         {
-          error: `Estimated cost ($${estimatedCost.toFixed(2)}) exceeds limit ($${MAX_COST_PER_RUN_USD}). Reduce keywords or check points.`,
-          estimatedCost,
+          error: 'Insufficient credits',
+          message: `This geo grid check requires ${creditCheck.required} credits. You have ${creditCheck.available} credits available.`,
+          required: creditCheck.required,
+          available: creditCheck.available,
+          balance: {
+            included: creditCheck.balance.includedCredits,
+            purchased: creditCheck.balance.purchasedCredits,
+            total: creditCheck.balance.totalCredits,
+          },
+        },
+        { status: 402 } // Payment Required
+      );
+    }
+
+    // Generate unique check ID for idempotency
+    const checkId = `${Date.now()}-${Math.random().toString(36).substring(7)}`;
+    const idempotencyKey = `geo_grid:${accountId}:${checkId}`;
+
+    // Debit credits before running the check
+    console.log(`💳 [GeoGrid] Debiting ${creditCost} credits for account ${accountId} (${gridSize}x${gridSize} grid, ${actualKeywordCount} keywords)`);
+    try {
+      await debit(serviceSupabase, accountId, creditCost, {
+        featureType: 'geo_grid',
+        featureMetadata: {
+          gridSize,
+          pointCount,
+          keywordCount: actualKeywordCount,
+          checkId,
+        },
+        idempotencyKey,
+        description: `Geo grid check: ${gridSize}x${gridSize} grid, ${actualKeywordCount} keywords`,
+      });
+    } catch (error) {
+      if (error instanceof InsufficientCreditsError) {
+        return NextResponse.json(
+          {
+            error: 'Insufficient credits',
+            message: `This geo grid check requires ${error.required} credits. You have ${error.available} credits available.`,
+            required: error.required,
+            available: error.available,
+          },
+          { status: 402 }
+        );
+      }
+      throw error;
+    }
+
+    // Estimate API cost (for logging/monitoring - separate from credit cost)
+    const estimatedCalls = (keywordIds?.length || keywordCount) * pointCount;
+    const estimatedApiCost = estimatedCalls * 0.002;
+
+    if (estimatedApiCost > MAX_COST_PER_RUN_USD) {
+      // Refund credits since we're not running the check
+      await refundFeature(serviceSupabase, accountId, creditCost, idempotencyKey, {
+        featureType: 'geo_grid',
+        featureMetadata: { reason: 'api_cost_exceeded', gridSize, pointCount },
+        description: 'Refund: API cost exceeded limit',
+      });
+
+      return NextResponse.json(
+        {
+          error: `Estimated API cost ($${estimatedApiCost.toFixed(2)}) exceeds limit ($${MAX_COST_PER_RUN_USD}). Reduce keywords or check points.`,
+          estimatedApiCost,
           estimatedCalls,
+          creditsRefunded: creditCost,
         },
         { status: 400 }
       );
@@ -123,9 +205,21 @@ export async function POST(request: NextRequest) {
     // Run rank checks
     console.log(`🔍 [GeoGrid] Starting rank checks for account ${accountId}`);
     console.log(`   Keywords: ${keywordIds?.length || keywordCount}, Points: ${pointCount}`);
-    console.log(`   Estimated calls: ${estimatedCalls}, Est. cost: $${estimatedCost.toFixed(4)}`);
+    console.log(`   Credit cost: ${creditCost}, Est. API cost: $${estimatedApiCost.toFixed(4)}`);
 
-    const result = await runRankChecks(config, serviceSupabase, { keywordIds });
+    let result;
+    try {
+      result = await runRankChecks(config, serviceSupabase, { keywordIds });
+    } catch (runError) {
+      // Refund credits on failure
+      console.error(`❌ [GeoGrid] Rank check failed, refunding ${creditCost} credits`);
+      await refundFeature(serviceSupabase, accountId, creditCost, idempotencyKey, {
+        featureType: 'geo_grid',
+        featureMetadata: { reason: 'check_failed', error: String(runError) },
+        description: 'Refund: Geo grid check failed',
+      });
+      throw runError;
+    }
 
     console.log(`✅ [GeoGrid] Rank checks complete. Checks: ${result.checksPerformed}, Cost: $${result.totalCost.toFixed(4)}`);
 
@@ -143,10 +237,15 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Get updated balance after debit
+    const updatedCreditCheck = await checkGeogridCredits(serviceSupabase, accountId, gridSize, actualKeywordCount);
+
     return NextResponse.json({
       success: result.success,
       checksPerformed: result.checksPerformed,
       totalCost: result.totalCost,
+      creditsUsed: creditCost,
+      creditsRemaining: updatedCreditCheck.balance.totalCredits,
       results: result.results,
       errors: result.errors.length > 0 ? result.errors : undefined,
     });

@@ -14,6 +14,7 @@ import {
   GGPointSummary,
   CheckPoint,
   PositionBucket,
+  ScheduleFrequency,
 } from './types';
 
 // ============================================
@@ -36,6 +37,13 @@ export function transformConfigToResponse(row: {
   last_checked_at: string | null;
   created_at: string;
   updated_at: string;
+  // Scheduling fields (may not exist in old records)
+  schedule_frequency?: string | null;
+  schedule_day_of_week?: number | null;
+  schedule_day_of_month?: number | null;
+  schedule_hour?: number | null;
+  next_scheduled_at?: string | null;
+  last_scheduled_run_at?: string | null;
 }): GGConfig {
   return {
     id: row.id,
@@ -50,6 +58,13 @@ export function transformConfigToResponse(row: {
     lastCheckedAt: row.last_checked_at,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+    // Scheduling fields
+    scheduleFrequency: (row.schedule_frequency as ScheduleFrequency) || null,
+    scheduleDayOfWeek: row.schedule_day_of_week ?? null,
+    scheduleDayOfMonth: row.schedule_day_of_month ?? null,
+    scheduleHour: row.schedule_hour ?? 9,
+    nextScheduledAt: row.next_scheduled_at ?? null,
+    lastScheduledRunAt: row.last_scheduled_run_at ?? null,
   };
 }
 

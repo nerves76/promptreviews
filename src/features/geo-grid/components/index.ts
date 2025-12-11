@@ -12,3 +12,4 @@ export { GeoGridPointModal } from './GeoGridPointModal';
 export { GeoGridResultsTable } from './GeoGridResultsTable';
 export { GeoGridTrendCard } from './GeoGridTrendCard';
 export { GeoGridKeywordPicker } from './GeoGridKeywordPicker';
+export { GeoGridScheduleSettings } from './GeoGridScheduleSettings';

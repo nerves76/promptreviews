@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
+import { credit, ensureBalanceExists } from "@/lib/credits";
 
 // Lazy initialization to avoid build-time env var access
 function getStripeClient() {
@@ -60,12 +61,53 @@ export async function POST(req: NextRequest) {
     const plan = session.metadata?.plan;
     const billingPeriod = session.metadata?.billingPeriod || 'monthly';
     
-    if (userId && plan) {
+    // Check if this is a credit pack purchase
+    const creditPackCredits = session.metadata?.credits;
+    const creditPackType = session.metadata?.pack_type;
+    const accountId = session.metadata?.accountId || userId;
+
+    if (creditPackCredits && creditPackType) {
+      // This is a credit pack purchase
+      console.log("💳 Processing credit pack purchase");
+      console.log("  Account ID:", accountId);
+      console.log("  Credits:", creditPackCredits);
+      console.log("  Pack Type:", creditPackType);
+
+      if (accountId) {
+        try {
+          // Ensure balance record exists
+          await ensureBalanceExists(supabase, accountId);
+
+          // Grant purchased credits
+          const creditsToGrant = parseInt(creditPackCredits, 10);
+          await credit(supabase, accountId, creditsToGrant, {
+            creditType: 'purchased',
+            transactionType: 'purchase',
+            stripeSessionId: session.id,
+            idempotencyKey: `checkout:${session.id}`,
+            description: `Credit pack purchase: ${creditsToGrant} credits`,
+          });
+
+          console.log(`✅ Granted ${creditsToGrant} credits to account ${accountId}`);
+        } catch (creditError: any) {
+          // IdempotencyError means we already processed this - that's OK
+          if (creditError.name === 'IdempotencyError') {
+            console.log("⚠️ Credit pack already processed (idempotency check):", session.id);
+          } else {
+            console.error("❌ Failed to grant credits:", creditError);
+            // Don't fail the webhook - credits can be manually reconciled
+          }
+        }
+      } else {
+        console.error("❌ No accountId in credit pack checkout session metadata");
+      }
+    } else if (userId && plan) {
+      // This is a subscription checkout
       console.log("📝 Updating account from checkout session");
       console.log("  User ID:", userId);
       console.log("  Plan:", plan);
       console.log("  Billing Period:", billingPeriod);
-      
+
       // Update the account with the new subscription info
       const { data, error } = await supabase
         .from("accounts")
@@ -79,14 +121,14 @@ export async function POST(req: NextRequest) {
         })
         .eq("id", userId)
         .select();
-      
+
       if (error) {
         console.error("❌ Failed to update account from checkout:", error);
       } else {
         console.log("✅ Account updated successfully from checkout:", data);
       }
     } else {
-      console.warn("⚠️ Missing metadata in checkout session:", { userId, plan });
+      console.warn("⚠️ Missing metadata in checkout session:", { userId, plan, creditPackCredits });
     }
   }
 
@@ -300,25 +342,68 @@ export async function POST(req: NextRequest) {
     // Handle invoice/payment events
     const invoice = event.data.object as Stripe.Invoice;
     const customerId = invoice.customer as string;
-    const subscriptionId = typeof (invoice as any).subscription === 'string' 
-      ? (invoice as any).subscription 
+    const subscriptionId = typeof (invoice as any).subscription === 'string'
+      ? (invoice as any).subscription
       : (invoice as any).subscription?.id || null;
-    
+
     console.log("💳 Processing payment event:", event.type);
     console.log("  Customer ID:", customerId);
     console.log("  Subscription ID:", subscriptionId);
     console.log("  Invoice ID:", invoice.id);
     console.log("  Amount:", invoice.amount_paid / 100, "USD");
     console.log("  Status:", invoice.status);
-    
-    // Update payment status in our database
+
     const paymentSucceeded = event.type === "invoice.payment_succeeded";
+
+    // Check if this is a credit subscription renewal
+    if (paymentSucceeded && subscriptionId) {
+      try {
+        // Fetch the subscription to check its metadata
+        const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+        const creditPackCredits = subscription.metadata?.credits;
+        const packType = subscription.metadata?.pack_type;
+        const accountId = subscription.metadata?.accountId;
+
+        if (creditPackCredits && packType === 'auto_topup' && accountId) {
+          console.log("💳 Processing credit subscription renewal");
+          console.log("  Account ID:", accountId);
+          console.log("  Credits:", creditPackCredits);
+
+          try {
+            // Ensure balance record exists
+            await ensureBalanceExists(supabase, accountId);
+
+            // Grant purchased credits
+            const creditsToGrant = parseInt(creditPackCredits, 10);
+            await credit(supabase, accountId, creditsToGrant, {
+              creditType: 'purchased',
+              transactionType: 'subscription_renewal',
+              stripeInvoiceId: invoice.id,
+              idempotencyKey: `invoice:${invoice.id}`,
+              description: `Credit subscription renewal: ${creditsToGrant} credits`,
+            });
+
+            console.log(`✅ Granted ${creditsToGrant} credits to account ${accountId} (subscription renewal)`);
+          } catch (creditError: any) {
+            if (creditError.name === 'IdempotencyError') {
+              console.log("⚠️ Credit renewal already processed (idempotency check):", invoice.id);
+            } else {
+              console.error("❌ Failed to grant credits on renewal:", creditError);
+              // Don't fail the webhook - credits can be manually reconciled
+            }
+          }
+        }
+      } catch (subError) {
+        console.error("❌ Failed to fetch subscription for credit check:", subError);
+      }
+    }
+
+    // Update payment status in our database (for regular plan subscriptions)
     const subscriptionUpdateData = {
       subscription_status: paymentSucceeded ? 'active' : 'past_due',
-      // We could add more payment-specific fields here
       updated_at: new Date().toISOString(),
     };
-    
+
     // Update account by customer ID
     console.log("🔄 Updating payment status for customer:", customerId);
     const updateResult = await supabase
@@ -326,9 +411,9 @@ export async function POST(req: NextRequest) {
       .update(subscriptionUpdateData)
       .eq("stripe_customer_id", customerId)
       .select();
-    
+
     console.log("✅ Payment status update result:", updateResult.data?.length || 0, "rows updated");
-    
+
     if (updateResult.error) {
       console.error("Supabase payment update error:", updateResult.error.message);
       return NextResponse.json(
@@ -336,10 +421,88 @@ export async function POST(req: NextRequest) {
         { status: 500 },
       );
     }
-    
+
     // If payment succeeded and this was a past_due subscription, mark as reactivated
     if (paymentSucceeded && subscriptionId) {
       console.log("🎉 Payment succeeded - account reactivated!");
+    }
+  } else if (event.type === "charge.refunded") {
+    // Handle refunds - claw back credits if this was a credit pack purchase
+    const charge = event.data.object as Stripe.Charge;
+    console.log("💸 Processing refund event");
+    console.log("  Charge ID:", charge.id);
+    console.log("  Amount Refunded:", charge.amount_refunded / 100, "USD");
+    console.log("  Metadata:", charge.metadata);
+
+    // Check if this charge has credit pack metadata
+    const creditPackCredits = charge.metadata?.credits;
+    const accountId = charge.metadata?.accountId;
+
+    if (creditPackCredits && accountId) {
+      try {
+        const creditsToClawBack = parseInt(creditPackCredits, 10);
+
+        // Create a negative credit entry (claw back)
+        // We use the debit function with a refund transaction type
+        const { data: balance } = await supabase
+          .from('credit_balances')
+          .select('purchased_credits')
+          .eq('account_id', accountId)
+          .single();
+
+        if (balance) {
+          // Reduce purchased credits (but don't go below 0)
+          const currentPurchased = balance.purchased_credits || 0;
+          const newPurchased = Math.max(0, currentPurchased - creditsToClawBack);
+          const clawedBack = currentPurchased - newPurchased;
+
+          if (clawedBack > 0) {
+            // Update balance
+            await supabase
+              .from('credit_balances')
+              .update({
+                purchased_credits: newPurchased,
+                updated_at: new Date().toISOString(),
+              })
+              .eq('account_id', accountId);
+
+            // Create ledger entry
+            const { data: currentBalance } = await supabase
+              .from('credit_balances')
+              .select('included_credits, purchased_credits')
+              .eq('account_id', accountId)
+              .single();
+
+            const totalAfter = (currentBalance?.included_credits || 0) + newPurchased;
+
+            await supabase
+              .from('credit_ledger')
+              .insert({
+                account_id: accountId,
+                amount: -clawedBack,
+                balance_after: totalAfter,
+                credit_type: 'purchased',
+                transaction_type: 'refund',
+                stripe_charge_id: charge.id,
+                idempotency_key: `refund:${charge.id}`,
+                description: `Refund: ${clawedBack} credits clawed back`,
+              });
+
+            console.log(`✅ Clawed back ${clawedBack} credits from account ${accountId}`);
+          } else {
+            console.log("⚠️ No purchased credits to claw back");
+          }
+        }
+      } catch (clawBackError: any) {
+        if (clawBackError.code === '23505') {
+          console.log("⚠️ Refund already processed (idempotency check):", charge.id);
+        } else {
+          console.error("❌ Failed to claw back credits:", clawBackError);
+          // Don't fail the webhook - can be manually reconciled
+        }
+      }
+    } else {
+      console.log("ℹ️ Refund is not for a credit pack purchase - ignoring");
     }
   } else {
     console.log("ℹ️  Received non-handled event:", event.type, "- ignoring");

@@ -21,6 +21,15 @@ import { TrendData, getTrendDescription, getTrendColor } from '../hooks/useGeoGr
 // Types
 // ============================================
 
+interface CreditInfo {
+  /** Total available credits */
+  available: number;
+  /** Credits required for this check */
+  required: number;
+  /** Whether account has sufficient credits */
+  hasSufficient: boolean;
+}
+
 interface GeoGridTrendCardProps {
   /** Current summary data */
   summary: GGDailySummary | null;
@@ -34,6 +43,10 @@ interface GeoGridTrendCardProps {
   onRunCheck?: () => void;
   /** Whether a check is in progress */
   isCheckRunning?: boolean;
+  /** Credit information for cost display */
+  creditInfo?: CreditInfo;
+  /** Callback when user wants to buy credits */
+  onBuyCredits?: () => void;
 }
 
 // ============================================
@@ -108,6 +121,8 @@ export function GeoGridTrendCard({
   lastCheckedAt,
   onRunCheck,
   isCheckRunning,
+  creditInfo,
+  onBuyCredits,
 }: GeoGridTrendCardProps) {
   if (isLoading) {
     return (
@@ -133,7 +148,13 @@ export function GeoGridTrendCard({
         </div>
         <div className="text-center py-8">
           <p className="text-gray-600 mb-4">No visibility data yet.</p>
-          {onRunCheck && (
+          {creditInfo && (
+            <p className="text-sm text-gray-500 mb-3">
+              Cost: <span className="font-semibold">{creditInfo.required} credits</span>
+              {' '}• Available: <span className={creditInfo.hasSufficient ? 'text-green-600' : 'text-red-600'}>{creditInfo.available}</span>
+            </p>
+          )}
+          {onRunCheck && creditInfo?.hasSufficient && (
             <button
               onClick={onRunCheck}
               disabled={isCheckRunning}
@@ -144,6 +165,21 @@ export function GeoGridTrendCard({
               )}
               {isCheckRunning ? 'Running Check...' : 'Run First Check'}
             </button>
+          )}
+          {creditInfo && !creditInfo.hasSufficient && (
+            <div className="space-y-2">
+              <p className="text-sm text-red-600">
+                Insufficient credits. Need {creditInfo.required - creditInfo.available} more.
+              </p>
+              {onBuyCredits && (
+                <button
+                  onClick={onBuyCredits}
+                  className="px-4 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700"
+                >
+                  Buy Credits
+                </button>
+              )}
+            </div>
           )}
         </div>
       </div>
@@ -168,18 +204,34 @@ export function GeoGridTrendCard({
 
         <div className="flex items-center gap-4">
           <TrendIndicator trend={trend} />
-          {onRunCheck && (
-            <button
-              onClick={onRunCheck}
-              disabled={isCheckRunning}
-              className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
-            >
-              {isCheckRunning && (
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              )}
-              {isCheckRunning ? 'Running Check...' : 'Run Check'}
-            </button>
-          )}
+          <div className="flex items-center gap-2">
+            {creditInfo && (
+              <span className="text-xs text-gray-500">
+                {creditInfo.required} credits
+                {' '}(<span className={creditInfo.hasSufficient ? 'text-green-600' : 'text-red-600'}>{creditInfo.available} avail</span>)
+              </span>
+            )}
+            {creditInfo?.hasSufficient !== false && onRunCheck && (
+              <button
+                onClick={onRunCheck}
+                disabled={isCheckRunning}
+                className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
+              >
+                {isCheckRunning && (
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                )}
+                {isCheckRunning ? 'Running Check...' : 'Run Check'}
+              </button>
+            )}
+            {creditInfo && !creditInfo.hasSufficient && onBuyCredits && (
+              <button
+                onClick={onBuyCredits}
+                className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 flex items-center gap-2"
+              >
+                Buy Credits
+              </button>
+            )}
+          </div>
         </div>
       </div>
 

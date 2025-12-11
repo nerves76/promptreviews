@@ -20,6 +20,7 @@ import {
   GeoGridResultsTable,
   GeoGridTrendCard,
   GeoGridKeywordPicker,
+  GeoGridScheduleSettings,
   useGeoGridConfig,
   useGeoGridResults,
   useGeoGridSummary,
@@ -505,29 +506,39 @@ export default function AdminGeoGridPage() {
           keywordUsageCounts={keywordUsageCounts}
         />
 
-        {/* Config Info (Debug) */}
+        {/* Schedule Settings & Config Info */}
         {config && (
-          <div className="mt-8 p-4 bg-gray-100 rounded-lg">
-            <h4 className="text-sm font-medium text-gray-700 mb-2">Configuration</h4>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-              <div>
-                <span className="text-gray-500">Center:</span>{' '}
-                <span className="font-mono">
-                  {config.centerLat.toFixed(4)}, {config.centerLng.toFixed(4)}
-                </span>
-              </div>
-              <div>
-                <span className="text-gray-500">Radius:</span> {config.radiusMiles} miles
-              </div>
-              <div>
-                <span className="text-gray-500">Check Points:</span>{' '}
-                {config.checkPoints.length}
-              </div>
-              <div>
-                <span className="text-gray-500">Status:</span>{' '}
-                <span className={config.isEnabled ? 'text-green-600' : 'text-red-600'}>
-                  {config.isEnabled ? 'Enabled' : 'Disabled'}
-                </span>
+          <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Schedule Settings */}
+            <GeoGridScheduleSettings
+              config={config}
+              keywordCount={trackedKeywords.length}
+              onScheduleUpdated={refreshConfig}
+            />
+
+            {/* Config Info (Debug) */}
+            <div className="p-4 bg-gray-100 rounded-lg h-fit">
+              <h4 className="text-sm font-medium text-gray-700 mb-2">Configuration</h4>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="text-gray-500">Center:</span>{' '}
+                  <span className="font-mono">
+                    {config.centerLat.toFixed(4)}, {config.centerLng.toFixed(4)}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-gray-500">Radius:</span> {config.radiusMiles} miles
+                </div>
+                <div>
+                  <span className="text-gray-500">Check Points:</span>{' '}
+                  {config.checkPoints.length}
+                </div>
+                <div>
+                  <span className="text-gray-500">Status:</span>{' '}
+                  <span className={config.isEnabled ? 'text-green-600' : 'text-red-600'}>
+                    {config.isEnabled ? 'Enabled' : 'Disabled'}
+                  </span>
+                </div>
               </div>
             </div>
           </div>

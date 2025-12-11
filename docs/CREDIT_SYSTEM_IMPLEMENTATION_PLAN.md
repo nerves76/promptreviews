@@ -1,9 +1,12 @@
 # Credit System Implementation Plan
 
 ## Overview
-- Goal: ship a shared credit wallet that coexists with the current 3 tiers, with included monthly credits per tier, purchasable/top-up credit packs, and metered usage for geo grids, keyword tracking, keyword finder, and later AI review generation caps.
+- Goal: ship a shared credit wallet per **account** that coexists with the current 3 tiers, with included monthly credits per tier, purchasable/top-up credit packs, and metered usage for geo grids (Phase 1), with keyword tracking, keyword finder, and AI review generation caps added later.
 - Stripe model: one-time credit packs + optional monthly auto-topups; grant on `checkout.session.completed` and `invoice.payment_succeeded`; claw back on refunds/cancellations; idempotent via Session/Invoice IDs.
-- Credit rules (initial): purchased credits never expire; monthly included credits expire monthly. Packs: $20→200, $60→700, $180→2,300. Included: Tier1 100, Tier2 400, Tier3 1,200. Geo grid cost = 10 base + 1 per cell (3×3=19, 5×5=35, 7×7=59, 9×9=91). Keyword tracking: daily 10, 3×/week 7, weekly 4 per keyword per month. Keyword finder: buckets by review volume (10/25/50). AI review gen: hard caps first; add credit cost later.
+- Credit rules (initial): purchased credits never expire; monthly included credits expire monthly. Packs: $20→200, $60→700, $180→2,300. Included: free 0, grower 100, builder 400, maven 1,200. **Free accounts get 0 included credits** and must purchase packs to use credit-based features.
+- Geo grid cost = 10 base + 1 per cell + 2 per keyword (ensures 50%+ margin even at extreme usage).
+- Future features (not in initial release): Keyword tracking (daily 10, 3×/week 7, weekly 4 per keyword per month), Keyword finder (buckets 10/25/50), AI review gen (hard caps first, credit cost later).
+- Rollout: Hard cutover - credits required immediately, no migration/grandfather period (small user base).
 
 ## Roles & Check-ins
 - Product/PM (owner: TBD): finalize pricing, caps, rollout messaging; run acceptance.
@@ -14,24 +17,53 @@
 - Check-ins: daily async update; live review twice per week (mid-sprint and pre-ship). PR reviews required for backend, frontend, and webhook changes.
 
 ## Milestones
-1) Foundations (schema + Stripe plumbing) — 3–4 days  
-2) Feature integration (geo grid + keyword tracking) — 4–5 days  
-3) UI/UX + launch readiness — 3–4 days
+1) Foundations (schema + Stripe plumbing + credit service)
+2) Feature integration (geo grid only - debit/refund flow)
+3) UI/UX + launch readiness (credits page, nav badge, geo grid UI)
 
 ## Work Breakdown (with owners)
 ### Milestone 1: Foundations
-- Backend: create tables `user_credit_balance`, `credit_ledger`, `credit_pricing_rules`, `credit_included_by_tier`; add RLS so users only see their own ledger.
-- Backend: seed pricing rules with grid presets and keyword frequency rates; seed included-by-tier values.
-- Billing/Stripe: create 3 one-time pack Prices and 3 monthly auto-topup Prices; store price IDs in config.
-- Backend: webhook handler to grant credits on session/invoice success; claw back on refunds; idempotency via Session/Invoice IDs.
-- Backend: monthly job to expire included credits and re-grant monthly allotment per tier; purchased credits untouched.
+- Backend: create tables `credit_balances` (account-based), `credit_ledger`, `credit_pricing_rules`, `credit_included_by_tier`; add RLS so accounts only see their own ledger.
+- Backend: seed pricing rules with grid presets; seed included-by-tier values (free: 0, grower: 100, builder: 400, maven: 1200).
+- Billing/Stripe: create 3 one-time pack Prices and 3 monthly auto-topup Prices in Stripe Dashboard; store price IDs in env config.
+- Backend: extend existing webhook handler to grant credits on session/invoice success for credit packs; claw back on refunds; idempotency via Session/Invoice IDs.
+- Backend: monthly cron job to expire included credits and re-grant monthly allotment per tier; purchased credits untouched; free accounts get 0.
 
-### Milestone 2: Feature Integration
-- Backend: debit on enqueue with idempotency keys; refund on failure; metadata includes feature params (grid size/frequency/keyword IDs/job IDs).
-- Backend: enforce per-tier caps (geo grid runs/day, keyword count) and insufficient-balance blocking.
-- Frontend: show balance + estimated cost before run; block/disable actions when insufficient credits; surface cap errors.
-- Backend: keyword tracking frequency options (daily/3×week/weekly) tied to pricing rules; apply cost per keyword per month.
-- Backend: keyword finder buckets; debit per run based on review volume bucket.
+#### Stripe Product Setup Guide (Manual Steps)
+1. Go to Stripe Dashboard → Products → Create Product
+2. Create product "Credit Pack - 200 Credits":
+   - Price: $20.00 USD, one-time
+   - Add metadata: `credits: 200`, `pack_type: one_time`
+   - Note the Price ID (e.g., `price_xxx`)
+3. Create product "Credit Pack - 700 Credits":
+   - Price: $60.00 USD, one-time
+   - Add metadata: `credits: 700`, `pack_type: one_time`
+4. Create product "Credit Pack - 2300 Credits":
+   - Price: $180.00 USD, one-time
+   - Add metadata: `credits: 2300`, `pack_type: one_time`
+5. (Optional) Create monthly auto-topup variants:
+   - Same products but with recurring monthly pricing
+   - Add metadata: `pack_type: auto_topup`
+6. Add Price IDs to `.env`:
+   ```
+   STRIPE_CREDIT_PACK_200_PRICE_ID=price_xxx
+   STRIPE_CREDIT_PACK_700_PRICE_ID=price_xxx
+   STRIPE_CREDIT_PACK_2300_PRICE_ID=price_xxx
+   ```
+
+### Milestone 2: Feature Integration (Geo Grid Only)
+- Backend: integrate credit debit into `/api/geo-grid/check` endpoint:
+  - Calculate cost: 10 base + 1 per grid cell (3×3=19, 5×5=35, 7×7=59, 9×9=91)
+  - Check balance before run; return 402 Payment Required if insufficient
+  - Debit on enqueue with idempotency key (`geo_grid:<check_id>`)
+  - Issue compensating refund ledger entry on failure
+- Backend: create credit service module (`/src/lib/credits/`) with:
+  - `getBalance(accountId)` - returns { included, purchased, total }
+  - `debit(accountId, amount, metadata, idempotencyKey)` - deducts credits (included first, then purchased)
+  - `credit(accountId, amount, type, metadata, idempotencyKey)` - adds credits
+  - `calculateGeogridCost(gridSize)` - returns credit cost for grid
+- Frontend: show balance + estimated cost on geo grid page before run; disable "Run Check" button when insufficient credits; show clear error message with link to purchase.
+- Future (not this milestone): keyword tracking, keyword finder, AI review gen integration.
 
 ### Milestone 3: UI/UX + Launch
 - Frontend: purchase/top-up flow via Stripe Checkout; success/failure states; link to billing history if needed.
@@ -57,3 +89,45 @@
 - Webhook delivery failures: Stripe retry + alerting; dead-letter queue/log for manual replay.
 - Pricing misconfig: versioned pricing rules; staging verification before prod; feature flags for rollout.
 - User confusion on expiration: clear copy and badges differentiating included vs purchased credits.
+
+## Implementation Checklist (copy to tickets)
+- [ ] Schema: create tables `credit_balances`, `credit_ledger`, `credit_pricing_rules`, `credit_included_by_tier`; add RLS so accounts see only their own rows; indexes on `account_id`, `idempotency_key`, and `created_at`.
+- [ ] Seeds: insert pricing rules JSON (geo grid: 10 base + 1/cell), included-by-tier (free: 0, grower: 100, builder: 400, maven: 1200), and pack mappings (price ID → credits).
+- [ ] Stripe: create Products/Prices for three one-time packs (200/$20, 700/$60, 2300/$180); store price IDs in env config; optionally create auto-topup variants.
+- [ ] Webhooks: extend existing handler for `checkout.session.completed` to detect credit pack purchases (via metadata); grant credits with idempotency by Session ID; handle `charge.refunded` to claw back.
+- [ ] Credit service (`/src/lib/credits/`): getBalance, debit, credit, calculateGeogridCost functions; debit uses included credits first, then purchased; idempotency via ledger unique constraint.
+- [ ] Geo grid integration: update `/api/geo-grid/check` to check balance → debit → run → refund on failure; return 402 if insufficient.
+- [ ] Jobs: monthly cron to expire included credits and re-grant per tier (skip free accounts).
+- [ ] Frontend Credits page: `/dashboard/credits` with balance display, ledger view, pack purchase flow.
+- [ ] Frontend nav: add Credits to sidebar with balance badge.
+- [ ] Frontend geo grid: show cost estimate and balance; disable run when insufficient; link to purchase.
+- [ ] Admin: manual adjustment endpoint for support cases.
+- [ ] QA: test purchase → balance increase, geo grid run → debit, webhook idempotency, RLS isolation, free account blocking.
+- [ ] Prisma: run `npx prisma db pull && npx prisma generate` after migrations.
+
+## Naming and Scalability Notes
+- Naming: use `credit_` prefix for all ledger/balance/pricing objects; idempotency keys labeled by feature (e.g., `geo_grid:<job_id>`, `keyword_tracking:<freq>:<keyword_id>`); config tables use explicit `feature_type` values (`geo_grid`, `keyword_tracking`, `keyword_finder`, `ai_review_gen`).
+- Scalability: ledger immutable with indexed queries; pricing rules versioned to avoid code deploys; idempotent webhooks to survive retries; caps configurable per tier/user; supports new features by adding pricing rules + debiting metadata without schema changes.
+- Documentation: every deployed function/webhook has a short README snippet (purpose, inputs, outputs, idempotency key) and a runbook entry for replay/adjustment paths.
+
+## Credits UI/UX
+- Credits page: **new top-level nav item** at route `/dashboard/credits` showing:
+  - Current balance with split of included vs purchased credits
+  - Renewal date for included credits (or "No monthly credits" for free accounts)
+  - Recent ledger entries (last 20)
+  - "Buy Credits" CTA that opens pack selector
+  - Clear copy: "Included credits reset monthly. Purchased credits never expire."
+- Nav integration:
+  - Add "Credits" to main dashboard sidebar navigation
+  - Show balance badge in nav (e.g., "Credits: 342")
+  - Badge turns warning color when balance < 50, error color when balance = 0
+- Packs selector modal/page:
+  - 200 credits ($20) / 700 credits ($60) / 2,300 credits ($180)
+  - Toggle for one-time vs monthly auto-topup
+  - Opens Stripe Checkout on selection
+- Post-Checkout: after redirect back, refresh balance (poll until webhook processed); handle failures with retry link.
+- Geo grid integration:
+  - Show estimated cost before running check (e.g., "This check will use 35 credits")
+  - Show current balance inline
+  - Disable "Run Check" when insufficient; show "Add Credits" button instead
+- Ledger view: paginated entries with reason, feature metadata, credit delta; filter by feature type (geo_grid, purchase, monthly_grant, etc.).

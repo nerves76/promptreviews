@@ -8,7 +8,7 @@
 
 import React, { useState, useEffect } from "react";
 import Icon from "@/components/Icon";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { fetchOnboardingTasks, markTaskAsCompleted, markTaskAsIncomplete } from "@/utils/onboardingTasks";
 import { createClient } from '@/auth/providers/supabase';
 
@@ -73,6 +73,7 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
   universalPromptPageData
 }) => {
   const supabase = createClient();
+  const router = useRouter();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isVisible, setIsVisible] = useState(true);
   const [loading, setLoading] = useState(true);
@@ -291,7 +292,7 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
           },
           {
             id: "share",
-            title: "Share with customers and clients!",
+            title: "Share a Prompt Page with your audience",
             description: "Start collecting reviews from your customers",
             icon: <Icon name="FaShare" className="w-5 h-5" size={20} />,
             completed: taskStatus["share"] || false
@@ -345,7 +346,7 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
           },
           {
             id: "share",
-            title: "Share with customers and clients!",
+            title: "Share a Prompt Page with your audience",
             description: "Start collecting reviews from your customers",
             icon: <Icon name="FaHandshake" className="w-5 h-5" size={20} />,
             completed: false
@@ -402,28 +403,10 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
     }
   };
 
-  const handleTaskLinkClick = async (taskId: string) => {
-    if (!accountId) return;
-
-    // Don't mark task as completed for style-prompt-pages
-    // It should only be marked complete when the style is actually saved
-    if (taskId === 'style-prompt-pages') {
-      return;
-    }
-
-    // Mark task as completed when user clicks the link
-    setTasks(prevTasks =>
-      prevTasks.map(task =>
-        task.id === taskId ? { ...task, completed: true } : task
-      )
-    );
-
-    // Update database
-    try {
-      await markTaskAsCompleted(accountId, taskId);
-    } catch (error) {
-      console.error('Error marking task as completed:', error);
-    }
+  const handleTaskLinkClick = (link: string) => {
+    // Just navigate - task completion is detected automatically by checking actual data
+    // (e.g., checkBusinessProfileComplete, checkKeywordsAndGuidelinesComplete, etc.)
+    router.push(link);
   };
 
   if (!isVisible || loading || !hasBusiness) {
@@ -485,20 +468,20 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
                   )}
                 </div>
                 {task.link && !task.completed && (
-                  <Link
-                    href={task.link}
+                  <button
+                    type="button"
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleTaskLinkClick(task.id);
+                      handleTaskLinkClick(task.link!);
                     }}
                     className={`text-sm rounded px-2 py-1 transition-colors ${
-                      task.id === 'business-profile' 
-                        ? 'bg-yellow-400 text-yellow-900 hover:bg-yellow-300 font-bold' 
+                      task.id === 'business-profile'
+                        ? 'bg-yellow-400 text-yellow-900 hover:bg-yellow-300 font-bold'
                         : 'bg-white bg-opacity-20 hover:bg-opacity-30'
                     }`}
                   >
                     Go →
-                  </Link>
+                  </button>
                 )}
                 {!task.link && !task.completed && (
                   <span className="text-xs bg-white bg-opacity-20 rounded px-2 py-1">

@@ -104,5 +104,6 @@ export {
   GeoGridResultsTable,
   GeoGridTrendCard,
   GeoGridKeywordPicker,
+  GeoGridScheduleSettings,
 } from './components';
 export type { ViewAsBusiness } from './components';

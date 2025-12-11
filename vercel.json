@@ -49,6 +49,18 @@
     {
       "path": "/api/cron/keyword-tracker-analysis",
       "schedule": "0 6 1 * *"
+    },
+    {
+      "path": "/api/cron/refresh-monthly-credits",
+      "schedule": "0 23 28-31 * *"
+    },
+    {
+      "path": "/api/cron/run-scheduled-geogrids",
+      "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/send-credit-warnings",
+      "schedule": "0 8 * * *"
     }
   ],
   "buildCommand": "npm run build",

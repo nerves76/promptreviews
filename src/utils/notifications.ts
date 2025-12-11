@@ -22,7 +22,9 @@ export type NotificationType =
   | 'team_invitation'
   | 'subscription_update'
   | 'system_announcement'
-  | 'review_auto_verified';
+  | 'review_auto_verified'
+  | 'credit_warning_upcoming'
+  | 'credit_check_skipped';
 
 export interface NotificationData {
   [key: string]: any;
@@ -154,6 +156,41 @@ export const NOTIFICATION_REGISTRY: Record<NotificationType, NotificationConfig>
       locationName: data.locationName || '',
       reviewsUrl: `${baseUrl}/dashboard/reviews`,
       accountUrl: `${baseUrl}/dashboard/account`,
+    }),
+  },
+
+  'credit_warning_upcoming': {
+    inAppPrefField: 'in_app_credit_warnings',
+    emailPrefField: 'email_credit_warnings',
+    getTitle: () => 'Low Credit Balance',
+    getMessage: (data) =>
+      `Your scheduled geo-grid check needs ${data.required} credits but you only have ${data.available}.`,
+    actionUrl: '/dashboard/credits',
+    actionLabel: 'Buy Credits',
+    getEmailVariables: (data, baseUrl) => ({
+      firstName: data.firstName || 'there',
+      required: data.required,
+      available: data.available,
+      scheduledFor: data.scheduledFor || 'soon',
+      buyCreditsUrl: `${baseUrl}/dashboard/credits`,
+      year: new Date().getFullYear(),
+    }),
+  },
+
+  'credit_check_skipped': {
+    inAppPrefField: 'in_app_credit_warnings',
+    emailPrefField: 'email_credit_warnings',
+    getTitle: () => 'Geo-Grid Check Skipped',
+    getMessage: (data) =>
+      `Your scheduled geo-grid check was skipped - needed ${data.required} credits but only ${data.available} available.`,
+    actionUrl: '/dashboard/credits',
+    actionLabel: 'Buy Credits',
+    getEmailVariables: (data, baseUrl) => ({
+      firstName: data.firstName || 'there',
+      required: data.required,
+      available: data.available,
+      buyCreditsUrl: `${baseUrl}/dashboard/credits`,
+      year: new Date().getFullYear(),
     }),
   },
 };

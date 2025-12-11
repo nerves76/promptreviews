@@ -42,6 +42,8 @@ export interface GeoPoint {
 // Configuration
 // ============================================
 
+export type ScheduleFrequency = 'daily' | 'weekly' | 'monthly' | null;
+
 export interface GGConfig {
   id: string;
   accountId: string;
@@ -55,6 +57,13 @@ export interface GGConfig {
   lastCheckedAt: string | null;
   createdAt: string;
   updatedAt: string;
+  // Scheduling fields
+  scheduleFrequency: ScheduleFrequency;
+  scheduleDayOfWeek: number | null; // 0=Sunday, 6=Saturday
+  scheduleDayOfMonth: number | null; // 1-28
+  scheduleHour: number; // 0-23, default 9
+  nextScheduledAt: string | null;
+  lastScheduledRunAt: string | null;
 }
 
 export interface GGConfigCreateInput {
