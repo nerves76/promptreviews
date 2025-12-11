@@ -332,22 +332,19 @@ export default function CreditsPage() {
                   </button>
                   <button
                     onClick={() => setPurchaseType("subscription")}
-                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${
+                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                       purchaseType === "subscription"
                         ? "bg-white/20 text-white"
                         : "text-white/60 hover:text-white"
                     }`}
                   >
                     Monthly
-                    <span className="text-xs bg-green-500 text-white px-1.5 py-0.5 rounded">
-                      Save 10%
-                    </span>
                   </button>
                 </div>
                 <p className="text-xs text-white/60 mt-2">
                   {purchaseType === "one_time"
                     ? "Pay once, credits never expire"
-                    : "Auto-refill monthly at 10% off. Cancel anytime."}
+                    : "Auto-refill monthly so you never run out. Cancel anytime."}
                 </p>
                 {purchaseType === "subscription" && (
                   <button
@@ -363,11 +360,8 @@ export default function CreditsPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {packs.map((pack, index) => {
                   const isSubscription = purchaseType === "subscription";
-                  const discountedPriceCents = isSubscription
-                    ? Math.round(pack.priceCents * 0.9)
-                    : pack.priceCents;
-                  const perCredit = discountedPriceCents / pack.credits / 100;
-                  const basePerCredit = 0.10; // $20 / 200 credits (one-time)
+                  const perCredit = pack.priceCents / pack.credits / 100;
+                  const basePerCredit = 0.10; // $20 / 200 credits
                   const savings = Math.round((1 - perCredit / basePerCredit) * 100);
                   const hasOption = isSubscription ? pack.hasRecurring : pack.hasOneTime;
 
@@ -398,13 +392,8 @@ export default function CreditsPage() {
                         ${perCredit.toFixed(3)}/credit
                       </div>
                       <div className="text-xl font-semibold mb-4">
-                        ${(discountedPriceCents / 100).toFixed(0)}
+                        {pack.priceFormatted}
                         {isSubscription && <span className="text-sm text-white/70">/mo</span>}
-                        {isSubscription && (
-                          <span className="block text-xs text-white/40 line-through">
-                            ${(pack.priceCents / 100).toFixed(0)}
-                          </span>
-                        )}
                       </div>
                       <button
                         onClick={() => handlePurchase(pack.id, isSubscription)}
