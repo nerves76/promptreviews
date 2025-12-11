@@ -526,10 +526,10 @@ export default function CreditsPage() {
                       <span className="font-semibold">{grid.size}</span>
                       <span className="text-white/50 text-xs ml-2">({grid.points} points)</span>
                     </td>
-                    <td className="py-2 px-3 text-center text-blue-400">{10 + grid.cells + 2}</td>
-                    <td className="py-2 px-3 text-center text-blue-400">{10 + grid.cells + 10}</td>
-                    <td className="py-2 px-3 text-center text-blue-400">{10 + grid.cells + 20}</td>
-                    <td className="py-2 px-3 text-center text-blue-400">{10 + grid.cells + 40}</td>
+                    <td className="py-2 px-3 text-center text-white font-medium">{10 + grid.cells + 2}</td>
+                    <td className="py-2 px-3 text-center text-white font-medium">{10 + grid.cells + 10}</td>
+                    <td className="py-2 px-3 text-center text-white font-medium">{10 + grid.cells + 20}</td>
+                    <td className="py-2 px-3 text-center text-white font-medium">{10 + grid.cells + 40}</td>
                   </tr>
                 ))}
               </tbody>
@@ -538,7 +538,7 @@ export default function CreditsPage() {
 
           <div className="mt-4 p-3 bg-white/5 rounded-lg">
             <p className="text-sm text-white/70">
-              <strong className="text-white">Example:</strong> A 5×5 grid with 5 keywords costs <span className="text-blue-400 font-semibold">45 credits</span>.
+              <strong className="text-white">Example:</strong> A 5×5 grid with 5 keywords costs <span className="text-yellow-300 font-semibold">45 credits</span>.
               With the 200 credit pack ($20), you could run <span className="text-green-400 font-semibold">4 checks</span> at this size.
               With the 2,300 credit pack ($180), you could run <span className="text-green-400 font-semibold">51 checks</span>.
             </p>
