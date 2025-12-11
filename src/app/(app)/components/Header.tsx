@@ -955,7 +955,7 @@ const Header = React.memo(function Header() {
                           Business Profile
                         </Link>
                         <Link
-                          href={hasBusiness ? "/admin/geo-grid" : "#"}
+                          href={hasBusiness ? "/dashboard/local-ranking-grids" : "#"}
                           onClick={(e) => {
                             if (!hasBusiness) {
                               e.preventDefault();
@@ -966,7 +966,7 @@ const Header = React.memo(function Header() {
                             }
                           }}
                           className={`${
-                            isActive("/admin/geo-grid")
+                            isActive("/dashboard/local-ranking-grids")
                               ? "bg-white/20 text-white"
                               : hasBusiness
                                 ? "text-white hover:bg-white/10"

@@ -60,11 +60,7 @@ function RobotTooltip({ text }: { text: string }) {
         onBlur={() => setShow(false)}
         style={{ lineHeight: 1 }}
       >
-        <svg
-          className="inline-block w-4 h-4 align-middle cursor-pointer"
-        >
-          <use href="/icons-sprite.svg#prompty" />
-        </svg>
+        <Icon name="prompty" className="inline-block w-4 h-4 align-middle cursor-pointer" color="#2E4A7D" size={16} />
       </button>
       {show && (
         <div className="absolute z-20 left-1/2 -translate-x-1/2 mt-2 w-56 p-2 bg-white border border-gray-200 rounded shadow text-xs text-gray-700">

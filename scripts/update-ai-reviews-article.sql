@@ -13,7 +13,7 @@ The quality of AI-generated reviews depends on how well Prompty AI understands y
 
 ### Step 1: Fill Out Your Business Profile
 
-Your business profile is Prompty AI''s foundation. Navigate to **Dashboard → Your Business** and complete these critical sections:
+Your business profile is Prompty AI''s foundation. Click **Your business** in the navigation and select **Business profile** to complete these critical sections:
 
 **Company Information:**
 - **Business Name** - Used in review context
@@ -231,7 +231,7 @@ A: Make them more specific. Instead of "Don''t be salesy," try "Don''t use phras
 
 ---
 
-*Start by filling out Your Business profile with comprehensive information. The more context you provide, the better Prompty AI performs.*
+*Start by filling out your business profile with comprehensive information. The more context you provide, the better Prompty AI performs.*
 ',
   'published',
   jsonb_build_object(
@@ -244,7 +244,7 @@ A: Make them more specific. Instead of "Don''t be salesy," try "Don''t use phras
     'seo_title', 'How to Train Prompty AI for Better Review Generation - Complete Guide',
     'seo_description', 'Complete guide to configuring business settings, keywords, and AI preferences for optimal AI-assisted review generation in PromptReviews.',
     'how_it_works', jsonb_build_array(
-      jsonb_build_object('number', 1, 'icon', '🏢', 'title', 'Fill Out Your Business Profile', 'description', 'Complete all fields in Your Business including keywords, AI Dos/Don''ts, services, and company values'),
+      jsonb_build_object('number', 1, 'icon', '🏢', 'title', 'Fill out your business profile', 'description', 'Complete all fields in the business profile including keywords, AI Dos/Don''ts, services, and company values'),
       jsonb_build_object('number', 2, 'icon', '⚙️', 'title', 'Configure Prompt Page Settings', 'description', 'Set up Universal and Service-specific prompt pages with custom keywords and instructions'),
       jsonb_build_object('number', 3, 'icon', '📝', 'title', 'Optimize Platform Settings', 'description', 'Configure word counts and instructions for each review platform (Google, Yelp, etc.)'),
       jsonb_build_object('number', 4, 'icon', '🧪', 'title', 'Test and Refine', 'description', 'Generate test reviews, evaluate output, and update settings based on results')
