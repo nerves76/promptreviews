@@ -17,6 +17,7 @@ const serviceSupabase = createClient(
  * Get rank check results.
  *
  * Query params:
+ * - configId: Config ID to fetch results for (optional, defaults to first config)
  * - mode: 'current' (latest batch only) or 'history' (multiple results)
  * - keywordId: Filter by keyword ID
  * - checkPoint: Filter by check point (center, n, s, e, w)
@@ -41,6 +42,7 @@ export async function GET(request: NextRequest) {
 
     // Parse query params
     const { searchParams } = new URL(request.url);
+    const configId = searchParams.get('configId') || undefined;
     const mode = searchParams.get('mode') || 'current';
     const keywordId = searchParams.get('keywordId') || undefined;
     const checkPoint = searchParams.get('checkPoint') as CheckPoint | undefined;
@@ -49,19 +51,44 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '100', 10);
     const includeSummary = searchParams.get('includeSummary') !== 'false';
 
-    // Get config for this account
-    const { data: config, error: configError } = await serviceSupabase
-      .from('gg_configs')
-      .select('id, last_checked_at')
-      .eq('account_id', accountId)
-      .single();
+    // Get config - by ID if provided, otherwise first config for account
+    let config: { id: string; last_checked_at: string | null } | null = null;
 
-    if (configError && configError.code !== 'PGRST116') {
-      console.error('❌ [GeoGrid] Failed to fetch config:', configError);
-      return NextResponse.json(
-        { error: 'Failed to fetch configuration' },
-        { status: 500 }
-      );
+    if (configId) {
+      // Get specific config by ID
+      const { data, error } = await serviceSupabase
+        .from('gg_configs')
+        .select('id, last_checked_at')
+        .eq('id', configId)
+        .eq('account_id', accountId)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('❌ [GeoGrid] Failed to fetch config:', error);
+        return NextResponse.json(
+          { error: 'Failed to fetch configuration' },
+          { status: 500 }
+        );
+      }
+      config = data;
+    } else {
+      // Backwards compatibility: get first config for account
+      const { data, error } = await serviceSupabase
+        .from('gg_configs')
+        .select('id, last_checked_at')
+        .eq('account_id', accountId)
+        .order('created_at', { ascending: true })
+        .limit(1)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('❌ [GeoGrid] Failed to fetch config:', error);
+        return NextResponse.json(
+          { error: 'Failed to fetch configuration' },
+          { status: 500 }
+        );
+      }
+      config = data;
     }
 
     if (!config) {

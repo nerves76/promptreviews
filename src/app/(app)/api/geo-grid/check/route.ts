@@ -28,6 +28,7 @@ const MAX_COST_PER_RUN_USD = 5.0;
  * Trigger a manual rank check for the account's geo grid.
  *
  * Body (optional):
+ * - configId: string - Specific config to check (default: first config)
  * - keywordIds: string[] - Specific keywords to check (default: all tracked)
  *
  * This endpoint:
@@ -52,27 +53,53 @@ export async function POST(request: NextRequest) {
     }
 
     // Parse optional body
+    let configId: string | undefined;
     let keywordIds: string[] | undefined;
     try {
       const body = await request.json();
+      configId = body.configId;
       keywordIds = body.keywordIds;
     } catch {
       // Empty body is fine
     }
 
-    // Get config for this account
-    const { data: configRow, error: configError } = await serviceSupabase
-      .from('gg_configs')
-      .select('*')
-      .eq('account_id', accountId)
-      .single();
+    // Get config - by ID if provided, otherwise first config for account
+    let configRow: any = null;
 
-    if (configError && configError.code !== 'PGRST116') {
-      console.error('❌ [GeoGrid] Failed to fetch config:', configError);
-      return NextResponse.json(
-        { error: 'Failed to fetch configuration' },
-        { status: 500 }
-      );
+    if (configId) {
+      const { data, error } = await serviceSupabase
+        .from('gg_configs')
+        .select('*')
+        .eq('id', configId)
+        .eq('account_id', accountId)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('❌ [GeoGrid] Failed to fetch config:', error);
+        return NextResponse.json(
+          { error: 'Failed to fetch configuration' },
+          { status: 500 }
+        );
+      }
+      configRow = data;
+    } else {
+      // Backwards compatibility: get first config for account
+      const { data, error } = await serviceSupabase
+        .from('gg_configs')
+        .select('*')
+        .eq('account_id', accountId)
+        .order('created_at', { ascending: true })
+        .limit(1)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('❌ [GeoGrid] Failed to fetch config:', error);
+        return NextResponse.json(
+          { error: 'Failed to fetch configuration' },
+          { status: 500 }
+        );
+      }
+      configRow = data;
     }
 
     if (!configRow) {

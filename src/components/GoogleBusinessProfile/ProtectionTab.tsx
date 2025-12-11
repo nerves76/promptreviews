@@ -301,7 +301,7 @@ export default function ProtectionTab({ accountPlan }: ProtectionTabProps) {
             <div className={`text-2xl font-bold ${stats.pendingCount > 0 ? 'text-amber-600' : 'text-green-600'}`}>
               {stats.pendingCount}
             </div>
-            <div className="text-xs text-gray-600">Pending Changes</div>
+            <div className="text-xs text-gray-600">Pending changes</div>
           </div>
           <div className="bg-gray-50 rounded-lg p-3 text-center">
             <div className="text-2xl font-bold text-gray-900">
@@ -321,12 +321,12 @@ export default function ProtectionTab({ accountPlan }: ProtectionTabProps) {
       {/* Settings Panel */}
       {showSettings && settings && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h3 className="font-medium text-gray-900 mb-4">Protection Settings</h3>
+          <h3 className="font-medium text-gray-900 mb-4">Protection settings</h3>
           <div className="space-y-4">
             {/* Enable/Disable */}
             <div className="flex items-center justify-between">
               <div>
-                <div className="font-medium text-gray-700">Protection Enabled</div>
+                <div className="font-medium text-gray-700">Protection enabled</div>
                 <div className="text-sm text-gray-500">Monitor locations for changes</div>
               </div>
               <button
@@ -345,7 +345,7 @@ export default function ProtectionTab({ accountPlan }: ProtectionTabProps) {
 
             {/* Notification Frequency */}
             <div>
-              <div className="font-medium text-gray-700 mb-2">Notification Frequency</div>
+              <div className="font-medium text-gray-700 mb-2">Notification frequency</div>
               <div className="flex gap-2">
                 {(['immediate', 'daily', 'weekly'] as const).map((freq) => (
                   <button
@@ -369,7 +369,7 @@ export default function ProtectionTab({ accountPlan }: ProtectionTabProps) {
       {/* Alerts List */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
         <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-          <h3 className="font-medium text-gray-900">Change Alerts</h3>
+          <h3 className="font-medium text-gray-900">Change alerts</h3>
           <div className="flex gap-2">
             <button
               onClick={() => setStatusFilter('pending')}

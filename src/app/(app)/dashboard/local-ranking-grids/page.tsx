@@ -11,7 +11,9 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/auth/providers/supabase';
 import { apiClient } from '@/utils/apiClient';
-import AppLoader from '@/app/(app)/components/AppLoader';
+import PageCard from '@/app/(app)/components/PageCard';
+import StandardLoader from '@/app/(app)/components/StandardLoader';
+import Icon from '@/components/Icon';
 import {
   GeoGridSetupWizard,
   GeoGridGoogleMap,
@@ -32,6 +34,7 @@ import {
   ViewAsBusiness,
 } from '@/features/geo-grid';
 import { ArrowLeftIcon, Cog6ToothIcon } from '@heroicons/react/24/outline';
+import LocationSelector from '@/components/LocationSelector';
 
 // ============================================
 // Types
@@ -65,9 +68,11 @@ export default function LocalRankingGridsPage() {
 
   // Data state
   const [availableKeywords, setAvailableKeywords] = useState<Keyword[]>([]);
+  const [googleBusinessLocations, setGoogleBusinessLocations] = useState<GoogleBusinessLocation[]>([]);
   const [googleBusinessLocation, setGoogleBusinessLocation] = useState<GoogleBusinessLocation | null>(null);
   const [isCheckRunning, setIsCheckRunning] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [isAddingNewLocation, setIsAddingNewLocation] = useState(false);
   const [selectedMapKeywordId, setSelectedMapKeywordId] = useState<string | null>(null);
   const [viewAs, setViewAs] = useState<ViewAsBusiness | null>(null);
 
@@ -77,7 +82,18 @@ export default function LocalRankingGridsPage() {
   const [isPointModalOpen, setIsPointModalOpen] = useState(false);
 
   // Hooks
-  const { config, hasConfig, isLoading: configLoading, refresh: refreshConfig } = useGeoGridConfig();
+  const {
+    configs,
+    config,
+    selectedConfigId,
+    selectConfig,
+    hasConfig,
+    canAddMore,
+    plan,
+    maxConfigs,
+    isLoading: configLoading,
+    refresh: refreshConfig,
+  } = useGeoGridConfig();
   const {
     results,
     summary: currentSummary,
@@ -85,8 +101,8 @@ export default function LocalRankingGridsPage() {
     isLoading: resultsLoading,
     runCheck,
     refresh: refreshResults,
-  } = useGeoGridResults();
-  const { trend, isLoading: summaryLoading } = useGeoGridSummary();
+  } = useGeoGridResults({ configId: selectedConfigId });
+  const { trend, isLoading: summaryLoading } = useGeoGridSummary({ configId: selectedConfigId });
 
   // Convert currentSummary to GGDailySummary format for TrendCard
   const summary = useMemo((): GGDailySummary | null => {
@@ -113,7 +129,7 @@ export default function LocalRankingGridsPage() {
     addKeywords,
     removeKeyword,
     refresh: refreshKeywords,
-  } = useTrackedKeywords();
+  } = useTrackedKeywords({ configId: selectedConfigId });
 
   // Build keyword usage counts map for results table
   const keywordUsageCounts = useMemo(() => {
@@ -186,9 +202,9 @@ export default function LocalRankingGridsPage() {
     }
   }, [loading, isAuthenticated]);
 
-  // Load Google Business location
+  // Load all Google Business locations
   useEffect(() => {
-    const loadGBPLocation = async () => {
+    const loadGBPLocations = async () => {
       try {
         const response = await apiClient.get<{
           data: {
@@ -205,23 +221,27 @@ export default function LocalRankingGridsPage() {
         }>('/social-posting/platforms/google-business-profile/locations');
 
         if (response.data?.locations && response.data.locations.length > 0) {
-          const loc = response.data.locations[0];
-          setGoogleBusinessLocation({
+          // Map all locations
+          const allLocations = response.data.locations.map(loc => ({
             id: loc.id,
             name: loc.location_name,
             lat: loc.lat || 0,
             lng: loc.lng || 0,
             placeId: loc.google_place_id || loc.location_id,
             address: loc.address,
-          });
+          }));
+          setGoogleBusinessLocations(allLocations);
+
+          // Set first location as default for backwards compatibility
+          setGoogleBusinessLocation(allLocations[0]);
         }
       } catch (error) {
-        console.error('Failed to load GBP location:', error);
+        console.error('Failed to load GBP locations:', error);
       }
     };
 
     if (!loading && isAuthenticated) {
-      loadGBPLocation();
+      loadGBPLocations();
     }
   }, [loading, isAuthenticated]);
 
@@ -242,6 +262,7 @@ export default function LocalRankingGridsPage() {
   const handleSetupComplete = useCallback(() => {
     refreshConfig();
     setShowSettings(false);
+    setIsAddingNewLocation(false);
   }, [refreshConfig]);
 
   // Handle adding keywords
@@ -286,9 +307,9 @@ export default function LocalRankingGridsPage() {
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center">
-        <AppLoader />
-      </div>
+      <PageCard>
+        <StandardLoader isLoading={true} mode="inline" />
+      </PageCard>
     );
   }
 
@@ -300,64 +321,121 @@ export default function LocalRankingGridsPage() {
   // Show setup wizard if no config or settings mode
   if (!hasConfig || showSettings) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="max-w-2xl mx-auto px-4">
+      <PageCard>
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-6 w-full gap-2 relative">
+          <div className="absolute z-10" style={{ left: "-69px", top: "-37px" }}>
+            <div className="rounded-full bg-white w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center shadow-lg">
+              <Icon name="FaMapMarker" className="w-6 h-6 sm:w-7 sm:h-7 text-slate-blue" size={28} />
+            </div>
+          </div>
+          <div className="flex flex-col mt-0 md:mt-[3px]">
+            <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">
+              {isAddingNewLocation ? 'Add New Location' : hasConfig ? 'Grid Settings' : 'Local Ranking Grids'}
+            </h1>
+            <p className="text-gray-600 text-base max-w-md mt-0 mb-4">
+              {isAddingNewLocation
+                ? 'Set up ranking tracking for a new location.'
+                : hasConfig
+                  ? 'Configure your geo grid tracking settings.'
+                  : 'Track your Google Maps visibility across geographic points.'}
+            </p>
+          </div>
           {/* Back button */}
           <button
-            onClick={() => (hasConfig ? setShowSettings(false) : router.push('/dashboard'))}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6"
+            onClick={() => {
+              setShowSettings(false);
+              setIsAddingNewLocation(false);
+              if (!hasConfig) router.push('/dashboard');
+            }}
+            className="flex items-center gap-2 px-3 py-2 border-2 border-slate-blue text-slate-blue rounded hover:bg-indigo-50 text-sm font-semibold"
           >
             <ArrowLeftIcon className="w-4 h-4" />
-            {hasConfig ? 'Back to Local Ranking Grids' : 'Back to Dashboard'}
+            {hasConfig ? 'Back' : 'Cancel'}
           </button>
-
-          <GeoGridSetupWizard
-            googleBusinessLocation={googleBusinessLocation || undefined}
-            onComplete={handleSetupComplete}
-            onCancel={() => (hasConfig ? setShowSettings(false) : router.push('/dashboard'))}
-          />
         </div>
-      </div>
+
+        <GeoGridSetupWizard
+          configId={showSettings && hasConfig && !isAddingNewLocation ? selectedConfigId || undefined : undefined}
+          googleBusinessLocation={googleBusinessLocation || undefined}
+          availableLocations={plan === 'maven' ? googleBusinessLocations : undefined}
+          onComplete={handleSetupComplete}
+          onCancel={() => {
+            setShowSettings(false);
+            setIsAddingNewLocation(false);
+            if (!hasConfig) router.push('/dashboard');
+          }}
+        />
+      </PageCard>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => router.push('/dashboard')}
-                className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
-              >
-                <ArrowLeftIcon className="w-4 h-4" />
-                Dashboard
-              </button>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Local Ranking Grids</h1>
-                <p className="text-sm text-gray-500">
-                  Track your Google Maps visibility across geographic points
-                </p>
-              </div>
+    <>
+      <PageCard>
+        {/* Title Row */}
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-6 w-full gap-2 relative">
+          <div className="absolute z-10" style={{ left: "-69px", top: "-37px" }}>
+            <div className="rounded-full bg-white w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center shadow-lg">
+              <Icon name="FaMapMarker" className="w-6 h-6 sm:w-7 sm:h-7 text-slate-blue" size={28} />
             </div>
-
+          </div>
+          <div className="flex flex-col mt-0 md:mt-[3px]">
+            <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">
+              Local Ranking Grids
+            </h1>
+            <p className="text-gray-600 text-base max-w-md mt-0 mb-4">
+              Track your Google Maps visibility across geographic points.
+            </p>
+          </div>
+          {/* Action Button - Top Right */}
+          <div className="flex items-center gap-2 sm:mt-0 mt-4">
             <button
               onClick={() => setShowSettings(true)}
-              className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:text-gray-900 border border-gray-300 rounded-lg hover:bg-gray-50"
+              className="flex items-center gap-2 px-3 py-2 border-2 border-slate-blue text-slate-blue rounded hover:bg-indigo-50 text-sm font-semibold"
             >
-              <Cog6ToothIcon className="w-5 h-5" />
+              <Cog6ToothIcon className="w-4 h-4" />
               Settings
             </button>
           </div>
         </div>
-      </div>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Summary Card */}
-        <div className="mb-8">
+        {/* Location Selector - Maven only, when multiple configs exist */}
+        {plan === 'maven' && configs.length > 0 && (
+          <div className="bg-gray-50 rounded-lg p-4 mb-6 border border-gray-200">
+            <div className="flex flex-wrap items-center gap-4">
+              <span className="text-sm font-medium text-gray-700">Location:</span>
+              <div className="w-72">
+                <LocationSelector
+                  locations={configs.map(c => ({
+                    id: c.id,
+                    name: c.locationName || c.googleBusinessLocation?.location_name || 'Unnamed Location',
+                    address: c.googleBusinessLocation?.address || null,
+                  }))}
+                  selectedId={selectedConfigId}
+                  onSelect={selectConfig}
+                  showAddButton={canAddMore}
+                  onAdd={() => {
+                    setIsAddingNewLocation(true);
+                    setShowSettings(true);
+                  }}
+                  addButtonLabel={`Add Location (${configs.length}/${maxConfigs})`}
+                  placeholder="Select a location"
+                  className=""
+                />
+              </div>
+              {configs.length > 1 && (
+                <span className="text-xs text-gray-500">
+                  Tracking {configs.length} of {maxConfigs} locations
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Main Content */}
+        <div className="space-y-8">
+          {/* Summary Card */}
           <GeoGridTrendCard
             summary={summary}
             trend={trend}
@@ -366,11 +444,10 @@ export default function LocalRankingGridsPage() {
             onRunCheck={handleRunCheck}
             isCheckRunning={isCheckRunning}
           />
-        </div>
 
-        {/* Google Maps Grid View */}
-        {config && (
-          <div className="mb-8">
+          {/* Google Maps Grid View */}
+          {config && (
+            <div>
             {/* Keyword & View As Selectors for Map */}
             {trackedKeywords.length > 0 && (
               <div className="bg-white rounded-xl border-2 border-gray-200 p-4 mb-4">
@@ -463,8 +540,7 @@ export default function LocalRankingGridsPage() {
           </div>
         )}
 
-        {/* Keyword Picker */}
-        <div className="mb-8">
+          {/* Keyword Picker */}
           <GeoGridKeywordPicker
             trackedKeywords={trackedKeywords}
             availableKeywords={availableKeywords}
@@ -474,27 +550,28 @@ export default function LocalRankingGridsPage() {
             maxKeywords={20}
             onKeywordsCreated={handleKeywordsCreated}
           />
-        </div>
 
-        {/* Results Table */}
-        <GeoGridResultsTable
-          results={results}
-          isLoading={resultsLoading}
-          lastCheckedAt={lastCheckedAt}
-          keywordUsageCounts={keywordUsageCounts}
-        />
+          {/* Results Table */}
+          <GeoGridResultsTable
+            results={results}
+            isLoading={resultsLoading}
+            lastCheckedAt={lastCheckedAt}
+            keywordUsageCounts={keywordUsageCounts}
+          />
 
-        {/* Schedule Settings */}
-        {config && (
-          <div className="mt-8">
+          {/* Schedule Settings */}
+          {config && (
             <GeoGridScheduleSettings
               config={config}
               keywordCount={trackedKeywords.length}
               onScheduleUpdated={refreshConfig}
             />
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+
+        {/* Add responsive bottom padding */}
+        <div className="pb-8 md:pb-12 lg:pb-16" />
+      </PageCard>
 
       {/* Point Detail Modal */}
       <GeoGridPointModal
@@ -503,6 +580,6 @@ export default function LocalRankingGridsPage() {
         result={selectedPointResult}
         point={selectedPoint}
       />
-    </div>
+    </>
   );
 }

@@ -15,6 +15,8 @@ import { GGDailySummary } from '../utils/types';
 // ============================================
 
 export interface UseGeoGridSummaryOptions {
+  /** Config ID to fetch summaries for (optional, defaults to first config) */
+  configId?: string | null;
   /** Fetch mode: 'latest' for most recent, 'history' for multiple days */
   mode?: 'latest' | 'history';
   /** Filter summaries after this date (YYYY-MM-DD) */
@@ -65,6 +67,7 @@ export function useGeoGridSummary(
   options: UseGeoGridSummaryOptions = {}
 ): UseGeoGridSummaryReturn {
   const {
+    configId,
     mode = 'latest',
     startDate,
     endDate,
@@ -87,6 +90,7 @@ export function useGeoGridSummary(
     try {
       // Build query params
       const params = new URLSearchParams();
+      if (configId) params.set('configId', configId);
       params.set('mode', mode);
       if (startDate) params.set('startDate', startDate);
       if (endDate) params.set('endDate', endDate);
@@ -121,14 +125,14 @@ export function useGeoGridSummary(
     } finally {
       setIsLoading(false);
     }
-  }, [mode, startDate, endDate, limit, includeTrend]);
+  }, [configId, mode, startDate, endDate, limit, includeTrend]);
 
   // Auto-fetch on mount and when options change
   useEffect(() => {
     if (autoFetch) {
       fetchSummaries();
     }
-  }, [autoFetch, fetchSummaries]);
+  }, [autoFetch, configId, fetchSummaries]);
 
   return {
     summary,

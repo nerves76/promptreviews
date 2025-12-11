@@ -44,10 +44,18 @@ export interface GeoPoint {
 
 export type ScheduleFrequency = 'daily' | 'weekly' | 'monthly' | null;
 
+// Joined Google Business Location data (from API)
+export interface GGConfigGoogleBusinessLocation {
+  id: string;
+  location_name: string;
+  address?: string | null;
+}
+
 export interface GGConfig {
   id: string;
   accountId: string;
   googleBusinessLocationId: string | null;
+  locationName: string | null; // Denormalized for display
   centerLat: number;
   centerLng: number;
   radiusMiles: number;
@@ -64,10 +72,13 @@ export interface GGConfig {
   scheduleHour: number; // 0-23, default 9
   nextScheduledAt: string | null;
   lastScheduledRunAt: string | null;
+  // Joined data from API (optional)
+  googleBusinessLocation?: GGConfigGoogleBusinessLocation | null;
 }
 
 export interface GGConfigCreateInput {
   googleBusinessLocationId?: string;
+  locationName?: string; // Display name for the location
   centerLat: number;
   centerLng: number;
   radiusMiles?: number;
@@ -82,6 +93,7 @@ export interface GGConfigUpdateInput {
   checkPoints?: CheckPoint[];
   targetPlaceId?: string;
   isEnabled?: boolean;
+  locationName?: string;
 }
 
 // ============================================

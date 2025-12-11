@@ -273,7 +273,7 @@ export default function BusinessPerformanceEmbed({
         </div>
         <div className="p-2 bg-purple-50 rounded">
           <div className="text-lg font-bold text-purple-600">#3</div>
-          <div className="text-xs text-gray-600">Local Rank</div>
+          <div className="text-xs text-gray-600">Local rank</div>
         </div>
       </div>
     </div>

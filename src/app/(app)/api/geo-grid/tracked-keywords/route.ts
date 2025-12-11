@@ -13,6 +13,9 @@ const serviceSupabase = createClient(
 /**
  * GET /api/geo-grid/tracked-keywords
  * List all tracked keywords for the account's geo grid config.
+ *
+ * Query params:
+ * - configId: string (optional) - Config ID to fetch keywords for (defaults to first config)
  */
 export async function GET(request: NextRequest) {
   try {
@@ -28,12 +31,31 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Account not found' }, { status: 404 });
     }
 
-    // Get config for this account
-    const { data: config } = await serviceSupabase
-      .from('gg_configs')
-      .select('id')
-      .eq('account_id', accountId)
-      .single();
+    // Parse query params
+    const { searchParams } = new URL(request.url);
+    const configId = searchParams.get('configId') || undefined;
+
+    // Get config - by ID if provided, otherwise first config for account
+    let config: { id: string } | null = null;
+
+    if (configId) {
+      const { data } = await serviceSupabase
+        .from('gg_configs')
+        .select('id')
+        .eq('id', configId)
+        .eq('account_id', accountId)
+        .single();
+      config = data;
+    } else {
+      const { data } = await serviceSupabase
+        .from('gg_configs')
+        .select('id')
+        .eq('account_id', accountId)
+        .order('created_at', { ascending: true })
+        .limit(1)
+        .single();
+      config = data;
+    }
 
     if (!config) {
       return NextResponse.json({
@@ -91,6 +113,7 @@ export async function GET(request: NextRequest) {
  * Add keywords to track.
  *
  * Body:
+ * - configId: string (optional) - Config to add keywords to (defaults to first config)
  * - keywordIds: string[] (required) - IDs of keywords to track
  */
 export async function POST(request: NextRequest) {
@@ -108,7 +131,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { keywordIds } = body;
+    const { configId, keywordIds } = body;
 
     if (!keywordIds || !Array.isArray(keywordIds) || keywordIds.length === 0) {
       return NextResponse.json(
@@ -117,12 +140,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get config for this account
-    const { data: config } = await serviceSupabase
-      .from('gg_configs')
-      .select('id')
-      .eq('account_id', accountId)
-      .single();
+    // Get config - by ID if provided, otherwise first config for account
+    let config: { id: string } | null = null;
+
+    if (configId) {
+      const { data } = await serviceSupabase
+        .from('gg_configs')
+        .select('id')
+        .eq('id', configId)
+        .eq('account_id', accountId)
+        .single();
+      config = data;
+    } else {
+      const { data } = await serviceSupabase
+        .from('gg_configs')
+        .select('id')
+        .eq('account_id', accountId)
+        .order('created_at', { ascending: true })
+        .limit(1)
+        .single();
+      config = data;
+    }
 
     if (!config) {
       return NextResponse.json(

@@ -2285,7 +2285,7 @@ export default function SocialPostingDashboard() {
                                 <span>Rate limited ({rateLimitedUntil ? Math.ceil((rateLimitedUntil - Date.now()) / 1000) : 0}s)</span>
                               </>
                             ) : (
-                              <span>Fetch Business Locations</span>
+                              <span>Fetch business locations</span>
                             )}
                           </button>
                         </div>
@@ -2321,7 +2321,7 @@ export default function SocialPostingDashboard() {
                             className="px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors text-sm font-medium flex items-center space-x-1"
                           >
                             <Icon name="FaCog" className="w-3 h-3" />
-                            <span>Change Locations</span>
+                            <span>Choose location(s)</span>
                           </button>
                         </div>
                       </div>
@@ -2710,7 +2710,7 @@ export default function SocialPostingDashboard() {
                                   ) : rateLimitedUntil && Date.now() < rateLimitedUntil ? (
                                     `Rate limited (${Math.ceil((rateLimitedUntil - Date.now()) / 1000)}s)`
                                   ) : (
-                                    <>Fetch Locations</>
+                                    <>Fetch locations</>
                                   )}
                                 </button>
                                 <button
@@ -2745,7 +2745,7 @@ export default function SocialPostingDashboard() {
 
                       {/* Post Type Selection */}
                       <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Post Type</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Post type</label>
                         <select
                           value={postType}
                           onChange={(e) => setPostType(e.target.value as any)}
@@ -2760,7 +2760,7 @@ export default function SocialPostingDashboard() {
 
                       {/* Post Content */}
                       <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Post Content</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Post content</label>
                         <textarea
                           value={postContent}
                           onChange={(e) => setPostContent(e.target.value)}
@@ -2785,7 +2785,7 @@ export default function SocialPostingDashboard() {
                             ) : (
                               <>
                                 <Icon name="MdFlashOn" className="w-3 h-3" />
-                                <span>AI Improve</span>
+                                <span>AI improve</span>
                               </>
                             )}
                           </button>
@@ -2856,7 +2856,7 @@ export default function SocialPostingDashboard() {
                         {showCTA && (
                           <div className="space-y-3 p-4 bg-gray-50 rounded-lg">
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">Button Type</label>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">Button type</label>
                               <select
                                 value={ctaType}
                                 onChange={(e) => setCTAType(e.target.value as any)}
@@ -2864,7 +2864,7 @@ export default function SocialPostingDashboard() {
                               >
                                 <option value="LEARN_MORE">Learn more</option>
                                 <option value="CALL">Call</option>
-                                <option value="ORDER_ONLINE">Order Online</option>
+                                <option value="ORDER_ONLINE">Order online</option>
                                 <option value="BOOK">Book</option>
                                 <option value="SIGN_UP">Sign up</option>
                                 <option value="BUY">Buy</option>
@@ -2872,7 +2872,7 @@ export default function SocialPostingDashboard() {
                             </div>
                             <div>
                               <label className="block text-sm font-medium text-gray-700 mb-1">
-                                {ctaType === 'CALL' ? 'Phone Number' : 'URL'}
+                                {ctaType === 'CALL' ? 'Phone number' : 'URL'}
                               </label>
                               <input
                                 type={ctaType === 'CALL' ? 'tel' : 'url'}
@@ -2907,7 +2907,7 @@ export default function SocialPostingDashboard() {
                           ) : (
                             <>
                               <Icon name="FaPlus" className="w-4 h-4" />
-                              <span>Publish Post</span>
+                              <span>Publish post</span>
                             </>
                           )}
                         </button>
@@ -3128,7 +3128,7 @@ export default function SocialPostingDashboard() {
                         <Icon name="FaQuestionCircle" className="w-6 h-6 text-purple-600" />
                         <h3 className="text-lg font-semibold text-gray-900">Questions & Answers</h3>
                       </div>
-                      <span className="px-2 py-1 text-xs font-medium bg-purple-100 text-purple-800 rounded-full">High Impact</span>
+                      <span className="px-2 py-1 text-xs font-medium bg-purple-100 text-purple-800 rounded-full">High impact</span>
                     </div>
                     
                     <p className="text-gray-700 mb-4">
@@ -3175,7 +3175,7 @@ export default function SocialPostingDashboard() {
                         <Icon name="FaCalendarAlt" className="w-6 h-6 text-blue-600" />
                         <h3 className="text-lg font-semibold text-gray-900">Booking & Appointments</h3>
                       </div>
-                      <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">Integration Required</span>
+                      <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">Integration required</span>
                     </div>
                     
                     <p className="text-gray-700 mb-4">
@@ -3212,7 +3212,7 @@ export default function SocialPostingDashboard() {
                         <Icon name="FaComments" className="w-6 h-6 text-green-600" />
                         <h3 className="text-lg font-semibold text-gray-900">Messaging</h3>
                       </div>
-                      <span className="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">Mobile Only</span>
+                      <span className="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">Mobile only</span>
                     </div>
                     
                     <p className="text-gray-700 mb-4">
@@ -3249,7 +3249,7 @@ export default function SocialPostingDashboard() {
                         <Icon name="FaTags" className="w-6 h-6 text-indigo-600" />
                         <h3 className="text-lg font-semibold text-gray-900">Attributes</h3>
                       </div>
-                      <span className="px-2 py-1 text-xs font-medium bg-indigo-100 text-indigo-800 rounded-full">High Value</span>
+                      <span className="px-2 py-1 text-xs font-medium bg-indigo-100 text-indigo-800 rounded-full">High value</span>
                     </div>
                     
                     <p className="text-gray-700 mb-4">
@@ -3306,7 +3306,7 @@ export default function SocialPostingDashboard() {
                         <Icon name="FaList" className="w-6 h-6 text-orange-600" />
                         <h3 className="text-lg font-semibold text-gray-900">Menu (Restaurants Only)</h3>
                       </div>
-                      <span className="px-2 py-1 text-xs font-medium bg-orange-100 text-orange-800 rounded-full">Industry Specific</span>
+                      <span className="px-2 py-1 text-xs font-medium bg-orange-100 text-orange-800 rounded-full">Industry specific</span>
                     </div>
                     
                     <p className="text-gray-700 mb-4">
@@ -3524,7 +3524,7 @@ export default function SocialPostingDashboard() {
               {/* Import Options Section */}
               <div className="space-y-3">
                 <div>
-                  <p className="text-sm font-medium text-gray-900 mb-1">Import Options</p>
+                  <p className="text-sm font-medium text-gray-900 mb-1">Import options</p>
                   <p className="text-xs text-gray-500">
                     If you've imported before, choose the second option to grab only the Google reviews that are
                     new since your last import. We'll ignore anything that's already saved in Prompt Reviews.
@@ -3655,7 +3655,7 @@ export default function SocialPostingDashboard() {
                 onClick={performFetchLocations}
                 className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center space-x-2"
               >
-                <span>Fetch Locations</span>
+                <span>Fetch locations</span>
               </button>
               <button
                 onClick={() => setShowFetchConfirmModal(false)}

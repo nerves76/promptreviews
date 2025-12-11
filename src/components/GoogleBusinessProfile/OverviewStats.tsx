@@ -186,7 +186,7 @@ export default function OverviewStats({
         <div className="flex items-center justify-between mb-6">
           <div>
             <div className="flex items-start gap-1">
-              <h2 className="text-xl font-bold text-slate-blue">Review Progress</h2>
+              <h2 className="text-xl font-bold text-slate-blue">Review progress</h2>
               <div className="flex-shrink-0 mt-0.5">
                 <GBPHelpBubble
                   metric="metrics/monthly-patterns"
@@ -218,7 +218,7 @@ export default function OverviewStats({
                 ) : (
                   <>
                     <Icon name="FaRedo" className="w-3 h-3" />
-                    <span>Load Data</span>
+                    <span>Load data</span>
                   </>
                 )}
               </button>
@@ -445,7 +445,7 @@ export default function OverviewStats({
           <div className="flex items-center justify-between mb-2">
             <div>
               <div className="flex items-start gap-1">
-                <h3 className="text-lg font-semibold text-slate-blue">Total Reviews</h3>
+                <h3 className="text-lg font-semibold text-slate-blue">Total reviews</h3>
                 <div className="flex-shrink-0 mt-0.5">
                   <GBPHelpBubble
                     metric="metrics/total-reviews"

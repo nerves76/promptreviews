@@ -28,6 +28,7 @@ export function transformConfigToResponse(row: {
   id: string;
   account_id: string;
   google_business_location_id: string | null;
+  location_name?: string | null;
   center_lat: string | number;
   center_lng: string | number;
   radius_miles: string | number;
@@ -49,6 +50,7 @@ export function transformConfigToResponse(row: {
     id: row.id,
     accountId: row.account_id,
     googleBusinessLocationId: row.google_business_location_id,
+    locationName: row.location_name ?? null,
     centerLat: parseFloat(String(row.center_lat)),
     centerLng: parseFloat(String(row.center_lng)),
     radiusMiles: parseFloat(String(row.radius_miles)),

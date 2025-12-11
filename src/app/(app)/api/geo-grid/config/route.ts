@@ -23,8 +23,11 @@ const serviceSupabase = createClient(
 
 /**
  * GET /api/geo-grid/config
- * Get the geo grid configuration for the current account.
- * Returns null if no config exists (user needs to set up).
+ * Get all geo grid configurations for the current account.
+ * Returns array of configs (empty if none exist).
+ *
+ * Query params:
+ * - configId: string (optional) - Get single config by ID
  */
 export async function GET(request: NextRequest) {
   try {
@@ -40,8 +43,49 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Account not found' }, { status: 404 });
     }
 
-    // Get config for this account
-    const { data: config, error: configError } = await serviceSupabase
+    // Check for single config request
+    const { searchParams } = new URL(request.url);
+    const configId = searchParams.get('configId');
+
+    if (configId) {
+      // Get single config by ID
+      const { data: config, error: configError } = await serviceSupabase
+        .from('gg_configs')
+        .select(`
+          *,
+          google_business_locations (
+            id,
+            location_name,
+            address
+          )
+        `)
+        .eq('id', configId)
+        .eq('account_id', accountId)
+        .single();
+
+      if (configError && configError.code !== 'PGRST116') {
+        console.error('❌ [GeoGrid] Failed to fetch config:', configError);
+        return NextResponse.json(
+          { error: 'Failed to fetch configuration' },
+          { status: 500 }
+        );
+      }
+
+      if (!config) {
+        return NextResponse.json({ config: null });
+      }
+
+      const transformed = transformConfigToResponse(config);
+      return NextResponse.json({
+        config: {
+          ...transformed,
+          googleBusinessLocation: config.google_business_locations || null,
+        },
+      });
+    }
+
+    // Get all configs for this account
+    const { data: configs, error: configError } = await serviceSupabase
       .from('gg_configs')
       .select(`
         *,
@@ -52,29 +96,41 @@ export async function GET(request: NextRequest) {
         )
       `)
       .eq('account_id', accountId)
-      .single();
+      .order('created_at', { ascending: true });
 
-    if (configError && configError.code !== 'PGRST116') {
-      // PGRST116 = no rows returned (expected if not set up)
-      console.error('❌ [GeoGrid] Failed to fetch config:', configError);
+    if (configError) {
+      console.error('❌ [GeoGrid] Failed to fetch configs:', configError);
       return NextResponse.json(
-        { error: 'Failed to fetch configuration' },
+        { error: 'Failed to fetch configurations' },
         { status: 500 }
       );
     }
 
-    if (!config) {
-      return NextResponse.json({ config: null });
-    }
+    // Transform all configs
+    const transformedConfigs = (configs || []).map(config => ({
+      ...transformConfigToResponse(config),
+      googleBusinessLocation: config.google_business_locations || null,
+    }));
 
-    // Transform and return
-    const transformed = transformConfigToResponse(config);
+    // Get account plan for tier info
+    const { data: account } = await serviceSupabase
+      .from('accounts')
+      .select('plan')
+      .eq('id', accountId)
+      .single();
+
+    const plan = account?.plan || 'grower';
+    const maxConfigs = plan === 'maven' ? 10 : 1;
+    const canAddMore = transformedConfigs.length < maxConfigs;
 
     return NextResponse.json({
-      config: {
-        ...transformed,
-        googleBusinessLocation: config.google_business_locations || null,
-      },
+      configs: transformedConfigs,
+      // For backwards compatibility, also return first config as 'config'
+      config: transformedConfigs[0] || null,
+      // Tier info
+      plan,
+      maxConfigs,
+      canAddMore,
     });
   } catch (error) {
     console.error('❌ [GeoGrid] Config GET error:', error);
@@ -87,16 +143,22 @@ export async function GET(request: NextRequest) {
 
 /**
  * POST /api/geo-grid/config
- * Create or update the geo grid configuration for the current account.
+ * Create or update geo grid configuration.
  *
  * Body:
+ * - configId: string (optional) - Update specific config, or create if not provided
+ * - googleBusinessLocationId: string (required for new configs with multi-location)
+ * - locationName: string (optional) - Display name for the location
  * - centerLat: number (required for create)
  * - centerLng: number (required for create)
  * - radiusMiles: number (optional, default 3.0)
  * - checkPoints: string[] (optional, default ['center','n','s','e','w'])
- * - googleBusinessLocationId: string (optional)
  * - targetPlaceId: string (optional, but needed for rank checks)
  * - isEnabled: boolean (optional)
+ *
+ * Tier limits:
+ * - Maven: up to 10 configs (one per location)
+ * - Builder/Grower: 1 config only
  */
 export async function POST(request: NextRequest) {
   try {
@@ -113,21 +175,91 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
+    const { configId } = body;
 
-    // Check if config already exists
-    const { data: existing } = await serviceSupabase
-      .from('gg_configs')
-      .select('id')
-      .eq('account_id', accountId)
+    // Get account plan for tier enforcement
+    const { data: account } = await serviceSupabase
+      .from('accounts')
+      .select('plan')
+      .eq('id', accountId)
       .single();
 
-    if (existing) {
-      // Update existing config
-      return await updateConfig(existing.id, accountId, body);
-    } else {
-      // Create new config
-      return await createConfig(accountId, body);
+    const plan = account?.plan || 'grower';
+    const maxConfigs = plan === 'maven' ? 10 : 1;
+
+    if (configId) {
+      // Update existing config by ID
+      const { data: existing } = await serviceSupabase
+        .from('gg_configs')
+        .select('id')
+        .eq('id', configId)
+        .eq('account_id', accountId)
+        .single();
+
+      if (!existing) {
+        return NextResponse.json({ error: 'Config not found' }, { status: 404 });
+      }
+
+      return await updateConfig(configId, accountId, body);
     }
+
+    // Creating new config - check tier limits
+    const { count: existingCount } = await serviceSupabase
+      .from('gg_configs')
+      .select('*', { count: 'exact', head: true })
+      .eq('account_id', accountId);
+
+    if ((existingCount || 0) >= maxConfigs) {
+      return NextResponse.json({
+        error: 'Location limit reached',
+        message: plan === 'maven'
+          ? 'You have reached the maximum of 10 Local Ranking Grid configurations.'
+          : 'Upgrade to Maven to track rankings for multiple locations.',
+        maxAllowed: maxConfigs,
+        currentCount: existingCount,
+        upgradeRequired: plan !== 'maven',
+      }, { status: 403 });
+    }
+
+    // For Maven with existing configs, require location ID for new configs
+    if ((existingCount || 0) > 0 && !body.googleBusinessLocationId) {
+      return NextResponse.json({
+        error: 'googleBusinessLocationId is required when adding additional locations',
+      }, { status: 400 });
+    }
+
+    // Check if config already exists for this location
+    if (body.googleBusinessLocationId) {
+      // Verify the location belongs to this account
+      const { data: locationCheck } = await serviceSupabase
+        .from('google_business_locations')
+        .select('id')
+        .eq('id', body.googleBusinessLocationId)
+        .eq('account_id', accountId)
+        .single();
+
+      if (!locationCheck) {
+        return NextResponse.json({
+          error: 'Invalid location',
+          message: 'The specified Google Business location does not belong to this account.',
+        }, { status: 400 });
+      }
+
+      const { data: existingForLocation } = await serviceSupabase
+        .from('gg_configs')
+        .select('id')
+        .eq('account_id', accountId)
+        .eq('google_business_location_id', body.googleBusinessLocationId)
+        .single();
+
+      if (existingForLocation) {
+        // Update existing config for this location
+        return await updateConfig(existingForLocation.id, accountId, body);
+      }
+    }
+
+    // Create new config
+    return await createConfig(accountId, body);
   } catch (error) {
     console.error('❌ [GeoGrid] Config POST error:', error);
     return NextResponse.json(
@@ -172,6 +304,7 @@ async function createConfig(accountId: string, body: GGConfigCreateInput) {
     .insert({
       account_id: accountId,
       google_business_location_id: body.googleBusinessLocationId || null,
+      location_name: body.locationName || null,
       center_lat: body.centerLat,
       center_lng: body.centerLng,
       radius_miles: radiusMiles,
@@ -239,6 +372,10 @@ async function updateConfig(
     updates.is_enabled = body.isEnabled;
   }
 
+  if ((body as any).locationName !== undefined) {
+    updates.location_name = (body as any).locationName;
+  }
+
   // Update config
   const { data: config, error: updateError } = await serviceSupabase
     .from('gg_configs')
@@ -260,4 +397,69 @@ async function updateConfig(
     config: transformConfigToResponse(config),
     updated: true,
   });
+}
+
+/**
+ * DELETE /api/geo-grid/config
+ * Delete a geo grid configuration.
+ *
+ * Query params:
+ * - configId: string (required) - Config to delete
+ */
+export async function DELETE(request: NextRequest) {
+  try {
+    const supabase = await createServerSupabaseClient();
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const accountId = await getRequestAccountId(request, user.id, supabase);
+    if (!accountId) {
+      return NextResponse.json({ error: 'Account not found' }, { status: 404 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const configId = searchParams.get('configId');
+
+    if (!configId) {
+      return NextResponse.json({ error: 'configId is required' }, { status: 400 });
+    }
+
+    // Verify config belongs to this account
+    const { data: existing } = await serviceSupabase
+      .from('gg_configs')
+      .select('id')
+      .eq('id', configId)
+      .eq('account_id', accountId)
+      .single();
+
+    if (!existing) {
+      return NextResponse.json({ error: 'Config not found' }, { status: 404 });
+    }
+
+    // Delete config (cascade will delete related tracked_keywords, checks, summaries)
+    const { error: deleteError } = await serviceSupabase
+      .from('gg_configs')
+      .delete()
+      .eq('id', configId)
+      .eq('account_id', accountId);
+
+    if (deleteError) {
+      console.error('❌ [GeoGrid] Failed to delete config:', deleteError);
+      return NextResponse.json(
+        { error: 'Failed to delete configuration' },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({ success: true, deleted: configId });
+  } catch (error) {
+    console.error('❌ [GeoGrid] Config DELETE error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
 }

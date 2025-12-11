@@ -15,6 +15,8 @@ import { GGTrackedKeyword } from '../utils/types';
 // ============================================
 
 export interface UseTrackedKeywordsOptions {
+  /** Config ID to fetch keywords for (optional, defaults to first config) */
+  configId?: string | null;
   /** Auto-fetch on mount (default: true) */
   autoFetch?: boolean;
 }
@@ -54,7 +56,7 @@ export interface AddKeywordsResult {
 export function useTrackedKeywords(
   options: UseTrackedKeywordsOptions = {}
 ): UseTrackedKeywordsReturn {
-  const { autoFetch = true } = options;
+  const { configId, autoFetch = true } = options;
 
   const [keywords, setKeywords] = useState<GGTrackedKeyword[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -65,10 +67,16 @@ export function useTrackedKeywords(
     setError(null);
 
     try {
+      // Build query params
+      const params = new URLSearchParams();
+      if (configId) params.set('configId', configId);
+      const queryString = params.toString();
+      const url = queryString ? `/geo-grid/tracked-keywords?${queryString}` : '/geo-grid/tracked-keywords';
+
       const response = await apiClient.get<{
         trackedKeywords: GGTrackedKeyword[];
         count: number;
-      }>('/geo-grid/tracked-keywords');
+      }>(url);
 
       setKeywords(response.trackedKeywords || []);
     } catch (err) {
@@ -78,7 +86,7 @@ export function useTrackedKeywords(
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [configId]);
 
   const addKeywords = useCallback(
     async (keywordIds: string[]): Promise<AddKeywordsResult> => {
@@ -88,7 +96,7 @@ export function useTrackedKeywords(
           added: number;
           skipped: number;
           trackedKeywords: GGTrackedKeyword[];
-        }>('/geo-grid/tracked-keywords', { keywordIds });
+        }>('/geo-grid/tracked-keywords', { configId, keywordIds });
 
         if (response.success) {
           // Refresh to get updated list
@@ -105,7 +113,7 @@ export function useTrackedKeywords(
         return { success: false, added: 0, skipped: 0, error: message };
       }
     },
-    [fetchKeywords]
+    [configId, fetchKeywords]
   );
 
   const removeKeyword = useCallback(
@@ -153,12 +161,12 @@ export function useTrackedKeywords(
     [fetchKeywords]
   );
 
-  // Auto-fetch on mount
+  // Auto-fetch on mount and when configId changes
   useEffect(() => {
     if (autoFetch) {
       fetchKeywords();
     }
-  }, [autoFetch, fetchKeywords]);
+  }, [autoFetch, configId, fetchKeywords]);
 
   // Computed values
   const enabledKeywords = keywords.filter((k) => k.isEnabled);

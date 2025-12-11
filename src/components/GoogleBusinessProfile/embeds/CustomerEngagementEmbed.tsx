@@ -141,7 +141,7 @@ export default function CustomerEngagementEmbed({
           </div>
           <div className="text-right">
             <span className="text-lg font-bold text-green-600">{animatedTotalReviews}</span>
-            <p className="text-xs text-gray-600">Total Reviews</p>
+            <p className="text-xs text-gray-600">Total reviews</p>
           </div>
         </div>
         

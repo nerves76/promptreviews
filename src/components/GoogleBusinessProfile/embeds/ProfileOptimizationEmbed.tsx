@@ -139,7 +139,7 @@ export default function ProfileOptimizationEmbed({
         {/* Categories */}
         <div>
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-gray-700">Business Categories</span>
+            <span className="text-sm text-gray-700">Business categories</span>
             <span className="text-sm font-medium text-gray-900">{animatedCategoryCompletion}%</span>
           </div>
           <ProgressBar percentage={categoryCompletion} animate={cardIsVisible} />
@@ -149,7 +149,7 @@ export default function ProfileOptimizationEmbed({
         {/* Service Descriptions */}
         <div>
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-gray-700">Service Descriptions</span>
+            <span className="text-sm text-gray-700">Service descriptions</span>
             <span className="text-sm font-medium text-gray-900">{animatedServiceCompletion}%</span>
           </div>
           <ProgressBar percentage={serviceDescriptionCompletion} className="bg-green-500" animate={cardIsVisible} />
@@ -159,7 +159,7 @@ export default function ProfileOptimizationEmbed({
         {/* Business Description */}
         <div>
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-gray-700">Business Description</span>
+            <span className="text-sm text-gray-700">Business description</span>
             <span className="text-sm font-medium text-gray-900">{animatedDescriptionCompletion}%</span>
           </div>
           <ProgressBar percentage={businessDescriptionCompletion} className="bg-purple-500" animate={cardIsVisible} />

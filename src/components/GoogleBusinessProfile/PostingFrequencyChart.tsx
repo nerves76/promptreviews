@@ -267,7 +267,7 @@ export default function PostingFrequencyChart({
       <div className="flex items-center justify-between mb-6">
         <div>
           <div className="flex items-start gap-1">
-            <h2 className="text-xl font-bold text-slate-blue">Posting Activity</h2>
+            <h2 className="text-xl font-bold text-slate-blue">Posting activity</h2>
             <div className="flex-shrink-0 mt-0.5">
               <GBPHelpBubble
                 metric="metrics/posting-frequency"

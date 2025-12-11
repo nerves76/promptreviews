@@ -130,14 +130,14 @@ export default function ReviewTrendsEmbed({
       <div className="grid grid-cols-3 gap-4 mb-6">
         <div className="text-center">
           <div className="text-2xl font-bold text-gray-900">{animatedTotal}</div>
-          <div className="text-xs text-gray-500 mt-1">Total Reviews</div>
+          <div className="text-xs text-gray-500 mt-1">Total reviews</div>
         </div>
         <div className="text-center">
           <div className="flex items-center justify-center gap-1">
             <span className="text-2xl font-bold text-gray-900">{avgRating}</span>
             <FaStar className="w-5 h-5 text-yellow-500" />
           </div>
-          <div className="text-xs text-gray-500 mt-1">Avg Rating</div>
+          <div className="text-xs text-gray-500 mt-1">Avg rating</div>
         </div>
         <div className="text-center">
           <div className="text-2xl font-bold text-green-600">+{animatedGrowth}%</div>
@@ -182,7 +182,7 @@ export default function ReviewTrendsEmbed({
 
       {/* Rating Breakdown */}
       <div className="mt-6 pt-6 border-t border-gray-100">
-        <div className="text-sm font-medium text-gray-600 mb-3">Rating Distribution</div>
+        <div className="text-sm font-medium text-gray-600 mb-3">Rating distribution</div>
         <div className="space-y-2">
           {[5, 4, 3, 2, 1].map((stars) => {
             const count = stars === 5 ? 201 : stars === 4 ? 68 : stars === 3 ? 18 : stars === 2 ? 5 : 3;

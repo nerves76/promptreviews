@@ -531,7 +531,7 @@ model accounts {
   gbp_location_snapshots              gbp_location_snapshots[]
   gbp_protection_settings             gbp_protection_settings?
   gg_checks                           gg_checks[]
-  gg_configs                          gg_configs?
+  gg_configs                          gg_configs[]
   gg_daily_summary                    gg_daily_summary[]
   gg_tracked_keywords                 gg_tracked_keywords[]
   google_business_scheduled_posts     google_business_scheduled_posts[]
@@ -1824,6 +1824,8 @@ model notification_preferences {
   updated_at                  DateTime? @default(now()) @db.Timestamptz(6)
   in_app_review_auto_verified Boolean?  @default(true)
   email_review_auto_verified  Boolean?  @default(true)
+  in_app_credit_warnings      Boolean?  @default(true)
+  email_credit_warnings       Boolean?  @default(true)
   accounts                    accounts  @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@schema("public")
@@ -2783,7 +2785,7 @@ model gg_checks {
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model gg_configs {
   id                          String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  account_id                  String                     @unique @db.Uuid
+  account_id                  String                     @db.Uuid
   google_business_location_id String?                    @db.Uuid
   center_lat                  Decimal                    @db.Decimal(10, 7)
   center_lng                  Decimal                    @db.Decimal(10, 7)
@@ -2794,13 +2796,23 @@ model gg_configs {
   last_checked_at             DateTime?                  @db.Timestamptz(6)
   created_at                  DateTime?                  @default(now()) @db.Timestamptz(6)
   updated_at                  DateTime?                  @default(now()) @db.Timestamptz(6)
+  schedule_frequency          String?                    @db.VarChar(20)
+  schedule_day_of_week        Int?
+  schedule_day_of_month       Int?
+  schedule_hour               Int?                       @default(9)
+  next_scheduled_at           DateTime?                  @db.Timestamptz(6)
+  last_scheduled_run_at       DateTime?                  @db.Timestamptz(6)
+  last_credit_warning_sent_at DateTime?                  @db.Timestamptz(6)
+  location_name               String?
   gg_checks                   gg_checks[]
   accounts                    accounts                   @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   google_business_locations   google_business_locations? @relation(fields: [google_business_location_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   gg_daily_summary            gg_daily_summary[]
   gg_tracked_keywords         gg_tracked_keywords[]
 
+  @@unique([account_id, google_business_location_id], map: "gg_configs_account_location_unique")
   @@index([account_id], map: "idx_gg_configs_account")
+  @@index([account_id, google_business_location_id], map: "idx_gg_configs_account_location")
   @@schema("public")
 }
 
@@ -2822,7 +2834,7 @@ model gg_daily_summary {
   accounts               accounts   @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   gg_configs             gg_configs @relation(fields: [config_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
-  @@unique([account_id, check_date])
+  @@unique([config_id, check_date], map: "gg_daily_summary_config_date_unique")
   @@index([account_id, check_date(sort: Desc)], map: "idx_gg_daily_summary_account")
   @@index([config_id, check_date(sort: Desc)], map: "idx_gg_daily_summary_config")
   @@schema("public")

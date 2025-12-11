@@ -162,7 +162,7 @@ export default function OverviewStatsEmbed({
       <div className="lg:col-span-2 bg-white rounded-lg shadow-lg border border-gray-200 p-6">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-xl font-bold text-slate-800">Review Progress</h2>
+            <h2 className="text-xl font-bold text-slate-800">Review progress</h2>
             <p className="text-sm text-gray-500">Last 12 months</p>
           </div>
           <div className="flex items-center space-x-4">
@@ -300,7 +300,7 @@ export default function OverviewStatsEmbed({
         {/* Total Reviews */}
         <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium text-gray-600">Total Reviews</h3>
+            <h3 className="text-sm font-medium text-gray-600">Total reviews</h3>
             <div className={`flex items-center ${reviewTrend >= 0 ? 'text-green-600' : 'text-red-600'}`}>
               {reviewTrend >= 0 ? <FaArrowUp className="w-3 h-3 mr-1" /> : <FaArrowDown className="w-3 h-3 mr-1" />}
               <span className="text-sm font-semibold">{animatedReviewTrend}%</span>

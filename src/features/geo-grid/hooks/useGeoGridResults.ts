@@ -15,6 +15,8 @@ import { GGCheckResult, CheckPoint } from '../utils/types';
 // ============================================
 
 export interface UseGeoGridResultsOptions {
+  /** Config ID to fetch results for (optional, defaults to first config) */
+  configId?: string | null;
   /** Fetch mode: 'current' for latest batch, 'history' for multiple results */
   mode?: 'current' | 'history';
   /** Filter by keyword ID */
@@ -88,6 +90,7 @@ export function useGeoGridResults(
   options: UseGeoGridResultsOptions = {}
 ): UseGeoGridResultsReturn {
   const {
+    configId,
     mode = 'current',
     keywordId,
     checkPoint,
@@ -112,6 +115,7 @@ export function useGeoGridResults(
     try {
       // Build query params
       const params = new URLSearchParams();
+      if (configId) params.set('configId', configId);
       params.set('mode', mode);
       if (keywordId) params.set('keywordId', keywordId);
       if (checkPoint) params.set('checkPoint', checkPoint);
@@ -140,7 +144,7 @@ export function useGeoGridResults(
     } finally {
       setIsLoading(false);
     }
-  }, [mode, keywordId, checkPoint, startDate, endDate, limit, includeSummary]);
+  }, [configId, mode, keywordId, checkPoint, startDate, endDate, limit, includeSummary]);
 
   const runCheck = useCallback(
     async (keywordIds?: string[]): Promise<RunCheckResult> => {
@@ -150,7 +154,7 @@ export function useGeoGridResults(
           checksPerformed: number;
           totalCost: number;
           errors?: string[];
-        }>('/geo-grid/check', { keywordIds });
+        }>('/geo-grid/check', { configId, keywordIds });
 
         if (response.success) {
           // Refresh results after successful check
@@ -168,7 +172,7 @@ export function useGeoGridResults(
         return { success: false, error: message };
       }
     },
-    [fetchResults]
+    [configId, fetchResults]
   );
 
   // Auto-fetch on mount and when filters change

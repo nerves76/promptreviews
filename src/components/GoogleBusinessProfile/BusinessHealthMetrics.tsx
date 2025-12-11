@@ -329,12 +329,12 @@ export default function BusinessHealthMetrics({
             {engagementData?.totalReviews !== undefined && (
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-700">Total Reviews</span>
+                  <span className="text-sm font-medium text-gray-700">Total reviews</span>
                   <span className="text-lg font-bold text-gray-900">{engagementData.totalReviews}</span>
                 </div>
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-600">Response Rate</span>
+                    <span className="text-sm text-gray-600">Response rate</span>
                     <GBPHelpBubble
                       metric="metrics/response-rate"
                       tooltip="Why response rate matters"
@@ -438,7 +438,7 @@ export default function BusinessHealthMetrics({
             <div>
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-gray-700">Categories Used</span>
+                  <span className="text-sm font-medium text-gray-700">Categories used</span>
                   <GBPHelpBubble
                     metric="optimization/categories"
                     tooltip="Why categories matter"
@@ -500,7 +500,7 @@ export default function BusinessHealthMetrics({
             <div>
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-gray-700">Business Description</span>
+                  <span className="text-sm font-medium text-gray-700">Business description</span>
                   <GBPHelpBubble
                     metric="optimization/business-description"
                     tooltip="Why description matters"
@@ -512,7 +512,7 @@ export default function BusinessHealthMetrics({
                 </span>
               </div>
               <div className="flex items-center justify-between mb-1">
-                <span className="text-xs text-gray-600">Description Length</span>
+                <span className="text-xs text-gray-600">Description length</span>
                 <span className="text-xs font-medium text-gray-900">{profileData?.seoScore || 0}/10</span>
               </div>
               <ProgressBar percentage={businessDescriptionCompletion} className="bg-purple-500" animate={cardIsVisible} />
@@ -526,7 +526,7 @@ export default function BusinessHealthMetrics({
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-gray-700">Business Attributes</span>
+                    <span className="text-sm font-medium text-gray-700">Business attributes</span>
                     <GBPHelpBubble
                       metric="optimization/attributes"
                       tooltip="Why attributes matter"
@@ -553,7 +553,7 @@ export default function BusinessHealthMetrics({
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-gray-700">Products Listed</span>
+                    <span className="text-sm font-medium text-gray-700">Products listed</span>
                     <GBPHelpBubble
                       metric="optimization/products"
                       tooltip="Why products matter"
@@ -579,7 +579,7 @@ export default function BusinessHealthMetrics({
             <div>
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-gray-700">Photo Activity</span>
+                  <span className="text-sm font-medium text-gray-700">Photo activity</span>
                   <GBPHelpBubble
                     metric="optimization/photos"
                     tooltip="Why photos matter"
@@ -612,7 +612,7 @@ export default function BusinessHealthMetrics({
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-gray-700">Monthly Posts</span>
+                    <span className="text-sm font-medium text-gray-700">Monthly posts</span>
                     <GBPHelpBubble
                       metric="optimization/posts"
                       tooltip="Why posts matter"
@@ -671,7 +671,7 @@ export default function BusinessHealthMetrics({
           <div>
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-gray-700">Profile Views</span>
+                <span className="text-sm font-medium text-gray-700">Profile views</span>
                 <GBPHelpBubble
                   metric="performance/profile-views"
                   tooltip="Why profile views matter"
@@ -696,7 +696,7 @@ export default function BusinessHealthMetrics({
           {/* Customer Actions */}
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-sm font-medium text-gray-700">Customer Actions</span>
+              <span className="text-sm font-medium text-gray-700">Customer actions</span>
               <GBPHelpBubble
                 metric="performance/customer-actions"
                 tooltip="Why customer actions matter"

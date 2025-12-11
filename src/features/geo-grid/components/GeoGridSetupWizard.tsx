@@ -17,16 +17,22 @@ import { apiClient } from '@/utils/apiClient';
 // Types
 // ============================================
 
+interface GoogleBusinessLocation {
+  id: string;
+  name: string;
+  lat: number;
+  lng: number;
+  placeId: string;
+  address?: string;
+}
+
 interface GeoGridSetupWizardProps {
+  /** Config ID when editing an existing config */
+  configId?: string;
   /** Pre-selected Google Business location */
-  googleBusinessLocation?: {
-    id: string;
-    name: string;
-    lat: number;
-    lng: number;
-    placeId: string;
-    address?: string;
-  };
+  googleBusinessLocation?: GoogleBusinessLocation;
+  /** Available GBP locations for selection (Maven accounts) */
+  availableLocations?: GoogleBusinessLocation[];
   /** Callback when setup is complete */
   onComplete?: () => void;
   /** Callback to go back/cancel */
@@ -40,15 +46,28 @@ type WizardStep = 'location' | 'settings' | 'confirm';
 // ============================================
 
 export function GeoGridSetupWizard({
+  configId,
   googleBusinessLocation,
+  availableLocations,
   onComplete,
   onCancel,
 }: GeoGridSetupWizardProps) {
   const { saveConfig } = useGeoGridConfig({ autoFetch: false });
 
+  // For Maven accounts with multiple available locations
+  const hasMultipleLocations = availableLocations && availableLocations.length > 1;
+  const [pickedLocationId, setPickedLocationId] = useState<string | null>(
+    googleBusinessLocation?.id || null
+  );
+
+  // Get the effective GBP location (picked from list or pre-selected)
+  const effectiveGBPLocation = hasMultipleLocations
+    ? availableLocations?.find((l) => l.id === pickedLocationId) || null
+    : googleBusinessLocation;
+
   // Check if location has valid coordinates
-  const hasValidCoordinates = googleBusinessLocation &&
-    googleBusinessLocation.lat !== 0 && googleBusinessLocation.lng !== 0;
+  const hasValidCoordinates = effectiveGBPLocation &&
+    effectiveGBPLocation.lat !== 0 && effectiveGBPLocation.lng !== 0;
 
   const [currentStep, setCurrentStep] = useState<WizardStep>('location');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -56,12 +75,12 @@ export function GeoGridSetupWizard({
 
   // Form state
   const [radiusMiles, setRadiusMiles] = useState(3);
-  const [selectedLocation, setSelectedLocation] = useState(googleBusinessLocation);
-  const [manualLat, setManualLat] = useState(googleBusinessLocation?.lat?.toString() || '');
-  const [manualLng, setManualLng] = useState(googleBusinessLocation?.lng?.toString() || '');
+  const [selectedLocation, setSelectedLocation] = useState(effectiveGBPLocation);
+  const [manualLat, setManualLat] = useState(effectiveGBPLocation?.lat?.toString() || '');
+  const [manualLng, setManualLng] = useState(effectiveGBPLocation?.lng?.toString() || '');
   // Google Place ID for rank tracking - prefer from GBP database, fall back to search
   const [googlePlaceId, setGooglePlaceId] = useState<string | null>(
-    googleBusinessLocation?.placeId?.startsWith('ChIJ') ? googleBusinessLocation.placeId : null
+    effectiveGBPLocation?.placeId?.startsWith('ChIJ') ? effectiveGBPLocation.placeId : null
   );
   const [isGeocoding, setIsGeocoding] = useState(false);
   const [geocodeError, setGeocodeError] = useState<string | null>(null);
@@ -198,32 +217,35 @@ export function GeoGridSetupWizard({
   // Auto-search for business when component mounts with a GBP location
   // But only if we don't already have a valid Place ID from the database
   useEffect(() => {
-    console.log('GeoGridSetupWizard useEffect - googleBusinessLocation:', googleBusinessLocation);
-    if (googleBusinessLocation && googleBusinessLocation.name) {
+    console.log('GeoGridSetupWizard useEffect - effectiveGBPLocation:', effectiveGBPLocation);
+    if (effectiveGBPLocation && effectiveGBPLocation.name) {
+      // Update selectedLocation when effective location changes
+      setSelectedLocation(effectiveGBPLocation);
+
       // If we already have a valid Place ID from the database, don't search
-      if (googleBusinessLocation.placeId?.startsWith('ChIJ')) {
-        console.log('Using Place ID from database:', googleBusinessLocation.placeId);
-        setGooglePlaceId(googleBusinessLocation.placeId);
+      if (effectiveGBPLocation.placeId?.startsWith('ChIJ')) {
+        console.log('Using Place ID from database:', effectiveGBPLocation.placeId);
+        setGooglePlaceId(effectiveGBPLocation.placeId);
         // Also use coordinates from database if available
         // Check for non-zero values since 0 is falsy but could be valid (unlikely for lat/lng)
-        const hasValidLat = googleBusinessLocation.lat !== 0 && googleBusinessLocation.lat !== null && googleBusinessLocation.lat !== undefined;
-        const hasValidLng = googleBusinessLocation.lng !== 0 && googleBusinessLocation.lng !== null && googleBusinessLocation.lng !== undefined;
-        console.log('Has valid coordinates:', { hasValidLat, hasValidLng, lat: googleBusinessLocation.lat, lng: googleBusinessLocation.lng });
+        const hasValidLat = effectiveGBPLocation.lat !== 0 && effectiveGBPLocation.lat !== null && effectiveGBPLocation.lat !== undefined;
+        const hasValidLng = effectiveGBPLocation.lng !== 0 && effectiveGBPLocation.lng !== null && effectiveGBPLocation.lng !== undefined;
+        console.log('Has valid coordinates:', { hasValidLat, hasValidLng, lat: effectiveGBPLocation.lat, lng: effectiveGBPLocation.lng });
         if (hasValidLat && hasValidLng) {
-          setManualLat(googleBusinessLocation.lat.toString());
-          setManualLng(googleBusinessLocation.lng.toString());
+          setManualLat(effectiveGBPLocation.lat.toString());
+          setManualLng(effectiveGBPLocation.lng.toString());
         } else {
           // We have Place ID but no coordinates - fetch them from Google
           console.log('Calling fetchCoordsFromPlaceId...');
-          fetchCoordsFromPlaceId(googleBusinessLocation.placeId);
+          fetchCoordsFromPlaceId(effectiveGBPLocation.placeId);
         }
         return;
       }
       // Otherwise, search for the business using the GBP name
-      console.log('No valid Place ID, searching for business:', googleBusinessLocation.name);
-      searchForBusiness(googleBusinessLocation.name);
+      console.log('No valid Place ID, searching for business:', effectiveGBPLocation.name);
+      searchForBusiness(effectiveGBPLocation.name);
     }
-  }, [googleBusinessLocation, searchForBusiness, fetchCoordsFromPlaceId]);
+  }, [effectiveGBPLocation, searchForBusiness, fetchCoordsFromPlaceId]);
 
   // Steps configuration
   const steps: { id: WizardStep; label: string; icon: React.ReactNode }[] = [
@@ -236,6 +258,12 @@ export function GeoGridSetupWizard({
 
   const handleNext = async () => {
     if (currentStep === 'location') {
+      // Validate location selection for multi-location accounts
+      if (hasMultipleLocations && !pickedLocationId) {
+        setError('Please select a business location');
+        return;
+      }
+
       // Validate coordinates
       const lat = parseFloat(manualLat);
       const lng = parseFloat(manualLng);
@@ -310,12 +338,14 @@ export function GeoGridSetupWizard({
     setError(null);
 
     const configData: SaveConfigData = {
+      configId, // Pass configId for editing existing configs
       googleBusinessLocationId: selectedLocation.id,
       centerLat: selectedLocation.lat,
       centerLng: selectedLocation.lng,
       radiusMiles,
       targetPlaceId: googlePlaceId, // Use the Google Place ID from geocoding, not GBP location ID
       isEnabled: true,
+      locationName: selectedLocation.name || effectiveGBPLocation?.name || undefined,
     };
 
     const result = await saveConfig(configData);
@@ -339,18 +369,52 @@ export function GeoGridSetupWizard({
               Set the center point for your geo grid tracking.
             </p>
 
-            {googleBusinessLocation ? (
+            {/* Location picker for Maven accounts with multiple GBP locations */}
+            {hasMultipleLocations && (
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Select Business Location
+                </label>
+                <select
+                  value={pickedLocationId || ''}
+                  onChange={(e) => {
+                    setPickedLocationId(e.target.value || null);
+                    // Reset form state when location changes
+                    setGooglePlaceId(null);
+                    setManualLat('');
+                    setManualLng('');
+                    setGeocodeError(null);
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">Choose a location...</option>
+                  {availableLocations?.map((loc) => (
+                    <option key={loc.id} value={loc.id}>
+                      {loc.name} {loc.address ? `- ${loc.address}` : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {effectiveGBPLocation ? (
               <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
                 <div className="flex items-center gap-3">
                   <MapPinIcon className="w-6 h-6 text-green-600" />
                   <div>
-                    <p className="font-semibold text-gray-900">{googleBusinessLocation.name}</p>
-                    {googleBusinessLocation.address && (
-                      <p className="text-sm text-gray-500">{googleBusinessLocation.address}</p>
+                    <p className="font-semibold text-gray-900">{effectiveGBPLocation.name}</p>
+                    {effectiveGBPLocation.address && (
+                      <p className="text-sm text-gray-500">{effectiveGBPLocation.address}</p>
                     )}
                     <p className="text-xs text-gray-400">Connected via Google Business Profile</p>
                   </div>
                 </div>
+              </div>
+            ) : hasMultipleLocations ? (
+              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm text-blue-800">
+                  Select a business location above to continue.
+                </p>
               </div>
             ) : (
               <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
@@ -416,10 +480,10 @@ export function GeoGridSetupWizard({
             )}
 
             {/* Find Business Button */}
-            {googleBusinessLocation && !googlePlaceId && !isGeocoding && (
+            {effectiveGBPLocation && !googlePlaceId && !isGeocoding && (
               <button
                 type="button"
-                onClick={() => searchForBusiness(googleBusinessLocation.name)}
+                onClick={() => searchForBusiness(effectiveGBPLocation.name)}
                 className="w-full px-4 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2"
               >
                 <MagnifyingGlassIcon className="w-5 h-5" />
@@ -485,10 +549,10 @@ export function GeoGridSetupWizard({
                 <p className="text-sm font-medium text-gray-700">
                   Search center coordinates:
                 </p>
-                {googleBusinessLocation && (
+                {effectiveGBPLocation && (
                   <button
                     type="button"
-                    onClick={() => searchForBusiness(googleBusinessLocation.name)}
+                    onClick={() => searchForBusiness(effectiveGBPLocation.name)}
                     disabled={isGeocoding}
                     className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1 disabled:opacity-50"
                   >
