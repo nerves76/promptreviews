@@ -67,6 +67,7 @@ const Header = React.memo(function Header() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [notificationsLoading, setNotificationsLoading] = useState(false);
+  const [creditBalance, setCreditBalance] = useState<number | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [mobileAccountSwitcherOpen, setMobileAccountSwitcherOpen] = useState(false);
@@ -272,6 +273,26 @@ const Header = React.memo(function Header() {
       setNotificationsLoading(false);
     }
   };
+
+  // Fetch credit balance
+  const fetchCreditBalance = async () => {
+    if (!hasBusiness) return;
+    try {
+      const response = await apiClient.get('/credits/balance') as {
+        balance: { total: number };
+      };
+      setCreditBalance(response.balance?.total ?? null);
+    } catch (error) {
+      console.error('Error fetching credit balance:', error);
+    }
+  };
+
+  // Fetch credit balance on mount and when business changes
+  useEffect(() => {
+    if (hasBusiness && !businessLoading) {
+      fetchCreditBalance();
+    }
+  }, [hasBusiness, businessLoading]);
 
   // Mark notifications as read when dropdown opens
   const markAllAsRead = async () => {
@@ -572,6 +593,24 @@ const Header = React.memo(function Header() {
               <AccountSwitcher />
             </div>
             
+            {/* Credits Badge - Desktop Only */}
+            {hasBusiness && creditBalance !== null && (
+              <Link
+                href="/dashboard/credits"
+                className={`hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-colors ${
+                  creditBalance === 0
+                    ? 'bg-red-500/20 text-red-300 hover:bg-red-500/30'
+                    : creditBalance < 50
+                    ? 'bg-yellow-500/20 text-yellow-300 hover:bg-yellow-500/30'
+                    : 'bg-white/10 text-white hover:bg-white/20'
+                }`}
+                title="View credits"
+              >
+                <Icon name="FaCoins" className="w-4 h-4" size={16} />
+                <span className="text-sm font-medium">{creditBalance}</span>
+              </Link>
+            )}
+
             {/* Notification Bell - Desktop Only */}
             <div className="hidden md:flex items-center">
               <div className="relative top-1">
