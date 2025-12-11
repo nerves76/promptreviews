@@ -57,6 +57,7 @@ export default function CreditsPage() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [successCredits, setSuccessCredits] = useState(0);
   const [purchaseType, setPurchaseType] = useState<"one_time" | "subscription">("one_time");
+  const [openingPortal, setOpeningPortal] = useState(false);
 
   // Check for success redirect from Stripe
   useEffect(() => {
@@ -139,6 +140,22 @@ export default function CreditsPage() {
       alert("Failed to start checkout. Please try again.");
     } finally {
       setPurchasing(null);
+    }
+  };
+
+  const handleManageSubscriptions = async () => {
+    setOpeningPortal(true);
+    try {
+      const data = await apiClient.post("/create-stripe-portal-session", {});
+      const { url } = data as { url: string };
+      if (url) {
+        window.location.href = url;
+      }
+    } catch (error) {
+      console.error("Failed to open billing portal:", error);
+      alert("Failed to open billing portal. Please try again.");
+    } finally {
+      setOpeningPortal(false);
     }
   };
 
@@ -332,6 +349,15 @@ export default function CreditsPage() {
                     ? "Pay once, credits never expire"
                     : "Auto-refill monthly at 10% off. Cancel anytime."}
                 </p>
+                {purchaseType === "subscription" && (
+                  <button
+                    onClick={handleManageSubscriptions}
+                    disabled={openingPortal}
+                    className="mt-2 text-xs text-blue-400 hover:text-blue-300 underline disabled:opacity-50"
+                  >
+                    {openingPortal ? "Opening..." : "Manage existing subscriptions"}
+                  </button>
+                )}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
