@@ -606,8 +606,7 @@ const Header = React.memo(function Header() {
                 }`}
                 title="View credits"
               >
-                <Icon name="FaCoins" className="w-4 h-4" size={16} />
-                <span className="text-sm font-medium">{creditBalance}</span>
+                <span className="text-sm font-medium">Credits: {creditBalance}</span>
               </Link>
             )}
 

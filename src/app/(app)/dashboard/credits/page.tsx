@@ -234,8 +234,7 @@ export default function CreditsPage() {
           {/* Balance Card */}
           <div className="lg:col-span-1">
             <div className="bg-white/5 rounded-xl p-6 border border-white/10">
-              <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                <Icon name="FaCoins" className="text-yellow-400" size={20} />
+              <h2 className="text-lg font-semibold mb-4">
                 Your Balance
               </h2>
 
