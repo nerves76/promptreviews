@@ -222,7 +222,10 @@ export default function BusinessProfileForm({
                   max={3}
                   step={0.01}
                   value={zoom || 1}
-                  onChange={(e) => setZoom(Number(e.target.value))}
+                  onChange={(e) => {
+                    setZoom(Number(e.target.value));
+                    setCrop({ x: 0, y: 0 }); // Reset to center when zoom changes
+                  }}
                   className="w-full"
                 />
                 <span className="text-xs text-gray-500 ml-2 min-w-[45px]">{((zoom || 1) * 100).toFixed(0)}%</span>
