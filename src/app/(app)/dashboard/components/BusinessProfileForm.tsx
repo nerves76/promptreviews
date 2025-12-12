@@ -198,7 +198,14 @@ export default function BusinessProfileForm({
                   aspect={1}
                   cropShape="round"
                   showGrid={false}
-                  onCropChange={setCrop}
+                  onCropChange={(newCrop) => {
+                    // When zoomed out (< 1), force centered position
+                    if (zoom < 1) {
+                      setCrop({ x: 0, y: 0 });
+                    } else {
+                      setCrop(newCrop);
+                    }
+                  }}
                   onZoomChange={setZoom}
                   onCropComplete={(_, croppedAreaPixels) =>
                     setCroppedAreaPixels(croppedAreaPixels)
