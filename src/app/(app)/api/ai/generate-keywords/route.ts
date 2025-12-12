@@ -122,6 +122,8 @@ For each keyword, also provide a natural-sounding review phrase that incorporate
 
 IMPORTANT: Keep review phrases SHORT and punchy - ideally one short sentence or fragment (5-12 words max).
 
+CRITICAL: NEVER generate review phrases that mention "reviews", "ratings", "testimonials", or "recommendations". A customer writing their own review wouldn't say "I read great reviews" or "with fantastic reviews" - they should describe THEIR OWN experience, not reference other people's opinions.
+
 Examples of LOCATION-SPECIFIC:
 - Search term: "best family dentist Portland OR"
 - Review phrase: "Best family dentist in Portland - highly recommend!"
