@@ -100,26 +100,36 @@ function filterBusinessProfile(business: any) {
     kickstarters_primary_color: business.kickstarters_primary_color,
 
     // Default offer URL (needed for offer display)
-    default_offer_url: business.default_offer_url
-    
+    default_offer_url: business.default_offer_url,
+
+    // AI Review Generation fields (needed for generating contextual reviews)
+    services_offered: business.services_offered,
+    company_values: business.company_values,
+    differentiators: business.differentiators,
+    years_in_business: business.years_in_business,
+    industries_served: business.industries_served,
+    team_founder_info: business.team_founder_info,
+    keywords: business.keywords,
+    tagline: business.tagline,
+    industry: business.industry,
+    industry_other: business.industry_other,
+    ai_dos: business.ai_dos,
+    ai_donts: business.ai_donts
+
     // EXCLUDED SENSITIVE FIELDS:
     // - business_email, signup_email (email addresses)
-    // - phone (phone numbers) 
+    // - phone (phone numbers)
     // - address_street, address_zip (specific address)
     // - account_id (internal IDs)
     // - stripe_*, subscription_* (payment info)
-    // - default_offer_* (internal business settings)
+    // - default_offer_* except default_offer_url (internal business settings)
     // - review_platforms (internal platform configs)
-    // - industry, industries_served, services_offered (potentially sensitive business info)
-    // - keywords, taglines, tagline (internal marketing data)
-    // - ai_dos, ai_donts, team_info, company_values, differentiators (internal business intel)
-    // - about_us, years_in_business, industries_other (business details)
+    // - about_us (potentially sensitive business details)
     // - platform_word_counts (analytics data)
     // - default_* fields (internal business defaults)
     // - emoji_*, falling_*, show_friendly_note, friendly_note (feature configs)
     // - kickstarters_enabled, recent_reviews_* (feature settings - styling fields are public)
     // - ai_button_enabled, fix_grammar_enabled (feature flags)
-    // - card_* (styling internals)
     // - created_at, updated_at (internal timestamps)
     // - Any API keys or tokens
   };

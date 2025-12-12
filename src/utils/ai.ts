@@ -125,6 +125,7 @@ THINGS TO AVOID - These make reviews sound fake:
 - NO brackets, placeholders, or variables like [service], [product], [name] - NEVER use square brackets in the output
 - NO meta text like "Here is your review"
 - If specific details are missing, use vague but natural language instead of placeholders
+- NEVER sign the review with the reviewer's name at the end (no "- John", "John Smith", etc.)
 
 WHAT MAKES IT FEEL REAL:
 - If team/founder info is provided above, you may reference them by name
