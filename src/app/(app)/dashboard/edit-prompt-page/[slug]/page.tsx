@@ -1060,7 +1060,7 @@ export default function EditPromptPage() {
 
         // Motivational Nudge
         motivational_nudge_enabled: formState.motivational_nudge_enabled ?? formState.motivationalNudgeEnabled ?? true,
-        motivational_nudge_text: formState.motivational_nudge_text || formState.motivationalNudgeText || "{business_name} needs your STAR POWER so more people can find them online!",
+        motivational_nudge_text: formState.motivational_nudge_text || formState.motivationalNudgeText || "{business_name} needs your STAR POWER so more people find them online!",
 
         // Role Field
         role_field_enabled: formState.role_field_enabled ?? formState.roleFieldEnabled ?? true,

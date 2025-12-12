@@ -547,6 +547,10 @@ model accounts {
   onboarding_tasks                    onboarding_tasks[]
   posts                               posts[]
   prompt_pages                        prompt_pages[]
+  rank_checks                         rank_checks[]
+  rank_discovery_usage                rank_discovery_usage[]
+  rank_group_keywords                 rank_group_keywords[]
+  rank_keyword_groups                 rank_keyword_groups[]
   review_keyword_matches              review_keyword_matches[]
   review_reminder_logs                review_reminder_logs[]
   review_share_events                 review_share_events[]
@@ -2157,7 +2161,7 @@ model prompt_pages {
   selected_keyword_inspirations                                            String[]                    @default([])
   sort_order                                                               Int?                        @default(0)
   motivational_nudge_enabled                                               Boolean?                    @default(true)
-  motivational_nudge_text                                                  String?                     @default("{business_name} needs your STAR POWER so more people can find them online!")
+  motivational_nudge_text                                                  String?                     @default("{business_name} needs your STAR POWER so more people find them online!")
   role_field_enabled                                                       Boolean?                    @default(true)
   builder_questions                                                        Json?                       @default("[]")
   keyword_auto_rotate_enabled                                              Boolean?                    @default(false)
@@ -2238,7 +2242,7 @@ model rate_limit_counters {
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model review_drafts {
-  id                 String    @id @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  id                 String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   prompt_page_id     String?   @db.Uuid
   platform           String?
   review_text        String?
@@ -2481,7 +2485,7 @@ model selected_gbp_locations {
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model sentiment_analysis_runs {
-  id                      String    @id @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  id                      String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   account_id              String    @db.Uuid
   run_date                DateTime? @default(now()) @db.Timestamptz(6)
   review_count_analyzed   Int
@@ -2739,6 +2743,8 @@ model keywords {
   keyword_rotation_log_keyword_rotation_log_rotated_out_keyword_idTokeywords keyword_rotation_log[]      @relation("keyword_rotation_log_rotated_out_keyword_idTokeywords")
   accounts                                                                   accounts                    @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   keyword_groups                                                             keyword_groups?             @relation(fields: [group_id], references: [id], onUpdate: NoAction)
+  rank_checks                                                                rank_checks[]
+  rank_group_keywords                                                        rank_group_keywords[]
 
   @@unique([account_id, normalized_phrase])
   @@index([account_id], map: "idx_keywords_account")
@@ -2979,6 +2985,124 @@ model credit_pricing_rules {
 
   @@unique([feature_type, rule_key, active_from], map: "credit_pricing_rules_unique")
   @@index([feature_type, is_active, active_from(sort: Desc)], map: "idx_credit_pricing_rules_active")
+  @@schema("public")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model rank_checks {
+  id                  String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  account_id          String              @db.Uuid
+  group_id            String              @db.Uuid
+  keyword_id          String              @db.Uuid
+  search_query_used   String
+  position            Int?
+  found_url           String?
+  matched_target_url  Boolean?
+  serp_features       Json?
+  top_competitors     Json?
+  api_cost_usd        Decimal?            @db.Decimal(10, 6)
+  checked_at          DateTime            @default(now()) @db.Timestamptz(6)
+  created_at          DateTime            @default(now()) @db.Timestamptz(6)
+  accounts            accounts            @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  rank_keyword_groups rank_keyword_groups @relation(fields: [group_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  keywords            keywords            @relation(fields: [keyword_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([account_id], map: "idx_rank_checks_account")
+  @@index([account_id, keyword_id, checked_at(sort: Desc)], map: "idx_rank_checks_account_keyword")
+  @@index([checked_at(sort: Desc)], map: "idx_rank_checks_checked_at")
+  @@index([group_id, checked_at(sort: Desc)], map: "idx_rank_checks_group_date")
+  @@index([keyword_id, checked_at(sort: Desc)], map: "idx_rank_checks_keyword_date")
+  @@schema("public")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model rank_discovery_usage {
+  id                  String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  account_id          String   @db.Uuid
+  usage_date          DateTime @db.Date
+  keywords_discovered Int      @default(0)
+  created_at          DateTime @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime @default(now()) @db.Timestamptz(6)
+  accounts            accounts @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([account_id, usage_date])
+  @@index([account_id], map: "idx_rank_discovery_usage_account")
+  @@index([account_id, usage_date(sort: Desc)], map: "idx_rank_discovery_usage_date")
+  @@schema("public")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model rank_group_keywords {
+  id                  String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  group_id            String              @db.Uuid
+  keyword_id          String              @db.Uuid
+  account_id          String              @db.Uuid
+  target_url          String?
+  is_enabled          Boolean             @default(true)
+  created_at          DateTime            @default(now()) @db.Timestamptz(6)
+  accounts            accounts            @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  rank_keyword_groups rank_keyword_groups @relation(fields: [group_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  keywords            keywords            @relation(fields: [keyword_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([group_id, keyword_id])
+  @@index([account_id], map: "idx_rank_group_keywords_account")
+  @@index([group_id], map: "idx_rank_group_keywords_group")
+  @@index([keyword_id], map: "idx_rank_group_keywords_keyword")
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model rank_keyword_groups {
+  id                          String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  account_id                  String                @db.Uuid
+  name                        String
+  device                      String
+  location_code               Int
+  location_name               String
+  schedule_frequency          String?
+  schedule_day_of_week        Int?
+  schedule_day_of_month       Int?
+  schedule_hour               Int                   @default(9)
+  next_scheduled_at           DateTime?             @db.Timestamptz(6)
+  last_scheduled_run_at       DateTime?             @db.Timestamptz(6)
+  is_enabled                  Boolean               @default(true)
+  last_checked_at             DateTime?             @db.Timestamptz(6)
+  last_credit_warning_sent_at DateTime?             @db.Timestamptz(6)
+  created_at                  DateTime              @default(now()) @db.Timestamptz(6)
+  updated_at                  DateTime              @default(now()) @db.Timestamptz(6)
+  rank_checks                 rank_checks[]
+  rank_group_keywords         rank_group_keywords[]
+  accounts                    accounts              @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  rank_locations              rank_locations        @relation(fields: [location_code], references: [location_code], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([account_id], map: "idx_rank_keyword_groups_account")
+  @@index([account_id, is_enabled], map: "idx_rank_keyword_groups_account_enabled")
+  @@schema("public")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model rank_locations {
+  id                   Int                   @id @default(autoincrement())
+  location_code        Int                   @unique
+  location_name        String
+  location_type        String?
+  country_iso_code     String?
+  location_code_parent Int?
+  canonical_name       String
+  created_at           DateTime?             @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime?             @default(now()) @db.Timestamptz(6)
+  rank_keyword_groups  rank_keyword_groups[]
+
+  @@index([canonical_name(ops: raw("gin_trgm_ops"))], map: "idx_rank_locations_canonical_trgm", type: Gin)
+  @@index([location_code], map: "idx_rank_locations_code")
+  @@index([country_iso_code], map: "idx_rank_locations_country")
+  @@index([location_name(ops: raw("gin_trgm_ops"))], map: "idx_rank_locations_name_trgm", type: Gin)
+  @@index([location_type], map: "idx_rank_locations_type")
   @@schema("public")
 }
 

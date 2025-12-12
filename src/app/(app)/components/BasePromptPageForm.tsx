@@ -262,7 +262,7 @@ export default function BasePromptPageForm({
 
     // Motivational Nudge - default to ON
     motivational_nudge_enabled: initialData?.motivational_nudge_enabled ?? true,
-    motivational_nudge_text: initialData?.motivational_nudge_text || "{business_name} needs your STAR POWER so more people can find them online!",
+    motivational_nudge_text: initialData?.motivational_nudge_text || "{business_name} needs your STAR POWER so more people find them online!",
 
     // Common fields
     slug: initialData?.slug,

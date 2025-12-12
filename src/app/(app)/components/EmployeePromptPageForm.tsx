@@ -132,7 +132,7 @@ export default function EmployeePromptPageForm({
     initialData?.motivational_nudge_enabled ?? true
   );
   const [motivationalNudgeText, setMotivationalNudgeText] = useState(
-    initialData?.motivational_nudge_text || "{business_name} needs your STAR POWER so more people can find them online!"
+    initialData?.motivational_nudge_text || "{business_name} needs your STAR POWER so more people find them online!"
   );
   // Role field - default ON for campaign/individual pages, OFF for public/catch-all
   const [roleFieldEnabled, setRoleFieldEnabled] = useState(
@@ -219,7 +219,7 @@ export default function EmployeePromptPageForm({
       setMotivationalNudgeEnabled(initialData.motivational_nudge_enabled);
     }
     if (initialData?.motivational_nudge_text !== undefined) {
-      setMotivationalNudgeText(initialData.motivational_nudge_text || "{business_name} needs your STAR POWER so more people can find them online!");
+      setMotivationalNudgeText(initialData.motivational_nudge_text || "{business_name} needs your STAR POWER so more people find them online!");
     }
   }, [initialData?.motivational_nudge_enabled, initialData?.motivational_nudge_text]);
 

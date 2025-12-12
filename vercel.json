@@ -61,6 +61,10 @@
     {
       "path": "/api/cron/send-credit-warnings",
       "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/cron/run-scheduled-rank-checks",
+      "schedule": "0 * * * *"
     }
   ],
   "buildCommand": "npm run build",

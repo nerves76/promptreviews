@@ -113,7 +113,7 @@ const ServicePromptPageForm = forwardRef<any, ServicePromptPageFormProps>(
       initialData?.motivationalNudgeEnabled ?? true,
     );
     const [motivationalNudgeText, setMotivationalNudgeText] = useState(
-      initialData?.motivationalNudgeText ?? "{business_name} needs your STAR POWER so more people can find them online!",
+      initialData?.motivationalNudgeText ?? "{business_name} needs your STAR POWER so more people find them online!",
     );
 
     // Add state for warning modal
@@ -127,7 +127,7 @@ const ServicePromptPageForm = forwardRef<any, ServicePromptPageFormProps>(
         setMotivationalNudgeEnabled(initialData.motivationalNudgeEnabled);
       }
       if (initialData?.motivationalNudgeText !== undefined) {
-        setMotivationalNudgeText(initialData.motivationalNudgeText || "{business_name} needs your STAR POWER so more people can find them online!");
+        setMotivationalNudgeText(initialData.motivationalNudgeText || "{business_name} needs your STAR POWER so more people find them online!");
       }
     }, [initialData?.motivationalNudgeEnabled, initialData?.motivationalNudgeText]);
 

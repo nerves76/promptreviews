@@ -18,7 +18,8 @@ export type FeatureType =
   | 'geo_grid'
   | 'keyword_tracking'
   | 'keyword_finder'
-  | 'ai_review_gen';
+  | 'ai_review_gen'
+  | 'rank_tracking';
 
 export interface CreditBalance {
   accountId: string;

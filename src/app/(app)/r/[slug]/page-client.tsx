@@ -2800,7 +2800,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                   submitError={submitError}
                   showAiToast={showAiToast}
                   motivationalNudgeEnabled={promptPage?.motivational_nudge_enabled ?? true}
-                  motivationalNudgeText={promptPage?.motivational_nudge_text || "{business_name} needs your STAR POWER so more people can find them online!"}
+                  motivationalNudgeText={promptPage?.motivational_nudge_text || "{business_name} needs your STAR POWER so more people find them online!"}
                   roleFieldEnabled={promptPage?.role_field_enabled ?? true}
                   onToggleAccordion={(idx) => {
                     const newOpenPlatforms = [...openPlatforms];

@@ -195,7 +195,7 @@ export default function ProductPromptPageForm({
   const [selectedKickstarters, setSelectedKickstarters] = useState<string[]>(initialData?.selected_kickstarters ?? []);
   const [keywordInspirationEnabled, setKeywordInspirationEnabled] = useState(initialData?.keyword_inspiration_enabled ?? businessProfile?.default_keyword_inspiration_enabled ?? false);
   const [motivationalNudgeEnabled, setMotivationalNudgeEnabled] = useState(initialData?.motivational_nudge_enabled ?? true);
-  const [motivationalNudgeText, setMotivationalNudgeText] = useState(initialData?.motivational_nudge_text || "{business_name} needs your STAR POWER so more people can find them online!");
+  const [motivationalNudgeText, setMotivationalNudgeText] = useState(initialData?.motivational_nudge_text || "{business_name} needs your STAR POWER so more people find them online!");
   // Role field - default ON for campaign/individual pages, OFF for public/catch-all
   const [roleFieldEnabled, setRoleFieldEnabled] = useState(initialData?.role_field_enabled ?? (campaignType === 'individual' ? true : false));
   const [selectedKeywordInspirations, setSelectedKeywordInspirations] = useState<string[]>(
@@ -229,7 +229,7 @@ export default function ProductPromptPageForm({
       setMotivationalNudgeEnabled(initialData.motivational_nudge_enabled);
     }
     if (initialData?.motivational_nudge_text !== undefined) {
-      setMotivationalNudgeText(initialData.motivational_nudge_text || "{business_name} needs your STAR POWER so more people can find them online!");
+      setMotivationalNudgeText(initialData.motivational_nudge_text || "{business_name} needs your STAR POWER so more people find them online!");
     }
   }, [initialData?.motivational_nudge_enabled, initialData?.motivational_nudge_text]);
 

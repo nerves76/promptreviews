@@ -121,7 +121,7 @@ export default function UniversalPromptPageForm({
 
     // Motivational Nudge
     motivational_nudge_enabled: initialData?.motivational_nudge_enabled ?? true,
-    motivational_nudge_text: initialData?.motivational_nudge_text ?? "{business_name} needs your STAR POWER so more people can find them online!",
+    motivational_nudge_text: initialData?.motivational_nudge_text ?? "{business_name} needs your STAR POWER so more people find them online!",
 
     // Role Field - off by default for universal/catch-all pages
     role_field_enabled: initialData?.role_field_enabled ?? false,

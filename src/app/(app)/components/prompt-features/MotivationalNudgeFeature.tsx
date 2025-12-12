@@ -20,7 +20,7 @@ export interface MotivationalNudgeFeatureProps {
   businessName?: string;
 }
 
-const DEFAULT_NUDGE_TEXT = "{business_name} needs your STAR POWER so more people can find them online!";
+const DEFAULT_NUDGE_TEXT = "{business_name} needs your STAR POWER so more people find them online!";
 
 export default function MotivationalNudgeFeature({
   enabled,

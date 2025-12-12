@@ -140,7 +140,7 @@ export default function ServicePromptPageForm({
   
   const [fixGrammarEnabled, setFixGrammarEnabled] = useState(initialData?.fix_grammar_enabled ?? true);
   const [motivationalNudgeEnabled, setMotivationalNudgeEnabled] = useState(initialData?.motivational_nudge_enabled ?? true);
-  const [motivationalNudgeText, setMotivationalNudgeText] = useState(initialData?.motivational_nudge_text || "{business_name} needs your STAR POWER so more people can find them online!");
+  const [motivationalNudgeText, setMotivationalNudgeText] = useState(initialData?.motivational_nudge_text || "{business_name} needs your STAR POWER so more people find them online!");
   // Role field - default ON for campaign/individual pages, OFF for public/catch-all
   const [roleFieldEnabled, setRoleFieldEnabled] = useState(initialData?.role_field_enabled ?? (initialData?.campaign_type === 'individual' ? true : false));
   const [isSaving, setIsSaving] = useState(false);
@@ -266,7 +266,7 @@ export default function ServicePromptPageForm({
       setMotivationalNudgeEnabled(initialData.motivational_nudge_enabled);
     }
     if (initialData?.motivational_nudge_text !== undefined) {
-      setMotivationalNudgeText(initialData.motivational_nudge_text || "{business_name} needs your STAR POWER so more people can find them online!");
+      setMotivationalNudgeText(initialData.motivational_nudge_text || "{business_name} needs your STAR POWER so more people find them online!");
     }
   }, [initialData?.motivational_nudge_enabled, initialData?.motivational_nudge_text]);
 

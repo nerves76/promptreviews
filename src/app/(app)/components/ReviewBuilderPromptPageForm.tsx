@@ -181,7 +181,7 @@ export default function ReviewBuilderPromptPageForm({
     initialData?.motivational_nudge_enabled ?? true
   );
   const [motivationalNudgeText, setMotivationalNudgeText] = useState<string>(
-    initialData?.motivational_nudge_text || "{business_name} needs your STAR POWER so more people can find them online!"
+    initialData?.motivational_nudge_text || "{business_name} needs your STAR POWER so more people find them online!"
   );
   // Role field - default ON for individual campaigns, OFF for public/catch-all
   const [roleFieldEnabled, setRoleFieldEnabled] = useState<boolean>(
@@ -229,7 +229,7 @@ export default function ReviewBuilderPromptPageForm({
       setMotivationalNudgeEnabled(initialData.motivational_nudge_enabled);
     }
     if (initialData?.motivational_nudge_text !== undefined) {
-      setMotivationalNudgeText(initialData.motivational_nudge_text || "{business_name} needs your STAR POWER so more people can find them online!");
+      setMotivationalNudgeText(initialData.motivational_nudge_text || "{business_name} needs your STAR POWER so more people find them online!");
     }
   }, [initialData?.motivational_nudge_enabled, initialData?.motivational_nudge_text]);
 

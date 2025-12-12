@@ -730,7 +730,7 @@ const Header = React.memo(function Header() {
                       </div>
                     </Link>
                     <Link href="/dashboard/credits" className="flex items-center px-4 py-3 text-white hover:bg-white/10 transition-colors duration-200" onClick={() => setAccountMenuOpen(false)}>
-                      <Icon name="FaCoins" className="w-5 h-5 mr-3 text-yellow-400" size={20} />
+                      <Icon name="FaCoins" className="w-5 h-5 mr-3 text-white" size={20} />
                       <div className="flex-1">
                         <div className="font-medium">Credits</div>
                         <div className="text-sm text-gray-400">Manage usage credits</div>
@@ -974,6 +974,27 @@ const Header = React.memo(function Header() {
                           } block px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200`}
                         >
                           Local Ranking Grids
+                        </Link>
+                        <Link
+                          href={hasBusiness ? "/dashboard/rank-tracking" : "#"}
+                          onClick={(e) => {
+                            if (!hasBusiness) {
+                              e.preventDefault();
+                              router.push("/dashboard/create-business");
+                              setMenuOpen(false);
+                            } else {
+                              setMenuOpen(false);
+                            }
+                          }}
+                          className={`${
+                            isActive("/dashboard/rank-tracking")
+                              ? "bg-white/20 text-white"
+                              : hasBusiness
+                                ? "text-white hover:bg-white/10"
+                                : "text-gray-500 cursor-not-allowed"
+                          } block px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200`}
+                        >
+                          Rank Tracking
                         </Link>
                       </div>
                     </div>

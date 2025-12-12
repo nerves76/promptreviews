@@ -72,7 +72,7 @@ export default function ReviewPlatformCard({
   submitError,
   showAiToast,
   motivationalNudgeEnabled = true,
-  motivationalNudgeText = "{business_name} needs your STAR POWER so more people can find them online!",
+  motivationalNudgeText = "{business_name} needs your STAR POWER so more people find them online!",
   roleFieldEnabled = true,
   onToggleAccordion,
   onFirstNameChange,

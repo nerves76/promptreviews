@@ -248,7 +248,7 @@ export default function UniversalEditPromptPage() {
 
           // Motivational Nudge
           motivational_nudge_enabled: universalPage?.motivational_nudge_enabled ?? true,
-          motivational_nudge_text: universalPage?.motivational_nudge_text ?? "{business_name} needs your STAR POWER so more people can find them online!",
+          motivational_nudge_text: universalPage?.motivational_nudge_text ?? "{business_name} needs your STAR POWER so more people find them online!",
 
           // Role Field - default to false for universal/catch-all pages
           role_field_enabled: universalPage?.role_field_enabled ?? false,

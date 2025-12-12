@@ -1,5 +1,34 @@
 # Database Migrations Changelog
 
+## [2025-12-11]
+### Migrations Added
+
+#### 20251230000000_create_rank_tracking_tables.sql
+- **NEW FEATURE**: Google SERP Rank Tracking system for keyword concepts
+- **rank_locations table**: Cache of DataForSEO location codes (60,481 US locations seeded)
+  - Columns: id, location_code (unique), location_name, location_type, country_iso_code, location_code_parent, canonical_name
+  - Indexes: gin_trgm_ops on location_name and canonical_name for fuzzy search
+  - Purpose: Enable fast location picker without hitting DataForSEO API
+- **rank_keyword_groups table**: Keyword groups defined by device + location + schedule
+  - Columns: id, account_id, name, device (desktop/mobile), location_code, location_name
+  - Scheduling: schedule_frequency, schedule_day_of_week, schedule_day_of_month, schedule_hour, next_scheduled_at
+  - Mirrors geo-grid scheduling pattern with automatic next_scheduled_at calculation
+- **rank_group_keywords table**: Junction table linking keyword concepts to groups
+  - Columns: id, group_id, keyword_id, account_id, target_url (for cannibalization detection), is_enabled
+  - Unique constraint: (group_id, keyword_id) - same concept can be in multiple groups
+- **rank_checks table**: Individual rank check results over time
+  - Columns: id, account_id, group_id, keyword_id, search_query_used, position, found_url, matched_target_url
+  - JSONB: serp_features (featured snippet, map pack, FAQ, etc.), top_competitors
+  - Indexes optimized for queries by account, group, keyword, and date
+- **rank_discovery_usage table**: Daily limit tracking for keyword discovery feature
+  - Columns: id, account_id, usage_date, keywords_discovered
+  - Unique constraint: (account_id, usage_date)
+- **RLS Policies**: All tables filter by account_id with service role bypass for cron jobs
+- **Triggers**: calculate_rank_next_scheduled_at() function mirrors geo-grid pattern
+- **pg_trgm extension**: Enabled for fuzzy location search
+- **Seed Script**: `/scripts/seed-rank-locations.ts` fetches from DataForSEO API and populates rank_locations
+- **Related Documentation**: `/docs/GOOGLE_RANK_TRACKING_PLAN.md`
+
 ## [2025-12-09]
 ### Migrations Added
 
