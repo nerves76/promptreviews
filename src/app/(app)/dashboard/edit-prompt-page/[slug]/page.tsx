@@ -767,6 +767,7 @@ export default function EditPromptPage() {
         "recent_reviews_scope",
         "keyword_inspiration_enabled",
         "selected_keyword_inspirations",
+        "keyword_auto_rotate_enabled",
         "keywords",
         "motivational_nudge_enabled",
         "motivational_nudge_text",
@@ -905,6 +906,7 @@ export default function EditPromptPage() {
         "recent_reviews_scope",
         "keyword_inspiration_enabled",
         "selected_keyword_inspirations",
+        "keyword_auto_rotate_enabled",
         "keywords",
         "motivational_nudge_enabled",
         "motivational_nudge_text",
@@ -1053,6 +1055,9 @@ export default function EditPromptPage() {
         selected_kickstarters: formState.selected_kickstarters || formState.selectedKickstarters || null,
         recent_reviews_enabled: formState.recent_reviews_enabled ?? formState.recentReviewsEnabled ?? false,
 
+        // Keyword auto-rotation
+        keyword_auto_rotate_enabled: formState.keyword_auto_rotate_enabled ?? formState.keywordAutoRotateEnabled ?? false,
+
         // Motivational Nudge
         motivational_nudge_enabled: formState.motivational_nudge_enabled ?? formState.motivationalNudgeEnabled ?? true,
         motivational_nudge_text: formState.motivational_nudge_text || formState.motivationalNudgeText || "{business_name} needs your STAR POWER so more people can find them online!",
@@ -1101,6 +1106,7 @@ export default function EditPromptPage() {
         "recent_reviews_scope",
         "keyword_inspiration_enabled",
         "selected_keyword_inspirations",
+        "keyword_auto_rotate_enabled",
         "keywords",
         "motivational_nudge_enabled",
         "motivational_nudge_text",

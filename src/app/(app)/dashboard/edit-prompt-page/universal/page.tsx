@@ -47,6 +47,7 @@ interface UniversalPromptFormState {
   keywords?: string[];
   keyword_inspiration_enabled?: boolean;
   selected_keyword_inspirations?: string[];
+  keyword_auto_rotate_enabled?: boolean;
   motivational_nudge_enabled?: boolean;
   motivational_nudge_text?: string;
   role_field_enabled?: boolean;
@@ -242,6 +243,9 @@ export default function UniversalEditPromptPage() {
           selected_keyword_inspirations: universalPage?.selected_keyword_inspirations ??
             (Array.isArray(businessProfile?.default_selected_keyword_inspirations) ? businessProfile.default_selected_keyword_inspirations : []),
 
+          // Keyword auto-rotation
+          keyword_auto_rotate_enabled: universalPage?.keyword_auto_rotate_enabled ?? false,
+
           // Motivational Nudge
           motivational_nudge_enabled: universalPage?.motivational_nudge_enabled ?? true,
           motivational_nudge_text: universalPage?.motivational_nudge_text ?? "{business_name} needs your STAR POWER so more people can find them online!",
@@ -373,6 +377,7 @@ export default function UniversalEditPromptPage() {
         keywords: formState.keywords,
         keyword_inspiration_enabled: formState.keyword_inspiration_enabled,
         selected_keyword_inspirations: formState.selected_keyword_inspirations,
+        keyword_auto_rotate_enabled: formState.keyword_auto_rotate_enabled,
         motivational_nudge_enabled: formState.motivational_nudge_enabled,
         motivational_nudge_text: formState.motivational_nudge_text,
         role_field_enabled: formState.role_field_enabled,
@@ -414,6 +419,7 @@ export default function UniversalEditPromptPage() {
         keywords: formState.keywords,
         keyword_inspiration_enabled: formState.keyword_inspiration_enabled,
         selected_keyword_inspirations: formState.selected_keyword_inspirations,
+        keyword_auto_rotate_enabled: formState.keyword_auto_rotate_enabled,
         motivational_nudge_enabled: formState.motivational_nudge_enabled,
         motivational_nudge_text: formState.motivational_nudge_text,
         role_field_enabled: formState.role_field_enabled,
