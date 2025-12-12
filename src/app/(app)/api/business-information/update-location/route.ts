@@ -22,10 +22,17 @@ function cleanStringForGoogle(str: string | undefined): string | undefined {
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
+import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import { GoogleBusinessProfileClient } from '@/features/social-posting/platforms/google-business-profile/googleBusinessProfileClient';
 import { hasValue } from '@/utils/dataFiltering';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
+
+// Service role client for bypassing RLS when reading tokens
+const serviceSupabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export async function POST(request: NextRequest) {
   try {
@@ -96,12 +103,12 @@ export async function POST(request: NextRequest) {
     }
 
 
-    // Get Google Business Profile tokens
-    const { data: tokens } = await supabase
+    // Get Google Business Profile tokens using service role to bypass RLS
+    const { data: tokens } = await serviceSupabase
       .from('google_business_profiles')
       .select('access_token, refresh_token, expires_at')
       .eq('account_id', accountId)
-      .single();
+      .maybeSingle();
 
     if (!tokens) {
       return NextResponse.json(
