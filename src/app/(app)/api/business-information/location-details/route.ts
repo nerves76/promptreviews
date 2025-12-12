@@ -74,9 +74,14 @@ export async function POST(request: NextRequest) {
       .maybeSingle();
 
     if (tokenError || !tokenData) {
+      console.error('❌ [location-details] Token lookup failed:', {
+        accountId,
+        tokenError: tokenError?.message || tokenError,
+        hasTokenData: !!tokenData
+      });
       return NextResponse.json({
         error: 'Google Business Profile not connected',
-        details: 'Please connect your Google Business Profile first'
+        details: `Please connect your Google Business Profile first. Debug: accountId=${accountId}, error=${tokenError?.message || 'no data'}`
       }, { status: 401 });
     }
 
