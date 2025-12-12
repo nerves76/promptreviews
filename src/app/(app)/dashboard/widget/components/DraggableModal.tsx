@@ -42,7 +42,15 @@ export const DraggableModal: React.FC<DraggableModalProps> = ({
       const x = Math.max(0, (window.innerWidth - modalWidth) / 2);
       const y = Math.max(0, (window.innerHeight - modalHeight) / 2);
       setModalPos({ x, y });
+
+      // Lock body scroll when modal is open
+      document.body.style.overflow = 'hidden';
     }
+
+    return () => {
+      // Restore body scroll when modal closes
+      document.body.style.overflow = '';
+    };
   }, [isOpen]);
 
   useEffect(() => {
