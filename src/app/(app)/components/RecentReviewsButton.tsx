@@ -98,7 +98,7 @@ export default function RecentReviewsButton({
     <div className="flex justify-end">
       <button
         onClick={onOpenModal}
-        className="inline-flex items-center px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg border-2 font-medium text-xs sm:text-sm transition-all duration-200 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-opacity-50"
+        className="px-3 py-1 border rounded text-xs font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 flex items-center gap-1 transition-all duration-200 hover:text-white"
         style={{
           borderColor: secondaryColor,
           color: secondaryColor,
@@ -115,8 +115,7 @@ export default function RecentReviewsButton({
         }}
         aria-label="View recent reviews"
       >
-        <span className="hidden sm:inline">Recent reviews</span>
-        <span className="sm:hidden">Reviews</span>
+        <span>Recent reviews</span>
       </button>
     </div>
   );
