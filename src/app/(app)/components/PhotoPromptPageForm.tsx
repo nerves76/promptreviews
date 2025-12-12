@@ -619,7 +619,7 @@ export default function PhotoPromptPageForm({
             onEnabledChange={setMotivationalNudgeEnabled}
             onTextChange={setMotivationalNudgeText}
             editMode={true}
-            businessName={businessProfile?.business_name}
+            businessName={businessProfile?.name}
           />
 
           {/* Role Field */}

@@ -526,7 +526,7 @@ export default function UniversalPromptPageForm({
           setFormData((prev: any) => ({ ...prev, motivational_nudge_text: text }));
         }}
         editMode={true}
-        businessName={businessProfile?.business_name}
+        businessName={businessProfile?.name}
       />
 
       {/* Role Field */}

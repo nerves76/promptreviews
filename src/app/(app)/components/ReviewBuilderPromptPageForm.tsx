@@ -1013,7 +1013,7 @@ export default function ReviewBuilderPromptPageForm({
               setMotivationalNudgeText(text);
             }}
             editMode={true}
-            businessName={businessProfile?.business_name}
+            businessName={businessProfile?.name}
           />
 
           {/* Role Field */}

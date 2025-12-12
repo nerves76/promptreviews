@@ -679,7 +679,7 @@ export default function BasePromptPageForm({
           onTextChange={(text) => updateFormData('motivational_nudge_text', text)}
           disabled={disabled}
           editMode={true}
-          businessName={businessProfile?.business_name}
+          businessName={businessProfile?.name}
         />
       )}
 
