@@ -35,7 +35,7 @@ export default function MotivationalNudgeFeature({
   const substituteBusinessName = (str: string) =>
     str.replace(/\{business_name\}/gi, businessName || 'Your business');
 
-  const rawText = text || DEFAULT_NUDGE_TEXT;
+  const rawText = text ?? DEFAULT_NUDGE_TEXT;
   const displayText = substituteBusinessName(rawText);
 
   const handleToggle = () => {
