@@ -455,9 +455,7 @@ export default function ReviewPlatformCard({
                       e.currentTarget.style.color = businessProfile?.secondary_color || "#6B7280";
                     }}
                   >
-                    <Icon name="mushroom" className="w-3.5 h-3.5" size={14} />
-                    <span className="hidden sm:inline">Power-up phrases</span>
-                    <span className="sm:hidden">Power-up</span>
+                    <span>+ Suggested phrases</span>
                   </button>
                 )}
                 {platform.customInstructions && platform.customInstructions.trim() && (
