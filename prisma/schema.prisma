@@ -382,6 +382,10 @@ model users {
   review_reminder_settings                   review_reminder_settings[]
   selected_gbp_locations                     selected_gbp_locations[]
   social_platform_connections                social_platform_connections[]
+  wm_boards                                  wm_boards[]
+  wm_task_actions                            wm_task_actions[]
+  wm_tasks_wm_tasks_assigned_toTousers       wm_tasks[]                        @relation("wm_tasks_assigned_toTousers")
+  wm_tasks_wm_tasks_created_byTousers        wm_tasks[]                        @relation("wm_tasks_created_byTousers")
 
   @@index([instance_id])
   @@index([is_anonymous])
@@ -509,6 +513,8 @@ model accounts {
   keyword_last_reset_date             DateTime?                         @db.Date
   keyword_suggestions_this_month      Int?                              @default(0)
   keyword_suggestions_last_reset_date DateTime?                         @db.Date
+  is_client_account                   Boolean?                          @default(false)
+  monthly_credit_allocation           Int?
   account_events                      account_events[]
   account_invitations                 account_invitations[]
   account_users                       account_users[]
@@ -560,6 +566,9 @@ model accounts {
   social_platform_connections         social_platform_connections[]
   trial_reminder_logs                 trial_reminder_logs[]
   widgets                             widgets[]
+  wm_boards                           wm_boards?
+  wm_task_actions                     wm_task_actions[]
+  wm_tasks                            wm_tasks[]
 
   @@index([billing_period], map: "idx_accounts_billing_period")
   @@index([created_at], map: "idx_accounts_created_at")
@@ -2242,7 +2251,7 @@ model rate_limit_counters {
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model review_drafts {
-  id                 String    @id @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  id                 String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   prompt_page_id     String?   @db.Uuid
   platform           String?
   review_text        String?
@@ -2485,7 +2494,7 @@ model selected_gbp_locations {
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model sentiment_analysis_runs {
-  id                      String    @id @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  id                      String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   account_id              String    @db.Uuid
   run_date                DateTime? @default(now()) @db.Timestamptz(6)
   review_count_analyzed   Int
@@ -3106,6 +3115,75 @@ model rank_locations {
   @@schema("public")
 }
 
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model wm_boards {
+  id            String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  account_id    String     @unique @db.Uuid
+  name          String?
+  status_labels Json?      @default("{\"done\": \"Done\", \"todo\": \"To Do\", \"review\": \"Review\", \"backlog\": \"Backlog\", \"in_progress\": \"In Progress\"}")
+  created_by    String?    @db.Uuid
+  created_at    DateTime?  @default(now()) @db.Timestamptz(6)
+  updated_at    DateTime?  @default(now()) @db.Timestamptz(6)
+  accounts      accounts   @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users         users?     @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  wm_tasks      wm_tasks[]
+
+  @@schema("public")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model wm_task_actions {
+  id            String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  task_id       String         @db.Uuid
+  account_id    String         @db.Uuid
+  activity_type wm_action_type
+  content       String?
+  metadata      Json?
+  created_by    String?        @db.Uuid
+  created_at    DateTime?      @default(now()) @db.Timestamptz(6)
+  accounts      accounts       @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users         users?         @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  wm_tasks      wm_tasks       @relation(fields: [task_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([account_id], map: "idx_wm_task_actions_account_id")
+  @@index([created_at], map: "idx_wm_task_actions_created_at")
+  @@index([task_id], map: "idx_wm_task_actions_task_id")
+  @@schema("public")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model wm_tasks {
+  id                                String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  board_id                          String            @db.Uuid
+  account_id                        String            @db.Uuid
+  title                             String
+  description                       String?
+  status                            wm_task_status    @default(backlog)
+  priority                          wm_task_priority? @default(medium)
+  due_date                          DateTime?         @db.Timestamptz(6)
+  assigned_to                       String?           @db.Uuid
+  sort_order                        Int?              @default(0)
+  created_by                        String?           @db.Uuid
+  created_at                        DateTime?         @default(now()) @db.Timestamptz(6)
+  updated_at                        DateTime?         @default(now()) @db.Timestamptz(6)
+  wm_task_actions                   wm_task_actions[]
+  accounts                          accounts          @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users_wm_tasks_assigned_toTousers users?            @relation("wm_tasks_assigned_toTousers", fields: [assigned_to], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  wm_boards                         wm_boards         @relation(fields: [board_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users_wm_tasks_created_byTousers  users?            @relation("wm_tasks_created_byTousers", fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([account_id], map: "idx_wm_tasks_account_id")
+  @@index([assigned_to], map: "idx_wm_tasks_assigned_to")
+  @@index([board_id], map: "idx_wm_tasks_board_id")
+  @@index([due_date], map: "idx_wm_tasks_due_date")
+  @@index([sort_order], map: "idx_wm_tasks_sort_order")
+  @@index([status], map: "idx_wm_tasks_status")
+  @@schema("public")
+}
+
 enum aal_level {
   aal1
   aal2
@@ -3286,6 +3364,36 @@ enum review_source_channel {
   social_share
   referral
   unknown
+
+  @@schema("public")
+}
+
+enum wm_action_type {
+  note
+  status_change
+  assignment_change
+  priority_change
+  due_date_change
+  created
+  updated
+
+  @@schema("public")
+}
+
+enum wm_task_priority {
+  low
+  medium
+  high
+
+  @@schema("public")
+}
+
+enum wm_task_status {
+  backlog
+  todo
+  in_progress
+  review
+  done
 
   @@schema("public")
 }

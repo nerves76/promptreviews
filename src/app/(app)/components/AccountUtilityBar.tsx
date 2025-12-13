@@ -8,6 +8,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import Link from 'next/link';
 import { useAccountSelection } from '@/utils/accountSelectionHooks';
 import { type UserAccount } from '@/auth/utils/accountSelection';
 import Icon from '@/components/Icon';
@@ -109,9 +110,18 @@ export function AccountUtilityBar() {
             </button>
           </div>
 
-          {/* Right side - Account count indicator */}
-          <div className="text-xs text-white/50">
-            {availableAccounts.length} accounts
+          {/* Right side - Work Manager link and Account count */}
+          <div className="flex items-center gap-4 text-xs">
+            <Link
+              href="/work-manager"
+              className="flex items-center gap-1.5 text-white/70 hover:text-white transition-colors"
+            >
+              <Icon name="FaTasks" className="w-3 h-3" size={12} />
+              <span>Work Manager</span>
+            </Link>
+            <span className="text-white/50">
+              {availableAccounts.length} accounts
+            </span>
           </div>
         </div>
       </div>

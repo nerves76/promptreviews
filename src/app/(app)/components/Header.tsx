@@ -93,6 +93,9 @@ const Header = React.memo(function Header() {
   const [businessProfileCompleted, setBusinessProfileCompleted] = useState(false);
   const [businessProfileLoaded, setBusinessProfileLoaded] = useState(false);
 
+  // Track if user has Work Manager boards (for single-account users)
+  const [hasWorkManagerBoard, setHasWorkManagerBoard] = useState(false);
+
   // Check if user has Builder or Maven plan for GBP access
   const hasGBPAccess = currentPlan === 'builder' || currentPlan === 'maven';
   
@@ -291,6 +294,27 @@ const Header = React.memo(function Header() {
       fetchCreditBalance();
     }
   }, [hasBusiness, businessLoading]);
+
+  // Fetch Work Manager boards for single-account users
+  useEffect(() => {
+    const checkWorkManagerBoards = async () => {
+      if (!hasBusiness || hasMultipleAccounts) {
+        setHasWorkManagerBoard(false);
+        return;
+      }
+      try {
+        const response = await apiClient.get('/work-manager/boards');
+        setHasWorkManagerBoard((response.boards || []).length > 0);
+      } catch (error) {
+        // Silently fail - just don't show the link
+        setHasWorkManagerBoard(false);
+      }
+    };
+
+    if (hasBusiness && !businessLoading) {
+      checkWorkManagerBoards();
+    }
+  }, [hasBusiness, businessLoading, hasMultipleAccounts]);
 
   // Mark notifications as read when dropdown opens
   const markAllAsRead = async () => {
@@ -525,6 +549,21 @@ const Header = React.memo(function Header() {
                   >
                     Community
                   </Link>
+
+                  {/* Work Manager - Only show for single-account users with a board */}
+                  {!hasMultipleAccounts && hasWorkManagerBoard && (
+                    <Link
+                      href="/work-manager"
+                      className={`${
+                        isActive("/work-manager")
+                          ? "border-white text-white"
+                          : "border-transparent text-white hover:border-white/30 hover:text-white/90"
+                      } inline-flex items-center gap-1.5 px-1 pt-1 border-b-4 text-base font-medium transition-colors duration-200 h-16`}
+                    >
+                      <Icon name="FaTasks" size={14} />
+                      Work Manager
+                    </Link>
+                  )}
 
                     {/* Social Posting temporarily hidden until feature is ready
                     <Link
@@ -1058,6 +1097,22 @@ const Header = React.memo(function Header() {
                     >
                       Community
                     </Link>
+
+                    {/* Work Manager - Only show for single-account users with a board */}
+                    {!hasMultipleAccounts && hasWorkManagerBoard && (
+                      <Link
+                        href="/work-manager"
+                        onClick={() => setMenuOpen(false)}
+                        className={`${
+                          isActive("/work-manager")
+                            ? "bg-white/20 text-white"
+                            : "text-white hover:bg-white/10"
+                        } flex items-center gap-2 px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
+                      >
+                        <Icon name="FaTasks" size={14} />
+                        Work Manager
+                      </Link>
+                    )}
 
                     {/* Social Posting temporarily hidden until feature is ready
                     <Link
