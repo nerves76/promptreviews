@@ -135,11 +135,12 @@ export default function RankGroupDetailPage() {
             className="flex items-center gap-2 text-gray-600 hover:text-slate-blue mb-4"
           >
             <ArrowLeftIcon className="w-4 h-4" />
-            Back to Groups
+            Back to Rank Tracking
           </button>
 
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
             <div>
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Rank Tracking Group</p>
               <h1 className="text-3xl font-bold text-slate-blue mb-1">{group.name}</h1>
               <div className="flex items-center gap-4 text-sm text-gray-600">
                 <span>{group.device === 'desktop' ? '💻 Desktop' : '📱 Mobile'}</span>
