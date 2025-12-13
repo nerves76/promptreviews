@@ -7,6 +7,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Icon from '@/components/Icon';
+import { apiClient } from '@/utils/apiClient';
 
 interface BusinessCategory {
   categoryId: string;
@@ -85,21 +86,18 @@ export default function CategorySearch({
     setError(null);
 
     try {
-      const response = await fetch(`/api/business-information/categories?search=${encodeURIComponent(search)}&limit=20`);
-      
-      if (!response.ok) {
-        throw new Error(`Failed to search categories: ${response.statusText}`);
-      }
+      // Use apiClient to ensure X-Selected-Account header is sent
+      const data = await apiClient.get<{ success: boolean; categories: BusinessCategory[]; message?: string }>(
+        `/business-information/categories?search=${encodeURIComponent(search)}&limit=20`
+      );
 
-      const data = await response.json();
-      
       if (data.success) {
         setCategories(data.categories);
       } else {
         setError(data.message || 'Failed to load categories');
         setCategories([]);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error searching categories:', error);
       setError('Failed to search categories. Please try again.');
       setCategories([]);

@@ -10,6 +10,7 @@ import { useState, useEffect } from 'react';
 import Icon from '@/components/Icon';
 import { createClient } from '@/auth/providers/supabase';
 import { getAccountIdForUser } from '@/auth/utils/accounts';
+import { apiClient } from '@/utils/apiClient';
 
 // Import our modular components
 import CategorySearch from './business-info/CategorySearch';
@@ -150,20 +151,16 @@ export default function ServicesEditor({ locations, isConnected }: ServicesEdito
         serviceItems: businessInfo.serviceItems
       };
 
-      const response = await fetch('/api/business-information/update-location', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      // Use apiClient to ensure X-Selected-Account header is sent
+      const data = await apiClient.post<{ success: boolean; message?: string; error?: string }>(
+        '/business-information/update-location',
+        {
           locationIds: selectedLocationIds,
           updates
-        }),
-      });
+        }
+      );
 
-      const data = await response.json();
-
-      if (response.ok && data.success) {
+      if (data.success) {
         setSaveResult({
           success: true,
           message: data.message || 'Services published to Google successfully'
