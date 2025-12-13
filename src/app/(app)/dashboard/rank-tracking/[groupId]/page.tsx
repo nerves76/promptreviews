@@ -20,10 +20,9 @@ import {
   AddKeywordsModal,
   ScheduleSettings,
 } from '@/features/rank-tracking';
-import { useKeywordDetails } from '@/features/keywords/hooks/useKeywords';
-import { ArrowLeftIcon, PlusIcon, PlayIcon, Cog6ToothIcon, XMarkIcon } from '@heroicons/react/24/outline';
-import { Dialog, Transition } from '@headlessui/react';
-import { Fragment } from 'react';
+import { useKeywords, useKeywordDetails } from '@/features/keywords/hooks/useKeywords';
+import { KeywordDetailsSidebar } from '@/features/keywords/components';
+import { ArrowLeftIcon, PlusIcon, PlayIcon, Cog6ToothIcon } from '@heroicons/react/24/outline';
 import { useToast, ToastContainer } from '@/app/(app)/components/reviews/Toast';
 
 export default function RankGroupDetailPage() {
@@ -50,6 +49,7 @@ export default function RankGroupDetailPage() {
 
   // Fetch keyword details when one is selected
   const { keyword: keywordDetails, isLoading: detailsLoading } = useKeywordDetails(selectedKeywordId);
+  const { updateKeyword } = useKeywords();
 
   const group = groups.find((g) => g.id === groupId);
 
@@ -193,163 +193,12 @@ export default function RankGroupDetailPage() {
       </PageCard>
 
       {/* Keyword Details Slide-over */}
-      <Transition.Root show={!!selectedKeywordId} as={Fragment}>
-        <Dialog as="div" className="relative z-50" onClose={() => setSelectedKeywordId(null)}>
-          <Transition.Child
-            as={Fragment}
-            enter="ease-in-out duration-300"
-            enterFrom="opacity-0"
-            enterTo="opacity-100"
-            leave="ease-in-out duration-300"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
-          >
-            <div className="fixed inset-0 bg-gray-900/20 backdrop-blur-sm transition-opacity" />
-          </Transition.Child>
-
-          <div className="fixed inset-0 overflow-hidden">
-            <div className="absolute inset-0 overflow-hidden">
-              <div className="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-10">
-                <Transition.Child
-                  as={Fragment}
-                  enter="transform transition ease-in-out duration-300"
-                  enterFrom="translate-x-full"
-                  enterTo="translate-x-0"
-                  leave="transform transition ease-in-out duration-300"
-                  leaveFrom="translate-x-0"
-                  leaveTo="translate-x-full"
-                >
-                  <Dialog.Panel className="pointer-events-auto w-screen max-w-md">
-                    <div className="flex h-full flex-col overflow-y-scroll bg-white/80 backdrop-blur-xl shadow-2xl">
-                      {/* Header */}
-                      <div className="px-6 py-6 border-b border-gray-100/50">
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <span className="text-xs font-medium uppercase tracking-wider text-gray-500">Keyword Concept</span>
-                            {keywordDetails && (
-                              <Dialog.Title className="text-xl font-bold text-gray-900 mt-1">
-                                {keywordDetails.phrase}
-                              </Dialog.Title>
-                            )}
-                          </div>
-                          <button
-                            type="button"
-                            className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-white/50 rounded-lg transition-colors"
-                            onClick={() => setSelectedKeywordId(null)}
-                          >
-                            <XMarkIcon className="h-5 w-5" />
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Content */}
-                      <div className="flex-1 px-6 py-6">
-                        {detailsLoading ? (
-                          <div className="flex items-center justify-center py-12">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-blue" />
-                          </div>
-                        ) : keywordDetails ? (
-                          <div className="space-y-4">
-                            {/* Suggested Phrase */}
-                            {keywordDetails.reviewPhrase && (
-                              <div className="p-4 bg-gradient-to-br from-indigo-50/80 to-purple-50/80 backdrop-blur-sm border border-indigo-100/50 rounded-xl">
-                                <span className="text-xs font-medium uppercase tracking-wider text-indigo-600">Suggested Phrase</span>
-                                <p className="text-sm text-gray-700 mt-2 italic leading-relaxed">
-                                  "{keywordDetails.reviewPhrase}"
-                                </p>
-                                <p className="mt-2 text-xs text-gray-500">Shown to customers on prompt pages</p>
-                              </div>
-                            )}
-
-                            {/* Search Query */}
-                            {keywordDetails.searchQuery && (
-                              <div className="p-4 bg-white/60 backdrop-blur-sm border border-gray-100/50 rounded-xl">
-                                <span className="text-xs font-medium uppercase tracking-wider text-gray-500">Search Query</span>
-                                <p className="mt-2 text-sm text-gray-900">{keywordDetails.searchQuery}</p>
-                                <p className="mt-1 text-xs text-gray-500">Used for rank tracking</p>
-                              </div>
-                            )}
-
-                            {/* Aliases */}
-                            {keywordDetails.aliases && keywordDetails.aliases.length > 0 && (
-                              <div className="p-4 bg-white/60 backdrop-blur-sm border border-gray-100/50 rounded-xl">
-                                <span className="text-xs font-medium uppercase tracking-wider text-gray-500">Aliases</span>
-                                <div className="mt-2 flex flex-wrap gap-1">
-                                  {keywordDetails.aliases.map((alias, idx) => (
-                                    <span
-                                      key={idx}
-                                      className="inline-flex items-center px-2 py-0.5 bg-indigo-50/80 border border-indigo-100/50 text-indigo-700 text-sm rounded"
-                                    >
-                                      {alias}
-                                    </span>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Location Scope */}
-                            {keywordDetails.locationScope && (
-                              <div className="p-4 bg-white/60 backdrop-blur-sm border border-gray-100/50 rounded-xl">
-                                <span className="text-xs font-medium uppercase tracking-wider text-gray-500">Location Scope</span>
-                                <div className="mt-2">
-                                  <span className="inline-flex items-center px-2 py-0.5 bg-blue-50/80 border border-blue-100/50 text-blue-700 text-sm rounded capitalize">
-                                    {keywordDetails.locationScope}
-                                  </span>
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Related Questions */}
-                            {keywordDetails.relatedQuestions && keywordDetails.relatedQuestions.length > 0 && (
-                              <div className="p-4 bg-white/60 backdrop-blur-sm border border-gray-100/50 rounded-xl">
-                                <span className="text-xs font-medium uppercase tracking-wider text-gray-500">Related Questions</span>
-                                <ul className="mt-2 space-y-2">
-                                  {keywordDetails.relatedQuestions.map((q, idx) => (
-                                    <li
-                                      key={idx}
-                                      className="text-sm text-gray-700 bg-purple-50/80 rounded-lg px-3 py-2"
-                                    >
-                                      {q}
-                                    </li>
-                                  ))}
-                                </ul>
-                                <p className="mt-2 text-xs text-gray-500">For PAA/LLM tracking</p>
-                              </div>
-                            )}
-
-                            {/* Stats */}
-                            <div className="p-4 bg-white/60 backdrop-blur-sm border border-gray-100/50 rounded-xl">
-                              <span className="text-xs font-medium uppercase tracking-wider text-gray-500">Usage Stats</span>
-                              <div className="grid grid-cols-2 gap-3 mt-3">
-                                <div className="bg-white/80 rounded-lg p-3">
-                                  <div className="text-xs text-gray-500">Review Matches</div>
-                                  <div className="text-lg font-semibold text-gray-900">
-                                    {keywordDetails.reviewUsageCount || 0}
-                                  </div>
-                                </div>
-                                <div className="bg-white/80 rounded-lg p-3">
-                                  <div className="text-xs text-gray-500">Status</div>
-                                  <div className={`text-lg font-semibold capitalize ${keywordDetails.status === 'active' ? 'text-green-600' : 'text-gray-400'}`}>
-                                    {keywordDetails.status || 'active'}
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="text-center py-12 text-gray-500">
-                            Keyword not found
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </Dialog.Panel>
-                </Transition.Child>
-              </div>
-            </div>
-          </div>
-        </Dialog>
-      </Transition.Root>
+      <KeywordDetailsSidebar
+        isOpen={!!selectedKeywordId}
+        keyword={keywordDetails}
+        onClose={() => setSelectedKeywordId(null)}
+        onUpdate={updateKeyword}
+      />
 
       {/* Modals */}
       <AddKeywordsModal

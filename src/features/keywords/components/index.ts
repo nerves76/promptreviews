@@ -13,6 +13,10 @@ export {
   KeywordRotationBadge,
 } from './KeywordRotationAlerts';
 export { default as KeywordConceptInput } from './KeywordConceptInput';
+export {
+  KeywordDetailsSidebar,
+  type KeywordDetailsSidebarProps,
+} from './KeywordDetailsSidebar';
 
 // Legacy adapter - provides same interface as old KeywordsInput but uses unified system
 export { default as KeywordsInputLegacyAdapter } from './KeywordsInputLegacyAdapter';
