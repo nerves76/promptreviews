@@ -199,6 +199,8 @@ export interface KeywordData {
   locationScope: LocationScope | null;
   aiGenerated: boolean;
   aiSuggestions: Record<string, unknown> | null;
+  // Related questions for PAA/LLM tracking (AI generates 3-5, user can add up to 10)
+  relatedQuestions: string[];
   // Rank tracking usage
   isUsedInRankTracking?: boolean;
 }
@@ -218,13 +220,14 @@ export function transformKeywordToResponse(
     group_id: string | null;
     created_at: Date | string | null;
     updated_at: Date | string | null;
-    // New concept fields
+    // Concept fields
     review_phrase?: string | null;
     search_query?: string | null;
     aliases?: string[] | null;
     location_scope?: string | null;
     ai_generated?: boolean | null;
     ai_suggestions?: Record<string, unknown> | null;
+    related_questions?: string[] | null;
   },
   groupName: string | null = null
 ): KeywordData {
@@ -251,13 +254,14 @@ export function transformKeywordToResponse(
       : new Date().toISOString(),
     usageColor: getUsageColor(wordCount, usageCount),
     showUsageIndicator: shouldShowUsageIndicator(wordCount),
-    // New concept fields
+    // Concept fields
     reviewPhrase: keyword.review_phrase ?? null,
     searchQuery: keyword.search_query ?? null,
     aliases: keyword.aliases ?? [],
     locationScope: (keyword.location_scope as LocationScope) ?? null,
     aiGenerated: keyword.ai_generated ?? false,
     aiSuggestions: keyword.ai_suggestions ?? null,
+    relatedQuestions: keyword.related_questions ?? [],
   };
 }
 

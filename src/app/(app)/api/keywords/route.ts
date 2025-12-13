@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
     const promptPageId = searchParams.get('promptPageId');
     const includeUsage = searchParams.get('includeUsage') === 'true';
 
-    // Build query - include new concept fields
+    // Build query - include concept fields
     let query = serviceSupabase
       .from('keywords')
       .select(`
@@ -64,6 +64,7 @@ export async function GET(request: NextRequest) {
         location_scope,
         ai_generated,
         ai_suggestions,
+        related_questions,
         keyword_groups (
           id,
           name
@@ -187,7 +188,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { phrase, groupId, promptPageId, review_phrase, search_query, aliases, location_scope, ai_generated } = body;
+    const { phrase, groupId, promptPageId, review_phrase, search_query, aliases, location_scope, ai_generated, related_questions } = body;
 
     if (!phrase || typeof phrase !== 'string' || phrase.trim().length === 0) {
       return NextResponse.json(
@@ -299,12 +300,13 @@ export async function POST(request: NextRequest) {
         word_count: wordCount,
         status: 'active',
         review_usage_count: 0,
-        // New concept fields
+        // Concept fields
         review_phrase: review_phrase || null,
         search_query: search_query || null,
         aliases: aliases || [],
         location_scope: location_scope || null,
         ai_generated: ai_generated || false,
+        related_questions: related_questions || [],
       })
       .select(`
         id,
@@ -323,6 +325,7 @@ export async function POST(request: NextRequest) {
         location_scope,
         ai_generated,
         ai_suggestions,
+        related_questions,
         keyword_groups (
           id,
           name

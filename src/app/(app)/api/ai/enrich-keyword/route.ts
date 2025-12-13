@@ -6,6 +6,7 @@
  * - search_query: Optimized for Google/geo-grid tracking (e.g., "portland marketing consultant")
  * - aliases: Variant phrases that should match this concept
  * - location_scope: Detected geographic scope
+ * - related_questions: 3-5 questions people might ask about this topic (for PAA/LLM tracking)
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -21,6 +22,7 @@ interface EnrichmentResult {
   search_query: string;
   aliases: string[];
   location_scope: "local" | "city" | "region" | "state" | "national" | null;
+  related_questions: string[];
 }
 
 export async function POST(request: NextRequest) {
@@ -90,6 +92,13 @@ Given a keyword phrase, generate optimized versions for different use cases:
    - "national" = no location specified
    - null if unclear
 
+5. **related_questions**: 3-5 questions people might ask about this topic. Should:
+   - Be natural questions a customer might type into Google or ask an AI
+   - Include "People Also Ask" style questions
+   - Cover different aspects: cost, quality, comparison, process, etc.
+   - Include location if relevant to the keyword
+   - Examples: "Where can I find X near me?", "How much does X cost?", "What is the best X in [city]?"
+
 Respond with ONLY valid JSON, no markdown or explanation.`;
 
     const userPrompt = `Keyword phrase: "${trimmedPhrase}"
@@ -100,7 +109,8 @@ Generate the enriched keyword data as JSON with this exact structure:
   "review_phrase": "...",
   "search_query": "...",
   "aliases": ["...", "..."],
-  "location_scope": "city" | "local" | "region" | "state" | "national" | null
+  "location_scope": "city" | "local" | "region" | "state" | "national" | null,
+  "related_questions": ["...", "...", "..."]
 }`;
 
     const completion = await openai.chat.completions.create({
@@ -138,6 +148,13 @@ Generate the enriched keyword data as JSON with this exact structure:
       enrichment.aliases = [];
     }
 
+    // Ensure related_questions is an array with max 5 items
+    if (!Array.isArray(enrichment.related_questions)) {
+      enrichment.related_questions = [];
+    } else {
+      enrichment.related_questions = enrichment.related_questions.slice(0, 5);
+    }
+
     // Validate location_scope
     const validScopes = ["local", "city", "region", "state", "national", null];
     if (!validScopes.includes(enrichment.location_scope)) {
@@ -152,6 +169,7 @@ Generate the enriched keyword data as JSON with this exact structure:
         search_query: enrichment.search_query,
         aliases: enrichment.aliases,
         location_scope: enrichment.location_scope,
+        related_questions: enrichment.related_questions,
         ai_generated: true,
       },
     });

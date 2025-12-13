@@ -57,6 +57,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         location_scope,
         ai_generated,
         ai_suggestions,
+        related_questions,
         keyword_groups (
           id,
           name
@@ -148,6 +149,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
  * - searchQuery?: string
  * - aliases?: string[]
  * - locationScope?: 'local' | 'city' | 'region' | 'state' | 'national' | null
+ * - relatedQuestions?: string[] (max 10)
  */
 export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
@@ -177,7 +179,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     }
 
     const body = await request.json();
-    const { phrase, groupId, status, reviewPhrase, searchQuery, aliases, locationScope } = body;
+    const { phrase, groupId, status, reviewPhrase, searchQuery, aliases, locationScope, relatedQuestions } = body;
 
     // Build update object
     const updates: Record<string, any> = {};
@@ -273,6 +275,22 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       updates.location_scope = locationScope;
     }
 
+    if (relatedQuestions !== undefined) {
+      if (!Array.isArray(relatedQuestions)) {
+        return NextResponse.json(
+          { error: 'Related questions must be an array of strings' },
+          { status: 400 }
+        );
+      }
+      if (relatedQuestions.length > 10) {
+        return NextResponse.json(
+          { error: 'Maximum of 10 related questions allowed' },
+          { status: 400 }
+        );
+      }
+      updates.related_questions = relatedQuestions.map((q: string) => q.trim()).filter(Boolean);
+    }
+
     if (Object.keys(updates).length === 0) {
       return NextResponse.json(
         { error: 'No valid fields to update' },
@@ -302,6 +320,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         location_scope,
         ai_generated,
         ai_suggestions,
+        related_questions,
         keyword_groups (
           id,
           name

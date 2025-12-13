@@ -38,6 +38,7 @@ interface UseKeywordsResult {
     search_query: string;
     aliases?: string[];
     location_scope?: string | null;
+    related_questions?: string[];
     ai_generated?: boolean;
     groupId?: string;
     promptPageId?: string;
@@ -51,6 +52,7 @@ interface UseKeywordsResult {
     searchQuery: string;
     aliases: string[];
     locationScope: string | null;
+    relatedQuestions: string[];
   }>) => Promise<KeywordData | null>;
   /** Delete a keyword */
   deleteKeyword: (id: string) => Promise<boolean>;
@@ -185,6 +187,7 @@ export function useKeywords(options: UseKeywordsOptions = {}): UseKeywordsResult
       search_query: string;
       aliases?: string[];
       location_scope?: string | null;
+      related_questions?: string[];
       ai_generated?: boolean;
       groupId?: string;
       promptPageId?: string;
@@ -197,6 +200,7 @@ export function useKeywords(options: UseKeywordsOptions = {}): UseKeywordsResult
           aliases: data.aliases || [],
           location_scope: data.location_scope || null,
           ai_generated: data.ai_generated ?? false,
+          related_questions: data.related_questions || [],
         };
         if (data.groupId) body.groupId = data.groupId;
         if (data.promptPageId) body.promptPageId = data.promptPageId;
@@ -229,6 +233,7 @@ export function useKeywords(options: UseKeywordsOptions = {}): UseKeywordsResult
         searchQuery: string;
         aliases: string[];
         locationScope: string | null;
+        relatedQuestions: string[];
       }>
     ): Promise<KeywordData | null> => {
       try {

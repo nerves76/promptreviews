@@ -8,6 +8,7 @@ interface KeywordEnrichment {
   search_query: string;
   aliases: string[];
   location_scope: "local" | "city" | "region" | "state" | "national" | null;
+  related_questions: string[];
   ai_generated: boolean;
 }
 
@@ -18,6 +19,7 @@ interface KeywordConceptInputProps {
     search_query: string;
     aliases: string[];
     location_scope: string | null;
+    related_questions: string[];
     ai_generated: boolean;
   }) => void;
   businessName?: string;
@@ -52,6 +54,8 @@ export default function KeywordConceptInput({
   // Editable fields after enrichment
   const [editedReviewPhrase, setEditedReviewPhrase] = useState("");
   const [editedSearchQuery, setEditedSearchQuery] = useState("");
+  const [editedQuestions, setEditedQuestions] = useState<string[]>([]);
+  const [newQuestion, setNewQuestion] = useState("");
 
   const handleEnrich = useCallback(async () => {
     if (!inputValue.trim()) return;
@@ -72,6 +76,7 @@ export default function KeywordConceptInput({
         setEnrichment(response.enrichment);
         setEditedReviewPhrase(response.enrichment.review_phrase);
         setEditedSearchQuery(response.enrichment.search_query);
+        setEditedQuestions(response.enrichment.related_questions || []);
       } else {
         throw new Error(response.error || "Failed to enrich keyword");
       }
@@ -84,10 +89,12 @@ export default function KeywordConceptInput({
         search_query: inputValue.trim().toLowerCase(),
         aliases: [],
         location_scope: null,
+        related_questions: [],
         ai_generated: false,
       });
       setEditedReviewPhrase(inputValue.trim());
       setEditedSearchQuery(inputValue.trim().toLowerCase());
+      setEditedQuestions([]);
     } finally {
       setIsEnriching(false);
     }
@@ -102,6 +109,7 @@ export default function KeywordConceptInput({
       search_query: editedSearchQuery,
       aliases: enrichment.aliases,
       location_scope: enrichment.location_scope,
+      related_questions: editedQuestions,
       ai_generated: enrichment.ai_generated,
     });
 
@@ -110,17 +118,32 @@ export default function KeywordConceptInput({
     setEnrichment(null);
     setEditedReviewPhrase("");
     setEditedSearchQuery("");
+    setEditedQuestions([]);
+    setNewQuestion("");
     setShowAdvanced(false);
     setError(null);
-  }, [enrichment, inputValue, editedReviewPhrase, editedSearchQuery, onKeywordAdded]);
+  }, [enrichment, inputValue, editedReviewPhrase, editedSearchQuery, editedQuestions, onKeywordAdded]);
 
   const handleCancel = useCallback(() => {
     setEnrichment(null);
     setEditedReviewPhrase("");
     setEditedSearchQuery("");
+    setEditedQuestions([]);
+    setNewQuestion("");
     setShowAdvanced(false);
     setError(null);
   }, []);
+
+  const handleAddQuestion = useCallback(() => {
+    if (newQuestion.trim() && editedQuestions.length < 10) {
+      setEditedQuestions([...editedQuestions, newQuestion.trim()]);
+      setNewQuestion("");
+    }
+  }, [newQuestion, editedQuestions]);
+
+  const handleRemoveQuestion = useCallback((index: number) => {
+    setEditedQuestions(editedQuestions.filter((_, i) => i !== index));
+  }, [editedQuestions]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -277,6 +300,54 @@ export default function KeywordConceptInput({
                   </span>
                 </div>
               )}
+
+              {/* Related Questions */}
+              <div className="space-y-2">
+                <label className="block text-xs font-medium text-gray-500">
+                  Related Questions
+                  <span className="text-gray-400 font-normal ml-1">(for PAA/LLM tracking, max 10)</span>
+                </label>
+                <div className="space-y-1">
+                  {editedQuestions.map((question, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center gap-2 bg-purple-50 text-purple-800 text-xs rounded px-2 py-1.5"
+                    >
+                      <span className="flex-1">{question}</span>
+                      <button
+                        onClick={() => handleRemoveQuestion(idx)}
+                        className="text-purple-600 hover:text-purple-800"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
+                  {editedQuestions.length === 0 && (
+                    <span className="text-xs text-gray-400">No questions generated</span>
+                  )}
+                </div>
+                {editedQuestions.length < 10 && (
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={newQuestion}
+                      onChange={(e) => setNewQuestion(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddQuestion())}
+                      placeholder="Add a question..."
+                      className="flex-1 border border-gray-300 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-slate-blue focus:border-slate-blue"
+                    />
+                    <button
+                      onClick={handleAddQuestion}
+                      disabled={!newQuestion.trim()}
+                      className="px-2 py-1 bg-purple-600 text-white rounded text-xs hover:bg-purple-700 disabled:opacity-50"
+                    >
+                      Add
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
