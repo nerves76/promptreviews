@@ -66,7 +66,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({
         locations: (locations || []).map((loc) => ({
           locationCode: loc.location_code,
-          locationName: loc.location_name,
+          // Add spaces after commas for readability (DataForSEO returns without spaces)
+          locationName: loc.location_name.replace(/,(?!\s)/g, ', '),
           countryIsoCode: loc.country_iso_code,
           locationType: loc.location_type,
         })),
