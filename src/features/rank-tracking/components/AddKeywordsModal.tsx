@@ -14,6 +14,7 @@ import { XMarkIcon, MagnifyingGlassIcon, ArrowTopRightOnSquareIcon, PlusIcon } f
 import Link from 'next/link';
 import { Button } from '@/app/(app)/components/ui/button';
 import { useKeywords } from '@/features/keywords/hooks/useKeywords';
+import { apiClient } from '@/utils/apiClient';
 
 interface AddKeywordsModalProps {
   isOpen: boolean;
@@ -41,7 +42,7 @@ export default function AddKeywordsModal({
   const [newSearchPhrase, setNewSearchPhrase] = useState('');
   const [isCreating, setIsCreating] = useState(false);
 
-  const { keywords: libraryKeywords, isLoading: libraryLoading, refresh: refreshLibrary, updateKeyword, createKeyword } = useKeywords();
+  const { keywords: libraryKeywords, isLoading: libraryLoading, refresh: refreshLibrary, updateKeyword, createEnrichedKeyword } = useKeywords();
 
   // Fetch library keywords on open
   useEffect(() => {
@@ -54,22 +55,52 @@ export default function AddKeywordsModal({
     }
   }, [isOpen, refreshLibrary]);
 
-  // Create a new keyword and add it to selected
+  // Create a new keyword with AI enrichment and add it to selected
   const handleCreateAndSelect = async () => {
     const phrase = newSearchPhrase.trim();
     if (!phrase) return;
 
     setIsCreating(true);
     try {
-      // Create keyword with searchQuery set to the phrase
-      const newKeyword = await createKeyword(phrase);
+      // First, get AI enrichment (review phrase, search query, questions)
+      let enrichment = {
+        review_phrase: phrase,
+        search_query: phrase.toLowerCase(),
+        aliases: [] as string[],
+        location_scope: null as string | null,
+        related_questions: [] as string[],
+        ai_generated: false,
+      };
+
+      try {
+        const enrichResponse = await apiClient.post<{
+          success: boolean;
+          enrichment?: typeof enrichment;
+        }>('/ai/enrich-keyword', { phrase });
+
+        if (enrichResponse.success && enrichResponse.enrichment) {
+          enrichment = { ...enrichResponse.enrichment, ai_generated: true };
+        }
+      } catch (err) {
+        console.warn('AI enrichment failed, using defaults:', err);
+      }
+
+      // Create the keyword with enriched data
+      const newKeyword = await createEnrichedKeyword({
+        phrase,
+        review_phrase: enrichment.review_phrase,
+        search_query: enrichment.search_query,
+        aliases: enrichment.aliases,
+        location_scope: enrichment.location_scope,
+        related_questions: enrichment.related_questions,
+        ai_generated: enrichment.ai_generated,
+      });
+
       if (newKeyword) {
-        // Update it to have searchQuery = phrase
-        await updateKeyword(newKeyword.id, { searchQuery: phrase });
         // Add to selected list
         setSelectedKeywordIds(prev => [...prev, newKeyword.id]);
         setNewSearchPhrase('');
-        // Refresh to get updated keyword with searchQuery
+        // Refresh to get updated keyword
         await refreshLibrary();
       }
     } catch (err) {

@@ -19,7 +19,10 @@ import {
   AddKeywordsModal,
   ScheduleSettings,
 } from '@/features/rank-tracking';
-import { ArrowLeftIcon, PlusIcon, PlayIcon, Cog6ToothIcon } from '@heroicons/react/24/outline';
+import { useKeywordDetails } from '@/features/keywords/hooks/useKeywords';
+import { ArrowLeftIcon, PlusIcon, PlayIcon, Cog6ToothIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { Dialog, Transition } from '@headlessui/react';
+import { Fragment } from 'react';
 
 export default function RankGroupDetailPage() {
   const params = useParams();
@@ -38,6 +41,10 @@ export default function RankGroupDetailPage() {
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [showScheduleSettings, setShowScheduleSettings] = useState(false);
+  const [selectedKeywordId, setSelectedKeywordId] = useState<string | null>(null);
+
+  // Fetch keyword details when one is selected
+  const { keyword: keywordDetails, isLoading: detailsLoading } = useKeywordDetails(selectedKeywordId);
 
   const group = groups.find((g) => g.id === groupId);
 
@@ -162,8 +169,179 @@ export default function RankGroupDetailPage() {
           keywords={keywords}
           isLoading={keywordsLoading}
           onRemove={removeKeywords}
+          onKeywordClick={(keywordId) => setSelectedKeywordId(keywordId)}
         />
       </PageCard>
+
+      {/* Keyword Details Slide-over */}
+      <Transition.Root show={!!selectedKeywordId} as={Fragment}>
+        <Dialog as="div" className="relative z-50" onClose={() => setSelectedKeywordId(null)}>
+          <Transition.Child
+            as={Fragment}
+            enter="ease-in-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in-out duration-300"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-gray-500/50 transition-opacity" />
+          </Transition.Child>
+
+          <div className="fixed inset-0 overflow-hidden">
+            <div className="absolute inset-0 overflow-hidden">
+              <div className="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-10">
+                <Transition.Child
+                  as={Fragment}
+                  enter="transform transition ease-in-out duration-300"
+                  enterFrom="translate-x-full"
+                  enterTo="translate-x-0"
+                  leave="transform transition ease-in-out duration-300"
+                  leaveFrom="translate-x-0"
+                  leaveTo="translate-x-full"
+                >
+                  <Dialog.Panel className="pointer-events-auto w-screen max-w-md">
+                    <div className="flex h-full flex-col overflow-y-scroll bg-white shadow-xl">
+                      {/* Header */}
+                      <div className="bg-slate-blue px-4 py-6 sm:px-6">
+                        <div className="flex items-center justify-between">
+                          <Dialog.Title className="text-lg font-semibold text-white">
+                            Keyword Concept Details
+                          </Dialog.Title>
+                          <button
+                            type="button"
+                            className="text-white/80 hover:text-white"
+                            onClick={() => setSelectedKeywordId(null)}
+                          >
+                            <XMarkIcon className="h-6 w-6" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Content */}
+                      <div className="flex-1 px-4 py-6 sm:px-6">
+                        {detailsLoading ? (
+                          <div className="flex items-center justify-center py-12">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-blue" />
+                          </div>
+                        ) : keywordDetails ? (
+                          <div className="space-y-6">
+                            {/* Phrase */}
+                            <div>
+                              <h3 className="text-sm font-medium text-gray-500">Phrase</h3>
+                              <p className="mt-1 text-lg font-semibold text-gray-900">
+                                {keywordDetails.phrase}
+                              </p>
+                            </div>
+
+                            {/* Review Phrase */}
+                            {keywordDetails.reviewPhrase && (
+                              <div>
+                                <h3 className="text-sm font-medium text-gray-500">Review Phrase</h3>
+                                <p className="mt-1 text-gray-900">{keywordDetails.reviewPhrase}</p>
+                                <p className="mt-1 text-xs text-gray-500">Shown to customers on prompt pages</p>
+                              </div>
+                            )}
+
+                            {/* Search Query */}
+                            {keywordDetails.searchQuery && (
+                              <div>
+                                <h3 className="text-sm font-medium text-gray-500">Search Query</h3>
+                                <p className="mt-1 text-gray-900">{keywordDetails.searchQuery}</p>
+                                <p className="mt-1 text-xs text-gray-500">Used for rank tracking</p>
+                              </div>
+                            )}
+
+                            {/* Aliases */}
+                            {keywordDetails.aliases && keywordDetails.aliases.length > 0 && (
+                              <div>
+                                <h3 className="text-sm font-medium text-gray-500">Aliases</h3>
+                                <div className="mt-1 flex flex-wrap gap-1">
+                                  {keywordDetails.aliases.map((alias, idx) => (
+                                    <span
+                                      key={idx}
+                                      className="inline-flex items-center px-2 py-0.5 bg-gray-100 text-gray-700 text-sm rounded"
+                                    >
+                                      {alias}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Location Scope */}
+                            {keywordDetails.locationScope && (
+                              <div>
+                                <h3 className="text-sm font-medium text-gray-500">Location Scope</h3>
+                                <span className="mt-1 inline-flex items-center px-2 py-0.5 bg-blue-100 text-blue-700 text-sm rounded capitalize">
+                                  {keywordDetails.locationScope}
+                                </span>
+                              </div>
+                            )}
+
+                            {/* Related Questions */}
+                            {keywordDetails.relatedQuestions && keywordDetails.relatedQuestions.length > 0 && (
+                              <div>
+                                <h3 className="text-sm font-medium text-gray-500">Related Questions</h3>
+                                <ul className="mt-2 space-y-2">
+                                  {keywordDetails.relatedQuestions.map((q, idx) => (
+                                    <li
+                                      key={idx}
+                                      className="text-sm text-gray-700 bg-purple-50 rounded px-3 py-2"
+                                    >
+                                      {q}
+                                    </li>
+                                  ))}
+                                </ul>
+                                <p className="mt-2 text-xs text-gray-500">For PAA/LLM tracking</p>
+                              </div>
+                            )}
+
+                            {/* AI Generated Badge */}
+                            {keywordDetails.aiGenerated && (
+                              <div className="pt-4 border-t">
+                                <span className="inline-flex items-center gap-1 px-2 py-1 bg-indigo-100 text-indigo-700 text-xs rounded-full">
+                                  <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+                                  </svg>
+                                  AI Enhanced
+                                </span>
+                              </div>
+                            )}
+
+                            {/* Stats */}
+                            <div className="pt-4 border-t">
+                              <h3 className="text-sm font-medium text-gray-500 mb-2">Usage Stats</h3>
+                              <div className="grid grid-cols-2 gap-4">
+                                <div className="bg-gray-50 rounded p-3">
+                                  <div className="text-xs text-gray-500">Review Matches</div>
+                                  <div className="text-lg font-semibold text-gray-900">
+                                    {keywordDetails.reviewUsageCount || 0}
+                                  </div>
+                                </div>
+                                <div className="bg-gray-50 rounded p-3">
+                                  <div className="text-xs text-gray-500">Status</div>
+                                  <div className="text-lg font-semibold text-gray-900 capitalize">
+                                    {keywordDetails.status || 'active'}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="text-center py-12 text-gray-500">
+                            Keyword not found
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </Dialog.Panel>
+                </Transition.Child>
+              </div>
+            </div>
+          </div>
+        </Dialog>
+      </Transition.Root>
 
       {/* Modals */}
       <AddKeywordsModal

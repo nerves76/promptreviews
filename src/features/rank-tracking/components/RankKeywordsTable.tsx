@@ -14,11 +14,12 @@ interface RankKeywordsTableProps {
   keywords: RankGroupKeyword[];
   isLoading: boolean;
   onRemove: (keywordIds: string[]) => Promise<{ success: boolean; error?: string }>;
+  onKeywordClick?: (keywordId: string) => void;
 }
 
 type SortField = 'phrase' | 'position' | 'change';
 
-export default function RankKeywordsTable({ keywords, isLoading, onRemove }: RankKeywordsTableProps) {
+export default function RankKeywordsTable({ keywords, isLoading, onRemove, onKeywordClick }: RankKeywordsTableProps) {
   const [sortField, setSortField] = useState<SortField>('phrase');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -178,10 +179,17 @@ export default function RankKeywordsTable({ keywords, isLoading, onRemove }: Ran
                   />
                 </td>
                 <td className="px-4 py-3">
-                  <div className="font-medium text-gray-900">{keyword.phrase}</div>
-                  {keyword.searchQuery && keyword.searchQuery !== keyword.phrase && (
-                    <div className="text-xs text-gray-500">{keyword.searchQuery}</div>
-                  )}
+                  <button
+                    onClick={() => onKeywordClick?.(keyword.keywordId)}
+                    className="text-left hover:text-slate-blue transition-colors"
+                  >
+                    <div className="font-medium text-gray-900 hover:text-slate-blue">
+                      {keyword.phrase || keyword.searchQuery || '(no phrase)'}
+                    </div>
+                    {keyword.searchQuery && keyword.searchQuery !== keyword.phrase && (
+                      <div className="text-xs text-gray-500">{keyword.searchQuery}</div>
+                    )}
+                  </button>
                 </td>
                 <td className="px-4 py-3">
                   <PositionBadge position={keyword.latestPosition} />
