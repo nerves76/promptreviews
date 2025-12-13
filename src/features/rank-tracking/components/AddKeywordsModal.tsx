@@ -178,7 +178,7 @@ export default function AddKeywordsModal({
                             value={librarySearch}
                             onChange={(e) => setLibrarySearch(e.target.value)}
                             placeholder="Search your keywords..."
-                            className="w-full pl-9 pr-3 py-2 border rounded-lg"
+                            className="w-full pl-10 pr-3 py-2 border rounded-lg"
                           />
                         </div>
                       </div>
@@ -234,7 +234,7 @@ export default function AddKeywordsModal({
                                 onChange={(e) => setDiscoveryQuery(e.target.value)}
                                 onKeyDown={(e) => e.key === 'Enter' && handleDiscoverySearch()}
                                 placeholder="Enter a keyword to research..."
-                                className="w-full pl-9 pr-3 py-2 border rounded-lg"
+                                className="w-full pl-10 pr-3 py-2 border rounded-lg"
                               />
                             </div>
                             <Button onClick={handleDiscoverySearch} disabled={discoveryLoading}>
