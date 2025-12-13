@@ -7,9 +7,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Icon from '@/components/Icon';
 import { createClient } from '@/auth/providers/supabase';
 import { useAuth } from "@/auth";
+import { apiClient } from '@/utils/apiClient';
 
 // Import our modular components
 import BusinessHoursEditor from './business-info/BusinessHoursEditor';
@@ -37,6 +39,7 @@ interface BusinessInfoEditorProps {
 
 export default function BusinessInfoEditor({ locations, isConnected }: BusinessInfoEditorProps) {
   const { account } = useAuth();
+  const router = useRouter();
   const accountId = account?.id;
 
   // 🚨 DEBUG: Track component lifecycle
@@ -230,12 +233,10 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
     try {
       
       // Make a single API call with all selected locations
-      const response = await fetch('/api/business-information/update-location', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      // Use apiClient to ensure X-Selected-Account header is sent
+      const result = await apiClient.post<{ success: boolean; message?: string; error?: string }>(
+        '/business-information/update-location',
+        {
           locationIds: selectedLocationIds,  // Send as array
           updates: {
             description: businessInfo.description,
@@ -245,12 +246,10 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
             additionalCategories: businessInfo.additionalCategories
             // Note: We don't include locationName since it shouldn't be changed
           }
-        }),
-      });
+        }
+      );
 
-      const result = await response.json();
-
-      if (response.ok && result.success) {
+      if (result.success) {
         setSaveResult({ 
           success: true, 
           message: result.message || `Business information updated successfully for ${selectedLocationIds.length} location${selectedLocationIds.length !== 1 ? 's' : ''}!` 
@@ -574,11 +573,30 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
           {/* Error State */}
           {detailsError && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-              <div className="flex items-center space-x-3">
-                <Icon name="FaTimes" className="w-5 h-5 text-red-600" size={20} />
-                <div>
+              <div className="flex items-start space-x-3">
+                <Icon name="FaTimes" className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" size={20} />
+                <div className="flex-1">
                   <p className="text-sm font-medium text-red-900">Unable to load business information</p>
-                  <p className="text-xs text-red-700">{detailsError}</p>
+                  <p className="text-xs text-red-700 mt-1">{detailsError}</p>
+                  {detailsError.includes('was not found') && (
+                    <div className="mt-3 p-3 bg-white rounded border border-red-200">
+                      <p className="text-sm text-gray-700 mb-2">
+                        The saved location no longer exists in your Google Business Profile. This can happen if:
+                      </p>
+                      <ul className="text-xs text-gray-600 list-disc list-inside mb-3 space-y-1">
+                        <li>You connected a different Google account</li>
+                        <li>The business location was deleted from Google</li>
+                        <li>Access to the location was removed</li>
+                      </ul>
+                      <button
+                        onClick={() => router.push('/dashboard/google-business?reselect=true')}
+                        className="inline-flex items-center space-x-2 text-sm font-medium text-blue-600 hover:text-blue-800"
+                      >
+                        <Icon name="FaSync" className="w-4 h-4" size={16} />
+                        <span>Re-select your business locations</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

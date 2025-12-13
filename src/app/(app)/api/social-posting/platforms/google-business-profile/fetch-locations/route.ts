@@ -49,48 +49,57 @@ export async function POST(request: NextRequest) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
     
-    // First check if we already have locations in the database
-    const { data: existingLocations, error: checkError } = await serviceSupabase
-      .from('google_business_locations')
-      .select('*')
-      .eq('account_id', accountId);
-    
-    if (!checkError && existingLocations && existingLocations.length > 0) {
-      
-      // Check if any location needs updating (status is UNKNOWN or updated_at is old)
-      const needsUpdate = existingLocations.some(loc => 
-        loc.status === 'UNKNOWN' || 
-        !loc.updated_at ||
-        (new Date().getTime() - new Date(loc.updated_at).getTime()) > 24 * 60 * 60 * 1000 // More than 24 hours old
-      );
-      
-      if (!needsUpdate) {
-        return NextResponse.json({
-          success: true,
-          message: `Found ${existingLocations.length} business locations`,
-          locations: existingLocations.map(loc => ({
-            user_id: loc.user_id,
-            location_id: loc.location_id,
-            location_name: loc.location_name,
-            account_name: loc.account_name,
-            address: loc.address,
-            status: loc.status,
-            primary_phone: loc.primary_phone,
-            website_uri: loc.website_uri
-          }))
-        });
-      } else {
-        // Delete old locations with UNKNOWN status to force fresh fetch
-        const { error: deleteError } = await serviceSupabase
-          .from('google_business_locations')
-          .delete()
-          .eq('account_id', accountId)
-          .eq('status', 'UNKNOWN');
-        
-        if (deleteError) {
+    // Check for force refresh parameter
+    const body = await request.json().catch(() => ({}));
+    const forceRefresh = body.force === true;
+
+    // First check if we already have locations in the database (skip if force refresh)
+    if (!forceRefresh) {
+      const { data: existingLocations, error: checkError } = await serviceSupabase
+        .from('google_business_locations')
+        .select('*')
+        .eq('account_id', accountId);
+
+      if (!checkError && existingLocations && existingLocations.length > 0) {
+
+        // Check if any location needs updating (status is UNKNOWN or updated_at is old)
+        // Reduced from 24 hours to 1 hour to catch stale data faster
+        const needsUpdate = existingLocations.some(loc =>
+          loc.status === 'UNKNOWN' ||
+          !loc.updated_at ||
+          (new Date().getTime() - new Date(loc.updated_at).getTime()) > 60 * 60 * 1000 // More than 1 hour old
+        );
+
+        if (!needsUpdate) {
+          return NextResponse.json({
+            success: true,
+            message: `Found ${existingLocations.length} business locations`,
+            locations: existingLocations.map(loc => ({
+              user_id: loc.user_id,
+              location_id: loc.location_id,
+              location_name: loc.location_name,
+              account_name: loc.account_name,
+              address: loc.address,
+              status: loc.status,
+              primary_phone: loc.primary_phone,
+              website_uri: loc.website_uri
+            }))
+          });
         } else {
+          // Delete old locations with UNKNOWN status to force fresh fetch
+          const { error: deleteError } = await serviceSupabase
+            .from('google_business_locations')
+            .delete()
+            .eq('account_id', accountId)
+            .eq('status', 'UNKNOWN');
+
+          if (deleteError) {
+            console.error('[fetch-locations] Failed to delete UNKNOWN locations:', deleteError);
+          }
         }
       }
+    } else {
+      console.log('[fetch-locations] Force refresh requested, skipping cache');
     }
 
     // Production mode: Use real Google API calls
@@ -162,7 +171,20 @@ export async function POST(request: NextRequest) {
         }, { onConflict: 'project_id,account_id' });
       
       const accounts = await client.listAccounts();
-      
+
+      // CRITICAL: Delete ALL existing locations for this account before fetching fresh data
+      // This prevents stale location_ids from persisting after reconnection
+      const { error: cleanupError } = await serviceSupabase
+        .from('google_business_locations')
+        .delete()
+        .eq('account_id', accountId);
+
+      if (cleanupError) {
+        console.error('[fetch-locations] Failed to clean up old locations:', cleanupError);
+        // Continue anyway - new locations will be added
+      } else {
+        console.log('[fetch-locations] Cleaned up old locations for account:', accountId);
+      }
 
       let allLocations: any[] = [];
       let hasErrors = false;

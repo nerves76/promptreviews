@@ -6,6 +6,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Icon from '@/components/Icon';
 import PageCard from '@/app/(app)/components/PageCard';
 import PageLoader from '@/app/(app)/components/PageLoader';
@@ -46,6 +47,7 @@ export default function SocialPostingDashboard() {
   const { user } = useAuthUser();
   const { business } = useBusinessData();
   const { account, selectedAccountId } = useAccountData();
+  const searchParams = useSearchParams();
 
   // Track the latest account context so async callbacks always send the correct header
   const accountIdRef = useRef<string | null>(selectedAccountId || account?.id || null);
@@ -230,6 +232,17 @@ export default function SocialPostingDashboard() {
   const [showPostTypesHelpModal, setShowPostTypesHelpModal] = useState(false);
   const [showLocationSelectionModal, setShowLocationSelectionModal] = useState(false);
   const [pendingLocations, setPendingLocations] = useState<GoogleBusinessLocation[]>([]);
+
+  // Handle ?reselect=true query param to auto-open location selection modal
+  useEffect(() => {
+    if (searchParams.get('reselect') === 'true' && isConnected && !isLoading) {
+      setShowLocationSelectionModal(true);
+      // Clean up the URL
+      const url = new URL(window.location.href);
+      url.searchParams.delete('reselect');
+      window.history.replaceState({}, '', url.toString());
+    }
+  }, [searchParams, isConnected, isLoading]);
 
   const planLocationLimit = useMemo(() => getMaxLocationsForPlan(currentPlan), [currentPlan]);
   const todayIso = useMemo(() => new Date().toISOString().split('T')[0], []);
@@ -527,6 +540,41 @@ export default function SocialPostingDashboard() {
       }));
     }
   }, [overviewData]);
+
+  // Clear localStorage when account changes to prevent stale data from other accounts
+  const prevAccountIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    const currentAccountId = selectedAccountId || account?.id;
+
+    // On first load, just store the account ID
+    if (prevAccountIdRef.current === null) {
+      prevAccountIdRef.current = currentAccountId || null;
+      return;
+    }
+
+    // If account changed, clear all google-business localStorage
+    if (currentAccountId && prevAccountIdRef.current !== currentAccountId) {
+      console.log('[GBP] Account changed, clearing localStorage cache');
+      localStorage.removeItem('google-business-connected');
+      localStorage.removeItem('google-business-locations');
+      localStorage.removeItem('google-business-selected-locations');
+      localStorage.removeItem('google-business-fetch-attempted');
+      localStorage.removeItem('google-business-overview-data');
+
+      // Reset state
+      setIsConnected(false);
+      setLocations([]);
+      setSelectedLocations([]);
+      setHasAttemptedFetch(false);
+      setOverviewData(null);
+
+      // Update the ref
+      prevAccountIdRef.current = currentAccountId;
+
+      // Trigger a fresh load
+      setIsLoading(true);
+    }
+  }, [selectedAccountId, account?.id]);
 
   // Clean up image URLs on unmount
   useEffect(() => {
@@ -1067,7 +1115,8 @@ export default function SocialPostingDashboard() {
         headers: {
           'Content-Type': 'application/json',
           'X-Selected-Account': activeAccountId
-        }
+        },
+        body: JSON.stringify({ force: true }) // Always force refresh to get latest from Google
       });
       
       clearTimeout(timeoutId);
