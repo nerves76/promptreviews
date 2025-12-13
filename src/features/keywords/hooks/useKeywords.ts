@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { apiClient } from '@/utils/apiClient';
+import { useAccountData } from '@/auth/hooks/granularAuthHooks';
 import { type KeywordData, type KeywordGroupData, DEFAULT_GROUP_NAME } from '../keywordUtils';
 
 interface UseKeywordsOptions {
@@ -73,6 +74,9 @@ interface UseKeywordsResult {
 export function useKeywords(options: UseKeywordsOptions = {}): UseKeywordsResult {
   const { autoFetch = true, groupId, promptPageId, includeUsage = false } = options;
 
+  // Track selected account to refetch when it changes
+  const { selectedAccountId } = useAccountData();
+
   const [keywords, setKeywords] = useState<KeywordData[]>([]);
   const [groups, setGroups] = useState<KeywordGroupData[]>([]);
   const [ungroupedCount, setUngroupedCount] = useState(0);
@@ -127,12 +131,27 @@ export function useKeywords(options: UseKeywordsOptions = {}): UseKeywordsResult
     }
   }, [fetchKeywords, fetchGroups]);
 
-  // Auto-fetch on mount
+  // Clear data and refetch when account changes
   useEffect(() => {
-    if (autoFetch) {
+    // Clear stale data immediately when account changes
+    setKeywords([]);
+    setGroups([]);
+    setUngroupedCount(0);
+    setPromptPageUsage({});
+    setError(null);
+
+    if (autoFetch && selectedAccountId) {
       refresh();
     }
-  }, [autoFetch, refresh]);
+  }, [selectedAccountId]); // Only depend on selectedAccountId to avoid infinite loops
+
+  // Also fetch on mount if autoFetch is enabled
+  useEffect(() => {
+    if (autoFetch && selectedAccountId) {
+      refresh();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoFetch]);
 
   // Create keyword
   const createKeyword = useCallback(
@@ -368,6 +387,9 @@ export function useKeywords(options: UseKeywordsOptions = {}): UseKeywordsResult
  * Hook for fetching a single keyword with details.
  */
 export function useKeywordDetails(keywordId: string | null) {
+  // Track selected account to clear data when it changes
+  const { selectedAccountId } = useAccountData();
+
   const [keyword, setKeyword] = useState<KeywordData | null>(null);
   const [promptPages, setPromptPages] = useState<any[]>([]);
   const [recentReviews, setRecentReviews] = useState<any[]>([]);
@@ -397,6 +419,14 @@ export function useKeywordDetails(keywordId: string | null) {
       setIsLoading(false);
     }
   }, [keywordId]);
+
+  // Clear data when account changes
+  useEffect(() => {
+    setKeyword(null);
+    setPromptPages([]);
+    setRecentReviews([]);
+    setError(null);
+  }, [selectedAccountId]);
 
   useEffect(() => {
     fetch();
