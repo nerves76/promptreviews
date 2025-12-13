@@ -57,7 +57,7 @@ export default function KeywordsPage() {
 
       {/* Content in PageCard */}
       <PageCard
-        icon={<Icon name="FaKey" className="w-6 h-6 text-slate-blue" size={24} />}
+        icon={<Icon name="FaBook" className="w-6 h-6 text-slate-blue" size={24} />}
         topMargin="mt-8"
       >
         <KeywordManager />

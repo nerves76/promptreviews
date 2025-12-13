@@ -219,11 +219,21 @@ export default function KeywordManager({
     <div className={`${compact ? '' : 'p-6'}`}>
       {/* Header */}
       {!compact && (
-        <div className="mb-6">
-          <h2 className="text-xl font-bold text-gray-800">Keyword Library</h2>
-          <p className="text-sm text-gray-500 mt-1">
-            Manage keywords across your prompt pages. Keywords with 4+ words show usage indicators.
-          </p>
+        <div className="mb-6 flex items-start justify-between">
+          <div>
+            <h2 className="text-xl font-bold text-slate-blue">Keyword Library</h2>
+            <p className="text-sm text-gray-500 mt-1">
+              Manage keywords across your prompt pages. Keywords with 4+ words show usage indicators.
+            </p>
+          </div>
+          {/* New Group button - top right */}
+          <button
+            onClick={() => setShowNewGroupModal(true)}
+            className="px-4 py-2 text-sm font-medium text-white bg-slate-blue rounded-md hover:bg-slate-blue/90 flex items-center gap-2"
+          >
+            <Icon name="FaPlus" className="w-4 h-4" />
+            <span>New Group</span>
+          </button>
         </div>
       )}
 
@@ -256,8 +266,8 @@ export default function KeywordManager({
       </div>
 
       {/* Search bar */}
-      <div className="flex gap-3 mb-4">
-        <div className="relative flex-1">
+      <div className="mb-4">
+        <div className="relative">
           <Icon
             name="FaSearch"
             className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
@@ -267,18 +277,9 @@ export default function KeywordManager({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search keywords..."
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-blue focus:border-transparent"
           />
         </div>
-
-        {/* Add group button */}
-        <button
-          onClick={() => setShowNewGroupModal(true)}
-          className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2"
-        >
-          <Icon name="FaPlus" className="w-4 h-4" />
-          <span>New Group</span>
-        </button>
       </div>
 
       {/* Add Keyword Section */}
