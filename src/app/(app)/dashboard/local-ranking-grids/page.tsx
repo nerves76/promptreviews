@@ -307,7 +307,9 @@ export default function LocalRankingGridsPage() {
   // Loading state
   if (loading) {
     return (
-      <PageCard>
+      <PageCard
+        icon={<Icon name="FaMapMarker" className="w-8 h-8 text-slate-blue" size={32} />}
+      >
         <StandardLoader isLoading={true} mode="inline" />
       </PageCard>
     );
@@ -321,14 +323,11 @@ export default function LocalRankingGridsPage() {
   // Show setup wizard if no config or settings mode
   if (!hasConfig || showSettings) {
     return (
-      <PageCard>
+      <PageCard
+        icon={<Icon name="FaMapMarker" className="w-8 h-8 text-slate-blue" size={32} />}
+      >
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-6 w-full gap-2 relative">
-          <div className="absolute z-10" style={{ left: "-69px", top: "-37px" }}>
-            <div className="rounded-full bg-white w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center shadow-lg">
-              <Icon name="FaMapMarker" className="w-6 h-6 sm:w-7 sm:h-7 text-slate-blue" size={28} />
-            </div>
-          </div>
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-6 w-full gap-2">
           <div className="flex flex-col mt-0 md:mt-[3px]">
             <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">
               {isAddingNewLocation ? 'Add New Location' : hasConfig ? 'Grid Settings' : 'Local Ranking Grids'}
@@ -373,14 +372,11 @@ export default function LocalRankingGridsPage() {
 
   return (
     <>
-      <PageCard>
+      <PageCard
+        icon={<Icon name="FaMapMarker" className="w-8 h-8 text-slate-blue" size={32} />}
+      >
         {/* Title Row */}
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-6 w-full gap-2 relative">
-          <div className="absolute z-10" style={{ left: "-69px", top: "-37px" }}>
-            <div className="rounded-full bg-white w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center shadow-lg">
-              <Icon name="FaMapMarker" className="w-6 h-6 sm:w-7 sm:h-7 text-slate-blue" size={28} />
-            </div>
-          </div>
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-6 w-full gap-2">
           <div className="flex flex-col mt-0 md:mt-[3px]">
             <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">
               Local Ranking Grids
