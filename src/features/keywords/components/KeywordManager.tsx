@@ -21,8 +21,6 @@ interface KeywordManagerProps {
   businessName?: string;
   businessCity?: string;
   businessState?: string;
-  /** Whether to use AI-powered keyword input (default: true) */
-  useAiEnrichment?: boolean;
 }
 
 /**
@@ -44,7 +42,6 @@ export default function KeywordManager({
   businessName,
   businessCity,
   businessState,
-  useAiEnrichment = true,
 }: KeywordManagerProps) {
   const {
     keywords,
@@ -63,12 +60,10 @@ export default function KeywordManager({
   } = useKeywords({ includeUsage: true });
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [newKeywordInput, setNewKeywordInput] = useState('');
   const [selectedKeywordId, setSelectedKeywordId] = useState<string | null>(null);
   const [showNewGroupModal, setShowNewGroupModal] = useState(false);
   const [newGroupName, setNewGroupName] = useState('');
   const [editingGroup, setEditingGroup] = useState<KeywordGroupData | null>(null);
-  const [showQuickInput, setShowQuickInput] = useState(!useAiEnrichment);
 
   // Fetch details for selected keyword
   const { keyword: selectedKeyword, promptPages, recentReviews } = useKeywordDetails(selectedKeywordId);
@@ -100,31 +95,6 @@ export default function KeywordManager({
 
     return { grouped, ungrouped };
   }, [filteredKeywords]);
-
-  // Stats
-  const stats = useMemo(() => {
-    const total = keywords.length;
-    const overused = keywords.filter((k) => k.usageColor === 'red').length;
-    const needsRotation = keywords.filter((k) => k.usageColor === 'orange').length;
-    return { total, overused, needsRotation };
-  }, [keywords]);
-
-  // Handle adding new keyword (quick input - comma-separated)
-  const handleAddKeyword = async () => {
-    if (!newKeywordInput.trim()) return;
-
-    // Split by comma for multiple keywords
-    const phrases = newKeywordInput
-      .split(',')
-      .map((p) => p.trim())
-      .filter((p) => p.length > 0);
-
-    for (const phrase of phrases) {
-      await createKeyword(phrase, undefined, promptPageId);
-    }
-
-    setNewKeywordInput('');
-  };
 
   // Handle adding AI-enriched keyword
   const handleAddEnrichedKeyword = useCallback(
@@ -256,59 +226,14 @@ export default function KeywordManager({
 
       {/* Add Keyword Section */}
       <div className="mb-4 p-4 bg-white border border-gray-200 rounded-lg">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-medium text-gray-700">Add Keyword</h3>
-          {useAiEnrichment && (
-            <button
-              onClick={() => setShowQuickInput(!showQuickInput)}
-              className="text-xs text-gray-500 hover:text-indigo-600 flex items-center gap-1"
-            >
-              {showQuickInput ? (
-                <>
-                  <Icon name="FaSparkles" className="w-3 h-3" />
-                  Use AI enrichment
-                </>
-              ) : (
-                <>
-                  <Icon name="FaRocket" className="w-3 h-3" />
-                  Quick add (bulk)
-                </>
-              )}
-            </button>
-          )}
-        </div>
-
-        {showQuickInput ? (
-          /* Quick input - comma-separated */
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={newKeywordInput}
-              onChange={(e) => setNewKeywordInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') handleAddKeyword();
-              }}
-              placeholder="Add keywords (comma-separated)..."
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-            />
-            <button
-              onClick={handleAddKeyword}
-              disabled={!newKeywordInput.trim()}
-              className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
-            >
-              <Icon name="FaPlus" className="w-4 h-4" />
-            </button>
-          </div>
-        ) : (
-          /* AI-enriched input */
-          <KeywordConceptInput
-            onKeywordAdded={handleAddEnrichedKeyword}
-            businessName={businessName}
-            businessCity={businessCity}
-            businessState={businessState}
-            placeholder="Enter a keyword (e.g., best green eggs ham San Diego)"
-          />
-        )}
+        <h3 className="text-sm font-medium text-gray-700 mb-3">Add Keyword</h3>
+        <KeywordConceptInput
+          onKeywordAdded={handleAddEnrichedKeyword}
+          businessName={businessName}
+          businessCity={businessCity}
+          businessState={businessState}
+          placeholder="Enter a keyword (e.g., best green eggs ham San Diego)"
+        />
       </div>
 
       {/* Groups and keywords section header */}
