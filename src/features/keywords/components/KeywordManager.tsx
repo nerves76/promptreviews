@@ -361,7 +361,7 @@ export default function KeywordManager({
       {!compact && (
         <div className="mb-6 flex items-start justify-between">
           <div>
-            <h2 className="text-xl font-bold text-slate-blue">Keyword Library</h2>
+            <h2 className="text-xl font-bold text-slate-blue">Keyword Concept Library</h2>
             <p className="text-sm text-gray-500 mt-1">
               Manage keywords across your prompt pages. Keywords with 4+ words show usage indicators.
             </p>
@@ -747,27 +747,35 @@ function KeywordDetailsSidebar({
   };
 
   return (
-    <div className="fixed inset-y-0 right-0 w-96 bg-white shadow-xl border-l border-gray-200 z-40 overflow-y-auto">
+    <div className="fixed inset-y-0 right-0 w-96 bg-white/80 backdrop-blur-xl shadow-2xl border-l border-white/20 z-40 overflow-y-auto">
       <div className="p-6">
         {/* Header */}
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-800">Keyword Details</h3>
+        <div className="flex items-start justify-between mb-6">
+          <div>
+            <span className="text-xs font-medium uppercase tracking-wider text-gray-500">Keyword Concept</span>
+            <h3 className="text-xl font-bold text-gray-900 mt-1">{keyword.phrase}</h3>
+          </div>
           <button
             onClick={onClose}
-            className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors"
+            className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-white/50 rounded-lg transition-colors"
           >
             <Icon name="FaTimes" className="w-5 h-5" />
           </button>
         </div>
 
         <div className="space-y-4">
-          {/* Keyword phrase */}
-          <div className="px-4 py-2 bg-indigo-50 border border-indigo-200 rounded-lg">
-            <span className="font-medium text-indigo-700">{keyword.phrase}</span>
-          </div>
+          {/* Suggested Phrase (AI-generated) */}
+          {keyword.reviewPhrase && (
+            <div className="p-4 bg-gradient-to-br from-indigo-50/80 to-purple-50/80 backdrop-blur-sm border border-indigo-100/50 rounded-xl">
+              <span className="text-xs font-medium uppercase tracking-wider text-indigo-600">Suggested Phrase</span>
+              <p className="text-sm text-gray-700 mt-2 italic leading-relaxed">
+                "{keyword.reviewPhrase}"
+              </p>
+            </div>
+          )}
 
           {/* Stats grid */}
-          <div className="grid grid-cols-2 gap-3 text-sm p-3 bg-gray-50 rounded-lg">
+          <div className="grid grid-cols-2 gap-3 text-sm p-3 bg-white/60 backdrop-blur-sm border border-gray-100/50 rounded-xl">
             <div>
               <span className="text-gray-500 block text-xs">Word count</span>
               <span className="font-medium">{keyword.wordCount}</span>
@@ -789,13 +797,13 @@ function KeywordDetailsSidebar({
           </div>
 
           {/* Editable fields section */}
-          <div className="border-t border-gray-200 pt-4">
+          <div className="p-4 bg-white/60 backdrop-blur-sm border border-gray-100/50 rounded-xl">
             <div className="flex items-center justify-between mb-3">
-              <h4 className="text-sm font-medium text-gray-700">SEO & Matching Settings</h4>
+              <span className="text-xs font-medium uppercase tracking-wider text-gray-500">SEO & Matching</span>
               {!isEditing ? (
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="text-xs text-slate-blue hover:text-slate-blue/80 flex items-center gap-1"
+                  className="text-xs text-slate-blue hover:text-slate-blue/80 flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-white/50 transition-colors"
                 >
                   <Icon name="FaEdit" className="w-3 h-3" />
                   Edit
@@ -805,14 +813,14 @@ function KeywordDetailsSidebar({
                   <button
                     onClick={handleCancel}
                     disabled={isSaving}
-                    className="text-xs text-gray-500 hover:text-gray-700"
+                    className="text-xs text-gray-500 hover:text-gray-700 px-2 py-1 rounded-lg hover:bg-white/50 transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleSave}
                     disabled={isSaving}
-                    className="px-3 py-1 text-xs font-medium text-white bg-slate-blue rounded hover:bg-slate-blue/90 disabled:opacity-50 flex items-center gap-1"
+                    className="px-3 py-1 text-xs font-medium text-white bg-slate-blue rounded-lg hover:bg-slate-blue/90 disabled:opacity-50 flex items-center gap-1"
                   >
                     {isSaving && <Icon name="FaSpinner" className="w-3 h-3 animate-spin" />}
                     Save
@@ -824,11 +832,11 @@ function KeywordDetailsSidebar({
             <div className="space-y-3">
               {/* Search Query */}
               <div>
-                <label className="text-xs font-medium text-gray-600 block mb-1">
+                <label className="text-xs text-gray-500 block mb-1">
                   Search Query (for rank tracking)
                 </label>
                 {keyword.isUsedInRankTracking && (
-                  <div className="mb-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-700">
+                  <div className="mb-2 px-3 py-2 bg-amber-50/80 border border-amber-200/50 rounded-lg text-xs text-amber-700">
                     <Icon name="FaExclamationTriangle" className="w-3 h-3 inline mr-1" />
                     Used in rank tracking. Create a new keyword to track a different term.
                   </div>
@@ -839,10 +847,10 @@ function KeywordDetailsSidebar({
                     value={editedSearchQuery}
                     onChange={(e) => setEditedSearchQuery(e.target.value)}
                     placeholder="e.g., best green eggs ham San Diego"
-                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full px-3 py-2 text-sm bg-white/80 border border-gray-200/50 rounded-lg focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-300 transition-all"
                   />
                 ) : (
-                  <div className="text-sm text-gray-700 bg-gray-50 px-3 py-2 rounded-lg min-h-[36px]">
+                  <div className="text-sm text-gray-700 bg-white/80 px-3 py-2 rounded-lg min-h-[36px]">
                     {keyword.searchQuery || <span className="text-gray-400 italic">Not set</span>}
                   </div>
                 )}
@@ -850,7 +858,7 @@ function KeywordDetailsSidebar({
 
               {/* Aliases */}
               <div>
-                <label className="text-xs font-medium text-gray-600 block mb-1">
+                <label className="text-xs text-gray-500 block mb-1">
                   Aliases (alternative matching phrases)
                 </label>
                 {isEditing ? (
@@ -859,14 +867,14 @@ function KeywordDetailsSidebar({
                     value={editedAliasesInput}
                     onChange={(e) => setEditedAliasesInput(e.target.value)}
                     placeholder="alias1, alias2, alias3"
-                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full px-3 py-2 text-sm bg-white/80 border border-gray-200/50 rounded-lg focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-300 transition-all"
                   />
                 ) : (
-                  <div className="text-sm text-gray-700 bg-gray-50 px-3 py-2 rounded-lg min-h-[36px]">
+                  <div className="text-sm text-gray-700 bg-white/80 px-3 py-2 rounded-lg min-h-[36px]">
                     {keyword.aliases && keyword.aliases.length > 0 ? (
                       <div className="flex flex-wrap gap-1">
                         {keyword.aliases.map((alias, idx) => (
-                          <span key={idx} className="px-2 py-0.5 bg-white border border-gray-200 rounded text-xs">
+                          <span key={idx} className="px-2 py-0.5 bg-indigo-50/80 border border-indigo-100/50 rounded text-xs text-indigo-700">
                             {alias}
                           </span>
                         ))}
@@ -880,14 +888,14 @@ function KeywordDetailsSidebar({
 
               {/* Location Scope */}
               <div>
-                <label className="text-xs font-medium text-gray-600 block mb-1">
+                <label className="text-xs text-gray-500 block mb-1">
                   Location Scope
                 </label>
                 {isEditing ? (
                   <select
                     value={editedLocationScope || ''}
                     onChange={(e) => setEditedLocationScope((e.target.value || null) as LocationScope | null)}
-                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full px-3 py-2 text-sm bg-white/80 border border-gray-200/50 rounded-lg focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-300 transition-all"
                   >
                     {LOCATION_SCOPES.map((scope) => (
                       <option key={scope.value || 'null'} value={scope.value || ''}>
@@ -896,7 +904,7 @@ function KeywordDetailsSidebar({
                     ))}
                   </select>
                 ) : (
-                  <div className="text-sm text-gray-700 bg-gray-50 px-3 py-2 rounded-lg">
+                  <div className="text-sm text-gray-700 bg-white/80 px-3 py-2 rounded-lg">
                     {keyword.locationScope ? (
                       <span className="capitalize">{keyword.locationScope}</span>
                     ) : (
@@ -908,14 +916,14 @@ function KeywordDetailsSidebar({
 
               {/* Group */}
               <div>
-                <label className="text-xs font-medium text-gray-600 block mb-1">
+                <label className="text-xs text-gray-500 block mb-1">
                   Group
                 </label>
                 {isEditing ? (
                   <select
                     value={editedGroupId || ''}
                     onChange={(e) => setEditedGroupId(e.target.value || null)}
-                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full px-3 py-2 text-sm bg-white/80 border border-gray-200/50 rounded-lg focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-300 transition-all"
                   >
                     <option value="">No group</option>
                     {groups.map((group) => (
@@ -925,7 +933,7 @@ function KeywordDetailsSidebar({
                     ))}
                   </select>
                 ) : (
-                  <div className="text-sm text-gray-700 bg-gray-50 px-3 py-2 rounded-lg">
+                  <div className="text-sm text-gray-700 bg-white/80 px-3 py-2 rounded-lg">
                     {keyword.groupName || <span className="text-gray-400 italic">No group</span>}
                   </div>
                 )}
@@ -933,26 +941,14 @@ function KeywordDetailsSidebar({
             </div>
           </div>
 
-          {/* Review Phrase (read-only, AI-generated) */}
-          {keyword.reviewPhrase && (
-            <div className="border-t border-gray-200 pt-4">
-              <label className="text-xs font-medium text-gray-600 block mb-1">
-                Review Phrase (AI-generated)
-              </label>
-              <div className="text-sm text-gray-700 bg-indigo-50 px-3 py-2 rounded-lg italic">
-                "{keyword.reviewPhrase}"
-              </div>
-            </div>
-          )}
-
           {/* Prompt pages */}
           {promptPages.length > 0 && (
-            <div className="border-t border-gray-200 pt-4">
-              <h4 className="text-sm font-medium text-gray-700 mb-2">Used in Prompt Pages</h4>
-              <div className="space-y-1">
+            <div className="p-4 bg-white/60 backdrop-blur-sm border border-gray-100/50 rounded-xl">
+              <span className="text-xs font-medium uppercase tracking-wider text-gray-500">Used in Prompt Pages</span>
+              <div className="space-y-1 mt-2">
                 {promptPages.map((page: any) => (
                   <div key={page.id} className="text-sm text-gray-600 flex items-center gap-2">
-                    <Icon name="FaFileAlt" className="w-3 h-3 text-gray-400" />
+                    <Icon name="FaFileAlt" className="w-3 h-3 text-indigo-400" />
                     <span>{page.name || page.slug}</span>
                   </div>
                 ))}
@@ -962,11 +958,11 @@ function KeywordDetailsSidebar({
 
           {/* Recent reviews */}
           {recentReviews.length > 0 && (
-            <div className="border-t border-gray-200 pt-4">
-              <h4 className="text-sm font-medium text-gray-700 mb-2">Recent Matches</h4>
-              <div className="space-y-2">
+            <div className="p-4 bg-white/60 backdrop-blur-sm border border-gray-100/50 rounded-xl">
+              <span className="text-xs font-medium uppercase tracking-wider text-gray-500">Recent Matches</span>
+              <div className="space-y-2 mt-2">
                 {recentReviews.slice(0, 5).map((review: any) => (
-                  <div key={review.id} className="text-sm p-2 bg-gray-50 rounded">
+                  <div key={review.id} className="text-sm p-2 bg-white/80 rounded-lg">
                     <div className="font-medium text-gray-700">{review.reviewerName}</div>
                     {review.content && (
                       <div className="text-gray-500 text-xs line-clamp-2 mt-1">{review.content}</div>
