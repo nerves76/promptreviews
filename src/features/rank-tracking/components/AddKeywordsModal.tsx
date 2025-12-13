@@ -161,13 +161,22 @@ export default function AddKeywordsModal({
                             className="rounded"
                           />
                           <div className="min-w-0 flex-1">
-                            <div className="font-medium">
-                              {kw.searchQuery || kw.phrase}
-                            </div>
-                            {kw.searchQuery && kw.searchQuery !== kw.phrase && (
-                              <div className="text-xs text-gray-500 truncate">
-                                from: &ldquo;{kw.phrase}&rdquo;
-                              </div>
+                            {kw.searchQuery ? (
+                              <>
+                                <div className="font-medium">{kw.searchQuery}</div>
+                                {kw.searchQuery !== kw.phrase && (
+                                  <div className="text-xs text-gray-500 truncate">
+                                    from: &ldquo;{kw.phrase}&rdquo;
+                                  </div>
+                                )}
+                              </>
+                            ) : (
+                              <>
+                                <div className="font-medium text-gray-500">{kw.phrase}</div>
+                                <div className="text-xs text-amber-600">
+                                  No trackable keyword set
+                                </div>
+                              </>
                             )}
                           </div>
                         </label>
