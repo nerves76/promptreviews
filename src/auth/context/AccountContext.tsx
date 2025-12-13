@@ -310,10 +310,16 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
             // Set the account ID
             setAccountId(fetchedAccountId);
             setSelectedAccountId(fetchedAccountId);
-            
+
+            // Store in localStorage for apiClient to use
+            if (typeof window !== 'undefined') {
+              localStorage.setItem(`promptreviews_selected_account_${user.id}`, fetchedAccountId);
+              localStorage.setItem('promptreviews_last_user_id', user.id);
+            }
+
             // Load the full account data
             loadAccount(fetchedAccountId);
-            
+
             // Load all accounts for the switcher
             loadAccounts();
           } else {
@@ -325,6 +331,13 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
                   if (retryAccountId) {
                     setAccountId(retryAccountId);
                     setSelectedAccountId(retryAccountId);
+
+                    // Store in localStorage for apiClient to use
+                    if (typeof window !== 'undefined') {
+                      localStorage.setItem(`promptreviews_selected_account_${user.id}`, retryAccountId);
+                      localStorage.setItem('promptreviews_last_user_id', user.id);
+                    }
+
                     loadAccount(retryAccountId);
                     loadAccounts();
                   } else {

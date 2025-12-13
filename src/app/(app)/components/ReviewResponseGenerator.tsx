@@ -9,6 +9,7 @@
 
 import { useState } from 'react';
 import Icon from '@/components/Icon';
+import { apiClient } from '@/utils/apiClient';
 
 interface ReviewResponseGeneratorProps {
   onResponseGenerated?: (response: string) => void;
@@ -34,23 +35,24 @@ export default function ReviewResponseGenerator({ onResponseGenerated }: ReviewR
     setError('');
 
     try {
-      const response = await fetch('/api/ai/google-business/generate-review-response', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      // Use apiClient to ensure X-Selected-Account header is sent
+      const result = await apiClient.post<{
+        success: boolean;
+        response?: string;
+        tone?: 'professional' | 'friendly' | 'apologetic';
+        error?: string;
+      }>(
+        '/ai/google-business/generate-review-response',
+        {
           reviewText: reviewText.trim(),
           reviewRating,
           reviewerName: reviewerName.trim() || undefined,
-        }),
-      });
+        }
+      );
 
-      const result = await response.json();
-
-      if (result.success) {
+      if (result.success && result.response) {
         setGeneratedResponse(result.response);
-        setResponseTone(result.tone);
+        setResponseTone(result.tone || null);
         onResponseGenerated?.(result.response);
       } else {
         setError(result.error || 'Failed to generate response');

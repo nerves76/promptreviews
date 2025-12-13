@@ -164,27 +164,41 @@ const YourBusinessDropdown: React.FC<YourBusinessDropdownProps> = ({
           transform: "translateX(-50%)"
         }}
       >
-        {menuItems.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            onClick={() => {
-              onNavigate();
-              setIsOpen(false);
-            }}
-            className={`${
-              pathname === item.href || pathname.startsWith(item.href + '/')
-                ? "bg-white/10 text-white"
-                : "text-white hover:bg-white/10"
-            } flex items-center px-4 py-3 transition-colors duration-200`}
-          >
-            <Icon name={item.icon as any} className="w-5 h-5 mr-3 text-white" size={20} />
-            <div className="flex-1">
-              <div className="font-medium text-white">{item.label}</div>
-              <div className="text-sm text-white/80">{item.description}</div>
-            </div>
-          </Link>
-        ))}
+        {menuItems.map((item) => {
+          const isBusinessProfile = item.href === "/dashboard/business-profile";
+          const showStartHere = isBusinessProfile && businessProfileLoaded && !businessProfileCompleted;
+
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={() => {
+                onNavigate();
+                setIsOpen(false);
+              }}
+              className={`${
+                pathname === item.href || pathname.startsWith(item.href + '/')
+                  ? "bg-white/10 text-white"
+                  : showStartHere
+                    ? "bg-yellow-400/10 text-white hover:bg-yellow-400/20"
+                    : "text-white hover:bg-white/10"
+              } flex items-center px-4 py-3 transition-colors duration-200 relative`}
+            >
+              <Icon name={item.icon as any} className="w-5 h-5 mr-3 text-white" size={20} />
+              <div className="flex-1">
+                <div className="font-medium text-white flex items-center gap-2">
+                  {item.label}
+                  {showStartHere && (
+                    <span className="bg-yellow-400 text-yellow-900 text-xs px-2 py-0.5 rounded-full font-bold animate-pulse">
+                      Start here!
+                    </span>
+                  )}
+                </div>
+                <div className="text-sm text-white/80">{item.description}</div>
+              </div>
+            </Link>
+          );
+        })}
       </DropdownPortal>
     </div>
   );

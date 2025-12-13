@@ -142,28 +142,18 @@ export default function BusinessDescriptionAnalyzer({
     setError('');
 
     try {
-      
-      const response = await fetch('/api/ai/google-business/integrate-keywords', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      // Use apiClient to ensure X-Selected-Account header is sent
+      const data = await apiClient.post<{ success: boolean; optimizedDescription?: string; error?: string }>(
+        '/ai/google-business/integrate-keywords',
+        {
           currentDescription,
           keywords: selectedKeywords,
           businessContext
-        }),
-      });
+        }
+      );
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Integration failed');
-      }
-
-      const data = await response.json();
-      
       if (!data.success || !data.optimizedDescription) {
-        throw new Error('Invalid response from keyword integration');
+        throw new Error(data.error || 'Invalid response from keyword integration');
       }
 
       // Update the analysis with the new optimized description

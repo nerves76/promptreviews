@@ -9,6 +9,7 @@
 
 import { useState } from 'react';
 import Icon from '@/components/Icon';
+import { apiClient } from '@/utils/apiClient';
 
 interface ServiceDescriptionGeneratorProps {
   onDescriptionsGenerated?: (descriptions: { short: string; medium: string; long: string }) => void;
@@ -32,19 +33,17 @@ export default function ServiceDescriptionGenerator({ onDescriptionsGenerated }:
     setDescriptions(null);
 
     try {
-      const response = await fetch('/api/ai/google-business/generate-service-description', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          serviceName: serviceName.trim(),
-        }),
-      });
+      // Use apiClient to ensure X-Selected-Account header is sent
+      const result = await apiClient.post<{
+        success: boolean;
+        descriptions?: { short: string; medium: string; long: string };
+        error?: string;
+      }>(
+        '/ai/google-business/generate-service-description',
+        { serviceName: serviceName.trim() }
+      );
 
-      const result = await response.json();
-
-      if (result.success) {
+      if (result.success && result.descriptions) {
         setDescriptions(result.descriptions);
         onDescriptionsGenerated?.(result.descriptions);
       } else {

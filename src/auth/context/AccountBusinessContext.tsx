@@ -542,7 +542,13 @@ export function AccountBusinessProvider({ children }: { children: React.ReactNod
             setAccountId(fetchedAccountId);
             setSelectedAccountId(fetchedAccountId);
             setAccountCacheTime(Date.now());
-            
+
+            // Store in localStorage for apiClient to use
+            if (typeof window !== 'undefined') {
+              localStorage.setItem(`promptreviews_selected_account_${user.id}`, fetchedAccountId);
+              localStorage.setItem('promptreviews_last_user_id', user.id);
+            }
+
             // Load account and business data
             loadAccount(fetchedAccountId);
             loadAccounts();
@@ -556,6 +562,13 @@ export function AccountBusinessProvider({ children }: { children: React.ReactNod
                     setAccountId(retryAccountId);
                     setSelectedAccountId(retryAccountId);
                     setAccountCacheTime(Date.now());
+
+                    // Store in localStorage for apiClient to use
+                    if (typeof window !== 'undefined') {
+                      localStorage.setItem(`promptreviews_selected_account_${user.id}`, retryAccountId);
+                      localStorage.setItem('promptreviews_last_user_id', user.id);
+                    }
+
                     loadAccount(retryAccountId);
                     loadAccounts();
                   } else {

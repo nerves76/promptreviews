@@ -82,8 +82,11 @@ class ApiClient {
     // Include selected account header for authenticated requests
     if (!skipAuth && includeSelectedAccount) {
       const selectedAccountId = await getSelectedAccountId();
+      console.log('[apiClient] getSelectedAccountId result:', selectedAccountId);
       if (selectedAccountId) {
         headers['X-Selected-Account'] = selectedAccountId;
+      } else {
+        console.warn('[apiClient] No selected account ID found - X-Selected-Account header will be missing');
       }
     }
 

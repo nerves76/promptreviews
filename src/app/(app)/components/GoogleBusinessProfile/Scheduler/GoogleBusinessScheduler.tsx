@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import imageCompression from 'browser-image-compression';
 import Icon from '@/components/Icon';
 import LocationPicker from '@/components/GoogleBusinessProfile/LocationPicker';
+import { apiClient } from '@/utils/apiClient';
 import type {
   GoogleBusinessScheduledPost,
   GoogleBusinessScheduledPostResult,
@@ -196,10 +197,13 @@ export default function GoogleBusinessScheduler({
     console.log('[Scheduler] Fetching queue...');
     setIsLoadingQueue(true);
     try {
-      // Add cache-busting to ensure fresh data
-      const response = await fetch(`/api/social-posting/scheduled?t=${Date.now()}`);
-      const data = await response.json();
-      if (!response.ok || !data.success) {
+      // Use apiClient to ensure X-Selected-Account header is sent
+      const data = await apiClient.get<{
+        success: boolean;
+        data: SchedulerQueueResponse;
+        error?: string;
+      }>(`/social-posting/scheduled?t=${Date.now()}`);
+      if (!data.success) {
         throw new Error(data.error || 'Failed to fetch scheduled items');
       }
       console.log('[Scheduler] Queue fetched:', {
@@ -240,10 +244,12 @@ export default function GoogleBusinessScheduler({
 
     try {
       setIsLoadingBluesky(true);
-      const response = await fetch(`/api/social-posting/connections?accountId=${accountId}`);
-      const data = await response.json();
+      // Use apiClient to ensure proper auth headers
+      const data = await apiClient.get<{
+        connections: BlueskyConnection[];
+      }>(`/social-posting/connections?accountId=${accountId}`);
 
-      if (response.ok && data.connections) {
+      if (data.connections) {
         const bluesky = data.connections.find((conn: any) => conn.platform === 'bluesky');
         setBlueskyConnection(bluesky || null);
       }
@@ -440,28 +446,26 @@ export default function GoogleBusinessScheduler({
       }
 
       const endpoint = editingId
-        ? `/api/social-posting/scheduled/${editingId}`
-        : '/api/social-posting/scheduled';
+        ? `/social-posting/scheduled/${editingId}`
+        : '/social-posting/scheduled';
 
       console.log('[Scheduler] Sending request to:', endpoint);
-      const response = await fetch(endpoint, {
-        method: editingId ? 'PATCH' : 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
 
-      console.log('[Scheduler] Response status:', response.status);
-
-      let data;
+      // Use apiClient to ensure X-Selected-Account header is sent
+      let data: { success: boolean; error?: string };
       try {
-        data = await response.json();
+        if (editingId) {
+          data = await apiClient.patch<{ success: boolean; error?: string }>(endpoint, body);
+        } else {
+          data = await apiClient.post<{ success: boolean; error?: string }>(endpoint, body);
+        }
         console.log('[Scheduler] Response data:', data);
-      } catch (jsonError) {
-        console.error('[Scheduler] Failed to parse response as JSON:', jsonError);
-        throw new Error('Server returned invalid response');
+      } catch (apiError) {
+        console.error('[Scheduler] API request failed:', apiError);
+        throw new Error(apiError instanceof Error ? apiError.message : 'Failed to schedule content');
       }
 
-      if (!response.ok || !data.success) {
+      if (!data.success) {
         console.error('[Scheduler] API error:', data.error || 'Unknown error');
         throw new Error(data.error || 'Failed to schedule content');
       }
@@ -533,9 +537,13 @@ export default function GoogleBusinessScheduler({
     setIsLoadingEdit(true);
     setSubmissionResult(null);
     try {
-      const response = await fetch(`/api/social-posting/scheduled/${id}`);
-      const data = await response.json();
-      if (!response.ok || !data.success) {
+      // Use apiClient to ensure X-Selected-Account header is sent
+      const data = await apiClient.get<{
+        success: boolean;
+        data: GoogleBusinessScheduledPost & { results?: GoogleBusinessScheduledPostResult[] };
+        error?: string;
+      }>(`/social-posting/scheduled/${id}`);
+      if (!data.success) {
         throw new Error(data.error || 'Failed to load scheduled item');
       }
 
@@ -601,19 +609,11 @@ export default function GoogleBusinessScheduler({
     setSubmissionResult(null);
 
     try {
-      const response = await fetch(`/api/social-posting/scheduled/${id}`, { method: 'DELETE' });
-      console.log('[Scheduler] Cancel response status:', response.status);
+      // Use apiClient to ensure X-Selected-Account header is sent
+      const data = await apiClient.delete<{ success: boolean; error?: string }>(`/social-posting/scheduled/${id}`);
+      console.log('[Scheduler] Cancel response data:', data);
 
-      let data;
-      try {
-        data = await response.json();
-        console.log('[Scheduler] Cancel response data:', data);
-      } catch (jsonError) {
-        console.error('[Scheduler] Failed to parse cancel response as JSON:', jsonError);
-        throw new Error('Server returned invalid response');
-      }
-
-      if (!response.ok || !data.success) {
+      if (!data.success) {
         throw new Error(data.error || 'Failed to cancel scheduled post');
       }
 

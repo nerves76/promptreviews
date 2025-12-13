@@ -13,6 +13,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import Icon from '@/components/Icon';
 import { isStructuredService, searchGoogleServices } from '@/utils/google-service-types';
+import { apiClient } from '@/utils/apiClient';
 import HelpModal from '@/app/(app)/components/help/HelpModal';
 
 interface ServiceItem {
@@ -161,23 +162,19 @@ export default function ServiceItemsEditor({
     setGeneratingIndex(index);
     
     try {
-      const response = await fetch('/api/ai/google-business/generate-service-description', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      // Use apiClient to ensure X-Selected-Account header is sent
+      const data = await apiClient.post<{
+        success: boolean;
+        descriptions?: { short: string; medium: string; long: string };
+        error?: string;
+      }>(
+        '/ai/google-business/generate-service-description',
+        {
           serviceName: serviceName?.trim() || serviceName,
           businessContext: googleBusinessContext
-        }),
-      });
+        }
+      );
 
-      if (!response.ok) {
-        throw new Error('Failed to generate description');
-      }
-
-      const data = await response.json();
-      
       if (data.success && data.descriptions) {
         // Use the medium length description as default
         const description = data.descriptions.medium || data.descriptions.short || data.descriptions.long;

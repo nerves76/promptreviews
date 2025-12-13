@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Icon from '@/components/Icon';
+import { apiClient } from '@/utils/apiClient';
 
 interface BlueskyConnectionProps {
   accountId: string;
@@ -22,10 +23,12 @@ export default function BlueskyConnection({ accountId }: BlueskyConnectionProps)
   const fetchConnectionStatus = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch(`/api/social-posting/connections?accountId=${accountId}`);
-      const data = await response.json();
+      // Use apiClient to ensure proper auth headers
+      const data = await apiClient.get<{
+        connections: Array<{ platform: string; status: string; handle: string | null }>;
+      }>(`/social-posting/connections?accountId=${accountId}`);
 
-      if (response.ok && data.connections) {
+      if (data.connections) {
         const bluesky = data.connections.find((conn: any) => conn.platform === 'bluesky');
         if (bluesky && bluesky.status === 'active') {
           setIsConnected(true);
@@ -58,20 +61,18 @@ export default function BlueskyConnection({ accountId }: BlueskyConnectionProps)
     setError(null);
 
     try {
-      const response = await fetch('/api/social-posting/connections', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          accountId,
-          platform: 'bluesky',
-          identifier,
-          appPassword,
-        }),
+      // Use apiClient to ensure proper auth headers
+      const data = await apiClient.post<{
+        connection?: { handle: string };
+        error?: string;
+      }>('/social-posting/connections', {
+        accountId,
+        platform: 'bluesky',
+        identifier,
+        appPassword,
       });
 
-      const data = await response.json();
-
-      if (response.ok && data.connection) {
+      if (data.connection) {
         setIsConnected(true);
         setHandle(data.connection.handle);
         setShowConnectForm(false);
@@ -93,18 +94,12 @@ export default function BlueskyConnection({ accountId }: BlueskyConnectionProps)
     }
 
     try {
-      const response = await fetch(`/api/social-posting/connections?accountId=${accountId}`, {
-        method: 'DELETE',
-      });
-
-      if (response.ok) {
-        setIsConnected(false);
-        setHandle(null);
-      } else {
-        setError('Failed to disconnect');
-      }
+      // Use apiClient to ensure proper auth headers
+      await apiClient.delete(`/social-posting/connections?accountId=${accountId}`);
+      setIsConnected(false);
+      setHandle(null);
     } catch (err) {
-      setError('Network error. Please try again.');
+      setError('Failed to disconnect');
     }
   };
 
