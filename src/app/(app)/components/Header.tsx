@@ -11,7 +11,7 @@ import { trackEvent, GA_EVENTS } from '@/utils/analytics';
 import { fetchOnboardingTasks } from "@/utils/onboardingTasks";
 import { apiClient } from '@/utils/apiClient';
 import PromptReviewsLogo from "@/app/(app)/dashboard/components/PromptReviewsLogo";
-import { AccountSwitcher } from './AccountSwitcher';
+import { AccountUtilityBar } from './AccountUtilityBar';
 import GetReviewsDropdown from './GetReviewsDropdown';
 import YourBusinessDropdown from './YourBusinessDropdown';
 import { useAccountSelection } from '@/utils/accountSelectionHooks';
@@ -71,14 +71,11 @@ const Header = React.memo(function Header() {
   const [creditBalance, setCreditBalance] = useState<number | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
-  const [mobileAccountSwitcherOpen, setMobileAccountSwitcherOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const notificationsButtonRef = useRef<HTMLButtonElement>(null);
   const accountButtonRef = useRef<HTMLButtonElement>(null);
   const accountMenuRef = useRef<HTMLDivElement>(null);
-  const mobileAccountSwitcherRef = useRef<HTMLButtonElement>(null);
-  const mobileAccountDropdownRef = useRef<HTMLDivElement>(null);
   
   const { isAdminUser, adminLoading } = useAuth();
   // 🔧 FIXED: Use actual hasBusiness state from AuthContext instead of hardcoded true
@@ -414,22 +411,6 @@ const Header = React.memo(function Header() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [accountMenuOpen]);
 
-  // Handle mobile account switcher click outside
-  useEffect(() => {
-    if (!mobileAccountSwitcherOpen) return;
-    function handleClickOutside(event: MouseEvent) {
-      if (
-        mobileAccountSwitcherRef.current && 
-        !mobileAccountSwitcherRef.current.contains(event.target as Node) &&
-        mobileAccountDropdownRef.current &&
-        !mobileAccountDropdownRef.current.contains(event.target as Node)
-      ) {
-        setMobileAccountSwitcherOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [mobileAccountSwitcherOpen]);
 
   // 🔧 REMOVED: Business profile refresh listeners since Header no longer manages business state
   // DashboardLayout handles business profile state management
@@ -440,7 +421,6 @@ const Header = React.memo(function Header() {
       setAccountMenuOpen(false);
       setShowNotifications(false);
       setMenuOpen(false);
-      setMobileAccountSwitcherOpen(false);
     };
 
     // Listen for popstate events (browser back/forward)
@@ -451,13 +431,16 @@ const Header = React.memo(function Header() {
       setAccountMenuOpen(false);
       setShowNotifications(false);
       setMenuOpen(false);
-      setMobileAccountSwitcherOpen(false);
       window.removeEventListener('popstate', handleRouteChange);
     };
   }, []);
 
   return (
-    <header className="bg-transparent backdrop-blur-sm mt-2.5">
+    <>
+      {/* Account Utility Bar - Only shows when user has multiple accounts */}
+      <AccountUtilityBar />
+
+      <header className="bg-transparent backdrop-blur-sm mt-2.5">
       <nav className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -568,13 +551,8 @@ const Header = React.memo(function Header() {
             </div>
           </div>
           
-          {/* Right Side - Desktop: Account Switcher, Notifications and User Account | Mobile: Hamburger Menu */}
+          {/* Right Side - Desktop: Notifications and User Account | Mobile: Hamburger Menu */}
           <div className="flex items-center gap-4">
-            {/* Account Switcher - Desktop Only (reserve width to prevent layout shift) */}
-            <div className="hidden md:flex items-center w-[220px] shrink-0 justify-end">
-              <AccountSwitcher />
-            </div>
-            
             {/* Credits Badge - Desktop Only */}
             {hasBusiness && creditBalance !== null && (
               <Link
@@ -785,95 +763,8 @@ const Header = React.memo(function Header() {
             )}
             </div>
             
-            {/* Mobile Controls - Account Switcher and Hamburger */}
-            <div className="md:hidden flex items-center gap-1 relative">
-              {/* Account Switcher Icon - Show if user has multiple accounts */}
-              {hasMultipleAccounts ? (
-                <>
-                  <button
-                    ref={mobileAccountSwitcherRef}
-                    onClick={() => setMobileAccountSwitcherOpen(!mobileAccountSwitcherOpen)}
-                    className="w-8 h-8 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/30 transition-all duration-200"
-                    aria-label="Switch account"
-                    title={selectedAccount ? `Current: ${selectedAccount.business_name || selectedAccount.account_name || 'Account'}` : 'Switch account'}
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                    </svg>
-                  </button>
-                  
-                  {/* Mobile Account Switcher Dropdown - Rendered in Portal */}
-                  <DropdownPortal
-                    isOpen={mobileAccountSwitcherOpen}
-                    mounted={mounted}
-                    buttonRef={mobileAccountSwitcherRef}
-                    ref={mobileAccountDropdownRef}
-                    className="left-4 right-4 overflow-hidden"
-                    style={{
-                      zIndex: 2147483648,
-                      top: mobileAccountSwitcherRef.current ? mobileAccountSwitcherRef.current.getBoundingClientRect().bottom + 8 : 0,
-                      maxWidth: '400px',
-                      marginLeft: 'auto',
-                      marginRight: 'auto'
-                    }}
-                  >
-                    {/* Inline account switcher content since AccountSwitcher component has its own button */}
-                      <div className="px-4 py-3 border-b border-white/20">
-                        <div className="flex items-center gap-2">
-                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                          </svg>
-                          <h3 className="text-sm font-medium text-white">Switch account</h3>
-                        </div>
-                        <p className="text-xs text-gray-400 mt-1 ml-6">
-                          Select which account you want to work with
-                        </p>
-                      </div>
-                      
-                      <div className="max-h-64 overflow-y-auto">
-                        {availableAccounts.map((account) => (
-                          <button
-                            key={account.account_id}
-                            onClick={() => {
-                              if (account.account_id !== selectedAccount?.account_id) {
-                                switchAccount(account.account_id);
-                              }
-                              setMobileAccountSwitcherOpen(false);
-                            }}
-                            className="w-full px-4 py-3 text-left hover:bg-white/10 focus:outline-none focus:bg-white/10 transition-colors"
-                          >
-                            <div className="flex items-center gap-3">
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2">
-                                  <span className="font-medium text-white truncate">
-                                    {account.business_name || account.account_name || `${account.first_name} ${account.last_name}`.trim() || 'Account'}
-                                  </span>
-                                  {account.account_id === selectedAccount?.account_id && (
-                                    <span className="px-2 py-0.5 text-xs font-medium text-green-300 bg-green-900/50 rounded-full">
-                                      Current
-                                    </span>
-                                  )}
-                                </div>
-                                <div className="flex items-center gap-2 mt-1">
-                                  <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-white/10 text-gray-400">
-                                    {account.role}
-                                  </span>
-                                  {account.plan && account.plan !== 'no_plan' && (
-                                    <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-blue-900/50 text-blue-300">
-                                      {account.plan}
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                  </DropdownPortal>
-                </>
-              ) : null}
-              
-              {/* Hamburger Menu */}
+            {/* Mobile Hamburger Menu */}
+            <div className="md:hidden flex items-center">
               <button
                 onClick={() => setMenuOpen(!menuOpen)}
                 className="inline-flex items-center justify-center p-2 rounded-md text-white hover:text-white/80 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white/30"
@@ -1313,6 +1204,7 @@ const Header = React.memo(function Header() {
         </DropdownPortal>
       </nav>
     </header>
+    </>
   );
 });
 
