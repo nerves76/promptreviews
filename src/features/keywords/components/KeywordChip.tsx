@@ -90,21 +90,21 @@ export default function KeywordChip({
   // Color classes based on usage (only for long-tail keywords)
   const getChipColorClasses = () => {
     if (!shouldShowBubble) {
-      // Short keywords always use default styling
-      return 'text-indigo-700 bg-indigo-50 border border-indigo-200 hover:bg-indigo-100';
+      // Short keywords always use default styling - soft blue
+      return 'text-blue-700 bg-blue-100 border border-blue-200 hover:bg-blue-200';
     }
 
     // Long-tail keywords use usage-based coloring
     switch (usageColor) {
       case 'yellow':
-        return 'text-yellow-800 bg-yellow-50 border border-yellow-300 hover:bg-yellow-100';
+        return 'text-yellow-800 bg-yellow-100 border border-yellow-300 hover:bg-yellow-200';
       case 'orange':
-        return 'text-orange-800 bg-orange-50 border border-orange-300 hover:bg-orange-100';
+        return 'text-orange-800 bg-orange-100 border border-orange-300 hover:bg-orange-200';
       case 'red':
-        return 'text-red-800 bg-red-50 border border-red-300 hover:bg-red-100';
+        return 'text-red-800 bg-red-100 border border-red-300 hover:bg-red-200';
       case 'gray':
       default:
-        return 'text-indigo-700 bg-indigo-50 border border-indigo-200 hover:bg-indigo-100';
+        return 'text-blue-700 bg-blue-100 border border-blue-200 hover:bg-blue-200';
     }
   };
 
@@ -221,8 +221,8 @@ export function SimpleKeywordChip({
     <div
       className={`
         inline-flex items-center font-medium rounded-full
-        text-indigo-700 bg-indigo-50 border border-indigo-200
-        hover:bg-indigo-100 transition-colors
+        text-blue-700 bg-blue-100 border border-blue-200
+        hover:bg-blue-200 transition-colors
         ${sizeClasses[size]}
         ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
       `}
@@ -234,7 +234,7 @@ export function SimpleKeywordChip({
           onClick={onRemove}
           className={`
             flex items-center justify-center
-            rounded-full hover:bg-indigo-200
+            rounded-full hover:bg-blue-300
             transition-colors flex-shrink-0
             ${size === 'sm' ? 'w-3.5 h-3.5' : size === 'md' ? 'w-4 h-4' : 'w-5 h-5'}
           `}

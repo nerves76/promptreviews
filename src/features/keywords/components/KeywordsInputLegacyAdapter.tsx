@@ -599,7 +599,7 @@ export default function KeywordsInputLegacyAdapter({
                     key={kw.id}
                     type="button"
                     onClick={() => handleSelectFromLibrary(kw.phrase)}
-                    className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-blue-700 bg-white border border-blue-200 rounded-full hover:bg-blue-100 hover:border-blue-300 transition-colors"
+                    className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-blue-700 bg-blue-100 border border-blue-200 rounded-full hover:bg-blue-200 hover:border-blue-300 transition-colors"
                   >
                     {kw.phrase}
                     {kw.showUsageIndicator && kw.reviewUsageCount > 0 && (

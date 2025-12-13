@@ -720,7 +720,7 @@ function KeywordDetailsSidebar({
       setEditedGroupId(keyword.groupId);
       setIsEditing(false);
     }
-  }, [keyword?.id, keyword?.searchQuery, keyword?.aliases, keyword?.locationScope, keyword?.groupId]);
+  }, [keyword]);
 
   const handleSave = async () => {
     if (!keyword) return;
