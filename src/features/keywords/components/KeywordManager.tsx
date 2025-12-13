@@ -361,7 +361,7 @@ export default function KeywordManager({
       {!compact && (
         <div className="mb-6 flex items-start justify-between">
           <div>
-            <h2 className="text-xl font-bold text-slate-blue">Keyword concepts library</h2>
+            <h2 className="text-xl font-bold text-slate-blue">Keyword Concepts library</h2>
             <p className="text-sm text-gray-500 mt-1">
               Manage keywords across your prompt pages. Keywords with 4+ words show usage indicators.
             </p>
