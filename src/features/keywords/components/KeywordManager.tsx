@@ -237,34 +237,6 @@ export default function KeywordManager({
         </div>
       )}
 
-      {/* Stats bar */}
-      <div className="flex flex-wrap items-center gap-4 mb-4 p-3 bg-gray-50 rounded-lg">
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-600">Total:</span>
-          <span className="font-semibold text-gray-800">{stats.total}</span>
-        </div>
-        {stats.overused > 0 && (
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-red-400" />
-            <span className="text-sm text-red-700">{stats.overused} overused</span>
-          </div>
-        )}
-        {stats.needsRotation > 0 && (
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-orange-400" />
-            <span className="text-sm text-orange-700">{stats.needsRotation} need rotation</span>
-          </div>
-        )}
-        <div className="flex-1" />
-        <button
-          onClick={refresh}
-          className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded transition-colors"
-          title="Refresh"
-        >
-          <Icon name="FaRedo" className="w-4 h-4" />
-        </button>
-      </div>
-
       {/* Search bar */}
       <div className="mb-4">
         <div className="relative">
