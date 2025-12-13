@@ -129,11 +129,12 @@ export function AccountUtilityBar() {
           {/* Dropdown */}
           <div
             ref={dropdownRef}
-            className="fixed w-72 bg-slate-800 rounded-lg shadow-xl border border-white/20 py-1 overflow-hidden"
+            className="fixed w-72 backdrop-blur-xl rounded-lg shadow-2xl border border-white/20 py-1 overflow-hidden"
             style={{
               zIndex: 2147483648,
               top: buttonRef.current ? buttonRef.current.getBoundingClientRect().bottom + 4 : 0,
               left: buttonRef.current ? buttonRef.current.getBoundingClientRect().left : 0,
+              backgroundColor: 'rgba(46, 74, 125, 0.7)', // slate-blue brand color at 70% opacity
             }}
           >
             {/* Header */}
@@ -160,7 +161,7 @@ export function AccountUtilityBar() {
                     className={`w-full px-3 py-2 text-left transition-colors ${
                       isCurrent
                         ? 'bg-white/10 text-white'
-                        : 'text-white/80 hover:bg-white/5 hover:text-white'
+                        : 'text-white/80 hover:bg-white/10 hover:text-white'
                     }`}
                   >
                     <div className="flex items-center justify-between">

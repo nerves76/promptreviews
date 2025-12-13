@@ -52,7 +52,7 @@ export function useLocations(): UseLocationsReturn {
 
     try {
       const response = await apiClient.get<{ locations: Location[] }>(
-        `/rank-tracking/locations?query=${encodeURIComponent(query)}`
+        `/rank-tracking/locations?search=${encodeURIComponent(query)}`
       );
 
       setLocations(response.locations || []);

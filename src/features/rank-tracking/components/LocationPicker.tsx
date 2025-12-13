@@ -52,7 +52,7 @@ export default function LocationPicker({ value, onChange, placeholder }: Locatio
           }}
           onFocus={() => setIsOpen(true)}
           placeholder={placeholder || 'Search locations...'}
-          className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-blue focus:border-transparent"
+          className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-blue focus:border-transparent"
         />
         {value && (
           <button

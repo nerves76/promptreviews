@@ -24,9 +24,8 @@ config({ path: '.env.local' });
 const DATAFORSEO_API_BASE = 'https://api.dataforseo.com/v3';
 const LOCATIONS_ENDPOINT = '/serp/google/locations';
 
-// Filter to US locations initially
-// Can expand to other countries later
-const COUNTRY_FILTER = ['US'];
+// Filter to US and Canada locations
+const COUNTRY_FILTER = ['US', 'CA'];
 
 // ============================================
 // Types
