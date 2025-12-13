@@ -561,7 +561,7 @@ const DashboardContent = React.memo(function DashboardContent({
                       <div className="flex items-center gap-2">
                         <h2 className="text-2xl font-bold text-slate-blue flex items-center gap-3">
                           <Icon name="FaGlobe" className="w-7 h-7 text-slate-blue" size={28} />
-                          Universal prompt page
+                          Universal Prompt Page
                         </h2>
                         <UniversalTooltip />
                       </div>
