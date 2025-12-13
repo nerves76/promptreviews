@@ -60,8 +60,14 @@ export async function GET(request: NextRequest) {
       .maybeSingle();
 
     if (tokenError || !tokenData) {
+      console.error('❌ [categories] Token lookup failed:', {
+        accountId,
+        tokenError: tokenError?.message || tokenError,
+        hasTokenData: !!tokenData
+      });
       return NextResponse.json({
         error: 'Google Business Profile not connected',
+        details: `Debug: accountId=${accountId}, error=${tokenError?.message || 'no data'}`,
         categories: []
       }, { status: 401 });
     }
