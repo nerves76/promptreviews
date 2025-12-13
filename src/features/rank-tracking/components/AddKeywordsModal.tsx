@@ -10,7 +10,7 @@
 import { useState, useEffect } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
-import { XMarkIcon, MagnifyingGlassIcon, ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, MagnifyingGlassIcon, ArrowTopRightOnSquareIcon, PlusIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { Button } from '@/app/(app)/components/ui/button';
 import { useKeywords } from '@/features/keywords/hooks/useKeywords';
@@ -37,8 +37,11 @@ export default function AddKeywordsModal({
   const [librarySearch, setLibrarySearch] = useState('');
   // Track custom search queries for keywords that don't have one
   const [customSearchQueries, setCustomSearchQueries] = useState<Record<string, string>>({});
+  // For creating new keywords inline
+  const [newSearchPhrase, setNewSearchPhrase] = useState('');
+  const [isCreating, setIsCreating] = useState(false);
 
-  const { keywords: libraryKeywords, isLoading: libraryLoading, refresh: refreshLibrary, updateKeyword } = useKeywords();
+  const { keywords: libraryKeywords, isLoading: libraryLoading, refresh: refreshLibrary, updateKeyword, createKeyword } = useKeywords();
 
   // Fetch library keywords on open
   useEffect(() => {
@@ -47,8 +50,34 @@ export default function AddKeywordsModal({
       setSelectedKeywordIds([]);
       setLibrarySearch('');
       setCustomSearchQueries({});
+      setNewSearchPhrase('');
     }
   }, [isOpen, refreshLibrary]);
+
+  // Create a new keyword and add it to selected
+  const handleCreateAndSelect = async () => {
+    const phrase = newSearchPhrase.trim();
+    if (!phrase) return;
+
+    setIsCreating(true);
+    try {
+      // Create keyword with searchQuery set to the phrase
+      const newKeyword = await createKeyword(phrase);
+      if (newKeyword) {
+        // Update it to have searchQuery = phrase
+        await updateKeyword(newKeyword.id, { searchQuery: phrase });
+        // Add to selected list
+        setSelectedKeywordIds(prev => [...prev, newKeyword.id]);
+        setNewSearchPhrase('');
+        // Refresh to get updated keyword with searchQuery
+        await refreshLibrary();
+      }
+    } catch (err) {
+      console.error('Failed to create keyword:', err);
+    } finally {
+      setIsCreating(false);
+    }
+  };
 
   const handleAddSelected = async () => {
     if (selectedKeywordIds.length === 0) return;
@@ -127,6 +156,42 @@ export default function AddKeywordsModal({
 
                 {/* Content */}
                 <div className="p-6">
+                  {/* Create New Keyword */}
+                  <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-100">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Create new keyword to track
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={newSearchPhrase}
+                        onChange={(e) => setNewSearchPhrase(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleCreateAndSelect()}
+                        placeholder="Enter search phrase (e.g., plumber portland oregon)"
+                        className="flex-1 px-3 py-2 border rounded-lg text-sm"
+                        disabled={isCreating}
+                      />
+                      <Button
+                        size="sm"
+                        onClick={handleCreateAndSelect}
+                        disabled={!newSearchPhrase.trim() || isCreating}
+                      >
+                        <PlusIcon className="w-4 h-4 mr-1" />
+                        {isCreating ? 'Creating...' : 'Create'}
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Divider */}
+                  <div className="relative mb-4">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-gray-200" />
+                    </div>
+                    <div className="relative flex justify-center text-xs">
+                      <span className="bg-white px-2 text-gray-500">or select from your library</span>
+                    </div>
+                  </div>
+
                   {/* Search */}
                   <div className="mb-4">
                     <div className="relative">
