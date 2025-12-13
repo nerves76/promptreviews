@@ -40,7 +40,7 @@ export default function KeywordConceptInput({
   businessName,
   businessCity,
   businessState,
-  placeholder = "Enter a keyword (e.g., portland marketing consultant)",
+  placeholder = "Enter a keyword (e.g., best green eggs ham San Diego)",
   className = "",
 }: KeywordConceptInputProps) {
   const [inputValue, setInputValue] = useState("");

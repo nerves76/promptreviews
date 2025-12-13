@@ -1128,7 +1128,7 @@ function KeywordDetailsSidebar({
                     type="text"
                     value={editedSearchQuery}
                     onChange={(e) => setEditedSearchQuery(e.target.value)}
-                    placeholder="e.g., portland marketing consultant"
+                    placeholder="e.g., best green eggs ham San Diego"
                     className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   />
                 ) : (
