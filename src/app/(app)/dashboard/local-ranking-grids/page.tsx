@@ -14,6 +14,7 @@ import { apiClient } from '@/utils/apiClient';
 import PageCard from '@/app/(app)/components/PageCard';
 import StandardLoader from '@/app/(app)/components/StandardLoader';
 import Icon from '@/components/Icon';
+import { useToast, ToastContainer } from '@/app/(app)/components/reviews/Toast';
 import {
   GeoGridSetupWizard,
   GeoGridGoogleMap,
@@ -80,6 +81,9 @@ export default function LocalRankingGridsPage() {
   const [selectedPointResult, setSelectedPointResult] = useState<GGCheckResult | null>(null);
   const [selectedPoint, setSelectedPoint] = useState<CheckPoint | null>(null);
   const [isPointModalOpen, setIsPointModalOpen] = useState(false);
+
+  // Toast notifications
+  const { toasts, closeToast, error: showError, success: showSuccess } = useToast();
 
   // Hooks
   const {
@@ -252,11 +256,25 @@ export default function LocalRankingGridsPage() {
       const result = await runCheck();
       if (result.success) {
         await refreshResults();
+        showSuccess(`Grid check complete! ${result.checksPerformed || 0} checks performed.`);
+      } else if (result.error) {
+        // Show user-friendly error messages
+        if (result.error.includes('No target Place ID') || result.error.includes('Connect a Google Business')) {
+          showError('Please connect a Google Business location first before running grid checks.', 8000);
+        } else if (result.error.includes('No geo grid configuration')) {
+          showError('Please set up your grid configuration first.', 6000);
+        } else if (result.error.includes('Insufficient credits')) {
+          showError('Not enough credits for this grid check. Please add more credits.', 6000);
+        } else if (result.error.includes('disabled')) {
+          showError('Grid tracking is currently disabled. Enable it in settings to run checks.', 6000);
+        } else {
+          showError(result.error, 5000);
+        }
       }
     } finally {
       setIsCheckRunning(false);
     }
-  }, [runCheck, refreshResults]);
+  }, [runCheck, refreshResults, showError, showSuccess]);
 
   // Handle setup complete
   const handleSetupComplete = useCallback(() => {
@@ -372,6 +390,9 @@ export default function LocalRankingGridsPage() {
 
   return (
     <>
+      {/* Toast notifications */}
+      <ToastContainer toasts={toasts} onClose={closeToast} />
+
       <PageCard
         icon={<Icon name="FaMapMarker" className="w-8 h-8 text-slate-blue" size={32} />}
       >
