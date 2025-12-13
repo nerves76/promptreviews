@@ -2,14 +2,15 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import {
   MagnifyingGlassIcon,
-  ArrowLeftIcon,
   PlusIcon,
   ArrowTrendingUpIcon,
   ArrowTrendingDownIcon,
   MinusIcon,
 } from '@heroicons/react/24/outline';
+import Icon from '@/components/Icon';
 import { Button } from '@/app/(app)/components/ui/button';
 import { useKeywordDiscovery } from '@/features/rank-tracking/hooks';
 import { useKeywords } from '@/features/keywords/hooks/useKeywords';
@@ -23,6 +24,7 @@ import LocationPicker from '@/features/rank-tracking/components/LocationPicker';
  * competition, and trend data from DataForSEO.
  */
 export default function KeywordResearchPage() {
+  const pathname = usePathname();
   const [searchQuery, setSearchQuery] = useState('');
   const [location, setLocation] = useState<{ code: number; name: string } | null>(null);
   const [result, setResult] = useState<any>(null);
@@ -105,21 +107,40 @@ export default function KeywordResearchPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-5xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-8">
-          <Link
-            href="/dashboard/keywords"
-            className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 mb-4"
-          >
-            <ArrowLeftIcon className="w-4 h-4" />
-            Back to Keywords
-          </Link>
-          <h1 className="text-2xl font-bold text-gray-900">Keyword Research</h1>
-          <p className="text-gray-600 mt-1">
-            Discover new keywords with search volume and competition data
-          </p>
+      {/* Header with Subnav */}
+      <div className="bg-gradient-to-r from-slate-blue to-slate-blue/80 pt-8 pb-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h1 className="text-2xl font-bold text-white mb-6">Keywords</h1>
+
+          {/* Subnav Tabs */}
+          <div className="flex gap-1 bg-white/10 backdrop-blur-sm border border-white/30 rounded-full p-1 w-fit">
+            <Link
+              href="/dashboard/keywords"
+              className={`px-6 py-2 font-medium text-sm rounded-full flex items-center gap-2 transition-all duration-200 ${
+                pathname === '/dashboard/keywords'
+                  ? 'bg-white text-slate-blue'
+                  : 'text-white hover:bg-white/10'
+              }`}
+            >
+              <Icon name="FaBook" className="w-4 h-4" size={16} />
+              Library
+            </Link>
+            <Link
+              href="/dashboard/keywords/research"
+              className={`px-6 py-2 font-medium text-sm rounded-full flex items-center gap-2 transition-all duration-200 ${
+                pathname === '/dashboard/keywords/research'
+                  ? 'bg-white text-slate-blue'
+                  : 'text-white hover:bg-white/10'
+              }`}
+            >
+              <Icon name="FaSearch" className="w-4 h-4" size={16} />
+              Research
+            </Link>
+          </div>
         </div>
+      </div>
+
+      <div className="max-w-5xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
 
         {/* Search Section */}
         <div className="bg-white rounded-xl shadow-sm border p-6 mb-6">
