@@ -9,6 +9,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Icon from '@/components/Icon';
+import { apiClient } from '@/utils/apiClient';
 
 interface AnalysisResult {
   seoScore: number;
@@ -65,28 +66,27 @@ export default function BusinessDescriptionAnalyzer({
     setAnalysis(null);
 
     try {
-      
-      // Call the real AI analysis endpoint
-      const response = await fetch('/api/ai/google-business/analyze-description', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+
+      // Call the real AI analysis endpoint with apiClient for proper headers
+      const data = await apiClient.post<{
+        success: boolean;
+        analysis?: {
+          seoScore: number;
+          keywordSuggestions: string[];
+          improvements: string[];
+          optimizedDescription: string;
+        };
+        error?: string
+      }>(
+        '/ai/google-business/analyze-description',
+        {
           description: currentDescription,
           businessContext: businessContext
-        }),
-      });
+        }
+      );
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Analysis failed');
-      }
-
-      const data = await response.json();
-      
       if (!data.success || !data.analysis) {
-        throw new Error('Invalid response from AI analysis');
+        throw new Error(data.error || 'Invalid response from AI analysis');
       }
 
       const aiAnalysis: AnalysisResult = {
