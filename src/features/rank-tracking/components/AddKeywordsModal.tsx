@@ -104,10 +104,14 @@ export default function AddKeywordsModal({
     }
   };
 
-  // Filter library keywords
-  const filteredLibrary = libraryKeywords.filter((kw) =>
-    kw.phrase.toLowerCase().includes(librarySearch.toLowerCase())
-  );
+  // Filter library keywords by searchQuery or phrase
+  const filteredLibrary = libraryKeywords.filter((kw) => {
+    const search = librarySearch.toLowerCase();
+    return (
+      kw.phrase.toLowerCase().includes(search) ||
+      (kw.searchQuery && kw.searchQuery.toLowerCase().includes(search))
+    );
+  });
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
@@ -205,10 +209,14 @@ export default function AddKeywordsModal({
                                 }}
                                 className="rounded"
                               />
-                              <div>
-                                <div className="font-medium">{kw.phrase}</div>
+                              <div className="min-w-0 flex-1">
+                                <div className="font-medium">
+                                  {kw.searchQuery || kw.phrase}
+                                </div>
                                 {kw.searchQuery && kw.searchQuery !== kw.phrase && (
-                                  <div className="text-xs text-gray-500">{kw.searchQuery}</div>
+                                  <div className="text-xs text-gray-500 truncate">
+                                    from: &ldquo;{kw.phrase}&rdquo;
+                                  </div>
                                 )}
                               </div>
                             </label>
