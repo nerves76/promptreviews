@@ -9,6 +9,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { apiClient } from '@/utils/apiClient';
+import { useAccountData } from '@/auth/hooks/granularAuthHooks';
 import { RankGroupKeyword } from '../utils/types';
 
 // ============================================
@@ -48,6 +49,9 @@ export function useGroupKeywords(
   options: UseGroupKeywordsOptions = {}
 ): UseGroupKeywordsReturn {
   const { autoFetch = true } = options;
+
+  // Track selected account to refetch when it changes
+  const { selectedAccountId } = useAccountData();
 
   const [keywords, setKeywords] = useState<RankGroupKeyword[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -146,11 +150,23 @@ export function useGroupKeywords(
     [groupId]
   );
 
-  // Auto-fetch when groupId changes
+  // Clear data and refetch when account changes
   useEffect(() => {
-    if (autoFetch) {
+    // Clear stale data immediately when account changes
+    setKeywords([]);
+    setError(null);
+
+    if (autoFetch && selectedAccountId) {
       fetchKeywords();
     }
+  }, [selectedAccountId]); // Only depend on selectedAccountId to avoid infinite loops
+
+  // Also fetch when groupId changes
+  useEffect(() => {
+    if (autoFetch && selectedAccountId) {
+      fetchKeywords();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoFetch, fetchKeywords]);
 
   return {

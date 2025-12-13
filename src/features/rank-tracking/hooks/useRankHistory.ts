@@ -9,6 +9,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { apiClient } from '@/utils/apiClient';
+import { useAccountData } from '@/auth/hooks/granularAuthHooks';
 import { RankCheck } from '../utils/types';
 
 // ============================================
@@ -51,6 +52,9 @@ export function useRankHistory(
   options: UseRankHistoryOptions = {}
 ): UseRankHistoryReturn {
   const { autoFetch = true, keywordId } = options;
+
+  // Track selected account to refetch when it changes
+  const { selectedAccountId } = useAccountData();
 
   const [results, setResults] = useState<RankCheck[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -132,11 +136,23 @@ export function useRankHistory(
     }
   }, [groupId, keywordId]);
 
-  // Auto-fetch when groupId or keywordId changes
+  // Clear data and refetch when account changes
   useEffect(() => {
-    if (autoFetch) {
+    // Clear stale data immediately when account changes
+    setResults([]);
+    setError(null);
+
+    if (autoFetch && selectedAccountId) {
       fetchHistory();
     }
+  }, [selectedAccountId]); // Only depend on selectedAccountId to avoid infinite loops
+
+  // Also fetch when groupId or keywordId changes
+  useEffect(() => {
+    if (autoFetch && selectedAccountId) {
+      fetchHistory();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoFetch, fetchHistory]);
 
   return {

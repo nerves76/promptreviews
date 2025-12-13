@@ -8,6 +8,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { apiClient } from '@/utils/apiClient';
+import { useAccountData } from '@/auth/hooks/granularAuthHooks';
 import { GGTrackedKeyword } from '../utils/types';
 
 // ============================================
@@ -57,6 +58,9 @@ export function useTrackedKeywords(
   options: UseTrackedKeywordsOptions = {}
 ): UseTrackedKeywordsReturn {
   const { configId, autoFetch = true } = options;
+
+  // Track selected account to refetch when it changes
+  const { selectedAccountId } = useAccountData();
 
   const [keywords, setKeywords] = useState<GGTrackedKeyword[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -161,11 +165,23 @@ export function useTrackedKeywords(
     [fetchKeywords]
   );
 
-  // Auto-fetch on mount and when configId changes
+  // Clear data and refetch when account changes
   useEffect(() => {
-    if (autoFetch) {
+    // Clear stale data immediately when account changes
+    setKeywords([]);
+    setError(null);
+
+    if (autoFetch && selectedAccountId) {
       fetchKeywords();
     }
+  }, [selectedAccountId]); // Only depend on selectedAccountId to avoid infinite loops
+
+  // Also fetch on mount and when configId changes
+  useEffect(() => {
+    if (autoFetch && selectedAccountId) {
+      fetchKeywords();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoFetch, configId, fetchKeywords]);
 
   // Computed values

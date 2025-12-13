@@ -8,6 +8,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { apiClient } from '@/utils/apiClient';
+import { useAccountData } from '@/auth/hooks/granularAuthHooks';
 import { GGDailySummary } from '../utils/types';
 
 // ============================================
@@ -76,6 +77,9 @@ export function useGeoGridSummary(
     autoFetch = true,
   } = options;
 
+  // Track selected account to refetch when it changes
+  const { selectedAccountId } = useAccountData();
+
   const [summary, setSummary] = useState<GGDailySummary | null>(null);
   const [summaries, setSummaries] = useState<SummaryWithTrend[]>([]);
   const [trend, setTrend] = useState<TrendData | null>(null);
@@ -127,11 +131,26 @@ export function useGeoGridSummary(
     }
   }, [configId, mode, startDate, endDate, limit, includeTrend]);
 
-  // Auto-fetch on mount and when options change
+  // Clear data and refetch when account changes
   useEffect(() => {
-    if (autoFetch) {
+    // Clear stale data immediately when account changes
+    setSummary(null);
+    setSummaries([]);
+    setTrend(null);
+    setCount(0);
+    setError(null);
+
+    if (autoFetch && selectedAccountId) {
       fetchSummaries();
     }
+  }, [selectedAccountId]); // Only depend on selectedAccountId to avoid infinite loops
+
+  // Also fetch on mount and when options change
+  useEffect(() => {
+    if (autoFetch && selectedAccountId) {
+      fetchSummaries();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoFetch, configId, fetchSummaries]);
 
   return {

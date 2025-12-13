@@ -9,6 +9,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { apiClient } from '@/utils/apiClient';
+import { useAccountData } from '@/auth/hooks/granularAuthHooks';
 import { RankKeywordGroup } from '../utils/types';
 
 // ============================================
@@ -63,6 +64,9 @@ export function useRankGroups(
   options: UseRankGroupsOptions = {}
 ): UseRankGroupsReturn {
   const { autoFetch = true } = options;
+
+  // Track selected account to refetch when it changes
+  const { selectedAccountId } = useAccountData();
 
   const [groups, setGroups] = useState<RankKeywordGroup[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -172,12 +176,24 @@ export function useRankGroups(
     []
   );
 
-  // Auto-fetch on mount
+  // Clear data and refetch when account changes
   useEffect(() => {
-    if (autoFetch) {
+    // Clear stale data immediately when account changes
+    setGroups([]);
+    setError(null);
+
+    if (autoFetch && selectedAccountId) {
       fetchGroups();
     }
-  }, [autoFetch, fetchGroups]);
+  }, [selectedAccountId]); // Only depend on selectedAccountId to avoid infinite loops
+
+  // Also fetch on mount if autoFetch is enabled
+  useEffect(() => {
+    if (autoFetch && selectedAccountId) {
+      fetchGroups();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoFetch]);
 
   return {
     groups,

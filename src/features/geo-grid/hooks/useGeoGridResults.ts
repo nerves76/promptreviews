@@ -8,6 +8,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { apiClient } from '@/utils/apiClient';
+import { useAccountData } from '@/auth/hooks/granularAuthHooks';
 import { GGCheckResult, CheckPoint } from '../utils/types';
 
 // ============================================
@@ -101,6 +102,9 @@ export function useGeoGridResults(
     autoFetch = true,
   } = options;
 
+  // Track selected account to refetch when it changes
+  const { selectedAccountId } = useAccountData();
+
   const [results, setResults] = useState<GGCheckResult[]>([]);
   const [summary, setSummary] = useState<CurrentSummary | null>(null);
   const [lastCheckedAt, setLastCheckedAt] = useState<string | null>(null);
@@ -175,11 +179,26 @@ export function useGeoGridResults(
     [configId, fetchResults]
   );
 
-  // Auto-fetch on mount and when filters change
+  // Clear data and refetch when account changes
   useEffect(() => {
-    if (autoFetch) {
+    // Clear stale data immediately when account changes
+    setResults([]);
+    setSummary(null);
+    setLastCheckedAt(null);
+    setCount(0);
+    setError(null);
+
+    if (autoFetch && selectedAccountId) {
       fetchResults();
     }
+  }, [selectedAccountId]); // Only depend on selectedAccountId to avoid infinite loops
+
+  // Also fetch on mount and when filters change
+  useEffect(() => {
+    if (autoFetch && selectedAccountId) {
+      fetchResults();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoFetch, fetchResults]);
 
   return {
