@@ -35,8 +35,10 @@ export default function AddKeywordsModal({
   const [selectedKeywordIds, setSelectedKeywordIds] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [librarySearch, setLibrarySearch] = useState('');
+  // Track custom search queries for keywords that don't have one
+  const [customSearchQueries, setCustomSearchQueries] = useState<Record<string, string>>({});
 
-  const { keywords: libraryKeywords, isLoading: libraryLoading, refresh: refreshLibrary } = useKeywords();
+  const { keywords: libraryKeywords, isLoading: libraryLoading, refresh: refreshLibrary, updateKeyword } = useKeywords();
 
   // Fetch library keywords on open
   useEffect(() => {
@@ -44,6 +46,7 @@ export default function AddKeywordsModal({
       refreshLibrary();
       setSelectedKeywordIds([]);
       setLibrarySearch('');
+      setCustomSearchQueries({});
     }
   }, [isOpen, refreshLibrary]);
 
@@ -51,11 +54,21 @@ export default function AddKeywordsModal({
     if (selectedKeywordIds.length === 0) return;
 
     setIsSubmitting(true);
+
+    // First, update keywords that have custom search queries
+    for (const keywordId of selectedKeywordIds) {
+      const customQuery = customSearchQueries[keywordId];
+      if (customQuery) {
+        await updateKeyword(keywordId, { searchQuery: customQuery });
+      }
+    }
+
     const result = await onAdd(selectedKeywordIds);
     setIsSubmitting(false);
 
     if (result.success) {
       setSelectedKeywordIds([]);
+      setCustomSearchQueries({});
       onSuccess();
     }
   };
@@ -67,6 +80,14 @@ export default function AddKeywordsModal({
       kw.phrase.toLowerCase().includes(search) ||
       (kw.searchQuery && kw.searchQuery.toLowerCase().includes(search))
     );
+  });
+
+  // Check if all selected keywords have valid search queries
+  const allSelectedHaveSearchQuery = selectedKeywordIds.every((id) => {
+    const kw = libraryKeywords.find((k) => k.id === id);
+    if (!kw) return false;
+    // Has existing searchQuery or has a non-empty custom one
+    return kw.searchQuery || (customSearchQueries[id] && customSearchQueries[id].trim());
   });
 
   return (
@@ -143,44 +164,68 @@ export default function AddKeywordsModal({
                         )}
                       </div>
                     ) : (
-                      filteredLibrary.map((kw) => (
-                        <label
-                          key={kw.id}
-                          className="flex items-center gap-3 p-3 hover:bg-gray-50 rounded-lg cursor-pointer"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={selectedKeywordIds.includes(kw.id)}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setSelectedKeywordIds([...selectedKeywordIds, kw.id]);
-                              } else {
-                                setSelectedKeywordIds(selectedKeywordIds.filter((id) => id !== kw.id));
-                              }
-                            }}
-                            className="rounded"
-                          />
-                          <div className="min-w-0 flex-1">
-                            {kw.searchQuery ? (
-                              <>
-                                <div className="font-medium">{kw.searchQuery}</div>
-                                {kw.searchQuery !== kw.phrase && (
+                      filteredLibrary.map((kw) => {
+                        const isSelected = selectedKeywordIds.includes(kw.id);
+                        const needsSearchQuery = !kw.searchQuery;
+                        const customQuery = customSearchQueries[kw.id];
+
+                        return (
+                          <div
+                            key={kw.id}
+                            className="p-3 hover:bg-gray-50 rounded-lg"
+                          >
+                            <label className="flex items-center gap-3 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={isSelected}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setSelectedKeywordIds([...selectedKeywordIds, kw.id]);
+                                    // Pre-fill with phrase if no search query
+                                    if (needsSearchQuery && !customQuery) {
+                                      setCustomSearchQueries(prev => ({
+                                        ...prev,
+                                        [kw.id]: kw.phrase
+                                      }));
+                                    }
+                                  } else {
+                                    setSelectedKeywordIds(selectedKeywordIds.filter((id) => id !== kw.id));
+                                  }
+                                }}
+                                className="rounded"
+                              />
+                              <div className="min-w-0 flex-1">
+                                <div className="font-medium">{kw.searchQuery || kw.phrase}</div>
+                                {kw.searchQuery && kw.searchQuery !== kw.phrase && (
                                   <div className="text-xs text-gray-500 truncate">
                                     from: &ldquo;{kw.phrase}&rdquo;
                                   </div>
                                 )}
-                              </>
-                            ) : (
-                              <>
-                                <div className="font-medium text-gray-500">{kw.phrase}</div>
-                                <div className="text-xs text-amber-600">
-                                  No trackable keyword set
-                                </div>
-                              </>
+                              </div>
+                            </label>
+
+                            {/* Show input to set search query if needed and selected */}
+                            {isSelected && needsSearchQuery && (
+                              <div className="mt-2 ml-7">
+                                <label className="block text-xs text-gray-500 mb-1">
+                                  Search phrase for rank tracking:
+                                </label>
+                                <input
+                                  type="text"
+                                  value={customQuery || ''}
+                                  onChange={(e) => setCustomSearchQueries(prev => ({
+                                    ...prev,
+                                    [kw.id]: e.target.value
+                                  }))}
+                                  placeholder="Enter search phrase..."
+                                  className="w-full px-2 py-1.5 text-sm border rounded focus:ring-2 focus:ring-slate-blue focus:border-transparent"
+                                  onClick={(e) => e.stopPropagation()}
+                                />
+                              </div>
                             )}
                           </div>
-                        </label>
-                      ))
+                        );
+                      })
                     )}
                   </div>
 
@@ -201,14 +246,19 @@ export default function AddKeywordsModal({
 
                 {/* Footer */}
                 <div className="px-6 py-4 border-t bg-gray-50 flex justify-between items-center">
-                  <span className="text-sm text-gray-500">{selectedKeywordIds.length} keywords selected</span>
+                  <div className="text-sm">
+                    <span className="text-gray-500">{selectedKeywordIds.length} keywords selected</span>
+                    {selectedKeywordIds.length > 0 && !allSelectedHaveSearchQuery && (
+                      <span className="text-amber-600 ml-2">• Enter search phrases above</span>
+                    )}
+                  </div>
                   <div className="flex gap-3">
                     <Button variant="outline" onClick={onClose}>
                       Cancel
                     </Button>
                     <Button
                       onClick={handleAddSelected}
-                      disabled={selectedKeywordIds.length === 0 || isSubmitting}
+                      disabled={selectedKeywordIds.length === 0 || isSubmitting || !allSelectedHaveSearchQuery}
                     >
                       {isSubmitting
                         ? 'Adding...'
