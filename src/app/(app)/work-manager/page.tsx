@@ -71,19 +71,19 @@ export default function WorkManagerDashboard() {
   if (!hasMultipleAccounts && !isLoading && boards.length <= 1) {
     if (boards.length === 0) {
       return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-6">
+        <div className="min-h-screen p-6">
           <div className="max-w-2xl mx-auto text-center py-20">
-            <Icon name="FaTasks" size={64} className="mx-auto mb-6 text-gray-300" />
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">
+            <Icon name="FaTasks" size={64} className="mx-auto mb-6 text-white/30" />
+            <h1 className="text-2xl font-bold text-white mb-4">
               Work Manager
             </h1>
-            <p className="text-gray-600 mb-8">
+            <p className="text-white/70 mb-8">
               Work Manager is available for agencies managing multiple client accounts.
               Add another account to get started.
             </p>
             <Link
               href="/dashboard/settings"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-slate-blue text-white rounded-lg hover:bg-slate-blue/90 font-medium"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-white text-slate-blue rounded-lg hover:bg-white/90 font-medium"
             >
               <Icon name="FaCog" size={16} />
               Go to Settings
@@ -94,8 +94,8 @@ export default function WorkManagerDashboard() {
     }
     // Will redirect to board
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
-        <Icon name="FaSpinner" size={32} className="animate-spin text-slate-blue" />
+      <div className="min-h-screen flex items-center justify-center">
+        <Icon name="FaSpinner" size={32} className="animate-spin text-white" />
       </div>
     );
   }
@@ -110,13 +110,13 @@ export default function WorkManagerDashboard() {
   })) || [];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-6">
+    <div className="min-h-screen p-6">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Work Manager</h1>
-            <p className="text-gray-600 mt-1">
+            <h1 className="text-3xl font-bold text-white">Work Manager</h1>
+            <p className="text-white/70 mt-1">
               Manage tasks across your client accounts
             </p>
           </div>
@@ -132,7 +132,7 @@ export default function WorkManagerDashboard() {
         {/* Loading state */}
         {isLoading && (
           <div className="flex items-center justify-center py-20">
-            <Icon name="FaSpinner" size={32} className="animate-spin text-slate-blue" />
+            <Icon name="FaSpinner" size={32} className="animate-spin text-white" />
           </div>
         )}
 

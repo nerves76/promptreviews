@@ -168,30 +168,30 @@ export default function WorkManagerBoardPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
-        <Icon name="FaSpinner" size={32} className="animate-spin text-slate-blue" />
+      <div className="min-h-screen flex items-center justify-center">
+        <Icon name="FaSpinner" size={32} className="animate-spin text-white" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-6">
+      <div className="min-h-screen p-6">
         <div className="max-w-2xl mx-auto">
-          <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-            <Icon name="FaExclamationTriangle" size={32} className="mx-auto mb-3 text-red-500" />
-            <h2 className="text-lg font-bold text-red-900 mb-2">Error Loading Board</h2>
-            <p className="text-red-800 mb-4">{error}</p>
+          <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-6 text-center">
+            <Icon name="FaExclamationTriangle" size={32} className="mx-auto mb-3 text-red-400" />
+            <h2 className="text-lg font-bold text-white mb-2">Error Loading Board</h2>
+            <p className="text-white/80 mb-4">{error}</p>
             <div className="flex justify-center gap-3">
               <button
                 onClick={() => window.location.reload()}
-                className="px-4 py-2 bg-red-100 text-red-800 rounded-lg hover:bg-red-200"
+                className="px-4 py-2 bg-white/20 text-white rounded-lg hover:bg-white/30"
               >
                 Try Again
               </button>
               <Link
                 href="/work-manager"
-                className="px-4 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200"
+                className="px-4 py-2 bg-white text-slate-blue rounded-lg hover:bg-white/90"
               >
                 Back to Boards
               </Link>
@@ -204,16 +204,16 @@ export default function WorkManagerBoardPage() {
 
   if (!board) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-6">
+      <div className="min-h-screen p-6">
         <div className="max-w-2xl mx-auto text-center py-20">
-          <Icon name="FaQuestionCircle" size={64} className="mx-auto mb-6 text-gray-300" />
-          <h2 className="text-xl font-bold text-gray-900 mb-3">Board Not Found</h2>
-          <p className="text-gray-600 mb-6">
+          <Icon name="FaQuestionCircle" size={64} className="mx-auto mb-6 text-white/30" />
+          <h2 className="text-xl font-bold text-white mb-3">Board Not Found</h2>
+          <p className="text-white/70 mb-6">
             This board may have been deleted or you don't have access.
           </p>
           <Link
             href="/work-manager"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-slate-blue text-white rounded-lg hover:bg-slate-blue/90 font-medium"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-white text-slate-blue rounded-lg hover:bg-white/90 font-medium"
           >
             <Icon name="FaArrowLeft" size={14} />
             Back to Boards
@@ -226,9 +226,9 @@ export default function WorkManagerBoardPage() {
   const boardDisplayName = board.name || board.business_name || board.account_name || "Task Board";
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+    <div className="min-h-screen">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 shadow-sm">
+      <div className="bg-white/95 backdrop-blur-sm border-b border-white/20 shadow-sm">
         <div className="max-w-[1800px] mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
