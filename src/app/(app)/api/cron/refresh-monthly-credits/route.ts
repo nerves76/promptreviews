@@ -12,11 +12,14 @@
  *
  * Security: Uses CRON_SECRET_TOKEN for authorization.
  *
- * Credit tiers:
- * - free: 0 credits (skipped)
- * - grower: 100 credits
- * - builder: 200 credits
- * - maven: 400 credits
+ * Credit allocation (in priority order):
+ * 1. monthly_credit_allocation (if set) - custom per-account override
+ * 2. Plan tier default:
+ *    - free: 0 credits (skipped, unless is_client_account)
+ *    - grower: 100 credits
+ *    - builder: 200 credits
+ *    - maven: 400 credits
+ * 3. Client accounts (is_client_account=true): 100 credits default
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -84,14 +87,15 @@ export async function GET(request: NextRequest) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    // Get all non-free, non-deleted accounts with active subscriptions
-    // Free accounts and accounts without a paid plan get 0 credits
+    // Get all eligible accounts:
+    // 1. Paid plans (grower, builder, maven) that aren't free test accounts
+    // 2. Client accounts (is_client_account=true) regardless of plan
+    // 3. Accounts with custom monthly_credit_allocation set
     const { data: accounts, error: accountsError } = await supabase
       .from('accounts')
-      .select('id, plan, email, business_name, is_free_account, subscription_status')
+      .select('id, plan, email, business_name, is_free_account, is_client_account, monthly_credit_allocation, subscription_status')
       .is('deleted_at', null)
-      .in('plan', ['grower', 'builder', 'maven'])
-      .eq('is_free_account', false);
+      .or('and(plan.in.(grower,builder,maven),is_free_account.eq.false),is_client_account.eq.true,monthly_credit_allocation.not.is.null');
 
     if (accountsError) {
       console.error('❌ [Monthly Credits] Failed to fetch accounts:', accountsError);
@@ -117,14 +121,38 @@ export async function GET(request: NextRequest) {
       }>,
     };
 
+    // Default credits for client accounts without custom allocation
+    const DEFAULT_CLIENT_CREDITS = 100;
+
     // Process each account
     for (const account of accounts || []) {
       try {
-        // Get tier credits for this plan
-        const monthlyCredits = await getTierCredits(supabase, account.plan);
+        // Determine monthly credits in priority order:
+        // 1. Custom allocation (if set)
+        // 2. Plan tier default
+        // 3. Client account default
+        let monthlyCredits: number;
+        let creditSource: string;
+
+        if (account.monthly_credit_allocation !== null && account.monthly_credit_allocation !== undefined) {
+          // Custom allocation set - use it
+          monthlyCredits = account.monthly_credit_allocation;
+          creditSource = 'custom';
+        } else if (['grower', 'builder', 'maven'].includes(account.plan) && !account.is_free_account) {
+          // Paid plan - use tier default
+          monthlyCredits = await getTierCredits(supabase, account.plan);
+          creditSource = 'plan';
+        } else if (account.is_client_account) {
+          // Client account - use client default
+          monthlyCredits = DEFAULT_CLIENT_CREDITS;
+          creditSource = 'client';
+        } else {
+          // No credits for this account
+          monthlyCredits = 0;
+          creditSource = 'none';
+        }
 
         if (monthlyCredits === 0) {
-          // This shouldn't happen with our filter, but handle it
           results.skipped++;
           results.details.push({
             accountId: account.id,
@@ -135,6 +163,8 @@ export async function GET(request: NextRequest) {
           });
           continue;
         }
+
+        console.log(`📊 [Monthly Credits] ${account.id}: ${monthlyCredits} credits (source: ${creditSource})`);
 
         // Ensure balance record exists
         await ensureBalanceExists(supabase, account.id);
