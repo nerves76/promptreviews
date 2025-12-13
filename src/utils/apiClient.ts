@@ -215,10 +215,11 @@ class ApiClient {
     });
   }
   
-  async delete<T>(url: string, options?: ApiRequestOptions): Promise<T> {
+  async delete<T>(url: string, data?: any, options?: ApiRequestOptions): Promise<T> {
     return this.makeRequest<T>(url, {
       ...options,
       method: 'DELETE',
+      body: data ? JSON.stringify(data) : undefined,
     });
   }
   

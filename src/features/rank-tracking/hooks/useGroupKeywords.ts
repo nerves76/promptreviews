@@ -131,10 +131,11 @@ export function useGroupKeywords(
 
       try {
         await apiClient.delete(
-          `/rank-tracking/groups/${groupId}/keywords?keywordIds=${keywordIds.join(',')}`
+          `/rank-tracking/groups/${groupId}/keywords`,
+          { keywordIds }
         );
 
-        // Remove keywords from the list
+        // Remove keywords from the list (keywordIds are the actual keyword IDs)
         setKeywords((prev) =>
           prev.filter((kw) => !keywordIds.includes(kw.keywordId))
         );

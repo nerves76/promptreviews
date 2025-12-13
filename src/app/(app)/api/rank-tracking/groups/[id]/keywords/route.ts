@@ -99,7 +99,7 @@ export async function GET(
       }
     }
 
-    // Transform to response format
+    // Transform to response format - flatten keyword data
     const transformed = (groupKeywords || []).map((gk) => {
       const keyword = gk.keywords as any;
       const latest = latestByKeyword.get(gk.keyword_id);
@@ -112,17 +112,16 @@ export async function GET(
         targetUrl: gk.target_url,
         isEnabled: gk.is_enabled,
         createdAt: gk.created_at,
-        keyword: keyword ? {
-          id: keyword.id,
-          phrase: keyword.phrase,
-          normalizedPhrase: keyword.normalized_phrase,
-          searchQuery: keyword.search_query,
-          reviewUsageCount: keyword.review_usage_count,
-          status: keyword.status,
-        } : null,
+        // Flatten keyword fields for direct access
+        phrase: keyword?.phrase ?? null,
+        searchQuery: keyword?.search_query ?? null,
+        normalizedPhrase: keyword?.normalized_phrase ?? null,
+        reviewUsageCount: keyword?.review_usage_count ?? 0,
+        keywordStatus: keyword?.status ?? null,
+        // Latest check data
         latestPosition: latest?.position ?? null,
+        latestUrl: latest?.foundUrl ?? null,
         latestCheckedAt: latest?.checkedAt ?? null,
-        latestFoundUrl: latest?.foundUrl ?? null,
         latestMatchedTargetUrl: latest?.matchedTargetUrl ?? null,
       };
     });
@@ -261,12 +260,10 @@ export async function POST(
         targetUrl: gk.target_url,
         isEnabled: gk.is_enabled,
         createdAt: gk.created_at,
-        keyword: keyword ? {
-          id: keyword.id,
-          phrase: keyword.phrase,
-          normalizedPhrase: keyword.normalized_phrase,
-          searchQuery: keyword.search_query,
-        } : null,
+        // Flatten keyword fields for direct access
+        phrase: keyword?.phrase ?? null,
+        searchQuery: keyword?.search_query ?? null,
+        normalizedPhrase: keyword?.normalized_phrase ?? null,
       };
     });
 

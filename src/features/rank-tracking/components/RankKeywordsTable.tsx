@@ -8,7 +8,7 @@
 
 import { useState, useMemo } from 'react';
 import { RankGroupKeyword, SerpFeatures } from '../utils/types';
-import { ChevronUpIcon, ChevronDownIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { ChevronUpIcon, ChevronDownIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
 interface RankKeywordsTableProps {
   keywords: RankGroupKeyword[];
@@ -62,17 +62,17 @@ export default function RankKeywordsTable({ keywords, isLoading, onRemove }: Ran
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedIds(keywords.map((k) => k.id));
+      setSelectedIds(keywords.map((k) => k.keywordId));
     } else {
       setSelectedIds([]);
     }
   };
 
-  const handleSelectKeyword = (id: string, checked: boolean) => {
+  const handleSelectKeyword = (keywordId: string, checked: boolean) => {
     if (checked) {
-      setSelectedIds([...selectedIds, id]);
+      setSelectedIds([...selectedIds, keywordId]);
     } else {
-      setSelectedIds(selectedIds.filter((selectedId) => selectedId !== id));
+      setSelectedIds(selectedIds.filter((selectedId) => selectedId !== keywordId));
     }
   };
 
@@ -90,10 +90,10 @@ export default function RankKeywordsTable({ keywords, isLoading, onRemove }: Ran
     }
   };
 
-  const handleRemoveSingle = async (id: string) => {
+  const handleRemoveSingle = async (keywordId: string) => {
     try {
       setIsRemoving(true);
-      await onRemove([id]);
+      await onRemove([keywordId]);
     } catch (err) {
       console.error('Failed to remove keyword:', err);
     } finally {
@@ -168,12 +168,12 @@ export default function RankKeywordsTable({ keywords, isLoading, onRemove }: Ran
           </thead>
           <tbody className="divide-y divide-gray-200">
             {sortedKeywords.map((keyword, idx) => (
-              <tr key={keyword.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-blue-50/30'}>
+              <tr key={keyword.keywordId} className={idx % 2 === 0 ? 'bg-white' : 'bg-blue-50/30'}>
                 <td className="px-4 py-3">
                   <input
                     type="checkbox"
-                    checked={selectedIds.includes(keyword.id)}
-                    onChange={(e) => handleSelectKeyword(keyword.id, e.target.checked)}
+                    checked={selectedIds.includes(keyword.keywordId)}
+                    onChange={(e) => handleSelectKeyword(keyword.keywordId, e.target.checked)}
                     className="rounded border-gray-300"
                   />
                 </td>
@@ -207,11 +207,12 @@ export default function RankKeywordsTable({ keywords, isLoading, onRemove }: Ran
                 </td>
                 <td className="px-4 py-3">
                   <button
-                    onClick={() => handleRemoveSingle(keyword.id)}
+                    onClick={() => handleRemoveSingle(keyword.keywordId)}
                     disabled={isRemoving}
                     className="text-gray-400 hover:text-red-500 disabled:opacity-50"
+                    title="Remove from group"
                   >
-                    <TrashIcon className="w-4 h-4" />
+                    <XMarkIcon className="w-4 h-4" />
                   </button>
                 </td>
               </tr>
