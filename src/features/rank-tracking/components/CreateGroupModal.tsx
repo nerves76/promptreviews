@@ -98,7 +98,7 @@ export default function CreateGroupModal({ isOpen, onClose, onCreate, onSuccess 
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 shadow-xl transition-all">
+              <Dialog.Panel className="w-full max-w-md transform rounded-2xl bg-white p-6 shadow-xl transition-all overflow-visible">
                 <div className="flex items-center justify-between mb-4">
                   <Dialog.Title className="text-lg font-semibold text-gray-900">
                     Create Keyword Group
