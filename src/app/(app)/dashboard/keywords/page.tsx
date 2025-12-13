@@ -32,24 +32,24 @@ export default function KeywordsPage() {
         <div className="flex bg-white/10 backdrop-blur-sm border border-white/30 rounded-full p-1 shadow-lg gap-0">
           <Link
             href="/dashboard/keywords"
-            className={`px-6 py-2 font-semibold text-sm focus:outline-none transition-all duration-200 rounded-full flex items-center gap-2
+            className={`px-6 py-1.5 font-semibold text-sm focus:outline-none transition-all duration-200 rounded-full flex items-center gap-2
               ${pathname === '/dashboard/keywords'
                 ? 'bg-slate-blue text-white'
                 : 'bg-transparent text-white hover:bg-white/10'}
             `}
           >
-            <Icon name="FaKey" className="w-4 h-4" size={16} />
+            <Icon name="FaKey" className="w-[18px] h-[18px]" size={18} />
             Library
           </Link>
           <Link
             href="/dashboard/keywords/research"
-            className={`px-6 py-2 font-semibold text-sm focus:outline-none transition-all duration-200 rounded-full flex items-center gap-2
+            className={`px-6 py-1.5 font-semibold text-sm focus:outline-none transition-all duration-200 rounded-full flex items-center gap-2
               ${pathname === '/dashboard/keywords/research'
                 ? 'bg-slate-blue text-white'
                 : 'bg-transparent text-white hover:bg-white/10'}
             `}
           >
-            <Icon name="FaSearch" className="w-4 h-4" size={16} />
+            <Icon name="FaSearch" className="w-[18px] h-[18px]" size={18} />
             Research
           </Link>
         </div>
@@ -57,7 +57,7 @@ export default function KeywordsPage() {
 
       {/* Content in PageCard */}
       <PageCard
-        icon={<Icon name="FaKey" className="w-6 h-6 text-slate-blue" size={24} />}
+        icon={<Icon name="FaKey" className="w-8 h-8 text-slate-blue" size={32} />}
         topMargin="mt-8"
       >
         <KeywordManager />

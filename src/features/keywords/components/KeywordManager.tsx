@@ -186,7 +186,7 @@ export default function KeywordManager({
   }
 
   return (
-    <div className={`${compact ? '' : 'p-6'}`}>
+    <div>
       {/* Header */}
       {!compact && (
         <div className="mb-6 flex items-start justify-between">
@@ -207,23 +207,6 @@ export default function KeywordManager({
         </div>
       )}
 
-      {/* Search bar */}
-      <div className="mb-4">
-        <div className="relative">
-          <Icon
-            name="FaSearch"
-            className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
-          />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search keywords..."
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-blue focus:border-transparent"
-          />
-        </div>
-      </div>
-
       {/* Add Keyword Section */}
       <div className="mb-4 p-4 bg-white border border-gray-200 rounded-lg">
         <h3 className="text-sm font-medium text-gray-700">Add Keyword</h3>
@@ -240,6 +223,20 @@ export default function KeywordManager({
       {/* Groups and keywords section header */}
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-medium text-gray-700">Your Keywords</h3>
+        {/* Subtle search */}
+        <div className="relative">
+          <Icon
+            name="FaSearch"
+            className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-300"
+          />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search..."
+            className="w-32 pl-6 pr-2 py-1 text-xs border border-gray-200 rounded focus:ring-1 focus:ring-slate-blue focus:border-transparent focus:w-48 transition-all"
+          />
+        </div>
       </div>
 
       {/* Groups and keywords */}
@@ -477,13 +474,13 @@ function KeywordDetailsSidebar({
               {!isEditing ? (
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="text-xs text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
+                  className="text-xs text-slate-blue hover:text-slate-blue/80 flex items-center gap-1"
                 >
                   <Icon name="FaEdit" className="w-3 h-3" />
                   Edit
                 </button>
               ) : (
-                <div className="flex gap-2">
+                <div className="flex gap-2 items-center">
                   <button
                     onClick={handleCancel}
                     disabled={isSaving}
@@ -494,7 +491,7 @@ function KeywordDetailsSidebar({
                   <button
                     onClick={handleSave}
                     disabled={isSaving}
-                    className="text-xs text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1"
+                    className="px-3 py-1 text-xs font-medium text-white bg-slate-blue rounded hover:bg-slate-blue/90 disabled:opacity-50 flex items-center gap-1"
                   >
                     {isSaving && <Icon name="FaSpinner" className="w-3 h-3 animate-spin" />}
                     Save

@@ -91,12 +91,8 @@ export default function KeywordGroupAccordion({
         <div className="flex items-center gap-3">
           {/* Expand/collapse icon */}
           <Icon
-            name="FaChevronRight"
-            className={`
-              w-3.5 h-3.5 text-gray-500
-              transition-transform duration-200
-              ${isExpanded ? 'rotate-90' : ''}
-            `}
+            name={isExpanded ? "FaChevronDown" : "FaChevronRight"}
+            className="w-3.5 h-3.5 text-gray-500"
           />
 
           {/* Group name */}
@@ -212,12 +208,8 @@ export function UngroupedKeywordsSection({
       >
         <div className="flex items-center gap-3">
           <Icon
-            name="FaChevronRight"
-            className={`
-              w-3.5 h-3.5 text-gray-400
-              transition-transform duration-200
-              ${isExpanded ? 'rotate-90' : ''}
-            `}
+            name={isExpanded ? "FaChevronDown" : "FaChevronRight"}
+            className="w-3.5 h-3.5 text-gray-400"
           />
           <h3 className="font-medium text-gray-600">Ungrouped</h3>
           <span className="px-2 py-0.5 text-xs font-medium bg-gray-200 text-gray-500 rounded-full">

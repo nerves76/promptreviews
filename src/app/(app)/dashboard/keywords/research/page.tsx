@@ -123,24 +123,24 @@ export default function KeywordResearchPage() {
         <div className="flex bg-white/10 backdrop-blur-sm border border-white/30 rounded-full p-1 shadow-lg gap-0">
           <Link
             href="/dashboard/keywords"
-            className={`px-6 py-2 font-semibold text-sm focus:outline-none transition-all duration-200 rounded-full flex items-center gap-2
+            className={`px-6 py-1.5 font-semibold text-sm focus:outline-none transition-all duration-200 rounded-full flex items-center gap-2
               ${pathname === '/dashboard/keywords'
                 ? 'bg-slate-blue text-white'
                 : 'bg-transparent text-white hover:bg-white/10'}
             `}
           >
-            <Icon name="FaKey" className="w-4 h-4" size={16} />
+            <Icon name="FaKey" className="w-[18px] h-[18px]" size={18} />
             Library
           </Link>
           <Link
             href="/dashboard/keywords/research"
-            className={`px-6 py-2 font-semibold text-sm focus:outline-none transition-all duration-200 rounded-full flex items-center gap-2
+            className={`px-6 py-1.5 font-semibold text-sm focus:outline-none transition-all duration-200 rounded-full flex items-center gap-2
               ${pathname === '/dashboard/keywords/research'
                 ? 'bg-slate-blue text-white'
                 : 'bg-transparent text-white hover:bg-white/10'}
             `}
           >
-            <Icon name="FaSearch" className="w-4 h-4" size={16} />
+            <Icon name="FaSearch" className="w-[18px] h-[18px]" size={18} />
             Research
           </Link>
         </div>
@@ -148,7 +148,7 @@ export default function KeywordResearchPage() {
 
       {/* Content in PageCard */}
       <PageCard
-        icon={<Icon name="FaSearch" className="w-6 h-6 text-slate-blue" size={24} />}
+        icon={<Icon name="FaSearch" className="w-8 h-8 text-slate-blue" size={32} />}
         topMargin="mt-8"
       >
         {/* Search Section */}
@@ -158,8 +158,8 @@ export default function KeywordResearchPage() {
             Discover search volume, competition, and trends for any keyword.
           </p>
 
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
+          <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr_auto] gap-4 items-end">
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Keyword
               </label>
@@ -175,7 +175,7 @@ export default function KeywordResearchPage() {
                 />
               </div>
             </div>
-            <div className="md:w-64">
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Location
               </label>
@@ -185,15 +185,13 @@ export default function KeywordResearchPage() {
                 placeholder="United States (default)"
               />
             </div>
-            <div className="flex items-end">
-              <Button
-                onClick={handleSearch}
-                disabled={isLoading || !searchQuery.trim()}
-                className="w-full md:w-auto px-8 py-3"
-              >
-                {isLoading ? 'Searching...' : 'Search'}
-              </Button>
-            </div>
+            <Button
+              onClick={handleSearch}
+              disabled={isLoading || !searchQuery.trim()}
+              className="h-[46px] px-8"
+            >
+              {isLoading ? 'Searching...' : 'Search'}
+            </Button>
           </div>
 
           {/* Rate limit info */}
@@ -232,6 +230,7 @@ export default function KeywordResearchPage() {
                   <h2 className="text-xl font-semibold text-gray-900">{result.keyword}</h2>
                   <div className="flex items-center gap-4 mt-2">
                     <div className="flex items-center gap-1">
+                      <span className="text-gray-500">Trend:</span>
                       {getTrendIcon(result.trend)}
                       {getTrendLabel(result.trend)}
                     </div>
@@ -304,6 +303,16 @@ export default function KeywordResearchPage() {
                           style={{ height: `${Math.max(height, 4)}%` }}
                           title={`${m.volume?.toLocaleString() || 0} searches`}
                         />
+                      );
+                    })}
+                  </div>
+                  <div className="flex gap-1 mt-1">
+                    {result.monthlyTrend.slice(-12).map((m: any, i: number) => {
+                      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                      return (
+                        <div key={i} className="flex-1 text-center text-xs text-gray-400">
+                          {monthNames[m.month - 1]}
+                        </div>
                       );
                     })}
                   </div>

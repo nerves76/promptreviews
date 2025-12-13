@@ -458,12 +458,17 @@ export async function getKeywordVolume(params: {
     );
 
     const task = data.tasks?.[0];
+
     if (!task || task.status_code !== 20000) {
-      console.error('❌ [DataForSEO SERP] Keyword volume task failed');
+      console.error('❌ [DataForSEO SERP] Keyword volume task failed:', task?.status_message);
       return [];
     }
 
-    const items = task.result?.[0]?.items || [];
+    // Note: The keyword volume endpoint returns results directly in task.result array,
+    // NOT nested under result[0].items like SERP endpoints
+    const items = task.result || [];
+
+    console.log(`🔍 [DataForSEO SERP] Keyword volume items count: ${items.length}`);
 
     const results: KeywordVolumeResult[] = items.map((item: any) => ({
       keyword: item.keyword || '',
