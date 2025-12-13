@@ -70,6 +70,8 @@ export interface KeywordVolumeResult {
   cpc: number | null;
   competition: number | null;
   competitionLevel: 'LOW' | 'MEDIUM' | 'HIGH' | null;
+  lowTopOfPageBid: number | null;
+  highTopOfPageBid: number | null;
   monthlySearches: MonthlySearchData[];
 }
 
@@ -85,6 +87,17 @@ export interface KeywordSuggestion {
   cpc: number | null;
   competition: number | null;
   competitionLevel: 'LOW' | 'MEDIUM' | 'HIGH' | null;
+  // New metrics
+  lowTopOfPageBid: number | null;
+  highTopOfPageBid: number | null;
+  keywordDifficulty: number | null;
+  searchIntent: 'informational' | 'navigational' | 'commercial' | 'transactional' | null;
+  categories: string[];
+  searchVolumeTrend: {
+    monthly: number | null;
+    quarterly: number | null;
+    yearly: number | null;
+  } | null;
 }
 
 export interface DataForSEOLocation {
@@ -476,6 +489,8 @@ export async function getKeywordVolume(params: {
       cpc: item.cpc || null,
       competition: item.competition || null,
       competitionLevel: mapCompetitionLevel(item.competition_index),
+      lowTopOfPageBid: item.low_top_of_page_bid || null,
+      highTopOfPageBid: item.high_top_of_page_bid || null,
       monthlySearches: (item.monthly_searches || []).map((month: any) => ({
         year: month.year,
         month: month.month,
@@ -494,6 +509,7 @@ export async function getKeywordVolume(params: {
 
 /**
  * 4. Get keyword suggestions (related keywords)
+ * Returns comprehensive keyword data including difficulty, intent, and trends
  */
 export async function getKeywordSuggestions(params: {
   seedKeyword: string;
@@ -527,13 +543,30 @@ export async function getKeywordSuggestions(params: {
 
     const items = task.result?.[0]?.items || [];
 
-    const results: KeywordSuggestion[] = items.map((item: any) => ({
-      keyword: item.keyword || '',
-      searchVolume: item.keyword_info?.search_volume || 0,
-      cpc: item.keyword_info?.cpc || null,
-      competition: item.keyword_info?.competition || null,
-      competitionLevel: mapCompetitionLevel(item.keyword_info?.competition_index),
-    }));
+    const results: KeywordSuggestion[] = items.map((item: any) => {
+      const keywordInfo = item.keyword_info || {};
+      const keywordProps = item.keyword_properties || {};
+      const intentInfo = item.search_intent_info || {};
+      const trend = keywordInfo.search_volume_trend || {};
+
+      return {
+        keyword: item.keyword || '',
+        searchVolume: keywordInfo.search_volume || 0,
+        cpc: keywordInfo.cpc || null,
+        competition: keywordInfo.competition || null,
+        competitionLevel: mapCompetitionLevel(keywordInfo.competition_index),
+        lowTopOfPageBid: keywordInfo.low_top_of_page_bid || null,
+        highTopOfPageBid: keywordInfo.high_top_of_page_bid || null,
+        keywordDifficulty: keywordProps.keyword_difficulty ?? null,
+        searchIntent: mapSearchIntent(intentInfo.main_intent),
+        categories: keywordInfo.categories || [],
+        searchVolumeTrend: trend ? {
+          monthly: trend.monthly ?? null,
+          quarterly: trend.quarterly ?? null,
+          yearly: trend.yearly ?? null,
+        } : null,
+      };
+    });
 
     console.log(`🔍 [DataForSEO SERP] Retrieved ${results.length} suggestions (cost: $${task.cost})`);
 
@@ -545,7 +578,71 @@ export async function getKeywordSuggestions(params: {
 }
 
 /**
- * 5. Get available locations for SERP searches
+ * Map DataForSEO intent to our normalized values
+ */
+function mapSearchIntent(
+  intent: string | null | undefined
+): 'informational' | 'navigational' | 'commercial' | 'transactional' | null {
+  if (!intent) return null;
+  const normalized = intent.toLowerCase();
+  if (normalized === 'informational') return 'informational';
+  if (normalized === 'navigational') return 'navigational';
+  if (normalized === 'commercial') return 'commercial';
+  if (normalized === 'transactional') return 'transactional';
+  return null;
+}
+
+/**
+ * 5. Get comprehensive keyword metrics for existing keywords
+ * Uses DataForSEO Labs to get difficulty, intent, trends, etc.
+ *
+ * Note: This uses the keyword_suggestions endpoint with the keyword as seed
+ * to get full metrics including difficulty and intent.
+ */
+export async function getKeywordMetrics(params: {
+  keywords: string[];
+  locationCode?: number;
+}): Promise<Map<string, KeywordSuggestion>> {
+  const { keywords, locationCode = 2840 } = params;
+  const metricsMap = new Map<string, KeywordSuggestion>();
+
+  if (keywords.length === 0) {
+    return metricsMap;
+  }
+
+  // For each keyword, fetch its metrics using keyword_suggestions with limit 1
+  // This gets us the full metrics including difficulty and intent
+  for (const keyword of keywords) {
+    try {
+      const results = await getKeywordSuggestions({
+        seedKeyword: keyword,
+        locationCode,
+        limit: 1, // Just get the seed keyword metrics
+      });
+
+      // Find exact match (the seed keyword itself)
+      const match = results.find(
+        (r) => r.keyword.toLowerCase() === keyword.toLowerCase()
+      );
+
+      if (match) {
+        metricsMap.set(keyword.toLowerCase(), match);
+      }
+    } catch (error) {
+      console.error(`❌ [DataForSEO] Failed to get metrics for "${keyword}":`, error);
+    }
+
+    // Small delay to avoid rate limiting
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+
+  console.log(`🔍 [DataForSEO SERP] Retrieved metrics for ${metricsMap.size}/${keywords.length} keywords`);
+
+  return metricsMap;
+}
+
+/**
+ * 6. Get available locations for SERP searches
  */
 export async function getAvailableLocations(): Promise<DataForSEOLocation[]> {
   const credentials = getCredentials();
@@ -647,6 +744,7 @@ export const dataForSEOSerpClient = {
   checkRankForDomain,
   getKeywordVolume,
   getKeywordSuggestions,
+  getKeywordMetrics,
   getAvailableLocations,
   testConnection,
 };

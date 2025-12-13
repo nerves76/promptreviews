@@ -43,7 +43,7 @@ export async function GET(
       return NextResponse.json({ error: 'Group not found' }, { status: 404 });
     }
 
-    // Get keywords in this group with keyword details
+    // Get keywords in this group with keyword details and SEO metrics
     const { data: groupKeywords, error: keywordsError } = await serviceSupabase
       .from('rank_group_keywords')
       .select(`
@@ -60,7 +60,14 @@ export async function GET(
           normalized_phrase,
           search_query,
           review_usage_count,
-          status
+          status,
+          search_intent,
+          keyword_difficulty,
+          search_volume,
+          cpc,
+          competition_level,
+          search_volume_trend,
+          metrics_updated_at
         )
       `)
       .eq('group_id', groupId)
@@ -118,6 +125,14 @@ export async function GET(
         normalizedPhrase: keyword?.normalized_phrase ?? null,
         reviewUsageCount: keyword?.review_usage_count ?? 0,
         keywordStatus: keyword?.status ?? null,
+        // SEO metrics
+        searchIntent: keyword?.search_intent ?? null,
+        keywordDifficulty: keyword?.keyword_difficulty ?? null,
+        searchVolume: keyword?.search_volume ?? null,
+        cpc: keyword?.cpc ?? null,
+        competitionLevel: keyword?.competition_level ?? null,
+        searchVolumeTrend: keyword?.search_volume_trend ?? null,
+        metricsUpdatedAt: keyword?.metrics_updated_at ?? null,
         // Latest check data
         latestPosition: latest?.position ?? null,
         latestUrl: latest?.foundUrl ?? null,

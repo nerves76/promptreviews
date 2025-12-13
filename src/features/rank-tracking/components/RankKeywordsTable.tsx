@@ -17,7 +17,7 @@ interface RankKeywordsTableProps {
   onKeywordClick?: (keywordId: string) => void;
 }
 
-type SortField = 'phrase' | 'position' | 'change';
+type SortField = 'phrase' | 'position' | 'change' | 'difficulty' | 'volume';
 
 export default function RankKeywordsTable({ keywords, isLoading, onRemove, onKeywordClick }: RankKeywordsTableProps) {
   const [sortField, setSortField] = useState<SortField>('phrase');
@@ -43,6 +43,16 @@ export default function RankKeywordsTable({ keywords, isLoading, onRemove, onKey
           const changeA = a.positionChange ?? 0;
           const changeB = b.positionChange ?? 0;
           comparison = changeB - changeA; // Higher change first
+          break;
+        case 'difficulty':
+          const diffA = a.keywordDifficulty ?? 999;
+          const diffB = b.keywordDifficulty ?? 999;
+          comparison = diffA - diffB;
+          break;
+        case 'volume':
+          const volA = a.searchVolume ?? 0;
+          const volB = b.searchVolume ?? 0;
+          comparison = volB - volA; // Higher volume first
           break;
       }
 
@@ -160,9 +170,22 @@ export default function RankKeywordsTable({ keywords, isLoading, onRemove, onKey
               >
                 Change {sortField === 'change' && (sortDirection === 'asc' ? '↑' : '↓')}
               </th>
-              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">URL</th>
-              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
-                SERP Features
+              <th
+                className="px-4 py-3 text-left text-sm font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"
+                onClick={() => handleSort('volume')}
+                title="Monthly search volume"
+              >
+                Volume {sortField === 'volume' && (sortDirection === 'asc' ? '↑' : '↓')}
+              </th>
+              <th
+                className="px-4 py-3 text-left text-sm font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"
+                onClick={() => handleSort('difficulty')}
+                title="Keyword difficulty (0-100)"
+              >
+                KD {sortField === 'difficulty' && (sortDirection === 'asc' ? '↑' : '↓')}
+              </th>
+              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900" title="Search intent">
+                Intent
               </th>
               <th className="w-12 px-4 py-3"></th>
             </tr>
@@ -198,20 +221,13 @@ export default function RankKeywordsTable({ keywords, isLoading, onRemove, onKey
                   <PositionChange change={keyword.positionChange} />
                 </td>
                 <td className="px-4 py-3">
-                  {keyword.latestUrl && (
-                    <a
-                      href={keyword.latestUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm text-blue-600 hover:underline truncate max-w-[200px] block"
-                    >
-                      {new URL(keyword.latestUrl).pathname}
-                    </a>
-                  )}
+                  <VolumeDisplay volume={keyword.searchVolume} />
                 </td>
                 <td className="px-4 py-3">
-                  {/* SERP features will be added later */}
-                  <span className="text-xs text-gray-400">—</span>
+                  <DifficultyBadge difficulty={keyword.keywordDifficulty} />
+                </td>
+                <td className="px-4 py-3">
+                  <IntentBadge intent={keyword.searchIntent} />
                 </td>
                 <td className="px-4 py-3">
                   <button
@@ -278,6 +294,65 @@ function PositionChange({ change }: { change: number | null | undefined }) {
     >
       {improved ? <ChevronUpIcon className="w-4 h-4" /> : <ChevronDownIcon className="w-4 h-4" />}
       {Math.abs(change)}
+    </span>
+  );
+}
+
+function VolumeDisplay({ volume }: { volume: number | null | undefined }) {
+  if (volume === null || volume === undefined) {
+    return <span className="text-gray-400 text-sm">—</span>;
+  }
+
+  // Format with K/M suffix for large numbers
+  const formatted = volume >= 1000000
+    ? `${(volume / 1000000).toFixed(1)}M`
+    : volume >= 1000
+      ? `${(volume / 1000).toFixed(1)}K`
+      : volume.toString();
+
+  return <span className="text-sm text-gray-700">{formatted}</span>;
+}
+
+function DifficultyBadge({ difficulty }: { difficulty: number | null | undefined }) {
+  if (difficulty === null || difficulty === undefined) {
+    return <span className="text-gray-400 text-sm">—</span>;
+  }
+
+  const bgColor =
+    difficulty <= 20
+      ? 'bg-green-100 text-green-800'
+      : difficulty <= 40
+        ? 'bg-lime-100 text-lime-800'
+        : difficulty <= 60
+          ? 'bg-yellow-100 text-yellow-800'
+          : difficulty <= 80
+            ? 'bg-orange-100 text-orange-800'
+            : 'bg-red-100 text-red-800';
+
+  return (
+    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${bgColor}`}>
+      {difficulty}
+    </span>
+  );
+}
+
+function IntentBadge({ intent }: { intent: string | null | undefined }) {
+  if (!intent) {
+    return <span className="text-gray-400 text-sm">—</span>;
+  }
+
+  const config: Record<string, { bg: string; label: string }> = {
+    informational: { bg: 'bg-blue-100 text-blue-700', label: 'Info' },
+    navigational: { bg: 'bg-purple-100 text-purple-700', label: 'Nav' },
+    commercial: { bg: 'bg-amber-100 text-amber-700', label: 'Comm' },
+    transactional: { bg: 'bg-green-100 text-green-700', label: 'Trans' },
+  };
+
+  const { bg, label } = config[intent] || { bg: 'bg-gray-100 text-gray-700', label: intent };
+
+  return (
+    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${bg}`}>
+      {label}
     </span>
   );
 }

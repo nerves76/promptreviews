@@ -54,6 +54,17 @@ export interface RankGroupKeyword {
   phrase?: string;
   searchQuery?: string;
   reviewPhrase?: string;
+  // SEO metrics from keywords table
+  searchIntent?: 'informational' | 'navigational' | 'commercial' | 'transactional' | null;
+  keywordDifficulty?: number | null;
+  searchVolume?: number | null;
+  cpc?: number | null;
+  competitionLevel?: 'LOW' | 'MEDIUM' | 'HIGH' | null;
+  searchVolumeTrend?: {
+    monthly: number | null;
+    quarterly: number | null;
+    yearly: number | null;
+  } | null;
   // Computed from latest check
   latestPosition?: number | null;
   latestUrl?: string | null;
