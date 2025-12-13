@@ -297,18 +297,6 @@ export default function RankGroupDetailPage() {
                               </div>
                             )}
 
-                            {/* AI Generated Badge */}
-                            {keywordDetails.aiGenerated && (
-                              <div className="pt-4 border-t">
-                                <span className="inline-flex items-center gap-1 px-2 py-1 bg-indigo-100 text-indigo-700 text-xs rounded-full">
-                                  <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-                                  </svg>
-                                  AI Enhanced
-                                </span>
-                              </div>
-                            )}
-
                             {/* Stats */}
                             <div className="pt-4 border-t">
                               <h3 className="text-sm font-medium text-gray-500 mb-2">Usage Stats</h3>

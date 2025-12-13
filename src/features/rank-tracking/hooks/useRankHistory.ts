@@ -105,10 +105,13 @@ export function useRankHistory(
 
     try {
       const response = await apiClient.post<{
-        results: RankCheck[];
+        success: boolean;
+        results?: RankCheck[];
         balance?: any;
         error?: string;
-      }>(`/rank-tracking/groups/${groupId}/check`, {
+        creditsRemaining?: number;
+      }>(`/rank-tracking/check`, {
+        groupId,
         keywordIds: keywordId ? [keywordId] : undefined,
       });
 
