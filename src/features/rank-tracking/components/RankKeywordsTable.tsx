@@ -173,18 +173,18 @@ export default function RankKeywordsTable({ keywords, isLoading, onRemove, onKey
               <th
                 className="px-4 py-3 text-left text-sm font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"
                 onClick={() => handleSort('volume')}
-                title="Monthly search volume"
+                title="Average monthly searches on Google"
               >
                 Volume {sortField === 'volume' && (sortDirection === 'asc' ? '↑' : '↓')}
               </th>
               <th
                 className="px-4 py-3 text-left text-sm font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"
                 onClick={() => handleSort('difficulty')}
-                title="Keyword difficulty (0-100)"
+                title="Keyword Difficulty: How hard it is to rank (0-100). Lower is easier."
               >
                 KD {sortField === 'difficulty' && (sortDirection === 'asc' ? '↑' : '↓')}
               </th>
-              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900" title="Search intent">
+              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900" title="Search intent: What the searcher is trying to do (Info=learn, Nav=find site, Comm=research purchase, Trans=buy now)">
                 Intent
               </th>
               <th className="w-12 px-4 py-3"></th>
@@ -300,7 +300,7 @@ function PositionChange({ change }: { change: number | null | undefined }) {
 
 function VolumeDisplay({ volume }: { volume: number | null | undefined }) {
   if (volume === null || volume === undefined) {
-    return <span className="text-gray-400 text-sm">—</span>;
+    return <span className="text-gray-400 text-sm" title="No volume data yet">—</span>;
   }
 
   // Format with K/M suffix for large numbers
@@ -310,13 +310,24 @@ function VolumeDisplay({ volume }: { volume: number | null | undefined }) {
       ? `${(volume / 1000).toFixed(1)}K`
       : volume.toString();
 
-  return <span className="text-sm text-gray-700">{formatted}</span>;
+  return (
+    <span className="text-sm text-gray-700" title={`${volume.toLocaleString()} monthly searches`}>
+      {formatted}
+    </span>
+  );
 }
 
 function DifficultyBadge({ difficulty }: { difficulty: number | null | undefined }) {
   if (difficulty === null || difficulty === undefined) {
-    return <span className="text-gray-400 text-sm">—</span>;
+    return <span className="text-gray-400 text-sm" title="No difficulty data yet">—</span>;
   }
+
+  const level =
+    difficulty <= 20 ? 'Very Easy'
+      : difficulty <= 40 ? 'Easy'
+        : difficulty <= 60 ? 'Moderate'
+          : difficulty <= 80 ? 'Hard'
+            : 'Very Hard';
 
   const bgColor =
     difficulty <= 20
@@ -330,7 +341,10 @@ function DifficultyBadge({ difficulty }: { difficulty: number | null | undefined
             : 'bg-red-100 text-red-800';
 
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${bgColor}`}>
+    <span
+      className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${bgColor}`}
+      title={`${level} to rank (${difficulty}/100)`}
+    >
       {difficulty}
     </span>
   );
@@ -338,20 +352,43 @@ function DifficultyBadge({ difficulty }: { difficulty: number | null | undefined
 
 function IntentBadge({ intent }: { intent: string | null | undefined }) {
   if (!intent) {
-    return <span className="text-gray-400 text-sm">—</span>;
+    return <span className="text-gray-400 text-sm" title="No intent data yet">—</span>;
   }
 
-  const config: Record<string, { bg: string; label: string }> = {
-    informational: { bg: 'bg-blue-100 text-blue-700', label: 'Info' },
-    navigational: { bg: 'bg-purple-100 text-purple-700', label: 'Nav' },
-    commercial: { bg: 'bg-amber-100 text-amber-700', label: 'Comm' },
-    transactional: { bg: 'bg-green-100 text-green-700', label: 'Trans' },
+  const config: Record<string, { bg: string; label: string; tooltip: string }> = {
+    informational: {
+      bg: 'bg-blue-100 text-blue-700',
+      label: 'Info',
+      tooltip: 'Informational: Searcher wants to learn something (e.g., "how to fix a leaky faucet")',
+    },
+    navigational: {
+      bg: 'bg-purple-100 text-purple-700',
+      label: 'Nav',
+      tooltip: 'Navigational: Searcher looking for a specific website or page (e.g., "yelp login")',
+    },
+    commercial: {
+      bg: 'bg-amber-100 text-amber-700',
+      label: 'Comm',
+      tooltip: 'Commercial: Searcher researching before purchase (e.g., "best plumber near me")',
+    },
+    transactional: {
+      bg: 'bg-green-100 text-green-700',
+      label: 'Trans',
+      tooltip: 'Transactional: Searcher ready to buy or take action (e.g., "hire plumber portland")',
+    },
   };
 
-  const { bg, label } = config[intent] || { bg: 'bg-gray-100 text-gray-700', label: intent };
+  const { bg, label, tooltip } = config[intent] || {
+    bg: 'bg-gray-100 text-gray-700',
+    label: intent,
+    tooltip: intent,
+  };
 
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${bg}`}>
+    <span
+      className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${bg}`}
+      title={tooltip}
+    >
       {label}
     </span>
   );
