@@ -115,7 +115,7 @@ export function KeywordDetailsSidebar({
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-gray-900/20 backdrop-blur-sm transition-opacity" />
+          <div className="fixed inset-0 bg-gray-900/20 transition-opacity" />
         </Transition.Child>
 
         <div className="fixed inset-0 overflow-hidden">
