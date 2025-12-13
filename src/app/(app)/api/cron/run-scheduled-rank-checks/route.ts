@@ -133,11 +133,11 @@ export async function GET(request: NextRequest) {
         // Get target domain from business
         const { data: business } = await supabase
           .from('businesses')
-          .select('website')
+          .select('business_website')
           .eq('account_id', accountId)
           .single();
 
-        if (!business?.website) {
+        if (!business?.business_website) {
           console.log(`⏭️ [Scheduled RankChecks] Group ${groupId} has no business website, skipping`);
           results.skipped++;
           results.details.push({
@@ -158,7 +158,7 @@ export async function GET(request: NextRequest) {
         }
 
         // Extract domain from website URL
-        const targetDomain = extractDomain(business.website);
+        const targetDomain = extractDomain(business.business_website);
 
         // Calculate credit cost (1 per keyword)
         const creditCost = calculateRankCheckCost(keywordCount);

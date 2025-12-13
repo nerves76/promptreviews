@@ -118,11 +118,11 @@ export async function POST(request: NextRequest) {
     // Get target domain from business profile
     const { data: business, error: businessError } = await serviceSupabase
       .from('businesses')
-      .select('website')
+      .select('business_website')
       .eq('account_id', accountId)
       .single();
 
-    if (businessError || !business?.website) {
+    if (businessError || !business?.business_website) {
       console.error('❌ [RankTracking] No business website found:', businessError);
       return NextResponse.json(
         { error: 'No target website found. Please set up your business profile first.' },
@@ -131,7 +131,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Extract domain from website URL
-    const targetDomain = extractDomain(business.website);
+    const targetDomain = extractDomain(business.business_website);
     if (!targetDomain) {
       return NextResponse.json(
         { error: 'Invalid website URL in business profile' },

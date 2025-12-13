@@ -451,11 +451,11 @@ For Phase 1, target domain is extracted from business profile:
 ```typescript
 const { data: business } = await serviceSupabase
   .from('businesses')
-  .select('website')
+  .select('business_website')
   .eq('account_id', accountId)
   .single();
 
-const targetDomain = extractDomain(business?.website);
+const targetDomain = extractDomain(business?.business_website);
 ```
 
 ## Next Steps
