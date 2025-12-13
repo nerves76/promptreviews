@@ -7,8 +7,9 @@
 
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import PageCard from '@/app/(app)/components/PageCard';
 import { Button } from '@/app/(app)/components/ui/button';
 import {
@@ -23,6 +24,7 @@ import { useKeywordDetails } from '@/features/keywords/hooks/useKeywords';
 import { ArrowLeftIcon, PlusIcon, PlayIcon, Cog6ToothIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
+import { useToast, ToastContainer } from '@/app/(app)/components/reviews/Toast';
 
 export default function RankGroupDetailPage() {
   const params = useParams();
@@ -42,6 +44,9 @@ export default function RankGroupDetailPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showScheduleSettings, setShowScheduleSettings] = useState(false);
   const [selectedKeywordId, setSelectedKeywordId] = useState<string | null>(null);
+
+  // Toast notifications
+  const { toasts, closeToast, error: showError, success: showSuccess } = useToast();
 
   // Fetch keyword details when one is selected
   const { keyword: keywordDetails, isLoading: detailsLoading } = useKeywordDetails(selectedKeywordId);
@@ -75,6 +80,16 @@ export default function RankGroupDetailPage() {
     const result = await runCheck();
     if (result.success) {
       refreshKeywords();
+      showSuccess(`Rank check complete! ${keywords.length} keyword${keywords.length !== 1 ? 's' : ''} checked.`);
+    } else if (result.error) {
+      // Show user-friendly error message
+      if (result.error.includes('No target website found')) {
+        showError('Please add your website URL in Business Profile settings before running rank checks.', 8000);
+      } else if (result.error.includes('Insufficient credits')) {
+        showError('Not enough credits for this rank check. Please add more credits.', 6000);
+      } else {
+        showError(result.error, 5000);
+      }
     }
   };
 
@@ -109,6 +124,9 @@ export default function RankGroupDetailPage() {
 
   return (
     <>
+      {/* Toast notifications */}
+      <ToastContainer toasts={toasts} onClose={closeToast} />
+
       <PageCard>
         {/* Back Button + Header */}
         <div className="mb-6">
