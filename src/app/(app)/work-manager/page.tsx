@@ -102,8 +102,8 @@ export default function WorkManagerDashboard() {
 
   const existingBoardAccountIds = boards.map((b) => b.account_id);
   const userAccounts: UserAccount[] = accounts?.map((a: any) => ({
-    account_id: a.account_id,
-    account_name: a.account_name,
+    account_id: a.id, // Account type uses 'id', not 'account_id'
+    account_name: a.name,
     business_name: a.business_name,
     first_name: a.first_name,
     last_name: a.last_name,
