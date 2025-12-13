@@ -38,7 +38,7 @@ export default function KeywordsPage() {
                 : 'bg-transparent text-white hover:bg-white/10'}
             `}
           >
-            <Icon name="FaBook" className="w-4 h-4" size={16} />
+            <Icon name="FaKey" className="w-4 h-4" size={16} />
             Library
           </Link>
           <Link
@@ -57,7 +57,7 @@ export default function KeywordsPage() {
 
       {/* Content in PageCard */}
       <PageCard
-        icon={<Icon name="FaBook" className="w-6 h-6 text-slate-blue" size={24} />}
+        icon={<Icon name="FaKey" className="w-6 h-6 text-slate-blue" size={24} />}
         topMargin="mt-8"
       >
         <KeywordManager />

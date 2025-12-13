@@ -129,7 +129,7 @@ export default function KeywordResearchPage() {
                 : 'bg-transparent text-white hover:bg-white/10'}
             `}
           >
-            <Icon name="FaBook" className="w-4 h-4" size={16} />
+            <Icon name="FaKey" className="w-4 h-4" size={16} />
             Library
           </Link>
           <Link
