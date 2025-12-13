@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Icon from '@/components/Icon';
+import PageCard from '@/app/(app)/components/PageCard';
 import { KeywordManager } from '@/features/keywords/components';
 
 /**
@@ -10,7 +11,7 @@ import { KeywordManager } from '@/features/keywords/components';
  *
  * Full-screen keyword management interface with subnav
  * for Library and Research tabs.
- * Design matches Prompt Pages convention.
+ * Design matches Prompt Pages convention with PageCard.
  */
 export default function KeywordsPage() {
   const pathname = usePathname();
@@ -54,12 +55,13 @@ export default function KeywordsPage() {
         </div>
       </div>
 
-      {/* Content */}
-      <div className="mt-12 mb-8 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <KeywordManager />
-        </div>
-      </div>
+      {/* Content in PageCard */}
+      <PageCard
+        icon={<Icon name="FaKey" className="w-6 h-6 text-slate-blue" size={24} />}
+        topMargin="mt-8"
+      >
+        <KeywordManager />
+      </PageCard>
     </div>
   );
 }
