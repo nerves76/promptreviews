@@ -111,9 +111,9 @@ const YourBusinessDropdown: React.FC<YourBusinessDropdownProps> = ({
 
   const menuItems = [
     { href: "/dashboard/business-profile", label: "Business Profile", icon: "FaStore", description: "Edit your business details" },
+    { href: "/dashboard/keywords", label: "Keywords", icon: "FaKey", description: "Manage and research keywords" },
     { href: "/dashboard/local-ranking-grids", label: "Local Ranking Grids", icon: "FaMapMarker", description: "Track your local search rankings" },
     { href: "/dashboard/rank-tracking", label: "Rank Tracking", icon: "FaChartLine", description: "Track your Google organic rankings" },
-    { href: "/dashboard/keywords", label: "Keywords", icon: "FaKey", description: "Manage and research keywords" },
   ];
 
   // Check if any menu item is active
