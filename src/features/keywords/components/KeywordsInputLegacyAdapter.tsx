@@ -555,7 +555,7 @@ export default function KeywordsInputLegacyAdapter({
           <div className="bg-blue-100 px-4 py-3 flex items-center justify-between border-b border-blue-200">
             <div className="flex items-center gap-2">
               <Icon name="FaBookmark" className="w-4 h-4 text-blue-700" />
-              <h4 className="text-sm font-semibold text-blue-900">Keyword Concept Library</h4>
+              <h4 className="text-sm font-semibold text-blue-900">Keyword concepts library</h4>
             </div>
             <button
               type="button"

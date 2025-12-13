@@ -288,7 +288,7 @@ export function GeoGridKeywordPicker({
               </button>
             </div>
             <p className="text-xs text-gray-500 mt-1">
-              New keywords will be added to your Keyword Concept Library and tracked for geo-grid ranking.
+              New keywords will be added to your keyword concepts library and tracked for geo-grid ranking.
             </p>
           </div>
 
