@@ -9,6 +9,7 @@ import { useState } from 'react';
 import Icon from '@/components/Icon';
 import { BusinessLocation } from '@/types/business';
 import { processGoogleServiceItem } from '@/utils/google-service-types';
+import { apiClient } from '@/utils/apiClient';
 
 
 interface BusinessInfo {
@@ -77,17 +78,13 @@ export default function LoadBusinessInfoButton({
     try {
       const selectedLocation = locations.find(loc => loc.id === referenceLocationId);
 
-      const response = await fetch('/api/business-information/location-details', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ locationId: referenceLocationId }),
-      });
+      // Use apiClient to ensure X-Selected-Account header is sent
+      const data = await apiClient.post<{ success: boolean; location: any; error?: string }>(
+        '/business-information/location-details',
+        { locationId: referenceLocationId }
+      );
 
-      const data = await response.json();
-
-      if (response.ok && data.success && data.location) {
+      if (data.success && data.location) {
         
         // Deep inspection of the location object to find categories
         
