@@ -442,15 +442,9 @@ function KeywordDetailsSidebar({
         </div>
 
         <div className="space-y-4">
-          {/* Keyword chip */}
-          <div>
-            <KeywordChip keyword={keyword} size="lg" />
-            {keyword.aiGenerated && (
-              <span className="inline-flex items-center gap-1 text-xs text-indigo-500 mt-2">
-                <Icon name="FaSparkles" className="w-3 h-3" />
-                AI Generated
-              </span>
-            )}
+          {/* Keyword phrase */}
+          <div className="px-4 py-2 bg-indigo-50 border border-indigo-200 rounded-lg">
+            <span className="font-medium text-indigo-700">{keyword.phrase}</span>
           </div>
 
           {/* Stats grid */}
