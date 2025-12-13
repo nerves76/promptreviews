@@ -341,18 +341,19 @@ export default function LocalRankingGridsPage() {
                   : 'Track your Google Maps visibility across geographic points.'}
             </p>
           </div>
-          {/* Back button */}
-          <button
-            onClick={() => {
-              setShowSettings(false);
-              setIsAddingNewLocation(false);
-              if (!hasConfig) router.push('/dashboard');
-            }}
-            className="flex items-center gap-2 px-3 py-2 border-2 border-slate-blue text-slate-blue rounded hover:bg-indigo-50 text-sm font-semibold"
-          >
-            <ArrowLeftIcon className="w-4 h-4" />
-            {hasConfig ? 'Back' : 'Cancel'}
-          </button>
+          {/* Back button - only show when editing settings, not on initial setup */}
+          {hasConfig && (
+            <button
+              onClick={() => {
+                setShowSettings(false);
+                setIsAddingNewLocation(false);
+              }}
+              className="flex items-center gap-2 px-3 py-2 border-2 border-slate-blue text-slate-blue rounded hover:bg-indigo-50 text-sm font-semibold"
+            >
+              <ArrowLeftIcon className="w-4 h-4" />
+              Back
+            </button>
+          )}
         </div>
 
         <GeoGridSetupWizard

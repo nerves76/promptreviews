@@ -697,8 +697,8 @@ export function GeoGridSetupWizard({
   };
 
   return (
-    <div className="bg-white rounded-xl border-2 border-gray-200 shadow-lg p-6">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Set Up Geo Grid Tracking</h2>
+    <div>
+      <h2 className="text-2xl font-bold text-gray-900 mb-6">Set Up Local Ranking Grid</h2>
 
       {/* Progress Steps */}
       <div className="flex items-center justify-between mb-8">
