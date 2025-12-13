@@ -199,6 +199,8 @@ export interface KeywordData {
   locationScope: LocationScope | null;
   aiGenerated: boolean;
   aiSuggestions: Record<string, unknown> | null;
+  // Rank tracking usage
+  isUsedInRankTracking?: boolean;
 }
 
 /**

@@ -98,10 +98,21 @@ export async function GET(request: NextRequest) {
       promptPageKeywordIds = new Set(usageData?.map(u => u.keyword_id) || []);
     }
 
+    // Check which keywords are used in rank tracking
+    const { data: rankTrackingKeywords } = await serviceSupabase
+      .from('rank_group_keywords')
+      .select('keyword_id')
+      .eq('account_id', accountId);
+
+    const rankTrackedKeywordIds = new Set(rankTrackingKeywords?.map(r => r.keyword_id) || []);
+
     // Transform and filter results
     let transformedKeywords: KeywordData[] = (keywords || []).map((kw: any) => {
       const groupName = kw.keyword_groups?.name || null;
-      return transformKeywordToResponse(kw, groupName);
+      const transformed = transformKeywordToResponse(kw, groupName);
+      // Add rank tracking usage flag
+      (transformed as any).isUsedInRankTracking = rankTrackedKeywordIds.has(kw.id);
+      return transformed;
     });
 
     // Filter by prompt page if specified

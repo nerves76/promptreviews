@@ -614,9 +614,15 @@ function KeywordDetailsSidebar({
               {/* Search Query */}
               <div>
                 <label className="text-xs font-medium text-gray-600 block mb-1">
-                  Search Query (for Local Ranking Grid tracking)
+                  Search Query (for rank tracking)
                 </label>
-                {isEditing ? (
+                {keyword.isUsedInRankTracking && (
+                  <div className="mb-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-700">
+                    <Icon name="FaExclamationTriangle" className="w-3 h-3 inline mr-1" />
+                    Used in rank tracking. Create a new keyword to track a different term.
+                  </div>
+                )}
+                {isEditing && !keyword.isUsedInRankTracking ? (
                   <input
                     type="text"
                     value={editedSearchQuery}
