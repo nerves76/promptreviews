@@ -6,6 +6,7 @@ import { apiClient } from "@/utils/apiClient";
 import { useAuth } from "@/auth";
 import AppLoader from "@/app/(app)/components/AppLoader";
 import Icon, { IconName } from "@/components/Icon";
+import GlassSuccessModal from "@/app/(app)/components/GlassSuccessModal";
 
 interface CreditBalance {
   accountId: string;
@@ -237,24 +238,20 @@ export default function CreditsPage() {
   return (
     <div className="min-h-screen p-4 sm:p-6 pt-16 sm:pt-20">
       <div className="max-w-6xl mx-auto">
-        {/* Success Banner */}
-        {showSuccess && (
-          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl flex items-center gap-3 shadow-sm">
-            <Icon name="FaCheckCircle" className="text-green-500" size={24} />
-            <div>
-              <p className="font-semibold text-green-800">Purchase successful!</p>
-              <p className="text-sm text-green-600">
-                {successCredits} credits have been added to your account.
-              </p>
-            </div>
-            <button
-              onClick={() => setShowSuccess(false)}
-              className="ml-auto text-green-400 hover:text-green-600"
-            >
-              <Icon name="FaTimes" size={16} />
-            </button>
-          </div>
-        )}
+        {/* Success Modal */}
+        <GlassSuccessModal
+          isOpen={showSuccess}
+          onClose={() => setShowSuccess(false)}
+          title="Purchase Successful!"
+          message={`${successCredits} credits have been added to your account.`}
+          detail="Your credits are ready to use for rank tracking, Local Ranking Grids, and more."
+          iconName="FaCoins"
+          primaryAction={{
+            label: "Continue",
+            onClick: () => setShowSuccess(false),
+            iconName: "FaCheckCircle",
+          }}
+        />
 
         {/* Header */}
         <div className="mb-8">
