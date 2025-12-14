@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { apiClient } from "@/utils/apiClient";
 import { useAuth } from "@/auth";
 import AppLoader from "@/app/(app)/components/AppLoader";
-import Icon from "@/components/Icon";
+import Icon, { IconName } from "@/components/Icon";
 
 interface CreditBalance {
   accountId: string;
@@ -207,7 +207,7 @@ export default function CreditsPage() {
     });
   };
 
-  const getTransactionIcon = (type: string) => {
+  const getTransactionIcon = (type: string): IconName => {
     switch (type) {
       case "purchase":
         return "FaCreditCard";
@@ -461,7 +461,7 @@ export default function CreditsPage() {
               {ledger.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
                   <Icon
-                    name="FaHistory"
+                    name="FaClock"
                     className="mx-auto mb-3 opacity-50"
                     size={32}
                   />
