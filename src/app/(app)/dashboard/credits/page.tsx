@@ -72,23 +72,29 @@ export default function CreditsPage() {
   useEffect(() => {
     const success = searchParams.get("success");
     const credits = searchParams.get("credits");
+    const sessionId = searchParams.get("session_id");
 
-    if (success === "1" && credits) {
-      setShowSuccess(true);
-      setSuccessCredits(parseInt(credits, 10));
-
-      // Clear URL params
+    if (success === "1" && credits && sessionId) {
+      // Clear URL params first
       window.history.replaceState({}, "", "/dashboard/credits");
 
-      // Refresh balance after webhook processes
-      const refreshInterval = setInterval(() => {
-        fetchBalance();
-      }, 2000);
-
-      // Stop refreshing after 10 seconds
-      setTimeout(() => {
-        clearInterval(refreshInterval);
-      }, 10000);
+      // Call finalize endpoint to ensure credits are granted
+      // This is a backup in case the Stripe webhook didn't process
+      apiClient
+        .post("/credits/finalize", { sessionId })
+        .then((result: any) => {
+          console.log("✅ Credits finalized:", result);
+          setShowSuccess(true);
+          setSuccessCredits(result.credits || parseInt(credits, 10));
+          // Refresh balance
+          fetchBalance();
+        })
+        .catch((error) => {
+          console.error("❌ Failed to finalize credits:", error);
+          // Still show success since payment went through
+          setShowSuccess(true);
+          setSuccessCredits(parseInt(credits, 10));
+        });
     }
   }, [searchParams]);
 
