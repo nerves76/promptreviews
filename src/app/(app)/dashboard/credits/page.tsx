@@ -75,7 +75,11 @@ export default function CreditsPage() {
     const sessionId = searchParams.get("session_id");
 
     if (success === "1" && credits && sessionId) {
-      // Clear URL params first
+      // Show success banner immediately
+      setShowSuccess(true);
+      setSuccessCredits(parseInt(credits, 10));
+
+      // Clear URL params
       window.history.replaceState({}, "", "/dashboard/credits");
 
       // Call finalize endpoint to ensure credits are granted
@@ -84,16 +88,20 @@ export default function CreditsPage() {
         .post("/credits/finalize", { sessionId })
         .then((result: any) => {
           console.log("✅ Credits finalized:", result);
-          setShowSuccess(true);
-          setSuccessCredits(result.credits || parseInt(credits, 10));
-          // Refresh balance
-          fetchBalance();
+          // Update credits if different from URL param
+          if (result.credits) {
+            setSuccessCredits(result.credits);
+          }
         })
         .catch((error) => {
           console.error("❌ Failed to finalize credits:", error);
-          // Still show success since payment went through
-          setShowSuccess(true);
-          setSuccessCredits(parseInt(credits, 10));
+          // Credits may have been granted by webhook - that's OK
+        })
+        .finally(() => {
+          // Always refresh balance after a short delay to let webhook/finalize complete
+          setTimeout(() => {
+            fetchBalance();
+          }, 500);
         });
     }
   }, [searchParams]);
