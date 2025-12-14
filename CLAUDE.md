@@ -15,6 +15,52 @@ This file provides important context for AI assistants working on the PromptRevi
 - This applies to: headings, button labels, menu items, form labels, etc.
 - Exceptions: proper nouns, acronyms, product names (e.g., "Local Ranking Grid")
 
+## ⚠️ CRITICAL: Icon System
+**NEVER guess icon names.** Only use icons from the `IconName` type in `/src/components/Icon.tsx`.
+
+### Usage
+```tsx
+import Icon, { IconName } from "@/components/Icon";
+
+<Icon name="FaStar" size={16} className="text-gray-500" />
+```
+
+### Available Icons (commonly used)
+```
+FaCheck, FaCheckCircle, FaTimes, FaPlus, FaMinus, FaEdit, FaTrash,
+FaStar, FaRegStar, FaHeart, FaThumbsUp, FaSmile, FaFrown, FaMeh,
+FaUser, FaUsers, FaUserCircle, FaUserPlus,
+FaCog, FaWrench, FaTools, FaKey, FaLock, FaUnlock, FaShieldAlt,
+FaSearch, FaFilter, FaEye, FaEyeSlash,
+FaArrowLeft, FaArrowRight, FaChevronDown, FaChevronUp, FaChevronLeft, FaChevronRight,
+FaCalendarAlt, FaClock, FaBell,
+FaEnvelope, FaPhone, FaMobile, FaGlobe, FaLink, FaShare,
+FaImage, FaCamera, FaVideo, FaUpload, FaFileAlt,
+FaCreditCard, FaCoins, FaWallet, FaGift,
+FaStore, FaBuilding, FaBriefcase, FaMapMarker,
+FaChartLine, FaRocket, FaTrophy, FaLightbulb,
+FaInfoCircle, FaQuestionCircle, FaExclamationTriangle,
+FaSpinner, FaRedo, FaCopy, FaSave, FaBookmark,
+FaGoogle, FaFacebook, FaLinkedin, FaYelp, FaTripadvisor
+```
+
+### Icons that DO NOT exist (common mistakes)
+```
+❌ FaHistory (use FaClock)
+❌ FaSync (use FaRedo)
+❌ FaUndo (use FaRedo)
+❌ FaShoppingCart (use FaCreditCard)
+❌ FaExchangeAlt (use FaCoins)
+❌ FaBox (use FaBoxOpen)
+❌ FaClose (use FaTimes)
+❌ FaWarning (use FaExclamationTriangle)
+```
+
+### How to verify an icon exists
+```bash
+grep "FaIconName" src/components/Icon.tsx
+```
+
 ## ⚠️ IMPORTANT: Known Issues
 - **Turbopack is currently broken** - DO NOT use the `--turbo` flag with Next.js dev server
 - The `npm run dev` command has been modified to run WITHOUT Turbopack
