@@ -54,8 +54,23 @@ export default function CreditsPage() {
   const [ledger, setLedger] = useState<LedgerEntry[]>([]);
   const [ledgerTotal, setLedgerTotal] = useState(0);
   const [purchasing, setPurchasing] = useState<string | null>(null);
-  const [showSuccess, setShowSuccess] = useState(false);
-  const [successCredits, setSuccessCredits] = useState(0);
+  const [successHandled, setSuccessHandled] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(() => {
+    // Check URL params on initial render (client-side only)
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('success') === '1';
+    }
+    return false;
+  });
+  const [successCredits, setSuccessCredits] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const credits = params.get('credits');
+      return credits ? parseInt(credits, 10) : 0;
+    }
+    return 0;
+  });
   const [purchaseType, setPurchaseType] = useState<"one_time" | "subscription">("one_time");
   const [openingPortal, setOpeningPortal] = useState(false);
 
@@ -68,16 +83,18 @@ export default function CreditsPage() {
   const [gridSize, setGridSize] = useState(25); // 5x5 = 25 points
   const [gridKeywords, setGridKeywords] = useState(5);
 
-  // Check for success redirect from Stripe
+  // Check for success redirect from Stripe - only run once
   useEffect(() => {
-    const success = searchParams.get("success");
-    const credits = searchParams.get("credits");
-    const sessionId = searchParams.get("session_id");
+    if (successHandled) return;
+
+    const params = new URLSearchParams(window.location.search);
+    const success = params.get("success");
+    const credits = params.get("credits");
+    const sessionId = params.get("session_id");
 
     if (success === "1" && credits && sessionId) {
-      // Show success banner immediately
-      setShowSuccess(true);
-      setSuccessCredits(parseInt(credits, 10));
+      // Mark as handled immediately to prevent duplicate processing
+      setSuccessHandled(true);
 
       // Clear URL params
       window.history.replaceState({}, "", "/dashboard/credits");
@@ -98,13 +115,11 @@ export default function CreditsPage() {
           // Credits may have been granted by webhook - that's OK
         })
         .finally(() => {
-          // Always refresh balance after a short delay to let webhook/finalize complete
-          setTimeout(() => {
-            fetchBalance();
-          }, 500);
+          // Refresh balance
+          fetchBalance();
         });
     }
-  }, [searchParams]);
+  }, [successHandled]);
 
   const fetchBalance = useCallback(async () => {
     try {
