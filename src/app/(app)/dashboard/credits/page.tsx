@@ -245,7 +245,7 @@ export default function CreditsPage() {
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2 text-white">Credits</h1>
           <p className="text-white/80">
-            Manage your credits for Local Ranking Grid checks and other features
+            Manage and purchase credits for keyword research, rank tracking, Local Ranking Grid and more. Set up monthly credit purchases to cover automated rank checks that exceed your monthly credits.
           </p>
         </div>
 
