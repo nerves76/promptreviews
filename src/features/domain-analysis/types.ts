@@ -211,6 +211,20 @@ export interface DomainAnalysisResult {
   techCost: number;
   whoisCost: number;
   totalCost: number;
+
+  // AI Insights
+  aiInsights?: DomainAIInsights;
+}
+
+export interface DomainAIInsights {
+  summary: string;
+  strengths: string[];
+  weaknesses: string[];
+  opportunities: string[];
+  techStackAnalysis: string;
+  seoAssessment: string;
+  competitivePosition: string;
+  recommendations: string[];
 }
 
 export interface TechnologyCategory {

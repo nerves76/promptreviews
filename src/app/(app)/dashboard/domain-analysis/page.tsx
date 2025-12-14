@@ -45,6 +45,7 @@ export default function DomainAnalysisPage() {
   const [credits, setCredits] = useState<CreditBalance | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [exporting, setExporting] = useState<'csv' | 'pdf' | null>(null);
+  const [includeAiInsights, setIncludeAiInsights] = useState(true);
 
   // Refs
   const resultsRef = useRef<HTMLDivElement>(null);
@@ -95,7 +96,7 @@ export default function DomainAnalysisPage() {
         creditsUsed: number;
         creditsRemaining: number;
         error?: string;
-      }>('/domain-analysis/analyze', { domain: domain.trim() });
+      }>('/domain-analysis/analyze', { domain: domain.trim(), includeAiInsights });
 
       if (response.success && response.result) {
         setResult(response.result);
@@ -120,7 +121,7 @@ export default function DomainAnalysisPage() {
       setAnalyzing(false);
       fetchCredits(); // Refresh balance
     }
-  }, [domain, showError, showSuccess, fetchCredits]);
+  }, [domain, includeAiInsights, showError, showSuccess, fetchCredits]);
 
   // Handle Enter key
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -239,6 +240,29 @@ export default function DomainAnalysisPage() {
         if (result.socialGraphUrls?.length) {
           rows.push(['Social Links', result.socialGraphUrls.join(', ')]);
         }
+        rows.push([]);
+      }
+
+      // AI Insights
+      if (result.aiInsights) {
+        rows.push(['AI INSIGHTS']);
+        rows.push(['Summary', result.aiInsights.summary]);
+        rows.push([]);
+        rows.push(['Strengths']);
+        result.aiInsights.strengths.forEach((s, i) => rows.push([`  ${i + 1}`, s]));
+        rows.push([]);
+        rows.push(['Weaknesses']);
+        result.aiInsights.weaknesses.forEach((w, i) => rows.push([`  ${i + 1}`, w]));
+        rows.push([]);
+        rows.push(['Opportunities']);
+        result.aiInsights.opportunities.forEach((o, i) => rows.push([`  ${i + 1}`, o]));
+        rows.push([]);
+        rows.push(['Tech Stack Analysis', result.aiInsights.techStackAnalysis]);
+        rows.push(['SEO Assessment', result.aiInsights.seoAssessment]);
+        rows.push(['Competitive Position', result.aiInsights.competitivePosition]);
+        rows.push([]);
+        rows.push(['Recommendations']);
+        result.aiInsights.recommendations.forEach((r, i) => rows.push([`  ${i + 1}`, r]));
       }
 
       // Convert to CSV
@@ -424,19 +448,30 @@ export default function DomainAnalysisPage() {
             </button>
           </div>
 
-          {/* Credit info */}
-          <div className="flex items-center justify-between mt-4 text-sm">
-            <span className={`${hasEnoughCredits ? 'text-gray-500' : 'text-red-600'}`}>
-              {credits?.total || 0} credits available
-            </span>
-            {!hasEnoughCredits && (
-              <button
-                onClick={() => router.push('/dashboard/credits')}
-                className="text-slate-blue hover:text-slate-blue/80 font-medium"
-              >
-                Buy credits
-              </button>
-            )}
+          {/* Options */}
+          <div className="flex items-center justify-between mt-4">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={includeAiInsights}
+                onChange={(e) => setIncludeAiInsights(e.target.checked)}
+                className="w-4 h-4 rounded border-gray-300 text-slate-blue focus:ring-slate-blue"
+              />
+              <span className="text-sm text-gray-700">Include AI insights</span>
+            </label>
+            <div className="flex items-center gap-4 text-sm">
+              <span className={`${hasEnoughCredits ? 'text-gray-500' : 'text-red-600'}`}>
+                {credits?.total || 0} credits available
+              </span>
+              {!hasEnoughCredits && (
+                <button
+                  onClick={() => router.push('/dashboard/credits')}
+                  className="text-slate-blue hover:text-slate-blue/80 font-medium"
+                >
+                  Buy credits
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Error display */}
@@ -479,6 +514,85 @@ export default function DomainAnalysisPage() {
             </div>
 
             <div ref={resultsRef} className="space-y-6">
+            {/* AI Insights */}
+            {result.aiInsights && (
+              <ResultSection title="AI insights" icon="FaLightbulb">
+                {/* Summary */}
+                <p className="text-gray-700 mb-4">{result.aiInsights.summary}</p>
+
+                {/* SWOT-style grid */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                  {/* Strengths */}
+                  <div className="bg-green-50 rounded-lg p-4">
+                    <h4 className="text-sm font-semibold text-green-800 mb-2 flex items-center gap-2">
+                      <Icon name="FaCheck" size={14} className="text-green-600" />
+                      Strengths
+                    </h4>
+                    <ul className="space-y-1">
+                      {result.aiInsights.strengths.map((item, i) => (
+                        <li key={i} className="text-sm text-green-700">• {item}</li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {/* Weaknesses */}
+                  <div className="bg-red-50 rounded-lg p-4">
+                    <h4 className="text-sm font-semibold text-red-800 mb-2 flex items-center gap-2">
+                      <Icon name="FaExclamationTriangle" size={14} className="text-red-600" />
+                      Weaknesses
+                    </h4>
+                    <ul className="space-y-1">
+                      {result.aiInsights.weaknesses.map((item, i) => (
+                        <li key={i} className="text-sm text-red-700">• {item}</li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {/* Opportunities */}
+                  <div className="bg-blue-50 rounded-lg p-4">
+                    <h4 className="text-sm font-semibold text-blue-800 mb-2 flex items-center gap-2">
+                      <Icon name="FaRocket" size={14} className="text-blue-600" />
+                      Opportunities
+                    </h4>
+                    <ul className="space-y-1">
+                      {result.aiInsights.opportunities.map((item, i) => (
+                        <li key={i} className="text-sm text-blue-700">• {item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+
+                {/* Detailed assessments */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <h4 className="text-sm font-semibold text-gray-700 mb-2">Tech stack</h4>
+                    <p className="text-sm text-gray-600">{result.aiInsights.techStackAnalysis}</p>
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <h4 className="text-sm font-semibold text-gray-700 mb-2">SEO assessment</h4>
+                    <p className="text-sm text-gray-600">{result.aiInsights.seoAssessment}</p>
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <h4 className="text-sm font-semibold text-gray-700 mb-2">Competitive position</h4>
+                    <p className="text-sm text-gray-600">{result.aiInsights.competitivePosition}</p>
+                  </div>
+                </div>
+
+                {/* Recommendations */}
+                <div className="bg-yellow-50 rounded-lg p-4">
+                  <h4 className="text-sm font-semibold text-yellow-800 mb-2 flex items-center gap-2">
+                    <Icon name="FaStar" size={14} className="text-yellow-600" />
+                    Recommendations
+                  </h4>
+                  <ul className="space-y-1">
+                    {result.aiInsights.recommendations.map((item, i) => (
+                      <li key={i} className="text-sm text-yellow-700">• {item}</li>
+                    ))}
+                  </ul>
+                </div>
+              </ResultSection>
+            )}
+
             {/* Domain Overview */}
             <ResultSection title="Overview" icon="FaInfoCircle">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

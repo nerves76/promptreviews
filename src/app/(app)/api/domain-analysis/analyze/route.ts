@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import OpenAI from 'openai';
 import { createServerSupabaseClient } from '@/auth/providers/supabase';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 import {
@@ -14,7 +15,104 @@ import {
   normalizeDomain,
   isValidDomain,
 } from '@/features/domain-analysis/api/dataforseo-domain-client';
-import { DOMAIN_ANALYSIS_CREDIT_COST } from '@/features/domain-analysis/types';
+import { DOMAIN_ANALYSIS_CREDIT_COST, DomainAnalysisResult, DomainAIInsights } from '@/features/domain-analysis/types';
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
+/**
+ * Generate AI insights from domain analysis data
+ */
+async function generateAIInsights(data: DomainAnalysisResult): Promise<DomainAIInsights | null> {
+  try {
+    // Build context about the domain
+    const techList = data.technologies
+      ? Object.entries(data.technologies)
+          .flatMap(([cat, subcats]) =>
+            Object.entries(subcats).flatMap(([subcat, techs]) =>
+              techs.map((t) => `${t.name}${t.version ? ` (${t.version})` : ''}`)
+            )
+          )
+          .slice(0, 30)
+          .join(', ')
+      : 'Unknown';
+
+    const positionSummary = data.organicPositions
+      ? `Top 3: ${data.organicPositions.pos_1 + data.organicPositions.pos_2_3}, Top 10: ${data.organicPositions.pos_1 + data.organicPositions.pos_2_3 + data.organicPositions.pos_4_10}, Top 20: ${data.organicPositions.pos_1 + data.organicPositions.pos_2_3 + data.organicPositions.pos_4_10 + data.organicPositions.pos_11_20}`
+      : 'N/A';
+
+    const prompt = `Analyze this domain and provide competitive insights:
+
+DOMAIN: ${data.domain}
+TITLE: ${data.title || 'N/A'}
+DESCRIPTION: ${data.description || 'N/A'}
+
+SEO METRICS:
+- Domain Rank: ${data.domainRank?.toLocaleString() || 'N/A'}
+- Est. Monthly Organic Traffic: ${data.organicEtv ? Math.round(data.organicEtv).toLocaleString() : 'N/A'}
+- Traffic Value: ${data.estimatedPaidTrafficCost ? `$${Math.round(data.estimatedPaidTrafficCost).toLocaleString()}/mo` : 'N/A'}
+- Total Organic Keywords: ${data.organicCount?.toLocaleString() || 'N/A'}
+- Keyword Position Distribution: ${positionSummary}
+
+BACKLINKS:
+- Referring Domains: ${data.referringDomains?.toLocaleString() || 'N/A'}
+- Total Backlinks: ${data.backlinks?.toLocaleString() || 'N/A'}
+- Dofollow: ${data.dofollow?.toLocaleString() || 'N/A'}
+
+DOMAIN INFO:
+- Created: ${data.createdDatetime || 'N/A'}
+- Registrar: ${data.registrar || 'N/A'}
+- Country: ${data.countryIsoCode || 'N/A'}
+
+TECHNOLOGY STACK:
+${techList}
+
+Provide a JSON response with this exact structure:
+{
+  "summary": "2-3 sentence executive summary of the domain's online presence",
+  "strengths": ["strength 1", "strength 2", "strength 3"],
+  "weaknesses": ["weakness 1", "weakness 2", "weakness 3"],
+  "opportunities": ["opportunity 1", "opportunity 2", "opportunity 3"],
+  "techStackAnalysis": "1-2 sentences analyzing their technology choices",
+  "seoAssessment": "1-2 sentences assessing their SEO performance",
+  "competitivePosition": "1-2 sentences on their competitive positioning",
+  "recommendations": ["recommendation 1", "recommendation 2", "recommendation 3"]
+}
+
+Be specific and actionable. Reference actual metrics where possible.`;
+
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        {
+          role: 'system',
+          content: 'You are an expert SEO analyst and competitive intelligence specialist. Provide concise, actionable insights based on domain analysis data. Always respond with valid JSON.',
+        },
+        {
+          role: 'user',
+          content: prompt,
+        },
+      ],
+      temperature: 0.7,
+      max_tokens: 1000,
+      response_format: { type: 'json_object' },
+    });
+
+    const content = response.choices[0]?.message?.content;
+    if (!content) {
+      console.error('[DomainAnalysis] No AI response content');
+      return null;
+    }
+
+    const insights = JSON.parse(content) as DomainAIInsights;
+    console.log('[DomainAnalysis] AI insights generated successfully');
+    return insights;
+  } catch (error) {
+    console.error('[DomainAnalysis] AI insights generation failed:', error);
+    return null;
+  }
+}
 
 // Service client for privileged operations
 const serviceSupabase = createClient(
@@ -51,9 +149,11 @@ export async function POST(request: NextRequest) {
 
     // Parse request body
     let domain: string;
+    let includeAiInsights = true;
     try {
       const body = await request.json();
       domain = body.domain;
+      includeAiInsights = body.includeAiInsights !== false; // Default to true
     } catch {
       return NextResponse.json(
         { error: 'Invalid request body' },
@@ -173,12 +273,22 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    // Generate AI insights if requested
+    let finalResult = result.result;
+    if (includeAiInsights && finalResult) {
+      console.log('[DomainAnalysis] Generating AI insights...');
+      const aiInsights = await generateAIInsights(finalResult);
+      if (aiInsights) {
+        finalResult = { ...finalResult, aiInsights };
+      }
+    }
+
     // Get updated balance
     const updatedBalance = await getBalance(serviceSupabase, accountId);
 
     return NextResponse.json({
       success: true,
-      result: result.result,
+      result: finalResult,
       creditsUsed: creditCost,
       creditsRemaining: updatedBalance.totalCredits,
     });
