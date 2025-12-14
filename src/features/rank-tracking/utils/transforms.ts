@@ -125,11 +125,19 @@ export function transformCheckToResponse(row: {
   position: number | null;
   found_url: string | null;
   matched_target_url: boolean | null;
-  serp_features: Record<string, boolean> | null;
+  serp_features: Record<string, unknown> | null;
   top_competitors: Competitor[] | null;
   api_cost_usd: string | number | null;
   checked_at: string;
   created_at: string;
+  // SERP visibility summary columns
+  paa_question_count?: number;
+  paa_ours_count?: number;
+  ai_overview_present?: boolean;
+  ai_overview_ours_cited?: boolean;
+  ai_overview_citation_count?: number;
+  featured_snippet_present?: boolean;
+  featured_snippet_ours?: boolean;
   // Joined
   keywords?: {
     phrase: string;
@@ -149,6 +157,14 @@ export function transformCheckToResponse(row: {
     apiCostUsd: row.api_cost_usd !== null ? parseFloat(String(row.api_cost_usd)) : 0,
     checkedAt: row.checked_at,
     createdAt: row.created_at,
+    // SERP visibility summary fields
+    paaQuestionCount: row.paa_question_count ?? 0,
+    paaOursCount: row.paa_ours_count ?? 0,
+    aiOverviewPresent: row.ai_overview_present ?? false,
+    aiOverviewOursCited: row.ai_overview_ours_cited ?? false,
+    aiOverviewCitationCount: row.ai_overview_citation_count ?? 0,
+    featuredSnippetPresent: row.featured_snippet_present ?? false,
+    featuredSnippetOurs: row.featured_snippet_ours ?? false,
     keywordPhrase: row.keywords?.phrase,
   };
 }

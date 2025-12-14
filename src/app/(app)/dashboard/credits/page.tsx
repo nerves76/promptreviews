@@ -59,6 +59,15 @@ export default function CreditsPage() {
   const [purchaseType, setPurchaseType] = useState<"one_time" | "subscription">("one_time");
   const [openingPortal, setOpeningPortal] = useState(false);
 
+  // Rank Tracking calculator state
+  const [rankFrequency, setRankFrequency] = useState<"daily" | "weekly" | "monthly">("weekly");
+  const [rankKeywords, setRankKeywords] = useState(25);
+
+  // Local Ranking Grid calculator state
+  const [gridFrequency, setGridFrequency] = useState<"daily" | "weekly" | "monthly">("weekly");
+  const [gridSize, setGridSize] = useState(25); // 5x5 = 25 points
+  const [gridKeywords, setGridKeywords] = useState(5);
+
   // Check for success redirect from Stripe
   useEffect(() => {
     const success = searchParams.get("success");
@@ -192,30 +201,26 @@ export default function CreditsPage() {
     }
   };
 
-  const getTransactionColor = (amount: number) => {
-    return amount >= 0 ? "text-green-400" : "text-red-400";
-  };
-
   if (isLoading) {
     return <AppLoader />;
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 text-white p-6">
+    <div className="min-h-screen p-4 sm:p-6 pt-16 sm:pt-20">
       <div className="max-w-6xl mx-auto">
         {/* Success Banner */}
         {showSuccess && (
-          <div className="mb-6 p-4 bg-green-900/50 border border-green-500/50 rounded-lg flex items-center gap-3">
-            <Icon name="FaCheckCircle" className="text-green-400" size={24} />
+          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl flex items-center gap-3 shadow-sm">
+            <Icon name="FaCheckCircle" className="text-green-500" size={24} />
             <div>
-              <p className="font-semibold">Purchase successful!</p>
-              <p className="text-sm text-gray-300">
+              <p className="font-semibold text-green-800">Purchase successful!</p>
+              <p className="text-sm text-green-600">
                 {successCredits} credits have been added to your account.
               </p>
             </div>
             <button
               onClick={() => setShowSuccess(false)}
-              className="ml-auto text-gray-400 hover:text-white"
+              className="ml-auto text-green-400 hover:text-green-600"
             >
               <Icon name="FaTimes" size={16} />
             </button>
@@ -224,8 +229,8 @@ export default function CreditsPage() {
 
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Credits</h1>
-          <p className="text-white/70">
+          <h1 className="text-3xl font-bold mb-2 text-white">Credits</h1>
+          <p className="text-white/80">
             Manage your credits for Local Ranking Grid checks and other features
           </p>
         </div>
@@ -233,28 +238,28 @@ export default function CreditsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Balance Card */}
           <div className="lg:col-span-1">
-            <div className="bg-white/5 rounded-xl p-6 border border-white/10">
-              <h2 className="text-lg font-semibold mb-4">
+            <div className="bg-white/90 backdrop-blur-sm rounded-xl p-6 border border-white/50 shadow-lg">
+              <h2 className="text-lg font-semibold mb-4 text-gray-900">
                 Your Balance
               </h2>
 
-              <div className="text-5xl font-bold text-center my-6">
+              <div className="text-5xl font-bold text-center my-6 text-slate-blue">
                 {balance?.balance.total ?? 0}
               </div>
 
               <div className="space-y-3">
                 <div className="flex justify-between text-sm">
-                  <span className="text-white/70">Included credits</span>
-                  <span>{balance?.balance.included ?? 0}</span>
+                  <span className="text-gray-600">Included credits</span>
+                  <span className="text-gray-900 font-medium">{balance?.balance.included ?? 0}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-white/70">Purchased credits</span>
-                  <span>{balance?.balance.purchased ?? 0}</span>
+                  <span className="text-gray-600">Purchased credits</span>
+                  <span className="text-gray-900 font-medium">{balance?.balance.purchased ?? 0}</span>
                 </div>
 
                 {balance?.includedCreditsExpireAt && (
-                  <div className="pt-3 border-t border-white/10">
-                    <p className="text-xs text-white/60">
+                  <div className="pt-3 border-t border-gray-200">
+                    <p className="text-xs text-gray-500">
                       Included credits reset on{" "}
                       {new Date(
                         balance.includedCreditsExpireAt
@@ -267,8 +272,8 @@ export default function CreditsPage() {
                 )}
 
                 {!balance?.isFreeAccount && (
-                  <div className="pt-3 border-t border-white/10">
-                    <p className="text-xs text-white/60">
+                  <div className="pt-3 border-t border-gray-200">
+                    <p className="text-xs text-gray-500">
                       Your{" "}
                       <span className="capitalize">{balance?.plan}</span> plan
                       includes {balance?.monthlyCredits} credits/month
@@ -279,26 +284,26 @@ export default function CreditsPage() {
             </div>
 
             {/* Credit Info */}
-            <div className="mt-4 bg-blue-900/20 rounded-xl p-4 border border-blue-500/20">
-              <h3 className="font-medium text-blue-300 mb-3">How credits work</h3>
-              <ul className="text-sm text-white/80 space-y-1 mb-4">
+            <div className="mt-4 bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-indigo-100 shadow-sm">
+              <h3 className="font-medium text-indigo-700 mb-3">How credits work</h3>
+              <ul className="text-sm text-gray-700 space-y-1 mb-4">
                 <li>• Included credits reset monthly</li>
                 <li>• Purchased credits never expire</li>
                 <li>• Included credits are used first</li>
               </ul>
-              <h4 className="font-medium text-blue-300 text-sm mb-2">Monthly credits by plan</h4>
-              <div className="text-sm text-white/80 space-y-1">
+              <h4 className="font-medium text-indigo-700 text-sm mb-2">Monthly credits by plan</h4>
+              <div className="text-sm text-gray-700 space-y-1">
                 <div className="flex justify-between">
                   <span>Grower</span>
-                  <span className="font-medium">100</span>
+                  <span className="font-medium text-gray-900">100</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Builder</span>
-                  <span className="font-medium">200</span>
+                  <span className="font-medium text-gray-900">200</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Maven</span>
-                  <span className="font-medium">400</span>
+                  <span className="font-medium text-gray-900">400</span>
                 </div>
               </div>
             </div>
@@ -306,25 +311,20 @@ export default function CreditsPage() {
 
           {/* Purchase Section */}
           <div className="lg:col-span-2">
-            <div className="bg-white/5 rounded-xl p-6 border border-white/10 mb-6">
-              <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                <Icon
-                  name="FaShoppingCart"
-                  className="text-green-400"
-                  size={20}
-                />
+            <div className="bg-white/90 backdrop-blur-sm rounded-xl p-6 border border-white/50 shadow-lg mb-6">
+              <h2 className="text-lg font-semibold mb-4 text-gray-900">
                 Buy Credits
               </h2>
 
               {/* Purchase Type Toggle */}
               <div className="mb-6">
-                <div className="inline-flex rounded-lg bg-white/10 p-1">
+                <div className="inline-flex rounded-lg bg-gray-100 p-1">
                   <button
                     onClick={() => setPurchaseType("one_time")}
                     className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                       purchaseType === "one_time"
-                        ? "bg-white/20 text-white"
-                        : "text-white/60 hover:text-white"
+                        ? "bg-white text-gray-900 shadow-sm"
+                        : "text-gray-500 hover:text-gray-700"
                     }`}
                   >
                     One-time
@@ -333,14 +333,14 @@ export default function CreditsPage() {
                     onClick={() => setPurchaseType("subscription")}
                     className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                       purchaseType === "subscription"
-                        ? "bg-white/20 text-white"
-                        : "text-white/60 hover:text-white"
+                        ? "bg-white text-gray-900 shadow-sm"
+                        : "text-gray-500 hover:text-gray-700"
                     }`}
                   >
                     Monthly
                   </button>
                 </div>
-                <p className="text-xs text-white/60 mt-2">
+                <p className="text-xs text-gray-500 mt-2">
                   {purchaseType === "one_time"
                     ? "Pay once, credits never expire"
                     : "Auto-refill monthly so you never run out. Cancel anytime."}
@@ -349,7 +349,7 @@ export default function CreditsPage() {
                   <button
                     onClick={handleManageSubscriptions}
                     disabled={openingPortal}
-                    className="mt-2 text-xs text-blue-400 hover:text-blue-300 underline disabled:opacity-50"
+                    className="mt-2 text-xs text-indigo-600 hover:text-indigo-500 underline disabled:opacity-50"
                   >
                     {openingPortal ? "Opening..." : "Manage existing subscriptions"}
                   </button>
@@ -367,10 +367,10 @@ export default function CreditsPage() {
                   return (
                     <div
                       key={pack.id}
-                      className={`bg-white/5 rounded-lg p-4 border transition-colors relative ${
+                      className={`bg-gray-50 rounded-lg p-4 border-2 transition-colors relative flex flex-col ${
                         index === 2
-                          ? "border-green-500/50 hover:border-green-500"
-                          : "border-white/10 hover:border-white/30"
+                          ? "border-green-400 hover:border-green-500 bg-green-50/50"
+                          : "border-gray-200 hover:border-gray-300"
                       }`}
                     >
                       {savings > 0 && (
@@ -379,25 +379,25 @@ export default function CreditsPage() {
                         </div>
                       )}
                       {index === 2 && (
-                        <div className="text-xs text-green-400 font-medium mb-2">BEST VALUE</div>
+                        <div className="text-xs text-green-600 font-medium mb-2">BEST VALUE</div>
                       )}
-                      <div className="text-2xl font-bold mb-1">
+                      <div className="text-2xl font-bold mb-1 text-gray-900">
                         {pack.credits.toLocaleString()}
                       </div>
-                      <div className="text-white/70 text-sm mb-1">
+                      <div className="text-gray-600 text-sm mb-1">
                         credits{isSubscription ? "/mo" : ""}
                       </div>
-                      <div className="text-xs text-white/50 mb-3">
+                      <div className="text-xs text-gray-400 mb-3">
                         ${perCredit.toFixed(3)}/credit
                       </div>
-                      <div className="text-xl font-semibold mb-4">
+                      <div className="text-xl font-semibold text-gray-900 flex-1">
                         {pack.priceFormatted}
-                        {isSubscription && <span className="text-sm text-white/70">/mo</span>}
+                        {isSubscription && <span className="text-sm text-gray-500">/mo</span>}
                       </div>
                       <button
                         onClick={() => handlePurchase(pack.id, isSubscription)}
                         disabled={purchasing === pack.id || !hasOption}
-                        className="w-full py-2 px-4 bg-green-600 hover:bg-green-500 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+                        className="w-full py-2 px-4 bg-green-600 hover:bg-green-500 text-white disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed rounded-lg font-medium transition-colors flex items-center justify-center gap-2 mt-4"
                       >
                         {purchasing === pack.id ? (
                           <>
@@ -419,19 +419,18 @@ export default function CreditsPage() {
             </div>
 
             {/* Transaction History */}
-            <div className="bg-white/5 rounded-xl p-6 border border-white/10">
-              <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                <Icon name="FaHistory" className="text-purple-400" size={20} />
+            <div className="bg-white/90 backdrop-blur-sm rounded-xl p-6 border border-white/50 shadow-lg">
+              <h2 className="text-lg font-semibold mb-4 text-gray-900">
                 Transaction History
                 {ledgerTotal > 0 && (
-                  <span className="text-sm text-white/60 font-normal">
+                  <span className="text-sm text-gray-500 font-normal ml-2">
                     ({ledgerTotal} total)
                   </span>
                 )}
               </h2>
 
               {ledger.length === 0 ? (
-                <div className="text-center py-8 text-white/60">
+                <div className="text-center py-8 text-gray-500">
                   <Icon
                     name="FaHistory"
                     className="mx-auto mb-3 opacity-50"
@@ -447,28 +446,28 @@ export default function CreditsPage() {
                   {ledger.map((entry) => (
                     <div
                       key={entry.id}
-                      className="flex items-center gap-4 p-3 bg-white/5 rounded-lg"
+                      className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg"
                     >
-                      <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
+                      <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
                         <Icon
                           name={getTransactionIcon(entry.transactionType)}
-                          className="text-white/60"
+                          className="text-gray-500"
                           size={16}
                         />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate">
+                        <p className="font-medium truncate text-gray-900">
                           {entry.description ||
                             entry.transactionType.replace(/_/g, " ")}
                         </p>
-                        <p className="text-sm text-white/60">
+                        <p className="text-sm text-gray-500">
                           {formatDate(entry.createdAt)}
                         </p>
                       </div>
                       <div
-                        className={`font-semibold ${getTransactionColor(
-                          entry.amount
-                        )}`}
+                        className={`font-semibold ${
+                          entry.amount >= 0 ? "text-green-600" : "text-red-600"
+                        }`}
                       >
                         {entry.amount > 0 ? "+" : ""}
                         {entry.amount}
@@ -481,67 +480,208 @@ export default function CreditsPage() {
           </div>
         </div>
 
-        {/* Local Ranking Grid Pricing */}
-        <div className="mt-8 bg-white/5 rounded-xl p-6 border border-white/10">
-          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Icon name="FaMapMarkedAlt" className="text-blue-400" size={20} />
+        {/* Rank Tracking Pricing Calculator */}
+        <div className="mt-8 bg-white/90 backdrop-blur-sm rounded-xl p-6 border border-white/50 shadow-lg">
+          <h2 className="text-lg font-semibold mb-4 text-gray-900">
+            Rank Tracking Pricing
+          </h2>
+
+          <p className="text-gray-600 mb-4 text-sm">
+            1 credit per keyword per check. Calculate your monthly cost:
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+            {/* Keywords selector */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Keywords to track</label>
+              <div className="inline-flex rounded-lg border border-gray-300 overflow-hidden">
+                {[10, 25, 50, 100].map((num, idx) => (
+                  <button
+                    key={num}
+                    onClick={() => setRankKeywords(num)}
+                    className={`px-4 py-2 text-sm font-medium transition-colors ${
+                      idx > 0 ? "border-l border-gray-300" : ""
+                    } ${
+                      rankKeywords === num
+                        ? "bg-blue-600 text-white"
+                        : "bg-white text-gray-700 hover:bg-gray-50"
+                    }`}
+                  >
+                    {num}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Frequency selector */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Check frequency</label>
+              <div className="inline-flex rounded-lg border border-gray-300 overflow-hidden">
+                {[
+                  { value: "daily", label: "Daily", multiplier: 30 },
+                  { value: "weekly", label: "Weekly", multiplier: 4 },
+                  { value: "monthly", label: "Monthly", multiplier: 1 },
+                ].map((freq, idx) => (
+                  <button
+                    key={freq.value}
+                    onClick={() => setRankFrequency(freq.value as "daily" | "weekly" | "monthly")}
+                    className={`px-4 py-2 text-sm font-medium transition-colors ${
+                      idx > 0 ? "border-l border-gray-300" : ""
+                    } ${
+                      rankFrequency === freq.value
+                        ? "bg-blue-600 text-white"
+                        : "bg-white text-gray-700 hover:bg-gray-50"
+                    }`}
+                  >
+                    {freq.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Result */}
+          {(() => {
+            const multiplier = rankFrequency === "daily" ? 30 : rankFrequency === "weekly" ? 4 : 1;
+            const creditsPerMonth = rankKeywords * multiplier;
+            const costPerMonth = (creditsPerMonth * 0.078).toFixed(2); // Best value pack rate
+            return (
+              <div className="p-4 bg-indigo-50 rounded-lg border border-indigo-100">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div>
+                    <p className="text-sm text-gray-600">
+                      {rankKeywords} keywords × {multiplier} checks/month
+                    </p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {creditsPerMonth} <span className="text-base font-normal text-gray-600">credits/month</span>
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm text-gray-600">Estimated cost</p>
+                    <p className="text-2xl font-bold text-green-600">${costPerMonth}<span className="text-base font-normal text-gray-600">/month</span></p>
+                    <p className="text-xs text-gray-500">at best-value rate</p>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+
+        {/* Local Ranking Grid Pricing Calculator */}
+        <div className="mt-8 bg-white/90 backdrop-blur-sm rounded-xl p-6 border border-white/50 shadow-lg">
+          <h2 className="text-lg font-semibold mb-4 text-gray-900">
             Local Ranking Grid Pricing
           </h2>
 
-          <div className="mb-6 p-4 bg-blue-900/20 rounded-lg border border-blue-500/20">
-            <p className="text-gray-300 mb-2">
-              <strong className="text-white">How Local Ranking Grid costs work:</strong> Larger grids and more keywords use more credits.
-            </p>
-            <ul className="text-sm text-white/70 space-y-1">
-              <li>• <strong className="text-gray-300">Grid size</strong> = how many points we check around your location (3×3 = 9 points, 5×5 = 25 points, etc.)</li>
-              <li>• <strong className="text-gray-300">Keywords</strong> = search terms we check your ranking for (e.g., "plumber near me", "emergency plumber")</li>
-              <li>• Bigger coverage area + more keywords = more comprehensive data = more credits</li>
-            </ul>
-          </div>
-
-          <p className="text-white/70 mb-2 text-sm">
-            Credits per Local Ranking Grid check:
+          <p className="text-gray-600 mb-4 text-sm">
+            Check your Google Maps rankings across a grid of locations. Calculate your monthly cost:
           </p>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-white/70 border-b border-white/10">
-                  <th className="text-left py-2 px-3">Grid Size</th>
-                  <th className="text-center py-2 px-3">1 keyword</th>
-                  <th className="text-center py-2 px-3">5 keywords</th>
-                  <th className="text-center py-2 px-3">10 keywords</th>
-                  <th className="text-center py-2 px-3">20 keywords</th>
-                </tr>
-              </thead>
-              <tbody>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+            {/* Grid size selector */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Grid size</label>
+              <div className="inline-flex rounded-lg border border-gray-300 overflow-hidden">
                 {[
-                  { size: "3×3", points: 9, cells: 9 },
-                  { size: "5×5", points: 25, cells: 25 },
-                  { size: "7×7", points: 49, cells: 49 },
-                  { size: "9×9", points: 81, cells: 81 },
-                ].map((grid) => (
-                  <tr key={grid.size} className="border-b border-white/5">
-                    <td className="py-2 px-3">
-                      <span className="font-semibold">{grid.size}</span>
-                      <span className="text-white/50 text-xs ml-2">({grid.points} points)</span>
-                    </td>
-                    <td className="py-2 px-3 text-center text-white font-medium">{10 + grid.cells + 2}</td>
-                    <td className="py-2 px-3 text-center text-white font-medium">{10 + grid.cells + 10}</td>
-                    <td className="py-2 px-3 text-center text-white font-medium">{10 + grid.cells + 20}</td>
-                    <td className="py-2 px-3 text-center text-white font-medium">{10 + grid.cells + 40}</td>
-                  </tr>
+                  { label: "3×3", points: 9 },
+                  { label: "5×5", points: 25 },
+                  { label: "7×7", points: 49 },
+                  { label: "9×9", points: 81 },
+                ].map((grid, idx) => (
+                  <button
+                    key={grid.points}
+                    onClick={() => setGridSize(grid.points)}
+                    className={`px-3 py-2 text-sm font-medium transition-colors ${
+                      idx > 0 ? "border-l border-gray-300" : ""
+                    } ${
+                      gridSize === grid.points
+                        ? "bg-blue-600 text-white"
+                        : "bg-white text-gray-700 hover:bg-gray-50"
+                    }`}
+                  >
+                    {grid.label}
+                  </button>
                 ))}
-              </tbody>
-            </table>
+              </div>
+            </div>
+
+            {/* Keywords selector */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Keywords</label>
+              <div className="inline-flex rounded-lg border border-gray-300 overflow-hidden">
+                {[1, 5, 10, 20].map((num, idx) => (
+                  <button
+                    key={num}
+                    onClick={() => setGridKeywords(num)}
+                    className={`px-3 py-2 text-sm font-medium transition-colors ${
+                      idx > 0 ? "border-l border-gray-300" : ""
+                    } ${
+                      gridKeywords === num
+                        ? "bg-blue-600 text-white"
+                        : "bg-white text-gray-700 hover:bg-gray-50"
+                    }`}
+                  >
+                    {num}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Frequency selector */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Check frequency</label>
+              <div className="inline-flex rounded-lg border border-gray-300 overflow-hidden">
+                {[
+                  { value: "daily", label: "Daily" },
+                  { value: "weekly", label: "Weekly" },
+                  { value: "monthly", label: "Monthly" },
+                ].map((freq, idx) => (
+                  <button
+                    key={freq.value}
+                    onClick={() => setGridFrequency(freq.value as "daily" | "weekly" | "monthly")}
+                    className={`px-3 py-2 text-sm font-medium transition-colors ${
+                      idx > 0 ? "border-l border-gray-300" : ""
+                    } ${
+                      gridFrequency === freq.value
+                        ? "bg-blue-600 text-white"
+                        : "bg-white text-gray-700 hover:bg-gray-50"
+                    }`}
+                  >
+                    {freq.label}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
 
-          <div className="mt-4 p-3 bg-white/5 rounded-lg">
-            <p className="text-sm text-white/70">
-              <strong className="text-white">Example:</strong> A 5×5 grid with 5 keywords costs <span className="text-yellow-300 font-semibold">45 credits</span>.
-              With the 200 credit pack ($20), you could run <span className="text-green-400 font-semibold">4 checks</span> at this size.
-              With the 2,300 credit pack ($180), you could run <span className="text-green-400 font-semibold">51 checks</span>.
-            </p>
-          </div>
+          {/* Result */}
+          {(() => {
+            const creditsPerCheck = 10 + gridSize + (gridKeywords * 2);
+            const multiplier = gridFrequency === "daily" ? 30 : gridFrequency === "weekly" ? 4 : 1;
+            const creditsPerMonth = creditsPerCheck * multiplier;
+            const costPerMonth = (creditsPerMonth * 0.078).toFixed(2); // Best value pack rate
+            const gridLabel = gridSize === 9 ? "3×3" : gridSize === 25 ? "5×5" : gridSize === 49 ? "7×7" : "9×9";
+            return (
+              <div className="p-4 bg-blue-50 rounded-lg border border-blue-100">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div>
+                    <p className="text-sm text-gray-600">
+                      {gridLabel} grid × {gridKeywords} keyword{gridKeywords !== 1 ? "s" : ""} × {multiplier} checks/month
+                    </p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {creditsPerMonth} <span className="text-base font-normal text-gray-600">credits/month</span>
+                    </p>
+                    <p className="text-xs text-gray-500">({creditsPerCheck} credits per check)</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm text-gray-600">Estimated cost</p>
+                    <p className="text-2xl font-bold text-green-600">${costPerMonth}<span className="text-base font-normal text-gray-600">/month</span></p>
+                    <p className="text-xs text-gray-500">at best-value rate</p>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
         </div>
       </div>
     </div>

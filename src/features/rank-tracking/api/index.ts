@@ -20,12 +20,16 @@ export {
   type SerpSearchResult,
   type SerpItem,
   type SerpFeatures,
+  type SerpFeaturesSimple,
   type SerpRankResult,
   type SerpCompetitor,
   type KeywordVolumeResult,
   type MonthlySearchData,
   type KeywordSuggestion,
   type DataForSEOLocation,
+  // PAA and AI Overview types
+  type PAAQuestion,
+  type AICitation,
 } from './dataforseo-serp-client';
 
 // Re-export default for convenience

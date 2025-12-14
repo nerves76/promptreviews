@@ -89,15 +89,70 @@ export interface RankCheck {
   apiCostUsd: number;
   checkedAt: string;
   createdAt: string;
+  // SERP visibility summary fields
+  paaQuestionCount: number;
+  paaOursCount: number;
+  aiOverviewPresent: boolean;
+  aiOverviewOursCited: boolean;
+  aiOverviewCitationCount: number;
+  featuredSnippetPresent: boolean;
+  featuredSnippetOurs: boolean;
   // Joined
   keywordPhrase?: string;
 }
 
 // ============================================
-// SERP Features
+// SERP Features (enriched with PAA/AI data)
 // ============================================
 
+// PAA Question data
+export interface PAAQuestion {
+  question: string;
+  answerDomain: string | null;
+  answerUrl: string | null;
+  answerTitle: string | null;
+  isOurs: boolean;
+  isAiGenerated: boolean;
+}
+
+// AI Overview citation data
+export interface AICitation {
+  domain: string;
+  url: string | null;
+  title: string | null;
+  isOurs: boolean;
+}
+
+// Enriched SERP features with full PAA and AI Overview data
 export interface SerpFeatures {
+  featuredSnippet: {
+    present: boolean;
+    isOurs: boolean;
+    domain: string | null;
+    url: string | null;
+  };
+  siteLinks: boolean;
+  images: boolean;
+  videos: boolean;
+  mapPack: {
+    present: boolean;
+    isOurs: boolean;
+  };
+  peopleAlsoAsk: {
+    present: boolean;
+    questions: PAAQuestion[];
+    ourQuestionCount: number;
+  };
+  aiOverview: {
+    present: boolean;
+    isOursCited: boolean;
+    citations: AICitation[];
+    ourCitationCount: number;
+  };
+}
+
+// Legacy simple SERP features (for backward compatibility)
+export interface SerpFeaturesSimple {
   featuredSnippet: boolean;
   mapPack: boolean;
   faq: boolean;

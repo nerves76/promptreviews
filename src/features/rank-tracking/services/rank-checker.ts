@@ -22,6 +22,7 @@ import {
   calculateGroupSummary,
   calculatePositionChange,
 } from '../utils/transforms';
+import { checkRankForDomain, type SerpFeatures } from '../api';
 import { captureError } from '@/utils/sentry';
 
 // Use generic SupabaseClient type to avoid strict typing issues
@@ -124,6 +125,14 @@ export async function runRankChecks(
       top_competitors: object | null;
       api_cost_usd: number;
       checked_at: string;
+      // New SERP visibility columns
+      paa_question_count: number;
+      paa_ours_count: number;
+      ai_overview_present: boolean;
+      ai_overview_ours_cited: boolean;
+      ai_overview_citation_count: number;
+      featured_snippet_present: boolean;
+      featured_snippet_ours: boolean;
     }> = [];
 
     const checkedAt = new Date().toISOString();
@@ -137,33 +146,60 @@ export async function runRankChecks(
 
         console.log(`   [${checkCount}/${keywordsToCheck.length}] Checking "${searchQuery}"...`);
 
-        // TODO: Call DataForSEO SERP API here
-        // For now, use placeholder data
-        const mockResult = {
-          position: null as number | null,
-          foundUrl: null as string | null,
-          matchedTargetUrl: null as boolean | null,
-          serpFeatures: null,
-          topCompetitors: [],
-          cost: 0.002, // ~$0.002 per check
-        };
+        // Call DataForSEO SERP API
+        const result = await checkRankForDomain({
+          keyword: searchQuery,
+          locationCode: group.locationCode,
+          targetDomain: targetDomain,
+          device: group.device,
+        });
 
-        console.log(`   [${checkCount}/${keywordsToCheck.length}] ✓ Position: ${mockResult.position ?? 'not found'}`);
-        totalCost += mockResult.cost;
+        // Check if target URL matches (if specified)
+        let matchedTargetUrl: boolean | null = null;
+        if (keyword.targetUrl && result.url) {
+          matchedTargetUrl = result.url.includes(keyword.targetUrl);
+        }
+
+        // Extract SERP visibility metrics
+        const serpFeatures = result.serpFeatures;
+        const paa = serpFeatures.peopleAlsoAsk;
+        const ai = serpFeatures.aiOverview;
+        const fs = serpFeatures.featuredSnippet;
+
+        console.log(
+          `   [${checkCount}/${keywordsToCheck.length}] ✓ Position: ${result.position ?? 'not found'} | ` +
+          `PAA: ${paa.ourQuestionCount}/${paa.questions.length} | ` +
+          `AI: ${ai.isOursCited ? 'cited' : ai.present ? 'present' : '-'} | ` +
+          `FS: ${fs.isOurs ? 'ours' : fs.present ? 'other' : '-'}`
+        );
+        totalCost += result.cost;
 
         checksToInsert.push({
           account_id: group.accountId,
           group_id: group.id,
           keyword_id: keyword.keywordId,
           search_query_used: searchQuery,
-          position: mockResult.position,
-          found_url: mockResult.foundUrl,
-          matched_target_url: mockResult.matchedTargetUrl,
-          serp_features: mockResult.serpFeatures,
-          top_competitors: mockResult.topCompetitors.length > 0 ? mockResult.topCompetitors : null,
-          api_cost_usd: mockResult.cost,
+          position: result.position,
+          found_url: result.url,
+          matched_target_url: matchedTargetUrl,
+          serp_features: serpFeatures,
+          top_competitors: result.topCompetitors.length > 0 ? result.topCompetitors : null,
+          api_cost_usd: result.cost,
           checked_at: checkedAt,
+          // SERP visibility summary columns
+          paa_question_count: paa.questions.length,
+          paa_ours_count: paa.ourQuestionCount,
+          ai_overview_present: ai.present,
+          ai_overview_ours_cited: ai.isOursCited,
+          ai_overview_citation_count: ai.citations.length,
+          featured_snippet_present: fs.present,
+          featured_snippet_ours: fs.isOurs,
         });
+
+        // Small delay between API calls to avoid rate limiting
+        if (checkCount < keywordsToCheck.length) {
+          await new Promise((resolve) => setTimeout(resolve, 200));
+        }
       } catch (error) {
         const errorMsg = error instanceof Error ? error.message : 'Unknown error';
         console.error(`   [${checkCount}/${keywordsToCheck.length}] ✗ Error: ${errorMsg}`);

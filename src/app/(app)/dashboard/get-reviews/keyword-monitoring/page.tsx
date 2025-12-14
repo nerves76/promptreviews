@@ -10,7 +10,7 @@ import { useAccountData, useAuthLoading } from "@/auth/hooks/granularAuthHooks";
 import { apiClient } from "@/utils/apiClient";
 import { useKeywords, useKeywordDetails } from "@/features/keywords/hooks/useKeywords";
 import { type KeywordData } from "@/features/keywords/keywordUtils";
-import { KeywordDetailsSidebar } from "@/features/keywords/components";
+import { KeywordDetailsSidebar, KeywordChip } from "@/features/keywords/components";
 import {
   LineChart,
   Line,
@@ -504,9 +504,9 @@ export default function KeywordTrackerPage() {
       {/* Header with Run Analysis button */}
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-4xl font-bold text-slate-blue mb-3">Keyword Phrase Tracker</h1>
+          <h1 className="text-4xl font-bold text-slate-blue mb-3">Review Phrase Tracker</h1>
           <p className="text-gray-600 max-w-2xl">
-            Track when customers mention your keyword phrases in reviews and see trends over time.
+            Track when customers mention your target phrases in reviews and see trends over time.
           </p>
           {reviewCount !== null && (
             <p className="text-sm text-slate-blue mt-2">
@@ -564,9 +564,9 @@ export default function KeywordTrackerPage() {
           <div className="rounded-2xl border border-slate-100 bg-white p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <h2 className="text-lg font-semibold text-slate-blue">Suggested Phrases</h2>
+                <h2 className="text-lg font-semibold text-slate-blue">Tracked Phrases</h2>
                 <span className="text-xs text-gray-400 bg-gray-50 px-2 py-1 rounded">
-                  {keywords.length} tracked
+                  {keywordData.length} tracked
                 </span>
               </div>
               <div className="flex items-center gap-3">
@@ -585,7 +585,7 @@ export default function KeywordTrackerPage() {
               </div>
             </div>
 
-            {keywords.length === 0 ? (
+            {keywordData.length === 0 ? (
               <p className="text-sm text-gray-500 mb-4">
                 Add keyword phrases below to start tracking mentions in your reviews.
               </p>
@@ -595,43 +595,38 @@ export default function KeywordTrackerPage() {
               </p>
             ) : null}
 
-            {keywords.length > 0 && (
-              <div className="grid grid-cols-2 gap-x-8 gap-y-1">
-                {keywords.map((keyword) => {
-                  const result = latestAnalysis?.results.find(r => r.keyword === keyword);
+            {keywordData.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {keywordData.map((kw) => {
+                  const result = latestAnalysis?.results.find(r => r.keyword === kw.phrase);
                   const count = result?.mentionCount;
+                  // Create a display version showing reviewPhrase if available
+                  const displayKeyword: KeywordData = {
+                    ...kw,
+                    // Show reviewPhrase (customer-friendly) instead of phrase (search query)
+                    phrase: kw.reviewPhrase || kw.phrase,
+                    reviewUsageCount: count ?? 0,
+                    showUsageIndicator: true,
+                  };
                   return (
-                    <div
-                      key={keyword}
-                      className="flex items-center justify-between py-2 border-b border-slate-50 group"
-                    >
-                      <button
-                        onClick={() => handleKeywordClick(keyword)}
-                        className="text-sm text-gray-700 truncate mr-2 hover:text-indigo-600 hover:underline text-left cursor-pointer"
-                        title="Click to view phrase details"
-                      >
-                        {keyword}
-                      </button>
-                      <div className="flex items-center gap-2">
-                        <span className={`text-sm font-semibold tabular-nums ${
-                          count === undefined ? 'text-gray-300' :
-                          count > 0 ? 'text-emerald-600' : 'text-gray-300'
+                    <div key={kw.id} className="relative group">
+                      <KeywordChip
+                        keyword={displayKeyword}
+                        onClick={() => {
+                          setSelectedKeywordId(kw.id);
+                        }}
+                        onRemove={() => handleRemoveKeyword(kw.phrase)}
+                        size="md"
+                        showUsageBubble={false}
+                      />
+                      {/* Show mention count badge */}
+                      {count !== undefined && (
+                        <span className={`absolute -top-1.5 -right-1.5 min-w-[20px] h-[20px] flex items-center justify-center text-xs font-bold rounded-full px-1 ${
+                          count > 0 ? 'bg-emerald-500 text-white' : 'bg-gray-300 text-gray-600'
                         }`}>
-                          {count === undefined ? '—' : count}
+                          {count}
                         </span>
-                        <button
-                          onClick={() => handleRemoveKeyword(keyword)}
-                          disabled={removingKeyword === keyword}
-                          className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-500 transition-all disabled:opacity-50"
-                          title="Remove phrase"
-                        >
-                          {removingKeyword === keyword ? (
-                            <Icon name="FaSpinner" className="w-3 h-3 animate-spin" size={12} />
-                          ) : (
-                            <Icon name="FaTimes" className="w-3 h-3" size={12} />
-                          )}
-                        </button>
-                      </div>
+                      )}
                     </div>
                   );
                 })}
@@ -659,7 +654,7 @@ export default function KeywordTrackerPage() {
             {keywordsExpanded && (
               <div className="mt-4 pt-4 border-t border-slate-100">
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-sm font-medium text-gray-700">Add a keyword phrase</span>
+                  <span className="text-sm font-medium text-gray-700">Add a phrase</span>
                   <Link
                     href="/dashboard/prompt-page-settings"
                     className="text-xs text-gray-500 hover:text-slate-blue"
@@ -829,7 +824,7 @@ export default function KeywordTrackerPage() {
               <div>
                 <h2 className="text-lg font-semibold text-slate-blue">Discover Phrases</h2>
                 <p className="text-sm text-gray-500 mt-1">
-                  We'll scan your reviews to find valuable keyword phrases in your existing reviews
+                  We'll scan your reviews to find valuable phrases your customers are using
                 </p>
               </div>
               <div className="flex flex-col items-end gap-1">

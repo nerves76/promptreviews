@@ -252,6 +252,11 @@ export async function GET(request: NextRequest) {
                 depth: 100,
               });
 
+              // Extract SERP visibility metrics
+              const paa = result.serpFeatures.peopleAlsoAsk;
+              const ai = result.serpFeatures.aiOverview;
+              const fs = result.serpFeatures.featuredSnippet;
+
               // Store result
               await supabase
                 .from('rank_checks')
@@ -261,14 +266,22 @@ export async function GET(request: NextRequest) {
                   keyword_id: keyword.keyword_id,
                   search_query_used: searchQuery,
                   position: result.position,
-                  found_url: result.foundUrl,
+                  found_url: result.url,
                   matched_target_url: keyword.target_url
-                    ? result.foundUrl?.includes(keyword.target_url)
+                    ? result.url?.includes(keyword.target_url)
                     : null,
                   serp_features: result.serpFeatures,
                   top_competitors: result.topCompetitors,
                   api_cost_usd: result.cost,
                   checked_at: new Date().toISOString(),
+                  // SERP visibility summary columns
+                  paa_question_count: paa.questions.length,
+                  paa_ours_count: paa.ourQuestionCount,
+                  ai_overview_present: ai.present,
+                  ai_overview_ours_cited: ai.isOursCited,
+                  ai_overview_citation_count: ai.citations.length,
+                  featured_snippet_present: fs.present,
+                  featured_snippet_ours: fs.isOurs,
                 });
 
               checksPerformed++;

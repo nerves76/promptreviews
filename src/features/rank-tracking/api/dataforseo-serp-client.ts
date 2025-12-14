@@ -19,6 +19,8 @@ export interface SerpSearchResult {
   success: boolean;
   cost: number;
   items: SerpItem[];
+  /** Enriched SERP features including PAA questions and AI Overview citations */
+  serpFeatures: SerpFeatures;
   error?: string;
 }
 
@@ -29,7 +31,8 @@ export interface SerpItem {
   title: string;
   description: string;
   breadcrumb: string;
-  serpFeatures: SerpFeatures;
+  /** Per-item SERP features (simple booleans for individual results) */
+  serpFeatures: SerpFeaturesSimple;
   // Raw data for advanced use cases
   raw?: {
     highlightedWords?: string[];
@@ -37,7 +40,8 @@ export interface SerpItem {
   };
 }
 
-export interface SerpFeatures {
+// Legacy simple boolean features (for backward compatibility)
+export interface SerpFeaturesSimple {
   featuredSnippet: boolean;
   siteLinks: boolean;
   faq: boolean;
@@ -47,12 +51,60 @@ export interface SerpFeatures {
   aiOverview: boolean;
 }
 
+// PAA Question data
+export interface PAAQuestion {
+  question: string;
+  answerDomain: string | null;
+  answerUrl: string | null;
+  answerTitle: string | null;
+  isOurs: boolean;
+  isAiGenerated: boolean;
+}
+
+// AI Overview citation data
+export interface AICitation {
+  domain: string;
+  url: string | null;
+  title: string | null;
+  isOurs: boolean;
+}
+
+// Enriched SERP features with full PAA and AI Overview data
+export interface SerpFeatures {
+  featuredSnippet: {
+    present: boolean;
+    isOurs: boolean;
+    domain: string | null;
+    url: string | null;
+  };
+  siteLinks: boolean;
+  images: boolean;
+  videos: boolean;
+  mapPack: {
+    present: boolean;
+    isOurs: boolean;
+  };
+  peopleAlsoAsk: {
+    present: boolean;
+    questions: PAAQuestion[];
+    ourQuestionCount: number;
+  };
+  aiOverview: {
+    present: boolean;
+    isOursCited: boolean;
+    citations: AICitation[];
+    ourCitationCount: number;
+  };
+}
+
 export interface SerpRankResult {
   position: number | null;
   url: string | null;
   title: string | null;
   found: boolean;
   topCompetitors: SerpCompetitor[];
+  /** Enriched SERP features including PAA and AI Overview visibility */
+  serpFeatures: SerpFeatures;
   cost: number;
 }
 
@@ -61,7 +113,8 @@ export interface SerpCompetitor {
   domain: string;
   url: string;
   title: string;
-  serpFeatures: SerpFeatures;
+  /** Per-item SERP features (simple booleans for competitors) */
+  serpFeatures: SerpFeaturesSimple;
 }
 
 export interface KeywordVolumeResult {
@@ -170,11 +223,9 @@ function getAuthHeader(credentials: DataForSEOCredentials): string {
 // ============================================
 
 /**
- * Parse SERP features from DataForSEO item
+ * Parse simple SERP features from a single DataForSEO item (legacy)
  */
-function parseSerpFeatures(item: any): SerpFeatures {
-  const features = item.rectangle || {};
-
+function parseSerpFeaturesSimple(item: any): SerpFeaturesSimple {
   return {
     featuredSnippet: item.type === 'featured_snippet' || false,
     siteLinks: Array.isArray(item.links) && item.links.length > 0,
@@ -184,6 +235,166 @@ function parseSerpFeatures(item: any): SerpFeatures {
     mapPack: item.type === 'local_pack' || item.type === 'map' || false,
     aiOverview: item.type === 'ai_overview' || false,
   };
+}
+
+/**
+ * Parse all SERP items to extract enriched features including PAA and AI Overview
+ */
+function parseEnrichedSerpFeatures(allItems: any[], targetDomain?: string): SerpFeatures {
+  const normalizedTarget = targetDomain
+    ?.replace(/^https?:\/\//, '')
+    .replace(/^www\./, '')
+    .replace(/\/$/, '')
+    .toLowerCase();
+
+  const isOurDomain = (domain: string | null | undefined): boolean => {
+    if (!domain || !normalizedTarget) return false;
+    const normalizedDomain = domain.toLowerCase().replace(/^www\./, '');
+    return normalizedDomain === normalizedTarget || normalizedDomain.includes(normalizedTarget);
+  };
+
+  // Initialize result
+  const result: SerpFeatures = {
+    featuredSnippet: { present: false, isOurs: false, domain: null, url: null },
+    siteLinks: false,
+    images: false,
+    videos: false,
+    mapPack: { present: false, isOurs: false },
+    peopleAlsoAsk: { present: false, questions: [], ourQuestionCount: 0 },
+    aiOverview: { present: false, isOursCited: false, citations: [], ourCitationCount: 0 },
+  };
+
+  for (const item of allItems) {
+    const itemType = item.type;
+
+    // Featured Snippet
+    if (itemType === 'featured_snippet') {
+      const domain = item.domain || extractDomain(item.url || '');
+      result.featuredSnippet = {
+        present: true,
+        isOurs: isOurDomain(domain),
+        domain,
+        url: item.url || null,
+      };
+    }
+
+    // Site Links (on organic items)
+    if (Array.isArray(item.links) && item.links.length > 0) {
+      result.siteLinks = true;
+    }
+
+    // Images
+    if (itemType === 'images') {
+      result.images = true;
+    }
+
+    // Videos
+    if (itemType === 'video') {
+      result.videos = true;
+    }
+
+    // Map Pack / Local Pack
+    if (itemType === 'local_pack' || itemType === 'map') {
+      result.mapPack.present = true;
+      // Check if our domain appears in local pack items
+      if (item.items && Array.isArray(item.items)) {
+        for (const localItem of item.items) {
+          if (isOurDomain(localItem.domain)) {
+            result.mapPack.isOurs = true;
+            break;
+          }
+        }
+      }
+    }
+
+    // People Also Ask
+    if (itemType === 'people_also_ask') {
+      result.peopleAlsoAsk.present = true;
+
+      // Parse PAA items
+      if (item.items && Array.isArray(item.items)) {
+        for (const paaItem of item.items) {
+          const question: PAAQuestion = {
+            question: paaItem.title || '',
+            answerDomain: null,
+            answerUrl: null,
+            answerTitle: null,
+            isOurs: false,
+            isAiGenerated: false,
+          };
+
+          // Check expanded element for answer source
+          if (paaItem.expanded_element && Array.isArray(paaItem.expanded_element)) {
+            for (const expanded of paaItem.expanded_element) {
+              if (expanded.type === 'people_also_ask_expanded_element') {
+                question.answerDomain = expanded.domain || extractDomain(expanded.url || '');
+                question.answerUrl = expanded.url || null;
+                question.answerTitle = expanded.title || null;
+                question.isOurs = isOurDomain(question.answerDomain);
+                question.isAiGenerated = false;
+              } else if (expanded.type === 'people_also_ask_ai_overview_expanded_element') {
+                question.isAiGenerated = true;
+                // AI-generated answers may have references
+                if (expanded.references && Array.isArray(expanded.references)) {
+                  const firstRef = expanded.references[0];
+                  if (firstRef) {
+                    question.answerDomain = firstRef.domain || null;
+                    question.answerUrl = firstRef.url || null;
+                    question.answerTitle = firstRef.title || null;
+                    question.isOurs = isOurDomain(question.answerDomain);
+                  }
+                }
+              }
+            }
+          }
+
+          if (question.question) {
+            result.peopleAlsoAsk.questions.push(question);
+            if (question.isOurs) {
+              result.peopleAlsoAsk.ourQuestionCount++;
+            }
+          }
+        }
+      }
+    }
+
+    // AI Overview
+    if (itemType === 'ai_overview') {
+      result.aiOverview.present = true;
+
+      // Parse citations from AI overview items
+      if (item.items && Array.isArray(item.items)) {
+        for (const aiItem of item.items) {
+          // Check for references in each AI overview element
+          if (aiItem.references && Array.isArray(aiItem.references)) {
+            for (const ref of aiItem.references) {
+              const citation: AICitation = {
+                domain: ref.domain || extractDomain(ref.url || ''),
+                url: ref.url || null,
+                title: ref.title || null,
+                isOurs: isOurDomain(ref.domain),
+              };
+
+              // Avoid duplicates
+              const exists = result.aiOverview.citations.some(
+                (c) => c.url === citation.url || (c.domain === citation.domain && !c.url)
+              );
+
+              if (!exists && citation.domain) {
+                result.aiOverview.citations.push(citation);
+                if (citation.isOurs) {
+                  result.aiOverview.ourCitationCount++;
+                  result.aiOverview.isOursCited = true;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return result;
 }
 
 /**
@@ -270,6 +481,11 @@ async function makeDataForSEORequest(
 
 /**
  * 1. Search Google organic SERP results
+ *
+ * Returns organic results plus enriched SERP features including:
+ * - People Also Ask questions with answer sources
+ * - AI Overview citations
+ * - Featured snippet info
  */
 export async function searchGoogleSerp(params: {
   keyword: string;
@@ -277,6 +493,8 @@ export async function searchGoogleSerp(params: {
   languageCode?: string;
   device?: 'desktop' | 'mobile';
   depth?: number;
+  /** Target domain to check for PAA/AI visibility (e.g., "example.com") */
+  targetDomain?: string;
 }): Promise<SerpSearchResult> {
   const {
     keyword,
@@ -284,7 +502,19 @@ export async function searchGoogleSerp(params: {
     languageCode = 'en',
     device = 'desktop',
     depth = DEFAULT_DEPTH,
+    targetDomain,
   } = params;
+
+  // Default empty SERP features for error cases
+  const emptySerpFeatures: SerpFeatures = {
+    featuredSnippet: { present: false, isOurs: false, domain: null, url: null },
+    siteLinks: false,
+    images: false,
+    videos: false,
+    mapPack: { present: false, isOurs: false },
+    peopleAlsoAsk: { present: false, questions: [], ourQuestionCount: 0 },
+    aiOverview: { present: false, isOursCited: false, citations: [], ourCitationCount: 0 },
+  };
 
   const requestBody = [
     {
@@ -294,6 +524,7 @@ export async function searchGoogleSerp(params: {
       device,
       depth,
       calculate_rectangles: true, // Enable SERP feature detection
+      load_async_ai_overview: true, // Enable AI Overview data (+$0.002)
     },
   ];
 
@@ -310,6 +541,7 @@ export async function searchGoogleSerp(params: {
         success: false,
         cost: 0,
         items: [],
+        serpFeatures: emptySerpFeatures,
         error: 'No task returned from API',
       };
     }
@@ -319,12 +551,18 @@ export async function searchGoogleSerp(params: {
         success: false,
         cost: task.cost || 0,
         items: [],
+        serpFeatures: emptySerpFeatures,
         error: `Task failed: ${task.status_message}`,
       };
     }
 
-    // Extract organic items (filter out non-organic results)
+    // Get ALL items for SERP feature parsing
     const rawItems = task.result?.[0]?.items || [];
+
+    // Parse enriched SERP features from all items
+    const serpFeatures = parseEnrichedSerpFeatures(rawItems, targetDomain);
+
+    // Extract organic items for position tracking
     const organicItems = rawItems.filter((item: any) => item.type === 'organic');
 
     const items: SerpItem[] = organicItems.map((item: any) => ({
@@ -334,19 +572,25 @@ export async function searchGoogleSerp(params: {
       title: item.title || '',
       description: item.description || '',
       breadcrumb: item.breadcrumb || '',
-      serpFeatures: parseSerpFeatures(item),
+      serpFeatures: parseSerpFeaturesSimple(item), // Per-item features (legacy)
       raw: {
         highlightedWords: item.highlighted || [],
         relatedSearches: item.related_searches || [],
       },
     }));
 
-    console.log(`🔍 [DataForSEO SERP] Found ${items.length} organic results (cost: $${task.cost})`);
+    const paaCount = serpFeatures.peopleAlsoAsk.questions.length;
+    const aiCitations = serpFeatures.aiOverview.citations.length;
+    console.log(
+      `🔍 [DataForSEO SERP] Found ${items.length} organic results, ` +
+      `${paaCount} PAA questions, ${aiCitations} AI citations (cost: $${task.cost})`
+    );
 
     return {
       success: true,
       cost: task.cost || 0,
       items,
+      serpFeatures,
     };
   } catch (error) {
     console.error('❌ [DataForSEO SERP] searchGoogleSerp failed:', error);
@@ -354,6 +598,7 @@ export async function searchGoogleSerp(params: {
       success: false,
       cost: 0,
       items: [],
+      serpFeatures: emptySerpFeatures,
       error: error instanceof Error ? error.message : 'Unknown error',
     };
   }
@@ -361,6 +606,8 @@ export async function searchGoogleSerp(params: {
 
 /**
  * 2. Check rank for a specific domain
+ *
+ * Also returns enriched SERP features with PAA/AI visibility for the target domain.
  */
 export async function checkRankForDomain(params: {
   keyword: string;
@@ -380,7 +627,22 @@ export async function checkRankForDomain(params: {
 
   console.log(`🔍 [DataForSEO SERP] Checking rank for domain: ${normalizedTarget}`);
 
-  const searchResult = await searchGoogleSerp(searchParams);
+  // Pass targetDomain so SERP features can check for our visibility
+  const searchResult = await searchGoogleSerp({
+    ...searchParams,
+    targetDomain: normalizedTarget,
+  });
+
+  // Default empty SERP features for error cases
+  const emptySerpFeatures: SerpFeatures = {
+    featuredSnippet: { present: false, isOurs: false, domain: null, url: null },
+    siteLinks: false,
+    images: false,
+    videos: false,
+    mapPack: { present: false, isOurs: false },
+    peopleAlsoAsk: { present: false, questions: [], ourQuestionCount: 0 },
+    aiOverview: { present: false, isOursCited: false, citations: [], ourCitationCount: 0 },
+  };
 
   if (!searchResult.success) {
     return {
@@ -389,6 +651,7 @@ export async function checkRankForDomain(params: {
       title: null,
       found: false,
       topCompetitors: [],
+      serpFeatures: emptySerpFeatures,
       cost: searchResult.cost,
     };
   }
@@ -416,6 +679,17 @@ export async function checkRankForDomain(params: {
     console.log(`❌ [DataForSEO SERP] Domain not found in top ${searchResult.items.length} results`);
   }
 
+  // Log PAA/AI visibility
+  const paa = searchResult.serpFeatures.peopleAlsoAsk;
+  const ai = searchResult.serpFeatures.aiOverview;
+  if (paa.present || ai.present) {
+    console.log(
+      `📊 [DataForSEO SERP] SERP Features: ` +
+      `PAA: ${paa.ourQuestionCount}/${paa.questions.length} questions, ` +
+      `AI Overview: ${ai.isOursCited ? 'CITED' : ai.present ? 'present (not cited)' : 'not present'}`
+    );
+  }
+
   // Get top 10 competitors (excluding target domain)
   const topCompetitors: SerpCompetitor[] = searchResult.items
     .filter((item) => {
@@ -437,6 +711,7 @@ export async function checkRankForDomain(params: {
     title,
     found,
     topCompetitors,
+    serpFeatures: searchResult.serpFeatures,
     cost: searchResult.cost,
   };
 }

@@ -120,8 +120,8 @@ export function useRankHistory(
       }
 
       // Add new results to the beginning of the list
-      if (response.results) {
-        setResults((prev) => [...response.results, ...prev]);
+      if (response.results && response.results.length > 0) {
+        setResults((prev) => [...(response.results || []), ...prev]);
       }
 
       return {
