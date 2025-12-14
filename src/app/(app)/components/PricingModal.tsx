@@ -20,6 +20,7 @@ const tiers = [
     button: "bg-slate-blue hover:bg-slate-blue/90 text-white",
     features: [
       "**14-day free trial*",
+      "100 credits/month",
       "Universal Prompt Page",
       "3 custom Prompt Pages",
       "Review widget",
@@ -41,6 +42,7 @@ const tiers = [
     text: "text-slate-blue",
     button: "bg-slate-blue hover:bg-slate-blue/90 text-white",
     features: [
+      "200 credits/month",
       "3 team members",
       "Workflow management",
       "Universal Prompt Page",
@@ -65,6 +67,7 @@ const tiers = [
     text: "text-slate-blue",
     button: "bg-slate-blue hover:bg-slate-blue/90 text-white",
     features: [
+      "400 credits/month",
       "5 team members",
       "Workflow management",
       "Up to 10 business locations",
