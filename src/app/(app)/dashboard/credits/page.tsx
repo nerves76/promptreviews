@@ -265,7 +265,7 @@ export default function CreditsPage() {
           {/* Balance Card */}
           <div className="lg:col-span-1">
             <div className="bg-white/90 backdrop-blur-sm rounded-xl p-6 border border-white/50 shadow-lg">
-              <h2 className="text-lg font-semibold mb-4 text-gray-900">
+              <h2 className="text-xl font-bold mb-4 text-gray-900">
                 Your Balance
               </h2>
 
@@ -274,13 +274,13 @@ export default function CreditsPage() {
               </div>
 
               <div className="space-y-3">
-                <div className="flex justify-between text-sm">
+                <div className="flex justify-between">
                   <span className="text-gray-600">Included credits</span>
-                  <span className="text-gray-900 font-medium">{balance?.balance.included ?? 0}</span>
+                  <span className="text-gray-900 font-semibold">{balance?.balance.included ?? 0}</span>
                 </div>
-                <div className="flex justify-between text-sm">
+                <div className="flex justify-between">
                   <span className="text-gray-600">Purchased credits</span>
-                  <span className="text-gray-900 font-medium">{balance?.balance.purchased ?? 0}</span>
+                  <span className="text-gray-900 font-semibold">{balance?.balance.purchased ?? 0}</span>
                 </div>
 
                 {balance?.includedCreditsExpireAt && (
@@ -310,26 +310,26 @@ export default function CreditsPage() {
             </div>
 
             {/* Credit Info */}
-            <div className="mt-4 bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-indigo-100 shadow-sm">
-              <h3 className="font-medium text-indigo-700 mb-3">How credits work</h3>
-              <ul className="text-sm text-gray-700 space-y-1 mb-4">
+            <div className="mt-4 bg-white/80 backdrop-blur-sm rounded-xl p-5 border border-indigo-100 shadow-sm">
+              <h3 className="text-lg font-bold text-gray-900 mb-3">How credits work</h3>
+              <ul className="text-gray-700 space-y-2 mb-5">
                 <li>• Included credits reset monthly</li>
                 <li>• Purchased credits never expire</li>
                 <li>• Included credits are used first</li>
               </ul>
-              <h4 className="font-medium text-indigo-700 text-sm mb-2">Monthly credits by plan</h4>
-              <div className="text-sm text-gray-700 space-y-1">
+              <h4 className="font-bold text-gray-900 mb-2">Monthly credits by plan</h4>
+              <div className="text-gray-700 space-y-2">
                 <div className="flex justify-between">
                   <span>Grower</span>
-                  <span className="font-medium text-gray-900">100</span>
+                  <span className="font-semibold text-gray-900">100</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Builder</span>
-                  <span className="font-medium text-gray-900">200</span>
+                  <span className="font-semibold text-gray-900">200</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Maven</span>
-                  <span className="font-medium text-gray-900">400</span>
+                  <span className="font-semibold text-gray-900">400</span>
                 </div>
               </div>
             </div>
