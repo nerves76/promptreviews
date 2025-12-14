@@ -19,15 +19,17 @@ import { formatRelativeTime } from '@/app/(app)/community/utils/timeFormatter';
 interface RankGroupCardProps {
   group: RankKeywordGroup;
   onRefresh?: () => void;
+  /** Base URL for group detail links. Defaults to /dashboard/rank-tracking */
+  linkPrefix?: string;
 }
 
 // ============================================
 // Component
 // ============================================
 
-export default function RankGroupCard({ group }: RankGroupCardProps) {
+export default function RankGroupCard({ group, linkPrefix = '/dashboard/rank-tracking' }: RankGroupCardProps) {
   return (
-    <Link href={`/dashboard/rank-tracking/${group.id}`}>
+    <Link href={`${linkPrefix}/${group.id}`}>
       <div className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md hover:border-slate-blue/30 transition-all cursor-pointer">
         {/* Header */}
         <div className="flex items-start justify-between mb-3">

@@ -906,7 +906,7 @@ const Header = React.memo(function Header() {
                           Local Ranking Grids
                         </Link>
                         <Link
-                          href={hasBusiness ? "/dashboard/rank-tracking" : "#"}
+                          href={hasBusiness ? "/dashboard/keywords/rank-tracking" : "#"}
                           onClick={(e) => {
                             if (!hasBusiness) {
                               e.preventDefault();
@@ -917,7 +917,7 @@ const Header = React.memo(function Header() {
                             }
                           }}
                           className={`${
-                            isActive("/dashboard/rank-tracking")
+                            isActive("/dashboard/keywords/rank-tracking")
                               ? "bg-white/20 text-white"
                               : hasBusiness
                                 ? "text-white hover:bg-white/10"
@@ -1056,7 +1056,7 @@ const Header = React.memo(function Header() {
                                 : "text-gray-500 cursor-not-allowed"
                           } block px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200`}
                         >
-                          Keyword Monitoring
+                          Review Phrase Tracker
                         </Link>
                       </div>
                     </div>

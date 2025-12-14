@@ -113,7 +113,7 @@ const YourBusinessDropdown: React.FC<YourBusinessDropdownProps> = ({
     { href: "/dashboard/business-profile", label: "Business Profile", icon: "FaStore", description: "Edit your business details" },
     { href: "/dashboard/keywords", label: "Keyword Concepts", icon: "FaKey", description: "Manage keyword concepts for reviews and rank tracking" },
     { href: "/dashboard/local-ranking-grids", label: "Local Ranking Grids", icon: "FaMapMarker", description: "Track your local search rankings" },
-    { href: "/dashboard/rank-tracking", label: "Rank Tracking", icon: "FaChartLine", description: "Track your Google organic rankings" },
+    { href: "/dashboard/keywords/rank-tracking", label: "Rank Tracking", icon: "FaChartLine", description: "Track your Google organic rankings" },
   ];
 
   // Check if any menu item is active
