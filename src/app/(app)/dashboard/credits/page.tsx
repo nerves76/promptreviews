@@ -266,7 +266,7 @@ export default function CreditsPage() {
           <div className="lg:col-span-1">
             <div className="bg-white/90 backdrop-blur-sm rounded-xl p-6 border border-white/50 shadow-lg">
               <h2 className="text-xl font-bold mb-4 text-gray-900">
-                Your Balance
+                Your balance
               </h2>
 
               <div className="text-5xl font-bold text-center my-6 text-slate-blue">
@@ -338,8 +338,8 @@ export default function CreditsPage() {
           {/* Purchase Section */}
           <div className="lg:col-span-2">
             <div className="bg-white/90 backdrop-blur-sm rounded-xl p-6 border border-white/50 shadow-lg mb-6">
-              <h2 className="text-lg font-semibold mb-4 text-gray-900">
-                Buy Credits
+              <h2 className="text-xl font-bold mb-4 text-gray-900">
+                Buy credits
               </h2>
 
               {/* Purchase Type Toggle */}
@@ -446,8 +446,8 @@ export default function CreditsPage() {
 
             {/* Transaction History */}
             <div className="bg-white/90 backdrop-blur-sm rounded-xl p-6 border border-white/50 shadow-lg">
-              <h2 className="text-lg font-semibold mb-4 text-gray-900">
-                Transaction History
+              <h2 className="text-xl font-bold mb-4 text-gray-900">
+                Transaction history
                 {ledgerTotal > 0 && (
                   <span className="text-sm text-gray-500 font-normal ml-2">
                     ({ledgerTotal} total)

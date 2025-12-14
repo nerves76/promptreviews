@@ -8,6 +8,13 @@ This file provides important context for AI assistants working on the PromptRevi
 - Support email: support@promptreviews.app
 - Main application URL: app.promptreviews.app
 
+## ⚠️ IMPORTANT: Copy & Content Conventions
+- **All UI copy must use sentence case** (only capitalize the first letter)
+  - ✅ "Your balance", "Transaction history", "How credits work"
+  - ❌ "Your Balance", "Transaction History", "How Credits Work"
+- This applies to: headings, button labels, menu items, form labels, etc.
+- Exceptions: proper nouns, acronyms, product names (e.g., "Local Ranking Grid")
+
 ## ⚠️ IMPORTANT: Known Issues
 - **Turbopack is currently broken** - DO NOT use the `--turbo` flag with Next.js dev server
 - The `npm run dev` command has been modified to run WITHOUT Turbopack
