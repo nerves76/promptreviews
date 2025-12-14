@@ -210,9 +210,9 @@ export default function CreditsPage() {
   const getTransactionIcon = (type: string) => {
     switch (type) {
       case "purchase":
-        return "FaShoppingCart";
+        return "FaCreditCard";
       case "subscription_renewal":
-        return "FaSync";
+        return "FaRedo";
       case "monthly_grant":
         return "FaCalendarAlt";
       case "monthly_expire":
@@ -220,13 +220,13 @@ export default function CreditsPage() {
       case "feature_debit":
         return "FaMinus";
       case "feature_refund":
-        return "FaUndo";
+        return "FaRedo";
       case "manual_adjust":
         return "FaWrench";
       case "promo_grant":
         return "FaGift";
       default:
-        return "FaExchangeAlt";
+        return "FaCoins";
     }
   };
 
