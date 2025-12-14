@@ -371,7 +371,7 @@ export default function CreditsPage() {
                 </div>
                 <p className="text-xs text-gray-500 mt-2">
                   {purchaseType === "one_time"
-                    ? "Pay once, credits never expire"
+                    ? "Purchased credits do not expire"
                     : "Auto-refill monthly so you never run out. Cancel anytime."}
                 </p>
                 {purchaseType === "subscription" && (
