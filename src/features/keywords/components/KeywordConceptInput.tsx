@@ -41,7 +41,7 @@ export default function KeywordConceptInput({
   businessName,
   businessCity,
   businessState,
-  placeholder = "Enter a keyword (e.g., best pizza Portland)",
+  placeholder = "e.g., green eggs ham san diego",
   className = "",
 }: KeywordConceptInputProps) {
   // Form visibility
@@ -255,7 +255,7 @@ export default function KeywordConceptInput({
           type="text"
           value={reviewPhrase}
           onChange={(e) => setReviewPhrase(e.target.value)}
-          placeholder={keyword.trim() || "Defaults to keyword if empty"}
+          placeholder={keyword.trim() || "e.g., Best green eggs and ham in San Diego!"}
           className="w-full border border-gray-300 rounded px-3 py-1.5 text-sm focus:ring-2 focus:ring-slate-blue/30 focus:border-slate-blue"
         />
       </div>
@@ -270,7 +270,7 @@ export default function KeywordConceptInput({
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder={keyword.trim().toLowerCase() || "Defaults to keyword lowercase if empty"}
+          placeholder={keyword.trim().toLowerCase() || "e.g., green eggs ham san diego"}
           className="w-full border border-gray-300 rounded px-3 py-1.5 text-sm focus:ring-2 focus:ring-slate-blue/30 focus:border-slate-blue"
         />
       </div>
