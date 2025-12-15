@@ -182,24 +182,19 @@ export default function KeywordConceptInput({
 
   return (
     <div className={`border border-gray-200 rounded-lg p-4 bg-gray-50 space-y-4 ${className}`}>
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-gray-800">Add concept</h3>
-        {aiGenerated && (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-indigo-100 text-indigo-700 text-xs rounded-full">
-            <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-            </svg>
-            AI generated
-          </span>
-        )}
-      </div>
-
       {/* Concept Field (Required) */}
       <div className="space-y-1">
-        <label className="block text-xs font-medium text-gray-700">
-          Concept name <span className="text-red-500">*</span>
-        </label>
+        <div className="flex items-center justify-between">
+          <label className="block text-xs font-medium text-gray-700">
+            Concept name <span className="text-red-500">*</span>
+          </label>
+          {aiGenerated && (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-indigo-100 text-indigo-700 text-xs rounded-full">
+              <Icon name="prompty" className="w-3 h-3" />
+              AI generated
+            </span>
+          )}
+        </div>
         <input
           type="text"
           value={keyword}
