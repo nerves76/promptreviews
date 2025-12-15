@@ -313,7 +313,7 @@ export default function PromptPageSettingsPage() {
                     Keyword Concepts
                   </h3>
                   <p className="text-sm text-gray-600 mt-1">
-                    Manage your keyword phrases for reviews and rank tracking in the dedicated Keywords page.
+                    Manage your suggested phrases and keywords in &quot;Keyword Concepts.&quot; Note: You can also add and manage keyword phrases on individual Prompt Pages.
                   </p>
                 </div>
                 <Link
