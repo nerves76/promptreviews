@@ -153,7 +153,7 @@ export default function KeywordConceptInput({
     [aliases]
   );
 
-  // Show "Add keyword" button when form is closed
+  // Show "Add concept" button when form is closed
   if (!showForm) {
     return (
       <div className={className}>
@@ -164,7 +164,7 @@ export default function KeywordConceptInput({
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
           </svg>
-          Add keyword
+          Add concept
         </button>
       </div>
     );
@@ -174,7 +174,7 @@ export default function KeywordConceptInput({
     <div className={`border border-gray-200 rounded-lg p-4 bg-gray-50 space-y-4 ${className}`}>
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-gray-800">Add keyword</h3>
+        <h3 className="text-sm font-semibold text-gray-800">Add concept</h3>
         {aiGenerated && (
           <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-indigo-100 text-indigo-700 text-xs rounded-full">
             <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor">
@@ -185,10 +185,10 @@ export default function KeywordConceptInput({
         )}
       </div>
 
-      {/* Keyword Field (Required) */}
+      {/* Concept Field (Required) */}
       <div className="space-y-1">
         <label className="block text-xs font-medium text-gray-700">
-          Keyword <span className="text-red-500">*</span>
+          Concept <span className="text-red-500">*</span>
         </label>
         <input
           type="text"
