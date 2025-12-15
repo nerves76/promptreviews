@@ -257,7 +257,7 @@ export default function KeywordConceptInput({
       <div className="space-y-1">
         <label className="block text-xs font-medium text-gray-500">
           Review phrase
-          <span className="text-gray-400 font-normal ml-1">(shown to customers on prompt pages)</span>
+          <span className="text-gray-400 font-normal ml-1">(what you want your customers to say about you)</span>
         </label>
         <input
           type="text"
