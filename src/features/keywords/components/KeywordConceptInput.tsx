@@ -136,7 +136,7 @@ export default function KeywordConceptInput({
   }, [keyword, reviewPhrase, searchQuery, aliases, locationScope, relatedQuestions, aiGenerated, onKeywordAdded, resetForm]);
 
   const handleAddQuestion = useCallback(() => {
-    if (newQuestion.trim() && relatedQuestions.length < 10) {
+    if (newQuestion.trim() && relatedQuestions.length < 20) {
       setRelatedQuestions([...relatedQuestions, newQuestion.trim()]);
       setNewQuestion("");
     }
@@ -336,7 +336,7 @@ export default function KeywordConceptInput({
       <div className="space-y-2">
         <label className="block text-xs font-medium text-gray-500">
           Related questions
-          <span className="text-gray-400 font-normal ml-1">(for PAA/LLM tracking, max 10)</span>
+          <span className="text-gray-400 font-normal ml-1">(for &quot;People Also Ask&quot; and LLM tracking, max 20)</span>
         </label>
         <div className="space-y-1">
           {relatedQuestions.map((question, idx) => (
@@ -351,7 +351,7 @@ export default function KeywordConceptInput({
           ))}
           {relatedQuestions.length === 0 && <span className="text-xs text-gray-400">No questions</span>}
         </div>
-        {relatedQuestions.length < 10 && (
+        {relatedQuestions.length < 20 && (
           <div className="flex gap-2">
             <input
               type="text"
