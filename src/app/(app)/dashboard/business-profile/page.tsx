@@ -19,6 +19,7 @@ import imageCompression from 'browser-image-compression';
 import { trackEvent, GA_EVENTS } from "@/utils/analytics";
 import { markTaskAsCompleted } from "@/utils/onboardingTasks";
 import WelcomePopup from "@/app/(app)/components/WelcomePopup";
+import ImportFromWebsite from "./components/ImportFromWebsite";
 
 function Tooltip({ text }: { text: string }) {
   const [show, setShow] = useState(false);
@@ -203,6 +204,71 @@ export default function BusinessProfilePage() {
     setShowWelcomePopup(false);
     if (typeof window !== 'undefined') {
       localStorage.setItem('hasSeenBusinessWelcome', 'true');
+    }
+  };
+
+  // Handler for importing business info from website
+  const handleWebsiteImport = (data: {
+    name?: string;
+    about_us?: string;
+    services_offered?: string[];
+    keywords?: string;
+    taglines?: string;
+    phone?: string;
+    business_email?: string;
+    industry?: string;
+    differentiators?: string;
+    facebook_url?: string;
+    instagram_url?: string;
+    linkedin_url?: string;
+    youtube_url?: string;
+    tiktok_url?: string;
+    pinterest_url?: string;
+    bluesky_url?: string;
+  }, websiteUrl: string) => {
+    // Only fill empty fields - don't overwrite existing data
+    const updates: Record<string, string> = {};
+
+    // Map imported data to form fields, only if current field is empty
+    if (data.name && !form.name?.trim()) updates.name = data.name;
+    if (data.about_us && !form.about_us?.trim()) updates.about_us = data.about_us;
+    if (data.keywords && !form.keywords?.trim()) updates.keywords = data.keywords;
+    if (data.taglines && !form.taglines?.trim()) updates.taglines = data.taglines;
+    if (data.differentiators && !form.differentiators?.trim()) updates.differentiators = data.differentiators;
+    if (data.phone && !form.phone?.trim()) updates.phone = data.phone;
+    if (data.business_email && !form.business_email?.trim()) updates.business_email = data.business_email;
+    if (websiteUrl && !form.business_website?.trim()) updates.business_website = websiteUrl;
+
+    // Industry - store in industries_served field (text field)
+    if (data.industry && !form.industries_served?.trim()) updates.industries_served = data.industry;
+
+    // Social media URLs
+    if (data.facebook_url && !form.facebook_url?.trim()) updates.facebook_url = data.facebook_url;
+    if (data.instagram_url && !form.instagram_url?.trim()) updates.instagram_url = data.instagram_url;
+    if (data.linkedin_url && !form.linkedin_url?.trim()) updates.linkedin_url = data.linkedin_url;
+    if (data.youtube_url && !form.youtube_url?.trim()) updates.youtube_url = data.youtube_url;
+    if (data.tiktok_url && !form.tiktok_url?.trim()) updates.tiktok_url = data.tiktok_url;
+    if (data.pinterest_url && !form.pinterest_url?.trim()) updates.pinterest_url = data.pinterest_url;
+    if (data.bluesky_url && !form.bluesky_url?.trim()) updates.bluesky_url = data.bluesky_url;
+
+    // Update form state
+    if (Object.keys(updates).length > 0) {
+      setForm((prev: typeof form) => ({ ...prev, ...updates }));
+    }
+
+    // Handle services separately - only add if services are empty
+    if (data.services_offered && data.services_offered.length > 0) {
+      const currentServicesEmpty = services.length === 0 || (services.length === 1 && !services[0]?.trim());
+      if (currentServicesEmpty) {
+        setServices(data.services_offered);
+      }
+    }
+
+    // Show success message
+    const fieldCount = Object.keys(updates).length + (data.services_offered?.length ? 1 : 0);
+    if (fieldCount > 0) {
+      setSuccess(`Imported ${fieldCount} field${fieldCount > 1 ? 's' : ''} from your website. Review and edit as needed.`);
+      setTimeout(() => setSuccess(""), 5000);
     }
   };
 
@@ -978,7 +1044,11 @@ export default function BusinessProfilePage() {
 
   return (
     <div className="min-h-screen flex justify-center items-start px-4 sm:px-0">
-      <PageCard icon={<Icon name="FaStore" className="w-9 h-9 text-slate-blue" size={36} />}>
+      <div className="w-full max-w-4xl">
+        {/* Import from website section */}
+        <ImportFromWebsite onImport={handleWebsiteImport} />
+
+        <PageCard icon={<Icon name="FaStore" className="w-9 h-9 text-slate-blue" size={36} />}>
       
       <div className="flex items-start justify-between mt-2 mb-4">
         <div className="flex flex-col mt-0 md:mt-[3px]">
@@ -1102,6 +1172,7 @@ You can update your don'ts over time by testing outputs and reviewing what gets 
         buttonText="Got it, let's go!"
       /> */}
       </PageCard>
+      </div>
     </div>
   );
 }
