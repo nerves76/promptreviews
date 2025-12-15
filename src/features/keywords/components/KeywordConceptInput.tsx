@@ -52,6 +52,7 @@ export default function KeywordConceptInput({
   const [reviewPhrase, setReviewPhrase] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [aliases, setAliases] = useState<string[]>([]);
+  const [newAlias, setNewAlias] = useState("");
   const [locationScope, setLocationScope] = useState<string | null>(null);
   const [relatedQuestions, setRelatedQuestions] = useState<string[]>([]);
   const [newQuestion, setNewQuestion] = useState("");
@@ -66,6 +67,7 @@ export default function KeywordConceptInput({
     setReviewPhrase("");
     setSearchQuery("");
     setAliases([]);
+    setNewAlias("");
     setLocationScope(null);
     setRelatedQuestions([]);
     setNewQuestion("");
@@ -152,6 +154,13 @@ export default function KeywordConceptInput({
     },
     [aliases]
   );
+
+  const handleAddAlias = useCallback(() => {
+    if (newAlias.trim() && !aliases.includes(newAlias.trim())) {
+      setAliases([...aliases, newAlias.trim()]);
+      setNewAlias("");
+    }
+  }, [newAlias, aliases]);
 
   // Show "Add concept" button when form is closed
   if (!showForm) {
@@ -260,6 +269,43 @@ export default function KeywordConceptInput({
         />
       </div>
 
+      {/* Aliases - directly under Review Phrase since they're related */}
+      <div className="space-y-2">
+        <label className="block text-xs font-medium text-gray-500">
+          Aliases
+          <span className="text-gray-400 font-normal ml-1">(alternate review phrases)</span>
+        </label>
+        <div className="flex flex-wrap gap-1 min-h-[24px]">
+          {aliases.map((alias, idx) => (
+            <span key={idx} className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-200 text-gray-700 text-xs rounded">
+              {alias}
+              <button onClick={() => handleRemoveAlias(idx)} className="text-gray-500 hover:text-gray-700">
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </span>
+          ))}
+        </div>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={newAlias}
+            onChange={(e) => setNewAlias(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddAlias())}
+            placeholder="Add an alias..."
+            className="flex-1 border border-gray-300 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-slate-blue focus:border-slate-blue"
+          />
+          <button
+            onClick={handleAddAlias}
+            disabled={!newAlias.trim()}
+            className="px-2 py-1 bg-gray-600 text-white rounded text-xs hover:bg-gray-700 disabled:opacity-50"
+          >
+            Add
+          </button>
+        </div>
+      </div>
+
       {/* Search Query */}
       <div className="space-y-1">
         <label className="block text-xs font-medium text-gray-500">
@@ -273,30 +319,6 @@ export default function KeywordConceptInput({
           placeholder={keyword.trim().toLowerCase() || "e.g., green eggs ham san diego"}
           className="w-full border border-gray-300 rounded px-3 py-1.5 text-sm focus:ring-2 focus:ring-slate-blue/30 focus:border-slate-blue"
         />
-      </div>
-
-      {/* Aliases */}
-      <div className="space-y-1">
-        <label className="block text-xs font-medium text-gray-500">
-          Aliases
-          <span className="text-gray-400 font-normal ml-1">(variant phrases that match this keyword)</span>
-        </label>
-        <div className="flex flex-wrap gap-1">
-          {aliases.length > 0 ? (
-            aliases.map((alias, idx) => (
-              <span key={idx} className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-200 text-gray-700 text-xs rounded">
-                {alias}
-                <button onClick={() => handleRemoveAlias(idx)} className="text-gray-500 hover:text-gray-700">
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </span>
-            ))
-          ) : (
-            <span className="text-xs text-gray-400">No aliases</span>
-          )}
-        </div>
       </div>
 
       {/* Location Scope */}
