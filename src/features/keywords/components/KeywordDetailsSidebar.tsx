@@ -530,9 +530,9 @@ export function KeywordDetailsSidebar({
                           )}
 
                           {/* Editable fields section */}
-                          <div className="p-4 bg-white/60 backdrop-blur-sm border border-gray-100/50 rounded-xl">
-                            <div className="flex items-center justify-between mb-3">
-                              <span className="text-xs font-medium uppercase tracking-wider text-gray-500">SEO & Matching</span>
+                          <div className="p-5 bg-white/60 backdrop-blur-sm border border-gray-100/50 rounded-xl">
+                            <div className="flex items-center justify-between mb-4">
+                              <span className="text-sm font-semibold text-gray-700">SEO & matching</span>
                               {!isEditing ? (
                                 <div className="flex gap-2 items-center">
                                   {/* AI Generate button - show when fields are empty */}
@@ -540,16 +540,16 @@ export function KeywordDetailsSidebar({
                                     <button
                                       onClick={handleAIEnrich}
                                       disabled={isEnriching}
-                                      className="text-xs text-purple-600 hover:text-purple-700 flex items-center gap-1 px-2 py-1 rounded-lg bg-purple-50 hover:bg-purple-100 border border-purple-200 transition-colors disabled:opacity-50"
+                                      className="text-sm text-purple-600 hover:text-purple-700 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-50 hover:bg-purple-100 border border-purple-200 transition-colors disabled:opacity-50"
                                     >
                                       {isEnriching ? (
                                         <>
-                                          <Icon name="FaSpinner" className="w-3 h-3 animate-spin" />
+                                          <Icon name="FaSpinner" className="w-3.5 h-3.5 animate-spin" />
                                           Generating...
                                         </>
                                       ) : (
                                         <>
-                                          <Icon name="FaSparkles" className="w-3 h-3" />
+                                          <Icon name="FaSparkles" className="w-3.5 h-3.5" />
                                           AI generate
                                         </>
                                       )}
@@ -557,9 +557,9 @@ export function KeywordDetailsSidebar({
                                   )}
                                   <button
                                     onClick={() => setIsEditing(true)}
-                                    className="text-xs text-slate-blue hover:text-slate-blue/80 flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-white/50 transition-colors"
+                                    className="text-sm text-slate-blue hover:text-slate-blue/80 flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-white/50 transition-colors"
                                   >
-                                    <Icon name="FaEdit" className="w-3 h-3" />
+                                    <Icon name="FaEdit" className="w-3.5 h-3.5" />
                                     Edit
                                   </button>
                                 </div>
@@ -568,16 +568,16 @@ export function KeywordDetailsSidebar({
                                   <button
                                     onClick={handleCancel}
                                     disabled={isSaving}
-                                    className="text-xs text-gray-500 hover:text-gray-700 px-2 py-1 rounded-lg hover:bg-white/50 transition-colors"
+                                    className="text-sm text-gray-500 hover:text-gray-700 px-3 py-1.5 rounded-lg hover:bg-white/50 transition-colors"
                                   >
                                     Cancel
                                   </button>
                                   <button
                                     onClick={handleSave}
                                     disabled={isSaving}
-                                    className="px-3 py-1 text-xs font-medium text-white bg-slate-blue rounded-lg hover:bg-slate-blue/90 disabled:opacity-50 flex items-center gap-1"
+                                    className="px-4 py-1.5 text-sm font-medium text-white bg-slate-blue rounded-lg hover:bg-slate-blue/90 disabled:opacity-50 flex items-center gap-1.5"
                                   >
-                                    {isSaving && <Icon name="FaSpinner" className="w-3 h-3 animate-spin" />}
+                                    {isSaving && <Icon name="FaSpinner" className="w-3.5 h-3.5 animate-spin" />}
                                     Save
                                   </button>
                                 </div>
@@ -586,27 +586,27 @@ export function KeywordDetailsSidebar({
 
                             {/* AI enrichment error */}
                             {enrichError && (
-                              <div className="mb-3 p-2 bg-red-50 border border-red-100 rounded-lg text-xs text-red-600 flex items-center gap-2">
-                                <Icon name="FaExclamationTriangle" className="w-3 h-3" />
+                              <div className="mb-4 p-3 bg-red-50 border border-red-100 rounded-lg text-sm text-red-600 flex items-center gap-2">
+                                <Icon name="FaExclamationTriangle" className="w-4 h-4" />
                                 {enrichError}
                               </div>
                             )}
 
                             {/* AI enrichment success message */}
                             {enrichSuccess && isEditing && (
-                              <div className="mb-3 p-2 bg-purple-50 border border-purple-100 rounded-lg text-xs text-purple-700 flex items-center gap-2">
-                                <Icon name="FaSparkles" className="w-3 h-3" />
+                              <div className="mb-4 p-3 bg-purple-50 border border-purple-100 rounded-lg text-sm text-purple-700 flex items-center gap-2">
+                                <Icon name="FaSparkles" className="w-4 h-4" />
                                 Fields populated by AI - review and save
                               </div>
                             )}
 
-                            <div className="space-y-3">
+                            <div className="space-y-5">
                               {/* Suggested Phrase (editable) */}
                               <div>
-                                <label className="text-xs text-gray-500 block mb-1">
-                                  Review Phrase (shown to customers)
+                                <label className="text-sm font-medium text-gray-700 block mb-1">
+                                  Review phrase
                                 </label>
-                                <p className="text-xs text-gray-400 mb-2">
+                                <p className="text-sm text-gray-500 mb-2">
                                   The phrase customers see on prompt pages when asked to mention this keyword.
                                 </p>
                                 {isEditing ? (
@@ -615,10 +615,10 @@ export function KeywordDetailsSidebar({
                                     value={editedReviewPhrase}
                                     onChange={(e) => setEditedReviewPhrase(e.target.value)}
                                     placeholder="e.g., best marketing consultant in Portland"
-                                    className="w-full px-3 py-2 text-sm bg-white/80 border border-gray-200/50 rounded-lg focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-300 transition-all"
+                                    className="w-full px-3 py-2.5 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-300 transition-all"
                                   />
                                 ) : (
-                                  <div className="text-sm text-gray-700 bg-white/80 px-3 py-2 rounded-lg min-h-[36px]">
+                                  <div className="text-sm text-gray-700 bg-white/80 px-3 py-2.5 rounded-lg border border-gray-100">
                                     {keyword.reviewPhrase || <span className="text-gray-400 italic">Not set</span>}
                                   </div>
                                 )}
@@ -626,15 +626,15 @@ export function KeywordDetailsSidebar({
 
                               {/* Search Query */}
                               <div>
-                                <label className="text-xs text-gray-500 block mb-1">
-                                  Search Query (for rank tracking)
+                                <label className="text-sm font-medium text-gray-700 block mb-1">
+                                  Search query
                                 </label>
-                                <p className="text-xs text-gray-400 mb-2">
+                                <p className="text-sm text-gray-500 mb-2">
                                   The exact phrase searched on Google when tracking your ranking position.
                                 </p>
                                 {keyword.isUsedInRankTracking && (
-                                  <div className="mb-2 px-3 py-2 bg-amber-50/80 border border-amber-200/50 rounded-lg text-xs text-amber-700">
-                                    <Icon name="FaExclamationTriangle" className="w-3 h-3 inline mr-1" />
+                                  <div className="mb-2 px-3 py-2 bg-amber-50/80 border border-amber-200/50 rounded-lg text-sm text-amber-700">
+                                    <Icon name="FaExclamationTriangle" className="w-3.5 h-3.5 inline mr-1.5" />
                                     Used in rank tracking. Create a new keyword to track a different term.
                                   </div>
                                 )}
@@ -644,10 +644,10 @@ export function KeywordDetailsSidebar({
                                     value={editedSearchQuery}
                                     onChange={(e) => setEditedSearchQuery(e.target.value)}
                                     placeholder="e.g., best green eggs ham San Diego"
-                                    className="w-full px-3 py-2 text-sm bg-white/80 border border-gray-200/50 rounded-lg focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-300 transition-all"
+                                    className="w-full px-3 py-2.5 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-300 transition-all"
                                   />
                                 ) : (
-                                  <div className="text-sm text-gray-700 bg-white/80 px-3 py-2 rounded-lg min-h-[36px]">
+                                  <div className="text-sm text-gray-700 bg-white/80 px-3 py-2.5 rounded-lg border border-gray-100">
                                     {keyword.searchQuery || <span className="text-gray-400 italic">Not set</span>}
                                   </div>
                                 )}
@@ -655,10 +655,10 @@ export function KeywordDetailsSidebar({
 
                               {/* Aliases */}
                               <div>
-                                <label className="text-xs text-gray-500 block mb-1">
-                                  Aliases (for finding mentions in reviews)
+                                <label className="text-sm font-medium text-gray-700 block mb-1">
+                                  Aliases
                                 </label>
-                                <p className="text-xs text-gray-400 mb-2">
+                                <p className="text-sm text-gray-500 mb-2">
                                   Alternative spellings or phrases that should count as mentions of this keyword.
                                 </p>
                                 {isEditing ? (
@@ -667,14 +667,14 @@ export function KeywordDetailsSidebar({
                                     value={editedAliasesInput}
                                     onChange={(e) => setEditedAliasesInput(e.target.value)}
                                     placeholder="e.g., plumbing services, plumbers"
-                                    className="w-full px-3 py-2 text-sm bg-white/80 border border-gray-200/50 rounded-lg focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-300 transition-all"
+                                    className="w-full px-3 py-2.5 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-300 transition-all"
                                   />
                                 ) : (
-                                  <div className="text-sm text-gray-700 bg-white/80 px-3 py-2 rounded-lg min-h-[36px]">
+                                  <div className="text-sm text-gray-700 bg-white/80 px-3 py-2.5 rounded-lg border border-gray-100 min-h-[42px]">
                                     {keyword.aliases && keyword.aliases.length > 0 ? (
-                                      <div className="flex flex-wrap gap-1">
+                                      <div className="flex flex-wrap gap-1.5">
                                         {keyword.aliases.map((alias, idx) => (
-                                          <span key={idx} className="px-2 py-0.5 bg-indigo-50/80 border border-indigo-100/50 rounded text-xs text-indigo-700">
+                                          <span key={idx} className="px-2 py-0.5 bg-indigo-50 border border-indigo-100 rounded text-sm text-indigo-700">
                                             {alias}
                                           </span>
                                         ))}
@@ -688,17 +688,17 @@ export function KeywordDetailsSidebar({
 
                               {/* Location Scope */}
                               <div>
-                                <label className="text-xs text-gray-500 block mb-1">
-                                  Location Scope
+                                <label className="text-sm font-medium text-gray-700 block mb-1">
+                                  Location scope
                                 </label>
-                                <p className="text-xs text-gray-400 mb-2">
+                                <p className="text-sm text-gray-500 mb-2">
                                   Geographic relevance of this keyword for organizing and filtering.
                                 </p>
                                 {isEditing ? (
                                   <select
                                     value={editedLocationScope || ''}
                                     onChange={(e) => setEditedLocationScope((e.target.value || null) as LocationScope | null)}
-                                    className="w-full px-3 py-2 text-sm bg-white/80 border border-gray-200/50 rounded-lg focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-300 transition-all"
+                                    className="w-full px-3 py-2.5 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-300 transition-all"
                                   >
                                     {LOCATION_SCOPES.map((scope) => (
                                       <option key={scope.value || 'null'} value={scope.value || ''}>
@@ -707,7 +707,7 @@ export function KeywordDetailsSidebar({
                                     ))}
                                   </select>
                                 ) : (
-                                  <div className="text-sm text-gray-700 bg-white/80 px-3 py-2 rounded-lg">
+                                  <div className="text-sm text-gray-700 bg-white/80 px-3 py-2.5 rounded-lg border border-gray-100">
                                     {keyword.locationScope ? (
                                       <span className="capitalize">{keyword.locationScope}</span>
                                     ) : (
@@ -719,10 +719,10 @@ export function KeywordDetailsSidebar({
 
                               {/* Related Questions */}
                               <div>
-                                <label className="text-xs text-gray-500 block mb-1">
-                                  Related Questions (for PAA/LLM tracking)
+                                <label className="text-sm font-medium text-gray-700 block mb-1">
+                                  Related questions
                                 </label>
-                                <p className="text-xs text-gray-400 mb-2">
+                                <p className="text-sm text-gray-500 mb-2">
                                   Questions people ask related to this keyword. Used for tracking &quot;People Also Ask&quot; and AI answer visibility.
                                 </p>
                                 {isEditing ? (
@@ -732,19 +732,19 @@ export function KeywordDetailsSidebar({
                                       onChange={(e) => setEditedQuestionsInput(e.target.value)}
                                       placeholder="What is the best plumber in Portland?&#10;How much does a plumber cost?&#10;When should I call a plumber?"
                                       rows={4}
-                                      className="w-full px-3 py-2 text-sm bg-white/80 border border-gray-200/50 rounded-lg focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-300 transition-all resize-none"
+                                      className="w-full px-3 py-2.5 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-300 transition-all resize-none"
                                     />
-                                    <p className="text-xs text-gray-400 mt-1">
+                                    <p className="text-sm text-gray-500 mt-2">
                                       One question per line. Max 20 questions.
                                     </p>
                                   </div>
                                 ) : (
-                                  <div className="text-sm text-gray-700 bg-white/80 px-3 py-2 rounded-lg min-h-[36px]">
+                                  <div className="text-sm text-gray-700 bg-white/80 px-3 py-2.5 rounded-lg border border-gray-100 min-h-[42px]">
                                     {keyword.relatedQuestions && keyword.relatedQuestions.length > 0 ? (
-                                      <ul className="space-y-1.5">
+                                      <ul className="space-y-2">
                                         {keyword.relatedQuestions.map((question, idx) => (
                                           <li key={idx} className="flex items-start gap-2 text-sm">
-                                            <Icon name="FaQuestionCircle" className="w-3.5 h-3.5 text-indigo-400 mt-0.5 flex-shrink-0" />
+                                            <Icon name="FaQuestionCircle" className="w-4 h-4 text-indigo-400 mt-0.5 flex-shrink-0" />
                                             <span>{question}</span>
                                           </li>
                                         ))}
@@ -759,14 +759,14 @@ export function KeywordDetailsSidebar({
                               {/* Group (optional) */}
                               {showGroupSelector && groups.length > 0 && (
                                 <div>
-                                  <label className="text-xs text-gray-500 block mb-1">
+                                  <label className="text-sm font-medium text-gray-700 block mb-1">
                                     Group
                                   </label>
                                   {isEditing ? (
                                     <select
                                       value={editedGroupId || ''}
                                       onChange={(e) => setEditedGroupId(e.target.value || null)}
-                                      className="w-full px-3 py-2 text-sm bg-white/80 border border-gray-200/50 rounded-lg focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-300 transition-all"
+                                      className="w-full px-3 py-2.5 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-300 transition-all"
                                     >
                                       <option value="">No group</option>
                                       {groups.map((group) => (
@@ -776,7 +776,7 @@ export function KeywordDetailsSidebar({
                                       ))}
                                     </select>
                                   ) : (
-                                    <div className="text-sm text-gray-700 bg-white/80 px-3 py-2 rounded-lg">
+                                    <div className="text-sm text-gray-700 bg-white/80 px-3 py-2.5 rounded-lg border border-gray-100">
                                       {keyword.groupName || <span className="text-gray-400 italic">No group</span>}
                                     </div>
                                   )}
