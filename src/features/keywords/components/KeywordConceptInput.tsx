@@ -41,7 +41,7 @@ export default function KeywordConceptInput({
   businessName,
   businessCity,
   businessState,
-  placeholder = "e.g., green eggs ham san diego",
+  placeholder = "Name this concept (e.g., Green eggs and ham)",
   className = "",
 }: KeywordConceptInputProps) {
   // Form visibility
