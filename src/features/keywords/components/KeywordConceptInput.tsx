@@ -364,7 +364,7 @@ export default function KeywordConceptInput({
               value={newQuestion}
               onChange={(e) => setNewQuestion(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddQuestion())}
-              placeholder="Add a question..."
+              placeholder="e.g., Are green eggs and ham good for you?"
               className="flex-1 border border-gray-300 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-slate-blue focus:border-slate-blue"
             />
             <button
