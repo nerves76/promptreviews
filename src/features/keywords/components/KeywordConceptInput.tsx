@@ -2,6 +2,7 @@
 
 import React, { useState, useCallback } from "react";
 import { apiClient } from "@/utils/apiClient";
+import Icon from "@/components/Icon";
 
 interface KeywordEnrichment {
   review_phrase: string;
@@ -229,9 +230,7 @@ export default function KeywordConceptInput({
             </>
           ) : (
             <>
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-              </svg>
+              <Icon name="prompty" className="w-4 h-4" />
               Generate with AI
               <span className="text-xs text-indigo-400">(1 credit)</span>
             </>
