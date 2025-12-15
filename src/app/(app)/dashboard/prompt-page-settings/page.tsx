@@ -26,9 +26,6 @@ import Icon from "@/components/Icon";
 import RobotTooltip from '@/app/(app)/components/RobotTooltip';
 import { markTaskAsCompleted } from '@/utils/onboardingTasks';
 import { useAuthUser, useAccountData, useBusinessData } from '@/auth/hooks/granularAuthHooks';
-import { KeywordsInputLegacyAdapter as KeywordsInput, KeywordDetailsSidebar } from '@/features/keywords/components';
-import { useKeywords, useKeywordDetails } from '@/features/keywords/hooks/useKeywords';
-import { type KeywordData } from '@/features/keywords/keywordUtils';
 import { apiClient } from '@/utils/apiClient';
 
 // Import all the existing prompt feature modules
@@ -63,18 +60,10 @@ export default function PromptPageSettingsPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // Keyword sidebar state
-  const [selectedKeywordId, setSelectedKeywordId] = useState<string | null>(null);
-  const { keywords: allKeywords, updateKeyword } = useKeywords({ includeUsage: true });
-  const { keyword: selectedKeyword } = useKeywordDetails(selectedKeywordId);
-
   // Form state for all settings
   const [formData, setFormData] = useState({
     // Review Platforms
     review_platforms: [] as any[],
-
-    // Keywords (stored as array)
-    keywords: [] as string[],
 
     // AI Dos and Don'ts
     ai_dos: '',
@@ -122,16 +111,8 @@ export default function PromptPageSettingsPage() {
   // Load business data into form
   useEffect(() => {
     if (business && !isLoaded) {
-      // Convert keywords from string to array if needed
-      const keywords = Array.isArray(business.keywords)
-        ? business.keywords
-        : typeof business.keywords === 'string' && business.keywords
-          ? business.keywords.split(',').map((k: string) => k.trim()).filter(Boolean)
-          : [];
-
       setFormData({
         review_platforms: business.review_platforms || [],
-        keywords,
         ai_dos: business.ai_dos || '',
         ai_donts: business.ai_donts || '',
         default_offer_enabled: business.default_offer_enabled || false,
@@ -184,30 +165,10 @@ export default function PromptPageSettingsPage() {
     setErrors({});
 
     try {
-      // Convert keywords array to proper format for storage
-      const dataToSave = {
-        ...formData,
-        keywords: Array.isArray(formData.keywords) ? formData.keywords : []
-      };
+      await apiClient.put(`/businesses/${accountId}`, formData);
 
-      await apiClient.put(`/businesses/${accountId}`, dataToSave);
-
-      // Sync keywords to the unified keywords table
-      if (dataToSave.keywords && Array.isArray(dataToSave.keywords)) {
-        for (const phrase of dataToSave.keywords) {
-          if (phrase && phrase.trim()) {
-            try {
-              await apiClient.post('/keywords', { phrase: phrase.trim() });
-            } catch (e) {
-              // Keyword may already exist, that's fine
-            }
-          }
-        }
-      }
-
-      // Check if task should be completed
-      const hasKeywords = Array.isArray(formData.keywords) && formData.keywords.length > 0;
-      if (accountId && hasKeywords && (formData.ai_dos?.trim() || formData.ai_donts?.trim())) {
+      // Check if task should be completed (now based on AI dos/donts only)
+      if (accountId && (formData.ai_dos?.trim() || formData.ai_donts?.trim())) {
         await markTaskAsCompleted(accountId, 'prompt-page-settings');
       }
 
@@ -223,15 +184,6 @@ export default function PromptPageSettingsPage() {
       setErrors({ general: 'Failed to save settings. Please try again.' });
     } finally {
       setIsSubmitting(false);
-    }
-  };
-
-  // Handle keyword click to show details sidebar
-  const handleKeywordClick = (phrase: string) => {
-    // Find the keyword in allKeywords by phrase
-    const keyword = allKeywords.find(kw => kw.phrase.toLowerCase() === phrase.toLowerCase());
-    if (keyword) {
-      setSelectedKeywordId(keyword.id);
     }
   };
 
@@ -352,22 +304,26 @@ export default function PromptPageSettingsPage() {
             <h2 className="text-xl font-bold text-slate-blue mb-1">Global Settings</h2>
             <p className="text-sm text-gray-600 mb-6">These settings apply immediately to all prompt pages.</p>
 
-            {/* Suggested Phrases Section */}
+            {/* Keyword Concepts Link */}
             <section className="mb-6">
-              <h3 className="text-lg font-semibold text-slate-blue mb-2 flex items-center">
-                Suggested Phrases
-                <RobotTooltip text="These suggested phrases will be pre-populated on all new prompt pages. Each page can then customize their phrases without affecting these global defaults." />
-              </h3>
-              <p className="text-sm text-gray-600 mb-4">
-                Add keyword phrases that you would like to appear in your reviews. Using commonly searched phrases can increase your visibility in search engines and LLMs like ChatGPT. Track usage of keyword phrases across your reviews and measure impact. Click on any phrase to view and edit its details.
-              </p>
-              <KeywordsInput
-                keywords={formData.keywords || []}
-                onChange={(keywords) => handleInputChange('keywords', keywords)}
-                placeholder="Enter phrases separated by comma: best tax accountant in Bend, save money on taxes, affordable tax services"
-                businessInfo={business}
-                onKeywordClick={handleKeywordClick}
-              />
+              <div className="flex items-center justify-between p-4 bg-indigo-50 border border-indigo-200 rounded-lg">
+                <div>
+                  <h3 className="text-lg font-semibold text-slate-blue flex items-center gap-2">
+                    <Icon name="FaKey" className="w-5 h-5" />
+                    Keyword Concepts
+                  </h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Manage your keyword phrases for reviews and rank tracking in the dedicated Keywords page.
+                  </p>
+                </div>
+                <Link
+                  href="/dashboard/keywords"
+                  className="px-4 py-2 bg-slate-blue text-white rounded-lg font-medium hover:bg-slate-blue/90 transition flex items-center gap-2"
+                >
+                  <Icon name="FaKey" className="w-4 h-4" />
+                  Manage Keywords
+                </Link>
+              </div>
             </section>
 
             {/* AI Dos and Don'ts Section */}
@@ -584,14 +540,6 @@ export default function PromptPageSettingsPage() {
           </div>
         </div>
       </div>
-
-      {/* Phrase Details Sidebar */}
-      <KeywordDetailsSidebar
-        isOpen={!!selectedKeyword}
-        keyword={selectedKeyword}
-        onClose={() => setSelectedKeywordId(null)}
-        onUpdate={updateKeyword}
-      />
     </div>
   );
 }
