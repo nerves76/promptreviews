@@ -118,6 +118,7 @@ export function KeywordDetailsSidebar({
   // AI enrichment state
   const [isEnriching, setIsEnriching] = useState(false);
   const [enrichError, setEnrichError] = useState<string | null>(null);
+  const [enrichSuccess, setEnrichSuccess] = useState(false);
 
   // Rank tracking status
   const [rankStatus, setRankStatus] = useState<RankStatusResponse | null>(null);
@@ -177,6 +178,7 @@ export function KeywordDetailsSidebar({
         ...(showGroupSelector && { groupId: editedGroupId || undefined }),
       });
       setIsEditing(false);
+      setEnrichSuccess(false);
     } catch (error) {
       console.error('Failed to save keyword:', error);
     } finally {
@@ -193,6 +195,7 @@ export function KeywordDetailsSidebar({
     setEditedGroupId(keyword.groupId);
     setEditedQuestionsInput((keyword.relatedQuestions || []).join('\n'));
     setIsEditing(false);
+    setEnrichSuccess(false);
   };
 
   // Check if main SEO fields are empty (show AI button to help fill them)
@@ -206,6 +209,7 @@ export function KeywordDetailsSidebar({
     if (!keyword) return;
     setIsEnriching(true);
     setEnrichError(null);
+    setEnrichSuccess(false);
 
     try {
       // Get business info from account's businesses array if available
@@ -239,6 +243,7 @@ export function KeywordDetailsSidebar({
 
         // Enable editing mode so user can review/modify before saving
         setIsEditing(true);
+        setEnrichSuccess(true);
       }
     } catch (error) {
       console.error('AI enrichment failed:', error);
@@ -584,6 +589,14 @@ export function KeywordDetailsSidebar({
                               <div className="mb-3 p-2 bg-red-50 border border-red-100 rounded-lg text-xs text-red-600 flex items-center gap-2">
                                 <Icon name="FaExclamationTriangle" className="w-3 h-3" />
                                 {enrichError}
+                              </div>
+                            )}
+
+                            {/* AI enrichment success message */}
+                            {enrichSuccess && isEditing && (
+                              <div className="mb-3 p-2 bg-purple-50 border border-purple-100 rounded-lg text-xs text-purple-700 flex items-center gap-2">
+                                <Icon name="FaSparkles" className="w-3 h-3" />
+                                Fields populated by AI - review and save
                               </div>
                             )}
 
