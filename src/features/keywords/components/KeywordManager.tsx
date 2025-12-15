@@ -396,8 +396,8 @@ export default function KeywordManager({
 
       {/* Add Keyword Section */}
       <div className="mb-4 p-4 bg-white border border-gray-200 rounded-lg">
-        <h3 className="text-sm font-medium text-gray-700">Add concept</h3>
-        <p className="text-xs text-gray-500 mb-3">What do people type into search engines to find businesses like yours?</p>
+        <h3 className="text-base font-semibold text-gray-800">Add keyword concept</h3>
+        <p className="text-sm text-gray-500 mb-4">Track keywords across reviews, search rankings, and AI visibility.</p>
         <KeywordConceptInput
           onKeywordAdded={handleAddEnrichedKeyword}
           businessName={businessName}

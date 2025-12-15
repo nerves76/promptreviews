@@ -211,6 +211,9 @@ export function useKeywords(options: UseKeywordsOptions = {}): UseKeywordsResult
         // Optimistically update local state
         setKeywords((prev) => [newKeyword, ...prev]);
 
+        // Refetch groups in case a new "General" group was auto-created
+        await fetchGroups();
+
         return newKeyword;
       } catch (err: any) {
         console.error('Failed to create enriched keyword:', err);
@@ -218,7 +221,7 @@ export function useKeywords(options: UseKeywordsOptions = {}): UseKeywordsResult
         return null;
       }
     },
-    []
+    [fetchGroups]
   );
 
   // Update keyword

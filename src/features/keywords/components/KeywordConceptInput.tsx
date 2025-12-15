@@ -174,23 +174,23 @@ export default function KeywordConceptInput({
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
           </svg>
-          Add concept
+          Add keyword concept
         </button>
       </div>
     );
   }
 
   return (
-    <div className={`border border-gray-200 rounded-lg p-4 bg-gray-50 space-y-4 ${className}`}>
+    <div className={`space-y-4 ${className}`}>
       {/* Concept Field (Required) */}
       <div className="space-y-1">
         <div className="flex items-center justify-between">
-          <label className="block text-xs font-medium text-gray-700">
+          <label className="block text-sm font-medium text-gray-700">
             Concept name <span className="text-red-500">*</span>
           </label>
           {aiGenerated && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-indigo-100 text-indigo-700 text-xs rounded-full">
-              <Icon name="prompty" className="w-3 h-3" />
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-indigo-100 text-indigo-700 text-sm rounded-full">
+              <Icon name="prompty" className="w-3.5 h-3.5" />
               AI generated
             </span>
           )}
@@ -200,7 +200,7 @@ export default function KeywordConceptInput({
           value={keyword}
           onChange={(e) => setKeyword(e.target.value)}
           placeholder={placeholder}
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-slate-blue/30 focus:border-slate-blue"
+          className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-base focus:ring-2 focus:ring-slate-blue/30 focus:border-slate-blue"
         />
       </div>
 
@@ -250,7 +250,7 @@ export default function KeywordConceptInput({
 
       {/* Review Phrase */}
       <div className="space-y-1">
-        <label className="block text-xs font-medium text-gray-500">
+        <label className="block text-sm font-medium text-gray-600">
           Review phrase
           <span className="text-gray-400 font-normal ml-1">(what you want your customers to say about you)</span>
         </label>
@@ -259,28 +259,30 @@ export default function KeywordConceptInput({
           value={reviewPhrase}
           onChange={(e) => setReviewPhrase(e.target.value)}
           placeholder={keyword.trim() || "e.g., Best green eggs and ham in San Diego!"}
-          className="w-full border border-gray-300 rounded px-3 py-1.5 text-sm focus:ring-2 focus:ring-slate-blue/30 focus:border-slate-blue"
+          className="w-full border border-gray-300 rounded px-3 py-2 text-base focus:ring-2 focus:ring-slate-blue/30 focus:border-slate-blue"
         />
       </div>
 
       {/* Aliases - directly under Review Phrase since they're related */}
-      <div className="space-y-2">
-        <div>
-          <label className="block text-xs font-medium text-gray-500">Aliases</label>
-          <p className="text-xs text-gray-400">Track close variants of your suggested phrase in your reviews.</p>
-        </div>
-        <div className="flex flex-wrap gap-1 min-h-[24px]">
-          {aliases.map((alias, idx) => (
-            <span key={idx} className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-200 text-gray-700 text-xs rounded">
-              {alias}
-              <button onClick={() => handleRemoveAlias(idx)} className="text-gray-500 hover:text-gray-700">
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </span>
-          ))}
-        </div>
+      <div className="space-y-1">
+        <label className="block text-sm font-medium text-gray-600">
+          Aliases
+          <span className="text-gray-400 font-normal ml-1">(track close variants in your reviews)</span>
+        </label>
+        {aliases.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 pb-1">
+            {aliases.map((alias, idx) => (
+              <span key={idx} className="inline-flex items-center gap-1 px-2.5 py-1 bg-gray-200 text-gray-700 text-sm rounded">
+                {alias}
+                <button onClick={() => handleRemoveAlias(idx)} className="text-gray-500 hover:text-gray-700">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
         <div className="flex gap-2">
           <input
             type="text"
@@ -288,12 +290,12 @@ export default function KeywordConceptInput({
             onChange={(e) => setNewAlias(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddAlias())}
             placeholder="e.g., green eggs with ham"
-            className="flex-1 border border-gray-300 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-slate-blue focus:border-slate-blue"
+            className="flex-1 border border-gray-300 rounded px-3 py-1.5 text-sm focus:ring-1 focus:ring-slate-blue focus:border-slate-blue"
           />
           <button
             onClick={handleAddAlias}
             disabled={!newAlias.trim()}
-            className="px-2 py-1 bg-gray-600 text-white rounded text-xs hover:bg-gray-700 disabled:opacity-50"
+            className="px-3 py-1.5 bg-gray-600 text-white rounded text-sm hover:bg-gray-700 disabled:opacity-50"
           >
             Add
           </button>
@@ -302,7 +304,7 @@ export default function KeywordConceptInput({
 
       {/* Search Query */}
       <div className="space-y-1">
-        <label className="block text-xs font-medium text-gray-500">
+        <label className="block text-sm font-medium text-gray-600">
           Search query
           <span className="text-gray-400 font-normal ml-1">(used for Local Ranking Grid tracking)</span>
         </label>
@@ -311,17 +313,17 @@ export default function KeywordConceptInput({
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder={keyword.trim().toLowerCase() || "e.g., green eggs ham san diego"}
-          className="w-full border border-gray-300 rounded px-3 py-1.5 text-sm focus:ring-2 focus:ring-slate-blue/30 focus:border-slate-blue"
+          className="w-full border border-gray-300 rounded px-3 py-2 text-base focus:ring-2 focus:ring-slate-blue/30 focus:border-slate-blue"
         />
       </div>
 
       {/* Location Scope */}
       <div className="space-y-1">
-        <label className="block text-xs font-medium text-gray-500">Location scope</label>
+        <label className="block text-sm font-medium text-gray-600">Location scope</label>
         <select
           value={locationScope || ""}
           onChange={(e) => setLocationScope(e.target.value || null)}
-          className="border border-gray-300 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-slate-blue focus:border-slate-blue"
+          className="border border-gray-300 rounded px-3 py-1.5 text-sm focus:ring-1 focus:ring-slate-blue focus:border-slate-blue"
         >
           <option value="">Not set</option>
           <option value="local">Local</option>
@@ -333,24 +335,25 @@ export default function KeywordConceptInput({
       </div>
 
       {/* Related Questions */}
-      <div className="space-y-2">
-        <label className="block text-xs font-medium text-gray-500">
+      <div className="space-y-1">
+        <label className="block text-sm font-medium text-gray-600">
           Related questions
           <span className="text-gray-400 font-normal ml-1">(for &quot;People Also Ask&quot; and LLM tracking, max 20)</span>
         </label>
-        <div className="space-y-1">
-          {relatedQuestions.map((question, idx) => (
-            <div key={idx} className="flex items-center gap-2 bg-purple-50 text-purple-800 text-xs rounded px-2 py-1.5">
-              <span className="flex-1">{question}</span>
-              <button onClick={() => handleRemoveQuestion(idx)} className="text-purple-600 hover:text-purple-800">
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-          ))}
-          {relatedQuestions.length === 0 && <span className="text-xs text-gray-400">No questions</span>}
-        </div>
+        {relatedQuestions.length > 0 && (
+          <div className="space-y-1.5 pb-1">
+            {relatedQuestions.map((question, idx) => (
+              <div key={idx} className="flex items-center gap-2 bg-purple-50 text-purple-800 text-sm rounded px-2.5 py-1.5">
+                <span className="flex-1">{question}</span>
+                <button onClick={() => handleRemoveQuestion(idx)} className="text-purple-600 hover:text-purple-800">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
         {relatedQuestions.length < 20 && (
           <div className="flex gap-2">
             <input
@@ -359,12 +362,12 @@ export default function KeywordConceptInput({
               onChange={(e) => setNewQuestion(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddQuestion())}
               placeholder="e.g., Are green eggs and ham good for you?"
-              className="flex-1 border border-gray-300 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-slate-blue focus:border-slate-blue"
+              className="flex-1 border border-gray-300 rounded px-3 py-1.5 text-sm focus:ring-1 focus:ring-slate-blue focus:border-slate-blue"
             />
             <button
               onClick={handleAddQuestion}
               disabled={!newQuestion.trim()}
-              className="px-2 py-1 bg-purple-600 text-white rounded text-xs hover:bg-purple-700 disabled:opacity-50"
+              className="px-3 py-1.5 bg-purple-600 text-white rounded text-sm hover:bg-purple-700 disabled:opacity-50"
             >
               Add
             </button>
@@ -380,7 +383,7 @@ export default function KeywordConceptInput({
         <button
           onClick={handleSave}
           disabled={!keyword.trim()}
-          className="px-4 py-1.5 bg-green-600 text-white rounded text-sm font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+          className="px-4 py-1.5 bg-slate-blue text-white rounded text-sm font-medium hover:bg-slate-blue/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
