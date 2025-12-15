@@ -86,7 +86,7 @@ export default function KeywordConceptInput({
         businessName,
         businessCity,
         businessState,
-      })) as { success: boolean; enrichment?: KeywordEnrichment; error?: string };
+      })) as { success: boolean; enrichment?: KeywordEnrichment; error?: string; creditsRemaining?: number };
 
       if (response.success && response.enrichment) {
         setReviewPhrase(response.enrichment.review_phrase);
@@ -98,9 +98,15 @@ export default function KeywordConceptInput({
       } else {
         throw new Error(response.error || "Failed to generate");
       }
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("AI generation error:", err);
-      setError(err instanceof Error ? err.message : "Failed to generate with AI");
+      // Check for insufficient credits (402 error)
+      const apiError = err as { status?: number; message?: string };
+      if (apiError.status === 402) {
+        setError("Insufficient credits. Please purchase more credits to use AI generation.");
+      } else {
+        setError(err instanceof Error ? err.message : "Failed to generate with AI");
+      }
     } finally {
       setIsGenerating(false);
     }
