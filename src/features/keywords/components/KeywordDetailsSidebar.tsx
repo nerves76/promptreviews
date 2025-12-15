@@ -6,6 +6,7 @@ import Icon from '@/components/Icon';
 import { apiClient } from '@/utils/apiClient';
 import { type KeywordData, type LocationScope } from '../keywordUtils';
 import { LLMVisibilitySection } from '@/features/llm-visibility/components/LLMVisibilitySection';
+import { useAuth } from '@/auth';
 
 // Types for rank status API response
 interface SerpVisibility {
@@ -101,6 +102,9 @@ export function KeywordDetailsSidebar({
   groups = [],
   showGroupSelector = false,
 }: KeywordDetailsSidebarProps) {
+  // Get business context for AI enrichment
+  const { account } = useAuth();
+
   // Local state for editing
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -110,6 +114,10 @@ export function KeywordDetailsSidebar({
   const [editedLocationScope, setEditedLocationScope] = useState<LocationScope | null>(keyword?.locationScope || null);
   const [editedGroupId, setEditedGroupId] = useState<string | null>(keyword?.groupId || null);
   const [editedQuestionsInput, setEditedQuestionsInput] = useState((keyword?.relatedQuestions || []).join('\n'));
+
+  // AI enrichment state
+  const [isEnriching, setIsEnriching] = useState(false);
+  const [enrichError, setEnrichError] = useState<string | null>(null);
 
   // Rank tracking status
   const [rankStatus, setRankStatus] = useState<RankStatusResponse | null>(null);
@@ -185,6 +193,59 @@ export function KeywordDetailsSidebar({
     setEditedGroupId(keyword.groupId);
     setEditedQuestionsInput((keyword.relatedQuestions || []).join('\n'));
     setIsEditing(false);
+  };
+
+  // Check if main SEO fields are empty (show AI button to help fill them)
+  // Show button when review phrase, search query, or aliases are missing
+  const hasEmptySEOFields = !keyword?.reviewPhrase ||
+    !keyword?.searchQuery ||
+    (!keyword?.aliases || keyword.aliases.length === 0);
+
+  // AI enrichment handler
+  const handleAIEnrich = async () => {
+    if (!keyword) return;
+    setIsEnriching(true);
+    setEnrichError(null);
+
+    try {
+      // Get business info from account's businesses array if available
+      const primaryBusiness = account?.businesses?.[0];
+
+      const response = await apiClient.post<{
+        success: boolean;
+        enrichment: {
+          review_phrase: string;
+          search_query: string;
+          aliases: string[];
+          location_scope: LocationScope | null;
+          related_questions: string[];
+        };
+        creditsUsed: number;
+        creditsRemaining: number;
+      }>('/ai/enrich-keyword', {
+        phrase: keyword.phrase,
+        businessName: account?.business_name || primaryBusiness?.name,
+        businessCity: primaryBusiness?.address_city,
+        businessState: primaryBusiness?.address_state,
+      });
+
+      if (response.success && response.enrichment) {
+        // Update local state with AI-generated values
+        setEditedReviewPhrase(response.enrichment.review_phrase || '');
+        setEditedSearchQuery(response.enrichment.search_query || '');
+        setEditedAliasesInput((response.enrichment.aliases || []).join(', '));
+        setEditedLocationScope(response.enrichment.location_scope);
+        setEditedQuestionsInput((response.enrichment.related_questions || []).join('\n'));
+
+        // Enable editing mode so user can review/modify before saving
+        setIsEditing(true);
+      }
+    } catch (error) {
+      console.error('AI enrichment failed:', error);
+      setEnrichError(error instanceof Error ? error.message : 'Failed to generate SEO data');
+    } finally {
+      setIsEnriching(false);
+    }
   };
 
   return (
@@ -468,13 +529,35 @@ export function KeywordDetailsSidebar({
                             <div className="flex items-center justify-between mb-3">
                               <span className="text-xs font-medium uppercase tracking-wider text-gray-500">SEO & Matching</span>
                               {!isEditing ? (
-                                <button
-                                  onClick={() => setIsEditing(true)}
-                                  className="text-xs text-slate-blue hover:text-slate-blue/80 flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-white/50 transition-colors"
-                                >
-                                  <Icon name="FaEdit" className="w-3 h-3" />
-                                  Edit
-                                </button>
+                                <div className="flex gap-2 items-center">
+                                  {/* AI Generate button - show when fields are empty */}
+                                  {hasEmptySEOFields && (
+                                    <button
+                                      onClick={handleAIEnrich}
+                                      disabled={isEnriching}
+                                      className="text-xs text-purple-600 hover:text-purple-700 flex items-center gap-1 px-2 py-1 rounded-lg bg-purple-50 hover:bg-purple-100 border border-purple-200 transition-colors disabled:opacity-50"
+                                    >
+                                      {isEnriching ? (
+                                        <>
+                                          <Icon name="FaSpinner" className="w-3 h-3 animate-spin" />
+                                          Generating...
+                                        </>
+                                      ) : (
+                                        <>
+                                          <Icon name="FaSparkles" className="w-3 h-3" />
+                                          AI generate
+                                        </>
+                                      )}
+                                    </button>
+                                  )}
+                                  <button
+                                    onClick={() => setIsEditing(true)}
+                                    className="text-xs text-slate-blue hover:text-slate-blue/80 flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-white/50 transition-colors"
+                                  >
+                                    <Icon name="FaEdit" className="w-3 h-3" />
+                                    Edit
+                                  </button>
+                                </div>
                               ) : (
                                 <div className="flex gap-2 items-center">
                                   <button
@@ -495,6 +578,14 @@ export function KeywordDetailsSidebar({
                                 </div>
                               )}
                             </div>
+
+                            {/* AI enrichment error */}
+                            {enrichError && (
+                              <div className="mb-3 p-2 bg-red-50 border border-red-100 rounded-lg text-xs text-red-600 flex items-center gap-2">
+                                <Icon name="FaExclamationTriangle" className="w-3 h-3" />
+                                {enrichError}
+                              </div>
+                            )}
 
                             <div className="space-y-3">
                               {/* Suggested Phrase (editable) */}
