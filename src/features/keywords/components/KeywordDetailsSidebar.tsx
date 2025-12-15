@@ -5,6 +5,7 @@ import { Transition, Dialog } from '@headlessui/react';
 import Icon from '@/components/Icon';
 import { apiClient } from '@/utils/apiClient';
 import { type KeywordData, type LocationScope } from '../keywordUtils';
+import { LLMVisibilitySection } from '@/features/llm-visibility/components/LLMVisibilitySection';
 
 // Types for rank status API response
 interface SerpVisibility {
@@ -679,6 +680,14 @@ export function KeywordDetailsSidebar({
                               )}
                             </div>
                           </div>
+
+                          {/* LLM Visibility Section */}
+                          {keyword.relatedQuestions && keyword.relatedQuestions.length > 0 && (
+                            <LLMVisibilitySection
+                              keywordId={keyword.id}
+                              questions={keyword.relatedQuestions}
+                            />
+                          )}
 
                           {/* Prompt pages */}
                           {promptPages.length > 0 && (

@@ -20,7 +20,8 @@ export type FeatureType =
   | 'keyword_finder'
   | 'ai_review_gen'
   | 'rank_tracking'
-  | 'domain_analysis';
+  | 'domain_analysis'
+  | 'llm_visibility';
 
 export interface CreditBalance {
   accountId: string;

@@ -65,6 +65,10 @@
     {
       "path": "/api/cron/run-scheduled-rank-checks",
       "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/run-scheduled-llm-checks",
+      "schedule": "0 6 * * *"
     }
   ],
   "buildCommand": "npm run build",

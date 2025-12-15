@@ -145,6 +145,13 @@ export default function RankGroupDetailPage() {
               <Icon name="FaChartLine" className="w-[18px] h-[18px]" size={18} />
               Rank Tracking
             </Link>
+            <Link
+              href="/dashboard/keywords/llm-visibility"
+              className="px-6 py-1.5 font-semibold text-sm focus:outline-none transition-all duration-200 rounded-full flex items-center gap-2 bg-transparent text-white hover:bg-white/10"
+            >
+              <Icon name="FaSparkles" className="w-[18px] h-[18px]" size={18} />
+              LLM Visibility
+            </Link>
           </div>
         </div>
 
@@ -201,6 +208,13 @@ export default function RankGroupDetailPage() {
             >
               <Icon name="FaChartLine" className="w-[18px] h-[18px]" size={18} />
               Rank Tracking
+            </Link>
+            <Link
+              href="/dashboard/keywords/llm-visibility"
+              className="px-6 py-1.5 font-semibold text-sm focus:outline-none transition-all duration-200 rounded-full flex items-center gap-2 bg-transparent text-white hover:bg-white/10"
+            >
+              <Icon name="FaSparkles" className="w-[18px] h-[18px]" size={18} />
+              LLM Visibility
             </Link>
           </div>
         </div>
