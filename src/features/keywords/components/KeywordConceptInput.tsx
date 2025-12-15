@@ -270,10 +270,10 @@ export default function KeywordConceptInput({
 
       {/* Aliases - directly under Review Phrase since they're related */}
       <div className="space-y-2">
-        <label className="block text-xs font-medium text-gray-500">
-          Aliases
-          <span className="text-gray-400 font-normal ml-1">(alternate review phrases)</span>
-        </label>
+        <div>
+          <label className="block text-xs font-medium text-gray-500">Aliases</label>
+          <p className="text-xs text-gray-400">Track close variants of your suggested phrase in your reviews.</p>
+        </div>
         <div className="flex flex-wrap gap-1 min-h-[24px]">
           {aliases.map((alias, idx) => (
             <span key={idx} className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-200 text-gray-700 text-xs rounded">
@@ -292,7 +292,7 @@ export default function KeywordConceptInput({
             value={newAlias}
             onChange={(e) => setNewAlias(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddAlias())}
-            placeholder="Add an alias..."
+            placeholder="e.g., green eggs with ham"
             className="flex-1 border border-gray-300 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-slate-blue focus:border-slate-blue"
           />
           <button
