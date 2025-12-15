@@ -198,7 +198,7 @@ export default function KeywordConceptInput({
       {/* Concept Field (Required) */}
       <div className="space-y-1">
         <label className="block text-xs font-medium text-gray-700">
-          Concept <span className="text-red-500">*</span>
+          Concept name <span className="text-red-500">*</span>
         </label>
         <input
           type="text"
