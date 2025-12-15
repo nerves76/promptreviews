@@ -21,7 +21,8 @@ export type FeatureType =
   | 'ai_review_gen'
   | 'rank_tracking'
   | 'domain_analysis'
-  | 'llm_visibility';
+  | 'llm_visibility'
+  | 'keyword_enrichment';
 
 export interface CreditBalance {
   accountId: string;

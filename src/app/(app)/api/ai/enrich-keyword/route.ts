@@ -7,11 +7,15 @@
  * - aliases: Variant phrases that should match this concept
  * - location_scope: Detected geographic scope
  * - related_questions: 3-5 questions people might ask about this topic (for PAA/LLM tracking)
+ *
+ * Cost: 1 credit per enrichment
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
-import { verifyAccountAuth } from "@/app/(app)/api/middleware/auth";
+import { createServerSupabaseClient } from "@/auth/providers/supabase";
+import { getRequestAccountId } from "@/app/(app)/api/utils/getRequestAccountId";
+import { withCredits, checkCredits, getFeatureCost } from "@/lib/credits";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -25,15 +29,56 @@ interface EnrichmentResult {
   related_questions: string[];
 }
 
+// GET: Check credit cost and availability
+export async function GET(request: NextRequest) {
+  try {
+    const supabase = await createServerSupabaseClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const accountId = await getRequestAccountId(request, user.id, supabase);
+    if (!accountId) {
+      return NextResponse.json({ error: "No valid account found" }, { status: 403 });
+    }
+
+    // Get cost from pricing rules (defaults to 1)
+    const cost = await getFeatureCost(supabase, "keyword_enrichment", "default", 1);
+    const creditCheck = await checkCredits(supabase, accountId, cost);
+
+    return NextResponse.json({
+      cost,
+      available: creditCheck.available,
+      hasCredits: creditCheck.hasCredits,
+    });
+  } catch (error) {
+    console.error("[ENRICH-KEYWORD] GET Error:", error);
+    return NextResponse.json(
+      { error: "Failed to check credits" },
+      { status: 500 }
+    );
+  }
+}
+
+// POST: Perform enrichment (costs 1 credit)
 export async function POST(request: NextRequest) {
   try {
-    // Verify authentication
-    const authResult = await verifyAccountAuth(request);
-    if (!authResult.success) {
-      return NextResponse.json(
-        { error: authResult.error },
-        { status: authResult.errorCode || 401 }
-      );
+    const supabase = await createServerSupabaseClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const accountId = await getRequestAccountId(request, user.id, supabase);
+    if (!accountId) {
+      return NextResponse.json({ error: "No valid account found" }, { status: 403 });
     }
 
     const body = await request.json();
@@ -54,16 +99,30 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Build context about the business
-    const businessContext = [
-      businessName ? `Business: ${businessName}` : null,
-      businessCity ? `City: ${businessCity}` : null,
-      businessState ? `State: ${businessState}` : null,
-    ]
-      .filter(Boolean)
-      .join(", ");
+    // Get cost from pricing rules (defaults to 1)
+    const creditCost = await getFeatureCost(supabase, "keyword_enrichment", "default", 1);
 
-    const systemPrompt = `You are a keyword optimization expert for local SEO and review generation.
+    // Use withCredits helper for credit-gated operation
+    const result = await withCredits({
+      supabase,
+      accountId,
+      userId: user.id,
+      featureType: "keyword_enrichment",
+      creditCost,
+      idempotencyKey: `keyword-enrich-${accountId}-${trimmedPhrase}-${Date.now()}`,
+      description: `AI keyword enrichment: "${trimmedPhrase}"`,
+      featureMetadata: { phrase: trimmedPhrase },
+      operation: async () => {
+        // Build context about the business
+        const businessContext = [
+          businessName ? `Business: ${businessName}` : null,
+          businessCity ? `City: ${businessCity}` : null,
+          businessState ? `State: ${businessState}` : null,
+        ]
+          .filter(Boolean)
+          .join(", ");
+
+        const systemPrompt = `You are a keyword optimization expert for local SEO and review generation.
 
 Given a keyword phrase, generate optimized versions for different use cases:
 
@@ -101,7 +160,7 @@ Given a keyword phrase, generate optimized versions for different use cases:
 
 Respond with ONLY valid JSON, no markdown or explanation.`;
 
-    const userPrompt = `Keyword phrase: "${trimmedPhrase}"
+        const userPrompt = `Keyword phrase: "${trimmedPhrase}"
 ${businessContext ? `\nBusiness context: ${businessContext}` : ""}
 
 Generate the enriched keyword data as JSON with this exact structure:
@@ -113,65 +172,75 @@ Generate the enriched keyword data as JSON with this exact structure:
   "related_questions": ["...", "...", "..."]
 }`;
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt },
-      ],
-      temperature: 0.3,
-      max_tokens: 500,
-      response_format: { type: "json_object" },
+        const completion = await openai.chat.completions.create({
+          model: "gpt-4o-mini",
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt },
+          ],
+          temperature: 0.3,
+          max_tokens: 500,
+          response_format: { type: "json_object" },
+        });
+
+        const responseText = completion.choices[0]?.message?.content;
+        if (!responseText) {
+          throw new Error("No response from OpenAI");
+        }
+
+        let enrichment: EnrichmentResult;
+        try {
+          enrichment = JSON.parse(responseText);
+        } catch (parseError) {
+          console.error("[ENRICH-KEYWORD] Failed to parse OpenAI response:", responseText);
+          throw new Error("Failed to parse AI response");
+        }
+
+        // Validate the response structure
+        if (!enrichment.review_phrase || !enrichment.search_query) {
+          console.error("[ENRICH-KEYWORD] Invalid response structure:", enrichment);
+          throw new Error("Invalid AI response structure");
+        }
+
+        // Ensure aliases is an array
+        if (!Array.isArray(enrichment.aliases)) {
+          enrichment.aliases = [];
+        }
+
+        // Ensure related_questions is an array with max 5 items
+        if (!Array.isArray(enrichment.related_questions)) {
+          enrichment.related_questions = [];
+        } else {
+          enrichment.related_questions = enrichment.related_questions.slice(0, 5);
+        }
+
+        // Validate location_scope
+        const validScopes = ["local", "city", "region", "state", "national", null];
+        if (!validScopes.includes(enrichment.location_scope)) {
+          enrichment.location_scope = null;
+        }
+
+        return enrichment;
+      },
     });
 
-    const responseText = completion.choices[0]?.message?.content;
-    if (!responseText) {
-      throw new Error("No response from OpenAI");
-    }
-
-    let enrichment: EnrichmentResult;
-    try {
-      enrichment = JSON.parse(responseText);
-    } catch (parseError) {
-      console.error("[ENRICH-KEYWORD] Failed to parse OpenAI response:", responseText);
-      throw new Error("Failed to parse AI response");
-    }
-
-    // Validate the response structure
-    if (!enrichment.review_phrase || !enrichment.search_query) {
-      console.error("[ENRICH-KEYWORD] Invalid response structure:", enrichment);
-      throw new Error("Invalid AI response structure");
-    }
-
-    // Ensure aliases is an array
-    if (!Array.isArray(enrichment.aliases)) {
-      enrichment.aliases = [];
-    }
-
-    // Ensure related_questions is an array with max 5 items
-    if (!Array.isArray(enrichment.related_questions)) {
-      enrichment.related_questions = [];
-    } else {
-      enrichment.related_questions = enrichment.related_questions.slice(0, 5);
-    }
-
-    // Validate location_scope
-    const validScopes = ["local", "city", "region", "state", "national", null];
-    if (!validScopes.includes(enrichment.location_scope)) {
-      enrichment.location_scope = null;
+    // Handle credit errors
+    if (!result.success) {
+      return NextResponse.json(
+        { error: result.error },
+        { status: result.errorCode || 500 }
+      );
     }
 
     return NextResponse.json({
       success: true,
       original_phrase: trimmedPhrase,
       enrichment: {
-        review_phrase: enrichment.review_phrase,
-        search_query: enrichment.search_query,
-        aliases: enrichment.aliases,
-        location_scope: enrichment.location_scope,
-        related_questions: enrichment.related_questions,
+        ...result.data,
         ai_generated: true,
       },
+      creditsUsed: result.creditsDebited,
+      creditsRemaining: result.creditsRemaining,
     });
   } catch (error) {
     console.error("[ENRICH-KEYWORD] Error:", error);
