@@ -49,7 +49,6 @@ export default function KeywordConceptInput({
   const [isEnriching, setIsEnriching] = useState(false);
   const [enrichment, setEnrichment] = useState<KeywordEnrichment | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [showAdvanced, setShowAdvanced] = useState(false);
 
   // Editable fields after enrichment
   const [editedReviewPhrase, setEditedReviewPhrase] = useState("");
@@ -120,7 +119,6 @@ export default function KeywordConceptInput({
     setEditedSearchQuery("");
     setEditedQuestions([]);
     setNewQuestion("");
-    setShowAdvanced(false);
     setError(null);
   }, [enrichment, inputValue, editedReviewPhrase, editedSearchQuery, editedQuestions, onKeywordAdded]);
 
@@ -130,7 +128,6 @@ export default function KeywordConceptInput({
     setEditedSearchQuery("");
     setEditedQuestions([]);
     setNewQuestion("");
-    setShowAdvanced(false);
     setError(null);
   }, []);
 
@@ -250,106 +247,85 @@ export default function KeywordConceptInput({
             />
           </div>
 
-          {/* Advanced Options Toggle */}
-          <button
-            onClick={() => setShowAdvanced(!showAdvanced)}
-            className="text-sm text-slate-blue hover:text-slate-blue/80 flex items-center gap-1"
-          >
-            <svg
-              className={`w-4 h-4 transition-transform ${showAdvanced ? "rotate-90" : ""}`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-            Advanced options
-          </button>
-
-          {/* Advanced Options */}
-          {showAdvanced && (
-            <div className="space-y-3 pl-4 border-l-2 border-gray-200">
-              {/* Aliases */}
-              <div className="space-y-1">
-                <label className="block text-xs font-medium text-gray-500">
-                  Aliases
-                  <span className="text-gray-400 font-normal ml-1">(variant phrases that match this keyword)</span>
-                </label>
-                <div className="flex flex-wrap gap-1">
-                  {enrichment.aliases.length > 0 ? (
-                    enrichment.aliases.map((alias, idx) => (
-                      <span
-                        key={idx}
-                        className="inline-flex items-center px-2 py-0.5 bg-gray-200 text-gray-700 text-xs rounded"
-                      >
-                        {alias}
-                      </span>
-                    ))
-                  ) : (
-                    <span className="text-xs text-gray-400">No aliases generated</span>
-                  )}
-                </div>
-              </div>
-
-              {/* Location Scope */}
-              {enrichment.location_scope && (
-                <div className="space-y-1">
-                  <label className="block text-xs font-medium text-gray-500">Location Scope</label>
-                  <span className="inline-flex items-center px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded capitalize">
-                    {enrichment.location_scope}
+          {/* Aliases */}
+          <div className="space-y-1">
+            <label className="block text-xs font-medium text-gray-500">
+              Aliases
+              <span className="text-gray-400 font-normal ml-1">(variant phrases that match this keyword)</span>
+            </label>
+            <div className="flex flex-wrap gap-1">
+              {enrichment.aliases.length > 0 ? (
+                enrichment.aliases.map((alias, idx) => (
+                  <span
+                    key={idx}
+                    className="inline-flex items-center px-2 py-0.5 bg-gray-200 text-gray-700 text-xs rounded"
+                  >
+                    {alias}
                   </span>
-                </div>
+                ))
+              ) : (
+                <span className="text-xs text-gray-400">No aliases generated</span>
               )}
+            </div>
+          </div>
 
-              {/* Related Questions */}
-              <div className="space-y-2">
-                <label className="block text-xs font-medium text-gray-500">
-                  Related Questions
-                  <span className="text-gray-400 font-normal ml-1">(for PAA/LLM tracking, max 10)</span>
-                </label>
-                <div className="space-y-1">
-                  {editedQuestions.map((question, idx) => (
-                    <div
-                      key={idx}
-                      className="flex items-center gap-2 bg-purple-50 text-purple-800 text-xs rounded px-2 py-1.5"
-                    >
-                      <span className="flex-1">{question}</span>
-                      <button
-                        onClick={() => handleRemoveQuestion(idx)}
-                        className="text-purple-600 hover:text-purple-800"
-                      >
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                      </button>
-                    </div>
-                  ))}
-                  {editedQuestions.length === 0 && (
-                    <span className="text-xs text-gray-400">No questions generated</span>
-                  )}
-                </div>
-                {editedQuestions.length < 10 && (
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={newQuestion}
-                      onChange={(e) => setNewQuestion(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddQuestion())}
-                      placeholder="Add a question..."
-                      className="flex-1 border border-gray-300 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-slate-blue focus:border-slate-blue"
-                    />
-                    <button
-                      onClick={handleAddQuestion}
-                      disabled={!newQuestion.trim()}
-                      className="px-2 py-1 bg-purple-600 text-white rounded text-xs hover:bg-purple-700 disabled:opacity-50"
-                    >
-                      Add
-                    </button>
-                  </div>
-                )}
-              </div>
+          {/* Location Scope */}
+          {enrichment.location_scope && (
+            <div className="space-y-1">
+              <label className="block text-xs font-medium text-gray-500">Location scope</label>
+              <span className="inline-flex items-center px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded capitalize">
+                {enrichment.location_scope}
+              </span>
             </div>
           )}
+
+          {/* Related Questions */}
+          <div className="space-y-2">
+            <label className="block text-xs font-medium text-gray-500">
+              Related questions
+              <span className="text-gray-400 font-normal ml-1">(for PAA/LLM tracking, max 10)</span>
+            </label>
+            <div className="space-y-1">
+              {editedQuestions.map((question, idx) => (
+                <div
+                  key={idx}
+                  className="flex items-center gap-2 bg-purple-50 text-purple-800 text-xs rounded px-2 py-1.5"
+                >
+                  <span className="flex-1">{question}</span>
+                  <button
+                    onClick={() => handleRemoveQuestion(idx)}
+                    className="text-purple-600 hover:text-purple-800"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              ))}
+              {editedQuestions.length === 0 && (
+                <span className="text-xs text-gray-400">No questions generated</span>
+              )}
+            </div>
+            {editedQuestions.length < 10 && (
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={newQuestion}
+                  onChange={(e) => setNewQuestion(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddQuestion())}
+                  placeholder="Add a question..."
+                  className="flex-1 border border-gray-300 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-slate-blue focus:border-slate-blue"
+                />
+                <button
+                  onClick={handleAddQuestion}
+                  disabled={!newQuestion.trim()}
+                  className="px-2 py-1 bg-purple-600 text-white rounded text-xs hover:bg-purple-700 disabled:opacity-50"
+                >
+                  Add
+                </button>
+              </div>
+            )}
+          </div>
 
           {/* Action Buttons */}
           <div className="flex justify-end gap-2 pt-2 border-t border-gray-200">
