@@ -102,85 +102,78 @@ export default function ImportFromWebsite({ onImport, isVisible = true }: Import
   };
 
   return (
-    <div className="mb-6 rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 p-[2px]">
-      <div className="rounded-[10px] bg-white p-6">
-        <div className="flex flex-col md:flex-row md:items-center gap-4">
-          {/* Icon and text */}
-          <div className="flex items-center gap-3 flex-shrink-0">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center">
-              <Icon name="FaGlobe" size={20} className="text-white" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-gray-900">Quick start: Import from your website</h3>
-              <p className="text-sm text-gray-600">Get a head start - we'll scan your site and use AI to fill out everything we can. You can edit everything before saving.</p>
-            </div>
-          </div>
-
-          {/* Input and button */}
-          <div className="flex-1 flex flex-col sm:flex-row gap-2">
-            <div className="flex-1 relative">
-              <input
-                type="text"
-                value={url}
-                onChange={(e) => {
-                  setUrl(e.target.value);
-                  setError(null);
-                }}
-                onKeyDown={handleKeyDown}
-                placeholder="yourwebsite.com"
-                disabled={isLoading}
-                className={`w-full px-4 py-2.5 rounded-lg border ${
-                  error ? "border-red-300 focus:ring-red-500 focus:border-red-500" : "border-gray-300 focus:ring-indigo-500 focus:border-indigo-500"
-                } focus:outline-none focus:ring-2 disabled:bg-gray-50 disabled:cursor-not-allowed`}
-              />
-            </div>
+    <div className="mb-4 rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 p-5 mx-auto">
+      <div className="flex items-start gap-4">
+        <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
+          <Icon name="prompty" size={20} className="text-white" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <h3 className="font-semibold text-white mb-1">Quick start: Import from your website</h3>
+          <p className="text-sm text-white/90 mb-3">
+            Get a head start – we&apos;ll scan your site and use AI to fill out everything we can. You can edit everything before saving.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-2 max-w-xl">
+            <input
+              type="text"
+              value={url}
+              onChange={(e) => {
+                setUrl(e.target.value);
+                setError(null);
+              }}
+              onKeyDown={handleKeyDown}
+              placeholder="yourwebsite.com"
+              disabled={isLoading}
+              className={`flex-1 px-3 py-2 rounded-lg border bg-white ${
+                error ? "border-red-300 focus:ring-red-500 focus:border-red-500" : "border-transparent focus:ring-white focus:border-white"
+              } focus:outline-none focus:ring-2 disabled:bg-gray-50 disabled:cursor-not-allowed`}
+            />
             <button
               type="button"
               onClick={handleImport}
               disabled={isLoading || !url.trim()}
-              className={`px-5 py-2.5 rounded-lg font-medium text-white transition-all flex items-center justify-center gap-2 ${
+              className={`px-5 py-2 rounded-lg font-medium transition-all flex items-center justify-center gap-2 whitespace-nowrap ${
                 isLoading || !url.trim()
-                  ? "bg-gray-400 cursor-not-allowed"
+                  ? "bg-white/30 text-white/60 cursor-not-allowed"
                   : success
-                  ? "bg-green-500 hover:bg-green-600"
-                  : "bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600"
+                  ? "bg-green-500 text-white hover:bg-green-600"
+                  : "bg-slate-blue text-white hover:bg-slate-blue/90"
               }`}
             >
               {isLoading ? (
                 <>
-                  <Icon name="FaSpinner" size={16} className="animate-spin" />
-                  <span>Importing...</span>
+                  <Icon name="FaSpinner" size={14} className="animate-spin" />
+                  <span>Scanning...</span>
                 </>
               ) : success ? (
                 <>
-                  <Icon name="FaCheck" size={16} />
-                  <span>Imported!</span>
+                  <Icon name="FaCheck" size={14} />
+                  <span>Done!</span>
                 </>
               ) : (
                 <>
-                  <Icon name="FaUpload" size={16} />
-                  <span>Import</span>
+                  <Icon name="FaSearch" size={14} />
+                  <span>Scan & fill</span>
                 </>
               )}
             </button>
           </div>
+
+          {/* Error message */}
+          {error && (
+            <div className="mt-2 flex items-center gap-2 text-white text-sm bg-red-500/80 rounded-lg px-3 py-2">
+              <Icon name="FaExclamationTriangle" size={14} />
+              <span>{error}</span>
+            </div>
+          )}
+
+          {/* Success message */}
+          {success && (
+            <div className="mt-2 flex items-center gap-2 text-white text-sm bg-green-500/80 rounded-lg px-3 py-2">
+              <Icon name="FaCheckCircle" size={14} />
+              <span>Website info imported! Review the fields below and make any edits.</span>
+            </div>
+          )}
         </div>
-
-        {/* Error message */}
-        {error && (
-          <div className="mt-3 flex items-center gap-2 text-red-600 text-sm">
-            <Icon name="FaExclamationTriangle" size={14} />
-            <span>{error}</span>
-          </div>
-        )}
-
-        {/* Success message */}
-        {success && (
-          <div className="mt-3 flex items-center gap-2 text-green-600 text-sm">
-            <Icon name="FaCheckCircle" size={14} />
-            <span>Website information imported! Review the fields below and make any edits.</span>
-          </div>
-        )}
       </div>
     </div>
   );

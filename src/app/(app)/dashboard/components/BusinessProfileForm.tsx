@@ -78,6 +78,11 @@ interface BusinessProfileFormProps {
   handleServiceChange: (idx: number, value: string) => void;
   addService: () => void;
   removeService: (idx: number) => void;
+  differentiators: string[];
+  setDifferentiators: (differentiators: string[]) => void;
+  handleDifferentiatorChange: (idx: number, value: string) => void;
+  addDifferentiator: () => void;
+  removeDifferentiator: (idx: number) => void;
   handleLogoChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleCropConfirm: () => void;
   handleCropCancel: () => void;
@@ -118,6 +123,11 @@ export default function BusinessProfileForm({
   handleServiceChange,
   addService,
   removeService,
+  differentiators,
+  setDifferentiators,
+  handleDifferentiatorChange,
+  addDifferentiator,
+  removeDifferentiator,
   handleLogoChange,
   handleCropConfirm,
   handleCropCancel,
@@ -337,13 +347,32 @@ export default function BusinessProfileForm({
             Differentiators / unique selling points
             <RobotTooltip text="Made available for AI prompt generation." />
           </label>
-          <textarea
-            name="differentiators"
-            className="w-full border px-3 py-2 rounded"
-            value={form.differentiators || ""}
-            onChange={handleChange}
-            placeholder="What makes your business unique?"
-          />
+          {differentiators.map((diff, idx) => (
+            <div key={idx} className="flex items-center gap-2 mb-2">
+              <input
+                type="text"
+                className="flex-1 border px-3 py-2 rounded"
+                value={diff}
+                onChange={(e) => handleDifferentiatorChange(idx, e.target.value)}
+                placeholder="e.g., 24/7 customer support"
+              />
+              <button
+                type="button"
+                className="text-red-500 hover:text-red-700 px-2"
+                onClick={() => removeDifferentiator(idx)}
+                aria-label="Remove differentiator"
+              >
+                <Icon name="FaTrash" size={16} />
+              </button>
+            </div>
+          ))}
+          <button
+            type="button"
+            className="inline-flex items-center px-4 py-2 border border-slate-blue text-slate-blue rounded hover:bg-slate-blue hover:text-white transition-colors font-semibold mt-2"
+            onClick={addDifferentiator}
+          >
+            + Add a differentiator
+          </button>
         </div>
         <div className="mb-4">
           <label className="block font-semibold text-sm text-gray-500 mb-1 flex items-center">

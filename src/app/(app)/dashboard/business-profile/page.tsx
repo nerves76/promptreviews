@@ -181,7 +181,20 @@ export default function BusinessProfilePage() {
     }
     return [""];
   });
-  
+
+  // Restore differentiators from localStorage
+  const [differentiators, setDifferentiators] = useState<string[]>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('businessProfileDifferentiators');
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch (e) {}
+      }
+    }
+    return [""];
+  });
+
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPrintFile, setLogoPrintFile] = useState<File | null>(null);
@@ -198,6 +211,12 @@ export default function BusinessProfilePage() {
   const [accountId, setAccountId] = useState<string | null>(null);
   const [businessId, setBusinessId] = useState<string | null>(null);
   const [showWelcomePopup, setShowWelcomePopup] = useState(false);
+  const [hasBeenSaved, setHasBeenSaved] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('businessProfileSaved') === 'true';
+    }
+    return false;
+  });
 
   // Handler for closing the welcome popup
   const handleWelcomeClose = () => {
@@ -232,7 +251,7 @@ export default function BusinessProfilePage() {
     // Map imported data to form fields, only if current field is empty
     if (data.name && !form.name?.trim()) updates.name = data.name;
     if (data.about_us && !form.about_us?.trim()) updates.about_us = data.about_us;
-    if (data.keywords && !form.keywords?.trim()) updates.keywords = data.keywords;
+    if (data.keywords && !(typeof form.keywords === 'string' && form.keywords.trim())) updates.keywords = data.keywords;
     if (data.taglines && !form.taglines?.trim()) updates.taglines = data.taglines;
     if (data.differentiators && !form.differentiators?.trim()) updates.differentiators = data.differentiators;
     if (data.phone && !form.phone?.trim()) updates.phone = data.phone;
@@ -428,6 +447,8 @@ export default function BusinessProfilePage() {
             ...businessData,
             // Explicitly set about_us to ensure it's loaded (handles null case)
             about_us: businessData.about_us || "",
+            // Ensure keywords is a string (might be array in database)
+            keywords: Array.isArray(businessData.keywords) ? businessData.keywords.join(', ') : (businessData.keywords || ""),
             business_website: businessData.business_website || "",
             phone: businessData.phone || "",
             address_street: businessData.address_street || "",
@@ -460,6 +481,24 @@ export default function BusinessProfilePage() {
                     })()
                   : businessData.services_offered.split("\n")
                 : [],
+          );
+          // Parse differentiators similar to services
+          setDifferentiators(
+            Array.isArray(businessData.differentiators)
+              ? businessData.differentiators
+              : typeof businessData.differentiators === "string" &&
+                  businessData.differentiators.length > 0
+                ? businessData.differentiators.trim().startsWith("[") &&
+                  businessData.differentiators.trim().endsWith("]")
+                  ? (() => {
+                      try {
+                        return JSON.parse(businessData.differentiators);
+                      } catch {
+                        return [businessData.differentiators];
+                      }
+                    })()
+                  : businessData.differentiators.split("\n").filter((d: string) => d.trim())
+                : [""],
           );
           setLogoUrl(businessData.logo_url || null);
           setBusinessId(businessData.id); // Store business ID for updates
@@ -511,6 +550,17 @@ export default function BusinessProfilePage() {
   const removeService = (idx: number) =>
     setServices(services.filter((_, i) => i !== idx));
 
+  // Differentiator handlers
+  const handleDifferentiatorChange = (idx: number, value: string) => {
+    const newDifferentiators = [...differentiators];
+    newDifferentiators[idx] = value;
+    setDifferentiators(newDifferentiators);
+  };
+
+  const addDifferentiator = () => setDifferentiators([...differentiators, ""]);
+
+  const removeDifferentiator = (idx: number) =>
+    setDifferentiators(differentiators.filter((_, i) => i !== idx));
 
   // Helper to get cropped image as a blob
   const getCroppedImg = async (imageSrc: string, cropPixels: any) => {
@@ -760,11 +810,17 @@ export default function BusinessProfilePage() {
         .map(s => s?.trim())
         .filter(s => s && s.length > 0);
 
+      // Filter out empty differentiators and join as newline-separated string for database
+      const filteredDifferentiators = differentiators
+        .map(d => d?.trim())
+        .filter(d => d && d.length > 0)
+        .join("\n");
+
       // Build the update payload
       const updatePayload = {
         name: form.name,
         company_values: form.company_values,
-        differentiators: form.differentiators,
+        differentiators: filteredDifferentiators,
         years_in_business: form.years_in_business,
         industries_served: form.industries_served,
         taglines: form.taglines,
@@ -939,6 +995,10 @@ export default function BusinessProfilePage() {
         localStorage.removeItem(formStorageKey);
         localStorage.removeItem('businessProfilePlatforms');
         localStorage.removeItem('businessProfileServices');
+        localStorage.removeItem('businessProfileDifferentiators');
+        // Mark that profile has been saved (hides import from website feature)
+        localStorage.setItem('businessProfileSaved', 'true');
+        setHasBeenSaved(true);
       }
 
       // Mark business profile task as completed when user successfully saves
@@ -1045,8 +1105,8 @@ export default function BusinessProfilePage() {
   return (
     <div className="min-h-screen flex justify-center items-start px-4 sm:px-0">
       <div className="w-full max-w-4xl">
-        {/* Import from website section */}
-        <ImportFromWebsite onImport={handleWebsiteImport} />
+        {/* Import from website section - hidden after first save */}
+        {!hasBeenSaved && <ImportFromWebsite onImport={handleWebsiteImport} />}
 
         <PageCard icon={<Icon name="FaStore" className="w-9 h-9 text-slate-blue" size={36} />}>
       
@@ -1092,6 +1152,11 @@ export default function BusinessProfilePage() {
         setForm={setForm}
         services={services}
         setServices={setServices}
+        differentiators={differentiators}
+        setDifferentiators={setDifferentiators}
+        handleDifferentiatorChange={handleDifferentiatorChange}
+        addDifferentiator={addDifferentiator}
+        removeDifferentiator={removeDifferentiator}
         logoUrl={logoUrl}
         setLogoUrl={setLogoUrl}
         logoFile={logoFile}
