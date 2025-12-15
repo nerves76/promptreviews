@@ -320,8 +320,8 @@ export default function PromptPageSettingsPage() {
                   href="/dashboard/keywords"
                   className="px-4 py-2 bg-slate-blue text-white rounded-lg font-medium hover:bg-slate-blue/90 transition flex items-center gap-2"
                 >
-                  <Icon name="FaKey" className="w-4 h-4" />
-                  Manage Keywords
+                  Go
+                  <Icon name="FaArrowRight" className="w-4 h-4" />
                 </Link>
               </div>
             </section>
