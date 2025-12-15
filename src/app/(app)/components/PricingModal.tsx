@@ -8,6 +8,7 @@ const tiers = [
   {
     key: "grower",
     name: "Grower",
+    description: "Great for solo operators getting started",
     price: "20",
     priceMonthly: "20",
     priceAnnual: "17", // $204/year ÷ 12 months (15% discount)
@@ -23,14 +24,16 @@ const tiers = [
       "100 credits/month",
       "Universal Prompt Page",
       "3 custom Prompt Pages",
-      "Review widget",
+      "Review widgets",
+      "Local & AI visibility tracking (Geo grids, Search, LLMs)",
       "Analytics",
-      "Manage 1 Google Business Profile",
+      "1 managed Google Business Profile",
     ],
   },
   {
     key: "builder",
     name: "Builder",
+    description: "For teams scaling review & visibility",
     price: "40",
     priceMonthly: "40",
     priceAnnual: "34", // $408/year ÷ 12 months (15% discount)
@@ -44,18 +47,20 @@ const tiers = [
     features: [
       "200 credits/month",
       "3 team members",
-      "Workflow management",
+      "Campaign management",
       "Universal Prompt Page",
       "50 Prompt Pages",
-      "1000 contacts",
-      "Review widget",
+      "Contact management (up to 1000)",
+      "Review widgets",
+      "Local & AI visibility tracking (Geo grids, Search, LLMs)",
       "Analytics",
-      "Manage up to 3 Google Business Profiles",
+      "3 managed Google Business Profiles",
     ],
   },
   {
     key: "maven",
     name: "Maven",
+    description: "Great for multi-location brands",
     price: "100",
     priceMonthly: "100",
     priceAnnual: "85", // $1020/year ÷ 12 months (15% discount)
@@ -69,13 +74,14 @@ const tiers = [
     features: [
       "400 credits/month",
       "5 team members",
-      "Workflow management",
+      "Campaign management",
       "Up to 10 business locations",
       "500 Prompt Pages",
-      "10,000 contacts",
-      "Review widget",
+      "Contact management (up to 10,000)",
+      "Review widgets",
+      "Local & AI visibility tracking (Geo grids, Search, LLMs)",
       "Analytics",
-      "Manage up to 10 Google Business Profiles",
+      "10 managed Google Business Profiles",
     ],
   },
 ];
@@ -99,9 +105,9 @@ interface PricingModalProps {
 }
 
 const featureTooltips: Record<string, string> = {
-  "Workflow management":
+  "Campaign management":
     "Automate and organize your review collection process.",
-  "Review widget": "Embed a review collection widget on your website.",
+  "Review widgets": "Embed review collection widgets on your website.",
   Analytics: "Track review performance and engagement.",
   "Universal Prompt Page":
     "A single page to collect reviews from any platform, including a QR code for easy sharing.",
@@ -109,6 +115,8 @@ const featureTooltips: Record<string, string> = {
     "Custom prompt pages are designed for sending a personalized review request to an individual customer or client.",
   "prompt pages":
     "Prompt pages are designed for sending a personalized review request to an individual customer or client.",
+  "Local & AI visibility tracking (Geo grids, Search, LLMs)":
+    "Track your business visibility across local search, geo grids, and AI-powered search engines.",
 };
 
 export default function PricingModal({
@@ -264,9 +272,12 @@ export default function PricingModal({
                     14-DAY FREE TRIAL
                   </div>
                 )}
-                <h3 className={`text-3xl font-bold mb-2 ${tier.text}`}>
+                <h3 className={`text-3xl font-bold mb-1 ${tier.text}`}>
                   {tier.name}
                 </h3>
+                <p className={`text-sm mb-3 ${tier.text} opacity-80`}>
+                  {tier.description}
+                </p>
                 {/* Show discount badge for reactivation */}
                 {isReactivation && reactivationOffer?.hasOffer && (
                   <div className="absolute -top-5 right-4 bg-red-500 text-white font-bold px-3 py-1 rounded-full text-sm shadow-lg z-10 animate-bounce">

@@ -1275,9 +1275,12 @@ export default function PlanPage() {
                   </div>
                 )}
                 <div className="text-center flex flex-col h-full">
-                  <h3 className="text-2xl font-bold text-white mb-2">
+                  <h3 className="text-2xl font-bold text-white mb-1">
                     {tier.name}
                   </h3>
+                  <p className="text-sm text-white/70 mb-3">
+                    {tier.description}
+                  </p>
                   <div className="mb-4">
                     {isAdminAccount ? (
                       // Show admin pricing

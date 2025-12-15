@@ -5,52 +5,65 @@ const tiers = [
   {
     key: "grower",
     name: "Grower",
-    price: "20 / month",
+    description: "Great for solo operators getting started",
+    price: "17 / month",
     order: 1,
     bg: "bg-blue-100",
     text: "text-slate-blue",
     button: "bg-slate-blue hover:bg-slate-blue/90 text-white",
     features: [
       "**14-day free trial*",
-      "Universal prompt page",
-      "3 custom prompt pages",
-      "Cannot upload contacts",
-      "Review widget",
+      "100 credits/month",
+      "Universal Prompt Page",
+      "3 custom Prompt Pages",
+      "Review widgets",
+      "Local & AI visibility tracking (Geo grids, Search, LLMs)",
+      "Analytics",
+      "1 managed Google Business Profile",
     ],
   },
   {
     key: "builder",
     name: "Builder",
-    price: "40 / month",
+    description: "For teams scaling review & visibility",
+    price: "34 / month",
     order: 2,
     bg: "bg-purple-200",
     text: "text-slate-blue",
     button: "bg-slate-blue hover:bg-slate-blue/90 text-white",
     features: [
-      "Workflow management",
-      "Universal prompt page",
-      "50 prompt pages",
-      "1000 contacts",
-      "Review widget",
+      "200 credits/month",
+      "3 team members",
+      "Campaign management",
+      "Universal Prompt Page",
+      "50 Prompt Pages",
+      "Contact management (up to 1000)",
+      "Review widgets",
+      "Local & AI visibility tracking (Geo grids, Search, LLMs)",
       "Analytics",
+      "3 managed Google Business Profiles",
     ],
   },
   {
     key: "maven",
     name: "Maven",
-    price: "100 / month",
+    description: "Great for multi-location brands",
+    price: "85 / month",
     order: 3,
     bg: "bg-yellow-200",
     text: "text-slate-blue",
     button: "bg-slate-blue hover:bg-slate-blue/90 text-white",
     features: [
-      "Up to 10 Business Locations",
-      "Workflow management",
-      "1 Universal prompt page per business",
-      "500 prompt pages",
-      "10,000 contacts",
-      "Review widget",
+      "400 credits/month",
+      "5 team members",
+      "Campaign management",
+      "Up to 10 business locations",
+      "500 Prompt Pages",
+      "Contact management (up to 10,000)",
+      "Review widgets",
+      "Local & AI visibility tracking (Geo grids, Search, LLMs)",
       "Analytics",
+      "10 managed Google Business Profiles",
     ],
   },
 ];
@@ -75,16 +88,18 @@ function getButtonLabel(tierKey: string, currentPlan?: string) {
 }
 
 const featureTooltips: Record<string, string> = {
-  "Workflow management":
+  "Campaign management":
     "Automate and organize your review collection process.",
-  "Review widget": "Embed a review collection widget on your website.",
+  "Review widgets": "Embed review collection widgets on your website.",
   Analytics: "Track review performance and engagement.",
-  "Universal prompt page":
+  "Universal Prompt Page":
     "A single page to collect reviews from any platform, including a QR code for easy sharing.",
-  "custom prompt pages":
+  "custom Prompt Pages":
     "Custom prompt pages are designed for sending a personalized review request to an individual customer or client.",
-  "prompt pages":
+  "Prompt Pages":
     "Prompt pages are designed for sending a personalized review request to an individual customer or client.",
+  "Local & AI visibility tracking (Geo grids, Search, LLMs)":
+    "Track your business visibility across local search, geo grids, and AI-powered search engines.",
 };
 
 export default function PricingModal({
@@ -141,11 +156,14 @@ export default function PricingModal({
                       14-day free trial
                     </span>
                   )}
-                <h3 className={`text-3xl font-bold mb-2 ${tier.text}`}>
+                <h3 className={`text-3xl font-bold mb-1 ${tier.text}`}>
                   {tier.name}
                 </h3>
+                <p className={`text-sm mb-3 ${tier.text} opacity-80`}>
+                  {tier.description}
+                </p>
                 <div className={`text-2xl font-semibold mb-4 ${tier.text}`}>
-                  {tier.price}
+                  ${tier.price}
                 </div>
                 <ul className="mb-8 text-lg text-gray-800 space-y-2">
                   {tier.features.map((f) => {
