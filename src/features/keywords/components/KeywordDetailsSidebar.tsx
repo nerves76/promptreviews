@@ -90,6 +90,8 @@ export interface KeywordDetailsSidebarProps {
   groups?: Array<{ id: string; name: string }>;
   /** Optional: Show the group selector (defaults to false) */
   showGroupSelector?: boolean;
+  /** Optional: Refresh callback to refetch keyword details after update */
+  onRefresh?: () => Promise<void>;
 }
 
 export function KeywordDetailsSidebar({
@@ -101,9 +103,15 @@ export function KeywordDetailsSidebar({
   recentReviews = [],
   groups = [],
   showGroupSelector = false,
+  onRefresh,
 }: KeywordDetailsSidebarProps) {
   // Get business context for AI enrichment
   const { account } = useAuth();
+
+  // Search volume lookup state
+  const [isLookingUpVolume, setIsLookingUpVolume] = useState(false);
+  const [volumeLookupError, setVolumeLookupError] = useState<string | null>(null);
+  const [isVolumeExpanded, setIsVolumeExpanded] = useState(false);
 
   // Local state for editing
   const [isEditing, setIsEditing] = useState(false);
@@ -177,6 +185,12 @@ export function KeywordDetailsSidebar({
         relatedQuestions,
         ...(showGroupSelector && { groupId: editedGroupId || undefined }),
       });
+
+      // Refresh keyword details to show updated data
+      if (onRefresh) {
+        await onRefresh();
+      }
+
       setIsEditing(false);
       setEnrichSuccess(false);
     } catch (error) {
@@ -252,6 +266,52 @@ export function KeywordDetailsSidebar({
       setIsEnriching(false);
     }
   };
+
+  // Search volume lookup handler
+  const handleVolumeLookup = async () => {
+    if (!keyword) return;
+    setIsLookingUpVolume(true);
+    setVolumeLookupError(null);
+
+    try {
+      await apiClient.post(`/keywords/${keyword.id}/lookup-volume`, {
+        includeSuggestions: false,
+      });
+
+      // Refresh to get the updated keyword with volume data
+      if (onRefresh) {
+        await onRefresh();
+      }
+    } catch (error) {
+      console.error('Volume lookup failed:', error);
+      setVolumeLookupError(error instanceof Error ? error.message : 'Failed to look up search volume');
+    } finally {
+      setIsLookingUpVolume(false);
+    }
+  };
+
+  // Format large numbers nicely
+  const formatVolume = (vol: number | null) => {
+    if (vol === null || vol === undefined) return '-';
+    if (vol >= 1000000) return `${(vol / 1000000).toFixed(1)}M`;
+    if (vol >= 1000) return `${(vol / 1000).toFixed(1)}K`;
+    return vol.toString();
+  };
+
+  // Get competition badge color
+  const getCompetitionColor = (level: string | null) => {
+    switch (level) {
+      case 'LOW': return 'bg-green-100 text-green-700';
+      case 'MEDIUM': return 'bg-yellow-100 text-yellow-700';
+      case 'HIGH': return 'bg-red-100 text-red-700';
+      default: return 'bg-gray-100 text-gray-500';
+    }
+  };
+
+  // Check if metrics are stale (older than 30 days)
+  const isMetricsStale = keyword?.metricsUpdatedAt
+    ? new Date(keyword.metricsUpdatedAt) < new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+    : true;
 
   return (
     <Transition.Root show={isOpen} as={Fragment}>
@@ -551,6 +611,7 @@ export function KeywordDetailsSidebar({
                                         <>
                                           <Icon name="FaSparkles" className="w-3.5 h-3.5" />
                                           AI generate
+                                          <span className="text-purple-400 font-normal">(1 credit)</span>
                                         </>
                                       )}
                                     </button>
@@ -649,6 +710,127 @@ export function KeywordDetailsSidebar({
                                 ) : (
                                   <div className="text-sm text-gray-700 bg-white/80 px-3 py-2.5 rounded-lg border border-gray-100">
                                     {keyword.searchQuery || <span className="text-gray-400 italic">Not set</span>}
+                                  </div>
+                                )}
+
+                                {/* Search Volume Section */}
+                                {!isEditing && keyword.searchQuery && (
+                                  <div className="mt-3">
+                                    {/* Show lookup button if no data or stale */}
+                                    {(keyword.searchVolume === null || isMetricsStale) && (
+                                      <button
+                                        onClick={handleVolumeLookup}
+                                        disabled={isLookingUpVolume}
+                                        className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 border border-blue-200 transition-colors disabled:opacity-50"
+                                      >
+                                        {isLookingUpVolume ? (
+                                          <>
+                                            <Icon name="FaSpinner" className="w-3.5 h-3.5 animate-spin" />
+                                            Looking up...
+                                          </>
+                                        ) : (
+                                          <>
+                                            <Icon name="FaSearch" className="w-3.5 h-3.5" />
+                                            {keyword.searchVolume !== null ? 'Refresh volume data' : 'Check search volume'}
+                                          </>
+                                        )}
+                                      </button>
+                                    )}
+
+                                    {/* Volume lookup error */}
+                                    {volumeLookupError && (
+                                      <div className="mt-2 p-2 bg-red-50 border border-red-100 rounded-lg text-xs text-red-600 flex items-center gap-1.5">
+                                        <Icon name="FaExclamationTriangle" className="w-3 h-3" />
+                                        {volumeLookupError}
+                                      </div>
+                                    )}
+
+                                    {/* Volume data display */}
+                                    {keyword.searchVolume !== null && (
+                                      <div className="mt-3 p-3 bg-gradient-to-br from-blue-50/80 to-indigo-50/80 border border-blue-100/50 rounded-xl">
+                                        {/* Volume header with expand toggle */}
+                                        <button
+                                          onClick={() => setIsVolumeExpanded(!isVolumeExpanded)}
+                                          className="w-full flex items-center justify-between"
+                                        >
+                                          <div className="flex items-center gap-3">
+                                            <div>
+                                              <div className="text-xs text-gray-500">Monthly searches</div>
+                                              <div className="text-lg font-bold text-gray-900">
+                                                {formatVolume(keyword.searchVolume)}
+                                              </div>
+                                            </div>
+                                            {keyword.competitionLevel && (
+                                              <span className={`px-2 py-0.5 rounded text-xs font-medium ${getCompetitionColor(keyword.competitionLevel)}`}>
+                                                {keyword.competitionLevel}
+                                              </span>
+                                            )}
+                                            {keyword.cpc && (
+                                              <div className="text-xs text-gray-500">
+                                                CPC: ${keyword.cpc.toFixed(2)}
+                                              </div>
+                                            )}
+                                          </div>
+                                          <Icon
+                                            name={isVolumeExpanded ? "FaChevronUp" : "FaChevronDown"}
+                                            className="w-4 h-4 text-gray-400"
+                                          />
+                                        </button>
+
+                                        {/* Expanded section */}
+                                        {isVolumeExpanded && (
+                                          <div className="mt-3 pt-3 border-t border-blue-100/50">
+                                            {/* Monthly trend chart */}
+                                            {keyword.searchVolumeTrend?.monthlyData && keyword.searchVolumeTrend.monthlyData.length > 0 && (
+                                              <div className="mb-4">
+                                                <div className="text-xs font-medium text-gray-600 mb-2">Search trend (12 months)</div>
+                                                <div className="flex items-end gap-0.5 h-16">
+                                                  {keyword.searchVolumeTrend.monthlyData.slice(-12).map((m, i) => {
+                                                    const maxVol = Math.max(...(keyword.searchVolumeTrend?.monthlyData || []).map(x => x.volume || 0));
+                                                    const height = maxVol > 0 ? ((m.volume || 0) / maxVol) * 100 : 0;
+                                                    return (
+                                                      <div
+                                                        key={i}
+                                                        className="flex-1 bg-blue-300/60 hover:bg-blue-400/80 rounded-t transition-colors"
+                                                        style={{ height: `${Math.max(height, 8)}%` }}
+                                                        title={`${m.volume?.toLocaleString() || 0} searches`}
+                                                      />
+                                                    );
+                                                  })}
+                                                </div>
+                                                <div className="flex gap-0.5 mt-1">
+                                                  {keyword.searchVolumeTrend.monthlyData.slice(-12).map((m, i) => {
+                                                    const monthNames = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
+                                                    return (
+                                                      <div key={i} className="flex-1 text-center text-[9px] text-gray-400">
+                                                        {monthNames[(m.month || 1) - 1]}
+                                                      </div>
+                                                    );
+                                                  })}
+                                                </div>
+                                              </div>
+                                            )}
+
+                                            {/* Last updated */}
+                                            {keyword.metricsUpdatedAt && (
+                                              <div className="mt-3 pt-2 border-t border-blue-100/50 flex items-center justify-between">
+                                                <span className="text-[10px] text-gray-400">
+                                                  Updated {new Date(keyword.metricsUpdatedAt).toLocaleDateString()}
+                                                </span>
+                                                <button
+                                                  onClick={handleVolumeLookup}
+                                                  disabled={isLookingUpVolume}
+                                                  className="text-[10px] text-blue-600 hover:text-blue-700 flex items-center gap-1 disabled:opacity-50"
+                                                >
+                                                  <Icon name="FaRedo" className={`w-2.5 h-2.5 ${isLookingUpVolume ? 'animate-spin' : ''}`} />
+                                                  Refresh
+                                                </button>
+                                              </div>
+                                            )}
+                                          </div>
+                                        )}
+                                      </div>
+                                    )}
                                   </div>
                                 )}
                               </div>

@@ -203,6 +203,17 @@ export interface KeywordData {
   relatedQuestions: string[];
   // Rank tracking usage
   isUsedInRankTracking?: boolean;
+  // Search volume metrics (from DataForSEO)
+  searchVolume: number | null;
+  cpc: number | null;
+  competitionLevel: 'LOW' | 'MEDIUM' | 'HIGH' | null;
+  searchVolumeTrend: {
+    monthly?: number;
+    quarterly?: number;
+    yearly?: number;
+    monthlyData?: { month: number; year: number; volume: number }[];
+  } | null;
+  metricsUpdatedAt: string | null;
 }
 
 /**
@@ -228,6 +239,12 @@ export function transformKeywordToResponse(
     ai_generated?: boolean | null;
     ai_suggestions?: Record<string, unknown> | null;
     related_questions?: string[] | null;
+    // Metrics fields
+    search_volume?: number | null;
+    cpc?: number | null;
+    competition_level?: string | null;
+    search_volume_trend?: Record<string, unknown> | null;
+    metrics_updated_at?: Date | string | null;
   },
   groupName: string | null = null
 ): KeywordData {
@@ -262,6 +279,14 @@ export function transformKeywordToResponse(
     aiGenerated: keyword.ai_generated ?? false,
     aiSuggestions: keyword.ai_suggestions ?? null,
     relatedQuestions: keyword.related_questions ?? [],
+    // Metrics fields
+    searchVolume: keyword.search_volume ?? null,
+    cpc: keyword.cpc ? Number(keyword.cpc) : null,
+    competitionLevel: (keyword.competition_level as 'LOW' | 'MEDIUM' | 'HIGH') ?? null,
+    searchVolumeTrend: keyword.search_volume_trend as KeywordData['searchVolumeTrend'] ?? null,
+    metricsUpdatedAt: keyword.metrics_updated_at
+      ? new Date(keyword.metrics_updated_at).toISOString()
+      : null,
   };
 }
 

@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
     const promptPageId = searchParams.get('promptPageId');
     const includeUsage = searchParams.get('includeUsage') === 'true';
 
-    // Build query - include concept fields
+    // Build query - include concept fields and metrics
     let query = serviceSupabase
       .from('keywords')
       .select(`
@@ -65,6 +65,11 @@ export async function GET(request: NextRequest) {
         ai_generated,
         ai_suggestions,
         related_questions,
+        search_volume,
+        cpc,
+        competition_level,
+        search_volume_trend,
+        metrics_updated_at,
         keyword_groups (
           id,
           name

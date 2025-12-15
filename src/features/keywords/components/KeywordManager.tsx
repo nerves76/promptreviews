@@ -83,7 +83,7 @@ export default function KeywordManager({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch details for selected keyword
-  const { keyword: selectedKeyword, promptPages, recentReviews } = useKeywordDetails(selectedKeywordId);
+  const { keyword: selectedKeyword, promptPages, recentReviews, refresh: refreshKeywordDetails } = useKeywordDetails(selectedKeywordId);
 
   // Filter keywords by search query
   const filteredKeywords = useMemo(() => {
@@ -657,6 +657,7 @@ export default function KeywordManager({
           showGroupSelector={true}
           onClose={() => setSelectedKeywordId(null)}
           onUpdate={updateKeyword}
+          onRefresh={refreshKeywordDetails}
         />
       )}
     </div>
