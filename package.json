@@ -59,6 +59,7 @@
     "@types/node": "22.15.17",
     "@types/pg": "^8.15.4",
     "@types/qrcode": "^1.5.5",
+    "@vercel/analytics": "^1.6.1",
     "@vercel/og": "^0.8.5",
     "browser-image-compression": "^2.0.2",
     "cheerio": "^1.1.2",

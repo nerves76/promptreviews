@@ -5,6 +5,7 @@
 
 import "./globals.css";
 import type { Metadata } from "next";
+import { Analytics } from "@vercel/analytics/react";
 import ClientRoot from "./ClientRoot";
 import AppMain from "./(app)/components/AppMain";
 import GoogleAnalytics from "./(app)/components/GoogleAnalytics";
@@ -58,6 +59,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </ClientRoot>
           </BodyWrapper>
         </Providers>
+        <Analytics />
       </body>
     </html>
   );
