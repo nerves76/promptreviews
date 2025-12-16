@@ -13,6 +13,7 @@ import {
   LLM_PROVIDER_COLORS,
   LLM_CREDIT_COSTS,
   LLMVisibilitySummary,
+  LLMVisibilityCheck,
 } from '@/features/llm-visibility/utils/types';
 
 interface KeywordWithQuestions {
@@ -411,9 +412,85 @@ function KeywordVisibilityCard({
   onCheckQuestion: (question: string) => void;
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [results, setResults] = useState<LLMVisibilityCheck[]>([]);
+  const [isLoadingResults, setIsLoadingResults] = useState(false);
+  const [expandedQuestion, setExpandedQuestion] = useState<string | null>(null);
+
   const summary = keyword.summary;
   const questionCount = keyword.relatedQuestions.length;
   const providerCount = selectedProviders.length;
+
+  // Fetch results when expanded
+  useEffect(() => {
+    if (isExpanded && results.length === 0) {
+      fetchResults();
+    }
+  }, [isExpanded]);
+
+  // Refresh results after a check completes
+  useEffect(() => {
+    if (!isChecking && !checkingQuestion && isExpanded) {
+      fetchResults();
+    }
+  }, [isChecking, checkingQuestion]);
+
+  const fetchResults = async () => {
+    setIsLoadingResults(true);
+    try {
+      const data = await apiClient.get<{ results: LLMVisibilityCheck[] }>(
+        `/llm-visibility/results?keywordId=${keyword.id}&limit=100`
+      );
+      setResults(data.results || []);
+    } catch (err) {
+      console.error('Failed to fetch results:', err);
+    } finally {
+      setIsLoadingResults(false);
+    }
+  };
+
+  // Group results by question
+  const getQuestionResults = (question: string): Map<LLMProvider, LLMVisibilityCheck | null> => {
+    const questionResults = new Map<LLMProvider, LLMVisibilityCheck | null>();
+    // Initialize all providers as null
+    LLM_PROVIDERS.forEach(p => questionResults.set(p, null));
+
+    // Find the most recent result for each provider for this question
+    for (const result of results) {
+      if (result.question === question) {
+        const existing = questionResults.get(result.llmProvider);
+        if (!existing || new Date(result.checkedAt) > new Date(existing.checkedAt)) {
+          questionResults.set(result.llmProvider, result);
+        }
+      }
+    }
+    return questionResults;
+  };
+
+  // Get last checked time for a question
+  const getLastChecked = (question: string): string | null => {
+    const questionResults = results.filter(r => r.question === question);
+    if (questionResults.length === 0) return null;
+    const latest = questionResults.reduce((a, b) =>
+      new Date(a.checkedAt) > new Date(b.checkedAt) ? a : b
+    );
+    return latest.checkedAt;
+  };
+
+  // Format relative time
+  const formatRelativeTime = (dateStr: string) => {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffMins < 1) return 'just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return date.toLocaleDateString();
+  };
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
@@ -522,44 +599,176 @@ function KeywordVisibilityCard({
               </div>
             )}
           </div>
-          <div className="space-y-2">
-            {keyword.relatedQuestions.map((question, idx) => {
-              const questionKey = `${keyword.id}-${question}`;
-              const isCheckingThis = checkingQuestion === questionKey;
 
-              return (
-                <div key={idx} className="flex items-center justify-between gap-3 py-2 px-3 bg-white rounded-lg border border-gray-100">
-                  <div className="flex items-start gap-2 text-sm min-w-0">
-                    <Icon name="FaQuestionCircle" className="w-4 h-4 text-purple-400 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700">{question}</span>
-                  </div>
-                  <button
-                    onClick={() => onCheckQuestion(question)}
-                    disabled={isCheckingThis || isChecking || selectedProviders.length === 0}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex-shrink-0 ${
-                      isCheckingThis
-                        ? 'bg-purple-100 text-purple-400'
-                        : selectedProviders.length === 0
-                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                        : 'bg-purple-50 text-purple-600 hover:bg-purple-100 border border-purple-200'
-                    }`}
-                  >
-                    {isCheckingThis ? (
-                      <>
-                        <Icon name="FaSpinner" className="w-3 h-3 animate-spin" />
-                        Checking...
-                      </>
-                    ) : (
-                      <>
-                        <Icon name="FaSearch" className="w-3 h-3" />
-                        Check ({creditCostPerQuestion})
-                      </>
+          {isLoadingResults && results.length === 0 ? (
+            <div className="text-center py-4 text-gray-500 text-sm">
+              <Icon name="FaSpinner" className="w-4 h-4 animate-spin inline mr-2" />
+              Loading results...
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {keyword.relatedQuestions.map((question, idx) => {
+                const questionKey = `${keyword.id}-${question}`;
+                const isCheckingThis = checkingQuestion === questionKey;
+                const questionResults = getQuestionResults(question);
+                const lastChecked = getLastChecked(question);
+                const hasResults = Array.from(questionResults.values()).some(r => r !== null);
+                const isQuestionExpanded = expandedQuestion === question;
+
+                return (
+                  <div key={idx} className="bg-white rounded-lg border border-gray-100 overflow-hidden">
+                    {/* Question row */}
+                    <div className="flex items-center justify-between gap-3 py-3 px-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start gap-2 text-sm">
+                          <Icon name="FaQuestionCircle" className="w-4 h-4 text-purple-400 mt-0.5 flex-shrink-0" />
+                          <span className="text-gray-700">{question}</span>
+                        </div>
+
+                        {/* Provider results badges */}
+                        {hasResults && (
+                          <div className="flex items-center gap-2 mt-2 ml-6">
+                            {LLM_PROVIDERS.map((provider) => {
+                              const result = questionResults.get(provider);
+                              const colors = LLM_PROVIDER_COLORS[provider];
+
+                              if (!result) {
+                                return (
+                                  <span
+                                    key={provider}
+                                    className="px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-400"
+                                    title="Not checked"
+                                  >
+                                    {LLM_PROVIDER_LABELS[provider].charAt(0)}
+                                  </span>
+                                );
+                              }
+
+                              return (
+                                <span
+                                  key={provider}
+                                  className={`px-2 py-0.5 rounded text-xs font-medium flex items-center gap-1 ${
+                                    result.domainCited
+                                      ? `${colors.bg} ${colors.text}`
+                                      : 'bg-red-50 text-red-600'
+                                  }`}
+                                  title={
+                                    result.domainCited
+                                      ? `Cited at position ${result.citationPosition} of ${result.totalCitations}`
+                                      : 'Not cited'
+                                  }
+                                >
+                                  {result.domainCited ? (
+                                    <>
+                                      <Icon name="FaCheck" className="w-2.5 h-2.5" />
+                                      {LLM_PROVIDER_LABELS[provider].charAt(0)}
+                                      {result.citationPosition && (
+                                        <span className="opacity-70">#{result.citationPosition}</span>
+                                      )}
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Icon name="FaTimes" className="w-2.5 h-2.5" />
+                                      {LLM_PROVIDER_LABELS[provider].charAt(0)}
+                                    </>
+                                  )}
+                                </span>
+                              );
+                            })}
+                            {lastChecked && (
+                              <span className="text-xs text-gray-400 ml-2">
+                                {formatRelativeTime(lastChecked)}
+                              </span>
+                            )}
+                            {hasResults && (
+                              <button
+                                onClick={() => setExpandedQuestion(isQuestionExpanded ? null : question)}
+                                className="text-xs text-purple-600 hover:text-purple-700 ml-2"
+                              >
+                                {isQuestionExpanded ? 'Hide details' : 'View details'}
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      <button
+                        onClick={() => onCheckQuestion(question)}
+                        disabled={isCheckingThis || isChecking || selectedProviders.length === 0}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex-shrink-0 ${
+                          isCheckingThis
+                            ? 'bg-purple-100 text-purple-400'
+                            : selectedProviders.length === 0
+                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                            : 'bg-purple-50 text-purple-600 hover:bg-purple-100 border border-purple-200'
+                        }`}
+                      >
+                        {isCheckingThis ? (
+                          <>
+                            <Icon name="FaSpinner" className="w-3 h-3 animate-spin" />
+                            Checking...
+                          </>
+                        ) : (
+                          <>
+                            <Icon name="FaSearch" className="w-3 h-3" />
+                            Check ({creditCostPerQuestion})
+                          </>
+                        )}
+                      </button>
+                    </div>
+
+                    {/* Expanded details */}
+                    {isQuestionExpanded && hasResults && (
+                      <div className="border-t border-gray-100 bg-gray-50 p-4 space-y-3">
+                        {LLM_PROVIDERS.map((provider) => {
+                          const result = questionResults.get(provider);
+                          if (!result) return null;
+
+                          const colors = LLM_PROVIDER_COLORS[provider];
+
+                          return (
+                            <div key={provider} className={`p-3 rounded-lg ${colors.bg} border ${colors.border}`}>
+                              <div className="flex items-center justify-between mb-2">
+                                <span className={`font-medium text-sm ${colors.text}`}>
+                                  {LLM_PROVIDER_LABELS[provider]}
+                                </span>
+                                <span className={`text-xs ${colors.text}`}>
+                                  {result.domainCited ? (
+                                    <>Cited #{result.citationPosition} of {result.totalCitations}</>
+                                  ) : (
+                                    <>Not cited ({result.totalCitations} total citations)</>
+                                  )}
+                                </span>
+                              </div>
+                              {result.responseSnippet && (
+                                <div className="text-sm text-gray-700 bg-white/60 rounded p-2 mt-2">
+                                  <div className="text-xs text-gray-500 mb-1">Response snippet:</div>
+                                  <p className="line-clamp-4">{result.responseSnippet}</p>
+                                </div>
+                              )}
+                              {result.citationUrl && (
+                                <div className="text-xs text-gray-600 mt-2">
+                                  <span className="text-gray-500">Cited URL:</span>{' '}
+                                  <a
+                                    href={result.citationUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-purple-600 hover:underline"
+                                  >
+                                    {result.citationUrl}
+                                  </a>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
                     )}
-                  </button>
-                </div>
-              );
-            })}
-          </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
     </div>

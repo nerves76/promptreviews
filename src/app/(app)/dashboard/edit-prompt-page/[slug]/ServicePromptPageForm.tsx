@@ -98,10 +98,10 @@ const ServicePromptPageForm = forwardRef<any, ServicePromptPageFormProps>(
     });
     
     const [aiButtonEnabled, setAiButtonEnabled] = useState(
-      initialData?.aiButtonEnabled ?? true,
+      initialData?.aiButtonEnabled ?? (initialData as any)?.ai_button_enabled ?? true,
     );
     const [fixGrammarEnabled, setFixGrammarEnabled] = useState(
-      initialData?.fixGrammarEnabled ?? true,
+      initialData?.fixGrammarEnabled ?? (initialData as any)?.fix_grammar_enabled ?? true,
     );
     const [notePopupEnabled, setNotePopupEnabled] = useState(
       initialData?.notePopupEnabled ?? false,

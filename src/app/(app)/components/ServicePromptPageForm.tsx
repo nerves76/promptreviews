@@ -112,7 +112,7 @@ export default function ServicePromptPageForm({
       offer_url: initialData?.offer_url || "",
       // Handle both snake_case and camelCase for offer_timelock
       offer_timelock: initialData?.offer_timelock ?? initialData?.offerTimelock ?? false,
-      aiButtonEnabled: initialData?.aiButtonEnabled ?? true,
+      aiButtonEnabled: initialData?.aiButtonEnabled ?? initialData?.ai_button_enabled ?? true,
       falling_enabled: initialData?.falling_enabled ?? true,
       falling_icon: initialData?.falling_icon || "star",
       falling_icon_color: initialData?.falling_icon_color || "#fbbf24",

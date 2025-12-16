@@ -112,12 +112,12 @@ export default function EventPromptPageForm({
   const [formError, setFormError] = useState<string | null>(null);
   const [aiGeneratingIndex, setAiGeneratingIndex] = useState<number | null>(null);
   
-  // AI settings state
+  // AI settings state - check both camelCase and snake_case
   const [aiGenerationEnabled, setAiGenerationEnabled] = useState(
-    initialData?.aiButtonEnabled !== false
+    (initialData?.aiButtonEnabled ?? initialData?.ai_button_enabled) !== false
   );
   const [fixGrammarEnabled, setFixGrammarEnabled] = useState(
-    initialData?.fix_grammar_enabled !== false
+    (initialData?.fixGrammarEnabled ?? initialData?.fix_grammar_enabled) !== false
   );
 
   // Motivational Nudge state
