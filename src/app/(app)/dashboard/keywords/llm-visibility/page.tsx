@@ -132,7 +132,10 @@ export default function LLMVisibilityPage() {
     });
   };
 
-  // Run check for a keyword
+  // Track which question is being checked
+  const [checkingQuestion, setCheckingQuestion] = useState<string | null>(null);
+
+  // Run check for all questions of a keyword
   const handleRunCheck = async (keywordId: string, questions: string[]) => {
     setIsChecking(keywordId);
     setError(null);
@@ -154,9 +157,37 @@ export default function LLMVisibilityPage() {
     }
   };
 
-  // Calculate credit cost for a keyword
+  // Run check for a single question
+  const handleCheckSingleQuestion = async (keywordId: string, question: string) => {
+    const questionKey = `${keywordId}-${question}`;
+    setCheckingQuestion(questionKey);
+    setError(null);
+    try {
+      await apiClient.post('/llm-visibility/check', {
+        keywordId,
+        providers: selectedProviders,
+        questions: [question],
+      });
+      // Refresh data after check
+      await fetchData();
+    } catch (err: any) {
+      if (err?.status === 402) {
+        setError(`Insufficient credits. Need ${err.required || 'more'}, have ${err.available || 0}`);
+      } else {
+        setError('Failed to run check');
+      }
+    } finally {
+      setCheckingQuestion(null);
+    }
+  };
+
+  // Calculate credit cost
+  const getCreditCostPerQuestion = () => {
+    return selectedProviders.reduce((sum, p) => sum + LLM_CREDIT_COSTS[p], 0);
+  };
+
   const getKeywordCreditCost = (questionCount: number) => {
-    return questionCount * selectedProviders.reduce((sum, p) => sum + LLM_CREDIT_COSTS[p], 0);
+    return questionCount * getCreditCostPerQuestion();
   };
 
   return (
@@ -285,28 +316,51 @@ export default function LLMVisibilityPage() {
 
             {/* Provider Selector */}
             <div className="mb-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
-              <div className="flex flex-wrap items-center gap-4">
-                <div className="text-sm font-medium text-gray-700">Check visibility on:</div>
-                <div className="flex flex-wrap gap-2">
+              <div className="flex flex-col gap-3">
+                <div className="text-sm font-medium text-gray-700">Select AI providers to check:</div>
+                <div className="flex flex-wrap gap-4">
                   {LLM_PROVIDERS.map((provider) => {
                     const isSelected = selectedProviders.includes(provider);
                     const colors = LLM_PROVIDER_COLORS[provider];
                     return (
-                      <button
+                      <label
                         key={provider}
-                        onClick={() => toggleProvider(provider)}
-                        className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
-                          isSelected
-                            ? `${colors.bg} ${colors.text} ${colors.border} border`
-                            : 'bg-white text-gray-500 border border-gray-200 opacity-60 hover:opacity-100'
-                        }`}
+                        className="flex items-center gap-3 cursor-pointer group"
                       >
-                        {LLM_PROVIDER_LABELS[provider]}
-                        <span className="ml-1 opacity-60">({LLM_CREDIT_COSTS[provider]})</span>
-                      </button>
+                        {/* Toggle Switch */}
+                        <button
+                          type="button"
+                          role="switch"
+                          aria-checked={isSelected}
+                          onClick={() => toggleProvider(provider)}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 ${
+                            isSelected ? 'bg-purple-600' : 'bg-gray-300'
+                          }`}
+                        >
+                          <span
+                            className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform ${
+                              isSelected ? 'translate-x-6' : 'translate-x-1'
+                            }`}
+                          />
+                        </button>
+                        <div className="flex flex-col">
+                          <span className={`text-sm font-medium ${isSelected ? 'text-gray-900' : 'text-gray-500'}`}>
+                            {LLM_PROVIDER_LABELS[provider]}
+                          </span>
+                          <span className="text-xs text-gray-400">
+                            {LLM_CREDIT_COSTS[provider]} credit{LLM_CREDIT_COSTS[provider] !== 1 ? 's' : ''} per question
+                          </span>
+                        </div>
+                      </label>
                     );
                   })}
                 </div>
+                {selectedProviders.length > 0 && (
+                  <div className="text-xs text-gray-500 mt-1">
+                    Cost per question: {selectedProviders.reduce((sum, p) => sum + LLM_CREDIT_COSTS[p], 0)} credit{selectedProviders.reduce((sum, p) => sum + LLM_CREDIT_COSTS[p], 0) !== 1 ? 's' : ''}
+                    ({selectedProviders.map(p => LLM_PROVIDER_LABELS[p]).join(' + ')})
+                  </div>
+                )}
               </div>
             </div>
 
@@ -318,8 +372,11 @@ export default function LLMVisibilityPage() {
                   keyword={keyword}
                   selectedProviders={selectedProviders}
                   isChecking={isChecking === keyword.id}
-                  creditCost={getKeywordCreditCost(keyword.relatedQuestions.length)}
+                  checkingQuestion={checkingQuestion}
+                  creditCostPerQuestion={getCreditCostPerQuestion()}
+                  totalCreditCost={getKeywordCreditCost(keyword.relatedQuestions.length)}
                   onRunCheck={() => handleRunCheck(keyword.id, keyword.relatedQuestions)}
+                  onCheckQuestion={(question) => handleCheckSingleQuestion(keyword.id, question)}
                 />
               ))}
             </div>
@@ -338,17 +395,25 @@ function KeywordVisibilityCard({
   keyword,
   selectedProviders,
   isChecking,
-  creditCost,
+  checkingQuestion,
+  creditCostPerQuestion,
+  totalCreditCost,
   onRunCheck,
+  onCheckQuestion,
 }: {
   keyword: KeywordWithQuestions;
   selectedProviders: LLMProvider[];
   isChecking: boolean;
-  creditCost: number;
+  checkingQuestion: string | null;
+  creditCostPerQuestion: number;
+  totalCreditCost: number;
   onRunCheck: () => void;
+  onCheckQuestion: (question: string) => void;
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const summary = keyword.summary;
+  const questionCount = keyword.relatedQuestions.length;
+  const providerCount = selectedProviders.length;
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
@@ -367,7 +432,7 @@ function KeywordVisibilityCard({
               <span className="font-semibold text-gray-900 truncate">{keyword.phrase}</span>
             </button>
             <span className="text-sm text-gray-500 flex-shrink-0">
-              {keyword.relatedQuestions.length} questions
+              {questionCount} question{questionCount !== 1 ? 's' : ''}
             </span>
           </div>
           {summary && (
@@ -412,42 +477,88 @@ function KeywordVisibilityCard({
           )}
         </div>
 
-        <button
-          onClick={onRunCheck}
-          disabled={isChecking || selectedProviders.length === 0}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-            isChecking
-              ? 'bg-purple-100 text-purple-400 cursor-not-allowed'
-              : 'bg-purple-600 text-white hover:bg-purple-700'
-          }`}
-        >
-          {isChecking ? (
-            <>
-              <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
-              Checking...
-            </>
-          ) : (
-            <>
-              <Icon name="FaSearch" className="w-4 h-4" />
-              Check ({creditCost})
-            </>
+        <div className="flex flex-col items-end gap-1">
+          <button
+            onClick={onRunCheck}
+            disabled={isChecking || selectedProviders.length === 0}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+              isChecking
+                ? 'bg-purple-100 text-purple-400 cursor-not-allowed'
+                : selectedProviders.length === 0
+                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                : 'bg-purple-600 text-white hover:bg-purple-700'
+            }`}
+          >
+            {isChecking ? (
+              <>
+                <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
+                Checking...
+              </>
+            ) : (
+              <>
+                <Icon name="FaSearch" className="w-4 h-4" />
+                Check all ({totalCreditCost} credits)
+              </>
+            )}
+          </button>
+          {selectedProviders.length > 0 && !isChecking && (
+            <span className="text-xs text-gray-400">
+              {questionCount} × {providerCount} provider{providerCount !== 1 ? 's' : ''} × {creditCostPerQuestion / providerCount} credit{creditCostPerQuestion / providerCount !== 1 ? 's' : ''}
+            </span>
           )}
-        </button>
+        </div>
       </div>
 
       {/* Expanded Questions */}
       {isExpanded && (
         <div className="border-t border-gray-100 p-4 bg-gray-50">
-          <div className="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wider">
-            Related questions
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Related questions
+            </div>
+            {selectedProviders.length > 0 && (
+              <div className="text-xs text-gray-400">
+                {creditCostPerQuestion} credit{creditCostPerQuestion !== 1 ? 's' : ''} per question
+              </div>
+            )}
           </div>
           <div className="space-y-2">
-            {keyword.relatedQuestions.map((question, idx) => (
-              <div key={idx} className="flex items-start gap-2 text-sm">
-                <Icon name="FaQuestionCircle" className="w-4 h-4 text-purple-400 mt-0.5 flex-shrink-0" />
-                <span className="text-gray-700">{question}</span>
-              </div>
-            ))}
+            {keyword.relatedQuestions.map((question, idx) => {
+              const questionKey = `${keyword.id}-${question}`;
+              const isCheckingThis = checkingQuestion === questionKey;
+
+              return (
+                <div key={idx} className="flex items-center justify-between gap-3 py-2 px-3 bg-white rounded-lg border border-gray-100">
+                  <div className="flex items-start gap-2 text-sm min-w-0">
+                    <Icon name="FaQuestionCircle" className="w-4 h-4 text-purple-400 mt-0.5 flex-shrink-0" />
+                    <span className="text-gray-700">{question}</span>
+                  </div>
+                  <button
+                    onClick={() => onCheckQuestion(question)}
+                    disabled={isCheckingThis || isChecking || selectedProviders.length === 0}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex-shrink-0 ${
+                      isCheckingThis
+                        ? 'bg-purple-100 text-purple-400'
+                        : selectedProviders.length === 0
+                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                        : 'bg-purple-50 text-purple-600 hover:bg-purple-100 border border-purple-200'
+                    }`}
+                  >
+                    {isCheckingThis ? (
+                      <>
+                        <Icon name="FaSpinner" className="w-3 h-3 animate-spin" />
+                        Checking...
+                      </>
+                    ) : (
+                      <>
+                        <Icon name="FaSearch" className="w-3 h-3" />
+                        Check ({creditCostPerQuestion})
+                      </>
+                    )}
+                  </button>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}

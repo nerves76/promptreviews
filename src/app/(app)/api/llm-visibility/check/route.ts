@@ -63,8 +63,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Account not found' }, { status: 404 });
     }
 
-    const body: LLMCheckRequest = await request.json();
-    const { keywordId, providers = ['chatgpt'], questionIndices } = body;
+    const body: LLMCheckRequest & { questions?: string[] } = await request.json();
+    const { keywordId, providers = ['chatgpt'], questionIndices, questions: specificQuestions } = body;
 
     if (!keywordId) {
       return NextResponse.json(
@@ -106,9 +106,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Filter questions if specific indices provided
+    // Filter questions if specific questions or indices provided
     let questionsToCheck = questions;
-    if (questionIndices && questionIndices.length > 0) {
+
+    // Filter by specific question strings (preferred)
+    if (specificQuestions && specificQuestions.length > 0) {
+      questionsToCheck = specificQuestions.filter(q => questions.includes(q));
+    }
+    // Or filter by indices (legacy support)
+    else if (questionIndices && questionIndices.length > 0) {
       questionsToCheck = questionIndices
         .filter(i => i >= 0 && i < questions.length)
         .map(i => questions[i]);
@@ -116,7 +122,7 @@ export async function POST(request: NextRequest) {
 
     if (questionsToCheck.length === 0) {
       return NextResponse.json(
-        { error: 'No valid question indices provided' },
+        { error: 'No valid questions found to check' },
         { status: 400 }
       );
     }
