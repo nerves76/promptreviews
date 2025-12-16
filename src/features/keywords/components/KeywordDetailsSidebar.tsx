@@ -341,9 +341,9 @@ export function KeywordDetailsSidebar({
                 leaveFrom="translate-x-0"
                 leaveTo="translate-x-full"
               >
-                <Dialog.Panel className="pointer-events-auto w-screen max-w-md">
-                  <div className="flex h-full flex-col overflow-y-scroll bg-white/80 backdrop-blur-xl shadow-2xl">
-                    <div className="p-6">
+                <Dialog.Panel className="pointer-events-auto w-screen max-w-md h-full">
+                  <div className="h-full flex flex-col bg-white/80 backdrop-blur-xl shadow-2xl">
+                    <div className="flex-1 overflow-y-auto p-6">
                       {/* Header */}
                       <div className="flex items-start justify-between mb-6">
                         <div>
