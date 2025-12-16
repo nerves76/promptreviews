@@ -50,13 +50,13 @@ export default function LLMVisibilityPage() {
     setError(null);
     try {
       // Fetch keywords with related questions
-      const keywordsData = await apiClient.get('/keywords?hasQuestions=true') as { keywords?: Array<{ id: string; phrase: string; related_questions?: string[] }> };
+      const keywordsData = await apiClient.get('/keywords') as { keywords?: Array<{ id: string; phrase: string; relatedQuestions?: string[] }> };
       const keywordsWithQuestions: KeywordWithQuestions[] = (keywordsData.keywords || [])
-        .filter((k) => k.related_questions && k.related_questions.length > 0)
+        .filter((k) => k.relatedQuestions && k.relatedQuestions.length > 0)
         .map((k) => ({
           id: k.id,
           phrase: k.phrase,
-          relatedQuestions: k.related_questions || [],
+          relatedQuestions: k.relatedQuestions || [],
           summary: null,
         }));
 
