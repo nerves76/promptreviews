@@ -206,24 +206,26 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
     }
 
     // Also check for specific customizations that indicate editing
+    // Note: show_friendly_note defaults to true, so don't count it as customization
     const hasCustomNote = !!(data.friendly_note && data.friendly_note.trim().length > 0);
-    const hasFriendlyNoteEnabled = data.show_friendly_note === true;
     const hasOfferEnabled = data.offer_enabled === true;
     const hasKickstartersEnabled = data.kickstarters_enabled === true;
     const hasReviewPlatforms = Array.isArray(data.review_platforms) && data.review_platforms.length > 0;
 
-    return hasCustomNote || hasFriendlyNoteEnabled || hasOfferEnabled || hasKickstartersEnabled || hasReviewPlatforms;
+    return hasCustomNote || hasOfferEnabled || hasKickstartersEnabled || hasReviewPlatforms;
   };
 
   // Helper function to check if styling has been customized
   const checkStylingComplete = (data: BusinessData | null | undefined): boolean => {
     if (!data) return false;
-    // Check if any style settings have been changed from defaults
-    const hasCustomPrimaryColor = !!(data.primary_color && data.primary_color !== '#4F46E5');
-    const hasCustomSecondaryColor = !!(data.secondary_color && data.secondary_color !== '#818CF8');
+    // Check if any style settings have been changed from actual defaults
+    // Database defaults are #FFFFFF for all colors, so check for non-white values
+    // or check if a style preset has been explicitly selected
+    const hasCustomPrimaryColor = !!(data.primary_color && data.primary_color !== '#FFFFFF');
+    const hasCustomSecondaryColor = !!(data.secondary_color && data.secondary_color !== '#FFFFFF');
     const hasCustomBackgroundColor = !!(data.background_color && data.background_color !== '#FFFFFF');
-    const hasCustomPrimaryFont = !!(data.primary_font && data.primary_font !== 'Inter');
-    const hasCustomSecondaryFont = !!(data.secondary_font && data.secondary_font !== 'Inter');
+    const hasCustomPrimaryFont = !!(data.primary_font && data.primary_font !== 'Inter' && data.primary_font !== '');
+    const hasCustomSecondaryFont = !!(data.secondary_font && data.secondary_font !== 'Inter' && data.secondary_font !== '');
     const hasStylePreset = !!(data.style_preset && data.style_preset.trim().length > 0);
 
     return hasCustomPrimaryColor || hasCustomSecondaryColor || hasCustomBackgroundColor ||
