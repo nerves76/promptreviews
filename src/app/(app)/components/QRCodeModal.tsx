@@ -15,6 +15,7 @@
  */
 
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import QRCodeGenerator, { QR_FRAME_SIZES } from '../dashboard/components/QRCodeGenerator';
 import { FALLING_STARS_ICONS, getFallingIcon } from './prompt-modules/fallingStarsConfig';
 import { Dialog } from "@headlessui/react";
@@ -190,7 +191,8 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl,
 
   if (!isOpen) return null;
 
-  return (
+  // Use portal to render at document root, avoiding overflow/stacking context issues
+  const modalContent = (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 p-4">
       <div className="relative max-w-4xl w-full">
         {/* Glassmorphic close button */}
@@ -928,4 +930,10 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl,
       </div>
     </div>
   );
+
+  // Use portal to render at document body, avoiding overflow/stacking context issues
+  if (typeof document !== 'undefined') {
+    return createPortal(modalContent, document.body);
+  }
+  return modalContent;
 }
