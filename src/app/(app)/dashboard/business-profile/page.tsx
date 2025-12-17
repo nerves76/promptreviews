@@ -253,7 +253,7 @@ export default function BusinessProfilePage() {
     if (data.about_us && !form.about_us?.trim()) updates.about_us = data.about_us;
     if (data.keywords && !(typeof form.keywords === 'string' && form.keywords.trim())) updates.keywords = data.keywords;
     if (data.taglines && !form.taglines?.trim()) updates.taglines = data.taglines;
-    if (data.differentiators && !form.differentiators?.trim()) updates.differentiators = data.differentiators;
+    // Note: differentiators handled separately below with setDifferentiators
     if (data.phone && !form.phone?.trim()) updates.phone = data.phone;
     if (data.business_email && !form.business_email?.trim()) updates.business_email = data.business_email;
     if (websiteUrl && !form.business_website?.trim()) updates.business_website = websiteUrl;
@@ -283,8 +283,22 @@ export default function BusinessProfilePage() {
       }
     }
 
+    // Handle differentiators separately - update the array state
+    // The AI returns differentiators as a string, convert to array for the UI
+    if (data.differentiators && data.differentiators.trim()) {
+      const currentDifferentiatorsEmpty = differentiators.length === 0 || (differentiators.length === 1 && !differentiators[0]?.trim());
+      if (currentDifferentiatorsEmpty) {
+        // Split by newlines or periods to create list items
+        const diffItems = data.differentiators
+          .split(/[\n.]/)
+          .map(d => d.trim())
+          .filter(d => d.length > 0);
+        setDifferentiators(diffItems.length > 0 ? diffItems : [data.differentiators]);
+      }
+    }
+
     // Show success message
-    const fieldCount = Object.keys(updates).length + (data.services_offered?.length ? 1 : 0);
+    const fieldCount = Object.keys(updates).length + (data.services_offered?.length ? 1 : 0) + (data.differentiators ? 1 : 0);
     if (fieldCount > 0) {
       setSuccess(`Imported ${fieldCount} field${fieldCount > 1 ? 's' : ''} from your website. Review and edit as needed.`);
       setTimeout(() => setSuccess(""), 5000);
