@@ -816,6 +816,12 @@ export default function BusinessProfilePage() {
         .filter(d => d && d.length > 0)
         .join("\n");
 
+      // Convert keywords from comma-separated string to array for database (text[] column)
+      // Keywords can come from website import but is no longer a direct user input
+      const keywordsArray = typeof form.keywords === 'string' && form.keywords.trim()
+        ? form.keywords.split(',').map(k => k.trim()).filter(k => k.length > 0)
+        : [];
+
       // Build the update payload
       const updatePayload = {
         name: form.name,
@@ -824,7 +830,7 @@ export default function BusinessProfilePage() {
         years_in_business: form.years_in_business,
         industries_served: form.industries_served,
         taglines: form.taglines,
-        keywords: form.keywords,
+        keywords: keywordsArray,
         team_info: form.team_info,
         about_us: form.about_us,
         review_platforms: form.review_platforms || [],
