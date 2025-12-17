@@ -352,26 +352,47 @@ export function KeywordDetailsSidebar({
                             <Dialog.Title className="text-xl font-bold text-gray-900 mt-1">{keyword.phrase}</Dialog.Title>
                           )}
                         </div>
-                        <button
-                          onClick={onClose}
-                          className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-white/50 rounded-lg transition-colors"
-                        >
-                          <Icon name="FaTimes" className="w-5 h-5" />
-                        </button>
+                        <div className="flex items-center gap-2">
+                          {/* Edit/Save buttons in header */}
+                          {keyword && !isEditing && (
+                            <button
+                              onClick={() => setIsEditing(true)}
+                              className="p-1.5 text-slate-blue hover:text-slate-blue/80 hover:bg-white/50 rounded-lg transition-colors"
+                              title="Edit"
+                            >
+                              <Icon name="FaEdit" className="w-5 h-5" />
+                            </button>
+                          )}
+                          {keyword && isEditing && (
+                            <>
+                              <button
+                                onClick={handleCancel}
+                                disabled={isSaving}
+                                className="px-3 py-1 text-sm text-gray-500 hover:text-gray-700 hover:bg-white/50 rounded-lg transition-colors"
+                              >
+                                Cancel
+                              </button>
+                              <button
+                                onClick={handleSave}
+                                disabled={isSaving}
+                                className="px-3 py-1 text-sm font-medium text-white bg-slate-blue rounded-lg hover:bg-slate-blue/90 disabled:opacity-50 flex items-center gap-1.5"
+                              >
+                                {isSaving && <Icon name="FaSpinner" className="w-3 h-3 animate-spin" />}
+                                Save
+                              </button>
+                            </>
+                          )}
+                          <button
+                            onClick={onClose}
+                            className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-white/50 rounded-lg transition-colors"
+                          >
+                            <Icon name="FaTimes" className="w-5 h-5" />
+                          </button>
+                        </div>
                       </div>
 
                       {keyword && (
                         <div className="space-y-4">
-                          {/* Suggested Phrase (AI-generated) */}
-                          {keyword.reviewPhrase && (
-                            <div className="p-4 bg-gradient-to-br from-indigo-50/80 to-purple-50/80 backdrop-blur-sm border border-indigo-100/50 rounded-xl">
-                              <span className="text-xs font-medium uppercase tracking-wider text-indigo-600">Suggested Phrase</span>
-                              <p className="text-sm text-gray-700 mt-2 italic leading-relaxed">
-                                &ldquo;{keyword.reviewPhrase}&rdquo;
-                              </p>
-                            </div>
-                          )}
-
                           {/* Stats grid */}
                           <div className="grid grid-cols-2 gap-3 text-sm p-3 bg-white/60 backdrop-blur-sm border border-gray-100/50 rounded-xl">
                             <div>
@@ -589,85 +610,60 @@ export function KeywordDetailsSidebar({
                             </div>
                           )}
 
-                          {/* Editable fields section */}
+                          {/* AI Generate button - prominent when fields are empty */}
+                          {hasEmptySEOFields && !isEditing && (
+                            <button
+                              onClick={handleAIEnrich}
+                              disabled={isEnriching}
+                              className="w-full p-4 bg-gradient-to-br from-purple-50 to-indigo-50 border border-purple-200 rounded-xl text-left hover:from-purple-100 hover:to-indigo-100 transition-colors disabled:opacity-50"
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className="p-2 bg-purple-100 rounded-lg">
+                                  <Icon name="FaSparkles" className="w-5 h-5 text-purple-600" />
+                                </div>
+                                <div className="flex-1">
+                                  <div className="text-sm font-medium text-purple-900">
+                                    {isEnriching ? 'Generating...' : 'Auto-fill with AI'}
+                                  </div>
+                                  <div className="text-xs text-purple-600">
+                                    Generate review phrase, search query, aliases, and questions (1 credit)
+                                  </div>
+                                </div>
+                                {isEnriching && <Icon name="FaSpinner" className="w-4 h-4 text-purple-600 animate-spin" />}
+                              </div>
+                            </button>
+                          )}
+
+                          {/* AI enrichment error */}
+                          {enrichError && (
+                            <div className="p-3 bg-red-50 border border-red-100 rounded-lg text-sm text-red-600 flex items-center gap-2">
+                              <Icon name="FaExclamationTriangle" className="w-4 h-4" />
+                              {enrichError}
+                            </div>
+                          )}
+
+                          {/* AI enrichment success message */}
+                          {enrichSuccess && isEditing && (
+                            <div className="p-3 bg-purple-50 border border-purple-100 rounded-lg text-sm text-purple-700 flex items-center gap-2">
+                              <Icon name="FaSparkles" className="w-4 h-4" />
+                              Fields populated by AI - review and save
+                            </div>
+                          )}
+
+                          {/* REVIEWS SECTION */}
                           <div className="p-5 bg-white/60 backdrop-blur-sm border border-gray-100/50 rounded-xl">
-                            <div className="flex items-center justify-between mb-4">
-                              <span className="text-sm font-semibold text-gray-700">SEO & matching</span>
-                              {!isEditing ? (
-                                <div className="flex gap-2 items-center">
-                                  {/* AI Generate button - show when fields are empty */}
-                                  {hasEmptySEOFields && (
-                                    <button
-                                      onClick={handleAIEnrich}
-                                      disabled={isEnriching}
-                                      className="text-sm text-purple-600 hover:text-purple-700 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-50 hover:bg-purple-100 border border-purple-200 transition-colors disabled:opacity-50"
-                                    >
-                                      {isEnriching ? (
-                                        <>
-                                          <Icon name="FaSpinner" className="w-3.5 h-3.5 animate-spin" />
-                                          Generating...
-                                        </>
-                                      ) : (
-                                        <>
-                                          <Icon name="FaSparkles" className="w-3.5 h-3.5" />
-                                          AI generate
-                                          <span className="text-purple-400 font-normal">(1 credit)</span>
-                                        </>
-                                      )}
-                                    </button>
-                                  )}
-                                  <button
-                                    onClick={() => setIsEditing(true)}
-                                    className="text-sm text-slate-blue hover:text-slate-blue/80 flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-white/50 transition-colors"
-                                  >
-                                    <Icon name="FaEdit" className="w-3.5 h-3.5" />
-                                    Edit
-                                  </button>
-                                </div>
-                              ) : (
-                                <div className="flex gap-2 items-center">
-                                  <button
-                                    onClick={handleCancel}
-                                    disabled={isSaving}
-                                    className="text-sm text-gray-500 hover:text-gray-700 px-3 py-1.5 rounded-lg hover:bg-white/50 transition-colors"
-                                  >
-                                    Cancel
-                                  </button>
-                                  <button
-                                    onClick={handleSave}
-                                    disabled={isSaving}
-                                    className="px-4 py-1.5 text-sm font-medium text-white bg-slate-blue rounded-lg hover:bg-slate-blue/90 disabled:opacity-50 flex items-center gap-1.5"
-                                  >
-                                    {isSaving && <Icon name="FaSpinner" className="w-3.5 h-3.5 animate-spin" />}
-                                    Save
-                                  </button>
-                                </div>
-                              )}
+                            <div className="flex items-center gap-2 mb-4">
+                              <Icon name="FaStar" className="w-4 h-4 text-amber-500" />
+                              <span className="text-sm font-semibold text-gray-700">Reviews</span>
                             </div>
 
-                            {/* AI enrichment error */}
-                            {enrichError && (
-                              <div className="mb-4 p-3 bg-red-50 border border-red-100 rounded-lg text-sm text-red-600 flex items-center gap-2">
-                                <Icon name="FaExclamationTriangle" className="w-4 h-4" />
-                                {enrichError}
-                              </div>
-                            )}
-
-                            {/* AI enrichment success message */}
-                            {enrichSuccess && isEditing && (
-                              <div className="mb-4 p-3 bg-purple-50 border border-purple-100 rounded-lg text-sm text-purple-700 flex items-center gap-2">
-                                <Icon name="FaSparkles" className="w-4 h-4" />
-                                Fields populated by AI - review and save
-                              </div>
-                            )}
-
                             <div className="space-y-5">
-                              {/* Suggested Phrase (editable) */}
+                              {/* Review Phrase */}
                               <div>
                                 <label className="text-sm font-medium text-gray-700 block mb-1">
                                   Review phrase
                                 </label>
-                                <p className="text-sm text-gray-500 mb-2">
+                                <p className="text-xs text-gray-500 mb-2">
                                   The phrase customers see on prompt pages when asked to mention this keyword.
                                 </p>
                                 {isEditing ? (
@@ -685,17 +681,60 @@ export function KeywordDetailsSidebar({
                                 )}
                               </div>
 
+                              {/* Aliases */}
+                              <div>
+                                <label className="text-sm font-medium text-gray-700 block mb-1">
+                                  Aliases
+                                </label>
+                                <p className="text-xs text-gray-500 mb-2">
+                                  Alternative spellings or phrases that count as mentions of this keyword.
+                                </p>
+                                {isEditing ? (
+                                  <input
+                                    type="text"
+                                    value={editedAliasesInput}
+                                    onChange={(e) => setEditedAliasesInput(e.target.value)}
+                                    placeholder="e.g., plumbing services, plumbers (comma-separated)"
+                                    className="w-full px-3 py-2.5 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-300 transition-all"
+                                  />
+                                ) : (
+                                  <div className="text-sm text-gray-700 bg-white/80 px-3 py-2.5 rounded-lg border border-gray-100 min-h-[42px]">
+                                    {keyword.aliases && keyword.aliases.length > 0 ? (
+                                      <div className="flex flex-wrap gap-1.5">
+                                        {keyword.aliases.map((alias, idx) => (
+                                          <span key={idx} className="px-2 py-0.5 bg-indigo-50 border border-indigo-100 rounded text-sm text-indigo-700">
+                                            {alias}
+                                          </span>
+                                        ))}
+                                      </div>
+                                    ) : (
+                                      <span className="text-gray-400 italic">No aliases</span>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* SEO & LLM TRACKING SECTION */}
+                          <div className="p-5 bg-white/60 backdrop-blur-sm border border-gray-100/50 rounded-xl">
+                            <div className="flex items-center gap-2 mb-4">
+                              <Icon name="FaChartLine" className="w-4 h-4 text-blue-500" />
+                              <span className="text-sm font-semibold text-gray-700">SEO & LLM tracking</span>
+                            </div>
+
+                            <div className="space-y-5">
                               {/* Search Query */}
                               <div>
                                 <label className="text-sm font-medium text-gray-700 block mb-1">
                                   Search query
                                 </label>
-                                <p className="text-sm text-gray-500 mb-2">
+                                <p className="text-xs text-gray-500 mb-2">
                                   The exact phrase searched on Google when tracking your ranking position.
                                 </p>
                                 {keyword.isUsedInRankTracking && (
-                                  <div className="mb-2 px-3 py-2 bg-amber-50/80 border border-amber-200/50 rounded-lg text-sm text-amber-700">
-                                    <Icon name="FaExclamationTriangle" className="w-3.5 h-3.5 inline mr-1.5" />
+                                  <div className="mb-2 px-3 py-2 bg-amber-50/80 border border-amber-200/50 rounded-lg text-xs text-amber-700">
+                                    <Icon name="FaExclamationTriangle" className="w-3 h-3 inline mr-1.5" />
                                     Used in rank tracking. Create a new keyword to track a different term.
                                   </div>
                                 )}
@@ -835,46 +874,13 @@ export function KeywordDetailsSidebar({
                                 )}
                               </div>
 
-                              {/* Aliases */}
-                              <div>
-                                <label className="text-sm font-medium text-gray-700 block mb-1">
-                                  Aliases
-                                </label>
-                                <p className="text-sm text-gray-500 mb-2">
-                                  Alternative spellings or phrases that should count as mentions of this keyword.
-                                </p>
-                                {isEditing ? (
-                                  <input
-                                    type="text"
-                                    value={editedAliasesInput}
-                                    onChange={(e) => setEditedAliasesInput(e.target.value)}
-                                    placeholder="e.g., plumbing services, plumbers"
-                                    className="w-full px-3 py-2.5 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-300 transition-all"
-                                  />
-                                ) : (
-                                  <div className="text-sm text-gray-700 bg-white/80 px-3 py-2.5 rounded-lg border border-gray-100 min-h-[42px]">
-                                    {keyword.aliases && keyword.aliases.length > 0 ? (
-                                      <div className="flex flex-wrap gap-1.5">
-                                        {keyword.aliases.map((alias, idx) => (
-                                          <span key={idx} className="px-2 py-0.5 bg-indigo-50 border border-indigo-100 rounded text-sm text-indigo-700">
-                                            {alias}
-                                          </span>
-                                        ))}
-                                      </div>
-                                    ) : (
-                                      <span className="text-gray-400 italic">No aliases</span>
-                                    )}
-                                  </div>
-                                )}
-                              </div>
-
                               {/* Location Scope */}
                               <div>
                                 <label className="text-sm font-medium text-gray-700 block mb-1">
                                   Location scope
                                 </label>
-                                <p className="text-sm text-gray-500 mb-2">
-                                  Geographic relevance of this keyword for organizing and filtering.
+                                <p className="text-xs text-gray-500 mb-2">
+                                  Geographic relevance for organizing and filtering.
                                 </p>
                                 {isEditing ? (
                                   <select
@@ -904,8 +910,8 @@ export function KeywordDetailsSidebar({
                                 <label className="text-sm font-medium text-gray-700 block mb-1">
                                   Related questions
                                 </label>
-                                <p className="text-sm text-gray-500 mb-2">
-                                  Questions people ask related to this keyword. Used for tracking &quot;People Also Ask&quot; and AI answer visibility.
+                                <p className="text-xs text-gray-500 mb-2">
+                                  Questions for tracking &quot;People Also Ask&quot; and AI visibility.
                                 </p>
                                 {isEditing ? (
                                   <div>
@@ -916,7 +922,7 @@ export function KeywordDetailsSidebar({
                                       rows={4}
                                       className="w-full px-3 py-2.5 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-300 transition-all resize-none"
                                     />
-                                    <p className="text-sm text-gray-500 mt-2">
+                                    <p className="text-xs text-gray-500 mt-2">
                                       One question per line. Max 20 questions.
                                     </p>
                                   </div>
@@ -937,35 +943,35 @@ export function KeywordDetailsSidebar({
                                   </div>
                                 )}
                               </div>
+                            </div>
+                          </div>
 
-                              {/* Group (optional) */}
-                              {showGroupSelector && groups.length > 0 && (
-                                <div>
-                                  <label className="text-sm font-medium text-gray-700 block mb-1">
-                                    Group
-                                  </label>
-                                  {isEditing ? (
-                                    <select
-                                      value={editedGroupId || ''}
-                                      onChange={(e) => setEditedGroupId(e.target.value || null)}
-                                      className="w-full px-3 py-2.5 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-300 transition-all"
-                                    >
-                                      <option value="">No group</option>
-                                      {groups.map((group) => (
-                                        <option key={group.id} value={group.id}>
-                                          {group.name}
-                                        </option>
-                                      ))}
-                                    </select>
-                                  ) : (
-                                    <div className="text-sm text-gray-700 bg-white/80 px-3 py-2.5 rounded-lg border border-gray-100">
-                                      {keyword.groupName || <span className="text-gray-400 italic">No group</span>}
-                                    </div>
-                                  )}
+                          {/* Group selector (optional) */}
+                          {showGroupSelector && groups.length > 0 && (
+                            <div className="p-5 bg-white/60 backdrop-blur-sm border border-gray-100/50 rounded-xl">
+                              <label className="text-sm font-medium text-gray-700 block mb-2">
+                                Group
+                              </label>
+                              {isEditing ? (
+                                <select
+                                  value={editedGroupId || ''}
+                                  onChange={(e) => setEditedGroupId(e.target.value || null)}
+                                  className="w-full px-3 py-2.5 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-300 transition-all"
+                                >
+                                  <option value="">No group</option>
+                                  {groups.map((group) => (
+                                    <option key={group.id} value={group.id}>
+                                      {group.name}
+                                    </option>
+                                  ))}
+                                </select>
+                              ) : (
+                                <div className="text-sm text-gray-700 bg-white/80 px-3 py-2.5 rounded-lg border border-gray-100">
+                                  {keyword.groupName || <span className="text-gray-400 italic">No group</span>}
                                 </div>
                               )}
                             </div>
-                          </div>
+                          )}
 
                           {/* LLM Visibility Section */}
                           {keyword.relatedQuestions && keyword.relatedQuestions.length > 0 && (
