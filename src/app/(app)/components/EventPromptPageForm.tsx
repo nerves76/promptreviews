@@ -75,7 +75,14 @@ export default function EventPromptPageForm({
   
   // Initialize form data state from initialData with safety checks
   // Remove snake_case keys that have camelCase equivalents to avoid conflicts during save
-  const { ai_button_enabled: _ai, fix_grammar_enabled: _fix, ...restInitialData } = initialData || {};
+  const {
+    ai_button_enabled: _ai,
+    fix_grammar_enabled: _fix,
+    falling_enabled: _fall,
+    falling_icon: _icon,
+    falling_icon_color: _color,
+    ...restInitialData
+  } = initialData || {};
   const safeInitialData = {
     ...restInitialData,
     review_platforms: Array.isArray(initialData?.review_platforms) ? initialData.review_platforms : [],
@@ -106,7 +113,14 @@ export default function EventPromptPageForm({
     if (initialData && Object.keys(initialData).length > 0) {
       setFormData((prev: any) => {
         // Remove snake_case keys that have camelCase equivalents to avoid conflicts during save
-        const { ai_button_enabled, fix_grammar_enabled, ...rest } = initialData;
+        const {
+          ai_button_enabled,
+          fix_grammar_enabled,
+          falling_enabled,
+          falling_icon,
+          falling_icon_color,
+          ...rest
+        } = initialData;
         const newData = { ...prev, ...rest };
         return newData;
       });
