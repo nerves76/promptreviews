@@ -217,7 +217,9 @@ export default function ProductPromptPageForm({
   useEffect(() => {
     if (initialData && Object.keys(initialData).length > 0) {
       setFormData((prev: any) => {
-        const newData = { ...prev, ...initialData };
+        // Remove snake_case keys that have camelCase equivalents to avoid conflicts during save
+        const { ai_button_enabled, fix_grammar_enabled, ...restInitialData } = initialData;
+        const newData = { ...prev, ...restInitialData };
         return newData;
       });
     }

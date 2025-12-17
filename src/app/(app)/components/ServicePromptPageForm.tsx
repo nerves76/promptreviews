@@ -300,11 +300,14 @@ export default function ServicePromptPageForm({
         if (!prev || Object.keys(prev).length === 0 || prev.id !== initialData.id) {
           // Map snake_case to camelCase for aiButtonEnabled
           const aiButtonValue = initialData.aiButtonEnabled ?? initialData.ai_button_enabled;
+          // Remove snake_case keys that have camelCase equivalents to avoid conflicts during save
+          const { ai_button_enabled, fix_grammar_enabled, ...restInitialData } = initialData;
           const newData = {
             ...prev,
-            ...initialData,
+            ...restInitialData,
             // Ensure camelCase key is properly set from snake_case database value
             aiButtonEnabled: aiButtonValue !== undefined ? aiButtonValue : prev.aiButtonEnabled,
+            fixGrammarEnabled: fix_grammar_enabled !== undefined ? fix_grammar_enabled : prev.fixGrammarEnabled,
           };
           return newData;
         }

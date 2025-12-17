@@ -74,9 +74,11 @@ export default function EventPromptPageForm({
   const router = useRouter();
   
   // Initialize form data state from initialData with safety checks
+  // Remove snake_case keys that have camelCase equivalents to avoid conflicts during save
+  const { ai_button_enabled: _ai, fix_grammar_enabled: _fix, ...restInitialData } = initialData || {};
   const safeInitialData = {
-    ...initialData,
-    review_platforms: Array.isArray(initialData.review_platforms) ? initialData.review_platforms : [],
+    ...restInitialData,
+    review_platforms: Array.isArray(initialData?.review_platforms) ? initialData.review_platforms : [],
     fallingEnabled: initialData.fallingEnabled ?? initialData.falling_enabled ?? true,
     show_friendly_note: initialData.show_friendly_note ?? false,
     recent_reviews_enabled: initialData.recent_reviews_enabled ?? false,
@@ -103,7 +105,9 @@ export default function EventPromptPageForm({
   useEffect(() => {
     if (initialData && Object.keys(initialData).length > 0) {
       setFormData((prev: any) => {
-        const newData = { ...prev, ...initialData };
+        // Remove snake_case keys that have camelCase equivalents to avoid conflicts during save
+        const { ai_button_enabled, fix_grammar_enabled, ...rest } = initialData;
+        const newData = { ...prev, ...rest };
         return newData;
       });
     }
