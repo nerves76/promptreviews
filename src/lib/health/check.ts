@@ -28,24 +28,43 @@ function getSupabaseClient() {
   });
 }
 
+async function checkSupabaseWithRetry(maxRetries = 3, delayMs = 1000): Promise<HealthCheckEntry> {
+  const supabase = getSupabaseClient();
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const { error } = await supabase.from('articles').select('id').limit(1);
+      if (error) {
+        throw error;
+      }
+      return { status: 'ok' };
+    } catch (error: any) {
+      const isLastAttempt = attempt === maxRetries;
+      const isNetworkError = error?.message?.includes('fetch failed') ||
+                            error?.message?.includes('ECONNREFUSED') ||
+                            error?.message?.includes('ETIMEDOUT');
+
+      if (isLastAttempt || !isNetworkError) {
+        return {
+          status: 'error',
+          message: `${error?.message || 'Failed to query Supabase'} (after ${attempt} attempt${attempt > 1 ? 's' : ''})`,
+        };
+      }
+
+      // Wait before retrying
+      await new Promise(resolve => setTimeout(resolve, delayMs));
+    }
+  }
+
+  return { status: 'error', message: 'Unexpected error in retry loop' };
+}
+
 export async function runHealthCheck(): Promise<HealthCheckResult> {
   const checks: Record<string, HealthCheckEntry> = {
     app: { status: 'ok' },
   };
 
-  try {
-    const supabase = getSupabaseClient();
-    const { error } = await supabase.from('articles').select('id').limit(1);
-    if (error) {
-      throw error;
-    }
-    checks.supabase = { status: 'ok' };
-  } catch (error: any) {
-    checks.supabase = {
-      status: 'error',
-      message: error?.message || 'Failed to query Supabase',
-    };
-  }
+  checks.supabase = await checkSupabaseWithRetry(3, 1000);
 
   const healthy = Object.values(checks).every((check) => check.status === 'ok');
 
