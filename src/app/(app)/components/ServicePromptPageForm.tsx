@@ -298,7 +298,14 @@ export default function ServicePromptPageForm({
       setFormData((prev: any) => {
         // Only update if formData is empty or if we're dealing with a different record
         if (!prev || Object.keys(prev).length === 0 || prev.id !== initialData.id) {
-          const newData = { ...prev, ...initialData };
+          // Map snake_case to camelCase for aiButtonEnabled
+          const aiButtonValue = initialData.aiButtonEnabled ?? initialData.ai_button_enabled;
+          const newData = {
+            ...prev,
+            ...initialData,
+            // Ensure camelCase key is properly set from snake_case database value
+            aiButtonEnabled: aiButtonValue !== undefined ? aiButtonValue : prev.aiButtonEnabled,
+          };
           return newData;
         }
         // Don't overwrite existing form data

@@ -233,6 +233,16 @@ export default function ProductPromptPageForm({
     }
   }, [initialData?.motivational_nudge_enabled, initialData?.motivational_nudge_text]);
 
+  // Synchronize AI settings state with initialData
+  useEffect(() => {
+    if (initialData?.ai_button_enabled !== undefined) {
+      setAiReviewEnabled(initialData.ai_button_enabled);
+    }
+    if (initialData?.fix_grammar_enabled !== undefined) {
+      setFixGrammarEnabled(initialData.fix_grammar_enabled);
+    }
+  }, [initialData?.ai_button_enabled, initialData?.fix_grammar_enabled]);
+
   // Sync product name with form data
   useEffect(() => {
     if (productName !== formData.product_name) {

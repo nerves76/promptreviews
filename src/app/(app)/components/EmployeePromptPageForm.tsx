@@ -223,6 +223,18 @@ export default function EmployeePromptPageForm({
     }
   }, [initialData?.motivational_nudge_enabled, initialData?.motivational_nudge_text]);
 
+  // Synchronize AI settings state with initialData
+  useEffect(() => {
+    const aiValue = initialData?.aiButtonEnabled ?? initialData?.ai_button_enabled;
+    if (aiValue !== undefined) {
+      setAiGenerationEnabled(aiValue);
+    }
+    const grammarValue = initialData?.fixGrammarEnabled ?? initialData?.fix_grammar_enabled;
+    if (grammarValue !== undefined) {
+      setFixGrammarEnabled(grammarValue);
+    }
+  }, [initialData?.aiButtonEnabled, initialData?.ai_button_enabled, initialData?.fixGrammarEnabled, initialData?.fix_grammar_enabled]);
+
   // Form data update helper
   const updateFormData = (field: string, value: any) => {
     setFormData((prev: any) => ({ ...prev, [field]: value }));
