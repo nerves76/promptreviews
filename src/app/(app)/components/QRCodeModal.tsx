@@ -778,13 +778,13 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl,
                   </div>
                 ) : (
                   <div className="text-center">
-                    <p className="text-gray-500">Preview will appear here</p>
+                    <p className="text-white/70">Preview will appear here</p>
                   </div>
                 )}
               </div>
             ) : (
               <div className="text-center">
-                <p className="text-gray-500">Preview will appear here after you generate your QR code</p>
+                <p className="text-white/70">Preview will appear here after you generate your QR code</p>
               </div>
             )}
           </div>
