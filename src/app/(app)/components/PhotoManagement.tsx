@@ -8,7 +8,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import Icon from '@/components/Icon';
 import { createClient } from '@/auth/providers/supabase';
-import LoadPhotosButton from '@/app/(app)/components/photos/LoadPhotosButton';
 import LocationPicker from '@/components/GoogleBusinessProfile/LocationPicker';
 
 interface GoogleBusinessLocation {
@@ -103,13 +102,7 @@ export default function PhotoManagement({ locations, isConnected }: PhotoManagem
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<UploadProgress[]>([]);
   const [uploadResults, setUploadResults] = useState<{ success: number; failed: number; total: number } | null>(null);
-  
-  // Loaded photos from Google Business Profile
-  const [loadedPhotos, setLoadedPhotos] = useState<any[]>([]);
-  const [photosLoaded, setPhotosLoaded] = useState(false);
-  const [isLoadingPhotos, setIsLoadingPhotos] = useState(false);
-  const [loadPhotosError, setLoadPhotosError] = useState<string | null>(null);
-  
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const supabase = createClient();
 
@@ -349,92 +342,6 @@ export default function PhotoManagement({ locations, isConnected }: PhotoManagem
         </div>
       </div>
 
-      {/* Load Existing Photos */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold">Existing Photos</h3>
-          <LoadPhotosButton
-            selectedLocationIds={selectedLocations}
-            locations={locations}
-            photosLoaded={photosLoaded}
-            onPhotosLoaded={setLoadedPhotos}
-            onLoadingStateChange={setIsLoadingPhotos}
-            onPhotosLoadedChange={setPhotosLoaded}
-            onErrorChange={setLoadPhotosError}
-          />
-        </div>
-
-        {loadPhotosError && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
-            <p className="text-sm text-red-700">{loadPhotosError}</p>
-          </div>
-        )}
-
-        {isLoadingPhotos && (
-          <div className="flex items-center justify-center py-8">
-            <div className="flex items-center space-x-3">
-              <Icon name="FaSpinner" className="w-5 h-5 animate-spin text-slate-600" />
-              <span className="text-gray-600">Loading photos from Google Business Profile...</span>
-            </div>
-          </div>
-        )}
-
-        {photosLoaded && loadedPhotos.length > 0 && (
-          <div className="space-y-4">
-            <p className="text-sm text-gray-600">
-              Found {loadedPhotos.length} photo{loadedPhotos.length !== 1 ? 's' : ''} on Google Business Profile
-            </p>
-            
-            {/* Photos organized by category */}
-            {photoCategories.map(category => {
-              const categoryLoadedPhotos = loadedPhotos.filter(photo => 
-                photo.category === category.id || 
-                (category.id === 'general' && !photo.category)
-              );
-              
-              if (categoryLoadedPhotos.length === 0) return null;
-              
-              return (
-                <div key={category.id} className="border border-gray-200 rounded-lg p-4">
-                  <h4 className="font-medium text-gray-900 mb-2">
-                    {category.name} ({categoryLoadedPhotos.length})
-                  </h4>
-                  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-                    {categoryLoadedPhotos.slice(0, 12).map((photo, index) => (
-                      <div key={photo.id || index} className="relative group">
-                        <img
-                          src={photo.thumbnailUrl || photo.url}
-                          alt={`${category.name} photo ${index + 1}`}
-                          className="w-full h-20 object-cover rounded-md border border-gray-200"
-                        />
-                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-opacity rounded-md flex items-center justify-center">
-                          <Icon name="FaEye" className="w-4 h-4 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
-                        </div>
-                      </div>
-                    ))}
-                    {categoryLoadedPhotos.length > 12 && (
-                      <div className="w-full h-20 border-2 border-dashed border-gray-300 rounded-md flex items-center justify-center">
-                        <span className="text-sm text-gray-500">
-                          +{categoryLoadedPhotos.length - 12} more
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        {photosLoaded && loadedPhotos.length === 0 && (
-          <div className="text-center py-6">
-            <Icon name="FaImage" className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-            <p className="text-gray-600">No existing photos found for this location.</p>
-            <p className="text-sm text-gray-500">Upload some photos using the form below!</p>
-          </div>
-        )}
-      </div>
-
       {/* Photo Categories */}
       <div className="space-y-4">
         <h3 className="text-lg font-semibold text-slate-blue">Photo Categories</h3>
@@ -449,12 +356,7 @@ export default function PhotoManagement({ locations, isConnected }: PhotoManagem
                   : 'border-gray-200 hover:border-gray-300'
               }`}
             >
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="font-medium text-slate-blue">{category.name}</h4>
-                <span className="text-sm text-gray-500">
-                  {uploadedPhotos.filter(p => p.category === category.id).length}/{category.maxFiles}
-                </span>
-              </div>
+              <h4 className="font-medium text-slate-blue mb-2">{category.name}</h4>
               <p className="text-sm text-gray-600">{category.description}</p>
             </button>
           ))}
