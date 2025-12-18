@@ -1189,17 +1189,17 @@ export function KeywordDetailsSidebar({
                                 {/* Add new question (edit mode) */}
                                 {isEditing && !questionsAtLimit && (
                                   <div className="space-y-2">
+                                    <select
+                                      value={newQuestionFunnel}
+                                      onChange={(e) => setNewQuestionFunnel(e.target.value as FunnelStage)}
+                                      title="Select funnel stage for this question"
+                                      className="w-full px-2 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-300"
+                                    >
+                                      <option value="top">Top of funnel (awareness)</option>
+                                      <option value="middle">Middle of funnel (consideration)</option>
+                                      <option value="bottom">Bottom of funnel (decision)</option>
+                                    </select>
                                     <div className="flex gap-2">
-                                      <select
-                                        value={newQuestionFunnel}
-                                        onChange={(e) => setNewQuestionFunnel(e.target.value as FunnelStage)}
-                                        title="Select funnel stage for this question"
-                                        className="px-2 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-300"
-                                      >
-                                        <option value="top">Top (awareness)</option>
-                                        <option value="middle">Middle (consideration)</option>
-                                        <option value="bottom">Bottom (decision)</option>
-                                      </select>
                                       <input
                                         type="text"
                                         value={newQuestionText}
@@ -1211,12 +1211,12 @@ export function KeywordDetailsSidebar({
                                           }
                                         }}
                                         placeholder="Add a question..."
-                                        className="flex-1 px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-300 transition-all"
+                                        className="flex-1 px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-300 transition-all min-w-0"
                                       />
                                       <button
                                         onClick={handleAddQuestion}
                                         disabled={!newQuestionText.trim()}
-                                        className="px-3 py-2 text-sm font-medium text-white bg-purple-500 rounded-lg hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                        className="px-3 py-2 text-sm font-medium text-white bg-purple-500 rounded-lg hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex-shrink-0"
                                       >
                                         <Icon name="FaPlus" className="w-3 h-3" />
                                       </button>
