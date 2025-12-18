@@ -1189,6 +1189,7 @@ export function KeywordDetailsSidebar({
                                 {/* Add new question (edit mode) */}
                                 {isEditing && !questionsAtLimit && (
                                   <div className="space-y-2">
+                                    <label className="text-xs font-medium text-gray-500 block">Buyer&apos;s funnel</label>
                                     <select
                                       value={newQuestionFunnel}
                                       onChange={(e) => setNewQuestionFunnel(e.target.value as FunnelStage)}
