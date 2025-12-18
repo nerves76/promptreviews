@@ -739,28 +739,38 @@ export function KeywordDetailsSidebar({
                             </div>
                           )}
 
-                          {/* AI Generate button - prominent when fields are empty */}
+                          {/* AI Generate section - prominent when fields are empty */}
                           {hasEmptySEOFields && !isEditing && (
-                            <button
-                              onClick={handleAIEnrich}
-                              disabled={isEnriching}
-                              className="w-full p-4 bg-gradient-to-br from-purple-50 to-indigo-50 border border-purple-200 rounded-xl text-left hover:from-purple-100 hover:to-indigo-100 transition-colors disabled:opacity-50"
-                            >
-                              <div className="flex items-center gap-3">
+                            <div className="p-4 bg-gradient-to-br from-purple-50 to-indigo-50 border border-purple-200 rounded-xl">
+                              <div className="flex items-center gap-3 mb-3">
                                 <div className="p-2 bg-purple-100 rounded-lg">
                                   <Icon name="FaSparkles" className="w-5 h-5 text-purple-600" />
                                 </div>
                                 <div className="flex-1">
-                                  <div className="text-sm font-medium text-purple-900">
-                                    {isEnriching ? 'Generating...' : 'Auto-fill with AI'}
-                                  </div>
+                                  <div className="text-sm font-medium text-purple-900">Auto-fill with AI</div>
                                   <div className="text-xs text-purple-600">
-                                    Generate review phrase, search query, aliases, and questions (1 credit)
+                                    Generate review phrase, search terms, aliases, and questions
                                   </div>
                                 </div>
-                                {isEnriching && <Icon name="FaSpinner" className="w-4 h-4 text-purple-600 animate-spin" />}
                               </div>
-                            </button>
+                              <button
+                                onClick={handleAIEnrich}
+                                disabled={isEnriching}
+                                className="w-full px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                              >
+                                {isEnriching ? (
+                                  <>
+                                    <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
+                                    Generating...
+                                  </>
+                                ) : (
+                                  <>
+                                    <Icon name="FaSparkles" className="w-4 h-4" />
+                                    Generate (1 credit)
+                                  </>
+                                )}
+                              </button>
+                            </div>
                           )}
 
                           {/* AI enrichment error */}
