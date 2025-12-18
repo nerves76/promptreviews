@@ -6,6 +6,12 @@ import {
   normalizePhrase,
   calculateWordCount,
   transformKeywordToResponse,
+  searchTermsToDb,
+  relatedQuestionsToDb,
+  transformKeywordQuestionRows,
+  prepareQuestionForInsert,
+  type SearchTerm,
+  type RelatedQuestion,
 } from '@/features/keywords/keywordUtils';
 
 // Service client for privileged operations
@@ -53,6 +59,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         updated_at,
         review_phrase,
         search_query,
+        search_terms,
         aliases,
         location_scope,
         ai_generated,
@@ -154,7 +161,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
  * - searchQuery?: string
  * - aliases?: string[]
  * - locationScope?: 'local' | 'city' | 'region' | 'state' | 'national' | null
- * - relatedQuestions?: string[] (max 10)
+ * - relatedQuestions?: RelatedQuestion[] (max 20, each with question, funnelStage, addedAt)
  */
 export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
@@ -184,7 +191,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     }
 
     const body = await request.json();
-    const { phrase, groupId, status, reviewPhrase, searchQuery, aliases, locationScope, relatedQuestions } = body;
+    const { phrase, groupId, status, reviewPhrase, searchQuery, searchTerms, aliases, locationScope, relatedQuestions } = body;
 
     // Build update object
     const updates: Record<string, any> = {};
@@ -259,6 +266,34 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       updates.search_query = searchQuery?.trim() || null;
     }
 
+    // Handle search_terms array (new format for multiple tracked terms)
+    if (searchTerms !== undefined) {
+      if (!Array.isArray(searchTerms)) {
+        return NextResponse.json(
+          { error: 'searchTerms must be an array' },
+          { status: 400 }
+        );
+      }
+      // Validate each term has required fields
+      for (const term of searchTerms as SearchTerm[]) {
+        if (!term.term || typeof term.term !== 'string') {
+          return NextResponse.json(
+            { error: 'Each search term must have a "term" string' },
+            { status: 400 }
+          );
+        }
+      }
+      // Convert to database format
+      updates.search_terms = searchTermsToDb(searchTerms);
+      // Also update legacy search_query to the canonical term for backward compatibility
+      const canonical = (searchTerms as SearchTerm[]).find(t => t.isCanonical);
+      if (canonical) {
+        updates.search_query = canonical.term;
+      } else if (searchTerms.length > 0) {
+        updates.search_query = (searchTerms as SearchTerm[])[0].term;
+      }
+    }
+
     if (aliases !== undefined) {
       if (!Array.isArray(aliases)) {
         return NextResponse.json(
@@ -283,17 +318,32 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     if (relatedQuestions !== undefined) {
       if (!Array.isArray(relatedQuestions)) {
         return NextResponse.json(
-          { error: 'Related questions must be an array of strings' },
+          { error: 'Related questions must be an array' },
           { status: 400 }
         );
       }
-      if (relatedQuestions.length > 10) {
+      if (relatedQuestions.length > 20) {
         return NextResponse.json(
-          { error: 'Maximum of 10 related questions allowed' },
+          { error: 'Maximum of 20 related questions allowed' },
           { status: 400 }
         );
       }
-      updates.related_questions = relatedQuestions.map((q: string) => q.trim()).filter(Boolean);
+      // Validate each question has required fields
+      for (const q of relatedQuestions as RelatedQuestion[]) {
+        if (!q.question || typeof q.question !== 'string') {
+          return NextResponse.json(
+            { error: 'Each related question must have a "question" string' },
+            { status: 400 }
+          );
+        }
+        if (!q.funnelStage || !['top', 'middle', 'bottom'].includes(q.funnelStage)) {
+          return NextResponse.json(
+            { error: 'Each related question must have a valid funnelStage: "top", "middle", or "bottom"' },
+            { status: 400 }
+          );
+        }
+      }
+      updates.related_questions = relatedQuestionsToDb(relatedQuestions);
     }
 
     if (Object.keys(updates).length === 0) {
@@ -321,6 +371,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         updated_at,
         review_phrase,
         search_query,
+        search_terms,
         aliases,
         location_scope,
         ai_generated,
@@ -346,8 +397,39 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       );
     }
 
+    // If questions were updated, sync to the keyword_questions table
+    if (relatedQuestions !== undefined) {
+      // Delete existing questions for this keyword
+      await serviceSupabase
+        .from('keyword_questions')
+        .delete()
+        .eq('keyword_id', id);
+
+      // Insert the new questions
+      if (relatedQuestions.length > 0) {
+        const questionsToInsert = (relatedQuestions as RelatedQuestion[]).map(q =>
+          prepareQuestionForInsert(id, q)
+        );
+
+        const { error: questionsError } = await serviceSupabase
+          .from('keyword_questions')
+          .insert(questionsToInsert);
+
+        if (questionsError) {
+          console.error('⚠️ Failed to sync questions to normalized table:', questionsError);
+          // Don't fail the request - JSONB fallback is still available
+        }
+      }
+    }
+
+    // Build response with questions
+    const transformedKeyword = transformKeywordToResponse(updatedKeyword, (updatedKeyword as any).keyword_groups?.name);
+    if (relatedQuestions !== undefined) {
+      transformedKeyword.relatedQuestions = relatedQuestions as RelatedQuestion[];
+    }
+
     return NextResponse.json({
-      keyword: transformKeywordToResponse(updatedKeyword, (updatedKeyword as any).keyword_groups?.name),
+      keyword: transformedKeyword,
     });
   } catch (error: any) {
     console.error('❌ Keyword PUT error:', error);

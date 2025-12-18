@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { apiClient } from '@/utils/apiClient';
 import { useAccountData } from '@/auth/hooks/granularAuthHooks';
-import { type KeywordData, type KeywordGroupData, DEFAULT_GROUP_NAME } from '../keywordUtils';
+import { type KeywordData, type KeywordGroupData, type RelatedQuestion, DEFAULT_GROUP_NAME } from '../keywordUtils';
 
 interface UseKeywordsOptions {
   /** Auto-fetch on mount */
@@ -38,7 +38,7 @@ interface UseKeywordsResult {
     search_query: string;
     aliases?: string[];
     location_scope?: string | null;
-    related_questions?: string[];
+    related_questions?: RelatedQuestion[];
     ai_generated?: boolean;
     groupId?: string;
     promptPageId?: string;
@@ -52,7 +52,7 @@ interface UseKeywordsResult {
     searchQuery: string;
     aliases: string[];
     locationScope: string | null;
-    relatedQuestions: string[];
+    relatedQuestions: RelatedQuestion[];
   }>) => Promise<KeywordData | null>;
   /** Delete a keyword */
   deleteKeyword: (id: string) => Promise<boolean>;
@@ -187,7 +187,7 @@ export function useKeywords(options: UseKeywordsOptions = {}): UseKeywordsResult
       search_query: string;
       aliases?: string[];
       location_scope?: string | null;
-      related_questions?: string[];
+      related_questions?: RelatedQuestion[];
       ai_generated?: boolean;
       groupId?: string;
       promptPageId?: string;
@@ -236,7 +236,7 @@ export function useKeywords(options: UseKeywordsOptions = {}): UseKeywordsResult
         searchQuery: string;
         aliases: string[];
         locationScope: string | null;
-        relatedQuestions: string[];
+        relatedQuestions: RelatedQuestion[];
       }>
     ): Promise<KeywordData | null> => {
       try {

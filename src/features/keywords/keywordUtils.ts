@@ -175,6 +175,43 @@ export type KeywordStatus = 'active' | 'paused';
 export type LocationScope = 'local' | 'city' | 'region' | 'state' | 'national';
 
 /**
+ * Search term entry for SERP tracking.
+ * Multiple search terms can be associated with a single keyword concept.
+ */
+export interface SearchTerm {
+  term: string;
+  isCanonical: boolean;  // The primary term shown when space is limited
+  addedAt: string;       // ISO date string
+}
+
+/**
+ * Funnel stage for related questions.
+ * - top: Awareness stage - broad, educational questions
+ * - middle: Consideration stage - comparison, evaluation questions
+ * - bottom: Decision stage - purchase-intent, specific action questions
+ */
+export type FunnelStage = 'top' | 'middle' | 'bottom';
+
+/**
+ * Related question entry with funnel stage categorization.
+ */
+export interface RelatedQuestion {
+  question: string;
+  funnelStage: FunnelStage;
+  addedAt: string;  // ISO date string
+}
+
+/**
+ * Result of checking if a search term is relevant to a concept.
+ */
+export interface RelevanceCheckResult {
+  isRelevant: boolean;
+  sharedRoots: string[];
+  missingRoots: string[];
+  similarity: number;  // 0-1 score
+}
+
+/**
  * Keyword data structure for API responses.
  */
 export interface KeywordData {
@@ -194,13 +231,16 @@ export interface KeywordData {
   showUsageIndicator: boolean;
   // Keyword concept fields
   reviewPhrase: string | null;
+  /** @deprecated Use searchTerms instead. Kept for backward compatibility. */
   searchQuery: string | null;
+  /** Array of search terms for SERP tracking. One should have isCanonical=true. */
+  searchTerms: SearchTerm[];
   aliases: string[];
   locationScope: LocationScope | null;
   aiGenerated: boolean;
   aiSuggestions: Record<string, unknown> | null;
-  // Related questions for PAA/LLM tracking (AI generates 3-5, user can add up to 10)
-  relatedQuestions: string[];
+  // Related questions for PAA/LLM tracking with funnel stage categorization
+  relatedQuestions: RelatedQuestion[];
   // Rank tracking usage
   isUsedInRankTracking?: boolean;
   // Search volume metrics (from DataForSEO)
@@ -215,6 +255,321 @@ export interface KeywordData {
   } | null;
   metricsUpdatedAt: string | null;
 }
+
+// ==========================================
+// Search Term Functions
+// ==========================================
+
+/**
+ * Transform database search_terms to API format.
+ * Falls back to search_query if search_terms is empty (backward compatibility).
+ */
+export function transformSearchTerms(
+  searchTerms: { term: string; is_canonical: boolean; added_at: string }[] | null | undefined,
+  searchQuery: string | null | undefined
+): SearchTerm[] {
+  // If we have search_terms array, transform it
+  if (searchTerms && Array.isArray(searchTerms) && searchTerms.length > 0) {
+    return searchTerms.map((st) => ({
+      term: st.term,
+      isCanonical: st.is_canonical,
+      addedAt: st.added_at,
+    }));
+  }
+
+  // Fallback: if only search_query exists (legacy data), convert it
+  if (searchQuery) {
+    return [
+      {
+        term: searchQuery,
+        isCanonical: true,
+        addedAt: new Date().toISOString(),
+      },
+    ];
+  }
+
+  return [];
+}
+
+/**
+ * Get the canonical (primary) search term from the array.
+ * Returns the first canonical term, or the first term if none is canonical.
+ */
+export function getCanonicalSearchTerm(searchTerms: SearchTerm[]): SearchTerm | null {
+  if (searchTerms.length === 0) return null;
+  return searchTerms.find((t) => t.isCanonical) ?? searchTerms[0];
+}
+
+/**
+ * Transform search terms array to database format.
+ */
+export function searchTermsToDb(
+  searchTerms: SearchTerm[]
+): { term: string; is_canonical: boolean; added_at: string }[] {
+  return searchTerms.map((st) => ({
+    term: st.term,
+    is_canonical: st.isCanonical,
+    added_at: st.addedAt,
+  }));
+}
+
+// ==========================================
+// Related Questions Functions
+// ==========================================
+
+/**
+ * Database format for related questions (snake_case).
+ */
+interface DbRelatedQuestion {
+  question: string;
+  funnelStage: FunnelStage;
+  addedAt: string;
+}
+
+/**
+ * Transform database related_questions to API format.
+ * Handles both old string[] format and new object[] format for backward compatibility.
+ */
+export function transformRelatedQuestions(
+  dbQuestions: DbRelatedQuestion[] | string[] | null | undefined
+): RelatedQuestion[] {
+  if (!dbQuestions || !Array.isArray(dbQuestions)) {
+    return [];
+  }
+
+  // Check if it's the old string[] format
+  if (dbQuestions.length > 0 && typeof dbQuestions[0] === 'string') {
+    // Convert old format to new format with default 'middle' funnel stage
+    return (dbQuestions as string[]).map((q) => ({
+      question: q,
+      funnelStage: 'middle' as FunnelStage,
+      addedAt: new Date().toISOString(),
+    }));
+  }
+
+  // New format - already objects
+  return (dbQuestions as DbRelatedQuestion[]).map((q) => ({
+    question: q.question,
+    funnelStage: q.funnelStage || 'middle',
+    addedAt: q.addedAt || new Date().toISOString(),
+  }));
+}
+
+/**
+ * Transform related questions array to JSONB database format (legacy).
+ */
+export function relatedQuestionsToDb(
+  questions: RelatedQuestion[]
+): DbRelatedQuestion[] {
+  return questions.map((q) => ({
+    question: q.question,
+    funnelStage: q.funnelStage,
+    addedAt: q.addedAt,
+  }));
+}
+
+// ==========================================
+// Keyword Questions Table Functions (normalized)
+// ==========================================
+
+/**
+ * Database row format for keyword_questions table.
+ */
+export interface KeywordQuestionRow {
+  id: string;
+  keyword_id: string;
+  question: string;
+  funnel_stage: FunnelStage;
+  added_at: string;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * Transform keyword_questions table rows to API format.
+ */
+export function transformKeywordQuestionRows(
+  rows: KeywordQuestionRow[] | null | undefined
+): RelatedQuestion[] {
+  if (!rows || !Array.isArray(rows)) {
+    return [];
+  }
+
+  return rows.map((row) => ({
+    question: row.question,
+    funnelStage: row.funnel_stage || 'middle',
+    addedAt: row.added_at || row.created_at || new Date().toISOString(),
+  }));
+}
+
+/**
+ * Prepare a question for insertion into keyword_questions table.
+ */
+export function prepareQuestionForInsert(
+  keywordId: string,
+  question: RelatedQuestion
+): Omit<KeywordQuestionRow, 'id' | 'created_at' | 'updated_at'> {
+  return {
+    keyword_id: keywordId,
+    question: question.question,
+    funnel_stage: question.funnelStage,
+    added_at: question.addedAt || new Date().toISOString(),
+  };
+}
+
+/**
+ * Get display label for funnel stage.
+ */
+export function getFunnelStageLabel(stage: FunnelStage): string {
+  switch (stage) {
+    case 'top':
+      return 'Top of funnel';
+    case 'middle':
+      return 'Middle of funnel';
+    case 'bottom':
+      return 'Bottom of funnel';
+    default:
+      return 'Middle of funnel';
+  }
+}
+
+/**
+ * Get short label for funnel stage.
+ */
+export function getFunnelStageShortLabel(stage: FunnelStage): string {
+  switch (stage) {
+    case 'top':
+      return 'ToF';
+    case 'middle':
+      return 'MoF';
+    case 'bottom':
+      return 'BoF';
+    default:
+      return 'MoF';
+  }
+}
+
+/**
+ * Get color classes for funnel stage.
+ */
+export function getFunnelStageColor(stage: FunnelStage): { bg: string; text: string; border: string } {
+  switch (stage) {
+    case 'top':
+      return { bg: 'bg-blue-100', text: 'text-blue-700', border: 'border-blue-300' };
+    case 'middle':
+      return { bg: 'bg-amber-100', text: 'text-amber-700', border: 'border-amber-300' };
+    case 'bottom':
+      return { bg: 'bg-green-100', text: 'text-green-700', border: 'border-green-300' };
+    default:
+      return { bg: 'bg-gray-100', text: 'text-gray-700', border: 'border-gray-300' };
+  }
+}
+
+// ==========================================
+// Root Word Relevance Checking
+// ==========================================
+
+/**
+ * Common stop words to ignore when extracting root words.
+ */
+const STOP_WORDS = new Set([
+  'the', 'a', 'an', 'in', 'on', 'at', 'for', 'to', 'of', 'and', 'or',
+  'is', 'are', 'was', 'were', 'be', 'been', 'being',
+  'best', 'top', 'good', 'great', 'near', 'me', 'my', 'your',
+  'i', 'you', 'we', 'they', 'it', 'this', 'that',
+  'how', 'what', 'where', 'when', 'why', 'who',
+]);
+
+/**
+ * Extract the stem/root of a word by stripping common suffixes.
+ * This is a simple rule-based stemmer, not as sophisticated as Porter Stemmer
+ * but sufficient for relevance checking.
+ */
+export function getStem(word: string): string {
+  let stem = word.toLowerCase().trim();
+
+  // Skip very short words
+  if (stem.length <= 3) return stem;
+
+  // Strip common suffixes (order matters - longer suffixes first)
+  const suffixes = [
+    'ational', 'tional', 'ization', 'fulness', 'ousness', 'iveness',
+    'ement', 'ment', 'ness', 'able', 'ible', 'tion', 'sion',
+    'ance', 'ence', 'ling', 'ally', 'ful', 'ous', 'ive',
+    'ing', 'ers', 'ies', 'ed', 'er', 'es', 'ly', 's',
+  ];
+
+  for (const suffix of suffixes) {
+    if (stem.endsWith(suffix) && stem.length > suffix.length + 2) {
+      stem = stem.slice(0, -suffix.length);
+      break;
+    }
+  }
+
+  // Handle 'y' -> 'i' conversions (e.g., plumbi -> plumb)
+  if (stem.endsWith('i') && stem.length > 2) {
+    stem = stem.slice(0, -1);
+  }
+
+  return stem;
+}
+
+/**
+ * Extract root words from a phrase, excluding stop words.
+ * Returns a Set of stems for efficient lookup.
+ */
+export function getRootWords(phrase: string): Set<string> {
+  return new Set(
+    phrase
+      .toLowerCase()
+      .split(/\s+/)
+      .filter((w) => w.length > 2 && !STOP_WORDS.has(w))
+      .map(getStem)
+      .filter((stem) => stem.length > 1)
+  );
+}
+
+/**
+ * Check if a search term is relevant to a keyword concept.
+ *
+ * Compares root words between the concept's phrase and the new term.
+ * A term is considered relevant if it shares at least one root word
+ * with the concept phrase.
+ *
+ * @param conceptPhrase - The keyword concept's main phrase (e.g., "plumbing services")
+ * @param newTerm - The search term being added (e.g., "portland plumber")
+ * @returns Relevance check result with shared/missing roots and similarity score
+ */
+export function checkSearchTermRelevance(
+  conceptPhrase: string,
+  newTerm: string
+): RelevanceCheckResult {
+  const conceptRoots = getRootWords(conceptPhrase);
+  const termRoots = getRootWords(newTerm);
+
+  const termRootsArray = Array.from(termRoots);
+  const sharedRoots = termRootsArray.filter((r) => conceptRoots.has(r));
+  const missingRoots = termRootsArray.filter((r) => !conceptRoots.has(r));
+
+  // Calculate similarity as ratio of shared roots to term roots
+  const similarity = termRoots.size > 0
+    ? sharedRoots.length / termRoots.size
+    : 0;
+
+  // Relevant if at least 1 root word matches
+  const isRelevant = sharedRoots.length >= 1;
+
+  return {
+    isRelevant,
+    sharedRoots,
+    missingRoots,
+    similarity,
+  };
+}
+
+// ==========================================
+// Transformer Functions
+// ==========================================
 
 /**
  * Transform database keyword row to API response format.
@@ -234,11 +589,12 @@ export function transformKeywordToResponse(
     // Concept fields
     review_phrase?: string | null;
     search_query?: string | null;
+    search_terms?: { term: string; is_canonical: boolean; added_at: string }[] | null;
     aliases?: string[] | null;
     location_scope?: string | null;
     ai_generated?: boolean | null;
     ai_suggestions?: Record<string, unknown> | null;
-    related_questions?: string[] | null;
+    related_questions?: DbRelatedQuestion[] | string[] | null;
     // Metrics fields
     search_volume?: number | null;
     cpc?: number | null;
@@ -274,11 +630,12 @@ export function transformKeywordToResponse(
     // Concept fields
     reviewPhrase: keyword.review_phrase ?? null,
     searchQuery: keyword.search_query ?? null,
+    searchTerms: transformSearchTerms(keyword.search_terms, keyword.search_query),
     aliases: keyword.aliases ?? [],
     locationScope: (keyword.location_scope as LocationScope) ?? null,
     aiGenerated: keyword.ai_generated ?? false,
     aiSuggestions: keyword.ai_suggestions ?? null,
-    relatedQuestions: keyword.related_questions ?? [],
+    relatedQuestions: transformRelatedQuestions(keyword.related_questions),
     // Metrics fields
     searchVolume: keyword.search_volume ?? null,
     cpc: keyword.cpc ? Number(keyword.cpc) : null,

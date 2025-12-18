@@ -11,10 +11,17 @@ import {
   LLMVisibilityCheck,
 } from '../utils/types';
 import { useLLMVisibility } from '../hooks/useLLMVisibility';
+import {
+  type RelatedQuestion,
+  type FunnelStage,
+  getFunnelStageColor,
+  getFunnelStageShortLabel,
+} from '@/features/keywords/keywordUtils';
 
 interface LLMVisibilitySectionProps {
   keywordId: string;
-  questions: string[];
+  /** Related questions with funnel stage information */
+  questions: RelatedQuestion[];
   /** Callback when credit balance changes */
   onBalanceChange?: (balance: { totalCredits: number }) => void;
 }
@@ -203,12 +210,12 @@ export function LLMVisibilitySection({
           {questions.length > 0 && (
             <div className="space-y-2">
               <div className="text-xs text-gray-500">Results by question:</div>
-              {questions.map((question, idx) => {
-                const providerResults = questionResultsMap.get(question);
+              {questions.map((rq, idx) => {
+                const providerResults = questionResultsMap.get(rq.question);
                 return (
                   <QuestionRow
                     key={idx}
-                    question={question}
+                    question={rq}
                     providerResults={providerResults}
                   />
                 );
@@ -229,19 +236,30 @@ export function LLMVisibilitySection({
 }
 
 /**
- * Individual question row showing provider badges
+ * Individual question row showing funnel stage and provider badges
  */
 function QuestionRow({
   question,
   providerResults,
 }: {
-  question: string;
+  question: RelatedQuestion;
   providerResults?: Map<LLMProvider, LLMVisibilityCheck>;
 }) {
+  const funnelColor = getFunnelStageColor(question.funnelStage);
+  const funnelLabel = getFunnelStageShortLabel(question.funnelStage);
+
   return (
     <div className="bg-white/60 p-2 rounded-lg">
-      <div className="text-sm text-gray-700 mb-1.5 line-clamp-2">{question}</div>
-      <div className="flex gap-1">
+      <div className="flex items-start gap-2 mb-1.5">
+        <span
+          className={`px-1.5 py-0.5 text-xs rounded flex-shrink-0 ${funnelColor.bg} ${funnelColor.text}`}
+          title={`${question.funnelStage === 'top' ? 'Top' : question.funnelStage === 'middle' ? 'Middle' : 'Bottom'} of funnel`}
+        >
+          {funnelLabel}
+        </span>
+        <span className="text-sm text-gray-700 line-clamp-2">{question.question}</span>
+      </div>
+      <div className="flex gap-1 ml-8">
         {LLM_PROVIDERS.map(provider => {
           const result = providerResults?.get(provider);
           const colors = LLM_PROVIDER_COLORS[provider];

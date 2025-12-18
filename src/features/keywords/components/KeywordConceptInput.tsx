@@ -3,23 +3,32 @@
 import React, { useState, useCallback } from "react";
 import { apiClient } from "@/utils/apiClient";
 import Icon from "@/components/Icon";
+import {
+  type SearchTerm,
+  type RelatedQuestion,
+  type FunnelStage,
+  checkSearchTermRelevance,
+  getFunnelStageColor,
+  getFunnelStageShortLabel,
+} from "../keywordUtils";
+import { useRelatedQuestions } from "../hooks/useRelatedQuestions";
 
 interface KeywordEnrichment {
   review_phrase: string;
   search_query: string;
   aliases: string[];
   location_scope: "local" | "city" | "region" | "state" | "national" | null;
-  related_questions: string[];
+  related_questions: RelatedQuestion[];
 }
 
 interface KeywordConceptInputProps {
   onKeywordAdded: (keyword: {
     phrase: string;
     review_phrase: string;
-    search_query: string;
+    search_terms: SearchTerm[];
     aliases: string[];
     location_scope: string | null;
-    related_questions: string[];
+    related_questions: RelatedQuestion[];
     ai_generated: boolean;
   }) => void;
   businessName?: string;
@@ -51,12 +60,30 @@ export default function KeywordConceptInput({
   // Form fields
   const [keyword, setKeyword] = useState("");
   const [reviewPhrase, setReviewPhrase] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchTerms, setSearchTerms] = useState<SearchTerm[]>([]);
+  const [newSearchTerm, setNewSearchTerm] = useState("");
+  const [relevanceWarning, setRelevanceWarning] = useState<{
+    term: string;
+    sharedRoots: string[];
+    missingRoots: string[];
+  } | null>(null);
   const [aliases, setAliases] = useState<string[]>([]);
   const [newAlias, setNewAlias] = useState("");
   const [locationScope, setLocationScope] = useState<string | null>(null);
-  const [relatedQuestions, setRelatedQuestions] = useState<string[]>([]);
-  const [newQuestion, setNewQuestion] = useState("");
+
+  // Related questions hook
+  const {
+    questions: relatedQuestions,
+    setQuestions: setRelatedQuestions,
+    newQuestionText,
+    setNewQuestionText,
+    newQuestionFunnel,
+    setNewQuestionFunnel,
+    addQuestion: handleAddQuestion,
+    removeQuestion: handleRemoveQuestion,
+    isAtLimit: questionsAtLimit,
+    reset: resetQuestions,
+  } = useRelatedQuestions({ maxQuestions: 20 });
 
   // AI generation state
   const [isGenerating, setIsGenerating] = useState(false);
@@ -66,16 +93,17 @@ export default function KeywordConceptInput({
   const resetForm = useCallback(() => {
     setKeyword("");
     setReviewPhrase("");
-    setSearchQuery("");
+    setSearchTerms([]);
+    setNewSearchTerm("");
+    setRelevanceWarning(null);
     setAliases([]);
     setNewAlias("");
     setLocationScope(null);
-    setRelatedQuestions([]);
-    setNewQuestion("");
+    resetQuestions();
     setAiGenerated(false);
     setError(null);
     setShowForm(false);
-  }, []);
+  }, [resetQuestions]);
 
   const handleGenerateWithAI = useCallback(async () => {
     if (!keyword.trim()) return;
@@ -93,7 +121,14 @@ export default function KeywordConceptInput({
 
       if (response.success && response.enrichment) {
         setReviewPhrase(response.enrichment.review_phrase);
-        setSearchQuery(response.enrichment.search_query);
+        // Convert single search_query to searchTerms array
+        if (response.enrichment.search_query) {
+          setSearchTerms([{
+            term: response.enrichment.search_query,
+            isCanonical: true,
+            addedAt: new Date().toISOString(),
+          }]);
+        }
         setAliases(response.enrichment.aliases || []);
         setLocationScope(response.enrichment.location_scope);
         setRelatedQuestions(response.enrichment.related_questions || []);
@@ -120,12 +155,20 @@ export default function KeywordConceptInput({
 
     // Use defaults if fields are empty
     const finalReviewPhrase = reviewPhrase.trim() || keyword.trim();
-    const finalSearchQuery = searchQuery.trim() || keyword.trim().toLowerCase();
+
+    // If no search terms, create a default one from the keyword
+    const finalSearchTerms = searchTerms.length > 0
+      ? searchTerms
+      : [{
+          term: keyword.trim().toLowerCase(),
+          isCanonical: true,
+          addedAt: new Date().toISOString(),
+        }];
 
     onKeywordAdded({
       phrase: keyword.trim(),
       review_phrase: finalReviewPhrase,
-      search_query: finalSearchQuery,
+      search_terms: finalSearchTerms,
       aliases,
       location_scope: locationScope,
       related_questions: relatedQuestions,
@@ -133,21 +176,7 @@ export default function KeywordConceptInput({
     });
 
     resetForm();
-  }, [keyword, reviewPhrase, searchQuery, aliases, locationScope, relatedQuestions, aiGenerated, onKeywordAdded, resetForm]);
-
-  const handleAddQuestion = useCallback(() => {
-    if (newQuestion.trim() && relatedQuestions.length < 20) {
-      setRelatedQuestions([...relatedQuestions, newQuestion.trim()]);
-      setNewQuestion("");
-    }
-  }, [newQuestion, relatedQuestions]);
-
-  const handleRemoveQuestion = useCallback(
-    (index: number) => {
-      setRelatedQuestions(relatedQuestions.filter((_, i) => i !== index));
-    },
-    [relatedQuestions]
-  );
+  }, [keyword, reviewPhrase, searchTerms, aliases, locationScope, relatedQuestions, aiGenerated, onKeywordAdded, resetForm]);
 
   const handleRemoveAlias = useCallback(
     (index: number) => {
@@ -162,6 +191,58 @@ export default function KeywordConceptInput({
       setNewAlias("");
     }
   }, [newAlias, aliases]);
+
+  // Search term handlers
+  const handleAddSearchTerm = useCallback((forceAdd = false) => {
+    if (!newSearchTerm.trim()) return;
+
+    const termToAdd = newSearchTerm.trim();
+
+    // Check if term already exists
+    if (searchTerms.some(t => t.term.toLowerCase() === termToAdd.toLowerCase())) {
+      return;
+    }
+
+    // Check relevance against concept name
+    if (!forceAdd && keyword.trim()) {
+      const relevance = checkSearchTermRelevance(keyword.trim(), termToAdd);
+      if (!relevance.isRelevant) {
+        setRelevanceWarning({
+          term: termToAdd,
+          sharedRoots: relevance.sharedRoots,
+          missingRoots: relevance.missingRoots,
+        });
+        return;
+      }
+    }
+
+    const newTerm: SearchTerm = {
+      term: termToAdd,
+      isCanonical: searchTerms.length === 0,
+      addedAt: new Date().toISOString(),
+    };
+
+    setSearchTerms([...searchTerms, newTerm]);
+    setNewSearchTerm("");
+    setRelevanceWarning(null);
+  }, [newSearchTerm, searchTerms, keyword]);
+
+  const handleRemoveSearchTerm = useCallback((termToRemove: string) => {
+    const remaining = searchTerms.filter(t => t.term !== termToRemove);
+    if (remaining.length > 0 && !remaining.some(t => t.isCanonical)) {
+      remaining[0].isCanonical = true;
+    }
+    setSearchTerms(remaining);
+  }, [searchTerms]);
+
+  const handleSetCanonical = useCallback((term: string) => {
+    setSearchTerms(
+      searchTerms.map(t => ({
+        ...t,
+        isCanonical: t.term === term,
+      }))
+    );
+  }, [searchTerms]);
 
   // Show "Add concept" button when form is closed
   if (!showForm) {
@@ -195,6 +276,9 @@ export default function KeywordConceptInput({
             </span>
           )}
         </div>
+        <p className="text-xs text-gray-500 mb-1">
+          This is the root phrase. Search terms and aliases should relate to these words.
+        </p>
         <input
           type="text"
           value={keyword}
@@ -221,12 +305,12 @@ export default function KeywordConceptInput({
                   d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                 />
               </svg>
-              Generating...
+              Completing...
             </>
           ) : (
             <>
               <Icon name="prompty" className="w-4 h-4" />
-              Generate with AI
+              Complete concept with AI
               <span className="text-xs text-indigo-400">(1 credit)</span>
             </>
           )}
@@ -266,7 +350,7 @@ export default function KeywordConceptInput({
       {/* Aliases - directly under Review Phrase since they're related */}
       <div className="space-y-1">
         <label className="block text-sm font-medium text-gray-600">
-          Aliases
+          Review aliases
           <span className="text-gray-400 font-normal ml-1">(track close variants in your reviews)</span>
         </label>
         {aliases.length > 0 && (
@@ -302,19 +386,92 @@ export default function KeywordConceptInput({
         </div>
       </div>
 
-      {/* Search Query */}
+      {/* Search Terms */}
       <div className="space-y-1">
         <label className="block text-sm font-medium text-gray-600">
-          Search query
-          <span className="text-gray-400 font-normal ml-1">(used for Local Ranking Grid tracking)</span>
+          Search terms
+          <span className="text-gray-400 font-normal ml-1">(used for rank tracking and Local Ranking Grid)</span>
         </label>
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder={keyword.trim().toLowerCase() || "e.g., green eggs ham san diego"}
-          className="w-full border border-gray-300 rounded px-3 py-2 text-base focus:ring-2 focus:ring-slate-blue/30 focus:border-slate-blue"
-        />
+        {searchTerms.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 pb-1">
+            {searchTerms.map((st) => (
+              <span
+                key={st.term}
+                className={`inline-flex items-center gap-1 px-2.5 py-1 text-sm rounded ${
+                  st.isCanonical ? "bg-blue-100 text-blue-700" : "bg-gray-200 text-gray-700"
+                }`}
+              >
+                <button
+                  onClick={() => handleSetCanonical(st.term)}
+                  className={`${st.isCanonical ? "text-yellow-500" : "text-gray-400 hover:text-yellow-500"}`}
+                  title={st.isCanonical ? "Canonical term (shown when space is limited)" : "Set as canonical"}
+                >
+                  <Icon name={st.isCanonical ? "FaStar" : "FaRegStar"} size={12} />
+                </button>
+                {st.term}
+                <button
+                  onClick={() => handleRemoveSearchTerm(st.term)}
+                  className="text-gray-500 hover:text-gray-700 ml-1"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
+        {/* Relevance Warning */}
+        {relevanceWarning && (
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm">
+            <p className="text-amber-800 font-medium mb-1">
+              &quot;{relevanceWarning.term}&quot; doesn&apos;t share root words with your concept name
+            </p>
+            <p className="text-amber-700 text-xs mb-2">
+              {relevanceWarning.missingRoots.length > 0 && (
+                <>Unrelated roots: {relevanceWarning.missingRoots.join(", ")}</>
+              )}
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  handleAddSearchTerm(true);
+                }}
+                className="px-2 py-1 bg-amber-600 text-white rounded text-xs hover:bg-amber-700"
+              >
+                Add anyway
+              </button>
+              <button
+                onClick={() => {
+                  setRelevanceWarning(null);
+                  setNewSearchTerm("");
+                }}
+                className="px-2 py-1 text-amber-700 hover:text-amber-800 text-xs"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+        {!relevanceWarning && (
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={newSearchTerm}
+              onChange={(e) => setNewSearchTerm(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddSearchTerm())}
+              placeholder={keyword.trim().toLowerCase() || "e.g., green eggs ham san diego"}
+              className="flex-1 border border-gray-300 rounded px-3 py-1.5 text-sm focus:ring-1 focus:ring-slate-blue focus:border-slate-blue"
+            />
+            <button
+              onClick={() => handleAddSearchTerm()}
+              disabled={!newSearchTerm.trim()}
+              className="px-3 py-1.5 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 disabled:opacity-50"
+            >
+              Add
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Location Scope */}
@@ -342,31 +499,55 @@ export default function KeywordConceptInput({
         </label>
         {relatedQuestions.length > 0 && (
           <div className="space-y-1.5 pb-1">
-            {relatedQuestions.map((question, idx) => (
-              <div key={idx} className="flex items-center gap-2 bg-purple-50 text-purple-800 text-sm rounded px-2.5 py-1.5">
-                <span className="flex-1">{question}</span>
-                <button onClick={() => handleRemoveQuestion(idx)} className="text-purple-600 hover:text-purple-800">
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-            ))}
+            {relatedQuestions.map((rq, idx) => {
+              const funnelColor = getFunnelStageColor(rq.funnelStage);
+              const funnelTooltip = rq.funnelStage === 'top'
+                ? 'Top of funnel: Awareness stage - broad, educational questions'
+                : rq.funnelStage === 'middle'
+                  ? 'Middle of funnel: Consideration stage - comparison, evaluation questions'
+                  : 'Bottom of funnel: Decision stage - purchase-intent, action questions';
+              return (
+                <div key={idx} className="flex items-center gap-2 bg-gray-50 text-gray-800 text-sm rounded px-2.5 py-1.5">
+                  <span
+                    className={`px-1.5 py-0.5 text-xs rounded cursor-help ${funnelColor.bg} ${funnelColor.text}`}
+                    title={funnelTooltip}
+                  >
+                    {getFunnelStageShortLabel(rq.funnelStage)}
+                  </span>
+                  <span className="flex-1">{rq.question}</span>
+                  <button onClick={() => handleRemoveQuestion(idx)} className="text-gray-500 hover:text-gray-700">
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              );
+            })}
           </div>
         )}
-        {relatedQuestions.length < 20 && (
+        {!questionsAtLimit && (
           <div className="flex gap-2">
+            <select
+              value={newQuestionFunnel}
+              onChange={(e) => setNewQuestionFunnel(e.target.value as FunnelStage)}
+              className="border border-gray-300 rounded px-2 py-1.5 text-sm focus:ring-1 focus:ring-slate-blue focus:border-slate-blue min-w-[140px]"
+              title="Marketing funnel stage: determines the intent level of the question"
+            >
+              <option value="top">Top (awareness)</option>
+              <option value="middle">Middle (consideration)</option>
+              <option value="bottom">Bottom (decision)</option>
+            </select>
             <input
               type="text"
-              value={newQuestion}
-              onChange={(e) => setNewQuestion(e.target.value)}
+              value={newQuestionText}
+              onChange={(e) => setNewQuestionText(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddQuestion())}
               placeholder="e.g., Are green eggs and ham good for you?"
               className="flex-1 border border-gray-300 rounded px-3 py-1.5 text-sm focus:ring-1 focus:ring-slate-blue focus:border-slate-blue"
             />
             <button
-              onClick={handleAddQuestion}
-              disabled={!newQuestion.trim()}
+              onClick={() => handleAddQuestion()}
+              disabled={!newQuestionText.trim()}
               className="px-3 py-1.5 bg-purple-600 text-white rounded text-sm hover:bg-purple-700 disabled:opacity-50"
             >
               Add

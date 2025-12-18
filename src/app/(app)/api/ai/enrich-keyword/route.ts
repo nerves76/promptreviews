@@ -21,12 +21,18 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+interface RelatedQuestion {
+  question: string;
+  funnelStage: "top" | "middle" | "bottom";
+  addedAt: string;
+}
+
 interface EnrichmentResult {
   review_phrase: string;
   search_query: string;
   aliases: string[];
   location_scope: "local" | "city" | "region" | "state" | "national" | null;
-  related_questions: string[];
+  related_questions: RelatedQuestion[];
 }
 
 // GET: Check credit cost and availability
@@ -151,12 +157,16 @@ Given a keyword phrase, generate optimized versions for different use cases:
    - "national" = no location specified
    - null if unclear
 
-5. **related_questions**: 3-5 questions people might ask about this topic. Should:
+5. **related_questions**: 3-5 questions people might ask about this topic, each with a funnel stage. Should:
    - Be natural questions a customer might type into Google or ask an AI
    - Include "People Also Ask" style questions
    - Cover different aspects: cost, quality, comparison, process, etc.
    - Include location if relevant to the keyword
-   - Examples: "Where can I find X near me?", "How much does X cost?", "What is the best X in [city]?"
+   - Each question needs a funnelStage:
+     - "top" = awareness stage (broad, educational: "What is X?", "Why do I need X?")
+     - "middle" = consideration stage (comparison, evaluation: "What is the best X?", "How do I choose X?")
+     - "bottom" = decision stage (purchase-intent, specific action: "How much does X cost in [city]?", "Where can I book X near me?")
+   - Try to include a mix of funnel stages
 
 Respond with ONLY valid JSON, no markdown or explanation.`;
 
@@ -169,7 +179,10 @@ Generate the enriched keyword data as JSON with this exact structure:
   "search_query": "...",
   "aliases": ["...", "..."],
   "location_scope": "city" | "local" | "region" | "state" | "national" | null,
-  "related_questions": ["...", "...", "..."]
+  "related_questions": [
+    { "question": "...", "funnelStage": "top" | "middle" | "bottom" },
+    { "question": "...", "funnelStage": "top" | "middle" | "bottom" }
+  ]
 }`;
 
         const completion = await openai.chat.completions.create({
@@ -207,11 +220,32 @@ Generate the enriched keyword data as JSON with this exact structure:
           enrichment.aliases = [];
         }
 
-        // Ensure related_questions is an array with max 5 items
+        // Ensure related_questions is an array with max 5 items, properly formatted
+        const now = new Date().toISOString();
         if (!Array.isArray(enrichment.related_questions)) {
           enrichment.related_questions = [];
         } else {
-          enrichment.related_questions = enrichment.related_questions.slice(0, 5);
+          enrichment.related_questions = enrichment.related_questions
+            .slice(0, 5)
+            .map((q: { question?: string; funnelStage?: string } | string) => {
+              // Handle if AI returns string instead of object (backward compat)
+              if (typeof q === 'string') {
+                return {
+                  question: q,
+                  funnelStage: 'middle' as const,
+                  addedAt: now,
+                };
+              }
+              // Validate funnelStage
+              const validStages = ['top', 'middle', 'bottom'];
+              const stage = validStages.includes(q.funnelStage || '') ? q.funnelStage : 'middle';
+              return {
+                question: q.question || '',
+                funnelStage: stage as 'top' | 'middle' | 'bottom',
+                addedAt: now,
+              };
+            })
+            .filter(q => q.question.length > 0);
         }
 
         // Validate location_scope

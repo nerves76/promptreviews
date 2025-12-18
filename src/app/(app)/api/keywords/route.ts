@@ -6,8 +6,15 @@ import {
   normalizePhrase,
   calculateWordCount,
   transformKeywordToResponse,
+  searchTermsToDb,
+  relatedQuestionsToDb,
+  transformKeywordQuestionRows,
+  prepareQuestionForInsert,
   DEFAULT_GROUP_NAME,
   type KeywordData,
+  type SearchTerm,
+  type RelatedQuestion,
+  type KeywordQuestionRow,
 } from '@/features/keywords/keywordUtils';
 
 // Service client for privileged operations
@@ -44,7 +51,7 @@ export async function GET(request: NextRequest) {
     const promptPageId = searchParams.get('promptPageId');
     const includeUsage = searchParams.get('includeUsage') === 'true';
 
-    // Build query - include concept fields and metrics
+    // Build query - include concept fields, metrics, and questions from normalized table
     let query = serviceSupabase
       .from('keywords')
       .select(`
@@ -60,6 +67,7 @@ export async function GET(request: NextRequest) {
         updated_at,
         review_phrase,
         search_query,
+        search_terms,
         aliases,
         location_scope,
         ai_generated,
@@ -73,6 +81,14 @@ export async function GET(request: NextRequest) {
         keyword_groups (
           id,
           name
+        ),
+        keyword_questions (
+          id,
+          question,
+          funnel_stage,
+          added_at,
+          created_at,
+          updated_at
         )
       `)
       .eq('account_id', accountId)
@@ -116,6 +132,12 @@ export async function GET(request: NextRequest) {
     let transformedKeywords: KeywordData[] = (keywords || []).map((kw: any) => {
       const groupName = kw.keyword_groups?.name || null;
       const transformed = transformKeywordToResponse(kw, groupName);
+
+      // Use keyword_questions table data (normalized) instead of JSONB
+      if (kw.keyword_questions && Array.isArray(kw.keyword_questions) && kw.keyword_questions.length > 0) {
+        transformed.relatedQuestions = transformKeywordQuestionRows(kw.keyword_questions);
+      }
+
       // Add rank tracking usage flag
       (transformed as any).isUsedInRankTracking = rankTrackedKeywordIds.has(kw.id);
       return transformed;
@@ -193,7 +215,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { phrase, groupId, promptPageId, review_phrase, search_query, aliases, location_scope, ai_generated, related_questions } = body;
+    const { phrase, groupId, promptPageId, review_phrase, search_query, search_terms, aliases, location_scope, ai_generated, related_questions } = body;
 
     if (!phrase || typeof phrase !== 'string' || phrase.trim().length === 0) {
       return NextResponse.json(
@@ -294,6 +316,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Build search_terms from input or from search_query
+    let searchTermsDb: { term: string; is_canonical: boolean; added_at: string }[] = [];
+    let canonicalSearchQuery = search_query || null;
+
+    if (search_terms && Array.isArray(search_terms) && search_terms.length > 0) {
+      searchTermsDb = searchTermsToDb(search_terms as SearchTerm[]);
+      // Also set legacy search_query to the canonical term
+      const canonical = (search_terms as SearchTerm[]).find((t: SearchTerm) => t.isCanonical);
+      if (canonical) {
+        canonicalSearchQuery = canonical.term;
+      } else {
+        canonicalSearchQuery = (search_terms as SearchTerm[])[0].term;
+      }
+    } else if (search_query) {
+      // Convert single search_query to search_terms array
+      searchTermsDb = [{
+        term: search_query,
+        is_canonical: true,
+        added_at: new Date().toISOString(),
+      }];
+    }
+
     // Create the keyword with concept fields
     const { data: newKeyword, error: insertError } = await serviceSupabase
       .from('keywords')
@@ -307,11 +351,12 @@ export async function POST(request: NextRequest) {
         review_usage_count: 0,
         // Concept fields
         review_phrase: review_phrase || null,
-        search_query: search_query || null,
+        search_query: canonicalSearchQuery,
+        search_terms: searchTermsDb,
         aliases: aliases || [],
         location_scope: location_scope || null,
         ai_generated: ai_generated || false,
-        related_questions: related_questions || [],
+        related_questions: related_questions ? relatedQuestionsToDb(related_questions as RelatedQuestion[]) : [],
       })
       .select(`
         id,
@@ -326,6 +371,7 @@ export async function POST(request: NextRequest) {
         updated_at,
         review_phrase,
         search_query,
+        search_terms,
         aliases,
         location_scope,
         ai_generated,
@@ -357,9 +403,31 @@ export async function POST(request: NextRequest) {
         });
     }
 
+    // Insert questions into the normalized keyword_questions table
+    if (related_questions && Array.isArray(related_questions) && related_questions.length > 0) {
+      const questionsToInsert = (related_questions as RelatedQuestion[]).map(q =>
+        prepareQuestionForInsert(newKeyword.id, q)
+      );
+
+      const { error: questionsError } = await serviceSupabase
+        .from('keyword_questions')
+        .insert(questionsToInsert);
+
+      if (questionsError) {
+        console.error('⚠️ Failed to insert questions to normalized table:', questionsError);
+        // Don't fail the request - JSONB fallback is still available
+      }
+    }
+
+    // Build response with questions from the insert
+    const transformedKeyword = transformKeywordToResponse(newKeyword, (newKeyword as any).keyword_groups?.name);
+    if (related_questions && Array.isArray(related_questions) && related_questions.length > 0) {
+      transformedKeyword.relatedQuestions = related_questions as RelatedQuestion[];
+    }
+
     return NextResponse.json(
       {
-        keyword: transformKeywordToResponse(newKeyword, (newKeyword as any).keyword_groups?.name),
+        keyword: transformedKeyword,
         created: true,
       },
       { status: 201 }

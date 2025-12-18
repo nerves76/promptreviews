@@ -4,7 +4,17 @@ import { useState, useEffect, Fragment } from 'react';
 import { Transition, Dialog } from '@headlessui/react';
 import Icon from '@/components/Icon';
 import { apiClient } from '@/utils/apiClient';
-import { type KeywordData, type LocationScope } from '../keywordUtils';
+import {
+  type KeywordData,
+  type LocationScope,
+  type SearchTerm,
+  type RelatedQuestion,
+  type FunnelStage,
+  checkSearchTermRelevance,
+  getFunnelStageColor,
+  getFunnelStageShortLabel,
+} from '../keywordUtils';
+import { useRelatedQuestions } from '../hooks/useRelatedQuestions';
 import { LLMVisibilitySection } from '@/features/llm-visibility/components/LLMVisibilitySection';
 import { useAuth } from '@/auth';
 
@@ -78,9 +88,10 @@ export interface KeywordDetailsSidebarProps {
     status: 'active' | 'paused';
     reviewPhrase: string;
     searchQuery: string;
+    searchTerms: SearchTerm[];
     aliases: string[];
     locationScope: string | null;
-    relatedQuestions: string[];
+    relatedQuestions: RelatedQuestion[];
   }>) => Promise<KeywordData | null>;
   /** Optional: Show prompt pages this keyword is used in */
   promptPages?: Array<{ id: string; name?: string; slug?: string }>;
@@ -117,11 +128,36 @@ export function KeywordDetailsSidebar({
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [editedReviewPhrase, setEditedReviewPhrase] = useState(keyword?.reviewPhrase || '');
-  const [editedSearchQuery, setEditedSearchQuery] = useState(keyword?.searchQuery || '');
+  const [editedSearchTerms, setEditedSearchTerms] = useState<SearchTerm[]>(keyword?.searchTerms || []);
   const [editedAliasesInput, setEditedAliasesInput] = useState((keyword?.aliases || []).join(', '));
   const [editedLocationScope, setEditedLocationScope] = useState<LocationScope | null>(keyword?.locationScope || null);
   const [editedGroupId, setEditedGroupId] = useState<string | null>(keyword?.groupId || null);
-  const [editedQuestionsInput, setEditedQuestionsInput] = useState((keyword?.relatedQuestions || []).join('\n'));
+
+  // Related questions hook
+  const {
+    questions: editedQuestions,
+    setQuestions: setEditedQuestions,
+    newQuestionText,
+    setNewQuestionText,
+    newQuestionFunnel,
+    setNewQuestionFunnel,
+    addQuestion,
+    removeQuestion,
+    updateQuestionFunnel,
+    isAtLimit: questionsAtLimit,
+    reset: resetQuestions,
+  } = useRelatedQuestions({
+    initialQuestions: keyword?.relatedQuestions || [],
+    maxQuestions: 20,
+  });
+
+  // Search term addition state
+  const [newSearchTerm, setNewSearchTerm] = useState('');
+  const [relevanceWarning, setRelevanceWarning] = useState<{
+    term: string;
+    sharedRoots: string[];
+    missingRoots: string[];
+  } | null>(null);
 
   // AI enrichment state
   const [isEnriching, setIsEnriching] = useState(false);
@@ -153,14 +189,16 @@ export function KeywordDetailsSidebar({
   useEffect(() => {
     if (keyword) {
       setEditedReviewPhrase(keyword.reviewPhrase || '');
-      setEditedSearchQuery(keyword.searchQuery || '');
+      setEditedSearchTerms(keyword.searchTerms || []);
       setEditedAliasesInput((keyword.aliases || []).join(', '));
       setEditedLocationScope(keyword.locationScope);
       setEditedGroupId(keyword.groupId);
-      setEditedQuestionsInput((keyword.relatedQuestions || []).join('\n'));
+      resetQuestions(keyword.relatedQuestions || []);
       setIsEditing(false);
+      setNewSearchTerm('');
+      setRelevanceWarning(null);
     }
-  }, [keyword]);
+  }, [keyword, resetQuestions]);
 
   const handleSave = async () => {
     if (!keyword) return;
@@ -171,18 +209,12 @@ export function KeywordDetailsSidebar({
         .map(a => a.trim())
         .filter(Boolean);
 
-      const relatedQuestions = editedQuestionsInput
-        .split('\n')
-        .map(q => q.trim())
-        .filter(Boolean)
-        .slice(0, 20); // Max 20 questions
-
       await onUpdate(keyword.id, {
         reviewPhrase: editedReviewPhrase || '',
-        searchQuery: editedSearchQuery || '',
+        searchTerms: editedSearchTerms,
         aliases,
         locationScope: editedLocationScope,
-        relatedQuestions,
+        relatedQuestions: editedQuestions.slice(0, 20), // Max 20 questions
         ...(showGroupSelector && { groupId: editedGroupId || undefined }),
       });
 
@@ -203,19 +235,103 @@ export function KeywordDetailsSidebar({
   const handleCancel = () => {
     if (!keyword) return;
     setEditedReviewPhrase(keyword.reviewPhrase || '');
-    setEditedSearchQuery(keyword.searchQuery || '');
+    setEditedSearchTerms(keyword.searchTerms || []);
     setEditedAliasesInput((keyword.aliases || []).join(', '));
     setEditedLocationScope(keyword.locationScope);
     setEditedGroupId(keyword.groupId);
-    setEditedQuestionsInput((keyword.relatedQuestions || []).join('\n'));
+    resetQuestions(keyword.relatedQuestions || []);
     setIsEditing(false);
     setEnrichSuccess(false);
+    setNewSearchTerm('');
+    setRelevanceWarning(null);
+  };
+
+  // Question management wrappers (set editing mode when modified)
+  const handleAddQuestion = () => {
+    if (addQuestion()) {
+      setIsEditing(true);
+    }
+  };
+
+  const handleRemoveQuestion = (index: number) => {
+    removeQuestion(index);
+    setIsEditing(true);
+  };
+
+  const handleUpdateQuestionFunnel = (index: number, newStage: FunnelStage) => {
+    updateQuestionFunnel(index, newStage);
+    setIsEditing(true);
+  };
+
+  // Search term management functions
+  const handleAddSearchTerm = (forceAdd = false) => {
+    if (!keyword || !newSearchTerm.trim()) return;
+
+    const termToAdd = newSearchTerm.trim();
+
+    // Check if term already exists
+    if (editedSearchTerms.some(t => t.term.toLowerCase() === termToAdd.toLowerCase())) {
+      return; // Already exists
+    }
+
+    // Check relevance against concept name (phrase)
+    if (!forceAdd) {
+      const relevance = checkSearchTermRelevance(keyword.phrase, termToAdd);
+      if (!relevance.isRelevant) {
+        setRelevanceWarning({
+          term: termToAdd,
+          sharedRoots: relevance.sharedRoots,
+          missingRoots: relevance.missingRoots,
+        });
+        return;
+      }
+    }
+
+    // Add the term
+    const newTerm: SearchTerm = {
+      term: termToAdd,
+      isCanonical: editedSearchTerms.length === 0, // First term is canonical
+      addedAt: new Date().toISOString(),
+    };
+
+    setEditedSearchTerms([...editedSearchTerms, newTerm]);
+    setNewSearchTerm('');
+    setRelevanceWarning(null);
+    setIsEditing(true); // Ensure we're in editing mode
+  };
+
+  const handleRemoveSearchTerm = (termToRemove: string) => {
+    const remaining = editedSearchTerms.filter(t => t.term !== termToRemove);
+    // If we removed the canonical term, make the first remaining one canonical
+    if (remaining.length > 0 && !remaining.some(t => t.isCanonical)) {
+      remaining[0].isCanonical = true;
+    }
+    setEditedSearchTerms(remaining);
+    setIsEditing(true);
+  };
+
+  const handleSetCanonical = (term: string) => {
+    setEditedSearchTerms(
+      editedSearchTerms.map(t => ({
+        ...t,
+        isCanonical: t.term === term,
+      }))
+    );
+    setIsEditing(true);
+  };
+
+  const handleDismissRelevanceWarning = () => {
+    setRelevanceWarning(null);
+  };
+
+  const handleAddAnyway = () => {
+    handleAddSearchTerm(true); // Force add
   };
 
   // Check if main SEO fields are empty (show AI button to help fill them)
-  // Show button when review phrase, search query, or aliases are missing
+  // Show button when review phrase, search terms, or aliases are missing
   const hasEmptySEOFields = !keyword?.reviewPhrase ||
-    !keyword?.searchQuery ||
+    (!keyword?.searchTerms || keyword.searchTerms.length === 0) ||
     (!keyword?.aliases || keyword.aliases.length === 0);
 
   // AI enrichment handler
@@ -236,7 +352,7 @@ export function KeywordDetailsSidebar({
           search_query: string;
           aliases: string[];
           location_scope: LocationScope | null;
-          related_questions: string[];
+          related_questions: RelatedQuestion[];
         };
         creditsUsed: number;
         creditsRemaining: number;
@@ -250,10 +366,18 @@ export function KeywordDetailsSidebar({
       if (response.success && response.enrichment) {
         // Update local state with AI-generated values
         setEditedReviewPhrase(response.enrichment.review_phrase || '');
-        setEditedSearchQuery(response.enrichment.search_query || '');
+        // Convert search_query to search_terms array format
+        if (response.enrichment.search_query) {
+          setEditedSearchTerms([{
+            term: response.enrichment.search_query,
+            isCanonical: true,
+            addedAt: new Date().toISOString(),
+          }]);
+        }
         setEditedAliasesInput((response.enrichment.aliases || []).join(', '));
         setEditedLocationScope(response.enrichment.location_scope);
-        setEditedQuestionsInput((response.enrichment.related_questions || []).join('\n'));
+        // Handle related_questions - AI returns with funnel stages
+        setEditedQuestions(response.enrichment.related_questions || []);
 
         // Enable editing mode so user can review/modify before saving
         setIsEditing(true);
@@ -558,7 +682,7 @@ export function KeywordDetailsSidebar({
                                             .map(q => [q.question, q])
                                         ).values()
                                       ).slice(0, 8).map((q, idx) => {
-                                        const isAlreadySaved = keyword?.relatedQuestions?.includes(q.question);
+                                        const isAlreadySaved = keyword?.relatedQuestions?.some(rq => rq.question === q.question);
                                         const canAdd = !isAlreadySaved && !limitReached && !isEditing;
                                         return (
                                           <div
@@ -572,10 +696,15 @@ export function KeywordDetailsSidebar({
                                             }`}
                                             onClick={() => {
                                               if (canAdd) {
-                                                // Add to related questions
+                                                // Add to related questions with default 'middle' funnel
                                                 const currentQuestions = keyword?.relatedQuestions || [];
-                                                const newQuestions = [...currentQuestions, q.question];
-                                                setEditedQuestionsInput(newQuestions.join('\n'));
+                                                const newQuestion: RelatedQuestion = {
+                                                  question: q.question,
+                                                  funnelStage: 'middle',
+                                                  addedAt: new Date().toISOString(),
+                                                };
+                                                const newQuestions = [...currentQuestions, newQuestion];
+                                                setEditedQuestions(newQuestions);
                                                 // Auto-save the question
                                                 onUpdate(keyword!.id, {
                                                   relatedQuestions: newQuestions,
@@ -681,10 +810,10 @@ export function KeywordDetailsSidebar({
                                 )}
                               </div>
 
-                              {/* Aliases */}
+                              {/* Review Aliases */}
                               <div>
                                 <label className="text-sm font-medium text-gray-700 block mb-1">
-                                  Aliases
+                                  Review aliases
                                 </label>
                                 <p className="text-xs text-gray-500 mb-2">
                                   Alternative spellings or phrases that count as mentions of this keyword.
@@ -724,36 +853,130 @@ export function KeywordDetailsSidebar({
                             </div>
 
                             <div className="space-y-5">
-                              {/* Search Query */}
+                              {/* Search Terms */}
                               <div>
                                 <label className="text-sm font-medium text-gray-700 block mb-1">
-                                  Search query
+                                  Search terms
                                 </label>
                                 <p className="text-xs text-gray-500 mb-2">
-                                  The exact phrase searched on Google when tracking your ranking position.
+                                  Terms tracked in Google SERPs. The root phrase that defines this concept should share root words with these terms.
                                 </p>
-                                {keyword.isUsedInRankTracking && (
-                                  <div className="mb-2 px-3 py-2 bg-amber-50/80 border border-amber-200/50 rounded-lg text-xs text-amber-700">
-                                    <Icon name="FaExclamationTriangle" className="w-3 h-3 inline mr-1.5" />
-                                    Used in rank tracking. Create a new keyword to track a different term.
+
+                                {/* Existing terms list */}
+                                {editedSearchTerms.length > 0 ? (
+                                  <div className="space-y-2 mb-3">
+                                    {editedSearchTerms.map((term) => (
+                                      <div
+                                        key={term.term}
+                                        className={`flex items-center justify-between p-2.5 rounded-lg border ${
+                                          term.isCanonical
+                                            ? 'bg-blue-50/80 border-blue-200/50'
+                                            : 'bg-white/80 border-gray-100'
+                                        }`}
+                                      >
+                                        <div className="flex items-center gap-2 min-w-0">
+                                          {term.isCanonical && (
+                                            <span title="Canonical term">
+                                              <Icon name="FaStar" className="w-3 h-3 text-blue-500 flex-shrink-0" />
+                                            </span>
+                                          )}
+                                          <span className="text-sm text-gray-700 truncate">{term.term}</span>
+                                        </div>
+                                        {isEditing && (
+                                          <div className="flex items-center gap-1 flex-shrink-0">
+                                            {!term.isCanonical && (
+                                              <button
+                                                onClick={() => handleSetCanonical(term.term)}
+                                                className="p-1 text-gray-400 hover:text-blue-500 rounded transition-colors"
+                                                title="Set as canonical"
+                                              >
+                                                <Icon name="FaStar" className="w-3 h-3" />
+                                              </button>
+                                            )}
+                                            <button
+                                              onClick={() => handleRemoveSearchTerm(term.term)}
+                                              className="p-1 text-gray-400 hover:text-red-500 rounded transition-colors"
+                                              title="Remove term"
+                                            >
+                                              <Icon name="FaTimes" className="w-3 h-3" />
+                                            </button>
+                                          </div>
+                                        )}
+                                      </div>
+                                    ))}
                                   </div>
-                                )}
-                                {isEditing && !keyword.isUsedInRankTracking ? (
-                                  <input
-                                    type="text"
-                                    value={editedSearchQuery}
-                                    onChange={(e) => setEditedSearchQuery(e.target.value)}
-                                    placeholder="e.g., best green eggs ham San Diego"
-                                    className="w-full px-3 py-2.5 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-300 transition-all"
-                                  />
                                 ) : (
-                                  <div className="text-sm text-gray-700 bg-white/80 px-3 py-2.5 rounded-lg border border-gray-100">
-                                    {keyword.searchQuery || <span className="text-gray-400 italic">Not set</span>}
+                                  <div className="text-sm text-gray-400 italic bg-white/80 px-3 py-2.5 rounded-lg border border-gray-100 mb-3">
+                                    No search terms added
                                   </div>
                                 )}
 
-                                {/* Search Volume Section */}
-                                {!isEditing && keyword.searchQuery && (
+                                {/* Add new term input */}
+                                {isEditing && (
+                                  <div className="space-y-2">
+                                    <div className="flex gap-2">
+                                      <input
+                                        type="text"
+                                        value={newSearchTerm}
+                                        onChange={(e) => setNewSearchTerm(e.target.value)}
+                                        onKeyDown={(e) => {
+                                          if (e.key === 'Enter') {
+                                            e.preventDefault();
+                                            handleAddSearchTerm();
+                                          }
+                                        }}
+                                        placeholder="e.g., portland plumber"
+                                        className="flex-1 px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-300 transition-all"
+                                      />
+                                      <button
+                                        onClick={() => handleAddSearchTerm()}
+                                        disabled={!newSearchTerm.trim()}
+                                        className="px-3 py-2 text-sm font-medium text-white bg-blue-500 rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                      >
+                                        <Icon name="FaPlus" className="w-3 h-3" />
+                                      </button>
+                                    </div>
+
+                                    {/* Relevance warning */}
+                                    {relevanceWarning && (
+                                      <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                                        <div className="flex items-start gap-2">
+                                          <Icon name="FaExclamationTriangle" className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                                          <div className="flex-1">
+                                            <p className="text-sm font-medium text-amber-800">
+                                              This term may not match the concept
+                                            </p>
+                                            <p className="text-xs text-amber-600 mt-1">
+                                              &quot;{relevanceWarning.term}&quot; doesn&apos;t share root words with &quot;{keyword.phrase}&quot;.
+                                            </p>
+                                            <div className="flex gap-2 mt-3">
+                                              <button
+                                                onClick={handleAddAnyway}
+                                                className="px-3 py-1.5 text-xs font-medium text-amber-700 bg-amber-100 rounded hover:bg-amber-200 transition-colors"
+                                              >
+                                                Add anyway
+                                              </button>
+                                              <button
+                                                onClick={handleDismissRelevanceWarning}
+                                                className="px-3 py-1.5 text-xs font-medium text-gray-500 hover:text-gray-700 transition-colors"
+                                              >
+                                                Cancel
+                                              </button>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    <p className="text-xs text-gray-400">
+                                      <Icon name="FaStar" className="w-2.5 h-2.5 inline mr-1" />
+                                      = Canonical term (shown when space is limited)
+                                    </p>
+                                  </div>
+                                )}
+
+                                {/* Search Volume Section - show for canonical term */}
+                                {!isEditing && editedSearchTerms.length > 0 && (
                                   <div className="mt-3">
                                     {/* Show lookup button if no data or stale */}
                                     {(keyword.searchVolume === null || isMetricsStale) && (
@@ -913,34 +1136,95 @@ export function KeywordDetailsSidebar({
                                 <p className="text-xs text-gray-500 mb-2">
                                   Questions for tracking &quot;People Also Ask&quot; and AI visibility.
                                 </p>
-                                {isEditing ? (
-                                  <div>
-                                    <textarea
-                                      value={editedQuestionsInput}
-                                      onChange={(e) => setEditedQuestionsInput(e.target.value)}
-                                      placeholder="What is the best plumber in Portland?&#10;How much does a plumber cost?&#10;When should I call a plumber?"
-                                      rows={4}
-                                      className="w-full px-3 py-2.5 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-300 transition-all resize-none"
-                                    />
-                                    <p className="text-xs text-gray-500 mt-2">
-                                      One question per line. Max 20 questions.
-                                    </p>
+                                {/* Questions list (view/edit) */}
+                                <div className="space-y-2 mb-3">
+                                  {(isEditing ? editedQuestions : keyword.relatedQuestions)?.map((q, idx) => {
+                                    const funnelColor = getFunnelStageColor(q.funnelStage);
+                                    const funnelTooltip = q.funnelStage === 'top'
+                                      ? 'Top of funnel: Awareness stage - broad, educational questions'
+                                      : q.funnelStage === 'middle'
+                                        ? 'Middle of funnel: Consideration stage - comparison, evaluation questions'
+                                        : 'Bottom of funnel: Decision stage - purchase-intent, action questions';
+                                    return (
+                                      <div key={idx} className="flex items-start gap-2 p-2 bg-white/80 rounded-lg border border-gray-100">
+                                        {isEditing ? (
+                                          <select
+                                            value={q.funnelStage}
+                                            onChange={(e) => handleUpdateQuestionFunnel(idx, e.target.value as FunnelStage)}
+                                            className={`px-1.5 py-0.5 text-xs rounded border-0 ${funnelColor.bg} ${funnelColor.text} cursor-pointer`}
+                                            title={funnelTooltip}
+                                          >
+                                            <option value="top">Top</option>
+                                            <option value="middle">Mid</option>
+                                            <option value="bottom">Bot</option>
+                                          </select>
+                                        ) : (
+                                          <span
+                                            className={`px-1.5 py-0.5 text-xs rounded flex-shrink-0 cursor-help ${funnelColor.bg} ${funnelColor.text}`}
+                                            title={funnelTooltip}
+                                          >
+                                            {getFunnelStageShortLabel(q.funnelStage)}
+                                          </span>
+                                        )}
+                                        <span className="flex-1 text-sm text-gray-700">{q.question}</span>
+                                        {isEditing && (
+                                          <button
+                                            onClick={() => handleRemoveQuestion(idx)}
+                                            className="p-1 text-gray-400 hover:text-red-500 rounded transition-colors flex-shrink-0"
+                                            title="Remove question"
+                                          >
+                                            <Icon name="FaTimes" className="w-3 h-3" />
+                                          </button>
+                                        )}
+                                      </div>
+                                    );
+                                  })}
+                                  {(!keyword.relatedQuestions || keyword.relatedQuestions.length === 0) && !isEditing && (
+                                    <div className="text-sm text-gray-400 italic bg-white/80 px-3 py-2.5 rounded-lg border border-gray-100">
+                                      No questions added
+                                    </div>
+                                  )}
+                                </div>
+
+                                {/* Add new question (edit mode) */}
+                                {isEditing && !questionsAtLimit && (
+                                  <div className="space-y-2">
+                                    <div className="flex gap-2">
+                                      <select
+                                        value={newQuestionFunnel}
+                                        onChange={(e) => setNewQuestionFunnel(e.target.value as FunnelStage)}
+                                        title="Select funnel stage for this question"
+                                        className="px-2 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-300"
+                                      >
+                                        <option value="top">Top (awareness)</option>
+                                        <option value="middle">Middle (consideration)</option>
+                                        <option value="bottom">Bottom (decision)</option>
+                                      </select>
+                                      <input
+                                        type="text"
+                                        value={newQuestionText}
+                                        onChange={(e) => setNewQuestionText(e.target.value)}
+                                        onKeyDown={(e) => {
+                                          if (e.key === 'Enter') {
+                                            e.preventDefault();
+                                            handleAddQuestion();
+                                          }
+                                        }}
+                                        placeholder="Add a question..."
+                                        className="flex-1 px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-300 transition-all"
+                                      />
+                                      <button
+                                        onClick={handleAddQuestion}
+                                        disabled={!newQuestionText.trim()}
+                                        className="px-3 py-2 text-sm font-medium text-white bg-purple-500 rounded-lg hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                      >
+                                        <Icon name="FaPlus" className="w-3 h-3" />
+                                      </button>
+                                    </div>
                                   </div>
-                                ) : (
-                                  <div className="text-sm text-gray-700 bg-white/80 px-3 py-2.5 rounded-lg border border-gray-100 min-h-[42px]">
-                                    {keyword.relatedQuestions && keyword.relatedQuestions.length > 0 ? (
-                                      <ul className="space-y-2">
-                                        {keyword.relatedQuestions.map((question, idx) => (
-                                          <li key={idx} className="flex items-start gap-2 text-sm">
-                                            <Icon name="FaQuestionCircle" className="w-4 h-4 text-indigo-400 mt-0.5 flex-shrink-0" />
-                                            <span>{question}</span>
-                                          </li>
-                                        ))}
-                                      </ul>
-                                    ) : (
-                                      <span className="text-gray-400 italic">No questions added</span>
-                                    )}
-                                  </div>
+                                )}
+                                {isEditing && questionsAtLimit && (
+                                  <p className="text-xs text-amber-600">Maximum of 20 questions reached</p>
                                 )}
                               </div>
                             </div>
