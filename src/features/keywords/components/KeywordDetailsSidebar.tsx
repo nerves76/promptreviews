@@ -524,9 +524,9 @@ export function KeywordDetailsSidebar({
                               <span className="font-medium">{keyword.wordCount}</span>
                             </div>
                             <div>
-                              <span className="text-gray-500 block text-xs">Status</span>
-                              <span className={`font-medium ${keyword.status === 'active' ? 'text-green-600' : 'text-gray-400'}`}>
-                                {keyword.status}
+                              <span className="text-gray-500 block text-xs">Prompt pages</span>
+                              <span className={`font-medium ${promptPages.length > 0 ? 'text-green-600' : 'text-gray-400'}`}>
+                                {promptPages.length}
                               </span>
                             </div>
                             <div>
