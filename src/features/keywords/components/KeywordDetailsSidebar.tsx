@@ -530,7 +530,7 @@ export function KeywordDetailsSidebar({
                               </span>
                             </div>
                             <div>
-                              <span className="text-gray-500 block text-xs">Uses</span>
+                              <span className="text-gray-500 block text-xs">In reviews</span>
                               <span className="font-medium">{keyword.reviewUsageCount}</span>
                             </div>
                             <div>

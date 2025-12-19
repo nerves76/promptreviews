@@ -356,7 +356,7 @@ function OverusedKeywordRow({
         <span className="w-2 h-2 rounded-full bg-red-400" />
         <span className="font-medium text-gray-800">{keyword.phrase}</span>
         <span className="text-sm text-red-600">
-          {keyword.usageCount} uses ({keyword.percentOverThreshold}% over threshold)
+          in {keyword.usageCount} reviews ({keyword.percentOverThreshold}% over threshold)
         </span>
       </div>
       <button
