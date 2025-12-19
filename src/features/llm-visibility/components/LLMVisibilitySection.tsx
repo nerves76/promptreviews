@@ -206,20 +206,29 @@ export function LLMVisibilitySection({
             </div>
           )}
 
-          {/* Question Results */}
-          {questions.length > 0 && (
+          {/* Question Results - only show when there are actual results */}
+          {questions.length > 0 && questionResultsMap.size > 0 && (
             <div className="space-y-2">
-              <div className="text-xs text-gray-500">Results by question:</div>
-              {questions.map((rq, idx) => {
-                const providerResults = questionResultsMap.get(rq.question);
-                return (
-                  <QuestionRow
-                    key={idx}
-                    question={rq}
-                    providerResults={providerResults}
-                  />
-                );
-              })}
+              <details className="group">
+                <summary className="text-xs text-gray-500 cursor-pointer hover:text-gray-700 list-none flex items-center gap-1">
+                  <Icon name="FaChevronRight" className="w-2.5 h-2.5 transition-transform group-open:rotate-90" />
+                  Results by question
+                </summary>
+                <div className="mt-2 space-y-2">
+                  {questions.map((rq, idx) => {
+                    const providerResults = questionResultsMap.get(rq.question);
+                    // Only show questions that have results
+                    if (!providerResults || providerResults.size === 0) return null;
+                    return (
+                      <QuestionRow
+                        key={idx}
+                        question={rq}
+                        providerResults={providerResults}
+                      />
+                    );
+                  })}
+                </div>
+              </details>
             </div>
           )}
 
