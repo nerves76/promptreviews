@@ -1384,9 +1384,9 @@ SELECT id, '/dashboard/local-ranking-grids', ARRAY['improve', 'optimization', 's
 FROM articles WHERE slug = 'local-ranking-grids/improving-rankings'
 ON CONFLICT (article_id, route_pattern) DO NOTHING;
 
--- Keyword Monitoring context
+-- Keyword Monitoring context (now integrated into Sentiment Analyzer)
 INSERT INTO article_contexts (article_id, route_pattern, keywords, priority)
-SELECT id, '/dashboard/get-reviews/keyword-monitoring', ARRAY['monitoring', 'analysis', 'mentions'], 90
+SELECT id, '/dashboard/get-reviews/sentiment-analyzer', ARRAY['monitoring', 'analysis', 'mentions', 'phrases'], 75
 FROM articles WHERE slug = 'keywords/monitoring-overview'
 ON CONFLICT (article_id, route_pattern) DO NOTHING;
 

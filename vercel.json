@@ -47,10 +47,6 @@
       "schedule": "0 3 * * *"
     },
     {
-      "path": "/api/cron/keyword-tracker-analysis",
-      "schedule": "0 6 1 * *"
-    },
-    {
       "path": "/api/cron/refresh-monthly-credits",
       "schedule": "0 23 28-31 * *"
     },

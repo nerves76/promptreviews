@@ -1216,9 +1216,6 @@ The application includes a comprehensive help system that integrates with the do
 - **Docs Site**: `/api/search` - Provides article search functionality
 - **Environment**: Set `DOCS_API_URL` to configure docs site connection
 
-### Additional Internal Docs
-
-- [`docs/KEYWORD_MONITORING.md`](docs/KEYWORD_MONITORING.md) – schema, APIs, and dashboard behavior for keyword tracking.
 
 ### Prompt Pages Documentation
 

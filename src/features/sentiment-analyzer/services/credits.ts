@@ -56,12 +56,12 @@ export const SENTIMENT_ANALYSIS_TIERS = [
  * @returns Credit cost
  */
 export function calculateSentimentAnalysisCost(reviewCount: number): number {
-  if (reviewCount <= 0) {
-    return 0;
-  }
+  // Always return at least the minimum tier cost
+  // This ensures the UI shows the feature has a cost even with 0 reviews
+  const effectiveCount = Math.max(1, reviewCount);
 
   for (const tier of SENTIMENT_ANALYSIS_TIERS) {
-    if (reviewCount <= tier.maxReviews) {
+    if (effectiveCount <= tier.maxReviews) {
       return tier.credits;
     }
   }

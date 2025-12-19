@@ -155,7 +155,7 @@ export default function SentimentAnalyzerPage() {
           </h1>
           <p className="text-gray-600 text-base max-w-2xl">
             Get AI-powered insights from your customer reviews. Discover what customers love,
-            areas to improve, and actionable ideas to enhance your business.
+            areas to improve, actionable ideas to enhance your business, and keywords to add to your library.
           </p>
         </div>
       </div>
