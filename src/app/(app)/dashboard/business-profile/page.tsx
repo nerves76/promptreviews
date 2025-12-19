@@ -236,7 +236,7 @@ export default function BusinessProfilePage() {
     phone?: string;
     business_email?: string;
     industry?: string;
-    differentiators?: string;
+    differentiators?: string[];
     facebook_url?: string;
     instagram_url?: string;
     linkedin_url?: string;
@@ -284,21 +284,15 @@ export default function BusinessProfilePage() {
     }
 
     // Handle differentiators separately - update the array state
-    // The AI returns differentiators as a string, convert to array for the UI
-    if (data.differentiators && data.differentiators.trim()) {
+    if (data.differentiators && data.differentiators.length > 0) {
       const currentDifferentiatorsEmpty = differentiators.length === 0 || (differentiators.length === 1 && !differentiators[0]?.trim());
       if (currentDifferentiatorsEmpty) {
-        // Split by newlines or periods to create list items
-        const diffItems = data.differentiators
-          .split(/[\n.]/)
-          .map(d => d.trim())
-          .filter(d => d.length > 0);
-        setDifferentiators(diffItems.length > 0 ? diffItems : [data.differentiators]);
+        setDifferentiators(data.differentiators);
       }
     }
 
     // Show success message
-    const fieldCount = Object.keys(updates).length + (data.services_offered?.length ? 1 : 0) + (data.differentiators ? 1 : 0);
+    const fieldCount = Object.keys(updates).length + (data.services_offered?.length ? 1 : 0) + (data.differentiators?.length ? 1 : 0);
     if (fieldCount > 0) {
       setSuccess(`Imported ${fieldCount} field${fieldCount > 1 ? 's' : ''} from your website. Review and edit as needed.`);
       setTimeout(() => setSuccess(""), 5000);

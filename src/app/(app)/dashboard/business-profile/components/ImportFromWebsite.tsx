@@ -20,7 +20,7 @@ interface ImportedBusinessInfo {
   phone?: string;
   business_email?: string;
   industry?: string;
-  differentiators?: string;
+  differentiators?: string[];
   facebook_url?: string;
   instagram_url?: string;
   linkedin_url?: string;

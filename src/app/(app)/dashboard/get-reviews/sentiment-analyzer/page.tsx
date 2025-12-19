@@ -82,12 +82,18 @@ export default function SentimentAnalyzerPage() {
   const handleAnalysisComplete = (response: AnalysisResponse) => {
     if (response.success) {
       setLatestAnalysis(response.results);
-      // Refresh eligibility to update usage count
-      if (selectedAccountId) {
-        fetch(`/api/sentiment-analyzer/eligibility?accountId=${selectedAccountId}`)
-          .then(res => res.json())
-          .then(data => setEligibility(data))
-          .catch(err => console.error('Error refreshing eligibility:', err));
+      // Update eligibility with new credit balance from response
+      if (response.credits && eligibility) {
+        setEligibility({
+          ...eligibility,
+          creditBalance: response.credits.remaining,
+          // Re-check eligibility based on new balance
+          eligible: eligibility.reviewCount >= eligibility.minReviewsRequired &&
+                    response.credits.remaining >= eligibility.creditCost,
+          reason: response.credits.remaining < eligibility.creditCost
+            ? 'insufficient_credits'
+            : undefined,
+        });
       }
     }
   };
@@ -220,11 +226,11 @@ export default function SentimentAnalyzerPage() {
           <p className="text-gray-600 max-w-md mx-auto mb-4">
             {eligibility.eligible
               ? "Click the button above to run your first sentiment analysis and discover valuable insights from your customer reviews."
-              : eligibility.reviewCount < 10
-              ? "Collect at least 10 reviews to unlock sentiment analysis."
-              : "You've reached your monthly limit. Upgrade your plan or wait for the reset."}
+              : eligibility.reviewCount < eligibility.minReviewsRequired
+              ? `Collect at least ${eligibility.minReviewsRequired} reviews to unlock sentiment analysis.`
+              : "You don't have enough credits. Get more credits to run your analysis."}
           </p>
-          {eligibility.reviewCount < 10 && (
+          {eligibility.reviewCount < eligibility.minReviewsRequired && (
             <div className="flex items-center justify-center gap-4 mt-6">
               <a
                 href="/dashboard/get-reviews"
@@ -237,6 +243,16 @@ export default function SentimentAnalyzerPage() {
                 className="inline-flex items-center gap-2 px-4 py-2 bg-white text-indigo-600 border-2 border-indigo-600 rounded-lg hover:bg-indigo-50 transition-colors duration-200 font-medium"
               >
                 Import from Google →
+              </a>
+            </div>
+          )}
+          {eligibility.creditBalance < eligibility.creditCost && eligibility.reviewCount >= eligibility.minReviewsRequired && (
+            <div className="flex items-center justify-center gap-4 mt-6">
+              <a
+                href="/dashboard/plan"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-200 font-medium"
+              >
+                Get more credits →
               </a>
             </div>
           )}

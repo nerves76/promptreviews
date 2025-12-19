@@ -2,24 +2,27 @@
  * Sentiment Analyzer Analyze Endpoint
  *
  * Runs sentiment analysis on recent reviews using OpenAI.
- * Stores results and updates usage tracking.
+ * Uses credit-based billing instead of monthly quotas.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { createServerSupabaseClient, createServiceRoleClient } from '@/auth/providers/supabase';
+import { MIN_REVIEWS_REQUIRED } from '@/lib/sentiment-analyzer-constants';
 import {
-  PLAN_ANALYSIS_LIMITS,
-  PLAN_REVIEW_LIMITS,
-  MIN_REVIEWS_REQUIRED,
-  PlanType
-} from '@/lib/sentiment-analyzer-constants';
+  calculateSentimentAnalysisCost,
+  checkSentimentAnalysisCredits,
+  debitSentimentAnalysisCredits,
+} from '@/features/sentiment-analyzer/services/credits';
+import { InsufficientCreditsError } from '@/lib/credits/types';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 120; // 2 minutes for larger analyses
 
 interface AnalyzeRequest {
   accountId: string;
+  /** Maximum number of reviews to analyze. Defaults to 500 if not specified */
+  reviewLimit?: number;
 }
 
 interface Review {
@@ -29,6 +32,12 @@ interface Review {
   created_at: string;
   platform?: string;
   reviewer_name?: string;
+}
+
+interface DiscoveredPhrase {
+  phrase: string;
+  occurrenceCount: number;
+  sampleExcerpts: string[];
 }
 
 interface SentimentAnalysisResult {
@@ -64,6 +73,7 @@ interface SentimentAnalysisResult {
     description: string;
     sourceThemes: string[];
   }>;
+  discoveredPhrases?: DiscoveredPhrase[];
   limitations?: string;
 }
 
@@ -157,6 +167,123 @@ Do not invent data or entities not evidenced in the reviews.
 If eligibility requirements are not met (e.g., <10 reviews), return only a limitations message.`;
 }
 
+/**
+ * Discover keyword phrases from reviews using AI
+ * This runs as part of sentiment analysis to find potential keywords
+ */
+async function discoverPhrases(
+  openai: OpenAI,
+  reviews: Review[],
+  existingKeywords: string[],
+  businessContext: { name?: string; industry?: string; about?: string }
+): Promise<DiscoveredPhrase[]> {
+  if (reviews.length < 5) {
+    return [];
+  }
+
+  try {
+    // Sample reviews for phrase discovery (limit to avoid token limits)
+    const reviewSample = reviews.slice(0, 50).map(r => r.content).join('\n---\n');
+
+    // Build context string
+    const contextParts = [
+      businessContext.name ? `Business: ${businessContext.name}` : '',
+      businessContext.industry ? `Industry: ${businessContext.industry}` : '',
+      businessContext.about ? `About: ${businessContext.about}` : '',
+    ].filter(Boolean).join('\n');
+
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        {
+          role: 'system',
+          content: `You are a keyword extraction expert. Extract specific, meaningful keyword phrases from customer reviews that would be valuable for SEO and business insights.
+
+Focus on:
+- Service/product names and types
+- Quality descriptors (e.g., "high quality", "professional service")
+- Specific features mentioned
+- Industry-specific terminology
+
+Rules:
+- Extract 5-10 keyword phrases
+- Each phrase should be 2-5 words
+- Be specific, not generic
+- Only extract phrases that actually appear in the reviews
+- Return as a JSON object with a "keywords" array of strings
+
+${contextParts ? `\nBusiness context:\n${contextParts}` : ''}
+${existingKeywords.length > 0 ? `\nAlready tracked keywords (DO NOT include): ${existingKeywords.join(', ')}` : ''}`,
+        },
+        {
+          role: 'user',
+          content: `Extract keyword phrases from these customer reviews:\n\n${reviewSample}`,
+        },
+      ],
+      temperature: 0.3,
+      response_format: { type: 'json_object' },
+    });
+
+    const responseText = completion.choices[0]?.message?.content || '{}';
+    let aiSuggestions: string[] = [];
+
+    try {
+      const parsed = JSON.parse(responseText);
+      aiSuggestions = Array.isArray(parsed.keywords)
+        ? parsed.keywords
+        : Array.isArray(parsed)
+          ? parsed
+          : [];
+    } catch {
+      console.error('[phrase-discovery] Failed to parse AI response');
+      return [];
+    }
+
+    // Filter out existing keywords
+    const existingLower = existingKeywords.map(k => k.toLowerCase());
+    const newSuggestions = aiSuggestions.filter(
+      (s: string) => !existingLower.includes(s.toLowerCase())
+    );
+
+    // Count occurrences and collect excerpts for each suggestion
+    const discoveredPhrases: DiscoveredPhrase[] = [];
+
+    for (const keyword of newSuggestions.slice(0, 10)) {
+      const lowerKeyword = keyword.toLowerCase();
+      const excerpts: string[] = [];
+
+      for (const review of reviews) {
+        const lowerContent = review.content.toLowerCase();
+        if (lowerContent.includes(lowerKeyword)) {
+          // Extract excerpt around the match
+          const index = lowerContent.indexOf(lowerKeyword);
+          const excerptStart = Math.max(0, index - 30);
+          const excerptEnd = Math.min(review.content.length, index + keyword.length + 30);
+          let excerpt = review.content.substring(excerptStart, excerptEnd);
+          if (excerptStart > 0) excerpt = '...' + excerpt;
+          if (excerptEnd < review.content.length) excerpt = excerpt + '...';
+          excerpts.push(excerpt);
+        }
+      }
+
+      // Only include if found in 2+ reviews
+      if (excerpts.length >= 2) {
+        discoveredPhrases.push({
+          phrase: keyword,
+          occurrenceCount: excerpts.length,
+          sampleExcerpts: excerpts.slice(0, 3),
+        });
+      }
+    }
+
+    // Sort by occurrence count descending
+    return discoveredPhrases.sort((a, b) => b.occurrenceCount - a.occurrenceCount);
+  } catch (error) {
+    console.error('[phrase-discovery] Error:', error);
+    return [];
+  }
+}
+
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
 
@@ -210,7 +337,7 @@ export async function POST(request: NextRequest) {
     const serviceSupabase = createServiceRoleClient();
     const { data: account, error: accountError } = await serviceSupabase
       .from('accounts')
-      .select('plan, sentiment_analyses_this_month, sentiment_last_reset_date, business_name')
+      .select('plan, business_name')
       .eq('id', accountId)
       .single();
 
@@ -221,38 +348,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Determine plan
-    let plan: PlanType = 'grower';
-    if (account.plan === 'builder' || account.plan === 'maven') {
-      plan = account.plan as PlanType;
-    }
-
-    const usageLimit = PLAN_ANALYSIS_LIMITS[plan];
-    const reviewLimit = PLAN_REVIEW_LIMITS[plan];
-
-    // Check monthly reset
     const now = new Date();
-    const lastResetDate = account.sentiment_last_reset_date
-      ? new Date(account.sentiment_last_reset_date)
-      : null;
 
-    let usageThisMonth = account.sentiment_analyses_this_month || 0;
-
-    if (lastResetDate) {
-      const isNewMonth = now.getMonth() !== lastResetDate.getMonth() ||
-                        now.getFullYear() !== lastResetDate.getFullYear();
-      if (isNewMonth) {
-        usageThisMonth = 0;
-      }
-    }
-
-    // Check quota
-    if (usageThisMonth >= usageLimit) {
-      return NextResponse.json(
-        { success: false, error: 'Monthly analysis quota exceeded' },
-        { status: 429 }
-      );
-    }
+    // Review limit - user can specify or default to 500
+    // Maximum of 10,000 reviews to keep processing time reasonable
+    const reviewLimit = Math.min(body.reviewLimit || 500, 10000);
 
     // Fetch reviews from review_submissions only (excluding widget_reviews as they are curated/duplicate entries)
     const { data: submissions } = await serviceSupabase
@@ -288,14 +388,48 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get business name
+    // Check credit balance
+    const creditCheck = await checkSentimentAnalysisCredits(
+      serviceSupabase,
+      accountId,
+      reviewsToAnalyze.length
+    );
+
+    if (!creditCheck.hasCredits) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Insufficient credits',
+          creditsRequired: creditCheck.required,
+          creditsAvailable: creditCheck.available,
+          tierLabel: creditCheck.tierLabel,
+        },
+        { status: 402 }
+      );
+    }
+
+    // Generate idempotency key for this analysis
+    const analysisId = crypto.randomUUID();
+    const idempotencyKey = `sentiment_analysis:${accountId}:${analysisId}`;
+
+    // Get business info including keywords for phrase discovery
     const { data: business } = await serviceSupabase
       .from('businesses')
-      .select('name')
+      .select('name, industry, about, keywords')
       .eq('account_id', accountId)
       .single();
 
     const businessName = business?.name || account.business_name || 'your business';
+
+    // Extract existing keywords for phrase discovery filtering
+    let existingKeywords: string[] = [];
+    if (business?.keywords) {
+      if (Array.isArray(business.keywords)) {
+        existingKeywords = business.keywords;
+      } else if (typeof business.keywords === 'string') {
+        existingKeywords = business.keywords.split(',').map((k: string) => k.trim()).filter(Boolean);
+      }
+    }
 
     // Create AI prompt
     const prompt = createAnalysisPrompt(reviewsToAnalyze, businessName, totalReviewCount);
@@ -333,8 +467,19 @@ export async function POST(request: NextRequest) {
     const earliestDate = new Date(Math.min(...dates));
     const latestDate = new Date(Math.max(...dates));
 
-    // Create analysis result
-    const analysisId = crypto.randomUUID();
+    // Run phrase discovery in parallel with result creation
+    const discoveredPhrases = await discoverPhrases(
+      openai,
+      reviewsToAnalyze,
+      existingKeywords,
+      {
+        name: business?.name,
+        industry: business?.industry,
+        about: business?.about,
+      }
+    );
+
+    // Create analysis result (analysisId already generated earlier for idempotency)
     const result: SentimentAnalysisResult = {
       metadata: {
         analysisId,
@@ -351,6 +496,7 @@ export async function POST(request: NextRequest) {
       sentimentSummary: analysisData.sentimentSummary,
       themes: analysisData.themes || [],
       improvementIdeas: analysisData.improvementIdeas || [],
+      discoveredPhrases: discoveredPhrases.length > 0 ? discoveredPhrases : undefined,
       limitations: analysisData.limitations
     };
 
@@ -365,20 +511,21 @@ export async function POST(request: NextRequest) {
       review_count_analyzed: reviewsToAnalyze.length,
       date_range_start: earliestDate.toISOString(),
       date_range_end: latestDate.toISOString(),
-      plan_at_time: plan,
+      plan_at_time: account.plan || 'grower',
       results_json: result,
       analysis_version: '1.0',
       processing_time_seconds: processingTimeSeconds
     });
 
-    // Update usage counter
-    await serviceSupabase
-      .from('accounts')
-      .update({
-        sentiment_analyses_this_month: usageThisMonth + 1,
-        sentiment_last_reset_date: now.toISOString().split('T')[0]
-      })
-      .eq('id', accountId);
+    // Debit credits for this analysis
+    const creditCost = calculateSentimentAnalysisCost(reviewsToAnalyze.length);
+    await debitSentimentAnalysisCredits(
+      serviceSupabase,
+      accountId,
+      reviewsToAnalyze.length,
+      analysisId,
+      idempotencyKey
+    );
 
     // Log AI usage
     const usage = completion.usage;
@@ -398,22 +545,46 @@ export async function POST(request: NextRequest) {
         input_data: {
           accountId,
           reviewCount: reviewsToAnalyze.length,
-          plan
+          creditCost
         },
         created_at: now.toISOString()
       });
     }
+
+    // Get updated balance for response
+    const updatedBalance = await checkSentimentAnalysisCredits(
+      serviceSupabase,
+      accountId,
+      0 // Just get balance, not checking for a specific operation
+    );
 
     return NextResponse.json({
       success: true,
       analysisId,
       results: result,
       reviewsAnalyzed: reviewsToAnalyze.length,
-      reviewsSkipped: totalReviewCount - reviewsToAnalyze.length
+      reviewsSkipped: totalReviewCount - reviewsToAnalyze.length,
+      credits: {
+        cost: creditCost,
+        remaining: updatedBalance.available,
+      }
     });
 
   } catch (error) {
     console.error('Sentiment analysis error:', error);
+
+    // Handle insufficient credits error
+    if (error instanceof InsufficientCreditsError) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Insufficient credits',
+          creditsRequired: error.required,
+          creditsAvailable: error.available,
+        },
+        { status: 402 }
+      );
+    }
 
     return NextResponse.json(
       {

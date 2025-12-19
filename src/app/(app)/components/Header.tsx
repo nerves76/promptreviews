@@ -1037,27 +1037,6 @@ const Header = React.memo(function Header() {
                         >
                           Sentiment Analyzer
                         </Link>
-                        <Link
-                          href={hasBusiness ? "/dashboard/get-reviews/keyword-monitoring" : "#"}
-                          onClick={(e) => {
-                            if (!hasBusiness) {
-                              e.preventDefault();
-                              router.push("/dashboard/create-business");
-                              setMenuOpen(false);
-                            } else {
-                              setMenuOpen(false);
-                            }
-                          }}
-                          className={`${
-                            isActive("/dashboard/get-reviews/keyword-monitoring")
-                              ? "bg-white/20 text-white"
-                              : hasBusiness
-                                ? "text-white hover:bg-white/10"
-                                : "text-gray-500 cursor-not-allowed"
-                          } block px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200`}
-                        >
-                          Review Phrase Tracker
-                        </Link>
                       </div>
                     </div>
 

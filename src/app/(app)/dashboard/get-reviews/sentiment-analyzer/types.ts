@@ -60,25 +60,32 @@ export interface ImprovementIdea {
   sourceThemes: string[];
 }
 
+export interface DiscoveredPhrase {
+  phrase: string;
+  occurrenceCount: number;
+  sampleExcerpts: string[];
+}
+
 export interface SentimentAnalysisResult {
   metadata: SentimentAnalysisMetadata;
   sentimentSummary: SentimentSummary;
   themes: Theme[];
   improvementIdeas: ImprovementIdea[];
+  discoveredPhrases?: DiscoveredPhrase[];
   limitations?: string;
 }
 
 export interface EligibilityResponse {
   eligible: boolean;
-  reason?: 'insufficient_reviews' | 'quota_exceeded';
+  reason?: 'insufficient_reviews' | 'insufficient_credits';
   reviewCount: number;
-  reviewLimit: number;
   minReviewsRequired: number;
-  usageThisMonth: number;
-  usageLimit: number;
-  nextResetDate: string;
-  plan: 'grower' | 'builder' | 'maven';
-  daysUntilReset: number;
+  /** Credit cost to run analysis on current review count */
+  creditCost: number;
+  /** Current credit balance */
+  creditBalance: number;
+  /** Tier label for the credit cost (e.g., "Up to 500 reviews") */
+  tierLabel: string;
 }
 
 export interface AnalysisResponse {
@@ -87,6 +94,11 @@ export interface AnalysisResponse {
   results: SentimentAnalysisResult;
   reviewsAnalyzed: number;
   reviewsSkipped: number;
+  /** Credit info after analysis */
+  credits?: {
+    cost: number;
+    remaining: number;
+  };
 }
 
 export interface AnalysisHistoryItem {

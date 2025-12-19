@@ -14,6 +14,7 @@ const PROGRESS_MESSAGES = [
   "Collecting your reviews...",
   "Analyzing sentiment patterns...",
   "Identifying key themes...",
+  "Discovering common phrases...",
   "Summarizing what customers said...",
   "Preparing improvement ideas...",
 ];
@@ -50,6 +51,9 @@ export default function RunAnalysisButton({
       const data = await response.json();
 
       if (!response.ok) {
+        if (response.status === 402) {
+          throw new Error(`Insufficient credits. Need ${data.creditsRequired}, have ${data.creditsAvailable}.`);
+        }
         throw new Error(data.error || 'Analysis failed');
       }
 
@@ -64,15 +68,15 @@ export default function RunAnalysisButton({
     }
   };
 
-  const { eligible, reviewCount, reviewLimit, usageThisMonth, usageLimit } = eligibility;
+  const { eligible, reviewCount, creditCost, minReviewsRequired, creditBalance } = eligibility;
 
   // Determine disabled state and message
   let disabledReason = '';
   if (!eligible) {
-    if (usageThisMonth >= usageLimit) {
-      disabledReason = 'Monthly limit reached';
-    } else if (reviewCount < 10) {
+    if (reviewCount < minReviewsRequired) {
       disabledReason = 'Not enough reviews';
+    } else if (creditBalance < creditCost) {
+      disabledReason = 'Insufficient credits';
     }
   }
 
@@ -104,7 +108,7 @@ export default function RunAnalysisButton({
             </div>
             <div className="flex-1">
               <p className="text-sm font-medium text-indigo-900">
-                Analyzing your {reviewCount > reviewLimit ? reviewLimit : reviewCount} most recent reviews...
+                Analyzing your {reviewCount.toLocaleString()} reviews...
               </p>
               <p className="text-xs text-indigo-700 mt-1">
                 {PROGRESS_MESSAGES[currentMessageIndex]}
@@ -167,7 +171,7 @@ export default function RunAnalysisButton({
                 d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
               />
             </svg>
-            Run Sentiment Analysis
+            Run analysis ({creditCost} credits)
           </span>
         )}
       </button>

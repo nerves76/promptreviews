@@ -11,7 +11,7 @@ interface AnalysisResultsViewProps {
 }
 
 export default function AnalysisResultsView({ results }: AnalysisResultsViewProps) {
-  const { metadata, sentimentSummary, themes, improvementIdeas, limitations } = results;
+  const { metadata, sentimentSummary, themes, improvementIdeas, discoveredPhrases, limitations } = results;
 
   // Format date
   const formatDate = (dateString: string) => {
@@ -94,6 +94,85 @@ export default function AnalysisResultsView({ results }: AnalysisResultsViewProp
       {/* Improvement Ideas */}
       {improvementIdeas && improvementIdeas.length > 0 && (
         <ImprovementIdeas ideas={improvementIdeas} />
+      )}
+
+      {/* Discovered Phrases */}
+      {discoveredPhrases && discoveredPhrases.length > 0 && (
+        <div className="bg-white rounded-xl border-2 border-purple-100 shadow-sm">
+          <div className="p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-purple-100 rounded-lg">
+                <svg
+                  className="w-5 h-5 text-purple-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+                  />
+                </svg>
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-gray-900">Discovered phrases</h2>
+                <p className="text-sm text-gray-500">
+                  Potential keywords found in your reviews
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              {discoveredPhrases.map((phrase, index) => (
+                <div
+                  key={index}
+                  className="bg-purple-50/50 rounded-lg p-4 border border-purple-100"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="font-semibold text-gray-900">
+                          {phrase.phrase}
+                        </span>
+                        <span className="px-2 py-0.5 text-xs font-medium bg-purple-100 text-purple-700 rounded-full">
+                          {phrase.occurrenceCount} mention{phrase.occurrenceCount !== 1 ? 's' : ''}
+                        </span>
+                      </div>
+                      {phrase.sampleExcerpts.length > 0 && (
+                        <div className="space-y-1.5">
+                          {phrase.sampleExcerpts.slice(0, 2).map((excerpt, excerptIndex) => (
+                            <p
+                              key={excerptIndex}
+                              className="text-sm text-gray-600 italic"
+                            >
+                              "{excerpt}"
+                            </p>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <button
+                      className="flex-shrink-0 px-3 py-1.5 text-xs font-medium text-purple-600 bg-white border border-purple-200 rounded-lg hover:bg-purple-50 transition-colors"
+                      onClick={() => {
+                        // Navigate to keywords page with this phrase pre-filled
+                        window.location.href = `/dashboard/keywords?add=${encodeURIComponent(phrase.phrase)}`;
+                      }}
+                    >
+                      Add to keywords
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <p className="mt-4 text-xs text-gray-500">
+              These phrases were automatically discovered by analyzing patterns across your reviews.
+              Add them to your keywords to track their usage over time.
+            </p>
+          </div>
+        </div>
       )}
 
       {/* Export/Share Actions */}

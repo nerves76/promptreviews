@@ -23,7 +23,7 @@ interface ImportedBusinessInfo {
   phone?: string;
   business_email?: string;
   industry?: string;
-  differentiators?: string;
+  differentiators?: string[];
   facebook_url?: string;
   instagram_url?: string;
   linkedin_url?: string;
@@ -222,7 +222,7 @@ Return a JSON object with these fields (only include fields where you can confid
 - phone: Phone number if found (format as-is)
 - business_email: Email address if found
 - industry: The business category/industry (e.g., "Restaurant", "Home Services", "Healthcare", "Professional Services", "Retail")
-- differentiators: What makes this business unique or special based on their messaging (1-2 sentences). Look for years in business, special expertise, awards, unique approach, etc.
+- differentiators: An array of 3-5 unique selling points or differentiators. Keep each one concise (1 sentence max). Look for years in business, special expertise, awards, unique approach, certifications, guarantees, etc. Examples: "Family-owned since 1985", "Award-winning customer service", "Same-day emergency repairs"
 
 Website Title: ${title}
 Meta Description: ${metaDescription}
