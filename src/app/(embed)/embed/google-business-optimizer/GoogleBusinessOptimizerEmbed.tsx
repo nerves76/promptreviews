@@ -686,8 +686,19 @@ const overviewStatsData = useMemo(() => {
                 if (trackingParams.utmMedium) params.set('utm_medium', trackingParams.utmMedium);
                 if (trackingParams.utmCampaign) params.set('utm_campaign', trackingParams.utmCampaign);
 
-                const oauthUrl = `/api/embed/auth/google-business?${params.toString()}`;
-                window.location.href = oauthUrl;
+                // Use absolute URL and redirect parent window if in iframe
+                // Google OAuth blocks iframe loading, so we need to redirect the top window
+                const baseUrl = window.location.origin || 'https://app.promptreviews.app';
+                const oauthUrl = `${baseUrl}/api/embed/auth/google-business?${params.toString()}`;
+
+                // Check if we're in an iframe and redirect appropriately
+                const isInIframe = window.self !== window.top;
+                if (isInIframe) {
+                  // Redirect the parent/top window for OAuth (escapes the iframe)
+                  window.top!.location.href = oauthUrl;
+                } else {
+                  window.location.href = oauthUrl;
+                }
               }}
             >
               {isLoading ? (
@@ -866,8 +877,17 @@ const overviewStatsData = useMemo(() => {
                     if (trackingParams.utmMedium) params.set('utm_medium', trackingParams.utmMedium);
                     if (trackingParams.utmCampaign) params.set('utm_campaign', trackingParams.utmCampaign);
 
-                    const oauthUrl = `/api/embed/auth/google-business${params.toString() ? '?' + params.toString() : ''}`;
-                    window.location.href = oauthUrl;
+                    // Use absolute URL and redirect parent window if in iframe
+                    const baseUrl = window.location.origin || 'https://app.promptreviews.app';
+                    const oauthUrl = `${baseUrl}/api/embed/auth/google-business${params.toString() ? '?' + params.toString() : ''}`;
+
+                    // Check if we're in an iframe and redirect appropriately
+                    const isInIframe = window.self !== window.top;
+                    if (isInIframe) {
+                      window.top!.location.href = oauthUrl;
+                    } else {
+                      window.location.href = oauthUrl;
+                    }
                   }}
                   className="flex items-center gap-2 rounded-full bg-white text-gray-700 border border-gray-300 px-6 py-3 text-sm font-medium hover:bg-gray-50 transition-all duration-200 shadow-md hover:shadow-lg"
                 >
