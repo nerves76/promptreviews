@@ -212,6 +212,13 @@ export default function GoogleBusinessOptimizerEmbed({
     [],
   );
 
+  // Initialize selectedLocation with first preview location when in preview mode (no session)
+  useEffect(() => {
+    if (!sessionData && !selectedLocation && previewLocations.length > 0) {
+      setSelectedLocation(previewLocations[0]);
+    }
+  }, [sessionData, selectedLocation, previewLocations]);
+
   const previewLocationShowcase = useMemo(
     () => ({
       'locations/main-street': {
