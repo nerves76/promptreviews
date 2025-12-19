@@ -1158,23 +1158,38 @@ export function KeywordDetailsSidebar({
                                     return (
                                       <div key={idx} className="flex items-start gap-2 p-2 bg-white/80 rounded-lg border border-gray-100">
                                         {isEditing ? (
-                                          <select
-                                            value={q.funnelStage}
-                                            onChange={(e) => handleUpdateQuestionFunnel(idx, e.target.value as FunnelStage)}
-                                            className={`px-1.5 py-0.5 text-xs rounded border-0 ${funnelColor.bg} ${funnelColor.text} cursor-pointer`}
-                                            title={funnelTooltip}
-                                          >
-                                            <option value="top">Top</option>
-                                            <option value="middle">Mid</option>
-                                            <option value="bottom">Bot</option>
-                                          </select>
+                                          <div className="relative group flex-shrink-0">
+                                            <select
+                                              value={q.funnelStage}
+                                              onChange={(e) => handleUpdateQuestionFunnel(idx, e.target.value as FunnelStage)}
+                                              className={`px-1.5 py-0.5 text-xs rounded border-0 ${funnelColor.bg} ${funnelColor.text} cursor-pointer`}
+                                            >
+                                              <option value="top">Top</option>
+                                              <option value="middle">Mid</option>
+                                              <option value="bottom">Bot</option>
+                                            </select>
+                                            <div className="absolute bottom-full left-0 mb-1 p-2 bg-gray-900 text-white text-xs rounded w-56 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none">
+                                              <div className="font-semibold mb-1">Marketing funnel stage</div>
+                                              <div className="space-y-0.5">
+                                                <div><span className="text-blue-300">Top:</span> Awareness questions</div>
+                                                <div><span className="text-amber-300">Mid:</span> Consideration questions</div>
+                                                <div><span className="text-green-300">Bot:</span> Decision questions</div>
+                                              </div>
+                                              <div className="absolute top-full left-4 border-4 border-transparent border-t-gray-900" />
+                                            </div>
+                                          </div>
                                         ) : (
-                                          <span
-                                            className={`px-1.5 py-0.5 text-xs rounded flex-shrink-0 cursor-help ${funnelColor.bg} ${funnelColor.text}`}
-                                            title={funnelTooltip}
-                                          >
-                                            {getFunnelStageShortLabel(q.funnelStage)}
-                                          </span>
+                                          <div className="relative group flex-shrink-0">
+                                            <span
+                                              className={`px-1.5 py-0.5 text-xs rounded cursor-help ${funnelColor.bg} ${funnelColor.text}`}
+                                            >
+                                              {getFunnelStageShortLabel(q.funnelStage)}
+                                            </span>
+                                            <div className="absolute bottom-full left-0 mb-1 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none">
+                                              {funnelTooltip}
+                                              <div className="absolute top-full left-4 border-4 border-transparent border-t-gray-900" />
+                                            </div>
+                                          </div>
                                         )}
                                         <span className="flex-1 text-sm text-gray-700">{q.question}</span>
                                         {isEditing && (
@@ -1200,16 +1215,26 @@ export function KeywordDetailsSidebar({
                                 {isEditing && !questionsAtLimit && (
                                   <div className="space-y-2">
                                     <label className="text-xs font-medium text-gray-500 block">Buyer&apos;s funnel</label>
-                                    <select
-                                      value={newQuestionFunnel}
-                                      onChange={(e) => setNewQuestionFunnel(e.target.value as FunnelStage)}
-                                      title="Select funnel stage for this question"
-                                      className="w-full px-2 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-300"
-                                    >
-                                      <option value="top">Top of funnel (awareness)</option>
-                                      <option value="middle">Middle of funnel (consideration)</option>
-                                      <option value="bottom">Bottom of funnel (decision)</option>
-                                    </select>
+                                    <div className="relative group">
+                                      <select
+                                        value={newQuestionFunnel}
+                                        onChange={(e) => setNewQuestionFunnel(e.target.value as FunnelStage)}
+                                        className="w-full px-2 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-300 cursor-help"
+                                      >
+                                        <option value="top">Top of funnel (awareness)</option>
+                                        <option value="middle">Middle of funnel (consideration)</option>
+                                        <option value="bottom">Bottom of funnel (decision)</option>
+                                      </select>
+                                      <div className="absolute bottom-full left-0 mb-1 p-2 bg-gray-900 text-white text-xs rounded w-64 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none">
+                                        <div className="font-semibold mb-1">Marketing funnel stage</div>
+                                        <div className="space-y-0.5">
+                                          <div><span className="text-blue-300">Top:</span> Awareness - broad, educational questions</div>
+                                          <div><span className="text-amber-300">Middle:</span> Consideration - comparison questions</div>
+                                          <div><span className="text-green-300">Bottom:</span> Decision - purchase-intent questions</div>
+                                        </div>
+                                        <div className="absolute top-full left-4 border-4 border-transparent border-t-gray-900" />
+                                      </div>
+                                    </div>
                                     <div className="flex gap-2">
                                       <input
                                         type="text"
