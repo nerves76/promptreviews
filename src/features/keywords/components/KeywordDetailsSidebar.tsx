@@ -123,6 +123,15 @@ export function KeywordDetailsSidebar({
   const [isLookingUpVolume, setIsLookingUpVolume] = useState(false);
   const [volumeLookupError, setVolumeLookupError] = useState<string | null>(null);
   const [isVolumeExpanded, setIsVolumeExpanded] = useState(false);
+  const [showLocationSelector, setShowLocationSelector] = useState(false);
+  const [locationSearchQuery, setLocationSearchQuery] = useState('');
+  const [locationSearchResults, setLocationSearchResults] = useState<Array<{
+    locationCode: number;
+    locationName: string;
+    countryCode?: string;
+    locationType?: string;
+  }>>([]);
+  const [isSearchingLocations, setIsSearchingLocations] = useState(false);
 
   // Local state for editing
   const [isEditing, setIsEditing] = useState(false);
@@ -391,16 +400,50 @@ export function KeywordDetailsSidebar({
     }
   };
 
+  // Location search handler
+  const handleLocationSearch = async (query: string) => {
+    setLocationSearchQuery(query);
+    if (query.length < 2) {
+      setLocationSearchResults([]);
+      return;
+    }
+
+    setIsSearchingLocations(true);
+    try {
+      const response = await apiClient.get<{ locations: Array<{
+        locationCode: number;
+        locationName: string;
+        countryIsoCode?: string;
+        locationType?: string;
+      }> }>(`/rank-tracking/locations?search=${encodeURIComponent(query)}&limit=10`);
+      setLocationSearchResults(response.locations || []);
+    } catch (error) {
+      console.error('Location search failed:', error);
+      setLocationSearchResults([]);
+    } finally {
+      setIsSearchingLocations(false);
+    }
+  };
+
   // Search volume lookup handler
-  const handleVolumeLookup = async () => {
+  const handleVolumeLookup = async (locationCode?: number, locationName?: string) => {
     if (!keyword) return;
     setIsLookingUpVolume(true);
     setVolumeLookupError(null);
+    setShowLocationSelector(false);
 
     try {
-      await apiClient.post(`/keywords/${keyword.id}/lookup-volume`, {
+      const body: Record<string, unknown> = {
         includeSuggestions: false,
-      });
+      };
+
+      // Use provided location or existing keyword location
+      if (locationCode && locationName) {
+        body.locationCode = locationCode;
+        body.locationName = locationName;
+      }
+
+      await apiClient.post(`/keywords/${keyword.id}/lookup-volume`, body);
 
       // Refresh to get the updated keyword with volume data
       if (onRefresh) {
@@ -412,6 +455,14 @@ export function KeywordDetailsSidebar({
     } finally {
       setIsLookingUpVolume(false);
     }
+  };
+
+  // Handle location selection
+  const handleSelectLocation = (locationCode: number, locationName: string) => {
+    // Trigger volume lookup with new location
+    handleVolumeLookup(locationCode, locationName);
+    setLocationSearchQuery('');
+    setLocationSearchResults([]);
   };
 
   // Format large numbers nicely
@@ -993,7 +1044,7 @@ export function KeywordDetailsSidebar({
                                     {/* Show lookup button if no data or stale */}
                                     {(keyword.searchVolume === null || isMetricsStale) && (
                                       <button
-                                        onClick={handleVolumeLookup}
+                                        onClick={() => handleVolumeLookup()}
                                         disabled={isLookingUpVolume}
                                         className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 border border-blue-200 transition-colors disabled:opacity-50"
                                       >
@@ -1022,6 +1073,68 @@ export function KeywordDetailsSidebar({
                                     {/* Volume data display */}
                                     {keyword.searchVolume !== null && (
                                       <div className="mt-3 p-3 bg-gradient-to-br from-blue-50/80 to-indigo-50/80 border border-blue-100/50 rounded-xl">
+                                        {/* Location indicator */}
+                                        <div className="flex items-center justify-between mb-2 pb-2 border-b border-blue-100/50">
+                                          <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                                            <Icon name="FaMapMarker" className="w-3 h-3" />
+                                            <span>{keyword.searchVolumeLocationName || 'United States'}</span>
+                                          </div>
+                                          <button
+                                            onClick={() => setShowLocationSelector(!showLocationSelector)}
+                                            className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                                          >
+                                            <Icon name="FaEdit" className="w-2.5 h-2.5" />
+                                            Change
+                                          </button>
+                                        </div>
+
+                                        {/* Location selector dropdown */}
+                                        {showLocationSelector && (
+                                          <div className="mb-3 p-2 bg-white rounded-lg border border-gray-200">
+                                            <input
+                                              type="text"
+                                              value={locationSearchQuery}
+                                              onChange={(e) => handleLocationSearch(e.target.value)}
+                                              placeholder="Search locations..."
+                                              className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                                              autoFocus
+                                            />
+                                            {isSearchingLocations && (
+                                              <div className="py-2 text-center text-xs text-gray-500">
+                                                <Icon name="FaSpinner" className="w-3 h-3 animate-spin inline mr-1" />
+                                                Searching...
+                                              </div>
+                                            )}
+                                            {locationSearchResults.length > 0 && (
+                                              <div className="mt-2 max-h-40 overflow-y-auto space-y-1">
+                                                {locationSearchResults.map((loc) => (
+                                                  <button
+                                                    key={loc.locationCode}
+                                                    onClick={() => handleSelectLocation(loc.locationCode, loc.locationName)}
+                                                    className="w-full text-left px-2 py-1.5 text-sm hover:bg-blue-50 rounded flex items-center justify-between"
+                                                  >
+                                                    <span>{loc.locationName}</span>
+                                                    {loc.locationType && (
+                                                      <span className="text-xs text-gray-400">{loc.locationType}</span>
+                                                    )}
+                                                  </button>
+                                                ))}
+                                              </div>
+                                            )}
+                                            {locationSearchQuery.length >= 2 && !isSearchingLocations && locationSearchResults.length === 0 && (
+                                              <div className="py-2 text-center text-xs text-gray-500">
+                                                No locations found
+                                              </div>
+                                            )}
+                                            <button
+                                              onClick={() => setShowLocationSelector(false)}
+                                              className="mt-2 w-full text-center text-xs text-gray-500 hover:text-gray-700"
+                                            >
+                                              Cancel
+                                            </button>
+                                          </div>
+                                        )}
+
                                         {/* Volume header with expand toggle */}
                                         <button
                                           onClick={() => setIsVolumeExpanded(!isVolumeExpanded)}
@@ -1092,7 +1205,7 @@ export function KeywordDetailsSidebar({
                                                   Updated {new Date(keyword.metricsUpdatedAt).toLocaleDateString()}
                                                 </span>
                                                 <button
-                                                  onClick={handleVolumeLookup}
+                                                  onClick={() => handleVolumeLookup()}
                                                   disabled={isLookingUpVolume}
                                                   className="text-[10px] text-blue-600 hover:text-blue-700 flex items-center gap-1 disabled:opacity-50"
                                                 >
@@ -1104,37 +1217,6 @@ export function KeywordDetailsSidebar({
                                           </div>
                                         )}
                                       </div>
-                                    )}
-                                  </div>
-                                )}
-                              </div>
-
-                              {/* Location Scope */}
-                              <div>
-                                <label className="text-sm font-medium text-gray-700 block mb-1">
-                                  Location scope
-                                </label>
-                                <p className="text-xs text-gray-500 mb-2">
-                                  Geographic relevance for organizing and filtering.
-                                </p>
-                                {isEditing ? (
-                                  <select
-                                    value={editedLocationScope || ''}
-                                    onChange={(e) => setEditedLocationScope((e.target.value || null) as LocationScope | null)}
-                                    className="w-full px-3 py-2.5 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-300 transition-all"
-                                  >
-                                    {LOCATION_SCOPES.map((scope) => (
-                                      <option key={scope.value || 'null'} value={scope.value || ''}>
-                                        {scope.label}
-                                      </option>
-                                    ))}
-                                  </select>
-                                ) : (
-                                  <div className="text-sm text-gray-700 bg-white/80 px-3 py-2.5 rounded-lg border border-gray-100">
-                                    {keyword.locationScope ? (
-                                      <span className="capitalize">{keyword.locationScope}</span>
-                                    ) : (
-                                      <span className="text-gray-400 italic">Not set</span>
                                     )}
                                   </div>
                                 )}

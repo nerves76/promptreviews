@@ -254,6 +254,9 @@ export interface KeywordData {
     monthlyData?: { month: number; year: number; volume: number }[];
   } | null;
   metricsUpdatedAt: string | null;
+  // Location used for search volume lookup
+  searchVolumeLocationCode: number | null;
+  searchVolumeLocationName: string | null;
 }
 
 // ==========================================
@@ -600,6 +603,8 @@ export function transformKeywordToResponse(
     cpc?: number | null;
     competition_level?: string | null;
     search_volume_trend?: Record<string, unknown> | null;
+    search_volume_location_code?: number | null;
+    search_volume_location_name?: string | null;
     metrics_updated_at?: Date | string | null;
   },
   groupName: string | null = null
@@ -644,6 +649,8 @@ export function transformKeywordToResponse(
     metricsUpdatedAt: keyword.metrics_updated_at
       ? new Date(keyword.metrics_updated_at).toISOString()
       : null,
+    searchVolumeLocationCode: keyword.search_volume_location_code ?? null,
+    searchVolumeLocationName: keyword.search_volume_location_name ?? null,
   };
 }
 

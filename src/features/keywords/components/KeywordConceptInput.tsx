@@ -675,23 +675,6 @@ export default function KeywordConceptInput({
         )}
       </div>
 
-      {/* Location Scope */}
-      <div className="space-y-1">
-        <label className="block text-sm font-medium text-gray-600">Location scope</label>
-        <select
-          value={locationScope || ""}
-          onChange={(e) => setLocationScope(e.target.value || null)}
-          className="border border-gray-300 rounded px-3 py-1.5 text-sm focus:ring-1 focus:ring-slate-blue focus:border-slate-blue"
-        >
-          <option value="">Not set</option>
-          <option value="local">Local</option>
-          <option value="city">City</option>
-          <option value="region">Region</option>
-          <option value="state">State</option>
-          <option value="national">National</option>
-        </select>
-      </div>
-
       {/* Related Questions */}
       <div className="space-y-1">
         <label className="block text-sm font-medium text-gray-600">

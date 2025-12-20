@@ -17,6 +17,122 @@ const serviceSupabase = createClient(
 // Rate limit: 50 discovery requests per day per account
 const DAILY_DISCOVERY_LIMIT = 50;
 
+// US State to DataForSEO location code mapping
+const US_STATE_LOCATION_CODES: Record<string, { code: number; name: string }> = {
+  'AL': { code: 21114, name: 'Alabama, United States' },
+  'AK': { code: 21113, name: 'Alaska, United States' },
+  'AZ': { code: 21116, name: 'Arizona, United States' },
+  'AR': { code: 21115, name: 'Arkansas, United States' },
+  'CA': { code: 21136, name: 'California, United States' },
+  'CO': { code: 21120, name: 'Colorado, United States' },
+  'CT': { code: 21121, name: 'Connecticut, United States' },
+  'DE': { code: 21124, name: 'Delaware, United States' },
+  'FL': { code: 21132, name: 'Florida, United States' },
+  'GA': { code: 21133, name: 'Georgia, United States' },
+  'HI': { code: 21137, name: 'Hawaii, United States' },
+  'ID': { code: 21138, name: 'Idaho, United States' },
+  'IL': { code: 21139, name: 'Illinois, United States' },
+  'IN': { code: 21140, name: 'Indiana, United States' },
+  'IA': { code: 21141, name: 'Iowa, United States' },
+  'KS': { code: 21142, name: 'Kansas, United States' },
+  'KY': { code: 21143, name: 'Kentucky, United States' },
+  'LA': { code: 21144, name: 'Louisiana, United States' },
+  'ME': { code: 21146, name: 'Maine, United States' },
+  'MD': { code: 21147, name: 'Maryland, United States' },
+  'MA': { code: 21148, name: 'Massachusetts, United States' },
+  'MI': { code: 21149, name: 'Michigan, United States' },
+  'MN': { code: 21150, name: 'Minnesota, United States' },
+  'MS': { code: 21152, name: 'Mississippi, United States' },
+  'MO': { code: 21153, name: 'Missouri, United States' },
+  'MT': { code: 21154, name: 'Montana, United States' },
+  'NE': { code: 21158, name: 'Nebraska, United States' },
+  'NV': { code: 21159, name: 'Nevada, United States' },
+  'NH': { code: 21160, name: 'New Hampshire, United States' },
+  'NJ': { code: 21161, name: 'New Jersey, United States' },
+  'NM': { code: 21162, name: 'New Mexico, United States' },
+  'NY': { code: 21151, name: 'New York, United States' },
+  'NC': { code: 21163, name: 'North Carolina, United States' },
+  'ND': { code: 21164, name: 'North Dakota, United States' },
+  'OH': { code: 21165, name: 'Ohio, United States' },
+  'OK': { code: 21166, name: 'Oklahoma, United States' },
+  'OR': { code: 21167, name: 'Oregon, United States' },
+  'PA': { code: 21168, name: 'Pennsylvania, United States' },
+  'RI': { code: 21170, name: 'Rhode Island, United States' },
+  'SC': { code: 21171, name: 'South Carolina, United States' },
+  'SD': { code: 21172, name: 'South Dakota, United States' },
+  'TN': { code: 21173, name: 'Tennessee, United States' },
+  'TX': { code: 21176, name: 'Texas, United States' },
+  'UT': { code: 21178, name: 'Utah, United States' },
+  'VT': { code: 21179, name: 'Vermont, United States' },
+  'VA': { code: 21180, name: 'Virginia, United States' },
+  'WA': { code: 21184, name: 'Washington, United States' },
+  'WV': { code: 21186, name: 'West Virginia, United States' },
+  'WI': { code: 21187, name: 'Wisconsin, United States' },
+  'WY': { code: 21188, name: 'Wyoming, United States' },
+  'DC': { code: 21127, name: 'District of Columbia, United States' },
+};
+
+// Common country codes for non-US businesses
+const COUNTRY_LOCATION_CODES: Record<string, { code: number; name: string }> = {
+  'US': { code: 2840, name: 'United States' },
+  'GB': { code: 2826, name: 'United Kingdom' },
+  'CA': { code: 2124, name: 'Canada' },
+  'AU': { code: 2036, name: 'Australia' },
+  'DE': { code: 2276, name: 'Germany' },
+  'FR': { code: 2250, name: 'France' },
+  'NZ': { code: 2554, name: 'New Zealand' },
+  'IE': { code: 2372, name: 'Ireland' },
+};
+
+/**
+ * Get default location based on business address
+ * Returns state-level location for US, country-level for others
+ */
+async function getDefaultLocation(accountId: string): Promise<{ code: number; name: string }> {
+  try {
+    // Get business address from account
+    const { data: businesses } = await serviceSupabase
+      .from('businesses')
+      .select('address_state, address_country')
+      .eq('account_id', accountId)
+      .limit(1);
+
+    const business = businesses?.[0];
+
+    if (business?.address_state) {
+      // Try to map state to location code
+      const stateUpper = business.address_state.toUpperCase().trim();
+
+      // Check if it's a state abbreviation (2 chars)
+      if (stateUpper.length === 2 && US_STATE_LOCATION_CODES[stateUpper]) {
+        return US_STATE_LOCATION_CODES[stateUpper];
+      }
+
+      // Check if it's a full state name
+      const stateEntry = Object.entries(US_STATE_LOCATION_CODES).find(
+        ([, value]) => value.name.toLowerCase().startsWith(stateUpper.toLowerCase())
+      );
+      if (stateEntry) {
+        return stateEntry[1];
+      }
+    }
+
+    // Check country
+    if (business?.address_country) {
+      const countryUpper = business.address_country.toUpperCase().trim();
+      if (COUNTRY_LOCATION_CODES[countryUpper]) {
+        return COUNTRY_LOCATION_CODES[countryUpper];
+      }
+    }
+
+    // Default to USA
+    return { code: 2840, name: 'United States' };
+  } catch (error) {
+    console.warn('Failed to get default location:', error);
+    return { code: 2840, name: 'United States' };
+  }
+}
+
 interface RouteParams {
   params: Promise<{ id: string }>;
 }
@@ -59,7 +175,24 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     const body = await request.json().catch(() => ({}));
-    const { locationCode = 2840, includeSuggestions = true } = body;
+    const { includeSuggestions = true } = body;
+
+    // Determine location to use
+    let locationCode: number;
+    let locationName: string;
+
+    if (body.locationCode && body.locationName) {
+      // Use explicitly provided location
+      locationCode = body.locationCode;
+      locationName = body.locationName;
+    } else {
+      // Get default from business address (state level)
+      const defaultLocation = await getDefaultLocation(accountId);
+      locationCode = defaultLocation.code;
+      locationName = defaultLocation.name;
+    }
+
+    console.log(`📍 [Keywords] Using location: ${locationName} (${locationCode})`);
 
     // Check rate limit
     const today = new Date();
@@ -139,7 +272,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       };
     }
 
-    // Update keyword with volume data
+    // Update keyword with volume data and location
     const { data: updatedKeyword, error: updateError } = await serviceSupabase
       .from('keywords')
       .update({
@@ -147,6 +280,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         cpc: volumeData.cpc,
         competition_level: volumeData.competitionLevel,
         search_volume_trend: trendData,
+        search_volume_location_code: locationCode,
+        search_volume_location_name: locationName,
         metrics_updated_at: new Date().toISOString(),
       })
       .eq('id', id)
@@ -172,6 +307,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         cpc,
         competition_level,
         search_volume_trend,
+        search_volume_location_code,
+        search_volume_location_name,
         metrics_updated_at,
         keyword_groups (
           id,

@@ -2983,7 +2983,6 @@ model keywords {
   ai_generated                                                               Boolean?                    @default(false)
   ai_suggestions                                                             Json?
   alias_match_count                                                          Int?                        @default(0)
-  related_questions                                                          String[]                    @default([])
   search_intent                                                              String?
   keyword_difficulty                                                         Int?
   search_volume                                                              Int?
@@ -2995,9 +2994,13 @@ model keywords {
   search_volume_trend                                                        Json?
   metrics_updated_at                                                         DateTime?                   @db.Timestamptz(6)
   search_terms                                                               Json?                       @default("[]")
+  related_questions                                                          Json?                       @default("[]")
+  search_volume_location_code                                                Int?
+  search_volume_location_name                                                String?
   gg_checks                                                                  gg_checks[]
   gg_tracked_keywords                                                        gg_tracked_keywords[]
   keyword_prompt_page_usage                                                  keyword_prompt_page_usage[]
+  keyword_questions                                                          keyword_questions[]
   keyword_review_matches_v2                                                  keyword_review_matches_v2[]
   keyword_rotation_log_keyword_rotation_log_rotated_in_keyword_idTokeywords  keyword_rotation_log[]      @relation("keyword_rotation_log_rotated_in_keyword_idTokeywords")
   keyword_rotation_log_keyword_rotation_log_rotated_out_keyword_idTokeywords keyword_rotation_log[]      @relation("keyword_rotation_log_rotated_out_keyword_idTokeywords")
@@ -3015,6 +3018,7 @@ model keywords {
   @@index([account_id, normalized_phrase], map: "idx_keywords_normalized")
   @@index([account_id, review_usage_count(sort: Desc)], map: "idx_keywords_usage")
   @@index([search_terms(ops: JsonbPathOps)], map: "idx_keywords_search_terms", type: Gin)
+  @@index([related_questions(ops: JsonbPathOps)], map: "idx_keywords_related_questions", type: Gin)
   @@schema("public")
 }
 
@@ -3289,6 +3293,25 @@ model wm_tasks {
   @@index([due_date], map: "idx_wm_tasks_due_date")
   @@index([sort_order], map: "idx_wm_tasks_sort_order")
   @@index([status], map: "idx_wm_tasks_status")
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model keyword_questions {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  keyword_id   String   @db.Uuid
+  question     String
+  funnel_stage String   @default("middle")
+  added_at     DateTime @default(now()) @db.Timestamptz(6)
+  created_at   DateTime @default(now()) @db.Timestamptz(6)
+  updated_at   DateTime @default(now()) @db.Timestamptz(6)
+  keywords     keywords @relation(fields: [keyword_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([keyword_id, question])
+  @@index([funnel_stage], map: "idx_keyword_questions_funnel_stage")
+  @@index([keyword_id], map: "idx_keyword_questions_keyword_id")
   @@schema("public")
 }
 
