@@ -803,7 +803,7 @@ export function KeywordDetailsSidebar({
                                   Review phrase
                                 </label>
                                 <p className="text-xs text-gray-500 mb-2">
-                                  The phrase customers see on prompt pages when asked to mention this keyword.
+                                  This is the phrase used in AI Generate and the Suggested Reviews feature on Prompt Pages.
                                 </p>
                                 {isEditing ? (
                                   <input
