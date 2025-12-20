@@ -35,6 +35,9 @@ import {
 import Icon from "@/components/Icon";
 import SectionHeader from "./SectionHeader";
 import { BusinessProfile } from "@/types/business";
+import { KeywordDetailsSidebar } from "@/features/keywords/components";
+import { apiClient } from "@/utils/apiClient";
+import type { KeywordData } from "@/features/keywords/keywordUtils";
 import {
   createLocationPromptPageData,
 } from "@/utils/locationUtils";
@@ -155,6 +158,11 @@ export default function ProductPromptPageForm({
   const [keywordAutoRotateEnabled, setKeywordAutoRotateEnabled] = useState(
     initialData?.keyword_auto_rotate_enabled ?? false
   );
+
+  // Keyword sidebar state
+  const [sidebarKeyword, setSidebarKeyword] = useState<KeywordData | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarPromptPages, setSidebarPromptPages] = useState<Array<{ id: string; name?: string; slug?: string }>>([]);
 
   // Step 2 state (when step === 2 or mode === "edit")
   const [offerEnabled, setOfferEnabled] = useState(initialData?.offer_enabled ?? false);
@@ -522,6 +530,63 @@ export default function ProductPromptPageForm({
     validateForm // Add validateForm to dependencies
   ]);
 
+  // Handle keyword click to open details sidebar
+  const handleKeywordClick = async (phrase: string) => {
+    try {
+      const data = await apiClient.get<{ keyword: KeywordData | null; promptPages?: Array<{ id: string; name?: string; slug?: string }> }>(
+        `/keywords/by-phrase?phrase=${encodeURIComponent(phrase)}`
+      );
+      if (data.keyword) {
+        setSidebarKeyword(data.keyword);
+        setSidebarPromptPages(data.promptPages || []);
+        setSidebarOpen(true);
+      }
+    } catch (err) {
+      console.error('Failed to find keyword:', err);
+    }
+  };
+
+  // Handle keyword update from sidebar
+  const handleKeywordUpdate = async (id: string, updates: Partial<{
+    phrase: string;
+    groupId: string;
+    status: 'active' | 'paused';
+    reviewPhrase: string;
+    searchQuery: string;
+    searchTerms: any[];
+    aliases: string[];
+    locationScope: string | null;
+    relatedQuestions: any[];
+  }>) => {
+    try {
+      const data = await apiClient.put<{ keyword: KeywordData }>(`/keywords/${id}`, updates);
+      if (data.keyword) {
+        setSidebarKeyword(data.keyword);
+      }
+      return data.keyword;
+    } catch (err) {
+      console.error('Failed to update keyword:', err);
+      return null;
+    }
+  };
+
+  // Refresh keyword data in sidebar
+  const refreshSidebarKeyword = async () => {
+    if (sidebarKeyword?.id) {
+      try {
+        const data = await apiClient.get<{ keyword: KeywordData | null; promptPages?: Array<{ id: string; name?: string; slug?: string }> }>(
+          `/keywords/by-phrase?phrase=${encodeURIComponent(sidebarKeyword.phrase)}`
+        );
+        if (data.keyword) {
+          setSidebarKeyword(data.keyword);
+          setSidebarPromptPages(data.promptPages || []);
+        }
+      } catch (err) {
+        console.error('Failed to refresh keyword:', err);
+      }
+    }
+  };
+
   // Handle form submission to prevent page reload
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -663,6 +728,8 @@ export default function ProductPromptPageForm({
             keywords: initialData?.keywords,
             keyword_auto_rotate_enabled: initialData?.keyword_auto_rotate_enabled,
           }}
+          promptPageId={initialData?.id}
+          onKeywordClick={handleKeywordClick}
         />
 
         {/* Keyword Inspiration Feature */}
@@ -897,6 +964,19 @@ export default function ProductPromptPageForm({
           </div>
         </div>
       )}
+
+      {/* Keyword Details Sidebar */}
+      <KeywordDetailsSidebar
+        isOpen={sidebarOpen}
+        keyword={sidebarKeyword}
+        onClose={() => {
+          setSidebarOpen(false);
+          setSidebarKeyword(null);
+        }}
+        onUpdate={handleKeywordUpdate}
+        promptPages={sidebarPromptPages}
+        onRefresh={refreshSidebarKeyword}
+      />
     </form>
   );
 }

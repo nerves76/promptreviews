@@ -36,6 +36,9 @@ import { generateContextualReview } from "@/utils/aiReviewGeneration";
 import Icon from "@/components/Icon";
 import { getWordLimitOrDefault } from "@/constants/promptPageWordLimits";
 import FiveStarSpinner from "./FiveStarSpinner";
+import { KeywordDetailsSidebar } from "@/features/keywords/components";
+import { apiClient } from "@/utils/apiClient";
+import type { KeywordData } from "@/features/keywords/keywordUtils";
 
 /**
  * ServicePromptPageForm component
@@ -166,6 +169,11 @@ export default function ServicePromptPageForm({
   const [showPopupConflictModal, setShowPopupConflictModal] = useState<string | null>(null);
   const [conflictAcknowledged, setConflictAcknowledged] = useState(false);
   const [aiGeneratingIndex, setAiGeneratingIndex] = useState<number | null>(null);
+
+  // Keyword sidebar state
+  const [sidebarKeyword, setSidebarKeyword] = useState<KeywordData | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarPromptPages, setSidebarPromptPages] = useState<Array<{ id: string; name?: string; slug?: string }>>([]);
 
   // Local state for kickstarters background design (synced with business profile)
   const [localBackgroundDesign, setLocalBackgroundDesign] = useState(
@@ -518,6 +526,63 @@ export default function ServicePromptPageForm({
     }
   }
 
+  // Handle keyword click to open details sidebar
+  const handleKeywordClick = async (phrase: string) => {
+    try {
+      const data = await apiClient.get<{ keyword: KeywordData | null; promptPages?: Array<{ id: string; name?: string; slug?: string }> }>(
+        `/keywords/by-phrase?phrase=${encodeURIComponent(phrase)}`
+      );
+      if (data.keyword) {
+        setSidebarKeyword(data.keyword);
+        setSidebarPromptPages(data.promptPages || []);
+        setSidebarOpen(true);
+      }
+    } catch (err) {
+      console.error('Failed to find keyword:', err);
+    }
+  };
+
+  // Handle keyword update from sidebar
+  const handleKeywordUpdate = async (id: string, updates: Partial<{
+    phrase: string;
+    groupId: string;
+    status: 'active' | 'paused';
+    reviewPhrase: string;
+    searchQuery: string;
+    searchTerms: any[];
+    aliases: string[];
+    locationScope: string | null;
+    relatedQuestions: any[];
+  }>) => {
+    try {
+      const data = await apiClient.put<{ keyword: KeywordData }>(`/keywords/${id}`, updates);
+      if (data.keyword) {
+        setSidebarKeyword(data.keyword);
+      }
+      return data.keyword;
+    } catch (err) {
+      console.error('Failed to update keyword:', err);
+      return null;
+    }
+  };
+
+  // Refresh keyword data in sidebar
+  const refreshSidebarKeyword = async () => {
+    if (sidebarKeyword?.id) {
+      try {
+        const data = await apiClient.get<{ keyword: KeywordData | null; promptPages?: Array<{ id: string; name?: string; slug?: string }> }>(
+          `/keywords/by-phrase?phrase=${encodeURIComponent(sidebarKeyword.phrase)}`
+        );
+        if (data.keyword) {
+          setSidebarKeyword(data.keyword);
+          setSidebarPromptPages(data.promptPages || []);
+        }
+      } catch (err) {
+        console.error('Failed to refresh keyword:', err);
+      }
+    }
+  };
+
   // Add safety check to prevent rendering if formData is not ready
   if (!formData) {
     return (
@@ -705,6 +770,8 @@ export default function ServicePromptPageForm({
             industries_served: businessProfile?.industries_served
           }}
           initialData={initialData}
+          promptPageId={initialData?.id}
+          onKeywordClick={handleKeywordClick}
         />
 
         {/* Keyword Inspiration Section */}
@@ -942,6 +1009,19 @@ export default function ServicePromptPageForm({
           </div>
         </div>
       )}
+
+      {/* Keyword Details Sidebar */}
+      <KeywordDetailsSidebar
+        isOpen={sidebarOpen}
+        keyword={sidebarKeyword}
+        onClose={() => {
+          setSidebarOpen(false);
+          setSidebarKeyword(null);
+        }}
+        onUpdate={handleKeywordUpdate}
+        promptPages={sidebarPromptPages}
+        onRefresh={refreshSidebarKeyword}
+      />
     </form>
   );
 } 

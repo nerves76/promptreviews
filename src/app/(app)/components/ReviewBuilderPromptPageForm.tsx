@@ -19,6 +19,9 @@ import ReviewWriteSection, { ReviewWritePlatform } from "../dashboard/edit-promp
 import PersonalizedNoteFeature from "./prompt-features/PersonalizedNoteFeature";
 import MotivationalNudgeFeature from "./prompt-features/MotivationalNudgeFeature";
 import RoleFieldFeature from "./prompt-features/RoleFieldFeature";
+import { KeywordDetailsSidebar } from "@/features/keywords/components";
+import { apiClient } from "@/utils/apiClient";
+import type { KeywordData } from "@/features/keywords/keywordUtils";
 
 interface ReviewBuilderPromptPageFormProps {
   mode: "create" | "edit";
@@ -187,6 +190,11 @@ export default function ReviewBuilderPromptPageForm({
   const [roleFieldEnabled, setRoleFieldEnabled] = useState<boolean>(
     initialData?.role_field_enabled ?? (campaignType === 'individual' ? true : false)
   );
+
+  // Keyword sidebar state
+  const [sidebarKeyword, setSidebarKeyword] = useState<KeywordData | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarPromptPages, setSidebarPromptPages] = useState<Array<{ id: string; name?: string; slug?: string }>>([]);
 
   // Ensure at least the minimum number of questions exist
   useEffect(() => {
@@ -532,6 +540,63 @@ export default function ReviewBuilderPromptPageForm({
     // Role field
     role_field_enabled: roleFieldEnabled,
   });
+
+  // Handle keyword click to open details sidebar
+  const handleKeywordClick = async (phrase: string) => {
+    try {
+      const data = await apiClient.get<{ keyword: KeywordData | null; promptPages?: Array<{ id: string; name?: string; slug?: string }> }>(
+        `/keywords/by-phrase?phrase=${encodeURIComponent(phrase)}`
+      );
+      if (data.keyword) {
+        setSidebarKeyword(data.keyword);
+        setSidebarPromptPages(data.promptPages || []);
+        setSidebarOpen(true);
+      }
+    } catch (err) {
+      console.error('Failed to find keyword:', err);
+    }
+  };
+
+  // Handle keyword update from sidebar
+  const handleKeywordUpdate = async (id: string, updates: Partial<{
+    phrase: string;
+    groupId: string;
+    status: 'active' | 'paused';
+    reviewPhrase: string;
+    searchQuery: string;
+    searchTerms: any[];
+    aliases: string[];
+    locationScope: string | null;
+    relatedQuestions: any[];
+  }>) => {
+    try {
+      const data = await apiClient.put<{ keyword: KeywordData }>(`/keywords/${id}`, updates);
+      if (data.keyword) {
+        setSidebarKeyword(data.keyword);
+      }
+      return data.keyword;
+    } catch (err) {
+      console.error('Failed to update keyword:', err);
+      return null;
+    }
+  };
+
+  // Refresh keyword data in sidebar
+  const refreshSidebarKeyword = async () => {
+    if (sidebarKeyword?.id) {
+      try {
+        const data = await apiClient.get<{ keyword: KeywordData | null; promptPages?: Array<{ id: string; name?: string; slug?: string }> }>(
+          `/keywords/by-phrase?phrase=${encodeURIComponent(sidebarKeyword.phrase)}`
+        );
+        if (data.keyword) {
+          setSidebarKeyword(data.keyword);
+          setSidebarPromptPages(data.promptPages || []);
+        }
+      } catch (err) {
+        console.error('Failed to refresh keyword:', err);
+      }
+    }
+  };
 
   const handleSave = async (baseFormData: any) => {
     if (!validateBuilderConfig()) {
@@ -905,6 +970,8 @@ export default function ReviewBuilderPromptPageForm({
             onChange={setKeywords}
             placeholder="e.g., same-day installation, custom web design, Austin SEO expert"
             businessInfo={businessInfo}
+            onKeywordClick={handleKeywordClick}
+            promptPageId={initialData?.id}
           />
           {globalKeywords.length > 0 && (
             <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600">
@@ -1041,6 +1108,19 @@ export default function ReviewBuilderPromptPageForm({
           </div>
         )}
       </div>
+
+      {/* Keyword Details Sidebar */}
+      <KeywordDetailsSidebar
+        isOpen={sidebarOpen}
+        keyword={sidebarKeyword}
+        onClose={() => {
+          setSidebarOpen(false);
+          setSidebarKeyword(null);
+        }}
+        onUpdate={handleKeywordUpdate}
+        promptPages={sidebarPromptPages}
+        onRefresh={refreshSidebarKeyword}
+      />
     </BasePromptPageForm>
     </div>
   );

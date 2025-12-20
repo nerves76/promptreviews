@@ -1,5 +1,30 @@
 # API Changelog
 
+## [2025-12-20]
+### Added - Prompt Page Keyword Integration
+**New Endpoints:**
+- `GET /api/keywords/by-phrase?phrase={phrase}` - Look up keyword by phrase string
+  - Returns keyword data with full enrichment details
+  - Returns linked prompt pages via junction table
+  - Normalizes phrase for case-insensitive matching
+  - Account-scoped security validation
+
+- `POST /api/keywords/sync-prompt-page` - Sync keywords from prompt page to library
+  - Body: `{ promptPageId: string, keywords: string[] }`
+  - Auto-creates keywords in library if they don't exist (no AI enrichment)
+  - Creates junction records in `keyword_prompt_page_usage`
+  - Removes junction records for removed keywords
+  - Returns stats: `{ created, linked, unlinked }`
+
+**Component Updates:**
+- All prompt page forms now have `KeywordDetailsSidebar` integration
+- Clicking a keyword opens sidebar with full enrichment features
+- Forms updated: Universal, Product, Service, Photo, Employee, Event, ReviewBuilder
+
+**Migration:**
+- Added `scripts/migrate-prompt-page-keywords.ts` for existing keyword migration
+- Usage: `npx ts-node scripts/migrate-prompt-page-keywords.ts --dry-run|--execute`
+
 ## [2025-10-04]
 ### Added - Share Image Generation System
 **New Endpoints:**

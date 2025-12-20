@@ -28,6 +28,9 @@ import {
   RoleFieldFeature,
   SuggestedPhrasesFeature
 } from "./prompt-features";
+import { KeywordDetailsSidebar } from "@/features/keywords/components";
+import { apiClient } from "@/utils/apiClient";
+import type { KeywordData } from "@/features/keywords/keywordUtils";
 
 // Helper function to get falling icon
 const getFallingIcon = (iconKey: string) => {
@@ -232,6 +235,11 @@ export default function PhotoPromptPageForm({
     initialData?.keyword_auto_rotate_enabled ?? false
   );
 
+  // Keyword sidebar state
+  const [sidebarKeyword, setSidebarKeyword] = useState<KeywordData | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarPromptPages, setSidebarPromptPages] = useState<Array<{ id: string; name?: string; slug?: string }>>([]);
+
   // Synchronize motivational nudge state with initialData
   useEffect(() => {
     if (initialData?.motivational_nudge_enabled !== undefined) {
@@ -301,6 +309,63 @@ export default function PhotoPromptPageForm({
 
   const handleColorChange = (color: string) => {
     setFallingIconColor(color);
+  };
+
+  // Handle keyword click to open details sidebar
+  const handleKeywordClick = async (phrase: string) => {
+    try {
+      const data = await apiClient.get<{ keyword: KeywordData | null; promptPages?: Array<{ id: string; name?: string; slug?: string }> }>(
+        `/keywords/by-phrase?phrase=${encodeURIComponent(phrase)}`
+      );
+      if (data.keyword) {
+        setSidebarKeyword(data.keyword);
+        setSidebarPromptPages(data.promptPages || []);
+        setSidebarOpen(true);
+      }
+    } catch (err) {
+      console.error('Failed to find keyword:', err);
+    }
+  };
+
+  // Handle keyword update from sidebar
+  const handleKeywordUpdate = async (id: string, updates: Partial<{
+    phrase: string;
+    groupId: string;
+    status: 'active' | 'paused';
+    reviewPhrase: string;
+    searchQuery: string;
+    searchTerms: any[];
+    aliases: string[];
+    locationScope: string | null;
+    relatedQuestions: any[];
+  }>) => {
+    try {
+      const data = await apiClient.put<{ keyword: KeywordData }>(`/keywords/${id}`, updates);
+      if (data.keyword) {
+        setSidebarKeyword(data.keyword);
+      }
+      return data.keyword;
+    } catch (err) {
+      console.error('Failed to update keyword:', err);
+      return null;
+    }
+  };
+
+  // Refresh keyword data in sidebar
+  const refreshSidebarKeyword = async () => {
+    if (sidebarKeyword?.id) {
+      try {
+        const data = await apiClient.get<{ keyword: KeywordData | null; promptPages?: Array<{ id: string; name?: string; slug?: string }> }>(
+          `/keywords/by-phrase?phrase=${encodeURIComponent(sidebarKeyword.phrase)}`
+        );
+        if (data.keyword) {
+          setSidebarKeyword(data.keyword);
+          setSidebarPromptPages(data.promptPages || []);
+        }
+      } catch (err) {
+        console.error('Failed to refresh keyword:', err);
+      }
+    }
   };
 
   // Handle form submission (single-step: save and publish)
@@ -501,6 +566,8 @@ export default function PhotoPromptPageForm({
             keywords: initialData?.keywords,
             keyword_auto_rotate_enabled: initialData?.keyword_auto_rotate_enabled,
           }}
+          promptPageId={initialData?.id}
+          onKeywordClick={handleKeywordClick}
         />
 
         {/* Photo-specific features */}
@@ -650,7 +717,18 @@ export default function PhotoPromptPageForm({
         </div>
       </div>
 
-
+      {/* Keyword Details Sidebar */}
+      <KeywordDetailsSidebar
+        isOpen={sidebarOpen}
+        keyword={sidebarKeyword}
+        onClose={() => {
+          setSidebarOpen(false);
+          setSidebarKeyword(null);
+        }}
+        onUpdate={handleKeywordUpdate}
+        promptPages={sidebarPromptPages}
+        onRefresh={refreshSidebarKeyword}
+      />
     </form>
   );
 } 

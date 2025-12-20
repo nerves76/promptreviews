@@ -129,7 +129,6 @@ export function KeywordDetailsSidebar({
   // Search volume lookup state
   const [isLookingUpVolume, setIsLookingUpVolume] = useState(false);
   const [volumeLookupError, setVolumeLookupError] = useState<string | null>(null);
-  const [isVolumeExpanded, setIsVolumeExpanded] = useState(false);
   const [showLocationSelector, setShowLocationSelector] = useState(false);
   const [locationSearchQuery, setLocationSearchQuery] = useState('');
   const [locationSearchResults, setLocationSearchResults] = useState<Array<{
@@ -188,6 +187,8 @@ export function KeywordDetailsSidebar({
   // LLM visibility state
   const [selectedLLMProviders, setSelectedLLMProviders] = useState<LLMProvider[]>(['chatgpt', 'claude']);
   const [checkingQuestionIndex, setCheckingQuestionIndex] = useState<number | null>(null);
+  const [expandedQuestionIndex, setExpandedQuestionIndex] = useState<number | null>(null);
+  const [lastCheckResult, setLastCheckResult] = useState<{ success: boolean; message: string; questionIndex: number } | null>(null);
   const {
     results: llmResults,
     isChecking: isCheckingLLM,
@@ -200,25 +201,58 @@ export function KeywordDetailsSidebar({
   const handleCheckQuestion = async (questionIndex: number, question: string) => {
     if (!keyword?.id || selectedLLMProviders.length === 0) return;
     setCheckingQuestionIndex(questionIndex);
+    setLastCheckResult(null);
     try {
-      await runLLMCheck(selectedLLMProviders, [questionIndex]);
+      const response = await runLLMCheck(selectedLLMProviders, [questionIndex]);
+      if (response && response.checksPerformed > 0) {
+        const totalProviders = selectedLLMProviders.length;
+
+        setLastCheckResult({
+          success: true,
+          message: `Check complete for ${totalProviders} AI${totalProviders > 1 ? 's' : ''}. See results below.`,
+          questionIndex,
+        });
+        // Auto-expand the question to show results
+        setExpandedQuestionIndex(questionIndex);
+      } else if (llmError) {
+        setLastCheckResult({
+          success: false,
+          message: llmError,
+          questionIndex,
+        });
+      } else {
+        setLastCheckResult({
+          success: false,
+          message: 'Check failed - no results returned',
+          questionIndex,
+        });
+      }
+    } catch (err) {
+      setLastCheckResult({
+        success: false,
+        message: err instanceof Error ? err.message : 'Check failed',
+        questionIndex,
+      });
     } finally {
       setCheckingQuestionIndex(null);
+      // Clear the result message after 5 seconds
+      setTimeout(() => setLastCheckResult(null), 5000);
     }
   };
 
   // Build question -> provider -> result map for quick lookup
-  const questionLLMMap = new Map<string, Map<LLMProvider, { domainCited: boolean; citationPosition?: number | null }>>();
+  const questionLLMMap = new Map<string, Map<LLMProvider, { domainCited: boolean; citationPosition?: number | null; checkedAt: string }>>();
   for (const result of llmResults) {
     if (!questionLLMMap.has(result.question)) {
       questionLLMMap.set(result.question, new Map());
     }
     const providerMap = questionLLMMap.get(result.question)!;
     const existing = providerMap.get(result.llmProvider);
-    if (!existing || new Date(result.checkedAt) > new Date((existing as any).checkedAt || 0)) {
+    if (!existing || new Date(result.checkedAt) > new Date(existing.checkedAt)) {
       providerMap.set(result.llmProvider, {
         domainCited: result.domainCited,
         citationPosition: result.citationPosition,
+        checkedAt: result.checkedAt,
       });
     }
   }
@@ -861,38 +895,25 @@ export function KeywordDetailsSidebar({
                             </div>
                           )}
 
-                          {/* AI Generate section - prominent when fields are empty */}
+                          {/* AI Generate button - shown when fields are empty */}
                           {hasEmptySEOFields && !isAnyEditing && (
-                            <div className="p-4 bg-gradient-to-br from-purple-50 to-indigo-50 border border-purple-200 rounded-xl">
-                              <div className="flex items-center gap-3 mb-3">
-                                <div className="p-2 bg-purple-100 rounded-lg">
-                                  <Icon name="prompty" className="w-5 h-5 text-purple-600" />
-                                </div>
-                                <div className="flex-1">
-                                  <div className="text-sm font-medium text-purple-900">Auto-fill with AI</div>
-                                  <div className="text-xs text-purple-600">
-                                    Generate review phrase, search terms, aliases, and questions
-                                  </div>
-                                </div>
-                              </div>
-                              <button
-                                onClick={handleAIEnrich}
-                                disabled={isEnriching}
-                                className="w-full px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
-                              >
-                                {isEnriching ? (
-                                  <>
-                                    <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
-                                    Generating...
-                                  </>
-                                ) : (
-                                  <>
-                                    <Icon name="prompty" className="w-4 h-4" />
-                                    Generate (1 credit)
-                                  </>
-                                )}
-                              </button>
-                            </div>
+                            <button
+                              onClick={handleAIEnrich}
+                              disabled={isEnriching}
+                              className="w-full px-4 py-2.5 text-sm font-medium text-white bg-purple-600 rounded-xl hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                            >
+                              {isEnriching ? (
+                                <>
+                                  <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
+                                  Generating...
+                                </>
+                              ) : (
+                                <>
+                                  <Icon name="prompty" className="w-4 h-4" />
+                                  Auto-fill with AI (1 credit)
+                                </>
+                              )}
+                            </button>
                           )}
 
                           {/* AI enrichment error */}
@@ -921,7 +942,7 @@ export function KeywordDetailsSidebar({
                               {!isEditingReviews ? (
                                 <button
                                   onClick={() => setIsEditingReviews(true)}
-                                  className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                                  className="p-1.5 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
                                   title="Edit reviews section"
                                 >
                                   <Icon name="FaEdit" className="w-4 h-4" />
@@ -1007,7 +1028,7 @@ export function KeywordDetailsSidebar({
                               {!isEditingSEO ? (
                                 <button
                                   onClick={() => setIsEditingSEO(true)}
-                                  className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                                  className="p-1.5 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
                                   title="Edit SEO section"
                                 >
                                   <Icon name="FaEdit" className="w-4 h-4" />
@@ -1147,15 +1168,125 @@ export function KeywordDetailsSidebar({
                                   </div>
                                 )}
 
-                                {/* Search Volume Section - show for canonical term */}
-                                {!isEditingSEO && editedSearchTerms.length > 0 && (
+                                {/* Search Volume Section */}
+                                {editedSearchTerms.length > 0 && (
                                   <div className="mt-3">
-                                    {/* Show lookup button if no data or stale */}
-                                    {(keyword.searchVolume === null || isMetricsStale) && (
+                                    {/* Volume lookup error */}
+                                    {volumeLookupError && (
+                                      <div className="mb-2 p-2 bg-red-50 border border-red-100 rounded-lg text-xs text-red-600 flex items-center gap-1.5">
+                                        <Icon name="FaExclamationTriangle" className="w-3 h-3" />
+                                        {volumeLookupError}
+                                      </div>
+                                    )}
+
+                                    {/* Volume data display - compact view */}
+                                    {keyword.searchVolume !== null ? (
+                                      <div className="p-3 bg-gradient-to-br from-blue-50/80 to-indigo-50/80 border border-blue-100/50 rounded-xl">
+                                        <div className="flex items-center justify-between">
+                                          <div className="flex items-center gap-3">
+                                            <div>
+                                              <div className="text-lg font-bold text-gray-900">
+                                                {formatVolume(keyword.searchVolume)}
+                                              </div>
+                                              <div className="text-[10px] text-gray-500 flex items-center gap-1">
+                                                <Icon name="FaMapMarker" className="w-2.5 h-2.5" />
+                                                {keyword.searchVolumeLocationName || 'United States'}
+                                              </div>
+                                            </div>
+                                            {keyword.competitionLevel && (
+                                              <span className={`px-2 py-0.5 rounded text-xs font-medium ${getCompetitionColor(keyword.competitionLevel)}`}>
+                                                {keyword.competitionLevel}
+                                              </span>
+                                            )}
+                                          </div>
+                                          {keyword.cpc && (
+                                            <div className="text-right">
+                                              <div className="text-sm font-medium text-gray-700">${keyword.cpc.toFixed(2)}</div>
+                                              <div className="text-[10px] text-gray-400">CPC</div>
+                                            </div>
+                                          )}
+                                        </div>
+
+                                        {/* Edit mode: show change location and refresh */}
+                                        {isEditingSEO && (
+                                          <div className="mt-3 pt-2 border-t border-blue-100/50 space-y-2">
+                                            {/* Location selector */}
+                                            {showLocationSelector ? (
+                                              <div className="p-2 bg-white rounded-lg border border-gray-200">
+                                                <input
+                                                  type="text"
+                                                  value={locationSearchQuery}
+                                                  onChange={(e) => handleLocationSearch(e.target.value)}
+                                                  placeholder="Search locations..."
+                                                  className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                                                  autoFocus
+                                                />
+                                                {isSearchingLocations && (
+                                                  <div className="py-2 text-center text-xs text-gray-500">
+                                                    <Icon name="FaSpinner" className="w-3 h-3 animate-spin inline mr-1" />
+                                                    Searching...
+                                                  </div>
+                                                )}
+                                                {locationSearchResults.length > 0 && (
+                                                  <div className="mt-2 max-h-40 overflow-y-auto space-y-1">
+                                                    {locationSearchResults.map((loc) => (
+                                                      <button
+                                                        key={loc.locationCode}
+                                                        onClick={() => handleSelectLocation(loc.locationCode, loc.locationName)}
+                                                        className="w-full text-left px-2 py-1.5 text-sm hover:bg-blue-50 rounded flex items-center justify-between"
+                                                      >
+                                                        <span>{loc.locationName}</span>
+                                                        {loc.locationType && (
+                                                          <span className="text-xs text-gray-400">{loc.locationType}</span>
+                                                        )}
+                                                      </button>
+                                                    ))}
+                                                  </div>
+                                                )}
+                                                {locationSearchQuery.length >= 2 && !isSearchingLocations && locationSearchResults.length === 0 && (
+                                                  <div className="py-2 text-center text-xs text-gray-500">
+                                                    No locations found
+                                                  </div>
+                                                )}
+                                                <button
+                                                  onClick={() => setShowLocationSelector(false)}
+                                                  className="mt-2 w-full text-center text-xs text-gray-500 hover:text-gray-700"
+                                                >
+                                                  Cancel
+                                                </button>
+                                              </div>
+                                            ) : (
+                                              <div className="flex items-center gap-2">
+                                                <button
+                                                  onClick={() => setShowLocationSelector(true)}
+                                                  className="flex-1 px-2 py-1.5 text-xs text-gray-600 hover:text-gray-800 bg-white/80 hover:bg-white rounded border border-gray-200 transition-colors flex items-center justify-center gap-1"
+                                                >
+                                                  <Icon name="FaMapMarker" className="w-3 h-3" />
+                                                  Change location
+                                                </button>
+                                                <button
+                                                  onClick={() => handleVolumeLookup()}
+                                                  disabled={isLookingUpVolume}
+                                                  className="flex-1 px-2 py-1.5 text-xs text-blue-600 hover:text-blue-700 bg-white/80 hover:bg-white rounded border border-blue-200 transition-colors flex items-center justify-center gap-1 disabled:opacity-50"
+                                                >
+                                                  {isLookingUpVolume ? (
+                                                    <Icon name="FaSpinner" className="w-3 h-3 animate-spin" />
+                                                  ) : (
+                                                    <Icon name="FaRedo" className="w-3 h-3" />
+                                                  )}
+                                                  Refresh
+                                                </button>
+                                              </div>
+                                            )}
+                                          </div>
+                                        )}
+                                      </div>
+                                    ) : (
+                                      /* No volume data yet - show lookup button */
                                       <button
                                         onClick={() => handleVolumeLookup()}
                                         disabled={isLookingUpVolume}
-                                        className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 border border-blue-200 transition-colors disabled:opacity-50"
+                                        className="w-full text-sm text-blue-600 hover:text-blue-700 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-blue-50 hover:bg-blue-100 border border-blue-200 transition-colors disabled:opacity-50"
                                       >
                                         {isLookingUpVolume ? (
                                           <>
@@ -1165,171 +1296,10 @@ export function KeywordDetailsSidebar({
                                         ) : (
                                           <>
                                             <Icon name="FaSearch" className="w-3.5 h-3.5" />
-                                            {keyword.searchVolume !== null ? 'Refresh volume data' : 'Check search volume'}
+                                            Check search volume
                                           </>
                                         )}
                                       </button>
-                                    )}
-
-                                    {/* Volume lookup error */}
-                                    {volumeLookupError && (
-                                      <div className="mt-2 p-2 bg-red-50 border border-red-100 rounded-lg text-xs text-red-600 flex items-center gap-1.5">
-                                        <Icon name="FaExclamationTriangle" className="w-3 h-3" />
-                                        {volumeLookupError}
-                                      </div>
-                                    )}
-
-                                    {/* Volume data display */}
-                                    {keyword.searchVolume !== null && (
-                                      <div className="mt-3 p-3 bg-gradient-to-br from-blue-50/80 to-indigo-50/80 border border-blue-100/50 rounded-xl">
-                                        {/* Location indicator */}
-                                        <div className="flex items-center justify-between mb-2 pb-2 border-b border-blue-100/50">
-                                          <div className="flex items-center gap-1.5 text-xs text-gray-500">
-                                            <Icon name="FaMapMarker" className="w-3 h-3" />
-                                            <span>{keyword.searchVolumeLocationName || 'United States'}</span>
-                                          </div>
-                                          <button
-                                            onClick={() => setShowLocationSelector(!showLocationSelector)}
-                                            className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1"
-                                          >
-                                            <Icon name="FaEdit" className="w-2.5 h-2.5" />
-                                            Change
-                                          </button>
-                                        </div>
-
-                                        {/* Location selector dropdown */}
-                                        {showLocationSelector && (
-                                          <div className="mb-3 p-2 bg-white rounded-lg border border-gray-200">
-                                            <input
-                                              type="text"
-                                              value={locationSearchQuery}
-                                              onChange={(e) => handleLocationSearch(e.target.value)}
-                                              placeholder="Search locations..."
-                                              className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                                              autoFocus
-                                            />
-                                            {isSearchingLocations && (
-                                              <div className="py-2 text-center text-xs text-gray-500">
-                                                <Icon name="FaSpinner" className="w-3 h-3 animate-spin inline mr-1" />
-                                                Searching...
-                                              </div>
-                                            )}
-                                            {locationSearchResults.length > 0 && (
-                                              <div className="mt-2 max-h-40 overflow-y-auto space-y-1">
-                                                {locationSearchResults.map((loc) => (
-                                                  <button
-                                                    key={loc.locationCode}
-                                                    onClick={() => handleSelectLocation(loc.locationCode, loc.locationName)}
-                                                    className="w-full text-left px-2 py-1.5 text-sm hover:bg-blue-50 rounded flex items-center justify-between"
-                                                  >
-                                                    <span>{loc.locationName}</span>
-                                                    {loc.locationType && (
-                                                      <span className="text-xs text-gray-400">{loc.locationType}</span>
-                                                    )}
-                                                  </button>
-                                                ))}
-                                              </div>
-                                            )}
-                                            {locationSearchQuery.length >= 2 && !isSearchingLocations && locationSearchResults.length === 0 && (
-                                              <div className="py-2 text-center text-xs text-gray-500">
-                                                No locations found
-                                              </div>
-                                            )}
-                                            <button
-                                              onClick={() => setShowLocationSelector(false)}
-                                              className="mt-2 w-full text-center text-xs text-gray-500 hover:text-gray-700"
-                                            >
-                                              Cancel
-                                            </button>
-                                          </div>
-                                        )}
-
-                                        {/* Volume header with expand toggle */}
-                                        <button
-                                          onClick={() => setIsVolumeExpanded(!isVolumeExpanded)}
-                                          className="w-full flex items-center justify-between"
-                                        >
-                                          <div className="flex items-center gap-3">
-                                            <div>
-                                              <div className="text-xs text-gray-500">Estimated monthly searches</div>
-                                              <div className="text-lg font-bold text-gray-900">
-                                                {formatVolume(keyword.searchVolume)}
-                                              </div>
-                                            </div>
-                                            {keyword.competitionLevel && (
-                                              <span className={`px-2 py-0.5 rounded text-xs font-medium ${getCompetitionColor(keyword.competitionLevel)}`}>
-                                                {keyword.competitionLevel}
-                                              </span>
-                                            )}
-                                            {keyword.cpc && (
-                                              <div className="text-xs text-gray-500">
-                                                CPC: ${keyword.cpc.toFixed(2)}
-                                              </div>
-                                            )}
-                                          </div>
-                                          <Icon
-                                            name={isVolumeExpanded ? "FaChevronUp" : "FaChevronDown"}
-                                            className="w-4 h-4 text-gray-400"
-                                          />
-                                        </button>
-
-                                        {/* Expanded section */}
-                                        {isVolumeExpanded && (
-                                          <div className="mt-3 pt-3 border-t border-blue-100/50">
-                                            {/* Monthly trend chart */}
-                                            {keyword.searchVolumeTrend?.monthlyData && keyword.searchVolumeTrend.monthlyData.length > 0 && (
-                                              <div className="mb-4">
-                                                <div className="text-xs font-medium text-gray-600 mb-2">Search trend (12 months)</div>
-                                                <div className="flex items-end gap-0.5 h-16">
-                                                  {keyword.searchVolumeTrend.monthlyData.slice(-12).map((m, i) => {
-                                                    const maxVol = Math.max(...(keyword.searchVolumeTrend?.monthlyData || []).map(x => x.volume || 0));
-                                                    const height = maxVol > 0 ? ((m.volume || 0) / maxVol) * 100 : 0;
-                                                    return (
-                                                      <div
-                                                        key={i}
-                                                        className="flex-1 bg-blue-300/60 hover:bg-blue-400/80 rounded-t transition-colors"
-                                                        style={{ height: `${Math.max(height, 8)}%` }}
-                                                        title={`${m.volume?.toLocaleString() || 0} searches`}
-                                                      />
-                                                    );
-                                                  })}
-                                                </div>
-                                                <div className="flex gap-0.5 mt-1">
-                                                  {keyword.searchVolumeTrend.monthlyData.slice(-12).map((m, i) => {
-                                                    const monthNames = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
-                                                    return (
-                                                      <div key={i} className="flex-1 text-center text-[9px] text-gray-400">
-                                                        {monthNames[(m.month || 1) - 1]}
-                                                      </div>
-                                                    );
-                                                  })}
-                                                </div>
-                                              </div>
-                                            )}
-
-                                            {/* Last updated */}
-                                            {keyword.metricsUpdatedAt && (
-                                              <div className="mt-3 pt-2 border-t border-blue-100/50 flex items-center justify-between">
-                                                <span className="text-[10px] text-gray-400">
-                                                  Updated {new Date(keyword.metricsUpdatedAt).toLocaleDateString()}
-                                                </span>
-                                                <button
-                                                  onClick={() => handleVolumeLookup()}
-                                                  disabled={isLookingUpVolume}
-                                                  className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1 disabled:opacity-50"
-                                                >
-                                                  {isLookingUpVolume ? (
-                                                    <Icon name="FaSpinner" className="w-3 h-3 animate-spin" />
-                                                  ) : (
-                                                    <Icon name="FaSearch" className="w-3 h-3" />
-                                                  )}
-                                                  Refresh
-                                                </button>
-                                              </div>
-                                            )}
-                                          </div>
-                                        )}
-                                      </div>
                                     )}
                                   </div>
                                 )}
@@ -1426,14 +1396,31 @@ export function KeywordDetailsSidebar({
                                               <span className="text-xs text-gray-400">{stage.description}</span>
                                             </div>
                                             <div className="space-y-1.5 pl-2 border-l-2 border-gray-100">
-                                              {stageQuestions.map((q) => (
-                                                <div key={q.originalIndex} className="flex items-start gap-2 p-2 bg-white/80 rounded-lg border border-gray-100">
+                                              {stageQuestions.map((q) => {
+                                                const isExpanded = expandedQuestionIndex === q.originalIndex;
+                                                const providerResults = questionLLMMap.get(q.question);
+                                                const hasResults = providerResults && providerResults.size > 0;
+                                                const citedCount = hasResults
+                                                  ? Array.from(providerResults.values()).filter(r => r.domainCited).length
+                                                  : 0;
+                                                const checkResultForThis = lastCheckResult?.questionIndex === q.originalIndex ? lastCheckResult : null;
+
+                                                return (
+                                                <div key={q.originalIndex} className="bg-white/80 rounded-lg border border-gray-100 overflow-hidden">
+                                                  {/* Question header - clickable to expand */}
+                                                  <div
+                                                    className={`flex items-start gap-2 p-2 cursor-pointer hover:bg-gray-50/50 transition-colors ${
+                                                      isExpanded ? 'border-b border-gray-100' : ''
+                                                    }`}
+                                                    onClick={() => !isEditingSEO && setExpandedQuestionIndex(isExpanded ? null : q.originalIndex)}
+                                                  >
                                                   {isEditingSEO && (
                                                     <div className="relative group flex-shrink-0">
                                                       <select
                                                         value={q.funnelStage}
                                                         onChange={(e) => handleUpdateQuestionFunnel(q.originalIndex, e.target.value as FunnelStage)}
                                                         className={`px-1.5 py-0.5 text-xs rounded border-0 ${funnelColor.bg} ${funnelColor.text} cursor-pointer`}
+                                                        onClick={(e) => e.stopPropagation()}
                                                       >
                                                         <option value="top">Top</option>
                                                         <option value="middle">Mid</option>
@@ -1453,79 +1440,122 @@ export function KeywordDetailsSidebar({
                                                   <span className="flex-1 text-sm text-gray-700">{q.question}</span>
                                                   {isEditingSEO ? (
                                                     <button
-                                                      onClick={() => handleRemoveQuestion(q.originalIndex)}
+                                                      onClick={(e) => { e.stopPropagation(); handleRemoveQuestion(q.originalIndex); }}
                                                       className="p-1 text-gray-400 hover:text-red-500 rounded transition-colors flex-shrink-0"
                                                       title="Remove question"
                                                     >
                                                       <Icon name="FaTimes" className="w-3 h-3" />
                                                     </button>
                                                   ) : (
-                                                    /* LLM visibility badges + check button */
+                                                    /* LLM visibility summary badges + expand indicator */
                                                     <div className="flex items-center gap-1.5 flex-shrink-0">
-                                                      <div className="flex gap-0.5">
-                                                        {(() => {
-                                                          const providerResults = questionLLMMap.get(q.question);
-                                                          return selectedLLMProviders.map(provider => {
+                                                      {hasResults ? (
+                                                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                                                          citedCount > 0 ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+                                                        }`}>
+                                                          {citedCount}/{providerResults.size} cited
+                                                        </span>
+                                                      ) : (
+                                                        <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-400">
+                                                          Not checked
+                                                        </span>
+                                                      )}
+                                                      <Icon
+                                                        name={isExpanded ? "FaChevronUp" : "FaChevronDown"}
+                                                        className="w-3 h-3 text-gray-400"
+                                                      />
+                                                    </div>
+                                                  )}
+                                                  </div>
+
+                                                  {/* Expanded content - AI visibility details */}
+                                                  {isExpanded && !isEditingSEO && (
+                                                    <div className="p-3 bg-gray-50/50 space-y-3">
+                                                      {/* Check result message */}
+                                                      {checkResultForThis && (
+                                                        <div className={`p-2 rounded-lg text-sm flex items-center gap-2 ${
+                                                          checkResultForThis.success
+                                                            ? 'bg-green-50 text-green-700 border border-green-200'
+                                                            : 'bg-red-50 text-red-700 border border-red-200'
+                                                        }`}>
+                                                          <Icon
+                                                            name={checkResultForThis.success ? "FaCheckCircle" : "FaExclamationTriangle"}
+                                                            className="w-4 h-4 flex-shrink-0"
+                                                          />
+                                                          {checkResultForThis.message}
+                                                        </div>
+                                                      )}
+
+                                                      {/* Provider results grid */}
+                                                      <div className="space-y-2">
+                                                        <div className="text-xs font-medium text-gray-500 uppercase tracking-wider">AI visibility results</div>
+                                                        <div className="grid grid-cols-2 gap-2">
+                                                          {selectedLLMProviders.map(provider => {
                                                             const result = providerResults?.get(provider);
                                                             const colors = LLM_PROVIDER_COLORS[provider];
-                                                            const label = provider.charAt(0).toUpperCase();
 
-                                                            if (!result) {
-                                                              // Not checked - gray dot
-                                                              return (
-                                                                <span
-                                                                  key={provider}
-                                                                  className="w-4 h-4 rounded text-[9px] font-medium flex items-center justify-center bg-gray-100 text-gray-400"
-                                                                  title={`${LLM_PROVIDER_LABELS[provider]}: Not checked`}
-                                                                >
-                                                                  {label}
-                                                                </span>
-                                                              );
-                                                            }
-
-                                                            if (result.domainCited) {
-                                                              // Cited - green with check
-                                                              return (
-                                                                <span
-                                                                  key={provider}
-                                                                  className={`w-4 h-4 rounded text-[9px] font-medium flex items-center justify-center ${colors.bg} ${colors.text}`}
-                                                                  title={`${LLM_PROVIDER_LABELS[provider]}: Cited${result.citationPosition ? ` (#${result.citationPosition})` : ''}`}
-                                                                >
-                                                                  <Icon name="FaCheck" className="w-2 h-2" />
-                                                                </span>
-                                                              );
-                                                            }
-
-                                                            // Not cited - muted
                                                             return (
-                                                              <span
+                                                              <div
                                                                 key={provider}
-                                                                className="w-4 h-4 rounded text-[9px] font-medium flex items-center justify-center bg-gray-200 text-gray-500"
-                                                                title={`${LLM_PROVIDER_LABELS[provider]}: Not cited`}
+                                                                className={`p-2 rounded-lg border ${
+                                                                  result?.domainCited
+                                                                    ? 'bg-green-50 border-green-200'
+                                                                    : result
+                                                                      ? 'bg-gray-50 border-gray-200'
+                                                                      : 'bg-white border-gray-200'
+                                                                }`}
                                                               >
-                                                                {label}
-                                                              </span>
+                                                                <div className="flex items-center gap-1.5 mb-1">
+                                                                  <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${colors.bg} ${colors.text}`}>
+                                                                    {LLM_PROVIDER_LABELS[provider]}
+                                                                  </span>
+                                                                </div>
+                                                                {result ? (
+                                                                  <div className="text-xs">
+                                                                    {result.domainCited ? (
+                                                                      <span className="text-green-600 font-medium flex items-center gap-1">
+                                                                        <Icon name="FaCheckCircle" className="w-3 h-3" />
+                                                                        Cited{result.citationPosition ? ` (#${result.citationPosition})` : ''}
+                                                                      </span>
+                                                                    ) : (
+                                                                      <span className="text-gray-500">Not cited</span>
+                                                                    )}
+                                                                  </div>
+                                                                ) : (
+                                                                  <div className="text-xs text-gray-400">Not checked yet</div>
+                                                                )}
+                                                              </div>
                                                             );
-                                                          });
-                                                        })()}
+                                                          })}
+                                                        </div>
                                                       </div>
-                                                      {/* Per-question check button */}
+
+                                                      {/* Check button */}
                                                       <button
-                                                        onClick={() => handleCheckQuestion(q.originalIndex, q.question)}
+                                                        onClick={(e) => { e.stopPropagation(); handleCheckQuestion(q.originalIndex, q.question); }}
                                                         disabled={checkingQuestionIndex !== null || selectedLLMProviders.length === 0}
-                                                        className="p-1 text-purple-400 hover:text-purple-600 hover:bg-purple-50 rounded transition-colors disabled:opacity-50"
-                                                        title={`Check AI visibility (${selectedLLMProviders.length * LLM_CREDIT_COSTS[selectedLLMProviders[0] || 'chatgpt']} credits)`}
+                                                        className="w-full px-3 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
                                                       >
                                                         {checkingQuestionIndex === q.originalIndex ? (
-                                                          <Icon name="FaSpinner" className="w-3 h-3 animate-spin" />
+                                                          <>
+                                                            <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
+                                                            Checking AI visibility...
+                                                          </>
                                                         ) : (
-                                                          <Icon name="FaSearch" className="w-3 h-3" />
+                                                          <>
+                                                            <Icon name="prompty" className="w-4 h-4" />
+                                                            Check AI visibility ({selectedLLMProviders.length} {selectedLLMProviders.length === 1 ? 'provider' : 'providers'})
+                                                          </>
                                                         )}
                                                       </button>
+                                                      <p className="text-[10px] text-center text-gray-400">
+                                                        Uses {selectedLLMProviders.reduce((acc, p) => acc + LLM_CREDIT_COSTS[p], 0)} credits
+                                                      </p>
                                                     </div>
                                                   )}
                                                 </div>
-                                              ))}
+                                              );
+                                              })}
                                             </div>
                                           </div>
                                         );

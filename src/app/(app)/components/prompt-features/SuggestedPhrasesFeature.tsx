@@ -41,6 +41,8 @@ export interface SuggestedPhrasesFeatureProps {
   };
   /** Callback when a keyword is clicked (for showing details sidebar) */
   onKeywordClick?: (phrase: string) => void;
+  /** Prompt page ID for linking keywords to this page */
+  promptPageId?: string;
   /** Placeholder text for the input */
   placeholder?: string;
   /** Initial values for the component */
@@ -59,6 +61,7 @@ export default function SuggestedPhrasesFeature({
   onAutoRotateEnabledChange,
   businessInfo,
   onKeywordClick,
+  promptPageId,
   placeholder = "Enter keywords separated by commas (e.g., best pizza Seattle, wood-fired oven, authentic Italian)",
   initialData,
   disabled = false,
@@ -116,6 +119,7 @@ export default function SuggestedPhrasesFeature({
           placeholder={placeholder}
           businessInfo={businessInfo}
           onKeywordClick={onKeywordClick}
+          promptPageId={promptPageId}
         />
       </div>
 
