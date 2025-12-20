@@ -15,7 +15,14 @@ import {
   getFunnelStageShortLabel,
 } from '../keywordUtils';
 import { useRelatedQuestions } from '../hooks/useRelatedQuestions';
-import { LLMVisibilitySection } from '@/features/llm-visibility/components/LLMVisibilitySection';
+import { useLLMVisibility } from '@/features/llm-visibility/hooks/useLLMVisibility';
+import {
+  LLMProvider,
+  LLM_PROVIDERS,
+  LLM_PROVIDER_LABELS,
+  LLM_PROVIDER_COLORS,
+  LLM_CREDIT_COSTS,
+} from '@/features/llm-visibility/utils/types';
 import { useAuth } from '@/auth';
 
 // Types for rank status API response
@@ -176,6 +183,39 @@ export function KeywordDetailsSidebar({
   // Rank tracking status
   const [rankStatus, setRankStatus] = useState<RankStatusResponse | null>(null);
   const [rankStatusLoading, setRankStatusLoading] = useState(false);
+
+  // LLM visibility state
+  const [selectedLLMProviders, setSelectedLLMProviders] = useState<LLMProvider[]>(['chatgpt', 'claude']);
+  const {
+    results: llmResults,
+    isChecking: isCheckingLLM,
+    error: llmError,
+    fetchResults: fetchLLMResults,
+    runCheck: runLLMCheck,
+  } = useLLMVisibility({ keywordId: keyword?.id || '' });
+
+  // Build question -> provider -> result map for quick lookup
+  const questionLLMMap = new Map<string, Map<LLMProvider, { domainCited: boolean; citationPosition?: number | null }>>();
+  for (const result of llmResults) {
+    if (!questionLLMMap.has(result.question)) {
+      questionLLMMap.set(result.question, new Map());
+    }
+    const providerMap = questionLLMMap.get(result.question)!;
+    const existing = providerMap.get(result.llmProvider);
+    if (!existing || new Date(result.checkedAt) > new Date((existing as any).checkedAt || 0)) {
+      providerMap.set(result.llmProvider, {
+        domainCited: result.domainCited,
+        citationPosition: result.citationPosition,
+      });
+    }
+  }
+
+  // Fetch LLM results when sidebar opens
+  useEffect(() => {
+    if (keyword?.id && isOpen && keyword.relatedQuestions && keyword.relatedQuestions.length > 0) {
+      fetchLLMResults();
+    }
+  }, [keyword?.id, isOpen, fetchLLMResults]);
 
   // Fetch rank status when keyword changes and is used in rank tracking
   useEffect(() => {
@@ -1298,7 +1338,7 @@ export function KeywordDetailsSidebar({
                                                     </div>
                                                   )}
                                                   <span className="flex-1 text-sm text-gray-700">{q.question}</span>
-                                                  {isEditing && (
+                                                  {isEditing ? (
                                                     <button
                                                       onClick={() => handleRemoveQuestion(q.originalIndex)}
                                                       className="p-1 text-gray-400 hover:text-red-500 rounded transition-colors flex-shrink-0"
@@ -1306,6 +1346,55 @@ export function KeywordDetailsSidebar({
                                                     >
                                                       <Icon name="FaTimes" className="w-3 h-3" />
                                                     </button>
+                                                  ) : (
+                                                    /* LLM visibility badges */
+                                                    <div className="flex gap-0.5 flex-shrink-0">
+                                                      {(() => {
+                                                        const providerResults = questionLLMMap.get(q.question);
+                                                        return LLM_PROVIDERS.map(provider => {
+                                                          const result = providerResults?.get(provider);
+                                                          const colors = LLM_PROVIDER_COLORS[provider];
+                                                          const label = provider.charAt(0).toUpperCase();
+
+                                                          if (!result) {
+                                                            // Not checked - gray dot
+                                                            return (
+                                                              <span
+                                                                key={provider}
+                                                                className="w-4 h-4 rounded text-[9px] font-medium flex items-center justify-center bg-gray-100 text-gray-400"
+                                                                title={`${LLM_PROVIDER_LABELS[provider]}: Not checked`}
+                                                              >
+                                                                {label}
+                                                              </span>
+                                                            );
+                                                          }
+
+                                                          if (result.domainCited) {
+                                                            // Cited - green with check
+                                                            return (
+                                                              <span
+                                                                key={provider}
+                                                                className={`w-4 h-4 rounded text-[9px] font-medium flex items-center justify-center ${colors.bg} ${colors.text}`}
+                                                                title={`${LLM_PROVIDER_LABELS[provider]}: Cited${result.citationPosition ? ` (#${result.citationPosition})` : ''}`}
+                                                              >
+                                                                <Icon name="FaCheck" className="w-2 h-2" />
+                                                              </span>
+                                                            );
+                                                          }
+
+                                                          // Not cited - muted
+                                                          return (
+                                                            <span
+                                                              key={provider}
+                                                              className="w-4 h-4 rounded text-[9px] font-medium flex items-center justify-center bg-gray-200 text-gray-500"
+                                                              title={`${LLM_PROVIDER_LABELS[provider]}: Not cited`}
+                                                            >
+                                                              {label}
+                                                            </span>
+                                                          );
+                                                        });
+                                                      })()}
+                                                    </div>
                                                   )}
                                                 </div>
                                               ))}
@@ -1366,6 +1455,67 @@ export function KeywordDetailsSidebar({
                                 {isEditing && questionsAtLimit && (
                                   <p className="text-xs text-amber-600">Maximum of 20 questions reached</p>
                                 )}
+
+                                {/* Check LLM visibility button (view mode only) */}
+                                {!isEditing && keyword.relatedQuestions && keyword.relatedQuestions.length > 0 && (
+                                  <div className="mt-3 p-3 bg-purple-50/80 rounded-lg border border-purple-100">
+                                    <div className="flex items-center justify-between mb-2">
+                                      <span className="text-xs font-medium text-purple-700">AI visibility check</span>
+                                      {llmResults.length > 0 && (
+                                        <span className="text-xs text-purple-500">
+                                          {llmResults.filter(r => r.domainCited).length}/{llmResults.length} cited
+                                        </span>
+                                      )}
+                                    </div>
+                                    <div className="flex flex-wrap gap-1 mb-2">
+                                      {LLM_PROVIDERS.map(provider => {
+                                        const isSelected = selectedLLMProviders.includes(provider);
+                                        const colors = LLM_PROVIDER_COLORS[provider];
+                                        return (
+                                          <button
+                                            key={provider}
+                                            onClick={() => {
+                                              setSelectedLLMProviders(prev => {
+                                                if (prev.includes(provider)) {
+                                                  if (prev.length === 1) return prev;
+                                                  return prev.filter(p => p !== provider);
+                                                }
+                                                return [...prev, provider];
+                                              });
+                                            }}
+                                            className={`px-2 py-0.5 rounded text-xs font-medium transition-all ${
+                                              isSelected
+                                                ? `${colors.bg} ${colors.text} border ${colors.border}`
+                                                : 'bg-gray-100 text-gray-400 border border-gray-200'
+                                            }`}
+                                          >
+                                            {LLM_PROVIDER_LABELS[provider]}
+                                          </button>
+                                        );
+                                      })}
+                                    </div>
+                                    <button
+                                      onClick={() => runLLMCheck(selectedLLMProviders)}
+                                      disabled={isCheckingLLM || selectedLLMProviders.length === 0}
+                                      className="w-full py-1.5 px-3 rounded-lg text-xs font-medium bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+                                    >
+                                      {isCheckingLLM ? (
+                                        <>
+                                          <Icon name="FaSpinner" className="w-3 h-3 animate-spin" />
+                                          Checking...
+                                        </>
+                                      ) : (
+                                        <>
+                                          <Icon name="FaSearch" className="w-3 h-3" />
+                                          Check visibility ({keyword.relatedQuestions.length * selectedLLMProviders.reduce((sum, p) => sum + LLM_CREDIT_COSTS[p], 0)} credits)
+                                        </>
+                                      )}
+                                    </button>
+                                    {llmError && (
+                                      <p className="mt-1 text-xs text-red-600">{llmError}</p>
+                                    )}
+                                  </div>
+                                )}
                               </div>
                             </div>
                           </div>
@@ -1397,13 +1547,6 @@ export function KeywordDetailsSidebar({
                             </div>
                           )}
 
-                          {/* LLM Visibility Section */}
-                          {keyword.relatedQuestions && keyword.relatedQuestions.length > 0 && (
-                            <LLMVisibilitySection
-                              keywordId={keyword.id}
-                              questions={keyword.relatedQuestions}
-                            />
-                          )}
 
                           {/* Prompt pages */}
                           {promptPages.length > 0 && (
