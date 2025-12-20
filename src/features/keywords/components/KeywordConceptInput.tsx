@@ -90,6 +90,15 @@ export default function KeywordConceptInput({
   const [aiGenerated, setAiGenerated] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Search volume lookup state
+  const [volumeData, setVolumeData] = useState<Record<string, {
+    volume: number;
+    trend: 'rising' | 'falling' | 'stable' | null;
+    competitionLevel: string | null;
+  }>>({});
+  const [isLookingUpVolume, setIsLookingUpVolume] = useState<string | null>(null);
+  const [volumeError, setVolumeError] = useState<string | null>(null);
+
   const resetForm = useCallback(() => {
     setKeyword("");
     setReviewPhrase("");
@@ -102,8 +111,54 @@ export default function KeywordConceptInput({
     resetQuestions();
     setAiGenerated(false);
     setError(null);
+    setVolumeData({});
+    setVolumeError(null);
     setShowForm(false);
   }, [resetQuestions]);
+
+  // Search volume lookup handler
+  const handleVolumeLookup = useCallback(async (term: string) => {
+    setIsLookingUpVolume(term);
+    setVolumeError(null);
+
+    try {
+      const response = await apiClient.post("/rank-tracking/discovery", {
+        keyword: term,
+      }) as {
+        keyword: string;
+        volume: number;
+        trend: 'rising' | 'falling' | 'stable' | null;
+        competitionLevel: string | null;
+        error?: string;
+      };
+
+      setVolumeData(prev => ({
+        ...prev,
+        [term]: {
+          volume: response.volume,
+          trend: response.trend,
+          competitionLevel: response.competitionLevel,
+        },
+      }));
+    } catch (err: unknown) {
+      console.error("Volume lookup error:", err);
+      const apiError = err as { status?: number; message?: string };
+      if (apiError.status === 429) {
+        setVolumeError("Daily lookup limit reached. Try again tomorrow.");
+      } else {
+        setVolumeError(err instanceof Error ? err.message : "Failed to look up volume");
+      }
+    } finally {
+      setIsLookingUpVolume(null);
+    }
+  }, []);
+
+  // Format volume for display
+  const formatVolume = (vol: number) => {
+    if (vol >= 1000000) return `${(vol / 1000000).toFixed(1)}M`;
+    if (vol >= 1000) return `${(vol / 1000).toFixed(1)}K`;
+    return vol.toString();
+  };
 
   const handleGenerateWithAI = useCallback(async () => {
     if (!keyword.trim()) return;
@@ -393,32 +448,90 @@ export default function KeywordConceptInput({
           <span className="text-gray-400 font-normal ml-1">(used for rank tracking and Local Ranking Grid)</span>
         </label>
         {searchTerms.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 pb-1">
-            {searchTerms.map((st) => (
-              <span
-                key={st.term}
-                className={`inline-flex items-center gap-1 px-2.5 py-1 text-sm rounded ${
-                  st.isCanonical ? "bg-blue-100 text-blue-700" : "bg-gray-200 text-gray-700"
-                }`}
-              >
-                <button
-                  onClick={() => handleSetCanonical(st.term)}
-                  className={`${st.isCanonical ? "text-yellow-500" : "text-gray-400 hover:text-yellow-500"}`}
-                  title={st.isCanonical ? "Canonical term (shown when space is limited)" : "Set as canonical"}
+          <div className="space-y-1.5 pb-1">
+            {searchTerms.map((st) => {
+              const vol = volumeData[st.term];
+              const isLooking = isLookingUpVolume === st.term;
+              return (
+                <div
+                  key={st.term}
+                  className={`flex items-center gap-2 px-2.5 py-1.5 text-sm rounded ${
+                    st.isCanonical ? "bg-blue-100" : "bg-gray-100"
+                  }`}
                 >
-                  <Icon name={st.isCanonical ? "FaStar" : "FaRegStar"} size={12} />
-                </button>
-                {st.term}
-                <button
-                  onClick={() => handleRemoveSearchTerm(st.term)}
-                  className="text-gray-500 hover:text-gray-700 ml-1"
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </span>
-            ))}
+                  <button
+                    onClick={() => handleSetCanonical(st.term)}
+                    className={`flex-shrink-0 ${st.isCanonical ? "text-yellow-500" : "text-gray-400 hover:text-yellow-500"}`}
+                    title={st.isCanonical ? "Canonical term (shown when space is limited)" : "Set as canonical"}
+                  >
+                    <Icon name={st.isCanonical ? "FaStar" : "FaRegStar"} size={12} />
+                  </button>
+                  <span className={st.isCanonical ? "text-blue-700" : "text-gray-700"}>{st.term}</span>
+
+                  {/* Volume display or lookup button */}
+                  <div className="flex-1 flex items-center justify-end gap-2">
+                    {vol ? (
+                      <div className="flex items-center gap-1.5 text-xs">
+                        <span className="text-gray-500">{formatVolume(vol.volume)}/mo</span>
+                        {vol.trend && (
+                          <span className={`${
+                            vol.trend === 'rising' ? 'text-green-600' :
+                            vol.trend === 'falling' ? 'text-red-600' : 'text-gray-400'
+                          }`}>
+                            {vol.trend === 'rising' ? '↑' : vol.trend === 'falling' ? '↓' : '→'}
+                          </span>
+                        )}
+                        {vol.competitionLevel && (
+                          <span className={`px-1 py-0.5 rounded text-[10px] ${
+                            vol.competitionLevel === 'LOW' ? 'bg-green-100 text-green-700' :
+                            vol.competitionLevel === 'MEDIUM' ? 'bg-yellow-100 text-yellow-700' :
+                            'bg-red-100 text-red-700'
+                          }`}>
+                            {vol.competitionLevel}
+                          </span>
+                        )}
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => handleVolumeLookup(st.term)}
+                        disabled={isLooking}
+                        className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1 disabled:opacity-50"
+                        title="Check search volume"
+                      >
+                        {isLooking ? (
+                          <>
+                            <Icon name="FaSpinner" className="w-3 h-3 animate-spin" />
+                            <span>Checking...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Icon name="FaSearch" className="w-3 h-3" />
+                            <span>Check volume</span>
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
+
+                  <button
+                    onClick={() => handleRemoveSearchTerm(st.term)}
+                    className="flex-shrink-0 text-gray-500 hover:text-gray-700"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Volume lookup error */}
+        {volumeError && (
+          <div className="p-2 bg-red-50 border border-red-100 rounded-lg text-xs text-red-600 flex items-center gap-1.5">
+            <Icon name="FaExclamationTriangle" className="w-3 h-3" />
+            {volumeError}
           </div>
         )}
         {/* Relevance Warning */}
