@@ -579,7 +579,7 @@ export default function KeywordManager({
               className="px-4 py-2 text-sm font-medium text-white bg-slate-blue rounded-md hover:bg-slate-blue/90 flex items-center gap-2"
             >
               <Icon name="FaPlus" className="w-4 h-4" />
-              <span>New Group</span>
+              <span>Group</span>
             </button>
           </div>
         </div>
