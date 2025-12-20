@@ -1234,48 +1234,47 @@ export function KeywordDetailsSidebar({
 
                                 {/* Add new question (edit mode) */}
                                 {isEditing && !questionsAtLimit && (
-                                  <div className="space-y-2">
-                                    <label className="text-xs font-medium text-gray-500 block">Buyer&apos;s funnel</label>
-                                    <div className="relative group">
-                                      <select
-                                        value={newQuestionFunnel}
-                                        onChange={(e) => setNewQuestionFunnel(e.target.value as FunnelStage)}
-                                        className="w-full px-2 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-300 cursor-help"
-                                      >
-                                        <option value="top">Top of funnel (awareness)</option>
-                                        <option value="middle">Middle of funnel (consideration)</option>
-                                        <option value="bottom">Bottom of funnel (decision)</option>
-                                      </select>
-                                      <div className="absolute bottom-full left-0 mb-1 p-2 bg-gray-900 text-white text-xs rounded w-64 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none">
-                                        <div className="font-semibold mb-1">Marketing funnel stage</div>
-                                        <div className="space-y-0.5">
-                                          <div><span className="text-blue-300">Top:</span> Awareness - broad, educational questions</div>
-                                          <div><span className="text-amber-300">Middle:</span> Consideration - comparison questions</div>
-                                          <div><span className="text-green-300">Bottom:</span> Decision - purchase-intent questions</div>
+                                  <div className="space-y-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                                    <input
+                                      type="text"
+                                      value={newQuestionText}
+                                      onChange={(e) => setNewQuestionText(e.target.value)}
+                                      onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                          e.preventDefault();
+                                          handleAddQuestion();
+                                        }
+                                      }}
+                                      placeholder="Type your question..."
+                                      className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-300 transition-all"
+                                    />
+                                    <div className="flex items-center gap-2">
+                                      <div className="relative group flex-1">
+                                        <select
+                                          value={newQuestionFunnel}
+                                          onChange={(e) => setNewQuestionFunnel(e.target.value as FunnelStage)}
+                                          className="w-full px-2 py-1.5 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-300 cursor-help"
+                                        >
+                                          <option value="top">Top (awareness)</option>
+                                          <option value="middle">Middle (consideration)</option>
+                                          <option value="bottom">Bottom (decision)</option>
+                                        </select>
+                                        <div className="absolute bottom-full left-0 mb-1 p-2 bg-gray-900 text-white text-xs rounded w-64 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none">
+                                          <div className="font-semibold mb-1">Marketing funnel stage</div>
+                                          <div className="space-y-0.5">
+                                            <div><span className="text-blue-300">Top:</span> Awareness - broad, educational questions</div>
+                                            <div><span className="text-amber-300">Middle:</span> Consideration - comparison questions</div>
+                                            <div><span className="text-green-300">Bottom:</span> Decision - purchase-intent questions</div>
+                                          </div>
+                                          <div className="absolute top-full left-4 border-4 border-transparent border-t-gray-900" />
                                         </div>
-                                        <div className="absolute top-full left-4 border-4 border-transparent border-t-gray-900" />
                                       </div>
-                                    </div>
-                                    <div className="flex gap-2">
-                                      <input
-                                        type="text"
-                                        value={newQuestionText}
-                                        onChange={(e) => setNewQuestionText(e.target.value)}
-                                        onKeyDown={(e) => {
-                                          if (e.key === 'Enter') {
-                                            e.preventDefault();
-                                            handleAddQuestion();
-                                          }
-                                        }}
-                                        placeholder="Add a question..."
-                                        className="flex-1 px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-300 transition-all min-w-0"
-                                      />
                                       <button
                                         onClick={handleAddQuestion}
                                         disabled={!newQuestionText.trim()}
-                                        className="px-3 py-2 text-sm font-medium text-white bg-purple-500 rounded-lg hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex-shrink-0"
+                                        className="px-3 py-1.5 text-sm font-medium text-white bg-purple-500 rounded-lg hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex-shrink-0"
                                       >
-                                        <Icon name="FaPlus" className="w-3 h-3" />
+                                        Add question
                                       </button>
                                     </div>
                                   </div>
