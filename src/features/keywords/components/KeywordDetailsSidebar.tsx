@@ -614,12 +614,27 @@ export function KeywordDetailsSidebar({
                             <Dialog.Title className="text-xl font-bold text-white mt-1">{keyword.phrase}</Dialog.Title>
                           )}
                         </div>
-                        <button
-                          onClick={onClose}
-                          className="p-1.5 text-white/70 hover:text-white hover:bg-white/20 rounded-lg transition-colors"
-                        >
-                          <Icon name="FaTimes" className="w-5 h-5" />
-                        </button>
+                        <div className="flex items-center gap-2">
+                          {isAnyEditing && (
+                            <button
+                              onClick={async () => {
+                                if (isEditingReviews) await handleSaveReviews();
+                                if (isEditingSEO) await handleSaveSEO();
+                              }}
+                              disabled={isSaving}
+                              className="px-3 py-1.5 text-sm font-medium text-white bg-slate-blue rounded-lg hover:bg-slate-blue/90 disabled:opacity-50 flex items-center gap-1.5"
+                            >
+                              {isSaving && <Icon name="FaSpinner" className="w-3 h-3 animate-spin" />}
+                              Save
+                            </button>
+                          )}
+                          <button
+                            onClick={onClose}
+                            className="p-1.5 text-white/70 hover:text-white hover:bg-white/20 rounded-lg transition-colors"
+                          >
+                            <Icon name="FaTimes" className="w-5 h-5" />
+                          </button>
+                        </div>
                       </div>
 
                       {keyword && (
