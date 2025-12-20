@@ -47,6 +47,10 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  // Disable ESLint during build to prevent OOM on Vercel
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   // Performance optimizations
   experimental: {
     optimizePackageImports: ['react-icons', 'lucide-react'],
