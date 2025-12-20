@@ -1328,6 +1328,46 @@ export function KeywordDetailsSidebar({
                                 <p className="text-xs text-gray-500 mb-2">
                                   Questions for tracking &quot;People Also Ask&quot; and AI visibility.
                                 </p>
+
+                                {/* AI providers selector (view mode only, at top) */}
+                                {!isEditingSEO && keyword.relatedQuestions && keyword.relatedQuestions.length > 0 && (
+                                  <div className="mb-3 p-2 bg-purple-50/60 rounded-lg border border-purple-100/50">
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-[10px] font-medium text-purple-600">Check with:</span>
+                                      <div className="flex flex-wrap gap-1">
+                                        {LLM_PROVIDERS.map(provider => {
+                                          const isSelected = selectedLLMProviders.includes(provider);
+                                          const colors = LLM_PROVIDER_COLORS[provider];
+                                          return (
+                                            <button
+                                              key={provider}
+                                              onClick={() => {
+                                                setSelectedLLMProviders(prev => {
+                                                  if (prev.includes(provider)) {
+                                                    if (prev.length === 1) return prev;
+                                                    return prev.filter(p => p !== provider);
+                                                  }
+                                                  return [...prev, provider];
+                                                });
+                                              }}
+                                              className={`px-1.5 py-0.5 rounded text-[10px] font-medium transition-all ${
+                                                isSelected
+                                                  ? `${colors.bg} ${colors.text}`
+                                                  : 'bg-gray-100 text-gray-400'
+                                              }`}
+                                            >
+                                              {LLM_PROVIDER_LABELS[provider]}
+                                            </button>
+                                          );
+                                        })}
+                                      </div>
+                                    </div>
+                                    {llmError && (
+                                      <p className="mt-1 text-xs text-red-600">{llmError}</p>
+                                    )}
+                                  </div>
+                                )}
+
                                 {/* Questions list (view/edit) - grouped by funnel stage */}
                                 <div className="space-y-3 mb-3">
                                   {(() => {
@@ -1529,44 +1569,6 @@ export function KeywordDetailsSidebar({
                                   <p className="text-xs text-amber-600">Maximum of 20 questions reached</p>
                                 )}
 
-                                {/* AI providers selector (view mode only) */}
-                                {!isEditingSEO && keyword.relatedQuestions && keyword.relatedQuestions.length > 0 && (
-                                  <div className="mt-3 p-2 bg-purple-50/60 rounded-lg border border-purple-100/50">
-                                    <div className="flex items-center justify-between">
-                                      <span className="text-[10px] font-medium text-purple-600">AI providers to check:</span>
-                                      <div className="flex flex-wrap gap-1">
-                                        {LLM_PROVIDERS.map(provider => {
-                                          const isSelected = selectedLLMProviders.includes(provider);
-                                          const colors = LLM_PROVIDER_COLORS[provider];
-                                          return (
-                                            <button
-                                              key={provider}
-                                              onClick={() => {
-                                                setSelectedLLMProviders(prev => {
-                                                  if (prev.includes(provider)) {
-                                                    if (prev.length === 1) return prev;
-                                                    return prev.filter(p => p !== provider);
-                                                  }
-                                                  return [...prev, provider];
-                                                });
-                                              }}
-                                              className={`px-1.5 py-0.5 rounded text-[10px] font-medium transition-all ${
-                                                isSelected
-                                                  ? `${colors.bg} ${colors.text}`
-                                                  : 'bg-gray-100 text-gray-400'
-                                              }`}
-                                            >
-                                              {LLM_PROVIDER_LABELS[provider]}
-                                            </button>
-                                          );
-                                        })}
-                                      </div>
-                                    </div>
-                                    {llmError && (
-                                      <p className="mt-1 text-xs text-red-600">{llmError}</p>
-                                    )}
-                                  </div>
-                                )}
                               </div>
                             </div>
                           </div>
