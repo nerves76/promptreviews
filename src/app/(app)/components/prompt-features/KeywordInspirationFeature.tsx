@@ -196,7 +196,7 @@ export default function KeywordInspirationFeature({
               <ul className="space-y-1 text-green-700">
                 <li>• Adds a "Suggested phrases" button to your Prompt Page</li>
                 <li>• Customers click it to see phrase suggestions</li>
-                <li>• Each phrase has a copy button to add to their review</li>
+                <li>• Each phrase has an add button that inserts it into their review</li>
                 <li>• Automatically uses your first 10 keyword phrases</li>
               </ul>
             </div>
