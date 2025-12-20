@@ -558,18 +558,6 @@ export default function KeywordManager({
           {/* Action buttons - top right */}
           <div className="flex items-center gap-2">
             <button
-              onClick={handleGenerateClick}
-              disabled={isGenerating}
-              className="px-3 py-2 text-sm font-medium text-white bg-slate-blue rounded-md hover:bg-slate-blue/90 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2"
-            >
-              {isGenerating ? (
-                <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
-              ) : (
-                <Icon name="prompty" className="w-4 h-4" />
-              )}
-              <span>{isGenerating ? 'Generating...' : 'Generate'}</span>
-            </button>
-            <button
               onClick={() => setShowImportModal(true)}
               className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 flex items-center gap-2"
             >
@@ -783,8 +771,24 @@ export default function KeywordManager({
 
       {/* Add Keyword Section */}
       <div className="mb-4 p-4 bg-white border border-gray-200 rounded-lg">
-        <h3 className="text-base font-semibold text-gray-800">Add keyword concept</h3>
-        <p className="text-sm text-gray-500 mb-4">Track keywords across reviews, search rankings, and AI visibility.</p>
+        <div className="flex items-start justify-between mb-4">
+          <div>
+            <h3 className="text-base font-semibold text-gray-800">Add keyword concept</h3>
+            <p className="text-sm text-gray-500">Track keywords across reviews, search rankings, and AI visibility.</p>
+          </div>
+          <button
+            onClick={handleGenerateClick}
+            disabled={isGenerating}
+            className="px-3 py-1.5 text-sm font-medium text-slate-blue bg-white border border-slate-blue rounded-md hover:bg-slate-blue/5 disabled:text-gray-400 disabled:border-gray-300 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            {isGenerating ? (
+              <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
+            ) : (
+              <Icon name="prompty" className="w-4 h-4" />
+            )}
+            <span>{isGenerating ? 'Generating...' : 'Generate 10 concepts'}</span>
+          </button>
+        </div>
         <KeywordConceptInput
           onKeywordAdded={handleAddEnrichedKeyword}
           businessName={businessName}
