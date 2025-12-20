@@ -493,7 +493,7 @@ export function KeywordDetailsSidebar({
   return (
     <Transition.Root show={isOpen} as={Fragment}>
       <Dialog as="div" className="relative z-50" onClose={onClose}>
-        {/* Backdrop */}
+        {/* Backdrop - transparent, just for click-outside handling */}
         <Transition.Child
           as={Fragment}
           enter="ease-in-out duration-300"
@@ -503,7 +503,7 @@ export function KeywordDetailsSidebar({
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-gray-900/20 transition-opacity" />
+          <div className="fixed inset-0 transition-opacity" />
         </Transition.Child>
 
         <div className="fixed inset-0 overflow-hidden">
@@ -519,14 +519,14 @@ export function KeywordDetailsSidebar({
                 leaveTo="translate-x-full"
               >
                 <Dialog.Panel className="pointer-events-auto w-screen max-w-md h-full">
-                  <div className="h-full flex flex-col bg-white/80 backdrop-blur-xl shadow-2xl">
+                  <div className="h-full flex flex-col backdrop-blur-xl shadow-2xl">
                     <div className="flex-1 overflow-y-auto p-6">
                       {/* Header */}
                       <div className="flex items-start justify-between mb-6">
                         <div>
-                          <span className="text-xs font-medium uppercase tracking-wider text-gray-500">Keyword Concept</span>
+                          <span className="text-xs font-medium uppercase tracking-wider text-white/80">Keyword Concept</span>
                           {keyword && (
-                            <Dialog.Title className="text-xl font-bold text-gray-900 mt-1">{keyword.phrase}</Dialog.Title>
+                            <Dialog.Title className="text-xl font-bold text-white mt-1">{keyword.phrase}</Dialog.Title>
                           )}
                         </div>
                         <div className="flex items-center gap-2">
@@ -534,7 +534,7 @@ export function KeywordDetailsSidebar({
                           {keyword && !isEditing && (
                             <button
                               onClick={() => setIsEditing(true)}
-                              className="p-1.5 text-slate-blue hover:text-slate-blue/80 hover:bg-white/50 rounded-lg transition-colors"
+                              className="p-1.5 text-white hover:text-white/80 hover:bg-white/20 rounded-lg transition-colors"
                               title="Edit"
                             >
                               <Icon name="FaEdit" className="w-5 h-5" />
@@ -561,7 +561,7 @@ export function KeywordDetailsSidebar({
                           )}
                           <button
                             onClick={onClose}
-                            className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-white/50 rounded-lg transition-colors"
+                            className="p-1.5 text-white/70 hover:text-white hover:bg-white/20 rounded-lg transition-colors"
                           >
                             <Icon name="FaTimes" className="w-5 h-5" />
                           </button>
