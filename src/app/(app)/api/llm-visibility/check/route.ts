@@ -98,7 +98,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const questions: string[] = keyword.related_questions || [];
+    // Extract question strings from related_questions (which is now JSONB with { question, funnelStage, addedAt })
+    const relatedQuestions = keyword.related_questions || [];
+    const questions: string[] = relatedQuestions.map((q: { question: string } | string) =>
+      typeof q === 'string' ? q : q.question
+    ).filter(Boolean);
+
     if (questions.length === 0) {
       return NextResponse.json(
         { error: 'No related questions found. Add questions to the keyword first.' },

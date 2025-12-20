@@ -135,7 +135,12 @@ export async function GET(request: NextRequest) {
           continue;
         }
 
-        const questions: string[] = keyword.related_questions || [];
+        // Extract question strings from related_questions (JSONB with { question, funnelStage, addedAt })
+        const relatedQuestions = keyword.related_questions || [];
+        const questions: string[] = relatedQuestions.map((q: { question: string } | string) =>
+          typeof q === 'string' ? q : q.question
+        ).filter(Boolean);
+
         if (questions.length === 0) {
           console.log(`⏭️ [Scheduled LLMChecks] Keyword ${keywordId} has no questions, skipping`);
           results.skipped++;
