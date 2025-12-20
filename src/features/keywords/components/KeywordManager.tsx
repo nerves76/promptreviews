@@ -355,6 +355,9 @@ export default function KeywordManager({
     // Clear state
     setGeneratedKeywords([]);
     setSelectedGeneratedKeywords(new Set());
+
+    // Refresh to show the new keywords
+    refresh();
   };
 
   const handleCloseGenerator = () => {
