@@ -1291,7 +1291,11 @@ export function KeywordDetailsSidebar({
                                                   disabled={isLookingUpVolume}
                                                   className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1 disabled:opacity-50"
                                                 >
-                                                  <Icon name="FaRedo" className={`w-3 h-3 ${isLookingUpVolume ? 'animate-spin' : ''}`} />
+                                                  {isLookingUpVolume ? (
+                                                    <Icon name="FaSpinner" className="w-3 h-3 animate-spin" />
+                                                  ) : (
+                                                    <Icon name="FaSearch" className="w-3 h-3" />
+                                                  )}
                                                   Refresh
                                                 </button>
                                               </div>
