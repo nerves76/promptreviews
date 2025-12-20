@@ -415,8 +415,10 @@ export function KeywordDetailsSidebar({
   };
 
   // Format large numbers nicely
+  // Note: Google rounds low-volume keywords to 0, but they may still get traffic
   const formatVolume = (vol: number | null) => {
     if (vol === null || vol === undefined) return '-';
+    if (vol === 0) return '<10';
     if (vol >= 1000000) return `${(vol / 1000000).toFixed(1)}M`;
     if (vol >= 1000) return `${(vol / 1000).toFixed(1)}K`;
     return vol.toString();
@@ -1027,7 +1029,7 @@ export function KeywordDetailsSidebar({
                                         >
                                           <div className="flex items-center gap-3">
                                             <div>
-                                              <div className="text-xs text-gray-500">Monthly searches</div>
+                                              <div className="text-xs text-gray-500">Estimated monthly searches</div>
                                               <div className="text-lg font-bold text-gray-900">
                                                 {formatVolume(keyword.searchVolume)}
                                               </div>

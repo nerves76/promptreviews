@@ -159,7 +159,9 @@ export default function KeywordConceptInput({
   }, []);
 
   // Format volume for display
+  // Note: Google rounds low-volume keywords to 0, but they may still get traffic
   const formatVolume = (vol: number) => {
+    if (vol === 0) return '<10';
     if (vol >= 1000000) return `${(vol / 1000000).toFixed(1)}M`;
     if (vol >= 1000) return `${(vol / 1000).toFixed(1)}K`;
     return vol.toString();
