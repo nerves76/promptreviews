@@ -37,6 +37,11 @@ export async function GET(request: NextRequest) {
       .order('name', { ascending: true });
 
     if (groupsError) {
+      // If table doesn't exist, return empty list instead of error
+      if (groupsError.code === '42P01' || groupsError.message?.includes('does not exist')) {
+        console.warn('⚠️ keyword_groups table does not exist, returning empty list');
+        return NextResponse.json({ groups: [], ungroupedCount: 0 });
+      }
       console.error('❌ Failed to fetch keyword groups:', groupsError);
       return NextResponse.json(
         { error: 'Failed to fetch keyword groups' },
@@ -45,7 +50,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get keyword counts per group
-    const { data: keywordCounts } = await serviceSupabase
+    const { data: keywordCounts, error: keywordCountsError } = await serviceSupabase
       .from('keywords')
       .select('group_id')
       .eq('account_id', accountId);
@@ -53,11 +58,14 @@ export async function GET(request: NextRequest) {
     const countByGroup: Record<string, number> = {};
     let ungroupedCount = 0;
 
-    for (const kw of keywordCounts || []) {
-      if (kw.group_id) {
-        countByGroup[kw.group_id] = (countByGroup[kw.group_id] || 0) + 1;
-      } else {
-        ungroupedCount++;
+    // If keywords table doesn't exist, just use empty counts
+    if (!keywordCountsError) {
+      for (const kw of keywordCounts || []) {
+        if (kw.group_id) {
+          countByGroup[kw.group_id] = (countByGroup[kw.group_id] || 0) + 1;
+        } else {
+          ungroupedCount++;
+        }
       }
     }
 
