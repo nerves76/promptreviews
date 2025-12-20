@@ -140,8 +140,9 @@ export function KeywordDetailsSidebar({
   }>>([]);
   const [isSearchingLocations, setIsSearchingLocations] = useState(false);
 
-  // Local state for editing
-  const [isEditing, setIsEditing] = useState(false);
+  // Local state for editing - per section
+  const [isEditingReviews, setIsEditingReviews] = useState(false);
+  const [isEditingSEO, setIsEditingSEO] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [editedReviewPhrase, setEditedReviewPhrase] = useState(keyword?.reviewPhrase || '');
   const [editedSearchTerms, setEditedSearchTerms] = useState<SearchTerm[]>(keyword?.searchTerms || []);
@@ -243,13 +244,14 @@ export function KeywordDetailsSidebar({
       setEditedLocationScope(keyword.locationScope);
       setEditedGroupId(keyword.groupId);
       resetQuestions(keyword.relatedQuestions || []);
-      setIsEditing(false);
+      setIsEditingReviews(false);
+      setIsEditingSEO(false);
       setNewSearchTerm('');
       setRelevanceWarning(null);
     }
   }, [keyword, resetQuestions]);
 
-  const handleSave = async () => {
+  const handleSaveReviews = async () => {
     if (!keyword) return;
     setIsSaving(true);
     try {
@@ -260,8 +262,29 @@ export function KeywordDetailsSidebar({
 
       await onUpdate(keyword.id, {
         reviewPhrase: editedReviewPhrase || '',
-        searchTerms: editedSearchTerms,
         aliases,
+      });
+
+      // Refresh keyword details to show updated data
+      if (onRefresh) {
+        await onRefresh();
+      }
+
+      setIsEditingReviews(false);
+      setEnrichSuccess(false);
+    } catch (error) {
+      console.error('Failed to save keyword:', error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleSaveSEO = async () => {
+    if (!keyword) return;
+    setIsSaving(true);
+    try {
+      await onUpdate(keyword.id, {
+        searchTerms: editedSearchTerms,
         locationScope: editedLocationScope,
         relatedQuestions: editedQuestions.slice(0, 20), // Max 20 questions
         ...(showGroupSelector && { groupId: editedGroupId || undefined }),
@@ -272,7 +295,7 @@ export function KeywordDetailsSidebar({
         await onRefresh();
       }
 
-      setIsEditing(false);
+      setIsEditingSEO(false);
       setEnrichSuccess(false);
     } catch (error) {
       console.error('Failed to save keyword:', error);
@@ -281,15 +304,21 @@ export function KeywordDetailsSidebar({
     }
   };
 
-  const handleCancel = () => {
+  const handleCancelReviews = () => {
     if (!keyword) return;
     setEditedReviewPhrase(keyword.reviewPhrase || '');
-    setEditedSearchTerms(keyword.searchTerms || []);
     setEditedAliasesInput((keyword.aliases || []).join(', '));
+    setIsEditingReviews(false);
+    setEnrichSuccess(false);
+  };
+
+  const handleCancelSEO = () => {
+    if (!keyword) return;
+    setEditedSearchTerms(keyword.searchTerms || []);
     setEditedLocationScope(keyword.locationScope);
     setEditedGroupId(keyword.groupId);
     resetQuestions(keyword.relatedQuestions || []);
-    setIsEditing(false);
+    setIsEditingSEO(false);
     setEnrichSuccess(false);
     setNewSearchTerm('');
     setRelevanceWarning(null);
@@ -298,18 +327,18 @@ export function KeywordDetailsSidebar({
   // Question management wrappers (set editing mode when modified)
   const handleAddQuestion = () => {
     if (addQuestion()) {
-      setIsEditing(true);
+      setIsEditingSEO(true);
     }
   };
 
   const handleRemoveQuestion = (index: number) => {
     removeQuestion(index);
-    setIsEditing(true);
+    setIsEditingSEO(true);
   };
 
   const handleUpdateQuestionFunnel = (index: number, newStage: FunnelStage) => {
     updateQuestionFunnel(index, newStage);
-    setIsEditing(true);
+    setIsEditingSEO(true);
   };
 
   // Search term management functions
@@ -346,7 +375,7 @@ export function KeywordDetailsSidebar({
     setEditedSearchTerms([...editedSearchTerms, newTerm]);
     setNewSearchTerm('');
     setRelevanceWarning(null);
-    setIsEditing(true); // Ensure we're in editing mode
+    setIsEditingSEO(true); // Ensure we're in editing mode
   };
 
   const handleRemoveSearchTerm = (termToRemove: string) => {
@@ -356,7 +385,7 @@ export function KeywordDetailsSidebar({
       remaining[0].isCanonical = true;
     }
     setEditedSearchTerms(remaining);
-    setIsEditing(true);
+    setIsEditingSEO(true);
   };
 
   const handleSetCanonical = (term: string) => {
@@ -366,7 +395,7 @@ export function KeywordDetailsSidebar({
         isCanonical: t.term === term,
       }))
     );
-    setIsEditing(true);
+    setIsEditingSEO(true);
   };
 
   const handleDismissRelevanceWarning = () => {
@@ -382,6 +411,9 @@ export function KeywordDetailsSidebar({
   const hasEmptySEOFields = !keyword?.reviewPhrase ||
     (!keyword?.searchTerms || keyword.searchTerms.length === 0) ||
     (!keyword?.aliases || keyword.aliases.length === 0);
+
+  // Check if any section is in editing mode
+  const isAnyEditing = isEditingReviews || isEditingSEO;
 
   // AI enrichment handler
   const handleAIEnrich = async () => {
@@ -428,8 +460,9 @@ export function KeywordDetailsSidebar({
         // Handle related_questions - AI returns with funnel stages
         setEditedQuestions(response.enrichment.related_questions || []);
 
-        // Enable editing mode so user can review/modify before saving
-        setIsEditing(true);
+        // Enable both editing modes so user can review/modify before saving
+        setIsEditingReviews(true);
+        setIsEditingSEO(true);
         setEnrichSuccess(true);
       }
     } catch (error) {
@@ -569,43 +602,12 @@ export function KeywordDetailsSidebar({
                             <Dialog.Title className="text-xl font-bold text-white mt-1">{keyword.phrase}</Dialog.Title>
                           )}
                         </div>
-                        <div className="flex items-center gap-2">
-                          {/* Edit/Save buttons in header */}
-                          {keyword && !isEditing && (
-                            <button
-                              onClick={() => setIsEditing(true)}
-                              className="p-1.5 text-white hover:text-white/80 hover:bg-white/20 rounded-lg transition-colors"
-                              title="Edit"
-                            >
-                              <Icon name="FaEdit" className="w-5 h-5" />
-                            </button>
-                          )}
-                          {keyword && isEditing && (
-                            <>
-                              <button
-                                onClick={handleCancel}
-                                disabled={isSaving}
-                                className="px-3 py-1 text-sm text-gray-500 hover:text-gray-700 hover:bg-white/50 rounded-lg transition-colors"
-                              >
-                                Cancel
-                              </button>
-                              <button
-                                onClick={handleSave}
-                                disabled={isSaving}
-                                className="px-3 py-1 text-sm font-medium text-white bg-slate-blue rounded-lg hover:bg-slate-blue/90 disabled:opacity-50 flex items-center gap-1.5"
-                              >
-                                {isSaving && <Icon name="FaSpinner" className="w-3 h-3 animate-spin" />}
-                                Save
-                              </button>
-                            </>
-                          )}
-                          <button
-                            onClick={onClose}
-                            className="p-1.5 text-white/70 hover:text-white hover:bg-white/20 rounded-lg transition-colors"
-                          >
-                            <Icon name="FaTimes" className="w-5 h-5" />
-                          </button>
-                        </div>
+                        <button
+                          onClick={onClose}
+                          className="p-1.5 text-white/70 hover:text-white hover:bg-white/20 rounded-lg transition-colors"
+                        >
+                          <Icon name="FaTimes" className="w-5 h-5" />
+                        </button>
                       </div>
 
                       {keyword && (
@@ -776,7 +778,7 @@ export function KeywordDetailsSidebar({
                                         ).values()
                                       ).slice(0, 8).map((q, idx) => {
                                         const isAlreadySaved = keyword?.relatedQuestions?.some(rq => rq.question === q.question);
-                                        const canAdd = !isAlreadySaved && !limitReached && !isEditing;
+                                        const canAdd = !isAlreadySaved && !limitReached && !isEditingSEO;
                                         return (
                                           <div
                                             key={idx}
@@ -833,7 +835,7 @@ export function KeywordDetailsSidebar({
                           )}
 
                           {/* AI Generate section - prominent when fields are empty */}
-                          {hasEmptySEOFields && !isEditing && (
+                          {hasEmptySEOFields && !isAnyEditing && (
                             <div className="p-4 bg-gradient-to-br from-purple-50 to-indigo-50 border border-purple-200 rounded-xl">
                               <div className="flex items-center gap-3 mb-3">
                                 <div className="p-2 bg-purple-100 rounded-lg">
@@ -875,7 +877,7 @@ export function KeywordDetailsSidebar({
                           )}
 
                           {/* AI enrichment success message */}
-                          {enrichSuccess && isEditing && (
+                          {enrichSuccess && isAnyEditing && (
                             <div className="p-3 bg-purple-50 border border-purple-100 rounded-lg text-sm text-purple-700 flex items-center gap-2">
                               <Icon name="FaSparkles" className="w-4 h-4" />
                               Fields populated by AI - review and save
@@ -884,9 +886,38 @@ export function KeywordDetailsSidebar({
 
                           {/* REVIEWS SECTION */}
                           <div className="p-5 bg-white/60 backdrop-blur-sm border border-gray-100/50 rounded-xl">
-                            <div className="flex items-center gap-2 mb-4">
-                              <Icon name="FaStar" className="w-5 h-5 text-slate-blue" />
-                              <span className="text-lg font-semibold text-gray-800">Reviews</span>
+                            <div className="flex items-center justify-between mb-4">
+                              <div className="flex items-center gap-2">
+                                <Icon name="FaStar" className="w-5 h-5 text-slate-blue" />
+                                <span className="text-lg font-semibold text-gray-800">Reviews</span>
+                              </div>
+                              {!isEditingReviews ? (
+                                <button
+                                  onClick={() => setIsEditingReviews(true)}
+                                  className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                                  title="Edit reviews section"
+                                >
+                                  <Icon name="FaEdit" className="w-4 h-4" />
+                                </button>
+                              ) : (
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    onClick={handleCancelReviews}
+                                    disabled={isSaving}
+                                    className="px-2.5 py-1 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                                  >
+                                    Cancel
+                                  </button>
+                                  <button
+                                    onClick={handleSaveReviews}
+                                    disabled={isSaving}
+                                    className="px-2.5 py-1 text-xs font-medium text-white bg-slate-blue rounded-lg hover:bg-slate-blue/90 disabled:opacity-50 flex items-center gap-1"
+                                  >
+                                    {isSaving && <Icon name="FaSpinner" className="w-2.5 h-2.5 animate-spin" />}
+                                    Save
+                                  </button>
+                                </div>
+                              )}
                             </div>
 
                             <div className="space-y-5">
@@ -898,7 +929,7 @@ export function KeywordDetailsSidebar({
                                 <p className="text-xs text-gray-500 mb-2">
                                   This is the phrase used in AI Generate and the Suggested Reviews feature on Prompt Pages.
                                 </p>
-                                {isEditing ? (
+                                {isEditingReviews ? (
                                   <input
                                     type="text"
                                     value={editedReviewPhrase}
@@ -921,7 +952,7 @@ export function KeywordDetailsSidebar({
                                 <p className="text-xs text-gray-500 mb-2">
                                   Alternative spellings or phrases that count as mentions of this keyword.
                                 </p>
-                                {isEditing ? (
+                                {isEditingReviews ? (
                                   <input
                                     type="text"
                                     value={editedAliasesInput}
@@ -950,9 +981,38 @@ export function KeywordDetailsSidebar({
 
                           {/* SEARCH & LLM TRACKING SECTION */}
                           <div className="p-5 bg-white/60 backdrop-blur-sm border border-gray-100/50 rounded-xl">
-                            <div className="flex items-center gap-2 mb-4">
-                              <Icon name="FaChartLine" className="w-5 h-5 text-slate-blue" />
-                              <span className="text-lg font-semibold text-gray-800">SEO & LLM tracking</span>
+                            <div className="flex items-center justify-between mb-4">
+                              <div className="flex items-center gap-2">
+                                <Icon name="FaChartLine" className="w-5 h-5 text-slate-blue" />
+                                <span className="text-lg font-semibold text-gray-800">SEO & LLM tracking</span>
+                              </div>
+                              {!isEditingSEO ? (
+                                <button
+                                  onClick={() => setIsEditingSEO(true)}
+                                  className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                                  title="Edit SEO section"
+                                >
+                                  <Icon name="FaEdit" className="w-4 h-4" />
+                                </button>
+                              ) : (
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    onClick={handleCancelSEO}
+                                    disabled={isSaving}
+                                    className="px-2.5 py-1 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                                  >
+                                    Cancel
+                                  </button>
+                                  <button
+                                    onClick={handleSaveSEO}
+                                    disabled={isSaving}
+                                    className="px-2.5 py-1 text-xs font-medium text-white bg-slate-blue rounded-lg hover:bg-slate-blue/90 disabled:opacity-50 flex items-center gap-1"
+                                  >
+                                    {isSaving && <Icon name="FaSpinner" className="w-2.5 h-2.5 animate-spin" />}
+                                    Save
+                                  </button>
+                                </div>
+                              )}
                             </div>
 
                             <div className="space-y-5">
@@ -985,7 +1045,7 @@ export function KeywordDetailsSidebar({
                                           )}
                                           <span className="text-sm text-gray-700 truncate">{term.term}</span>
                                         </div>
-                                        {isEditing && (
+                                        {isEditingSEO && (
                                           <div className="flex items-center gap-1 flex-shrink-0">
                                             {!term.isCanonical && (
                                               <button
@@ -1015,7 +1075,7 @@ export function KeywordDetailsSidebar({
                                 )}
 
                                 {/* Add new term input */}
-                                {isEditing && (
+                                {isEditingSEO && (
                                   <div className="space-y-2">
                                     <div className="flex gap-2">
                                       <input
@@ -1079,7 +1139,7 @@ export function KeywordDetailsSidebar({
                                 )}
 
                                 {/* Search Volume Section - show for canonical term */}
-                                {!isEditing && editedSearchTerms.length > 0 && (
+                                {!isEditingSEO && editedSearchTerms.length > 0 && (
                                   <div className="mt-3">
                                     {/* Show lookup button if no data or stale */}
                                     {(keyword.searchVolume === null || isMetricsStale) && (
@@ -1273,9 +1333,9 @@ export function KeywordDetailsSidebar({
                                 {/* Questions list (view/edit) - grouped by funnel stage */}
                                 <div className="space-y-3 mb-3">
                                   {(() => {
-                                    const questions = isEditing ? editedQuestions : keyword.relatedQuestions;
+                                    const questions = isEditingSEO ? editedQuestions : keyword.relatedQuestions;
                                     if (!questions || questions.length === 0) {
-                                      if (!isEditing) {
+                                      if (!isEditingSEO) {
                                         return (
                                           <div className="text-sm text-gray-400 italic bg-white/80 px-3 py-2.5 rounded-lg border border-gray-100">
                                             No questions added
@@ -1315,7 +1375,7 @@ export function KeywordDetailsSidebar({
                                             <div className="space-y-1.5 pl-2 border-l-2 border-gray-100">
                                               {stageQuestions.map((q) => (
                                                 <div key={q.originalIndex} className="flex items-start gap-2 p-2 bg-white/80 rounded-lg border border-gray-100">
-                                                  {isEditing && (
+                                                  {isEditingSEO && (
                                                     <div className="relative group flex-shrink-0">
                                                       <select
                                                         value={q.funnelStage}
@@ -1338,7 +1398,7 @@ export function KeywordDetailsSidebar({
                                                     </div>
                                                   )}
                                                   <span className="flex-1 text-sm text-gray-700">{q.question}</span>
-                                                  {isEditing ? (
+                                                  {isEditingSEO ? (
                                                     <button
                                                       onClick={() => handleRemoveQuestion(q.originalIndex)}
                                                       className="p-1 text-gray-400 hover:text-red-500 rounded transition-colors flex-shrink-0"
@@ -1406,7 +1466,7 @@ export function KeywordDetailsSidebar({
                                 </div>
 
                                 {/* Add new question (edit mode) */}
-                                {isEditing && !questionsAtLimit && (
+                                {isEditingSEO && !questionsAtLimit && (
                                   <div className="space-y-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
                                     <input
                                       type="text"
@@ -1452,12 +1512,12 @@ export function KeywordDetailsSidebar({
                                     </div>
                                   </div>
                                 )}
-                                {isEditing && questionsAtLimit && (
+                                {isEditingSEO && questionsAtLimit && (
                                   <p className="text-xs text-amber-600">Maximum of 20 questions reached</p>
                                 )}
 
                                 {/* Check LLM visibility button (view mode only) */}
-                                {!isEditing && keyword.relatedQuestions && keyword.relatedQuestions.length > 0 && (
+                                {!isEditingSEO && keyword.relatedQuestions && keyword.relatedQuestions.length > 0 && (
                                   <div className="mt-3 p-3 bg-purple-50/80 rounded-lg border border-purple-100">
                                     <div className="flex items-center justify-between mb-2">
                                       <span className="text-xs font-medium text-purple-700">AI visibility check</span>
@@ -1526,7 +1586,7 @@ export function KeywordDetailsSidebar({
                               <label className="text-sm font-medium text-gray-700 block mb-2">
                                 Group
                               </label>
-                              {isEditing ? (
+                              {isEditingSEO ? (
                                 <select
                                   value={editedGroupId || ''}
                                   onChange={(e) => setEditedGroupId(e.target.value || null)}
