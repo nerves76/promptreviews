@@ -790,6 +790,7 @@ export default function KeywordManager({
               <Icon name="prompty" className="w-4 h-4" />
             )}
             <span>{isGenerating ? 'Generating...' : 'Generate 10 concepts'}</span>
+            {!isGenerating && <span className="text-slate-blue/60">(5 credits)</span>}
           </button>
         </div>
         <KeywordConceptInput
