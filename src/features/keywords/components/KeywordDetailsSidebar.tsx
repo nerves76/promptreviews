@@ -1289,9 +1289,9 @@ export function KeywordDetailsSidebar({
                                                 <button
                                                   onClick={() => handleVolumeLookup()}
                                                   disabled={isLookingUpVolume}
-                                                  className="text-[10px] text-blue-600 hover:text-blue-700 flex items-center gap-1 disabled:opacity-50"
+                                                  className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1 disabled:opacity-50"
                                                 >
-                                                  <Icon name="FaRedo" className={`w-2.5 h-2.5 ${isLookingUpVolume ? 'animate-spin' : ''}`} />
+                                                  <Icon name="FaRedo" className={`w-3 h-3 ${isLookingUpVolume ? 'animate-spin' : ''}`} />
                                                   Refresh
                                                 </button>
                                               </div>
