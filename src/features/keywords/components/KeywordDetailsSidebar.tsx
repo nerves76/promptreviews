@@ -900,23 +900,14 @@ export function KeywordDetailsSidebar({
                                   <Icon name="FaEdit" className="w-4 h-4" />
                                 </button>
                               ) : (
-                                <div className="flex items-center gap-2">
-                                  <button
-                                    onClick={handleCancelReviews}
-                                    disabled={isSaving}
-                                    className="px-2.5 py-1 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-                                  >
-                                    Cancel
-                                  </button>
-                                  <button
-                                    onClick={handleSaveReviews}
-                                    disabled={isSaving}
-                                    className="px-2.5 py-1 text-xs font-medium text-white bg-slate-blue rounded-lg hover:bg-slate-blue/90 disabled:opacity-50 flex items-center gap-1"
-                                  >
-                                    {isSaving && <Icon name="FaSpinner" className="w-2.5 h-2.5 animate-spin" />}
-                                    Save
-                                  </button>
-                                </div>
+                                <button
+                                  onClick={handleSaveReviews}
+                                  disabled={isSaving}
+                                  className="px-2.5 py-1 text-xs font-medium text-white bg-slate-blue rounded-lg hover:bg-slate-blue/90 disabled:opacity-50 flex items-center gap-1"
+                                >
+                                  {isSaving && <Icon name="FaSpinner" className="w-2.5 h-2.5 animate-spin" />}
+                                  Save
+                                </button>
                               )}
                             </div>
 
@@ -995,23 +986,14 @@ export function KeywordDetailsSidebar({
                                   <Icon name="FaEdit" className="w-4 h-4" />
                                 </button>
                               ) : (
-                                <div className="flex items-center gap-2">
-                                  <button
-                                    onClick={handleCancelSEO}
-                                    disabled={isSaving}
-                                    className="px-2.5 py-1 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-                                  >
-                                    Cancel
-                                  </button>
-                                  <button
-                                    onClick={handleSaveSEO}
-                                    disabled={isSaving}
-                                    className="px-2.5 py-1 text-xs font-medium text-white bg-slate-blue rounded-lg hover:bg-slate-blue/90 disabled:opacity-50 flex items-center gap-1"
-                                  >
-                                    {isSaving && <Icon name="FaSpinner" className="w-2.5 h-2.5 animate-spin" />}
-                                    Save
-                                  </button>
-                                </div>
+                                <button
+                                  onClick={handleSaveSEO}
+                                  disabled={isSaving}
+                                  className="px-2.5 py-1 text-xs font-medium text-white bg-slate-blue rounded-lg hover:bg-slate-blue/90 disabled:opacity-50 flex items-center gap-1"
+                                >
+                                  {isSaving && <Icon name="FaSpinner" className="w-2.5 h-2.5 animate-spin" />}
+                                  Save
+                                </button>
                               )}
                             </div>
 
@@ -1637,6 +1619,23 @@ export function KeywordDetailsSidebar({
                                   </div>
                                 ))}
                               </div>
+                            </div>
+                          )}
+
+                          {/* Bottom save button - shown when any section is being edited */}
+                          {isAnyEditing && (
+                            <div className="sticky bottom-0 pt-4 pb-2 -mx-6 px-6 bg-gradient-to-t from-white/95 via-white/90 to-transparent">
+                              <button
+                                onClick={async () => {
+                                  if (isEditingReviews) await handleSaveReviews();
+                                  if (isEditingSEO) await handleSaveSEO();
+                                }}
+                                disabled={isSaving}
+                                className="w-full py-2.5 text-sm font-medium text-white bg-slate-blue rounded-lg hover:bg-slate-blue/90 disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg"
+                              >
+                                {isSaving && <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />}
+                                Save changes
+                              </button>
                             </div>
                           )}
                         </div>
