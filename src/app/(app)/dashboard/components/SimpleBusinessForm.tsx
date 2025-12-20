@@ -330,7 +330,7 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
 
       console.log('[SimpleBusinessForm] Submitting with accountId:', accountId);
 
-      const responseData = await apiClient.post<{ business: any }>('/businesses', businessData);
+      const responseData = await apiClient.post<{ business: any; accountId?: string }>('/businesses', businessData);
       
       const business = responseData.business || responseData;
       const newAccountId = responseData.accountId; // Get the new account ID if created

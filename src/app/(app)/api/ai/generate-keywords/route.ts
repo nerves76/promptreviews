@@ -152,10 +152,12 @@ Return ONLY valid JSON, no additional text or markdown formatting.`;
         });
 
         const responseText = completion.choices[0].message.content;
+        console.log('[GENERATE-KEYWORDS] Raw AI response:', responseText);
         let keywords;
 
         try {
           const parsed = JSON.parse(responseText || "{}");
+          console.log('[GENERATE-KEYWORDS] Parsed response:', JSON.stringify(parsed, null, 2));
           keywords = parsed.keywords || parsed;
 
           // Ensure we have an array
@@ -178,6 +180,8 @@ Return ONLY valid JSON, no additional text or markdown formatting.`;
             }
             return kw;
           });
+          console.log('[GENERATE-KEYWORDS] Normalized keywords count:', keywords.length);
+          console.log('[GENERATE-KEYWORDS] First keyword:', JSON.stringify(keywords[0], null, 2));
         } catch (parseError) {
           console.error("Error parsing OpenAI response:", parseError);
           throw new Error("Failed to parse keyword suggestions");
