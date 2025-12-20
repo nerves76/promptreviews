@@ -378,16 +378,9 @@ export default function CreateBusinessClient() {
                 <h1 className="text-4xl font-bold text-slate-blue pt-2">
                   Create your business profile
                 </h1>
-                <div className="mt-6">
-                  <h2 className="text-xl font-bold text-slate-blue">
-                    Welcome! Let's get started
-                  </h2>
-                  <p className="mt-2 text-sm text-gray-600 max-w-[650px]">
-                    Let's create your business profile so you can start collecting reviews and growing your reputation online.
-                  </p>
-                  
-                  {/* Removed emergency dashboard banner per request */}
-                </div>
+                <p className="mt-3 text-sm text-gray-600 max-w-[650px]">
+                  Let's create your business profile so you can start collecting reviews and growing your reputation online.
+                </p>
               </div>
               
               {/* Desktop button - shows on larger screens */}
