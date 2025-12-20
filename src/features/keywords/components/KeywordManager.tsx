@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import Icon from '@/components/Icon';
+import Link from 'next/link';
 import KeywordGroupAccordion, { UngroupedKeywordsSection } from './KeywordGroupAccordion';
 import KeywordChip from './KeywordChip';
 import KeywordConceptInput from './KeywordConceptInput';
@@ -9,6 +10,8 @@ import { KeywordDetailsSidebar } from './KeywordDetailsSidebar';
 import { useKeywords, useKeywordDetails } from '../hooks/useKeywords';
 import { type KeywordData, type KeywordGroupData, DEFAULT_GROUP_NAME } from '../keywordUtils';
 import { apiClient } from '@/utils/apiClient';
+import { useBusinessData } from '@/auth/hooks/granularAuthHooks';
+import { validateBusinessForKeywordGeneration } from '@/utils/businessValidation';
 import { ArrowDownTrayIcon, ArrowUpTrayIcon, XMarkIcon, DocumentArrowDownIcon } from '@heroicons/react/24/outline';
 
 interface KeywordManagerProps {
@@ -62,11 +65,24 @@ export default function KeywordManager({
     deleteGroup,
   } = useKeywords({ includeUsage: true });
 
+  // Get business data for AI generation
+  const { business } = useBusinessData();
+
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedKeywordId, setSelectedKeywordId] = useState<string | null>(null);
   const [showNewGroupModal, setShowNewGroupModal] = useState(false);
   const [newGroupName, setNewGroupName] = useState('');
   const [editingGroup, setEditingGroup] = useState<KeywordGroupData | null>(null);
+
+  // AI Generation state
+  const [showGeneratorPanel, setShowGeneratorPanel] = useState(false);
+  const [showMissingFieldsError, setShowMissingFieldsError] = useState(false);
+  const [missingFields, setMissingFields] = useState<string[]>([]);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedKeywords, setGeneratedKeywords] = useState<{ searchTerm: string; reviewPhrase: string }[]>([]);
+  const [selectedGeneratedKeywords, setSelectedGeneratedKeywords] = useState<Set<number>>(new Set());
+  const [usageInfo, setUsageInfo] = useState<{ current: number; limit: number; remaining: number } | null>(null);
+  const [generatorError, setGeneratorError] = useState<string | null>(null);
 
   // Import/Export state
   const [showImportModal, setShowImportModal] = useState(false);
@@ -174,6 +190,178 @@ export default function KeywordManager({
   const handleKeywordRemove = async (keywordId: string) => {
     if (!confirm('Delete this keyword permanently?')) return;
     await deleteKeyword(keywordId);
+  };
+
+  // AI Generation handlers
+  const normalizeBusinessInfo = () => {
+    if (!business) return null;
+
+    let normalizedServices: string[] = [];
+    if (Array.isArray(business.services_offered)) {
+      normalizedServices = business.services_offered.filter(
+        (service: unknown) => typeof service === 'string' && (service as string).trim() !== ''
+      );
+    } else if (typeof business.services_offered === 'string') {
+      normalizedServices = (business.services_offered as string)
+        .split(',')
+        .map((service: string) => service.trim())
+        .filter(Boolean);
+    }
+
+    return {
+      name: business.name || '',
+      industry: Array.isArray(business.industry)
+        ? business.industry.filter(Boolean)
+        : business.industry
+          ? [business.industry].filter(Boolean)
+          : [],
+      industries_other: business.industries_other || business.industry_other || '',
+      address_city: business.address_city || '',
+      address_state: business.address_state || '',
+      about_us: business.about_us || '',
+      differentiators: business.differentiators || '',
+      years_in_business:
+        business.years_in_business !== undefined && business.years_in_business !== null
+          ? String(business.years_in_business)
+          : '',
+      services_offered: normalizedServices,
+      industries_served: business.industries_served || '',
+    };
+  };
+
+  const handleGenerateClick = async () => {
+    if (!business) {
+      setMissingFields([
+        'Business Name',
+        'Business Type/Industry',
+        'City',
+        'State',
+        'About Us',
+        'Differentiators',
+        'Years in Business',
+        'Services Offered',
+      ]);
+      setShowMissingFieldsError(true);
+      return;
+    }
+
+    if (business.name === 'Your Business' || !business.name) {
+      setMissingFields(['Business Name']);
+      setShowMissingFieldsError(true);
+      return;
+    }
+
+    const normalized = normalizeBusinessInfo();
+    if (!normalized) {
+      setMissingFields([
+        'Business Name',
+        'Business Type/Industry',
+        'City',
+        'State',
+        'About Us',
+        'Differentiators',
+        'Years in Business',
+        'Services Offered',
+      ]);
+      setShowMissingFieldsError(true);
+      return;
+    }
+
+    const validation = validateBusinessForKeywordGeneration(normalized);
+    if (!validation.isValid) {
+      setMissingFields(validation.missingFields);
+      setShowMissingFieldsError(true);
+      return;
+    }
+
+    // Show the panel and start generating
+    setShowGeneratorPanel(true);
+    setIsGenerating(true);
+    setGeneratorError(null);
+    setGeneratedKeywords([]);
+    setSelectedGeneratedKeywords(new Set());
+
+    try {
+      const data = await apiClient.post<{
+        keywords?: { searchTerm: string; reviewPhrase: string }[];
+        usage?: { current: number; limit: number; remaining: number };
+      }>('/ai/generate-keywords', {
+        businessName: normalized.name || '',
+        businessType: normalized.industry?.[0] || normalized.industries_other || '',
+        city: normalized.address_city || '',
+        state: normalized.address_state || '',
+        aboutUs: normalized.about_us || '',
+        differentiators: normalized.differentiators || '',
+        yearsInBusiness: normalized.years_in_business || '0',
+        servicesOffered: Array.isArray(normalized.services_offered) ? normalized.services_offered.join(', ') : '',
+        industriesServed: normalized.industries_served,
+      });
+
+      setGeneratedKeywords(data.keywords || []);
+      setUsageInfo(data.usage || null);
+      // Auto-select all keywords
+      const allIndices = new Set<number>((data.keywords || []).map((_, index) => index));
+      setSelectedGeneratedKeywords(allIndices);
+    } catch (err: any) {
+      console.error('Error generating keywords:', err);
+      setGeneratorError(err?.message || err?.error || 'An error occurred while generating keywords');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const toggleGeneratedKeyword = (index: number) => {
+    const newSelected = new Set(selectedGeneratedKeywords);
+    if (newSelected.has(index)) {
+      newSelected.delete(index);
+    } else {
+      newSelected.add(index);
+    }
+    setSelectedGeneratedKeywords(newSelected);
+  };
+
+  const toggleAllGeneratedKeywords = () => {
+    if (selectedGeneratedKeywords.size === generatedKeywords.length) {
+      setSelectedGeneratedKeywords(new Set());
+    } else {
+      setSelectedGeneratedKeywords(new Set(generatedKeywords.map((_, index) => index)));
+    }
+  };
+
+  const handleAddGeneratedKeywords = async () => {
+    const selectedPhrases = Array.from(selectedGeneratedKeywords).map(
+      (index) => generatedKeywords[index]
+    ).filter(Boolean);
+
+    if (selectedPhrases.length === 0) {
+      return;
+    }
+
+    // Close the panel for better UX
+    setShowGeneratorPanel(false);
+
+    // Add each keyword to the library with enriched data
+    for (const kw of selectedPhrases) {
+      await createEnrichedKeyword({
+        phrase: kw.reviewPhrase,
+        review_phrase: kw.reviewPhrase,
+        search_query: kw.searchTerm,
+        aliases: [],
+        location_scope: null,
+        ai_generated: true,
+      });
+    }
+
+    // Clear state
+    setGeneratedKeywords([]);
+    setSelectedGeneratedKeywords(new Set());
+  };
+
+  const handleCloseGenerator = () => {
+    setShowGeneratorPanel(false);
+    setGeneratedKeywords([]);
+    setSelectedGeneratedKeywords(new Set());
+    setGeneratorError(null);
   };
 
   // Handle export
@@ -370,6 +558,18 @@ export default function KeywordManager({
           {/* Action buttons - top right */}
           <div className="flex items-center gap-2">
             <button
+              onClick={handleGenerateClick}
+              disabled={isGenerating}
+              className="px-3 py-2 text-sm font-medium text-white bg-slate-blue rounded-md hover:bg-slate-blue/90 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {isGenerating ? (
+                <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
+              ) : (
+                <Icon name="prompty" className="w-4 h-4" />
+              )}
+              <span>{isGenerating ? 'Generating...' : 'Generate'}</span>
+            </button>
+            <button
               onClick={() => setShowImportModal(true)}
               className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 flex items-center gap-2"
             >
@@ -390,6 +590,193 @@ export default function KeywordManager({
               <Icon name="FaPlus" className="w-4 h-4" />
               <span>New Group</span>
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Missing Business Info Error Banner */}
+      {showMissingFieldsError && (
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <div className="flex items-start gap-3">
+            <Icon name="FaInfoCircle" className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+            <div className="flex-1">
+              <h4 className="text-sm font-semibold text-red-900 mb-2">Complete your business profile</h4>
+              <p className="text-sm text-red-800 mb-3">
+                To use the AI keyword generator, please complete the following business information:
+              </p>
+              <ul className="space-y-1 mb-3">
+                {missingFields.map((field, index) => (
+                  <li key={index} className="flex items-start gap-2">
+                    <span className="text-red-500 font-bold text-lg flex-shrink-0">×</span>
+                    <span className="text-sm text-red-800">{field}</span>
+                  </li>
+                ))}
+              </ul>
+              <div className="flex items-center gap-3">
+                <Link
+                  href="/dashboard/business-profile"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
+                >
+                  <Icon name="FaStore" className="w-3.5 h-3.5" />
+                  Go to business profile
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => setShowMissingFieldsError(false)}
+                  className="text-sm text-red-700 hover:text-red-900 underline"
+                >
+                  Dismiss
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* AI Keyword Generator Panel */}
+      {showGeneratorPanel && (
+        <div className="mb-4 border border-gray-200 rounded-lg bg-white shadow-lg overflow-hidden">
+          {/* Panel Header */}
+          <div className="bg-slate-blue px-4 py-3 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+                <Icon name="prompty" className="w-4 h-4 text-white" />
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-white">AI keyword generator</h4>
+                <p className="text-xs text-white/80">Generate SEO-optimized phrases for your reviews</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={handleCloseGenerator}
+              className="w-7 h-7 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 transition-colors"
+              aria-label="Close generator"
+            >
+              <Icon name="FaTimes" className="w-3.5 h-3.5 text-white" />
+            </button>
+          </div>
+
+          {/* Panel Content */}
+          <div className="p-4">
+            {/* Error State */}
+            {generatorError && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <div className="flex items-start gap-2">
+                  <Icon name="FaInfoCircle" className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium text-red-900">Error</p>
+                    <p className="text-sm text-red-700">{generatorError}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Loading State */}
+            {isGenerating && generatedKeywords.length === 0 && (
+              <div className="flex flex-col items-center justify-center py-8">
+                <Icon name="FaSpinner" className="w-8 h-8 text-slate-blue animate-spin mb-3" />
+                <p className="text-gray-700 font-medium">Generating keywords...</p>
+                <p className="text-gray-500 text-sm mt-1">
+                  AI is creating 10 SEO-optimized keyword ideas for {business?.name}
+                </p>
+              </div>
+            )}
+
+            {/* Keywords Table */}
+            {generatedKeywords.length > 0 && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h5 className="text-sm font-semibold text-gray-900">
+                    Generated keywords ({selectedGeneratedKeywords.size} selected)
+                  </h5>
+                </div>
+
+                <div className="border border-gray-200 rounded-lg overflow-hidden">
+                  <div className="max-h-64 overflow-y-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50 sticky top-0">
+                        <tr>
+                          <th className="w-10 px-3 py-2 text-left">
+                            <input
+                              type="checkbox"
+                              checked={selectedGeneratedKeywords.size === generatedKeywords.length}
+                              onChange={toggleAllGeneratedKeywords}
+                              className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
+                            />
+                          </th>
+                          <th className="px-3 py-2 text-left">
+                            <div className="text-xs font-bold text-gray-900">Review phrase</div>
+                            <div className="text-xs font-normal text-gray-500">Added to library</div>
+                          </th>
+                          <th className="px-3 py-2 text-left">
+                            <div className="text-xs font-bold text-gray-900">Search term</div>
+                            <div className="text-xs font-normal text-gray-500">Target query</div>
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200 bg-white">
+                        {generatedKeywords.map((kw, index) => (
+                          <tr
+                            key={index}
+                            className={`hover:bg-gray-50 cursor-pointer transition-colors ${
+                              selectedGeneratedKeywords.has(index) ? 'bg-indigo-50' : ''
+                            }`}
+                            onClick={() => toggleGeneratedKeyword(index)}
+                          >
+                            <td className="px-3 py-2">
+                              <input
+                                type="checkbox"
+                                checked={selectedGeneratedKeywords.has(index)}
+                                onChange={() => toggleGeneratedKeyword(index)}
+                                className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                            </td>
+                            <td className="px-3 py-2 text-sm text-gray-700">{kw.reviewPhrase}</td>
+                            <td className="px-3 py-2 text-sm font-medium text-gray-900">{kw.searchTerm}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={handleGenerateClick}
+                      disabled={isGenerating}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      {isGenerating ? (
+                        <>
+                          <Icon name="FaSpinner" className="w-3 h-3 animate-spin" />
+                          <span>Generating...</span>
+                        </>
+                      ) : (
+                        <span>Regenerate</span>
+                      )}
+                    </button>
+                    {usageInfo && (
+                      <span className="text-xs text-gray-500">
+                        {usageInfo.current}/{usageInfo.limit} this month
+                      </span>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleAddGeneratedKeywords}
+                    disabled={selectedGeneratedKeywords.size === 0}
+                    className="px-3 py-1.5 text-xs font-medium text-white bg-slate-blue rounded-lg hover:bg-opacity-90 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                  >
+                    Add {selectedGeneratedKeywords.size} keyword{selectedGeneratedKeywords.size !== 1 ? 's' : ''} to library
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
