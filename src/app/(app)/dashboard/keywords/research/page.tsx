@@ -9,7 +9,9 @@ import {
   ArrowTrendingUpIcon,
   ArrowTrendingDownIcon,
   MinusIcon,
+  BookmarkIcon,
 } from '@heroicons/react/24/outline';
+import { BookmarkIcon as BookmarkIconSolid } from '@heroicons/react/24/solid';
 import Icon from '@/components/Icon';
 import PageCard from '@/app/(app)/components/PageCard';
 import { Button } from '@/app/(app)/components/ui/button';
@@ -33,9 +35,15 @@ export default function KeywordResearchPage() {
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [addedKeywords, setAddedKeywords] = useState<Set<string>>(new Set());
   const [addingKeyword, setAddingKeyword] = useState<string | null>(null);
+  const [savedResults, setSavedResults] = useState<Set<string>>(new Set());
+  const [savingResult, setSavingResult] = useState<string | null>(null);
 
   const { discover, getSuggestions, isLoading, error, isRateLimited, remainingLookups } = useKeywordDiscovery();
   const { refresh: refreshLibrary } = useKeywords({ autoFetch: false });
+
+  // Get current location code for lookups
+  const getLocationCode = () => location?.code || 2840; // Default to USA
+  const getLocationName = () => location?.name || 'United States';
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
@@ -51,10 +59,44 @@ export default function KeywordResearchPage() {
     setSuggestions(suggestionsResult);
   };
 
-  const handleAddToLibrary = async (keyword: string, volume: number, cpc: number | null) => {
+  /**
+   * Save a research result (term + volume data) without adding to library.
+   * Stores in keyword_research_results table for later use.
+   */
+  const handleSaveResult = async (keyword: string, resultData: any) => {
+    setSavingResult(keyword);
+    try {
+      await apiClient.post('/keyword-research/save', {
+        term: keyword,
+        searchVolume: resultData.searchVolume ?? null,
+        cpc: resultData.cpc ?? null,
+        competition: resultData.competitionValue ?? null,
+        competitionLevel: resultData.competition ?? null,
+        searchVolumeTrend: resultData.monthlyTrend ? {
+          monthlyData: resultData.monthlyTrend.map((m: any) => ({
+            month: m.month,
+            year: m.year,
+            volume: m.volume,
+          })),
+        } : null,
+        monthlySearches: resultData.monthlyTrend ?? null,
+        locationCode: getLocationCode(),
+        locationName: getLocationName(),
+      });
+
+      setSavedResults(prev => new Set([...prev, keyword]));
+    } catch (err) {
+      console.error('Failed to save result:', err);
+    } finally {
+      setSavingResult(null);
+    }
+  };
+
+  const handleAddToLibrary = async (keyword: string, volume: number, cpc: number | null, resultData?: any) => {
     setAddingKeyword(keyword);
     try {
-      await apiClient.post('/keywords', {
+      // First, create the keyword concept
+      const response = await apiClient.post<{ keyword: { id: string } }>('/keywords', {
         phrase: keyword,
         review_phrase: keyword,
         search_query: keyword,
@@ -62,6 +104,29 @@ export default function KeywordResearchPage() {
         location_scope: null,
         ai_generated: false,
       });
+
+      // Then save the research result linked to this keyword
+      if (response?.keyword?.id && resultData) {
+        await apiClient.post('/keyword-research/save', {
+          term: keyword,
+          searchVolume: resultData.searchVolume ?? volume ?? null,
+          cpc: resultData.cpc ?? cpc ?? null,
+          competition: resultData.competitionValue ?? null,
+          competitionLevel: resultData.competition ?? null,
+          searchVolumeTrend: resultData.monthlyTrend ? {
+            monthlyData: resultData.monthlyTrend.map((m: any) => ({
+              month: m.month,
+              year: m.year,
+              volume: m.volume,
+            })),
+          } : null,
+          monthlySearches: resultData.monthlyTrend ?? null,
+          locationCode: getLocationCode(),
+          locationName: getLocationName(),
+          keywordId: response.keyword.id,
+        });
+        setSavedResults(prev => new Set([...prev, keyword]));
+      }
 
       setAddedKeywords(prev => new Set([...prev, keyword]));
       await refreshLibrary();
@@ -263,22 +328,43 @@ export default function KeywordResearchPage() {
                     )}
                   </div>
                 </div>
-                <Button
-                  onClick={() => handleAddToLibrary(result.keyword, result.searchVolume, result.cpc)}
-                  disabled={addedKeywords.has(result.keyword) || addingKeyword === result.keyword}
-                  variant={addedKeywords.has(result.keyword) ? 'outline' : 'default'}
-                >
-                  {addedKeywords.has(result.keyword) ? (
-                    'Added'
-                  ) : addingKeyword === result.keyword ? (
-                    'Adding...'
-                  ) : (
-                    <>
-                      <PlusIcon className="w-4 h-4 mr-1" />
-                      Add to Library
-                    </>
-                  )}
-                </Button>
+                <div className="flex items-center gap-2">
+                  {/* Save result button */}
+                  <button
+                    onClick={() => handleSaveResult(result.keyword, result)}
+                    disabled={savedResults.has(result.keyword) || savingResult === result.keyword}
+                    className={`p-2 rounded-lg transition-colors ${
+                      savedResults.has(result.keyword)
+                        ? 'text-blue-600 bg-blue-50'
+                        : 'text-gray-400 hover:text-blue-600 hover:bg-blue-50'
+                    }`}
+                    title={savedResults.has(result.keyword) ? 'Saved' : 'Save result'}
+                  >
+                    {savingResult === result.keyword ? (
+                      <Icon name="FaSpinner" className="w-5 h-5 animate-spin" />
+                    ) : savedResults.has(result.keyword) ? (
+                      <BookmarkIconSolid className="w-5 h-5" />
+                    ) : (
+                      <BookmarkIcon className="w-5 h-5" />
+                    )}
+                  </button>
+                  <Button
+                    onClick={() => handleAddToLibrary(result.keyword, result.searchVolume, result.cpc, result)}
+                    disabled={addedKeywords.has(result.keyword) || addingKeyword === result.keyword}
+                    variant={addedKeywords.has(result.keyword) ? 'outline' : 'default'}
+                  >
+                    {addedKeywords.has(result.keyword) ? (
+                      'Added'
+                    ) : addingKeyword === result.keyword ? (
+                      'Adding...'
+                    ) : (
+                      <>
+                        <PlusIcon className="w-4 h-4 mr-1" />
+                        Add to Library
+                      </>
+                    )}
+                  </Button>
+                </div>
               </div>
 
               {/* Metrics */}
@@ -366,17 +452,39 @@ export default function KeywordResearchPage() {
                           )}
                         </div>
                       </div>
-                      <button
-                        onClick={() => handleAddToLibrary(sug.keyword, sug.searchVolume, sug.cpc)}
-                        disabled={addedKeywords.has(sug.keyword) || addingKeyword === sug.keyword}
-                        className={`text-sm px-3 py-1.5 rounded-lg transition-colors ${
-                          addedKeywords.has(sug.keyword)
-                            ? 'bg-green-100 text-green-700'
-                            : 'text-slate-blue hover:bg-slate-blue/10'
-                        }`}
-                      >
-                        {addedKeywords.has(sug.keyword) ? 'Added' : addingKeyword === sug.keyword ? 'Adding...' : 'Add'}
-                      </button>
+                      <div className="flex items-center gap-1.5">
+                        {/* Save button */}
+                        <button
+                          onClick={() => handleSaveResult(sug.keyword, sug)}
+                          disabled={savedResults.has(sug.keyword) || savingResult === sug.keyword}
+                          className={`p-1.5 rounded-lg transition-colors ${
+                            savedResults.has(sug.keyword)
+                              ? 'text-blue-600 bg-blue-50'
+                              : 'text-gray-400 hover:text-blue-600 hover:bg-blue-50'
+                          }`}
+                          title={savedResults.has(sug.keyword) ? 'Saved' : 'Save result'}
+                        >
+                          {savingResult === sug.keyword ? (
+                            <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
+                          ) : savedResults.has(sug.keyword) ? (
+                            <BookmarkIconSolid className="w-4 h-4" />
+                          ) : (
+                            <BookmarkIcon className="w-4 h-4" />
+                          )}
+                        </button>
+                        {/* Add to library button */}
+                        <button
+                          onClick={() => handleAddToLibrary(sug.keyword, sug.searchVolume, sug.cpc, sug)}
+                          disabled={addedKeywords.has(sug.keyword) || addingKeyword === sug.keyword}
+                          className={`text-sm px-3 py-1.5 rounded-lg transition-colors ${
+                            addedKeywords.has(sug.keyword)
+                              ? 'bg-green-100 text-green-700'
+                              : 'text-slate-blue hover:bg-slate-blue/10'
+                          }`}
+                        >
+                          {addedKeywords.has(sug.keyword) ? 'Added' : addingKeyword === sug.keyword ? 'Adding...' : 'Add'}
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>

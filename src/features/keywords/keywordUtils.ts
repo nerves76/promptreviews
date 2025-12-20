@@ -694,6 +694,30 @@ export function transformGroupToResponse(
 }
 
 /**
+ * Research result data from the keyword_research_results table.
+ */
+export interface ResearchResultData {
+  id: string;
+  term: string;
+  normalizedTerm: string;
+  searchVolume: number | null;
+  cpc: number | null;
+  competition: number | null;
+  competitionLevel: string | null;
+  searchVolumeTrend: {
+    monthlyData?: { month: number; year: number; volume: number }[];
+  } | null;
+  monthlySearches: Array<{ month: number; year: number; searchVolume: number }> | null;
+  locationCode: number;
+  locationName: string;
+  keywordId: string | null;
+  linkedAt: string | null;
+  researchedAt: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
  * Helper to ensure "General" group exists for an account.
  * Creates the group if it doesn't exist, returns the group ID.
  *

@@ -369,7 +369,6 @@ model users {
   google_business_profiles                   google_business_profiles[]
   google_business_scheduled_posts            google_business_scheduled_posts[]
   keyword_rotation_log                       keyword_rotation_log[]
-  keyword_sets                               keyword_sets[]
   media_assets                               media_assets[]
   mentions_mentions_author_idTousers         mentions[]                        @relation("mentions_author_idTousers")
   mentions_mentions_mentioned_user_idTousers mentions[]                        @relation("mentions_mentioned_user_idTousers")
@@ -463,115 +462,108 @@ model account_users {
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model accounts {
-  id                                  String                            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  plan                                String                            @default("no_plan")
-  trial_start                         DateTime?                         @db.Timestamptz(6)
-  trial_end                           DateTime?                         @db.Timestamptz(6)
-  is_free_account                     Boolean?                          @default(false)
-  custom_prompt_page_count            Int?                              @default(0)
-  contact_count                       Int?                              @default(0)
-  created_at                          DateTime?                         @default(now()) @db.Timestamptz(6)
-  updated_at                          DateTime?                         @default(now()) @db.Timestamptz(6)
-  business_name                       String?
-  first_name                          String?
-  last_name                           String?
-  stripe_customer_id                  String?
-  stripe_subscription_id              String?
-  subscription_status                 String?
-  has_had_paid_plan                   Boolean                           @default(false)
-  email                               String?
-  plan_lookup_key                     String?
-  review_notifications_enabled        Boolean?                          @default(true)
-  user_id                             String?                           @db.Uuid
-  max_users                           Int?                              @default(1)
-  location_count                      Int?                              @default(0)
-  max_locations                       Int?                              @default(0)
-  deleted_at                          DateTime?                         @db.Timestamptz(6)
-  is_admin                            Boolean?                          @default(false)
-  free_plan_level                     String?
-  promotion_code                      String?
-  max_contacts                        Int?                              @default(0)
-  max_prompt_pages                    Int?                              @default(3)
-  prompt_page_count                   Int?                              @default(0)
-  reactivated_at                      DateTime?                         @db.Timestamptz(6)
-  reactivation_count                  Int?                              @default(0)
-  last_cancellation_reason            String?
-  onboarding_step                     String?                           @default("incomplete")
-  prompt_page_status_labels           Json?                             @default("{\"sent\": \"Sent\", \"draft\": \"Draft\", \"complete\": \"Complete\", \"in_queue\": \"In Queue\", \"follow_up\": \"Follow Up\"}")
-  business_creation_complete          Boolean?                          @default(false)
-  billing_period                      String?                           @default("monthly")
-  max_gbp_locations                   Int?                              @default(5)
-  email_review_notifications          Boolean?                          @default(true)
-  gbp_insights_enabled                Boolean?                          @default(true)
-  is_additional_account               Boolean?                          @default(false)
-  had_paid_plan                       Boolean?                          @default(false)
-  created_by_user_id                  String?                           @db.Uuid
-  created_by                          String?                           @db.Uuid
-  sentiment_analyses_this_month       Int?                              @default(0)
-  sentiment_last_reset_date           DateTime?                         @default(dbgenerated("CURRENT_DATE")) @db.Date
-  keyword_analyses_this_month         Int?                              @default(0)
-  keyword_last_reset_date             DateTime?                         @db.Date
-  keyword_suggestions_this_month      Int?                              @default(0)
-  keyword_suggestions_last_reset_date DateTime?                         @db.Date
-  is_client_account                   Boolean?                          @default(false)
-  monthly_credit_allocation           Int?
-  account_events                      account_events[]
-  account_invitations                 account_invitations[]
-  account_users                       account_users[]
-  users                               users?                            @relation(fields: [created_by], references: [id], onUpdate: NoAction)
-  ai_usage                            ai_usage[]
-  audit_logs                          audit_logs[]
-  billing_audit_log                   billing_audit_log[]
-  business_locations                  business_locations[]
-  businesses                          businesses[]
-  campaign_actions                    campaign_actions[]
-  comments                            comments[]
-  communication_records               communication_records[]
-  communication_templates             communication_templates[]
-  contacts                            contacts[]
-  credit_balances                     credit_balances?
-  credit_ledger                       credit_ledger[]
-  email_domain_policies               email_domain_policies[]
-  follow_up_reminders                 follow_up_reminders[]
-  gbp_change_alerts                   gbp_change_alerts[]
-  gbp_location_snapshots              gbp_location_snapshots[]
-  gbp_protection_settings             gbp_protection_settings?
-  gg_checks                           gg_checks[]
-  gg_configs                          gg_configs[]
-  gg_daily_summary                    gg_daily_summary[]
-  gg_tracked_keywords                 gg_tracked_keywords[]
-  google_business_scheduled_posts     google_business_scheduled_posts[]
-  keyword_analysis_runs               keyword_analysis_runs[]
-  keyword_groups                      keyword_groups[]
-  keyword_prompt_page_usage           keyword_prompt_page_usage[]
-  keyword_review_matches_v2           keyword_review_matches_v2[]
-  keyword_rotation_log                keyword_rotation_log[]
-  keyword_sets                        keyword_sets[]
-  keywords                            keywords[]
-  llm_visibility_checks               llm_visibility_checks[]
-  llm_visibility_schedules            llm_visibility_schedules[]
-  llm_visibility_summary              llm_visibility_summary[]
-  notification_preferences            notification_preferences?
-  notifications                       notifications[]
-  onboarding_tasks                    onboarding_tasks[]
-  posts                               posts[]
-  prompt_pages                        prompt_pages[]
-  rank_checks                         rank_checks[]
-  rank_discovery_usage                rank_discovery_usage[]
-  rank_group_keywords                 rank_group_keywords[]
-  rank_keyword_groups                 rank_keyword_groups[]
-  review_keyword_matches              review_keyword_matches[]
-  review_reminder_logs                review_reminder_logs[]
-  review_share_events                 review_share_events[]
-  review_share_images                 review_share_images[]
-  selected_gbp_locations              selected_gbp_locations[]
-  sentiment_analysis_runs             sentiment_analysis_runs[]
-  social_platform_connections         social_platform_connections[]
-  trial_reminder_logs                 trial_reminder_logs[]
-  widgets                             widgets[]
-  wm_boards                           wm_boards?
-  wm_task_actions                     wm_task_actions[]
-  wm_tasks                            wm_tasks[]
+  id                              String                            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  plan                            String                            @default("no_plan")
+  trial_start                     DateTime?                         @db.Timestamptz(6)
+  trial_end                       DateTime?                         @db.Timestamptz(6)
+  is_free_account                 Boolean?                          @default(false)
+  custom_prompt_page_count        Int?                              @default(0)
+  contact_count                   Int?                              @default(0)
+  created_at                      DateTime?                         @default(now()) @db.Timestamptz(6)
+  updated_at                      DateTime?                         @default(now()) @db.Timestamptz(6)
+  business_name                   String?
+  first_name                      String?
+  last_name                       String?
+  stripe_customer_id              String?
+  stripe_subscription_id          String?
+  subscription_status             String?
+  has_had_paid_plan               Boolean                           @default(false)
+  email                           String?
+  plan_lookup_key                 String?
+  review_notifications_enabled    Boolean?                          @default(true)
+  user_id                         String?                           @db.Uuid
+  max_users                       Int?                              @default(1)
+  location_count                  Int?                              @default(0)
+  max_locations                   Int?                              @default(0)
+  deleted_at                      DateTime?                         @db.Timestamptz(6)
+  is_admin                        Boolean?                          @default(false)
+  free_plan_level                 String?
+  promotion_code                  String?
+  max_contacts                    Int?                              @default(0)
+  max_prompt_pages                Int?                              @default(3)
+  prompt_page_count               Int?                              @default(0)
+  reactivated_at                  DateTime?                         @db.Timestamptz(6)
+  reactivation_count              Int?                              @default(0)
+  last_cancellation_reason        String?
+  onboarding_step                 String?                           @default("incomplete")
+  prompt_page_status_labels       Json?                             @default("{\"sent\": \"Sent\", \"draft\": \"Draft\", \"complete\": \"Complete\", \"in_queue\": \"In Queue\", \"follow_up\": \"Follow Up\"}")
+  business_creation_complete      Boolean?                          @default(false)
+  billing_period                  String?                           @default("monthly")
+  max_gbp_locations               Int?                              @default(5)
+  email_review_notifications      Boolean?                          @default(true)
+  gbp_insights_enabled            Boolean?                          @default(true)
+  is_additional_account           Boolean?                          @default(false)
+  had_paid_plan                   Boolean?                          @default(false)
+  created_by_user_id              String?                           @db.Uuid
+  created_by                      String?                           @db.Uuid
+  keyword_last_reset_date         DateTime?                         @db.Date
+  is_client_account               Boolean?                          @default(false)
+  monthly_credit_allocation       Int?
+  account_events                  account_events[]
+  account_invitations             account_invitations[]
+  account_users                   account_users[]
+  users                           users?                            @relation(fields: [created_by], references: [id], onUpdate: NoAction)
+  ai_usage                        ai_usage[]
+  audit_logs                      audit_logs[]
+  billing_audit_log               billing_audit_log[]
+  business_locations              business_locations[]
+  businesses                      businesses[]
+  campaign_actions                campaign_actions[]
+  comments                        comments[]
+  communication_records           communication_records[]
+  communication_templates         communication_templates[]
+  contacts                        contacts[]
+  credit_balances                 credit_balances?
+  credit_ledger                   credit_ledger[]
+  email_domain_policies           email_domain_policies[]
+  follow_up_reminders             follow_up_reminders[]
+  gbp_change_alerts               gbp_change_alerts[]
+  gbp_location_snapshots          gbp_location_snapshots[]
+  gbp_protection_settings         gbp_protection_settings?
+  gg_checks                       gg_checks[]
+  gg_configs                      gg_configs[]
+  gg_daily_summary                gg_daily_summary[]
+  gg_tracked_keywords             gg_tracked_keywords[]
+  google_business_scheduled_posts google_business_scheduled_posts[]
+  keyword_groups                  keyword_groups[]
+  keyword_prompt_page_usage       keyword_prompt_page_usage[]
+  keyword_review_matches_v2       keyword_review_matches_v2[]
+  keyword_rotation_log            keyword_rotation_log[]
+  keywords                        keywords[]
+  llm_visibility_checks           llm_visibility_checks[]
+  llm_visibility_schedules        llm_visibility_schedules[]
+  llm_visibility_summary          llm_visibility_summary[]
+  notification_preferences        notification_preferences?
+  notifications                   notifications[]
+  onboarding_tasks                onboarding_tasks[]
+  posts                           posts[]
+  prompt_pages                    prompt_pages[]
+  rank_checks                     rank_checks[]
+  rank_discovery_usage            rank_discovery_usage[]
+  rank_group_keywords             rank_group_keywords[]
+  rank_keyword_groups             rank_keyword_groups[]
+  review_keyword_matches          review_keyword_matches[]
+  review_reminder_logs            review_reminder_logs[]
+  review_share_events             review_share_events[]
+  review_share_images             review_share_images[]
+  selected_gbp_locations          selected_gbp_locations[]
+  sentiment_analysis_runs         sentiment_analysis_runs[]
+  social_platform_connections     social_platform_connections[]
+  trial_reminder_logs             trial_reminder_logs[]
+  widgets                         widgets[]
+  wm_boards                       wm_boards?
+  wm_task_actions                 wm_task_actions[]
+  wm_tasks                        wm_tasks[]
 
   @@index([billing_period], map: "idx_accounts_billing_period")
   @@index([created_at], map: "idx_accounts_created_at")
@@ -1536,7 +1528,6 @@ model google_business_locations {
   account_id             String                   @db.Uuid
   gg_configs             gg_configs[]
   users                  users                    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  keyword_set_locations  keyword_set_locations[]
   review_keyword_matches review_keyword_matches[]
   review_submissions     review_submissions[]
 
@@ -1665,74 +1656,6 @@ model invitation_events {
   @@index([created_at], map: "idx_invitation_events_created_at")
   @@index([invitation_id], map: "idx_invitation_events_invitation_id")
   @@index([event_type, created_at], map: "idx_invitation_events_type_date")
-  @@schema("public")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model keyword_analysis_runs {
-  id                     String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  account_id             String    @db.Uuid
-  run_date               DateTime  @default(now()) @db.Timestamptz(6)
-  review_count_analyzed  Int       @default(0)
-  date_range_start       DateTime? @db.Timestamptz(6)
-  date_range_end         DateTime? @db.Timestamptz(6)
-  keywords_analyzed      String[]  @default([])
-  results_json           Json      @default("[]")
-  total_mentions         Int       @default(0)
-  keywords_with_mentions Int       @default(0)
-  created_at             DateTime  @default(now()) @db.Timestamptz(6)
-  accounts               accounts  @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@index([account_id, run_date(sort: Desc)], map: "idx_keyword_analysis_runs_account_date")
-  @@index([account_id], map: "idx_keyword_analysis_runs_account_id")
-  @@index([run_date(sort: Desc)], map: "idx_keyword_analysis_runs_run_date")
-  @@schema("public")
-}
-
-model keyword_set_locations {
-  id                          String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  keyword_set_id              String                    @db.Uuid
-  google_business_location_id String                    @db.Uuid
-  created_at                  DateTime?                 @default(now()) @db.Timestamptz(6)
-  google_business_locations   google_business_locations @relation(fields: [google_business_location_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  keyword_sets                keyword_sets              @relation(fields: [keyword_set_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@unique([keyword_set_id, google_business_location_id], map: "idx_keyword_set_locations_unique")
-  @@schema("public")
-}
-
-model keyword_set_terms {
-  id                     String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  keyword_set_id         String                   @db.Uuid
-  phrase                 String
-  normalized_phrase      String
-  created_at             DateTime?                @default(now()) @db.Timestamptz(6)
-  keyword_sets           keyword_sets             @relation(fields: [keyword_set_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  review_keyword_matches review_keyword_matches[]
-
-  @@unique([keyword_set_id, normalized_phrase], map: "idx_keyword_set_terms_unique_phrase")
-  @@schema("public")
-}
-
-/// This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
-model keyword_sets {
-  id                     String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  account_id             String                   @db.Uuid
-  name                   String
-  scope_type             String                   @default("account")
-  scope_payload          Json?                    @default("{}")
-  created_by             String?                  @db.Uuid
-  is_active              Boolean?                 @default(true)
-  created_at             DateTime?                @default(now()) @db.Timestamptz(6)
-  updated_at             DateTime?                @default(now()) @db.Timestamptz(6)
-  keyword_set_locations  keyword_set_locations[]
-  keyword_set_terms      keyword_set_terms[]
-  accounts               accounts                 @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  users                  users?                   @relation(fields: [created_by], references: [id], onUpdate: NoAction)
-  review_keyword_matches review_keyword_matches[]
-
-  @@index([account_id], map: "idx_keyword_sets_account_id")
   @@schema("public")
 }
 
@@ -2276,7 +2199,7 @@ model rate_limit_counters {
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model review_drafts {
-  id                 String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id                 String    @id @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
   prompt_page_id     String?   @db.Uuid
   platform           String?
   review_text        String?
@@ -2303,8 +2226,6 @@ model review_keyword_matches {
   created_at                  DateTime?                  @default(now()) @db.Timestamptz(6)
   accounts                    accounts                   @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   google_business_locations   google_business_locations? @relation(fields: [google_business_location_id], references: [id], onUpdate: NoAction)
-  keyword_sets                keyword_sets               @relation(fields: [keyword_set_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  keyword_set_terms           keyword_set_terms          @relation(fields: [keyword_term_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   review_submissions          review_submissions         @relation(fields: [review_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@unique([review_id, keyword_term_id], map: "idx_review_keyword_matches_unique")
@@ -2519,7 +2440,7 @@ model selected_gbp_locations {
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model sentiment_analysis_runs {
-  id                      String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id                      String    @id @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
   account_id              String    @db.Uuid
   run_date                DateTime? @default(now()) @db.Timestamptz(6)
   review_count_analyzed   Int
@@ -2976,6 +2897,7 @@ model keywords {
   last_used_in_review_at                                                     DateTime?                   @db.Timestamptz(6)
   created_at                                                                 DateTime?                   @default(now()) @db.Timestamptz(6)
   updated_at                                                                 DateTime?                   @default(now()) @db.Timestamptz(6)
+  related_questions                                                          Json?                       @default("[]")
   review_phrase                                                              String?
   search_query                                                               String?
   aliases                                                                    String[]                    @default([])
@@ -2994,7 +2916,6 @@ model keywords {
   search_volume_trend                                                        Json?
   metrics_updated_at                                                         DateTime?                   @db.Timestamptz(6)
   search_terms                                                               Json?                       @default("[]")
-  related_questions                                                          Json?                       @default("[]")
   search_volume_location_code                                                Int?
   search_volume_location_name                                                String?
   gg_checks                                                                  gg_checks[]

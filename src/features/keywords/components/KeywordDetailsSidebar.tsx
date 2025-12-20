@@ -10,9 +10,11 @@ import {
   type SearchTerm,
   type RelatedQuestion,
   type FunnelStage,
+  type ResearchResultData,
   checkSearchTermRelevance,
   getFunnelStageColor,
   getFunnelStageShortLabel,
+  normalizePhrase,
 } from '../keywordUtils';
 import { useRelatedQuestions } from '../hooks/useRelatedQuestions';
 import { useLLMVisibility } from '@/features/llm-visibility/hooks/useLLMVisibility';
@@ -184,6 +186,11 @@ export function KeywordDetailsSidebar({
   const [rankStatus, setRankStatus] = useState<RankStatusResponse | null>(null);
   const [rankStatusLoading, setRankStatusLoading] = useState(false);
 
+  // Per-term volume data from keyword_research_results
+  const [termVolumeData, setTermVolumeData] = useState<Map<string, ResearchResultData>>(new Map());
+  const [isLoadingTermVolume, setIsLoadingTermVolume] = useState(false);
+  const [checkingTermVolume, setCheckingTermVolume] = useState<string | null>(null);
+
   // LLM visibility state
   const [selectedLLMProviders, setSelectedLLMProviders] = useState<LLMProvider[]>(['chatgpt', 'claude']);
   const [checkingQuestionIndex, setCheckingQuestionIndex] = useState<number | null>(null);
@@ -263,6 +270,29 @@ export function KeywordDetailsSidebar({
       fetchLLMResults();
     }
   }, [keyword?.id, isOpen, fetchLLMResults]);
+
+  // Fetch per-term volume data when sidebar opens
+  useEffect(() => {
+    if (keyword?.id && isOpen) {
+      setIsLoadingTermVolume(true);
+      apiClient
+        .get<{ results: ResearchResultData[] }>(`/keyword-research/results?keywordId=${keyword.id}`)
+        .then((response) => {
+          const map = new Map<string, ResearchResultData>();
+          for (const r of response.results) {
+            map.set(r.normalizedTerm, r);
+          }
+          setTermVolumeData(map);
+        })
+        .catch((err) => {
+          console.error('Failed to fetch term volume data:', err);
+          setTermVolumeData(new Map());
+        })
+        .finally(() => setIsLoadingTermVolume(false));
+    } else {
+      setTermVolumeData(new Map());
+    }
+  }, [keyword?.id, isOpen]);
 
   // Fetch rank status when keyword changes and is used in rank tracking
   useEffect(() => {
@@ -584,6 +614,82 @@ export function KeywordDetailsSidebar({
     setLocationSearchResults([]);
   };
 
+  // Check volume for a specific search term
+  const handleCheckTermVolume = async (term: string) => {
+    if (!keyword) return;
+    setCheckingTermVolume(term);
+    try {
+      // Use the keyword discovery API to get volume data
+      const response = await apiClient.post<{
+        keyword: string;
+        searchVolume: number;
+        cpc: number | null;
+        competition: string | null;
+        competitionLevel: string | null;
+        trend: string | null;
+        monthlyTrend: Array<{ month: number; year: number; volume: number }> | null;
+      }>('/rank-tracking/discover', {
+        keyword: term,
+        locationCode: keyword.searchVolumeLocationCode || 2840,
+      });
+
+      // Save the result linked to this keyword
+      await apiClient.post('/keyword-research/save', {
+        term,
+        searchVolume: response.searchVolume,
+        cpc: response.cpc,
+        competition: null,
+        competitionLevel: response.competitionLevel,
+        searchVolumeTrend: response.monthlyTrend ? {
+          monthlyData: response.monthlyTrend.map((m) => ({
+            month: m.month,
+            year: m.year,
+            volume: m.volume,
+          })),
+        } : null,
+        monthlySearches: response.monthlyTrend,
+        locationCode: keyword.searchVolumeLocationCode || 2840,
+        locationName: keyword.searchVolumeLocationName || 'United States',
+        keywordId: keyword.id,
+      });
+
+      // Update local state
+      const normalizedTerm = normalizePhrase(term);
+      setTermVolumeData((prev) => {
+        const newMap = new Map(prev);
+        newMap.set(normalizedTerm, {
+          id: '', // Will be set by API
+          term,
+          normalizedTerm,
+          searchVolume: response.searchVolume,
+          cpc: response.cpc,
+          competition: null,
+          competitionLevel: response.competitionLevel,
+          searchVolumeTrend: response.monthlyTrend ? {
+            monthlyData: response.monthlyTrend.map((m) => ({
+              month: m.month,
+              year: m.year,
+              volume: m.volume,
+            })),
+          } : null,
+          monthlySearches: response.monthlyTrend,
+          locationCode: keyword.searchVolumeLocationCode || 2840,
+          locationName: keyword.searchVolumeLocationName || 'United States',
+          keywordId: keyword.id,
+          linkedAt: new Date().toISOString(),
+          researchedAt: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        });
+        return newMap;
+      });
+    } catch (err) {
+      console.error('Failed to check term volume:', err);
+    } finally {
+      setCheckingTermVolume(null);
+    }
+  };
+
   // Format large numbers nicely
   // Note: Google rounds low-volume keywords to 0, but they may still get traffic
   const formatVolume = (vol: number | null) => {
@@ -655,10 +761,10 @@ export function KeywordDetailsSidebar({
                           {/* Header + Stats card combined */}
                           <div className="p-4 bg-white/60 backdrop-blur-sm border border-gray-100/50 rounded-xl">
                             {/* Header */}
-                            <div className="flex items-start justify-between mb-4">
-                              <div>
-                                <span className="text-xs font-medium uppercase tracking-wider text-gray-500">Keyword Concept</span>
-                                <Dialog.Title className="text-xl font-bold text-slate-blue mt-1">{keyword.phrase}</Dialog.Title>
+                            <div className="flex items-start justify-between mb-3">
+                              <div className="flex items-center gap-2">
+                                <Icon name="FaStar" className="w-5 h-5 text-slate-blue" />
+                                <Dialog.Title className="text-lg font-bold text-gray-900">{keyword.phrase}</Dialog.Title>
                               </div>
                               {isAnyEditing && (
                                 <button
@@ -674,27 +780,52 @@ export function KeywordDetailsSidebar({
                                 </button>
                               )}
                             </div>
+
                             {/* Stats grid */}
-                            <div className="grid grid-cols-2 gap-3 text-sm pt-3 border-t border-gray-100">
-                            <div>
-                              <span className="text-gray-500 block text-xs">Word count</span>
-                              <span className="font-medium">{keyword.wordCount}</span>
+                            <div className="grid grid-cols-5 gap-3 text-sm pt-3 mt-3 border-t border-gray-100">
+                              <div>
+                                <span className="text-gray-500 block text-xs">Words</span>
+                                <span className="font-medium">{keyword.wordCount}</span>
+                              </div>
+                              <div>
+                                <span className="text-gray-500 block text-xs">Pages</span>
+                                <span className={`font-medium ${promptPages.length > 0 ? 'text-green-600' : 'text-gray-400'}`}>
+                                  {promptPages.length}
+                                </span>
+                              </div>
+                              <div>
+                                <span className="text-gray-500 block text-xs">Reviews</span>
+                                <span className="font-medium">{keyword.reviewUsageCount}</span>
+                              </div>
+                              {(() => {
+                                const terms = Array.from(termVolumeData.values());
+                                const totalVolume = terms.reduce((sum, t) => sum + (t.searchVolume || 0), 0);
+                                const allLowVolume = terms.length > 0 && terms.every(t => (t.searchVolume || 0) < 10);
+
+                                return (
+                                  <div
+                                    className="cursor-help"
+                                    title={`Total monthly search volume from ${termVolumeData.size} researched term${termVolumeData.size === 1 ? '' : 's'}. Click "Check volume" on search terms to add more.`}
+                                  >
+                                    <span className="text-gray-500 block text-xs flex items-center gap-1">
+                                      Volume
+                                      <Icon name="FaInfoCircle" className="w-2.5 h-2.5 text-gray-400" />
+                                    </span>
+                                    <span className={`font-medium ${termVolumeData.size > 0 ? 'text-blue-600' : 'text-gray-400'}`}>
+                                      {termVolumeData.size === 0
+                                        ? '—'
+                                        : allLowVolume
+                                          ? '<10'
+                                          : formatVolume(totalVolume)}
+                                    </span>
+                                  </div>
+                                );
+                              })()}
+                              <div>
+                                <span className="text-gray-500 block text-xs">Group</span>
+                                <span className="font-medium truncate block">{keyword.groupName || 'None'}</span>
+                              </div>
                             </div>
-                            <div>
-                              <span className="text-gray-500 block text-xs">Prompt pages</span>
-                              <span className={`font-medium ${promptPages.length > 0 ? 'text-green-600' : 'text-gray-400'}`}>
-                                {promptPages.length}
-                              </span>
-                            </div>
-                            <div>
-                              <span className="text-gray-500 block text-xs">In reviews</span>
-                              <span className="font-medium">{keyword.reviewUsageCount}</span>
-                            </div>
-                            <div>
-                              <span className="text-gray-500 block text-xs">Group</span>
-                              <span className="font-medium">{keyword.groupName || 'None'}</span>
-                            </div>
-                          </div>
                           </div>
 
                           {/* Rank Tracking Status */}
@@ -1057,46 +1188,107 @@ export function KeywordDetailsSidebar({
                                   Terms tracked in Google SERPs. The root phrase that defines this concept should share root words with these terms.
                                 </p>
 
-                                {/* Existing terms list */}
+                                {/* Existing terms list - each term with its own stats */}
                                 {editedSearchTerms.length > 0 ? (
                                   <div className="space-y-2 mb-3">
                                     {editedSearchTerms.map((term) => (
                                       <div
                                         key={term.term}
-                                        className={`flex items-center justify-between p-2.5 rounded-lg border ${
+                                        className={`p-3 rounded-lg border ${
                                           term.isCanonical
                                             ? 'bg-blue-50/80 border-blue-200/50'
                                             : 'bg-white/80 border-gray-100'
                                         }`}
                                       >
-                                        <div className="flex items-center gap-2 min-w-0">
-                                          {term.isCanonical && (
-                                            <span title="Canonical term">
-                                              <Icon name="FaStar" className="w-3 h-3 text-blue-500 flex-shrink-0" />
-                                            </span>
-                                          )}
-                                          <span className="text-sm text-gray-700 truncate">{term.term}</span>
-                                        </div>
-                                        {isEditingSEO && (
-                                          <div className="flex items-center gap-1 flex-shrink-0">
-                                            {!term.isCanonical && (
-                                              <button
-                                                onClick={() => handleSetCanonical(term.term)}
-                                                className="p-1 text-gray-400 hover:text-blue-500 rounded transition-colors"
-                                                title="Set as canonical"
-                                              >
-                                                <Icon name="FaStar" className="w-3 h-3" />
-                                              </button>
+                                        {/* Term header row */}
+                                        <div className="flex items-center justify-between">
+                                          <div className="flex items-center gap-2 min-w-0">
+                                            {term.isCanonical && (
+                                              <span title="Canonical term">
+                                                <Icon name="FaStar" className="w-3 h-3 text-blue-500 flex-shrink-0" />
+                                              </span>
                                             )}
-                                            <button
-                                              onClick={() => handleRemoveSearchTerm(term.term)}
-                                              className="p-1 text-gray-400 hover:text-red-500 rounded transition-colors"
-                                              title="Remove term"
-                                            >
-                                              <Icon name="FaTimes" className="w-3 h-3" />
-                                            </button>
+                                            <span className="text-sm font-medium text-gray-800 truncate">{term.term}</span>
                                           </div>
-                                        )}
+                                          {isEditingSEO && (
+                                            <div className="flex items-center gap-1 flex-shrink-0">
+                                              {!term.isCanonical && (
+                                                <button
+                                                  onClick={() => handleSetCanonical(term.term)}
+                                                  className="p-1 text-gray-400 hover:text-blue-500 rounded transition-colors"
+                                                  title="Set as canonical"
+                                                >
+                                                  <Icon name="FaStar" className="w-3 h-3" />
+                                                </button>
+                                              )}
+                                              <button
+                                                onClick={() => handleRemoveSearchTerm(term.term)}
+                                                className="p-1 text-gray-400 hover:text-red-500 rounded transition-colors"
+                                                title="Remove term"
+                                              >
+                                                <Icon name="FaTimes" className="w-3 h-3" />
+                                              </button>
+                                            </div>
+                                          )}
+                                        </div>
+
+                                        {/* Stats row - show per-term volume data only */}
+                                        <div className="mt-2 pt-2 border-t border-gray-100/50">
+                                          {(() => {
+                                            // Check if we have per-term volume data for this term
+                                            const normalizedTerm = normalizePhrase(term.term);
+                                            const termData = termVolumeData.get(normalizedTerm);
+
+                                            // Only show volume if we have term-specific data
+                                            if (termData && termData.searchVolume !== null) {
+                                              return (
+                                                <div className="flex items-center justify-between text-xs">
+                                                  <div className="flex items-center gap-3">
+                                                    <div>
+                                                      <span className="text-gray-500">Volume: </span>
+                                                      <span className="font-semibold text-gray-900">{formatVolume(termData.searchVolume)}</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-1 text-gray-500">
+                                                      <Icon name="FaMapMarker" className="w-2.5 h-2.5" />
+                                                      {termData.locationName || 'United States'}
+                                                    </div>
+                                                    {termData.competitionLevel && (
+                                                      <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${getCompetitionColor(termData.competitionLevel)}`}>
+                                                        {termData.competitionLevel}
+                                                      </span>
+                                                    )}
+                                                  </div>
+                                                  {termData.cpc && (
+                                                    <div className="text-gray-500">
+                                                      CPC: <span className="font-medium text-gray-700">${termData.cpc.toFixed(2)}</span>
+                                                    </div>
+                                                  )}
+                                                </div>
+                                              );
+                                            }
+
+                                            // No per-term volume data - show check button
+                                            return (
+                                              <button
+                                                onClick={() => handleCheckTermVolume(term.term)}
+                                                disabled={checkingTermVolume === term.term || isLookingUpVolume}
+                                                className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1 disabled:opacity-50"
+                                              >
+                                                {checkingTermVolume === term.term ? (
+                                                  <>
+                                                    <Icon name="FaSpinner" className="w-3 h-3 animate-spin" />
+                                                    Looking up...
+                                                  </>
+                                                ) : (
+                                                  <>
+                                                    <Icon name="FaSearch" className="w-3 h-3" />
+                                                    Check volume
+                                                  </>
+                                                )}
+                                              </button>
+                                            );
+                                          })()}
+                                        </div>
                                       </div>
                                     ))}
                                   </div>
@@ -1170,139 +1362,11 @@ export function KeywordDetailsSidebar({
                                   </div>
                                 )}
 
-                                {/* Search Volume Section */}
-                                {editedSearchTerms.length > 0 && (
-                                  <div className="mt-3">
-                                    {/* Volume lookup error */}
-                                    {volumeLookupError && (
-                                      <div className="mb-2 p-2 bg-red-50 border border-red-100 rounded-lg text-xs text-red-600 flex items-center gap-1.5">
-                                        <Icon name="FaExclamationTriangle" className="w-3 h-3" />
-                                        {volumeLookupError}
-                                      </div>
-                                    )}
-
-                                    {/* Volume data display - compact view */}
-                                    {keyword.searchVolume !== null ? (
-                                      <div className="p-3 bg-gradient-to-br from-blue-50/80 to-indigo-50/80 border border-blue-100/50 rounded-xl">
-                                        <div className="flex items-center justify-between">
-                                          <div className="flex items-center gap-3">
-                                            <div>
-                                              <div className="text-lg font-bold text-gray-900">
-                                                {formatVolume(keyword.searchVolume)}
-                                              </div>
-                                              <div className="text-[10px] text-gray-500 flex items-center gap-1">
-                                                <Icon name="FaMapMarker" className="w-2.5 h-2.5" />
-                                                {keyword.searchVolumeLocationName || 'United States'}
-                                              </div>
-                                            </div>
-                                            {keyword.competitionLevel && (
-                                              <span className={`px-2 py-0.5 rounded text-xs font-medium ${getCompetitionColor(keyword.competitionLevel)}`}>
-                                                {keyword.competitionLevel}
-                                              </span>
-                                            )}
-                                          </div>
-                                          {keyword.cpc && (
-                                            <div className="text-right">
-                                              <div className="text-sm font-medium text-gray-700">${keyword.cpc.toFixed(2)}</div>
-                                              <div className="text-[10px] text-gray-400">CPC</div>
-                                            </div>
-                                          )}
-                                        </div>
-
-                                        {/* Edit mode: show change location and refresh */}
-                                        {isEditingSEO && (
-                                          <div className="mt-3 pt-2 border-t border-blue-100/50 space-y-2">
-                                            {/* Location selector */}
-                                            {showLocationSelector ? (
-                                              <div className="p-2 bg-white rounded-lg border border-gray-200">
-                                                <input
-                                                  type="text"
-                                                  value={locationSearchQuery}
-                                                  onChange={(e) => handleLocationSearch(e.target.value)}
-                                                  placeholder="Search locations..."
-                                                  className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                                                  autoFocus
-                                                />
-                                                {isSearchingLocations && (
-                                                  <div className="py-2 text-center text-xs text-gray-500">
-                                                    <Icon name="FaSpinner" className="w-3 h-3 animate-spin inline mr-1" />
-                                                    Searching...
-                                                  </div>
-                                                )}
-                                                {locationSearchResults.length > 0 && (
-                                                  <div className="mt-2 max-h-40 overflow-y-auto space-y-1">
-                                                    {locationSearchResults.map((loc) => (
-                                                      <button
-                                                        key={loc.locationCode}
-                                                        onClick={() => handleSelectLocation(loc.locationCode, loc.locationName)}
-                                                        className="w-full text-left px-2 py-1.5 text-sm hover:bg-blue-50 rounded flex items-center justify-between"
-                                                      >
-                                                        <span>{loc.locationName}</span>
-                                                        {loc.locationType && (
-                                                          <span className="text-xs text-gray-400">{loc.locationType}</span>
-                                                        )}
-                                                      </button>
-                                                    ))}
-                                                  </div>
-                                                )}
-                                                {locationSearchQuery.length >= 2 && !isSearchingLocations && locationSearchResults.length === 0 && (
-                                                  <div className="py-2 text-center text-xs text-gray-500">
-                                                    No locations found
-                                                  </div>
-                                                )}
-                                                <button
-                                                  onClick={() => setShowLocationSelector(false)}
-                                                  className="mt-2 w-full text-center text-xs text-gray-500 hover:text-gray-700"
-                                                >
-                                                  Cancel
-                                                </button>
-                                              </div>
-                                            ) : (
-                                              <div className="flex items-center gap-2">
-                                                <button
-                                                  onClick={() => setShowLocationSelector(true)}
-                                                  className="flex-1 px-2 py-1.5 text-xs text-gray-600 hover:text-gray-800 bg-white/80 hover:bg-white rounded border border-gray-200 transition-colors flex items-center justify-center gap-1"
-                                                >
-                                                  <Icon name="FaMapMarker" className="w-3 h-3" />
-                                                  Change location
-                                                </button>
-                                                <button
-                                                  onClick={() => handleVolumeLookup()}
-                                                  disabled={isLookingUpVolume}
-                                                  className="flex-1 px-2 py-1.5 text-xs text-blue-600 hover:text-blue-700 bg-white/80 hover:bg-white rounded border border-blue-200 transition-colors flex items-center justify-center gap-1 disabled:opacity-50"
-                                                >
-                                                  {isLookingUpVolume ? (
-                                                    <Icon name="FaSpinner" className="w-3 h-3 animate-spin" />
-                                                  ) : (
-                                                    <Icon name="FaRedo" className="w-3 h-3" />
-                                                  )}
-                                                  Refresh
-                                                </button>
-                                              </div>
-                                            )}
-                                          </div>
-                                        )}
-                                      </div>
-                                    ) : (
-                                      /* No volume data yet - show lookup button */
-                                      <button
-                                        onClick={() => handleVolumeLookup()}
-                                        disabled={isLookingUpVolume}
-                                        className="w-full text-sm text-blue-600 hover:text-blue-700 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-blue-50 hover:bg-blue-100 border border-blue-200 transition-colors disabled:opacity-50"
-                                      >
-                                        {isLookingUpVolume ? (
-                                          <>
-                                            <Icon name="FaSpinner" className="w-3.5 h-3.5 animate-spin" />
-                                            Looking up...
-                                          </>
-                                        ) : (
-                                          <>
-                                            <Icon name="FaSearch" className="w-3.5 h-3.5" />
-                                            Check search volume
-                                          </>
-                                        )}
-                                      </button>
-                                    )}
+                                {/* Volume lookup error */}
+                                {volumeLookupError && (
+                                  <div className="mb-2 p-2 bg-red-50 border border-red-100 rounded-lg text-xs text-red-600 flex items-center gap-1.5">
+                                    <Icon name="FaExclamationTriangle" className="w-3 h-3" />
+                                    {volumeLookupError}
                                   </div>
                                 )}
                               </div>
