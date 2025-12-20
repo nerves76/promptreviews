@@ -506,7 +506,7 @@ export function KeywordDetailsSidebar({
         success: boolean;
         enrichment: {
           review_phrase: string;
-          search_query: string;
+          search_terms: string[];
           aliases: string[];
           location_scope: LocationScope | null;
           related_questions: RelatedQuestion[];
@@ -523,13 +523,14 @@ export function KeywordDetailsSidebar({
       if (response.success && response.enrichment) {
         // Update local state with AI-generated values
         setEditedReviewPhrase(response.enrichment.review_phrase || '');
-        // Convert search_query to search_terms array format
-        if (response.enrichment.search_query) {
-          setEditedSearchTerms([{
-            term: response.enrichment.search_query,
-            isCanonical: true,
-            addedAt: new Date().toISOString(),
-          }]);
+        // Convert search_terms array to SearchTerm format (first one is canonical)
+        const now = new Date().toISOString();
+        if (response.enrichment.search_terms && response.enrichment.search_terms.length > 0) {
+          setEditedSearchTerms(response.enrichment.search_terms.map((term, index) => ({
+            term,
+            isCanonical: index === 0,
+            addedAt: now,
+          })));
         }
         setEditedAliasesInput((response.enrichment.aliases || []).join(', '));
         setEditedLocationScope(response.enrichment.location_scope);

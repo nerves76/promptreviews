@@ -29,7 +29,7 @@ interface RelatedQuestion {
 
 interface EnrichmentResult {
   review_phrase: string;
-  search_query: string;
+  search_terms: string[];
   aliases: string[];
   location_scope: "local" | "city" | "region" | "state" | "national" | null;
   related_questions: RelatedQuestion[];
@@ -138,11 +138,14 @@ Given a keyword phrase, generate optimized versions for different use cases:
    - Sound natural and professional
    - Be what a happy customer might naturally say
 
-2. **search_query**: The exact phrase people type into Google. Should:
+2. **search_terms**: THREE closely related search phrases people type into Google. Should:
    - Be lowercase (except proper nouns if critical)
    - Be direct and simple
    - Match how people actually search
    - Include location if present in original
+   - Use different word orders and phrasings of the same concept
+   - Example: ["barbershop portland", "portland barbershop", "portland barbers"]
+   - Example: ["best dentist seattle", "seattle dentist", "top rated dentist seattle"]
 
 3. **aliases**: 2-4 variant phrases that mean the same thing. Include:
    - Different word orders
@@ -176,7 +179,7 @@ ${businessContext ? `\nBusiness context: ${businessContext}` : ""}
 Generate the enriched keyword data as JSON with this exact structure:
 {
   "review_phrase": "...",
-  "search_query": "...",
+  "search_terms": ["term1", "term2", "term3"],
   "aliases": ["...", "..."],
   "location_scope": "city" | "local" | "region" | "state" | "national" | null,
   "related_questions": [
@@ -210,9 +213,19 @@ Generate the enriched keyword data as JSON with this exact structure:
         }
 
         // Validate the response structure
-        if (!enrichment.review_phrase || !enrichment.search_query) {
+        if (!enrichment.review_phrase) {
           console.error("[ENRICH-KEYWORD] Invalid response structure:", enrichment);
           throw new Error("Invalid AI response structure");
+        }
+
+        // Ensure search_terms is an array with at least one term
+        if (!Array.isArray(enrichment.search_terms) || enrichment.search_terms.length === 0) {
+          // Fallback: if AI returned old format with search_query, convert it
+          if ((enrichment as any).search_query) {
+            enrichment.search_terms = [(enrichment as any).search_query];
+          } else {
+            enrichment.search_terms = [];
+          }
         }
 
         // Ensure aliases is an array
