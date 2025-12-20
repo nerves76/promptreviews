@@ -36,21 +36,35 @@ DROP COLUMN IF EXISTS sentiment_last_reset_date;
 -- ============================================
 
 -- Insert credit pricing rules for sentiment analysis (tiered by review count)
--- Only insert if rules don't already exist
+-- Only insert if rules don't already exist (check by feature_type and rule_key)
 
 INSERT INTO credit_pricing_rules (feature_type, rule_key, credit_cost, description, is_active)
-VALUES
-  ('sentiment_analysis', 'tier_50', 5, 'Sentiment analysis: up to 50 reviews', true),
-  ('sentiment_analysis', 'tier_100', 10, 'Sentiment analysis: up to 100 reviews', true),
-  ('sentiment_analysis', 'tier_500', 20, 'Sentiment analysis: up to 500 reviews', true),
-  ('sentiment_analysis', 'tier_1000', 35, 'Sentiment analysis: up to 1,000 reviews', true),
-  ('sentiment_analysis', 'tier_5000', 75, 'Sentiment analysis: up to 5,000 reviews', true),
-  ('sentiment_analysis', 'tier_10000', 125, 'Sentiment analysis: up to 10,000 reviews', true),
-  ('sentiment_analysis', 'tier_max', 150, 'Sentiment analysis: over 10,000 reviews', true)
-ON CONFLICT (feature_type, rule_key) DO UPDATE SET
-  credit_cost = EXCLUDED.credit_cost,
-  description = EXCLUDED.description,
-  is_active = EXCLUDED.is_active;
+SELECT 'sentiment_analysis', 'tier_50', 5, 'Sentiment analysis: up to 50 reviews', true
+WHERE NOT EXISTS (SELECT 1 FROM credit_pricing_rules WHERE feature_type = 'sentiment_analysis' AND rule_key = 'tier_50');
+
+INSERT INTO credit_pricing_rules (feature_type, rule_key, credit_cost, description, is_active)
+SELECT 'sentiment_analysis', 'tier_100', 10, 'Sentiment analysis: up to 100 reviews', true
+WHERE NOT EXISTS (SELECT 1 FROM credit_pricing_rules WHERE feature_type = 'sentiment_analysis' AND rule_key = 'tier_100');
+
+INSERT INTO credit_pricing_rules (feature_type, rule_key, credit_cost, description, is_active)
+SELECT 'sentiment_analysis', 'tier_500', 20, 'Sentiment analysis: up to 500 reviews', true
+WHERE NOT EXISTS (SELECT 1 FROM credit_pricing_rules WHERE feature_type = 'sentiment_analysis' AND rule_key = 'tier_500');
+
+INSERT INTO credit_pricing_rules (feature_type, rule_key, credit_cost, description, is_active)
+SELECT 'sentiment_analysis', 'tier_1000', 35, 'Sentiment analysis: up to 1,000 reviews', true
+WHERE NOT EXISTS (SELECT 1 FROM credit_pricing_rules WHERE feature_type = 'sentiment_analysis' AND rule_key = 'tier_1000');
+
+INSERT INTO credit_pricing_rules (feature_type, rule_key, credit_cost, description, is_active)
+SELECT 'sentiment_analysis', 'tier_5000', 75, 'Sentiment analysis: up to 5,000 reviews', true
+WHERE NOT EXISTS (SELECT 1 FROM credit_pricing_rules WHERE feature_type = 'sentiment_analysis' AND rule_key = 'tier_5000');
+
+INSERT INTO credit_pricing_rules (feature_type, rule_key, credit_cost, description, is_active)
+SELECT 'sentiment_analysis', 'tier_10000', 125, 'Sentiment analysis: up to 10,000 reviews', true
+WHERE NOT EXISTS (SELECT 1 FROM credit_pricing_rules WHERE feature_type = 'sentiment_analysis' AND rule_key = 'tier_10000');
+
+INSERT INTO credit_pricing_rules (feature_type, rule_key, credit_cost, description, is_active)
+SELECT 'sentiment_analysis', 'tier_max', 150, 'Sentiment analysis: over 10,000 reviews', true
+WHERE NOT EXISTS (SELECT 1 FROM credit_pricing_rules WHERE feature_type = 'sentiment_analysis' AND rule_key = 'tier_max');
 
 -- ============================================
 -- Comments
