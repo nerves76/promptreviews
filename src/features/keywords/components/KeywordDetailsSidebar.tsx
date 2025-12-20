@@ -839,7 +839,7 @@ export function KeywordDetailsSidebar({
                             <div className="p-4 bg-gradient-to-br from-purple-50 to-indigo-50 border border-purple-200 rounded-xl">
                               <div className="flex items-center gap-3 mb-3">
                                 <div className="p-2 bg-purple-100 rounded-lg">
-                                  <Icon name="FaSparkles" className="w-5 h-5 text-purple-600" />
+                                  <Icon name="prompty" className="w-5 h-5 text-purple-600" />
                                 </div>
                                 <div className="flex-1">
                                   <div className="text-sm font-medium text-purple-900">Auto-fill with AI</div>
@@ -860,7 +860,7 @@ export function KeywordDetailsSidebar({
                                   </>
                                 ) : (
                                   <>
-                                    <Icon name="FaSparkles" className="w-4 h-4" />
+                                    <Icon name="prompty" className="w-4 h-4" />
                                     Generate (1 credit)
                                   </>
                                 )}
@@ -879,7 +879,7 @@ export function KeywordDetailsSidebar({
                           {/* AI enrichment success message */}
                           {enrichSuccess && isAnyEditing && (
                             <div className="p-3 bg-purple-50 border border-purple-100 rounded-lg text-sm text-purple-700 flex items-center gap-2">
-                              <Icon name="FaSparkles" className="w-4 h-4" />
+                              <Icon name="prompty" className="w-4 h-4" />
                               Fields populated by AI - review and save
                             </div>
                           )}
