@@ -187,6 +187,7 @@ export function KeywordDetailsSidebar({
 
   // LLM visibility state
   const [selectedLLMProviders, setSelectedLLMProviders] = useState<LLMProvider[]>(['chatgpt', 'claude']);
+  const [checkingQuestionIndex, setCheckingQuestionIndex] = useState<number | null>(null);
   const {
     results: llmResults,
     isChecking: isCheckingLLM,
@@ -194,6 +195,17 @@ export function KeywordDetailsSidebar({
     fetchResults: fetchLLMResults,
     runCheck: runLLMCheck,
   } = useLLMVisibility({ keywordId: keyword?.id || '' });
+
+  // Check a single question
+  const handleCheckQuestion = async (questionIndex: number, question: string) => {
+    if (!keyword?.id || selectedLLMProviders.length === 0) return;
+    setCheckingQuestionIndex(questionIndex);
+    try {
+      await runLLMCheck(selectedLLMProviders, [questionIndex]);
+    } finally {
+      setCheckingQuestionIndex(null);
+    }
+  };
 
   // Build question -> provider -> result map for quick lookup
   const questionLLMMap = new Map<string, Map<LLMProvider, { domainCited: boolean; citationPosition?: number | null }>>();
@@ -1393,53 +1405,68 @@ export function KeywordDetailsSidebar({
                                                       <Icon name="FaTimes" className="w-3 h-3" />
                                                     </button>
                                                   ) : (
-                                                    /* LLM visibility badges */
-                                                    <div className="flex gap-0.5 flex-shrink-0">
-                                                      {(() => {
-                                                        const providerResults = questionLLMMap.get(q.question);
-                                                        return LLM_PROVIDERS.map(provider => {
-                                                          const result = providerResults?.get(provider);
-                                                          const colors = LLM_PROVIDER_COLORS[provider];
-                                                          const label = provider.charAt(0).toUpperCase();
+                                                    /* LLM visibility badges + check button */
+                                                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                                                      <div className="flex gap-0.5">
+                                                        {(() => {
+                                                          const providerResults = questionLLMMap.get(q.question);
+                                                          return selectedLLMProviders.map(provider => {
+                                                            const result = providerResults?.get(provider);
+                                                            const colors = LLM_PROVIDER_COLORS[provider];
+                                                            const label = provider.charAt(0).toUpperCase();
 
-                                                          if (!result) {
-                                                            // Not checked - gray dot
+                                                            if (!result) {
+                                                              // Not checked - gray dot
+                                                              return (
+                                                                <span
+                                                                  key={provider}
+                                                                  className="w-4 h-4 rounded text-[9px] font-medium flex items-center justify-center bg-gray-100 text-gray-400"
+                                                                  title={`${LLM_PROVIDER_LABELS[provider]}: Not checked`}
+                                                                >
+                                                                  {label}
+                                                                </span>
+                                                              );
+                                                            }
+
+                                                            if (result.domainCited) {
+                                                              // Cited - green with check
+                                                              return (
+                                                                <span
+                                                                  key={provider}
+                                                                  className={`w-4 h-4 rounded text-[9px] font-medium flex items-center justify-center ${colors.bg} ${colors.text}`}
+                                                                  title={`${LLM_PROVIDER_LABELS[provider]}: Cited${result.citationPosition ? ` (#${result.citationPosition})` : ''}`}
+                                                                >
+                                                                  <Icon name="FaCheck" className="w-2 h-2" />
+                                                                </span>
+                                                              );
+                                                            }
+
+                                                            // Not cited - muted
                                                             return (
                                                               <span
                                                                 key={provider}
-                                                                className="w-4 h-4 rounded text-[9px] font-medium flex items-center justify-center bg-gray-100 text-gray-400"
-                                                                title={`${LLM_PROVIDER_LABELS[provider]}: Not checked`}
+                                                                className="w-4 h-4 rounded text-[9px] font-medium flex items-center justify-center bg-gray-200 text-gray-500"
+                                                                title={`${LLM_PROVIDER_LABELS[provider]}: Not cited`}
                                                               >
                                                                 {label}
                                                               </span>
                                                             );
-                                                          }
-
-                                                          if (result.domainCited) {
-                                                            // Cited - green with check
-                                                            return (
-                                                              <span
-                                                                key={provider}
-                                                                className={`w-4 h-4 rounded text-[9px] font-medium flex items-center justify-center ${colors.bg} ${colors.text}`}
-                                                                title={`${LLM_PROVIDER_LABELS[provider]}: Cited${result.citationPosition ? ` (#${result.citationPosition})` : ''}`}
-                                                              >
-                                                                <Icon name="FaCheck" className="w-2 h-2" />
-                                                              </span>
-                                                            );
-                                                          }
-
-                                                          // Not cited - muted
-                                                          return (
-                                                            <span
-                                                              key={provider}
-                                                              className="w-4 h-4 rounded text-[9px] font-medium flex items-center justify-center bg-gray-200 text-gray-500"
-                                                              title={`${LLM_PROVIDER_LABELS[provider]}: Not cited`}
-                                                            >
-                                                              {label}
-                                                            </span>
-                                                          );
-                                                        });
-                                                      })()}
+                                                          });
+                                                        })()}
+                                                      </div>
+                                                      {/* Per-question check button */}
+                                                      <button
+                                                        onClick={() => handleCheckQuestion(q.originalIndex, q.question)}
+                                                        disabled={checkingQuestionIndex !== null || selectedLLMProviders.length === 0}
+                                                        className="p-1 text-purple-400 hover:text-purple-600 hover:bg-purple-50 rounded transition-colors disabled:opacity-50"
+                                                        title={`Check AI visibility (${selectedLLMProviders.length * LLM_CREDIT_COSTS[selectedLLMProviders[0] || 'chatgpt']} credits)`}
+                                                      >
+                                                        {checkingQuestionIndex === q.originalIndex ? (
+                                                          <Icon name="FaSpinner" className="w-3 h-3 animate-spin" />
+                                                        ) : (
+                                                          <Icon name="FaSearch" className="w-3 h-3" />
+                                                        )}
+                                                      </button>
                                                     </div>
                                                   )}
                                                 </div>
@@ -1502,61 +1529,39 @@ export function KeywordDetailsSidebar({
                                   <p className="text-xs text-amber-600">Maximum of 20 questions reached</p>
                                 )}
 
-                                {/* Check LLM visibility button (view mode only) */}
+                                {/* AI providers selector (view mode only) */}
                                 {!isEditingSEO && keyword.relatedQuestions && keyword.relatedQuestions.length > 0 && (
-                                  <div className="mt-3 p-3 bg-purple-50/80 rounded-lg border border-purple-100">
-                                    <div className="flex items-center justify-between mb-2">
-                                      <span className="text-xs font-medium text-purple-700">AI visibility check</span>
-                                      {llmResults.length > 0 && (
-                                        <span className="text-xs text-purple-500">
-                                          {llmResults.filter(r => r.domainCited).length}/{llmResults.length} cited
-                                        </span>
-                                      )}
+                                  <div className="mt-3 p-2 bg-purple-50/60 rounded-lg border border-purple-100/50">
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-[10px] font-medium text-purple-600">AI providers to check:</span>
+                                      <div className="flex flex-wrap gap-1">
+                                        {LLM_PROVIDERS.map(provider => {
+                                          const isSelected = selectedLLMProviders.includes(provider);
+                                          const colors = LLM_PROVIDER_COLORS[provider];
+                                          return (
+                                            <button
+                                              key={provider}
+                                              onClick={() => {
+                                                setSelectedLLMProviders(prev => {
+                                                  if (prev.includes(provider)) {
+                                                    if (prev.length === 1) return prev;
+                                                    return prev.filter(p => p !== provider);
+                                                  }
+                                                  return [...prev, provider];
+                                                });
+                                              }}
+                                              className={`px-1.5 py-0.5 rounded text-[10px] font-medium transition-all ${
+                                                isSelected
+                                                  ? `${colors.bg} ${colors.text}`
+                                                  : 'bg-gray-100 text-gray-400'
+                                              }`}
+                                            >
+                                              {LLM_PROVIDER_LABELS[provider]}
+                                            </button>
+                                          );
+                                        })}
+                                      </div>
                                     </div>
-                                    <div className="flex flex-wrap gap-1 mb-2">
-                                      {LLM_PROVIDERS.map(provider => {
-                                        const isSelected = selectedLLMProviders.includes(provider);
-                                        const colors = LLM_PROVIDER_COLORS[provider];
-                                        return (
-                                          <button
-                                            key={provider}
-                                            onClick={() => {
-                                              setSelectedLLMProviders(prev => {
-                                                if (prev.includes(provider)) {
-                                                  if (prev.length === 1) return prev;
-                                                  return prev.filter(p => p !== provider);
-                                                }
-                                                return [...prev, provider];
-                                              });
-                                            }}
-                                            className={`px-2 py-0.5 rounded text-xs font-medium transition-all ${
-                                              isSelected
-                                                ? `${colors.bg} ${colors.text} border ${colors.border}`
-                                                : 'bg-gray-100 text-gray-400 border border-gray-200'
-                                            }`}
-                                          >
-                                            {LLM_PROVIDER_LABELS[provider]}
-                                          </button>
-                                        );
-                                      })}
-                                    </div>
-                                    <button
-                                      onClick={() => runLLMCheck(selectedLLMProviders)}
-                                      disabled={isCheckingLLM || selectedLLMProviders.length === 0}
-                                      className="w-full py-1.5 px-3 rounded-lg text-xs font-medium bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
-                                    >
-                                      {isCheckingLLM ? (
-                                        <>
-                                          <Icon name="FaSpinner" className="w-3 h-3 animate-spin" />
-                                          Checking...
-                                        </>
-                                      ) : (
-                                        <>
-                                          <Icon name="FaSearch" className="w-3 h-3" />
-                                          Check visibility ({keyword.relatedQuestions.length * selectedLLMProviders.reduce((sum, p) => sum + LLM_CREDIT_COSTS[p], 0)} credits)
-                                        </>
-                                      )}
-                                    </button>
                                     {llmError && (
                                       <p className="mt-1 text-xs text-red-600">{llmError}</p>
                                     )}
