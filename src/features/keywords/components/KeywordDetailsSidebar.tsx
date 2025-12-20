@@ -622,13 +622,13 @@ export function KeywordDetailsSidebar({
       // Use the keyword discovery API to get volume data
       const response = await apiClient.post<{
         keyword: string;
-        searchVolume: number;
+        volume: number;
         cpc: number | null;
-        competition: string | null;
+        competition: number | null;
         competitionLevel: string | null;
         trend: string | null;
-        monthlyTrend: Array<{ month: number; year: number; volume: number }> | null;
-      }>('/rank-tracking/discover', {
+        monthlySearches: Array<{ month: number; year: number; searchVolume: number }> | null;
+      }>('/rank-tracking/discovery', {
         keyword: term,
         locationCode: keyword.searchVolumeLocationCode || 2840,
       });
@@ -636,18 +636,18 @@ export function KeywordDetailsSidebar({
       // Save the result linked to this keyword
       await apiClient.post('/keyword-research/save', {
         term,
-        searchVolume: response.searchVolume,
+        searchVolume: response.volume,
         cpc: response.cpc,
-        competition: null,
+        competition: response.competition,
         competitionLevel: response.competitionLevel,
-        searchVolumeTrend: response.monthlyTrend ? {
-          monthlyData: response.monthlyTrend.map((m) => ({
+        searchVolumeTrend: response.monthlySearches ? {
+          monthlyData: response.monthlySearches.map((m) => ({
             month: m.month,
             year: m.year,
-            volume: m.volume,
+            volume: m.searchVolume,
           })),
         } : null,
-        monthlySearches: response.monthlyTrend,
+        monthlySearches: response.monthlySearches,
         locationCode: keyword.searchVolumeLocationCode || 2840,
         locationName: keyword.searchVolumeLocationName || 'United States',
         keywordId: keyword.id,
@@ -661,18 +661,18 @@ export function KeywordDetailsSidebar({
           id: '', // Will be set by API
           term,
           normalizedTerm,
-          searchVolume: response.searchVolume,
+          searchVolume: response.volume,
           cpc: response.cpc,
-          competition: null,
+          competition: response.competition,
           competitionLevel: response.competitionLevel,
-          searchVolumeTrend: response.monthlyTrend ? {
-            monthlyData: response.monthlyTrend.map((m) => ({
+          searchVolumeTrend: response.monthlySearches ? {
+            monthlyData: response.monthlySearches.map((m) => ({
               month: m.month,
               year: m.year,
-              volume: m.volume,
+              volume: m.searchVolume,
             })),
           } : null,
-          monthlySearches: response.monthlyTrend,
+          monthlySearches: response.monthlySearches,
           locationCode: keyword.searchVolumeLocationCode || 2840,
           locationName: keyword.searchVolumeLocationName || 'United States',
           keywordId: keyword.id,
