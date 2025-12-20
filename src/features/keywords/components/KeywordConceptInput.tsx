@@ -165,7 +165,7 @@ export default function KeywordConceptInput({
     return vol.toString();
   };
 
-  const handleGenerateWithAI = useCallback(async () => {
+  const handleGenerateWithAI = useCallback(async (fillEmptyOnly = false) => {
     if (!keyword.trim()) return;
 
     setShowOverwriteWarning(false);
@@ -181,18 +181,41 @@ export default function KeywordConceptInput({
       })) as { success: boolean; enrichment?: KeywordEnrichment; error?: string; creditsRemaining?: number };
 
       if (response.success && response.enrichment) {
-        setReviewPhrase(response.enrichment.review_phrase);
-        // Convert single search_query to searchTerms array
-        if (response.enrichment.search_query) {
-          setSearchTerms([{
-            term: response.enrichment.search_query,
-            isCanonical: true,
-            addedAt: new Date().toISOString(),
-          }]);
+        // Fill empty only mode: only set values if current value is empty
+        if (fillEmptyOnly) {
+          if (!reviewPhrase.trim()) {
+            setReviewPhrase(response.enrichment.review_phrase);
+          }
+          if (searchTerms.length === 0 && response.enrichment.search_query) {
+            setSearchTerms([{
+              term: response.enrichment.search_query,
+              isCanonical: true,
+              addedAt: new Date().toISOString(),
+            }]);
+          }
+          if (aliases.length === 0) {
+            setAliases(response.enrichment.aliases || []);
+          }
+          if (!locationScope) {
+            setLocationScope(response.enrichment.location_scope);
+          }
+          if (relatedQuestions.length === 0) {
+            setRelatedQuestions(response.enrichment.related_questions || []);
+          }
+        } else {
+          // Replace all mode
+          setReviewPhrase(response.enrichment.review_phrase);
+          if (response.enrichment.search_query) {
+            setSearchTerms([{
+              term: response.enrichment.search_query,
+              isCanonical: true,
+              addedAt: new Date().toISOString(),
+            }]);
+          }
+          setAliases(response.enrichment.aliases || []);
+          setLocationScope(response.enrichment.location_scope);
+          setRelatedQuestions(response.enrichment.related_questions || []);
         }
-        setAliases(response.enrichment.aliases || []);
-        setLocationScope(response.enrichment.location_scope);
-        setRelatedQuestions(response.enrichment.related_questions || []);
         setAiGenerated(true);
       } else {
         throw new Error(response.error || "Failed to generate");
@@ -209,7 +232,7 @@ export default function KeywordConceptInput({
     } finally {
       setIsGenerating(false);
     }
-  }, [keyword, businessName, businessCity, businessState]);
+  }, [keyword, businessName, businessCity, businessState, reviewPhrase, searchTerms, aliases, locationScope, relatedQuestions]);
 
   const handleSave = useCallback(() => {
     if (!keyword.trim()) return;
@@ -388,11 +411,28 @@ export default function KeywordConceptInput({
       {showOverwriteWarning && (
         <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
           <p className="text-sm text-amber-800 mb-2">
-            <strong>Warning:</strong> AI generation will replace any data you&apos;ve already entered (review phrase, search terms, aliases, etc.)
+            <strong>Warning:</strong> AI generation can replace data you&apos;ve already entered. Choose an option:
           </p>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <button
-              onClick={handleGenerateWithAI}
+              onClick={() => handleGenerateWithAI(true)}
+              disabled={isGenerating}
+              className="px-3 py-1.5 text-sm font-medium text-white bg-indigo-600 rounded hover:bg-indigo-700 disabled:opacity-50 flex items-center gap-1"
+            >
+              {isGenerating ? (
+                <>
+                  <svg className="w-3 h-3 animate-spin" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  Generating...
+                </>
+              ) : (
+                'Fill empty fields only'
+              )}
+            </button>
+            <button
+              onClick={() => handleGenerateWithAI(false)}
               disabled={isGenerating}
               className="px-3 py-1.5 text-sm font-medium text-white bg-amber-600 rounded hover:bg-amber-700 disabled:opacity-50 flex items-center gap-1"
             >
@@ -405,7 +445,7 @@ export default function KeywordConceptInput({
                   Generating...
                 </>
               ) : (
-                'Replace with AI'
+                'Replace all'
               )}
             </button>
             <button
