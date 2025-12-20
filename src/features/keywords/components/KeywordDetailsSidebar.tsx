@@ -845,8 +845,8 @@ export function KeywordDetailsSidebar({
                           {/* REVIEWS SECTION */}
                           <div className="p-5 bg-white/60 backdrop-blur-sm border border-gray-100/50 rounded-xl">
                             <div className="flex items-center gap-2 mb-4">
-                              <Icon name="FaStar" className="w-4 h-4 text-amber-500" />
-                              <span className="text-sm font-semibold text-gray-700">Reviews</span>
+                              <Icon name="FaStar" className="w-5 h-5 text-slate-blue" />
+                              <span className="text-lg font-semibold text-gray-800">Reviews</span>
                             </div>
 
                             <div className="space-y-5">
@@ -908,11 +908,11 @@ export function KeywordDetailsSidebar({
                             </div>
                           </div>
 
-                          {/* SEO & LLM TRACKING SECTION */}
+                          {/* SEARCH & LLM TRACKING SECTION */}
                           <div className="p-5 bg-white/60 backdrop-blur-sm border border-gray-100/50 rounded-xl">
                             <div className="flex items-center gap-2 mb-4">
-                              <Icon name="FaChartLine" className="w-4 h-4 text-blue-500" />
-                              <span className="text-sm font-semibold text-gray-700">SEO & LLM tracking</span>
+                              <Icon name="FaChartLine" className="w-5 h-5 text-slate-blue" />
+                              <span className="text-lg font-semibold text-gray-800">SEO & LLM tracking</span>
                             </div>
 
                             <div className="space-y-5">

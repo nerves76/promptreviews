@@ -168,9 +168,8 @@ export default function ImportFromWebsite({ onImport, isVisible = true }: Import
 
           {/* Success message */}
           {success && (
-            <div className="mt-2 flex items-center gap-2 text-white text-sm bg-green-500/80 rounded-lg px-3 py-2">
-              <Icon name="FaCheckCircle" size={14} />
-              <span>Website info imported! Review the fields below and make any edits.</span>
+            <div className="mt-2 text-white text-sm bg-green-500/80 rounded-lg px-3 py-2">
+              Website info imported! Review the fields below and make any edits.
             </div>
           )}
         </div>
