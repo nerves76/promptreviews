@@ -640,41 +640,42 @@ export function KeywordDetailsSidebar({
                 <Dialog.Panel className="pointer-events-auto w-screen max-w-md h-full">
                   <div className="h-full flex flex-col backdrop-blur-xl shadow-2xl">
                     <div className="flex-1 overflow-y-auto p-6">
-                      {/* Header */}
-                      <div className="flex items-start justify-between mb-6">
-                        <div>
-                          <span className="text-xs font-medium uppercase tracking-wider text-white/80">Keyword Concept</span>
-                          {keyword && (
-                            <Dialog.Title className="text-xl font-bold text-white mt-1">{keyword.phrase}</Dialog.Title>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {isAnyEditing && (
-                            <button
-                              onClick={async () => {
-                                if (isEditingReviews) await handleSaveReviews();
-                                if (isEditingSEO) await handleSaveSEO();
-                              }}
-                              disabled={isSaving}
-                              className="px-3 py-1.5 text-sm font-medium text-white bg-slate-blue rounded-lg hover:bg-slate-blue/90 disabled:opacity-50 flex items-center gap-1.5"
-                            >
-                              {isSaving && <Icon name="FaSpinner" className="w-3 h-3 animate-spin" />}
-                              Save
-                            </button>
-                          )}
-                          <button
-                            onClick={onClose}
-                            className="p-1.5 text-white/70 hover:text-white hover:bg-white/20 rounded-lg transition-colors"
-                          >
-                            <Icon name="FaTimes" className="w-5 h-5" />
-                          </button>
-                        </div>
+                      {/* Close button - floats on top right */}
+                      <div className="flex justify-end mb-2">
+                        <button
+                          onClick={onClose}
+                          className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                        >
+                          <Icon name="FaTimes" className="w-5 h-5" />
+                        </button>
                       </div>
 
                       {keyword && (
                         <div className="space-y-4">
-                          {/* Stats grid */}
-                          <div className="grid grid-cols-2 gap-3 text-sm p-3 bg-white/60 backdrop-blur-sm border border-gray-100/50 rounded-xl">
+                          {/* Header + Stats card combined */}
+                          <div className="p-4 bg-white/60 backdrop-blur-sm border border-gray-100/50 rounded-xl">
+                            {/* Header */}
+                            <div className="flex items-start justify-between mb-4">
+                              <div>
+                                <span className="text-xs font-medium uppercase tracking-wider text-gray-500">Keyword Concept</span>
+                                <Dialog.Title className="text-xl font-bold text-slate-blue mt-1">{keyword.phrase}</Dialog.Title>
+                              </div>
+                              {isAnyEditing && (
+                                <button
+                                  onClick={async () => {
+                                    if (isEditingReviews) await handleSaveReviews();
+                                    if (isEditingSEO) await handleSaveSEO();
+                                  }}
+                                  disabled={isSaving}
+                                  className="px-3 py-1.5 text-sm font-medium text-white bg-slate-blue rounded-lg hover:bg-slate-blue/90 disabled:opacity-50 flex items-center gap-1.5"
+                                >
+                                  {isSaving && <Icon name="FaSpinner" className="w-3 h-3 animate-spin" />}
+                                  Save
+                                </button>
+                              )}
+                            </div>
+                            {/* Stats grid */}
+                            <div className="grid grid-cols-2 gap-3 text-sm pt-3 border-t border-gray-100">
                             <div>
                               <span className="text-gray-500 block text-xs">Word count</span>
                               <span className="font-medium">{keyword.wordCount}</span>
@@ -693,6 +694,7 @@ export function KeywordDetailsSidebar({
                               <span className="text-gray-500 block text-xs">Group</span>
                               <span className="font-medium">{keyword.groupName || 'None'}</span>
                             </div>
+                          </div>
                           </div>
 
                           {/* Rank Tracking Status */}
