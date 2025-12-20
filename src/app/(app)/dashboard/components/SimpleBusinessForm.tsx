@@ -11,6 +11,7 @@ import React, { useState, forwardRef, useEffect, useCallback } from "react";
 import Icon from "@/components/Icon";
 import IndustrySelector from "@/app/(app)/components/IndustrySelector";
 import { createClient } from "@/auth/providers/supabase";
+import { apiClient } from "@/utils/apiClient";
 import { useRouter } from "next/navigation";
 import { slugify } from "@/utils/slugify";
 
@@ -326,44 +327,10 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
         referral_source_other: form.referral_source_other || null,
       };
 
-      
+
       console.log('[SimpleBusinessForm] Submitting with accountId:', accountId);
 
-      const response = await fetch('/api/businesses', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Selected-Account': accountId || '', // CRITICAL: Include the selected account ID
-        },
-        body: JSON.stringify(businessData),
-      });
-
-      console.log('[SimpleBusinessForm] Response status:', response.status);
-      
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        console.error("Business creation API error:", errorData);
-        console.error("Full error details:", {
-          status: response.status,
-          statusText: response.statusText,
-          error: errorData.error,
-          details: errorData.details,
-          code: errorData.code,
-          hint: errorData.hint,
-          accountId: errorData.accountId
-        });
-        
-        // Show more detailed error message
-        const errorMessage = errorData.details || errorData.error || response.statusText;
-        setError(`Failed to create business: ${errorMessage}`);
-        setLoading(false);
-        setLoadingState(null);
-        setIsSubmitting(false);
-        return;
-      }
-
-      const responseData = await response.json();
+      const responseData = await apiClient.post<{ business: any }>('/businesses', businessData);
       
       const business = responseData.business || responseData;
       const newAccountId = responseData.accountId; // Get the new account ID if created

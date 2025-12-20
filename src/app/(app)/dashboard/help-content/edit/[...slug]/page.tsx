@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useCoreAuth } from "@/auth/context/CoreAuthContext";
+import { apiClient } from "@/utils/apiClient";
 import { Button } from "@/app/(app)/components/ui/button";
 import { Input } from "@/app/(app)/components/ui/input";
 import PageCard from "@/app/(app)/components/PageCard";

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, Fragment } from "react";
 import { useCoreAuth } from "@/auth/context/CoreAuthContext";
+import { apiClient } from "@/utils/apiClient";
 import PageCard from "@/app/(app)/components/PageCard";
 import StandardLoader from "@/app/(app)/components/StandardLoader";
 import { Button } from "@/app/(app)/components/ui/button";
@@ -68,18 +69,7 @@ export default function HelpNavigationAdminPage() {
   const fetchItems = async () => {
     try {
       setLoading(true);
-      const response = await fetch("/api/admin/docs/navigation", {
-        cache: 'no-store',
-        headers: {
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache'
-        }
-      });
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        throw new Error(data.error || "Failed to load navigation");
-      }
-      const data = await response.json();
+      const data = await apiClient.get<{ items: AdminNavItem[] }>("/admin/docs/navigation");
       console.log('[Navigation] Fetched items:', data.items?.length, 'items');
       setItems(data.items || []);
       setError(null);
@@ -93,18 +83,7 @@ export default function HelpNavigationAdminPage() {
 
   const fetchArticles = async () => {
     try {
-      const response = await fetch("/api/admin/help-content?status=published", {
-        cache: 'no-store',
-        headers: {
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache'
-        }
-      });
-      if (!response.ok) {
-        console.error("Failed to load articles");
-        return;
-      }
-      const data = await response.json();
+      const data = await apiClient.get<{ articles: Article[] }>("/admin/help-content?status=published");
       setArticles(data.articles || []);
     } catch (err: any) {
       console.error("Error loading articles:", err);
@@ -208,25 +187,9 @@ export default function HelpNavigationAdminPage() {
       };
 
       if (selectedItem.id) {
-        const response = await fetch(`/api/admin/docs/navigation/${selectedItem.id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-        if (!response.ok) {
-          const data = await response.json().catch(() => ({}));
-          throw new Error(data.error || "Failed to update navigation item");
-        }
+        await apiClient.put(`/admin/docs/navigation/${selectedItem.id}`, payload);
       } else {
-        const response = await fetch(`/api/admin/docs/navigation`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-        if (!response.ok) {
-          const data = await response.json().catch(() => ({}));
-          throw new Error(data.error || "Failed to create navigation item");
-        }
+        await apiClient.post("/admin/docs/navigation", payload);
       }
 
       await fetchItems();
@@ -248,18 +211,7 @@ export default function HelpNavigationAdminPage() {
 
     try {
       console.log('[Navigation] Deleting item:', item.id, item.title);
-      const response = await fetch(`/api/admin/docs/navigation/${item.id}`, {
-        method: "DELETE",
-      });
-
-      console.log('[Navigation] Delete response status:', response.status);
-      const data = await response.json().catch(() => ({}));
-      console.log('[Navigation] Delete response data:', data);
-
-      if (!response.ok) {
-        throw new Error(data.error || data.details || "Failed to delete navigation item");
-      }
-
+      await apiClient.delete(`/admin/docs/navigation/${item.id}`);
       console.log('[Navigation] Successfully deleted, refreshing list...');
       await fetchItems();
       console.log('[Navigation] List refreshed');

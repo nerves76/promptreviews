@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/app/(app)/components/ui/button";
+import { apiClient } from "@/utils/apiClient";
 import clsx from "clsx";
 
 interface DeployDocsButtonProps {
@@ -27,17 +28,9 @@ export default function DeployDocsButton({
       setMessage(null);
       setError(null);
 
-      const response = await fetch("/api/admin/help-content/deploy", {
-        method: "POST",
-      });
+      const data = await apiClient.post<{ deployment?: { url?: string; inspectUrl?: string } }>("/admin/help-content/deploy", {});
 
-      const data = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        throw new Error((data as any)?.error || "Failed to trigger deploy");
-      }
-
-      const deployment = (data as any)?.deployment;
+      const deployment = data?.deployment;
       const inspectUrl = deployment?.url || deployment?.inspectUrl || null;
 
       setMessage(

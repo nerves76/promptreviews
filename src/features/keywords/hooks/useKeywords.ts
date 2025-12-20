@@ -35,7 +35,8 @@ interface UseKeywordsResult {
   createEnrichedKeyword: (data: {
     phrase: string;
     review_phrase: string;
-    search_query: string;
+    search_query?: string;
+    search_terms?: Array<{ term: string; isCanonical: boolean; addedAt: string }>;
     aliases?: string[];
     location_scope?: string | null;
     related_questions?: RelatedQuestion[];
@@ -184,7 +185,8 @@ export function useKeywords(options: UseKeywordsOptions = {}): UseKeywordsResult
     async (data: {
       phrase: string;
       review_phrase: string;
-      search_query: string;
+      search_query?: string;
+      search_terms?: Array<{ term: string; isCanonical: boolean; addedAt: string }>;
       aliases?: string[];
       location_scope?: string | null;
       related_questions?: RelatedQuestion[];
@@ -196,12 +198,17 @@ export function useKeywords(options: UseKeywordsOptions = {}): UseKeywordsResult
         const body: Record<string, unknown> = {
           phrase: data.phrase,
           review_phrase: data.review_phrase,
-          search_query: data.search_query,
           aliases: data.aliases || [],
           location_scope: data.location_scope || null,
           ai_generated: data.ai_generated ?? false,
           related_questions: data.related_questions || [],
         };
+        // Support both search_terms array and legacy search_query
+        if (data.search_terms && data.search_terms.length > 0) {
+          body.search_terms = data.search_terms;
+        } else if (data.search_query) {
+          body.search_query = data.search_query;
+        }
         if (data.groupId) body.groupId = data.groupId;
         if (data.promptPageId) body.promptPageId = data.promptPageId;
 

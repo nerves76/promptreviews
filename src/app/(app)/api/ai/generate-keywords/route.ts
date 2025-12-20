@@ -91,28 +91,30 @@ The keywords should:
 • Consider the business's unique differentiators and specific services/offerings
 • Include a variety of lengths and styles
 
-For each keyword, also provide a natural-sounding review phrase that incorporates that keyword organically.
+For each keyword concept, provide:
+1. THREE closely related search term variations - different word orders and phrasings that people might actually type into Google
+2. A natural-sounding review phrase that incorporates the concept organically
 
 IMPORTANT: Keep review phrases SHORT and punchy - ideally one short sentence or fragment (5-12 words max).
 
 CRITICAL: NEVER generate review phrases that mention "reviews", "ratings", "testimonials", or "recommendations". A customer writing their own review wouldn't say "I read great reviews" or "with fantastic reviews" - they should describe THEIR OWN experience, not reference other people's opinions.
 
-Examples of LOCATION-SPECIFIC:
-- Search term: "best family dentist Portland OR"
-- Review phrase: "Best family dentist in Portland - highly recommend!"
+Examples of LOCATION-SPECIFIC with 3 search term variations:
+- searchTerms: ["barbershop portland", "portland barbershop", "portland barbers"]
+- reviewPhrase: "Best barbershop in Portland - always a great cut!"
 
-Examples of GENERAL/SERVICE-FOCUSED:
-- Search term: "emergency dental care same day appointment"
-- Review phrase: "Got same day emergency dental care - lifesaver!"
+- searchTerms: ["best family dentist Portland OR", "Portland family dentist", "family dentist near me Portland"]
+- reviewPhrase: "Best family dentist in Portland - highly recommend!"
 
-- Search term: "gentle dentist for anxious patients"
-- Review phrase: "Finally found a gentle dentist for my dental anxiety!"
+Examples of GENERAL/SERVICE-FOCUSED with 3 search term variations:
+- searchTerms: ["emergency dental care same day", "same day dental appointment", "urgent dental care"]
+- reviewPhrase: "Got same day emergency dental care - lifesaver!"
 
-- Search term: "professional photography for small business"
-- Review phrase: "Amazing professional photography for my small business!"
+- searchTerms: ["gentle dentist for anxious patients", "dentist for dental anxiety", "anxiety-free dental care"]
+- reviewPhrase: "Finally found a gentle dentist for my dental anxiety!"
 
 Format your output as a JSON array of objects with these fields:
-- searchTerm: The keyword phrase someone would search for
+- searchTerms: Array of 3 related search phrases (different word orders/phrasings of the same concept)
 - reviewPhrase: A SHORT, punchy review phrase (5-12 words, authentic, conversational)
 
 Return ONLY valid JSON, no additional text or markdown formatting.`;
@@ -160,6 +162,22 @@ Return ONLY valid JSON, no additional text or markdown formatting.`;
           if (!Array.isArray(keywords)) {
             keywords = Object.values(keywords);
           }
+
+          // Normalize response: ensure each keyword has searchTerms array
+          keywords = keywords.map((kw: any) => {
+            // If AI returned old format (searchTerm string), convert to searchTerms array
+            if (kw.searchTerm && !kw.searchTerms) {
+              return {
+                searchTerms: [kw.searchTerm],
+                reviewPhrase: kw.reviewPhrase,
+              };
+            }
+            // Ensure searchTerms is an array
+            if (!Array.isArray(kw.searchTerms)) {
+              kw.searchTerms = kw.searchTerms ? [kw.searchTerms] : [];
+            }
+            return kw;
+          });
         } catch (parseError) {
           console.error("Error parsing OpenAI response:", parseError);
           throw new Error("Failed to parse keyword suggestions");

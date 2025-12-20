@@ -79,7 +79,7 @@ export default function KeywordManager({
   const [showMissingFieldsError, setShowMissingFieldsError] = useState(false);
   const [missingFields, setMissingFields] = useState<string[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedKeywords, setGeneratedKeywords] = useState<{ searchTerm: string; reviewPhrase: string }[]>([]);
+  const [generatedKeywords, setGeneratedKeywords] = useState<{ searchTerms: string[]; reviewPhrase: string }[]>([]);
   const [selectedGeneratedKeywords, setSelectedGeneratedKeywords] = useState<Set<number>>(new Set());
   const [usageInfo, setUsageInfo] = useState<{ current: number; limit: number; remaining: number } | null>(null);
   const [generatorError, setGeneratorError] = useState<string | null>(null);
@@ -283,7 +283,7 @@ export default function KeywordManager({
 
     try {
       const data = await apiClient.post<{
-        keywords?: { searchTerm: string; reviewPhrase: string }[];
+        keywords?: { searchTerms: string[]; reviewPhrase: string }[];
         usage?: { current: number; limit: number; remaining: number };
       }>('/ai/generate-keywords', {
         businessName: normalized.name || '',
@@ -297,10 +297,20 @@ export default function KeywordManager({
         industriesServed: normalized.industries_served,
       });
 
-      setGeneratedKeywords(data.keywords || []);
+      // Normalize keywords to ensure searchTerms is always an array
+      const normalizedKeywords = (data.keywords || []).map((kw: any) => ({
+        searchTerms: Array.isArray(kw.searchTerms)
+          ? kw.searchTerms
+          : kw.searchTerm
+            ? [kw.searchTerm]
+            : [],
+        reviewPhrase: kw.reviewPhrase || '',
+      }));
+
+      setGeneratedKeywords(normalizedKeywords);
       setUsageInfo(data.usage || null);
       // Auto-select all keywords
-      const allIndices = new Set<number>((data.keywords || []).map((_, index) => index));
+      const allIndices = new Set<number>(normalizedKeywords.map((_: any, index: number) => index));
       setSelectedGeneratedKeywords(allIndices);
     } catch (err: any) {
       console.error('Error generating keywords:', err);
@@ -341,11 +351,19 @@ export default function KeywordManager({
     setShowGeneratorPanel(false);
 
     // Add each keyword to the library with enriched data
+    const now = new Date().toISOString();
     for (const kw of selectedPhrases) {
+      // Convert searchTerms array to search_terms format (first one is canonical)
+      const searchTermsFormatted = kw.searchTerms.map((term, index) => ({
+        term,
+        isCanonical: index === 0,
+        addedAt: now,
+      }));
+
       await createEnrichedKeyword({
         phrase: kw.reviewPhrase,
         review_phrase: kw.reviewPhrase,
-        search_query: kw.searchTerm,
+        search_terms: searchTermsFormatted,
         aliases: [],
         location_scope: null,
         ai_generated: true,
@@ -357,7 +375,7 @@ export default function KeywordManager({
     setSelectedGeneratedKeywords(new Set());
 
     // Refresh to show the new keywords
-    refresh();
+    await refresh();
   };
 
   const handleCloseGenerator = () => {
@@ -701,8 +719,8 @@ export default function KeywordManager({
                             <div className="text-xs font-normal text-gray-500">Added to library</div>
                           </th>
                           <th className="px-3 py-2 text-left">
-                            <div className="text-xs font-bold text-gray-900">Search term</div>
-                            <div className="text-xs font-normal text-gray-500">Target query</div>
+                            <div className="text-xs font-bold text-gray-900">Search terms</div>
+                            <div className="text-xs font-normal text-gray-500">3 variations per concept</div>
                           </th>
                         </tr>
                       </thead>
@@ -725,7 +743,22 @@ export default function KeywordManager({
                               />
                             </td>
                             <td className="px-3 py-2 text-sm text-gray-700">{kw.reviewPhrase}</td>
-                            <td className="px-3 py-2 text-sm font-medium text-gray-900">{kw.searchTerm}</td>
+                            <td className="px-3 py-2 text-sm text-gray-900">
+                              <div className="flex flex-wrap gap-1">
+                                {kw.searchTerms.map((term, i) => (
+                                  <span
+                                    key={i}
+                                    className={`inline-block px-2 py-0.5 rounded text-xs ${
+                                      i === 0
+                                        ? 'bg-indigo-100 text-indigo-700 font-medium'
+                                        : 'bg-gray-100 text-gray-600'
+                                    }`}
+                                  >
+                                    {term}
+                                  </span>
+                                ))}
+                              </div>
+                            </td>
                           </tr>
                         ))}
                       </tbody>

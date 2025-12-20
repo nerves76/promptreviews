@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { apiClient } from "@/utils/apiClient";
 import { EligibilityResponse, AnalysisResponse } from "../types";
 
 interface RunAnalysisButtonProps {
@@ -38,25 +39,7 @@ export default function RunAnalysisButton({
     }, 3000);
 
     try {
-      const response = await fetch('/api/sentiment-analyzer/analyze', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          accountId,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        if (response.status === 402) {
-          throw new Error(`Insufficient credits. Need ${data.creditsRequired}, have ${data.creditsAvailable}.`);
-        }
-        throw new Error(data.error || 'Analysis failed');
-      }
-
+      const data = await apiClient.post<AnalysisResponse>('/sentiment-analyzer/analyze', { accountId });
       clearInterval(messageInterval);
       onAnalysisComplete(data);
     } catch (error) {

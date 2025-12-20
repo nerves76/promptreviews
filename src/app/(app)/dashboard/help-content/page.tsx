@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCoreAuth } from "@/auth/context/CoreAuthContext";
 import { Button } from "@/app/(app)/components/ui/button";
 import { Input } from "@/app/(app)/components/ui/input";
+import { apiClient } from "@/utils/apiClient";
 import PageCard from "@/app/(app)/components/PageCard";
 import StandardLoader from "@/app/(app)/components/StandardLoader";
 import HelpContentBreadcrumbs from "./components/HelpContentBreadcrumbs";
@@ -62,38 +63,28 @@ export default function HelpContentPage() {
       if (categoryFilter !== "all") params.set("category", categoryFilter);
       if (searchQuery) params.set("search", searchQuery);
 
-      const response = await fetch(`/api/admin/help-content?${params.toString()}`);
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to fetch articles");
-      }
-
-      const data = await response.json();
+      const data = await apiClient.get<{ articles: Article[]; stats: any }>(`/admin/help-content?${params.toString()}`);
       setArticles(data.articles);
       setStats(data.stats);
       setError(null);
 
       // Fetch navigation data to see which articles are in navigation
       try {
-        const navResponse = await fetch('/api/admin/docs/navigation');
-        if (navResponse.ok) {
-          const navData = await navResponse.json();
-          const navItems = navData.items || [];
+        const navData = await apiClient.get<{ items: any[] }>('/admin/docs/navigation');
+        const navItems = navData.items || [];
 
-          // Create a map of article slugs to whether they're in navigation
-          const map: Record<string, boolean> = {};
-          data.articles.forEach((article: Article) => {
-            // Check if any navigation item links to this article
-            const hasNav = navItems.some((item: any) =>
-              item.href === `/${article.slug}` ||
-              item.href === `/google-biz-optimizer/${article.slug}` ||
-              item.href.includes(article.slug)
-            );
-            map[article.slug] = hasNav;
-          });
-          setNavigationMap(map);
-        }
+        // Create a map of article slugs to whether they're in navigation
+        const map: Record<string, boolean> = {};
+        data.articles.forEach((article: Article) => {
+          // Check if any navigation item links to this article
+          const hasNav = navItems.some((item: any) =>
+            item.href === `/${article.slug}` ||
+            item.href === `/google-biz-optimizer/${article.slug}` ||
+            item.href.includes(article.slug)
+          );
+          map[article.slug] = hasNav;
+        });
+        setNavigationMap(map);
       } catch (navErr) {
         console.error('Error fetching navigation:', navErr);
         // Don't fail the whole page if navigation fetch fails
@@ -124,14 +115,7 @@ export default function HelpContentPage() {
 
   const handleDelete = async (slug: string) => {
     try {
-      const response = await fetch(`/api/admin/help-content/${slug}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to delete article");
-      }
-
+      await apiClient.delete(`/admin/help-content/${slug}`);
       // Refresh list
       fetchArticles();
       setDeleteConfirm(null);
@@ -144,16 +128,7 @@ export default function HelpContentPage() {
   const handleStatusToggle = async (article: Article) => {
     try {
       const newStatus = article.status === "published" ? "draft" : "published";
-      const response = await fetch(`/api/admin/help-content/${article.slug}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: newStatus }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to update article status");
-      }
-
+      await apiClient.put(`/admin/help-content/${article.slug}`, { status: newStatus });
       // Refresh list
       fetchArticles();
     } catch (err: any) {

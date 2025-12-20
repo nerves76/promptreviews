@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useCoreAuth } from "@/auth/context/CoreAuthContext";
+import { apiClient } from "@/utils/apiClient";
 import PageCard from "@/app/(app)/components/PageCard";
 import StandardLoader from "@/app/(app)/components/StandardLoader";
 import { Button } from "@/app/(app)/components/ui/button";
@@ -66,12 +67,7 @@ export default function HelpFaqsAdminPage() {
   const fetchFaqs = async () => {
     try {
       setLoading(true);
-      const response = await fetch("/api/admin/docs/faqs");
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        throw new Error(data.error || "Failed to load FAQs");
-      }
-      const data = await response.json();
+      const data = await apiClient.get<{ faqs: AdminFaq[] }>("/admin/docs/faqs");
       setFaqs(data.faqs || []);
       setError(null);
     } catch (err: any) {
@@ -116,25 +112,9 @@ export default function HelpFaqsAdminPage() {
       };
 
       if (selectedFaq.id) {
-        const response = await fetch(`/api/admin/docs/faqs/${selectedFaq.id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-        if (!response.ok) {
-          const data = await response.json().catch(() => ({}));
-          throw new Error(data.error || "Failed to update FAQ");
-        }
+        await apiClient.put(`/admin/docs/faqs/${selectedFaq.id}`, payload);
       } else {
-        const response = await fetch(`/api/admin/docs/faqs`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-        if (!response.ok) {
-          const data = await response.json().catch(() => ({}));
-          throw new Error(data.error || "Failed to create FAQ");
-        }
+        await apiClient.post("/admin/docs/faqs", payload);
       }
 
       await fetchFaqs();
@@ -153,13 +133,7 @@ export default function HelpFaqsAdminPage() {
     if (!confirm(`Delete FAQ: "${faq.question}"?`)) return;
 
     try {
-      const response = await fetch(`/api/admin/docs/faqs/${faq.id}`, {
-        method: "DELETE",
-      });
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        throw new Error(data.error || "Failed to delete FAQ");
-      }
+      await apiClient.delete(`/admin/docs/faqs/${faq.id}`);
       await fetchFaqs();
     } catch (err: any) {
       console.error("Error deleting FAQ:", err);
