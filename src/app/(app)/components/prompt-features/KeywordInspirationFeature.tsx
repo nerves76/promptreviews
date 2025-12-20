@@ -116,7 +116,7 @@ export default function KeywordInspirationFeature({
             </div>
           </div>
           <div className="text-sm text-gray-700 mt-[3px] ml-9">
-            Show a "Suggested phrases" button on your Prompt Page that displays your first 10 keyword phrases with copy buttons, encouraging customers to include them in their review.
+            Display a "Suggested phrases" button on your Prompt Page that allows users to choose to add any of your phrases to their review.
           </div>
         </div>
         <div className="flex flex-col justify-start pt-1">
