@@ -1146,69 +1146,90 @@ export function KeywordDetailsSidebar({
                                 <p className="text-xs text-gray-500 mb-2">
                                   Questions for tracking &quot;People Also Ask&quot; and AI visibility.
                                 </p>
-                                {/* Questions list (view/edit) */}
-                                <div className="space-y-2 mb-3">
-                                  {(isEditing ? editedQuestions : keyword.relatedQuestions)?.map((q, idx) => {
-                                    const funnelColor = getFunnelStageColor(q.funnelStage);
-                                    const funnelTooltip = q.funnelStage === 'top'
-                                      ? 'Top of funnel: Awareness stage - broad, educational questions'
-                                      : q.funnelStage === 'middle'
-                                        ? 'Middle of funnel: Consideration stage - comparison, evaluation questions'
-                                        : 'Bottom of funnel: Decision stage - purchase-intent, action questions';
-                                    return (
-                                      <div key={idx} className="flex items-start gap-2 p-2 bg-white/80 rounded-lg border border-gray-100">
-                                        {isEditing ? (
-                                          <div className="relative group flex-shrink-0">
-                                            <select
-                                              value={q.funnelStage}
-                                              onChange={(e) => handleUpdateQuestionFunnel(idx, e.target.value as FunnelStage)}
-                                              className={`px-1.5 py-0.5 text-xs rounded border-0 ${funnelColor.bg} ${funnelColor.text} cursor-pointer`}
-                                            >
-                                              <option value="top">Top</option>
-                                              <option value="middle">Mid</option>
-                                              <option value="bottom">Bot</option>
-                                            </select>
-                                            <div className="absolute bottom-full left-0 mb-1 p-2 bg-gray-900 text-white text-xs rounded w-56 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none">
-                                              <div className="font-semibold mb-1">Marketing funnel stage</div>
-                                              <div className="space-y-0.5">
-                                                <div><span className="text-blue-300">Top:</span> Awareness questions</div>
-                                                <div><span className="text-amber-300">Mid:</span> Consideration questions</div>
-                                                <div><span className="text-green-300">Bot:</span> Decision questions</div>
-                                              </div>
-                                              <div className="absolute top-full left-4 border-4 border-transparent border-t-gray-900" />
-                                            </div>
+                                {/* Questions list (view/edit) - grouped by funnel stage */}
+                                <div className="space-y-3 mb-3">
+                                  {(() => {
+                                    const questions = isEditing ? editedQuestions : keyword.relatedQuestions;
+                                    if (!questions || questions.length === 0) {
+                                      if (!isEditing) {
+                                        return (
+                                          <div className="text-sm text-gray-400 italic bg-white/80 px-3 py-2.5 rounded-lg border border-gray-100">
+                                            No questions added
                                           </div>
-                                        ) : (
-                                          <div className="relative group flex-shrink-0">
-                                            <span
-                                              className={`px-1.5 py-0.5 text-xs rounded cursor-help ${funnelColor.bg} ${funnelColor.text}`}
-                                            >
-                                              {getFunnelStageShortLabel(q.funnelStage)}
+                                        );
+                                      }
+                                      return null;
+                                    }
+
+                                    // Group questions by funnel stage
+                                    const grouped = {
+                                      top: questions.map((q, idx) => ({ ...q, originalIndex: idx })).filter(q => q.funnelStage === 'top'),
+                                      middle: questions.map((q, idx) => ({ ...q, originalIndex: idx })).filter(q => q.funnelStage === 'middle'),
+                                      bottom: questions.map((q, idx) => ({ ...q, originalIndex: idx })).filter(q => q.funnelStage === 'bottom'),
+                                    };
+
+                                    const stages: Array<{ key: FunnelStage; label: string; description: string }> = [
+                                      { key: 'top', label: 'Top of funnel', description: 'Awareness' },
+                                      { key: 'middle', label: 'Middle of funnel', description: 'Consideration' },
+                                      { key: 'bottom', label: 'Bottom of funnel', description: 'Decision' },
+                                    ];
+
+                                    return stages.map(stage => {
+                                      const stageQuestions = grouped[stage.key];
+                                      if (stageQuestions.length === 0) return null;
+
+                                      const funnelColor = getFunnelStageColor(stage.key);
+
+                                      return (
+                                        <div key={stage.key} className="space-y-1.5">
+                                          <div className="flex items-center gap-2">
+                                            <span className={`px-1.5 py-0.5 text-xs rounded ${funnelColor.bg} ${funnelColor.text}`}>
+                                              {stage.label}
                                             </span>
-                                            <div className="absolute bottom-full left-0 mb-1 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none">
-                                              {funnelTooltip}
-                                              <div className="absolute top-full left-4 border-4 border-transparent border-t-gray-900" />
-                                            </div>
+                                            <span className="text-xs text-gray-400">{stage.description}</span>
                                           </div>
-                                        )}
-                                        <span className="flex-1 text-sm text-gray-700">{q.question}</span>
-                                        {isEditing && (
-                                          <button
-                                            onClick={() => handleRemoveQuestion(idx)}
-                                            className="p-1 text-gray-400 hover:text-red-500 rounded transition-colors flex-shrink-0"
-                                            title="Remove question"
-                                          >
-                                            <Icon name="FaTimes" className="w-3 h-3" />
-                                          </button>
-                                        )}
-                                      </div>
-                                    );
-                                  })}
-                                  {(!keyword.relatedQuestions || keyword.relatedQuestions.length === 0) && !isEditing && (
-                                    <div className="text-sm text-gray-400 italic bg-white/80 px-3 py-2.5 rounded-lg border border-gray-100">
-                                      No questions added
-                                    </div>
-                                  )}
+                                          <div className="space-y-1.5 pl-2 border-l-2 border-gray-100">
+                                            {stageQuestions.map((q) => (
+                                              <div key={q.originalIndex} className="flex items-start gap-2 p-2 bg-white/80 rounded-lg border border-gray-100">
+                                                {isEditing && (
+                                                  <div className="relative group flex-shrink-0">
+                                                    <select
+                                                      value={q.funnelStage}
+                                                      onChange={(e) => handleUpdateQuestionFunnel(q.originalIndex, e.target.value as FunnelStage)}
+                                                      className={`px-1.5 py-0.5 text-xs rounded border-0 ${funnelColor.bg} ${funnelColor.text} cursor-pointer`}
+                                                    >
+                                                      <option value="top">Top</option>
+                                                      <option value="middle">Mid</option>
+                                                      <option value="bottom">Bot</option>
+                                                    </select>
+                                                    <div className="absolute bottom-full left-0 mb-1 p-2 bg-gray-900 text-white text-xs rounded w-56 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none">
+                                                      <div className="font-semibold mb-1">Change funnel stage</div>
+                                                      <div className="space-y-0.5">
+                                                        <div><span className="text-blue-300">Top:</span> Awareness questions</div>
+                                                        <div><span className="text-amber-300">Mid:</span> Consideration questions</div>
+                                                        <div><span className="text-green-300">Bot:</span> Decision questions</div>
+                                                      </div>
+                                                      <div className="absolute top-full left-4 border-4 border-transparent border-t-gray-900" />
+                                                    </div>
+                                                  </div>
+                                                )}
+                                                <span className="flex-1 text-sm text-gray-700">{q.question}</span>
+                                                {isEditing && (
+                                                  <button
+                                                    onClick={() => handleRemoveQuestion(q.originalIndex)}
+                                                    className="p-1 text-gray-400 hover:text-red-500 rounded transition-colors flex-shrink-0"
+                                                    title="Remove question"
+                                                  >
+                                                    <Icon name="FaTimes" className="w-3 h-3" />
+                                                  </button>
+                                                )}
+                                              </div>
+                                            ))}
+                                          </div>
+                                        </div>
+                                      );
+                                    });
+                                  })()}
                                 </div>
 
                                 {/* Add new question (edit mode) */}
