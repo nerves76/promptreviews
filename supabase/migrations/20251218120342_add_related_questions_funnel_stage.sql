@@ -1,36 +1,52 @@
 -- Migration: Add funnel stage support to related_questions
--- Changes related_questions from text[] to jsonb array with structure:
+-- Creates related_questions as JSONB array with structure:
 -- [{ question: string, funnelStage: 'top' | 'middle' | 'bottom', addedAt: string }]
 
--- First, add a new column for the JSONB data
-ALTER TABLE keywords
-ADD COLUMN IF NOT EXISTS related_questions_v2 jsonb DEFAULT '[]'::jsonb;
+-- Add related_questions column if it doesn't exist
+DO $$
+BEGIN
+  -- Check if related_questions column exists
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'keywords' AND column_name = 'related_questions'
+  ) THEN
+    -- Column doesn't exist, create it as JSONB
+    ALTER TABLE keywords ADD COLUMN related_questions jsonb DEFAULT '[]'::jsonb;
+  ELSE
+    -- Column exists, check if it's text[] and needs migration
+    IF EXISTS (
+      SELECT 1 FROM information_schema.columns
+      WHERE table_name = 'keywords'
+        AND column_name = 'related_questions'
+        AND data_type = 'ARRAY'
+    ) THEN
+      -- It's a text array, migrate to JSONB
+      ALTER TABLE keywords ADD COLUMN related_questions_v2 jsonb DEFAULT '[]'::jsonb;
 
--- Migrate existing data from text array to JSONB array with default 'middle' funnel stage
-UPDATE keywords
-SET related_questions_v2 = (
-  SELECT COALESCE(
-    jsonb_agg(
-      jsonb_build_object(
-        'question', q,
-        'funnelStage', 'middle',
-        'addedAt', COALESCE(created_at::text, now()::text)
+      UPDATE keywords
+      SET related_questions_v2 = (
+        SELECT COALESCE(
+          jsonb_agg(
+            jsonb_build_object(
+              'question', q,
+              'funnelStage', 'middle',
+              'addedAt', COALESCE(created_at::text, now()::text)
+            )
+          ),
+          '[]'::jsonb
+        )
+        FROM unnest(related_questions::text[]) AS q
       )
-    ),
-    '[]'::jsonb
-  )
-  FROM unnest(related_questions) AS q
-)
-WHERE related_questions IS NOT NULL
-  AND array_length(related_questions, 1) > 0;
+      WHERE related_questions IS NOT NULL;
 
--- Drop the old column
-ALTER TABLE keywords DROP COLUMN IF EXISTS related_questions;
+      ALTER TABLE keywords DROP COLUMN related_questions;
+      ALTER TABLE keywords RENAME COLUMN related_questions_v2 TO related_questions;
+    END IF;
+    -- If it's already JSONB, nothing to do
+  END IF;
+END $$;
 
--- Rename the new column to the original name
-ALTER TABLE keywords RENAME COLUMN related_questions_v2 TO related_questions;
-
--- Add a GIN index for efficient JSONB queries
+-- Add a GIN index for efficient JSONB queries (if not exists)
 CREATE INDEX IF NOT EXISTS idx_keywords_related_questions
 ON keywords USING GIN (related_questions jsonb_path_ops);
 
