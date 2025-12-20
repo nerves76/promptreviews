@@ -460,6 +460,7 @@ export default function KeywordsInputLegacyAdapter({
             <Icon name="prompty" className="w-3.5 h-3.5" />
           )}
           <span>{isGenerating ? 'Generating...' : 'AI Generate'}</span>
+          {!isGenerating && <span className="text-white/60">(5 credits)</span>}
         </button>
       </div>
 
