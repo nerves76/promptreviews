@@ -89,6 +89,10 @@ export default function KeywordConceptInput({
   const [isGenerating, setIsGenerating] = useState(false);
   const [aiGenerated, setAiGenerated] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showOverwriteWarning, setShowOverwriteWarning] = useState(false);
+
+  // Check if user has entered any data that would be overwritten
+  const hasExistingData = reviewPhrase.trim() || searchTerms.length > 0 || aliases.length > 0 || locationScope || relatedQuestions.length > 0;
 
   // Search volume lookup state
   const [volumeData, setVolumeData] = useState<Record<string, {
@@ -113,6 +117,7 @@ export default function KeywordConceptInput({
     setError(null);
     setVolumeData({});
     setVolumeError(null);
+    setShowOverwriteWarning(false);
     setShowForm(false);
   }, [resetQuestions]);
 
@@ -163,6 +168,7 @@ export default function KeywordConceptInput({
   const handleGenerateWithAI = useCallback(async () => {
     if (!keyword.trim()) return;
 
+    setShowOverwriteWarning(false);
     setIsGenerating(true);
     setError(null);
 
@@ -344,9 +350,15 @@ export default function KeywordConceptInput({
       </div>
 
       {/* Generate with AI Button */}
-      {keyword.trim() && !aiGenerated && (
+      {keyword.trim() && !aiGenerated && !showOverwriteWarning && (
         <button
-          onClick={handleGenerateWithAI}
+          onClick={() => {
+            if (hasExistingData) {
+              setShowOverwriteWarning(true);
+            } else {
+              handleGenerateWithAI();
+            }
+          }}
           disabled={isGenerating}
           className="w-full px-3 py-2 border-2 border-dashed border-indigo-300 text-indigo-600 rounded-lg text-sm font-medium hover:bg-indigo-50 hover:border-indigo-400 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
@@ -370,6 +382,40 @@ export default function KeywordConceptInput({
             </>
           )}
         </button>
+      )}
+
+      {/* Overwrite Warning */}
+      {showOverwriteWarning && (
+        <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+          <p className="text-sm text-amber-800 mb-2">
+            <strong>Warning:</strong> AI generation will replace any data you&apos;ve already entered (review phrase, search terms, aliases, etc.)
+          </p>
+          <div className="flex gap-2">
+            <button
+              onClick={handleGenerateWithAI}
+              disabled={isGenerating}
+              className="px-3 py-1.5 text-sm font-medium text-white bg-amber-600 rounded hover:bg-amber-700 disabled:opacity-50 flex items-center gap-1"
+            >
+              {isGenerating ? (
+                <>
+                  <svg className="w-3 h-3 animate-spin" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  Generating...
+                </>
+              ) : (
+                'Replace with AI'
+              )}
+            </button>
+            <button
+              onClick={() => setShowOverwriteWarning(false)}
+              className="px-3 py-1.5 text-sm text-amber-700 hover:text-amber-800"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
       )}
 
       {/* Error Message */}
