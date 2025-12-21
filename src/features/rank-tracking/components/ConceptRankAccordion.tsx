@@ -2,12 +2,19 @@
 
 import { useState } from 'react';
 import Icon from '@/components/Icon';
-import { type KeywordData, type SearchTerm, MAX_SEARCH_TERMS } from '@/features/keywords/keywordUtils';
-import { type RankKeywordGroup } from '../utils/types';
+import { type KeywordData, MAX_SEARCH_TERMS } from '@/features/keywords/keywordUtils';
 
 // ============================================
 // Types
 // ============================================
+
+/** Simplified config type for display purposes */
+interface ConfigSummary {
+  id: string;
+  name: string;
+  locationName?: string;
+  device?: string;
+}
 
 interface SearchTermRanking {
   term: string;
@@ -27,7 +34,7 @@ interface ConceptRankAccordionProps {
   /** Ranking data for each search term, keyed by term */
   termRankings?: Map<string, SearchTermRanking['rankings']>;
   /** Available tracking configurations */
-  configs?: RankKeywordGroup[];
+  configs?: ConfigSummary[];
   /** Initially expanded state */
   defaultExpanded?: boolean;
   /** Whether the accordion is editable */
