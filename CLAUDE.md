@@ -211,6 +211,10 @@ PromptReviews is a review management platform that allows businesses to collect,
 2. **Be careful with auth event handlers** - TOKEN_REFRESHED events shouldn't trigger UI updates
 3. **Always check for existing patterns** - The codebase has established patterns for common operations
 4. **Character limits are UI-only** - Backend may accept longer text, handle gracefully
+5. **Never use bare `fetch()` for authenticated API calls** - Always use `apiClient` from `@/utils/apiClient`
+6. **Clear `.next` cache if build fails with JSON parse errors** - Run `rm -rf .next && npm run build`
+7. **Always include TypeScript generics with apiClient** - e.g., `apiClient.post<{ data: Type }>('/endpoint', payload)`
+8. **Close JSX tags when restructuring components** - Missed closing divs cause silent render failures
 
 ## API Structure
 

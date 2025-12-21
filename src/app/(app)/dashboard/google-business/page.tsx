@@ -15,6 +15,7 @@ import ReviewManagement from '@/app/(app)/components/ReviewManagement';
 import BusinessInfoEditor from '@/app/(app)/components/BusinessInfoEditor';
 import ServicesEditor from '@/app/(app)/components/ServicesEditor';
 import { createClient } from '@/auth/providers/supabase';
+import { apiClient } from '@/utils/apiClient';
 import { useBusinessData, useAuthUser, useAccountData, useSubscriptionData } from '@/auth/hooks/granularAuthHooks';
 import UnrespondedReviewsWidget from '@/app/(app)/components/UnrespondedReviewsWidget';
 import { safeTransformLocations, validateTransformedLocations } from '@/lib/google-business/safe-transformer';
@@ -993,25 +994,17 @@ export default function SocialPostingDashboard() {
       setIsLoadingPlatforms(true); // Also set platforms loading state
       
       // Call API to remove OAuth tokens from database
-      const response = await fetch('/api/social-posting/platforms/google-business-profile/disconnect', {
-        method: 'POST',
-        credentials: 'include',  // Changed from 'same-origin' to 'include' to ensure cookies are sent
-        headers: {
-          'Content-Type': 'application/json',
-          ...(accountIdRef.current ? { 'X-Selected-Account': accountIdRef.current } : {})
-        }
-      });
-      
-      if (response.ok) {
-        setPostResult({ 
-          success: true, 
-          message: 'Successfully disconnected from Google Business Profile' 
+      try {
+        await apiClient.post('/social-posting/platforms/google-business-profile/disconnect', {});
+        setPostResult({
+          success: true,
+          message: 'Successfully disconnected from Google Business Profile'
         });
-      } else {
+      } catch {
         console.warn('⚠️ API disconnect failed, clearing local state anyway');
-        setPostResult({ 
-          success: false, 
-          message: 'Disconnect partially failed - local state cleared' 
+        setPostResult({
+          success: false,
+          message: 'Disconnect partially failed - local state cleared'
         });
       }
     } catch (error) {
@@ -1295,28 +1288,13 @@ export default function SocialPostingDashboard() {
       }
       
       // Save to database
-      const response = await fetch('/api/social-posting/platforms/google-business-profile/save-selected-locations', {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(accountIdRef.current ? { 'X-Selected-Account': accountIdRef.current } : {})
-        },
-        body: JSON.stringify({
-          locations: selectedLocs.map(loc => ({
-            id: loc.id || '',
-            name: loc.name || '',
-            address: loc.address || ''
-          }))
-        })
+      await apiClient.post('/social-posting/platforms/google-business-profile/save-selected-locations', {
+        locations: selectedLocs.map(loc => ({
+          id: loc.id || '',
+          name: loc.name || '',
+          address: loc.address || ''
+        }))
       });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to save locations');
-      }
-
-      const result = await response.json();
       
       // Save selected locations to state and localStorage
       setLocations(selectedLocs);
@@ -1430,16 +1408,12 @@ export default function SocialPostingDashboard() {
         };
         
         
-        const response = await fetch('/api/social-posting/posts', {
-          method: 'POST',
-          credentials: 'same-origin',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(postData),
-        });
-
-        const result = await response.json();
+        let result;
+        try {
+          result = await apiClient.post<{ success: boolean; data?: any; error?: string }>('/social-posting/posts', postData);
+        } catch (error) {
+          result = { success: false, error: error instanceof Error ? error.message : 'Failed to post' };
+        }
         const location = locations.find(loc => loc.id === locationId);
         
         return {
@@ -1549,26 +1523,13 @@ export default function SocialPostingDashboard() {
         imageCount: selectedImages.length
       };
 
-      const response = await fetch('/api/social-posting/improve-with-ai', {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestData),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to improve post: ${response.statusText}`);
-      }
-
-      const result = await response.json();
+      const result = await apiClient.post<{ success: boolean; improvedContent?: string; message?: string }>('/social-posting/improve-with-ai', requestData);
       
-      if (result.success) {
+      if (result.success && result.improvedContent) {
         setPostContent(result.improvedContent);
-        setPostResult({ 
-          success: true, 
-          message: 'Post improved with AI! Check the enhanced content above.' 
+        setPostResult({
+          success: true,
+          message: 'Post improved with AI! Check the enhanced content above.'
         });
       } else {
         setPostResult({ success: false, message: result.message || 'Failed to improve post' });
@@ -1703,13 +1664,7 @@ export default function SocialPostingDashboard() {
     setOverviewError(null);
 
     try {
-      const response = await fetch(`/api/google-business-profile/overview?locationId=${encodeURIComponent(locationId)}`, {
-        credentials: 'same-origin',
-        headers: {
-          'X-Selected-Account': activeAccountId
-        }
-      });
-      const data = await response.json();
+      const data = await apiClient.get<{ success: boolean; data?: any; error?: string }>(`/google-business-profile/overview?locationId=${encodeURIComponent(locationId)}`);
 
       if (data.success) {
         // Include locationId in the stored data for cache validation
@@ -1808,22 +1763,11 @@ export default function SocialPostingDashboard() {
         fullAccount: account
       });
 
-      const response = await fetch('/api/google-business-profile/import-reviews', {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(accountIdRef.current ? { 'X-Selected-Account': accountIdRef.current } : {})
-        },
-        body: JSON.stringify({
-          locationId: selectedLocationId,
-          importType: type
-        }),
+      const result = await apiClient.post<{ success: boolean; message?: string; count?: number; errors?: any[]; totalErrorCount?: number; error?: string; details?: any }>('/google-business-profile/import-reviews', {
+        locationId: selectedLocationId,
+        importType: type
       });
 
-      console.log('📡 Import response status:', response.status);
-
-      const result = await response.json();
       console.log('📦 Import result:', result);
 
       if (result.success) {

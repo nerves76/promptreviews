@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { createClient, getUserOrMock } from "@/auth/providers/supabase";
+import { apiClient } from "@/utils/apiClient";
 import Cropper from "react-easy-crop";
 import type { Area } from "react-easy-crop";
 import { useAuthGuard } from "@/utils/authGuard";
@@ -370,15 +371,9 @@ export default function BusinessProfilePage() {
         // DEVELOPMENT MODE: Use API endpoint to bypass RLS issues
         if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined' && localStorage.getItem('dev_auth_bypass') === 'true') {
           try {
-            const response = await fetch(`/api/businesses?account_id=${currentAccountId}`);
-            const apiResult = await response.json();
-            if (response.ok) {
-              businessProfiles = apiResult.businesses || [];
-              businessError = null;
-            } else {
-              businessProfiles = [];
-              businessError = { message: apiResult.error || 'API error' };
-            }
+            const apiResult = await apiClient.get<{ businesses?: any[]; error?: string }>(`/businesses?account_id=${currentAccountId}`);
+            businessProfiles = apiResult.businesses || [];
+            businessError = null;
           } catch (err) {
             businessProfiles = [];
             businessError = { message: err instanceof Error ? err.message : String(err) };
@@ -886,30 +881,11 @@ export default function BusinessProfilePage() {
       // Use API endpoint to update business (bypasses RLS issues)
       if (businessId) {
         try {
-          const response = await fetch('/api/businesses', {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-              'X-Selected-Account': selectedAccountId,
-            },
-            credentials: 'include',
-            body: JSON.stringify({
-              businessId,
-              ...updatePayload,
-            }),
+          const result = await apiClient.put<{ business?: any; error?: string; details?: string }>('/businesses', {
+            businessId,
+            ...updatePayload,
           });
-
-          const result = await response.json();
-
-          if (!response.ok) {
-            updateError = {
-              message: result.error || 'Failed to update business',
-              details: result.details,
-              code: response.status.toString(),
-            };
-          } else {
-            updateData = result.business;
-          }
+          updateData = result.business;
         } catch (fetchError) {
           console.error("API call failed:", fetchError);
           updateError = {
@@ -920,32 +896,11 @@ export default function BusinessProfilePage() {
       } else {
         // Create new business via API
         try {
-          const response = await fetch('/api/businesses', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'X-Selected-Account': selectedAccountId,
-            },
-            credentials: 'include',
-            body: JSON.stringify({
-              ...updatePayload,
-            }),
-          });
-
-          const result = await response.json();
-
-          if (!response.ok) {
-            updateError = {
-              message: result.error || 'Failed to create business',
-              details: result.details,
-              code: response.status.toString(),
-            };
-          } else {
-            updateData = result.business;
-            // Store the new business ID for future saves
-            if (result.business?.id) {
-              setBusinessId(result.business.id);
-            }
+          const result = await apiClient.post<{ business?: any; error?: string; details?: string }>('/businesses', updatePayload);
+          updateData = result.business;
+          // Store the new business ID for future saves
+          if (result.business?.id) {
+            setBusinessId(result.business.id);
           }
         } catch (fetchError) {
           console.error("API call failed:", fetchError);

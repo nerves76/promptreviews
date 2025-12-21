@@ -28,6 +28,7 @@ import StarfallCelebration from "../components/StarfallCelebration";
 import { trackEvent, GA_EVENTS } from "@/utils/analytics";
 import { useAuth } from "@/auth";
 import { checkAccountLimits } from "@/utils/accountLimits";
+import { apiClient } from "@/utils/apiClient";
 import React from "react";
 
 interface DashboardData {
@@ -239,26 +240,10 @@ const Dashboard = React.memo(function Dashboard() {
       // Ensure the universal prompt page exists for this account via API (service role)
       if (!universalPromptPage) {
         try {
-          // Include Authorization header to ensure server can authenticate
-          let authHeaders: Record<string, string> = { 'X-Selected-Account': (selectedAccountId || account.id) as string };
-          try {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session?.access_token) {
-              authHeaders['Authorization'] = `Bearer ${session.access_token}`;
-            }
-          } catch {}
-
-          const ensureRes = await fetch('/api/prompt-pages/ensure-universal', {
-            method: 'POST',
-            credentials: 'include',
-            headers: authHeaders,
-          });
-          if (ensureRes.ok) {
-            const ensureData = await ensureRes.json();
-            universalPromptPage = ensureData.page || null;
-            if (universalPromptPage?.slug) {
-              universalUrl = `${window.location.origin}/r/${universalPromptPage.slug}`;
-            }
+          const ensureData = await apiClient.post<{ page?: any }>('/prompt-pages/ensure-universal', {});
+          universalPromptPage = ensureData.page || null;
+          if (universalPromptPage?.slug) {
+            universalUrl = `${window.location.origin}/r/${universalPromptPage.slug}`;
           }
         } catch {}
       }
@@ -732,25 +717,16 @@ const Dashboard = React.memo(function Dashboard() {
                 setIsPendingPricingModal(false);
                 return;
               }
-            const response = await fetch(`/api/accounts/payment-status?accountId=${accountToCheck}`);
+            const data = await apiClient.get<{ requiresPayment?: boolean }>(`/accounts/payment-status?accountId=${accountToCheck}`);
 
-            if (response.ok) {
-              const data = await response.json();
-              if (data.requiresPayment) {
-                // Clear the pending state and show modal
-                setIsPendingPricingModal(false);
-                setShowPricingModal(true);
-                setPlanSelectionRequired(true); // Make it required so user can't dismiss
-              } else {
-                // No payment required, clear pending state
-                setIsPendingPricingModal(false);
-              }
-            } else {
-              console.error('Failed to check payment status after business creation');
-              // Show modal anyway as fallback
+            if (data.requiresPayment) {
+              // Clear the pending state and show modal
               setIsPendingPricingModal(false);
               setShowPricingModal(true);
-              setPlanSelectionRequired(true);
+              setPlanSelectionRequired(true); // Make it required so user can't dismiss
+            } else {
+              // No payment required, clear pending state
+              setIsPendingPricingModal(false);
             }
           } catch (error) {
             console.error('Error checking payment status:', error);
@@ -777,22 +753,14 @@ const Dashboard = React.memo(function Dashboard() {
               setIsPendingPricingModal(false);
               return;
             }
-            const response = await fetch(`/api/accounts/payment-status?accountId=${accountToCheck}`);
+            const data = await apiClient.get<{ requiresPayment?: boolean }>(`/accounts/payment-status?accountId=${accountToCheck}`);
 
-            if (response.ok) {
-              const data = await response.json();
-              if (data.requiresPayment) {
-                setIsPendingPricingModal(false);
-                setShowPricingModal(true);
-                setPlanSelectionRequired(true);
-              } else {
-                setIsPendingPricingModal(false);
-              }
-            } else {
-              // Fallback - show modal
+            if (data.requiresPayment) {
               setIsPendingPricingModal(false);
               setShowPricingModal(true);
               setPlanSelectionRequired(true);
+            } else {
+              setIsPendingPricingModal(false);
             }
           } catch (error) {
             console.error('Error checking payment status in fallback:', error);
@@ -1131,24 +1099,9 @@ const Dashboard = React.memo(function Dashboard() {
         billingPeriod: billingPeriod,
         isAdditionalAccount: account?.is_additional_account === true,
       };
-      
-      
-      const response = await fetch("/api/create-checkout-session", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(checkoutData),
-      });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error(`❌ Stripe checkout API error:`, errorData);
-        throw new Error(errorData.error || "Failed to create checkout session");
-      }
+      const responseData = await apiClient.post<{ url?: string }>("/create-checkout-session", checkoutData);
 
-      const responseData = await response.json();
-      
       const { url } = responseData;
       
       if (url) {
@@ -1219,20 +1172,18 @@ const Dashboard = React.memo(function Dashboard() {
   const handleForceRefresh = async () => {
     try {
       setShowTopLoader(true);
-      
+
       // Call the refresh session API
-      const response = await fetch('/api/refresh-session', { method: 'POST' });
-      const result = await response.json();
-      
+      const result = await apiClient.post<{ success?: boolean }>('/refresh-session', {});
+
       if (result.success) {
-        
         // Refresh all auth context data
         await Promise.all([
           refreshSession(),
           refreshAccount(),
           loadDashboardSpecificData()
         ]);
-        
+
         // Force page reload to ensure all components pick up new data
         window.location.reload();
       } else {

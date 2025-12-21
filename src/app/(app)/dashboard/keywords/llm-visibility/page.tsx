@@ -51,13 +51,23 @@ export default function LLMVisibilityPage() {
     setError(null);
     try {
       // Fetch keywords with related questions
-      const keywordsData = await apiClient.get('/keywords') as { keywords?: Array<{ id: string; phrase: string; relatedQuestions?: string[] }> };
+      // relatedQuestions can be either string[] or array of {question, funnelStage, addedAt} objects
+      const keywordsData = await apiClient.get('/keywords') as {
+        keywords?: Array<{
+          id: string;
+          phrase: string;
+          relatedQuestions?: Array<string | { question: string; funnelStage?: string; addedAt?: string }>;
+        }>
+      };
       const keywordsWithQuestions: KeywordWithQuestions[] = (keywordsData.keywords || [])
         .filter((k) => k.relatedQuestions && k.relatedQuestions.length > 0)
         .map((k) => ({
           id: k.id,
           phrase: k.phrase,
-          relatedQuestions: k.relatedQuestions || [],
+          // Extract question text if it's an object, otherwise use the string directly
+          relatedQuestions: (k.relatedQuestions || []).map(q =>
+            typeof q === 'string' ? q : q.question
+          ),
           summary: null,
         }));
 

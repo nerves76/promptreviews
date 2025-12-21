@@ -139,10 +139,8 @@ export default function ArticleEditorPage() {
   const fetchNavigation = async () => {
     try {
       setNavigationLoading(true);
-      const response = await fetch('/api/admin/docs/navigation');
-      if (response.ok) {
-        const data = await response.json();
-        setAllNavigationItems(data.items || []);
+      const data = await apiClient.get<{ items: any[] }>('/admin/docs/navigation');
+      setAllNavigationItems(data.items || []);
 
         // Find navigation items that link to this article
         const currentPath = `/google-biz-optimizer/${slug}`;
@@ -151,17 +149,16 @@ export default function ArticleEditorPage() {
         );
         setNavigationItems(matching);
 
-        // Pre-fill form if we have an existing nav item
-        if (matching.length > 0) {
-          const nav = matching[0];
-          setSelectedParent(nav.parent_id);
-          setNavigationTitle(nav.title || article.title);
-          setNavigationIcon(nav.icon_name || "");
-          setNavigationOrder(nav.order_index || 0);
-        } else {
-          // Default to article title if no nav item exists
-          setNavigationTitle(article.title);
-        }
+      // Pre-fill form if we have an existing nav item
+      if (matching.length > 0) {
+        const nav = matching[0];
+        setSelectedParent(nav.parent_id);
+        setNavigationTitle(nav.title || article.title);
+        setNavigationIcon(nav.icon_name || "");
+        setNavigationOrder(nav.order_index || 0);
+      } else {
+        // Default to article title if no nav item exists
+        setNavigationTitle(article.title);
       }
     } catch (error) {
       console.error('Error fetching navigation:', error);
@@ -173,14 +170,7 @@ export default function ArticleEditorPage() {
   const fetchArticle = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/admin/help-content/${slug}`);
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to fetch article");
-      }
-
-      const data = await response.json();
+      const data = await apiClient.get<{ article: Article }>(`/admin/help-content/${slug}`);
       setArticle(data.article);
       setOriginalArticle(data.article);
       setError(null);
@@ -248,17 +238,9 @@ export default function ArticleEditorPage() {
 
     try {
       setSaving(true);
-      const response = await fetch(`/api/admin/help-content/${article.slug}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(article),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setOriginalArticle(data.article);
-        setLastSaved(new Date());
-      }
+      const data = await apiClient.put<{ article: Article }>(`/admin/help-content/${article.slug}`, article);
+      setOriginalArticle(data.article);
+      setLastSaved(new Date());
     } catch (err) {
       console.error("Auto-save failed:", err);
     } finally {
@@ -322,27 +304,12 @@ export default function ArticleEditorPage() {
         status: newStatus || article.status,
       };
 
-      let response;
+      let data: { article: Article };
       if (isNewArticle) {
-        response = await fetch("/api/admin/help-content", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(articleData),
-        });
+        data = await apiClient.post<{ article: Article }>("/admin/help-content", articleData);
       } else {
-        response = await fetch(`/api/admin/help-content/${slug}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(articleData),
-        });
+        data = await apiClient.put<{ article: Article }>(`/admin/help-content/${slug}`, articleData);
       }
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to save article");
-      }
-
-      const data = await response.json();
       setArticle(data.article);
       setOriginalArticle(data.article);
       setHasUnsavedChanges(false);
@@ -390,25 +357,12 @@ export default function ArticleEditorPage() {
         is_active: true,
       };
 
-      let response;
       if (navigationItems.length > 0) {
         // Update existing navigation item
-        response = await fetch('/api/admin/docs/navigation', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: navigationItems[0].id, ...navData }),
-        });
+        await apiClient.put('/admin/docs/navigation', { id: navigationItems[0].id, ...navData });
       } else {
         // Create new navigation item
-        response = await fetch('/api/admin/docs/navigation', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(navData),
-        });
-      }
-
-      if (!response.ok) {
-        throw new Error('Failed to save navigation');
+        await apiClient.post('/admin/docs/navigation', navData);
       }
 
       // Refresh navigation
@@ -431,13 +385,7 @@ export default function ArticleEditorPage() {
 
     try {
       setNavigationLoading(true);
-      const response = await fetch(`/api/admin/docs/navigation?id=${navigationItems[0].id}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete navigation');
-      }
+      await apiClient.delete(`/admin/docs/navigation?id=${navigationItems[0].id}`);
 
       // Refresh navigation
       await fetchNavigation();

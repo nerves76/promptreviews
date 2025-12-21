@@ -299,24 +299,12 @@ export default function AccountPage() {
     const businessName = formData.get('businessName') as string;
 
     try {
-      const response = await fetch('/api/accounts/create-additional', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          firstName,
-          lastName,
-          email,
-          businessName,
-        }),
+      const result = await apiClient.post<{ businessName?: string; accountId?: string; error?: string }>('/accounts/create-additional', {
+        firstName,
+        lastName,
+        email,
+        businessName,
       });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || 'Failed to create account');
-      }
 
       // Preserve the business name to prefill the create-business form
       if (typeof window !== 'undefined' && result.businessName) {
@@ -367,20 +355,7 @@ export default function AccountPage() {
     setError(null);
 
     try {
-      const response = await fetch('/api/cancel-account', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ confirm: true }),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        console.error('Cancel account failed:', result);
-        throw new Error(result.error || 'Failed to cancel account');
-      }
+      await apiClient.post('/cancel-account', { confirm: true });
 
       // Track cancellation event
       trackEvent(GA_EVENTS.SUBSCRIPTION_CANCELLED, {
@@ -410,28 +385,13 @@ export default function AccountPage() {
     setError(null);
     
     try {
-      const response = await fetch('/api/create-stripe-portal-session', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const result = await apiClient.post<{ url?: string }>('/create-stripe-portal-session', {});
 
-      let result;
-      try {
-        result = await response.json();
-      } catch (jsonError) {
-        console.error('Failed to parse JSON response:', jsonError);
-        setError('Invalid response from server. Please try again.');
-        return;
-      }
-
-      if (response.ok && result.url) {
+      if (result.url) {
         // Redirect to Stripe Customer Portal
         window.location.href = result.url;
       } else {
-        console.error('Payment portal creation failed:', result.error);
-        setError(result.error || 'Failed to open payment portal. Please try again.');
+        setError('Failed to open payment portal. Please try again.');
       }
     } catch (error) {
       console.error('Payment portal error:', error);

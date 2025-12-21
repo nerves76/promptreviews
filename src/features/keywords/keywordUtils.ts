@@ -165,6 +165,12 @@ export function keywordExistsInText(text: string, keyword: string): boolean {
 export const DEFAULT_GROUP_NAME = 'General';
 
 /**
+ * Maximum number of search terms allowed per keyword concept.
+ * Each search term can be tracked separately for rankings.
+ */
+export const MAX_SEARCH_TERMS = 20;
+
+/**
  * Type for keyword status.
  */
 export type KeywordStatus = 'active' | 'paused';

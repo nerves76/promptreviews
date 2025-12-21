@@ -622,47 +622,18 @@ export default function UploadContactsPage() {
     setIsLoading(true);
 
     try {
-      const {
-        data: { session },
-        error,
-      } = await getSessionOrMock(supabase);
-      if (error || !session) {
-        setError("Please sign in to upload contacts");
-        return;
-      }
-
-
       const formData = new FormData();
       formData.append("file", selectedFile);
 
-      const response = await fetch("/api/upload-contacts", {
-        method: "POST",
-        body: formData,
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-      });
+      const data = await apiClient.upload<{
+        contactsCreated?: number;
+        promptPagesCreated?: number;
+        error?: string;
+        details?: string;
+        invalidRecords?: Array<{ row: number; missingFields: string }>;
+      }>("/upload-contacts", formData);
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        console.error("Upload error response:", data);
-        if (data.invalidRecords) {
-          const errorDetails = data.invalidRecords
-            .map((r: any) => `Row ${r.row}: Missing ${r.missingFields}`)
-            .join("\n");
-          setError(
-            `Some records are missing required fields:\n${errorDetails}`,
-          );
-        } else if (data.details) {
-          setError(`Error: ${data.error}. Details: ${data.details}`);
-        } else {
-          setError(data.error || "Failed to upload contacts");
-        }
-        return;
-      }
-
-      if (data.contactsCreated > 0) {
+      if (data.contactsCreated && data.contactsCreated > 0) {
         setSuccess(
           `Successfully uploaded ${data.contactsCreated} contacts${data.promptPagesCreated ? ` and created ${data.promptPagesCreated} prompt pages` : ""}!`,
         );
@@ -671,9 +642,20 @@ export default function UploadContactsPage() {
       } else {
         setError("No contacts were created. Please check your CSV file.");
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Upload error:", err);
-      setError("Failed to upload contacts. Please try again.");
+      // Check for detailed error info from apiClient
+      const errorBody = err.responseBody;
+      if (errorBody?.invalidRecords) {
+        const errorDetails = errorBody.invalidRecords
+          .map((r: any) => `Row ${r.row}: Missing ${r.missingFields}`)
+          .join("\n");
+        setError(`Some records are missing required fields:\n${errorDetails}`);
+      } else if (errorBody?.details) {
+        setError(`Error: ${errorBody.error}. Details: ${errorBody.details}`);
+      } else {
+        setError(err.message || "Failed to upload contacts. Please try again.");
+      }
     } finally {
       setIsLoading(false);
     }

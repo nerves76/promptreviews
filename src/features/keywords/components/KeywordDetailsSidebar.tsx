@@ -15,6 +15,7 @@ import {
   getFunnelStageColor,
   getFunnelStageShortLabel,
   normalizePhrase,
+  MAX_SEARCH_TERMS,
 } from '../keywordUtils';
 import { useRelatedQuestions } from '../hooks/useRelatedQuestions';
 import { useLLMVisibility } from '@/features/llm-visibility/hooks/useLLMVisibility';
@@ -417,9 +418,17 @@ export function KeywordDetailsSidebar({
     setIsEditingSEO(true);
   };
 
+  // Check if search terms are at the limit
+  const searchTermsAtLimit = editedSearchTerms.length >= MAX_SEARCH_TERMS;
+
   // Search term management functions
   const handleAddSearchTerm = (forceAdd = false) => {
     if (!keyword || !newSearchTerm.trim()) return;
+
+    // Check if we've reached the maximum
+    if (editedSearchTerms.length >= MAX_SEARCH_TERMS) {
+      return; // At limit
+    }
 
     const termToAdd = newSearchTerm.trim();
 
@@ -1300,7 +1309,7 @@ export function KeywordDetailsSidebar({
                                 )}
 
                                 {/* Add new term input */}
-                                {isEditingSEO && (
+                                {isEditingSEO && !searchTermsAtLimit && (
                                   <div className="space-y-2">
                                     <div className="flex gap-2">
                                       <input
@@ -1361,6 +1370,11 @@ export function KeywordDetailsSidebar({
                                       = Canonical term (shown when space is limited)
                                     </p>
                                   </div>
+                                )}
+                                {isEditingSEO && searchTermsAtLimit && (
+                                  <p className="text-xs text-amber-600">
+                                    Maximum of {MAX_SEARCH_TERMS} search terms reached
+                                  </p>
                                 )}
 
                                 {/* Volume lookup error */}

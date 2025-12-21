@@ -10,3 +10,4 @@ export { default as ScheduleSettings } from './ScheduleSettings';
 export { default as RankGroupCard } from './RankGroupCard';
 export { default as CreateGroupModal } from './CreateGroupModal';
 export { default as LocationPicker } from './LocationPicker';
+export { default as ConceptRankAccordion } from './ConceptRankAccordion';

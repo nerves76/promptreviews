@@ -14,26 +14,8 @@ export function useRedirectManager() {
     router.push('/auth/sign-in');
   }, [router]);
 
-  const redirectToHome = useCallback((reason?: string) => {
-    console.log(`[useRedirectManager] Redirecting to home${reason ? `: ${reason}` : ''}`);
-    router.push('/');
-  }, [router]);
-
-  const redirectToCreateBusiness = useCallback((reason?: string) => {
-    console.log(`[useRedirectManager] Redirecting to create-business${reason ? `: ${reason}` : ''}`);
-    router.push('/dashboard/create-business');
-  }, [router]);
-
-  const redirectToPlan = useCallback((reason?: string) => {
-    console.log(`[useRedirectManager] Redirecting to plan${reason ? `: ${reason}` : ''}`);
-    router.push('/dashboard/plan');
-  }, [router]);
-
   return {
     redirectToDashboard,
     redirectToSignIn,
-    redirectToHome,
-    redirectToCreateBusiness,
-    redirectToPlan,
   };
 }

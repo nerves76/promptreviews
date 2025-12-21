@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import { createClient } from "@/auth/providers/supabase";
+import { apiClient } from "@/utils/apiClient";
 import { useAuthGuard } from "@/utils/authGuard";
 import { getAccountIdForUser } from "@/auth/utils/accounts";
 import { useAccountData } from "@/auth/hooks/granularAuthHooks";
@@ -365,8 +366,7 @@ export default function ReviewsPage() {
 
       try {
         // Use API endpoint to ensure proper account isolation
-        const { apiClient } = await import('@/utils/apiClient');
-        const response = await apiClient.get('/social-posting/platforms/google-business-profile/locations');
+        const response = await apiClient.get<{ data?: { locations?: any[] }; locations?: any[] }>('/social-posting/platforms/google-business-profile/locations');
 
         const locations = response.data?.locations || response.locations || [];
         console.log('[Reviews] GBP locations for account', accountId, ':', locations.length, 'locations', locations.map((l: any) => l.location_name));
@@ -595,36 +595,7 @@ export default function ReviewsPage() {
   // Export reviews as CSV
   const handleExport = async () => {
     try {
-      // For blob responses, we need to use raw fetch with authentication
-      const { tokenManager } = await import('@/auth/services/TokenManager');
-      const token = await tokenManager.getAccessToken();
-
-      const headers: Record<string, string> = {};
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-
-        // Get selected account
-        try {
-          const payload = JSON.parse(atob(token.split('.')[1]));
-          if (payload.sub) {
-            const accountKey = `promptreviews_selected_account_${payload.sub}`;
-            const selectedAccount = localStorage.getItem(accountKey);
-            if (selectedAccount) {
-              headers['X-Selected-Account'] = selectedAccount;
-            }
-          }
-        } catch (e) {
-          // Token parsing failed, ignore
-        }
-      }
-
-      const response = await fetch('/api/reviews/export', { headers });
-
-      if (!response.ok) {
-        throw new Error('Export failed');
-      }
-
-      // Create download
+      const response = await apiClient.download('/reviews/export');
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -727,50 +698,25 @@ export default function ReviewsPage() {
     setImportSuccess(null);
 
     try {
-      const { tokenManager } = await import('@/auth/services/TokenManager');
-      const token = await tokenManager.getAccessToken();
-
-      const headers: Record<string, string> = {};
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-        try {
-          const payload = JSON.parse(atob(token.split('.')[1]));
-          if (payload.sub) {
-            const accountKey = `promptreviews_selected_account_${payload.sub}`;
-            const selectedAccount = localStorage.getItem(accountKey);
-            if (selectedAccount) {
-              headers['X-Selected-Account'] = selectedAccount;
-            }
-          }
-        } catch (e) {
-          // Token parsing failed
-        }
-      }
-
       const formData = new FormData();
       formData.append('file', importFile);
 
-      const response = await fetch('/api/reviews/upload', {
-        method: 'POST',
-        headers,
-        body: formData,
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || 'Upload failed');
-      }
+      const result = await apiClient.upload<{
+        reviewsCreated: number;
+        duplicatesSkipped?: number;
+        contactsCreated?: number;
+        contactsLinked?: number;
+      }>('/reviews/upload', formData);
 
       // Success
       let successMsg = `Successfully imported ${result.reviewsCreated} review${result.reviewsCreated !== 1 ? 's' : ''}`;
-      if (result.duplicatesSkipped > 0) {
+      if (result.duplicatesSkipped && result.duplicatesSkipped > 0) {
         successMsg += ` (${result.duplicatesSkipped} duplicate${result.duplicatesSkipped !== 1 ? 's' : ''} skipped)`;
       }
-      if (result.contactsCreated > 0) {
+      if (result.contactsCreated && result.contactsCreated > 0) {
         successMsg += `, created ${result.contactsCreated} new contact${result.contactsCreated !== 1 ? 's' : ''}`;
       }
-      if (result.contactsLinked > 0) {
+      if (result.contactsLinked && result.contactsLinked > 0) {
         successMsg += `, linked to ${result.contactsLinked} existing contact${result.contactsLinked !== 1 ? 's' : ''}`;
       }
       setImportSuccess(successMsg);
@@ -797,9 +743,7 @@ export default function ReviewsPage() {
     setImportSuccess(null);
 
     try {
-      const { apiClient } = await import('@/utils/apiClient');
-
-      const result = await apiClient.post('/google-business-profile/import-reviews', {
+      const result = await apiClient.post<{ count?: number; skipped?: number }>('/google-business-profile/import-reviews', {
         locationId,
         importType: 'new',
       });

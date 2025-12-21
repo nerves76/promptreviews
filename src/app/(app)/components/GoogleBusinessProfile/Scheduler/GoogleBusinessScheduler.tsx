@@ -310,25 +310,24 @@ export default function GoogleBusinessScheduler({
         formData.append('folder', 'social-posts/scheduled');
 
         console.log('[Scheduler] Uploading compressed image...');
-        const response = await fetch('/api/social-posting/upload-image', {
-          method: 'POST',
-          body: formData,
-        });
-
-        const data = await response.json();
-        if (!response.ok) {
-          console.error('[Scheduler] Upload API error:', data);
-          throw new Error(data.error || 'Failed to upload image');
-        }
+        const data = await apiClient.upload<{
+          bucket: string;
+          path: string;
+          url: string;
+          size: number;
+          mime?: string;
+          checksum?: string;
+          originalName?: string;
+        }>('/social-posting/upload-image', formData);
 
         const descriptor: SchedulerMedia = {
           bucket: data.bucket,
           path: data.path,
           publicUrl: data.url,
           size: data.size,
-          mime: data.mime,
-          checksum: data.checksum,
-          originalName: data.originalName,
+          mime: data.mime || 'image/jpeg',
+          checksum: data.checksum || '',
+          originalName: data.originalName || file.name,
           previewUrl: data.url,
         };
 

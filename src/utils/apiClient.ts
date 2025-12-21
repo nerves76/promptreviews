@@ -230,6 +230,114 @@ class ApiClient {
       body: data ? JSON.stringify(data) : undefined,
     });
   }
+
+  /**
+   * Upload files using FormData
+   * Note: Do NOT set Content-Type header - browser sets it automatically with boundary
+   */
+  async upload<T>(url: string, formData: FormData, options?: ApiRequestOptions): Promise<T> {
+    const { skipAuth, retryOnAuthError = true, includeSelectedAccount = true, ...fetchOptions } = options || {};
+
+    // Get headers but exclude Content-Type (browser sets it for FormData)
+    const baseHeaders = await this.getHeaders(skipAuth, includeSelectedAccount);
+    const { 'Content-Type': _, ...headersWithoutContentType } = baseHeaders as Record<string, string>;
+
+    const response = await fetch(`${this.baseUrl}${url}`, {
+      ...fetchOptions,
+      method: 'POST',
+      headers: headersWithoutContentType,
+      body: formData,
+    });
+
+    // Handle auth errors with retry
+    if (response.status === 401 && retryOnAuthError && !skipAuth) {
+      const newToken = await tokenManager.getAccessToken();
+      if (newToken) {
+        const retryHeaders = await this.getHeaders(skipAuth, includeSelectedAccount);
+        const { 'Content-Type': __, ...retryHeadersWithoutContentType } = retryHeaders as Record<string, string>;
+
+        const retryResponse = await fetch(`${this.baseUrl}${url}`, {
+          ...fetchOptions,
+          method: 'POST',
+          headers: retryHeadersWithoutContentType,
+          body: formData,
+        });
+
+        if (!retryResponse.ok) {
+          let errorDetails = retryResponse.statusText;
+          try {
+            const errorBody = await retryResponse.json();
+            errorDetails = errorBody.details || errorBody.error || errorBody.message || retryResponse.statusText;
+          } catch (e) {}
+          const error = new Error(`Upload failed: ${errorDetails}`);
+          (error as any).status = retryResponse.status;
+          throw error;
+        }
+        return retryResponse.json();
+      }
+    }
+
+    if (!response.ok) {
+      let errorDetails = response.statusText;
+      try {
+        const errorBody = await response.json();
+        errorDetails = errorBody.details || errorBody.error || errorBody.message || response.statusText;
+      } catch (e) {}
+      const error = new Error(`Upload failed: ${errorDetails}`);
+      (error as any).status = response.status;
+      throw error;
+    }
+
+    return response.json();
+  }
+
+  /**
+   * Download a file as blob (for CSV exports, images, etc.)
+   * Returns the raw Response for flexibility (caller can use .blob(), .text(), etc.)
+   */
+  async download(url: string, options?: ApiRequestOptions): Promise<Response> {
+    const { skipAuth, retryOnAuthError = true, includeSelectedAccount = true, ...fetchOptions } = options || {};
+
+    const headers = await this.getHeaders(skipAuth, includeSelectedAccount);
+    // Remove Content-Type for download requests
+    const { 'Content-Type': _, ...headersWithoutContentType } = headers as Record<string, string>;
+
+    const response = await fetch(`${this.baseUrl}${url}`, {
+      ...fetchOptions,
+      method: 'GET',
+      headers: headersWithoutContentType,
+    });
+
+    // Handle auth errors with retry
+    if (response.status === 401 && retryOnAuthError && !skipAuth) {
+      const newToken = await tokenManager.getAccessToken();
+      if (newToken) {
+        const retryHeaders = await this.getHeaders(skipAuth, includeSelectedAccount);
+        const { 'Content-Type': __, ...retryHeadersWithoutContentType } = retryHeaders as Record<string, string>;
+
+        const retryResponse = await fetch(`${this.baseUrl}${url}`, {
+          ...fetchOptions,
+          method: 'GET',
+          headers: retryHeadersWithoutContentType,
+        });
+
+        if (!retryResponse.ok) {
+          const error = new Error(`Download failed: ${retryResponse.statusText}`);
+          (error as any).status = retryResponse.status;
+          throw error;
+        }
+        return retryResponse;
+      }
+    }
+
+    if (!response.ok) {
+      const error = new Error(`Download failed: ${response.statusText}`);
+      (error as any).status = response.status;
+      throw error;
+    }
+
+    return response;
+  }
 }
 
 // Create default instance
@@ -240,21 +348,24 @@ export { ApiClient };
 
 /**
  * Example usage in components:
- * 
+ *
  * ```typescript
  * import { apiClient } from '@/utils/apiClient';
- * 
- * // In your component or hook
- * const fetchWidgets = async () => {
- *   try {
- *     const widgets = await apiClient.get('/widgets');
- *     setWidgets(widgets);
- *   } catch (error) {
- *     console.error('Failed to fetch widgets:', error);
- *   }
- * };
- * 
- * // No need to worry about tokens or re-renders!
+ *
+ * // GET/POST/PUT/DELETE requests
+ * const widgets = await apiClient.get<Widget[]>('/widgets');
+ * const result = await apiClient.post<Result>('/widgets', { name: 'New Widget' });
+ *
+ * // File uploads with FormData
+ * const formData = new FormData();
+ * formData.append('file', file);
+ * const uploadResult = await apiClient.upload<UploadResult>('/upload', formData);
+ *
+ * // File downloads (CSV, images, etc.)
+ * const response = await apiClient.download('/reviews/export');
+ * const blob = await response.blob();
+ * const url = window.URL.createObjectURL(blob);
+ * // ... trigger download
  * ```
  */
 

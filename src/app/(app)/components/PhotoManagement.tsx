@@ -8,6 +8,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import Icon from '@/components/Icon';
 import { createClient } from '@/auth/providers/supabase';
+import { apiClient } from '@/utils/apiClient';
 import LocationPicker from '@/components/GoogleBusinessProfile/LocationPicker';
 
 interface GoogleBusinessLocation {
@@ -227,42 +228,28 @@ export default function PhotoManagement({ locations, isConnected }: PhotoManagem
             formData.append('description', photo.description);
           }
 
-          // Get auth token for API request
-          const { data: { session } } = await supabase.auth.getSession();
-          if (!session?.access_token) {
-            throw new Error('Authentication required');
-          }
-
-          const response = await fetch('/api/social-posting/photos/upload', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${session.access_token}`
-            },
-            body: formData
-          });
-
-          if (response.ok) {
+          try {
+            await apiClient.upload('/social-posting/photos/upload', formData);
             successCount++;
-            setUploadProgress(prev => 
-              prev.map(item => 
-                item.locationId === progressItem.locationId && 
+            setUploadProgress(prev =>
+              prev.map(item =>
+                item.locationId === progressItem.locationId &&
                 item.photoIndex === progressItem.photoIndex
                   ? { ...item, status: 'completed', progress: 100 }
                   : item
               )
             );
-          } else {
+          } catch (uploadError: any) {
             failedCount++;
-            const errorData = await response.json();
-            setUploadProgress(prev => 
-              prev.map(item => 
-                item.locationId === progressItem.locationId && 
+            setUploadProgress(prev =>
+              prev.map(item =>
+                item.locationId === progressItem.locationId &&
                 item.photoIndex === progressItem.photoIndex
-                  ? { 
-                      ...item, 
-                      status: 'failed', 
+                  ? {
+                      ...item,
+                      status: 'failed',
                       progress: 0,
-                      error: errorData.message || 'Upload failed'
+                      error: uploadError.message || 'Upload failed'
                     }
                   : item
               )
