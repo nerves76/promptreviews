@@ -8,6 +8,7 @@ import Cropper from "react-easy-crop";
 import type { Area } from "react-easy-crop";
 import { useAuthGuard } from "@/utils/authGuard";
 import { useBusinessData, useAuthUser, useAccountData } from "@/auth/hooks/granularAuthHooks";
+import { useBusiness } from "@/auth/context/AccountBusinessContext";
 import { useAuth } from "@/auth";
 import Icon from "@/components/Icon";
 import { getAccountIdForUser } from "@/auth/utils/accounts";
@@ -105,6 +106,7 @@ export default function BusinessProfilePage() {
   useAuthGuard();
   const { user } = useAuthUser();
   const { business } = useBusinessData();
+  const { refreshBusiness } = useBusiness();
   
   // Storage key for form data persistence
   const formStorageKey = 'businessProfileForm';
@@ -958,6 +960,10 @@ export default function BusinessProfilePage() {
       }
       
       setSuccess("Profile updated successfully!");
+
+      // Refresh business data in context to clear cache
+      // This ensures other pages (like keywords) get the updated data
+      await refreshBusiness();
 
       // Clear saved form data after successful submission
       if (typeof window !== 'undefined') {

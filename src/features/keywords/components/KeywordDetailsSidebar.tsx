@@ -113,6 +113,8 @@ export interface KeywordDetailsSidebarProps {
   showGroupSelector?: boolean;
   /** Optional: Refresh callback to refetch keyword details after update */
   onRefresh?: () => Promise<void>;
+  /** Optional: Callback to check rank for a search term (opens modal) */
+  onCheckRank?: (keyword: string, conceptId: string) => void;
 }
 
 export function KeywordDetailsSidebar({
@@ -125,6 +127,7 @@ export function KeywordDetailsSidebar({
   groups = [],
   showGroupSelector = false,
   onRefresh,
+  onCheckRank,
 }: KeywordDetailsSidebarProps) {
   // Get business context for AI enrichment
   const { account } = useAuth();
@@ -1242,8 +1245,9 @@ export function KeywordDetailsSidebar({
                                           )}
                                         </div>
 
-                                        {/* Stats row - show per-term volume data only */}
-                                        <div className="mt-2 pt-2 border-t border-gray-100/50">
+                                        {/* Stats row - show per-term volume data and rankings */}
+                                        <div className="mt-2 pt-2 border-t border-gray-100/50 space-y-2">
+                                          {/* Volume data */}
                                           {(() => {
                                             // Check if we have per-term volume data for this term
                                             const normalizedTerm = normalizePhrase(term.term);
@@ -1276,28 +1280,97 @@ export function KeywordDetailsSidebar({
                                                 </div>
                                               );
                                             }
-
-                                            // No per-term volume data - show check button
-                                            return (
-                                              <button
-                                                onClick={() => handleCheckTermVolume(term.term)}
-                                                disabled={checkingTermVolume === term.term || isLookingUpVolume}
-                                                className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1 disabled:opacity-50"
-                                              >
-                                                {checkingTermVolume === term.term ? (
-                                                  <>
-                                                    <Icon name="FaSpinner" className="w-3 h-3 animate-spin" />
-                                                    Looking up...
-                                                  </>
-                                                ) : (
-                                                  <>
-                                                    <Icon name="FaSearch" className="w-3 h-3" />
-                                                    Check volume
-                                                  </>
-                                                )}
-                                              </button>
-                                            );
+                                            return null;
                                           })()}
+
+                                          {/* Rankings inline - show per-location rankings for this term */}
+                                          {(() => {
+                                            // Find rankings for this specific term
+                                            const termRankings = rankStatus?.rankings?.filter(
+                                              (r) => r.latestCheck?.searchQuery === term.term
+                                            ) || [];
+
+                                            if (termRankings.length > 0) {
+                                              return (
+                                                <div className="flex flex-wrap gap-1.5">
+                                                  {termRankings.map((ranking) => (
+                                                    <div
+                                                      key={ranking.groupId}
+                                                      className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-50 rounded text-xs"
+                                                    >
+                                                      <span className="text-gray-500 truncate max-w-[80px]">
+                                                        {ranking.location}:
+                                                      </span>
+                                                      {ranking.latestCheck?.position ? (
+                                                        <>
+                                                          <span className={`font-semibold ${
+                                                            ranking.latestCheck.position <= 3 ? 'text-green-600' :
+                                                            ranking.latestCheck.position <= 10 ? 'text-blue-600' :
+                                                            ranking.latestCheck.position <= 20 ? 'text-amber-600' : 'text-gray-600'
+                                                          }`}>
+                                                            #{ranking.latestCheck.position}
+                                                          </span>
+                                                          {ranking.latestCheck.positionChange !== null && ranking.latestCheck.positionChange !== 0 && (
+                                                            <span className={`text-[10px] font-medium ${
+                                                              ranking.latestCheck.positionChange > 0 ? 'text-green-600' : 'text-red-600'
+                                                            }`}>
+                                                              {ranking.latestCheck.positionChange > 0 ? '↑' : '↓'}
+                                                              {Math.abs(ranking.latestCheck.positionChange)}
+                                                            </span>
+                                                          )}
+                                                        </>
+                                                      ) : (
+                                                        <span className="text-gray-400">—</span>
+                                                      )}
+                                                    </div>
+                                                  ))}
+                                                </div>
+                                              );
+                                            }
+                                            return null;
+                                          })()}
+
+                                          {/* Action buttons row */}
+                                          <div className="flex items-center gap-2">
+                                            {/* Check volume button */}
+                                            {(() => {
+                                              const normalizedTerm = normalizePhrase(term.term);
+                                              const termData = termVolumeData.get(normalizedTerm);
+                                              if (!termData || termData.searchVolume === null) {
+                                                return (
+                                                  <button
+                                                    onClick={() => handleCheckTermVolume(term.term)}
+                                                    disabled={checkingTermVolume === term.term || isLookingUpVolume}
+                                                    className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1 disabled:opacity-50"
+                                                  >
+                                                    {checkingTermVolume === term.term ? (
+                                                      <>
+                                                        <Icon name="FaSpinner" className="w-3 h-3 animate-spin" />
+                                                        Looking up...
+                                                      </>
+                                                    ) : (
+                                                      <>
+                                                        <Icon name="FaSearch" className="w-3 h-3" />
+                                                        Check volume
+                                                      </>
+                                                    )}
+                                                  </button>
+                                                );
+                                              }
+                                              return null;
+                                            })()}
+
+                                            {/* Check rank button */}
+                                            {onCheckRank && keyword && (
+                                              <button
+                                                onClick={() => onCheckRank(term.term, keyword.id)}
+                                                className="text-xs text-slate-blue hover:text-slate-blue/80 flex items-center gap-1"
+                                              >
+                                                <Icon name="FaChartLine" className="w-3 h-3" />
+                                                Check rank
+                                              </button>
+                                            )}
+                                          </div>
                                         </div>
                                       </div>
                                     ))}
@@ -1698,6 +1771,59 @@ export function KeywordDetailsSidebar({
                               </div>
                             </div>
                           </div>
+
+                          {/* Tracking Locations Section */}
+                          {keyword.isUsedInRankTracking && rankStatus?.rankings && rankStatus.rankings.length > 0 && (
+                            <div className="p-5 bg-white/60 backdrop-blur-sm border border-gray-100/50 rounded-xl">
+                              <div className="flex items-center justify-between mb-4">
+                                <div className="flex items-center gap-2">
+                                  <Icon name="FaMapMarker" className="w-5 h-5 text-slate-blue" />
+                                  <span className="text-lg font-semibold text-gray-800">Tracking locations</span>
+                                </div>
+                              </div>
+                              <div className="space-y-2">
+                                {/* Group unique locations (may have multiple rankings per location for different terms) */}
+                                {(() => {
+                                  const uniqueLocations = new Map<string, RankingData>();
+                                  rankStatus.rankings.forEach((ranking) => {
+                                    const key = `${ranking.groupId}`;
+                                    if (!uniqueLocations.has(key)) {
+                                      uniqueLocations.set(key, ranking);
+                                    }
+                                  });
+
+                                  return Array.from(uniqueLocations.values()).map((location) => (
+                                    <div
+                                      key={location.groupId}
+                                      className="flex items-center justify-between p-3 bg-white/80 rounded-lg border border-gray-100"
+                                    >
+                                      <div className="flex items-center gap-2 min-w-0">
+                                        <Icon
+                                          name={location.isEnabled ? "FaCheckCircle" : "FaCircle"}
+                                          className={`w-4 h-4 flex-shrink-0 ${location.isEnabled ? 'text-green-500' : 'text-gray-300'}`}
+                                        />
+                                        <div className="min-w-0">
+                                          <div className="text-sm font-medium text-gray-800 truncate">
+                                            {location.location}
+                                          </div>
+                                          <div className="text-xs text-gray-500 flex items-center gap-1.5">
+                                            <span className="capitalize">{location.device}</span>
+                                            <span className="text-gray-300">•</span>
+                                            <span>{location.groupName}</span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                      {location.latestCheck && (
+                                        <div className="text-xs text-gray-400 flex-shrink-0">
+                                          {new Date(location.latestCheck.checkedAt).toLocaleDateString()}
+                                        </div>
+                                      )}
+                                    </div>
+                                  ));
+                                })()}
+                              </div>
+                            </div>
+                          )}
 
                           {/* Group selector (optional) */}
                           {showGroupSelector && groups.length > 0 && (

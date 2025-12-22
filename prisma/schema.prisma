@@ -2200,7 +2200,7 @@ model rate_limit_counters {
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model review_drafts {
-  id                 String    @id @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  id                 String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   prompt_page_id     String?   @db.Uuid
   platform           String?
   review_text        String?
@@ -2441,7 +2441,7 @@ model selected_gbp_locations {
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model sentiment_analysis_runs {
-  id                      String    @id @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  id                      String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   account_id              String    @db.Uuid
   run_date                DateTime? @default(now()) @db.Timestamptz(6)
   review_count_analyzed   Int
@@ -3028,29 +3028,32 @@ model llm_visibility_summary {
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model rank_checks {
-  id                         String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  account_id                 String              @db.Uuid
-  group_id                   String              @db.Uuid
-  keyword_id                 String              @db.Uuid
+  id                         String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  account_id                 String               @db.Uuid
+  group_id                   String?              @db.Uuid
+  keyword_id                 String               @db.Uuid
   search_query_used          String
+  location_code              Int?
+  location_name              String?
+  device                     String?
   position                   Int?
   found_url                  String?
   matched_target_url         Boolean?
   serp_features              Json?
   top_competitors            Json?
-  api_cost_usd               Decimal?            @db.Decimal(10, 6)
-  checked_at                 DateTime            @default(now()) @db.Timestamptz(6)
-  created_at                 DateTime            @default(now()) @db.Timestamptz(6)
-  paa_question_count         Int?                @default(0)
-  paa_ours_count             Int?                @default(0)
-  ai_overview_present        Boolean?            @default(false)
-  ai_overview_ours_cited     Boolean?            @default(false)
-  ai_overview_citation_count Int?                @default(0)
-  featured_snippet_present   Boolean?            @default(false)
-  featured_snippet_ours      Boolean?            @default(false)
-  accounts                   accounts            @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  rank_keyword_groups        rank_keyword_groups @relation(fields: [group_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  keywords                   keywords            @relation(fields: [keyword_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  api_cost_usd               Decimal?             @db.Decimal(10, 6)
+  checked_at                 DateTime             @default(now()) @db.Timestamptz(6)
+  created_at                 DateTime             @default(now()) @db.Timestamptz(6)
+  paa_question_count         Int?                 @default(0)
+  paa_ours_count             Int?                 @default(0)
+  ai_overview_present        Boolean?             @default(false)
+  ai_overview_ours_cited     Boolean?             @default(false)
+  ai_overview_citation_count Int?                 @default(0)
+  featured_snippet_present   Boolean?             @default(false)
+  featured_snippet_ours      Boolean?             @default(false)
+  accounts                   accounts             @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  rank_keyword_groups        rank_keyword_groups? @relation(fields: [group_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  keywords                   keywords             @relation(fields: [keyword_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([account_id], map: "idx_rank_checks_account")
   @@index([account_id, keyword_id, checked_at(sort: Desc)], map: "idx_rank_checks_account_keyword")

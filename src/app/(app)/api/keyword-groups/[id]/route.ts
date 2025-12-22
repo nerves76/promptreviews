@@ -130,6 +130,13 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
       const trimmedName = name.trim();
 
+      if (trimmedName.length > 30) {
+        return NextResponse.json(
+          { error: 'Group name must be 30 characters or less' },
+          { status: 400 }
+        );
+      }
+
       // Can't rename the "General" group
       if (existingGroup.name === DEFAULT_GROUP_NAME && trimmedName !== DEFAULT_GROUP_NAME) {
         return NextResponse.json(

@@ -111,11 +111,14 @@ COMMENT ON COLUMN rank_group_keywords.target_url IS 'Expected URL to rank (for c
 CREATE TABLE rank_checks (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   account_id UUID NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
-  group_id UUID NOT NULL REFERENCES rank_keyword_groups(id) ON DELETE CASCADE,
+  group_id UUID REFERENCES rank_keyword_groups(id) ON DELETE CASCADE, -- NULL for manual checks
   keyword_id UUID NOT NULL REFERENCES keywords(id) ON DELETE CASCADE,
 
   -- Query and results
   search_query_used TEXT NOT NULL,
+  location_code INT,               -- Location code used for check
+  location_name TEXT,              -- Location name for display
+  device TEXT CHECK (device IN ('desktop', 'mobile')),
   position INT,                    -- NULL if not in top N
   found_url TEXT,                  -- URL that ranked
   matched_target_url BOOLEAN,      -- Cannibalization flag

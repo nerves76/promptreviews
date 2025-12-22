@@ -121,6 +121,13 @@ export async function POST(request: NextRequest) {
 
     const trimmedName = name.trim();
 
+    if (trimmedName.length > 30) {
+      return NextResponse.json(
+        { error: 'Group name must be 30 characters or less' },
+        { status: 400 }
+      );
+    }
+
     // Check if group already exists
     const { data: existingGroup } = await serviceSupabase
       .from('keyword_groups')

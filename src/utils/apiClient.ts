@@ -104,6 +104,7 @@ class ApiClient {
     
     const response = await fetch(`${this.baseUrl}${url}`, {
       ...fetchOptions,
+      cache: 'no-store', // Prevent Next.js from caching API responses
       headers: {
         ...headers,
         ...fetchOptions.headers,
@@ -122,12 +123,13 @@ class ApiClient {
         const retryHeaders = await this.getHeaders(skipAuth, includeSelectedAccount);
         const retryResponse = await fetch(`${this.baseUrl}${url}`, {
           ...fetchOptions,
+          cache: 'no-store',
           headers: {
             ...retryHeaders,
             ...fetchOptions.headers,
           },
         });
-        
+
         if (!retryResponse.ok) {
           // Try to get error details from response body
           let errorDetails = retryResponse.statusText;
@@ -244,6 +246,7 @@ class ApiClient {
 
     const response = await fetch(`${this.baseUrl}${url}`, {
       ...fetchOptions,
+      cache: 'no-store',
       method: 'POST',
       headers: headersWithoutContentType,
       body: formData,
@@ -258,6 +261,7 @@ class ApiClient {
 
         const retryResponse = await fetch(`${this.baseUrl}${url}`, {
           ...fetchOptions,
+          cache: 'no-store',
           method: 'POST',
           headers: retryHeadersWithoutContentType,
           body: formData,
@@ -304,6 +308,7 @@ class ApiClient {
 
     const response = await fetch(`${this.baseUrl}${url}`, {
       ...fetchOptions,
+      cache: 'no-store',
       method: 'GET',
       headers: headersWithoutContentType,
     });
@@ -317,6 +322,7 @@ class ApiClient {
 
         const retryResponse = await fetch(`${this.baseUrl}${url}`, {
           ...fetchOptions,
+          cache: 'no-store',
           method: 'GET',
           headers: retryHeadersWithoutContentType,
         });

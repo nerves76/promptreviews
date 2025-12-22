@@ -17,6 +17,8 @@ export {
   KeywordDetailsSidebar,
   type KeywordDetailsSidebarProps,
 } from './KeywordDetailsSidebar';
+export { default as ConceptCard } from './ConceptCard';
+export { default as CollapsibleSection } from './CollapsibleSection';
 
 // Legacy adapter - provides same interface as old KeywordsInput but uses unified system
 export { default as KeywordsInputLegacyAdapter } from './KeywordsInputLegacyAdapter';

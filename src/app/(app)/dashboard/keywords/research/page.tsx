@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -10,6 +10,7 @@ import {
   ArrowTrendingDownIcon,
   MinusIcon,
   BookmarkIcon,
+  TrashIcon,
 } from '@heroicons/react/24/outline';
 import { BookmarkIcon as BookmarkIconSolid } from '@heroicons/react/24/solid';
 import Icon from '@/components/Icon';
@@ -19,6 +20,20 @@ import { useKeywordDiscovery } from '@/features/rank-tracking/hooks';
 import { useKeywords } from '@/features/keywords/hooks/useKeywords';
 import { apiClient } from '@/utils/apiClient';
 import LocationPicker from '@/features/rank-tracking/components/LocationPicker';
+
+interface SavedResearchResult {
+  id: string;
+  term: string;
+  normalizedTerm: string;
+  searchVolume: number | null;
+  cpc: number | null;
+  competition: number | null;
+  competitionLevel: string | null;
+  locationCode: number;
+  locationName: string;
+  keywordId: string | null;
+  researchedAt: string;
+}
 
 /**
  * Keyword Research Page
@@ -38,8 +53,54 @@ export default function KeywordResearchPage() {
   const [savedResults, setSavedResults] = useState<Set<string>>(new Set());
   const [savingResult, setSavingResult] = useState<string | null>(null);
 
+  // Saved searches state
+  const [savedSearches, setSavedSearches] = useState<SavedResearchResult[]>([]);
+  const [isLoadingSaved, setIsLoadingSaved] = useState(true);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
   const { discover, getSuggestions, isLoading, error, isRateLimited, remainingLookups } = useKeywordDiscovery();
   const { refresh: refreshLibrary } = useKeywords({ autoFetch: false });
+
+  // Load saved searches on mount
+  const loadSavedSearches = useCallback(async () => {
+    try {
+      const response = await apiClient.get<{ results: SavedResearchResult[] }>('/keyword-research/results?limit=50');
+      setSavedSearches(response.results || []);
+      // Also populate the savedResults set for bookmark icon state
+      const savedTerms = new Set((response.results || []).map(r => r.term));
+      setSavedResults(savedTerms);
+    } catch (err) {
+      console.error('Failed to load saved searches:', err);
+    } finally {
+      setIsLoadingSaved(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadSavedSearches();
+  }, [loadSavedSearches]);
+
+  // Delete a saved search
+  const handleDeleteSaved = async (id: string) => {
+    setDeletingId(id);
+    try {
+      await apiClient.delete(`/keyword-research/results/${id}`);
+      setSavedSearches(prev => prev.filter(s => s.id !== id));
+      // Also update savedResults set
+      const deleted = savedSearches.find(s => s.id === id);
+      if (deleted) {
+        setSavedResults(prev => {
+          const next = new Set(prev);
+          next.delete(deleted.term);
+          return next;
+        });
+      }
+    } catch (err) {
+      console.error('Failed to delete saved search:', err);
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   // Get current location code for lookups
   const getLocationCode = () => location?.code || 2840; // Default to USA
@@ -55,7 +116,7 @@ export default function KeywordResearchPage() {
     setResult(discoveryResult);
 
     // Get related suggestions
-    const suggestionsResult = await getSuggestions(searchQuery.trim(), locationCode);
+    const suggestionsResult = await getSuggestions(searchQuery.trim());
     setSuggestions(suggestionsResult);
   };
 
@@ -66,7 +127,7 @@ export default function KeywordResearchPage() {
   const handleSaveResult = async (keyword: string, resultData: any) => {
     setSavingResult(keyword);
     try {
-      await apiClient.post('/keyword-research/save', {
+      const response = await apiClient.post<{ result: SavedResearchResult }>('/keyword-research/save', {
         term: keyword,
         searchVolume: resultData.searchVolume ?? null,
         cpc: resultData.cpc ?? null,
@@ -85,6 +146,16 @@ export default function KeywordResearchPage() {
       });
 
       setSavedResults(prev => new Set([...prev, keyword]));
+      // Add to saved searches list (or update if exists)
+      if (response.result) {
+        setSavedSearches(prev => {
+          const exists = prev.some(s => s.id === response.result.id);
+          if (exists) {
+            return prev.map(s => s.id === response.result.id ? response.result : s);
+          }
+          return [response.result, ...prev];
+        });
+      }
     } catch (err) {
       console.error('Failed to save result:', err);
     } finally {
@@ -494,7 +565,7 @@ export default function KeywordResearchPage() {
         )}
 
         {/* Empty State */}
-        {!result && !isLoading && !error && (
+        {!result && !isLoading && !error && savedSearches.length === 0 && !isLoadingSaved && (
           <div className="py-12 text-center">
             <MagnifyingGlassIcon className="w-12 h-12 text-gray-300 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">
@@ -504,6 +575,96 @@ export default function KeywordResearchPage() {
               Enter a keyword above to discover search volume, competition levels,
               and related keyword suggestions.
             </p>
+          </div>
+        )}
+
+        {/* Saved Searches Section */}
+        {(savedSearches.length > 0 || isLoadingSaved) && (
+          <div className={`${result ? 'mt-8 pt-8 border-t border-gray-200' : ''}`}>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <BookmarkIconSolid className="w-5 h-5 text-blue-600" />
+              Saved searches ({savedSearches.length})
+            </h3>
+
+            {isLoadingSaved ? (
+              <div className="flex items-center justify-center py-8">
+                <Icon name="FaSpinner" className="w-6 h-6 text-gray-400 animate-spin" />
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {savedSearches.map((saved) => (
+                  <div
+                    key={saved.id}
+                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-gray-900">{saved.term}</div>
+                      <div className="flex items-center gap-3 text-sm text-gray-500 mt-0.5">
+                        <span>{saved.searchVolume?.toLocaleString() || 0}/mo</span>
+                        {saved.cpc && <span>CPC: ${saved.cpc.toFixed(2)}</span>}
+                        {saved.competitionLevel && (
+                          <span className={`px-1.5 py-0.5 rounded text-xs ${getCompetitionColor(saved.competitionLevel)}`}>
+                            {saved.competitionLevel}
+                          </span>
+                        )}
+                        <span className="text-gray-400">•</span>
+                        <span className="text-gray-400">{saved.locationName}</span>
+                        {saved.keywordId && (
+                          <>
+                            <span className="text-gray-400">•</span>
+                            <span className="text-green-600 text-xs">In library</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      {/* Re-search button */}
+                      <button
+                        onClick={() => {
+                          setSearchQuery(saved.term);
+                          setLocation({ code: saved.locationCode, name: saved.locationName });
+                        }}
+                        className="p-1.5 text-gray-400 hover:text-slate-blue hover:bg-slate-blue/10 rounded-lg transition-colors"
+                        title="Search again"
+                      >
+                        <MagnifyingGlassIcon className="w-4 h-4" />
+                      </button>
+                      {/* Delete button */}
+                      <button
+                        onClick={() => handleDeleteSaved(saved.id)}
+                        disabled={deletingId === saved.id}
+                        className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                        title="Delete"
+                      >
+                        {deletingId === saved.id ? (
+                          <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <TrashIcon className="w-4 h-4" />
+                        )}
+                      </button>
+                      {/* Add to library button (if not already linked) */}
+                      {!saved.keywordId && (
+                        <button
+                          onClick={() => handleAddToLibrary(saved.term, saved.searchVolume || 0, saved.cpc, {
+                            searchVolume: saved.searchVolume,
+                            cpc: saved.cpc,
+                            competition: saved.competitionLevel,
+                          })}
+                          disabled={addedKeywords.has(saved.term) || addingKeyword === saved.term}
+                          className={`text-sm px-3 py-1.5 rounded-lg transition-colors ${
+                            addedKeywords.has(saved.term)
+                              ? 'bg-green-100 text-green-700'
+                              : 'text-slate-blue hover:bg-slate-blue/10'
+                          }`}
+                        >
+                          {addedKeywords.has(saved.term) ? 'Added' : addingKeyword === saved.term ? 'Adding...' : 'Add'}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </PageCard>

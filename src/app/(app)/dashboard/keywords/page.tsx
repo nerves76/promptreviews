@@ -1,10 +1,13 @@
 'use client';
 
+import { useState, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Icon from '@/components/Icon';
 import PageCard from '@/app/(app)/components/PageCard';
 import { KeywordManager } from '@/features/keywords/components';
+import { CheckRankModal } from '@/features/rank-tracking/components';
+import { apiClient } from '@/utils/apiClient';
 
 /**
  * Keywords Dashboard Page
@@ -15,6 +18,45 @@ import { KeywordManager } from '@/features/keywords/components';
  */
 export default function KeywordsPage() {
   const pathname = usePathname();
+  const [checkingKeyword, setCheckingKeyword] = useState<{ keyword: string; conceptId: string } | null>(null);
+
+  // Handle clicking "Check ranking" on a search term
+  const handleCheckRank = useCallback((keyword: string, conceptId: string) => {
+    setCheckingKeyword({ keyword, conceptId });
+  }, []);
+
+  // Perform the actual rank check (called from modal)
+  const performRankCheck = useCallback(async (
+    locationCode: number,
+    locationName: string,
+    device: 'desktop' | 'mobile'
+  ): Promise<{ position: number | null; found: boolean }> => {
+    if (!checkingKeyword) throw new Error('No keyword selected');
+
+    const response = await apiClient.post<{
+      success: boolean;
+      position: number | null;
+      found: boolean;
+      foundUrl: string | null;
+      creditsUsed: number;
+      creditsRemaining: number;
+      error?: string;
+    }>('/rank-tracking/check-keyword', {
+      keyword: checkingKeyword.keyword,
+      keywordId: checkingKeyword.conceptId,
+      locationCode,
+      device,
+    });
+
+    if (!response.success) {
+      throw new Error(response.error || 'Failed to check rank');
+    }
+
+    return {
+      position: response.position,
+      found: response.found,
+    };
+  }, [checkingKeyword]);
 
   return (
     <div>
@@ -82,8 +124,16 @@ export default function KeywordsPage() {
         icon={<Icon name="FaKey" className="w-8 h-8 text-slate-blue" size={32} />}
         topMargin="mt-8"
       >
-        <KeywordManager />
+        <KeywordManager onCheckRank={handleCheckRank} />
       </PageCard>
+
+      {/* Check Rank Modal */}
+      <CheckRankModal
+        keyword={checkingKeyword?.keyword || ''}
+        isOpen={!!checkingKeyword}
+        onClose={() => setCheckingKeyword(null)}
+        onCheck={performRankCheck}
+      />
     </div>
   );
 }

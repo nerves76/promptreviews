@@ -3,11 +3,11 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import Icon from '@/components/Icon';
 import Link from 'next/link';
-import KeywordGroupAccordion, { UngroupedKeywordsSection } from './KeywordGroupAccordion';
-import KeywordChip from './KeywordChip';
 import KeywordConceptInput from './KeywordConceptInput';
 import { KeywordDetailsSidebar } from './KeywordDetailsSidebar';
+import ConceptCard from './ConceptCard';
 import { useKeywords, useKeywordDetails } from '../hooks/useKeywords';
+
 import { type KeywordData, type KeywordGroupData, DEFAULT_GROUP_NAME } from '../keywordUtils';
 import { apiClient } from '@/utils/apiClient';
 import { useBusinessData } from '@/auth/hooks/granularAuthHooks';
@@ -27,6 +27,8 @@ interface KeywordManagerProps {
   businessName?: string;
   businessCity?: string;
   businessState?: string;
+  /** Callback when user wants to check rank for a search term */
+  onCheckRank?: (keyword: string, conceptId: string) => void;
 }
 
 /**
@@ -48,6 +50,7 @@ export default function KeywordManager({
   businessName,
   businessCity,
   businessState,
+  onCheckRank,
 }: KeywordManagerProps) {
   const {
     keywords,
@@ -63,6 +66,7 @@ export default function KeywordManager({
     createGroup,
     updateGroup,
     deleteGroup,
+    promptPageUsage,
   } = useKeywords({ includeUsage: true });
 
   // Get business data for AI generation
@@ -73,6 +77,7 @@ export default function KeywordManager({
   const [showNewGroupModal, setShowNewGroupModal] = useState(false);
   const [newGroupName, setNewGroupName] = useState('');
   const [editingGroup, setEditingGroup] = useState<KeywordGroupData | null>(null);
+  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null); // null = All groups
 
   // AI Generation state
   const [showGeneratorPanel, setShowGeneratorPanel] = useState(false);
@@ -103,31 +108,26 @@ export default function KeywordManager({
 
   // Filter keywords by search query
   const filteredKeywords = useMemo(() => {
-    if (!searchQuery.trim()) return keywords;
-    const query = searchQuery.toLowerCase();
-    return keywords.filter(
-      (kw) =>
-        kw.phrase.toLowerCase().includes(query) ||
-        kw.groupName?.toLowerCase().includes(query)
-    );
-  }, [keywords, searchQuery]);
+    let result = keywords;
 
-  // Group keywords by group
-  const keywordsByGroup = useMemo(() => {
-    const grouped: Record<string, KeywordData[]> = {};
-    const ungrouped: KeywordData[] = [];
-
-    for (const kw of filteredKeywords) {
-      if (kw.groupId) {
-        if (!grouped[kw.groupId]) grouped[kw.groupId] = [];
-        grouped[kw.groupId].push(kw);
-      } else {
-        ungrouped.push(kw);
-      }
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(
+        (kw) =>
+          kw.phrase.toLowerCase().includes(query) ||
+          kw.groupName?.toLowerCase().includes(query)
+      );
     }
 
-    return { grouped, ungrouped };
-  }, [filteredKeywords]);
+    return result;
+  }, [keywords, searchQuery]);
+
+  // Filter keywords by selected group (for Concepts view)
+  const groupFilteredKeywords = useMemo(() => {
+    if (selectedGroupId === null) return filteredKeywords; // All groups
+    return filteredKeywords.filter((kw) => kw.groupId === selectedGroupId);
+  }, [filteredKeywords, selectedGroupId]);
 
   // Handle adding AI-enriched keyword
   const handleAddEnrichedKeyword = useCallback(
@@ -834,11 +834,46 @@ export default function KeywordManager({
         />
       </div>
 
-      {/* Groups and keywords section header */}
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-medium text-gray-700">Concept groups</h3>
-        {/* Subtle search */}
-        <div className="relative">
+      {/* Group tabs and search header */}
+      <div className="flex items-center justify-between gap-4 mb-4">
+        {/* Group tabs */}
+        <div className="flex items-center gap-2 overflow-x-auto flex-1 min-w-0">
+          <button
+            onClick={() => setSelectedGroupId(null)}
+            className={`px-3 py-1.5 text-sm font-medium rounded-lg whitespace-nowrap transition-colors ${
+              selectedGroupId === null
+                ? 'bg-slate-blue text-white'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            All ({filteredKeywords.length})
+          </button>
+          {groups
+            .sort((a, b) => {
+              if (a.name === DEFAULT_GROUP_NAME) return -1;
+              if (b.name === DEFAULT_GROUP_NAME) return 1;
+              return a.displayOrder - b.displayOrder || a.name.localeCompare(b.name);
+            })
+            .map((group) => {
+              const count = filteredKeywords.filter((kw) => kw.groupId === group.id).length;
+              return (
+                <button
+                  key={group.id}
+                  onClick={() => setSelectedGroupId(group.id)}
+                  className={`px-3 py-1.5 text-sm font-medium rounded-lg whitespace-nowrap transition-colors ${
+                    selectedGroupId === group.id
+                      ? 'bg-slate-blue text-white'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  {group.name} ({count})
+                </button>
+              );
+            })}
+        </div>
+
+        {/* Search */}
+        <div className="relative flex-shrink-0">
           <Icon
             name="FaSearch"
             className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-300"
@@ -853,38 +888,26 @@ export default function KeywordManager({
         </div>
       </div>
 
-      {/* Groups and keywords */}
-      <div className="space-y-3">
-        {/* Sorted groups (General first, then alphabetically) */}
-        {groups
-          .sort((a, b) => {
-            if (a.name === DEFAULT_GROUP_NAME) return -1;
-            if (b.name === DEFAULT_GROUP_NAME) return 1;
-            return a.displayOrder - b.displayOrder || a.name.localeCompare(b.name);
-          })
-          .map((group) => (
-            <KeywordGroupAccordion
-              key={group.id}
-              group={group}
-              keywords={keywordsByGroup.grouped[group.id] || []}
-              defaultExpanded={group.name === DEFAULT_GROUP_NAME}
-              onKeywordClick={handleKeywordClick}
-              onKeywordRemove={handleKeywordRemove}
-              onGroupEdit={(g) => {
-                setEditingGroup(g);
-                setNewGroupName(g.name);
-              }}
-              onGroupDelete={handleDeleteGroup}
-              isDefaultGroup={group.name === DEFAULT_GROUP_NAME}
-            />
-          ))}
-
-        {/* Ungrouped keywords */}
-        <UngroupedKeywordsSection
-          keywords={keywordsByGroup.ungrouped}
-          onKeywordClick={handleKeywordClick}
-          onKeywordRemove={handleKeywordRemove}
-        />
+      {/* Concepts view */}
+      <div className="space-y-4">
+          {/* Concept cards */}
+          {groupFilteredKeywords.length > 0 ? (
+            groupFilteredKeywords.map((keyword) => (
+              <ConceptCard
+                key={keyword.id}
+                keyword={keyword}
+                onOpenDetails={handleKeywordClick}
+                onUpdate={updateKeyword}
+                onCheckRank={onCheckRank}
+                promptPageNames={promptPageUsage[keyword.id] || []}
+              />
+            ))
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              <Icon name="FaSearch" className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+              <p>No keywords match your search</p>
+            </div>
+          )}
       </div>
 
       {/* Empty state */}
@@ -903,19 +926,25 @@ export default function KeywordManager({
             <h3 className="text-lg font-semibold text-gray-800 mb-4">
               {editingGroup ? 'Edit Group' : 'Create New Group'}
             </h3>
-            <input
-              type="text"
-              value={newGroupName}
-              onChange={(e) => setNewGroupName(e.target.value)}
-              placeholder="Group name..."
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent mb-4"
-              autoFocus
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  editingGroup ? handleUpdateGroup() : handleCreateGroup();
-                }
-              }}
-            />
+            <div className="mb-4">
+              <input
+                type="text"
+                value={newGroupName}
+                onChange={(e) => setNewGroupName(e.target.value)}
+                placeholder="Group name..."
+                maxLength={30}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    editingGroup ? handleUpdateGroup() : handleCreateGroup();
+                  }
+                }}
+              />
+              <div className="text-xs text-gray-400 mt-1 text-right">
+                {newGroupName.length}/30
+              </div>
+            </div>
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => {
@@ -1086,6 +1115,7 @@ export default function KeywordManager({
           onClose={() => setSelectedKeywordId(null)}
           onUpdate={updateKeyword}
           onRefresh={refreshKeywordDetails}
+          onCheckRank={onCheckRank}
         />
       )}
     </div>

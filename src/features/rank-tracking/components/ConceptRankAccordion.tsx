@@ -28,11 +28,21 @@ interface SearchTermRanking {
   }[];
 }
 
+/** Volume data for a search term */
+interface TermVolumeData {
+  searchVolume: number | null;
+  cpc: number | null;
+  competitionLevel: string | null;
+  locationName: string | null;
+}
+
 interface ConceptRankAccordionProps {
   /** The keyword concept data */
   concept: KeywordData;
   /** Ranking data for each search term, keyed by term */
   termRankings?: Map<string, SearchTermRanking['rankings']>;
+  /** Volume data for each search term, keyed by normalized term */
+  termVolumeData?: Map<string, TermVolumeData>;
   /** Available tracking configurations */
   configs?: ConfigSummary[];
   /** Initially expanded state */
@@ -51,6 +61,12 @@ interface ConceptRankAccordionProps {
   onAIEnrich?: (concept: KeywordData) => Promise<void>;
   /** Loading state for AI enrichment */
   isEnriching?: boolean;
+  /** Callback to check rank for a search term */
+  onCheckRank?: (keyword: string, conceptId: string) => void;
+  /** Callback to check volume for a search term */
+  onCheckVolume?: (term: string) => void;
+  /** Term currently being checked for volume */
+  checkingVolumeTerm?: string | null;
 }
 
 // ============================================
@@ -97,13 +113,41 @@ function calculateAvgPosition(termRankings?: Map<string, SearchTermRanking['rank
   return Math.round(allPositions.reduce((a, b) => a + b, 0) / allPositions.length);
 }
 
+// Check if any terms have been checked (even if position is null/100+)
+function hasAnyRankings(termRankings?: Map<string, SearchTermRanking['rankings']>): boolean {
+  if (!termRankings || termRankings.size === 0) return false;
+
+  let hasRankings = false;
+  termRankings.forEach((rankings) => {
+    if (rankings.length > 0) {
+      hasRankings = true;
+    }
+  });
+  return hasRankings;
+}
+
 // ============================================
 // Component
 // ============================================
 
+// Helper to normalize term for lookup
+function normalizeTermForLookup(term: string): string {
+  return term.toLowerCase().trim();
+}
+
+// Format volume for display
+function formatVolume(volume: number | null): string {
+  if (volume === null) return '—';
+  if (volume < 10) return '<10'; // DataForSEO returns 0 for very low volume
+  if (volume >= 1000000) return `${(volume / 1000000).toFixed(1)}M`;
+  if (volume >= 1000) return `${(volume / 1000).toFixed(1)}K`;
+  return volume.toString();
+}
+
 export default function ConceptRankAccordion({
   concept,
   termRankings,
+  termVolumeData,
   configs = [],
   defaultExpanded = false,
   editable = false,
@@ -113,10 +157,17 @@ export default function ConceptRankAccordion({
   onRemoveSearchTerm,
   onAIEnrich,
   isEnriching = false,
+  onCheckRank,
+  onCheckVolume,
+  checkingVolumeTerm,
 }: ConceptRankAccordionProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const [newTerm, setNewTerm] = useState('');
   const [isAddingTerm, setIsAddingTerm] = useState(false);
+  const handleCheckRank = (term: string) => {
+    if (!onCheckRank) return;
+    onCheckRank(term, concept.id);
+  };
 
   const searchTerms = concept.searchTerms || [];
   const hasSearchTerms = searchTerms.length > 0;
@@ -177,6 +228,8 @@ export default function ConceptRankAccordion({
             <span className={`text-sm font-semibold ${getPositionColor(avgPosition)}`}>
               Avg: #{avgPosition}
             </span>
+          ) : hasAnyRankings(termRankings) ? (
+            <span className="text-xs text-gray-500">100+</span>
           ) : hasSearchTerms ? (
             <span className="text-xs text-gray-400">Not tracked</span>
           ) : null}
@@ -224,33 +277,130 @@ export default function ConceptRankAccordion({
                       )}
                     </div>
 
-                    {/* Rankings by config */}
-                    {rankings.length > 0 ? (
-                      <div className="flex flex-wrap gap-2">
-                        {rankings.map((ranking) => (
-                          <div
-                            key={ranking.configId}
-                            className="flex items-center gap-1.5 px-2 py-1 bg-white border border-gray-100 rounded text-xs"
-                          >
-                            <span className="text-gray-500 truncate max-w-[100px]">
-                              {ranking.configName}:
+                    {/* Volume and Rankings */}
+                    {(() => {
+                      const normalizedTerm = normalizeTermForLookup(term.term);
+                      const volumeData = termVolumeData?.get(normalizedTerm);
+
+                      return (
+                    <div className="space-y-2">
+                      {/* Volume data row */}
+                      {volumeData && volumeData.searchVolume !== null ? (
+                        <div className="text-xs text-gray-600">
+                          <span className="text-gray-500">Monthly search volume:</span>{' '}
+                          <span className="font-semibold text-gray-900">{formatVolume(volumeData.searchVolume)}</span>
+                          {volumeData.locationName && <span className="text-gray-400"> {volumeData.locationName}</span>}
+                          {volumeData.cpc && (
+                            <span className="ml-3 text-gray-500">
+                              CPC: <span className="font-medium text-gray-700">${volumeData.cpc.toFixed(2)}</span>
                             </span>
-                            {ranking.position !== null ? (
-                              <>
-                                <span className={`font-semibold ${getPositionColor(ranking.position)}`}>
-                                  #{ranking.position}
-                                </span>
-                                {getChangeIndicator(ranking.change)}
-                              </>
-                            ) : (
-                              <span className="text-gray-400">—</span>
-                            )}
-                          </div>
-                        ))}
+                          )}
+                          {volumeData.competitionLevel && (
+                            <span className={`ml-2 px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                              volumeData.competitionLevel === 'LOW' ? 'bg-green-100 text-green-700' :
+                              volumeData.competitionLevel === 'MEDIUM' ? 'bg-yellow-100 text-yellow-700' :
+                              volumeData.competitionLevel === 'HIGH' ? 'bg-red-100 text-red-700' :
+                              'bg-gray-100 text-gray-500'
+                            }`}>
+                              {volumeData.competitionLevel}
+                            </span>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="text-xs text-gray-400">
+                          Monthly search volume: <span className="italic">Not checked yet</span>
+                        </div>
+                      )}
+
+                      {/* Rank data row */}
+                      {rankings.length > 0 ? (
+                        <div className="space-y-1">
+                          {rankings.map((ranking) => {
+                            // Parse config name to extract device and location
+                            // Config names are typically "Location (device)" format
+                            const deviceMatch = ranking.configName.match(/\((desktop|mobile)\)/i);
+                            const device = deviceMatch ? deviceMatch[1] : null;
+                            const location = device
+                              ? ranking.configName.replace(/\s*\((desktop|mobile)\)/i, '').trim()
+                              : ranking.configName;
+
+                            return (
+                              <div key={ranking.configId} className="text-xs text-gray-600">
+                                <span className="text-gray-500">Rank:</span>{' '}
+                                {ranking.position !== null ? (
+                                  <>
+                                    <span className={`font-semibold ${getPositionColor(ranking.position)}`}>
+                                      #{ranking.position}
+                                    </span>
+                                    {getChangeIndicator(ranking.change)}
+                                  </>
+                                ) : (
+                                  <span className="font-medium text-gray-500">Not in top 100</span>
+                                )}
+                                {device && <span className="text-gray-400"> ({device})</span>}
+                                {location && <span className="text-gray-400"> {location}</span>}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="text-xs text-gray-400">
+                          Rank: <span className="italic">Not checked yet</span>
+                        </div>
+                      )}
+
+                      {/* Check buttons */}
+                      <div className="flex items-center justify-end gap-2 pt-1">
+                        <div className="flex-1" />
+                        <div className="flex items-center gap-1.5 flex-shrink-0">
+                          {/* Check volume button */}
+                          {onCheckVolume && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onCheckVolume(term.term);
+                              }}
+                              disabled={checkingVolumeTerm === term.term}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors disabled:opacity-50"
+                            >
+                              {checkingVolumeTerm === term.term ? (
+                                <>
+                                  <Icon name="FaSpinner" className="w-3 h-3 animate-spin" />
+                                  Checking...
+                                </>
+                              ) : volumeData?.searchVolume !== undefined && volumeData?.searchVolume !== null ? (
+                                <>
+                                  <Icon name="FaRedo" className="w-3 h-3" />
+                                  Check again
+                                </>
+                              ) : (
+                                <>
+                                  <Icon name="FaChartLine" className="w-3 h-3" />
+                                  Check volume
+                                </>
+                              )}
+                            </button>
+                          )}
+                          {/* Check rank button */}
+                          {onCheckRank && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleCheckRank(term.term);
+                              }}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-slate-blue rounded-lg hover:bg-slate-blue/90 transition-colors"
+                              title="Uses 1 credit"
+                            >
+                              <Icon name="FaSearch" className="w-3 h-3" />
+                              Check rank
+                              <span className="text-[10px] opacity-75">(1 credit)</span>
+                            </button>
+                          )}
+                        </div>
                       </div>
-                    ) : (
-                      <p className="text-xs text-gray-400">Not tracked in any configuration</p>
-                    )}
+                    </div>
+                      );
+                    })()}
                   </div>
                 );
               })}

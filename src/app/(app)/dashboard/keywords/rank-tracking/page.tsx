@@ -1,37 +1,75 @@
 /**
  * Rank Tracking Page (under Keywords)
  *
- * Two-tab layout:
- * - Concepts (default): Shows keyword concepts as accordions with search terms and rankings
- * - Configurations: Manage tracking configurations (location/device/schedule)
+ * Shows keyword concepts as accordions with search terms and rankings.
  */
 
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import PageCard from '@/app/(app)/components/PageCard';
 import Icon from '@/components/Icon';
 import { useRankGroups } from '@/features/rank-tracking/hooks';
-import { RankGroupCard, CreateGroupModal, ConceptRankAccordion } from '@/features/rank-tracking/components';
+import { ConceptRankAccordion, CheckRankModal, CheckVolumeModal } from '@/features/rank-tracking/components';
 import { useKeywords } from '@/features/keywords/hooks/useKeywords';
 import { apiClient } from '@/utils/apiClient';
 import { type KeywordData } from '@/features/keywords/keywordUtils';
 import { type RankKeywordGroup } from '@/features/rank-tracking/utils/types';
-import { PlusIcon } from '@heroicons/react/24/outline';
 
-type TabType = 'concepts' | 'configurations';
+
+/** Volume data for a search term */
+interface TermVolumeData {
+  searchVolume: number | null;
+  cpc: number | null;
+  competitionLevel: string | null;
+  locationName: string | null;
+}
+
+/** Research result from API */
+interface ResearchResult {
+  id: string;
+  term: string;
+  normalizedTerm: string;
+  searchVolume: number | null;
+  cpc: number | null;
+  competitionLevel: string | null;
+  locationName: string;
+}
+
+/** Rank check result from API */
+interface RankCheck {
+  id: string;
+  keyword_id: string;
+  search_query_used: string;
+  location_code: number;
+  location_name: string;
+  device: 'desktop' | 'mobile';
+  position: number | null;
+  found_url: string | null;
+  checked_at: string;
+}
+
+/** Ranking data for display in accordion */
+interface TermRanking {
+  configId: string;
+  configName: string;
+  position: number | null;
+  change: number | null;
+  checkedAt: string | null;
+}
 
 export default function RankTrackingPage() {
   const pathname = usePathname();
-  const [activeTab, setActiveTab] = useState<TabType>('concepts');
-  const [showCreateModal, setShowCreateModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [enrichingConceptId, setEnrichingConceptId] = useState<string | null>(null);
+  const [checkingKeyword, setCheckingKeyword] = useState<{ keyword: string; conceptId: string } | null>(null);
+  const [researchResults, setResearchResults] = useState<ResearchResult[]>([]);
+  const [rankChecks, setRankChecks] = useState<RankCheck[]>([]);
 
-  // Fetch rank tracking groups (configurations)
-  const { groups, isLoading: groupsLoading, refresh: refreshGroups, createGroup } = useRankGroups();
+  // Fetch rank tracking groups (scheduled locations)
+  const { groups: scheduledLocations, isLoading: locationsLoading } = useRankGroups();
 
   // Fetch keyword concepts
   const {
@@ -40,6 +78,86 @@ export default function RankTrackingPage() {
     refresh: refreshConcepts,
     updateKeyword,
   } = useKeywords({ autoFetch: true });
+
+  // Fetch saved research results for volume data
+  const fetchResearchResults = useCallback(async () => {
+    try {
+      const response = await apiClient.get<{ results: ResearchResult[] }>('/keyword-research/results?limit=100');
+      setResearchResults(response.results || []);
+    } catch (err) {
+      console.error('Failed to fetch research results:', err);
+    }
+  }, []);
+
+  // Fetch rank checks
+  const fetchRankChecks = useCallback(async () => {
+    try {
+      const response = await apiClient.get<{ checks: RankCheck[] }>('/rank-tracking/checks?limit=200');
+      setRankChecks(response.checks || []);
+    } catch (err) {
+      console.error('Failed to fetch rank checks:', err);
+    }
+  }, []);
+
+  // Fetch data on mount
+  useEffect(() => {
+    fetchResearchResults();
+    fetchRankChecks();
+  }, [fetchResearchResults, fetchRankChecks]);
+
+  // Build term volume data map
+  const termVolumeData = useMemo(() => {
+    const map = new Map<string, TermVolumeData>();
+    researchResults.forEach((result) => {
+      map.set(result.normalizedTerm, {
+        searchVolume: result.searchVolume,
+        cpc: result.cpc,
+        competitionLevel: result.competitionLevel,
+        locationName: result.locationName,
+      });
+    });
+    return map;
+  }, [researchResults]);
+
+  // Build term rankings map from rank checks
+  // Groups by search_query_used, with rankings per location+device
+  const termRankings = useMemo(() => {
+    const map = new Map<string, TermRanking[]>();
+
+    rankChecks.forEach((check) => {
+      const term = check.search_query_used;
+      if (!map.has(term)) {
+        map.set(term, []);
+      }
+
+      // Create a unique config ID from location+device
+      const configId = `${check.location_code}-${check.device}`;
+      const configName = `${check.location_name} (${check.device})`;
+
+      // Check if we already have this config for this term (avoid duplicates)
+      const existing = map.get(term)!;
+      const existingIdx = existing.findIndex(r => r.configId === configId);
+
+      const ranking: TermRanking = {
+        configId,
+        configName,
+        position: check.position,
+        change: null, // TODO: Calculate change from previous check
+        checkedAt: check.checked_at,
+      };
+
+      if (existingIdx >= 0) {
+        // Keep the most recent one
+        if (new Date(check.checked_at) > new Date(existing[existingIdx].checkedAt || 0)) {
+          existing[existingIdx] = ranking;
+        }
+      } else {
+        existing.push(ranking);
+      }
+    });
+
+    return map;
+  }, [rankChecks]);
 
   // Filter concepts by search query
   const filteredConcepts = searchQuery.trim()
@@ -153,7 +271,106 @@ export default function RankTrackingPage() {
     await refreshConcepts();
   }, [concepts, refreshConcepts]);
 
-  const isLoading = activeTab === 'concepts' ? conceptsLoading : groupsLoading;
+  // Open the check rank modal for a keyword
+  const handleCheckRank = useCallback((keyword: string, conceptId: string) => {
+    setCheckingKeyword({ keyword, conceptId });
+  }, []);
+
+  // State for volume checking modal
+  const [checkingVolumeTerm, setCheckingVolumeTerm] = useState<string | null>(null);
+
+  // Open volume check modal for a term
+  const handleCheckVolume = useCallback((term: string) => {
+    setCheckingVolumeTerm(term);
+  }, []);
+
+  // Perform the actual volume check (called from modal)
+  const performVolumeCheck = useCallback(async (
+    locationCode: number,
+    locationName: string
+  ): Promise<{
+    searchVolume: number | null;
+    cpc: number | null;
+    competitionLevel: string | null;
+  }> => {
+    if (!checkingVolumeTerm) throw new Error('No keyword selected');
+
+    // Use the discovery API to get volume
+    const response = await apiClient.post<{
+      keyword: string;
+      volume: number | null;
+      cpc: number | null;
+      competitionLevel: string | null;
+      error?: string;
+    }>('/rank-tracking/discovery', {
+      keyword: checkingVolumeTerm,
+      locationCode,
+    });
+
+    // API throws on error, so if we get here it succeeded
+    if (response.error) {
+      throw new Error(response.error);
+    }
+
+    // Save the research result
+    await apiClient.post('/keyword-research/save', {
+      term: checkingVolumeTerm,
+      searchVolume: response.volume,
+      cpc: response.cpc,
+      competition: null,
+      competitionLevel: response.competitionLevel,
+      locationCode,
+      locationName,
+    });
+
+    // Refresh the research results to update the UI
+    const refreshedResults = await apiClient.get<{ results: ResearchResult[] }>('/keyword-research/results?limit=100');
+    setResearchResults(refreshedResults.results || []);
+
+    return {
+      searchVolume: response.volume,
+      cpc: response.cpc,
+      competitionLevel: response.competitionLevel,
+    };
+  }, [checkingVolumeTerm]);
+
+  // Actually perform the rank check (called from modal)
+  const performRankCheck = useCallback(async (
+    locationCode: number,
+    locationName: string,
+    device: 'desktop' | 'mobile'
+  ): Promise<{ position: number | null; found: boolean }> => {
+    if (!checkingKeyword) throw new Error('No keyword selected');
+
+    const response = await apiClient.post<{
+      success: boolean;
+      position: number | null;
+      found: boolean;
+      foundUrl: string | null;
+      creditsUsed: number;
+      creditsRemaining: number;
+      error?: string;
+    }>('/rank-tracking/check-keyword', {
+      keyword: checkingKeyword.keyword,
+      keywordId: checkingKeyword.conceptId,
+      locationCode,
+      device,
+    });
+
+    if (!response.success) {
+      throw new Error(response.error || 'Failed to check rank');
+    }
+
+    // Refresh rank checks to show the new result
+    await fetchRankChecks();
+
+    return {
+      position: response.position,
+      found: response.found,
+    };
+  }, [checkingKeyword, fetchRankChecks]);
+
+  const isLoading = conceptsLoading;
 
   return (
     <div>
@@ -221,75 +438,51 @@ export default function RankTrackingPage() {
         icon={<Icon name="FaChartLine" className="w-8 h-8 text-slate-blue" size={32} />}
         topMargin="mt-8"
       >
-        {/* Sub-tabs: Concepts | Configurations */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-lg">
-            <button
-              onClick={() => setActiveTab('concepts')}
-              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                activeTab === 'concepts'
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              <Icon name="FaKey" className="w-4 h-4 inline mr-2" />
-              Concepts
-            </button>
-            <button
-              onClick={() => setActiveTab('configurations')}
-              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                activeTab === 'configurations'
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              <Icon name="FaCog" className="w-4 h-4 inline mr-2" />
-              Configurations
-            </button>
+        {/* Search header */}
+        <div className="flex items-center justify-end mb-6">
+          <div className="relative w-64">
+            <Icon name="FaSearch" className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search concepts..."
+              className="w-full pl-10 pr-4 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-slate-blue/50 focus:border-slate-blue/30 transition-all"
+            />
           </div>
-
-          {activeTab === 'configurations' && (
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-blue/90"
-            >
-              <PlusIcon className="w-5 h-5" />
-              New configuration
-            </button>
-          )}
         </div>
 
-        {/* Tab Content */}
-        {activeTab === 'concepts' ? (
-          <ConceptsTab
-            concepts={filteredConcepts}
-            configs={groups}
-            isLoading={isLoading}
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            onAIEnrich={handleAIEnrich}
-            onAddSearchTerm={handleAddSearchTerm}
-            onRemoveSearchTerm={handleRemoveSearchTerm}
-            enrichingConceptId={enrichingConceptId}
-          />
-        ) : (
-          <ConfigurationsTab
-            groups={groups}
-            isLoading={isLoading}
-            onCreateClick={() => setShowCreateModal(true)}
-            onRefresh={refreshGroups}
-          />
-        )}
+        {/* Concepts Content */}
+        <ConceptsTab
+          concepts={filteredConcepts}
+          configs={scheduledLocations}
+          isLoading={isLoading}
+          onAIEnrich={handleAIEnrich}
+          onAddSearchTerm={handleAddSearchTerm}
+          onRemoveSearchTerm={handleRemoveSearchTerm}
+          onCheckRank={handleCheckRank}
+          onCheckVolume={handleCheckVolume}
+          checkingVolumeTerm={checkingVolumeTerm}
+          enrichingConceptId={enrichingConceptId}
+          termVolumeData={termVolumeData}
+          termRankings={termRankings}
+        />
       </PageCard>
 
-      <CreateGroupModal
-        isOpen={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
-        onCreate={createGroup}
-        onSuccess={() => {
-          refreshGroups();
-          setShowCreateModal(false);
-        }}
+      {/* Check Rank Modal */}
+      <CheckRankModal
+        keyword={checkingKeyword?.keyword || ''}
+        isOpen={!!checkingKeyword}
+        onClose={() => setCheckingKeyword(null)}
+        onCheck={performRankCheck}
+      />
+
+      {/* Check Volume Modal */}
+      <CheckVolumeModal
+        keyword={checkingVolumeTerm || ''}
+        isOpen={!!checkingVolumeTerm}
+        onClose={() => setCheckingVolumeTerm(null)}
+        onCheck={performVolumeCheck}
       />
     </div>
   );
@@ -303,24 +496,30 @@ interface ConceptsTabProps {
   concepts: KeywordData[];
   configs: RankKeywordGroup[];
   isLoading: boolean;
-  searchQuery: string;
-  onSearchChange: (query: string) => void;
   onAIEnrich: (concept: KeywordData) => Promise<void>;
   onAddSearchTerm: (conceptId: string, term: string) => Promise<void>;
   onRemoveSearchTerm: (conceptId: string, term: string) => Promise<void>;
+  onCheckRank: (keyword: string, conceptId: string) => void;
+  onCheckVolume: (term: string) => void;
+  checkingVolumeTerm: string | null;
   enrichingConceptId: string | null;
+  termVolumeData: Map<string, TermVolumeData>;
+  termRankings: Map<string, TermRanking[]>;
 }
 
 function ConceptsTab({
   concepts,
   configs,
   isLoading,
-  searchQuery,
-  onSearchChange,
   onAIEnrich,
   onAddSearchTerm,
   onRemoveSearchTerm,
+  onCheckRank,
+  onCheckVolume,
+  checkingVolumeTerm,
   enrichingConceptId,
+  termVolumeData,
+  termRankings,
 }: ConceptsTabProps) {
   // Separate concepts with and without search terms
   const conceptsWithTerms = concepts.filter(c => c.searchTerms && c.searchTerms.length > 0);
@@ -359,18 +558,6 @@ function ConceptsTab({
 
   return (
     <div className="space-y-6">
-      {/* Search */}
-      <div className="relative">
-        <Icon name="FaSearch" className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => onSearchChange(e.target.value)}
-          placeholder="Search concepts or search terms..."
-          className="w-full pl-10 pr-4 py-2.5 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-slate-blue/50 focus:border-slate-blue/30 transition-all"
-        />
-      </div>
-
       {/* Summary stats */}
       <div className="flex items-center gap-4 text-sm">
         <span className="text-gray-600">
@@ -399,10 +586,15 @@ function ConceptsTab({
                 key={concept.id}
                 concept={concept}
                 configs={configs}
+                termVolumeData={termVolumeData}
+                termRankings={termRankings}
                 editable={true}
                 onAIEnrich={onAIEnrich}
                 onAddSearchTerm={onAddSearchTerm}
                 onRemoveSearchTerm={onRemoveSearchTerm}
+                onCheckRank={onCheckRank}
+                onCheckVolume={onCheckVolume}
+                checkingVolumeTerm={checkingVolumeTerm}
                 isEnriching={enrichingConceptId === concept.id}
               />
             ))}
@@ -425,10 +617,15 @@ function ConceptsTab({
                 key={concept.id}
                 concept={concept}
                 configs={configs}
+                termVolumeData={termVolumeData}
+                termRankings={termRankings}
                 editable={true}
                 onAIEnrich={onAIEnrich}
                 onAddSearchTerm={onAddSearchTerm}
                 onRemoveSearchTerm={onRemoveSearchTerm}
+                onCheckRank={onCheckRank}
+                onCheckVolume={onCheckVolume}
+                checkingVolumeTerm={checkingVolumeTerm}
                 isEnriching={enrichingConceptId === concept.id}
               />
             ))}
@@ -439,105 +636,3 @@ function ConceptsTab({
   );
 }
 
-// ============================================
-// Configurations Tab
-// ============================================
-
-interface ConfigurationsTabProps {
-  groups: RankKeywordGroup[];
-  isLoading: boolean;
-  onCreateClick: () => void;
-  onRefresh: () => void;
-}
-
-function ConfigurationsTab({ groups, isLoading, onCreateClick, onRefresh }: ConfigurationsTabProps) {
-  if (isLoading) {
-    return (
-      <div className="text-center py-12">
-        <div className="inline-block w-8 h-8 border-4 border-gray-300 border-t-slate-blue rounded-full animate-spin" />
-      </div>
-    );
-  }
-
-  if (groups.length === 0) {
-    return (
-      <div className="text-center py-16 px-4">
-        <div className="inline-flex items-center justify-center w-16 h-16 bg-slate-blue/10 rounded-full mb-4">
-          <Icon name="FaCog" className="w-8 h-8 text-slate-blue" size={32} />
-        </div>
-        <h3 className="text-xl font-semibold text-gray-900 mb-2">
-          No tracking configurations yet
-        </h3>
-        <p className="text-gray-600 mb-6 max-w-md mx-auto">
-          Create a configuration to start tracking your Google search rankings for different locations and devices.
-        </p>
-        <button
-          onClick={onCreateClick}
-          className="inline-flex items-center gap-2 px-6 py-3 bg-slate-blue text-white rounded-lg hover:bg-slate-blue/90 font-medium"
-        >
-          <PlusIcon className="w-5 h-5" />
-          Create your first configuration
-        </button>
-
-        {/* Feature highlights */}
-        <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl mx-auto text-left">
-          <div className="bg-gray-50 rounded-lg p-4">
-            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mb-3">
-              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-            </div>
-            <h4 className="font-semibold text-gray-900 mb-1">Track rankings</h4>
-            <p className="text-sm text-gray-600">
-              Monitor your position in Google search results for important keywords.
-            </p>
-          </div>
-
-          <div className="bg-gray-50 rounded-lg p-4">
-            <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mb-3">
-              <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-            </div>
-            <h4 className="font-semibold text-gray-900 mb-1">Location-specific</h4>
-            <p className="text-sm text-gray-600">
-              Track rankings for different cities, states, or countries.
-            </p>
-          </div>
-
-          <div className="bg-gray-50 rounded-lg p-4">
-            <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mb-3">
-              <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <h4 className="font-semibold text-gray-900 mb-1">Automated checks</h4>
-            <p className="text-sm text-gray-600">
-              Schedule automatic ranking checks daily, weekly, or monthly.
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-4">
-      <p className="text-sm text-gray-600">
-        Configurations define where and how to track rankings. Each configuration tracks keywords for a specific location and device.
-      </p>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {groups.map((group) => (
-          <RankGroupCard
-            key={group.id}
-            group={group}
-            onRefresh={onRefresh}
-            linkPrefix="/dashboard/keywords/rank-tracking"
-          />
-        ))}
-      </div>
-    </div>
-  );
-}

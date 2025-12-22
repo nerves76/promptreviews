@@ -11,3 +11,6 @@ export { default as RankGroupCard } from './RankGroupCard';
 export { default as CreateGroupModal } from './CreateGroupModal';
 export { default as LocationPicker } from './LocationPicker';
 export { default as ConceptRankAccordion } from './ConceptRankAccordion';
+export { default as ConceptsTable } from './ConceptsTable';
+export { default as CheckRankModal } from './CheckRankModal';
+export { default as CheckVolumeModal } from './CheckVolumeModal';
