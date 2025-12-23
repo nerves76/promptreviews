@@ -29,13 +29,15 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'No valid account found or access denied' }, { status: 403 });
     }
 
-    // Fetch all keywords for this account with group names
+    // Fetch all keywords for this account with group names and search_terms
     const { data: keywords, error: fetchError } = await serviceSupabase
       .from('keywords')
       .select(`
+        id,
         phrase,
         review_phrase,
         search_query,
+        search_terms,
         aliases,
         location_scope,
         related_questions,
@@ -76,21 +78,29 @@ export async function GET(request: NextRequest) {
       }
     });
 
-    // Also need keyword IDs for the rank group lookup
-    const { data: keywordsWithIds } = await serviceSupabase
-      .from('keywords')
-      .select('id, phrase')
-      .eq('account_id', accountId);
+    // Fetch keyword questions from the keyword_questions table
+    const { data: keywordQuestions } = await serviceSupabase
+      .from('keyword_questions')
+      .select('keyword_id, question, funnel_stage')
+      .in('keyword_id', keywords?.map((k: any) => k.id) || []);
 
-    const phraseToIdMap = new Map<string, string>();
-    keywordsWithIds?.forEach((k: any) => {
-      phraseToIdMap.set(k.phrase, k.id);
+    // Build a map of keyword_id -> questions array
+    const questionsMap = new Map<string, Array<{ question: string; funnelStage: string }>>();
+    keywordQuestions?.forEach((q: any) => {
+      if (!questionsMap.has(q.keyword_id)) {
+        questionsMap.set(q.keyword_id, []);
+      }
+      questionsMap.get(q.keyword_id)!.push({
+        question: q.question,
+        funnelStage: q.funnel_stage,
+      });
     });
 
     // CSV headers - match the upload template format
     const headers = [
       'phrase',
       'review_phrase',
+      'search_terms',
       'search_query',
       'aliases',
       'location_scope',
@@ -116,16 +126,33 @@ export async function GET(request: NextRequest) {
 
     // Build CSV rows
     const rows = keywords?.map((keyword: any) => {
-      const keywordId = phraseToIdMap.get(keyword.phrase);
+      const keywordId = keyword.id;
       const rankGroupName = keywordId ? rankGroupMap.get(keywordId) : '';
+
+      // Format search_terms as pipe-delimited: term1|term2|term3
+      const searchTermsStr = keyword.search_terms && Array.isArray(keyword.search_terms)
+        ? keyword.search_terms.map((st: any) => st.term).join('|')
+        : '';
+
+      // Format questions with funnel stage: question|funnel_stage,question2|funnel_stage2
+      // Prefer keyword_questions table data over related_questions JSONB
+      const questions = questionsMap.get(keywordId) || [];
+      const questionsStr = questions.length > 0
+        ? questions.map((q) => `${q.question}|${q.funnelStage}`).join(',')
+        : (keyword.related_questions && Array.isArray(keyword.related_questions)
+            ? keyword.related_questions.map((q: any) =>
+                typeof q === 'string' ? `${q}|middle` : `${q.question}|${q.funnelStage || 'middle'}`
+              ).join(',')
+            : '');
 
       return [
         escapeCSV(keyword.phrase),
         escapeCSV(keyword.review_phrase),
+        escapeCSV(searchTermsStr),
         escapeCSV(keyword.search_query),
         escapeCSV(keyword.aliases?.join(', ') || ''),
         escapeCSV(keyword.location_scope),
-        escapeCSV(keyword.related_questions?.join(' | ') || ''),
+        escapeCSV(questionsStr),
         escapeCSV(keyword.keyword_groups?.name || ''),
         escapeCSV(rankGroupName || ''),
         escapeCSV(keyword.status),

@@ -31,11 +31,19 @@ const LLM_RESPONSES_ENDPOINTS: Record<Exclude<LLMProvider, 'chatgpt'>, string> =
   perplexity: '/ai_optimization/perplexity/llm_responses/live',
 };
 
-// Model names for LLM Responses API
-const LLM_MODEL_NAMES: Record<Exclude<LLMProvider, 'chatgpt'>, string> = {
-  claude: 'claude-3-5-sonnet-latest',
-  gemini: 'gemini-2.0-flash',
-  perplexity: 'llama-3.1-sonar-large-128k-online', // Perplexity's online model
+// Provider-specific request configurations
+// model_name is REQUIRED for all LLM Response APIs
+// See: https://docs.dataforseo.com/v3/ai_optimization/
+const PROVIDER_CONFIGS: Record<Exclude<LLMProvider, 'chatgpt'>, Record<string, any>> = {
+  claude: {
+    model_name: 'claude-sonnet-4-0', // Latest Claude Sonnet model
+  },
+  gemini: {
+    model_name: 'gemini-2.0-flash', // Latest Gemini Flash model
+  },
+  perplexity: {
+    model_name: 'sonar', // Perplexity Sonar model (has web search built-in)
+  },
 };
 
 // Request timeout (120 seconds for LLM queries - they can be slow)
@@ -374,21 +382,19 @@ export async function checkLLMResponseVisibility(params: {
   const { question, targetDomain, provider } = params;
 
   const endpoint = LLM_RESPONSES_ENDPOINTS[provider];
-  const modelName = LLM_MODEL_NAMES[provider];
+  const providerConfig = PROVIDER_CONFIGS[provider];
 
-  if (!endpoint || !modelName) {
+  if (!endpoint) {
     return createErrorResult(provider, question, `Unsupported provider: ${provider}`);
   }
 
-  const requestBody = [
-    {
-      user_prompt: question,
-      model_name: modelName,
-      web_search: true,
-      force_web_search: true, // Ensure web search happens
-      max_output_tokens: 1024,
-    },
-  ];
+  // Build request body with provider-specific parameters
+  const requestParams: Record<string, any> = {
+    user_prompt: question,
+    ...providerConfig, // Spread provider-specific config
+  };
+
+  const requestBody = [requestParams];
 
   try {
     const data = await makeDataForSEORequest(

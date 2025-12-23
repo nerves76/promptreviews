@@ -255,6 +255,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: result.success,
       checksPerformed: result.checksPerformed,
+      results: result.results, // Include individual check results
       summary,
       balance: {
         includedCredits: updatedBalance.includedCredits,

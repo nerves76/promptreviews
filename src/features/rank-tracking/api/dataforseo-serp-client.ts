@@ -762,7 +762,8 @@ export async function getKeywordVolume(params: {
       keyword: item.keyword || '',
       searchVolume: item.search_volume || 0,
       cpc: item.cpc || null,
-      competition: item.competition || null,
+      // Ensure competition is always numeric (DataForSEO may sometimes return strings)
+      competition: typeof item.competition === 'number' ? item.competition : null,
       competitionLevel: mapCompetitionLevel(item.competition_index),
       lowTopOfPageBid: item.low_top_of_page_bid || null,
       highTopOfPageBid: item.high_top_of_page_bid || null,
@@ -828,7 +829,8 @@ export async function getKeywordSuggestions(params: {
         keyword: item.keyword || '',
         searchVolume: keywordInfo.search_volume || 0,
         cpc: keywordInfo.cpc || null,
-        competition: keywordInfo.competition || null,
+        // Ensure competition is always numeric (DataForSEO may sometimes return strings)
+        competition: typeof keywordInfo.competition === 'number' ? keywordInfo.competition : null,
         competitionLevel: mapCompetitionLevel(keywordInfo.competition_index),
         lowTopOfPageBid: keywordInfo.low_top_of_page_bid || null,
         highTopOfPageBid: keywordInfo.high_top_of_page_bid || null,

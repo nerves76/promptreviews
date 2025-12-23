@@ -1459,13 +1459,13 @@ export function KeywordDetailsSidebar({
                                 )}
                               </div>
 
-                              {/* Related Questions */}
+                              {/* AI Visibility Questions */}
                               <div>
                                 <label className="text-sm font-medium text-gray-700 block mb-1">
-                                  Related questions
+                                  AI visibility questions
                                 </label>
                                 <p className="text-xs text-gray-500 mb-2">
-                                  Questions for tracking &quot;People Also Ask&quot; and AI visibility.
+                                  Questions to track your visibility in AI search results.
                                 </p>
 
                                 {/* AI providers selector (view mode only, at top) */}

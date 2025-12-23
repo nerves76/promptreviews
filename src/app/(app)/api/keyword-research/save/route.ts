@@ -63,6 +63,9 @@ export async function POST(request: NextRequest) {
 
     const normalizedTerm = normalizePhrase(body.term);
 
+    // Ensure competition is numeric (API might sometimes return strings)
+    const competition = typeof body.competition === 'number' ? body.competition : null;
+
     // Check if result already exists
     const { data: existing } = await serviceSupabase
       .from('keyword_research_results')
@@ -84,7 +87,7 @@ export async function POST(request: NextRequest) {
           normalized_term: normalizedTerm,
           search_volume: body.searchVolume,
           cpc: body.cpc,
-          competition: body.competition,
+          competition: competition,
           competition_level: body.competitionLevel,
           search_volume_trend: body.searchVolumeTrend,
           monthly_searches: body.monthlySearches,

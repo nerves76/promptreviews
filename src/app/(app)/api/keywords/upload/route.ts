@@ -63,6 +63,7 @@ export async function POST(request: NextRequest) {
     const expectedColumns: Record<string, string[]> = {
       phrase: ['phrase', 'keyword', 'keywordphrase', 'keyword phrase'],
       review_phrase: ['reviewphrase', 'review phrase', 'review_phrase', 'customerphrase', 'customer phrase'],
+      search_terms: ['searchterms', 'search terms', 'search_terms'],
       search_query: ['searchquery', 'search query', 'search_query', 'searchphrase', 'search phrase'],
       aliases: ['aliases', 'alias', 'alternativeterms', 'alternative terms'],
       location_scope: ['locationscope', 'location scope', 'location_scope', 'scope'],
@@ -119,9 +120,36 @@ export async function POST(request: NextRequest) {
         ? record.aliases.split(',').map((a: string) => a.trim()).filter(Boolean)
         : [];
 
-      const relatedQuestions = record.related_questions
-        ? record.related_questions.split('|').map((q: string) => q.trim()).filter(Boolean)
+      // Parse search_terms (pipe-delimited: term1|term2|term3)
+      const searchTerms = record.search_terms
+        ? record.search_terms.split('|').map((t: string, index: number) => ({
+            term: t.trim(),
+            is_canonical: index === 0,
+            added_at: new Date().toISOString(),
+          })).filter((st: any) => st.term.length > 0)
         : [];
+
+      // Parse related_questions with funnel stage (format: question|funnel_stage,question2|funnel_stage2)
+      const relatedQuestionsWithStage: Array<{ question: string; funnel_stage: string }> = [];
+      if (record.related_questions) {
+        const questionPairs = record.related_questions.split(',').map((q: string) => q.trim()).filter(Boolean);
+        for (const pair of questionPairs) {
+          const parts = pair.split('|').map((p: string) => p.trim());
+          if (parts.length === 2) {
+            // Format: question|funnel_stage
+            const [question, funnelStage] = parts;
+            if (question && ['top', 'middle', 'bottom'].includes(funnelStage)) {
+              relatedQuestionsWithStage.push({ question, funnel_stage: funnelStage });
+            } else {
+              // Invalid funnel stage, default to middle
+              relatedQuestionsWithStage.push({ question, funnel_stage: 'middle' });
+            }
+          } else if (parts.length === 1 && parts[0]) {
+            // Old format: just question without funnel stage
+            relatedQuestionsWithStage.push({ question: parts[0], funnel_stage: 'middle' });
+          }
+        }
+      }
 
       // Validate location_scope if provided
       const validScopes = ['local', 'regional', 'national', 'global'];
@@ -135,9 +163,10 @@ export async function POST(request: NextRequest) {
         phrase: record.phrase.trim(),
         review_phrase: record.review_phrase?.trim() || null,
         search_query: record.search_query?.trim() || null,
+        search_terms: searchTerms,
         aliases,
         location_scope: locationScope,
-        related_questions: relatedQuestions,
+        related_questions: relatedQuestionsWithStage,
         keyword_group: record.keyword_group?.trim() || null,
         rank_tracking_group: record.rank_tracking_group?.trim() || null,
         rowNumber,
@@ -165,11 +194,13 @@ export async function POST(request: NextRequest) {
     // Filter out duplicates
     const uniqueKeywords: typeof keywordsToInsert = [];
     let duplicatesSkipped = 0;
+    const skippedPhrases: string[] = [];
 
     for (const keyword of keywordsToInsert) {
       const normalizedPhrase = normalizePhrase(keyword.phrase);
       if (existingPhraseSet.has(normalizedPhrase.toLowerCase())) {
         duplicatesSkipped++;
+        skippedPhrases.push(keyword.phrase);
         errors.push(`Row ${keyword.rowNumber}: Duplicate keyword "${keyword.phrase}" skipped`);
       } else {
         uniqueKeywords.push({ ...keyword, normalizedPhrase });
@@ -183,6 +214,7 @@ export async function POST(request: NextRequest) {
         message: 'No new keywords to import',
         keywordsCreated: 0,
         duplicatesSkipped,
+        skippedPhrases,
         errors: errors.length > 0 ? errors : undefined,
       });
     }
@@ -268,6 +300,7 @@ export async function POST(request: NextRequest) {
       review_usage_count: 0,
       review_phrase: k.review_phrase,
       search_query: k.search_query,
+      search_terms: k.search_terms,
       aliases: k.aliases,
       location_scope: k.location_scope,
       related_questions: k.related_questions,
@@ -285,6 +318,33 @@ export async function POST(request: NextRequest) {
         error: `Failed to save keywords: ${insertError.message}`,
         details: insertError.details,
       }, { status: 500 });
+    }
+
+    // Insert keyword questions into the keyword_questions table
+    let questionsCreated = 0;
+    if (insertedKeywords) {
+      for (let i = 0; i < uniqueKeywords.length; i++) {
+        const keyword = uniqueKeywords[i];
+        const insertedKeyword = insertedKeywords[i];
+
+        if (keyword.related_questions && keyword.related_questions.length > 0 && insertedKeyword) {
+          const questionInserts = keyword.related_questions.map((q: any) => ({
+            account_id: accountId,
+            keyword_id: insertedKeyword.id,
+            question: q.question,
+            funnel_stage: q.funnel_stage,
+            added_at: new Date().toISOString(),
+          }));
+
+          const { error: questionsError } = await serviceSupabase
+            .from('keyword_questions')
+            .insert(questionInserts);
+
+          if (!questionsError) {
+            questionsCreated += questionInserts.length;
+          }
+        }
+      }
     }
 
     // Track rank tracking group additions
@@ -332,6 +392,7 @@ export async function POST(request: NextRequest) {
       message: 'Successfully uploaded keywords',
       keywordsCreated: insertedKeywords?.length || 0,
       duplicatesSkipped,
+      skippedPhrases,
       rankGroupsLinked,
       errors: errors.length > 0 ? errors : undefined,
     });
@@ -390,6 +451,7 @@ export async function GET(request: NextRequest) {
   const headers = [
     'phrase',
     'review_phrase',
+    'search_terms',
     'search_query',
     'aliases',
     'location_scope',
@@ -402,15 +464,17 @@ export async function GET(request: NextRequest) {
   const instructions = [
     '# Keyword Concepts Upload Template',
     '# Required columns: phrase',
-    '# Optional columns: review_phrase, search_query, aliases, location_scope, related_questions, keyword_group, rank_tracking_group',
+    '# Optional columns: review_phrase, search_terms, search_query, aliases, location_scope, related_questions, keyword_group, rank_tracking_group',
     '#',
     '# Column descriptions:',
     '#   phrase - The main keyword (required)',
     '#   review_phrase - Customer-friendly version for prompt pages',
-    '#   search_query - Exact phrase for rank tracking',
+    '#   search_terms - Search term variations for rank tracking (pipe-separated: term1|term2|term3)',
+    '#   search_query - Legacy exact phrase for rank tracking (use search_terms instead)',
     '#   aliases - Alternative terms (comma-separated)',
     '#   location_scope - Geographic scope: local, regional, national, or global',
-    '#   related_questions - Questions for PAA/LLM tracking (use | to separate)',
+    '#   related_questions - Questions for PAA/LLM tracking with funnel stage (format: question|funnel_stage, separate with commas)',
+    '#     Funnel stages: top, middle, bottom (e.g., "How does X work?|top,What is the best X?|middle")',
     '#   keyword_group - Name of keyword group to assign to (created if needed)',
     '#   rank_tracking_group - Name of existing rank tracking group to add to',
   ];
@@ -426,26 +490,29 @@ export async function GET(request: NextRequest) {
     [
       'portland plumber',
       'plumbing services',
+      'plumber portland oregon|best plumber portland|portland plumbing company',
       'plumber portland oregon',
       'plumber,plumbing,pipe repair',
       'local',
-      'How much does a plumber cost in Portland?|What are the best plumbers near me?',
+      'How much does a plumber cost in Portland?|top,What are the best plumbers near me?|middle',
       keywordGroups[0] || 'Services',
       rankGroups[0] || '',
     ],
     [
       'emergency plumbing',
       'emergency plumbing help',
+      'emergency plumber near me|24/7 emergency plumber|urgent plumbing repair',
       'emergency plumber near me',
       '24 hour plumber,urgent plumbing',
       'local',
-      'Who to call for plumbing emergency?',
+      'Who to call for plumbing emergency?|top,How fast can emergency plumber arrive?|bottom',
       keywordGroups[0] || 'Services',
       '',
     ],
     [
       'drain cleaning',
       'professional drain cleaning',
+      'drain cleaning service portland|unclog drain portland',
       'drain cleaning service portland',
       'clogged drain,drain unclogging',
       'local',

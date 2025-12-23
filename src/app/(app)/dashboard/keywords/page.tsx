@@ -7,6 +7,7 @@ import Icon from '@/components/Icon';
 import PageCard from '@/app/(app)/components/PageCard';
 import { KeywordManager } from '@/features/keywords/components';
 import { CheckRankModal } from '@/features/rank-tracking/components';
+import { CheckLLMModal } from '@/features/llm-visibility/components';
 import { apiClient } from '@/utils/apiClient';
 
 /**
@@ -19,42 +20,70 @@ import { apiClient } from '@/utils/apiClient';
 export default function KeywordsPage() {
   const pathname = usePathname();
   const [checkingKeyword, setCheckingKeyword] = useState<{ keyword: string; conceptId: string } | null>(null);
+  const [checkingLLM, setCheckingLLM] = useState<{ question: string; conceptId: string } | null>(null);
 
   // Handle clicking "Check ranking" on a search term
   const handleCheckRank = useCallback((keyword: string, conceptId: string) => {
     setCheckingKeyword({ keyword, conceptId });
   }, []);
 
-  // Perform the actual rank check (called from modal)
+  // Handle clicking "Check" on an AI visibility question
+  const handleCheckLLMVisibility = useCallback((question: string, conceptId: string) => {
+    setCheckingLLM({ question, conceptId });
+  }, []);
+
+  // Perform the actual rank check (called from modal) - checks both desktop and mobile
   const performRankCheck = useCallback(async (
     locationCode: number,
-    locationName: string,
-    device: 'desktop' | 'mobile'
-  ): Promise<{ position: number | null; found: boolean }> => {
+    locationName: string
+  ): Promise<{
+    desktop: { position: number | null; found: boolean };
+    mobile: { position: number | null; found: boolean };
+  }> => {
     if (!checkingKeyword) throw new Error('No keyword selected');
 
-    const response = await apiClient.post<{
-      success: boolean;
-      position: number | null;
-      found: boolean;
-      foundUrl: string | null;
-      creditsUsed: number;
-      creditsRemaining: number;
-      error?: string;
-    }>('/rank-tracking/check-keyword', {
-      keyword: checkingKeyword.keyword,
-      keywordId: checkingKeyword.conceptId,
-      locationCode,
-      device,
-    });
+    // Check both desktop and mobile in parallel
+    const [desktopResponse, mobileResponse] = await Promise.all([
+      apiClient.post<{
+        success: boolean;
+        position: number | null;
+        found: boolean;
+        foundUrl: string | null;
+        creditsUsed: number;
+        creditsRemaining: number;
+        error?: string;
+      }>('/rank-tracking/check-keyword', {
+        keyword: checkingKeyword.keyword,
+        keywordId: checkingKeyword.conceptId,
+        locationCode,
+        device: 'desktop',
+      }),
+      apiClient.post<{
+        success: boolean;
+        position: number | null;
+        found: boolean;
+        foundUrl: string | null;
+        creditsUsed: number;
+        creditsRemaining: number;
+        error?: string;
+      }>('/rank-tracking/check-keyword', {
+        keyword: checkingKeyword.keyword,
+        keywordId: checkingKeyword.conceptId,
+        locationCode,
+        device: 'mobile',
+      }),
+    ]);
 
-    if (!response.success) {
-      throw new Error(response.error || 'Failed to check rank');
+    if (!desktopResponse.success) {
+      throw new Error(desktopResponse.error || 'Failed to check desktop rank');
+    }
+    if (!mobileResponse.success) {
+      throw new Error(mobileResponse.error || 'Failed to check mobile rank');
     }
 
     return {
-      position: response.position,
-      found: response.found,
+      desktop: { position: desktopResponse.position, found: desktopResponse.found },
+      mobile: { position: mobileResponse.position, found: mobileResponse.found },
     };
   }, [checkingKeyword]);
 
@@ -124,7 +153,7 @@ export default function KeywordsPage() {
         icon={<Icon name="FaKey" className="w-8 h-8 text-slate-blue" size={32} />}
         topMargin="mt-8"
       >
-        <KeywordManager onCheckRank={handleCheckRank} />
+        <KeywordManager onCheckRank={handleCheckRank} onCheckLLMVisibility={handleCheckLLMVisibility} />
       </PageCard>
 
       {/* Check Rank Modal */}
@@ -133,6 +162,14 @@ export default function KeywordsPage() {
         isOpen={!!checkingKeyword}
         onClose={() => setCheckingKeyword(null)}
         onCheck={performRankCheck}
+      />
+
+      {/* Check LLM Visibility Modal */}
+      <CheckLLMModal
+        question={checkingLLM?.question || ''}
+        keywordId={checkingLLM?.conceptId || ''}
+        isOpen={!!checkingLLM}
+        onClose={() => setCheckingLLM(null)}
       />
     </div>
   );

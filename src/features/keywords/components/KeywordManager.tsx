@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import Icon from '@/components/Icon';
 import Link from 'next/link';
 import KeywordConceptInput from './KeywordConceptInput';
@@ -8,11 +9,49 @@ import { KeywordDetailsSidebar } from './KeywordDetailsSidebar';
 import ConceptCard from './ConceptCard';
 import { useKeywords, useKeywordDetails } from '../hooks/useKeywords';
 
-import { type KeywordData, type KeywordGroupData, DEFAULT_GROUP_NAME } from '../keywordUtils';
+import { type KeywordData, type KeywordGroupData, type ResearchResultData, DEFAULT_GROUP_NAME } from '../keywordUtils';
 import { apiClient } from '@/utils/apiClient';
+import { BulkActionBar } from './BulkActionBar';
+import { BulkDeleteModal } from './BulkDeleteModal';
 import { useBusinessData } from '@/auth/hooks/granularAuthHooks';
 import { validateBusinessForKeywordGeneration } from '@/utils/businessValidation';
-import { ArrowDownTrayIcon, ArrowUpTrayIcon, XMarkIcon, DocumentArrowDownIcon } from '@heroicons/react/24/outline';
+import { ArrowDownTrayIcon, ArrowUpTrayIcon, XMarkIcon, DocumentArrowDownIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
+
+// Types for enrichment data from batch-enrich API
+interface RankingData {
+  groupId: string;
+  groupName: string;
+  device: string;
+  location: string;
+  locationCode: number;
+  isEnabled: boolean;
+  latestCheck: {
+    position: number | null;
+    foundUrl: string | null;
+    checkedAt: string;
+    searchQuery: string;
+    positionChange: number | null;
+  } | null;
+}
+
+interface RankStatusData {
+  isTracked: boolean;
+  rankings: RankingData[];
+}
+
+interface LLMVisibilityResult {
+  question: string;
+  llmProvider: string;
+  domainCited: boolean;
+  citationPosition: number | null;
+  checkedAt: string;
+}
+
+export interface EnrichmentData {
+  volumeData: ResearchResultData[];
+  rankStatus: RankStatusData | null;
+  llmResults: LLMVisibilityResult[];
+}
 
 interface KeywordManagerProps {
   /** Optional prompt page ID to filter keywords */
@@ -29,6 +68,8 @@ interface KeywordManagerProps {
   businessState?: string;
   /** Callback when user wants to check rank for a search term */
   onCheckRank?: (keyword: string, conceptId: string) => void;
+  /** Callback when user wants to check LLM visibility for a question */
+  onCheckLLMVisibility?: (question: string, conceptId: string) => void;
 }
 
 /**
@@ -51,6 +92,7 @@ export default function KeywordManager({
   businessCity,
   businessState,
   onCheckRank,
+  onCheckLLMVisibility,
 }: KeywordManagerProps) {
   const {
     keywords,
@@ -79,6 +121,12 @@ export default function KeywordManager({
   const [editingGroup, setEditingGroup] = useState<KeywordGroupData | null>(null);
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null); // null = All groups
 
+  // Multi-select state for bulk operations
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+
   // AI Generation state
   const [showGeneratorPanel, setShowGeneratorPanel] = useState(false);
   const [showMissingFieldsError, setShowMissingFieldsError] = useState(false);
@@ -99,12 +147,117 @@ export default function KeywordManager({
     message: string;
     keywordsCreated?: number;
     duplicatesSkipped?: number;
+    skippedPhrases?: string[];
     errors?: string[];
   } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const addKeywordFormRef = useRef<HTMLDivElement>(null);
 
   // Fetch details for selected keyword
   const { keyword: selectedKeyword, promptPages, recentReviews, refresh: refreshKeywordDetails } = useKeywordDetails(selectedKeywordId);
+
+  // Enrichment data state (batch fetched for all keywords)
+  const [enrichmentData, setEnrichmentData] = useState<Map<string, EnrichmentData>>(new Map());
+  const [isLoadingEnrichment, setIsLoadingEnrichment] = useState(false);
+  const [enrichmentError, setEnrichmentError] = useState<string | null>(null);
+
+  // Fetch enrichment data for all keywords
+  const fetchEnrichmentData = useCallback(async (keywordIds: string[]) => {
+    if (keywordIds.length === 0) return;
+
+    setIsLoadingEnrichment(true);
+    setEnrichmentError(null);
+
+    try {
+      const response = await apiClient.post<{ enrichment: Record<string, EnrichmentData> }>(
+        '/keywords/batch-enrich',
+        { keywordIds }
+      );
+
+      setEnrichmentData(new Map(Object.entries(response.enrichment)));
+    } catch (err: any) {
+      console.error('Failed to fetch enrichment data:', err);
+      setEnrichmentError(err?.message || 'Failed to load enrichment data');
+    } finally {
+      setIsLoadingEnrichment(false);
+    }
+  }, []);
+
+  // Fetch enrichment when keywords change
+  useEffect(() => {
+    if (keywords.length > 0) {
+      const keywordIds = keywords.map(k => k.id);
+      fetchEnrichmentData(keywordIds);
+    }
+  }, [keywords.length]); // Only refetch when keyword count changes
+
+  // Manual refresh handler
+  const handleRefreshEnrichment = useCallback(() => {
+    if (keywords.length > 0) {
+      const keywordIds = keywords.map(k => k.id);
+      fetchEnrichmentData(keywordIds);
+    }
+  }, [keywords, fetchEnrichmentData]);
+
+  // Keyboard navigation handler
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't trigger keyboard shortcuts if user is typing in an input/textarea
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+        // Allow Escape to work in inputs/textareas
+        if (e.key !== 'Escape') {
+          return;
+        }
+      }
+
+      // Escape - close sidebar, clear selection, exit edit mode
+      if (e.key === 'Escape') {
+        setSelectedKeywordId(null);
+        // If in selection mode (has onSelectionChange), clear selection
+        if (onSelectionChange) {
+          onSelectionChange([]);
+        }
+      }
+
+      // Cmd+N or Ctrl+N - focus the add keyword input
+      if ((e.metaKey || e.ctrlKey) && e.key === 'n') {
+        e.preventDefault();
+        // Scroll to and focus the add keyword form
+        addKeywordFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        // Focus the first input in the form
+        const firstInput = addKeywordFormRef.current?.querySelector('input');
+        if (firstInput) {
+          firstInput.focus();
+        }
+      }
+
+      // Cmd+A or Ctrl+A - select all keywords (only in selection mode)
+      if ((e.metaKey || e.ctrlKey) && e.key === 'a' && onSelectionChange) {
+        e.preventDefault();
+        // Select all currently filtered keywords
+        const allKeywordIds = keywords.filter(k => {
+          // Apply search filter
+          if (searchQuery.trim()) {
+            const query = searchQuery.toLowerCase();
+            return (
+              k.phrase.toLowerCase().includes(query) ||
+              k.groupName?.toLowerCase().includes(query) ||
+              k.reviewPhrase?.toLowerCase().includes(query) ||
+              k.aliases?.some((a) => a.toLowerCase().includes(query)) ||
+              k.searchTerms?.some((t) => t.term.toLowerCase().includes(query)) ||
+              k.relatedQuestions?.some((r) => r.question.toLowerCase().includes(query))
+            );
+          }
+          return true;
+        }).map(k => k.id);
+        onSelectionChange(allKeywordIds);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [selectedKeywordId, onSelectionChange, keywords, searchQuery]);
 
   // Filter keywords by search query
   const filteredKeywords = useMemo(() => {
@@ -116,7 +269,11 @@ export default function KeywordManager({
       result = result.filter(
         (kw) =>
           kw.phrase.toLowerCase().includes(query) ||
-          kw.groupName?.toLowerCase().includes(query)
+          kw.groupName?.toLowerCase().includes(query) ||
+          kw.reviewPhrase?.toLowerCase().includes(query) ||
+          kw.aliases?.some((a) => a.toLowerCase().includes(query)) ||
+          kw.searchTerms?.some((t) => t.term.toLowerCase().includes(query)) ||
+          kw.relatedQuestions?.some((r) => r.question.toLowerCase().includes(query))
       );
     }
 
@@ -171,6 +328,40 @@ export default function KeywordManager({
     await deleteGroup(groupId);
   };
 
+  // Handle group drag-and-drop reordering
+  const handleGroupDragEnd = async (result: DropResult) => {
+    if (!result.destination) return;
+
+    // Don't allow reordering if dropped in same position
+    if (result.source.index === result.destination.index) return;
+
+    // Get draggable groups (exclude "General" which should always be first)
+    const draggableGroups = groups.filter(g => g.name !== DEFAULT_GROUP_NAME);
+
+    // Reorder the groups
+    const reordered = Array.from(draggableGroups);
+    const [removed] = reordered.splice(result.source.index, 1);
+    reordered.splice(result.destination.index, 0, removed);
+
+    // Calculate new display orders
+    const updates = reordered.map((g, i) => ({ id: g.id, displayOrder: i + 1 }));
+
+    try {
+      // Optimistically update local state
+      // Note: The useKeywords hook will refetch and update automatically
+
+      // Persist the changes
+      await apiClient.patch('/keyword-groups/reorder', { updates });
+
+      // Refresh to get updated order
+      await refresh();
+    } catch (error) {
+      console.error('Failed to reorder groups:', error);
+      // On error, refresh to revert to server state
+      await refresh();
+    }
+  };
+
   // Handle keyword click
   const handleKeywordClick = (keyword: KeywordData) => {
     if (onSelectionChange) {
@@ -191,6 +382,105 @@ export default function KeywordManager({
     if (!confirm('Delete this keyword permanently?')) return;
     await deleteKeyword(keywordId);
   };
+
+  // === Bulk Operations Handlers ===
+
+  // Handle toggling individual selection
+  const handleToggleSelection = useCallback((keywordId: string) => {
+    setSelectedIds((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(keywordId)) {
+        newSet.delete(keywordId);
+      } else {
+        newSet.add(keywordId);
+      }
+      return newSet;
+    });
+  }, []);
+
+  // Handle select all (within current group filter)
+  const handleSelectAll = useCallback(() => {
+    setSelectedIds(new Set(groupFilteredKeywords.map((kw) => kw.id)));
+  }, [groupFilteredKeywords]);
+
+  // Handle deselect all
+  const handleDeselectAll = useCallback(() => {
+    setSelectedIds(new Set());
+  }, []);
+
+  // Handle bulk move to group
+  const handleBulkMoveToGroup = useCallback(async (groupId: string) => {
+    const selectedKeywords = Array.from(selectedIds);
+    for (const keywordId of selectedKeywords) {
+      await updateKeyword(keywordId, { groupId });
+    }
+    setSelectedIds(new Set());
+    await refresh();
+  }, [selectedIds, updateKeyword, refresh]);
+
+  // Handle bulk delete
+  const handleBulkDelete = useCallback(async () => {
+    setIsBulkDeleting(true);
+    const selectedKeywords = Array.from(selectedIds);
+    for (const keywordId of selectedKeywords) {
+      await deleteKeyword(keywordId);
+    }
+    setIsBulkDeleting(false);
+    setShowBulkDeleteModal(false);
+    setSelectedIds(new Set());
+    setIsSelectionMode(false);
+    await refresh();
+  }, [selectedIds, deleteKeyword, refresh]);
+
+  // Handle bulk export (selected keywords only)
+  const handleBulkExport = useCallback(async () => {
+    try {
+      const selectedKeywords = keywords.filter((kw) => selectedIds.has(kw.id));
+
+      // Create CSV content
+      const headers = ['phrase', 'review_phrase', 'search_terms', 'group', 'aliases', 'location_scope'];
+      const rows = selectedKeywords.map((kw) => [
+        kw.phrase,
+        kw.reviewPhrase || '',
+        kw.searchTerms?.map((st) => st.term).join('|') || '',
+        kw.groupName || '',
+        kw.aliases?.join(', ') || '',
+        kw.locationScope || '',
+      ]);
+
+      const escapeCSV = (value: string): string => {
+        if (value.includes(',') || value.includes('"') || value.includes('\n') || value.includes('|')) {
+          return `"${value.replace(/"/g, '""')}"`;
+        }
+        return value;
+      };
+
+      const csvContent = [
+        headers.join(','),
+        ...rows.map((row) => row.map(escapeCSV).join(',')),
+      ].join('\n');
+
+      // Download CSV
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `keywords-export-${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Export failed:', error);
+      alert('Failed to export keywords. Please try again.');
+    }
+  }, [keywords, selectedIds]);
+
+  // Get selected keywords for delete modal
+  const selectedKeywordsForDelete = useMemo(
+    () => keywords.filter((kw) => selectedIds.has(kw.id)),
+    [keywords, selectedIds]
+  );
 
   // AI Generation handlers
   const normalizeBusinessInfo = () => {
@@ -579,6 +869,15 @@ export default function KeywordManager({
           {/* Action buttons - top right */}
           <div className="flex items-center gap-2">
             <button
+              onClick={handleRefreshEnrichment}
+              disabled={isLoadingEnrichment}
+              className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 flex items-center gap-2 disabled:opacity-50"
+              title="Refresh volume and ranking data"
+            >
+              <ArrowPathIcon className={`w-4 h-4 ${isLoadingEnrichment ? 'animate-spin' : ''}`} />
+              <span className="hidden sm:inline">Refresh</span>
+            </button>
+            <button
               onClick={() => setShowImportModal(true)}
               className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 flex items-center gap-2"
             >
@@ -806,7 +1105,7 @@ export default function KeywordManager({
       )}
 
       {/* Add Keyword Section */}
-      <div className="mb-4 p-4 bg-white border border-gray-200 rounded-lg">
+      <div ref={addKeywordFormRef} className="mb-4 p-4 bg-white border border-gray-200 rounded-lg">
         <div className="flex items-start justify-between mb-4">
           <div>
             <h3 className="text-base font-semibold text-gray-800">Add keyword concept</h3>
@@ -837,40 +1136,99 @@ export default function KeywordManager({
       {/* Group tabs and search header */}
       <div className="flex items-center justify-between gap-4 mb-4">
         {/* Group tabs */}
-        <div className="flex items-center gap-2 overflow-x-auto flex-1 min-w-0">
-          <button
-            onClick={() => setSelectedGroupId(null)}
-            className={`px-3 py-1.5 text-sm font-medium rounded-lg whitespace-nowrap transition-colors ${
-              selectedGroupId === null
-                ? 'bg-slate-blue text-white'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
-          >
-            All ({filteredKeywords.length})
-          </button>
-          {groups
-            .sort((a, b) => {
-              if (a.name === DEFAULT_GROUP_NAME) return -1;
-              if (b.name === DEFAULT_GROUP_NAME) return 1;
-              return a.displayOrder - b.displayOrder || a.name.localeCompare(b.name);
-            })
-            .map((group) => {
-              const count = filteredKeywords.filter((kw) => kw.groupId === group.id).length;
+        <DragDropContext onDragEnd={handleGroupDragEnd}>
+          <div className="flex items-center gap-2 overflow-x-auto flex-1 min-w-0">
+            {/* "All" tab - not draggable */}
+            <button
+              onClick={() => setSelectedGroupId(null)}
+              className={`px-3 py-1.5 text-sm font-medium rounded-lg whitespace-nowrap transition-colors ${
+                selectedGroupId === null
+                  ? 'bg-blue-100 text-blue-700'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              All ({filteredKeywords.length})
+            </button>
+
+            {/* Sort groups: "General" first (not draggable), then custom groups (draggable) */}
+            {(() => {
+              const sortedGroups = groups.sort((a, b) => {
+                if (a.name === DEFAULT_GROUP_NAME) return -1;
+                if (b.name === DEFAULT_GROUP_NAME) return 1;
+                return a.displayOrder - b.displayOrder || a.name.localeCompare(b.name);
+              });
+
+              const generalGroup = sortedGroups.find(g => g.name === DEFAULT_GROUP_NAME);
+              const customGroups = sortedGroups.filter(g => g.name !== DEFAULT_GROUP_NAME);
+
               return (
-                <button
-                  key={group.id}
-                  onClick={() => setSelectedGroupId(group.id)}
-                  className={`px-3 py-1.5 text-sm font-medium rounded-lg whitespace-nowrap transition-colors ${
-                    selectedGroupId === group.id
-                      ? 'bg-slate-blue text-white'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
-                >
-                  {group.name} ({count})
-                </button>
+                <>
+                  {/* General group - not draggable */}
+                  {generalGroup && (
+                    <button
+                      key={generalGroup.id}
+                      onClick={() => setSelectedGroupId(generalGroup.id)}
+                      className={`px-3 py-1.5 text-sm font-medium rounded-lg whitespace-nowrap transition-colors ${
+                        selectedGroupId === generalGroup.id
+                          ? 'bg-blue-100 text-blue-700'
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                    >
+                      {generalGroup.name} ({filteredKeywords.filter((kw) => kw.groupId === generalGroup.id).length})
+                    </button>
+                  )}
+
+                  {/* Custom groups - draggable */}
+                  {customGroups.length > 0 && (
+                    <Droppable droppableId="group-tabs" direction="horizontal">
+                      {(provided) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.droppableProps}
+                          className="flex items-center gap-2"
+                        >
+                          {customGroups.map((group, index) => {
+                            const count = filteredKeywords.filter((kw) => kw.groupId === group.id).length;
+                            return (
+                              <Draggable key={group.id} draggableId={group.id} index={index}>
+                                {(provided, snapshot) => (
+                                  <div
+                                    ref={provided.innerRef}
+                                    {...provided.draggableProps}
+                                    className="relative group"
+                                  >
+                                    <button
+                                      onClick={() => setSelectedGroupId(group.id)}
+                                      className={`px-3 py-1.5 text-sm font-medium rounded-lg whitespace-nowrap transition-colors flex items-center gap-2 ${
+                                        selectedGroupId === group.id
+                                          ? 'bg-blue-100 text-blue-700'
+                                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                      } ${snapshot.isDragging ? 'shadow-lg ring-2 ring-blue-400' : ''}`}
+                                    >
+                                      <span
+                                        {...provided.dragHandleProps}
+                                        className="opacity-0 group-hover:opacity-50 hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing"
+                                        title="Drag to reorder"
+                                      >
+                                        <Icon name="FaBars" size={12} />
+                                      </span>
+                                      {group.name} ({count})
+                                    </button>
+                                  </div>
+                                )}
+                              </Draggable>
+                            );
+                          })}
+                          {provided.placeholder}
+                        </div>
+                      )}
+                    </Droppable>
+                  )}
+                </>
               );
-            })}
-        </div>
+            })()}
+          </div>
+        </DragDropContext>
 
         {/* Search */}
         <div className="relative flex-shrink-0">
@@ -893,14 +1251,31 @@ export default function KeywordManager({
           {/* Concept cards */}
           {groupFilteredKeywords.length > 0 ? (
             groupFilteredKeywords.map((keyword) => (
-              <ConceptCard
-                key={keyword.id}
-                keyword={keyword}
-                onOpenDetails={handleKeywordClick}
-                onUpdate={updateKeyword}
-                onCheckRank={onCheckRank}
-                promptPageNames={promptPageUsage[keyword.id] || []}
-              />
+              <div key={keyword.id} className="relative flex items-start gap-3">
+                {/* Selection checkbox (only in selection mode) */}
+                {isSelectionMode && (
+                  <div className="flex-shrink-0 pt-4">
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.has(keyword.id)}
+                      onChange={() => handleToggleSelection(keyword.id)}
+                      className="w-5 h-5 text-slate-blue rounded border-gray-300 focus:ring-slate-blue cursor-pointer"
+                    />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <ConceptCard
+                    keyword={keyword}
+                    onOpenDetails={handleKeywordClick}
+                    onUpdate={updateKeyword}
+                    onCheckRank={onCheckRank}
+                    onCheckLLMVisibility={onCheckLLMVisibility}
+                    promptPageNames={promptPageUsage[keyword.id] || []}
+                    enrichedData={enrichmentData.get(keyword.id)}
+                    isLoadingEnrichment={isLoadingEnrichment}
+                  />
+                </div>
+              </div>
             ))
           ) : (
             <div className="text-center py-8 text-gray-500">
@@ -1061,6 +1436,18 @@ export default function KeywordManager({
                       {importResult.duplicatesSkipped ? (
                         <p>{importResult.duplicatesSkipped} duplicates skipped</p>
                       ) : null}
+                      {importResult.skippedPhrases && importResult.skippedPhrases.length > 0 && (
+                        <details className="mt-2">
+                          <summary className="cursor-pointer text-sm text-amber-600 hover:text-amber-700">
+                            View {importResult.duplicatesSkipped} skipped duplicates
+                          </summary>
+                          <ul className="mt-1 text-xs text-gray-600 max-h-32 overflow-y-auto pl-4">
+                            {importResult.skippedPhrases.map((phrase, i) => (
+                              <li key={i} className="list-disc">{phrase}</li>
+                            ))}
+                          </ul>
+                        </details>
+                      )}
                     </div>
                   )}
                   {importResult.errors && importResult.errors.length > 0 && (
@@ -1118,6 +1505,29 @@ export default function KeywordManager({
           onCheckRank={onCheckRank}
         />
       )}
+
+      {/* Bulk Action Bar (fixed bottom) */}
+      {isSelectionMode && (
+        <BulkActionBar
+          selectedCount={selectedIds.size}
+          totalCount={groupFilteredKeywords.length}
+          groups={groups}
+          onSelectAll={handleSelectAll}
+          onDeselectAll={handleDeselectAll}
+          onMoveToGroup={handleBulkMoveToGroup}
+          onDelete={() => setShowBulkDeleteModal(true)}
+          onExport={handleBulkExport}
+        />
+      )}
+
+      {/* Bulk Delete Confirmation Modal */}
+      <BulkDeleteModal
+        isOpen={showBulkDeleteModal}
+        keywords={selectedKeywordsForDelete}
+        onConfirm={handleBulkDelete}
+        onClose={() => setShowBulkDeleteModal(false)}
+        isDeleting={isBulkDeleting}
+      />
     </div>
   );
 }

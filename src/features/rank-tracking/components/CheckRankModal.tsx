@@ -4,13 +4,18 @@ import { useState } from 'react';
 import Icon from '@/components/Icon';
 import LocationPicker from './LocationPicker';
 
+interface RankResult {
+  position: number | null;
+  found: boolean;
+}
+
 interface CheckRankModalProps {
   keyword: string;
   isOpen: boolean;
   onClose: () => void;
-  onCheck: (locationCode: number, locationName: string, device: 'desktop' | 'mobile') => Promise<{
-    position: number | null;
-    found: boolean;
+  onCheck: (locationCode: number, locationName: string) => Promise<{
+    desktop: RankResult;
+    mobile: RankResult;
   }>;
 }
 
@@ -21,9 +26,8 @@ export default function CheckRankModal({
   onCheck,
 }: CheckRankModalProps) {
   const [location, setLocation] = useState<{ code: number; name: string } | null>(null);
-  const [device, setDevice] = useState<'desktop' | 'mobile'>('desktop');
   const [isChecking, setIsChecking] = useState(false);
-  const [result, setResult] = useState<{ position: number | null; found: boolean } | null>(null);
+  const [result, setResult] = useState<{ desktop: RankResult; mobile: RankResult } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const handleCheck = async () => {
@@ -34,7 +38,7 @@ export default function CheckRankModal({
     setResult(null);
 
     try {
-      const res = await onCheck(location.code, location.name, device);
+      const res = await onCheck(location.code, location.name);
       setResult(res);
     } catch (err: any) {
       setError(err?.message || 'Failed to check rank');
@@ -47,6 +51,22 @@ export default function CheckRankModal({
     setResult(null);
     setError(null);
     onClose();
+  };
+
+  const getPositionDisplay = (res: RankResult | undefined) => {
+    if (!res) return '—';
+    if (res.found && res.position !== null) {
+      return `#${res.position}`;
+    }
+    return '100+';
+  };
+
+  const getPositionColor = (res: RankResult | undefined) => {
+    if (!res || !res.found || res.position === null) return 'text-gray-500';
+    if (res.position <= 3) return 'text-green-600';
+    if (res.position <= 10) return 'text-blue-600';
+    if (res.position <= 20) return 'text-amber-600';
+    return 'text-gray-600';
   };
 
   if (!isOpen) return null;
@@ -89,57 +109,35 @@ export default function CheckRankModal({
               onChange={setLocation}
               placeholder="Search for a city..."
             />
-          </div>
-
-          {/* Device */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Device
-            </label>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setDevice('desktop')}
-                className={`flex-1 px-4 py-2.5 text-sm font-medium rounded-lg border transition-colors flex items-center justify-center gap-2 ${
-                  device === 'desktop'
-                    ? 'bg-slate-blue text-white border-slate-blue'
-                    : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                <Icon name="FaGlobe" className="w-4 h-4" />
-                Desktop
-              </button>
-              <button
-                onClick={() => setDevice('mobile')}
-                className={`flex-1 px-4 py-2.5 text-sm font-medium rounded-lg border transition-colors flex items-center justify-center gap-2 ${
-                  device === 'mobile'
-                    ? 'bg-slate-blue text-white border-slate-blue'
-                    : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                <Icon name="FaMobile" className="w-4 h-4" />
-                Mobile
-              </button>
-            </div>
+            <p className="text-xs text-gray-500 mt-1.5">
+              Checks both desktop and mobile rankings (uses 2 credits)
+            </p>
           </div>
 
           {/* Result */}
           {result && (
-            <div className={`p-4 rounded-lg ${result.found ? 'bg-green-50 border border-green-200' : 'bg-amber-50 border border-amber-200'}`}>
-              <div className="flex items-center gap-3">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${result.found ? 'bg-green-100' : 'bg-amber-100'}`}>
-                  {result.found ? (
-                    <span className="text-lg font-bold text-green-700">#{result.position}</span>
-                  ) : (
-                    <Icon name="FaSearch" className="w-5 h-5 text-amber-600" />
-                  )}
+            <div className="p-4 rounded-lg bg-gray-50 border border-gray-200">
+              <p className="text-sm font-medium text-gray-700 mb-3">{location?.name}</p>
+              <div className="grid grid-cols-2 gap-4">
+                {/* Desktop Result */}
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">🖥️</span>
+                  <div>
+                    <p className="text-xs text-gray-500">Desktop</p>
+                    <p className={`font-semibold ${getPositionColor(result.desktop)}`}>
+                      {getPositionDisplay(result.desktop)}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className={`font-medium ${result.found ? 'text-green-800' : 'text-amber-800'}`}>
-                    {result.found ? `Ranking #${result.position}` : 'Not in top 100'}
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    {location?.name} ({device})
-                  </p>
+                {/* Mobile Result */}
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">📱</span>
+                  <div>
+                    <p className="text-xs text-gray-500">Mobile</p>
+                    <p className={`font-semibold ${getPositionColor(result.mobile)}`}>
+                      {getPositionDisplay(result.mobile)}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -175,7 +173,7 @@ export default function CheckRankModal({
               ) : (
                 <>
                   <Icon name="FaSearch" className="w-4 h-4" />
-                  Check now (1 credit)
+                  Check now (2 credits)
                 </>
               )}
             </button>

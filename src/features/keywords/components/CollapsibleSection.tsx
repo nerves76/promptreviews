@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, ReactNode } from 'react';
+import { useState, useEffect, useRef, ReactNode } from 'react';
 import Icon from '@/components/Icon';
 
 interface CollapsibleSectionProps {
@@ -10,6 +10,8 @@ interface CollapsibleSectionProps {
   badge?: ReactNode;
   /** Whether the section is expanded by default */
   defaultExpanded?: boolean;
+  /** Controlled expanded state (overrides internal state when provided) */
+  forceExpanded?: boolean;
   /** Children to render inside the collapsible section */
   children: ReactNode;
   /** Optional className for the container */
@@ -30,12 +32,42 @@ export function CollapsibleSection({
   title,
   badge,
   defaultExpanded = false,
+  forceExpanded,
   children,
   className = '',
   icon,
   headerAction,
 }: CollapsibleSectionProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
+  const [contentHeight, setContentHeight] = useState<number | null>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  // When forceExpanded changes to true, expand the section
+  useEffect(() => {
+    if (forceExpanded) {
+      setIsExpanded(true);
+    }
+  }, [forceExpanded]);
+
+  // Measure content height when expanded or when children change
+  useEffect(() => {
+    if (isExpanded && contentRef.current) {
+      const resizeObserver = new ResizeObserver(() => {
+        if (contentRef.current) {
+          setContentHeight(contentRef.current.scrollHeight);
+        }
+      });
+
+      resizeObserver.observe(contentRef.current);
+      setContentHeight(contentRef.current.scrollHeight);
+
+      return () => {
+        resizeObserver.disconnect();
+      };
+    } else {
+      setContentHeight(0);
+    }
+  }, [isExpanded, children]);
 
   return (
     <div className={`border-t border-gray-100 first:border-t-0 ${className}`}>
@@ -65,12 +97,15 @@ export function CollapsibleSection({
         )}
       </button>
 
-      {/* Content */}
-      {isExpanded && (
-        <div className="pb-3 px-1">
-          {children}
+      {/* Content - animated wrapper */}
+      <div
+        className="overflow-hidden transition-[height] duration-200 ease-out"
+        style={{ height: contentHeight !== null ? `${contentHeight}px` : undefined }}
+      >
+        <div ref={contentRef} className="pb-3 px-1">
+          {isExpanded && children}
         </div>
-      )}
+      </div>
     </div>
   );
 }

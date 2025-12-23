@@ -8,13 +8,31 @@ import { type KeywordData } from '@/features/keywords/keywordUtils';
 // Types
 // ============================================
 
-type SortField = 'keyword' | 'concept' | 'rank' | 'change';
+type SortField = 'keyword' | 'concept' | 'volume' | 'rank' | 'change';
 type SortDirection = 'asc' | 'desc';
+
+/** Volume data for a search term */
+interface VolumeData {
+  searchVolume: number | null;
+  cpc: number | null;
+  competitionLevel: string | null;
+  locationName: string | null;
+}
+
+/** Rank data for a search term - stores both desktop and mobile */
+interface RankData {
+  desktop: { position: number | null; checkedAt: string } | null;
+  mobile: { position: number | null; checkedAt: string } | null;
+  locationName: string;
+}
 
 interface ConceptsTableProps {
   concepts: KeywordData[];
+  volumeData?: Map<string, VolumeData>;
+  rankData?: Map<string, RankData>;
   onConceptClick?: (concept: KeywordData) => void;
   onCheckRank?: (keyword: string, conceptId: string) => void;
+  onCheckVolume?: (keyword: string) => void;
   isLoading?: boolean;
 }
 
@@ -24,13 +42,25 @@ interface KeywordRow {
   isCanonical: boolean;
   concept: KeywordData;
   conceptName: string;
-  rank: number | null;
+  volume: number | null;
+  volumeLocation: string | null;
+  desktopRank: number | null;
+  mobileRank: number | null;
+  rankLocation: string | null;
   change: number | null;
 }
 
 // ============================================
 // Helper Functions
 // ============================================
+
+function formatVolume(volume: number | null): string {
+  if (volume === null) return '—';
+  if (volume < 10) return '<10';
+  if (volume >= 1000000) return `${(volume / 1000000).toFixed(1)}M`;
+  if (volume >= 1000) return `${(volume / 1000).toFixed(1)}K`;
+  return volume.toString();
+}
 
 function getPositionColor(position: number | null): string {
   if (position === null) return 'text-gray-400';
@@ -64,8 +94,11 @@ function getChangeDisplay(change: number | null): React.ReactNode {
 
 export default function ConceptsTable({
   concepts,
+  volumeData,
+  rankData,
   onConceptClick,
   onCheckRank,
+  onCheckVolume,
   isLoading = false,
 }: ConceptsTableProps) {
   const [sortField, setSortField] = useState<SortField>('keyword');
@@ -76,6 +109,15 @@ export default function ConceptsTable({
     if (!onCheckRank) return;
     onCheckRank(keyword, conceptId);
   };
+
+  const handleCheckVolume = (keyword: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Don't trigger row click
+    if (!onCheckVolume) return;
+    onCheckVolume(keyword);
+  };
+
+  // Helper to normalize term for volume lookup
+  const normalizeTermForLookup = (term: string) => term.toLowerCase().trim();
 
   // Flatten concepts into individual keyword rows
   const rows: KeywordRow[] = useMemo(() => {
@@ -90,30 +132,44 @@ export default function ConceptsTable({
       if (concept.searchTerms && concept.searchTerms.length > 0) {
         // Add a row for each search term
         concept.searchTerms.forEach((term) => {
+          const normalizedTerm = normalizeTermForLookup(term.term);
+          const termVolume = volumeData?.get(normalizedTerm);
+          const termRank = rankData?.get(normalizedTerm);
           allRows.push({
             keyword: term.term,
             isCanonical: term.isCanonical,
             concept,
             conceptName,
-            rank: null, // TODO: Get from rankings data
+            volume: termVolume?.searchVolume ?? null,
+            volumeLocation: termVolume?.locationName ?? null,
+            desktopRank: termRank?.desktop?.position ?? null,
+            mobileRank: termRank?.mobile?.position ?? null,
+            rankLocation: termRank?.locationName ?? null,
             change: null,
           });
         });
       } else {
         // Concept with no search terms - show as single row
+        const normalizedTerm = normalizeTermForLookup(conceptName);
+        const termVolume = volumeData?.get(normalizedTerm);
+        const termRank = rankData?.get(normalizedTerm);
         allRows.push({
           keyword: conceptName,
           isCanonical: true,
           concept,
           conceptName,
-          rank: null,
+          volume: termVolume?.searchVolume ?? null,
+          volumeLocation: termVolume?.locationName ?? null,
+          desktopRank: termRank?.desktop?.position ?? null,
+          mobileRank: termRank?.mobile?.position ?? null,
+          rankLocation: termRank?.locationName ?? null,
           change: null,
         });
       }
     });
 
     return allRows;
-  }, [concepts]);
+  }, [concepts, volumeData, rankData, normalizeTermForLookup]);
 
   // Sort rows
   const sortedRows = useMemo(() => {
@@ -127,12 +183,26 @@ export default function ConceptsTable({
         case 'concept':
           comparison = a.conceptName.localeCompare(b.conceptName);
           break;
+        case 'volume':
+          // Null volumes go to the end
+          if (a.volume === null && b.volume === null) comparison = 0;
+          else if (a.volume === null) comparison = 1;
+          else if (b.volume === null) comparison = -1;
+          else comparison = b.volume - a.volume; // Higher volume first by default
+          break;
         case 'rank':
+          // Use best (lowest) rank between desktop and mobile for sorting
+          const aBestRank = a.desktopRank !== null && a.mobileRank !== null
+            ? Math.min(a.desktopRank, a.mobileRank)
+            : a.desktopRank ?? a.mobileRank;
+          const bBestRank = b.desktopRank !== null && b.mobileRank !== null
+            ? Math.min(b.desktopRank, b.mobileRank)
+            : b.desktopRank ?? b.mobileRank;
           // Null ranks go to the end
-          if (a.rank === null && b.rank === null) comparison = 0;
-          else if (a.rank === null) comparison = 1;
-          else if (b.rank === null) comparison = -1;
-          else comparison = a.rank - b.rank;
+          if (aBestRank === null && bBestRank === null) comparison = 0;
+          else if (aBestRank === null) comparison = 1;
+          else if (bBestRank === null) comparison = -1;
+          else comparison = aBestRank - bBestRank;
           break;
         case 'change':
           // Null changes go to the end
@@ -207,7 +277,16 @@ export default function ConceptsTable({
                 <SortIcon field="concept" />
               </button>
             </th>
-            <th className="text-center py-3 px-4 w-24">
+            <th className="text-center py-3 px-4 w-28">
+              <button
+                onClick={() => handleSort('volume')}
+                className="flex items-center gap-1.5 text-sm font-semibold text-gray-700 hover:text-gray-900 mx-auto"
+              >
+                Volume
+                <SortIcon field="volume" />
+              </button>
+            </th>
+            <th className="text-center py-3 px-4 w-36">
               <button
                 onClick={() => handleSort('rank')}
                 className="flex items-center gap-1.5 text-sm font-semibold text-gray-700 hover:text-gray-900 mx-auto"
@@ -244,7 +323,7 @@ export default function ConceptsTable({
                       <Icon name="FaStar" className="w-3 h-3 text-amber-400 flex-shrink-0" />
                     </span>
                   )}
-                  <span className="font-medium text-gray-900">{row.keyword}</span>
+                  <span className="text-sm font-medium text-gray-900">{row.keyword}</span>
                 </div>
               </td>
               <td className="py-3 px-4">
@@ -253,27 +332,78 @@ export default function ConceptsTable({
                 </span>
               </td>
               <td className="py-3 px-4 text-center">
-                {row.rank !== null ? (
-                  <span className={`font-semibold ${getPositionColor(row.rank)}`}>
-                    #{row.rank}
-                  </span>
+                {row.volume !== null ? (
+                  <div className="flex flex-col items-center">
+                    <span className="font-medium text-blue-600">
+                      {formatVolume(row.volume)}
+                    </span>
+                    {row.volumeLocation && (
+                      <span className="text-[10px] text-gray-400 truncate max-w-[80px]" title={row.volumeLocation}>
+                        {row.volumeLocation}
+                      </span>
+                    )}
+                  </div>
                 ) : (
-                  <span className="text-gray-500 font-medium" title="Not found in top 100 results">100+</span>
+                  <button
+                    onClick={(e) => handleCheckVolume(row.keyword, e)}
+                    className="text-xs text-gray-400 hover:text-blue-600 transition-colors"
+                    title="Check search volume"
+                  >
+                    Check
+                  </button>
+                )}
+              </td>
+              <td className="py-3 px-4 text-center">
+                {row.desktopRank !== null || row.mobileRank !== null ? (
+                  <div className="flex flex-col items-center">
+                    <div className="flex items-center gap-2">
+                      {/* Desktop rank */}
+                      <span className="flex items-center gap-0.5" title="Desktop">
+                        <span className="text-xs">🖥️</span>
+                        <span className={`font-semibold ${getPositionColor(row.desktopRank)}`}>
+                          {row.desktopRank !== null ? `#${row.desktopRank}` : '—'}
+                        </span>
+                      </span>
+                      {/* Mobile rank */}
+                      <span className="flex items-center gap-0.5" title="Mobile">
+                        <span className="text-xs">📱</span>
+                        <span className={`font-semibold ${getPositionColor(row.mobileRank)}`}>
+                          {row.mobileRank !== null ? `#${row.mobileRank}` : '—'}
+                        </span>
+                      </span>
+                    </div>
+                    {row.rankLocation && (
+                      <span className="text-[10px] text-gray-400 truncate max-w-[100px]" title={row.rankLocation}>
+                        {row.rankLocation}
+                      </span>
+                    )}
+                  </div>
+                ) : (
+                  <span className="text-gray-400">—</span>
                 )}
               </td>
               <td className="py-3 px-4 text-center">
                 {getChangeDisplay(row.change)}
               </td>
-              <td className="py-3 px-4 text-center">
-                <button
-                  onClick={(e) => handleCheckRank(row.keyword, row.concept.id, e)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-slate-blue rounded-lg hover:bg-slate-blue/90 transition-colors"
-                  title="Uses 1 credit"
-                >
-                  <Icon name="FaSearch" className="w-3 h-3" />
-                  Check rank
-                  <span className="text-[10px] opacity-75">(1 credit)</span>
-                </button>
+              <td className="py-3 px-4">
+                <div className="flex items-center justify-center gap-2">
+                  <button
+                    onClick={(e) => handleCheckVolume(row.keyword, e)}
+                    className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 rounded hover:bg-blue-100 transition-colors"
+                    title="Check search volume"
+                  >
+                    <Icon name="FaChartLine" className="w-3 h-3" />
+                    Volume
+                  </button>
+                  <button
+                    onClick={(e) => handleCheckRank(row.keyword, row.concept.id, e)}
+                    className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-white bg-slate-blue rounded hover:bg-slate-blue/90 transition-colors"
+                    title="Check desktop & mobile ranks (2 credits)"
+                  >
+                    <Icon name="FaSearch" className="w-3 h-3" />
+                    Rank
+                  </button>
+                </div>
               </td>
             </tr>
           ))}
