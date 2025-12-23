@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import PageCard from '@/app/(app)/components/PageCard';
 import Icon from '@/components/Icon';
 import { apiClient } from '@/utils/apiClient';
+import { useAccountData } from '@/auth/hooks/granularAuthHooks';
 import {
   LLMProvider,
   LLM_PROVIDERS,
@@ -38,6 +39,8 @@ interface AccountSummary {
  */
 export default function LLMVisibilityPage() {
   const pathname = usePathname();
+  // Track selected account to refetch when it changes
+  const { selectedAccountId } = useAccountData();
   const [keywords, setKeywords] = useState<KeywordWithQuestions[]>([]);
   const [accountSummary, setAccountSummary] = useState<AccountSummary | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -128,9 +131,25 @@ export default function LLMVisibilityPage() {
     }
   }, []);
 
+  // Clear data and refetch when account changes
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    // Clear stale data immediately when account changes
+    setKeywords([]);
+    setAccountSummary(null);
+    setError(null);
+
+    if (selectedAccountId) {
+      fetchData();
+    }
+  }, [selectedAccountId]); // Only depend on selectedAccountId to avoid infinite loops
+
+  // Also fetch on mount
+  useEffect(() => {
+    if (selectedAccountId) {
+      fetchData();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Toggle provider selection
   const toggleProvider = (provider: LLMProvider) => {

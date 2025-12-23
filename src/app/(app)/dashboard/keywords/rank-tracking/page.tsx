@@ -13,6 +13,7 @@ import PageCard from '@/app/(app)/components/PageCard';
 import Icon from '@/components/Icon';
 import { CheckRankModal, CheckVolumeModal, ConceptsTable } from '@/features/rank-tracking/components';
 import { useKeywords } from '@/features/keywords/hooks/useKeywords';
+import { useAccountData } from '@/auth/hooks/granularAuthHooks';
 import { apiClient } from '@/utils/apiClient';
 
 /** Volume data for a search term */
@@ -56,13 +57,15 @@ interface RankData {
 
 export default function RankTrackingPage() {
   const pathname = usePathname();
+  // Track selected account to refetch when it changes
+  const { selectedAccountId } = useAccountData();
   const [searchQuery, setSearchQuery] = useState('');
   const [checkingKeyword, setCheckingKeyword] = useState<{ keyword: string; conceptId: string } | null>(null);
   const [checkingVolumeTerm, setCheckingVolumeTerm] = useState<string | null>(null);
   const [researchResults, setResearchResults] = useState<ResearchResult[]>([]);
   const [rankChecks, setRankChecks] = useState<RankCheck[]>([]);
 
-  // Fetch keyword concepts
+  // Fetch keyword concepts (useKeywords already handles account changes)
   const {
     keywords: concepts,
     isLoading: conceptsLoading,
@@ -88,11 +91,26 @@ export default function RankTrackingPage() {
     }
   }, []);
 
-  // Fetch data on mount
+  // Clear data and refetch when account changes
   useEffect(() => {
-    fetchResearchResults();
-    fetchRankChecks();
-  }, [fetchResearchResults, fetchRankChecks]);
+    // Clear stale data immediately when account changes
+    setResearchResults([]);
+    setRankChecks([]);
+
+    if (selectedAccountId) {
+      fetchResearchResults();
+      fetchRankChecks();
+    }
+  }, [selectedAccountId]); // Only depend on selectedAccountId to avoid infinite loops
+
+  // Also fetch on mount
+  useEffect(() => {
+    if (selectedAccountId) {
+      fetchResearchResults();
+      fetchRankChecks();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Build term volume data map
   const volumeData = useMemo(() => {

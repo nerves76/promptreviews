@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { apiClient } from '@/utils/apiClient';
+import { useAccountData } from '@/auth/hooks/granularAuthHooks';
 import {
   LLMProvider,
   LLM_PROVIDERS,
@@ -38,12 +39,23 @@ interface UseLLMVisibilityReturn {
 }
 
 export function useLLMVisibility({ keywordId }: UseLLMVisibilityOptions): UseLLMVisibilityReturn {
+  // Track selected account to clear data when it changes
+  const { selectedAccountId } = useAccountData();
+
   const [summary, setSummary] = useState<LLMVisibilitySummary | null>(null);
   const [results, setResults] = useState<LLMVisibilityCheck[]>([]);
   const [schedule, setSchedule] = useState<LLMVisibilitySchedule | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Clear data when account changes to prevent cross-account data leakage
+  useEffect(() => {
+    setSummary(null);
+    setResults([]);
+    setSchedule(null);
+    setError(null);
+  }, [selectedAccountId]);
 
   // Fetch summary for a keyword
   const fetchSummary = useCallback(async () => {

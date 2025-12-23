@@ -18,6 +18,7 @@ import PageCard from '@/app/(app)/components/PageCard';
 import { Button } from '@/app/(app)/components/ui/button';
 import { useKeywordDiscovery } from '@/features/rank-tracking/hooks';
 import { useKeywords } from '@/features/keywords/hooks/useKeywords';
+import { useAccountData } from '@/auth/hooks/granularAuthHooks';
 import { apiClient } from '@/utils/apiClient';
 import LocationPicker from '@/features/rank-tracking/components/LocationPicker';
 
@@ -44,6 +45,8 @@ interface SavedResearchResult {
  */
 export default function KeywordResearchPage() {
   const pathname = usePathname();
+  // Track selected account to refetch when it changes
+  const { selectedAccountId } = useAccountData();
   const [searchQuery, setSearchQuery] = useState('');
   const [location, setLocation] = useState<{ code: number; name: string } | null>(null);
   const [result, setResult] = useState<any>(null);
@@ -76,9 +79,27 @@ export default function KeywordResearchPage() {
     }
   }, []);
 
+  // Clear data and refetch when account changes
   useEffect(() => {
-    loadSavedSearches();
-  }, [loadSavedSearches]);
+    // Clear stale data immediately when account changes
+    setSavedSearches([]);
+    setSavedResults(new Set());
+    setResult(null);
+    setSuggestions([]);
+    setAddedKeywords(new Set());
+
+    if (selectedAccountId) {
+      loadSavedSearches();
+    }
+  }, [selectedAccountId]); // Only depend on selectedAccountId to avoid infinite loops
+
+  // Also fetch on mount
+  useEffect(() => {
+    if (selectedAccountId) {
+      loadSavedSearches();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Delete a saved search
   const handleDeleteSaved = async (id: string) => {
