@@ -1079,7 +1079,7 @@ export default function BusinessProfilePage() {
 
   return (
     <div className="min-h-screen flex justify-center items-start px-4 sm:px-0">
-      <div className="w-full max-w-4xl">
+      <div className="w-full">
         {/* Import from website section - hidden after first save */}
         {!hasBeenSaved && <ImportFromWebsite onImport={handleWebsiteImport} />}
 
