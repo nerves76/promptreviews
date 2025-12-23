@@ -517,9 +517,12 @@ export default function KeywordResearchPage() {
                           <span>{sug.searchVolume?.toLocaleString() || 0}/mo</span>
                           {sug.cpc && <span>CPC: ${sug.cpc.toFixed(2)}</span>}
                           {sug.competition && (
-                            <span className={`px-1.5 py-0.5 rounded text-xs ${getCompetitionColor(sug.competition)}`}>
-                              {sug.competition}
-                            </span>
+                            <>
+                              <span>Comp:</span>
+                              <span className={`px-1.5 py-0.5 rounded text-xs ${getCompetitionColor(sug.competition)}`}>
+                                {sug.competition}
+                              </span>
+                            </>
                           )}
                         </div>
                       </div>
@@ -603,9 +606,12 @@ export default function KeywordResearchPage() {
                         <span>{saved.searchVolume?.toLocaleString() || 0}/mo</span>
                         {saved.cpc && <span>CPC: ${saved.cpc.toFixed(2)}</span>}
                         {saved.competitionLevel && (
-                          <span className={`px-1.5 py-0.5 rounded text-xs ${getCompetitionColor(saved.competitionLevel)}`}>
-                            {saved.competitionLevel}
-                          </span>
+                          <>
+                            <span>Comp:</span>
+                            <span className={`px-1.5 py-0.5 rounded text-xs ${getCompetitionColor(saved.competitionLevel)}`}>
+                              {saved.competitionLevel}
+                            </span>
+                          </>
                         )}
                         <span className="text-gray-400">•</span>
                         <span className="text-gray-400">{saved.locationName}</span>

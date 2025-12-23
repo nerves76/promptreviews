@@ -283,6 +283,70 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // 2b. Also fetch standalone rank checks (not associated with a group)
+    // These are from quick/manual rank checks
+    const { data: standaloneRankChecks } = await serviceSupabase
+      .from('rank_checks')
+      .select('keyword_id, position, found_url, checked_at, search_query_used, location_code, location_name, device')
+      .eq('account_id', accountId)
+      .in('keyword_id', filteredKeywordIds)
+      .is('group_id', null)
+      .order('checked_at', { ascending: false });
+
+    if (standaloneRankChecks && standaloneRankChecks.length > 0) {
+      // Group by keyword_id to get unique checks per keyword/term/device/location combo
+      const keywordChecks: Record<string, typeof standaloneRankChecks> = {};
+      for (const check of standaloneRankChecks) {
+        if (!check.keyword_id) continue;
+        if (!keywordChecks[check.keyword_id]) {
+          keywordChecks[check.keyword_id] = [];
+        }
+        keywordChecks[check.keyword_id].push(check);
+      }
+
+      for (const [keywordId, checks] of Object.entries(keywordChecks)) {
+        if (!enrichment[keywordId]) continue;
+
+        // Get unique combinations of search_query + device + location
+        const seen = new Set<string>();
+        const uniqueChecks: typeof checks = [];
+        for (const check of checks) {
+          const key = `${check.search_query_used}:${check.device}:${check.location_code}`;
+          if (!seen.has(key)) {
+            seen.add(key);
+            uniqueChecks.push(check);
+          }
+        }
+
+        // Convert to RankingData format
+        const standaloneRankings: RankingData[] = uniqueChecks.map(check => ({
+          groupId: `standalone-${check.search_query_used}-${check.device}-${check.location_code}`,
+          groupName: 'Quick check',
+          device: check.device || 'desktop',
+          location: check.location_name || 'Unknown',
+          locationCode: check.location_code || 2840,
+          isEnabled: false,
+          latestCheck: {
+            position: check.position,
+            foundUrl: check.found_url,
+            checkedAt: check.checked_at,
+            searchQuery: check.search_query_used,
+            positionChange: null,
+          },
+        }));
+
+        // Merge with existing rankStatus if any
+        if (enrichment[keywordId].rankStatus) {
+          enrichment[keywordId].rankStatus.rankings.push(...standaloneRankings);
+        } else {
+          enrichment[keywordId].rankStatus = {
+            isTracked: false,
+            rankings: standaloneRankings,
+          };
+        }
+      }
+    }
+
     // 3. Populate LLM visibility results
     if (llmResults.data) {
       for (const row of llmResults.data) {

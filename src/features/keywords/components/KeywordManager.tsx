@@ -70,6 +70,8 @@ interface KeywordManagerProps {
   onCheckRank?: (keyword: string, conceptId: string) => void;
   /** Callback when user wants to check LLM visibility for a question */
   onCheckLLMVisibility?: (question: string, conceptId: string) => void;
+  /** Key that triggers enrichment data refresh when changed */
+  enrichmentRefreshKey?: number;
 }
 
 /**
@@ -93,6 +95,7 @@ export default function KeywordManager({
   businessState,
   onCheckRank,
   onCheckLLMVisibility,
+  enrichmentRefreshKey,
 }: KeywordManagerProps) {
   const {
     keywords,
@@ -183,13 +186,13 @@ export default function KeywordManager({
     }
   }, []);
 
-  // Fetch enrichment when keywords change
+  // Fetch enrichment when keywords change or refresh is triggered
   useEffect(() => {
     if (keywords.length > 0) {
       const keywordIds = keywords.map(k => k.id);
       fetchEnrichmentData(keywordIds);
     }
-  }, [keywords.length]); // Only refetch when keyword count changes
+  }, [keywords.length, enrichmentRefreshKey]); // Refetch when keyword count changes or refresh triggered
 
   // Manual refresh handler
   const handleRefreshEnrichment = useCallback(() => {

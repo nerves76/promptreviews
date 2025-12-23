@@ -17,6 +17,8 @@ interface CheckRankModalProps {
     desktop: RankResult;
     mobile: RankResult;
   }>;
+  /** Called when a check completes successfully, to trigger data refresh */
+  onCheckComplete?: () => void;
 }
 
 export default function CheckRankModal({
@@ -24,6 +26,7 @@ export default function CheckRankModal({
   isOpen,
   onClose,
   onCheck,
+  onCheckComplete,
 }: CheckRankModalProps) {
   const [location, setLocation] = useState<{ code: number; name: string } | null>(null);
   const [isChecking, setIsChecking] = useState(false);
@@ -40,6 +43,8 @@ export default function CheckRankModal({
     try {
       const res = await onCheck(location.code, location.name);
       setResult(res);
+      // Trigger refresh of enrichment data
+      onCheckComplete?.();
     } catch (err: any) {
       setError(err?.message || 'Failed to check rank');
     } finally {
@@ -58,7 +63,7 @@ export default function CheckRankModal({
     if (res.found && res.position !== null) {
       return `#${res.position}`;
     }
-    return '100+';
+    return 'Not in top 100';
   };
 
   const getPositionColor = (res: RankResult | undefined) => {

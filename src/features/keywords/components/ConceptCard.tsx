@@ -104,6 +104,7 @@ export function ConceptCard({
   const [saveError, setSaveError] = useState<string | null>(null);
 
   // Editable fields
+  const [editedPhrase, setEditedPhrase] = useState(keyword.phrase);
   const [editedReviewPhrase, setEditedReviewPhrase] = useState(keyword.reviewPhrase || '');
   const [editedAliases, setEditedAliases] = useState<string[]>(keyword.aliases || []);
   const [newAlias, setNewAlias] = useState('');
@@ -152,6 +153,7 @@ export function ConceptCard({
 
   // Reset edit state when keyword changes
   useEffect(() => {
+    setEditedPhrase(keyword.phrase);
     setEditedReviewPhrase(keyword.reviewPhrase || '');
     setEditedAliases(keyword.aliases || []);
     setEditedSearchTerms(keyword.searchTerms || []);
@@ -304,6 +306,7 @@ export function ConceptCard({
 
     // Store original values for rollback
     const originalData = {
+      phrase: keyword.phrase,
       reviewPhrase: keyword.reviewPhrase,
       aliases: keyword.aliases,
       searchTerms: keyword.searchTerms,
@@ -312,6 +315,7 @@ export function ConceptCard({
 
     // Optimistically update the UI
     const updates = {
+      phrase: editedPhrase,
       reviewPhrase: editedReviewPhrase,
       aliases: editedAliases,
       searchTerms: editedSearchTerms,
@@ -338,6 +342,7 @@ export function ConceptCard({
       setOptimisticData(null);
 
       // Reset edited values to original
+      setEditedPhrase(originalData.phrase);
       setEditedReviewPhrase(originalData.reviewPhrase || '');
       setEditedAliases(originalData.aliases || []);
       setEditedSearchTerms(originalData.searchTerms || []);
@@ -538,12 +543,23 @@ export function ConceptCard({
       >
         <div className="flex items-center justify-between gap-2">
           {/* Left: expand icon + title */}
-          <div className="flex items-center gap-2 min-w-0">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
             <Icon
               name={isExpanded || isEditing ? 'FaChevronDown' : 'FaChevronRight'}
               className="w-3 h-3 text-gray-400 flex-shrink-0 transition-transform"
             />
-            <h3 className="font-medium text-gray-900 truncate">{keyword.phrase}</h3>
+            {isEditing ? (
+              <input
+                type="text"
+                value={editedPhrase}
+                onChange={(e) => setEditedPhrase(e.target.value)}
+                onClick={(e) => e.stopPropagation()}
+                className="flex-1 px-2 py-1 text-sm font-medium border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Concept name"
+              />
+            ) : (
+              <h3 className="font-medium text-gray-900 truncate">{keyword.phrase}</h3>
+            )}
           </div>
 
           {/* Right: badges and actions */}
@@ -559,6 +575,20 @@ export function ConceptCard({
                 {termVolumeData.size > 0 && (
                   <span className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-blue-100 text-blue-700">
                     {allLowVolume ? '<10' : formatVolume(totalVolume)} vol
+                  </span>
+                )}
+                {(keyword.reviewUsageCount > 0 || keyword.aliasMatchCount > 0) && (
+                  <span className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-purple-100 text-purple-700">
+                    In reviews: {keyword.reviewUsageCount + keyword.aliasMatchCount}
+                  </span>
+                )}
+                {llmCitationStats && (
+                  <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${
+                    llmCitationStats.cited > 0
+                      ? 'bg-emerald-100 text-emerald-700'
+                      : 'bg-gray-100 text-gray-600'
+                  }`}>
+                    LLM citations: {llmCitationStats.cited}/{llmCitationStats.total}
                   </span>
                 )}
                 {keyword.isUsedInRankTracking && avgPosition !== null && (
@@ -812,7 +842,7 @@ export function ConceptCard({
                           {loadingStates[term.term] === 'checking-volume' ? (
                             <Icon name="FaSpinner" className="w-3 h-3 animate-spin inline" />
                           ) : hasVolume ? (
-                            'Re-check'
+                            'Re-check volume'
                           ) : (
                             'Check volume'
                           )}
@@ -824,7 +854,7 @@ export function ConceptCard({
                             disabled={Object.values(loadingStates).some(s => s !== null)}
                             className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-green-100 text-green-600 hover:bg-green-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                            {hasRankings ? 'Re-check' : 'Check ranking'}
+                            {hasRankings ? 'Re-check ranking' : 'Check ranking'}
                           </button>
                         )}
                       </div>

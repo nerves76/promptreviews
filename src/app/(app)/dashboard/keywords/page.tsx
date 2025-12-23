@@ -21,6 +21,12 @@ export default function KeywordsPage() {
   const pathname = usePathname();
   const [checkingKeyword, setCheckingKeyword] = useState<{ keyword: string; conceptId: string } | null>(null);
   const [checkingLLM, setCheckingLLM] = useState<{ question: string; conceptId: string } | null>(null);
+  const [enrichmentRefreshKey, setEnrichmentRefreshKey] = useState(0);
+
+  // Trigger refresh of enrichment data when a check completes
+  const handleCheckComplete = useCallback(() => {
+    setEnrichmentRefreshKey(prev => prev + 1);
+  }, []);
 
   // Handle clicking "Check ranking" on a search term
   const handleCheckRank = useCallback((keyword: string, conceptId: string) => {
@@ -153,7 +159,11 @@ export default function KeywordsPage() {
         icon={<Icon name="FaKey" className="w-8 h-8 text-slate-blue" size={32} />}
         topMargin="mt-8"
       >
-        <KeywordManager onCheckRank={handleCheckRank} onCheckLLMVisibility={handleCheckLLMVisibility} />
+        <KeywordManager
+          onCheckRank={handleCheckRank}
+          onCheckLLMVisibility={handleCheckLLMVisibility}
+          enrichmentRefreshKey={enrichmentRefreshKey}
+        />
       </PageCard>
 
       {/* Check Rank Modal */}
@@ -162,6 +172,7 @@ export default function KeywordsPage() {
         isOpen={!!checkingKeyword}
         onClose={() => setCheckingKeyword(null)}
         onCheck={performRankCheck}
+        onCheckComplete={handleCheckComplete}
       />
 
       {/* Check LLM Visibility Modal */}
@@ -170,6 +181,7 @@ export default function KeywordsPage() {
         keywordId={checkingLLM?.conceptId || ''}
         isOpen={!!checkingLLM}
         onClose={() => setCheckingLLM(null)}
+        onCheckComplete={handleCheckComplete}
       />
     </div>
   );

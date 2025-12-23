@@ -227,6 +227,7 @@ export interface KeywordData {
   wordCount: number;
   status: KeywordStatus;
   reviewUsageCount: number;
+  aliasMatchCount: number;
   lastUsedInReviewAt: string | null;
   groupId: string | null;
   groupName: string | null;
@@ -591,6 +592,7 @@ export function transformKeywordToResponse(
     word_count: number;
     status: string | null;
     review_usage_count: number | null;
+    alias_match_count?: number | null;
     last_used_in_review_at: Date | string | null;
     group_id: string | null;
     created_at: Date | string | null;
@@ -617,6 +619,7 @@ export function transformKeywordToResponse(
 ): KeywordData {
   const wordCount = keyword.word_count;
   const usageCount = keyword.review_usage_count ?? 0;
+  const aliasCount = keyword.alias_match_count ?? 0;
 
   return {
     id: keyword.id,
@@ -625,6 +628,7 @@ export function transformKeywordToResponse(
     wordCount,
     status: (keyword.status as KeywordStatus) || 'active',
     reviewUsageCount: usageCount,
+    aliasMatchCount: aliasCount,
     lastUsedInReviewAt: keyword.last_used_in_review_at
       ? new Date(keyword.last_used_in_review_at).toISOString()
       : null,

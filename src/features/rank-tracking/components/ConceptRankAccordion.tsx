@@ -229,7 +229,7 @@ export default function ConceptRankAccordion({
               Avg: #{avgPosition}
             </span>
           ) : hasAnyRankings(termRankings) ? (
-            <span className="text-xs text-gray-500">100+</span>
+            <span className="text-xs text-gray-500">Not in top 100</span>
           ) : hasSearchTerms ? (
             <span className="text-xs text-gray-400">Not tracked</span>
           ) : null}

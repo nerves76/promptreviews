@@ -17,6 +17,8 @@ interface CheckLLMModalProps {
   keywordId: string;
   isOpen: boolean;
   onClose: () => void;
+  /** Called when a check completes successfully, to trigger data refresh */
+  onCheckComplete?: () => void;
 }
 
 export default function CheckLLMModal({
@@ -24,6 +26,7 @@ export default function CheckLLMModal({
   keywordId,
   isOpen,
   onClose,
+  onCheckComplete,
 }: CheckLLMModalProps) {
   const [selectedProviders, setSelectedProviders] = useState<LLMProvider[]>(['chatgpt', 'claude']);
   const [isChecking, setIsChecking] = useState(false);
@@ -64,6 +67,8 @@ export default function CheckLLMModal({
 
       if (response.success && response.results && response.results.length > 0) {
         setResults(response.results);
+        // Trigger refresh of enrichment data
+        onCheckComplete?.();
       } else if (response.errors && response.errors.length > 0) {
         setError(response.errors.join(', '));
       } else {
@@ -171,10 +176,10 @@ export default function CheckLLMModal({
                       {result.domainCited ? (
                         <span className="text-green-600 font-medium text-sm flex items-center gap-1">
                           <Icon name="FaCheckCircle" className="w-4 h-4" />
-                          Cited{result.citationPosition ? ` (#${result.citationPosition})` : ''}
+                          Mentioned{result.citationPosition ? ` (#${result.citationPosition})` : ''}
                         </span>
                       ) : (
-                        <span className="text-gray-500 text-sm">Not cited</span>
+                        <span className="text-gray-500 text-sm">Not mentioned</span>
                       )}
                     </div>
                     {result.citationUrl && (
@@ -200,8 +205,8 @@ export default function CheckLLMModal({
                       />
                       <span className={`text-sm font-medium ${citedCount > 0 ? 'text-green-800' : 'text-amber-800'}`}>
                         {citedCount > 0
-                          ? `Cited in ${citedCount} of ${results.length} AI${results.length > 1 ? 's' : ''}`
-                          : 'Not cited in any checked AI'}
+                          ? `Your business was mentioned in ${citedCount} of ${results.length} AI${results.length > 1 ? 's' : ''}`
+                          : 'Your business was not mentioned in any AI response'}
                       </span>
                     </div>
                   </div>
