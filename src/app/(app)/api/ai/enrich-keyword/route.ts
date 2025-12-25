@@ -8,14 +8,51 @@
  * - location_scope: Detected geographic scope
  * - related_questions: 3-5 questions people might ask about this topic (for PAA/LLM tracking)
  *
- * Cost: 1 credit per enrichment
+ * FREE with daily limit of 30 enrichments per account
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 import { createServerSupabaseClient } from "@/auth/providers/supabase";
 import { getRequestAccountId } from "@/app/(app)/api/utils/getRequestAccountId";
-import { withCredits, checkCredits, getFeatureCost } from "@/lib/credits";
+import { createClient } from "@supabase/supabase-js";
+
+// Daily limit for free AI enrichments
+const DAILY_ENRICHMENT_LIMIT = 30;
+
+// Service client for tracking usage
+const serviceSupabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
+/**
+ * Get today's enrichment count for an account
+ */
+async function getDailyEnrichmentCount(accountId: string): Promise<number> {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const { count } = await serviceSupabase
+    .from("ai_enrichment_usage")
+    .select("*", { count: "exact", head: true })
+    .eq("account_id", accountId)
+    .gte("created_at", today.toISOString());
+
+  return count || 0;
+}
+
+/**
+ * Record an enrichment usage
+ */
+async function recordEnrichmentUsage(accountId: string, userId: string, phrase: string): Promise<void> {
+  await serviceSupabase.from("ai_enrichment_usage").insert({
+    account_id: accountId,
+    user_id: userId,
+    phrase,
+    created_at: new Date().toISOString(),
+  });
+}
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -35,7 +72,7 @@ interface EnrichmentResult {
   related_questions: RelatedQuestion[];
 }
 
-// GET: Check credit cost and availability
+// GET: Check daily usage and availability
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient();
@@ -52,25 +89,28 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "No valid account found" }, { status: 403 });
     }
 
-    // Get cost from pricing rules (defaults to 1)
-    const cost = await getFeatureCost(supabase, "keyword_enrichment", "default", 1);
-    const creditCheck = await checkCredits(supabase, accountId, cost);
+    // Get today's usage count
+    const usedToday = await getDailyEnrichmentCount(accountId);
+    const remaining = Math.max(0, DAILY_ENRICHMENT_LIMIT - usedToday);
 
     return NextResponse.json({
-      cost,
-      available: creditCheck.available,
-      hasCredits: creditCheck.hasCredits,
+      cost: 0, // Free!
+      dailyLimit: DAILY_ENRICHMENT_LIMIT,
+      usedToday,
+      remaining,
+      available: remaining > 0,
+      hasCredits: true, // Always true since it's free
     });
   } catch (error) {
     console.error("[ENRICH-KEYWORD] GET Error:", error);
     return NextResponse.json(
-      { error: "Failed to check credits" },
+      { error: "Failed to check usage" },
       { status: 500 }
     );
   }
 }
 
-// POST: Perform enrichment (costs 1 credit)
+// POST: Perform enrichment (FREE with daily limit)
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient();
@@ -85,6 +125,20 @@ export async function POST(request: NextRequest) {
     const accountId = await getRequestAccountId(request, user.id, supabase);
     if (!accountId) {
       return NextResponse.json({ error: "No valid account found" }, { status: 403 });
+    }
+
+    // Check daily limit
+    const usedToday = await getDailyEnrichmentCount(accountId);
+    if (usedToday >= DAILY_ENRICHMENT_LIMIT) {
+      return NextResponse.json(
+        {
+          error: `Daily limit reached (${DAILY_ENRICHMENT_LIMIT}/day). Try again tomorrow!`,
+          dailyLimit: DAILY_ENRICHMENT_LIMIT,
+          usedToday,
+          remaining: 0,
+        },
+        { status: 429 }
+      );
     }
 
     const body = await request.json();
@@ -105,30 +159,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get cost from pricing rules (defaults to 1)
-    const creditCost = await getFeatureCost(supabase, "keyword_enrichment", "default", 1);
+    // Build context about the business
+    const businessContext = [
+      businessName ? `Business: ${businessName}` : null,
+      businessCity ? `City: ${businessCity}` : null,
+      businessState ? `State: ${businessState}` : null,
+    ]
+      .filter(Boolean)
+      .join(", ");
 
-    // Use withCredits helper for credit-gated operation
-    const result = await withCredits({
-      supabase,
-      accountId,
-      userId: user.id,
-      featureType: "keyword_enrichment",
-      creditCost,
-      idempotencyKey: `keyword-enrich-${accountId}-${trimmedPhrase}-${Date.now()}`,
-      description: `AI keyword enrichment: "${trimmedPhrase}"`,
-      featureMetadata: { phrase: trimmedPhrase },
-      operation: async () => {
-        // Build context about the business
-        const businessContext = [
-          businessName ? `Business: ${businessName}` : null,
-          businessCity ? `City: ${businessCity}` : null,
-          businessState ? `State: ${businessState}` : null,
-        ]
-          .filter(Boolean)
-          .join(", ");
-
-        const systemPrompt = `You are a keyword optimization expert for local SEO and review generation.
+    const systemPrompt = `You are a keyword optimization expert for local SEO and review generation.
 
 Given a keyword phrase, generate optimized versions for different use cases:
 
@@ -173,7 +213,7 @@ Given a keyword phrase, generate optimized versions for different use cases:
 
 Respond with ONLY valid JSON, no markdown or explanation.`;
 
-        const userPrompt = `Keyword phrase: "${trimmedPhrase}"
+    const userPrompt = `Keyword phrase: "${trimmedPhrase}"
 ${businessContext ? `\nBusiness context: ${businessContext}` : ""}
 
 Generate the enriched keyword data as JSON with this exact structure:
@@ -188,106 +228,104 @@ Generate the enriched keyword data as JSON with this exact structure:
   ]
 }`;
 
-        const completion = await openai.chat.completions.create({
-          model: "gpt-4o-mini",
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: userPrompt },
-          ],
-          temperature: 0.3,
-          max_tokens: 500,
-          response_format: { type: "json_object" },
-        });
-
-        const responseText = completion.choices[0]?.message?.content;
-        if (!responseText) {
-          throw new Error("No response from OpenAI");
-        }
-
-        let enrichment: EnrichmentResult;
-        try {
-          enrichment = JSON.parse(responseText);
-        } catch (parseError) {
-          console.error("[ENRICH-KEYWORD] Failed to parse OpenAI response:", responseText);
-          throw new Error("Failed to parse AI response");
-        }
-
-        // Validate the response structure
-        if (!enrichment.review_phrase) {
-          console.error("[ENRICH-KEYWORD] Invalid response structure:", enrichment);
-          throw new Error("Invalid AI response structure");
-        }
-
-        // Ensure search_terms is an array with at least one term
-        if (!Array.isArray(enrichment.search_terms) || enrichment.search_terms.length === 0) {
-          // Fallback: if AI returned old format with search_query, convert it
-          if ((enrichment as any).search_query) {
-            enrichment.search_terms = [(enrichment as any).search_query];
-          } else {
-            enrichment.search_terms = [];
-          }
-        }
-
-        // Ensure aliases is an array
-        if (!Array.isArray(enrichment.aliases)) {
-          enrichment.aliases = [];
-        }
-
-        // Ensure related_questions is an array with max 5 items, properly formatted
-        const now = new Date().toISOString();
-        if (!Array.isArray(enrichment.related_questions)) {
-          enrichment.related_questions = [];
-        } else {
-          enrichment.related_questions = enrichment.related_questions
-            .slice(0, 5)
-            .map((q: { question?: string; funnelStage?: string } | string) => {
-              // Handle if AI returns string instead of object (backward compat)
-              if (typeof q === 'string') {
-                return {
-                  question: q,
-                  funnelStage: 'middle' as const,
-                  addedAt: now,
-                };
-              }
-              // Validate funnelStage
-              const validStages = ['top', 'middle', 'bottom'];
-              const stage = validStages.includes(q.funnelStage || '') ? q.funnelStage : 'middle';
-              return {
-                question: q.question || '',
-                funnelStage: stage as 'top' | 'middle' | 'bottom',
-                addedAt: now,
-              };
-            })
-            .filter(q => q.question.length > 0);
-        }
-
-        // Validate location_scope
-        const validScopes = ["local", "city", "region", "state", "national", null];
-        if (!validScopes.includes(enrichment.location_scope)) {
-          enrichment.location_scope = null;
-        }
-
-        return enrichment;
-      },
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+      temperature: 0.3,
+      max_tokens: 500,
+      response_format: { type: "json_object" },
     });
 
-    // Handle credit errors
-    if (!result.success) {
-      return NextResponse.json(
-        { error: result.error },
-        { status: result.errorCode || 500 }
-      );
+    const responseText = completion.choices[0]?.message?.content;
+    if (!responseText) {
+      throw new Error("No response from OpenAI");
     }
+
+    let enrichment: EnrichmentResult;
+    try {
+      enrichment = JSON.parse(responseText);
+    } catch (parseError) {
+      console.error("[ENRICH-KEYWORD] Failed to parse OpenAI response:", responseText);
+      throw new Error("Failed to parse AI response");
+    }
+
+    // Validate the response structure
+    if (!enrichment.review_phrase) {
+      console.error("[ENRICH-KEYWORD] Invalid response structure:", enrichment);
+      throw new Error("Invalid AI response structure");
+    }
+
+    // Ensure search_terms is an array with at least one term
+    if (!Array.isArray(enrichment.search_terms) || enrichment.search_terms.length === 0) {
+      // Fallback: if AI returned old format with search_query, convert it
+      if ((enrichment as any).search_query) {
+        enrichment.search_terms = [(enrichment as any).search_query];
+      } else {
+        enrichment.search_terms = [];
+      }
+    }
+
+    // Ensure aliases is an array
+    if (!Array.isArray(enrichment.aliases)) {
+      enrichment.aliases = [];
+    }
+
+    // Ensure related_questions is an array with max 5 items, properly formatted
+    const now = new Date().toISOString();
+    if (!Array.isArray(enrichment.related_questions)) {
+      enrichment.related_questions = [];
+    } else {
+      enrichment.related_questions = enrichment.related_questions
+        .slice(0, 5)
+        .map((q: { question?: string; funnelStage?: string } | string) => {
+          // Handle if AI returns string instead of object (backward compat)
+          if (typeof q === 'string') {
+            return {
+              question: q,
+              funnelStage: 'middle' as const,
+              addedAt: now,
+            };
+          }
+          // Validate funnelStage
+          const validStages = ['top', 'middle', 'bottom'];
+          const stage = validStages.includes(q.funnelStage || '') ? q.funnelStage : 'middle';
+          return {
+            question: q.question || '',
+            funnelStage: stage as 'top' | 'middle' | 'bottom',
+            addedAt: now,
+          };
+        })
+        .filter(q => q.question.length > 0);
+    }
+
+    // Validate location_scope
+    const validScopes = ["local", "city", "region", "state", "national", null];
+    if (!validScopes.includes(enrichment.location_scope)) {
+      enrichment.location_scope = null;
+    }
+
+    // Record usage (after successful enrichment)
+    await recordEnrichmentUsage(accountId, user.id, trimmedPhrase);
+
+    const remaining = DAILY_ENRICHMENT_LIMIT - usedToday - 1;
 
     return NextResponse.json({
       success: true,
       original_phrase: trimmedPhrase,
       enrichment: {
-        ...result.data,
+        ...enrichment,
         ai_generated: true,
       },
-      creditsUsed: result.creditsDebited,
-      creditsRemaining: result.creditsRemaining,
+      // Keep creditsUsed/creditsRemaining for backward compatibility but set to 0
+      creditsUsed: 0,
+      creditsRemaining: null,
+      // New daily limit info
+      dailyLimit: DAILY_ENRICHMENT_LIMIT,
+      usedToday: usedToday + 1,
+      remaining,
     });
   } catch (error) {
     console.error("[ENRICH-KEYWORD] Error:", error);

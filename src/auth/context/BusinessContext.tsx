@@ -42,11 +42,24 @@ interface Business {
   account_id: string;
   name: string;
   address?: string;
+  address_city?: string;
+  address_state?: string;
+  address_zip?: string;
   city?: string;
   state?: string;
   zip?: string;
   phone?: string;
   website?: string;
+  // Industry & services
+  industry?: string[];
+  industries_other?: string;
+  industry_other?: string;
+  services_offered?: string[] | string;
+  industries_served?: string;
+  // Business details
+  about_us?: string;
+  differentiators?: string;
+  years_in_business?: number | string;
   created_at: string;
   updated_at: string;
 }

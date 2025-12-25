@@ -224,10 +224,10 @@ export default function KeywordConceptInput({
       }
     } catch (err: unknown) {
       console.error("AI generation error:", err);
-      // Check for insufficient credits (402 error)
+      // Check for daily limit exceeded (429 error)
       const apiError = err as { status?: number; message?: string };
-      if (apiError.status === 402) {
-        setError("Insufficient credits. Please purchase more credits to use AI generation.");
+      if (apiError.status === 429) {
+        setError("Daily limit reached (30/day). Try again tomorrow!");
       } else {
         setError(err instanceof Error ? err.message : "Failed to generate with AI");
       }
@@ -403,7 +403,6 @@ export default function KeywordConceptInput({
             <>
               <Icon name="prompty" className="w-4 h-4" />
               Complete concept with AI
-              <span className="text-xs text-indigo-400">(1 credit)</span>
             </>
           )}
         </button>

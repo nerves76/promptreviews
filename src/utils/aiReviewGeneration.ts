@@ -13,18 +13,21 @@ interface BusinessProfile {
   services_offered?: string;
   company_values?: string;
   differentiators?: string;
-  years_in_business?: number;
+  years_in_business?: number | string;
   industries_served?: string;
   tagline?: string;
   team_founder_info?: string;
   keywords?: string | string[]; // Can be string (legacy) or array (new format)
-  industry?: string[];
-  industry_other?: string;
+  industry?: (string | null)[];
+  industry_other?: string | null;
+  industries_other?: string | null;
   ai_dos?: string;
   ai_donts?: string;
-  address_city?: string;
-  address_state?: string;
-  address_zip?: string;
+  address_city?: string | null;
+  address_state?: string | null;
+  address_zip?: string | null;
+  // Allow additional properties from business profile
+  [key: string]: unknown;
 }
 
 interface PromptPageData {

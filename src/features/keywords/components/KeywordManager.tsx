@@ -663,8 +663,10 @@ export default function KeywordManager({
         addedAt: now,
       }));
 
+      // Use first search term as concept name (it's the canonical/primary one)
+      const conceptName = kw.searchTerms[0] || kw.reviewPhrase;
       await createEnrichedKeyword({
-        phrase: kw.reviewPhrase,
+        phrase: conceptName,
         review_phrase: kw.reviewPhrase,
         search_terms: searchTermsFormatted,
         aliases: [],
@@ -1135,7 +1137,6 @@ export default function KeywordManager({
               <Icon name="prompty" className="w-4 h-4" />
             )}
             <span>{isGenerating ? 'Generating...' : 'Generate 10 concepts'}</span>
-            {!isGenerating && <span className="text-slate-blue/60">(5 credits)</span>}
           </button>
         </div>
         <KeywordConceptInput

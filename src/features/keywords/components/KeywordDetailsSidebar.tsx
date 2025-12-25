@@ -1026,7 +1026,7 @@ export function KeywordDetailsSidebar({
                               ) : (
                                 <>
                                   <Icon name="prompty" className="w-4 h-4" />
-                                  Auto-fill with AI (1 credit)
+                                  Auto-fill with AI
                                 </>
                               )}
                             </button>

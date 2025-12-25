@@ -642,7 +642,6 @@ export function ConceptCard({
               <>
                 <Icon name="prompty" className="w-3 h-3" />
                 Auto-fill with AI
-                <span className="text-purple-400">(1 credit)</span>
               </>
             )}
           </button>

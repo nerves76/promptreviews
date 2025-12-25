@@ -1,13 +1,54 @@
+/**
+ * AI Keyword Generation Endpoint
+ *
+ * Generates 10 SEO-optimized keyword concepts based on business information.
+ * FREE with daily limit of 20 generations per account.
+ */
+
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
-import { createServerSupabaseClient, createServiceRoleClient } from "@/auth/providers/supabase";
+import { createServerSupabaseClient } from "@/auth/providers/supabase";
 import { getRequestAccountId } from "@/app/(app)/api/utils/getRequestAccountId";
-import { withCredits, checkCredits, getFeatureCost } from "@/lib/credits";
+import { createClient } from "@supabase/supabase-js";
 
 export const dynamic = "force-dynamic";
 
-// Credit cost for generating 10 keywords
-const DEFAULT_CREDIT_COST = 5;
+// Daily limit for free keyword generation
+const DAILY_GENERATION_LIMIT = 20;
+
+// Service client for tracking usage
+const serviceSupabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
+/**
+ * Get today's generation count for an account
+ */
+async function getDailyGenerationCount(accountId: string): Promise<number> {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const { count } = await serviceSupabase
+    .from("ai_keyword_generation_usage")
+    .select("*", { count: "exact", head: true })
+    .eq("account_id", accountId)
+    .gte("created_at", today.toISOString());
+
+  return count || 0;
+}
+
+/**
+ * Record a generation usage
+ */
+async function recordGenerationUsage(accountId: string, userId: string, businessName: string): Promise<void> {
+  await serviceSupabase.from("ai_keyword_generation_usage").insert({
+    account_id: accountId,
+    user_id: userId,
+    business_name: businessName,
+    created_at: new Date().toISOString(),
+  });
+}
 
 export async function POST(request: NextRequest) {
   if (!process.env.OPENAI_API_KEY) {
@@ -20,7 +61,6 @@ export async function POST(request: NextRequest) {
   try {
     // Create Supabase client for auth verification
     const supabase = await createServerSupabaseClient();
-    const serviceSupabase = createServiceRoleClient();
 
     // Get the authenticated user from the session (required)
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -64,8 +104,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get credit cost from pricing rules (defaults to 5)
-    const creditCost = await getFeatureCost(supabase, "keyword_finder", "generate_10", DEFAULT_CREDIT_COST);
+    // Check daily limit
+    const usedToday = await getDailyGenerationCount(accountId);
+    if (usedToday >= DAILY_GENERATION_LIMIT) {
+      return NextResponse.json(
+        {
+          error: `Daily limit reached (${DAILY_GENERATION_LIMIT}/day). Try again tomorrow!`,
+          dailyLimit: DAILY_GENERATION_LIMIT,
+          usedToday,
+          remaining: 0,
+        },
+        { status: 429 }
+      );
+    }
 
     // Build the prompt for OpenAI
     const prompt = `Generate 10 SEO-optimized keyword ideas for a ${businessType} business.
@@ -119,108 +170,101 @@ Format your output as a JSON array of objects with these fields:
 
 Return ONLY valid JSON, no additional text or markdown formatting.`;
 
-    // Use withCredits helper for credit-gated operation
-    const result = await withCredits({
-      supabase,
-      accountId,
-      userId: user.id,
-      featureType: "keyword_finder",
-      creditCost,
-      idempotencyKey: `keyword-generate-${accountId}-${Date.now()}`,
-      description: `AI Generate 10 keyword concepts for ${businessName}`,
-      featureMetadata: { businessName, businessType, city, state },
-      operation: async () => {
-        const openai = new OpenAI({
-          apiKey: process.env.OPENAI_API_KEY,
-        });
-
-        const completion = await openai.chat.completions.create({
-          messages: [
-            {
-              role: "system",
-              content:
-                "You are an SEO expert that generates authentic keyword ideas for businesses. You understand how real customers search for services and products, including both location-based and general service-focused searches. Always return valid JSON output.",
-            },
-            {
-              role: "user",
-              content: prompt,
-            },
-          ],
-          model: "gpt-4o-mini",
-          temperature: 0.8,
-          response_format: { type: "json_object" }
-        });
-
-        const responseText = completion.choices[0].message.content;
-        let keywords;
-
-        try {
-          const parsed = JSON.parse(responseText || "{}");
-          keywords = parsed.keywords || parsed;
-
-          // Ensure we have an array
-          if (!Array.isArray(keywords)) {
-            keywords = Object.values(keywords);
-          }
-
-          // Normalize response: ensure each keyword has searchTerms array
-          keywords = keywords.map((kw: any) => {
-            // If AI returned old format (searchTerm string), convert to searchTerms array
-            if (kw.searchTerm && !kw.searchTerms) {
-              return {
-                searchTerms: [kw.searchTerm],
-                reviewPhrase: kw.reviewPhrase,
-              };
-            }
-            // Ensure searchTerms is an array
-            if (!Array.isArray(kw.searchTerms)) {
-              kw.searchTerms = kw.searchTerms ? [kw.searchTerms] : [];
-            }
-            return kw;
-          });
-        } catch (parseError) {
-          console.error("Error parsing OpenAI response:", parseError);
-          throw new Error("Failed to parse keyword suggestions");
-        }
-
-        // Log token usage and cost to ai_usage table
-        const usage = completion.usage;
-        if (usage) {
-          // Pricing for GPT-4o-mini (as of 2025)
-          const inputPrice = 0.00015; // $ per 1K tokens
-          const outputPrice = 0.0006; // $ per 1K tokens
-          const cost =
-            (usage.prompt_tokens / 1000) * inputPrice +
-            (usage.completion_tokens / 1000) * outputPrice;
-
-          await serviceSupabase.from("ai_usage").insert({
-            user_id: user.id,
-            account_id: accountId,
-            feature_type: "keyword_generation",
-            prompt_tokens: usage.prompt_tokens,
-            completion_tokens: usage.completion_tokens,
-            total_tokens: usage.total_tokens,
-            cost_usd: cost,
-            created_at: new Date().toISOString(),
-          });
-        }
-
-        return keywords;
-      },
+    // Call OpenAI directly (no credit wrapper needed)
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
     });
 
-    // Handle credit errors
-    if (!result.success) {
-      return NextResponse.json(
-        { error: result.error },
-        { status: result.errorCode || 500 }
-      );
+    const completion = await openai.chat.completions.create({
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are an SEO expert that generates authentic keyword ideas for businesses. You understand how real customers search for services and products, including both location-based and general service-focused searches. Always return valid JSON output.",
+        },
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+      model: "gpt-4o-mini",
+      temperature: 0.8,
+      response_format: { type: "json_object" }
+    });
+
+    const responseText = completion.choices[0].message.content;
+    let keywords;
+
+    try {
+      const parsed = JSON.parse(responseText || "{}");
+      keywords = parsed.keywords || parsed;
+
+      // Ensure we have an array
+      if (!Array.isArray(keywords)) {
+        keywords = Object.values(keywords);
+      }
+
+      // Normalize response: ensure each keyword has searchTerms array
+      keywords = keywords.map((kw: any) => {
+        // If AI returned old format (searchTerm string), convert to searchTerms array
+        if (kw.searchTerm && !kw.searchTerms) {
+          return {
+            searchTerms: [kw.searchTerm],
+            reviewPhrase: kw.reviewPhrase,
+          };
+        }
+        // Ensure searchTerms is an array
+        if (!Array.isArray(kw.searchTerms)) {
+          kw.searchTerms = kw.searchTerms ? [kw.searchTerms] : [];
+        }
+        return kw;
+      });
+    } catch (parseError) {
+      console.error("Error parsing OpenAI response:", parseError);
+      throw new Error("Failed to parse keyword suggestions");
     }
 
+    // Log token usage and cost to ai_usage table
+    const usage = completion.usage;
+    if (usage) {
+      // Pricing for GPT-4o-mini (as of 2025)
+      const inputPrice = 0.00015; // $ per 1K tokens
+      const outputPrice = 0.0006; // $ per 1K tokens
+      const cost =
+        (usage.prompt_tokens / 1000) * inputPrice +
+        (usage.completion_tokens / 1000) * outputPrice;
+
+      await serviceSupabase.from("ai_usage").insert({
+        user_id: user.id,
+        account_id: accountId,
+        feature_type: "keyword_generation",
+        prompt_tokens: usage.prompt_tokens,
+        completion_tokens: usage.completion_tokens,
+        total_tokens: usage.total_tokens,
+        cost_usd: cost,
+        created_at: new Date().toISOString(),
+      });
+    }
+
+    // Record usage for daily limit tracking (after successful generation)
+    await recordGenerationUsage(accountId, user.id, businessName);
+
+    const remaining = DAILY_GENERATION_LIMIT - usedToday - 1;
+
     return NextResponse.json({
-      keywords: result.data,
-      creditsUsed: result.creditsDebited,
-      creditsRemaining: result.creditsRemaining,
+      keywords,
+      // Keep creditsUsed/creditsRemaining for backward compatibility but set to 0/null
+      creditsUsed: 0,
+      creditsRemaining: null,
+      // New daily limit info
+      dailyLimit: DAILY_GENERATION_LIMIT,
+      usedToday: usedToday + 1,
+      remaining,
+      usage: {
+        current: usedToday + 1,
+        limit: DAILY_GENERATION_LIMIT,
+        remaining,
+      },
     });
   } catch (error) {
     console.error("Error generating keywords:", error);

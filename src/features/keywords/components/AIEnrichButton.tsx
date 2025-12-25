@@ -27,7 +27,7 @@ interface AIEnrichButtonProps {
  * Used in both ConceptCard and KeywordDetailsSidebar.
  *
  * Behavior:
- * - Shows "Auto-fill with AI (1 credit)" button when fields can be filled
+ * - Shows "Auto-fill with AI" button when fields can be filled
  * - If existing data detected, shows warning with "Fill empty only" or "Replace all" options
  * - Shows loading spinner during enrichment
  * - Shows error or success messages
@@ -86,7 +86,6 @@ export function AIEnrichButton({
             <>
               <Icon name="FaRocket" className="w-3 h-3" />
               Auto-fill with AI
-              <span className="text-purple-400">(1 credit)</span>
             </>
           )}
         </button>
