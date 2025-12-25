@@ -22,6 +22,7 @@ import {
 } from '@/features/llm-visibility/utils/types';
 import type { EnrichmentData } from './KeywordManager';
 import { useAuth } from '@/auth';
+import { FunnelStageGroup } from './FunnelStageGroup';
 
 // Types for rank status (from enrichment data)
 interface RankingData {
@@ -961,84 +962,21 @@ export function ConceptCard({
               </div>
             </div>
           ) : displayKeyword.relatedQuestions && displayKeyword.relatedQuestions.length > 0 ? (
-            /* View mode */
+            /* View mode - using shared FunnelStageGroup */
             <div className="space-y-2">
-              {/* Group by funnel stage */}
               {(['top', 'middle', 'bottom'] as const).map((stage) => {
-                const stageQuestions = displayKeyword.relatedQuestions!.filter(q => q.funnelStage === stage);
-                if (stageQuestions.length === 0) return null;
-
-                const funnelColor = getFunnelStageColor(stage);
-                const stageLabel = stage === 'top' ? 'Top of funnel' : stage === 'middle' ? 'Middle of funnel' : 'Bottom of funnel';
-
+                const stageQuestions = displayKeyword.relatedQuestions!
+                  .map((q, idx) => ({ ...q, originalIndex: idx }))
+                  .filter(q => q.funnelStage === stage);
                 return (
-                  <div key={stage} className="space-y-1.5">
-                    <div className="flex items-center gap-2">
-                      <span className={`px-1.5 py-0.5 text-xs rounded ${funnelColor.bg} ${funnelColor.text}`}>
-                        {stageLabel}
-                      </span>
-                    </div>
-                    <div className="space-y-1 pl-2 border-l-2 border-gray-100">
-                      {stageQuestions.map((q, idx) => {
-                        const providerResults = questionLLMMap.get(q.question);
-                        const hasResults = providerResults && providerResults.size > 0;
-                        const citedCount = hasResults
-                          ? Array.from(providerResults.values()).filter(r => r.domainCited).length
-                          : 0;
-                        const totalProviders = hasResults ? providerResults!.size : 0;
-
-                        // Get most recent check date
-                        const lastCheckedAt = hasResults
-                          ? Array.from(providerResults!.values()).reduce((latest, r) => {
-                              if (!latest) return r.checkedAt;
-                              return new Date(r.checkedAt) > new Date(latest) ? r.checkedAt : latest;
-                            }, '' as string)
-                          : null;
-
-                        return (
-                          <div key={idx} className="flex items-start gap-2 p-2 bg-white/80 rounded-lg border border-gray-100">
-                            <span className="flex-1 text-sm text-gray-700">{q.question}</span>
-                            <div className="flex items-center gap-2 flex-shrink-0">
-                              {hasResults ? (
-                                <>
-                                  {/* Citation status label */}
-                                  <span className={`text-[10px] ${citedCount > 0 ? 'text-green-600' : 'text-gray-400'}`}>
-                                    {citedCount}/{totalProviders} cited
-                                  </span>
-                                  {/* Date */}
-                                  {lastCheckedAt && (
-                                    <span className="text-[9px] text-gray-400">
-                                      {new Date(lastCheckedAt).toLocaleDateString()}
-                                    </span>
-                                  )}
-                                  {/* Re-check button */}
-                                  {onCheckLLMVisibility && (
-                                    <button
-                                      onClick={() => onCheckLLMVisibility(q.question, keyword.id)}
-                                      className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-purple-100 text-purple-600 hover:bg-purple-200 transition-colors"
-                                    >
-                                      Re-check
-                                    </button>
-                                  )}
-                                </>
-                              ) : onCheckLLMVisibility ? (
-                                <button
-                                  onClick={() => onCheckLLMVisibility(q.question, keyword.id)}
-                                  className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-purple-100 text-purple-600 hover:bg-purple-200 transition-colors"
-                                >
-                                  Check
-                                </button>
-                              ) : (
-                                <span className="text-[10px] text-gray-400">
-                                  Not checked
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
+                  <FunnelStageGroup
+                    key={stage}
+                    stage={stage}
+                    questions={stageQuestions}
+                    llmResultsMap={questionLLMMap}
+                    isEditing={false}
+                    onCheckQuestion={onCheckLLMVisibility ? (idx, question) => onCheckLLMVisibility(question, keyword.id) : undefined}
+                  />
                 );
               })}
             </div>

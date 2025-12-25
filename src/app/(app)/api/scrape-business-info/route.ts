@@ -238,12 +238,14 @@ export async function POST(request: NextRequest) {
     // Parse HTML with Cheerio
     const $ = cheerio.load(html);
 
-    // Extract content
-    const { title, metaDescription, headings, mainContent } = extractPageContent($);
+    // Extract social links FIRST (before extractPageContent removes script tags)
     const socialLinks = extractSocialLinks($);
 
     // Debug logging for social links extraction
     console.log("[scrape-business-info] Extracted social links:", JSON.stringify(socialLinks));
+
+    // Extract content (this removes script tags, so must be after social extraction)
+    const { title, metaDescription, headings, mainContent } = extractPageContent($);
 
     // Check if we got any meaningful content
     if (!title && !metaDescription && !mainContent) {

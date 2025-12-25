@@ -29,7 +29,7 @@ import {
 interface QuestionRowProps {
   question: RelatedQuestion;
   index: number;
-  llmResults?: Map<LLMProvider, {
+  llmResults?: Map<string, {
     domainCited: boolean;
     citationPosition?: number | null;
     checkedAt: string
