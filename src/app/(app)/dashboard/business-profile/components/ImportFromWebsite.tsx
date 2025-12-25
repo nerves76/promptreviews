@@ -102,7 +102,7 @@ export default function ImportFromWebsite({ onImport, isVisible = true }: Import
   };
 
   return (
-    <div className="mt-6 mb-4 rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 p-5 mx-auto">
+    <div className="mt-6 mb-4 rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 p-5 mx-auto max-w-[1000px]">
       <div className="flex items-start gap-4">
         <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
           <Icon name="prompty" size={20} className="text-white" />

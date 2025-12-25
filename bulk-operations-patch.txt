@@ -1,0 +1,210 @@
+This file contains the modifications needed for KeywordManager.tsx to add bulk operations support.
+
+STEP 1: Add imports at top (after line 10)
+Add these lines:
+import { BulkActionBar } from './BulkActionBar';
+import { BulkDeleteModal } from './BulkDeleteModal';
+
+STEP 2: Add state variables (after line 117, after selectedGroupId state)
+Add these lines:
+  // Multi-select state
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+
+STEP 3: Add bulk operation handlers (after handleKeywordClick function, around line 350)
+Add these functions:
+  // Handle toggling individual selection
+  const handleToggleSelection = (keywordId: string) => {
+    setSelectedIds((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(keywordId)) {
+        newSet.delete(keywordId);
+      } else {
+        newSet.add(keywordId);
+      }
+      return newSet;
+    });
+  };
+
+  // Handle select all
+  const handleSelectAll = () => {
+    setSelectedIds(new Set(groupFilteredKeywords.map((kw) => kw.id)));
+  };
+
+  // Handle deselect all
+  const handleDeselectAll = () => {
+    setSelectedIds(new Set());
+  };
+
+  // Handle bulk move to group
+  const handleBulkMoveToGroup = async (groupId: string) => {
+    const selectedKeywords = Array.from(selectedIds);
+    for (const keywordId of selectedKeywords) {
+      await updateKeyword(keywordId, { groupId });
+    }
+    setSelectedIds(new Set());
+    await refresh();
+  };
+
+  // Handle bulk delete
+  const handleBulkDelete = async () => {
+    setIsBulkDeleting(true);
+    const selectedKeywords = Array.from(selectedIds);
+    for (const keywordId of selectedKeywords) {
+      await deleteKeyword(keywordId);
+    }
+    setIsBulkDeleting(false);
+    setShowBulkDeleteModal(false);
+    setSelectedIds(new Set());
+    setIsSelectionMode(false);
+  };
+
+  // Handle bulk export
+  const handleBulkExport = async () => {
+    try {
+      const selectedKeywords = keywords.filter((kw) => selectedIds.has(kw.id));
+
+      // Create CSV content
+      const headers = ['phrase', 'review_phrase', 'search_terms', 'group', 'aliases', 'location_scope'];
+      const rows = selectedKeywords.map((kw) => [
+        kw.phrase,
+        kw.reviewPhrase || '',
+        kw.searchTerms?.map((st) => st.term).join('; ') || '',
+        kw.groupName || '',
+        kw.aliases?.join('; ') || '',
+        kw.locationScope || '',
+      ]);
+
+      const csvContent = [
+        headers.join(','),
+        ...rows.map((row) =>
+          row.map((cell) => (cell.includes(',') ? `"${cell}"` : cell)).join(',')
+        ),
+      ].join('\n');
+
+      // Download CSV
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `keywords-export-${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Export failed:', error);
+      alert('Failed to export keywords. Please try again.');
+    }
+  };
+
+STEP 4: Modify handleKeywordClick to support selection mode (around line 337)
+Replace the handleKeywordClick function with:
+  // Handle keyword click
+  const handleKeywordClick = (keyword: KeywordData) => {
+    if (onSelectionChange) {
+      // Toggle selection mode (for prompt page editor)
+      const isSelected = selectedKeywordIds.includes(keyword.id);
+      const newSelection = isSelected
+        ? selectedKeywordIds.filter((id) => id !== keyword.id)
+        : [...selectedKeywordIds, keyword.id];
+      onSelectionChange(newSelection);
+    } else if (isSelectionMode) {
+      // Multi-select mode (for bulk operations)
+      handleToggleSelection(keyword.id);
+    } else {
+      // Details view mode
+      setSelectedKeywordId(keyword.id);
+    }
+  };
+
+STEP 5: Add Select button in header (around line 742, before Refresh button)
+Add this button:
+            <button
+              onClick={() => {
+                setIsSelectionMode(!isSelectionMode);
+                setSelectedIds(new Set());
+              }}
+              className={`px-3 py-2 text-sm font-medium rounded-md flex items-center gap-2 transition-colors ${
+                isSelectionMode
+                  ? 'bg-blue-600 text-white hover:bg-blue-700'
+                  : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'
+              }`}
+            >
+              <Icon name={isSelectionMode ? 'FaCheckCircle' : 'FaCheck'} className="w-4 h-4" />
+              <span>{isSelectionMode ? 'Exit select' : 'Select'}</span>
+            </button>
+
+STEP 6: Modify ConceptCard rendering to add checkboxes (around line 1122)
+Replace the concepts view div with:
+      {/* Concepts view */}
+      <div className={`space-y-4 ${isSelectionMode && selectedIds.size > 0 ? 'pb-24' : ''}`}>
+          {/* Concept cards */}
+          {groupFilteredKeywords.length > 0 ? (
+            groupFilteredKeywords.map((keyword) => (
+              <div key={keyword.id} className="relative">
+                {/* Selection checkbox */}
+                {isSelectionMode && (
+                  <div className="absolute left-2 top-2 z-10">
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.has(keyword.id)}
+                      onChange={() => handleToggleSelection(keyword.id)}
+                      className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </div>
+                )}
+                <div className={isSelectionMode ? 'ml-8' : ''}>
+                  <ConceptCard
+                    keyword={keyword}
+                    onOpenDetails={handleKeywordClick}
+                    onUpdate={updateKeyword}
+                    onCheckRank={onCheckRank}
+                    promptPageNames={promptPageUsage[keyword.id] || []}
+                    enrichedData={enrichmentData.get(keyword.id)}
+                    isLoadingEnrichment={isLoadingEnrichment}
+                  />
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              <Icon name="FaSearch" className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+              <p>No keywords match your search</p>
+            </div>
+          )}
+      </div>
+
+STEP 7: Add BulkActionBar and BulkDeleteModal before Keyword Details Sidebar (around line 1350)
+Add these components:
+      {/* Bulk Action Bar */}
+      {isSelectionMode && (
+        <BulkActionBar
+          selectedCount={selectedIds.size}
+          totalCount={groupFilteredKeywords.length}
+          groups={groups}
+          onSelectAll={handleSelectAll}
+          onDeselectAll={handleDeselectAll}
+          onMoveToGroup={handleBulkMoveToGroup}
+          onDelete={() => setShowBulkDeleteModal(true)}
+          onExport={handleBulkExport}
+        />
+      )}
+
+      {/* Bulk Delete Modal */}
+      <BulkDeleteModal
+        isOpen={showBulkDeleteModal}
+        keywords={keywords.filter((kw) => selectedIds.has(kw.id))}
+        onConfirm={handleBulkDelete}
+        onClose={() => setShowBulkDeleteModal(false)}
+        isDeleting={isBulkDeleting}
+      />
+
+STEP 8: Modify Keyword Details Sidebar condition (around line 1351)
+Change:
+      {!onSelectionChange && (
+To:
+      {!onSelectionChange && !isSelectionMode && (

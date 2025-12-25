@@ -10,12 +10,13 @@
  * Features:
  * - Toggle to enable/disable the power-ups button on public page
  * - Automatically displays the first 10 keywords from the page
- * - Shows preview of which keywords will be displayed
+ * - Shows preview of which keywords will be displayed (using reviewPhrase when available)
  */
 
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Icon from "@/components/Icon";
+import { useKeywords } from "@/features/keywords/hooks/useKeywords";
 
 export interface KeywordInspirationFeatureProps {
   /** Whether the keyword inspiration feature is enabled */
@@ -56,8 +57,27 @@ export default function KeywordInspirationFeature({
   const [isEnabled, setIsEnabled] = useState(enabled);
   const [showNoKeywordsModal, setShowNoKeywordsModal] = useState(false);
 
+  // Fetch all keywords to get reviewPhrase data
+  const { keywords: allKeywords } = useKeywords();
+
   // Auto-select first 10 keywords
   const autoSelectedKeywords = availableKeywords.slice(0, 10);
+
+  // Build a map of phrase -> reviewPhrase for display
+  const phraseToReviewPhrase = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const kw of allKeywords) {
+      // Use reviewPhrase if available, otherwise fall back to phrase
+      const displayText = kw.reviewPhrase || kw.phrase;
+      map.set(kw.phrase.toLowerCase(), displayText);
+    }
+    return map;
+  }, [allKeywords]);
+
+  // Get display text for each keyword (reviewPhrase if available)
+  const getDisplayText = (phrase: string): string => {
+    return phraseToReviewPhrase.get(phrase.toLowerCase()) || phrase;
+  };
 
   // Update state when props change
   useEffect(() => {
@@ -170,8 +190,9 @@ export default function KeywordInspirationFeature({
                   <span
                     key={keyword}
                     className="inline-flex items-center px-3 py-1 bg-green-100 border border-green-300 rounded-full text-sm text-green-800"
+                    title={`Concept: ${keyword}`}
                   >
-                    {keyword}
+                    {getDisplayText(keyword)}
                   </span>
                 ))}
               </div>

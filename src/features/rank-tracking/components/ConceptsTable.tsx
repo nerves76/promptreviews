@@ -317,14 +317,7 @@ export default function ConceptsTable({
               className="border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors"
             >
               <td className="py-3 px-4">
-                <div className="flex items-center gap-2">
-                  {row.isCanonical && (
-                    <span title="Primary keyword">
-                      <Icon name="FaStar" className="w-3 h-3 text-amber-400 flex-shrink-0" />
-                    </span>
-                  )}
-                  <span className="text-sm font-medium text-gray-900">{row.keyword}</span>
-                </div>
+                <span className="text-sm font-medium text-gray-900">{row.keyword}</span>
               </td>
               <td className="py-3 px-4">
                 <span className="text-sm text-gray-600 truncate block max-w-[180px]">
