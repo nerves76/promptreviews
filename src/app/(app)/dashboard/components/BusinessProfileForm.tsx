@@ -506,6 +506,19 @@ export default function BusinessProfileForm({
               placeholder="https://pinterest.com/yourbusiness"
             />
           </div>
+          <div>
+            <label className="block font-semibold text-sm text-gray-500 mb-1">
+              X (Twitter) URL
+            </label>
+            <input
+              type="url"
+              name="twitter_url"
+              className="w-full border px-3 py-2 rounded-lg bg-white focus:ring-2 focus:ring-indigo-300"
+              value={form.twitter_url || ""}
+              onChange={handleChange}
+              placeholder="https://x.com/yourbusiness"
+            />
+          </div>
         </div>
       </div>
 

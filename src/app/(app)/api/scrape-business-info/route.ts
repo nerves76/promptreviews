@@ -24,6 +24,7 @@ interface ImportedBusinessInfo {
   business_email?: string;
   industry?: string;
   differentiators?: string[];
+  years_in_business?: string;
   facebook_url?: string;
   instagram_url?: string;
   linkedin_url?: string;
@@ -31,6 +32,7 @@ interface ImportedBusinessInfo {
   tiktok_url?: string;
   pinterest_url?: string;
   bluesky_url?: string;
+  twitter_url?: string;
 }
 
 // Validate URL format
@@ -51,7 +53,8 @@ type SocialUrlField =
   | "youtube_url"
   | "tiktok_url"
   | "pinterest_url"
-  | "bluesky_url";
+  | "bluesky_url"
+  | "twitter_url";
 
 // Extract social media URLs from page
 function extractSocialLinks($: cheerio.CheerioAPI): Pick<ImportedBusinessInfo, SocialUrlField> {
@@ -65,6 +68,7 @@ function extractSocialLinks($: cheerio.CheerioAPI): Pick<ImportedBusinessInfo, S
     { pattern: /tiktok\.com/i, field: "tiktok_url" },
     { pattern: /pinterest\.com/i, field: "pinterest_url" },
     { pattern: /bsky\.app|bluesky/i, field: "bluesky_url" },
+    { pattern: /(?:twitter\.com|x\.com)\/(?!share|intent)/i, field: "twitter_url" },
   ];
 
   $("a[href]").each((_, el) => {
@@ -223,6 +227,7 @@ Return a JSON object with these fields (only include fields where you can confid
 - business_email: Email address if found
 - industry: The business category/industry (e.g., "Restaurant", "Home Services", "Healthcare", "Professional Services", "Retail")
 - differentiators: An array of 3-5 unique selling points or differentiators. Keep each one concise (1 sentence max). Look for years in business, special expertise, awards, unique approach, certifications, guarantees, etc. Examples: "Family-owned since 1985", "Award-winning customer service", "Same-day emergency repairs"
+- years_in_business: How long the business has been operating. Look for phrases like "Since 1985", "Established 1999", "Over 20 years of experience", "Founded in 2010". Return just the number of years or the founding year, e.g. "25 years" or "Since 1999"
 
 Website Title: ${title}
 Meta Description: ${metaDescription}

@@ -21,6 +21,7 @@ interface ImportedBusinessInfo {
   business_email?: string;
   industry?: string;
   differentiators?: string[];
+  years_in_business?: string;
   facebook_url?: string;
   instagram_url?: string;
   linkedin_url?: string;
@@ -28,6 +29,7 @@ interface ImportedBusinessInfo {
   tiktok_url?: string;
   pinterest_url?: string;
   bluesky_url?: string;
+  twitter_url?: string;
 }
 
 interface ImportFromWebsiteProps {
@@ -59,7 +61,12 @@ export default function ImportFromWebsite({ onImport, isVisible = true }: Import
     setError(null);
 
     try {
-      const response = await apiClient.post("/scrape-business-info", { url: processedUrl });
+      const response = await apiClient.post<{
+        success: boolean;
+        error?: string;
+        data?: ImportedBusinessInfo;
+        url?: string;
+      }>("/scrape-business-info", { url: processedUrl });
 
       if (!response.success) {
         setError(response.error || "Failed to import website information");

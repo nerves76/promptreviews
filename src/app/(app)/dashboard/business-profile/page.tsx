@@ -145,6 +145,7 @@ export default function BusinessProfilePage() {
     youtube_url: "",
     linkedin_url: "",
     pinterest_url: "",
+    twitter_url: "",
     default_offer_enabled: false,
     default_offer_title: "Special offer",
     default_offer_body: "",
@@ -240,6 +241,7 @@ export default function BusinessProfilePage() {
     business_email?: string;
     industry?: string;
     differentiators?: string[];
+    years_in_business?: string;
     facebook_url?: string;
     instagram_url?: string;
     linkedin_url?: string;
@@ -247,6 +249,7 @@ export default function BusinessProfilePage() {
     tiktok_url?: string;
     pinterest_url?: string;
     bluesky_url?: string;
+    twitter_url?: string;
   }, websiteUrl: string) => {
     // Only fill empty fields - don't overwrite existing data
     const updates: Record<string, string> = {};
@@ -264,6 +267,9 @@ export default function BusinessProfilePage() {
     // Industry - store in industries_served field (text field)
     if (data.industry && !form.industries_served?.trim()) updates.industries_served = data.industry;
 
+    // Years in business
+    if (data.years_in_business && !form.years_in_business?.trim()) updates.years_in_business = data.years_in_business;
+
     // Social media URLs
     if (data.facebook_url && !form.facebook_url?.trim()) updates.facebook_url = data.facebook_url;
     if (data.instagram_url && !form.instagram_url?.trim()) updates.instagram_url = data.instagram_url;
@@ -272,6 +278,7 @@ export default function BusinessProfilePage() {
     if (data.tiktok_url && !form.tiktok_url?.trim()) updates.tiktok_url = data.tiktok_url;
     if (data.pinterest_url && !form.pinterest_url?.trim()) updates.pinterest_url = data.pinterest_url;
     if (data.bluesky_url && !form.bluesky_url?.trim()) updates.bluesky_url = data.bluesky_url;
+    if (data.twitter_url && !form.twitter_url?.trim()) updates.twitter_url = data.twitter_url;
 
     // Update form state
     if (Object.keys(updates).length > 0) {
@@ -420,6 +427,7 @@ export default function BusinessProfilePage() {
             youtube_url: "",
             linkedin_url: "",
             pinterest_url: "",
+            twitter_url: "",
             default_offer_enabled: false,
             default_offer_title: "Special offer",
             default_offer_body: "",
@@ -824,7 +832,7 @@ export default function BusinessProfilePage() {
       // Convert keywords from comma-separated string to array for database (text[] column)
       // Keywords can come from website import but is no longer a direct user input
       const keywordsArray = typeof form.keywords === 'string' && form.keywords.trim()
-        ? form.keywords.split(',').map(k => k.trim()).filter(k => k.length > 0)
+        ? form.keywords.split(',').map((k: string) => k.trim()).filter((k: string) => k.length > 0)
         : [];
 
       // Build the update payload
@@ -849,6 +857,7 @@ export default function BusinessProfilePage() {
         youtube_url: form.youtube_url,
         linkedin_url: form.linkedin_url,
         pinterest_url: form.pinterest_url,
+        twitter_url: form.twitter_url,
         default_offer_enabled: form.default_offer_enabled,
         default_offer_title: form.default_offer_title,
         default_offer_body: form.default_offer_body,
