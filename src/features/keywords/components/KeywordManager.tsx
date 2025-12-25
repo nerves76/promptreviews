@@ -47,10 +47,20 @@ interface LLMVisibilityResult {
   checkedAt: string;
 }
 
+/**
+ * Discovered question from SERP (People Also Ask)
+ */
+interface DiscoveredQuestion {
+  question: string;
+  answerDomain: string | null;
+  isOurs: boolean;
+}
+
 export interface EnrichmentData {
   volumeData: ResearchResultData[];
   rankStatus: RankStatusData | null;
   llmResults: LLMVisibilityResult[];
+  discoveredQuestions?: DiscoveredQuestion[];
 }
 
 interface KeywordManagerProps {

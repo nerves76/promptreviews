@@ -766,3 +766,93 @@ export async function ensureGeneralGroup(
 
   return (newGroup as { id: string }).id;
 }
+
+// ==========================================
+// Shared Display Utilities (for components)
+// ==========================================
+
+/**
+ * Format search volume for display.
+ * Google rounds low-volume keywords to 0, but they may still get traffic.
+ *
+ * @param vol - The search volume number (or null)
+ * @returns Formatted string (<10, 1.2K, 1.5M, etc.)
+ */
+export function formatVolume(vol: number | null): string {
+  if (vol === null || vol === undefined) return '—';
+  if (vol === 0 || vol < 10) return '<10';
+  if (vol >= 1000000) return `${(vol / 1000000).toFixed(1)}M`;
+  if (vol >= 1000) return `${(vol / 1000).toFixed(1)}K`;
+  return vol.toString();
+}
+
+/**
+ * Get Tailwind classes for competition level badge.
+ *
+ * @param level - Competition level (LOW, MEDIUM, HIGH, or null)
+ * @returns Tailwind class string for background and text color
+ */
+export function getCompetitionColor(level: string | null): string {
+  switch (level) {
+    case 'LOW':
+      return 'bg-green-100 text-green-700';
+    case 'MEDIUM':
+      return 'bg-yellow-100 text-yellow-700';
+    case 'HIGH':
+      return 'bg-red-100 text-red-700';
+    default:
+      return 'bg-gray-100 text-gray-500';
+  }
+}
+
+/**
+ * LLM result type for question → provider → result mapping.
+ */
+export interface LLMVisibilityResult {
+  question: string;
+  llmProvider: string;
+  domainCited: boolean;
+  citationPosition: number | null;
+  checkedAt: string;
+}
+
+/**
+ * LLM provider result details.
+ */
+export interface LLMProviderResult {
+  domainCited: boolean;
+  citationPosition?: number | null;
+  checkedAt: string;
+}
+
+/**
+ * Build a map of question → provider → result for quick lookups.
+ * Takes the most recent result for each question+provider combination.
+ *
+ * @param llmResults - Array of LLM visibility results
+ * @returns Map with question as key, and provider → result as value
+ */
+export function buildQuestionLLMMap(
+  llmResults: LLMVisibilityResult[]
+): Map<string, Map<string, LLMProviderResult>> {
+  const map = new Map<string, Map<string, LLMProviderResult>>();
+
+  for (const result of llmResults) {
+    if (!map.has(result.question)) {
+      map.set(result.question, new Map());
+    }
+    const providerMap = map.get(result.question)!;
+    const existing = providerMap.get(result.llmProvider);
+
+    // Keep the most recent result for each provider
+    if (!existing || new Date(result.checkedAt) > new Date(existing.checkedAt)) {
+      providerMap.set(result.llmProvider, {
+        domainCited: result.domainCited,
+        citationPosition: result.citationPosition,
+        checkedAt: result.checkedAt,
+      });
+    }
+  }
+
+  return map;
+}

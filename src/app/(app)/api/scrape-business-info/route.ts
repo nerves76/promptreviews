@@ -253,7 +253,7 @@ Return a JSON object with these fields (only include fields where you can confid
 - business_email: Email address if found
 - industry: The business category/industry (e.g., "Restaurant", "Home Services", "Healthcare", "Professional Services", "Retail")
 - differentiators: An array of 3-5 unique selling points or differentiators. Keep each one concise (1 sentence max). Look for years in business, special expertise, awards, unique approach, certifications, guarantees, etc. Examples: "Family-owned since 1985", "Award-winning customer service", "Same-day emergency repairs"
-- years_in_business: How long the business has been operating. Look for phrases like "Since 1985", "Established 1999", "Over 20 years of experience", "Founded in 2010". Return just the number of years or the founding year, e.g. "25 years" or "Since 1999"
+- years_in_business: How long the business has been operating (as a NUMBER ONLY). Look for phrases like "Since 1985", "Established 1999", "Over 20 years of experience", "Founded in 2010". Calculate the number of years and return ONLY the number, e.g. "25" or "20". Do not include words like "years" or "over".
 
 Website Title: ${title}
 Meta Description: ${metaDescription}

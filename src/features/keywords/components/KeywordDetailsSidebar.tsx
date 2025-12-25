@@ -15,6 +15,9 @@ import {
   getFunnelStageColor,
   getFunnelStageShortLabel,
   normalizePhrase,
+  formatVolume,
+  getCompetitionColor,
+  buildQuestionLLMMap,
   MAX_SEARCH_TERMS,
 } from '../keywordUtils';
 import { useRelatedQuestions } from '../hooks/useRelatedQuestions';
@@ -251,22 +254,8 @@ export function KeywordDetailsSidebar({
     }
   };
 
-  // Build question -> provider -> result map for quick lookup
-  const questionLLMMap = new Map<string, Map<LLMProvider, { domainCited: boolean; citationPosition?: number | null; checkedAt: string }>>();
-  for (const result of llmResults) {
-    if (!questionLLMMap.has(result.question)) {
-      questionLLMMap.set(result.question, new Map());
-    }
-    const providerMap = questionLLMMap.get(result.question)!;
-    const existing = providerMap.get(result.llmProvider);
-    if (!existing || new Date(result.checkedAt) > new Date(existing.checkedAt)) {
-      providerMap.set(result.llmProvider, {
-        domainCited: result.domainCited,
-        citationPosition: result.citationPosition,
-        checkedAt: result.checkedAt,
-      });
-    }
-  }
+  // Build question -> provider -> result map for quick lookup (using shared utility)
+  const questionLLMMap = buildQuestionLLMMap(llmResults);
 
   // Fetch LLM results when sidebar opens
   useEffect(() => {
@@ -700,26 +689,6 @@ export function KeywordDetailsSidebar({
       console.error('Failed to check term volume:', err);
     } finally {
       setCheckingTermVolume(null);
-    }
-  };
-
-  // Format large numbers nicely
-  // Note: Google rounds low-volume keywords to 0, but they may still get traffic
-  const formatVolume = (vol: number | null) => {
-    if (vol === null || vol === undefined) return '-';
-    if (vol === 0) return '<10';
-    if (vol >= 1000000) return `${(vol / 1000000).toFixed(1)}M`;
-    if (vol >= 1000) return `${(vol / 1000).toFixed(1)}K`;
-    return vol.toString();
-  };
-
-  // Get competition badge color
-  const getCompetitionColor = (level: string | null) => {
-    switch (level) {
-      case 'LOW': return 'bg-green-100 text-green-700';
-      case 'MEDIUM': return 'bg-yellow-100 text-yellow-700';
-      case 'HIGH': return 'bg-red-100 text-red-700';
-      default: return 'bg-gray-100 text-gray-500';
     }
   };
 

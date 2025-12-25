@@ -11,8 +11,11 @@ import {
   type RelatedQuestion,
   type ResearchResultData,
   type LocationScope,
+  type LLMVisibilityResult,
   normalizePhrase,
   getFunnelStageColor,
+  formatVolume,
+  buildQuestionLLMMap,
 } from '../keywordUtils';
 import {
   LLMProvider,
@@ -40,15 +43,6 @@ interface RankingData {
 interface RankStatusData {
   isTracked: boolean;
   rankings: RankingData[];
-}
-
-// LLM Result type
-interface LLMVisibilityResult {
-  question: string;
-  llmProvider: string;
-  domainCited: boolean;
-  citationPosition: number | null;
-  checkedAt: string;
 }
 
 interface ConceptCardProps {
@@ -160,25 +154,8 @@ export function ConceptCard({
     setEditedQuestions(keyword.relatedQuestions || []);
   }, [keyword]);
 
-  // Build question -> provider -> result map
-  const questionLLMMap = useMemo(() => {
-    const map = new Map<string, Map<string, { domainCited: boolean; citationPosition?: number | null; checkedAt: string }>>();
-    for (const result of llmResults) {
-      if (!map.has(result.question)) {
-        map.set(result.question, new Map());
-      }
-      const providerMap = map.get(result.question)!;
-      const existing = providerMap.get(result.llmProvider);
-      if (!existing || new Date(result.checkedAt) > new Date(existing.checkedAt)) {
-        providerMap.set(result.llmProvider, {
-          domainCited: result.domainCited,
-          citationPosition: result.citationPosition,
-          checkedAt: result.checkedAt,
-        });
-      }
-    }
-    return map;
-  }, [llmResults]);
+  // Build question -> provider -> result map using shared utility
+  const questionLLMMap = useMemo(() => buildQuestionLLMMap(llmResults), [llmResults]);
 
   // Calculate total volume
   const totalVolume = useMemo(() => {
@@ -197,15 +174,6 @@ export function ConceptCard({
     const citedCount = llmResults.filter(r => r.domainCited).length;
     return { cited: citedCount, total: llmResults.length };
   }, [llmResults]);
-
-  // Format volume display
-  const formatVolume = (vol: number | null) => {
-    if (vol === null || vol === undefined) return '—';
-    if (vol < 10) return '<10';
-    if (vol >= 1000000) return `${(vol / 1000000).toFixed(1)}M`;
-    if (vol >= 1000) return `${(vol / 1000).toFixed(1)}K`;
-    return vol.toString();
-  };
 
   // Check volume for a term
   const handleCheckTermVolume = async (term: string) => {
