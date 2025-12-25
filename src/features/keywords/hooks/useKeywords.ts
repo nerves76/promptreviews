@@ -43,18 +43,11 @@ interface UseKeywordsResult {
     ai_generated?: boolean;
     groupId?: string;
     promptPageId?: string;
+    search_volume_location_code?: number | null;
+    search_volume_location_name?: string | null;
   }) => Promise<KeywordData | null>;
   /** Update a keyword */
-  updateKeyword: (id: string, updates: Partial<{
-    phrase: string;
-    groupId: string;
-    status: 'active' | 'paused';
-    reviewPhrase: string;
-    searchQuery: string;
-    aliases: string[];
-    locationScope: string | null;
-    relatedQuestions: RelatedQuestion[];
-  }>) => Promise<KeywordData | null>;
+  updateKeyword: (id: string, updates: Partial<KeywordData & { _locationChanged?: boolean }>) => Promise<KeywordData | null>;
   /** Delete a keyword */
   deleteKeyword: (id: string) => Promise<boolean>;
   /** Create a new group */
@@ -97,7 +90,7 @@ export function useKeywords(options: UseKeywordsOptions = {}): UseKeywordsResult
 
       const queryString = params.toString();
       const url = `/keywords${queryString ? `?${queryString}` : ''}`;
-      const data = await apiClient.get(url);
+      const data = await apiClient.get<{ keywords: KeywordData[]; promptPageUsage?: Record<string, string[]> }>(url);
 
       setKeywords(data.keywords || []);
       if (data.promptPageUsage) {
@@ -112,7 +105,7 @@ export function useKeywords(options: UseKeywordsOptions = {}): UseKeywordsResult
   // Fetch groups
   const fetchGroups = useCallback(async () => {
     try {
-      const data = await apiClient.get('/keyword-groups');
+      const data = await apiClient.get<{ groups: KeywordGroupData[]; ungroupedCount: number }>('/keyword-groups');
       setGroups(data.groups || []);
       setUngroupedCount(data.ungroupedCount || 0);
     } catch (err: any) {
@@ -164,7 +157,7 @@ export function useKeywords(options: UseKeywordsOptions = {}): UseKeywordsResult
         if (groupIdParam) body.groupId = groupIdParam;
         if (promptPageIdParam) body.promptPageId = promptPageIdParam;
 
-        const data = await apiClient.post('/keywords', body);
+        const data = await apiClient.post<{ keyword: KeywordData }>('/keywords', body);
         const newKeyword = data.keyword;
 
         // Optimistically update local state
@@ -193,6 +186,8 @@ export function useKeywords(options: UseKeywordsOptions = {}): UseKeywordsResult
       ai_generated?: boolean;
       groupId?: string;
       promptPageId?: string;
+      search_volume_location_code?: number | null;
+      search_volume_location_name?: string | null;
     }): Promise<KeywordData | null> => {
       try {
         const body: Record<string, unknown> = {
@@ -202,6 +197,8 @@ export function useKeywords(options: UseKeywordsOptions = {}): UseKeywordsResult
           location_scope: data.location_scope || null,
           ai_generated: data.ai_generated ?? false,
           related_questions: data.related_questions || [],
+          search_volume_location_code: data.search_volume_location_code ?? null,
+          search_volume_location_name: data.search_volume_location_name ?? null,
         };
         // Support both search_terms array and legacy search_query
         if (data.search_terms && data.search_terms.length > 0) {
@@ -212,7 +209,7 @@ export function useKeywords(options: UseKeywordsOptions = {}): UseKeywordsResult
         if (data.groupId) body.groupId = data.groupId;
         if (data.promptPageId) body.promptPageId = data.promptPageId;
 
-        const response = await apiClient.post('/keywords', body);
+        const response = await apiClient.post<{ keyword: KeywordData }>('/keywords', body);
         const newKeyword = response.keyword;
 
         // Optimistically update local state
@@ -235,19 +232,10 @@ export function useKeywords(options: UseKeywordsOptions = {}): UseKeywordsResult
   const updateKeyword = useCallback(
     async (
       id: string,
-      updates: Partial<{
-        phrase: string;
-        groupId: string;
-        status: 'active' | 'paused';
-        reviewPhrase: string;
-        searchQuery: string;
-        aliases: string[];
-        locationScope: string | null;
-        relatedQuestions: RelatedQuestion[];
-      }>
+      updates: Partial<KeywordData & { _locationChanged?: boolean }>
     ): Promise<KeywordData | null> => {
       try {
-        const data = await apiClient.put(`/keywords/${id}`, updates);
+        const data = await apiClient.put<{ keyword: KeywordData }>(`/keywords/${id}`, updates);
         const updatedKeyword = data.keyword;
 
         // Optimistically update local state
@@ -288,7 +276,7 @@ export function useKeywords(options: UseKeywordsOptions = {}): UseKeywordsResult
         const body: { name: string; displayOrder?: number } = { name };
         if (displayOrder !== undefined) body.displayOrder = displayOrder;
 
-        const data = await apiClient.post('/keyword-groups', body);
+        const data = await apiClient.post<{ group: KeywordGroupData }>('/keyword-groups', body);
         const newGroup = data.group;
 
         // Optimistically update local state
@@ -311,7 +299,7 @@ export function useKeywords(options: UseKeywordsOptions = {}): UseKeywordsResult
       updates: Partial<{ name: string; displayOrder: number }>
     ): Promise<KeywordGroupData | null> => {
       try {
-        const data = await apiClient.put(`/keyword-groups/${id}`, updates);
+        const data = await apiClient.put<{ group: KeywordGroupData }>(`/keyword-groups/${id}`, updates);
         const updatedGroup = data.group;
 
         // Optimistically update local state
@@ -423,7 +411,11 @@ export function useKeywordDetails(keywordId: string | null) {
     setError(null);
 
     try {
-      const data = await apiClient.get(`/keywords/${keywordId}`);
+      const data = await apiClient.get<{
+        keyword: KeywordData;
+        promptPages: Array<{ id: string; name?: string; slug?: string }>;
+        recentReviews: Array<{ id: string; reviewerName: string; content?: string }>;
+      }>(`/keywords/${keywordId}`);
       setKeyword(data.keyword);
       setPromptPages(data.promptPages || []);
       setRecentReviews(data.recentReviews || []);

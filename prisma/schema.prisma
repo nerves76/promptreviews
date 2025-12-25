@@ -344,6 +344,8 @@ model users {
   account_invitations                        account_invitations[]
   account_users                              account_users[]
   accounts                                   accounts[]
+  ai_enrichment_usage                        ai_enrichment_usage[]
+  ai_keyword_generation_usage                ai_keyword_generation_usage[]
   ai_usage                                   ai_usage[]
   announcements                              announcements[]
   article_revisions                          article_revisions[]
@@ -513,6 +515,8 @@ model accounts {
   account_invitations             account_invitations[]
   account_users                   account_users[]
   users                           users?                            @relation(fields: [created_by], references: [id], onUpdate: NoAction)
+  ai_enrichment_usage             ai_enrichment_usage[]
+  ai_keyword_generation_usage     ai_keyword_generation_usage[]
   ai_usage                        ai_usage[]
   audit_logs                      audit_logs[]
   billing_audit_log               billing_audit_log[]
@@ -951,6 +955,8 @@ model businesses {
   default_selected_keyword_inspirations String[]             @default([])
   kickstarters_primary_color            String?
   twitter_url                           String?
+  location_code                         Int?
+  location_name                         String?
   accounts                              accounts             @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_businesses_account_id")
   review_submissions                    review_submissions[]
 
@@ -2201,7 +2207,7 @@ model rate_limit_counters {
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model review_drafts {
-  id                 String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id                 String    @id @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
   prompt_page_id     String?   @db.Uuid
   platform           String?
   review_text        String?
@@ -2442,7 +2448,7 @@ model selected_gbp_locations {
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model sentiment_analysis_runs {
-  id                      String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id                      String    @id @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
   account_id              String    @db.Uuid
   run_date                DateTime? @default(now()) @db.Timestamptz(6)
   review_count_analyzed   Int
@@ -3267,6 +3273,38 @@ model keyword_research_results {
   @@unique([account_id, normalized_term, location_code])
   @@index([account_id], map: "idx_krr_account")
   @@index([normalized_term], map: "idx_krr_term")
+  @@schema("public")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model ai_enrichment_usage {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  account_id String   @db.Uuid
+  user_id    String   @db.Uuid
+  phrase     String
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  accounts   accounts @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users      users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([account_id, created_at], map: "idx_ai_enrichment_usage_account_date")
+  @@index([user_id, created_at], map: "idx_ai_enrichment_usage_user_date")
+  @@schema("public")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model ai_keyword_generation_usage {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  account_id    String   @db.Uuid
+  user_id       String   @db.Uuid
+  business_name String
+  created_at    DateTime @default(now()) @db.Timestamptz(6)
+  accounts      accounts @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users         users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([account_id, created_at], map: "idx_ai_keyword_generation_usage_account_date")
+  @@index([user_id, created_at], map: "idx_ai_keyword_generation_usage_user_date")
   @@schema("public")
 }
 

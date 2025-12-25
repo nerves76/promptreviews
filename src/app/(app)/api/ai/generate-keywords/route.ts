@@ -143,30 +143,54 @@ The keywords should:
 • Include a variety of lengths and styles
 
 For each keyword concept, provide:
-1. THREE closely related search term variations - different word orders and phrasings that people might actually type into Google
-2. A natural-sounding review phrase that incorporates the concept organically
+1. A short concept name (2-4 words) that describes the topic - this is the canonical name for the concept
+2. THREE closely related search term variations - different word orders and phrasings that people might actually type into Google
+3. A natural-sounding review phrase that incorporates the concept organically
+4. 2-3 related questions people might ask AI assistants or search engines about this topic
 
 IMPORTANT: Keep review phrases SHORT and punchy - ideally one short sentence or fragment (5-12 words max).
 
 CRITICAL: NEVER generate review phrases that mention "reviews", "ratings", "testimonials", or "recommendations". A customer writing their own review wouldn't say "I read great reviews" or "with fantastic reviews" - they should describe THEIR OWN experience, not reference other people's opinions.
 
-Examples of LOCATION-SPECIFIC with 3 search term variations:
+For related_questions:
+- Questions should be what people type into ChatGPT, Google, or other AI/search tools
+- Include a mix of funnel stages:
+  • "top" = awareness (educational: "What is X?", "Why do I need X?")
+  • "middle" = consideration (comparison: "What is the best X?", "How do I choose X?")
+  • "bottom" = decision (purchase-intent: "How much does X cost?", "Where can I find X near me?")
+- Include location when relevant to the keyword
+
+Examples of LOCATION-SPECIFIC:
+- conceptName: "Portland barbershop"
 - searchTerms: ["barbershop portland", "portland barbershop", "portland barbers"]
 - reviewPhrase: "Best barbershop in Portland - always a great cut!"
+- relatedQuestions: [
+    { "question": "What is the best barbershop in Portland?", "funnelStage": "middle" },
+    { "question": "How much does a haircut cost in Portland?", "funnelStage": "bottom" }
+  ]
 
+- conceptName: "Portland family dentist"
 - searchTerms: ["best family dentist Portland OR", "Portland family dentist", "family dentist near me Portland"]
 - reviewPhrase: "Best family dentist in Portland - highly recommend!"
+- relatedQuestions: [
+    { "question": "How do I find a good family dentist in Portland?", "funnelStage": "middle" },
+    { "question": "What should I look for in a family dentist?", "funnelStage": "top" }
+  ]
 
-Examples of GENERAL/SERVICE-FOCUSED with 3 search term variations:
+Examples of GENERAL/SERVICE-FOCUSED:
+- conceptName: "Same-day emergency dental"
 - searchTerms: ["emergency dental care same day", "same day dental appointment", "urgent dental care"]
 - reviewPhrase: "Got same day emergency dental care - lifesaver!"
-
-- searchTerms: ["gentle dentist for anxious patients", "dentist for dental anxiety", "anxiety-free dental care"]
-- reviewPhrase: "Finally found a gentle dentist for my dental anxiety!"
+- relatedQuestions: [
+    { "question": "Can I get a same-day dental appointment for an emergency?", "funnelStage": "bottom" },
+    { "question": "What counts as a dental emergency?", "funnelStage": "top" }
+  ]
 
 Format your output as a JSON array of objects with these fields:
+- conceptName: Short name for this concept (2-4 words, title case)
 - searchTerms: Array of 3 related search phrases (different word orders/phrasings of the same concept)
 - reviewPhrase: A SHORT, punchy review phrase (5-12 words, authentic, conversational)
+- relatedQuestions: Array of 2-3 objects with "question" and "funnelStage" fields
 
 Return ONLY valid JSON, no additional text or markdown formatting.`;
 
@@ -204,20 +228,49 @@ Return ONLY valid JSON, no additional text or markdown formatting.`;
         keywords = Object.values(keywords);
       }
 
-      // Normalize response: ensure each keyword has searchTerms array
+      // Normalize response: ensure each keyword has conceptName, searchTerms array, and relatedQuestions
+      const now = new Date().toISOString();
       keywords = keywords.map((kw: any) => {
         // If AI returned old format (searchTerm string), convert to searchTerms array
         if (kw.searchTerm && !kw.searchTerms) {
-          return {
-            searchTerms: [kw.searchTerm],
-            reviewPhrase: kw.reviewPhrase,
-          };
+          kw.searchTerms = [kw.searchTerm];
         }
         // Ensure searchTerms is an array
         if (!Array.isArray(kw.searchTerms)) {
           kw.searchTerms = kw.searchTerms ? [kw.searchTerms] : [];
         }
-        return kw;
+        // Process relatedQuestions - add addedAt timestamp and validate funnelStage
+        if (Array.isArray(kw.relatedQuestions)) {
+          const validStages = ['top', 'middle', 'bottom'];
+          kw.relatedQuestions = kw.relatedQuestions
+            .slice(0, 5) // Max 5 questions
+            .map((q: any) => {
+              // Handle if AI returns string instead of object
+              if (typeof q === 'string') {
+                return {
+                  question: q,
+                  funnelStage: 'middle',
+                  addedAt: now,
+                };
+              }
+              return {
+                question: q.question || '',
+                funnelStage: validStages.includes(q.funnelStage) ? q.funnelStage : 'middle',
+                addedAt: now,
+              };
+            })
+            .filter((q: any) => q.question.length > 0);
+        } else {
+          kw.relatedQuestions = [];
+        }
+        // Use conceptName if provided, fallback to first search term, then review phrase
+        const conceptName = kw.conceptName || kw.searchTerms[0] || kw.reviewPhrase || 'Untitled concept';
+        return {
+          conceptName,
+          searchTerms: kw.searchTerms,
+          reviewPhrase: kw.reviewPhrase,
+          relatedQuestions: kw.relatedQuestions,
+        };
       });
     } catch (parseError) {
       console.error("Error parsing OpenAI response:", parseError);

@@ -162,10 +162,10 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Account not found' }, { status: 404 });
     }
 
-    // Get keyword
+    // Get keyword with existing location data
     const { data: keyword, error: keywordError } = await serviceSupabase
       .from('keywords')
-      .select('id, phrase, search_query, account_id')
+      .select('id, phrase, search_query, account_id, search_volume_location_code, search_volume_location_name')
       .eq('id', id)
       .eq('account_id', accountId)
       .single();
@@ -177,11 +177,19 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const body = await request.json().catch(() => ({}));
     const { includeSuggestions = true } = body;
 
-    // Determine location to use
+    // Determine location to use (priority order):
+    // 1. Concept's existing location (if set)
+    // 2. Explicitly provided location in request
+    // 3. Default from business address
     let locationCode: number;
     let locationName: string;
 
-    if (body.locationCode && body.locationName) {
+    if (keyword.search_volume_location_code && keyword.search_volume_location_name) {
+      // Use concept's existing location
+      locationCode = keyword.search_volume_location_code;
+      locationName = keyword.search_volume_location_name;
+      console.log(`📍 [Keywords] Using concept location: ${locationName} (${locationCode})`);
+    } else if (body.locationCode && body.locationName) {
       // Use explicitly provided location
       locationCode = body.locationCode;
       locationName = body.locationName;

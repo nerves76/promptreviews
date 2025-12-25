@@ -60,6 +60,9 @@ interface Business {
   about_us?: string;
   differentiators?: string;
   years_in_business?: number | string;
+  // Location for keyword research
+  location_code?: number | null;
+  location_name?: string | null;
   created_at: string;
   updated_at: string;
 }

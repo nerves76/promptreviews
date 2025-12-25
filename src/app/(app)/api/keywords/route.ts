@@ -78,6 +78,8 @@ export async function GET(request: NextRequest) {
         cpc,
         competition_level,
         search_volume_trend,
+        search_volume_location_code,
+        search_volume_location_name,
         metrics_updated_at,
         keyword_groups (
           id,
@@ -216,7 +218,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { phrase, groupId, promptPageId, review_phrase, search_query, search_terms, aliases, location_scope, ai_generated, related_questions } = body;
+    const { phrase, groupId, promptPageId, review_phrase, search_query, search_terms, aliases, location_scope, ai_generated, related_questions, search_volume_location_code, search_volume_location_name } = body;
 
     if (!phrase || typeof phrase !== 'string' || phrase.trim().length === 0) {
       return NextResponse.json(
@@ -359,6 +361,9 @@ export async function POST(request: NextRequest) {
         location_scope: location_scope || null,
         ai_generated: ai_generated || false,
         related_questions: related_questions ? relatedQuestionsToDb(related_questions as RelatedQuestion[]) : [],
+        // Location for rank tracking and volume lookups
+        search_volume_location_code: search_volume_location_code ?? null,
+        search_volume_location_name: search_volume_location_name ?? null,
       })
       .select(`
         id,
@@ -380,6 +385,8 @@ export async function POST(request: NextRequest) {
         ai_generated,
         ai_suggestions,
         related_questions,
+        search_volume_location_code,
+        search_volume_location_name,
         keyword_groups (
           id,
           name

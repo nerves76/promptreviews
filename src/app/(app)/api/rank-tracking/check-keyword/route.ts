@@ -44,13 +44,35 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { keyword, keywordId, locationCode = 2840, device = 'desktop' } = body;
+    const { keyword, keywordId, locationCode: providedLocationCode, device = 'desktop' } = body;
 
     if (!keyword || typeof keyword !== 'string') {
       return NextResponse.json(
         { error: 'Keyword is required' },
         { status: 400 }
       );
+    }
+
+    // Determine location to use:
+    // 1. If keywordId provided, use concept's location
+    // 2. Otherwise use provided locationCode
+    // 3. Fall back to default (2840 = USA)
+    let locationCode = providedLocationCode ?? 2840;
+    let locationName: string | null = null;
+
+    if (keywordId) {
+      const { data: conceptKeyword } = await serviceSupabase
+        .from('keywords')
+        .select('search_volume_location_code, search_volume_location_name')
+        .eq('id', keywordId)
+        .eq('account_id', accountId)
+        .single();
+
+      if (conceptKeyword?.search_volume_location_code) {
+        locationCode = conceptKeyword.search_volume_location_code;
+        locationName = conceptKeyword.search_volume_location_name;
+        console.log(`📍 [RankTracking] Using concept location: ${locationName} (${locationCode})`);
+      }
     }
 
     // Get target domain from business profile
@@ -139,15 +161,17 @@ export async function POST(request: NextRequest) {
 
     // Store result if we have a keywordId
     if (keywordId) {
-      // Look up location name from the rank_locations table
-      let locationName = 'Unknown';
-      const { data: locationData } = await serviceSupabase
-        .from('rank_locations')
-        .select('canonical_name')
-        .eq('location_code', locationCode)
-        .single();
-      if (locationData) {
-        locationName = locationData.canonical_name;
+      // If we don't have location name from concept, look it up
+      let finalLocationName = locationName;
+      if (!finalLocationName) {
+        const { data: locationData } = await serviceSupabase
+          .from('rank_locations')
+          .select('canonical_name')
+          .eq('location_code', locationCode)
+          .single();
+        if (locationData) {
+          finalLocationName = locationData.canonical_name;
+        }
       }
 
       const { error: insertError } = await serviceSupabase
@@ -157,7 +181,7 @@ export async function POST(request: NextRequest) {
           keyword_id: keywordId,
           search_query_used: keyword,
           location_code: locationCode,
-          location_name: locationName,
+          location_name: finalLocationName || 'Unknown',
           device,
           position: rankResult.position,
           found_url: rankResult.url,

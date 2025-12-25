@@ -6,6 +6,7 @@ import Cropper from "react-easy-crop";
 import IndustrySelector from "../../components/IndustrySelector";
 import RobotTooltip from "../../components/RobotTooltip";
 import { KickstartersFeature } from "../../components/prompt-features";
+import LocationPicker from "@/components/LocationPicker";
 
 function Tooltip({ text }: { text: string }) {
   const [show, setShow] = useState(false);
@@ -649,6 +650,30 @@ export default function BusinessProfileForm({
             onChange={handleChange}
             required
             placeholder="Country"
+          />
+        </div>
+        {/* Location for Keyword Research */}
+        <div className="mb-6">
+          <label className="block font-semibold text-sm text-gray-500 mb-1 flex items-center gap-1">
+            Location for keyword research
+            <RobotTooltip text="Used as the default location when checking search volume and ranking data for your keyword concepts." />
+          </label>
+          <p className="text-xs text-gray-500 mb-2">
+            This location will be used as the default for keyword research and rank tracking.
+          </p>
+          <LocationPicker
+            value={{
+              locationCode: form.location_code || null,
+              locationName: form.location_name || null,
+            }}
+            onChange={(location) => {
+              setForm((f: any) => ({
+                ...f,
+                location_code: location?.locationCode || null,
+                location_name: location?.locationName || null,
+              }));
+            }}
+            placeholder="Search for a city or region..."
           />
         </div>
         {/* Industry Selector Integration */}

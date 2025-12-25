@@ -22,6 +22,7 @@ import { trackEvent, GA_EVENTS } from "@/utils/analytics";
 import { markTaskAsCompleted } from "@/utils/onboardingTasks";
 import WelcomePopup from "@/app/(app)/components/WelcomePopup";
 import ImportFromWebsite from "./components/ImportFromWebsite";
+import LocationPicker from "@/components/LocationPicker";
 
 function Tooltip({ text }: { text: string }) {
   const [show, setShow] = useState(false);
@@ -165,6 +166,8 @@ export default function BusinessProfilePage() {
     selected_kickstarters: [],
     custom_kickstarters: [],
     kickstarters_background_design: false,
+    location_code: null as number | null,
+    location_name: null as string | null,
     };
   });
   const [loading, setLoading] = useState(true);
@@ -215,12 +218,16 @@ export default function BusinessProfilePage() {
   const [accountId, setAccountId] = useState<string | null>(null);
   const [businessId, setBusinessId] = useState<string | null>(null);
   const [showWelcomePopup, setShowWelcomePopup] = useState(false);
-  const [hasBeenSaved, setHasBeenSaved] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('businessProfileSaved') === 'true';
+  // Note: hasBeenSaved is initialized as false and updated in useEffect when selectedAccountId is available
+  const [hasBeenSaved, setHasBeenSaved] = useState(false);
+
+  // Update hasBeenSaved when selectedAccountId changes (account-specific localStorage key)
+  useEffect(() => {
+    if (typeof window !== 'undefined' && selectedAccountId) {
+      const saved = localStorage.getItem(`businessProfileSaved_${selectedAccountId}`) === 'true';
+      setHasBeenSaved(saved);
     }
-    return false;
-  });
+  }, [selectedAccountId]);
 
   // Handler for closing the welcome popup
   const handleWelcomeClose = () => {
@@ -446,6 +453,8 @@ export default function BusinessProfilePage() {
             kickstarters_enabled: false,
             selected_kickstarters: [],
             kickstarters_background_design: false,
+            location_code: null,
+            location_name: null,
           });
           setServices([""]);
           setLogoUrl(null);
@@ -477,6 +486,8 @@ export default function BusinessProfilePage() {
             selected_kickstarters: businessData.selected_kickstarters || [],
             custom_kickstarters: businessData.custom_kickstarters || [],
             kickstarters_background_design: businessData.kickstarters_background_design ?? false,
+            location_code: businessData.location_code || null,
+            location_name: businessData.location_name || null,
           });
           setServices(
             Array.isArray(businessData.services_offered)
@@ -879,6 +890,8 @@ export default function BusinessProfilePage() {
         services_offered: filteredServices,
         industry: form.industry || [],
         industries_other: form.industries_other || null,
+        location_code: form.location_code,
+        location_name: form.location_name,
       };
 
       // Debug logging - always enabled to help troubleshoot save issues
@@ -980,8 +993,10 @@ export default function BusinessProfilePage() {
         localStorage.removeItem('businessProfilePlatforms');
         localStorage.removeItem('businessProfileServices');
         localStorage.removeItem('businessProfileDifferentiators');
-        // Mark that profile has been saved (hides import from website feature)
-        localStorage.setItem('businessProfileSaved', 'true');
+        // Mark that profile has been saved (hides import from website feature) - account-specific
+        if (selectedAccountId) {
+          localStorage.setItem(`businessProfileSaved_${selectedAccountId}`, 'true');
+        }
         setHasBeenSaved(true);
       }
 

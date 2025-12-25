@@ -96,17 +96,7 @@ export interface KeywordDetailsSidebarProps {
   isOpen: boolean;
   keyword: KeywordData | null;
   onClose: () => void;
-  onUpdate: (id: string, updates: Partial<{
-    phrase: string;
-    groupId: string;
-    status: 'active' | 'paused';
-    reviewPhrase: string;
-    searchQuery: string;
-    searchTerms: SearchTerm[];
-    aliases: string[];
-    locationScope: string | null;
-    relatedQuestions: RelatedQuestion[];
-  }>) => Promise<KeywordData | null>;
+  onUpdate: (id: string, updates: Partial<KeywordData>) => Promise<KeywordData | null>;
   /** Optional: Show prompt pages this keyword is used in */
   promptPages?: Array<{ id: string; name?: string; slug?: string }>;
   /** Optional: Show recent reviews matching this keyword */

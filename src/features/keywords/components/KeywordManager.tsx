@@ -9,7 +9,7 @@ import { KeywordDetailsSidebar } from './KeywordDetailsSidebar';
 import ConceptCard from './ConceptCard';
 import { useKeywords, useKeywordDetails } from '../hooks/useKeywords';
 
-import { type KeywordData, type KeywordGroupData, type ResearchResultData, DEFAULT_GROUP_NAME } from '../keywordUtils';
+import { type KeywordData, type KeywordGroupData, type ResearchResultData, type RelatedQuestion, DEFAULT_GROUP_NAME } from '../keywordUtils';
 import { apiClient } from '@/utils/apiClient';
 import { BulkActionBar } from './BulkActionBar';
 import { BulkDeleteModal } from './BulkDeleteModal';
@@ -145,7 +145,7 @@ export default function KeywordManager({
   const [showMissingFieldsError, setShowMissingFieldsError] = useState(false);
   const [missingFields, setMissingFields] = useState<string[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedKeywords, setGeneratedKeywords] = useState<{ searchTerms: string[]; reviewPhrase: string }[]>([]);
+  const [generatedKeywords, setGeneratedKeywords] = useState<{ conceptName: string; searchTerms: string[]; reviewPhrase: string; relatedQuestions: any[] }[]>([]);
   const [selectedGeneratedKeywords, setSelectedGeneratedKeywords] = useState<Set<number>>(new Set());
   const [usageInfo, setUsageInfo] = useState<{ current: number; limit: number; remaining: number } | null>(null);
   const [generatorError, setGeneratorError] = useState<string | null>(null);
@@ -304,10 +304,13 @@ export default function KeywordManager({
     async (keyword: {
       phrase: string;
       review_phrase: string;
-      search_query: string;
+      search_terms: { term: string; isCanonical: boolean; addedAt: string }[];
       aliases: string[];
       location_scope: string | null;
+      related_questions: RelatedQuestion[];
       ai_generated: boolean;
+      search_volume_location_code: number | null;
+      search_volume_location_name: string | null;
     }) => {
       await createEnrichedKeyword({
         ...keyword,
@@ -586,7 +589,12 @@ export default function KeywordManager({
 
     try {
       const data = await apiClient.post<{
-        keywords?: { searchTerms: string[]; reviewPhrase: string }[];
+        keywords?: {
+          conceptName: string;
+          searchTerms: string[];
+          reviewPhrase: string;
+          relatedQuestions?: { question: string; funnelStage: 'top' | 'middle' | 'bottom'; addedAt: string }[];
+        }[];
         usage?: { current: number; limit: number; remaining: number };
       }>('/ai/generate-keywords', {
         businessName: normalized.name || '',
@@ -602,12 +610,14 @@ export default function KeywordManager({
 
       // Normalize keywords to ensure searchTerms is always an array
       const normalizedKeywords = (data.keywords || []).map((kw: any) => ({
+        conceptName: kw.conceptName || kw.searchTerms?.[0] || kw.reviewPhrase || 'Untitled',
         searchTerms: Array.isArray(kw.searchTerms)
           ? kw.searchTerms
           : kw.searchTerm
             ? [kw.searchTerm]
             : [],
         reviewPhrase: kw.reviewPhrase || '',
+        relatedQuestions: Array.isArray(kw.relatedQuestions) ? kw.relatedQuestions : [],
       }));
 
       setGeneratedKeywords(normalizedKeywords);
@@ -663,15 +673,17 @@ export default function KeywordManager({
         addedAt: now,
       }));
 
-      // Use first search term as concept name (it's the canonical/primary one)
-      const conceptName = kw.searchTerms[0] || kw.reviewPhrase;
+      // Use conceptName from AI generation, apply business location
       await createEnrichedKeyword({
-        phrase: conceptName,
+        phrase: kw.conceptName,
         review_phrase: kw.reviewPhrase,
         search_terms: searchTermsFormatted,
         aliases: [],
         location_scope: null,
+        related_questions: kw.relatedQuestions || [],
         ai_generated: true,
+        search_volume_location_code: business?.location_code ?? null,
+        search_volume_location_name: business?.location_name ?? null,
       });
     }
 
@@ -706,7 +718,7 @@ export default function KeywordManager({
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `keyword-concepts-export-${new Date().toISOString().split('T')[0]}.csv`;
+      a.download = `concepts-export-${new Date().toISOString().split('T')[0]}.csv`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
@@ -733,7 +745,7 @@ export default function KeywordManager({
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'keyword-concepts-template.csv';
+      a.download = 'concepts-template.csv';
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
@@ -876,9 +888,9 @@ export default function KeywordManager({
       {!compact && (
         <div className="mb-6 flex items-start justify-between">
           <div>
-            <h2 className="text-xl font-bold text-slate-blue">Keyword Concepts library</h2>
+            <h2 className="text-xl font-bold text-slate-blue">Keyword concepts library</h2>
             <p className="text-sm text-gray-500 mt-1">
-              Manage keywords across your prompt pages. Keywords with 4+ words show usage indicators.
+              Organize concepts for SEO rank tracking, review keyword matching, and AI visibility monitoring.
             </p>
           </div>
           {/* Action buttons - top right */}
@@ -966,8 +978,8 @@ export default function KeywordManager({
                 <Icon name="prompty" className="w-4 h-4 text-white" />
               </div>
               <div>
-                <h4 className="text-sm font-semibold text-white">AI keyword generator</h4>
-                <p className="text-xs text-white/80">Generate SEO-optimized phrases for your reviews</p>
+                <h4 className="text-sm font-semibold text-white">AI concept generator</h4>
+                <p className="text-xs text-white/80">Generate concepts with search terms, review phrases, and AI visibility questions</p>
               </div>
             </div>
             <button
@@ -999,19 +1011,19 @@ export default function KeywordManager({
             {isGenerating && generatedKeywords.length === 0 && (
               <div className="flex flex-col items-center justify-center py-8">
                 <Icon name="FaSpinner" className="w-8 h-8 text-slate-blue animate-spin mb-3" />
-                <p className="text-gray-700 font-medium">Generating keywords...</p>
+                <p className="text-gray-700 font-medium">Generating concepts...</p>
                 <p className="text-gray-500 text-sm mt-1">
-                  AI is creating 10 SEO-optimized keyword ideas for {business?.name}
+                  Creating 10 concepts with search terms, review phrases, and AI visibility questions
                 </p>
               </div>
             )}
 
-            {/* Keywords Table */}
+            {/* Generated Concepts Table */}
             {generatedKeywords.length > 0 && (
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <h5 className="text-sm font-semibold text-gray-900">
-                    Generated keywords ({selectedGeneratedKeywords.size} selected)
+                    Generated concepts ({selectedGeneratedKeywords.size} selected)
                   </h5>
                 </div>
 
@@ -1029,12 +1041,16 @@ export default function KeywordManager({
                             />
                           </th>
                           <th className="px-3 py-2 text-left">
-                            <div className="text-xs font-bold text-gray-900">Review phrase</div>
+                            <div className="text-xs font-bold text-gray-900">Concept name</div>
                             <div className="text-xs font-normal text-gray-500">Added to library</div>
                           </th>
                           <th className="px-3 py-2 text-left">
                             <div className="text-xs font-bold text-gray-900">Search terms</div>
-                            <div className="text-xs font-normal text-gray-500">3 variations per concept</div>
+                            <div className="text-xs font-normal text-gray-500">3 variations</div>
+                          </th>
+                          <th className="px-3 py-2 text-left">
+                            <div className="text-xs font-bold text-gray-900">Review phrase</div>
+                            <div className="text-xs font-normal text-gray-500">For prompts</div>
                           </th>
                         </tr>
                       </thead>
@@ -1056,7 +1072,7 @@ export default function KeywordManager({
                                 onClick={(e) => e.stopPropagation()}
                               />
                             </td>
-                            <td className="px-3 py-2 text-sm text-gray-700">{kw.reviewPhrase}</td>
+                            <td className="px-3 py-2 text-sm font-medium text-gray-900">{kw.conceptName}</td>
                             <td className="px-3 py-2 text-sm text-gray-900">
                               <div className="flex flex-wrap gap-1">
                                 {kw.searchTerms.map((term, i) => (
@@ -1073,6 +1089,7 @@ export default function KeywordManager({
                                 ))}
                               </div>
                             </td>
+                            <td className="px-3 py-2 text-sm text-gray-600 italic">{kw.reviewPhrase}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -1119,12 +1136,12 @@ export default function KeywordManager({
         </div>
       )}
 
-      {/* Add Keyword Section */}
+      {/* Add Concept Section */}
       <div ref={addKeywordFormRef} className="mb-4 p-4 bg-white border border-gray-200 rounded-lg">
         <div className="flex items-start justify-between mb-4">
           <div>
-            <h3 className="text-base font-semibold text-gray-800">Add keyword concept</h3>
-            <p className="text-sm text-gray-500">Track keywords across reviews, search rankings, and AI visibility.</p>
+            <h3 className="text-base font-semibold text-gray-800">Add concept</h3>
+            <p className="text-sm text-gray-500">Each concept includes search terms for rank tracking, review phrases, and questions for AI visibility.</p>
           </div>
           <button
             onClick={handleGenerateClick}
@@ -1144,6 +1161,8 @@ export default function KeywordManager({
           businessName={businessName}
           businessCity={businessCity}
           businessState={businessState}
+          businessLocationCode={business?.location_code}
+          businessLocationName={business?.location_name}
         />
       </div>
 
@@ -1363,7 +1382,7 @@ export default function KeywordManager({
           <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-hidden flex flex-col">
             {/* Modal Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b">
-              <h3 className="text-lg font-semibold text-gray-800">Import Keyword Concepts</h3>
+              <h3 className="text-lg font-semibold text-gray-800">Import concepts</h3>
               <button onClick={resetImportModal} className="text-gray-400 hover:text-gray-600">
                 <XMarkIcon className="w-5 h-5" />
               </button>

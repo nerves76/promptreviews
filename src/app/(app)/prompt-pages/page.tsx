@@ -896,12 +896,12 @@ function PromptPagesContent() {
           {/* Universal Prompt Page Card */}
           {universalPromptPage && (
             <div className="max-w-7xl mx-auto mb-12">
-              <div className="max-w-[800px] rounded-lg p-6 bg-blue-50 border border-blue-200 flex items-center gap-4 shadow-lg relative">
+              <div className="max-w-[800px] rounded-2xl p-6 bg-white/10 backdrop-blur-md border border-white/30 flex items-center gap-4 shadow-lg relative">
                 <div className="flex-1">
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-2">
-                      <h2 className="text-2xl font-bold text-slate-blue flex items-center gap-3">
-                        <Icon name="FaGlobe" className="w-8 h-8 text-slate-blue" size={32} />
+                      <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+                        <Icon name="FaGlobe" className="w-8 h-8 text-white" size={32} />
                         Universal Prompt Page
                       </h2>
                       <UniversalTooltip />
@@ -909,21 +909,21 @@ function PromptPagesContent() {
                     <div className="flex gap-4 items-center">
                       <Link
                         href={`/r/${universalPromptPage.slug}`}
-                        className="text-slate-blue underline hover:text-slate-blue/80"
+                        className="text-white underline hover:text-white/80"
                       >
                         View
                       </Link>
                       {universalPromptPage?.slug && (
                         <Link
                           href={"/dashboard/edit-prompt-page/universal"}
-                          className="text-slate-blue underline hover:text-slate-blue/80"
+                          className="text-white underline hover:text-white/80"
                         >
                           Edit
                         </Link>
                       )}
                     </div>
                   </div>
-                  <p className="mt-4 text-gray-700 mb-4 text-sm">
+                  <p className="mt-4 text-white/80 mb-4 text-sm">
                     Your Universal Prompt Page is designed to be used in a wide variety of formats and settings.
                   </p>
                   <div className="flex flex-wrap gap-2 items-center">
@@ -931,9 +931,9 @@ function PromptPagesContent() {
                       <button
                         type="button"
                         onClick={() => handleCopyLink()}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-purple-100 text-purple-800 rounded hover:bg-purple-200 text-sm font-medium shadow border border-purple-300 h-9 align-middle whitespace-nowrap"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-white/20 backdrop-blur-sm text-white rounded hover:bg-white/30 text-sm font-medium border border-white/30 h-9 align-middle whitespace-nowrap transition-colors"
                       >
-                        <Icon name="FaLink" className="w-5 h-5" size={20} />
+                        <Icon name="FaLink" className="w-4 h-4" size={16} />
                         Copy link
                       </button>
                       <button
@@ -947,9 +947,9 @@ function PromptPagesContent() {
                             showNfcText: universalPromptPage?.nfc_text_enabled ?? false,
                           });
                         }}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-amber-100 text-amber-800 rounded hover:bg-amber-200 text-sm font-medium shadow border border-amber-300 h-9 align-middle whitespace-nowrap"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-white/20 backdrop-blur-sm text-white rounded hover:bg-white/30 text-sm font-medium border border-white/30 h-9 align-middle whitespace-nowrap transition-colors"
                       >
-                        <Icon name="MdDownload" className="w-5 h-5" size={20} />
+                        <Icon name="MdDownload" className="w-4 h-4" size={16} />
                         QR code
                       </button>
 
@@ -960,6 +960,7 @@ function PromptPagesContent() {
                             emojiSentimentEnabled={universalPromptPage?.emoji_sentiment_enabled}
                             isUniversal={true}
                             business={business}
+                            glassmorphic={true}
                           />
                         )}
 
@@ -971,9 +972,9 @@ function PromptPagesContent() {
                             const message = `Hi! I'd love to get your feedback on ${businessName}. Please leave a review here: ${reviewUrl}`;
                             window.location.href = `sms:?&body=${encodeURIComponent(message)}`;
                           }}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 bg-green-100 text-green-800 rounded hover:bg-green-200 text-sm font-medium shadow border border-green-300 h-9 align-middle whitespace-nowrap"
+                          className="inline-flex items-center gap-1 px-3 py-1.5 bg-white/20 backdrop-blur-sm text-white rounded hover:bg-white/30 text-sm font-medium border border-white/30 h-9 align-middle whitespace-nowrap transition-colors"
                         >
-                          <Icon name="FaMobile" className="w-5 h-5" size={20} />
+                          <Icon name="FaMobile" className="w-4 h-4" size={16} />
                           Send SMS
                         </button>
                       <button
@@ -985,14 +986,14 @@ function PromptPagesContent() {
                           const message = `Hi,\n\nI'd love to get your feedback on ${businessName}. Please leave a review here: ${reviewUrl}\n\nThank you!`;
                           window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}`;
                         }}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-100 text-blue-800 rounded hover:bg-blue-200 text-sm font-medium shadow border border-blue-300 h-9 align-middle whitespace-nowrap"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-white/20 backdrop-blur-sm text-white rounded hover:bg-white/30 text-sm font-medium border border-white/30 h-9 align-middle whitespace-nowrap transition-colors"
                       >
-                        <Icon name="FaEnvelope" className="w-5 h-5" size={20} />
+                        <Icon name="FaEnvelope" className="w-4 h-4" size={16} />
                         Send email
                       </button>
 
                       {copySuccess && (
-                        <span className="ml-2 text-green-600 text-xs font-semibold">
+                        <span className="ml-2 text-green-400 text-xs font-semibold">
                           {copySuccess}
                         </span>
                       )}
@@ -1701,14 +1702,14 @@ Also, the help bubble in the bottom-right of your screen is always there for you
 
 function UniversalTooltip() {
   const [show, setShow] = useState(false);
-  
+
   return (
     <span className="relative inline-block align-middle ml-1">
       <button
         type="button"
         tabIndex={0}
         aria-label="Show Universal Prompt Page info"
-        className="text-slate-blue hover:text-indigo-600 focus:outline-none"
+        className="text-white/80 hover:text-white focus:outline-none"
         onClick={() => setShow((v) => !v)}
         onBlur={() => setShow(false)}
         style={{ lineHeight: 1 }}
@@ -1716,7 +1717,7 @@ function UniversalTooltip() {
         <Icon name="FaInfoCircle" className="inline-block w-5 h-5 align-middle cursor-pointer" size={20} />
       </button>
       {show && (
-        <div className="absolute z-20 left-1/2 -translate-x-1/2 mt-2 w-80 p-3 bg-white border border-gray-200 rounded shadow text-sm text-gray-700">
+        <div className="absolute z-20 left-1/2 -translate-x-1/2 mt-2 w-80 p-3 bg-white/10 backdrop-blur-lg border border-white/30 rounded-xl shadow-lg text-sm text-white">
           Your Universal Prompt Page is a great choice for a QR code featured at your front desk or on tables at your restaurant or even a business card or lanyard. You could also feature it in a newsletter or an auto-reply (For best results, we highly recommend reaching out personally for reviews.) To avoid duplicate or similar reviews, Universal Prompt Pages don't allow pre-written reviews, but users can use Prompty AI to get an optimized review template.
         </div>
       )}

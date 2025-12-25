@@ -25,6 +25,7 @@ interface PromptPageEmbedButtonProps {
   emojiSentimentEnabled?: boolean;
   isUniversal?: boolean;
   business?: BusinessData | null;
+  glassmorphic?: boolean;
 }
 
 /**
@@ -44,6 +45,7 @@ const PromptPageEmbedButton: React.FC<PromptPageEmbedButtonProps> = ({
   emojiSentimentEnabled = false,
   isUniversal = false,
   business = null,
+  glassmorphic = false,
 }) => {
   const [showModal, setShowModal] = useState(false);
 
@@ -51,12 +53,16 @@ const PromptPageEmbedButton: React.FC<PromptPageEmbedButtonProps> = ({
     return null;
   }
 
+  const buttonClass = glassmorphic
+    ? "inline-flex items-center gap-1 px-3 py-1.5 bg-white/20 backdrop-blur-sm text-white rounded hover:bg-white/30 text-sm font-medium border border-white/30 h-9 align-middle whitespace-nowrap transition-colors"
+    : "inline-flex items-center gap-1 px-3 py-1.5 bg-red-100 text-red-800 rounded hover:bg-red-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap";
+
   return (
     <>
       <button
         type="button"
         onClick={() => setShowModal(true)}
-        className="inline-flex items-center gap-1 px-3 py-1.5 bg-red-100 text-red-800 rounded hover:bg-red-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap"
+        className={buttonClass}
         title="Get embed code for this prompt page"
       >
         <Icon name="FaCode" className="w-4 h-4" size={16} />

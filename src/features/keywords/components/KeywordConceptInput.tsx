@@ -12,6 +12,7 @@ import {
   getFunnelStageShortLabel,
 } from "../keywordUtils";
 import { useRelatedQuestions } from "../hooks/useRelatedQuestions";
+import LocationPicker from "@/components/LocationPicker";
 
 interface KeywordEnrichment {
   review_phrase: string;
@@ -30,10 +31,15 @@ interface KeywordConceptInputProps {
     location_scope: string | null;
     related_questions: RelatedQuestion[];
     ai_generated: boolean;
+    search_volume_location_code: number | null;
+    search_volume_location_name: string | null;
   }) => void;
   businessName?: string;
   businessCity?: string;
   businessState?: string;
+  /** Default location from business profile */
+  businessLocationCode?: number | null;
+  businessLocationName?: string | null;
   placeholder?: string;
   className?: string;
 }
@@ -41,16 +47,21 @@ interface KeywordConceptInputProps {
 /**
  * KeywordConceptInput Component
  *
- * A flexible keyword input that allows users to:
- * A. Add keyword and save without any optional fields (quick add)
- * B. Add keyword, then click to generate the rest via AI (1 credit)
+ * A flexible concept input that allows users to:
+ * A. Add concept and save without any optional fields (quick add)
+ * B. Add concept name, then click to auto-fill with AI
  * C. Fill out fields manually before saving
+ *
+ * Each concept includes: concept name, review phrase, search terms, aliases,
+ * location scope, and related questions for AI visibility tracking.
  */
 export default function KeywordConceptInput({
   onKeywordAdded,
   businessName,
   businessCity,
   businessState,
+  businessLocationCode,
+  businessLocationName,
   placeholder = "Name this concept (e.g., Green eggs and ham)",
   className = "",
 }: KeywordConceptInputProps) {
@@ -70,6 +81,14 @@ export default function KeywordConceptInput({
   const [aliases, setAliases] = useState<string[]>([]);
   const [newAlias, setNewAlias] = useState("");
   const [locationScope, setLocationScope] = useState<string | null>(null);
+  // Concept location - defaults to business location
+  const [conceptLocation, setConceptLocation] = useState<{
+    locationCode: number | null;
+    locationName: string | null;
+  }>({
+    locationCode: businessLocationCode ?? null,
+    locationName: businessLocationName ?? null,
+  });
 
   // Related questions hook
   const {
@@ -112,6 +131,11 @@ export default function KeywordConceptInput({
     setAliases([]);
     setNewAlias("");
     setLocationScope(null);
+    // Reset location to business default
+    setConceptLocation({
+      locationCode: businessLocationCode ?? null,
+      locationName: businessLocationName ?? null,
+    });
     resetQuestions();
     setAiGenerated(false);
     setError(null);
@@ -119,7 +143,7 @@ export default function KeywordConceptInput({
     setVolumeError(null);
     setShowOverwriteWarning(false);
     setShowForm(false);
-  }, [resetQuestions]);
+  }, [resetQuestions, businessLocationCode, businessLocationName]);
 
   // Search volume lookup handler
   const handleVolumeLookup = useCallback(async (term: string) => {
@@ -259,10 +283,12 @@ export default function KeywordConceptInput({
       location_scope: locationScope,
       related_questions: relatedQuestions,
       ai_generated: aiGenerated,
+      search_volume_location_code: conceptLocation.locationCode,
+      search_volume_location_name: conceptLocation.locationName,
     });
 
     resetForm();
-  }, [keyword, reviewPhrase, searchTerms, aliases, locationScope, relatedQuestions, aiGenerated, onKeywordAdded, resetForm]);
+  }, [keyword, reviewPhrase, searchTerms, aliases, locationScope, relatedQuestions, aiGenerated, conceptLocation, onKeywordAdded, resetForm]);
 
   const handleRemoveAlias = useCallback(
     (index: number) => {
@@ -341,7 +367,7 @@ export default function KeywordConceptInput({
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
           </svg>
-          Add keyword concept
+          Add concept
         </button>
       </div>
     );
@@ -402,7 +428,7 @@ export default function KeywordConceptInput({
           ) : (
             <>
               <Icon name="prompty" className="w-4 h-4" />
-              Complete concept with AI
+              Auto-fill with AI
             </>
           )}
         </button>
@@ -671,6 +697,29 @@ export default function KeywordConceptInput({
               Add
             </button>
           </div>
+        )}
+      </div>
+
+      {/* Location for rank tracking */}
+      <div className="space-y-1">
+        <label className="block text-sm font-medium text-gray-600">
+          Location
+          <span className="text-gray-400 font-normal ml-1">(for rank tracking and volume lookups)</span>
+        </label>
+        <LocationPicker
+          value={conceptLocation}
+          onChange={(location) => {
+            setConceptLocation({
+              locationCode: location?.locationCode ?? null,
+              locationName: location?.locationName ?? null,
+            });
+          }}
+          placeholder="Search for a city or region..."
+        />
+        {!conceptLocation.locationCode && !businessLocationCode && (
+          <p className="text-xs text-amber-600 mt-1">
+            Tip: Set a location on your Business Profile to auto-fill new concepts.
+          </p>
         )}
       </div>
 

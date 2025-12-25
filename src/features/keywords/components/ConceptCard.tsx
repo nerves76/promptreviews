@@ -23,6 +23,7 @@ import {
 import type { EnrichmentData } from './KeywordManager';
 import { useAuth } from '@/auth';
 import { FunnelStageGroup } from './FunnelStageGroup';
+import LocationPicker from '@/components/LocationPicker';
 
 // Types for rank status (from enrichment data)
 interface RankingData {
@@ -108,6 +109,15 @@ export function ConceptCard({
   const [editedQuestions, setEditedQuestions] = useState<RelatedQuestion[]>(keyword.relatedQuestions || []);
   const [newQuestion, setNewQuestion] = useState('');
   const [newQuestionFunnel, setNewQuestionFunnel] = useState<'top' | 'middle' | 'bottom'>('top');
+  // Location editing
+  const [editedLocation, setEditedLocation] = useState<{
+    locationCode: number | null;
+    locationName: string | null;
+  }>({
+    locationCode: keyword.searchVolumeLocationCode ?? null,
+    locationName: keyword.searchVolumeLocationName ?? null,
+  });
+  const [showLocationWarning, setShowLocationWarning] = useState(false);
 
   // Optimistic update state
   const [optimisticData, setOptimisticData] = useState<Partial<KeywordData> | null>(null);
@@ -153,6 +163,11 @@ export function ConceptCard({
     setEditedAliases(keyword.aliases || []);
     setEditedSearchTerms(keyword.searchTerms || []);
     setEditedQuestions(keyword.relatedQuestions || []);
+    setEditedLocation({
+      locationCode: keyword.searchVolumeLocationCode ?? null,
+      locationName: keyword.searchVolumeLocationName ?? null,
+    });
+    setShowLocationWarning(false);
   }, [keyword]);
 
   // Build question -> provider -> result map using shared utility
@@ -259,12 +274,17 @@ export function ConceptCard({
     setEditedAliases(keyword.aliases || []);
     setEditedSearchTerms(keyword.searchTerms || []);
     setEditedQuestions(keyword.relatedQuestions || []);
+    setEditedLocation({
+      locationCode: keyword.searchVolumeLocationCode ?? null,
+      locationName: keyword.searchVolumeLocationName ?? null,
+    });
     setNewAlias('');
     setNewSearchTerm('');
     setNewQuestion('');
     setEnrichSuccess(false);
     setEnrichError(null);
     setShowOverwriteWarning(false);
+    setShowLocationWarning(false);
   };
 
   // Handle saving changes with optimistic updates
@@ -280,7 +300,12 @@ export function ConceptCard({
       aliases: keyword.aliases,
       searchTerms: keyword.searchTerms,
       relatedQuestions: keyword.relatedQuestions,
+      searchVolumeLocationCode: keyword.searchVolumeLocationCode,
+      searchVolumeLocationName: keyword.searchVolumeLocationName,
     };
+
+    // Check if location changed - will trigger history cleanup on backend
+    const locationChanged = editedLocation.locationCode !== keyword.searchVolumeLocationCode;
 
     // Optimistically update the UI
     const updates = {
@@ -289,6 +314,10 @@ export function ConceptCard({
       aliases: editedAliases,
       searchTerms: editedSearchTerms,
       relatedQuestions: editedQuestions,
+      searchVolumeLocationCode: editedLocation.locationCode,
+      searchVolumeLocationName: editedLocation.locationName,
+      // Flag to tell backend to clear history if location changed
+      ...(locationChanged && { _locationChanged: true }),
     };
     setOptimisticData(updates);
 
@@ -316,6 +345,10 @@ export function ConceptCard({
       setEditedAliases(originalData.aliases || []);
       setEditedSearchTerms(originalData.searchTerms || []);
       setEditedQuestions(originalData.relatedQuestions || []);
+      setEditedLocation({
+        locationCode: originalData.searchVolumeLocationCode ?? null,
+        locationName: originalData.searchVolumeLocationName ?? null,
+      });
 
       // Show error feedback
       setSaveError(err instanceof Error ? err.message : 'Failed to save changes');
@@ -560,6 +593,15 @@ export function ConceptCard({
                     LLM citations: {llmCitationStats.cited}/{llmCitationStats.total}
                   </span>
                 )}
+                {keyword.searchVolumeLocationName && (
+                  <span
+                    className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-slate-100 text-slate-600 max-w-[100px] truncate"
+                    title={keyword.searchVolumeLocationName}
+                  >
+                    <Icon name="FaMapMarker" className="w-2 h-2 inline mr-0.5" />
+                    {keyword.searchVolumeLocationName.split(',')[0]}
+                  </span>
+                )}
                 {keyword.isUsedInRankTracking && avgPosition !== null && (
                   <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${
                     avgPosition <= 10
@@ -700,6 +742,50 @@ export function ConceptCard({
               </div>
             </div>
           )}
+
+          {/* Location Section */}
+          <div className="px-4 py-2 border-b border-gray-100">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-xs font-medium text-gray-600 flex items-center gap-1">
+                <Icon name="FaMapMarker" className="w-3 h-3 text-slate-blue" />
+                Location for rank tracking
+              </span>
+            </div>
+            {isEditing ? (
+              <div className="space-y-2">
+                <LocationPicker
+                  value={editedLocation}
+                  onChange={(location) => {
+                    const isChanging = location?.locationCode !== keyword.searchVolumeLocationCode;
+                    if (isChanging && keyword.searchVolumeLocationCode) {
+                      setShowLocationWarning(true);
+                    }
+                    setEditedLocation({
+                      locationCode: location?.locationCode ?? null,
+                      locationName: location?.locationName ?? null,
+                    });
+                  }}
+                  placeholder="Search for a city or region..."
+                />
+                {showLocationWarning && editedLocation.locationCode !== keyword.searchVolumeLocationCode && (
+                  <div className="p-2 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-700 flex items-start gap-2">
+                    <Icon name="FaExclamationTriangle" className="w-3 h-3 mt-0.5 flex-shrink-0" />
+                    <span>Changing location will clear rank and volume history for this concept.</span>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="text-sm text-gray-700">
+                {keyword.searchVolumeLocationName ? (
+                  <span className="flex items-center gap-1.5">
+                    <span>{keyword.searchVolumeLocationName}</span>
+                  </span>
+                ) : (
+                  <span className="text-gray-400 italic">No location set</span>
+                )}
+              </div>
+            )}
+          </div>
 
           {/* Collapsible Sections */}
           <div className="px-4">

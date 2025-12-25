@@ -69,6 +69,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         cpc,
         competition_level,
         search_volume_trend,
+        search_volume_location_code,
+        search_volume_location_name,
         metrics_updated_at,
         keyword_groups (
           id,
@@ -178,10 +180,10 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Account not found' }, { status: 404 });
     }
 
-    // Verify keyword belongs to this account
+    // Verify keyword belongs to this account and get current location for comparison
     const { data: existingKeyword } = await serviceSupabase
       .from('keywords')
-      .select('id, account_id')
+      .select('id, account_id, search_volume_location_code, search_terms')
       .eq('id', id)
       .eq('account_id', accountId)
       .single();
@@ -191,7 +193,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     }
 
     const body = await request.json();
-    const { phrase, groupId, status, reviewPhrase, searchQuery, searchTerms, aliases, locationScope, relatedQuestions } = body;
+    const { phrase, groupId, status, reviewPhrase, searchQuery, searchTerms, aliases, locationScope, relatedQuestions, searchVolumeLocationCode, searchVolumeLocationName, _locationChanged } = body;
 
     // Build update object
     const updates: Record<string, any> = {};
@@ -315,6 +317,19 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       updates.location_scope = locationScope;
     }
 
+    // Handle location for rank tracking
+    if (searchVolumeLocationCode !== undefined) {
+      updates.search_volume_location_code = searchVolumeLocationCode;
+    }
+    if (searchVolumeLocationName !== undefined) {
+      updates.search_volume_location_name = searchVolumeLocationName;
+    }
+
+    // Check if location actually changed - if so, we'll clear history after update
+    const locationChanged = _locationChanged ||
+      (searchVolumeLocationCode !== undefined &&
+       searchVolumeLocationCode !== existingKeyword.search_volume_location_code);
+
     if (relatedQuestions !== undefined) {
       if (!Array.isArray(relatedQuestions)) {
         return NextResponse.json(
@@ -381,6 +396,8 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         cpc,
         competition_level,
         search_volume_trend,
+        search_volume_location_code,
+        search_volume_location_name,
         metrics_updated_at,
         keyword_groups (
           id,
@@ -418,6 +435,44 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         if (questionsError) {
           console.error('⚠️ Failed to sync questions to normalized table:', questionsError);
           // Don't fail the request - JSONB fallback is still available
+        }
+      }
+    }
+
+    // If location changed, clear rank and volume history for this concept
+    if (locationChanged) {
+      console.log(`📍 Location changed for keyword ${id}, clearing history...`);
+
+      // Get all search terms for this keyword to delete their history
+      const searchTermsList = existingKeyword.search_terms as Array<{ term: string }> || [];
+      const searchTermStrings = searchTermsList.map((t: { term: string }) => t.term.toLowerCase());
+
+      if (searchTermStrings.length > 0) {
+        // Delete rank checks for these search terms
+        // Note: rank_checks are linked by search_query, not keyword_id directly
+        const { error: rankDeleteError } = await serviceSupabase
+          .from('rank_checks')
+          .delete()
+          .eq('account_id', accountId)
+          .in('search_query', searchTermStrings);
+
+        if (rankDeleteError) {
+          console.error('⚠️ Failed to delete rank checks:', rankDeleteError);
+        } else {
+          console.log(`✓ Deleted rank checks for terms: ${searchTermStrings.join(', ')}`);
+        }
+
+        // Delete keyword research results for these terms
+        const { error: researchDeleteError } = await serviceSupabase
+          .from('keyword_research_results')
+          .delete()
+          .eq('account_id', accountId)
+          .in('normalized_term', searchTermStrings);
+
+        if (researchDeleteError) {
+          console.error('⚠️ Failed to delete research results:', researchDeleteError);
+        } else {
+          console.log(`✓ Deleted research results for terms: ${searchTermStrings.join(', ')}`);
         }
       }
     }

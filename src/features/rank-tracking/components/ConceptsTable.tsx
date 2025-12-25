@@ -45,7 +45,9 @@ interface KeywordRow {
   volume: number | null;
   volumeLocation: string | null;
   desktopRank: number | null;
+  desktopChecked: boolean; // Was a desktop rank check performed?
   mobileRank: number | null;
+  mobileChecked: boolean; // Was a mobile rank check performed?
   rankLocation: string | null;
   change: number | null;
 }
@@ -143,7 +145,9 @@ export default function ConceptsTable({
             volume: termVolume?.searchVolume ?? null,
             volumeLocation: termVolume?.locationName ?? null,
             desktopRank: termRank?.desktop?.position ?? null,
+            desktopChecked: termRank?.desktop !== null && termRank?.desktop !== undefined,
             mobileRank: termRank?.mobile?.position ?? null,
+            mobileChecked: termRank?.mobile !== null && termRank?.mobile !== undefined,
             rankLocation: termRank?.locationName ?? null,
             change: null,
           });
@@ -161,7 +165,9 @@ export default function ConceptsTable({
           volume: termVolume?.searchVolume ?? null,
           volumeLocation: termVolume?.locationName ?? null,
           desktopRank: termRank?.desktop?.position ?? null,
+          desktopChecked: termRank?.desktop !== null && termRank?.desktop !== undefined,
           mobileRank: termRank?.mobile?.position ?? null,
+          mobileChecked: termRank?.mobile !== null && termRank?.mobile !== undefined,
           rankLocation: termRank?.locationName ?? null,
           change: null,
         });
@@ -347,23 +353,27 @@ export default function ConceptsTable({
                 )}
               </td>
               <td className="py-3 px-4 text-center">
-                {row.desktopRank !== null || row.mobileRank !== null ? (
+                {row.desktopChecked || row.mobileChecked ? (
                   <div className="flex flex-col items-center">
                     <div className="flex items-center gap-2">
                       {/* Desktop rank */}
-                      <span className="flex items-center gap-0.5" title="Desktop">
-                        <span className="text-xs">🖥️</span>
-                        <span className={`font-semibold ${getPositionColor(row.desktopRank)}`}>
-                          {row.desktopRank !== null ? `#${row.desktopRank}` : '—'}
+                      {row.desktopChecked && (
+                        <span className="flex items-center gap-0.5" title="Desktop">
+                          <span className="text-xs">🖥️</span>
+                          <span className={`font-semibold ${row.desktopRank !== null ? getPositionColor(row.desktopRank) : 'text-gray-400'}`}>
+                            {row.desktopRank !== null ? `#${row.desktopRank}` : '>100'}
+                          </span>
                         </span>
-                      </span>
+                      )}
                       {/* Mobile rank */}
-                      <span className="flex items-center gap-0.5" title="Mobile">
-                        <span className="text-xs">📱</span>
-                        <span className={`font-semibold ${getPositionColor(row.mobileRank)}`}>
-                          {row.mobileRank !== null ? `#${row.mobileRank}` : '—'}
+                      {row.mobileChecked && (
+                        <span className="flex items-center gap-0.5" title="Mobile">
+                          <span className="text-xs">📱</span>
+                          <span className={`font-semibold ${row.mobileRank !== null ? getPositionColor(row.mobileRank) : 'text-gray-400'}`}>
+                            {row.mobileRank !== null ? `#${row.mobileRank}` : '>100'}
+                          </span>
                         </span>
-                      </span>
+                      )}
                     </div>
                     {row.rankLocation && (
                       <span className="text-[10px] text-gray-400 truncate max-w-[100px]" title={row.rankLocation}>

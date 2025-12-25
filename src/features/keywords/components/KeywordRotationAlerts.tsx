@@ -42,7 +42,7 @@ export default function KeywordRotationAlerts({
     const fetchAlerts = async () => {
       try {
         setIsLoading(true);
-        const data = await apiClient.get('/keywords/rotate?alerts=true');
+        const data = await apiClient.get<{ alerts: RotationAlert[] }>('/keywords/rotate?alerts=true');
         setAlerts(data.alerts || []);
         onAlertsLoaded?.(data.alerts?.length || 0);
       } catch (err) {
@@ -149,7 +149,7 @@ export function KeywordRotationBadge() {
   useEffect(() => {
     const fetchAlertCount = async () => {
       try {
-        const data = await apiClient.get('/keywords/rotate?alerts=true');
+        const data = await apiClient.get<{ alerts: RotationAlert[] }>('/keywords/rotate?alerts=true');
         setAlertCount(data.alerts?.length || 0);
       } catch (err) {
         // Silent fail for badge
