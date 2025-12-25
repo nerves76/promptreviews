@@ -89,9 +89,18 @@ function extractSocialLinks($: cheerio.CheerioAPI): Pick<ImportedBusinessInfo, S
 
   // Method 2: Scan script tags for embedded social URLs (Squarespace, Wix, etc.)
   // Look for URLs in JSON-like structures within scripts
+  let scriptCount = 0;
+  let foundProfileUrl = false;
   $("script").each((_, el) => {
+    scriptCount++;
     const scriptContent = $(el).html();
     if (!scriptContent) return;
+
+    // Check if this script contains social-related content
+    if (scriptContent.includes("profileUrl") || scriptContent.includes("socialAccounts")) {
+      foundProfileUrl = true;
+      console.log("[scrape-business-info] Found social data in script", scriptCount);
+    }
 
     // Extract URLs that look like social media profiles
     // Match patterns like "profileUrl":"https://..." or "url":"https://facebook.com/..."
@@ -107,6 +116,8 @@ function extractSocialLinks($: cheerio.CheerioAPI): Pick<ImportedBusinessInfo, S
       }
     }
   });
+
+  console.log("[scrape-business-info] Scanned", scriptCount, "scripts, foundProfileUrl:", foundProfileUrl);
 
   return socialLinks as Pick<ImportedBusinessInfo, SocialUrlField>;
 }
@@ -230,6 +241,9 @@ export async function POST(request: NextRequest) {
     // Extract content
     const { title, metaDescription, headings, mainContent } = extractPageContent($);
     const socialLinks = extractSocialLinks($);
+
+    // Debug logging for social links extraction
+    console.log("[scrape-business-info] Extracted social links:", JSON.stringify(socialLinks));
 
     // Check if we got any meaningful content
     if (!title && !metaDescription && !mainContent) {

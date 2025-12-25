@@ -13,7 +13,7 @@ export interface FunnelStageGroupProps {
   /** Questions for this stage with their original indices */
   questions: Array<RelatedQuestion & { originalIndex: number }>;
   /** Map of question text -> provider -> LLM visibility results */
-  llmResultsMap: Map<string, Map<LLMProvider, {
+  llmResultsMap: Map<string, Map<string, {
     domainCited: boolean;
     citationPosition?: number | null;
     checkedAt: string;
@@ -34,6 +34,8 @@ export interface FunnelStageGroupProps {
   checkingIndex?: number | null;
   /** Selected LLM providers for visibility checks */
   selectedProviders?: LLMProvider[];
+  /** Check result for a specific question (indexed by question index) */
+  checkResult?: { questionIndex: number; success: boolean; message: string } | null;
 }
 
 /**
@@ -69,6 +71,7 @@ export function FunnelStageGroup({
   onCheckQuestion,
   checkingIndex = null,
   selectedProviders = [],
+  checkResult = null,
 }: FunnelStageGroupProps) {
   // Don't render if no questions for this stage
   if (questions.length === 0) {
@@ -104,6 +107,7 @@ export function FunnelStageGroup({
             onCheck={onCheckQuestion ? () => onCheckQuestion(question.originalIndex, question.question) : undefined}
             isChecking={checkingIndex === question.originalIndex}
             selectedProviders={selectedProviders}
+            checkResult={checkResult?.questionIndex === question.originalIndex ? checkResult : null}
           />
         ))}
       </div>

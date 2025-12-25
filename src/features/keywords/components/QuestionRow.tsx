@@ -250,7 +250,7 @@ export function QuestionRow({
                   </>
                 ) : (
                   <>
-                    <Icon name="FaRocket" className="w-4 h-4" />
+                    <Icon name="prompty" className="w-4 h-4" />
                     {hasResults ? 'Re-check' : 'Check'} AI visibility ({selectedProviders.length} {selectedProviders.length === 1 ? 'provider' : 'providers'})
                   </>
                 )}

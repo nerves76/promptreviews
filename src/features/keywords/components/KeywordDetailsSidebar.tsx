@@ -30,6 +30,7 @@ import {
   LLM_CREDIT_COSTS,
 } from '@/features/llm-visibility/utils/types';
 import { useAuth } from '@/auth';
+import { FunnelStageGroup } from './FunnelStageGroup';
 
 // Types for rank status API response
 interface SerpVisibility {
@@ -1498,191 +1499,23 @@ export function KeywordDetailsSidebar({
                                       bottom: questions.map((q, idx) => ({ ...q, originalIndex: idx })).filter(q => q.funnelStage === 'bottom'),
                                     };
 
-                                    const stages: Array<{ key: FunnelStage; label: string; description: string }> = [
-                                      { key: 'top', label: 'Top of funnel', description: 'Awareness' },
-                                      { key: 'middle', label: 'Middle of funnel', description: 'Consideration' },
-                                      { key: 'bottom', label: 'Bottom of funnel', description: 'Decision' },
-                                    ];
-
-                                    return stages
-                                      .filter(stage => grouped[stage.key].length > 0)
-                                      .map(stage => {
-                                        const stageQuestions = grouped[stage.key];
-                                        const funnelColor = getFunnelStageColor(stage.key);
-
-                                        return (
-                                          <div key={stage.key} className="space-y-1.5">
-                                            <div className="flex items-center gap-2">
-                                              <span className={`px-1.5 py-0.5 text-xs rounded ${funnelColor.bg} ${funnelColor.text}`}>
-                                                {stage.label}
-                                              </span>
-                                              <span className="text-xs text-gray-400">{stage.description}</span>
-                                            </div>
-                                            <div className="space-y-1.5 pl-2 border-l-2 border-gray-100">
-                                              {stageQuestions.map((q) => {
-                                                const isExpanded = expandedQuestionIndex === q.originalIndex;
-                                                const providerResults = questionLLMMap.get(q.question);
-                                                const hasResults = providerResults && providerResults.size > 0;
-                                                const citedCount = hasResults
-                                                  ? Array.from(providerResults.values()).filter(r => r.domainCited).length
-                                                  : 0;
-                                                const checkResultForThis = lastCheckResult?.questionIndex === q.originalIndex ? lastCheckResult : null;
-
-                                                return (
-                                                <div key={q.originalIndex} className="bg-white/80 rounded-lg border border-gray-100 overflow-hidden">
-                                                  {/* Question header - clickable to expand */}
-                                                  <div
-                                                    className={`flex items-start gap-2 p-2 cursor-pointer hover:bg-gray-50/50 transition-colors ${
-                                                      isExpanded ? 'border-b border-gray-100' : ''
-                                                    }`}
-                                                    onClick={() => !isEditingSEO && setExpandedQuestionIndex(isExpanded ? null : q.originalIndex)}
-                                                  >
-                                                  {isEditingSEO && (
-                                                    <div className="relative group flex-shrink-0">
-                                                      <select
-                                                        value={q.funnelStage}
-                                                        onChange={(e) => handleUpdateQuestionFunnel(q.originalIndex, e.target.value as FunnelStage)}
-                                                        className={`px-1.5 py-0.5 text-xs rounded border-0 ${funnelColor.bg} ${funnelColor.text} cursor-pointer`}
-                                                        onClick={(e) => e.stopPropagation()}
-                                                      >
-                                                        <option value="top">Top</option>
-                                                        <option value="middle">Mid</option>
-                                                        <option value="bottom">Bot</option>
-                                                      </select>
-                                                      <div className="absolute bottom-full left-0 mb-1 p-2 bg-gray-900 text-white text-xs rounded w-56 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none">
-                                                        <div className="font-semibold mb-1">Change funnel stage</div>
-                                                        <div className="space-y-0.5">
-                                                          <div><span className="text-blue-300">Top:</span> Awareness questions</div>
-                                                          <div><span className="text-amber-300">Mid:</span> Consideration questions</div>
-                                                          <div><span className="text-green-300">Bot:</span> Decision questions</div>
-                                                        </div>
-                                                        <div className="absolute top-full left-4 border-4 border-transparent border-t-gray-900" />
-                                                      </div>
-                                                    </div>
-                                                  )}
-                                                  <span className="flex-1 text-sm text-gray-700">{q.question}</span>
-                                                  {isEditingSEO ? (
-                                                    <button
-                                                      onClick={(e) => { e.stopPropagation(); handleRemoveQuestion(q.originalIndex); }}
-                                                      className="p-1 text-gray-400 hover:text-red-500 rounded transition-colors flex-shrink-0"
-                                                      title="Remove question"
-                                                    >
-                                                      <Icon name="FaTimes" className="w-3 h-3" />
-                                                    </button>
-                                                  ) : (
-                                                    /* LLM visibility summary badges + expand indicator */
-                                                    <div className="flex items-center gap-1.5 flex-shrink-0">
-                                                      {hasResults ? (
-                                                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
-                                                          citedCount > 0 ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
-                                                        }`}>
-                                                          {citedCount}/{providerResults.size} cited
-                                                        </span>
-                                                      ) : (
-                                                        <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-400">
-                                                          Not checked
-                                                        </span>
-                                                      )}
-                                                      <Icon
-                                                        name={isExpanded ? "FaChevronUp" : "FaChevronDown"}
-                                                        className="w-3 h-3 text-gray-400"
-                                                      />
-                                                    </div>
-                                                  )}
-                                                  </div>
-
-                                                  {/* Expanded content - AI visibility details */}
-                                                  {isExpanded && !isEditingSEO && (
-                                                    <div className="p-3 bg-gray-50/50 space-y-3">
-                                                      {/* Check result message */}
-                                                      {checkResultForThis && (
-                                                        <div className={`p-2 rounded-lg text-sm flex items-center gap-2 ${
-                                                          checkResultForThis.success
-                                                            ? 'bg-green-50 text-green-700 border border-green-200'
-                                                            : 'bg-red-50 text-red-700 border border-red-200'
-                                                        }`}>
-                                                          <Icon
-                                                            name={checkResultForThis.success ? "FaCheckCircle" : "FaExclamationTriangle"}
-                                                            className="w-4 h-4 flex-shrink-0"
-                                                          />
-                                                          {checkResultForThis.message}
-                                                        </div>
-                                                      )}
-
-                                                      {/* Provider results grid */}
-                                                      <div className="space-y-2">
-                                                        <div className="text-xs font-medium text-gray-500 uppercase tracking-wider">AI visibility results</div>
-                                                        <div className="grid grid-cols-2 gap-2">
-                                                          {selectedLLMProviders.map(provider => {
-                                                            const result = providerResults?.get(provider);
-                                                            const colors = LLM_PROVIDER_COLORS[provider];
-
-                                                            return (
-                                                              <div
-                                                                key={provider}
-                                                                className={`p-2 rounded-lg border ${
-                                                                  result?.domainCited
-                                                                    ? 'bg-green-50 border-green-200'
-                                                                    : result
-                                                                      ? 'bg-gray-50 border-gray-200'
-                                                                      : 'bg-white border-gray-200'
-                                                                }`}
-                                                              >
-                                                                <div className="flex items-center gap-1.5 mb-1">
-                                                                  <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${colors.bg} ${colors.text}`}>
-                                                                    {LLM_PROVIDER_LABELS[provider]}
-                                                                  </span>
-                                                                </div>
-                                                                {result ? (
-                                                                  <div className="text-xs">
-                                                                    {result.domainCited ? (
-                                                                      <span className="text-green-600 font-medium flex items-center gap-1">
-                                                                        <Icon name="FaCheckCircle" className="w-3 h-3" />
-                                                                        Cited{result.citationPosition ? ` (#${result.citationPosition})` : ''}
-                                                                      </span>
-                                                                    ) : (
-                                                                      <span className="text-gray-500">Not cited</span>
-                                                                    )}
-                                                                  </div>
-                                                                ) : (
-                                                                  <div className="text-xs text-gray-400">Not checked yet</div>
-                                                                )}
-                                                              </div>
-                                                            );
-                                                          })}
-                                                        </div>
-                                                      </div>
-
-                                                      {/* Check button */}
-                                                      <button
-                                                        onClick={(e) => { e.stopPropagation(); handleCheckQuestion(q.originalIndex, q.question); }}
-                                                        disabled={checkingQuestionIndex !== null || selectedLLMProviders.length === 0}
-                                                        className="w-full px-3 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
-                                                      >
-                                                        {checkingQuestionIndex === q.originalIndex ? (
-                                                          <>
-                                                            <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
-                                                            Checking AI visibility...
-                                                          </>
-                                                        ) : (
-                                                          <>
-                                                            <Icon name="prompty" className="w-4 h-4" />
-                                                            Check AI visibility ({selectedLLMProviders.length} {selectedLLMProviders.length === 1 ? 'provider' : 'providers'})
-                                                          </>
-                                                        )}
-                                                      </button>
-                                                      <p className="text-[10px] text-center text-gray-400">
-                                                        Uses {selectedLLMProviders.reduce((acc, p) => acc + LLM_CREDIT_COSTS[p], 0)} credits
-                                                      </p>
-                                                    </div>
-                                                  )}
-                                                </div>
-                                              );
-                                              })}
-                                            </div>
-                                          </div>
-                                        );
-                                      });
+                                    return (['top', 'middle', 'bottom'] as const).map(stage => (
+                                      <FunnelStageGroup
+                                        key={stage}
+                                        stage={stage}
+                                        questions={grouped[stage]}
+                                        llmResultsMap={questionLLMMap}
+                                        isEditing={isEditingSEO}
+                                        expandedIndex={expandedQuestionIndex}
+                                        onToggleExpand={(idx) => setExpandedQuestionIndex(expandedQuestionIndex === idx ? null : idx)}
+                                        onRemoveQuestion={handleRemoveQuestion}
+                                        onUpdateFunnel={handleUpdateQuestionFunnel}
+                                        onCheckQuestion={handleCheckQuestion}
+                                        checkingIndex={checkingQuestionIndex}
+                                        selectedProviders={selectedLLMProviders}
+                                        checkResult={lastCheckResult}
+                                      />
+                                    ));
                                   })()}
                                 </div>
 
