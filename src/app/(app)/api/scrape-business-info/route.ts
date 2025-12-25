@@ -71,13 +71,39 @@ function extractSocialLinks($: cheerio.CheerioAPI): Pick<ImportedBusinessInfo, S
     { pattern: /(?:twitter\.com|x\.com)\/(?!share|intent)/i, field: "twitter_url" },
   ];
 
+  // Helper to check and add a URL
+  const tryAddUrl = (url: string) => {
+    if (!url || typeof url !== "string") return;
+    for (const { pattern, field } of socialPatterns) {
+      if (pattern.test(url) && !socialLinks[field]) {
+        socialLinks[field] = url;
+      }
+    }
+  };
+
+  // Method 1: Scan <a href> links
   $("a[href]").each((_, el) => {
     const href = $(el).attr("href");
-    if (!href) return;
+    if (href) tryAddUrl(href);
+  });
 
-    for (const { pattern, field } of socialPatterns) {
-      if (pattern.test(href) && !socialLinks[field]) {
-        socialLinks[field] = href;
+  // Method 2: Scan script tags for embedded social URLs (Squarespace, Wix, etc.)
+  // Look for URLs in JSON-like structures within scripts
+  $("script").each((_, el) => {
+    const scriptContent = $(el).html();
+    if (!scriptContent) return;
+
+    // Extract URLs that look like social media profiles
+    // Match patterns like "profileUrl":"https://..." or "url":"https://facebook.com/..."
+    const urlPatterns = [
+      /"(?:profileUrl|url|href)":\s*"(https?:\/\/[^"]+)"/gi,
+      /"(https?:\/\/(?:www\.)?(?:facebook|instagram|linkedin|youtube|tiktok|pinterest|twitter|x|bsky)\.(?:com|app)\/[^"]+)"/gi,
+    ];
+
+    for (const urlPattern of urlPatterns) {
+      let match;
+      while ((match = urlPattern.exec(scriptContent)) !== null) {
+        tryAddUrl(match[1]);
       }
     }
   });
