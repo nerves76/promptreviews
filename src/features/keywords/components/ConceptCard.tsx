@@ -876,7 +876,7 @@ export function ConceptCard({
                     <th className="text-center py-2 px-2 w-28">
                       <span className="text-xs font-semibold text-gray-600">Rank</span>
                     </th>
-                    <th className="text-center py-2 px-2 w-32">
+                    <th className="text-center py-2 px-2 w-44">
                       <span className="text-xs font-semibold text-gray-600">Actions</span>
                     </th>
                   </tr>
@@ -927,7 +927,7 @@ export function ConceptCard({
                           {(desktopRanking || mobileRanking) ? (
                             <div className="flex items-center justify-center gap-2">
                               {desktopRanking && (
-                                <span className="flex items-center gap-0.5" title="Desktop">
+                                <span className="flex items-center gap-1" title="Desktop">
                                   <svg className="w-3 h-3 text-gray-400" viewBox="0 0 16 14" fill="currentColor">
                                     <rect x="0" y="0" width="16" height="10" rx="1" />
                                     <rect x="5" y="11" width="6" height="1" />
@@ -939,7 +939,7 @@ export function ConceptCard({
                                 </span>
                               )}
                               {mobileRanking && (
-                                <span className="flex items-center gap-0.5" title="Mobile">
+                                <span className="flex items-center gap-1" title="Mobile">
                                   <svg className="w-2.5 h-3.5 text-gray-400" viewBox="0 0 10 16" fill="currentColor">
                                     <rect x="0" y="0" width="10" height="16" rx="1.5" />
                                     <rect x="3.5" y="13" width="3" height="1" rx="0.5" fill="white" />
@@ -955,7 +955,7 @@ export function ConceptCard({
                           )}
                         </td>
                         <td className="py-2 px-2">
-                          <div className="flex items-center justify-center gap-1">
+                          <div className="flex items-center justify-center gap-2">
                             <button
                               onClick={() => handleCheckTermVolume(term.term)}
                               disabled={loadingStates[term.term] === 'checking-volume' || Object.values(loadingStates).some(s => s !== null)}
@@ -967,6 +967,7 @@ export function ConceptCard({
                               ) : (
                                 <Icon name="FaChartLine" className="w-3 h-3" />
                               )}
+                              Volume
                             </button>
                             {onCheckRank && (
                               <button
@@ -976,6 +977,7 @@ export function ConceptCard({
                                 title="Check ranking"
                               >
                                 <Icon name="FaSearch" className="w-3 h-3" />
+                                Rank
                               </button>
                             )}
                           </div>
