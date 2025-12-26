@@ -183,7 +183,7 @@ export default function CheckLLMModal({
                   <div
                     key={idx}
                     className={`p-3 rounded-lg border ${
-                      result.domainCited
+                      result.domainCited || result.brandMentioned
                         ? 'bg-green-50 border-green-200'
                         : 'bg-gray-50 border-gray-200'
                     }`}
@@ -192,14 +192,24 @@ export default function CheckLLMModal({
                       <span className={`px-2 py-0.5 rounded text-xs font-medium ${colors.bg} ${colors.text}`}>
                         {LLM_PROVIDER_LABELS[result.provider]}
                       </span>
-                      {result.domainCited ? (
-                        <span className="text-green-600 font-medium text-sm flex items-center gap-1">
-                          <Icon name="FaCheckCircle" className="w-4 h-4" />
-                          Mentioned{result.citationPosition ? ` (#${result.citationPosition})` : ''}
-                        </span>
-                      ) : (
-                        <span className="text-gray-500 text-sm">Not mentioned</span>
-                      )}
+                      <div className="flex items-center gap-2">
+                        {result.domainCited ? (
+                          <span className="text-green-600 font-medium text-xs flex items-center gap-1" title="Website cited as source">
+                            <Icon name="FaLink" className="w-3 h-3" />
+                            Cited{result.citationPosition ? ` #${result.citationPosition}` : ''}
+                          </span>
+                        ) : (
+                          <span className="text-gray-400 text-xs">Not cited</span>
+                        )}
+                        {result.brandMentioned ? (
+                          <span className="text-blue-600 font-medium text-xs flex items-center gap-1" title="Brand name mentioned in response">
+                            <Icon name="FaCheckCircle" className="w-3 h-3" />
+                            Mentioned
+                          </span>
+                        ) : (
+                          <span className="text-gray-400 text-xs">Not mentioned</span>
+                        )}
+                      </div>
                     </div>
                     {result.citationUrl && (
                       <p className="text-xs text-gray-500 mt-1.5 truncate">
@@ -213,20 +223,31 @@ export default function CheckLLMModal({
               {/* Summary */}
               {(() => {
                 const citedCount = results.filter(r => r.domainCited).length;
+                const mentionedCount = results.filter(r => r.brandMentioned).length;
+                const hasVisibility = citedCount > 0 || mentionedCount > 0;
                 return (
                   <div className={`p-3 rounded-lg ${
-                    citedCount > 0 ? 'bg-green-50 border border-green-200' : 'bg-amber-50 border border-amber-200'
+                    hasVisibility ? 'bg-green-50 border border-green-200' : 'bg-amber-50 border border-amber-200'
                   }`}>
-                    <div className="flex items-center gap-2">
-                      <Icon
-                        name={citedCount > 0 ? "FaCheckCircle" : "FaInfoCircle"}
-                        className={`w-4 h-4 ${citedCount > 0 ? 'text-green-600' : 'text-amber-600'}`}
-                      />
-                      <span className={`text-sm font-medium ${citedCount > 0 ? 'text-green-800' : 'text-amber-800'}`}>
-                        {citedCount > 0
-                          ? `Your business was mentioned in ${citedCount} of ${results.length} AI${results.length > 1 ? 's' : ''}`
-                          : 'Your business was not mentioned in any AI response'}
-                      </span>
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center gap-2">
+                        <Icon
+                          name={hasVisibility ? "FaCheckCircle" : "FaInfoCircle"}
+                          className={`w-4 h-4 ${hasVisibility ? 'text-green-600' : 'text-amber-600'}`}
+                        />
+                        <span className={`text-sm font-medium ${hasVisibility ? 'text-green-800' : 'text-amber-800'}`}>
+                          {hasVisibility
+                            ? `Found in ${Math.max(citedCount, mentionedCount)} of ${results.length} AI${results.length > 1 ? 's' : ''}`
+                            : 'Not found in any AI response'}
+                        </span>
+                      </div>
+                      {hasVisibility && (
+                        <p className="text-xs text-gray-600 ml-6">
+                          {citedCount > 0 && `${citedCount} cited your website`}
+                          {citedCount > 0 && mentionedCount > 0 && ' • '}
+                          {mentionedCount > 0 && `${mentionedCount} mentioned your brand`}
+                        </p>
+                      )}
                     </div>
                   </div>
                 );

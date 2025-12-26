@@ -256,12 +256,14 @@ async function makeDataForSEORequest(
 export async function checkChatGPTVisibility(params: {
   question: string;
   targetDomain: string;
+  businessName?: string | null;
   locationCode?: number;
   languageCode?: string;
 }): Promise<LLMCheckResult> {
   const {
     question,
     targetDomain,
+    businessName = null,
     locationCode = 2840, // US
     languageCode = 'en',
   } = params;
@@ -334,9 +336,13 @@ export async function checkChatGPTVisibility(params: {
       }
     }
 
+    // Check for brand mention in response text
+    const brandMentioned = checkBrandMentioned(responseSnippet, businessName);
+
     console.log(
       `🤖 [DataForSEO AI] ChatGPT: ${citations.length} citations, ` +
       `domain cited: ${domainCited}${citationPosition ? ` (position ${citationPosition})` : ''}, ` +
+      `brand mentioned: ${brandMentioned}, ` +
       `cost: $${task.cost}`
     );
 
@@ -345,6 +351,7 @@ export async function checkChatGPTVisibility(params: {
       provider: 'chatgpt',
       question,
       domainCited,
+      brandMentioned,
       citationPosition,
       citationUrl,
       totalCitations: citations.length,
@@ -377,9 +384,10 @@ export async function checkChatGPTVisibility(params: {
 export async function checkLLMResponseVisibility(params: {
   question: string;
   targetDomain: string;
+  businessName?: string | null;
   provider: Exclude<LLMProvider, 'chatgpt'>;
 }): Promise<LLMCheckResult> {
-  const { question, targetDomain, provider } = params;
+  const { question, targetDomain, businessName = null, provider } = params;
 
   const endpoint = LLM_RESPONSES_ENDPOINTS[provider];
   const providerConfig = PROVIDER_CONFIGS[provider];
@@ -459,9 +467,13 @@ export async function checkLLMResponseVisibility(params: {
       }
     }
 
+    // Check for brand mention in response text
+    const brandMentioned = checkBrandMentioned(responseSnippet, businessName);
+
     console.log(
       `🤖 [DataForSEO AI] ${provider}: ${citations.length} citations, ` +
       `domain cited: ${domainCited}${citationPosition ? ` (position ${citationPosition})` : ''}, ` +
+      `brand mentioned: ${brandMentioned}, ` +
       `cost: $${task.cost}`
     );
 
@@ -470,6 +482,7 @@ export async function checkLLMResponseVisibility(params: {
       provider,
       question,
       domainCited,
+      brandMentioned,
       citationPosition,
       citationUrl,
       totalCitations: citations.length,
@@ -499,6 +512,7 @@ export async function checkLLMResponseVisibility(params: {
 export async function checkLLMVisibility(params: {
   question: string;
   targetDomain: string;
+  businessName?: string | null;
   provider: LLMProvider;
 }): Promise<LLMCheckResult> {
   const { provider } = params;
@@ -521,9 +535,10 @@ export async function checkLLMVisibility(params: {
 export async function checkMultipleProviders(params: {
   question: string;
   targetDomain: string;
+  businessName?: string | null;
   providers: LLMProvider[];
 }): Promise<LLMCheckResult[]> {
-  const { question, targetDomain, providers } = params;
+  const { question, targetDomain, businessName, providers } = params;
   const results: LLMCheckResult[] = [];
 
   for (let i = 0; i < providers.length; i++) {
@@ -537,6 +552,7 @@ export async function checkMultipleProviders(params: {
     const result = await checkLLMVisibility({
       question,
       targetDomain,
+      businessName,
       provider,
     });
 
@@ -594,6 +610,7 @@ function createErrorResult(
     provider,
     question,
     domainCited: false,
+    brandMentioned: false,
     citationPosition: null,
     citationUrl: null,
     totalCitations: 0,
@@ -602,6 +619,33 @@ function createErrorResult(
     cost,
     error,
   };
+}
+
+/**
+ * Check if the business name is mentioned in the response text.
+ * Uses case-insensitive matching and handles common variations.
+ */
+function checkBrandMentioned(responseText: string | null, businessName: string | null): boolean {
+  if (!responseText || !businessName) return false;
+
+  const normalizedResponse = responseText.toLowerCase();
+  const normalizedBrand = businessName.toLowerCase().trim();
+
+  // Direct match
+  if (normalizedResponse.includes(normalizedBrand)) {
+    return true;
+  }
+
+  // Also check without common suffixes like LLC, Inc, etc.
+  const brandWithoutSuffix = normalizedBrand
+    .replace(/\s*(llc|inc|corp|ltd|co|company|corporation)\.?$/i, '')
+    .trim();
+
+  if (brandWithoutSuffix.length > 2 && normalizedResponse.includes(brandWithoutSuffix)) {
+    return true;
+  }
+
+  return false;
 }
 
 // ============================================

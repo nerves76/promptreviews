@@ -132,10 +132,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get target domain from business profile
+    // Get target domain and business name from business profile
     const { data: business, error: businessError } = await serviceSupabase
       .from('businesses')
-      .select('business_website')
+      .select('business_website, name')
       .eq('account_id', accountId)
       .single();
 
@@ -146,6 +146,8 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    const businessName = business.name || null;
 
     // Extract domain from website URL
     const targetDomain = extractDomain(business.business_website);
@@ -220,7 +222,7 @@ export async function POST(request: NextRequest) {
     // Run LLM checks
     console.log(`🤖 [LLMVisibility] Starting check for keyword: ${keyword.phrase || keywordId}`);
     console.log(`   Questions: ${questionsToCheck.length}, Providers: ${validProviders.join(', ')}`);
-    console.log(`   Target domain: ${targetDomain}`);
+    console.log(`   Target domain: ${targetDomain}, Business: ${businessName || 'N/A'}`);
 
     const result = await runLLMChecks(
       keywordId,
@@ -230,6 +232,7 @@ export async function POST(request: NextRequest) {
       serviceSupabase,
       {
         providers: validProviders,
+        businessName,
       }
     );
 

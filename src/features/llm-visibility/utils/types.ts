@@ -85,6 +85,7 @@ export interface LLMCheckResult {
   provider: LLMProvider;
   question: string;
   domainCited: boolean;
+  brandMentioned: boolean;
   citationPosition: number | null;
   citationUrl: string | null;
   totalCitations: number;
@@ -105,6 +106,7 @@ export interface LLMVisibilityCheckRow {
   question: string;
   llm_provider: LLMProvider;
   domain_cited: boolean;
+  brand_mentioned: boolean;
   citation_position: number | null;
   citation_url: string | null;
   total_citations: number;
@@ -156,6 +158,7 @@ export interface LLMVisibilityCheck {
   question: string;
   llmProvider: LLMProvider;
   domainCited: boolean;
+  brandMentioned: boolean;
   citationPosition: number | null;
   citationUrl: string | null;
   totalCitations: number;

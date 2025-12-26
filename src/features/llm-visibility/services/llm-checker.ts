@@ -35,6 +35,7 @@ function transformCheckRowToResponse(row: LLMVisibilityCheckRow): LLMVisibilityC
     question: row.question,
     llmProvider: row.llm_provider,
     domainCited: row.domain_cited,
+    brandMentioned: row.brand_mentioned,
     citationPosition: row.citation_position,
     citationUrl: row.citation_url,
     totalCitations: row.total_citations,
@@ -68,6 +69,7 @@ function transformSummaryRowToResponse(row: LLMVisibilitySummaryRow): LLMVisibil
 export interface RunLLMChecksOptions {
   providers?: LLMProvider[];
   questionIndices?: number[];
+  businessName?: string | null;
 }
 
 /**
@@ -95,6 +97,7 @@ export async function runLLMChecks(
   const {
     providers = ['chatgpt'],
     questionIndices,
+    businessName = null,
   } = options;
 
   const errors: string[] = [];
@@ -131,6 +134,7 @@ export async function runLLMChecks(
       question: string;
       llm_provider: LLMProvider;
       domain_cited: boolean;
+      brand_mentioned: boolean;
       citation_position: number | null;
       citation_url: string | null;
       total_citations: number;
@@ -154,6 +158,7 @@ export async function runLLMChecks(
         const results = await checkMultipleProviders({
           question,
           targetDomain,
+          businessName,
           providers,
         });
 
@@ -169,6 +174,7 @@ export async function runLLMChecks(
               question,
               llm_provider: result.provider,
               domain_cited: result.domainCited,
+              brand_mentioned: result.brandMentioned,
               citation_position: result.citationPosition,
               citation_url: result.citationUrl,
               total_citations: result.totalCitations,
@@ -180,7 +186,8 @@ export async function runLLMChecks(
 
             console.log(
               `      [${checkCount}/${totalChecks}] ${result.provider}: ` +
-              `${result.domainCited ? '✓ CITED' : '✗ not cited'} ` +
+              `${result.domainCited ? '✓ CITED' : '✗ not cited'}, ` +
+              `${result.brandMentioned ? '✓ MENTIONED' : '✗ not mentioned'} ` +
               `(${result.totalCitations} total citations)`
             );
           } else {
