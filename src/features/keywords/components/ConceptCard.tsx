@@ -751,14 +751,12 @@ export function ConceptCard({
 
           {/* Location Section */}
           <div className="px-4 py-2 border-b border-gray-100">
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="text-xs font-medium text-gray-600 flex items-center gap-1">
-                <Icon name="FaMapMarker" className="w-3 h-3 text-slate-blue" />
-                Location for rank tracking
-              </span>
-            </div>
             {isEditing ? (
               <div className="space-y-2">
+                <span className="text-xs font-medium text-gray-600 flex items-center gap-1">
+                  <Icon name="FaMapMarker" className="w-3 h-3 text-slate-blue" />
+                  Location for rank tracking
+                </span>
                 <LocationPicker
                   value={editedLocation}
                   onChange={(location) => {
@@ -781,16 +779,13 @@ export function ConceptCard({
                 )}
               </div>
             ) : (
-              <div className="text-sm text-gray-700">
-                {keyword.searchVolumeLocationName ? (
-                  <span className="flex items-center gap-1.5">
-                    <span>{keyword.searchVolumeLocationName}</span>
-                  </span>
-                ) : businessLocationName ? (
-                  <span>{businessLocationName}</span>
-                ) : (
-                  <span className="text-gray-400 italic">No location set</span>
-                )}
+              <div className="flex items-center gap-2 text-sm">
+                <Icon name="FaMapMarker" className="w-3 h-3 text-slate-blue flex-shrink-0" />
+                <span className="text-gray-700">
+                  {keyword.searchVolumeLocationName || businessLocationName || (
+                    <span className="text-gray-400 italic">No location set</span>
+                  )}
+                </span>
               </div>
             )}
           </div>
