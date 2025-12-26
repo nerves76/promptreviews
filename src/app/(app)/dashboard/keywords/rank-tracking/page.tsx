@@ -66,12 +66,20 @@ export default function RankTrackingPage() {
   const [researchResults, setResearchResults] = useState<ResearchResult[]>([]);
   const [rankChecks, setRankChecks] = useState<RankCheck[]>([]);
 
-  // Auto-check state
+  // Auto-check state for rank
   const [isAutoChecking, setIsAutoChecking] = useState(false);
   const [autoCheckResult, setAutoCheckResult] = useState<{
     keyword: string;
     desktop: { position: number | null; found: boolean };
     mobile: { position: number | null; found: boolean };
+    locationName: string;
+  } | null>(null);
+
+  // Auto-check state for volume
+  const [isAutoCheckingVolume, setIsAutoCheckingVolume] = useState(false);
+  const [autoVolumeResult, setAutoVolumeResult] = useState<{
+    keyword: string;
+    volume: number | null;
     locationName: string;
   } | null>(null);
 
@@ -126,13 +134,21 @@ export default function RankTrackingPage() {
     lookupLocation();
   }, [business?.location_code, business?.address_city, business?.address_state]);
 
-  // Auto-dismiss result toast after 5 seconds
+  // Auto-dismiss rank result toast after 5 seconds
   useEffect(() => {
     if (autoCheckResult) {
       const timer = setTimeout(() => setAutoCheckResult(null), 5000);
       return () => clearTimeout(timer);
     }
   }, [autoCheckResult]);
+
+  // Auto-dismiss volume result toast after 5 seconds
+  useEffect(() => {
+    if (autoVolumeResult) {
+      const timer = setTimeout(() => setAutoVolumeResult(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [autoVolumeResult]);
 
   // Fetch keyword concepts (useKeywords already handles account changes)
   const {
@@ -303,10 +319,69 @@ export default function RankTrackingPage() {
     }
   }, [concepts, business, lookedUpLocation, isLookingUpLocation, fetchRankChecks]);
 
-  // Open the check volume modal for a keyword
-  const handleCheckVolume = useCallback((keyword: string) => {
-    setCheckingVolumeTerm(keyword);
-  }, []);
+  // Handle clicking "Check volume" - auto-run if location available, otherwise show modal
+  const handleCheckVolume = useCallback(async (keyword: string) => {
+    // If still looking up location, show loading state and wait
+    if (isLookingUpLocation) {
+      setIsAutoCheckingVolume(true);
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+
+    // Use business location or looked-up location from address
+    const locationCode = business?.location_code || lookedUpLocation?.locationCode;
+    const locationName = business?.location_name || lookedUpLocation?.locationName;
+
+    if (locationCode && locationName) {
+      // Auto-run the check without modal
+      setIsAutoCheckingVolume(true);
+      setAutoVolumeResult(null);
+      try {
+        const response = await apiClient.post<{
+          keyword: string;
+          volume: number | null;
+          cpc: number | null;
+          competitionLevel: string | null;
+          error?: string;
+        }>('/rank-tracking/discovery', {
+          keyword,
+          locationCode,
+        });
+
+        if (response.error) {
+          throw new Error(response.error);
+        }
+
+        // Save the research result
+        await apiClient.post('/keyword-research/save', {
+          term: keyword,
+          searchVolume: response.volume,
+          cpc: response.cpc,
+          competition: null,
+          competitionLevel: response.competitionLevel,
+          locationCode,
+          locationName,
+        });
+
+        setAutoVolumeResult({
+          keyword,
+          volume: response.volume,
+          locationName,
+        });
+
+        // Refresh the research results to update the UI
+        await fetchResearchResults();
+      } catch (error) {
+        console.error('Auto volume check failed:', error);
+        // Fall back to showing modal on error
+        setCheckingVolumeTerm(keyword);
+      } finally {
+        setIsAutoCheckingVolume(false);
+      }
+    } else {
+      // No location available, show modal
+      setCheckingVolumeTerm(keyword);
+    }
+  }, [business, lookedUpLocation, isLookingUpLocation, fetchResearchResults]);
 
   // Perform the volume check (called from modal)
   const performVolumeCheck = useCallback(async (
@@ -576,6 +651,49 @@ export default function RankTrackingPage() {
             </div>
             <button
               onClick={() => setAutoCheckResult(null)}
+              className="text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <Icon name="FaTimes" className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Auto-volume loading toast */}
+      {isAutoCheckingVolume && (
+        <div className="fixed bottom-6 right-6 z-50 bg-white rounded-lg shadow-lg border border-gray-200 p-4 flex items-center gap-3">
+          <Icon name="FaSpinner" className="w-5 h-5 text-slate-blue animate-spin" />
+          <span className="text-sm text-gray-700">Checking volume...</span>
+        </div>
+      )}
+
+      {/* Auto-volume result toast */}
+      {autoVolumeResult && (
+        <div className="fixed bottom-6 right-6 z-50 bg-white rounded-xl shadow-lg border border-gray-200 p-4 max-w-sm">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex-1">
+              <p className="text-sm font-medium text-gray-900 mb-2">
+                Volume check complete
+              </p>
+              <p className="text-xs text-gray-500 mb-2 truncate" title={autoVolumeResult.keyword}>
+                &quot;{autoVolumeResult.keyword}&quot; in {autoVolumeResult.locationName}
+              </p>
+              <div className="flex items-center gap-1.5">
+                <Icon name="FaChartLine" className="w-4 h-4 text-blue-500" />
+                <span className="text-sm font-medium text-blue-600">
+                  {autoVolumeResult.volume !== null
+                    ? autoVolumeResult.volume >= 1000
+                      ? `${(autoVolumeResult.volume / 1000).toFixed(1)}K`
+                      : autoVolumeResult.volume < 10
+                        ? '<10'
+                        : autoVolumeResult.volume.toString()
+                    : 'No data'}
+                </span>
+                <span className="text-xs text-gray-500">monthly searches</span>
+              </div>
+            </div>
+            <button
+              onClick={() => setAutoVolumeResult(null)}
               className="text-gray-400 hover:text-gray-600 transition-colors"
             >
               <Icon name="FaTimes" className="w-4 h-4" />
