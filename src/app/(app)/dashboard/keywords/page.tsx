@@ -59,18 +59,18 @@ export default function KeywordsPage() {
 
         const response = await apiClient.get<{
           locations: Array<{
-            location_code: number;
-            location_name: string;
-            location_type: string;
+            locationCode: number;
+            locationName: string;
+            locationType: string;
           }>;
         }>(`/rank-locations/search?q=${encodeURIComponent(searchQuery)}`);
 
         if (response.locations && response.locations.length > 0) {
-          const cityMatch = response.locations.find(l => l.location_type === 'City');
+          const cityMatch = response.locations.find(l => l.locationType === 'City');
           const bestMatch = cityMatch || response.locations[0];
           setLookedUpLocation({
-            locationCode: bestMatch.location_code,
-            locationName: bestMatch.location_name,
+            locationCode: bestMatch.locationCode,
+            locationName: bestMatch.locationName,
           });
         }
       } catch (error) {
@@ -330,7 +330,11 @@ export default function KeywordsPage() {
               </p>
               <div className="flex gap-4">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-sm">🖥️</span>
+                  <svg className="w-4 h-4 text-gray-400" viewBox="0 0 16 14" fill="currentColor">
+                    <rect x="0" y="0" width="16" height="10" rx="1" />
+                    <rect x="5" y="11" width="6" height="1" />
+                    <rect x="4" y="12" width="8" height="1" />
+                  </svg>
                   <span className={`text-sm font-medium ${
                     autoCheckResult.desktop.found && autoCheckResult.desktop.position !== null
                       ? autoCheckResult.desktop.position <= 10 ? 'text-green-600' : 'text-amber-600'
@@ -342,7 +346,10 @@ export default function KeywordsPage() {
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <span className="text-sm">📱</span>
+                  <svg className="w-3 h-4 text-gray-400" viewBox="0 0 10 16" fill="currentColor">
+                    <rect x="0" y="0" width="10" height="16" rx="1.5" />
+                    <rect x="3.5" y="13" width="3" height="1" rx="0.5" fill="white" />
+                  </svg>
                   <span className={`text-sm font-medium ${
                     autoCheckResult.mobile.found && autoCheckResult.mobile.position !== null
                       ? autoCheckResult.mobile.position <= 10 ? 'text-green-600' : 'text-amber-600'

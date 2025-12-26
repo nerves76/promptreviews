@@ -108,20 +108,20 @@ export default function KeywordConceptInput({
 
         const response = await apiClient.get<{
           locations: Array<{
-            location_code: number;
-            location_name: string;
-            location_type: string;
+            locationCode: number;
+            locationName: string;
+            locationType: string;
           }>;
         }>(`/rank-locations/search?q=${encodeURIComponent(searchQuery)}`);
 
         if (response.locations && response.locations.length > 0) {
           // Find the best match - prefer city type
-          const cityMatch = response.locations.find(l => l.location_type === 'City');
+          const cityMatch = response.locations.find(l => l.locationType === 'City');
           const bestMatch = cityMatch || response.locations[0];
 
           setConceptLocation({
-            locationCode: bestMatch.location_code,
-            locationName: bestMatch.location_name,
+            locationCode: bestMatch.locationCode,
+            locationName: bestMatch.locationName,
           });
         }
       } catch (error) {

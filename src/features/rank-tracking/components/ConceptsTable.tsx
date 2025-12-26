@@ -359,18 +359,25 @@ export default function ConceptsTable({
                       {/* Desktop rank */}
                       {row.desktopChecked && (
                         <span className="flex items-center gap-0.5" title="Desktop">
-                          <span className="text-xs">🖥️</span>
+                          <svg className="w-3 h-3 text-gray-400" viewBox="0 0 16 14" fill="currentColor">
+                            <rect x="0" y="0" width="16" height="10" rx="1" />
+                            <rect x="5" y="11" width="6" height="1" />
+                            <rect x="4" y="12" width="8" height="1" />
+                          </svg>
                           <span className={`font-semibold ${row.desktopRank !== null ? getPositionColor(row.desktopRank) : 'text-gray-400'}`}>
-                            {row.desktopRank !== null ? `#${row.desktopRank}` : '>100'}
+                            {row.desktopRank !== null ? (row.desktopRank > 100 ? '>100' : row.desktopRank) : '>100'}
                           </span>
                         </span>
                       )}
                       {/* Mobile rank */}
                       {row.mobileChecked && (
                         <span className="flex items-center gap-0.5" title="Mobile">
-                          <span className="text-xs">📱</span>
+                          <svg className="w-2.5 h-3.5 text-gray-400" viewBox="0 0 10 16" fill="currentColor">
+                            <rect x="0" y="0" width="10" height="16" rx="1.5" />
+                            <rect x="3.5" y="13" width="3" height="1" rx="0.5" fill="white" />
+                          </svg>
                           <span className={`font-semibold ${row.mobileRank !== null ? getPositionColor(row.mobileRank) : 'text-gray-400'}`}>
-                            {row.mobileRank !== null ? `#${row.mobileRank}` : '>100'}
+                            {row.mobileRank !== null ? (row.mobileRank > 100 ? '>100' : row.mobileRank) : '>100'}
                           </span>
                         </span>
                       )}

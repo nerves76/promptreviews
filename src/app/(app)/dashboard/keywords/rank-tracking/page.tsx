@@ -80,6 +80,7 @@ export default function RankTrackingPage() {
     locationCode: number;
     locationName: string;
   } | null>(null);
+  const [isLookingUpLocation, setIsLookingUpLocation] = useState(false);
 
   // Look up location from business address if no location_code is set
   useEffect(() => {
@@ -93,6 +94,7 @@ export default function RankTrackingPage() {
     }
 
     const lookupLocation = async () => {
+      setIsLookingUpLocation(true);
       try {
         const searchQuery = business.address_state
           ? `${business.address_city}, ${business.address_state}`
@@ -100,22 +102,24 @@ export default function RankTrackingPage() {
 
         const response = await apiClient.get<{
           locations: Array<{
-            location_code: number;
-            location_name: string;
-            location_type: string;
+            locationCode: number;
+            locationName: string;
+            locationType: string;
           }>;
         }>(`/rank-locations/search?q=${encodeURIComponent(searchQuery)}`);
 
         if (response.locations && response.locations.length > 0) {
-          const cityMatch = response.locations.find(l => l.location_type === 'City');
+          const cityMatch = response.locations.find(l => l.locationType === 'City');
           const bestMatch = cityMatch || response.locations[0];
           setLookedUpLocation({
-            locationCode: bestMatch.location_code,
-            locationName: bestMatch.location_name,
+            locationCode: bestMatch.locationCode,
+            locationName: bestMatch.locationName,
           });
         }
       } catch (error) {
         console.error('Failed to lookup location from business address:', error);
+      } finally {
+        setIsLookingUpLocation(false);
       }
     };
 
@@ -230,6 +234,13 @@ export default function RankTrackingPage() {
 
   // Handle clicking "Check ranking" - auto-run if location available, otherwise show modal
   const handleCheckRank = useCallback(async (keyword: string, conceptId: string) => {
+    // If still looking up location, show loading state and wait
+    if (isLookingUpLocation) {
+      setIsAutoChecking(true);
+      // Wait a bit for location lookup to complete
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+
     // Find the concept to get its location
     const concept = concepts.find(k => k.id === conceptId);
     const conceptLocationCode = concept?.searchVolumeLocationCode;
@@ -290,7 +301,7 @@ export default function RankTrackingPage() {
       // No location available, show modal
       setCheckingKeyword({ keyword, conceptId });
     }
-  }, [concepts, business, lookedUpLocation, fetchRankChecks]);
+  }, [concepts, business, lookedUpLocation, isLookingUpLocation, fetchRankChecks]);
 
   // Open the check volume modal for a keyword
   const handleCheckVolume = useCallback((keyword: string) => {
@@ -531,7 +542,11 @@ export default function RankTrackingPage() {
               </p>
               <div className="flex gap-4">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-sm">🖥️</span>
+                  <svg className="w-4 h-4 text-gray-400" viewBox="0 0 16 14" fill="currentColor">
+                    <rect x="0" y="0" width="16" height="10" rx="1" />
+                    <rect x="5" y="11" width="6" height="1" />
+                    <rect x="4" y="12" width="8" height="1" />
+                  </svg>
                   <span className={`text-sm font-medium ${
                     autoCheckResult.desktop.found && autoCheckResult.desktop.position !== null
                       ? autoCheckResult.desktop.position <= 10 ? 'text-green-600' : 'text-amber-600'
@@ -543,7 +558,10 @@ export default function RankTrackingPage() {
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <span className="text-sm">📱</span>
+                  <svg className="w-3 h-4 text-gray-400" viewBox="0 0 10 16" fill="currentColor">
+                    <rect x="0" y="0" width="10" height="16" rx="1.5" />
+                    <rect x="3.5" y="13" width="3" height="1" rx="0.5" fill="white" />
+                  </svg>
                   <span className={`text-sm font-medium ${
                     autoCheckResult.mobile.found && autoCheckResult.mobile.position !== null
                       ? autoCheckResult.mobile.position <= 10 ? 'text-green-600' : 'text-amber-600'
