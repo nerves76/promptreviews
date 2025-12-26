@@ -16,19 +16,7 @@ import GetReviewsDropdown from './GetReviewsDropdown';
 import YourBusinessDropdown from './YourBusinessDropdown';
 import { useAccountSelection } from '@/utils/accountSelectionHooks';
 import DropdownPortal from './DropdownPortal';
-
-// Notification type from the database
-interface Notification {
-  id: string;
-  type: string;
-  title: string;
-  message: string;
-  action_url?: string;
-  action_label?: string;
-  read: boolean;
-  created_at: string;
-  metadata?: Record<string, any>;
-}
+import NotificationDropdown, { Notification } from './NotificationDropdown';
 
 const CowboyUserIcon = () => {
   const [imageError, setImageError] = useState(false);
@@ -638,60 +626,21 @@ const Header = React.memo(function Header() {
                   buttonRef={notificationsButtonRef}
                   ref={menuRef}
                   align="right"
-                  width="320px"
+                  width="360px"
                   style={{
-                    maxHeight: '400px',
+                    maxHeight: '480px',
                     overflowY: 'auto',
                     zIndex: 2147483649
                   }}
                 >
-                  <div className="p-4">
-                      <h3 className="text-lg font-semibold text-white mb-3">Notifications</h3>
-                      {notificationsLoading ? (
-                        <div className="text-center py-8">
-                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mx-auto"></div>
-                        </div>
-                      ) : notifications.length === 0 ? (
-                        <div className="text-center py-8 text-gray-400">
-                          <Icon name="FaBell" className="w-8 h-8 mx-auto mb-2 opacity-50 text-white" size={32} />
-                          <p className="text-white">No notifications</p>
-                          <p className="text-sm mt-1 text-gray-400">You're all caught up!</p>
-                        </div>
-                      ) : (
-                        <div className="space-y-3">
-                          {notifications.map((notification) => (
-                            <div
-                              key={notification.id}
-                              className={`relative group p-3 rounded-lg border transition-colors ${
-                                notification.read
-                                  ? 'bg-white/5 border-white/10 hover:bg-white/10'
-                                  : 'bg-white/15 border-white/30 hover:bg-white/20'
-                              }`}
-                            >
-                              <Link
-                                href={notification.action_url || '#'}
-                                onClick={() => setShowNotifications(false)}
-                                className="block pr-6"
-                              >
-                                <p className="text-sm font-medium text-white">{notification.title}</p>
-                                <p className="text-xs text-gray-300 mt-1">{notification.message}</p>
-                                <p className="text-xs text-gray-400 mt-2">
-                                  {new Date(notification.created_at).toLocaleDateString()}
-                                </p>
-                              </Link>
-                              <button
-                                onClick={(e) => dismissNotification(notification.id, e)}
-                                className="absolute top-2 right-2 p-1 rounded-full opacity-0 group-hover:opacity-100 hover:bg-white/20 transition-opacity"
-                                aria-label="Dismiss notification"
-                              >
-                                <Icon name="FaTimes" className="w-3 h-3 text-gray-400 hover:text-white" size={12} />
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </DropdownPortal>
+                  <NotificationDropdown
+                    notifications={notifications}
+                    loading={notificationsLoading}
+                    unreadCount={unreadCount}
+                    onDismiss={dismissNotification}
+                    onClose={() => setShowNotifications(false)}
+                  />
+                </DropdownPortal>
               </div>
             </div>
             
