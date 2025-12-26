@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import Icon from '@/components/Icon';
 import { apiClient } from '@/utils/apiClient';
 import {
@@ -35,6 +35,13 @@ export default function CheckLLMModal({
 
   const totalCredits = selectedProviders.reduce((sum, p) => sum + LLM_CREDIT_COSTS[p], 0);
 
+  // Reset state when question changes (modal might stay mounted)
+  useEffect(() => {
+    setResults(null);
+    setError(null);
+    setIsChecking(false);
+  }, [question]);
+
   const toggleProvider = useCallback((provider: LLMProvider) => {
     setSelectedProviders(prev => {
       if (prev.includes(provider)) {
@@ -48,6 +55,9 @@ export default function CheckLLMModal({
 
   const handleCheck = async () => {
     if (selectedProviders.length === 0) return;
+
+    console.log('[CheckLLMModal] Starting check for question:', question.substring(0, 50));
+    console.log('[CheckLLMModal] Selected providers:', selectedProviders);
 
     setIsChecking(true);
     setError(null);
@@ -65,22 +75,38 @@ export default function CheckLLMModal({
         questions: [question], // Pass specific question as array
       });
 
+      console.log('[CheckLLMModal] API Response:', {
+        success: response.success,
+        checksPerformed: response.checksPerformed,
+        resultsCount: response.results?.length,
+        hasErrors: response.errors?.length,
+        rawResponse: response,
+      });
+
       if (response.success && response.results && response.results.length > 0) {
+        console.log('[CheckLLMModal] Setting results:', response.results);
         setResults(response.results);
         // Trigger refresh of enrichment data
         onCheckComplete?.();
       } else if (response.errors && response.errors.length > 0) {
+        console.log('[CheckLLMModal] Setting error from response.errors:', response.errors);
         setError(response.errors.join(', '));
       } else {
+        console.log('[CheckLLMModal] Fallback error - no results returned', {
+          success: response.success,
+          results: response.results,
+        });
         setError('Check failed - no results returned');
       }
     } catch (err: any) {
+      console.error('[CheckLLMModal] Caught error:', err);
       if (err?.status === 402 || err?.error === 'Insufficient credits') {
         setError(`Insufficient credits. Need ${err.required || totalCredits}, have ${err.available || 0}`);
       } else {
         setError(err?.message || err?.error || 'Failed to check visibility');
       }
     } finally {
+      console.log('[CheckLLMModal] Setting isChecking to false');
       setIsChecking(false);
     }
   };

@@ -93,8 +93,8 @@ export function QuestionRow({
         }`}
         onClick={() => !isEditing && onToggleExpand?.()}
       >
-        {/* Funnel stage badge - editable dropdown in edit mode */}
-        {isEditing && onUpdateFunnel ? (
+        {/* Funnel stage dropdown - only show in edit mode (section headers show stage in view mode) */}
+        {isEditing && onUpdateFunnel && (
           <div className="relative group flex-shrink-0">
             <select
               value={question.funnelStage}
@@ -107,10 +107,6 @@ export function QuestionRow({
               <option value="bottom">Bot</option>
             </select>
           </div>
-        ) : (
-          <span className={`px-1.5 py-0.5 text-xs rounded flex-shrink-0 ${funnelColor.bg} ${funnelColor.text}`}>
-            {question.funnelStage === 'top' ? 'Top' : question.funnelStage === 'middle' ? 'Mid' : 'Bot'}
-          </span>
         )}
 
         {/* Question text */}

@@ -13,6 +13,7 @@ import {
   LLMProvider,
   LLMCheckResult,
   LLMCitation,
+  LLMBrandEntity,
 } from '../utils/types';
 
 // ============================================
@@ -336,11 +337,26 @@ export async function checkChatGPTVisibility(params: {
       }
     }
 
+    // Extract brand entities mentioned in the response
+    const mentionedBrands: LLMBrandEntity[] = [];
+    if (result.brand_entities && Array.isArray(result.brand_entities)) {
+      for (const entity of result.brand_entities) {
+        if (entity.title) {
+          mentionedBrands.push({
+            title: entity.title,
+            category: entity.category || null,
+            urls: entity.urls || null,
+          });
+        }
+      }
+    }
+
     // Check for brand mention in response text
     const brandMentioned = checkBrandMentioned(responseSnippet, businessName);
 
     console.log(
       `🤖 [DataForSEO AI] ChatGPT: ${citations.length} citations, ` +
+      `${mentionedBrands.length} brands mentioned, ` +
       `domain cited: ${domainCited}${citationPosition ? ` (position ${citationPosition})` : ''}, ` +
       `brand mentioned: ${brandMentioned}, ` +
       `cost: $${task.cost}`
@@ -356,6 +372,7 @@ export async function checkChatGPTVisibility(params: {
       citationUrl,
       totalCitations: citations.length,
       citations,
+      mentionedBrands,
       responseSnippet,
       cost: task.cost || 0,
     };
@@ -487,6 +504,7 @@ export async function checkLLMResponseVisibility(params: {
       citationUrl,
       totalCitations: citations.length,
       citations,
+      mentionedBrands: [], // LLM Responses API doesn't provide brand_entities like ChatGPT Scraper
       responseSnippet,
       cost: task.cost || 0,
     };
@@ -615,6 +633,7 @@ function createErrorResult(
     citationUrl: null,
     totalCitations: 0,
     citations: [],
+    mentionedBrands: [],
     responseSnippet: null,
     cost,
     error,

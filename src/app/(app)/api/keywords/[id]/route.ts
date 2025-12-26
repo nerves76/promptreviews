@@ -12,6 +12,7 @@ import {
   prepareQuestionForInsert,
   type SearchTerm,
   type RelatedQuestion,
+  type KeywordQuestionRow,
 } from '@/features/keywords/keywordUtils';
 
 // Service client for privileged operations
@@ -43,7 +44,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Account not found' }, { status: 404 });
     }
 
-    // Fetch keyword with group info
+    // Fetch keyword with group info and questions from normalized table
     const { data: keyword, error: keywordError } = await serviceSupabase
       .from('keywords')
       .select(`
@@ -75,6 +76,14 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         keyword_groups (
           id,
           name
+        ),
+        keyword_questions (
+          id,
+          question,
+          funnel_stage,
+          added_at,
+          created_at,
+          updated_at
         )
       `)
       .eq('id', id)
@@ -123,8 +132,23 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       .order('matched_at', { ascending: false })
       .limit(10);
 
+    // Transform keyword and use normalized questions table if available
+    const transformedKeyword = transformKeywordToResponse(keyword, (keyword as any).keyword_groups?.name);
+
+    // Use keyword_questions table data (normalized) instead of JSONB if available
+    const keywordQuestions = (keyword as any).keyword_questions;
+    console.log(`[Keyword ${id}] keyword_questions from DB:`, keywordQuestions?.length || 0, 'questions');
+    console.log(`[Keyword ${id}] related_questions JSONB:`, (keyword as any).related_questions?.length || 0, 'questions');
+
+    if (keywordQuestions && Array.isArray(keywordQuestions) && keywordQuestions.length > 0) {
+      transformedKeyword.relatedQuestions = transformKeywordQuestionRows(keywordQuestions as KeywordQuestionRow[]);
+      console.log(`[Keyword ${id}] Using normalized questions:`, transformedKeyword.relatedQuestions.length);
+    } else {
+      console.log(`[Keyword ${id}] Using JSONB questions:`, transformedKeyword.relatedQuestions?.length || 0);
+    }
+
     return NextResponse.json({
-      keyword: transformKeywordToResponse(keyword, (keyword as any).keyword_groups?.name),
+      keyword: transformedKeyword,
       promptPages: (pageUsage || []).map((pu: any) => ({
         id: pu.prompt_page_id,
         slug: pu.prompt_pages?.slug,

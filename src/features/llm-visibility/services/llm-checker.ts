@@ -41,6 +41,7 @@ function transformCheckRowToResponse(row: LLMVisibilityCheckRow): LLMVisibilityC
     totalCitations: row.total_citations,
     responseSnippet: row.response_snippet,
     citations: row.citations,
+    mentionedBrands: row.mentioned_brands,
     apiCostUsd: row.api_cost_usd,
     checkedAt: row.checked_at,
     createdAt: row.created_at,
@@ -140,6 +141,7 @@ export async function runLLMChecks(
       total_citations: number;
       response_snippet: string | null;
       citations: object | null;
+      mentioned_brands: object | null;
       api_cost_usd: number;
       checked_at: string;
     }> = [];
@@ -180,6 +182,7 @@ export async function runLLMChecks(
               total_citations: result.totalCitations,
               response_snippet: result.responseSnippet,
               citations: result.citations.length > 0 ? result.citations : null,
+              mentioned_brands: result.mentionedBrands.length > 0 ? result.mentionedBrands : null,
               api_cost_usd: result.cost,
               checked_at: checkedAt,
             });

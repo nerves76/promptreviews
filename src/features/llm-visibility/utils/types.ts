@@ -80,6 +80,12 @@ export interface LLMCitation {
   isOurs: boolean;
 }
 
+export interface LLMBrandEntity {
+  title: string;
+  category: string | null;
+  urls: Array<{ url: string; domain: string }> | null;
+}
+
 export interface LLMCheckResult {
   success: boolean;
   provider: LLMProvider;
@@ -90,6 +96,7 @@ export interface LLMCheckResult {
   citationUrl: string | null;
   totalCitations: number;
   citations: LLMCitation[];
+  mentionedBrands: LLMBrandEntity[];
   responseSnippet: string | null;
   cost: number;
   error?: string;
@@ -112,6 +119,7 @@ export interface LLMVisibilityCheckRow {
   total_citations: number;
   response_snippet: string | null;
   citations: LLMCitation[] | null;
+  mentioned_brands: LLMBrandEntity[] | null;
   api_cost_usd: number | null;
   checked_at: string;
   created_at: string;
@@ -164,6 +172,7 @@ export interface LLMVisibilityCheck {
   totalCitations: number;
   responseSnippet: string | null;
   citations: LLMCitation[] | null;
+  mentionedBrands: LLMBrandEntity[] | null;
   apiCostUsd: number | null;
   checkedAt: string;
   createdAt: string;

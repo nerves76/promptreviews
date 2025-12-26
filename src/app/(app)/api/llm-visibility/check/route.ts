@@ -255,6 +255,12 @@ export async function POST(request: NextRequest) {
       `API cost: $${result.totalCost.toFixed(4)}`
     );
 
+    // Debug: Log the response being returned
+    console.log(`📦 [LLMVisibility] Response results count: ${result.results?.length || 0}`);
+    if (result.results?.length) {
+      console.log(`📦 [LLMVisibility] First result:`, JSON.stringify(result.results[0], null, 2));
+    }
+
     return NextResponse.json({
       success: result.success,
       checksPerformed: result.checksPerformed,
