@@ -154,6 +154,25 @@ export default function CheckLLMModal({
             </div>
           </div>
 
+          {/* Checking progress indicator */}
+          {isChecking && (
+            <div className="p-4 rounded-lg bg-purple-50 border border-purple-200">
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <Icon name="FaSpinner" className="w-6 h-6 text-purple-600 animate-spin" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-purple-800">
+                    Querying {selectedProviders.length} AI{selectedProviders.length > 1 ? 's' : ''}...
+                  </p>
+                  <p className="text-xs text-purple-600 mt-0.5">
+                    This typically takes {selectedProviders.length <= 2 ? '15-30' : '30-60'} seconds
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Results */}
           {results && results.length > 0 && (
             <div className="space-y-2">
@@ -247,7 +266,7 @@ export default function CheckLLMModal({
                 {isChecking ? (
                   <>
                     <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
-                    Checking...
+                    Checking {selectedProviders.length} AI{selectedProviders.length > 1 ? 's' : ''}...
                   </>
                 ) : (
                   <>
