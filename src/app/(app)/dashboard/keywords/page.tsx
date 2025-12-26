@@ -34,6 +34,53 @@ export default function KeywordsPage() {
     locationName: string;
   } | null>(null);
 
+  // Looked-up location from business address (if location_code not set)
+  const [lookedUpLocation, setLookedUpLocation] = useState<{
+    locationCode: number;
+    locationName: string;
+  } | null>(null);
+
+  // Look up location from business address if no location_code is set
+  useEffect(() => {
+    if (business?.location_code) {
+      setLookedUpLocation(null);
+      return;
+    }
+    if (!business?.address_city) {
+      setLookedUpLocation(null);
+      return;
+    }
+
+    const lookupLocation = async () => {
+      try {
+        const searchQuery = business.address_state
+          ? `${business.address_city}, ${business.address_state}`
+          : business.address_city;
+
+        const response = await apiClient.get<{
+          locations: Array<{
+            location_code: number;
+            location_name: string;
+            location_type: string;
+          }>;
+        }>(`/rank-locations/search?q=${encodeURIComponent(searchQuery)}`);
+
+        if (response.locations && response.locations.length > 0) {
+          const cityMatch = response.locations.find(l => l.location_type === 'City');
+          const bestMatch = cityMatch || response.locations[0];
+          setLookedUpLocation({
+            locationCode: bestMatch.location_code,
+            locationName: bestMatch.location_name,
+          });
+        }
+      } catch (error) {
+        console.error('Failed to lookup location from business address:', error);
+      }
+    };
+
+    lookupLocation();
+  }, [business?.location_code, business?.address_city, business?.address_state]);
+
   // Trigger refresh of enrichment data when a check completes
   const handleCheckComplete = useCallback(() => {
     setEnrichmentRefreshKey(prev => prev + 1);
@@ -55,9 +102,9 @@ export default function KeywordsPage() {
     const conceptLocationCode = concept?.searchVolumeLocationCode;
     const conceptLocationName = concept?.searchVolumeLocationName;
 
-    // Use concept location, or fallback to business location
-    const locationCode = conceptLocationCode || business?.location_code;
-    const locationName = conceptLocationName || business?.location_name;
+    // Use concept location, or fallback to business location, or looked-up location from address
+    const locationCode = conceptLocationCode || business?.location_code || lookedUpLocation?.locationCode;
+    const locationName = conceptLocationName || business?.location_name || lookedUpLocation?.locationName;
 
     if (locationCode && locationName) {
       // Auto-run the check without modal
@@ -109,7 +156,7 @@ export default function KeywordsPage() {
       // No location available, show modal
       setCheckingKeyword({ keyword, conceptId });
     }
-  }, [keywords, business, handleCheckComplete]);
+  }, [keywords, business, lookedUpLocation, handleCheckComplete]);
 
   // Handle clicking "Check" on an AI visibility question
   const handleCheckLLMVisibility = useCallback((question: string, conceptId: string) => {
