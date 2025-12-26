@@ -19,6 +19,7 @@ import {
 } from '../keywordUtils';
 import {
   LLMProvider,
+  LLM_PROVIDERS,
 } from '@/features/llm-visibility/utils/types';
 import type { EnrichmentData } from './KeywordManager';
 import { useAuth } from '@/auth';
@@ -1060,6 +1061,7 @@ export function ConceptCard({
                     llmResultsMap={questionLLMMap}
                     isEditing={false}
                     onCheckQuestion={onCheckLLMVisibility ? (idx, question) => onCheckLLMVisibility(question, keyword.id) : undefined}
+                    selectedProviders={LLM_PROVIDERS}
                   />
                 );
               })}
