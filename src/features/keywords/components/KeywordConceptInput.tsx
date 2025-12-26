@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { apiClient } from "@/utils/apiClient";
 import Icon from "@/components/Icon";
 import {
@@ -89,6 +89,51 @@ export default function KeywordConceptInput({
     locationCode: businessLocationCode ?? null,
     locationName: businessLocationName ?? null,
   });
+  const [isLookingUpLocation, setIsLookingUpLocation] = useState(false);
+
+  // Auto-lookup location from business city/state if no explicit location is set
+  useEffect(() => {
+    // Only run when form opens and we need to lookup
+    if (!showForm) return;
+    if (conceptLocation.locationCode) return; // Already has location
+    if (businessLocationCode) return; // Business already has location code
+    if (!businessCity) return; // No city to lookup
+
+    const lookupLocation = async () => {
+      setIsLookingUpLocation(true);
+      try {
+        const searchQuery = businessState
+          ? `${businessCity}, ${businessState}`
+          : businessCity;
+
+        const response = await apiClient.get<{
+          locations: Array<{
+            location_code: number;
+            location_name: string;
+            location_type: string;
+          }>;
+        }>(`/rank-locations/search?q=${encodeURIComponent(searchQuery)}`);
+
+        if (response.locations && response.locations.length > 0) {
+          // Find the best match - prefer city type
+          const cityMatch = response.locations.find(l => l.location_type === 'City');
+          const bestMatch = cityMatch || response.locations[0];
+
+          setConceptLocation({
+            locationCode: bestMatch.location_code,
+            locationName: bestMatch.location_name,
+          });
+        }
+      } catch (error) {
+        console.error('Failed to auto-lookup location:', error);
+        // Silently fail - user can manually set location
+      } finally {
+        setIsLookingUpLocation(false);
+      }
+    };
+
+    lookupLocation();
+  }, [showForm, conceptLocation.locationCode, businessLocationCode, businessCity, businessState]);
 
   // Related questions hook
   const {
@@ -706,17 +751,24 @@ export default function KeywordConceptInput({
           Location
           <span className="text-gray-400 font-normal ml-1">(for rank tracking and volume lookups)</span>
         </label>
-        <LocationPicker
-          value={conceptLocation}
-          onChange={(location) => {
-            setConceptLocation({
-              locationCode: location?.locationCode ?? null,
-              locationName: location?.locationName ?? null,
-            });
-          }}
-          placeholder="Search for a city or region..."
-        />
-        {!conceptLocation.locationCode && !businessLocationCode && (
+        {isLookingUpLocation ? (
+          <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-500">
+            <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
+            Looking up location from business address...
+          </div>
+        ) : (
+          <LocationPicker
+            value={conceptLocation}
+            onChange={(location) => {
+              setConceptLocation({
+                locationCode: location?.locationCode ?? null,
+                locationName: location?.locationName ?? null,
+              });
+            }}
+            placeholder="Search for a city or region..."
+          />
+        )}
+        {!conceptLocation.locationCode && !businessLocationCode && !isLookingUpLocation && !businessCity && (
           <p className="text-xs text-amber-600 mt-1">
             Tip: Set a location on your Business Profile to auto-fill new concepts.
           </p>

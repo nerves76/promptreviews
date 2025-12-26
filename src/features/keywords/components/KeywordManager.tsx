@@ -150,6 +150,54 @@ export default function KeywordManager({
   const [usageInfo, setUsageInfo] = useState<{ current: number; limit: number; remaining: number } | null>(null);
   const [generatorError, setGeneratorError] = useState<string | null>(null);
 
+  // Looked-up location from business address (if location_code not set)
+  const [lookedUpLocation, setLookedUpLocation] = useState<{
+    locationCode: number;
+    locationName: string;
+  } | null>(null);
+
+  // Look up location from business address if no location_code is set
+  useEffect(() => {
+    if (business?.location_code) {
+      // Business already has location_code set
+      setLookedUpLocation(null);
+      return;
+    }
+    if (!businessCity) {
+      setLookedUpLocation(null);
+      return;
+    }
+
+    const lookupLocation = async () => {
+      try {
+        const searchQuery = businessState
+          ? `${businessCity}, ${businessState}`
+          : businessCity;
+
+        const response = await apiClient.get<{
+          locations: Array<{
+            location_code: number;
+            location_name: string;
+            location_type: string;
+          }>;
+        }>(`/rank-locations/search?q=${encodeURIComponent(searchQuery)}`);
+
+        if (response.locations && response.locations.length > 0) {
+          const cityMatch = response.locations.find(l => l.location_type === 'City');
+          const bestMatch = cityMatch || response.locations[0];
+          setLookedUpLocation({
+            locationCode: bestMatch.location_code,
+            locationName: bestMatch.location_name,
+          });
+        }
+      } catch (error) {
+        console.error('Failed to lookup location from business address:', error);
+      }
+    };
+
+    lookupLocation();
+  }, [business?.location_code, businessCity, businessState]);
+
   // Import/Export state
   const [showImportModal, setShowImportModal] = useState(false);
   const [importFile, setImportFile] = useState<File | null>(null);
@@ -673,7 +721,10 @@ export default function KeywordManager({
         addedAt: now,
       }));
 
-      // Use conceptName from AI generation, apply business location
+      // Use conceptName from AI generation, apply business location or looked-up location
+      const locationCode = business?.location_code ?? lookedUpLocation?.locationCode ?? null;
+      const locationName = business?.location_name ?? lookedUpLocation?.locationName ?? null;
+
       await createEnrichedKeyword({
         phrase: kw.conceptName,
         review_phrase: kw.reviewPhrase,
@@ -682,8 +733,8 @@ export default function KeywordManager({
         location_scope: null,
         related_questions: kw.relatedQuestions || [],
         ai_generated: true,
-        search_volume_location_code: business?.location_code ?? null,
-        search_volume_location_name: business?.location_name ?? null,
+        search_volume_location_code: locationCode,
+        search_volume_location_name: locationName,
       });
     }
 
