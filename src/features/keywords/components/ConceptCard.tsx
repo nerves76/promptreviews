@@ -668,39 +668,49 @@ export function ConceptCard({
       {/* Expandable content */}
       {(isExpanded || isEditing) && (
         <>
-          {/* AI Auto-fill Button - shown when fields can be filled */}
-          {hasEmptySEOFields && !isEditing && onUpdate && !showOverwriteWarning && (
-            <div className="px-4 py-2">
-          <button
-            onClick={() => {
-              if (hasExistingData) {
-                setShowOverwriteWarning(true);
-              } else {
-                handleAIEnrich();
-              }
-            }}
-            disabled={isEnriching}
-            className="text-xs text-purple-600 hover:text-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
-          >
-            {isEnriching ? (
-              <>
-                <Icon name="FaSpinner" className="w-3 h-3 animate-spin" />
-                Generating...
-              </>
-            ) : (
-              <>
-                <Icon name="prompty" className="w-3 h-3" />
-                Auto-fill with AI
-              </>
-            )}
-          </button>
-          {enrichError && (
-            <div className="mt-2 p-2 bg-red-50 border border-red-100 rounded-lg text-xs text-red-600 flex items-center gap-2">
-              <Icon name="FaExclamationTriangle" className="w-3 h-3" />
-              {enrichError}
+          {/* Compact info bar: Location + AI button */}
+          {!isEditing && (
+            <div className="px-4 py-2 flex items-center justify-between gap-3 text-xs border-b border-gray-100">
+              {/* Location */}
+              <div className="flex items-center gap-1.5 text-gray-500">
+                <Icon name="FaMapMarker" className="w-3 h-3 text-slate-blue" />
+                <span>{keyword.searchVolumeLocationName || businessLocationName || 'No location'}</span>
+              </div>
+              {/* AI Auto-fill Button */}
+              {hasEmptySEOFields && onUpdate && !showOverwriteWarning && (
+                <button
+                  onClick={() => {
+                    if (hasExistingData) {
+                      setShowOverwriteWarning(true);
+                    } else {
+                      handleAIEnrich();
+                    }
+                  }}
+                  disabled={isEnriching}
+                  className="text-purple-600 hover:text-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                >
+                  {isEnriching ? (
+                    <>
+                      <Icon name="FaSpinner" className="w-3 h-3 animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <Icon name="prompty" className="w-3 h-3" />
+                      Auto-fill with AI
+                    </>
+                  )}
+                </button>
+              )}
             </div>
           )}
-          </div>
+          {enrichError && !isEditing && (
+            <div className="px-4 py-2">
+              <div className="p-2 bg-red-50 border border-red-100 rounded-lg text-xs text-red-600 flex items-center gap-2">
+                <Icon name="FaExclamationTriangle" className="w-3 h-3" />
+                {enrichError}
+              </div>
+            </div>
           )}
 
           {/* Overwrite Warning */}
@@ -750,9 +760,9 @@ export function ConceptCard({
             </div>
           )}
 
-          {/* Location Section */}
-          <div className="px-4 py-2 border-b border-gray-100">
-            {isEditing ? (
+          {/* Location Section - only shown in edit mode */}
+          {isEditing && (
+            <div className="px-4 py-2 border-b border-gray-100">
               <div className="space-y-2">
                 <span className="text-xs font-medium text-gray-600 flex items-center gap-1">
                   <Icon name="FaMapMarker" className="w-3 h-3 text-slate-blue" />
@@ -779,17 +789,8 @@ export function ConceptCard({
                   </div>
                 )}
               </div>
-            ) : (
-              <div className="flex items-center gap-2 text-sm">
-                <Icon name="FaMapMarker" className="w-3 h-3 text-slate-blue flex-shrink-0" />
-                <span className="text-gray-700">
-                  {keyword.searchVolumeLocationName || businessLocationName || (
-                    <span className="text-gray-400 italic">No location set</span>
-                  )}
-                </span>
-              </div>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Collapsible Sections */}
           <div className="px-4">
@@ -861,8 +862,8 @@ export function ConceptCard({
               </div>
             </div>
           ) : displayKeyword.searchTerms && displayKeyword.searchTerms.length > 0 ? (
-            /* View mode */
-            <div className="space-y-2">
+            /* View mode - clean, minimal design */
+            <div className="space-y-1">
               {displayKeyword.searchTerms.map((term) => {
                 const normalizedTerm = normalizePhrase(term.term);
                 const volumeData = termVolumeData.get(normalizedTerm);
@@ -872,96 +873,83 @@ export function ConceptCard({
                 const hasVolume = volumeData && volumeData.searchVolume !== null;
                 const hasRankings = termRankings.length > 0;
 
+                // Get best rank for display
+                const desktopRank = termRankings.find(r => r.device === 'desktop')?.latestCheck?.position;
+                const mobileRank = termRankings.find(r => r.device === 'mobile')?.latestCheck?.position;
+
                 return (
                   <div
                     key={term.term}
-                    className={`p-2.5 rounded-lg border ${
-                      term.isCanonical
-                        ? 'bg-blue-50/80 border-blue-200/50'
-                        : 'bg-gray-50/80 border-gray-100'
-                    }`}
+                    className="group py-2 px-3 -mx-1 rounded-lg hover:bg-gray-50/80 transition-colors"
                   >
-                    {/* Term header with actions on right */}
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex items-center gap-2 min-w-0">
+                    {/* Main row: term + metadata + actions */}
+                    <div className="flex items-center justify-between gap-3">
+                      {/* Left: Term with optional star */}
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
                         {term.isCanonical && (
-                          <Icon name="FaStar" className="w-3 h-3 text-blue-500 flex-shrink-0" />
+                          <Icon name="FaStar" className="w-3 h-3 text-amber-400 flex-shrink-0" />
                         )}
-                        <span className="text-sm font-medium text-gray-800">{term.term}</span>
+                        <span className="text-sm text-gray-800 truncate">{term.term}</span>
                       </div>
-                      {/* Action buttons on right */}
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        {/* Volume button */}
+
+                      {/* Middle: Inline metrics */}
+                      <div className="flex items-center gap-3 text-xs text-gray-500">
+                        {hasVolume && (
+                          <span title="Monthly search volume">
+                            <span className="font-medium text-gray-700">{formatVolume(volumeData!.searchVolume!)}</span>
+                            <span className="text-gray-400">/mo</span>
+                          </span>
+                        )}
+                        {(desktopRank || mobileRank) && (
+                          <span className="flex items-center gap-1.5" title="Search ranking">
+                            {desktopRank && (
+                              <span className={`font-medium ${
+                                desktopRank <= 3 ? 'text-green-600' :
+                                desktopRank <= 10 ? 'text-blue-600' :
+                                desktopRank <= 20 ? 'text-amber-600' : 'text-gray-500'
+                              }`}>
+                                #{desktopRank}
+                              </span>
+                            )}
+                            {mobileRank && desktopRank && <span className="text-gray-300">/</span>}
+                            {mobileRank && (
+                              <span className={`font-medium ${
+                                mobileRank <= 3 ? 'text-green-600' :
+                                mobileRank <= 10 ? 'text-blue-600' :
+                                mobileRank <= 20 ? 'text-amber-600' : 'text-gray-500'
+                              }`}>
+                                #{mobileRank}
+                              </span>
+                            )}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Right: Action buttons - visible on hover */}
+                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
                           onClick={() => handleCheckTermVolume(term.term)}
                           disabled={loadingStates[term.term] === 'checking-volume' || Object.values(loadingStates).some(s => s !== null)}
-                          className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-100 text-blue-600 hover:bg-blue-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="p-1 rounded text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors disabled:opacity-50"
+                          title={hasVolume ? 'Re-check volume' : 'Check volume'}
                         >
                           {loadingStates[term.term] === 'checking-volume' ? (
-                            <Icon name="FaSpinner" className="w-3 h-3 animate-spin inline" />
-                          ) : hasVolume ? (
-                            'Re-check volume'
+                            <Icon name="FaSpinner" className="w-3.5 h-3.5 animate-spin" />
                           ) : (
-                            'Check volume'
+                            <Icon name="FaChartLine" className="w-3.5 h-3.5" />
                           )}
                         </button>
-                        {/* Ranking button */}
                         {onCheckRank && (
                           <button
                             onClick={() => onCheckRank(term.term, keyword.id)}
                             disabled={Object.values(loadingStates).some(s => s !== null)}
-                            className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-green-100 text-green-600 hover:bg-green-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="p-1 rounded text-gray-400 hover:text-green-600 hover:bg-green-50 transition-colors disabled:opacity-50"
+                            title={hasRankings ? 'Re-check ranking' : 'Check ranking'}
                           >
-                            {hasRankings ? 'Re-check ranking' : 'Check ranking'}
+                            <Icon name="FaSearch" className="w-3.5 h-3.5" />
                           </button>
                         )}
                       </div>
-                    </div>
-
-                    {/* Volume and rank info */}
-                    <div className="mt-1.5 text-xs">
-                      <div className="flex items-center gap-3 flex-wrap">
-                        {hasVolume && (
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-gray-500">Volume:</span>
-                            <span className="font-semibold text-gray-900">{formatVolume(volumeData!.searchVolume!)}</span>
-                            {volumeData!.researchedAt && (
-                              <span className="text-[10px] text-gray-400">
-                                ({getVolumeAge(volumeData!.researchedAt)})
-                              </span>
-                            )}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Rankings */}
-                      {termRankings.length > 0 && (
-                        <div className="flex flex-wrap gap-1.5 mt-1">
-                          {termRankings.map((ranking) => {
-                            const deviceMatch = ranking.device;
-                            return (
-                              <div
-                                key={ranking.groupId}
-                                className="inline-flex items-center gap-1 px-2 py-0.5 bg-white rounded border border-gray-200 text-xs"
-                              >
-                                <span className="text-gray-500">Rank:</span>
-                                {ranking.latestCheck?.position ? (
-                                  <span className={`font-semibold ${
-                                    ranking.latestCheck.position <= 3 ? 'text-green-600' :
-                                    ranking.latestCheck.position <= 10 ? 'text-blue-600' :
-                                    ranking.latestCheck.position <= 20 ? 'text-amber-600' : 'text-gray-600'
-                                  }`}>
-                                    #{ranking.latestCheck.position}
-                                  </span>
-                                ) : (
-                                  <span className="text-gray-400">Not in top 100</span>
-                                )}
-                                <span className="text-gray-400">({deviceMatch})</span>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
                     </div>
                   </div>
                 );
