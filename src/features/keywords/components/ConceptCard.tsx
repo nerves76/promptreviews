@@ -66,6 +66,10 @@ interface ConceptCardProps {
   enrichedData?: EnrichmentData;
   /** Whether enrichment data is currently being loaded at parent level */
   isLoadingEnrichment?: boolean;
+  /** Business location code (fallback when concept has no location) */
+  businessLocationCode?: number | null;
+  /** Business location name (fallback when concept has no location) */
+  businessLocationName?: string | null;
 }
 
 /**
@@ -84,6 +88,8 @@ export function ConceptCard({
   promptPageNames = [],
   enrichedData,
   isLoadingEnrichment = false,
+  businessLocationCode,
+  businessLocationName,
 }: ConceptCardProps) {
   // Get business context for AI enrichment
   const { account } = useAuth();
@@ -779,6 +785,11 @@ export function ConceptCard({
                 {keyword.searchVolumeLocationName ? (
                   <span className="flex items-center gap-1.5">
                     <span>{keyword.searchVolumeLocationName}</span>
+                  </span>
+                ) : businessLocationName ? (
+                  <span className="flex items-center gap-1.5 text-gray-500">
+                    <span>{businessLocationName}</span>
+                    <span className="text-xs text-gray-400">(from business)</span>
                   </span>
                 ) : (
                   <span className="text-gray-400 italic">No location set</span>

@@ -1357,6 +1357,8 @@ export default function KeywordManager({
                     promptPageNames={promptPageUsage[keyword.id] || []}
                     enrichedData={enrichmentData.get(keyword.id)}
                     isLoadingEnrichment={isLoadingEnrichment}
+                    businessLocationCode={business?.location_code ?? lookedUpLocation?.locationCode}
+                    businessLocationName={business?.location_name ?? lookedUpLocation?.locationName}
                   />
                 </div>
               </div>
