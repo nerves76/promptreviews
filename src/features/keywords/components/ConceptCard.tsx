@@ -787,10 +787,7 @@ export function ConceptCard({
                     <span>{keyword.searchVolumeLocationName}</span>
                   </span>
                 ) : businessLocationName ? (
-                  <span className="flex items-center gap-1.5 text-gray-500">
-                    <span>{businessLocationName}</span>
-                    <span className="text-xs text-gray-400">(from business)</span>
-                  </span>
+                  <span>{businessLocationName}</span>
                 ) : (
                   <span className="text-gray-400 italic">No location set</span>
                 )}
