@@ -801,20 +801,7 @@ export function ConceptCard({
           defaultExpanded={false}
           forceExpanded={isEditing}
           icon={<Icon name="FaSearch" className="w-3.5 h-3.5 text-slate-blue" />}
-          headerAction={
-            !isEditing && onCheckRank && displayKeyword.searchTerms && displayKeyword.searchTerms.length > 0 ? (
-              <span
-                role="button"
-                tabIndex={0}
-                onClick={() => onCheckRank(displayKeyword.searchTerms![0].term, keyword.id)}
-                onKeyDown={(e) => e.key === 'Enter' && onCheckRank(displayKeyword.searchTerms![0].term, keyword.id)}
-                className="text-xs text-slate-blue hover:text-slate-blue/80 flex items-center gap-1 cursor-pointer"
-              >
-                <Icon name="FaChartLine" className="w-3 h-3" />
-                Track
-              </span>
-            ) : undefined
-          }
+          headerAction={undefined}
         >
           {isEditing ? (
             /* Edit mode */

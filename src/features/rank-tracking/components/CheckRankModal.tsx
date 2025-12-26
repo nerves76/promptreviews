@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Icon from '@/components/Icon';
 import LocationPicker from './LocationPicker';
 
@@ -19,6 +19,10 @@ interface CheckRankModalProps {
   }>;
   /** Called when a check completes successfully, to trigger data refresh */
   onCheckComplete?: () => void;
+  /** Pre-selected location code */
+  defaultLocationCode?: number;
+  /** Pre-selected location name */
+  defaultLocationName?: string;
 }
 
 export default function CheckRankModal({
@@ -27,8 +31,21 @@ export default function CheckRankModal({
   onClose,
   onCheck,
   onCheckComplete,
+  defaultLocationCode,
+  defaultLocationName,
 }: CheckRankModalProps) {
-  const [location, setLocation] = useState<{ code: number; name: string } | null>(null);
+  const [location, setLocation] = useState<{ code: number; name: string } | null>(
+    defaultLocationCode && defaultLocationName
+      ? { code: defaultLocationCode, name: defaultLocationName }
+      : null
+  );
+
+  // Update location when defaults change (e.g., modal opens with new keyword)
+  useEffect(() => {
+    if (isOpen && defaultLocationCode && defaultLocationName) {
+      setLocation({ code: defaultLocationCode, name: defaultLocationName });
+    }
+  }, [isOpen, defaultLocationCode, defaultLocationName]);
   const [isChecking, setIsChecking] = useState(false);
   const [result, setResult] = useState<{ desktop: RankResult; mobile: RankResult } | null>(null);
   const [error, setError] = useState<string | null>(null);

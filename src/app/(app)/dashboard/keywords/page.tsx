@@ -26,13 +26,6 @@ export default function KeywordsPage() {
   const [checkingKeyword, setCheckingKeyword] = useState<{ keyword: string; conceptId: string; locationCode?: number; locationName?: string } | null>(null);
   const [checkingLLM, setCheckingLLM] = useState<{ question: string; conceptId: string } | null>(null);
   const [enrichmentRefreshKey, setEnrichmentRefreshKey] = useState(0);
-  const [isAutoChecking, setIsAutoChecking] = useState(false);
-  const [autoCheckResult, setAutoCheckResult] = useState<{
-    keyword: string;
-    desktop: { position: number | null; found: boolean };
-    mobile: { position: number | null; found: boolean };
-    locationName: string;
-  } | null>(null);
 
   // Looked-up location from business address (if location_code not set)
   const [lookedUpLocation, setLookedUpLocation] = useState<{
@@ -86,17 +79,9 @@ export default function KeywordsPage() {
     setEnrichmentRefreshKey(prev => prev + 1);
   }, []);
 
-  // Auto-dismiss result toast after 5 seconds
-  useEffect(() => {
-    if (autoCheckResult) {
-      const timer = setTimeout(() => setAutoCheckResult(null), 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [autoCheckResult]);
-
   // Handle clicking "Check ranking" on a search term
-  // If concept has location, auto-run the check. Otherwise show modal.
-  const handleCheckRank = useCallback(async (keyword: string, conceptId: string) => {
+  // Always show modal with credit info and confirmation
+  const handleCheckRank = useCallback((keyword: string, conceptId: string) => {
     // Find the concept to get its location
     const concept = keywords.find(k => k.id === conceptId);
     const conceptLocationCode = concept?.searchVolumeLocationCode;
@@ -106,57 +91,14 @@ export default function KeywordsPage() {
     const locationCode = conceptLocationCode || business?.location_code || lookedUpLocation?.locationCode;
     const locationName = conceptLocationName || business?.location_name || lookedUpLocation?.locationName;
 
-    if (locationCode && locationName) {
-      // Auto-run the check without modal
-      setIsAutoChecking(true);
-      setAutoCheckResult(null);
-      try {
-        const [desktopResponse, mobileResponse] = await Promise.all([
-          apiClient.post<{
-            success: boolean;
-            position: number | null;
-            found: boolean;
-            error?: string;
-          }>('/rank-tracking/check-keyword', {
-            keyword,
-            keywordId: conceptId,
-            locationCode,
-            device: 'desktop',
-          }),
-          apiClient.post<{
-            success: boolean;
-            position: number | null;
-            found: boolean;
-            error?: string;
-          }>('/rank-tracking/check-keyword', {
-            keyword,
-            keywordId: conceptId,
-            locationCode,
-            device: 'mobile',
-          }),
-        ]);
-
-        if (desktopResponse.success && mobileResponse.success) {
-          setAutoCheckResult({
-            keyword,
-            desktop: { position: desktopResponse.position, found: desktopResponse.found },
-            mobile: { position: mobileResponse.position, found: mobileResponse.found },
-            locationName,
-          });
-          handleCheckComplete();
-        }
-      } catch (error) {
-        console.error('Auto rank check failed:', error);
-        // Fall back to showing modal on error
-        setCheckingKeyword({ keyword, conceptId });
-      } finally {
-        setIsAutoChecking(false);
-      }
-    } else {
-      // No location available, show modal
-      setCheckingKeyword({ keyword, conceptId });
-    }
-  }, [keywords, business, lookedUpLocation, handleCheckComplete]);
+    // Always show modal with pre-selected location if available
+    setCheckingKeyword({
+      keyword,
+      conceptId,
+      locationCode,
+      locationName,
+    });
+  }, [keywords, business, lookedUpLocation]);
 
   // Handle clicking "Check" on an AI visibility question
   const handleCheckLLMVisibility = useCallback((question: string, conceptId: string) => {
@@ -298,6 +240,8 @@ export default function KeywordsPage() {
         onClose={() => setCheckingKeyword(null)}
         onCheck={performRankCheck}
         onCheckComplete={handleCheckComplete}
+        defaultLocationCode={checkingKeyword?.locationCode}
+        defaultLocationName={checkingKeyword?.locationName}
       />
 
       {/* Check LLM Visibility Modal */}
@@ -309,68 +253,6 @@ export default function KeywordsPage() {
         onCheckComplete={handleCheckComplete}
       />
 
-      {/* Auto-check loading toast */}
-      {isAutoChecking && (
-        <div className="fixed bottom-6 right-6 z-50 bg-white rounded-lg shadow-lg border border-gray-200 p-4 flex items-center gap-3">
-          <Icon name="FaSpinner" className="w-5 h-5 text-slate-blue animate-spin" />
-          <span className="text-sm text-gray-700">Checking ranking...</span>
-        </div>
-      )}
-
-      {/* Auto-check result toast */}
-      {autoCheckResult && (
-        <div className="fixed bottom-6 right-6 z-50 bg-white rounded-xl shadow-lg border border-gray-200 p-4 max-w-sm">
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex-1">
-              <p className="text-sm font-medium text-gray-900 mb-2">
-                Rank check complete
-              </p>
-              <p className="text-xs text-gray-500 mb-3 truncate" title={autoCheckResult.keyword}>
-                &quot;{autoCheckResult.keyword}&quot; in {autoCheckResult.locationName}
-              </p>
-              <div className="flex gap-4">
-                <div className="flex items-center gap-1.5">
-                  <svg className="w-4 h-4 text-gray-400" viewBox="0 0 16 14" fill="currentColor">
-                    <rect x="0" y="0" width="16" height="10" rx="1" />
-                    <rect x="5" y="11" width="6" height="1" />
-                    <rect x="4" y="12" width="8" height="1" />
-                  </svg>
-                  <span className={`text-sm font-medium ${
-                    autoCheckResult.desktop.found && autoCheckResult.desktop.position !== null
-                      ? autoCheckResult.desktop.position <= 10 ? 'text-green-600' : 'text-amber-600'
-                      : 'text-gray-500'
-                  }`}>
-                    {autoCheckResult.desktop.found && autoCheckResult.desktop.position !== null
-                      ? `#${autoCheckResult.desktop.position}`
-                      : 'Not found'}
-                  </span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <svg className="w-3 h-4 text-gray-400" viewBox="0 0 10 16" fill="currentColor">
-                    <rect x="0" y="0" width="10" height="16" rx="1.5" />
-                    <rect x="3.5" y="13" width="3" height="1" rx="0.5" fill="white" />
-                  </svg>
-                  <span className={`text-sm font-medium ${
-                    autoCheckResult.mobile.found && autoCheckResult.mobile.position !== null
-                      ? autoCheckResult.mobile.position <= 10 ? 'text-green-600' : 'text-amber-600'
-                      : 'text-gray-500'
-                  }`}>
-                    {autoCheckResult.mobile.found && autoCheckResult.mobile.position !== null
-                      ? `#${autoCheckResult.mobile.position}`
-                      : 'Not found'}
-                  </span>
-                </div>
-              </div>
-            </div>
-            <button
-              onClick={() => setAutoCheckResult(null)}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
-            >
-              <Icon name="FaTimes" className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
