@@ -800,7 +800,7 @@ export function ConceptCard({
           badge={isEditing ? editedSearchTerms.length : (displayKeyword.searchTerms?.length || 0)}
           defaultExpanded={false}
           forceExpanded={isEditing}
-          icon={<Icon name="FaSearch" className="w-3.5 h-3.5 text-blue-500" />}
+          icon={<Icon name="FaSearch" className="w-3.5 h-3.5 text-slate-blue" />}
           headerAction={
             !isEditing && onCheckRank && displayKeyword.searchTerms && displayKeyword.searchTerms.length > 0 ? (
               <span
@@ -999,7 +999,7 @@ export function ConceptCard({
           badge={isEditing ? editedQuestions.length : (displayKeyword.relatedQuestions?.length || 0)}
           defaultExpanded={false}
           forceExpanded={isEditing}
-          icon={<Icon name="FaSparkles" className="w-3.5 h-3.5 text-purple-500" />}
+          icon={<Icon name="FaSparkles" className="w-3.5 h-3.5 text-slate-blue" />}
           headerAction={undefined /* Each question has its own check button */}
         >
           {isEditing ? (
@@ -1097,7 +1097,7 @@ export function ConceptCard({
           title="Reviews"
           defaultExpanded={false}
           forceExpanded={isEditing}
-          icon={<Icon name="FaStar" className="w-3.5 h-3.5 text-amber-500" />}
+          icon={<Icon name="FaStar" className="w-3.5 h-3.5 text-slate-blue" />}
         >
           {isEditing ? (
             /* Edit mode */
