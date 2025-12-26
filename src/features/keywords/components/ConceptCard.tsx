@@ -567,7 +567,7 @@ export function ConceptCard({
                 placeholder="Concept name"
               />
             ) : (
-              <h3 className="font-medium text-gray-900 truncate">{keyword.phrase}</h3>
+              <h3 className="text-lg font-medium text-gray-900 truncate">{keyword.phrase}</h3>
             )}
           </div>
 
