@@ -937,9 +937,6 @@ export function ConceptCard({
                                 ({getVolumeAge(volumeData!.researchedAt)})
                               </span>
                             )}
-                            {volumeData!.locationName && (
-                              <span className="text-gray-400">{volumeData!.locationName}</span>
-                            )}
                           </div>
                         )}
                       </div>
@@ -967,7 +964,6 @@ export function ConceptCard({
                                   <span className="text-gray-400">Not in top 100</span>
                                 )}
                                 <span className="text-gray-400">({deviceMatch})</span>
-                                <span className="text-gray-400">{ranking.location}</span>
                               </div>
                             );
                           })}
