@@ -13,7 +13,7 @@ import PageCard from '@/app/(app)/components/PageCard';
 import Icon from '@/components/Icon';
 import { CheckRankModal, CheckVolumeModal, ConceptsTable } from '@/features/rank-tracking/components';
 import { useKeywords } from '@/features/keywords/hooks/useKeywords';
-import { useAccountData } from '@/auth/hooks/granularAuthHooks';
+import { useAccountData, useBusinessData } from '@/auth/hooks/granularAuthHooks';
 import { apiClient } from '@/utils/apiClient';
 
 /** Volume data for a search term */
@@ -59,11 +59,76 @@ export default function RankTrackingPage() {
   const pathname = usePathname();
   // Track selected account to refetch when it changes
   const { selectedAccountId } = useAccountData();
+  const { business } = useBusinessData();
   const [searchQuery, setSearchQuery] = useState('');
   const [checkingKeyword, setCheckingKeyword] = useState<{ keyword: string; conceptId: string } | null>(null);
   const [checkingVolumeTerm, setCheckingVolumeTerm] = useState<string | null>(null);
   const [researchResults, setResearchResults] = useState<ResearchResult[]>([]);
   const [rankChecks, setRankChecks] = useState<RankCheck[]>([]);
+
+  // Auto-check state
+  const [isAutoChecking, setIsAutoChecking] = useState(false);
+  const [autoCheckResult, setAutoCheckResult] = useState<{
+    keyword: string;
+    desktop: { position: number | null; found: boolean };
+    mobile: { position: number | null; found: boolean };
+    locationName: string;
+  } | null>(null);
+
+  // Looked-up location from business address (if location_code not set)
+  const [lookedUpLocation, setLookedUpLocation] = useState<{
+    locationCode: number;
+    locationName: string;
+  } | null>(null);
+
+  // Look up location from business address if no location_code is set
+  useEffect(() => {
+    if (business?.location_code) {
+      setLookedUpLocation(null);
+      return;
+    }
+    if (!business?.address_city) {
+      setLookedUpLocation(null);
+      return;
+    }
+
+    const lookupLocation = async () => {
+      try {
+        const searchQuery = business.address_state
+          ? `${business.address_city}, ${business.address_state}`
+          : business.address_city;
+
+        const response = await apiClient.get<{
+          locations: Array<{
+            location_code: number;
+            location_name: string;
+            location_type: string;
+          }>;
+        }>(`/rank-locations/search?q=${encodeURIComponent(searchQuery)}`);
+
+        if (response.locations && response.locations.length > 0) {
+          const cityMatch = response.locations.find(l => l.location_type === 'City');
+          const bestMatch = cityMatch || response.locations[0];
+          setLookedUpLocation({
+            locationCode: bestMatch.location_code,
+            locationName: bestMatch.location_name,
+          });
+        }
+      } catch (error) {
+        console.error('Failed to lookup location from business address:', error);
+      }
+    };
+
+    lookupLocation();
+  }, [business?.location_code, business?.address_city, business?.address_state]);
+
+  // Auto-dismiss result toast after 5 seconds
+  useEffect(() => {
+    if (autoCheckResult) {
+      const timer = setTimeout(() => setAutoCheckResult(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [autoCheckResult]);
 
   // Fetch keyword concepts (useKeywords already handles account changes)
   const {
@@ -163,10 +228,69 @@ export default function RankTrackingPage() {
       )
     : concepts;
 
-  // Open the check rank modal for a keyword
-  const handleCheckRank = useCallback((keyword: string, conceptId: string) => {
-    setCheckingKeyword({ keyword, conceptId });
-  }, []);
+  // Handle clicking "Check ranking" - auto-run if location available, otherwise show modal
+  const handleCheckRank = useCallback(async (keyword: string, conceptId: string) => {
+    // Find the concept to get its location
+    const concept = concepts.find(k => k.id === conceptId);
+    const conceptLocationCode = concept?.searchVolumeLocationCode;
+    const conceptLocationName = concept?.searchVolumeLocationName;
+
+    // Use concept location, or fallback to business location, or looked-up location from address
+    const locationCode = conceptLocationCode || business?.location_code || lookedUpLocation?.locationCode;
+    const locationName = conceptLocationName || business?.location_name || lookedUpLocation?.locationName;
+
+    if (locationCode && locationName) {
+      // Auto-run the check without modal
+      setIsAutoChecking(true);
+      setAutoCheckResult(null);
+      try {
+        const [desktopResponse, mobileResponse] = await Promise.all([
+          apiClient.post<{
+            success: boolean;
+            position: number | null;
+            found: boolean;
+            error?: string;
+          }>('/rank-tracking/check-keyword', {
+            keyword,
+            keywordId: conceptId,
+            locationCode,
+            device: 'desktop',
+          }),
+          apiClient.post<{
+            success: boolean;
+            position: number | null;
+            found: boolean;
+            error?: string;
+          }>('/rank-tracking/check-keyword', {
+            keyword,
+            keywordId: conceptId,
+            locationCode,
+            device: 'mobile',
+          }),
+        ]);
+
+        if (desktopResponse.success && mobileResponse.success) {
+          setAutoCheckResult({
+            keyword,
+            desktop: { position: desktopResponse.position, found: desktopResponse.found },
+            mobile: { position: mobileResponse.position, found: mobileResponse.found },
+            locationName,
+          });
+          // Refresh rank checks to update the table
+          await fetchRankChecks();
+        }
+      } catch (error) {
+        console.error('Auto rank check failed:', error);
+        // Fall back to showing modal on error
+        setCheckingKeyword({ keyword, conceptId });
+      } finally {
+        setIsAutoChecking(false);
+      }
+    } else {
+      // No location available, show modal
+      setCheckingKeyword({ keyword, conceptId });
+    }
+  }, [concepts, business, lookedUpLocation, fetchRankChecks]);
 
   // Open the check volume modal for a keyword
   const handleCheckVolume = useCallback((keyword: string) => {
@@ -385,6 +509,62 @@ export default function RankTrackingPage() {
         onClose={() => setCheckingVolumeTerm(null)}
         onCheck={performVolumeCheck}
       />
+
+      {/* Auto-check loading toast */}
+      {isAutoChecking && (
+        <div className="fixed bottom-6 right-6 z-50 bg-white rounded-lg shadow-lg border border-gray-200 p-4 flex items-center gap-3">
+          <Icon name="FaSpinner" className="w-5 h-5 text-slate-blue animate-spin" />
+          <span className="text-sm text-gray-700">Checking ranking...</span>
+        </div>
+      )}
+
+      {/* Auto-check result toast */}
+      {autoCheckResult && (
+        <div className="fixed bottom-6 right-6 z-50 bg-white rounded-xl shadow-lg border border-gray-200 p-4 max-w-sm">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex-1">
+              <p className="text-sm font-medium text-gray-900 mb-2">
+                Rank check complete
+              </p>
+              <p className="text-xs text-gray-500 mb-3 truncate" title={autoCheckResult.keyword}>
+                &quot;{autoCheckResult.keyword}&quot; in {autoCheckResult.locationName}
+              </p>
+              <div className="flex gap-4">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-sm">🖥️</span>
+                  <span className={`text-sm font-medium ${
+                    autoCheckResult.desktop.found && autoCheckResult.desktop.position !== null
+                      ? autoCheckResult.desktop.position <= 10 ? 'text-green-600' : 'text-amber-600'
+                      : 'text-gray-500'
+                  }`}>
+                    {autoCheckResult.desktop.found && autoCheckResult.desktop.position !== null
+                      ? `#${autoCheckResult.desktop.position}`
+                      : 'Not found'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-sm">📱</span>
+                  <span className={`text-sm font-medium ${
+                    autoCheckResult.mobile.found && autoCheckResult.mobile.position !== null
+                      ? autoCheckResult.mobile.position <= 10 ? 'text-green-600' : 'text-amber-600'
+                      : 'text-gray-500'
+                  }`}>
+                    {autoCheckResult.mobile.found && autoCheckResult.mobile.position !== null
+                      ? `#${autoCheckResult.mobile.position}`
+                      : 'Not found'}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={() => setAutoCheckResult(null)}
+              className="text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <Icon name="FaTimes" className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
