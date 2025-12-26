@@ -129,7 +129,7 @@ export function QuestionRow({
             <Icon name="FaTimes" className="w-3 h-3" />
           </button>
         ) : (
-          <div className="flex items-center gap-1.5 flex-shrink-0">
+          <div className="flex items-center gap-2 flex-shrink-0">
             {/* Citation status badge */}
             {hasResults ? (
               <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
@@ -141,6 +141,26 @@ export function QuestionRow({
               <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-400">
                 Not checked
               </span>
+            )}
+
+            {/* Check button - always visible */}
+            {onCheck && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onCheck();
+                }}
+                disabled={isChecking}
+                className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-white bg-purple-600 rounded hover:bg-purple-700 disabled:opacity-50 transition-colors"
+                title="Check AI visibility"
+              >
+                {isChecking ? (
+                  <Icon name="FaSpinner" className="w-3 h-3 animate-spin" />
+                ) : (
+                  <Icon name="FaSearch" className="w-3 h-3" />
+                )}
+                Check
+              </button>
             )}
 
             {/* Expand indicator */}
