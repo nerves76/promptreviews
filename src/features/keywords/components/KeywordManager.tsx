@@ -157,22 +157,26 @@ export default function KeywordManager({
   } | null>(null);
 
   // Look up location from business address if no location_code is set
+  // Use props if provided, otherwise fall back to business object from hook
+  const effectiveCity = businessCity || business?.address_city;
+  const effectiveState = businessState || business?.address_state;
+
   useEffect(() => {
     if (business?.location_code) {
       // Business already has location_code set
       setLookedUpLocation(null);
       return;
     }
-    if (!businessCity) {
+    if (!effectiveCity) {
       setLookedUpLocation(null);
       return;
     }
 
     const lookupLocation = async () => {
       try {
-        const searchQuery = businessState
-          ? `${businessCity}, ${businessState}`
-          : businessCity;
+        const searchQuery = effectiveState
+          ? `${effectiveCity}, ${effectiveState}`
+          : effectiveCity;
 
         const response = await apiClient.get<{
           locations: Array<{
@@ -196,7 +200,7 @@ export default function KeywordManager({
     };
 
     lookupLocation();
-  }, [business?.location_code, businessCity, businessState]);
+  }, [business?.location_code, effectiveCity, effectiveState]);
 
   // Import/Export state
   const [showImportModal, setShowImportModal] = useState(false);
