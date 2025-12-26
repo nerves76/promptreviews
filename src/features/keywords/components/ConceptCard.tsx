@@ -862,98 +862,129 @@ export function ConceptCard({
               </div>
             </div>
           ) : displayKeyword.searchTerms && displayKeyword.searchTerms.length > 0 ? (
-            /* View mode - clean, minimal design */
-            <div className="space-y-1">
-              {displayKeyword.searchTerms.map((term) => {
-                const normalizedTerm = normalizePhrase(term.term);
-                const volumeData = termVolumeData.get(normalizedTerm);
-                const termRankings = rankStatus?.rankings?.filter(
-                  r => r.latestCheck?.searchQuery === term.term
-                ) || [];
-                const hasVolume = volumeData && volumeData.searchVolume !== null;
-                const hasRankings = termRankings.length > 0;
+            /* View mode - table layout matching rank tracker */
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="text-left py-2 px-2">
+                      <span className="text-xs font-semibold text-gray-600">Keyword</span>
+                    </th>
+                    <th className="text-center py-2 px-2 w-20">
+                      <span className="text-xs font-semibold text-gray-600">Volume</span>
+                    </th>
+                    <th className="text-center py-2 px-2 w-28">
+                      <span className="text-xs font-semibold text-gray-600">Rank</span>
+                    </th>
+                    <th className="text-center py-2 px-2 w-32">
+                      <span className="text-xs font-semibold text-gray-600">Actions</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {displayKeyword.searchTerms.map((term) => {
+                    const normalizedTerm = normalizePhrase(term.term);
+                    const volumeData = termVolumeData.get(normalizedTerm);
+                    const termRankings = rankStatus?.rankings?.filter(
+                      r => r.latestCheck?.searchQuery === term.term
+                    ) || [];
+                    const hasVolume = volumeData && volumeData.searchVolume !== null;
+                    const hasRankings = termRankings.length > 0;
 
-                // Get best rank for display
-                const desktopRank = termRankings.find(r => r.device === 'desktop')?.latestCheck?.position;
-                const mobileRank = termRankings.find(r => r.device === 'mobile')?.latestCheck?.position;
+                    const desktopRanking = termRankings.find(r => r.device === 'desktop');
+                    const mobileRanking = termRankings.find(r => r.device === 'mobile');
+                    const desktopRank = desktopRanking?.latestCheck?.position;
+                    const mobileRank = mobileRanking?.latestCheck?.position;
 
-                return (
-                  <div
-                    key={term.term}
-                    className="group py-2 px-3 -mx-1 rounded-lg hover:bg-gray-50/80 transition-colors"
-                  >
-                    {/* Main row: term + metadata + actions */}
-                    <div className="flex items-center justify-between gap-3">
-                      {/* Left: Term with optional star */}
-                      <div className="flex items-center gap-2 min-w-0 flex-1">
-                        {term.isCanonical && (
-                          <Icon name="FaStar" className="w-3 h-3 text-amber-400 flex-shrink-0" />
-                        )}
-                        <span className="text-sm text-gray-800 truncate">{term.term}</span>
-                      </div>
+                    const getPositionColor = (pos: number | null) => {
+                      if (pos === null) return 'text-gray-400';
+                      if (pos <= 3) return 'text-green-600';
+                      if (pos <= 10) return 'text-blue-600';
+                      if (pos <= 20) return 'text-amber-600';
+                      return 'text-gray-600';
+                    };
 
-                      {/* Middle: Inline metrics */}
-                      <div className="flex items-center gap-3 text-xs text-gray-500">
-                        {hasVolume && (
-                          <span title="Monthly search volume">
-                            <span className="font-medium text-gray-700">{formatVolume(volumeData!.searchVolume!)}</span>
-                            <span className="text-gray-400">/mo</span>
-                          </span>
-                        )}
-                        {(desktopRank || mobileRank) && (
-                          <span className="flex items-center gap-1.5" title="Search ranking">
-                            {desktopRank && (
-                              <span className={`font-medium ${
-                                desktopRank <= 3 ? 'text-green-600' :
-                                desktopRank <= 10 ? 'text-blue-600' :
-                                desktopRank <= 20 ? 'text-amber-600' : 'text-gray-500'
-                              }`}>
-                                #{desktopRank}
-                              </span>
+                    return (
+                      <tr key={term.term} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                        <td className="py-2 px-2">
+                          <div className="flex items-center gap-1.5">
+                            {term.isCanonical && (
+                              <Icon name="FaStar" className="w-3 h-3 text-amber-400 flex-shrink-0" />
                             )}
-                            {mobileRank && desktopRank && <span className="text-gray-300">/</span>}
-                            {mobileRank && (
-                              <span className={`font-medium ${
-                                mobileRank <= 3 ? 'text-green-600' :
-                                mobileRank <= 10 ? 'text-blue-600' :
-                                mobileRank <= 20 ? 'text-amber-600' : 'text-gray-500'
-                              }`}>
-                                #{mobileRank}
-                              </span>
-                            )}
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Right: Action buttons - visible on hover */}
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button
-                          onClick={() => handleCheckTermVolume(term.term)}
-                          disabled={loadingStates[term.term] === 'checking-volume' || Object.values(loadingStates).some(s => s !== null)}
-                          className="p-1 rounded text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors disabled:opacity-50"
-                          title={hasVolume ? 'Re-check volume' : 'Check volume'}
-                        >
-                          {loadingStates[term.term] === 'checking-volume' ? (
-                            <Icon name="FaSpinner" className="w-3.5 h-3.5 animate-spin" />
+                            <span className="text-sm font-medium text-gray-900">{term.term}</span>
+                          </div>
+                        </td>
+                        <td className="py-2 px-2 text-center">
+                          {hasVolume ? (
+                            <span className="font-medium text-blue-600 text-sm">
+                              {formatVolume(volumeData!.searchVolume!)}
+                            </span>
                           ) : (
-                            <Icon name="FaChartLine" className="w-3.5 h-3.5" />
+                            <span className="text-gray-300 text-sm">—</span>
                           )}
-                        </button>
-                        {onCheckRank && (
-                          <button
-                            onClick={() => onCheckRank(term.term, keyword.id)}
-                            disabled={Object.values(loadingStates).some(s => s !== null)}
-                            className="p-1 rounded text-gray-400 hover:text-green-600 hover:bg-green-50 transition-colors disabled:opacity-50"
-                            title={hasRankings ? 'Re-check ranking' : 'Check ranking'}
-                          >
-                            <Icon name="FaSearch" className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+                        </td>
+                        <td className="py-2 px-2 text-center">
+                          {(desktopRanking || mobileRanking) ? (
+                            <div className="flex items-center justify-center gap-2">
+                              {desktopRanking && (
+                                <span className="flex items-center gap-0.5" title="Desktop">
+                                  <svg className="w-3 h-3 text-gray-400" viewBox="0 0 16 14" fill="currentColor">
+                                    <rect x="0" y="0" width="16" height="10" rx="1" />
+                                    <rect x="5" y="11" width="6" height="1" />
+                                    <rect x="4" y="12" width="8" height="1" />
+                                  </svg>
+                                  <span className={`text-sm font-semibold ${getPositionColor(desktopRank ?? null)}`}>
+                                    {desktopRank !== null && desktopRank !== undefined ? (desktopRank > 100 ? '>100' : desktopRank) : '>100'}
+                                  </span>
+                                </span>
+                              )}
+                              {mobileRanking && (
+                                <span className="flex items-center gap-0.5" title="Mobile">
+                                  <svg className="w-2.5 h-3.5 text-gray-400" viewBox="0 0 10 16" fill="currentColor">
+                                    <rect x="0" y="0" width="10" height="16" rx="1.5" />
+                                    <rect x="3.5" y="13" width="3" height="1" rx="0.5" fill="white" />
+                                  </svg>
+                                  <span className={`text-sm font-semibold ${getPositionColor(mobileRank ?? null)}`}>
+                                    {mobileRank !== null && mobileRank !== undefined ? (mobileRank > 100 ? '>100' : mobileRank) : '>100'}
+                                  </span>
+                                </span>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-gray-300 text-sm">—</span>
+                          )}
+                        </td>
+                        <td className="py-2 px-2">
+                          <div className="flex items-center justify-center gap-1">
+                            <button
+                              onClick={() => handleCheckTermVolume(term.term)}
+                              disabled={loadingStates[term.term] === 'checking-volume' || Object.values(loadingStates).some(s => s !== null)}
+                              className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 rounded hover:bg-blue-100 transition-colors disabled:opacity-50"
+                              title="Check search volume"
+                            >
+                              {loadingStates[term.term] === 'checking-volume' ? (
+                                <Icon name="FaSpinner" className="w-3 h-3 animate-spin" />
+                              ) : (
+                                <Icon name="FaChartLine" className="w-3 h-3" />
+                              )}
+                            </button>
+                            {onCheckRank && (
+                              <button
+                                onClick={() => onCheckRank(term.term, keyword.id)}
+                                disabled={Object.values(loadingStates).some(s => s !== null)}
+                                className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-white bg-slate-blue rounded hover:bg-slate-blue/90 transition-colors disabled:opacity-50"
+                                title="Check ranking"
+                              >
+                                <Icon name="FaSearch" className="w-3 h-3" />
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           ) : (
             <p className="text-sm text-gray-400 italic">No search terms added</p>
