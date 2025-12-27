@@ -642,10 +642,10 @@ export function ConceptCard({
           {/* Compact info bar: Location + AI button */}
           {!isEditing && (
             <div className="px-4 py-2 flex items-center justify-between gap-3 text-xs border-b border-gray-100">
-              {/* Location */}
+              {/* Location - prefer concept's location, fallback to geo grid location, then business location */}
               <div className="flex items-center gap-1.5 text-gray-500">
                 <Icon name="FaMapMarker" className="w-3 h-3 text-slate-blue" />
-                <span>{keyword.searchVolumeLocationName || businessLocationName || 'No location'}</span>
+                <span>{keyword.searchVolumeLocationName || enrichedData?.geoGridStatus?.locationName || businessLocationName || 'No location'}</span>
               </div>
               {/* AI Auto-fill Button */}
               {hasEmptySEOFields && onUpdate && !showOverwriteWarning && (
