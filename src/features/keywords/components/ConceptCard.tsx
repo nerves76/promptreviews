@@ -1191,7 +1191,7 @@ export function ConceptCard({
                   <tr>
                     <td className="py-1.5">
                       <div className="flex items-center gap-1.5">
-                        <Icon name="FaStar" className="w-3 h-3 text-amber-400 flex-shrink-0" />
+                        <Icon name="FaStar" className="w-2.5 h-2.5 text-slate-blue flex-shrink-0" />
                         <span className="text-gray-700">
                           {displayKeyword.reviewPhrase || <span className="text-gray-400 italic">No review phrase set</span>}
                         </span>
@@ -1208,7 +1208,7 @@ export function ConceptCard({
                     <tr key={idx}>
                       <td className="py-1.5">
                         <div className="flex items-center gap-1.5">
-                          <span className="w-3 h-3 flex-shrink-0" /> {/* Spacer for alignment */}
+                          <span className="w-2.5 h-2.5 flex-shrink-0" /> {/* Spacer for alignment */}
                           <span className="text-gray-600">{alias}</span>
                         </div>
                       </td>
