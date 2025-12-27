@@ -77,11 +77,15 @@ export default function HelpContentPage() {
         const map: Record<string, boolean> = {};
         data.articles.forEach((article: Article) => {
           // Check if any navigation item links to this article
-          const hasNav = navItems.some((item: any) =>
-            item.href === `/${article.slug}` ||
-            item.href === `/google-biz-optimizer/${article.slug}` ||
-            item.href.includes(article.slug)
-          );
+          const hasNav = navItems.some((item: any) => {
+            if (!item.href) return false;
+            return (
+              item.href === `/${article.slug}` ||
+              item.href === article.slug ||
+              item.href === `/google-biz-optimizer/${article.slug}` ||
+              item.href.includes(article.slug)
+            );
+          });
           map[article.slug] = hasNav;
         });
         setNavigationMap(map);
