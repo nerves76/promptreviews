@@ -470,14 +470,13 @@ export function ConceptCard({
     return { ...keyword, ...optimisticData };
   }, [keyword, optimisticData]);
 
-  // Get average position from rankings
-  const avgPosition = useMemo(() => {
+  // Get ranking stats: count of keywords in top 10 vs total with rankings
+  const rankingStats = useMemo(() => {
     if (!rankStatus?.rankings) return null;
-    const positions = rankStatus.rankings
-      .filter(r => r.latestCheck?.position)
-      .map(r => r.latestCheck!.position!);
-    if (positions.length === 0) return null;
-    return Math.round(positions.reduce((a, b) => a + b, 0) / positions.length);
+    const withRankings = rankStatus.rankings.filter(r => r.latestCheck?.position);
+    if (withRankings.length === 0) return null;
+    const inTop10 = withRankings.filter(r => r.latestCheck!.position! <= 10).length;
+    return { inTop10, total: withRankings.length };
   }, [rankStatus]);
 
   // Check if any rankings exist (even if all outside top 100)
@@ -554,15 +553,15 @@ export function ConceptCard({
                     {keyword.searchVolumeLocationName.split(',')[0]}
                   </span>
                 )}
-                {keyword.isUsedInRankTracking && avgPosition !== null && (
+                {keyword.isUsedInRankTracking && rankingStats !== null && (
                   <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${
-                    avgPosition <= 10
+                    rankingStats.inTop10 === rankingStats.total
                       ? 'bg-green-100 text-green-700'
-                      : avgPosition <= 20
+                      : rankingStats.inTop10 > 0
                         ? 'bg-amber-100 text-amber-700'
                         : 'bg-gray-100 text-gray-600'
                   }`}>
-                    #{avgPosition}
+                    {rankingStats.inTop10}/{rankingStats.total} top 10
                   </span>
                 )}
                 {keyword.isUsedInGeoGrid && enrichedData?.geoGridStatus?.summary && enrichedData.geoGridStatus.summary.totalPoints > 0 ? (
