@@ -1053,6 +1053,7 @@ export function ConceptCard({
         {/* Reviews Section (collapsed by default) */}
         <CollapsibleSection
           title="Reviews"
+          badge={keyword.reviewUsageCount + keyword.aliasMatchCount > 0 ? keyword.reviewUsageCount + keyword.aliasMatchCount : undefined}
           defaultExpanded={false}
           forceExpanded={isEditing}
           icon={<Icon name="FaStar" className="w-3.5 h-3.5 text-slate-blue" />}
@@ -1105,25 +1106,63 @@ export function ConceptCard({
               </div>
             </div>
           ) : (
-            /* View mode */
+            /* View mode - table showing keyword usage in reviews */
             <div className="space-y-2">
-              <div>
-                <span className="text-xs text-gray-500">Review phrase:</span>
-                <p className="text-sm text-gray-700 mt-0.5">
-                  {displayKeyword.reviewPhrase || <span className="text-gray-400 italic">Not set</span>}
-                </p>
-              </div>
-              {displayKeyword.aliases && displayKeyword.aliases.length > 0 && (
-                <div>
-                  <span className="text-xs text-gray-500">Aliases:</span>
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {displayKeyword.aliases.map((alias, idx) => (
-                      <span key={idx} className="px-2 py-0.5 bg-gray-100 rounded text-xs text-gray-600">
-                        {alias}
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-xs text-gray-500">
+                    <th className="text-left font-normal pb-1">Keyword</th>
+                    <th className="text-right font-normal pb-1 w-20">In reviews</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {/* Main review phrase */}
+                  <tr>
+                    <td className="py-1.5">
+                      <div className="flex items-center gap-1.5">
+                        <Icon name="FaStar" className="w-3 h-3 text-amber-400 flex-shrink-0" />
+                        <span className="text-gray-700">
+                          {displayKeyword.reviewPhrase || <span className="text-gray-400 italic">No review phrase set</span>}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="py-1.5 text-right">
+                      <span className={`font-medium ${displayKeyword.reviewUsageCount > 0 ? 'text-green-600' : 'text-gray-400'}`}>
+                        {displayKeyword.reviewUsageCount}
                       </span>
-                    ))}
-                  </div>
-                </div>
+                    </td>
+                  </tr>
+                  {/* Aliases */}
+                  {displayKeyword.aliases && displayKeyword.aliases.map((alias, idx) => (
+                    <tr key={idx}>
+                      <td className="py-1.5">
+                        <div className="flex items-center gap-1.5">
+                          <span className="w-3 h-3 flex-shrink-0" /> {/* Spacer for alignment */}
+                          <span className="text-gray-600">{alias}</span>
+                        </div>
+                      </td>
+                      <td className="py-1.5 text-right text-gray-400">—</td>
+                    </tr>
+                  ))}
+                </tbody>
+                {/* Total row */}
+                {(displayKeyword.reviewUsageCount > 0 || displayKeyword.aliasMatchCount > 0) && (
+                  <tfoot>
+                    <tr className="border-t border-gray-200">
+                      <td className="py-1.5 text-xs text-gray-500 font-medium">Total</td>
+                      <td className="py-1.5 text-right">
+                        <span className="font-semibold text-slate-blue">
+                          {displayKeyword.reviewUsageCount + displayKeyword.aliasMatchCount}
+                        </span>
+                      </td>
+                    </tr>
+                  </tfoot>
+                )}
+              </table>
+              {displayKeyword.aliasMatchCount > 0 && (
+                <p className="text-[10px] text-gray-400 italic">
+                  Aliases combined: {displayKeyword.aliasMatchCount} match{displayKeyword.aliasMatchCount !== 1 ? 'es' : ''}
+                </p>
               )}
             </div>
           )}
