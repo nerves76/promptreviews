@@ -530,9 +530,14 @@ export function ConceptCard({
                     {allLowVolume ? '<10' : formatVolume(totalVolume)} vol
                   </span>
                 )}
-                {(keyword.reviewUsageCount > 0 || keyword.aliasMatchCount > 0) && (
-                  <span className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-purple-100 text-purple-700">
-                    In reviews: {keyword.reviewUsageCount + keyword.aliasMatchCount}
+                {keyword.reviewPhrase && (
+                  <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded flex items-center gap-0.5 ${
+                    (keyword.reviewUsageCount + keyword.aliasMatchCount) > 0
+                      ? 'bg-amber-100 text-amber-700'
+                      : 'bg-gray-100 text-gray-500'
+                  }`}>
+                    <Icon name="FaStar" className="w-2 h-2" />
+                    {keyword.reviewUsageCount + keyword.aliasMatchCount} in reviews
                   </span>
                 )}
                 {llmCitationStats && (
