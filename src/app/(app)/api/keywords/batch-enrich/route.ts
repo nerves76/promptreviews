@@ -71,12 +71,22 @@ interface GeoGridSummary {
   totalPoints: number;
 }
 
+// Per-search-term geo grid data
+interface GeoGridSearchTermData {
+  searchQuery: string;
+  summary: GeoGridSummary;
+  lastCheckedAt: string | null;
+}
+
 interface GeoGridStatusData {
   isTracked: boolean;
   configId: string | null;
   locationName: string | null;
   lastCheckedAt: string | null;
+  /** Overall summary across all search terms */
   summary: GeoGridSummary | null;
+  /** Per-search-term geo grid results */
+  searchTerms: GeoGridSearchTermData[];
 }
 
 interface EnrichmentData {
@@ -220,13 +230,14 @@ export async function POST(request: NextRequest) {
         .in('keyword_id', filteredKeywordIds),
 
       // 5. Fetch geo grid checks for all keywords (recent ones for summary)
+      // Now includes search_query for per-search-term tracking
       serviceSupabase
         .from('gg_checks')
-        .select('keyword_id, config_id, check_point, position, position_bucket, checked_at')
+        .select('keyword_id, config_id, check_point, position, position_bucket, checked_at, search_query')
         .eq('account_id', accountId)
         .in('keyword_id', filteredKeywordIds)
         .order('checked_at', { ascending: false })
-        .limit(500), // Get enough to cover all keywords with multiple check points
+        .limit(1000), // Increased limit to cover all search terms with multiple check points
     ]);
 
     // Build enrichment map
@@ -407,7 +418,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 4. Populate geo grid status
+    // 4. Populate geo grid status (now with per-search-term data)
     if (geoGridTracking.data && geoGridTracking.data.length > 0) {
       // Build a map of keyword_id -> config info
       const trackingByKeyword = new Map<string, {
@@ -432,21 +443,28 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      // Build a map of keyword_id -> latest check per point
-      const checksByKeyword = new Map<string, Map<string, {
+      // Build a map of keyword_id -> search_query -> latest check per point
+      const checksByKeywordAndTerm = new Map<string, Map<string, Map<string, {
         position: number | null;
         positionBucket: string;
-      }>>();
+        checkedAt: string;
+      }>>>();
 
       if (geoGridChecks.data) {
         for (const check of geoGridChecks.data) {
           if (!check.keyword_id) continue;
+          const searchQuery = check.search_query || 'default';
 
-          if (!checksByKeyword.has(check.keyword_id)) {
-            checksByKeyword.set(check.keyword_id, new Map());
+          if (!checksByKeywordAndTerm.has(check.keyword_id)) {
+            checksByKeywordAndTerm.set(check.keyword_id, new Map());
           }
 
-          const pointMap = checksByKeyword.get(check.keyword_id)!;
+          const termMap = checksByKeywordAndTerm.get(check.keyword_id)!;
+          if (!termMap.has(searchQuery)) {
+            termMap.set(searchQuery, new Map());
+          }
+
+          const pointMap = termMap.get(searchQuery)!;
           const pointKey = `${check.config_id}:${check.check_point}`;
 
           // Only keep the latest check per point (already ordered by checked_at desc)
@@ -454,33 +472,58 @@ export async function POST(request: NextRequest) {
             pointMap.set(pointKey, {
               position: check.position,
               positionBucket: check.position_bucket || 'none',
+              checkedAt: check.checked_at,
             });
           }
         }
       }
 
-      // Calculate summary for each keyword
+      // Helper to calculate summary from checks
+      const calculateSummary = (checks: Array<{ position: number | null; positionBucket: string }>): GeoGridSummary => {
+        const positions = checks.map(c => c.position).filter((p): p is number => p !== null);
+        return {
+          averagePosition: positions.length > 0
+            ? Math.round((positions.reduce((a, b) => a + b, 0) / positions.length) * 10) / 10
+            : null,
+          bestPosition: positions.length > 0 ? Math.min(...positions) : null,
+          pointsInTop3: checks.filter(c => c.positionBucket === 'top3').length,
+          pointsInTop10: checks.filter(c => c.positionBucket === 'top10' || c.positionBucket === 'top3').length,
+          pointsInTop20: checks.filter(c => c.positionBucket !== 'none').length,
+          pointsNotFound: checks.filter(c => c.positionBucket === 'none').length,
+          totalPoints: checks.length,
+        };
+      };
+
+      // Calculate summary for each keyword (now with per-search-term data)
       for (const [keywordId, trackingInfo] of trackingByKeyword) {
         if (!enrichment[keywordId]) continue;
 
-        const pointChecks = checksByKeyword.get(keywordId);
-        let summary: GeoGridSummary | null = null;
+        const termChecksMap = checksByKeywordAndTerm.get(keywordId);
+        const searchTermsData: GeoGridSearchTermData[] = [];
+        let overallSummary: GeoGridSummary | null = null;
+        const allChecks: Array<{ position: number | null; positionBucket: string }> = [];
 
-        if (pointChecks && pointChecks.size > 0) {
-          const checks = Array.from(pointChecks.values());
-          const positions = checks.map(c => c.position).filter((p): p is number => p !== null);
+        if (termChecksMap && termChecksMap.size > 0) {
+          // Calculate per-search-term summaries
+          for (const [searchQuery, pointMap] of termChecksMap) {
+            const checks = Array.from(pointMap.values());
+            const summary = calculateSummary(checks);
+            const latestCheckedAt = checks.length > 0 ? checks[0].checkedAt : null;
 
-          summary = {
-            averagePosition: positions.length > 0
-              ? Math.round((positions.reduce((a, b) => a + b, 0) / positions.length) * 10) / 10
-              : null,
-            bestPosition: positions.length > 0 ? Math.min(...positions) : null,
-            pointsInTop3: checks.filter(c => c.positionBucket === 'top3').length,
-            pointsInTop10: checks.filter(c => c.positionBucket === 'top10' || c.positionBucket === 'top3').length,
-            pointsInTop20: checks.filter(c => c.positionBucket !== 'none').length,
-            pointsNotFound: checks.filter(c => c.positionBucket === 'none').length,
-            totalPoints: checks.length,
-          };
+            searchTermsData.push({
+              searchQuery,
+              summary,
+              lastCheckedAt: latestCheckedAt,
+            });
+
+            // Collect all checks for overall summary
+            allChecks.push(...checks);
+          }
+
+          // Calculate overall summary across all search terms
+          if (allChecks.length > 0) {
+            overallSummary = calculateSummary(allChecks);
+          }
         }
 
         enrichment[keywordId].geoGridStatus = {
@@ -488,7 +531,8 @@ export async function POST(request: NextRequest) {
           configId: trackingInfo.configId,
           locationName: trackingInfo.locationName,
           lastCheckedAt: trackingInfo.lastCheckedAt,
-          summary,
+          summary: overallSummary,
+          searchTerms: searchTermsData,
         };
       }
     }

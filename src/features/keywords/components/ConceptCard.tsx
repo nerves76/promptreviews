@@ -834,6 +834,11 @@ export function ConceptCard({
                     <th className="text-center py-2 px-2 w-28">
                       <span className="text-xs font-semibold text-gray-600">Rank</span>
                     </th>
+                    {keyword.isUsedInGeoGrid && (
+                      <th className="text-center py-2 px-2 w-24">
+                        <span className="text-xs font-semibold text-gray-600">Grid</span>
+                      </th>
+                    )}
                     <th className="text-center py-2 px-2 w-44">
                       <span className="text-xs font-semibold text-gray-600">Actions</span>
                     </th>
@@ -912,6 +917,34 @@ export function ConceptCard({
                             <span className="text-gray-300 text-sm">—</span>
                           )}
                         </td>
+                        {/* Grid column - per-search-term geo grid stats */}
+                        {keyword.isUsedInGeoGrid && (
+                          <td className="py-2 px-2 text-center">
+                            {(() => {
+                              // Find geo grid data for this search term
+                              const termGridData = enrichedData?.geoGridStatus?.searchTerms?.find(
+                                st => st.searchQuery === term.term
+                              );
+                              if (termGridData && termGridData.summary.totalPoints > 0) {
+                                const { summary } = termGridData;
+                                const pct = Math.round((summary.pointsInTop10 / summary.totalPoints) * 100);
+                                return (
+                                  <span className={`text-sm font-medium ${
+                                    summary.pointsInTop10 === summary.totalPoints
+                                      ? 'text-green-600'
+                                      : summary.pointsInTop10 > 0
+                                        ? 'text-amber-600'
+                                        : 'text-gray-500'
+                                  }`}>
+                                    {summary.pointsInTop10}/{summary.totalPoints}
+                                    <span className="text-xs text-gray-400 ml-0.5">({pct}%)</span>
+                                  </span>
+                                );
+                              }
+                              return <span className="text-gray-300 text-sm">—</span>;
+                            })()}
+                          </td>
+                        )}
                         <td className="py-2 px-2">
                           <div className="flex items-center justify-center gap-2">
                             <button

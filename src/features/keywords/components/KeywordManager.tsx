@@ -66,12 +66,22 @@ export interface GeoGridSummary {
   totalPoints: number;
 }
 
+// Per-search-term geo grid data
+export interface GeoGridSearchTermData {
+  searchQuery: string;
+  summary: GeoGridSummary;
+  lastCheckedAt: string | null;
+}
+
 export interface GeoGridStatusData {
   isTracked: boolean;
   configId: string | null;
   locationName: string | null;
   lastCheckedAt: string | null;
+  /** Overall summary across all search terms */
   summary: GeoGridSummary | null;
+  /** Per-search-term geo grid results */
+  searchTerms?: GeoGridSearchTermData[];
 }
 
 export interface EnrichmentData {

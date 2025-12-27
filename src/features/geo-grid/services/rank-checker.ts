@@ -71,7 +71,7 @@ export async function runRankChecks(
     };
   }
 
-  // 1. Get tracked keywords
+  // 1. Get tracked keywords with their search terms
   let keywordsQuery = serviceSupabase
     .from('gg_tracked_keywords')
     .select(`
@@ -80,7 +80,8 @@ export async function runRankChecks(
       keywords (
         id,
         phrase,
-        normalized_phrase
+        normalized_phrase,
+        search_terms
       )
     `)
     .eq('config_id', config.id)
@@ -130,6 +131,7 @@ export async function runRankChecks(
     account_id: string;
     config_id: string;
     keyword_id: string;
+    search_query: string;
     check_point: CheckPoint;
     point_lat: number;
     point_lng: number;
@@ -146,32 +148,69 @@ export async function runRankChecks(
 
   const checkedAt = new Date().toISOString();
 
+  // Build list of all search terms to check
+  interface SearchTermToCheck {
+    keywordId: string;
+    searchQuery: string;
+  }
+  const searchTermsToCheck: SearchTermToCheck[] = [];
+
   for (const trackedKeyword of trackedKeywords) {
     const keyword = (trackedKeyword as any).keywords;
-    if (!keyword?.phrase) {
-      errors.push(`Tracked keyword ${trackedKeyword.keyword_id} has no phrase`);
+    if (!keyword) {
+      errors.push(`Tracked keyword ${trackedKeyword.keyword_id} has no keyword data`);
       continue;
     }
 
+    // Get search terms from the JSONB array, or fallback to phrase
+    const searchTerms: Array<{ term: string }> = keyword.search_terms || [];
+
+    if (searchTerms.length > 0) {
+      // Use all search terms
+      for (const st of searchTerms) {
+        if (st.term) {
+          searchTermsToCheck.push({
+            keywordId: trackedKeyword.keyword_id,
+            searchQuery: st.term,
+          });
+        }
+      }
+    } else if (keyword.phrase) {
+      // Fallback to phrase if no search terms defined
+      searchTermsToCheck.push({
+        keywordId: trackedKeyword.keyword_id,
+        searchQuery: keyword.phrase,
+      });
+    } else {
+      errors.push(`Tracked keyword ${trackedKeyword.keyword_id} has no search terms or phrase`);
+    }
+  }
+
+  // Recalculate total checks
+  const actualTotalChecks = searchTermsToCheck.length * gridPoints.length;
+  console.log(`📊 [GeoGrid] Checking ${searchTermsToCheck.length} search terms × ${gridPoints.length} points = ${actualTotalChecks} total checks`);
+
+  for (const searchTermInfo of searchTermsToCheck) {
     for (const point of gridPoints) {
       checkCount++;
       try {
-        console.log(`   [${checkCount}/${totalChecks}] Checking "${keyword.phrase}" at ${point.label}...`);
+        console.log(`   [${checkCount}/${actualTotalChecks}] Checking "${searchTermInfo.searchQuery}" at ${point.label}...`);
         const result = await checkRankForBusiness({
-          keyword: keyword.phrase,
+          keyword: searchTermInfo.searchQuery,
           lat: point.lat,
           lng: point.lng,
           targetPlaceId: config.targetPlaceId,
           languageCode,
         });
 
-        console.log(`   [${checkCount}/${totalChecks}] ✓ Position: ${result.position ?? 'not found'}`);
+        console.log(`   [${checkCount}/${actualTotalChecks}] ✓ Position: ${result.position ?? 'not found'}`);
         totalCost += result.cost;
 
         checksToInsert.push({
           account_id: config.accountId,
           config_id: config.id,
-          keyword_id: trackedKeyword.keyword_id,
+          keyword_id: searchTermInfo.keywordId,
+          search_query: searchTermInfo.searchQuery,
           check_point: point.label,
           point_lat: point.lat,
           point_lng: point.lng,
@@ -186,9 +225,9 @@ export async function runRankChecks(
           api_cost_usd: result.cost,
         });
       } catch (error) {
-        console.error(`   [${checkCount}/${totalChecks}] ✗ Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        console.error(`   [${checkCount}/${actualTotalChecks}] ✗ Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
         errors.push(
-          `Failed to check "${keyword.phrase}" at ${point.label}: ${
+          `Failed to check "${searchTermInfo.searchQuery}" at ${point.label}: ${
             error instanceof Error ? error.message : 'Unknown error'
           }`
         );
