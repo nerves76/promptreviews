@@ -1168,38 +1168,6 @@ export function ConceptCard({
           )}
         </CollapsibleSection>
 
-        {/* Rank Tracking Section (collapsed by default) */}
-        {keyword.isUsedInRankTracking && rankStatus?.rankings && rankStatus.rankings.length > 0 && (
-          <CollapsibleSection
-            title="Rank tracking"
-            badge={rankStatus.rankings.length}
-            defaultExpanded={false}
-            icon={<Icon name="FaChartLine" className="w-3.5 h-3.5 text-blue-500" />}
-          >
-            <div className="space-y-1.5">
-              {rankStatus.rankings.map((ranking) => (
-                <div
-                  key={ranking.groupId}
-                  className="flex items-center justify-between p-2 bg-gray-50 rounded-lg text-xs"
-                >
-                  <div className="flex items-center gap-2">
-                    <Icon
-                      name={ranking.isEnabled ? 'FaCheckCircle' : 'FaCircle'}
-                      className={`w-3 h-3 ${ranking.isEnabled ? 'text-green-500' : 'text-gray-300'}`}
-                    />
-                    <span className="text-gray-700">{ranking.location}</span>
-                    <span className="text-gray-400 capitalize">({ranking.device})</span>
-                  </div>
-                  {ranking.latestCheck && (
-                    <span className="text-gray-400">
-                      {new Date(ranking.latestCheck.checkedAt).toLocaleDateString()}
-                    </span>
-                  )}
-                </div>
-              ))}
-            </div>
-          </CollapsibleSection>
-        )}
         </div>
       </>
       )}
