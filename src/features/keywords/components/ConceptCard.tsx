@@ -112,7 +112,7 @@ export function ConceptCard({
   const [saveError, setSaveError] = useState<string | null>(null);
 
   // Editable fields
-  const [editedPhrase, setEditedPhrase] = useState(keyword.phrase);
+  const [editedName, setEditedName] = useState(keyword.name);
   const [editedReviewPhrase, setEditedReviewPhrase] = useState(keyword.reviewPhrase || '');
   const [editedAliases, setEditedAliases] = useState<string[]>(keyword.aliases || []);
   const [newAlias, setNewAlias] = useState('');
@@ -182,7 +182,7 @@ export function ConceptCard({
 
   // Reset edit state when keyword changes
   useEffect(() => {
-    setEditedPhrase(keyword.phrase);
+    setEditedName(keyword.name);
     setEditedReviewPhrase(keyword.reviewPhrase || '');
     setEditedAliases(keyword.aliases || []);
     setEditedSearchTerms(keyword.searchTerms || []);
@@ -318,7 +318,7 @@ export function ConceptCard({
 
     // Store original values for rollback
     const originalData = {
-      phrase: keyword.phrase,
+      name: keyword.name,
       reviewPhrase: keyword.reviewPhrase,
       aliases: keyword.aliases,
       searchTerms: keyword.searchTerms,
@@ -332,7 +332,7 @@ export function ConceptCard({
 
     // Optimistically update the UI
     const updates = {
-      phrase: editedPhrase,
+      name: editedName,
       reviewPhrase: editedReviewPhrase,
       aliases: editedAliases,
       searchTerms: editedSearchTerms,
@@ -363,7 +363,7 @@ export function ConceptCard({
       setOptimisticData(null);
 
       // Reset edited values to original
-      setEditedPhrase(originalData.phrase);
+      setEditedName(originalData.name);
       setEditedReviewPhrase(originalData.reviewPhrase || '');
       setEditedAliases(originalData.aliases || []);
       setEditedSearchTerms(originalData.searchTerms || []);
@@ -505,14 +505,14 @@ export function ConceptCard({
             {isEditing ? (
               <input
                 type="text"
-                value={editedPhrase}
-                onChange={(e) => setEditedPhrase(e.target.value)}
+                value={editedName}
+                onChange={(e) => setEditedName(e.target.value)}
                 onClick={(e) => e.stopPropagation()}
                 className="flex-1 px-2 py-1 text-sm font-medium border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Concept name"
               />
             ) : (
-              <h3 className="text-lg font-medium text-gray-900 truncate">{keyword.phrase}</h3>
+              <h3 className="text-lg font-medium text-gray-900 truncate">{keyword.name}</h3>
             )}
           </div>
 

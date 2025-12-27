@@ -137,7 +137,7 @@ export default function KeywordChip({
       }}
     >
       {/* Keyword text */}
-      <span className="truncate max-w-[200px]">{keyword.phrase}</span>
+      <span className="truncate max-w-[200px]">{keyword.name}</span>
 
       {/* Usage bubble for 4+ word keywords */}
       {shouldShowBubble && (
@@ -166,7 +166,7 @@ export default function KeywordChip({
             transition-colors flex-shrink-0
             ${size === 'sm' ? 'w-3.5 h-3.5' : size === 'md' ? 'w-4 h-4' : 'w-5 h-5'}
           `}
-          aria-label={`Remove keyword: ${keyword.phrase}`}
+          aria-label={`Remove keyword: ${keyword.name}`}
         >
           <Icon name="FaTimes" className={iconSizes[size]} />
         </button>

@@ -95,7 +95,7 @@ export function BulkDeleteModal({
                   >
                     <div className="flex items-center gap-2 min-w-0">
                       <Icon name="FaStar" className="w-3 h-3 text-gray-400 flex-shrink-0" />
-                      <span className="text-sm text-gray-700 truncate">{keyword.phrase}</span>
+                      <span className="text-sm text-gray-700 truncate">{keyword.name}</span>
                     </div>
                     {keyword.groupName && (
                       <span className="text-xs text-gray-500 ml-2 flex-shrink-0">

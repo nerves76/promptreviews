@@ -47,7 +47,7 @@ export function HeaderStats({
         <div className="flex items-center gap-2">
           <Icon name="FaStar" className="w-5 h-5 text-slate-blue" />
           <Dialog.Title className="text-lg font-bold text-gray-900">
-            {keyword.phrase}
+            {keyword.name}
           </Dialog.Title>
         </div>
         {isAnyEditing && (
