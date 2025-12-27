@@ -566,21 +566,24 @@ export function ConceptCard({
                 )}
                 {keyword.isUsedInGeoGrid && enrichedData?.geoGridStatus?.summary && enrichedData.geoGridStatus.summary.totalPoints > 0 ? (
                   <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded flex items-center gap-0.5 ${
-                    enrichedData.geoGridStatus.summary.averagePosition && enrichedData.geoGridStatus.summary.averagePosition <= 3
+                    enrichedData.geoGridStatus.summary.pointsInTop10 === enrichedData.geoGridStatus.summary.totalPoints
                       ? 'bg-green-100 text-green-700'
-                      : enrichedData.geoGridStatus.summary.averagePosition && enrichedData.geoGridStatus.summary.averagePosition <= 10
-                        ? 'bg-emerald-100 text-emerald-700'
-                        : enrichedData.geoGridStatus.summary.averagePosition && enrichedData.geoGridStatus.summary.averagePosition <= 20
-                          ? 'bg-amber-100 text-amber-700'
-                          : 'bg-gray-100 text-gray-600'
-                  }`}>
+                      : enrichedData.geoGridStatus.summary.pointsInTop10 > 0
+                        ? 'bg-amber-100 text-amber-700'
+                        : 'bg-gray-100 text-gray-600'
+                  }`}
+                    title={enrichedData.geoGridStatus.locationName || 'Geo Grid'}
+                  >
                     <Icon name="FaMapMarker" className="w-2 h-2" />
-                    {enrichedData.geoGridStatus.summary.averagePosition
-                      ? `#${enrichedData.geoGridStatus.summary.averagePosition}`
-                      : 'Grid'}
-                    <span className="text-[9px] opacity-75">
-                      ({Math.round((enrichedData.geoGridStatus.summary.pointsInTop10 / enrichedData.geoGridStatus.summary.totalPoints) * 100)}%)
-                    </span>
+                    {enrichedData.geoGridStatus.summary.pointsInTop10}/{enrichedData.geoGridStatus.summary.totalPoints} top 10
+                  </span>
+                ) : keyword.isUsedInGeoGrid && enrichedData?.geoGridStatus?.locationName ? (
+                  <span
+                    className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-emerald-100 text-emerald-700 flex items-center gap-0.5"
+                    title={enrichedData.geoGridStatus.locationName}
+                  >
+                    <Icon name="FaMapMarker" className="w-2 h-2" />
+                    Grid
                   </span>
                 ) : keyword.isUsedInGeoGrid && (
                   <span className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-emerald-100 text-emerald-700 flex items-center gap-0.5">
@@ -1126,13 +1129,13 @@ export function ConceptCard({
           )}
         </CollapsibleSection>
 
-        {/* Tracking Locations Section (collapsed by default) */}
+        {/* Rank Tracking Section (collapsed by default) */}
         {keyword.isUsedInRankTracking && rankStatus?.rankings && rankStatus.rankings.length > 0 && (
           <CollapsibleSection
-            title="Tracking locations"
+            title="Rank tracking"
             badge={rankStatus.rankings.length}
             defaultExpanded={false}
-            icon={<Icon name="FaMapMarker" className="w-3.5 h-3.5 text-red-500" />}
+            icon={<Icon name="FaChartLine" className="w-3.5 h-3.5 text-blue-500" />}
           >
             <div className="space-y-1.5">
               {rankStatus.rankings.map((ranking) => (
