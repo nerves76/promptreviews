@@ -65,6 +65,97 @@ export function GeoGridSetupWizard({
   // OAuth connection state
   const [isConnecting, setIsConnecting] = useState(false);
 
+  // GBP connection and location fetching state
+  const [isGBPConnected, setIsGBPConnected] = useState<boolean | null>(null); // null = checking
+  const [isFetchingLocations, setIsFetchingLocations] = useState(false);
+  const [fetchedLocations, setFetchedLocations] = useState<GoogleBusinessLocation[]>([]);
+  const [gbpError, setGbpError] = useState<string | null>(null);
+
+  // Check GBP connection status on mount
+  useEffect(() => {
+    const checkGBPConnection = async () => {
+      try {
+        const response = await apiClient.get<{
+          platforms?: Array<{ platform: string; connected: boolean }>;
+        }>('/social-posting/platforms');
+
+        const gbpPlatform = response.platforms?.find(p => p.platform === 'google-business-profile');
+        setIsGBPConnected(gbpPlatform?.connected || false);
+        console.log('🔍 [GeoGrid] GBP connection status:', gbpPlatform?.connected);
+      } catch (error) {
+        console.error('Failed to check GBP connection:', error);
+        setIsGBPConnected(false);
+      }
+    };
+
+    if (accountId) {
+      checkGBPConnection();
+    }
+  }, [accountId]);
+
+  // Fetch locations from Google
+  const handleFetchLocations = useCallback(async () => {
+    if (!accountId) return;
+
+    setIsFetchingLocations(true);
+    setGbpError(null);
+
+    try {
+      // First, trigger fetch from Google
+      const fetchResponse = await apiClient.post<{
+        success: boolean;
+        message?: string;
+        error?: string;
+      }>('/social-posting/platforms/google-business-profile/fetch-locations', { force: true });
+
+      if (!fetchResponse.success) {
+        setGbpError(fetchResponse.error || 'Failed to fetch locations from Google');
+        setIsFetchingLocations(false);
+        return;
+      }
+
+      // Then load the locations
+      const locationsResponse = await apiClient.get<{
+        data: {
+          locations: Array<{
+            id: string;
+            location_id: string;
+            location_name: string;
+            address?: string;
+            google_place_id?: string;
+            lat?: number;
+            lng?: number;
+          }>;
+        };
+      }>('/social-posting/platforms/google-business-profile/locations');
+
+      if (locationsResponse.data?.locations && locationsResponse.data.locations.length > 0) {
+        const locations = locationsResponse.data.locations.map(loc => ({
+          id: loc.id,
+          name: loc.location_name,
+          lat: loc.lat || 0,
+          lng: loc.lng || 0,
+          placeId: loc.google_place_id || loc.location_id,
+          address: loc.address,
+        }));
+        setFetchedLocations(locations);
+        console.log('✅ [GeoGrid] Fetched', locations.length, 'locations');
+
+        // Auto-select if only one location
+        if (locations.length === 1) {
+          setPickedLocationId(locations[0].id);
+        }
+      } else {
+        setGbpError('No business locations found in your Google Business Profile');
+      }
+    } catch (error: any) {
+      console.error('Failed to fetch locations:', error);
+      setGbpError(error.message || 'Failed to fetch locations');
+    } finally {
+      setIsFetchingLocations(false);
+    }
+  }, [accountId]);
+
   // Handle initiating Google OAuth flow
   const handleConnectGBP = useCallback(() => {
     if (!accountId) {
@@ -122,16 +213,21 @@ export function GeoGridSetupWizard({
     }, 100);
   }, [accountId]);
 
-  // For Maven accounts with multiple available locations
-  const hasMultipleLocations = availableLocations && availableLocations.length > 1;
+  // Combine available locations from props and fetched locations
+  const allLocations = availableLocations?.length ? availableLocations : fetchedLocations;
+  const hasMultipleLocations = allLocations.length > 1;
+  const hasAnyLocations = allLocations.length > 0;
+
   const [pickedLocationId, setPickedLocationId] = useState<string | null>(
     googleBusinessLocation?.id || null
   );
 
-  // Get the effective GBP location (picked from list or pre-selected)
+  // Get the effective GBP location (picked from list, pre-selected, or fetched)
   const effectiveGBPLocation = hasMultipleLocations
-    ? availableLocations?.find((l) => l.id === pickedLocationId) || null
-    : googleBusinessLocation;
+    ? allLocations.find((l) => l.id === pickedLocationId) || null
+    : hasAnyLocations
+      ? allLocations[0]
+      : googleBusinessLocation;
 
   // Check if location has valid coordinates
   const hasValidCoordinates = effectiveGBPLocation &&
@@ -456,7 +552,7 @@ export function GeoGridSetupWizard({
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="">Choose a location...</option>
-                  {availableLocations?.map((loc) => (
+                  {allLocations.map((loc) => (
                     <option key={loc.id} value={loc.id}>
                       {loc.name} {loc.address ? `- ${loc.address}` : ''}
                     </option>
@@ -465,26 +561,90 @@ export function GeoGridSetupWizard({
               </div>
             )}
 
+            {/* GBP Connection Flow */}
             {effectiveGBPLocation ? (
+              // Location selected - show connected state
               <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
                 <div className="flex items-center gap-3">
                   <MapPinIcon className="w-6 h-6 text-green-600" />
-                  <div>
+                  <div className="flex-1">
                     <p className="font-semibold text-gray-900">{effectiveGBPLocation.name}</p>
                     {effectiveGBPLocation.address && (
                       <p className="text-sm text-gray-500">{effectiveGBPLocation.address}</p>
                     )}
                     <p className="text-xs text-gray-400">Connected via Google Business Profile</p>
                   </div>
+                  {hasMultipleLocations && (
+                    <button
+                      type="button"
+                      onClick={() => setPickedLocationId(null)}
+                      className="text-xs text-blue-600 hover:text-blue-800 underline"
+                    >
+                      Change
+                    </button>
+                  )}
                 </div>
               </div>
-            ) : hasMultipleLocations ? (
+            ) : hasMultipleLocations && !pickedLocationId ? (
+              // Multiple locations - need to pick one
               <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
                 <p className="text-sm text-blue-800">
                   Select a business location above to continue.
                 </p>
               </div>
+            ) : isGBPConnected === null ? (
+              // Checking connection status
+              <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <Icon name="FaSpinner" className="w-5 h-5 text-gray-400 animate-spin" size={20} />
+                  <p className="text-sm text-gray-600">Checking Google Business connection...</p>
+                </div>
+              </div>
+            ) : isGBPConnected && !hasAnyLocations ? (
+              // Connected but no locations fetched yet
+              <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg">
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                    <Icon name="FaCheckCircle" className="w-5 h-5 text-green-600" size={20} />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-sm font-semibold text-gray-900 mb-1">
+                      Google Business Profile connected!
+                    </h4>
+                    <p className="text-sm text-gray-600 mb-3">
+                      Now fetch your business locations from Google to continue.
+                    </p>
+                    {gbpError && (
+                      <div className="mb-3 p-2 bg-red-50 border border-red-200 rounded text-sm text-red-700">
+                        {gbpError}
+                      </div>
+                    )}
+                    <button
+                      type="button"
+                      onClick={handleFetchLocations}
+                      disabled={isFetchingLocations}
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      {isFetchingLocations ? (
+                        <>
+                          <Icon name="FaSpinner" className="w-4 h-4 animate-spin" size={16} />
+                          <span>Fetching locations...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Icon name="FaRedo" className="w-4 h-4" size={16} />
+                          <span>Fetch business locations</span>
+                        </>
+                      )}
+                    </button>
+                    <p className="text-xs text-gray-500 mt-2">
+                      This may take a minute due to Google API limits
+                    </p>
+                  </div>
+                </div>
+              </div>
             ) : (
+              // Not connected - show OAuth button
               <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
                 <div className="flex items-start gap-4">
                   <div className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
@@ -798,7 +958,7 @@ export function GeoGridSetupWizard({
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Set Up Local Ranking Grid</h2>
+      <h2 className="text-2xl font-bold text-gray-900 mb-6">Set up</h2>
 
       {/* Progress Steps */}
       <div className="flex items-center justify-between mb-8">
