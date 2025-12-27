@@ -537,66 +537,88 @@ export default function LocalRankingGridsPage() {
             {/* Keyword & View As Selectors for Map */}
             {trackedKeywords.length > 0 && (
               <div className="bg-white rounded-xl border-2 border-gray-200 p-4 mb-4">
-                <div className="flex flex-wrap items-center gap-4">
-                  {/* Keyword Selector */}
-                  <div className="flex items-center gap-2">
-                    <label className="text-sm font-medium text-gray-700">
-                      Keyword
-                    </label>
-                    <select
-                      value={selectedMapKeywordId || ''}
-                      onChange={(e) => setSelectedMapKeywordId(e.target.value || null)}
-                      className="w-52 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                    >
-                      <option value="">Select a keyword...</option>
-                      {trackedKeywords.map((tk) => (
-                        <option key={tk.keywordId} value={tk.keywordId}>
-                          {tk.phrase || tk.keywordId}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* View As Selector */}
-                  {uniqueCompetitors.length > 0 && (
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div className="flex flex-wrap items-center gap-4">
+                    {/* Keyword Selector */}
                     <div className="flex items-center gap-2">
                       <label className="text-sm font-medium text-gray-700">
-                        View As
+                        Keyword
                       </label>
                       <select
-                        value={viewAs?.placeId || ''}
-                        onChange={(e) => {
-                          const placeId = e.target.value;
-                          if (!placeId) {
-                            setViewAs(null);
-                          } else if (placeId === config.targetPlaceId) {
-                            setViewAs({
-                              placeId,
-                              name: googleBusinessLocation?.name || 'Your Business',
-                              isOwnBusiness: true,
-                            });
-                          } else {
-                            const competitor = uniqueCompetitors.find((c) => c.placeId === placeId);
-                            if (competitor) {
-                              setViewAs({
-                                placeId: competitor.placeId,
-                                name: competitor.name,
-                                isOwnBusiness: false,
-                              });
-                            }
-                          }
-                        }}
-                        className="w-56 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                        value={selectedMapKeywordId || ''}
+                        onChange={(e) => setSelectedMapKeywordId(e.target.value || null)}
+                        className="w-52 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                       >
-                        <option value="">Your Business</option>
-                        {uniqueCompetitors.map((competitor) => (
-                          <option key={competitor.placeId} value={competitor.placeId}>
-                            {competitor.name}
+                        <option value="">Select a keyword...</option>
+                        {trackedKeywords.map((tk) => (
+                          <option key={tk.keywordId} value={tk.keywordId}>
+                            {tk.phrase || tk.keywordId}
                           </option>
                         ))}
                       </select>
                     </div>
-                  )}
+
+                    {/* View As Selector */}
+                    {uniqueCompetitors.length > 0 && (
+                      <div className="flex items-center gap-2">
+                        <label className="text-sm font-medium text-gray-700">
+                          View As
+                        </label>
+                        <select
+                          value={viewAs?.placeId || ''}
+                          onChange={(e) => {
+                            const placeId = e.target.value;
+                            if (!placeId) {
+                              setViewAs(null);
+                            } else if (placeId === config.targetPlaceId) {
+                              setViewAs({
+                                placeId,
+                                name: googleBusinessLocation?.name || 'Your Business',
+                                isOwnBusiness: true,
+                              });
+                            } else {
+                              const competitor = uniqueCompetitors.find((c) => c.placeId === placeId);
+                              if (competitor) {
+                                setViewAs({
+                                  placeId: competitor.placeId,
+                                  name: competitor.name,
+                                  isOwnBusiness: false,
+                                });
+                              }
+                            }
+                          }}
+                          className="w-56 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                        >
+                          <option value="">Your Business</option>
+                          {uniqueCompetitors.map((competitor) => (
+                            <option key={competitor.placeId} value={competitor.placeId}>
+                              {competitor.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Run Grid Check Button */}
+                  <button
+                    onClick={handleRunCheck}
+                    disabled={isCheckRunning}
+                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors flex items-center gap-2 text-sm"
+                    title="Run checks for all tracked keywords"
+                  >
+                    {isCheckRunning ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        Running...
+                      </>
+                    ) : (
+                      <>
+                        <Icon name="FaRedo" className="w-3.5 h-3.5" />
+                        Run grid check
+                      </>
+                    )}
+                  </button>
                 </div>
               </div>
             )}

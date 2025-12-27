@@ -76,12 +76,32 @@ export function GeoGridSetupWizard({
     const checkGBPConnection = async () => {
       try {
         const response = await apiClient.get<{
-          platforms?: Array<{ platform: string; connected: boolean }>;
+          platforms?: Array<{ id: string; connected: boolean; locations?: any[] }>;
         }>('/social-posting/platforms');
 
-        const gbpPlatform = response.platforms?.find(p => p.platform === 'google-business-profile');
-        setIsGBPConnected(gbpPlatform?.connected || false);
-        console.log('🔍 [GeoGrid] GBP connection status:', gbpPlatform?.connected);
+        const gbpPlatform = response.platforms?.find(p => p.id === 'google-business-profile');
+        const isConnected = gbpPlatform?.connected || false;
+        setIsGBPConnected(isConnected);
+        console.log('🔍 [GeoGrid] GBP connection status:', isConnected, 'locations:', gbpPlatform?.locations?.length || 0);
+
+        // If connected and has locations, load them
+        if (isConnected && gbpPlatform?.locations && gbpPlatform.locations.length > 0) {
+          const locations = gbpPlatform.locations.map((loc: any) => ({
+            id: loc.id || loc.location_id,
+            name: loc.location_name || loc.name,
+            lat: loc.lat || 0,
+            lng: loc.lng || 0,
+            placeId: loc.google_place_id || loc.location_id,
+            address: loc.address,
+          }));
+          setFetchedLocations(locations);
+          console.log('✅ [GeoGrid] Loaded', locations.length, 'locations from platforms API');
+
+          // Auto-select if only one location
+          if (locations.length === 1) {
+            setPickedLocationId(locations[0].id);
+          }
+        }
       } catch (error) {
         console.error('Failed to check GBP connection:', error);
         setIsGBPConnected(false);

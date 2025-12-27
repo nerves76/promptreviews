@@ -131,6 +131,14 @@ export async function GET(request: NextRequest) {
 
     const rankTrackedKeywordIds = new Set(rankTrackingKeywords?.map(r => r.keyword_id) || []);
 
+    // Check which keywords are used in geo grid tracking
+    const { data: geoGridKeywords } = await serviceSupabase
+      .from('gg_tracked_keywords')
+      .select('keyword_id')
+      .eq('account_id', accountId);
+
+    const geoGridKeywordIds = new Set(geoGridKeywords?.map(g => g.keyword_id) || []);
+
     // Transform and filter results
     let transformedKeywords: KeywordData[] = (keywords || []).map((kw: any) => {
       const groupName = kw.keyword_groups?.name || null;
@@ -143,6 +151,8 @@ export async function GET(request: NextRequest) {
 
       // Add rank tracking usage flag
       (transformed as any).isUsedInRankTracking = rankTrackedKeywordIds.has(kw.id);
+      // Add geo grid usage flag
+      (transformed as any).isUsedInGeoGrid = geoGridKeywordIds.has(kw.id);
       return transformed;
     });
 

@@ -135,7 +135,7 @@ export async function generateDailySummary(
   const { data: inserted, error: insertError } = await serviceSupabase
     .from('gg_daily_summary')
     .upsert(summaryData, {
-      onConflict: 'account_id,check_date',
+      onConflict: 'config_id,check_date',
     })
     .select()
     .single();

@@ -2,15 +2,19 @@
 
 import Icon from '@/components/Icon';
 import { Dialog } from '@headlessui/react';
-import { type KeywordData, type ResearchResultData, formatVolume } from '../../keywordUtils';
+import { type KeywordData, formatVolume } from '../../keywordUtils';
 
 export interface HeaderStatsProps {
   /** The keyword being displayed */
   keyword: KeywordData;
-  /** Volume data for search terms */
-  termVolumeData: Map<string, ResearchResultData>;
   /** Number of prompt pages using this keyword */
   promptPagesCount: number;
+  /** Pre-computed total search volume across all terms */
+  totalVolume: number;
+  /** Pre-computed: whether all terms have low volume (<10) */
+  allLowVolume: boolean;
+  /** Number of terms with volume data */
+  termVolumeDataSize: number;
   /** Whether any section is in edit mode */
   isAnyEditing: boolean;
   /** Whether a save is in progress */
@@ -27,16 +31,14 @@ export interface HeaderStatsProps {
  */
 export function HeaderStats({
   keyword,
-  termVolumeData,
   promptPagesCount,
+  totalVolume,
+  allLowVolume,
+  termVolumeDataSize,
   isAnyEditing,
   isSaving,
   onSave,
 }: HeaderStatsProps) {
-  // Calculate volume stats
-  const terms = Array.from(termVolumeData.values());
-  const totalVolume = terms.reduce((sum, t) => sum + (t.searchVolume || 0), 0);
-  const allLowVolume = terms.length > 0 && terms.every((t) => (t.searchVolume || 0) < 10);
 
   return (
     <div className="p-4 bg-white/60 backdrop-blur-sm border border-gray-100/50 rounded-xl">
@@ -81,16 +83,16 @@ export function HeaderStats({
         </div>
         <div
           className="cursor-help"
-          title={`Total monthly search volume from ${termVolumeData.size} researched term${termVolumeData.size === 1 ? '' : 's'}. Click "Check volume" on search terms to add more.`}
+          title={`Total monthly search volume from ${termVolumeDataSize} researched term${termVolumeDataSize === 1 ? '' : 's'}. Click "Check volume" on search terms to add more.`}
         >
           <span className="text-gray-500 block text-xs flex items-center gap-1">
             Volume
             <Icon name="FaInfoCircle" className="w-2.5 h-2.5 text-gray-400" />
           </span>
           <span
-            className={`font-medium ${termVolumeData.size > 0 ? 'text-blue-600' : 'text-gray-400'}`}
+            className={`font-medium ${termVolumeDataSize > 0 ? 'text-blue-600' : 'text-gray-400'}`}
           >
-            {termVolumeData.size === 0
+            {termVolumeDataSize === 0
               ? '—'
               : allLowVolume
                 ? '<10'

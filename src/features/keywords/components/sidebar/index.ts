@@ -7,6 +7,7 @@
 
 export { HeaderStats, type HeaderStatsProps } from './HeaderStats';
 export { RankTrackingSection, type RankTrackingSectionProps } from './RankTrackingSection';
+export { GeoGridSection, type GeoGridSectionProps } from './GeoGridSection';
 export {
   DiscoveredQuestionsSection,
   type DiscoveredQuestionsSectionProps,

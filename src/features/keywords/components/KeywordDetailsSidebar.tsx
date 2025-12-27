@@ -14,12 +14,14 @@ import { useRelatedQuestions } from '../hooks/useRelatedQuestions';
 import { useAIEnrichment } from '../hooks/useAIEnrichment';
 import { useVolumeData } from '../hooks/useVolumeData';
 import { useRankStatus, getDiscoveredQuestions } from '../hooks/useRankStatus';
+import { useGeoGridStatus } from '../hooks/useGeoGridStatus';
 import { useLLMVisibility } from '@/features/llm-visibility/hooks/useLLMVisibility';
 import { LLMProvider } from '@/features/llm-visibility/utils/types';
 import { useAuth } from '@/auth';
 import {
   HeaderStats,
   RankTrackingSection,
+  GeoGridSection,
   DiscoveredQuestionsSection,
   ReviewsEditSection,
   SEOTrackingSection,
@@ -65,6 +67,16 @@ export function KeywordDetailsSidebar({
   } = useRankStatus({
     keywordId: keyword?.id || null,
     isUsedInRankTracking: keyword?.isUsedInRankTracking || false,
+    isOpen,
+  });
+
+  // Geo grid status
+  const {
+    geoGridStatus,
+    isLoading: geoGridStatusLoading,
+  } = useGeoGridStatus({
+    keywordId: keyword?.id || null,
+    isUsedInGeoGrid: keyword?.isUsedInGeoGrid || false,
     isOpen,
   });
 
@@ -425,6 +437,14 @@ export function KeywordDetailsSidebar({
                             <RankTrackingSection
                               rankStatus={rankStatus}
                               isLoading={rankStatusLoading}
+                            />
+                          )}
+
+                          {/* Geo Grid Status */}
+                          {keyword.isUsedInGeoGrid && (
+                            <GeoGridSection
+                              geoGridStatus={geoGridStatus}
+                              isLoading={geoGridStatusLoading}
                             />
                           )}
 

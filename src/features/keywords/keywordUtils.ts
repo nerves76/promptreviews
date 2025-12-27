@@ -250,6 +250,8 @@ export interface KeywordData {
   relatedQuestions: RelatedQuestion[];
   // Rank tracking usage
   isUsedInRankTracking?: boolean;
+  // Geo grid usage
+  isUsedInGeoGrid?: boolean;
   // Search volume metrics (from DataForSEO)
   searchVolume: number | null;
   cpc: number | null;
