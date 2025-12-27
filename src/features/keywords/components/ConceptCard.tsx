@@ -10,7 +10,6 @@ import {
   type SearchTerm,
   type RelatedQuestion,
   type ResearchResultData,
-  type LocationScope,
   type LLMVisibilityResult,
   normalizePhrase,
   getFunnelStageColor,
@@ -21,6 +20,12 @@ import {
   LLMProvider,
   LLM_PROVIDERS,
 } from '@/features/llm-visibility/utils/types';
+import {
+  useAIEnrichment,
+  applyEnrichmentResult,
+  hasExistingEnrichmentData,
+  hasEmptyEnrichmentFields,
+} from '../hooks/useAIEnrichment';
 import type { EnrichmentData } from './KeywordManager';
 import { useAuth } from '@/auth';
 import { FunnelStageGroup } from './FunnelStageGroup';
@@ -132,10 +137,19 @@ export function ConceptCard({
   // Per-item loading states
   const [loadingStates, setLoadingStates] = useState<Record<string, 'checking-volume' | 'saving' | null>>({});
 
-  // AI enrichment state
-  const [isEnriching, setIsEnriching] = useState(false);
-  const [enrichError, setEnrichError] = useState<string | null>(null);
-  const [enrichSuccess, setEnrichSuccess] = useState(false);
+  // AI enrichment hook
+  const {
+    isEnriching,
+    enrichError,
+    enrichSuccess,
+    enrich,
+    reset: resetEnrichment,
+  } = useAIEnrichment({
+    keyword,
+    businessName: account?.business_name || account?.businesses?.[0]?.name,
+    businessCity: account?.businesses?.[0]?.address_city,
+    businessState: account?.businesses?.[0]?.address_state,
+  });
   const [showOverwriteWarning, setShowOverwriteWarning] = useState(false);
 
   // Card expansion state (accordion behavior)
@@ -161,7 +175,10 @@ export function ConceptCard({
   }, [enrichedData?.volumeData, localVolumeData]);
 
   const rankStatus: RankStatusData | null = enrichedData?.rankStatus || null;
-  const llmResults: LLMVisibilityResult[] = enrichedData?.llmResults || [];
+  const llmResults = useMemo<LLMVisibilityResult[]>(
+    () => enrichedData?.llmResults || [],
+    [enrichedData?.llmResults]
+  );
 
   // Reset edit state when keyword changes
   useEffect(() => {
@@ -288,8 +305,7 @@ export function ConceptCard({
     setNewAlias('');
     setNewSearchTerm('');
     setNewQuestion('');
-    setEnrichSuccess(false);
-    setEnrichError(null);
+    resetEnrichment();
     setShowOverwriteWarning(false);
     setShowLocationWarning(false);
   };
@@ -339,7 +355,7 @@ export function ConceptCard({
       setOptimisticData(null);
       setIsEditing(false);
       setSaveError(null);
-      setEnrichSuccess(false);
+      resetEnrichment();
     } catch (err) {
       console.error('Failed to save changes:', err);
 
@@ -425,97 +441,26 @@ export function ConceptCard({
   };
 
   // Check if user has entered any data that would be overwritten
-  const hasExistingData = keyword?.reviewPhrase?.trim() ||
-    (keyword?.searchTerms && keyword.searchTerms.length > 0) ||
-    (keyword?.aliases && keyword.aliases.length > 0) ||
-    (keyword?.relatedQuestions && keyword.relatedQuestions.length > 0);
+  const hasExistingData = hasExistingEnrichmentData(keyword);
 
   // Check if any fields are empty (show AI button when something can be filled)
-  const hasEmptySEOFields = !keyword?.reviewPhrase ||
-    (!keyword?.searchTerms || keyword.searchTerms.length === 0) ||
-    (!keyword?.aliases || keyword.aliases.length === 0) ||
-    (!keyword?.relatedQuestions || keyword.relatedQuestions.length === 0);
+  const hasEmptySEOFields = hasEmptyEnrichmentFields(keyword);
 
-  // AI enrichment handler
+  // AI enrichment handler using the hook
   const handleAIEnrich = async (fillEmptyOnly = false) => {
     if (!keyword || !onUpdate) return;
     setShowOverwriteWarning(false);
-    setIsEnriching(true);
-    setEnrichError(null);
-    setEnrichSuccess(false);
 
-    try {
-      // Get business info from account's businesses array if available
-      const primaryBusiness = account?.businesses?.[0];
+    const result = await enrich();
+    if (result) {
+      const applied = applyEnrichmentResult(result, keyword, fillEmptyOnly);
+      setEditedReviewPhrase(applied.reviewPhrase);
+      setEditedSearchTerms(applied.searchTerms);
+      setEditedAliases(applied.aliases);
+      setEditedQuestions(applied.relatedQuestions);
 
-      const response = await apiClient.post<{
-        success: boolean;
-        enrichment: {
-          review_phrase: string;
-          search_terms: string[];
-          aliases: string[];
-          location_scope: LocationScope | null;
-          related_questions: RelatedQuestion[];
-        };
-        creditsUsed: number;
-        creditsRemaining: number;
-      }>('/ai/enrich-keyword', {
-        phrase: keyword.phrase,
-        businessName: account?.business_name || primaryBusiness?.name,
-        businessCity: primaryBusiness?.address_city,
-        businessState: primaryBusiness?.address_state,
-      });
-
-      if (response.success && response.enrichment) {
-        // Convert search_terms array to SearchTerm format (first one is canonical)
-        const now = new Date().toISOString();
-        const newSearchTerms = response.enrichment.search_terms?.length > 0
-          ? response.enrichment.search_terms.map((term, index) => ({
-              term,
-              isCanonical: index === 0,
-              addedAt: now,
-            }))
-          : [];
-
-        if (fillEmptyOnly) {
-          // Only set values if current value is empty
-          if (!keyword.reviewPhrase?.trim()) {
-            setEditedReviewPhrase(response.enrichment.review_phrase || '');
-          } else {
-            setEditedReviewPhrase(keyword.reviewPhrase);
-          }
-          if (!keyword.searchTerms || keyword.searchTerms.length === 0) {
-            setEditedSearchTerms(newSearchTerms);
-          } else {
-            setEditedSearchTerms(keyword.searchTerms);
-          }
-          if (!keyword.aliases || keyword.aliases.length === 0) {
-            setEditedAliases(response.enrichment.aliases || []);
-          } else {
-            setEditedAliases(keyword.aliases);
-          }
-          if (!keyword.relatedQuestions || keyword.relatedQuestions.length === 0) {
-            setEditedQuestions(response.enrichment.related_questions || []);
-          } else {
-            setEditedQuestions(keyword.relatedQuestions);
-          }
-        } else {
-          // Replace all fields
-          setEditedReviewPhrase(response.enrichment.review_phrase || '');
-          setEditedSearchTerms(newSearchTerms);
-          setEditedAliases(response.enrichment.aliases || []);
-          setEditedQuestions(response.enrichment.related_questions || []);
-        }
-
-        // Enter edit mode so user can review/modify before saving
-        setIsEditing(true);
-        setEnrichSuccess(true);
-      }
-    } catch (error) {
-      console.error('AI enrichment failed:', error);
-      setEnrichError(error instanceof Error ? error.message : 'Failed to generate SEO data');
-    } finally {
-      setIsEnriching(false);
+      // Enter edit mode so user can review/modify before saving
+      setIsEditing(true);
     }
   };
 

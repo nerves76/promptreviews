@@ -7,9 +7,10 @@
 
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/auth/providers/supabase';
+import { useAuth } from '@/auth';
 import { apiClient } from '@/utils/apiClient';
 import PageCard from '@/app/(app)/components/PageCard';
 import StandardLoader from '@/app/(app)/components/StandardLoader';
@@ -61,11 +62,17 @@ interface GoogleBusinessLocation {
 
 export default function LocalRankingGridsPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createClient();
+  const { selectedAccountId } = useAuth();
+
+  // Track if we've already handled OAuth callback to prevent duplicate toasts
+  const oauthHandledRef = useRef(false);
 
   // Auth state
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [gbpJustConnected, setGbpJustConnected] = useState(false);
 
   // Data state
   const [availableKeywords, setAvailableKeywords] = useState<Keyword[]>([]);
@@ -186,6 +193,63 @@ export default function LocalRankingGridsPage() {
     checkAuth();
   }, [router, supabase]);
 
+  // Handle OAuth callback - check for success/error after returning from Google OAuth
+  useEffect(() => {
+    if (oauthHandledRef.current) return;
+
+    // Check if we just returned from OAuth
+    // The OAuth callback sets 'connected=true', and our state sets 'success=true' as a fallback
+    const oauthSuccess = searchParams?.get('connected') === 'true' || searchParams?.get('success') === 'true';
+    const oauthError = searchParams?.get('error');
+    const oauthMessage = searchParams?.get('message');
+
+    // Also check sessionStorage for OAuth in progress flag
+    const wasOAuthInProgress = typeof window !== 'undefined' &&
+      sessionStorage.getItem('googleOAuthInProgress') === 'true';
+
+    if (oauthSuccess || wasOAuthInProgress) {
+      oauthHandledRef.current = true;
+
+      // Clear the OAuth flag
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('googleOAuthInProgress');
+      }
+
+      // Show success message
+      if (!oauthError) {
+        setGbpJustConnected(true);
+        showSuccess('Google Business Profile connected! Your locations are loading...');
+
+        // Clean up URL params without reload
+        if (typeof window !== 'undefined') {
+          const url = new URL(window.location.href);
+          url.searchParams.delete('success');
+          url.searchParams.delete('connected');
+          url.searchParams.delete('error');
+          url.searchParams.delete('message');
+          url.searchParams.delete('tab');
+          window.history.replaceState({}, '', url.pathname);
+        }
+      }
+    }
+
+    if (oauthError) {
+      oauthHandledRef.current = true;
+      showError(decodeURIComponent(oauthMessage || 'Failed to connect Google Business Profile'));
+
+      // Clean up URL params
+      if (typeof window !== 'undefined') {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('success');
+        url.searchParams.delete('connected');
+        url.searchParams.delete('error');
+        url.searchParams.delete('message');
+        url.searchParams.delete('tab');
+        window.history.replaceState({}, '', url.pathname);
+      }
+    }
+  }, [searchParams, showSuccess, showError]);
+
   // Load available keywords
   useEffect(() => {
     const loadKeywords = async () => {
@@ -247,7 +311,7 @@ export default function LocalRankingGridsPage() {
     if (!loading && isAuthenticated) {
       loadGBPLocations();
     }
-  }, [loading, isAuthenticated]);
+  }, [loading, isAuthenticated, gbpJustConnected]); // Re-fetch when OAuth connection completes
 
   // Handle running a check
   const handleRunCheck = useCallback(async () => {
@@ -377,6 +441,7 @@ export default function LocalRankingGridsPage() {
           configId={showSettings && hasConfig && !isAddingNewLocation ? selectedConfigId || undefined : undefined}
           googleBusinessLocation={googleBusinessLocation || undefined}
           availableLocations={plan === 'maven' ? googleBusinessLocations : undefined}
+          accountId={selectedAccountId || undefined}
           onComplete={handleSetupComplete}
           onCancel={() => {
             setShowSettings(false);

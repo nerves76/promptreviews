@@ -8,10 +8,10 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import Link from 'next/link';
 import { MapPinIcon, Cog6ToothIcon, CheckCircleIcon, ArrowPathIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { useGeoGridConfig, SaveConfigData } from '../hooks/useGeoGridConfig';
 import { apiClient } from '@/utils/apiClient';
+import Icon from '@/components/Icon';
 
 // ============================================
 // Types
@@ -33,6 +33,8 @@ interface GeoGridSetupWizardProps {
   googleBusinessLocation?: GoogleBusinessLocation;
   /** Available GBP locations for selection (Maven accounts) */
   availableLocations?: GoogleBusinessLocation[];
+  /** Account ID for OAuth flow */
+  accountId?: string;
   /** Callback when setup is complete */
   onComplete?: () => void;
   /** Callback to go back/cancel */
@@ -49,10 +51,76 @@ export function GeoGridSetupWizard({
   configId,
   googleBusinessLocation,
   availableLocations,
+  accountId,
   onComplete,
   onCancel,
 }: GeoGridSetupWizardProps) {
   const { saveConfig } = useGeoGridConfig({ autoFetch: false });
+
+  // Debug: Log accountId on mount and when it changes
+  useEffect(() => {
+    console.log('🔍 [GeoGridSetupWizard] accountId prop:', accountId);
+  }, [accountId]);
+
+  // OAuth connection state
+  const [isConnecting, setIsConnecting] = useState(false);
+
+  // Handle initiating Google OAuth flow
+  const handleConnectGBP = useCallback(() => {
+    if (!accountId) {
+      console.error('❌ Cannot connect GBP: No account ID provided. accountId prop value:', accountId);
+      // Show user-friendly error instead of silently failing
+      alert('Please wait for the page to fully load, then try again. If the problem persists, refresh the page.');
+      return;
+    }
+
+    console.log('✅ [GeoGrid OAuth] accountId available:', accountId);
+    setIsConnecting(true);
+
+    // Store flag to preserve session during OAuth redirect
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('googleOAuthInProgress', 'true');
+    }
+
+    // Get Google OAuth credentials from environment
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '984479581786-8h619lvt0jvhakg7riaom9bs7mlo1lku.apps.googleusercontent.com';
+    const redirectUriRaw = process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI;
+
+    // Validate required environment variables
+    if (!redirectUriRaw) {
+      console.error('❌ Missing NEXT_PUBLIC_GOOGLE_REDIRECT_URI');
+      setIsConnecting(false);
+      return;
+    }
+
+    const redirectUri = encodeURIComponent(redirectUriRaw);
+
+    // OAuth scope for Google Business Profile API (match working implementation)
+    const scope = 'https://www.googleapis.com/auth/business.manage email profile openid';
+    const encodedScope = encodeURIComponent(scope);
+
+    // Build state payload with accountId (CRITICAL for account isolation)
+    // The OAuth callback will append 'connected=true' on success
+    const statePayload = {
+      platform: 'google-business-profile',
+      returnUrl: '/dashboard/local-ranking-grids',
+      accountId: accountId,
+    };
+
+    console.log('🔍 [GeoGrid OAuth] Starting OAuth flow with state:', statePayload);
+
+    const state = encodeURIComponent(JSON.stringify(statePayload));
+
+    // Construct Google OAuth URL (match working implementation)
+    const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${encodedScope}&response_type=code&state=${state}&access_type=offline&prompt=select_account%20consent&include_granted_scopes=false`;
+
+    console.log('🔍 [GeoGrid OAuth] Redirecting to:', googleAuthUrl.substring(0, 100) + '...');
+
+    // Add a small delay to ensure session storage is set
+    setTimeout(() => {
+      window.location.href = googleAuthUrl;
+    }, 100);
+  }, [accountId]);
 
   // For Maven accounts with multiple available locations
   const hasMultipleLocations = availableLocations && availableLocations.length > 1;
@@ -417,14 +485,46 @@ export function GeoGridSetupWizard({
                 </p>
               </div>
             ) : (
-              <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <p className="text-sm text-yellow-800">
-                  No Google Business Profile connected.{' '}
-                  <Link href="/dashboard/google-business" className="underline font-medium">
-                    Connect one
-                  </Link>{' '}
-                  or enter coordinates manually below.
-                </p>
+              <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                    <Icon name="FaGoogle" className="w-5 h-5 text-blue-600" size={20} />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-sm font-semibold text-gray-900 mb-1">
+                      Connect Google Business Profile
+                    </h4>
+                    <p className="text-sm text-gray-600 mb-3">
+                      Connect your Google Business Profile to automatically load your business location, or enter coordinates manually below.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={handleConnectGBP}
+                      disabled={isConnecting || !accountId}
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      {isConnecting ? (
+                        <>
+                          <Icon name="FaSpinner" className="w-4 h-4 animate-spin" size={16} />
+                          <span>Connecting...</span>
+                        </>
+                      ) : !accountId ? (
+                        <>
+                          <Icon name="FaSpinner" className="w-4 h-4 animate-spin" size={16} />
+                          <span>Loading...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Icon name="FaGoogle" className="w-4 h-4" size={16} />
+                          <span>Connect Google Business</span>
+                        </>
+                      )}
+                    </button>
+                    <p className="text-xs text-gray-500 mt-2">
+                      Check ALL permission boxes when prompted by Google
+                    </p>
+                  </div>
+                </div>
               </div>
             )}
 

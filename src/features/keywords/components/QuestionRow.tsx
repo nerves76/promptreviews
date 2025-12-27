@@ -121,6 +121,7 @@ export function QuestionRow({
             }}
             className="p-1 text-gray-400 hover:text-red-500 rounded transition-colors flex-shrink-0"
             title="Remove question"
+            aria-label={`Remove question: ${question.question.substring(0, 50)}${question.question.length > 50 ? '...' : ''}`}
           >
             <Icon name="FaTimes" className="w-3 h-3" />
           </button>
@@ -149,6 +150,7 @@ export function QuestionRow({
                 disabled={isChecking}
                 className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-white bg-purple-600 rounded hover:bg-purple-700 disabled:opacity-50 transition-colors"
                 title="Check AI visibility"
+                aria-label={`Check AI visibility for: ${question.question.substring(0, 50)}${question.question.length > 50 ? '...' : ''}`}
               >
                 {isChecking ? (
                   <Icon name="FaSpinner" className="w-3 h-3 animate-spin" />

@@ -519,6 +519,11 @@ model accounts {
   ai_keyword_generation_usage     ai_keyword_generation_usage[]
   ai_usage                        ai_usage[]
   audit_logs                      audit_logs[]
+  backlink_anchors                backlink_anchors[]
+  backlink_checks                 backlink_checks[]
+  backlink_domains                backlink_domains[]
+  backlink_new_lost               backlink_new_lost[]
+  backlink_referring_domains      backlink_referring_domains[]
   billing_audit_log               billing_audit_log[]
   business_locations              business_locations[]
   businesses                      businesses[]
@@ -2207,7 +2212,7 @@ model rate_limit_counters {
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model review_drafts {
-  id                 String    @id @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  id                 String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   prompt_page_id     String?   @db.Uuid
   platform           String?
   review_text        String?
@@ -2448,7 +2453,7 @@ model selected_gbp_locations {
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model sentiment_analysis_runs {
-  id                      String    @id @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  id                      String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   account_id              String    @db.Uuid
   run_date                DateTime? @default(now()) @db.Timestamptz(6)
   review_count_analyzed   Int
@@ -2970,6 +2975,8 @@ model llm_visibility_checks {
   api_cost_usd      Decimal? @db.Decimal(10, 6)
   checked_at        DateTime @default(now()) @db.Timestamptz(6)
   created_at        DateTime @default(now()) @db.Timestamptz(6)
+  brand_mentioned   Boolean  @default(false)
+  mentioned_brands  Json?
   accounts          accounts @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   keywords          keywords @relation(fields: [keyword_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
@@ -2978,6 +2985,7 @@ model llm_visibility_checks {
   @@index([checked_at(sort: Desc)], map: "idx_llm_checks_checked_at")
   @@index([keyword_id, checked_at(sort: Desc)], map: "idx_llm_checks_keyword")
   @@index([keyword_id, llm_provider, checked_at(sort: Desc)], map: "idx_llm_checks_keyword_provider")
+  @@index([account_id, brand_mentioned, checked_at(sort: Desc)], map: "idx_llm_checks_brand_mentioned")
   @@schema("public")
 }
 
@@ -3305,6 +3313,144 @@ model ai_keyword_generation_usage {
 
   @@index([account_id, created_at], map: "idx_ai_keyword_generation_usage_account_date")
   @@index([user_id, created_at], map: "idx_ai_keyword_generation_usage_user_date")
+  @@schema("public")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model backlink_anchors {
+  id                      String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  account_id              String          @db.Uuid
+  check_id                String          @db.Uuid
+  anchor_text             String
+  backlinks_count         Int?            @default(0)
+  referring_domains_count Int?            @default(0)
+  first_seen              DateTime?       @db.Date
+  last_seen               DateTime?       @db.Date
+  rank                    Int?
+  created_at              DateTime        @default(now()) @db.Timestamptz(6)
+  accounts                accounts        @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  backlink_checks         backlink_checks @relation(fields: [check_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([account_id], map: "idx_backlink_anchors_account")
+  @@index([check_id], map: "idx_backlink_anchors_check")
+  @@schema("public")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model backlink_checks {
+  id                         String                       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  account_id                 String                       @db.Uuid
+  domain_id                  String                       @db.Uuid
+  backlinks_total            Int?                         @default(0)
+  referring_domains_total    Int?                         @default(0)
+  referring_domains_nofollow Int?                         @default(0)
+  referring_main_domains     Int?                         @default(0)
+  referring_ips              Int?                         @default(0)
+  referring_subnets          Int?                         @default(0)
+  rank                       Int?
+  backlinks_follow           Int?                         @default(0)
+  backlinks_nofollow         Int?                         @default(0)
+  backlinks_text             Int?                         @default(0)
+  backlinks_image            Int?                         @default(0)
+  backlinks_redirect         Int?                         @default(0)
+  backlinks_form             Int?                         @default(0)
+  backlinks_frame            Int?                         @default(0)
+  referring_pages            Int?                         @default(0)
+  api_cost_usd               Decimal?                     @db.Decimal(10, 6)
+  checked_at                 DateTime                     @default(now()) @db.Timestamptz(6)
+  created_at                 DateTime                     @default(now()) @db.Timestamptz(6)
+  backlink_anchors           backlink_anchors[]
+  accounts                   accounts                     @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  backlink_domains           backlink_domains             @relation(fields: [domain_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  backlink_new_lost          backlink_new_lost[]
+  backlink_referring_domains backlink_referring_domains[]
+
+  @@index([account_id], map: "idx_backlink_checks_account")
+  @@index([checked_at(sort: Desc)], map: "idx_backlink_checks_checked_at")
+  @@index([domain_id, checked_at(sort: Desc)], map: "idx_backlink_checks_domain_date")
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model backlink_domains {
+  id                          String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  account_id                  String              @db.Uuid
+  domain                      String
+  schedule_frequency          String?
+  schedule_day_of_week        Int?
+  schedule_day_of_month       Int?
+  schedule_hour               Int                 @default(9)
+  next_scheduled_at           DateTime?           @db.Timestamptz(6)
+  last_scheduled_run_at       DateTime?           @db.Timestamptz(6)
+  is_enabled                  Boolean             @default(true)
+  last_checked_at             DateTime?           @db.Timestamptz(6)
+  last_credit_warning_sent_at DateTime?           @db.Timestamptz(6)
+  created_at                  DateTime            @default(now()) @db.Timestamptz(6)
+  updated_at                  DateTime            @default(now()) @db.Timestamptz(6)
+  backlink_checks             backlink_checks[]
+  accounts                    accounts            @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  backlink_new_lost           backlink_new_lost[]
+
+  @@unique([account_id, domain])
+  @@index([account_id], map: "idx_backlink_domains_account")
+  @@index([account_id, is_enabled], map: "idx_backlink_domains_account_enabled")
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model backlink_new_lost {
+  id               String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  account_id       String           @db.Uuid
+  domain_id        String           @db.Uuid
+  check_id         String           @db.Uuid
+  change_type      String
+  source_url       String?
+  source_domain    String?
+  target_url       String?
+  anchor_text      String?
+  link_type        String?
+  is_follow        Boolean?         @default(true)
+  first_seen       DateTime?        @db.Date
+  last_seen        DateTime?        @db.Date
+  source_rank      Int?
+  detected_at      DateTime         @default(now()) @db.Timestamptz(6)
+  created_at       DateTime         @default(now()) @db.Timestamptz(6)
+  accounts         accounts         @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  backlink_checks  backlink_checks  @relation(fields: [check_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  backlink_domains backlink_domains @relation(fields: [domain_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([account_id], map: "idx_backlink_new_lost_account")
+  @@index([check_id], map: "idx_backlink_new_lost_check")
+  @@index([domain_id, detected_at(sort: Desc)], map: "idx_backlink_new_lost_domain_date")
+  @@index([domain_id, change_type], map: "idx_backlink_new_lost_type")
+  @@schema("public")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model backlink_referring_domains {
+  id                   String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  account_id           String          @db.Uuid
+  check_id             String          @db.Uuid
+  referring_domain     String
+  backlinks_count      Int?            @default(0)
+  rank                 Int?
+  backlinks_spam_score Decimal?        @db.Decimal(5, 2)
+  first_seen           DateTime?       @db.Date
+  last_seen            DateTime?       @db.Date
+  is_follow            Boolean?        @default(true)
+  created_at           DateTime        @default(now()) @db.Timestamptz(6)
+  accounts             accounts        @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  backlink_checks      backlink_checks @relation(fields: [check_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([account_id], map: "idx_backlink_referring_domains_account")
+  @@index([check_id], map: "idx_backlink_referring_domains_check")
   @@schema("public")
 }
 

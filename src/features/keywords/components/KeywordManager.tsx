@@ -596,7 +596,6 @@ export default function KeywordManager({
         'State',
         'About Us',
         'Differentiators',
-        'Years in Business',
         'Services Offered',
       ]);
       setShowMissingFieldsError(true);
@@ -618,7 +617,6 @@ export default function KeywordManager({
         'State',
         'About Us',
         'Differentiators',
-        'Years in Business',
         'Services Offered',
       ]);
       setShowMissingFieldsError(true);

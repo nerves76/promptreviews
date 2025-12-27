@@ -93,12 +93,12 @@ export async function POST(request: NextRequest) {
       industriesServed // Optional
     } = await request.json();
 
-    // Validate required fields
-    if (!businessName || !businessType || !city || !state || !aboutUs || !differentiators || !yearsInBusiness || !servicesOffered) {
+    // Validate required fields (yearsInBusiness is now optional)
+    if (!businessName || !businessType || !city || !state || !aboutUs || !differentiators || !servicesOffered) {
       return NextResponse.json(
         {
           error: "Missing required business information",
-          details: "Business name, type, city, state, about us, differentiators, years in business, and services offered are required to generate keywords."
+          details: "Business name, type, city, state, about us, differentiators, and services offered are required to generate keywords."
         },
         { status: 400 },
       );
@@ -125,8 +125,7 @@ Business Information:
 - Name: ${businessName}
 - Location: ${city}, ${state}
 - About: ${aboutUs}
-- Differentiators: ${differentiators}
-- Years in Business: ${yearsInBusiness}
+- Differentiators: ${differentiators}${yearsInBusiness ? `\n- Years in Business: ${yearsInBusiness}` : ''}
 - Services/Offerings: ${servicesOffered}${industriesServed ? `\n- Industries Served: ${industriesServed}` : ''}
 
 These keywords will be used to help customers find this business when searching for reviews.

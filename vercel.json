@@ -65,6 +65,10 @@
     {
       "path": "/api/cron/run-scheduled-llm-checks",
       "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/cron/run-scheduled-backlink-checks",
+      "schedule": "0 * * * *"
     }
   ],
   "buildCommand": "npm run build",

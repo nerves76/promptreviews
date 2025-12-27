@@ -110,11 +110,11 @@ const YourBusinessDropdown: React.FC<YourBusinessDropdownProps> = ({
   };
 
   const menuItems = [
-    { href: "/dashboard/business-profile", label: "Business Profile", icon: "FaStore", description: "Edit your business details" },
-    { href: "/dashboard/keywords", label: "Keyword Concepts", icon: "FaKey", description: "Manage keyword concepts for reviews and rank tracking" },
-    { href: "/dashboard/local-ranking-grids", label: "Local Ranking Grids", icon: "FaMapMarker", description: "Track your local search rankings" },
-    { href: "/dashboard/keywords/rank-tracking", label: "Rank Tracking", icon: "FaChartLine", description: "Track your Google organic rankings" },
-    { href: "/dashboard/domain-analysis", label: "Domain Analysis", icon: "FaGlobe", description: "Analyze any domain's tech stack and SEO metrics" },
+    { href: "/dashboard/business-profile", label: "Business profile", icon: "FaStore", description: "Edit your business details" },
+    { href: "/dashboard/keywords", label: "Keyword concepts", icon: "FaKey", description: "Manage keyword concepts for reviews and rank tracking" },
+    { href: "/dashboard/local-ranking-grids", label: "Local ranking grids", icon: "FaMapMarker", description: "Track your local search rankings" },
+    { href: "/dashboard/keywords/llm-visibility", label: "LLM visibility", icon: "FaRobot", description: "Track your visibility in AI search results" },
+    { href: "/dashboard/research", label: "Research", icon: "FaSearch", description: "Keyword research, domain analysis, and backlinks" },
   ];
 
   // Check if any menu item is active

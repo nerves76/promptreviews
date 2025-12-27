@@ -93,14 +93,13 @@ export function validateBusinessForKeywordGeneration(
     console.log('[BusinessValidation] ✅ Has: Differentiators');
   }
 
-  // More robust years check - handle string, number, null, undefined
+  // Years in business is now OPTIONAL - just log for debugging
+  // Users can still generate keywords without specifying this
   const yearsValue = business.years_in_business;
-  const yearsInt = yearsValue ? parseInt(String(yearsValue)) : 0;
-  if (!yearsValue || String(yearsValue).trim() === '' || isNaN(yearsInt) || yearsInt <= 0) {
-    console.log('[BusinessValidation] ❌ Missing: Years in Business', { yearsValue, yearsInt });
-    missingFields.push('Years in Business');
-  } else {
+  if (yearsValue && String(yearsValue).trim() !== '') {
     console.log('[BusinessValidation] ✅ Has: Years in Business =', yearsValue);
+  } else {
+    console.log('[BusinessValidation] ℹ️ Optional: Years in Business not set (this is okay)');
   }
 
   // More robust services check - handle array, null, undefined, empty array

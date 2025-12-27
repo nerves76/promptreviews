@@ -137,14 +137,9 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
     // Use keyword_questions table data (normalized) instead of JSONB if available
     const keywordQuestions = (keyword as any).keyword_questions;
-    console.log(`[Keyword ${id}] keyword_questions from DB:`, keywordQuestions?.length || 0, 'questions');
-    console.log(`[Keyword ${id}] related_questions JSONB:`, (keyword as any).related_questions?.length || 0, 'questions');
 
     if (keywordQuestions && Array.isArray(keywordQuestions) && keywordQuestions.length > 0) {
       transformedKeyword.relatedQuestions = transformKeywordQuestionRows(keywordQuestions as KeywordQuestionRow[]);
-      console.log(`[Keyword ${id}] Using normalized questions:`, transformedKeyword.relatedQuestions.length);
-    } else {
-      console.log(`[Keyword ${id}] Using JSONB questions:`, transformedKeyword.relatedQuestions?.length || 0);
     }
 
     return NextResponse.json({
@@ -465,8 +460,6 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
     // If location changed, clear rank and volume history for this concept
     if (locationChanged) {
-      console.log(`📍 Location changed for keyword ${id}, clearing history...`);
-
       // Get all search terms for this keyword to delete their history
       const searchTermsList = existingKeyword.search_terms as Array<{ term: string }> || [];
       const searchTermStrings = searchTermsList.map((t: { term: string }) => t.term.toLowerCase());
@@ -481,9 +474,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
           .in('search_query', searchTermStrings);
 
         if (rankDeleteError) {
-          console.error('⚠️ Failed to delete rank checks:', rankDeleteError);
-        } else {
-          console.log(`✓ Deleted rank checks for terms: ${searchTermStrings.join(', ')}`);
+          console.error('Failed to delete rank checks:', rankDeleteError);
         }
 
         // Delete keyword research results for these terms
@@ -494,9 +485,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
           .in('normalized_term', searchTermStrings);
 
         if (researchDeleteError) {
-          console.error('⚠️ Failed to delete research results:', researchDeleteError);
-        } else {
-          console.log(`✓ Deleted research results for terms: ${searchTermStrings.join(', ')}`);
+          console.error('Failed to delete research results:', researchDeleteError);
         }
       }
     }

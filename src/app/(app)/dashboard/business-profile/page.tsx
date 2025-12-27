@@ -898,6 +898,7 @@ export default function BusinessProfilePage() {
       console.log("=== Update Payload ===");
       console.log("about_us in payload:", updatePayload.about_us);
       console.log("services_offered in payload:", updatePayload.services_offered);
+      console.log("years_in_business in payload:", updatePayload.years_in_business);
 
       let updateData: any = null;
       let updateError: any = null;

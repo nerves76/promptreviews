@@ -23,7 +23,8 @@ export type FeatureType =
   | 'domain_analysis'
   | 'llm_visibility'
   | 'keyword_enrichment'
-  | 'sentiment_analysis';
+  | 'sentiment_analysis'
+  | 'backlinks';
 
 export interface CreditBalance {
   accountId: string;
