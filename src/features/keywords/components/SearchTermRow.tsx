@@ -120,7 +120,7 @@ export function SearchTermRow({
                 onClick={onSetCanonical}
                 disabled={disabled}
                 className="p-1 text-gray-400 hover:text-blue-500 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                title="Set as canonical"
+                title="Set as primary"
               >
                 <Icon name="FaStar" className="w-3 h-3" />
               </button>

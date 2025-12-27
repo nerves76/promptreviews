@@ -879,8 +879,28 @@ export function ConceptCard({
                       <tr key={term.term} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                         <td className="py-2 px-2">
                           <div className="flex items-center gap-1.5">
-                            {term.isCanonical && (
-                              <Icon name="FaStar" className="w-3 h-3 text-amber-400 flex-shrink-0" />
+                            {term.isCanonical ? (
+                              <Icon
+                                name="FaStar"
+                                className="w-3 h-3 text-amber-400 flex-shrink-0"
+                                title="Primary search term"
+                              />
+                            ) : onUpdate ? (
+                              <button
+                                onClick={async () => {
+                                  const updatedTerms = displayKeyword.searchTerms?.map(t => ({
+                                    ...t,
+                                    isCanonical: t.term === term.term
+                                  })) || [];
+                                  await onUpdate(keyword.id, { searchTerms: updatedTerms });
+                                }}
+                                className="text-gray-300 hover:text-amber-400 transition-colors"
+                                title="Set as primary"
+                              >
+                                <Icon name="FaRegStar" className="w-3 h-3 flex-shrink-0" />
+                              </button>
+                            ) : (
+                              <span className="w-3 h-3 flex-shrink-0" />
                             )}
                             <span className="text-sm font-medium text-gray-900">{term.term}</span>
                           </div>

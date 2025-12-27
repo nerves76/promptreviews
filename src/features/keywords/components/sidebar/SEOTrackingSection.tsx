@@ -588,8 +588,8 @@ function SearchTermItem({
               <button
                 onClick={() => onSetCanonical(term.term)}
                 className="p-1 text-gray-400 hover:text-blue-500 rounded transition-colors"
-                title="Set as canonical"
-                aria-label={`Set ${term.term} as canonical term`}
+                title="Set as primary"
+                aria-label={`Set ${term.term} as primary term`}
               >
                 <Icon name="FaStar" className="w-3 h-3" />
               </button>
