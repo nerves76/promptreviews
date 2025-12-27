@@ -56,6 +56,7 @@ export async function GET(request: NextRequest) {
       .from('keywords')
       .select(`
         id,
+        name,
         phrase,
         normalized_phrase,
         word_count,
@@ -299,6 +300,7 @@ export async function POST(request: NextRequest) {
           .from('keywords')
           .select(`
             id,
+            name,
             phrase,
             normalized_phrase,
             word_count,
@@ -358,6 +360,7 @@ export async function POST(request: NextRequest) {
       .insert({
         account_id: accountId,
         group_id: targetGroupId,
+        name: phrase.trim(), // Default name to phrase
         phrase: phrase.trim(),
         normalized_phrase: normalizedPhrase,
         word_count: wordCount,
@@ -377,6 +380,7 @@ export async function POST(request: NextRequest) {
       })
       .select(`
         id,
+        name,
         phrase,
         normalized_phrase,
         word_count,

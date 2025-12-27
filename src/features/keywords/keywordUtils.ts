@@ -222,6 +222,8 @@ export interface RelevanceCheckResult {
  */
 export interface KeywordData {
   id: string;
+  /** Editable display name for the concept */
+  name: string;
   phrase: string;
   normalizedPhrase: string;
   wordCount: number;
@@ -589,6 +591,7 @@ export function checkSearchTermRelevance(
 export function transformKeywordToResponse(
   keyword: {
     id: string;
+    name?: string | null;
     phrase: string;
     normalized_phrase: string;
     word_count: number;
@@ -625,6 +628,7 @@ export function transformKeywordToResponse(
 
   return {
     id: keyword.id,
+    name: keyword.name || keyword.phrase, // Fallback to phrase if name not set
     phrase: keyword.phrase,
     normalizedPhrase: keyword.normalized_phrase,
     wordCount,

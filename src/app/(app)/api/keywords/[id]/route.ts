@@ -49,6 +49,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       .from('keywords')
       .select(`
         id,
+        name,
         phrase,
         normalized_phrase,
         word_count,
@@ -232,10 +233,21 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     }
 
     const body = await request.json();
-    const { phrase, groupId, status, reviewPhrase, searchQuery, searchTerms, aliases, locationScope, relatedQuestions, searchVolumeLocationCode, searchVolumeLocationName, _locationChanged } = body;
+    const { name, phrase, groupId, status, reviewPhrase, searchQuery, searchTerms, aliases, locationScope, relatedQuestions, searchVolumeLocationCode, searchVolumeLocationName, _locationChanged } = body;
 
     // Build update object
     const updates: Record<string, any> = {};
+
+    // Handle name update (display name for the concept)
+    if (name !== undefined) {
+      if (typeof name !== 'string' || name.trim().length === 0) {
+        return NextResponse.json(
+          { error: 'Invalid name' },
+          { status: 400 }
+        );
+      }
+      updates.name = name.trim();
+    }
 
     if (phrase !== undefined) {
       if (typeof phrase !== 'string' || phrase.trim().length === 0) {
@@ -414,6 +426,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       .eq('id', id)
       .select(`
         id,
+        name,
         phrase,
         normalized_phrase,
         word_count,
