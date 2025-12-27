@@ -36,6 +36,12 @@ const COMMON_ROUTES = [
   { value: "/dashboard/community", label: "Community" },
   { value: "/prompt-pages", label: "Prompt Pages List" },
   { value: "/r/", label: "Review Submission Pages" },
+  // Keyword pages
+  { value: "/dashboard/keywords", label: "Keyword Concepts Library" },
+  { value: "/dashboard/keywords/rank-tracking", label: "Rank Tracking" },
+  { value: "/dashboard/keywords/llm-visibility", label: "LLM Visibility" },
+  { value: "/dashboard/keywords/research", label: "Keyword Research" },
+  { value: "/dashboard/local-ranking-grids", label: "Local Ranking Grid" },
 ];
 
 export default function ArticleContextsManager({

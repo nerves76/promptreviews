@@ -79,6 +79,31 @@ const routeContextMap: Record<string, RouteContext> = {
     keywords: ['review-page', 'customer', 'submission', 'public', 'feedback'],
     pageName: 'Review Submission Page',
     helpTopics: ['customer-experience', 'submission-process']
+  },
+  '/dashboard/keywords': {
+    keywords: ['keywords', 'concepts', 'search-terms', 'seo', 'tracking', 'library'],
+    pageName: 'Keyword Concepts Library',
+    helpTopics: ['keyword-concepts', 'search-terms', 'organization', 'groups']
+  },
+  '/dashboard/keywords/rank-tracking': {
+    keywords: ['rank', 'tracking', 'seo', 'google', 'position', 'serp'],
+    pageName: 'Rank Tracking',
+    helpTopics: ['rank-tracking', 'seo-monitoring', 'positions']
+  },
+  '/dashboard/keywords/llm-visibility': {
+    keywords: ['llm', 'ai', 'visibility', 'chatgpt', 'perplexity', 'citations'],
+    pageName: 'LLM Visibility',
+    helpTopics: ['ai-visibility', 'llm-tracking', 'citations']
+  },
+  '/dashboard/keywords/research': {
+    keywords: ['research', 'volume', 'search-volume', 'keywords', 'discover'],
+    pageName: 'Keyword Research',
+    helpTopics: ['keyword-research', 'search-volume', 'discovery']
+  },
+  '/dashboard/local-ranking-grids': {
+    keywords: ['local', 'ranking', 'grid', 'geo', 'map', 'location', 'gmb'],
+    pageName: 'Local Ranking Grid',
+    helpTopics: ['local-seo', 'geo-grid', 'map-rankings']
   }
 };
 
