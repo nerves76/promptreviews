@@ -565,7 +565,25 @@ export function ConceptCard({
                     #{avgPosition}
                   </span>
                 )}
-                {keyword.isUsedInGeoGrid && (
+                {keyword.isUsedInGeoGrid && enrichedData?.geoGridStatus?.summary && enrichedData.geoGridStatus.summary.totalPoints > 0 ? (
+                  <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded flex items-center gap-0.5 ${
+                    enrichedData.geoGridStatus.summary.averagePosition && enrichedData.geoGridStatus.summary.averagePosition <= 3
+                      ? 'bg-green-100 text-green-700'
+                      : enrichedData.geoGridStatus.summary.averagePosition && enrichedData.geoGridStatus.summary.averagePosition <= 10
+                        ? 'bg-emerald-100 text-emerald-700'
+                        : enrichedData.geoGridStatus.summary.averagePosition && enrichedData.geoGridStatus.summary.averagePosition <= 20
+                          ? 'bg-amber-100 text-amber-700'
+                          : 'bg-gray-100 text-gray-600'
+                  }`}>
+                    <Icon name="FaMapMarker" className="w-2 h-2" />
+                    {enrichedData.geoGridStatus.summary.averagePosition
+                      ? `#${enrichedData.geoGridStatus.summary.averagePosition}`
+                      : 'Grid'}
+                    <span className="text-[9px] opacity-75">
+                      ({Math.round((enrichedData.geoGridStatus.summary.pointsInTop10 / enrichedData.geoGridStatus.summary.totalPoints) * 100)}%)
+                    </span>
+                  </span>
+                ) : keyword.isUsedInGeoGrid && (
                   <span className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-emerald-100 text-emerald-700 flex items-center gap-0.5">
                     <Icon name="FaMapMarker" className="w-2 h-2" />
                     Grid

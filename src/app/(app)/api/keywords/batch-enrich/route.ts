@@ -61,10 +61,29 @@ interface LLMVisibilityResult {
   checkedAt: string;
 }
 
+interface GeoGridSummary {
+  averagePosition: number | null;
+  bestPosition: number | null;
+  pointsInTop3: number;
+  pointsInTop10: number;
+  pointsInTop20: number;
+  pointsNotFound: number;
+  totalPoints: number;
+}
+
+interface GeoGridStatusData {
+  isTracked: boolean;
+  configId: string | null;
+  locationName: string | null;
+  lastCheckedAt: string | null;
+  summary: GeoGridSummary | null;
+}
+
 interface EnrichmentData {
   volumeData: ResearchResultData[];
   rankStatus: RankStatusData | null;
   llmResults: LLMVisibilityResult[];
+  geoGridStatus: GeoGridStatusData | null;
 }
 
 function transformResearchResult(row: any): ResearchResultData {
@@ -148,7 +167,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Parallel fetch all enrichment data
-    const [volumeResults, rankGroupKeywords, llmResults] = await Promise.all([
+    const [volumeResults, rankGroupKeywords, llmResults, geoGridTracking, geoGridChecks] = await Promise.all([
       // 1. Fetch volume data for all keywords
       serviceSupabase
         .from('keyword_research_results')
@@ -183,6 +202,31 @@ export async function POST(request: NextRequest) {
         .eq('account_id', accountId)
         .in('keyword_id', filteredKeywordIds)
         .order('checked_at', { ascending: false }),
+
+      // 4. Fetch geo grid tracking for all keywords
+      serviceSupabase
+        .from('gg_tracked_keywords')
+        .select(`
+          keyword_id,
+          config_id,
+          is_enabled,
+          gg_configs (
+            id,
+            location_name,
+            last_checked_at
+          )
+        `)
+        .eq('account_id', accountId)
+        .in('keyword_id', filteredKeywordIds),
+
+      // 5. Fetch geo grid checks for all keywords (recent ones for summary)
+      serviceSupabase
+        .from('gg_checks')
+        .select('keyword_id, config_id, check_point, position, position_bucket, checked_at')
+        .eq('account_id', accountId)
+        .in('keyword_id', filteredKeywordIds)
+        .order('checked_at', { ascending: false })
+        .limit(500), // Get enough to cover all keywords with multiple check points
     ]);
 
     // Build enrichment map
@@ -194,6 +238,7 @@ export async function POST(request: NextRequest) {
         volumeData: [],
         rankStatus: null,
         llmResults: [],
+        geoGridStatus: null,
       };
     }
 
@@ -359,6 +404,92 @@ export async function POST(request: NextRequest) {
             checkedAt: row.checked_at,
           });
         }
+      }
+    }
+
+    // 4. Populate geo grid status
+    if (geoGridTracking.data && geoGridTracking.data.length > 0) {
+      // Build a map of keyword_id -> config info
+      const trackingByKeyword = new Map<string, {
+        configId: string;
+        locationName: string | null;
+        lastCheckedAt: string | null;
+      }>();
+
+      for (const tk of geoGridTracking.data) {
+        if (!tk.keyword_id) continue;
+        const config = tk.gg_configs as unknown as {
+          id: string;
+          location_name: string | null;
+          last_checked_at: string | null;
+        };
+        if (config) {
+          trackingByKeyword.set(tk.keyword_id, {
+            configId: config.id,
+            locationName: config.location_name,
+            lastCheckedAt: config.last_checked_at,
+          });
+        }
+      }
+
+      // Build a map of keyword_id -> latest check per point
+      const checksByKeyword = new Map<string, Map<string, {
+        position: number | null;
+        positionBucket: string;
+      }>>();
+
+      if (geoGridChecks.data) {
+        for (const check of geoGridChecks.data) {
+          if (!check.keyword_id) continue;
+
+          if (!checksByKeyword.has(check.keyword_id)) {
+            checksByKeyword.set(check.keyword_id, new Map());
+          }
+
+          const pointMap = checksByKeyword.get(check.keyword_id)!;
+          const pointKey = `${check.config_id}:${check.check_point}`;
+
+          // Only keep the latest check per point (already ordered by checked_at desc)
+          if (!pointMap.has(pointKey)) {
+            pointMap.set(pointKey, {
+              position: check.position,
+              positionBucket: check.position_bucket || 'none',
+            });
+          }
+        }
+      }
+
+      // Calculate summary for each keyword
+      for (const [keywordId, trackingInfo] of trackingByKeyword) {
+        if (!enrichment[keywordId]) continue;
+
+        const pointChecks = checksByKeyword.get(keywordId);
+        let summary: GeoGridSummary | null = null;
+
+        if (pointChecks && pointChecks.size > 0) {
+          const checks = Array.from(pointChecks.values());
+          const positions = checks.map(c => c.position).filter((p): p is number => p !== null);
+
+          summary = {
+            averagePosition: positions.length > 0
+              ? Math.round((positions.reduce((a, b) => a + b, 0) / positions.length) * 10) / 10
+              : null,
+            bestPosition: positions.length > 0 ? Math.min(...positions) : null,
+            pointsInTop3: checks.filter(c => c.positionBucket === 'top3').length,
+            pointsInTop10: checks.filter(c => c.positionBucket === 'top10' || c.positionBucket === 'top3').length,
+            pointsInTop20: checks.filter(c => c.positionBucket !== 'none').length,
+            pointsNotFound: checks.filter(c => c.positionBucket === 'none').length,
+            totalPoints: checks.length,
+          };
+        }
+
+        enrichment[keywordId].geoGridStatus = {
+          isTracked: true,
+          configId: trackingInfo.configId,
+          locationName: trackingInfo.locationName,
+          lastCheckedAt: trackingInfo.lastCheckedAt,
+          summary,
+        };
       }
     }
 

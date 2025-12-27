@@ -56,10 +56,29 @@ interface DiscoveredQuestion {
   isOurs: boolean;
 }
 
+export interface GeoGridSummary {
+  averagePosition: number | null;
+  bestPosition: number | null;
+  pointsInTop3: number;
+  pointsInTop10: number;
+  pointsInTop20: number;
+  pointsNotFound: number;
+  totalPoints: number;
+}
+
+export interface GeoGridStatusData {
+  isTracked: boolean;
+  configId: string | null;
+  locationName: string | null;
+  lastCheckedAt: string | null;
+  summary: GeoGridSummary | null;
+}
+
 export interface EnrichmentData {
   volumeData: ResearchResultData[];
   rankStatus: RankStatusData | null;
   llmResults: LLMVisibilityResult[];
+  geoGridStatus: GeoGridStatusData | null;
   discoveredQuestions?: DiscoveredQuestion[];
 }
 
