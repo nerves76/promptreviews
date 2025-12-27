@@ -510,13 +510,6 @@ export default function LLMVisibilityPage() {
             Library
           </Link>
           <Link
-            href="/dashboard/keywords/research"
-            className="px-6 py-1.5 font-semibold text-sm focus:outline-none transition-all duration-200 rounded-full flex items-center gap-2 bg-transparent text-white hover:bg-white/10"
-          >
-            <Icon name="FaSearch" className="w-[18px] h-[18px]" size={18} />
-            Research
-          </Link>
-          <Link
             href="/dashboard/keywords/rank-tracking"
             className="px-6 py-1.5 font-semibold text-sm focus:outline-none transition-all duration-200 rounded-full flex items-center gap-2 bg-transparent text-white hover:bg-white/10"
           >
