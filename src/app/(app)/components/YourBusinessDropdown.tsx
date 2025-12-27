@@ -113,7 +113,7 @@ const YourBusinessDropdown: React.FC<YourBusinessDropdownProps> = ({
     { href: "/dashboard/business-profile", label: "Business profile", icon: "FaStore", description: "Edit your business details" },
     { href: "/dashboard/keywords", label: "Keyword concepts", icon: "FaKey", description: "Manage keyword concepts for reviews and rank tracking" },
     { href: "/dashboard/local-ranking-grids", label: "Local ranking grids", icon: "FaMapMarker", description: "Track your local search rankings" },
-    { href: "/dashboard/keywords/llm-visibility", label: "LLM visibility", icon: "FaRobot", description: "Track your visibility in AI search results" },
+    { href: "/dashboard/keywords/llm-visibility", label: "LLM visibility", icon: "FaSparkles", description: "Track your visibility in AI search results" },
     { href: "/dashboard/research", label: "Research", icon: "FaSearch", description: "Keyword research, domain analysis, and backlinks" },
   ];
 
