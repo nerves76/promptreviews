@@ -10,6 +10,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { MapPinIcon, Cog6ToothIcon, CheckCircleIcon, ArrowPathIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { useGeoGridConfig, SaveConfigData } from '../hooks/useGeoGridConfig';
+import { CheckPoint } from '../utils/types';
 import { apiClient } from '@/utils/apiClient';
 import Icon from '@/components/Icon';
 
@@ -259,6 +260,7 @@ export function GeoGridSetupWizard({
 
   // Form state
   const [radiusMiles, setRadiusMiles] = useState(3);
+  const [gridSize, setGridSize] = useState<5 | 9>(5); // 5 = center + N/S/E/W, 9 = center + all 8 directions
   const [selectedLocation, setSelectedLocation] = useState(effectiveGBPLocation);
   const [manualLat, setManualLat] = useState(effectiveGBPLocation?.lat?.toString() || '');
   const [manualLng, setManualLng] = useState(effectiveGBPLocation?.lng?.toString() || '');
@@ -521,12 +523,18 @@ export function GeoGridSetupWizard({
     setIsSubmitting(true);
     setError(null);
 
+    // Convert gridSize to checkPoints array
+    const checkPoints: CheckPoint[] = gridSize === 9
+      ? ['center', 'n', 'ne', 'e', 'se', 's', 'sw', 'w', 'nw']
+      : ['center', 'n', 's', 'e', 'w'];
+
     const configData: SaveConfigData = {
       configId, // Pass configId for editing existing configs
       googleBusinessLocationId: selectedLocation.id,
       centerLat: selectedLocation.lat,
       centerLng: selectedLocation.lng,
       radiusMiles,
+      checkPoints,
       targetPlaceId: googlePlaceId, // Use the Google Place ID from geocoding, not GBP location ID
       isEnabled: true,
       locationName: selectedLocation.name || effectiveGBPLocation?.name || undefined,
@@ -884,10 +892,46 @@ export function GeoGridSetupWizard({
               Configure how the geo grid tracks your visibility.
             </p>
 
+            {/* Grid Size Setting */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Grid size
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setGridSize(5)}
+                  className={`p-3 rounded-lg border-2 text-left transition-colors ${
+                    gridSize === 5
+                      ? 'border-blue-600 bg-blue-50'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <span className="block font-semibold text-gray-900">5 points</span>
+                  <span className="text-sm text-gray-500">Center + N/S/E/W</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setGridSize(9)}
+                  className={`p-3 rounded-lg border-2 text-left transition-colors ${
+                    gridSize === 9
+                      ? 'border-blue-600 bg-blue-50'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <span className="block font-semibold text-gray-900">9 points</span>
+                  <span className="text-sm text-gray-500">+ diagonals (NE/SE/SW/NW)</span>
+                </button>
+              </div>
+              <p className="mt-2 text-sm text-gray-500">
+                More points = more comprehensive coverage but higher credit cost per check.
+              </p>
+            </div>
+
             {/* Radius Setting */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Search Radius (miles)
+                Search radius (miles)
               </label>
               <div className="flex items-center gap-4">
                 <input
@@ -903,14 +947,11 @@ export function GeoGridSetupWizard({
                   {radiusMiles} mi
                 </span>
               </div>
-              <p className="mt-2 text-sm text-gray-500">
-                Searches will be performed at the center and 4 cardinal points within this radius.
-              </p>
             </div>
 
             {/* Grid Preview */}
             <div className="p-4 bg-gray-50 rounded-lg">
-              <h4 className="text-sm font-medium text-gray-700 mb-3">Grid Points Preview</h4>
+              <h4 className="text-sm font-medium text-gray-700 mb-3">Grid preview</h4>
               <div className="relative w-48 h-48 mx-auto">
                 {/* Circle outline */}
                 <div className="absolute inset-0 border-2 border-dashed border-gray-300 rounded-full" />
@@ -924,9 +965,22 @@ export function GeoGridSetupWizard({
                 <div className="absolute top-1/2 right-0 w-3 h-3 -mt-1.5 bg-blue-400 rounded-full" />
                 {/* West */}
                 <div className="absolute top-1/2 left-0 w-3 h-3 -mt-1.5 bg-blue-400 rounded-full" />
+                {/* Diagonal points - only show when gridSize is 9 */}
+                {gridSize === 9 && (
+                  <>
+                    {/* Northeast */}
+                    <div className="absolute top-[14.6%] right-[14.6%] w-3 h-3 -mt-1.5 -mr-1.5 bg-blue-400 rounded-full" />
+                    {/* Southeast */}
+                    <div className="absolute bottom-[14.6%] right-[14.6%] w-3 h-3 -mb-1.5 -mr-1.5 bg-blue-400 rounded-full" />
+                    {/* Southwest */}
+                    <div className="absolute bottom-[14.6%] left-[14.6%] w-3 h-3 -mb-1.5 -ml-1.5 bg-blue-400 rounded-full" />
+                    {/* Northwest */}
+                    <div className="absolute top-[14.6%] left-[14.6%] w-3 h-3 -mt-1.5 -ml-1.5 bg-blue-400 rounded-full" />
+                  </>
+                )}
               </div>
               <p className="text-center text-sm text-gray-500 mt-3">
-                5 check points within {radiusMiles} mile radius
+                {gridSize} check points within {radiusMiles} mile radius
               </p>
             </div>
           </div>
@@ -957,12 +1011,14 @@ export function GeoGridSetupWizard({
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Search Radius</span>
-                <span className="font-medium text-gray-900">{radiusMiles} miles</span>
+                <span className="text-gray-600">Grid size</span>
+                <span className="font-medium text-gray-900">
+                  {gridSize} points {gridSize === 5 ? '(center + N/S/E/W)' : '(center + all directions)'}
+                </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Check Points</span>
-                <span className="font-medium text-gray-900">5 (center + N/S/E/W)</span>
+                <span className="text-gray-600">Search radius</span>
+                <span className="font-medium text-gray-900">{radiusMiles} miles</span>
               </div>
             </div>
 

@@ -142,6 +142,26 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       transformedKeyword.relatedQuestions = transformKeywordQuestionRows(keywordQuestions as KeywordQuestionRow[]);
     }
 
+    // Check if keyword is used in rank tracking
+    const { data: rankTracking } = await serviceSupabase
+      .from('rank_group_keywords')
+      .select('id')
+      .eq('keyword_id', id)
+      .eq('account_id', accountId)
+      .limit(1);
+
+    (transformedKeyword as any).isUsedInRankTracking = (rankTracking?.length || 0) > 0;
+
+    // Check if keyword is used in geo grid tracking
+    const { data: geoGridTracking } = await serviceSupabase
+      .from('gg_tracked_keywords')
+      .select('id')
+      .eq('keyword_id', id)
+      .eq('account_id', accountId)
+      .limit(1);
+
+    (transformedKeyword as any).isUsedInGeoGrid = (geoGridTracking?.length || 0) > 0;
+
     return NextResponse.json({
       keyword: transformedKeyword,
       promptPages: (pageUsage || []).map((pu: any) => ({
