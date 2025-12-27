@@ -882,7 +882,7 @@ export function ConceptCard({
                             {term.isCanonical ? (
                               <Icon
                                 name="FaStar"
-                                className="w-3 h-3 text-amber-400 flex-shrink-0"
+                                className="w-2.5 h-2.5 text-slate-blue flex-shrink-0"
                                 title="Primary search term"
                               />
                             ) : onUpdate ? (
@@ -894,13 +894,13 @@ export function ConceptCard({
                                   })) || [];
                                   await onUpdate(keyword.id, { searchTerms: updatedTerms });
                                 }}
-                                className="text-gray-300 hover:text-amber-400 transition-colors"
+                                className="text-gray-300 hover:text-slate-blue transition-colors"
                                 title="Set as primary"
                               >
-                                <Icon name="FaRegStar" className="w-3 h-3 flex-shrink-0" />
+                                <Icon name="FaRegStar" className="w-2.5 h-2.5 flex-shrink-0" />
                               </button>
                             ) : (
-                              <span className="w-3 h-3 flex-shrink-0" />
+                              <span className="w-2.5 h-2.5 flex-shrink-0" />
                             )}
                             <span className="text-sm font-medium text-gray-900">{term.term}</span>
                           </div>
