@@ -517,8 +517,8 @@ export function ConceptCard({
               <div className="min-w-0">
                 <h3 className="text-lg font-medium text-gray-900 truncate">{keyword.name}</h3>
                 {(isExpanded && (keyword.searchVolumeLocationName || enrichedData?.geoGridStatus?.locationName || businessLocationName)) && (
-                  <div className="flex items-center gap-1 text-xs text-gray-500 mt-0.5">
-                    <Icon name="FaMapMarker" className="w-2.5 h-2.5 text-slate-blue" />
+                  <div className="flex items-center gap-1 text-xs text-gray-400 mt-0.5">
+                    <Icon name="FaMapMarker" className="w-2 h-2 text-gray-400" />
                     <span className="truncate">{keyword.searchVolumeLocationName || enrichedData?.geoGridStatus?.locationName || businessLocationName}</span>
                   </div>
                 )}
