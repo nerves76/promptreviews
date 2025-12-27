@@ -7,26 +7,77 @@ import { Input } from "@/app/(app)/components/ui/input";
 import { Button } from "@/app/(app)/components/ui/button";
 import * as Icons from "lucide-react";
 
-// Common icons used in the CMS
+// Common icons used in the CMS - organized by category
 const COMMON_ICONS = [
-  'Rocket', 'FileText', 'Star', 'Layout', 'Plug', 'Settings',
-  'Lightbulb', 'Code2', 'Wrench', 'BookOpen', 'Home', 'Search',
-  'Bell', 'Calendar', 'CheckCircle', 'ChevronRight', 'Circle',
-  'Clock', 'Cloud', 'Code', 'Database', 'Download', 'Edit',
-  'Eye', 'File', 'Filter', 'Flag', 'Folder', 'Gift', 'Globe',
-  'Hash', 'Heart', 'HelpCircle', 'Image', 'Inbox', 'Info',
-  'Key', 'Link', 'Lock', 'Mail', 'Map', 'Menu', 'MessageCircle',
-  'Mic', 'Monitor', 'Moon', 'Music', 'Package', 'Paperclip',
-  'Phone', 'Play', 'Plus', 'Power', 'Printer', 'Radio',
-  'RefreshCw', 'Repeat', 'Save', 'Send', 'Share', 'Shield',
-  'ShoppingCart', 'Shuffle', 'Sidebar', 'Sliders', 'Smartphone',
-  'Sparkles', 'Sun', 'Tag', 'Target', 'Thermometer', 'ThumbsUp',
-  'Tool', 'Trash', 'TrendingUp', 'Truck', 'Tv', 'Twitter',
-  'Type', 'Umbrella', 'Upload', 'User', 'Users', 'Video',
-  'Volume', 'Watch', 'Wifi', 'Wind', 'X', 'Zap', 'ZoomIn',
-  // Google & Social
-  'Chrome', 'Building2', 'MapPin', 'Store', 'BarChart3',
-  'MessageSquare', 'ImagePlus'
+  // General UI
+  'Rocket', 'Star', 'Layout', 'Settings', 'Lightbulb', 'Home', 'Search',
+  'Bell', 'CheckCircle', 'Circle', 'Clock', 'Eye', 'EyeOff', 'Filter',
+  'Flag', 'Gift', 'Globe', 'Hash', 'Heart', 'HelpCircle', 'Info',
+  'Key', 'Link', 'Lock', 'Unlock', 'Menu', 'Moon', 'Sun', 'Plus', 'Minus',
+  'Power', 'RefreshCw', 'Repeat', 'Save', 'Share', 'Shield', 'Sliders',
+  'Sparkles', 'Tag', 'Tags', 'Target', 'ThumbsUp', 'ThumbsDown', 'Trash',
+  'X', 'Zap', 'ZoomIn', 'ZoomOut', 'Check', 'AlertCircle', 'AlertTriangle',
+
+  // Documents & Files
+  'FileText', 'File', 'Folder', 'FolderOpen', 'Files', 'FileCheck', 'FilePlus',
+  'BookOpen', 'Book', 'Bookmark', 'Newspaper', 'ScrollText', 'ClipboardList',
+  'ClipboardCheck', 'Paperclip', 'Archive', 'FileSearch',
+
+  // Charts & Analytics
+  'BarChart', 'BarChart2', 'BarChart3', 'BarChart4', 'LineChart', 'PieChart',
+  'TrendingUp', 'TrendingDown', 'Activity', 'Gauge', 'Signal', 'Percent',
+
+  // Communication
+  'Mail', 'MessageCircle', 'MessageSquare', 'MessagesSquare', 'Send', 'Inbox',
+  'Phone', 'PhoneCall', 'Video', 'Mic', 'AtSign', 'Reply', 'Forward',
+
+  // Users & People
+  'User', 'Users', 'UserPlus', 'UserCheck', 'UserX', 'Contact', 'CircleUser',
+
+  // Business & Commerce
+  'Building', 'Building2', 'Store', 'Briefcase', 'CreditCard', 'Wallet',
+  'ShoppingCart', 'ShoppingBag', 'Receipt', 'DollarSign', 'Coins', 'PiggyBank',
+  'BadgeCheck', 'Award', 'Trophy', 'Medal', 'Crown',
+
+  // Location & Maps
+  'Map', 'MapPin', 'MapPinned', 'Navigation', 'Compass', 'Locate', 'Globe2',
+
+  // Technology & Devices
+  'Monitor', 'Smartphone', 'Tablet', 'Laptop', 'Tv', 'Camera', 'Printer',
+  'Wifi', 'Cloud', 'Database', 'Server', 'HardDrive', 'Cpu', 'Terminal',
+  'Code', 'Code2', 'Braces', 'Binary', 'Bug', 'Plug', 'Cable',
+
+  // AI & Smart
+  'Bot', 'Brain', 'Wand2', 'Sparkle', 'Stars', 'Aperture', 'Scan', 'ScanSearch',
+
+  // Actions & Tools
+  'Download', 'Upload', 'Edit', 'Edit2', 'Edit3', 'Pencil', 'PenTool',
+  'Wrench', 'Tool', 'Hammer', 'Scissors', 'Copy', 'Clipboard', 'Move',
+  'RotateCw', 'RotateCcw', 'Undo', 'Redo', 'Play', 'Pause', 'Square',
+
+  // Navigation & Arrows
+  'ChevronRight', 'ChevronLeft', 'ChevronUp', 'ChevronDown', 'ChevronsRight',
+  'ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown', 'ArrowUpRight',
+  'ExternalLink', 'CornerRightDown', 'MoveRight', 'Expand', 'Shrink',
+
+  // Social & Brands
+  'Chrome', 'Twitter', 'Facebook', 'Instagram', 'Linkedin', 'Youtube', 'Github',
+
+  // Calendar & Time
+  'Calendar', 'CalendarDays', 'CalendarCheck', 'Timer', 'Hourglass', 'History',
+
+  // Media & Content
+  'Image', 'ImagePlus', 'Images', 'Camera', 'Film', 'Music', 'Volume', 'Volume2',
+  'Type', 'Bold', 'Italic', 'Underline', 'List', 'ListOrdered', 'AlignLeft',
+
+  // Grid & Layout
+  'Grid', 'Grid3x3', 'LayoutGrid', 'LayoutList', 'LayoutDashboard', 'Columns',
+  'Rows', 'Table', 'Kanban', 'Sidebar', 'PanelLeft', 'PanelRight',
+
+  // Misc
+  'Package', 'Box', 'Truck', 'Radio', 'Thermometer', 'Umbrella', 'Wind',
+  'Flame', 'Droplet', 'Leaf', 'Mountain', 'Waves', 'Anchor', 'Plane',
+  'Car', 'Bike', 'Train', 'Ship', 'Footprints', 'Fingerprint', 'QrCode'
 ];
 
 interface IconPickerProps {
