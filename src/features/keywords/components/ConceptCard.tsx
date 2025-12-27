@@ -883,7 +883,7 @@ export function ConceptCard({
                               <Icon
                                 name="FaStar"
                                 className="w-2.5 h-2.5 text-slate-blue flex-shrink-0"
-                                title="Primary search term"
+                                title="Key search term: Simply indicates the term that best represents what you are targeting. It does not affect results."
                               />
                             ) : onUpdate ? (
                               <button
@@ -895,7 +895,7 @@ export function ConceptCard({
                                   await onUpdate(keyword.id, { searchTerms: updatedTerms });
                                 }}
                                 className="text-gray-300 hover:text-slate-blue transition-colors"
-                                title="Set as primary"
+                                title="Set as key search term"
                               >
                                 <Icon name="FaRegStar" className="w-2.5 h-2.5 flex-shrink-0" />
                               </button>
