@@ -565,6 +565,12 @@ export function ConceptCard({
                     #{avgPosition}
                   </span>
                 )}
+                {keyword.isUsedInGeoGrid && (
+                  <span className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-emerald-100 text-emerald-700 flex items-center gap-0.5">
+                    <Icon name="FaMapMarker" className="w-2 h-2" />
+                    Grid
+                  </span>
+                )}
               </>
             )}
             {/* Edit button */}
