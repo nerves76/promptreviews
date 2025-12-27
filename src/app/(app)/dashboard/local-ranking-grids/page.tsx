@@ -64,7 +64,10 @@ export default function LocalRankingGridsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClient();
-  const { account, selectedAccountId } = useAccountData();
+  const { account, accountId, selectedAccountId } = useAccountData();
+
+  // Compute effective account ID with multiple fallbacks
+  const effectiveAccountId = selectedAccountId || accountId || account?.id || null;
 
   // Track if we've already handled OAuth callback to prevent duplicate toasts
   const oauthHandledRef = useRef(false);
@@ -441,7 +444,7 @@ export default function LocalRankingGridsPage() {
           configId={showSettings && hasConfig && !isAddingNewLocation ? selectedConfigId || undefined : undefined}
           googleBusinessLocation={googleBusinessLocation || undefined}
           availableLocations={plan === 'maven' ? googleBusinessLocations : undefined}
-          accountId={selectedAccountId || account?.id || undefined}
+          accountId={effectiveAccountId || undefined}
           onComplete={handleSetupComplete}
           onCancel={() => {
             setShowSettings(false);
