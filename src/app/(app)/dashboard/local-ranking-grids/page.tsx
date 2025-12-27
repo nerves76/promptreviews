@@ -10,7 +10,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/auth/providers/supabase';
-import { useAuth } from '@/auth';
+import { useAccountData } from '@/auth/hooks/granularAuthHooks';
 import { apiClient } from '@/utils/apiClient';
 import PageCard from '@/app/(app)/components/PageCard';
 import StandardLoader from '@/app/(app)/components/StandardLoader';
@@ -64,7 +64,7 @@ export default function LocalRankingGridsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClient();
-  const { selectedAccountId } = useAuth();
+  const { account, selectedAccountId } = useAccountData();
 
   // Track if we've already handled OAuth callback to prevent duplicate toasts
   const oauthHandledRef = useRef(false);
@@ -441,7 +441,7 @@ export default function LocalRankingGridsPage() {
           configId={showSettings && hasConfig && !isAddingNewLocation ? selectedConfigId || undefined : undefined}
           googleBusinessLocation={googleBusinessLocation || undefined}
           availableLocations={plan === 'maven' ? googleBusinessLocations : undefined}
-          accountId={selectedAccountId || undefined}
+          accountId={selectedAccountId || account?.id || undefined}
           onComplete={handleSetupComplete}
           onCancel={() => {
             setShowSettings(false);
