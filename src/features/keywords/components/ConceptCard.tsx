@@ -498,7 +498,7 @@ export function ConceptCard({
         onClick={() => !isEditing && setIsExpanded(!isExpanded)}
       >
         <div className="flex items-center justify-between gap-2">
-          {/* Left: expand icon + title */}
+          {/* Left: expand icon + title + location */}
           <div className="flex items-center gap-2 min-w-0 flex-1">
             <Icon
               name={isExpanded || isEditing ? 'FaChevronDown' : 'FaChevronRight'}
@@ -514,7 +514,15 @@ export function ConceptCard({
                 placeholder="Concept name"
               />
             ) : (
-              <h3 className="text-lg font-medium text-gray-900 truncate">{keyword.name}</h3>
+              <div className="min-w-0">
+                <h3 className="text-lg font-medium text-gray-900 truncate">{keyword.name}</h3>
+                {(isExpanded && (keyword.searchVolumeLocationName || enrichedData?.geoGridStatus?.locationName || businessLocationName)) && (
+                  <div className="flex items-center gap-1 text-xs text-gray-500 mt-0.5">
+                    <Icon name="FaMapMarker" className="w-2.5 h-2.5 text-slate-blue" />
+                    <span className="truncate">{keyword.searchVolumeLocationName || enrichedData?.geoGridStatus?.locationName || businessLocationName}</span>
+                  </div>
+                )}
+              </div>
             )}
           </div>
 
@@ -647,40 +655,32 @@ export function ConceptCard({
       {/* Expandable content */}
       {(isExpanded || isEditing) && (
         <>
-          {/* Compact info bar: Location + AI button */}
-          {!isEditing && (
-            <div className="px-4 py-2 flex items-center justify-between gap-3 text-xs border-b border-gray-100">
-              {/* Location - prefer concept's location, fallback to geo grid location, then business location */}
-              <div className="flex items-center gap-1.5 text-gray-500">
-                <Icon name="FaMapMarker" className="w-3 h-3 text-slate-blue" />
-                <span>{keyword.searchVolumeLocationName || enrichedData?.geoGridStatus?.locationName || businessLocationName || 'No location'}</span>
-              </div>
-              {/* AI Auto-fill Button */}
-              {hasEmptySEOFields && onUpdate && !showOverwriteWarning && (
-                <button
-                  onClick={() => {
-                    if (hasExistingData) {
-                      setShowOverwriteWarning(true);
-                    } else {
-                      handleAIEnrich();
-                    }
-                  }}
-                  disabled={isEnriching}
-                  className="text-purple-600 hover:text-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-                >
-                  {isEnriching ? (
-                    <>
-                      <Icon name="FaSpinner" className="w-3 h-3 animate-spin" />
-                      Generating...
-                    </>
-                  ) : (
-                    <>
-                      <Icon name="prompty" className="w-3 h-3" />
-                      Auto-fill with AI
-                    </>
-                  )}
-                </button>
-              )}
+          {/* AI Auto-fill Button */}
+          {!isEditing && hasEmptySEOFields && onUpdate && !showOverwriteWarning && (
+            <div className="px-4 py-2 flex justify-end text-xs">
+              <button
+                onClick={() => {
+                  if (hasExistingData) {
+                    setShowOverwriteWarning(true);
+                  } else {
+                    handleAIEnrich();
+                  }
+                }}
+                disabled={isEnriching}
+                className="text-purple-600 hover:text-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+              >
+                {isEnriching ? (
+                  <>
+                    <Icon name="FaSpinner" className="w-3 h-3 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <Icon name="prompty" className="w-3 h-3" />
+                    Auto-fill with AI
+                  </>
+                )}
+              </button>
             </div>
           )}
           {enrichError && !isEditing && (
