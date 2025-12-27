@@ -154,6 +154,24 @@ export default function LocalRankingGridsPage() {
     return counts;
   }, [trackedKeywords]);
 
+  // Pre-select keyword from URL parameter (e.g., when navigating from keyword concepts page)
+  useEffect(() => {
+    const keywordIdParam = searchParams?.get('keywordId');
+    if (keywordIdParam && trackedKeywords.length > 0) {
+      // Verify the keyword is actually tracked
+      const isTracked = trackedKeywords.some(tk => tk.keywordId === keywordIdParam);
+      if (isTracked && !selectedMapKeywordId) {
+        setSelectedMapKeywordId(keywordIdParam);
+        // Clean up URL after setting state
+        if (typeof window !== 'undefined') {
+          const url = new URL(window.location.href);
+          url.searchParams.delete('keywordId');
+          window.history.replaceState({}, '', url.pathname);
+        }
+      }
+    }
+  }, [searchParams, trackedKeywords, selectedMapKeywordId]);
+
   // Collect unique competitors from all results for "View As" dropdown
   const uniqueCompetitors = useMemo(() => {
     const competitorMap = new Map<string, { placeId: string; name: string }>();

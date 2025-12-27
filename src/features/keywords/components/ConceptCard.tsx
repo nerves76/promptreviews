@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { formatDistanceToNow } from 'date-fns';
 import Icon from '@/components/Icon';
 import { CollapsibleSection } from './CollapsibleSection';
@@ -97,6 +98,8 @@ export function ConceptCard({
   businessLocationCode,
   businessLocationName,
 }: ConceptCardProps) {
+  const router = useRouter();
+
   // Get business context for AI enrichment
   const { account } = useAuth();
 
@@ -974,6 +977,16 @@ export function ConceptCard({
                               >
                                 <Icon name="FaSearch" className="w-3 h-3" />
                                 Rank
+                              </button>
+                            )}
+                            {keyword.isUsedInGeoGrid && (
+                              <button
+                                onClick={() => router.push(`/dashboard/local-ranking-grids?keywordId=${keyword.id}`)}
+                                className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-white bg-emerald-600 rounded hover:bg-emerald-700 transition-colors"
+                                title="View geo grid results"
+                              >
+                                <Icon name="FaMapMarker" className="w-3 h-3" />
+                                Grid
                               </button>
                             )}
                           </div>
