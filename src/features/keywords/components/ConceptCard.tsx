@@ -706,7 +706,7 @@ export function ConceptCard({
                   <button
                     onClick={() => handleAIEnrich(false)}
                     disabled={isEnriching}
-                    className="px-2.5 py-1 text-xs font-medium text-white bg-amber-600 rounded hover:bg-amber-700 disabled:opacity-50"
+                    className="px-2.5 py-1 text-xs font-medium text-amber-700 bg-white border border-amber-300 rounded hover:bg-amber-50 disabled:opacity-50"
                   >
                     Replace all
                   </button>
