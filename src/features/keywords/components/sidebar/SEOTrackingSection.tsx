@@ -1,9 +1,10 @@
 'use client';
 
+import Link from 'next/link';
 import Icon from '@/components/Icon';
-import { type KeywordData, type SearchTerm, type RelatedQuestion, type FunnelStage } from '../../keywordUtils';
+import { type KeywordData, type SearchTerm, type RelatedQuestion, type FunnelStage, type ResearchResultData } from '../../keywordUtils';
 import { type RankStatusResponse } from '../../hooks/useRankStatus';
-import { type ResearchResultData } from '../../hooks/useVolumeData';
+import { type GeoGridStatusResponse } from '../../hooks/useGeoGridStatus';
 import { type RelevanceWarning } from '../../hooks/useKeywordEditor';
 import { FunnelStageGroup } from '../FunnelStageGroup';
 
@@ -77,6 +78,8 @@ export interface SEOTrackingSectionProps {
   // Rank status
   /** Rank status data */
   rankStatus: RankStatusResponse | null;
+  /** Geo grid status data */
+  geoGridStatus: GeoGridStatusResponse | null;
   /** Callback to check rank for a term */
   onCheckRank?: (term: string, keywordId: string) => void;
 
@@ -104,13 +107,13 @@ export interface SEOTrackingSectionProps {
   /** Callback to toggle LLM provider selection */
   onToggleLLMProvider: (provider: LLMProvider) => void;
   /** Map of question to LLM results */
-  questionLLMMap: Map<string, unknown>;
+  questionLLMMap: Map<string, Map<string, { domainCited: boolean; citationPosition?: number | null; checkedAt: string }>>;
   /** Index of question being checked */
   checkingQuestionIndex: number | null;
   /** Callback to check a question */
   onCheckQuestion: (index: number) => void;
   /** Last check result */
-  lastCheckResult: unknown;
+  lastCheckResult: { questionIndex: number; success: boolean; message: string } | null;
   /** LLM check error */
   llmError: string | null;
 
@@ -193,6 +196,7 @@ export function SEOTrackingSection({
   onCheckTermVolume,
   volumeLookupError,
   rankStatus,
+  geoGridStatus,
   onCheckRank,
   editedQuestions,
   newQuestionText,
@@ -274,6 +278,7 @@ export function SEOTrackingSection({
                   isEditing={isEditing}
                   termVolumeData={termVolumeData}
                   rankStatus={rankStatus}
+                  geoGridStatus={geoGridStatus}
                   checkingTermVolume={checkingTermVolume}
                   isLookingUpVolume={isLookingUpVolume}
                   onCheckTermVolume={onCheckTermVolume}
@@ -532,6 +537,7 @@ function SearchTermItem({
   isEditing,
   termVolumeData,
   rankStatus,
+  geoGridStatus,
   checkingTermVolume,
   isLookingUpVolume,
   onCheckTermVolume,
@@ -544,6 +550,7 @@ function SearchTermItem({
   isEditing: boolean;
   termVolumeData: Map<string, ResearchResultData>;
   rankStatus: RankStatusResponse | null;
+  geoGridStatus: GeoGridStatusResponse | null;
   checkingTermVolume: string | null;
   isLookingUpVolume: boolean;
   onCheckTermVolume: (term: string) => void;
@@ -665,6 +672,35 @@ function SearchTermItem({
               </div>
             ))}
           </div>
+        )}
+
+        {/* Geo Grid tracking inline */}
+        {geoGridStatus?.isTracked && geoGridStatus.summary && geoGridStatus.summary.totalPoints > 0 && (
+          <Link
+            href="/dashboard/local-ranking-grids"
+            className="inline-flex items-center gap-1.5 px-2 py-1 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded text-xs transition-colors"
+          >
+            <Icon name="FaMapMarker" className="w-3 h-3 text-emerald-600" />
+            <span className="text-emerald-700">Grid:</span>
+            <span className={`font-semibold ${
+              geoGridStatus.summary.averagePosition
+                ? geoGridStatus.summary.averagePosition <= 3
+                  ? 'text-green-600'
+                  : geoGridStatus.summary.averagePosition <= 10
+                    ? 'text-blue-600'
+                    : geoGridStatus.summary.averagePosition <= 20
+                      ? 'text-amber-600'
+                      : 'text-gray-600'
+                : 'text-gray-400'
+            }`}>
+              {geoGridStatus.summary.averagePosition
+                ? `Avg #${geoGridStatus.summary.averagePosition}`
+                : '—'}
+            </span>
+            <span className="text-emerald-600">
+              ({Math.round((geoGridStatus.summary.pointsInTop10 / geoGridStatus.summary.totalPoints) * 100)}% top 10)
+            </span>
+          </Link>
         )}
 
         {/* Action buttons row */}

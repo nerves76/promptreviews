@@ -21,7 +21,6 @@ import { useAuth } from '@/auth';
 import {
   HeaderStats,
   RankTrackingSection,
-  GeoGridSection,
   DiscoveredQuestionsSection,
   ReviewsEditSection,
   SEOTrackingSection,
@@ -89,8 +88,8 @@ export function KeywordDetailsSidebar({
   } = useVolumeData({
     keywordId: keyword?.id || null,
     isOpen,
-    defaultLocationCode: keyword?.searchVolumeLocationCode,
-    defaultLocationName: keyword?.searchVolumeLocationName,
+    defaultLocationCode: keyword?.searchVolumeLocationCode ?? undefined,
+    defaultLocationName: keyword?.searchVolumeLocationName ?? undefined,
   });
 
   // AI enrichment
@@ -321,7 +320,7 @@ export function KeywordDetailsSidebar({
 
   const handleCheckTermVolume = async (term: string) => {
     try {
-      await checkTermVolume(term, keyword?.searchVolumeLocationCode, keyword?.searchVolumeLocationName);
+      await checkTermVolume(term, keyword?.searchVolumeLocationCode ?? undefined, keyword?.searchVolumeLocationName ?? undefined);
     } catch (err) {
       console.error('Failed to check term volume:', err);
     }
@@ -440,14 +439,6 @@ export function KeywordDetailsSidebar({
                             />
                           )}
 
-                          {/* Geo Grid Status */}
-                          {keyword.isUsedInGeoGrid && (
-                            <GeoGridSection
-                              geoGridStatus={geoGridStatus}
-                              isLoading={geoGridStatusLoading}
-                            />
-                          )}
-
                           {/* Discovered Questions from Google */}
                           <DiscoveredQuestionsSection
                             rankStatus={rankStatus}
@@ -529,6 +520,7 @@ export function KeywordDetailsSidebar({
                             onCheckTermVolume={handleCheckTermVolume}
                             volumeLookupError={volumeLookupError}
                             rankStatus={rankStatus}
+                            geoGridStatus={geoGridStatus}
                             onCheckRank={onCheckRank}
                             editedQuestions={editedQuestions}
                             newQuestionText={newQuestionText}
