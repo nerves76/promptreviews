@@ -11,6 +11,8 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import PageCard from '@/app/(app)/components/PageCard';
 import Icon from '@/components/Icon';
+import Pagination from '@/components/Pagination';
+import { usePagination } from '@/hooks/usePagination';
 import { CheckRankModal, CheckVolumeModal, ConceptsTable, AddKeywordConceptModal } from '@/features/rank-tracking/components';
 import { useKeywords, useKeywordDetails } from '@/features/keywords/hooks/useKeywords';
 import { KeywordDetailsSidebar } from '@/features/keywords/components/KeywordDetailsSidebar';
@@ -325,6 +327,20 @@ export default function RankTrackingPage() {
         c.searchTerms.some(t => t.term.toLowerCase().includes(searchQuery.toLowerCase()))
       )
     : concepts;
+
+  // Pagination
+  const {
+    currentPage,
+    totalPages,
+    pageSize,
+    startIndex,
+    endIndex,
+    goToPage,
+    isFirstPage,
+    isLastPage,
+  } = usePagination({ totalItems: filteredConcepts.length, pageSize: 25 });
+
+  const paginatedConcepts = filteredConcepts.slice(startIndex, endIndex);
 
   // Handle clicking "Check ranking" - auto-run if location available, otherwise show modal
   const handleCheckRank = useCallback(async (keyword: string, conceptId: string) => {
@@ -661,7 +677,7 @@ export default function RankTrackingPage() {
 
         {/* Keywords Table */}
         <ConceptsTable
-          concepts={filteredConcepts}
+          concepts={paginatedConcepts}
           volumeData={volumeData}
           rankData={rankData}
           gridData={gridDataMap}
@@ -672,6 +688,17 @@ export default function RankTrackingPage() {
           checkingRankKeyword={checkingRankKeyword}
           checkingVolumeKeyword={checkingVolumeKeyword}
         />
+
+        {/* Pagination */}
+        {filteredConcepts.length > pageSize && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={filteredConcepts.length}
+            pageSize={pageSize}
+            onPageChange={goToPage}
+          />
+        )}
       </PageCard>
 
       {/* Check Rank Modal */}
