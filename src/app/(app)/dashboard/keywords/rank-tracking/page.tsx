@@ -11,7 +11,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import PageCard from '@/app/(app)/components/PageCard';
 import Icon from '@/components/Icon';
-import { CheckRankModal, CheckVolumeModal, ConceptsTable } from '@/features/rank-tracking/components';
+import { CheckRankModal, CheckVolumeModal, ConceptsTable, AddKeywordConceptModal } from '@/features/rank-tracking/components';
 import { useKeywords } from '@/features/keywords/hooks/useKeywords';
 import { useAccountData, useBusinessData } from '@/auth/hooks/granularAuthHooks';
 import { apiClient } from '@/utils/apiClient';
@@ -186,7 +186,12 @@ export default function RankTrackingPage() {
   const {
     keywords: concepts,
     isLoading: conceptsLoading,
+    createKeyword,
+    refresh: refreshKeywords,
   } = useKeywords({ autoFetch: true });
+
+  // Modal state for adding new keyword concept
+  const [showAddModal, setShowAddModal] = useState(false);
 
   // Fetch saved research results for volume data
   const fetchResearchResults = useCallback(async () => {
@@ -569,6 +574,25 @@ export default function RankTrackingPage() {
     };
   }, [checkingKeyword, fetchRankChecks]);
 
+  // Handle adding a new keyword concept
+  const handleAddKeywordConcept = useCallback(async (data: { name: string; keyword: string }) => {
+    // Create keyword with the name as the phrase and the keyword as a search term
+    const newKeyword = await createKeyword(data.name);
+    if (!newKeyword) {
+      throw new Error('Failed to create keyword concept');
+    }
+
+    // Update the keyword to add the search term and enable rank tracking
+    const now = new Date().toISOString();
+    await apiClient.patch(`/keywords/${newKeyword.id}`, {
+      searchTerms: [{ term: data.keyword, isCanonical: true, addedAt: now }],
+      isUsedInRankTracking: true,
+    });
+
+    // Refresh the list
+    await refreshKeywords();
+  }, [createKeyword, refreshKeywords]);
+
   return (
     <div>
       {/* Page Title */}
@@ -632,16 +656,25 @@ export default function RankTrackingPage() {
               Monitor your Google search rankings across desktop and mobile devices.
             </p>
           </div>
-          {/* Search */}
-          <div className="relative w-64">
-            <Icon name="FaSearch" className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search keywords..."
-              className="w-full pl-10 pr-4 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-slate-blue/50 focus:border-slate-blue/30 transition-all"
-            />
+          {/* Actions */}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="px-4 py-2 text-sm font-medium text-white bg-slate-blue rounded-lg hover:bg-slate-blue/90 flex items-center gap-2 transition-colors"
+            >
+              <Icon name="FaPlus" className="w-4 h-4" />
+              Add keyword
+            </button>
+            <div className="relative w-64">
+              <Icon name="FaSearch" className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search keywords..."
+                className="w-full pl-10 pr-4 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-slate-blue/50 focus:border-slate-blue/30 transition-all"
+              />
+            </div>
           </div>
         </div>
 
@@ -671,6 +704,13 @@ export default function RankTrackingPage() {
         isOpen={!!checkingVolumeTerm}
         onClose={() => setCheckingVolumeTerm(null)}
         onCheck={performVolumeCheck}
+      />
+
+      {/* Add Keyword Concept Modal */}
+      <AddKeywordConceptModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onAdd={handleAddKeywordConcept}
       />
 
       {/* Auto-check loading toast */}
