@@ -494,7 +494,7 @@ export function ConceptCard({
 
   return (
     <div className={`border rounded-xl shadow-sm overflow-hidden transition-all ${
-      isEditing ? 'bg-white border-blue-300 ring-2 ring-blue-100' : isExpanded ? 'bg-blue-50/50 border-blue-200' : 'bg-white border-gray-200 hover:shadow-md'
+      isEditing ? 'bg-white border-blue-300 ring-2 ring-blue-100' : isExpanded ? 'bg-blue-50 border-blue-200' : 'bg-white border-gray-200 hover:shadow-md'
     }`}>
       {/* Header - clickable to expand/collapse */}
       <div
