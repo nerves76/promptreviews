@@ -538,11 +538,11 @@ export default function ConceptsTable({
               <td className="py-3 px-4 text-center">
                 {row.desktopChecked || row.mobileChecked ? (
                   <div className="flex flex-col items-center">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-3">
                       {/* Desktop rank */}
                       {row.desktopChecked && (
-                        <span className="flex items-center gap-0.5" title="Desktop">
-                          <svg className="w-4 h-4 text-gray-400" viewBox="0 0 16 14" fill="currentColor">
+                        <span className="flex items-center gap-1" title="Desktop">
+                          <svg className="w-3.5 h-3.5 text-gray-400" viewBox="0 0 16 14" fill="currentColor">
                             <rect x="0" y="0" width="16" height="10" rx="1" />
                             <rect x="5" y="11" width="6" height="1" />
                             <rect x="4" y="12" width="8" height="1" />
@@ -554,8 +554,8 @@ export default function ConceptsTable({
                       )}
                       {/* Mobile rank */}
                       {row.mobileChecked && (
-                        <span className="flex items-center gap-0.5" title="Mobile">
-                          <Icon name="FaMobile" className="w-4 h-4 text-gray-400" />
+                        <span className="flex items-center gap-1" title="Mobile">
+                          <Icon name="FaMobile" className="w-3.5 h-3.5 text-gray-400" />
                           <span className={`font-semibold ${row.mobileRank !== null ? getPositionColor(row.mobileRank) : 'text-gray-400'}`}>
                             {row.mobileRank !== null ? (row.mobileRank > 100 ? '>100' : row.mobileRank) : '>100'}
                           </span>
