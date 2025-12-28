@@ -371,7 +371,7 @@ export default function ConceptsTable({
       <table className="w-full">
         <thead>
           <tr className="border-b border-gray-200">
-            <th className="text-left py-3 px-4 w-1/3">
+            <th className="text-left py-3 px-4 min-w-[350px]">
               <button
                 onClick={() => handleSort('keyword')}
                 className="flex items-center gap-1.5 text-sm font-semibold text-gray-700 hover:text-gray-900"
@@ -380,7 +380,7 @@ export default function ConceptsTable({
                 <SortIcon field="keyword" />
               </button>
             </th>
-            <th className="text-left py-3 px-4 w-32">
+            <th className="text-left py-3 px-4 w-[120px] max-w-[120px]">
               <button
                 onClick={() => handleSort('concept')}
                 className="flex items-center gap-1.5 text-sm font-semibold text-gray-700 hover:text-gray-900"
@@ -431,10 +431,10 @@ export default function ConceptsTable({
               onClick={() => onConceptClick?.(row.concept)}
               className="border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors"
             >
-              <td className="py-3 px-4 w-1/3">
+              <td className="py-3 px-4 min-w-[350px]">
                 <span className="text-sm font-medium text-gray-900">{row.keyword}</span>
               </td>
-              <td className="py-3 px-4 w-32 max-w-[128px]">
+              <td className="py-3 px-4 w-[120px] max-w-[120px]">
                 <span className="text-sm text-gray-500 truncate block" title={row.concept.name}>
                   {row.concept.name || '—'}
                 </span>
