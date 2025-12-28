@@ -413,8 +413,8 @@ export default function ConceptsTable({
   return (
     <div className="overflow-x-auto -mx-6">
       <table className="w-full min-w-[900px]">
-        {/* Column widths: Keyword, Concept, Volume, Rank, Grid, Change, Actions */}
-        <colgroup><col style={{ minWidth: '280px' }} /><col style={{ minWidth: '120px' }} /><col style={{ minWidth: '90px' }} /><col style={{ minWidth: '110px' }} /><col style={{ minWidth: '80px' }} /><col style={{ minWidth: '70px' }} /><col style={{ minWidth: '150px' }} /></colgroup>
+        {/* Column widths: Keyword, Concept, Volume, Rank, Change, Grid, Actions */}
+        <colgroup><col style={{ minWidth: '280px' }} /><col style={{ minWidth: '120px' }} /><col style={{ minWidth: '90px' }} /><col style={{ minWidth: '110px' }} /><col style={{ minWidth: '70px' }} /><col style={{ minWidth: '80px' }} /><col style={{ minWidth: '150px' }} /></colgroup>
         <thead>
           <tr className="border-b border-gray-200">
             <th className="text-left py-3 pl-4 pr-4">
@@ -454,9 +454,6 @@ export default function ConceptsTable({
               </button>
             </th>
             <th className="text-center py-3 px-4">
-              <span className="text-sm font-semibold text-gray-700">Grid</span>
-            </th>
-            <th className="text-center py-3 px-4">
               <button
                 onClick={() => handleSort('change')}
                 className="flex items-center gap-1.5 text-sm font-semibold text-gray-700 hover:text-gray-900 mx-auto"
@@ -464,6 +461,9 @@ export default function ConceptsTable({
                 Change
                 <SortIcon field="change" />
               </button>
+            </th>
+            <th className="text-center py-3 px-4">
+              <span className="text-sm font-semibold text-gray-700">Grid</span>
             </th>
             <th className="text-center py-3 pl-4 pr-6">
               <span className="text-sm font-semibold text-gray-700">Actions</span>
@@ -575,6 +575,9 @@ export default function ConceptsTable({
                 )}
               </td>
               <td className="py-3 px-4 text-center">
+                {getChangeDisplay(row.change)}
+              </td>
+              <td className="py-3 px-4 text-center">
                 {row.gridTracked && row.gridTotalPoints !== null && row.gridTotalPoints > 0 ? (
                   <div className="flex flex-col items-center">
                     <span className={`text-sm font-medium ${
@@ -595,9 +598,6 @@ export default function ConceptsTable({
                 ) : (
                   <span className="text-gray-300">—</span>
                 )}
-              </td>
-              <td className="py-3 px-4 text-center">
-                {getChangeDisplay(row.change)}
               </td>
               <td className="py-3 pl-4 pr-6">
                 <div className="flex items-center justify-center gap-2">
