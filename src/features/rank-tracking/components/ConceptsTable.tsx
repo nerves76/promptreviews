@@ -397,10 +397,10 @@ export default function ConceptsTable({
 
   return (
     <div className="overflow-x-auto">
-      <table className="min-w-full">
+      <table className="min-w-full" style={{ tableLayout: 'fixed' }}>
         <colgroup>
-          <col style={{ width: '28%', minWidth: '250px' }} />
-          <col style={{ width: '18%', minWidth: '150px' }} />
+          <col style={{ width: '22%', minWidth: '220px' }} />
+          <col style={{ width: '15%', minWidth: '120px' }} />
           <col style={{ minWidth: '80px' }} />
           <col style={{ minWidth: '100px' }} />
           <col style={{ minWidth: '70px' }} />
