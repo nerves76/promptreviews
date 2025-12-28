@@ -84,11 +84,11 @@ const features = [
     plans: ['grower', 'builder', 'maven']
   },
   {
-    name: 'Complete FAQ',
-    description: 'Find answers to all your questions with our comprehensive FAQ covering every aspect of Prompt Reviews.',
-    href: '/faq-comprehensive',
-    icon: MessageSquare,
-    color: 'bg-cyan-500',
+    name: 'Keyword concepts',
+    description: 'Organize your SEO strategy with keyword concepts. Track rankings, monitor LLM visibility, and research new opportunities.',
+    href: '/docs/keyword-concepts',
+    icon: Target,
+    color: 'bg-teal-500',
     popular: true,
     plans: ['grower', 'builder', 'maven']
   },
@@ -98,6 +98,15 @@ const features = [
     href: '/prompt-pages',
     icon: () => <span className="text-xl font-bold">[P]</span>,
     color: 'bg-blue-500',
+    popular: true,
+    plans: ['grower', 'builder', 'maven']
+  },
+  {
+    name: 'Complete FAQ',
+    description: 'Find answers to all your questions with our comprehensive FAQ covering every aspect of Prompt Reviews.',
+    href: '/faq-comprehensive',
+    icon: MessageSquare,
+    color: 'bg-cyan-500',
     popular: true,
     plans: ['grower', 'builder', 'maven']
   },
@@ -132,15 +141,6 @@ const features = [
     href: '/widgets',
     icon: Code,
     color: 'bg-indigo-500',
-    plans: ['grower', 'builder', 'maven']
-  },
-  {
-    name: 'Keyword concepts',
-    description: 'Organize your SEO strategy with keyword concepts. Track rankings, monitor LLM visibility, and research new opportunities.',
-    href: '/docs/keyword-concepts',
-    icon: Target,
-    color: 'bg-teal-500',
-    popular: true,
     plans: ['grower', 'builder', 'maven']
   },
 ]
