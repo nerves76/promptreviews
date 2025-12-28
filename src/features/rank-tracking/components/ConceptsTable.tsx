@@ -1,8 +1,10 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import Icon from '@/components/Icon';
 import { type KeywordData } from '@/features/keywords/keywordUtils';
+import { apiClient } from '@/utils/apiClient';
+import RankHistoryChart from './RankHistoryChart';
 
 // ============================================
 // Types
@@ -43,6 +45,23 @@ interface GeoGridData {
   summary: GeoGridSummary | null;
 }
 
+/** History data point for chart */
+interface RankHistoryDataPoint {
+  date: string;
+  desktop: { position: number | null; checkedAt: string } | null;
+  mobile: { position: number | null; checkedAt: string } | null;
+  locationName: string | null;
+}
+
+/** Summary stats for history */
+interface RankHistorySummary {
+  currentDesktopPosition: number | null;
+  currentMobilePosition: number | null;
+  desktopChange: number | null;
+  mobileChange: number | null;
+  totalChecks: number;
+}
+
 interface ConceptsTableProps {
   concepts: KeywordData[];
   volumeData?: Map<string, VolumeData>;
@@ -51,7 +70,6 @@ interface ConceptsTableProps {
   onConceptClick?: (concept: KeywordData) => void;
   onCheckRank?: (keyword: string, conceptId: string) => void;
   onCheckVolume?: (keyword: string, conceptId: string) => void;
-  onViewHistory?: (keywordId: string, keywordName: string, searchQuery?: string) => void;
   isLoading?: boolean;
 }
 
@@ -126,11 +144,62 @@ export default function ConceptsTable({
   onConceptClick,
   onCheckRank,
   onCheckVolume,
-  onViewHistory,
   isLoading = false,
 }: ConceptsTableProps) {
   const [sortField, setSortField] = useState<SortField>('keyword');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+  // Track which row is expanded to show history
+  const [expandedRowKey, setExpandedRowKey] = useState<string | null>(null);
+  // History data for expanded row
+  const [historyData, setHistoryData] = useState<RankHistoryDataPoint[]>([]);
+  const [historySummary, setHistorySummary] = useState<RankHistorySummary | null>(null);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyDays, setHistoryDays] = useState(90);
+
+  // Fetch history when a row is expanded
+  const fetchHistory = useCallback(async (keywordId: string) => {
+    setHistoryLoading(true);
+    try {
+      const response = await apiClient.get<{
+        history: RankHistoryDataPoint[];
+        summary: RankHistorySummary;
+      }>(`/rank-tracking/history?keywordId=${keywordId}&days=${historyDays}`);
+      setHistoryData(response.history);
+      setHistorySummary(response.summary);
+    } catch (err) {
+      console.error('Failed to fetch rank history:', err);
+      setHistoryData([]);
+      setHistorySummary(null);
+    } finally {
+      setHistoryLoading(false);
+    }
+  }, [historyDays]);
+
+  // Handle expanding/collapsing a row
+  const handleToggleHistory = useCallback((rowKey: string, conceptId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (expandedRowKey === rowKey) {
+      // Collapse
+      setExpandedRowKey(null);
+      setHistoryData([]);
+      setHistorySummary(null);
+    } else {
+      // Expand and fetch
+      setExpandedRowKey(rowKey);
+      fetchHistory(conceptId);
+    }
+  }, [expandedRowKey, fetchHistory]);
+
+  // Re-fetch when days change and row is expanded
+  useEffect(() => {
+    if (expandedRowKey) {
+      // Extract conceptId from expandedRowKey (format: "conceptId-keyword")
+      const conceptId = expandedRowKey.split('-')[0];
+      if (conceptId) {
+        fetchHistory(conceptId);
+      }
+    }
+  }, [historyDays, expandedRowKey, fetchHistory]);
 
   const handleCheckRank = (keyword: string, conceptId: string, e: React.MouseEvent) => {
     e.stopPropagation(); // Don't trigger row click
@@ -357,8 +426,8 @@ export default function ConceptsTable({
         </thead>
         <tbody>
           {sortedRows.map((row, index) => (
+            <React.Fragment key={`${row.concept.id}-${row.keyword}-${index}`}>
             <tr
-              key={`${row.concept.id}-${row.keyword}-${index}`}
               onClick={() => onConceptClick?.(row.concept)}
               className="border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors"
             >
@@ -475,22 +544,116 @@ export default function ConceptsTable({
                     <Icon name="FaSearch" className="w-3 h-3" />
                     Rank
                   </button>
-                  {(row.desktopChecked || row.mobileChecked) && onViewHistory && (
+                  {(row.desktopChecked || row.mobileChecked) && (
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onViewHistory(row.concept.id, row.keyword, row.keyword);
-                      }}
-                      className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
-                      title="View rank history"
+                      onClick={(e) => handleToggleHistory(`${row.concept.id}-${row.keyword}`, row.concept.id, e)}
+                      className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded transition-colors ${
+                        expandedRowKey === `${row.concept.id}-${row.keyword}`
+                          ? 'text-blue-700 bg-blue-100 hover:bg-blue-200'
+                          : 'text-gray-600 bg-gray-100 hover:bg-gray-200'
+                      }`}
+                      title={expandedRowKey === `${row.concept.id}-${row.keyword}` ? 'Hide rank history' : 'View rank history'}
                     >
-                      <Icon name="FaClock" className="w-3 h-3" />
+                      <Icon name={expandedRowKey === `${row.concept.id}-${row.keyword}` ? 'FaChevronUp' : 'FaClock'} className="w-3 h-3" />
                       History
                     </button>
                   )}
                 </div>
               </td>
             </tr>
+            {/* Expanded history row */}
+            {expandedRowKey === `${row.concept.id}-${row.keyword}` && (
+              <tr className="bg-gray-50">
+                <td colSpan={7} className="py-4 px-6">
+                  <div className="max-w-4xl">
+                    {/* Header with time range selector */}
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-4">
+                        {/* Summary stats */}
+                        {historySummary && (
+                          <div className="flex items-center gap-6 text-sm">
+                            <div className="flex items-center gap-2">
+                              <svg className="w-4 h-4 text-gray-400" viewBox="0 0 16 14" fill="currentColor">
+                                <rect x="0" y="0" width="16" height="10" rx="1" />
+                                <rect x="5" y="11" width="6" height="1" />
+                                <rect x="4" y="12" width="8" height="1" />
+                              </svg>
+                              <span className="text-gray-600">Desktop:</span>
+                              <span className={`font-semibold ${
+                                historySummary.currentDesktopPosition !== null
+                                  ? historySummary.currentDesktopPosition <= 3 ? 'text-green-600'
+                                    : historySummary.currentDesktopPosition <= 10 ? 'text-blue-600'
+                                    : 'text-gray-700'
+                                  : 'text-gray-400'
+                              }`}>
+                                {historySummary.currentDesktopPosition !== null ? `#${historySummary.currentDesktopPosition}` : '—'}
+                              </span>
+                              {historySummary.desktopChange !== null && historySummary.desktopChange !== 0 && (
+                                <span className={`text-xs ${historySummary.desktopChange > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                  {historySummary.desktopChange > 0 ? '↑' : '↓'}{Math.abs(historySummary.desktopChange)}
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <svg className="w-3 h-4 text-gray-400" viewBox="0 0 10 16" fill="currentColor">
+                                <rect x="0" y="0" width="10" height="16" rx="1.5" />
+                                <rect x="3.5" y="13" width="3" height="1" rx="0.5" fill="white" />
+                              </svg>
+                              <span className="text-gray-600">Mobile:</span>
+                              <span className={`font-semibold ${
+                                historySummary.currentMobilePosition !== null
+                                  ? historySummary.currentMobilePosition <= 3 ? 'text-green-600'
+                                    : historySummary.currentMobilePosition <= 10 ? 'text-blue-600'
+                                    : 'text-gray-700'
+                                  : 'text-gray-400'
+                              }`}>
+                                {historySummary.currentMobilePosition !== null ? `#${historySummary.currentMobilePosition}` : '—'}
+                              </span>
+                              {historySummary.mobileChange !== null && historySummary.mobileChange !== 0 && (
+                                <span className={`text-xs ${historySummary.mobileChange > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                  {historySummary.mobileChange > 0 ? '↑' : '↓'}{Math.abs(historySummary.mobileChange)}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <select
+                          value={historyDays}
+                          onChange={(e) => setHistoryDays(parseInt(e.target.value, 10))}
+                          className="text-xs border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          <option value={30}>30 days</option>
+                          <option value={90}>90 days</option>
+                          <option value={180}>6 months</option>
+                          <option value={365}>1 year</option>
+                        </select>
+                        <button
+                          onClick={(e) => handleToggleHistory(`${row.concept.id}-${row.keyword}`, row.concept.id, e)}
+                          className="text-gray-400 hover:text-gray-600 p-1"
+                          title="Close"
+                        >
+                          <Icon name="FaTimes" className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                    {/* Chart */}
+                    <RankHistoryChart
+                      history={historyData}
+                      isLoading={historyLoading}
+                      keywordName={row.keyword}
+                    />
+                    {historySummary && (
+                      <div className="mt-2 text-xs text-gray-500 text-center">
+                        {historySummary.totalChecks} rank checks
+                      </div>
+                    )}
+                  </div>
+                </td>
+              </tr>
+            )}
+            </React.Fragment>
           ))}
         </tbody>
       </table>
