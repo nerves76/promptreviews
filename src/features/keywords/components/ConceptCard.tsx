@@ -234,6 +234,10 @@ export function ConceptCard({
     // Set loading state for this specific term
     setLoadingStates(prev => ({ ...prev, [term]: 'checking-volume' }));
 
+    // Use concept location, or fallback to business location, or finally national US
+    const locationCode = keyword.searchVolumeLocationCode || businessLocationCode || 2840;
+    const locationName = keyword.searchVolumeLocationName || businessLocationName || 'United States';
+
     try {
       const response = await apiClient.post<{
         keyword: string;
@@ -244,7 +248,7 @@ export function ConceptCard({
         monthlySearches: Array<{ month: number; year: number; searchVolume: number }> | null;
       }>('/rank-tracking/discovery', {
         keyword: term,
-        locationCode: keyword.searchVolumeLocationCode || 2840,
+        locationCode,
       });
 
       // Save the result
@@ -262,8 +266,8 @@ export function ConceptCard({
           })),
         } : null,
         monthlySearches: response.monthlySearches,
-        locationCode: keyword.searchVolumeLocationCode || 2840,
-        locationName: keyword.searchVolumeLocationName || 'United States',
+        locationCode,
+        locationName,
         keywordId: keyword.id,
       });
 
@@ -281,8 +285,8 @@ export function ConceptCard({
           competitionLevel: response.competitionLevel,
           searchVolumeTrend: null,
           monthlySearches: response.monthlySearches,
-          locationCode: keyword.searchVolumeLocationCode || 2840,
-          locationName: keyword.searchVolumeLocationName || 'United States',
+          locationCode,
+          locationName,
           keywordId: keyword.id,
           linkedAt: new Date().toISOString(),
           researchedAt: new Date().toISOString(),
