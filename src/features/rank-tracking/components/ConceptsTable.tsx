@@ -51,6 +51,7 @@ interface ConceptsTableProps {
   onConceptClick?: (concept: KeywordData) => void;
   onCheckRank?: (keyword: string, conceptId: string) => void;
   onCheckVolume?: (keyword: string, conceptId: string) => void;
+  onViewHistory?: (keywordId: string, keywordName: string, searchQuery?: string) => void;
   isLoading?: boolean;
 }
 
@@ -125,6 +126,7 @@ export default function ConceptsTable({
   onConceptClick,
   onCheckRank,
   onCheckVolume,
+  onViewHistory,
   isLoading = false,
 }: ConceptsTableProps) {
   const [sortField, setSortField] = useState<SortField>('keyword');
@@ -473,6 +475,19 @@ export default function ConceptsTable({
                     <Icon name="FaSearch" className="w-3 h-3" />
                     Rank
                   </button>
+                  {(row.desktopChecked || row.mobileChecked) && onViewHistory && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onViewHistory(row.concept.id, row.keyword, row.keyword);
+                      }}
+                      className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
+                      title="View rank history"
+                    >
+                      <Icon name="FaClock" className="w-3 h-3" />
+                      History
+                    </button>
+                  )}
                 </div>
               </td>
             </tr>

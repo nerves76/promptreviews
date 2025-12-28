@@ -11,7 +11,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import PageCard from '@/app/(app)/components/PageCard';
 import Icon from '@/components/Icon';
-import { CheckRankModal, CheckVolumeModal, ConceptsTable } from '@/features/rank-tracking/components';
+import { CheckRankModal, CheckVolumeModal, ConceptsTable, RankHistoryModal } from '@/features/rank-tracking/components';
 import { useKeywords } from '@/features/keywords/hooks/useKeywords';
 import { useAccountData, useBusinessData } from '@/auth/hooks/granularAuthHooks';
 import { apiClient } from '@/utils/apiClient';
@@ -110,6 +110,13 @@ export default function RankTrackingPage() {
     keyword: string;
     volume: number | null;
     locationName: string;
+  } | null>(null);
+
+  // History modal state
+  const [viewingHistory, setViewingHistory] = useState<{
+    keywordId: string;
+    keywordName: string;
+    searchQuery?: string;
   } | null>(null);
 
   // Looked-up location from business address (if location_code not set)
@@ -646,6 +653,9 @@ export default function RankTrackingPage() {
           gridData={gridDataMap}
           onCheckRank={handleCheckRank}
           onCheckVolume={handleCheckVolume}
+          onViewHistory={(keywordId, keywordName, searchQuery) => {
+            setViewingHistory({ keywordId, keywordName, searchQuery });
+          }}
           isLoading={conceptsLoading}
         />
       </PageCard>
@@ -771,6 +781,15 @@ export default function RankTrackingPage() {
           </div>
         </div>
       )}
+
+      {/* Rank History Modal */}
+      <RankHistoryModal
+        isOpen={!!viewingHistory}
+        onClose={() => setViewingHistory(null)}
+        keywordId={viewingHistory?.keywordId || ''}
+        keywordName={viewingHistory?.keywordName || ''}
+        searchQuery={viewingHistory?.searchQuery}
+      />
     </div>
   );
 }
