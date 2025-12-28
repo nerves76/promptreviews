@@ -12,9 +12,11 @@ import { usePathname } from 'next/navigation';
 import PageCard from '@/app/(app)/components/PageCard';
 import Icon from '@/components/Icon';
 import { CheckRankModal, CheckVolumeModal, ConceptsTable, AddKeywordConceptModal } from '@/features/rank-tracking/components';
-import { useKeywords } from '@/features/keywords/hooks/useKeywords';
+import { useKeywords, useKeywordDetails } from '@/features/keywords/hooks/useKeywords';
+import { KeywordDetailsSidebar } from '@/features/keywords/components/KeywordDetailsSidebar';
 import { useAccountData, useBusinessData } from '@/auth/hooks/granularAuthHooks';
 import { apiClient } from '@/utils/apiClient';
+import { type KeywordData } from '@/features/keywords/keywordUtils';
 
 /** Volume data for a search term */
 interface VolumeData {
@@ -95,22 +97,9 @@ export default function RankTrackingPage() {
   const [rankChecks, setRankChecks] = useState<RankCheck[]>([]);
   const [gridDataMap, setGridDataMap] = useState<Map<string, GeoGridData>>(new Map());
 
-  // Auto-check state for rank
-  const [isAutoChecking, setIsAutoChecking] = useState(false);
-  const [autoCheckResult, setAutoCheckResult] = useState<{
-    keyword: string;
-    desktop: { position: number | null; found: boolean };
-    mobile: { position: number | null; found: boolean };
-    locationName: string;
-  } | null>(null);
-
-  // Auto-check state for volume
-  const [isAutoCheckingVolume, setIsAutoCheckingVolume] = useState(false);
-  const [autoVolumeResult, setAutoVolumeResult] = useState<{
-    keyword: string;
-    volume: number | null;
-    locationName: string;
-  } | null>(null);
+  // Track which keyword is currently being checked (for button loading state)
+  const [checkingRankKeyword, setCheckingRankKeyword] = useState<string | null>(null);
+  const [checkingVolumeKeyword, setCheckingVolumeKeyword] = useState<string | null>(null);
 
   // Looked-up location from business address (if location_code not set)
   const [lookedUpLocation, setLookedUpLocation] = useState<{
@@ -166,22 +155,6 @@ export default function RankTrackingPage() {
     lookupLocation();
   }, [business?.location_code, business?.address_city, business?.address_state]);
 
-  // Auto-dismiss rank result toast after 5 seconds
-  useEffect(() => {
-    if (autoCheckResult) {
-      const timer = setTimeout(() => setAutoCheckResult(null), 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [autoCheckResult]);
-
-  // Auto-dismiss volume result toast after 5 seconds
-  useEffect(() => {
-    if (autoVolumeResult) {
-      const timer = setTimeout(() => setAutoVolumeResult(null), 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [autoVolumeResult]);
-
   // Fetch keyword concepts (useKeywords already handles account changes)
   const {
     keywords: concepts,
@@ -192,6 +165,28 @@ export default function RankTrackingPage() {
 
   // Modal state for adding new keyword concept
   const [showAddModal, setShowAddModal] = useState(false);
+
+  // State for concept sidebar
+  const [selectedKeywordId, setSelectedKeywordId] = useState<string | null>(null);
+  const { keyword: selectedKeyword, promptPages, recentReviews, refresh: refreshKeywordDetails } = useKeywordDetails(selectedKeywordId);
+
+  // Handle clicking on a concept to open the sidebar
+  const handleConceptClick = useCallback((concept: KeywordData) => {
+    setSelectedKeywordId(concept.id);
+  }, []);
+
+  // Handle updating a keyword from the sidebar
+  const handleUpdateKeyword = useCallback(async (id: string, updates: Partial<KeywordData>): Promise<KeywordData | null> => {
+    try {
+      await apiClient.put(`/keywords/${id}`, updates);
+      await refreshKeywords();
+      await refreshKeywordDetails();
+      return null; // The hook will refetch
+    } catch (err) {
+      console.error('Failed to update keyword:', err);
+      return null;
+    }
+  }, [refreshKeywords, refreshKeywordDetails]);
 
   // Fetch saved research results for volume data
   const fetchResearchResults = useCallback(async () => {
@@ -333,10 +328,9 @@ export default function RankTrackingPage() {
 
   // Handle clicking "Check ranking" - auto-run if location available, otherwise show modal
   const handleCheckRank = useCallback(async (keyword: string, conceptId: string) => {
-    // If still looking up location, show loading state and wait
+    // If still looking up location, wait a bit
     if (isLookingUpLocation) {
-      setIsAutoChecking(true);
-      // Wait a bit for location lookup to complete
+      setCheckingRankKeyword(keyword);
       await new Promise(resolve => setTimeout(resolve, 500));
     }
 
@@ -350,9 +344,8 @@ export default function RankTrackingPage() {
     const locationName = conceptLocationName || business?.location_name || lookedUpLocation?.locationName;
 
     if (locationCode && locationName) {
-      // Auto-run the check without modal
-      setIsAutoChecking(true);
-      setAutoCheckResult(null);
+      // Auto-run the check without modal - show loading on button
+      setCheckingRankKeyword(keyword);
       try {
         const [desktopResponse, mobileResponse] = await Promise.all([
           apiClient.post<{
@@ -380,12 +373,6 @@ export default function RankTrackingPage() {
         ]);
 
         if (desktopResponse.success && mobileResponse.success) {
-          setAutoCheckResult({
-            keyword,
-            desktop: { position: desktopResponse.position, found: desktopResponse.found },
-            mobile: { position: mobileResponse.position, found: mobileResponse.found },
-            locationName,
-          });
           // Refresh rank checks to update the table
           await fetchRankChecks();
         }
@@ -394,7 +381,7 @@ export default function RankTrackingPage() {
         // Fall back to showing modal on error
         setCheckingKeyword({ keyword, conceptId });
       } finally {
-        setIsAutoChecking(false);
+        setCheckingRankKeyword(null);
       }
     } else {
       // No location available, show modal
@@ -404,9 +391,9 @@ export default function RankTrackingPage() {
 
   // Handle clicking "Check volume" - auto-run if location available, otherwise show modal
   const handleCheckVolume = useCallback(async (keyword: string, conceptId: string) => {
-    // If still looking up location, show loading state and wait
+    // If still looking up location, wait a bit
     if (isLookingUpLocation) {
-      setIsAutoCheckingVolume(true);
+      setCheckingVolumeKeyword(keyword);
       await new Promise(resolve => setTimeout(resolve, 500));
     }
 
@@ -415,9 +402,8 @@ export default function RankTrackingPage() {
     const locationName = business?.location_name || lookedUpLocation?.locationName;
 
     if (locationCode && locationName) {
-      // Auto-run the check without modal
-      setIsAutoCheckingVolume(true);
-      setAutoVolumeResult(null);
+      // Auto-run the check without modal - show loading on button
+      setCheckingVolumeKeyword(keyword);
       try {
         const response = await apiClient.post<{
           keyword: string;
@@ -446,12 +432,6 @@ export default function RankTrackingPage() {
           keywordId: conceptId,
         });
 
-        setAutoVolumeResult({
-          keyword,
-          volume: response.volume,
-          locationName,
-        });
-
         // Refresh the research results to update the UI
         await fetchResearchResults();
       } catch (error) {
@@ -459,7 +439,7 @@ export default function RankTrackingPage() {
         // Fall back to showing modal on error
         setCheckingVolumeTerm({ term: keyword, conceptId });
       } finally {
-        setIsAutoCheckingVolume(false);
+        setCheckingVolumeKeyword(null);
       }
     } else {
       // No location available, show modal
@@ -663,7 +643,7 @@ export default function RankTrackingPage() {
               className="px-4 py-2 text-sm font-medium text-white bg-slate-blue rounded-lg hover:bg-slate-blue/90 flex items-center gap-2 transition-colors"
             >
               <Icon name="FaPlus" className="w-4 h-4" />
-              Add keyword
+              Keyword
             </button>
             <div className="relative w-64">
               <Icon name="FaSearch" className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -684,9 +664,12 @@ export default function RankTrackingPage() {
           volumeData={volumeData}
           rankData={rankData}
           gridData={gridDataMap}
+          onConceptClick={handleConceptClick}
           onCheckRank={handleCheckRank}
           onCheckVolume={handleCheckVolume}
           isLoading={conceptsLoading}
+          checkingRankKeyword={checkingRankKeyword}
+          checkingVolumeKeyword={checkingVolumeKeyword}
         />
       </PageCard>
 
@@ -713,111 +696,17 @@ export default function RankTrackingPage() {
         onAdd={handleAddKeywordConcept}
       />
 
-      {/* Auto-check loading toast */}
-      {isAutoChecking && (
-        <div className="fixed bottom-6 right-6 z-50 bg-white rounded-lg shadow-lg border border-gray-200 p-4 flex items-center gap-3">
-          <Icon name="FaSpinner" className="w-5 h-5 text-slate-blue animate-spin" />
-          <span className="text-sm text-gray-700">Checking ranking...</span>
-        </div>
-      )}
-
-      {/* Auto-check result toast */}
-      {autoCheckResult && (
-        <div className="fixed bottom-6 right-6 z-50 bg-white rounded-xl shadow-lg border border-gray-200 p-4 max-w-sm">
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex-1">
-              <p className="text-sm font-medium text-gray-900 mb-2">
-                Rank check complete
-              </p>
-              <p className="text-xs text-gray-500 mb-3 truncate" title={autoCheckResult.keyword}>
-                &quot;{autoCheckResult.keyword}&quot; in {autoCheckResult.locationName}
-              </p>
-              <div className="flex gap-4">
-                <div className="flex items-center gap-1.5">
-                  <svg className="w-4 h-4 text-gray-400" viewBox="0 0 16 14" fill="currentColor">
-                    <rect x="0" y="0" width="16" height="10" rx="1" />
-                    <rect x="5" y="11" width="6" height="1" />
-                    <rect x="4" y="12" width="8" height="1" />
-                  </svg>
-                  <span className={`text-sm font-medium ${
-                    autoCheckResult.desktop.found && autoCheckResult.desktop.position !== null
-                      ? autoCheckResult.desktop.position <= 10 ? 'text-green-600' : 'text-amber-600'
-                      : 'text-gray-500'
-                  }`}>
-                    {autoCheckResult.desktop.found && autoCheckResult.desktop.position !== null
-                      ? `#${autoCheckResult.desktop.position}`
-                      : 'Not found'}
-                  </span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <svg className="w-3 h-4 text-gray-400" viewBox="0 0 10 16" fill="currentColor">
-                    <rect x="0" y="0" width="10" height="16" rx="1.5" />
-                    <rect x="3.5" y="13" width="3" height="1" rx="0.5" fill="white" />
-                  </svg>
-                  <span className={`text-sm font-medium ${
-                    autoCheckResult.mobile.found && autoCheckResult.mobile.position !== null
-                      ? autoCheckResult.mobile.position <= 10 ? 'text-green-600' : 'text-amber-600'
-                      : 'text-gray-500'
-                  }`}>
-                    {autoCheckResult.mobile.found && autoCheckResult.mobile.position !== null
-                      ? `#${autoCheckResult.mobile.position}`
-                      : 'Not found'}
-                  </span>
-                </div>
-              </div>
-            </div>
-            <button
-              onClick={() => setAutoCheckResult(null)}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
-            >
-              <Icon name="FaTimes" className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Auto-volume loading toast */}
-      {isAutoCheckingVolume && (
-        <div className="fixed bottom-6 right-6 z-50 bg-white rounded-lg shadow-lg border border-gray-200 p-4 flex items-center gap-3">
-          <Icon name="FaSpinner" className="w-5 h-5 text-slate-blue animate-spin" />
-          <span className="text-sm text-gray-700">Checking volume...</span>
-        </div>
-      )}
-
-      {/* Auto-volume result toast */}
-      {autoVolumeResult && (
-        <div className="fixed bottom-6 right-6 z-50 bg-white rounded-xl shadow-lg border border-gray-200 p-4 max-w-sm">
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex-1">
-              <p className="text-sm font-medium text-gray-900 mb-2">
-                Volume check complete
-              </p>
-              <p className="text-xs text-gray-500 mb-2 truncate" title={autoVolumeResult.keyword}>
-                &quot;{autoVolumeResult.keyword}&quot; in {autoVolumeResult.locationName}
-              </p>
-              <div className="flex items-center gap-1.5">
-                <Icon name="FaChartLine" className="w-4 h-4 text-blue-500" />
-                <span className="text-sm font-medium text-blue-600">
-                  {autoVolumeResult.volume !== null
-                    ? autoVolumeResult.volume >= 1000
-                      ? `${(autoVolumeResult.volume / 1000).toFixed(1)}K`
-                      : autoVolumeResult.volume < 10
-                        ? '<10'
-                        : autoVolumeResult.volume.toString()
-                    : 'No data'}
-                </span>
-                <span className="text-xs text-gray-500">monthly searches</span>
-              </div>
-            </div>
-            <button
-              onClick={() => setAutoVolumeResult(null)}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
-            >
-              <Icon name="FaTimes" className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Keyword Details Sidebar */}
+      <KeywordDetailsSidebar
+        isOpen={!!selectedKeyword}
+        keyword={selectedKeyword}
+        promptPages={promptPages}
+        recentReviews={recentReviews}
+        onClose={() => setSelectedKeywordId(null)}
+        onUpdate={handleUpdateKeyword}
+        onRefresh={refreshKeywords}
+        onCheckRank={handleCheckRank}
+      />
 
     </div>
   );
