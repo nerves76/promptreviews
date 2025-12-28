@@ -368,10 +368,19 @@ export default function ConceptsTable({
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full">
+      <table className="w-full table-fixed">
+        <colgroup>
+          <col className="w-[35%]" /> {/* Keyword */}
+          <col className="w-[15%]" /> {/* Concept */}
+          <col className="w-[12%]" /> {/* Volume */}
+          <col className="w-[10%]" /> {/* Rank */}
+          <col className="w-[8%]" /> {/* Grid */}
+          <col className="w-[8%]" /> {/* Change */}
+          <col className="w-[12%]" /> {/* Actions */}
+        </colgroup>
         <thead>
           <tr className="border-b border-gray-200">
-            <th className="text-left py-3 px-4 min-w-[300px]">
+            <th className="text-left py-3 px-4">
               <button
                 onClick={() => handleSort('keyword')}
                 className="flex items-center gap-1.5 text-sm font-semibold text-gray-700 hover:text-gray-900"
@@ -380,7 +389,7 @@ export default function ConceptsTable({
                 <SortIcon field="keyword" />
               </button>
             </th>
-            <th className="text-left py-3 px-4 w-28">
+            <th className="text-left py-3 px-4">
               <button
                 onClick={() => handleSort('concept')}
                 className="flex items-center gap-1.5 text-sm font-semibold text-gray-700 hover:text-gray-900"
@@ -389,7 +398,7 @@ export default function ConceptsTable({
                 <SortIcon field="concept" />
               </button>
             </th>
-            <th className="text-center py-3 px-4 w-28">
+            <th className="text-center py-3 px-4">
               <button
                 onClick={() => handleSort('volume')}
                 className="flex items-center gap-1.5 text-sm font-semibold text-gray-700 hover:text-gray-900 mx-auto"
@@ -398,7 +407,7 @@ export default function ConceptsTable({
                 <SortIcon field="volume" />
               </button>
             </th>
-            <th className="text-center py-3 px-4 w-36">
+            <th className="text-center py-3 px-4">
               <button
                 onClick={() => handleSort('rank')}
                 className="flex items-center gap-1.5 text-sm font-semibold text-gray-700 hover:text-gray-900 mx-auto"
@@ -407,10 +416,10 @@ export default function ConceptsTable({
                 <SortIcon field="rank" />
               </button>
             </th>
-            <th className="text-center py-3 px-4 w-24">
+            <th className="text-center py-3 px-4">
               <span className="text-sm font-semibold text-gray-700">Grid</span>
             </th>
-            <th className="text-center py-3 px-4 w-24">
+            <th className="text-center py-3 px-4">
               <button
                 onClick={() => handleSort('change')}
                 className="flex items-center gap-1.5 text-sm font-semibold text-gray-700 hover:text-gray-900 mx-auto"
@@ -419,7 +428,7 @@ export default function ConceptsTable({
                 <SortIcon field="change" />
               </button>
             </th>
-            <th className="text-center py-3 px-4 w-28">
+            <th className="text-center py-3 px-4">
               <span className="text-sm font-semibold text-gray-700">Actions</span>
             </th>
           </tr>
@@ -431,10 +440,10 @@ export default function ConceptsTable({
               onClick={() => onConceptClick?.(row.concept)}
               className="border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors"
             >
-              <td className="py-3 px-4 min-w-[300px]">
+              <td className="py-3 px-4">
                 <span className="text-sm font-medium text-gray-900">{row.keyword}</span>
               </td>
-              <td className="py-3 px-4 w-28">
+              <td className="py-3 px-4">
                 <span className="text-sm text-gray-500 truncate block" title={row.concept.name}>
                   {row.concept.name || '—'}
                 </span>
