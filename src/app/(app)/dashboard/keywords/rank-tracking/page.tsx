@@ -584,7 +584,7 @@ export default function RankTrackingPage() {
 
     // Update the keyword to add the search term and enable rank tracking
     const now = new Date().toISOString();
-    await apiClient.patch(`/keywords/${newKeyword.id}`, {
+    await apiClient.put(`/keywords/${newKeyword.id}`, {
       searchTerms: [{ term: data.keyword, isCanonical: true, addedAt: now }],
       isUsedInRankTracking: true,
     });
