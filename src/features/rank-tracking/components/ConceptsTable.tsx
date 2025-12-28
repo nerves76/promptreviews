@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Icon from '@/components/Icon';
 import Pagination from '@/components/Pagination';
 import { usePagination } from '@/hooks/usePagination';
-import { type KeywordData } from '@/features/keywords/keywordUtils';
+import { type KeywordData, normalizePhrase } from '@/features/keywords/keywordUtils';
 import { apiClient } from '@/utils/apiClient';
 import RankHistoryChart from './RankHistoryChart';
 
@@ -246,8 +246,8 @@ export default function ConceptsTable({
     onCheckVolume(keyword, conceptId);
   };
 
-  // Helper to normalize term for volume lookup
-  const normalizeTermForLookup = (term: string) => term.toLowerCase().trim();
+  // Helper to normalize term for volume lookup - use shared normalizePhrase for consistency
+  const normalizeTermForLookup = normalizePhrase;
 
   // Flatten concepts into individual keyword rows
   const rows: KeywordRow[] = useMemo(() => {

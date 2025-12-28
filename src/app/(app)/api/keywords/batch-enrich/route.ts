@@ -168,10 +168,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify all keywords belong to this account
+    // Verify all keywords belong to this account and get their search terms
     const { data: validKeywords } = await serviceSupabase
       .from('keywords')
-      .select('id')
+      .select('id, phrase, search_terms')
       .eq('account_id', accountId)
       .in('id', keywordIds);
 
@@ -184,15 +184,50 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ enrichment: {} });
     }
 
+    // Build a map of normalized term -> keyword ID for fallback lookups
+    // This allows us to find volume data that was saved before being linked to a keyword
+    const normalizedTermToKeywordId = new Map<string, string>();
+    for (const kw of validKeywords || []) {
+      // Add the phrase itself
+      const normalizedPhrase = kw.phrase?.toLowerCase().trim().replace(/\s+/g, ' ');
+      if (normalizedPhrase) {
+        normalizedTermToKeywordId.set(normalizedPhrase, kw.id);
+      }
+      // Add all search terms
+      if (kw.search_terms && Array.isArray(kw.search_terms)) {
+        for (const st of kw.search_terms) {
+          const term = typeof st === 'string' ? st : st?.term;
+          if (term) {
+            const normalizedTerm = term.toLowerCase().trim().replace(/\s+/g, ' ');
+            normalizedTermToKeywordId.set(normalizedTerm, kw.id);
+          }
+        }
+      }
+    }
+
+    // Collect all normalized terms to also fetch orphan volume data
+    const allNormalizedTerms = Array.from(normalizedTermToKeywordId.keys());
+
     // Parallel fetch all enrichment data
-    const [volumeResults, rankGroupKeywords, llmResults, geoGridTracking, geoGridChecks, conceptSchedules] = await Promise.all([
-      // 1. Fetch volume data for all keywords
+    const [volumeByKeywordId, volumeByTerm, rankGroupKeywords, llmResults, geoGridTracking, geoGridChecks, conceptSchedules] = await Promise.all([
+      // 1a. Fetch volume data linked by keyword_id
       serviceSupabase
         .from('keyword_research_results')
         .select('*')
         .eq('account_id', accountId)
         .in('keyword_id', filteredKeywordIds)
         .order('researched_at', { ascending: false }),
+
+      // 1b. Fetch volume data by normalized term (for orphan data without keyword_id)
+      allNormalizedTerms.length > 0
+        ? serviceSupabase
+            .from('keyword_research_results')
+            .select('*')
+            .eq('account_id', accountId)
+            .is('keyword_id', null)
+            .in('normalized_term', allNormalizedTerms)
+            .order('researched_at', { ascending: false })
+        : Promise.resolve({ data: [], error: null }),
 
       // 2. Fetch rank group associations for all keywords
       serviceSupabase
@@ -283,11 +318,27 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 1. Populate volume data
-    if (volumeResults.data) {
-      for (const row of volumeResults.data) {
+    // 1. Populate volume data from both sources
+    // 1a. Volume data linked by keyword_id
+    if (volumeByKeywordId.data) {
+      for (const row of volumeByKeywordId.data) {
         if (row.keyword_id && enrichment[row.keyword_id]) {
           enrichment[row.keyword_id].volumeData.push(transformResearchResult(row));
+        }
+      }
+    }
+    // 1b. Orphan volume data matched by normalized term
+    if (volumeByTerm.data) {
+      for (const row of volumeByTerm.data) {
+        const keywordId = normalizedTermToKeywordId.get(row.normalized_term);
+        if (keywordId && enrichment[keywordId]) {
+          // Check if this term already exists (avoid duplicates)
+          const exists = enrichment[keywordId].volumeData.some(
+            v => v.normalizedTerm === row.normalized_term && v.locationCode === row.location_code
+          );
+          if (!exists) {
+            enrichment[keywordId].volumeData.push(transformResearchResult(row));
+          }
         }
       }
     }

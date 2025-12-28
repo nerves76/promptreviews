@@ -51,6 +51,7 @@ export default function KeywordResearchPage() {
   const [location, setLocation] = useState<{ code: number; name: string } | null>(null);
   const [result, setResult] = useState<any>(null);
   const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [nationalSuggestions, setNationalSuggestions] = useState<Map<string, any>>(new Map());
   const [addedKeywords, setAddedKeywords] = useState<Set<string>>(new Set());
   const [addingKeyword, setAddingKeyword] = useState<string | null>(null);
   const [savedResults, setSavedResults] = useState<Set<string>>(new Set());
@@ -131,14 +132,34 @@ export default function KeywordResearchPage() {
     if (!searchQuery.trim()) return;
 
     const locationCode = location?.code || 2840; // Default to USA
+    const isLocalSearch = location?.code && location.code !== 2840;
 
     // Get main keyword data
     const discoveryResult = await discover(searchQuery.trim(), locationCode);
     setResult(discoveryResult);
 
-    // Get related suggestions using the same location
-    const suggestionsResult = await getSuggestions(searchQuery.trim(), locationCode);
-    setSuggestions(suggestionsResult);
+    // Get related suggestions
+    if (isLocalSearch) {
+      // Fetch both local and national suggestions in parallel
+      const [localResults, nationalResults] = await Promise.all([
+        getSuggestions(searchQuery.trim(), locationCode),
+        getSuggestions(searchQuery.trim(), 2840), // National (USA)
+      ]);
+
+      setSuggestions(localResults);
+
+      // Create a map for quick lookup of national volumes
+      const nationalMap = new Map<string, any>();
+      nationalResults.forEach(s => {
+        nationalMap.set(s.keyword.toLowerCase(), s);
+      });
+      setNationalSuggestions(nationalMap);
+    } else {
+      // Just national search - no need for dual fetch
+      const suggestionsResult = await getSuggestions(searchQuery.trim(), locationCode);
+      setSuggestions(suggestionsResult);
+      setNationalSuggestions(new Map());
+    }
   };
 
   /**
@@ -262,6 +283,33 @@ export default function KeywordResearchPage() {
       default:
         return 'bg-gray-100 text-gray-500';
     }
+  };
+
+  const getIntentColor = (intent: string | null) => {
+    switch (intent) {
+      case 'informational':
+        return 'bg-blue-100 text-blue-700';
+      case 'navigational':
+        return 'bg-purple-100 text-purple-700';
+      case 'commercial':
+        return 'bg-orange-100 text-orange-700';
+      case 'transactional':
+        return 'bg-green-100 text-green-700';
+      default:
+        return 'bg-gray-100 text-gray-500';
+    }
+  };
+
+  const formatIntent = (intent: string | null) => {
+    if (!intent) return '';
+    return intent.charAt(0).toUpperCase() + intent.slice(1);
+  };
+
+  const getDifficultyColor = (difficulty: number | null) => {
+    if (difficulty === null) return 'bg-gray-100 text-gray-500';
+    if (difficulty <= 30) return 'bg-green-100 text-green-700';
+    if (difficulty <= 60) return 'bg-yellow-100 text-yellow-700';
+    return 'bg-red-100 text-red-700';
   };
 
   return (
@@ -524,26 +572,52 @@ export default function KeywordResearchPage() {
             {suggestions.length > 0 && (
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  Related Keywords ({suggestions.length})
+                  Related keywords ({suggestions.length})
                 </h3>
                 <div className="space-y-2">
-                  {suggestions.map((sug, i) => (
+                  {suggestions.map((sug, i) => {
+                    const nationalData = nationalSuggestions.get(sug.keyword.toLowerCase());
+                    const hasNationalComparison = nationalSuggestions.size > 0;
+
+                    return (
                     <div
                       key={i}
                       className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                     >
                       <div className="flex-1 min-w-0">
                         <div className="font-medium text-gray-900">{sug.keyword}</div>
-                        <div className="flex items-center gap-3 text-sm text-gray-500 mt-0.5">
-                          <span>{sug.searchVolume?.toLocaleString() || 0}/mo</span>
-                          {sug.cpc && <span>CPC: ${sug.cpc.toFixed(2)}</span>}
-                          {sug.competition && (
-                            <>
-                              <span>Comp:</span>
-                              <span className={`px-1.5 py-0.5 rounded text-xs ${getCompetitionColor(sug.competition)}`}>
-                                {sug.competition}
-                              </span>
-                            </>
+                        <div className="flex items-center gap-3 text-sm mt-0.5">
+                          {/* Local volume (primary) */}
+                          <div className="flex items-center gap-1.5">
+                            {hasNationalComparison && (
+                              <span className="text-xs text-blue-600 font-medium">Local:</span>
+                            )}
+                            <span className={hasNationalComparison ? 'font-medium text-gray-900' : 'text-gray-500'}>
+                              {sug.searchVolume?.toLocaleString() || 0}/mo
+                            </span>
+                          </div>
+                          {/* National volume (secondary, only if doing local search) */}
+                          {hasNationalComparison && nationalData && (
+                            <div className="flex items-center gap-1.5 text-gray-400">
+                              <span className="text-xs">US:</span>
+                              <span>{nationalData.searchVolume?.toLocaleString() || 0}/mo</span>
+                            </div>
+                          )}
+                          {sug.cpc && <span className="text-gray-500">${sug.cpc.toFixed(2)} - ${((sug.highTopOfPageBid || sug.cpc * 2) || sug.cpc).toFixed(2)}</span>}
+                          {sug.searchIntent && (
+                            <span className={`px-1.5 py-0.5 rounded text-xs ${getIntentColor(sug.searchIntent)}`}>
+                              {formatIntent(sug.searchIntent)}
+                            </span>
+                          )}
+                          {sug.keywordDifficulty !== null && sug.keywordDifficulty !== undefined && (
+                            <span className={`px-1.5 py-0.5 rounded text-xs ${getDifficultyColor(sug.keywordDifficulty)}`}>
+                              KD: {sug.keywordDifficulty}
+                            </span>
+                          )}
+                          {sug.trendPercentage?.quarterly && (
+                            <span className={`text-xs font-medium ${sug.trendPercentage.quarterly > 0 ? 'text-green-600' : sug.trendPercentage.quarterly < 0 ? 'text-red-500' : 'text-gray-400'}`}>
+                              {sug.trendPercentage.quarterly > 0 ? '+' : ''}{sug.trendPercentage.quarterly}% qtr
+                            </span>
                           )}
                         </div>
                       </div>
@@ -581,7 +655,8 @@ export default function KeywordResearchPage() {
                         </button>
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}

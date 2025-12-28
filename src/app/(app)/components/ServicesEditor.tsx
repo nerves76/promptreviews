@@ -8,9 +8,8 @@
 
 import { useState, useEffect } from 'react';
 import Icon from '@/components/Icon';
-import { createClient } from '@/auth/providers/supabase';
-import { getAccountIdForUser } from '@/auth/utils/accounts';
 import { apiClient } from '@/utils/apiClient';
+import { useAuth } from '@/auth';
 
 // Import our modular components
 import CategorySearch from './business-info/CategorySearch';
@@ -27,8 +26,11 @@ interface ServicesEditorProps {
 }
 
 export default function ServicesEditor({ locations, isConnected }: ServicesEditorProps) {
-  // Form storage key
-  const formStorageKey = 'business-services-form-data';
+  const { account } = useAuth();
+  const accountId = account?.id;
+
+  // Form storage key - namespaced by account to prevent cross-account data leakage
+  const formStorageKey = accountId ? `business-services-form-data_${accountId}` : 'business-services-form-data_noacct';
   
   // Component state - auto-select if only one location
   const [selectedLocationIds, setSelectedLocationIds] = useState<string[]>(() => {
@@ -79,8 +81,69 @@ export default function ServicesEditor({ locations, isConnected }: ServicesEdito
     }
   }, [locations]);
 
-  // Auto-save form data
+  // One-time cleanup: remove old non-namespaced localStorage key
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('business-services-form-data');
+    }
+  }, []);
+
+  // Reset form data when account changes to prevent cross-account data leakage
+  useEffect(() => {
+    if (!accountId) return;
+
+    // Read from the correct account-specific localStorage key
+    const accountStorageKey = `business-services-form-data_${accountId}`;
+    const saved = localStorage.getItem(accountStorageKey);
+
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        setBusinessInfo(parsed);
+      } catch (error) {
+        console.error('Failed to parse saved services form data:', error);
+        // Reset to defaults if parsing fails
+        setBusinessInfo({
+          locationName: '',
+          description: '',
+          regularHours: {},
+          primaryCategory: undefined,
+          additionalCategories: [],
+          serviceItems: [],
+          storefrontAddress: undefined,
+          phoneNumbers: undefined,
+          websiteUri: undefined,
+          latlng: undefined
+        });
+      }
+    } else {
+      // No saved data for this account - reset to defaults
+      setBusinessInfo({
+        locationName: '',
+        description: '',
+        regularHours: {},
+        primaryCategory: undefined,
+        additionalCategories: [],
+        serviceItems: [],
+        storefrontAddress: undefined,
+        phoneNumbers: undefined,
+        websiteUri: undefined,
+        latlng: undefined
+      });
+    }
+
+    // Reset UI state for the new account
+    setDetailsLoaded(false);
+    setDetailsError(null);
+    setHasChanges(false);
+    setSaveResult(null);
+    setFormDataBackup(null);
+  }, [accountId]);
+
+  // Auto-save form data - only when we have a valid accountId
+  useEffect(() => {
+    if (!accountId) return; // Don't save until we know which account
+
     const saveTimeout = setTimeout(() => {
       if (typeof window !== 'undefined' && businessInfo) {
         localStorage.setItem(formStorageKey, JSON.stringify(businessInfo));
@@ -88,7 +151,7 @@ export default function ServicesEditor({ locations, isConnected }: ServicesEdito
     }, 1000);
 
     return () => clearTimeout(saveTimeout);
-  }, [businessInfo, formStorageKey]);
+  }, [businessInfo, formStorageKey, accountId]);
 
   // Close dropdown when clicking outside
 
@@ -230,7 +293,7 @@ export default function ServicesEditor({ locations, isConnected }: ServicesEdito
               }`}
               title="Clear all form data and start over"
             >
-              <Icon name="FaUndo" className="w-4 h-4" size={16} />
+              <Icon name="FaRedo" className="w-4 h-4" size={16} />
               <span>Clear form</span>
             </button>
             <button

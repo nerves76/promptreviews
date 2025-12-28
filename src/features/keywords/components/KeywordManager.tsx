@@ -293,6 +293,22 @@ export default function KeywordManager({
     }
   }, [keywords.length, enrichmentRefreshKey]); // Refetch when keyword count changes or refresh triggered
 
+  // Refetch enrichment data when page becomes visible (user navigates back)
+  // This ensures data is fresh after running checks on other pages
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && keywords.length > 0) {
+        const keywordIds = keywords.map(k => k.id);
+        fetchEnrichmentData(keywordIds);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [keywords, fetchEnrichmentData]);
+
   // Manual refresh handler
   const handleRefreshEnrichment = useCallback(() => {
     if (keywords.length > 0) {

@@ -16,7 +16,7 @@ import { useKeywords, useKeywordDetails } from '@/features/keywords/hooks/useKey
 import { KeywordDetailsSidebar } from '@/features/keywords/components/KeywordDetailsSidebar';
 import { useAccountData, useBusinessData } from '@/auth/hooks/granularAuthHooks';
 import { apiClient } from '@/utils/apiClient';
-import { type KeywordData } from '@/features/keywords/keywordUtils';
+import { type KeywordData, normalizePhrase } from '@/features/keywords/keywordUtils';
 
 /** Volume data for a search term */
 interface VolumeData {
@@ -262,6 +262,22 @@ export default function RankTrackingPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Refetch data when page becomes visible (user navigates back)
+  // This ensures data is fresh after running checks on other pages
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && selectedAccountId) {
+        fetchResearchResults();
+        fetchRankChecks();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [selectedAccountId, fetchResearchResults, fetchRankChecks]);
+
   // Fetch grid data when concepts are loaded
   useEffect(() => {
     if (concepts.length > 0) {
@@ -297,7 +313,7 @@ export default function RankTrackingPage() {
       (a, b) => new Date(b.checked_at).getTime() - new Date(a.checked_at).getTime()
     );
     sortedChecks.forEach((check) => {
-      const normalizedTerm = check.search_query_used.toLowerCase().trim();
+      const normalizedTerm = normalizePhrase(check.search_query_used);
 
       if (!map.has(normalizedTerm)) {
         map.set(normalizedTerm, {
