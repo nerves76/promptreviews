@@ -1053,16 +1053,18 @@ export function ConceptCard({
                                 Rank
                               </button>
                             )}
-                            {keyword.isUsedInGeoGrid && (
-                              <button
-                                onClick={() => router.push(`/dashboard/local-ranking-grids?keywordId=${keyword.id}`)}
-                                className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-white bg-emerald-600 rounded hover:bg-emerald-700 transition-colors"
-                                title="View geo grid results"
-                              >
-                                <Icon name="FaMapMarker" className="w-3 h-3" />
-                                Grid
-                              </button>
-                            )}
+                            <button
+                              onClick={() => router.push(`/dashboard/local-ranking-grids?keywordId=${keyword.id}`)}
+                              className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded transition-colors ${
+                                keyword.isUsedInGeoGrid
+                                  ? 'text-white bg-emerald-600 hover:bg-emerald-700'
+                                  : 'text-emerald-600 bg-emerald-50 hover:bg-emerald-100'
+                              }`}
+                              title={keyword.isUsedInGeoGrid ? 'View geo grid results' : 'Set up local ranking grid'}
+                            >
+                              <Icon name="FaMapMarker" className="w-3 h-3" />
+                              Grid
+                            </button>
                           </div>
                         </td>
                       </tr>

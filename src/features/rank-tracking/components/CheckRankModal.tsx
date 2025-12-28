@@ -19,10 +19,12 @@ interface CheckRankModalProps {
   }>;
   /** Called when a check completes successfully, to trigger data refresh */
   onCheckComplete?: () => void;
-  /** Pre-selected location code */
+  /** Pre-selected location code (from concept) */
   defaultLocationCode?: number;
-  /** Pre-selected location name */
+  /** Pre-selected location name (from concept) */
   defaultLocationName?: string;
+  /** Whether the location is set at concept level (locks the picker) */
+  locationLocked?: boolean;
 }
 
 export default function CheckRankModal({
@@ -33,6 +35,7 @@ export default function CheckRankModal({
   onCheckComplete,
   defaultLocationCode,
   defaultLocationName,
+  locationLocked = false,
 }: CheckRankModalProps) {
   const [location, setLocation] = useState<{ code: number; name: string } | null>(
     defaultLocationCode && defaultLocationName
@@ -126,13 +129,23 @@ export default function CheckRankModal({
             <label className="block text-sm font-medium text-gray-700 mb-1.5">
               Location
             </label>
-            <LocationPicker
-              value={location}
-              onChange={setLocation}
-              placeholder="Search for a city..."
-            />
+            {locationLocked && location ? (
+              <div className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-md bg-gray-50">
+                <Icon name="FaMapMarker" className="w-4 h-4 text-slate-blue" />
+                <span className="text-sm text-gray-900">{location.name}</span>
+              </div>
+            ) : (
+              <LocationPicker
+                value={location}
+                onChange={setLocation}
+                placeholder="Search for a city..."
+              />
+            )}
             <p className="text-xs text-gray-500 mt-1.5">
-              Checks both desktop and mobile rankings (uses 2 credits)
+              {locationLocked
+                ? 'Location is set on the keyword concept. Edit the concept to change it. Uses 2 credits.'
+                : 'Checks both desktop and mobile rankings (uses 2 credits)'
+              }
             </p>
           </div>
 

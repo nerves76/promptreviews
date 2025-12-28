@@ -1027,6 +1027,7 @@ export default function LLMVisibilityPage() {
         onCheckComplete={handleRankCheckComplete}
         defaultLocationCode={checkingRank?.locationCode}
         defaultLocationName={checkingRank?.locationName}
+        locationLocked={!!checkingRank?.locationCode}
       />
     </div>
   );

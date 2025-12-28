@@ -170,7 +170,9 @@ export async function POST(request: NextRequest) {
 
     const systemPrompt = `You are a keyword optimization expert for local SEO and review generation.
 
-Given a keyword phrase, generate optimized versions for different use cases:
+Given a keyword phrase, generate optimized versions for different use cases.
+
+IMPORTANT: Do NOT add the business name to any generated phrases unless it was explicitly included in the original keyword. Keep brand and non-brand searches separate.
 
 1. **review_phrase**: A natural, persuasive phrase to show customers when asking for reviews. Should:
    - Start with qualifiers like "best", "top", "trusted", "leading" when appropriate

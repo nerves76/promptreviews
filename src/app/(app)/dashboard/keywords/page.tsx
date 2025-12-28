@@ -231,6 +231,7 @@ export default function KeywordsPage() {
         onCheckComplete={handleCheckComplete}
         defaultLocationCode={checkingKeyword?.locationCode}
         defaultLocationName={checkingKeyword?.locationName}
+        locationLocked={!!checkingKeyword?.locationCode}
       />
 
       {/* Check LLM Visibility Modal */}

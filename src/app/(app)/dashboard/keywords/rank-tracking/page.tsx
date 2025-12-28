@@ -91,7 +91,7 @@ export default function RankTrackingPage() {
   const { selectedAccountId } = useAccountData();
   const { business } = useBusinessData();
   const [searchQuery, setSearchQuery] = useState('');
-  const [checkingKeyword, setCheckingKeyword] = useState<{ keyword: string; conceptId: string } | null>(null);
+  const [checkingKeyword, setCheckingKeyword] = useState<{ keyword: string; conceptId: string; locationCode?: number; locationName?: string } | null>(null);
   const [checkingVolumeTerm, setCheckingVolumeTerm] = useState<{ term: string; conceptId: string } | null>(null);
   const [researchResults, setResearchResults] = useState<ResearchResult[]>([]);
   const [rankChecks, setRankChecks] = useState<RankCheck[]>([]);
@@ -379,7 +379,7 @@ export default function RankTrackingPage() {
       } catch (error) {
         console.error('Auto rank check failed:', error);
         // Fall back to showing modal on error
-        setCheckingKeyword({ keyword, conceptId });
+        setCheckingKeyword({ keyword, conceptId, locationCode, locationName });
       } finally {
         setCheckingRankKeyword(null);
       }
@@ -680,6 +680,9 @@ export default function RankTrackingPage() {
         isOpen={!!checkingKeyword}
         onClose={() => setCheckingKeyword(null)}
         onCheck={performRankCheck}
+        defaultLocationCode={checkingKeyword?.locationCode}
+        defaultLocationName={checkingKeyword?.locationName}
+        locationLocked={!!checkingKeyword?.locationCode}
       />
 
       {/* Check Volume Modal */}

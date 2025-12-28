@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import Icon from '@/components/Icon';
 import Pagination from '@/components/Pagination';
 import { usePagination } from '@/hooks/usePagination';
@@ -177,6 +178,7 @@ export default function ConceptsTable({
   checkingRankKeyword,
   checkingVolumeKeyword,
 }: ConceptsTableProps) {
+  const router = useRouter();
   const [sortField, setSortField] = useState<SortField>('keyword');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   // Track which row is expanded to show history
@@ -412,9 +414,9 @@ export default function ConceptsTable({
 
   return (
     <div className="overflow-x-auto -mx-6">
-      <table className="w-full min-w-[900px]">
+      <table className="w-full min-w-[970px]">
         {/* Column widths: Keyword, Concept, Volume, Rank, Change, Grid, Actions */}
-        <colgroup><col style={{ minWidth: '280px' }} /><col style={{ minWidth: '120px' }} /><col style={{ minWidth: '90px' }} /><col style={{ minWidth: '110px' }} /><col style={{ minWidth: '70px' }} /><col style={{ minWidth: '80px' }} /><col style={{ minWidth: '150px' }} /></colgroup>
+        <colgroup><col style={{ minWidth: '280px' }} /><col style={{ minWidth: '120px' }} /><col style={{ minWidth: '90px' }} /><col style={{ minWidth: '110px' }} /><col style={{ minWidth: '70px' }} /><col style={{ minWidth: '80px' }} /><col style={{ minWidth: '220px' }} /></colgroup>
         <thead>
           <tr className="border-b border-gray-200">
             <th className="text-left py-3 pl-4 pr-4">
@@ -626,6 +628,21 @@ export default function ConceptsTable({
                       <Icon name="FaSearch" className="w-3 h-3" />
                     )}
                     Rank
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      router.push(`/dashboard/local-ranking-grids?keywordId=${row.concept.id}`);
+                    }}
+                    className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded transition-colors ${
+                      row.gridTracked
+                        ? 'text-white bg-emerald-600 hover:bg-emerald-700'
+                        : 'text-emerald-600 bg-emerald-50 hover:bg-emerald-100'
+                    }`}
+                    title={row.gridTracked ? 'View geo grid results' : 'Set up local ranking grid'}
+                  >
+                    <Icon name="FaMapMarker" className="w-3 h-3" />
+                    Grid
                   </button>
                 </div>
               </td>
