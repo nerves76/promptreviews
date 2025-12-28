@@ -56,7 +56,7 @@ export interface UseKeywordDiscoveryReturn {
     locationCode?: number
   ) => Promise<DiscoveryResult | null>;
   /** Get quick suggestions without full discovery */
-  getSuggestions: (seed: string) => Promise<KeywordSuggestion[]>;
+  getSuggestions: (seed: string, locationCode?: number) => Promise<KeywordSuggestion[]>;
   /** Loading state */
   isLoading: boolean;
   /** Error message if any */

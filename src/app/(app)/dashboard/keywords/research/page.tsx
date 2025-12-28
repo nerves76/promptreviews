@@ -136,8 +136,8 @@ export default function KeywordResearchPage() {
     const discoveryResult = await discover(searchQuery.trim(), locationCode);
     setResult(discoveryResult);
 
-    // Get related suggestions
-    const suggestionsResult = await getSuggestions(searchQuery.trim());
+    // Get related suggestions using the same location
+    const suggestionsResult = await getSuggestions(searchQuery.trim(), locationCode);
     setSuggestions(suggestionsResult);
   };
 
