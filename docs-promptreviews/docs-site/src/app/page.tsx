@@ -9,7 +9,8 @@ import {
   ArrowRight,
   Search,
   MessageSquare,
-  BarChart3
+  BarChart3,
+  Target
 } from 'lucide-react'
 
 export const metadata: Metadata = {
@@ -132,6 +133,15 @@ const features = [
     icon: Code,
     color: 'bg-indigo-500',
     plans: ['grower', 'builder', 'maven']
+  },
+  {
+    name: 'Keyword concepts',
+    description: 'Organize your SEO strategy with keyword concepts. Track rankings, monitor LLM visibility, and research new opportunities.',
+    href: '/docs/keyword-concepts',
+    icon: Target,
+    color: 'bg-teal-500',
+    popular: true,
+    plans: ['builder', 'maven']
   },
 ]
 
