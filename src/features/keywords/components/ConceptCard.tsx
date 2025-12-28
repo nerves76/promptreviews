@@ -584,7 +584,7 @@ export function ConceptCard({
                     {rankingStats.inTop10}/{rankingStats.total} top 10
                   </span>
                 )}
-                {keyword.isUsedInGeoGrid && enrichedData?.geoGridStatus?.summary && enrichedData.geoGridStatus.summary.totalPoints > 0 ? (
+                {keyword.isUsedInGeoGrid && enrichedData?.geoGridStatus?.summary && enrichedData.geoGridStatus.summary.totalPoints > 0 && (
                   <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded flex items-center gap-0.5 ${
                     enrichedData.geoGridStatus.summary.pointsInTop10 === enrichedData.geoGridStatus.summary.totalPoints
                       ? 'bg-green-100 text-green-700'
@@ -596,19 +596,6 @@ export function ConceptCard({
                   >
                     <Icon name="FaMapMarker" className="w-2 h-2" />
                     {enrichedData.geoGridStatus.summary.pointsInTop10}/{enrichedData.geoGridStatus.summary.totalPoints} top 10
-                  </span>
-                ) : keyword.isUsedInGeoGrid && enrichedData?.geoGridStatus?.locationName ? (
-                  <span
-                    className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-emerald-100 text-emerald-700 flex items-center gap-0.5"
-                    title={enrichedData.geoGridStatus.locationName}
-                  >
-                    <Icon name="FaMapMarker" className="w-2 h-2" />
-                    Grid
-                  </span>
-                ) : keyword.isUsedInGeoGrid && (
-                  <span className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-emerald-100 text-emerald-700 flex items-center gap-0.5">
-                    <Icon name="FaMapMarker" className="w-2 h-2" />
-                    Grid
                   </span>
                 )}
               </>
