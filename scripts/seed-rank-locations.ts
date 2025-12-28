@@ -139,15 +139,17 @@ function buildCanonicalName(
   allLocations: Map<number, DataForSEOLocation>
 ): string {
   const parts: string[] = [location.location_name];
+  const seenNames = new Set<string>([location.location_name]);
 
   let current = location;
   while (current.location_code_parent) {
     const parent = allLocations.get(current.location_code_parent);
     if (!parent) break;
 
-    // Avoid duplicates (some locations have same name as parent)
-    if (parent.location_name !== current.location_name) {
+    // Avoid duplicates - skip if we've already seen this name
+    if (!seenNames.has(parent.location_name)) {
       parts.push(parent.location_name);
+      seenNames.add(parent.location_name);
     }
 
     current = parent;
