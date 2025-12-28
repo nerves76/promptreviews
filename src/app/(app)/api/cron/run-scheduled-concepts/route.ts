@@ -22,7 +22,9 @@ import type { ConceptScheduleRow, ConceptCheckResult, ConceptCronSummary } from 
 import type { LLMProvider } from '@/features/llm-visibility/utils/types';
 import { sendNotificationToAccount } from '@/utils/notifications';
 import { refundFeature, ensureBalanceExists } from '@/lib/credits';
-import { reprocessKeywordMatchesForAccount } from '@/features/keywords/reprocessKeywordMatches';
+import { KeywordMatchService } from '@/features/keywords/keywordMatchService';
+import { syncKeywordUsageCounts } from '@/features/keywords/reprocessKeywordMatches';
+import type { SyncedReviewRecord } from '@/features/google-reviews/reviewSyncService';
 
 // Cost limit per check run (safety measure)
 const MAX_COST_PER_RUN_USD = 10.0;
@@ -149,10 +151,11 @@ export async function GET(request: NextRequest) {
           console.log(`💸 [Scheduled Concepts] Insufficient credits for ${accountId}: need ${creditCheck.required}, have ${creditCheck.available}`);
 
           // Send notification
-          await sendNotificationToAccount(accountId, 'concept_schedule_credit_warning', {
+          await sendNotificationToAccount(accountId, 'credit_check_skipped', {
             required: creditCheck.required,
             available: creditCheck.available,
             keywordId,
+            scheduleType: 'concept_schedule',
           });
 
           result.status = 'insufficient_credits';
@@ -589,6 +592,22 @@ async function runLLMVisibilityChecks(
 }
 
 /**
+ * Derive sentiment from star rating
+ */
+const SENTIMENT_MAP: Record<number, 'positive' | 'neutral' | 'negative'> = {
+  1: 'negative',
+  2: 'negative',
+  3: 'neutral',
+  4: 'positive',
+  5: 'positive',
+};
+
+function deriveSentiment(rating?: number | null): 'positive' | 'neutral' | 'negative' {
+  if (!rating || rating < 1) return 'positive';
+  return SENTIMENT_MAP[rating] || 'positive';
+}
+
+/**
  * Run review matching checks for a keyword
  * Scans all reviews for the account and matches against the keyword
  */
@@ -601,12 +620,69 @@ async function runReviewMatchingChecks(
   try {
     console.log(`  📝 Review matching check for keyword ${keywordId}`);
 
-    // Run the full reprocess for the account
-    // This will scan all reviews and update keyword match counts
-    const result = await reprocessKeywordMatchesForAccount(supabase, accountId, {
-      clearExisting: false, // Don't clear, just add new matches
-      updateUsageCounts: true,
-    });
+    // Fetch all reviews for this account
+    const { data: reviews, error: reviewsError } = await supabase
+      .from('review_submissions')
+      .select(`
+        id,
+        review_content,
+        review_text_copy,
+        reviewer_name,
+        first_name,
+        last_name,
+        google_review_id,
+        google_location_id,
+        google_location_name,
+        google_business_location_id,
+        star_rating,
+        created_at
+      `)
+      .eq('account_id', accountId)
+      .order('created_at', { ascending: false });
+
+    if (reviewsError) {
+      throw new Error(`Failed to fetch reviews: ${reviewsError.message}`);
+    }
+
+    // Clear existing matches for this keyword only
+    await supabase
+      .from('keyword_review_matches_v2')
+      .delete()
+      .eq('keyword_id', keywordId);
+
+    // Convert reviews to SyncedReviewRecord format
+    const records: SyncedReviewRecord[] = (reviews || [])
+      .map((row: any) => {
+        const body = row.review_content || row.review_text_copy || '';
+        if (!body.trim()) return null;
+
+        const name =
+          row.reviewer_name ||
+          [row.first_name, row.last_name].filter(Boolean).join(' ').trim() ||
+          'Customer';
+
+        return {
+          reviewSubmissionId: row.id,
+          googleReviewId: row.google_review_id || row.id,
+          reviewerName: name,
+          reviewText: body,
+          starRating: row.star_rating || 0,
+          sentiment: deriveSentiment(row.star_rating),
+          submittedAt: row.created_at || new Date().toISOString(),
+          locationId: row.google_location_id || row.google_business_location_id || row.id,
+          locationName: row.google_location_name || undefined,
+          googleBusinessLocationId: row.google_business_location_id || null,
+          accountId,
+        };
+      })
+      .filter(Boolean) as SyncedReviewRecord[];
+
+    // Run keyword matching
+    const matcher = new KeywordMatchService(supabase, accountId);
+    await matcher.process(records);
+
+    // Sync usage counts
+    await syncKeywordUsageCounts(supabase, accountId);
 
     // Get updated keyword stats
     const { data: keyword } = await supabase
@@ -617,11 +693,11 @@ async function runReviewMatchingChecks(
 
     const matchesFound = (keyword?.review_usage_count || 0) + (keyword?.alias_match_count || 0);
 
-    console.log(`  ✅ Review matching complete: ${result.totalProcessed} reviews scanned, ${matchesFound} matches found`);
+    console.log(`  ✅ Review matching complete: ${records.length} reviews scanned, ${matchesFound} matches found`);
 
     return {
       success: true,
-      reviewsScanned: result.totalProcessed,
+      reviewsScanned: records.length,
       matchesFound,
     };
   } catch (error) {

@@ -9,6 +9,7 @@ All milestones complete. Credit system is live with geo-grid integration.
 - Stripe model: one-time credit packs + optional monthly auto-topups; grant on `checkout.session.completed` and `invoice.payment_succeeded`; claw back on refunds/cancellations; idempotent via Session/Invoice IDs.
 - **FINAL Credit rules**: purchased credits never expire; monthly included credits expire monthly. Packs: $20→200, $60→700, $180→2,300. **Included: free 0, grower 100, builder 200, maven 400**. Free accounts get 0 included credits and must purchase packs to use credit-based features.
 - **FINAL Geo grid cost formula**: `10 base + 1 per cell + 2 per keyword` (ensures 50%+ margin even at extreme usage).
+- **Review matching cost**: 1 credit per check (flat rate) - scans all reviews for keyword/alias matches.
 - Future features (not in initial release): Keyword tracking (daily 10, 3×/week 7, weekly 4 per keyword per month), Keyword finder (buckets 10/25/50), AI review gen (hard caps first, credit cost later).
 - Rollout: Hard cutover - credits required immediately, no migration/grandfather period (small user base).
 
@@ -108,7 +109,7 @@ All milestones complete. Credit system is live with geo-grid integration.
 - [x] Prisma: run `npx prisma db pull && npx prisma generate` after migrations.
 
 ## Naming and Scalability Notes
-- Naming: use `credit_` prefix for all ledger/balance/pricing objects; idempotency keys labeled by feature (e.g., `geo_grid:<job_id>`, `keyword_tracking:<freq>:<keyword_id>`); config tables use explicit `feature_type` values (`geo_grid`, `keyword_tracking`, `keyword_finder`, `ai_review_gen`).
+- Naming: use `credit_` prefix for all ledger/balance/pricing objects; idempotency keys labeled by feature (e.g., `geo_grid:<job_id>`, `keyword_tracking:<freq>:<keyword_id>`, `review_matching:<account_id>:<keyword_id>:<check_id>`); config tables use explicit `feature_type` values (`geo_grid`, `keyword_tracking`, `keyword_finder`, `ai_review_gen`, `review_matching`, `concept_schedule`).
 - Scalability: ledger immutable with indexed queries; pricing rules versioned to avoid code deploys; idempotent webhooks to survive retries; caps configurable per tier/user; supports new features by adding pricing rules + debiting metadata without schema changes.
 - Documentation: every deployed function/webhook has a short README snippet (purpose, inputs, outputs, idempotency key) and a runbook entry for replay/adjustment paths.
 

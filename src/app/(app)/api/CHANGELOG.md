@@ -1,5 +1,32 @@
 # API Changelog
 
+## [2025-12-28]
+### Added - Review Matching Feature
+**New Endpoints:**
+- `POST /api/keywords/[id]/check-reviews` - Manually trigger review matching for a concept
+  - Scans all reviews for keyword phrase and alias matches
+  - Costs 1 credit (flat rate)
+  - Returns: reviewsScanned, matchesFound, exactMatches, aliasMatches
+  - Automatic refund on processing failure
+  - Account-scoped security validation
+
+- `GET /api/keywords/[id]/check-reviews` - Get current review match statistics
+  - Returns match counts and recent matched reviews
+  - No credit cost for viewing stats
+
+**Concept Schedule Updates:**
+- `POST /api/concept-schedule` - Added `reviewMatchingEnabled` boolean parameter
+- `POST /api/concept-schedule/cost-preview` - Added review matching cost to breakdown
+
+**Cron Job Updates:**
+- `/api/cron/run-scheduled-concepts` - Added review matching to scheduled checks
+  - Runs when `reviewMatchingEnabled: true` on concept schedule
+  - Uses same efficient matching logic as manual endpoint
+
+**Credit System:**
+- Added `review_matching` to `FeatureType` in `/src/lib/credits/types.ts`
+- Review matching costs 1 credit per check (manual or scheduled)
+
 ## [2025-12-20]
 ### Added - Prompt Page Keyword Integration
 **New Endpoints:**

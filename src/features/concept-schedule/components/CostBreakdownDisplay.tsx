@@ -96,6 +96,19 @@ export function CostBreakdownDisplay({
           </span>
         </div>
 
+        {/* Review Matching */}
+        <div className={`flex justify-between items-center ${!costBreakdown.reviewMatching.enabled ? 'opacity-50' : ''}`}>
+          <div className="flex items-center gap-2">
+            <Icon name="FaStar" className="w-3.5 h-3.5 text-amber-500" />
+            <span className="text-gray-600">
+              Review matching
+            </span>
+          </div>
+          <span className="font-medium text-gray-700">
+            {costBreakdown.reviewMatching.enabled ? `${costBreakdown.reviewMatching.cost} credit` : 'Disabled'}
+          </span>
+        </div>
+
         {/* Total */}
         <div className="flex justify-between items-center pt-2 border-t border-gray-200">
           <span className="font-semibold text-gray-800">Total per run</span>

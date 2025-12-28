@@ -1,5 +1,15 @@
 # Database Migrations Changelog
 
+## [2025-12-28]
+### Migrations Added
+
+#### 20260127000000_add_review_matching_to_concept_schedules.sql
+- **NEW FEATURE**: Review matching as part of concept schedules
+- **concept_schedules table**: Added `review_matching_enabled` boolean column (default FALSE)
+- **Purpose**: Allow scheduled review matching checks alongside search rank, geo-grid, and LLM visibility checks
+- **Cost**: 1 credit per scheduled review matching check
+- **Related**: Works with manual check endpoint `/api/keywords/[id]/check-reviews`
+
 ## [2025-12-11]
 ### Migrations Added
 
