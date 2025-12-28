@@ -564,15 +564,6 @@ export function ConceptCard({
                     LLM citations: {llmCitationStats.cited}/{llmCitationStats.total}
                   </span>
                 )}
-                {keyword.searchVolumeLocationName && (
-                  <span
-                    className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-slate-100 text-slate-600 max-w-[100px] truncate"
-                    title={keyword.searchVolumeLocationName}
-                  >
-                    <Icon name="FaMapMarker" className="w-2 h-2 inline mr-0.5" />
-                    {keyword.searchVolumeLocationName.split(',')[0]}
-                  </span>
-                )}
                 {keyword.isUsedInRankTracking && rankingStats !== null && (
                   <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${
                     rankingStats.inTop10 === rankingStats.total
