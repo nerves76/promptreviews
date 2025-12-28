@@ -24,7 +24,8 @@ export type FeatureType =
   | 'llm_visibility'
   | 'keyword_enrichment'
   | 'sentiment_analysis'
-  | 'backlinks';
+  | 'backlinks'
+  | 'concept_schedule';
 
 export interface CreditBalance {
   accountId: string;

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { formatDistanceToNow } from 'date-fns';
 import Icon from '@/components/Icon';
 import { CollapsibleSection } from './CollapsibleSection';
+import { ConceptScheduleSettings } from '@/features/concept-schedule';
 import { apiClient } from '@/utils/apiClient';
 import {
   type KeywordData,
@@ -77,6 +78,8 @@ interface ConceptCardProps {
   businessLocationCode?: number | null;
   /** Business location name (fallback when concept has no location) */
   businessLocationName?: string | null;
+  /** Optional credit balance for scheduling cost display */
+  creditBalance?: number;
 }
 
 /**
@@ -97,6 +100,7 @@ export function ConceptCard({
   isLoadingEnrichment = false,
   businessLocationCode,
   businessLocationName,
+  creditBalance,
 }: ConceptCardProps) {
   const router = useRouter();
 
@@ -770,6 +774,15 @@ export function ConceptCard({
               </div>
             </div>
           )}
+
+          {/* Scheduling Section */}
+          <div className="px-4 py-2 border-b border-gray-100">
+            <ConceptScheduleSettings
+              keywordId={keyword.id}
+              keywordName={keyword.name}
+              creditBalance={creditBalance}
+            />
+          </div>
 
           {/* Collapsible Sections */}
           <div className="px-4">

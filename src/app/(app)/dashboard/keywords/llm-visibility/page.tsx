@@ -1001,6 +1001,7 @@ export default function LLMVisibilityPage() {
         isOpen={!!checkingModal}
         onClose={() => setCheckingModal(null)}
         onCheckComplete={handleCheckComplete}
+        businessName={business?.name || undefined}
       />
 
       {/* Concept Details Sidebar */}

@@ -19,6 +19,8 @@ interface CheckLLMModalProps {
   onClose: () => void;
   /** Called when a check completes successfully, to trigger data refresh */
   onCheckComplete?: () => void;
+  /** Business name to display in results (e.g., "Acme Co was not mentioned") */
+  businessName?: string;
 }
 
 export default function CheckLLMModal({
@@ -27,6 +29,7 @@ export default function CheckLLMModal({
   isOpen,
   onClose,
   onCheckComplete,
+  businessName,
 }: CheckLLMModalProps) {
   const [selectedProviders, setSelectedProviders] = useState<LLMProvider[]>(['chatgpt', 'claude']);
   const [isChecking, setIsChecking] = useState(false);
@@ -233,7 +236,9 @@ export default function CheckLLMModal({
                             Mentioned
                           </span>
                         ) : (
-                          <span className="text-gray-400 text-xs">Not mentioned</span>
+                          <span className="text-gray-400 text-xs" title={businessName ? `${businessName} was not mentioned` : 'Business not mentioned'}>
+                            Not mentioned
+                          </span>
                         )}
                       </div>
                     </div>
@@ -264,7 +269,9 @@ export default function CheckLLMModal({
                         <span className={`text-sm font-medium ${hasVisibility ? 'text-green-800' : 'text-amber-800'}`}>
                           {hasVisibility
                             ? `Found in ${Math.max(citedCount, mentionedCount)} of ${results.length} AI${results.length > 1 ? 's' : ''}`
-                            : 'Not found in any AI response'}
+                            : businessName
+                              ? `"${businessName}" was not found in any AI response`
+                              : 'Your business was not found in any AI response'}
                         </span>
                       </div>
                       {hasVisibility && (

@@ -240,6 +240,7 @@ export default function KeywordsPage() {
         isOpen={!!checkingLLM}
         onClose={() => setCheckingLLM(null)}
         onCheckComplete={handleCheckComplete}
+        businessName={business?.name || undefined}
       />
 
     </div>
