@@ -470,9 +470,9 @@ export default function ConceptsTable({
                 expandedRowKey === `${row.concept.id}::${row.keyword}` ? 'bg-blue-50' : ''
               }`}
             >
-              <td className="py-3 px-4">
-                <div className="flex items-center gap-3.5">
-                  <span className="w-3 flex-shrink-0 flex items-center justify-center">
+              <td className="py-3 pl-4 pr-4">
+                <div className="flex items-center gap-3">
+                  <span className="w-4 flex-shrink-0 flex items-center justify-center">
                     {(row.desktopChecked || row.mobileChecked) && (
                       <button
                         onClick={(e) => {
