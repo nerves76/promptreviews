@@ -147,6 +147,21 @@ export function useGeoGridStatus({
     }
   }, [keywordId, isUsedInGeoGrid, isOpen, fetchGeoGridStatus]);
 
+  // Refetch data when page becomes visible (user navigates back)
+  // This ensures data is fresh after running checks on other pages
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && keywordId && isUsedInGeoGrid && isOpen) {
+        fetchGeoGridStatus();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [keywordId, isUsedInGeoGrid, isOpen, fetchGeoGridStatus]);
+
   // Clear geo grid status
   const clear = useCallback(() => {
     setGeoGridStatus(null);

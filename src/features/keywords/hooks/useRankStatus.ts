@@ -157,6 +157,21 @@ export function useRankStatus({
     }
   }, [keywordId, isUsedInRankTracking, isOpen, fetchRankStatus]);
 
+  // Refetch data when page becomes visible (user navigates back)
+  // This ensures data is fresh after running checks on other pages
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && keywordId && isUsedInRankTracking && isOpen) {
+        fetchRankStatus();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [keywordId, isUsedInRankTracking, isOpen, fetchRankStatus]);
+
   // Clear rank status
   const clear = useCallback(() => {
     setRankStatus(null);

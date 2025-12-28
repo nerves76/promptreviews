@@ -134,6 +134,21 @@ export function useVolumeData({
     }
   }, [keywordId, isOpen, fetchVolumeData]);
 
+  // Refetch data when page becomes visible (user navigates back)
+  // This ensures data is fresh after running checks on other pages
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && keywordId && isOpen) {
+        fetchVolumeData();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [keywordId, isOpen, fetchVolumeData]);
+
   // Check volume for a specific term
   const checkTermVolume = useCallback(
     async (
