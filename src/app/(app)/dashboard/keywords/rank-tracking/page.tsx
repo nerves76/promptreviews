@@ -624,8 +624,15 @@ export default function RankTrackingPage() {
         icon={<Icon name="FaChartLine" className="w-8 h-8 text-slate-blue" size={32} />}
         topMargin="mt-8"
       >
-        {/* Search header */}
-        <div className="flex items-center justify-end mb-6">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-6 w-full gap-2">
+          <div className="flex flex-col">
+            <h2 className="text-2xl font-bold text-slate-blue mb-2">Rank tracking</h2>
+            <p className="text-gray-600 text-base max-w-md">
+              Monitor your Google search rankings across desktop and mobile devices.
+            </p>
+          </div>
+          {/* Search */}
           <div className="relative w-64">
             <Icon name="FaSearch" className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
