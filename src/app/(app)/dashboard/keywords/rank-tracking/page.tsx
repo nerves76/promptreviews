@@ -90,7 +90,7 @@ export default function RankTrackingPage() {
   const { business } = useBusinessData();
   const [searchQuery, setSearchQuery] = useState('');
   const [checkingKeyword, setCheckingKeyword] = useState<{ keyword: string; conceptId: string } | null>(null);
-  const [checkingVolumeTerm, setCheckingVolumeTerm] = useState<string | null>(null);
+  const [checkingVolumeTerm, setCheckingVolumeTerm] = useState<{ term: string; conceptId: string } | null>(null);
   const [researchResults, setResearchResults] = useState<ResearchResult[]>([]);
   const [rankChecks, setRankChecks] = useState<RankCheck[]>([]);
   const [gridDataMap, setGridDataMap] = useState<Map<string, GeoGridData>>(new Map());
@@ -133,6 +133,9 @@ export default function RankTrackingPage() {
     const lookupLocation = async () => {
       setIsLookingUpLocation(true);
       try {
+        // Re-check inside async to satisfy TypeScript
+        if (!business?.address_city) return;
+
         const searchQuery = business.address_state
           ? `${business.address_city}, ${business.address_state}`
           : business.address_city;
@@ -395,7 +398,7 @@ export default function RankTrackingPage() {
   }, [concepts, business, lookedUpLocation, isLookingUpLocation, fetchRankChecks]);
 
   // Handle clicking "Check volume" - auto-run if location available, otherwise show modal
-  const handleCheckVolume = useCallback(async (keyword: string) => {
+  const handleCheckVolume = useCallback(async (keyword: string, conceptId: string) => {
     // If still looking up location, show loading state and wait
     if (isLookingUpLocation) {
       setIsAutoCheckingVolume(true);
@@ -426,7 +429,7 @@ export default function RankTrackingPage() {
           throw new Error(response.error);
         }
 
-        // Save the research result
+        // Save the research result with keywordId to link to concept
         await apiClient.post('/keyword-research/save', {
           term: keyword,
           searchVolume: response.volume,
@@ -435,6 +438,7 @@ export default function RankTrackingPage() {
           competitionLevel: response.competitionLevel,
           locationCode,
           locationName,
+          keywordId: conceptId,
         });
 
         setAutoVolumeResult({
@@ -448,13 +452,13 @@ export default function RankTrackingPage() {
       } catch (error) {
         console.error('Auto volume check failed:', error);
         // Fall back to showing modal on error
-        setCheckingVolumeTerm(keyword);
+        setCheckingVolumeTerm({ term: keyword, conceptId });
       } finally {
         setIsAutoCheckingVolume(false);
       }
     } else {
       // No location available, show modal
-      setCheckingVolumeTerm(keyword);
+      setCheckingVolumeTerm({ term: keyword, conceptId });
     }
   }, [business, lookedUpLocation, isLookingUpLocation, fetchResearchResults]);
 
@@ -477,7 +481,7 @@ export default function RankTrackingPage() {
       competitionLevel: string | null;
       error?: string;
     }>('/rank-tracking/discovery', {
-      keyword: checkingVolumeTerm,
+      keyword: checkingVolumeTerm.term,
       locationCode,
     });
 
@@ -485,15 +489,16 @@ export default function RankTrackingPage() {
       throw new Error(response.error);
     }
 
-    // Save the research result
+    // Save the research result with keywordId to link to concept
     await apiClient.post('/keyword-research/save', {
-      term: checkingVolumeTerm,
+      term: checkingVolumeTerm.term,
       searchVolume: response.volume,
       cpc: response.cpc,
       competition: null,
       competitionLevel: response.competitionLevel,
       locationCode,
       locationName,
+      keywordId: checkingVolumeTerm.conceptId,
     });
 
     // Refresh the research results to update the UI
@@ -655,7 +660,7 @@ export default function RankTrackingPage() {
 
       {/* Check Volume Modal */}
       <CheckVolumeModal
-        keyword={checkingVolumeTerm || ''}
+        keyword={checkingVolumeTerm?.term || ''}
         isOpen={!!checkingVolumeTerm}
         onClose={() => setCheckingVolumeTerm(null)}
         onCheck={performVolumeCheck}

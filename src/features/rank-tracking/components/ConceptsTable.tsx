@@ -50,7 +50,7 @@ interface ConceptsTableProps {
   gridData?: Map<string, GeoGridData>;
   onConceptClick?: (concept: KeywordData) => void;
   onCheckRank?: (keyword: string, conceptId: string) => void;
-  onCheckVolume?: (keyword: string) => void;
+  onCheckVolume?: (keyword: string, conceptId: string) => void;
   isLoading?: boolean;
 }
 
@@ -136,10 +136,10 @@ export default function ConceptsTable({
     onCheckRank(keyword, conceptId);
   };
 
-  const handleCheckVolume = (keyword: string, e: React.MouseEvent) => {
+  const handleCheckVolume = (keyword: string, conceptId: string, e: React.MouseEvent) => {
     e.stopPropagation(); // Don't trigger row click
     if (!onCheckVolume) return;
-    onCheckVolume(keyword);
+    onCheckVolume(keyword, conceptId);
   };
 
   // Helper to normalize term for volume lookup
@@ -382,7 +382,7 @@ export default function ConceptsTable({
                   </div>
                 ) : (
                   <button
-                    onClick={(e) => handleCheckVolume(row.keyword, e)}
+                    onClick={(e) => handleCheckVolume(row.keyword, row.concept.id, e)}
                     className="text-xs text-gray-400 hover:text-blue-600 transition-colors"
                     title="Check search volume"
                   >
@@ -458,7 +458,7 @@ export default function ConceptsTable({
               <td className="py-3 px-4">
                 <div className="flex items-center justify-center gap-2">
                   <button
-                    onClick={(e) => handleCheckVolume(row.keyword, e)}
+                    onClick={(e) => handleCheckVolume(row.keyword, row.concept.id, e)}
                     className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 rounded hover:bg-blue-100 transition-colors"
                     title="Check search volume"
                   >
