@@ -412,7 +412,9 @@ export default function ConceptsTable({
 
   return (
     <div className="overflow-x-auto -mx-6">
-      <table className="w-full">
+      <table className="w-full min-w-[900px]">
+        {/* Column widths: Keyword, Concept, Volume, Rank, Grid, Change, Actions */}
+        <colgroup><col style={{ minWidth: '280px' }} /><col style={{ minWidth: '120px' }} /><col style={{ minWidth: '90px' }} /><col style={{ minWidth: '110px' }} /><col style={{ minWidth: '80px' }} /><col style={{ minWidth: '70px' }} /><col style={{ minWidth: '150px' }} /></colgroup>
         <thead>
           <tr className="border-b border-gray-200">
             <th className="text-left py-3 pl-4 pr-4">

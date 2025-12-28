@@ -162,6 +162,13 @@ export function ConceptCard({
   // Card expansion state (accordion behavior)
   const [isExpanded, setIsExpanded] = useState(false);
 
+  // Check reviews state
+  const [isCheckingReviews, setIsCheckingReviews] = useState(false);
+  const [checkReviewsResult, setCheckReviewsResult] = useState<{
+    reviewsScanned: number;
+    matchesFound: number;
+  } | null>(null);
+
   // Local state for checking individual term volume (still needed for on-demand checks)
   const [localVolumeData, setLocalVolumeData] = useState<Map<string, ResearchResultData>>(new Map());
 
@@ -471,6 +478,42 @@ export function ConceptCard({
     }
   };
 
+  // Check reviews handler
+  const handleCheckReviews = async () => {
+    if (!keyword.id || isCheckingReviews) return;
+
+    setIsCheckingReviews(true);
+    setCheckReviewsResult(null);
+
+    try {
+      const result = await apiClient.post<{
+        success: boolean;
+        reviewsScanned: number;
+        matchesFound: number;
+        exactMatches: number;
+        aliasMatches: number;
+      }>(`/keywords/${keyword.id}/check-reviews`, {});
+
+      setCheckReviewsResult({
+        reviewsScanned: result.reviewsScanned,
+        matchesFound: result.matchesFound,
+      });
+
+      // Clear result after 5 seconds
+      setTimeout(() => setCheckReviewsResult(null), 5000);
+
+      // Trigger a refresh of the keyword data if onUpdate is available
+      if (onUpdate) {
+        // Re-fetch the keyword to get updated counts
+        onUpdate(keyword.id, {});
+      }
+    } catch (err) {
+      console.error('Failed to check reviews:', err);
+    } finally {
+      setIsCheckingReviews(false);
+    }
+  };
+
   // Merge keyword data with optimistic updates
   const displayKeyword = useMemo(() => {
     if (!optimisticData) return keyword;
@@ -590,6 +633,18 @@ export function ConceptCard({
                   >
                     <Icon name="FaMapMarker" className="w-2 h-2" />
                     {enrichedData.geoGridStatus.summary.pointsInTop10}/{enrichedData.geoGridStatus.summary.totalPoints} top 10
+                  </span>
+                )}
+                {enrichedData?.scheduleStatus?.isScheduled && enrichedData.scheduleStatus.frequency && (
+                  <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded flex items-center gap-0.5 ${
+                    enrichedData.scheduleStatus.isEnabled
+                      ? 'bg-indigo-100 text-indigo-700'
+                      : 'bg-gray-100 text-gray-500'
+                  }`}
+                    title={enrichedData.scheduleStatus.isEnabled ? 'Schedule active' : 'Schedule paused'}
+                  >
+                    <Icon name="FaCalendarAlt" className="w-2 h-2" />
+                    {enrichedData.scheduleStatus.frequency.charAt(0).toUpperCase() + enrichedData.scheduleStatus.frequency.slice(1)}
                   </span>
                 )}
               </>
@@ -874,11 +929,12 @@ export function ConceptCard({
                         <td className="py-2 px-2">
                           <div className="flex items-center gap-1.5">
                             {term.isCanonical ? (
-                              <Icon
-                                name="FaStar"
-                                className="w-2.5 h-2.5 text-slate-blue flex-shrink-0"
-                                title="Key search term: Simply indicates the term that best represents what you are targeting. It does not affect results."
-                              />
+                              <span title="Key search term: Simply indicates the term that best represents what you are targeting. It does not affect results.">
+                                <Icon
+                                  name="FaStar"
+                                  className="w-2.5 h-2.5 text-slate-blue flex-shrink-0"
+                                />
+                              </span>
                             ) : onUpdate ? (
                               <button
                                 onClick={async () => {
@@ -1122,6 +1178,29 @@ export function ConceptCard({
           defaultExpanded={false}
           forceExpanded={isEditing}
           icon={<Icon name="FaStar" className="w-3.5 h-3.5 text-slate-blue" />}
+          headerAction={!isEditing && (displayKeyword.reviewPhrase || (displayKeyword.aliases && displayKeyword.aliases.length > 0)) ? (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleCheckReviews();
+              }}
+              disabled={isCheckingReviews}
+              className="px-2 py-0.5 text-xs font-medium text-slate-blue bg-slate-blue/10 hover:bg-slate-blue/20 rounded transition-colors flex items-center gap-1 disabled:opacity-50"
+              title="Scan reviews for matches (1 credit)"
+            >
+              {isCheckingReviews ? (
+                <>
+                  <Icon name="FaSpinner" className="w-2.5 h-2.5 animate-spin" />
+                  <span>Checking...</span>
+                </>
+              ) : (
+                <>
+                  <Icon name="FaSearch" className="w-2.5 h-2.5" />
+                  <span>Check</span>
+                </>
+              )}
+            </button>
+          ) : undefined}
         >
           {isEditing ? (
             /* Edit mode */
@@ -1176,7 +1255,7 @@ export function ConceptCard({
               <table className="w-full text-sm">
                 <thead>
                   <tr className="text-xs text-gray-500">
-                    <th className="text-left font-normal pb-1">Keyword</th>
+                    <th className="text-left font-normal pb-1">Suggested phrase</th>
                     <th className="text-right font-normal pb-1 w-20">In reviews</th>
                   </tr>
                 </thead>
@@ -1228,6 +1307,15 @@ export function ConceptCard({
                 <p className="text-[10px] text-gray-400 italic">
                   Aliases combined: {displayKeyword.aliasMatchCount} match{displayKeyword.aliasMatchCount !== 1 ? 'es' : ''}
                 </p>
+              )}
+              {/* Check reviews result */}
+              {checkReviewsResult && (
+                <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="flex items-center gap-1.5 text-green-700 text-xs">
+                    <Icon name="FaCheckCircle" className="w-3 h-3" />
+                    <span>Scanned {checkReviewsResult.reviewsScanned} reviews, found {checkReviewsResult.matchesFound} matches</span>
+                  </div>
+                </div>
               )}
             </div>
           )}

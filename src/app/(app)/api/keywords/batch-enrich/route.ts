@@ -89,11 +89,19 @@ interface GeoGridStatusData {
   searchTerms: GeoGridSearchTermData[];
 }
 
+interface ScheduleStatusData {
+  isScheduled: boolean;
+  frequency: 'daily' | 'weekly' | 'monthly' | null;
+  isEnabled: boolean;
+  nextScheduledAt: string | null;
+}
+
 interface EnrichmentData {
   volumeData: ResearchResultData[];
   rankStatus: RankStatusData | null;
   llmResults: LLMVisibilityResult[];
   geoGridStatus: GeoGridStatusData | null;
+  scheduleStatus: ScheduleStatusData | null;
 }
 
 function transformResearchResult(row: any): ResearchResultData {
@@ -177,7 +185,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Parallel fetch all enrichment data
-    const [volumeResults, rankGroupKeywords, llmResults, geoGridTracking, geoGridChecks] = await Promise.all([
+    const [volumeResults, rankGroupKeywords, llmResults, geoGridTracking, geoGridChecks, conceptSchedules] = await Promise.all([
       // 1. Fetch volume data for all keywords
       serviceSupabase
         .from('keyword_research_results')
@@ -238,6 +246,13 @@ export async function POST(request: NextRequest) {
         .in('keyword_id', filteredKeywordIds)
         .order('checked_at', { ascending: false })
         .limit(1000), // Increased limit to cover all search terms with multiple check points
+
+      // 6. Fetch concept schedules for all keywords
+      serviceSupabase
+        .from('concept_schedules')
+        .select('keyword_id, schedule_frequency, is_enabled, next_scheduled_at')
+        .eq('account_id', accountId)
+        .in('keyword_id', filteredKeywordIds),
     ]);
 
     // Build enrichment map
@@ -250,7 +265,22 @@ export async function POST(request: NextRequest) {
         rankStatus: null,
         llmResults: [],
         geoGridStatus: null,
+        scheduleStatus: null,
       };
+    }
+
+    // Populate schedule status
+    if (conceptSchedules.data) {
+      for (const schedule of conceptSchedules.data) {
+        if (schedule.keyword_id && enrichment[schedule.keyword_id]) {
+          enrichment[schedule.keyword_id].scheduleStatus = {
+            isScheduled: schedule.schedule_frequency !== null,
+            frequency: schedule.schedule_frequency as 'daily' | 'weekly' | 'monthly' | null,
+            isEnabled: schedule.is_enabled,
+            nextScheduledAt: schedule.next_scheduled_at,
+          };
+        }
+      }
     }
 
     // 1. Populate volume data

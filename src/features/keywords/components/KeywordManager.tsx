@@ -84,12 +84,20 @@ export interface GeoGridStatusData {
   searchTerms?: GeoGridSearchTermData[];
 }
 
+export interface ScheduleStatusData {
+  isScheduled: boolean;
+  frequency: 'daily' | 'weekly' | 'monthly' | null;
+  isEnabled: boolean;
+  nextScheduledAt: string | null;
+}
+
 export interface EnrichmentData {
   volumeData: ResearchResultData[];
   rankStatus: RankStatusData | null;
   llmResults: LLMVisibilityResult[];
   geoGridStatus: GeoGridStatusData | null;
   discoveredQuestions?: DiscoveredQuestion[];
+  scheduleStatus?: ScheduleStatusData | null;
 }
 
 interface KeywordManagerProps {
