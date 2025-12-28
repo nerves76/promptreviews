@@ -466,12 +466,12 @@ export default function ConceptsTable({
           {sortedRows.map((row, index) => (
             <React.Fragment key={`${row.concept.id}-${row.keyword}-${index}`}>
             <tr
-              className={`border-b border-gray-100 hover:bg-gray-50 transition-colors ${
+              className={`border-b border-gray-100 hover:bg-white transition-colors ${
                 expandedRowKey === `${row.concept.id}::${row.keyword}` ? 'bg-blue-50' : ''
               }`}
             >
               <td className="py-3 px-4">
-                <div className="flex items-center gap-2.5">
+                <div className="flex items-center gap-3.5">
                   <span className="w-3 flex-shrink-0 flex items-center justify-center">
                     {(row.desktopChecked || row.mobileChecked) && (
                       <button
