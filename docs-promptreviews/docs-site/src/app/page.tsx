@@ -141,7 +141,7 @@ const features = [
     icon: Target,
     color: 'bg-teal-500',
     popular: true,
-    plans: ['builder', 'maven']
+    plans: ['grower', 'builder', 'maven']
   },
 ]
 
