@@ -15,7 +15,7 @@ import {
 
 export const metadata: Metadata = {
   title: 'Prompt Reviews Documentation - Complete Help Center & Guides',
-  description: 'Learn how to level-up your online presence in Google & ChatGPT by leveraging the power of customer reviews with Prompt Reviews. Explore tutorials from account setup to advanced review capture strategies.',
+  description: 'Master reviews, rankings, and AI visibility. Learn to collect customer feedback, optimize your Google presence, track local SEO performance, and showcase your reputation everywhere that matters.',
   keywords: [
     'Prompt Reviews help',
     'review management tutorial',
@@ -199,8 +199,7 @@ export default function HomePage() {
           </h1>
           
           <p className="text-xl text-white/90 mb-8 max-w-3xl mx-auto text-balance">
-            Learn how to level-up your online presence in Google & ChatGPT by leveraging the power 
-            of customer reviews with Prompt Reviews. Explore tutorials from account setup to advanced review capture strategies.
+            Master reviews, rankings, and AI visibility. Learn to collect customer feedback, optimize your Google presence, track local SEO performance, and showcase your reputation everywhere that matters.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
