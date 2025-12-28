@@ -183,14 +183,20 @@ Given a keyword phrase, generate optimized versions for different use cases:
    - Be direct and simple
    - Match how people actually search
    - Include location if present in original
-   - Use different word orders and phrasings of the same concept
-   - Example: ["barbershop portland", "portland barbershop", "portland barbers"]
-   - Example: ["best dentist seattle", "seattle dentist", "top rated dentist seattle"]
+   - Keep the same core business terms (don't substitute "barbershop" with "hair salon")
+   - You MAY rearrange words, add/remove qualifiers, use singular/plural
+   - Example: ["barbershop portland", "portland barbershop", "best barbershop portland"]
+   - Example: ["dentist seattle", "seattle dentist", "top dentist seattle"]
 
-3. **aliases**: 2-4 variant phrases that mean the same thing. Include:
-   - Different word orders
-   - Common synonyms
-   - With/without location variations
+3. **aliases**: 2-4 variant phrases that are VERY CLOSE to the review_phrase. CRITICAL RULES:
+   - MUST keep the same core business terms and location as the review_phrase
+   - You MAY: swap qualifiers (best → top), rearrange word order, omit qualifiers entirely
+   - Do NOT substitute core business terms (e.g., "autobody shop" must stay "autobody shop", not "car shop" or "auto repair")
+   - Do NOT remove or change the location
+   - Example: If review_phrase is "Best autobody shop in Arizona"
+     - GOOD aliases: "Top autobody shop in Arizona", "Arizona autobody shop", "autobody shop in Arizona"
+     - BAD aliases: "Best car shop in Arizona" (changed core term), "Top autobody services" (removed location)
+   - The purpose is to track how slight variations of the SAME phrase appear in reviews
 
 4. **location_scope**: Detect the geographic scope:
    - "local" = neighborhood/area specific
@@ -203,6 +209,7 @@ Given a keyword phrase, generate optimized versions for different use cases:
 5. **related_questions**: 3-5 questions people might ask about this topic, each with a funnel stage. Should:
    - Be natural questions a customer might type into Google or ask an AI
    - Include "People Also Ask" style questions
+   - Keep the same core business terms (don't substitute "barbershop" with "hair salon")
    - Cover different aspects: cost, quality, comparison, process, etc.
    - Include location if relevant to the keyword
    - Each question needs a funnelStage:
