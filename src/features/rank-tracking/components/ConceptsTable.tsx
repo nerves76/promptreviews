@@ -496,7 +496,7 @@ export default function ConceptsTable({
                   </span>
                 </div>
               </td>
-              <td className="py-3 px-4 overflow-hidden">
+              <td className="py-3 px-4 max-w-0">
                 <span className="text-sm text-gray-500 truncate block" title={row.concept.name}>
                   {row.concept.name || '—'}
                 </span>
