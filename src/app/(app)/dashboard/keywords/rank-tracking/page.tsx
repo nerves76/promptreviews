@@ -11,8 +11,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import PageCard from '@/app/(app)/components/PageCard';
 import Icon from '@/components/Icon';
-import Pagination from '@/components/Pagination';
-import { usePagination } from '@/hooks/usePagination';
 import { CheckRankModal, CheckVolumeModal, ConceptsTable, AddKeywordConceptModal } from '@/features/rank-tracking/components';
 import { useKeywords, useKeywordDetails } from '@/features/keywords/hooks/useKeywords';
 import { KeywordDetailsSidebar } from '@/features/keywords/components/KeywordDetailsSidebar';
@@ -328,20 +326,6 @@ export default function RankTrackingPage() {
       )
     : concepts;
 
-  // Pagination
-  const {
-    currentPage,
-    totalPages,
-    pageSize,
-    startIndex,
-    endIndex,
-    goToPage,
-    isFirstPage,
-    isLastPage,
-  } = usePagination({ totalItems: filteredConcepts.length, pageSize: 25 });
-
-  const paginatedConcepts = filteredConcepts.slice(startIndex, endIndex);
-
   // Handle clicking "Check ranking" - auto-run if location available, otherwise show modal
   const handleCheckRank = useCallback(async (keyword: string, conceptId: string) => {
     // If still looking up location, wait a bit
@@ -648,7 +632,7 @@ export default function RankTrackingPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-6 w-full gap-2">
           <div className="flex flex-col">
-            <h2 className="text-2xl font-bold text-slate-blue mb-2">Rank tracking</h2>
+            <h2 className="text-2xl font-bold text-slate-blue mt-4 mb-2">Rank tracking</h2>
             <p className="text-gray-600 text-base max-w-md">
               Monitor your Google search rankings across desktop and mobile devices.
             </p>
@@ -677,7 +661,7 @@ export default function RankTrackingPage() {
 
         {/* Keywords Table */}
         <ConceptsTable
-          concepts={paginatedConcepts}
+          concepts={filteredConcepts}
           volumeData={volumeData}
           rankData={rankData}
           gridData={gridDataMap}
@@ -688,17 +672,6 @@ export default function RankTrackingPage() {
           checkingRankKeyword={checkingRankKeyword}
           checkingVolumeKeyword={checkingVolumeKeyword}
         />
-
-        {/* Pagination */}
-        {filteredConcepts.length > pageSize && (
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            totalItems={filteredConcepts.length}
-            pageSize={pageSize}
-            onPageChange={goToPage}
-          />
-        )}
       </PageCard>
 
       {/* Check Rank Modal */}

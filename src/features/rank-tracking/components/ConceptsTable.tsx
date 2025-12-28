@@ -2,6 +2,8 @@
 
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import Icon from '@/components/Icon';
+import Pagination from '@/components/Pagination';
+import { usePagination } from '@/hooks/usePagination';
 import { type KeywordData } from '@/features/keywords/keywordUtils';
 import { apiClient } from '@/utils/apiClient';
 import RankHistoryChart from './RankHistoryChart';
@@ -358,6 +360,19 @@ export default function ConceptsTable({
     });
   }, [rows, sortField, sortDirection]);
 
+  // Pagination - paginate the sorted rows
+  const PAGE_SIZE = 25;
+  const {
+    currentPage,
+    totalPages,
+    pageSize,
+    startIndex,
+    endIndex,
+    goToPage,
+  } = usePagination({ totalItems: sortedRows.length, pageSize: PAGE_SIZE });
+
+  const paginatedRows = sortedRows.slice(startIndex, endIndex);
+
   const handleSort = (field: SortField) => {
     if (sortField === field) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
@@ -454,7 +469,7 @@ export default function ConceptsTable({
           </tr>
         </thead>
         <tbody>
-          {sortedRows.map((row, index) => (
+          {paginatedRows.map((row, index) => (
             <React.Fragment key={`${row.concept.id}-${row.keyword}-${index}`}>
             <tr
               className={`border-b border-gray-100 hover:bg-white transition-colors ${
@@ -639,6 +654,17 @@ export default function ConceptsTable({
           ))}
         </tbody>
       </table>
+
+      {/* Pagination */}
+      {sortedRows.length > PAGE_SIZE && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={sortedRows.length}
+          pageSize={pageSize}
+          onPageChange={goToPage}
+        />
+      )}
     </div>
   );
 }
