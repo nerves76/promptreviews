@@ -472,20 +472,22 @@ export default function ConceptsTable({
             >
               <td className="py-3 px-4">
                 <div className="flex items-center gap-1.5">
-                  {(row.desktopChecked || row.mobileChecked) && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleToggleHistory(`${row.concept.id}::${row.keyword}`, row.concept.id, e);
-                      }}
-                      className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
-                    >
-                      <Icon
-                        name={expandedRowKey === `${row.concept.id}::${row.keyword}` ? 'FaChevronDown' : 'FaChevronRight'}
-                        className="w-3 h-3"
-                      />
-                    </button>
-                  )}
+                  <span className="w-3 flex-shrink-0 flex items-center justify-center">
+                    {(row.desktopChecked || row.mobileChecked) && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleToggleHistory(`${row.concept.id}::${row.keyword}`, row.concept.id, e);
+                        }}
+                        className="text-gray-400 hover:text-gray-600 transition-colors"
+                      >
+                        <Icon
+                          name={expandedRowKey === `${row.concept.id}::${row.keyword}` ? 'FaChevronDown' : 'FaChevronRight'}
+                          className="w-3 h-3"
+                        />
+                      </button>
+                    )}
+                  </span>
                   <span
                     className="text-sm font-medium text-gray-900 cursor-pointer hover:text-slate-blue"
                     onClick={() => onConceptClick?.(row.concept)}
