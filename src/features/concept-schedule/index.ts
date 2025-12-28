@@ -24,5 +24,6 @@ export {
 
 // Components
 export { ConceptScheduleSettings } from './components/ConceptScheduleSettings';
+export { ScheduleSettingsModal } from './components/ScheduleSettingsModal';
 export { CostBreakdownDisplay } from './components/CostBreakdownDisplay';
 export { OverrideWarningModal } from './components/OverrideWarningModal';

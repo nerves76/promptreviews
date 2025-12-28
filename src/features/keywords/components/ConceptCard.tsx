@@ -493,8 +493,8 @@ export function ConceptCard({
   }, [rankStatus]);
 
   return (
-    <div className={`bg-white border rounded-xl shadow-sm overflow-hidden transition-shadow ${
-      isEditing ? 'border-blue-300 ring-2 ring-blue-100' : 'border-gray-200 hover:shadow-md'
+    <div className={`border rounded-xl shadow-sm overflow-hidden transition-all ${
+      isEditing ? 'bg-white border-blue-300 ring-2 ring-blue-100' : isExpanded ? 'bg-blue-50/50 border-blue-200' : 'bg-white border-gray-200 hover:shadow-md'
     }`}>
       {/* Header - clickable to expand/collapse */}
       <div
@@ -775,8 +775,8 @@ export function ConceptCard({
             </div>
           )}
 
-          {/* Scheduling Section */}
-          <div className="px-4 py-2 border-b border-gray-100">
+          {/* Schedule Button */}
+          <div className="px-4 py-2">
             <ConceptScheduleSettings
               keywordId={keyword.id}
               keywordName={keyword.name}

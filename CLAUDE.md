@@ -8,6 +8,13 @@ This file provides important context for AI assistants working on the PromptRevi
 - Support email: support@promptreviews.app
 - Main application URL: app.promptreviews.app
 
+## ⚠️ CRITICAL: Product Name
+- **The product name is "Prompt Reviews" (two words)**
+- ✅ "Prompt Reviews", "Prompt Reviews app"
+- ❌ "PromptReviews", "promptreviews", "Prompt reviews"
+- Exception: Domain/URLs use `promptreviews` (no space) - e.g., promptreviews.app
+- Exception: Code variables/identifiers can use `PromptReviews` or `promptReviews`
+
 ## ⚠️ IMPORTANT: Copy & Content Conventions
 - **All UI copy must use sentence case** (only capitalize the first letter)
   - ✅ "Your balance", "Transaction history", "How credits work"
@@ -315,6 +322,16 @@ npm run cleanup           # Clear Next.js cache
 - Most tables use Row Level Security
 - Policies are account-based, not user-based
 - Admin users have special permissions
+
+### Table Naming Conventions
+- **Use prefixes** to group related tables by feature/domain:
+  - `comparison_*` - Competitor comparison tables
+  - `widget_*` - Widget-related tables
+  - `google_business_*` - GBP integration tables
+  - `review_*` - Review-related tables
+- **snake_case** for all table and column names
+- **Plural** for collection tables (`users`, `widgets`, `accounts`)
+- **Singular** for junction tables (`account_user`, `competitor_feature`)
 
 ## Testing Approach
 
