@@ -380,7 +380,7 @@ export default function ConceptsTable({
         </colgroup>
         <thead>
           <tr className="border-b border-gray-200">
-            <th className="text-left py-3 px-4">
+            <th className="text-left py-3 px-4" style={{ width: '35%' }}>
               <button
                 onClick={() => handleSort('keyword')}
                 className="flex items-center gap-1.5 text-sm font-semibold text-gray-700 hover:text-gray-900"
@@ -389,7 +389,7 @@ export default function ConceptsTable({
                 <SortIcon field="keyword" />
               </button>
             </th>
-            <th className="text-left py-3 px-4">
+            <th className="text-left py-3 px-4" style={{ width: '15%' }}>
               <button
                 onClick={() => handleSort('concept')}
                 className="flex items-center gap-1.5 text-sm font-semibold text-gray-700 hover:text-gray-900"
