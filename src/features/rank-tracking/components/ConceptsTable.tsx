@@ -396,7 +396,7 @@ export default function ConceptsTable({
   }
 
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto -mx-6">
       <table className="w-full table-fixed">
         <colgroup>
           <col className="w-[240px]" />
@@ -409,10 +409,10 @@ export default function ConceptsTable({
         </colgroup>
         <thead>
           <tr className="border-b border-gray-200">
-            <th className="text-left py-3 px-4">
+            <th className="text-left py-3 pl-6 pr-4">
               <button
                 onClick={() => handleSort('keyword')}
-                className="flex items-center gap-1.5 text-sm font-semibold text-gray-700 hover:text-gray-900"
+                className="flex items-center gap-1.5 text-sm font-semibold text-gray-700 hover:text-gray-900 ml-7"
               >
                 Keyword
                 <SortIcon field="keyword" />
@@ -457,7 +457,7 @@ export default function ConceptsTable({
                 <SortIcon field="change" />
               </button>
             </th>
-            <th className="text-center py-3 px-4">
+            <th className="text-center py-3 pl-4 pr-6">
               <span className="text-sm font-semibold text-gray-700">Actions</span>
             </th>
           </tr>
@@ -470,7 +470,7 @@ export default function ConceptsTable({
                 expandedRowKey === `${row.concept.id}::${row.keyword}` ? 'bg-blue-50' : ''
               }`}
             >
-              <td className="py-3 pl-4 pr-4">
+              <td className="py-3 pl-6 pr-4">
                 <div className="flex items-center gap-3">
                   <span className="w-4 flex-shrink-0 flex items-center justify-center">
                     {(row.desktopChecked || row.mobileChecked) && (
@@ -591,7 +591,7 @@ export default function ConceptsTable({
               <td className="py-3 px-4 text-center">
                 {getChangeDisplay(row.change)}
               </td>
-              <td className="py-3 px-4">
+              <td className="py-3 pl-4 pr-6">
                 <div className="flex items-center justify-center gap-2">
                   <button
                     onClick={(e) => handleCheckVolume(row.keyword, row.concept.id, e)}
