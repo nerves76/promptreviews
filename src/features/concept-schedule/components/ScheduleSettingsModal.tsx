@@ -328,7 +328,7 @@ export function ScheduleSettingsModal({
                       className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                     />
                     <div className="flex items-center gap-2">
-                      <Icon name="FaRobot" className="w-4 h-4 text-purple-500" />
+                      <Icon name="FaSparkles" className="w-4 h-4 text-purple-500" />
                       <span className="text-sm text-gray-700">LLM visibility</span>
                     </div>
                   </label>

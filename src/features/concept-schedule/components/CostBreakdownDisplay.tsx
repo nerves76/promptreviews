@@ -81,7 +81,7 @@ export function CostBreakdownDisplay({
         {/* LLM Visibility */}
         <div className={`flex justify-between items-center ${!costBreakdown.llmVisibility.enabled ? 'opacity-50' : ''}`}>
           <div className="flex items-center gap-2">
-            <Icon name="FaRobot" className="w-3.5 h-3.5 text-purple-500" />
+            <Icon name="FaSparkles" className="w-3.5 h-3.5 text-purple-500" />
             <span className="text-gray-600">
               LLM visibility
               {costBreakdown.llmVisibility.enabled && (
