@@ -368,19 +368,10 @@ export default function ConceptsTable({
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full table-fixed">
-        <colgroup>
-          <col style={{ width: '35%' }} />
-          <col style={{ width: '15%' }} />
-          <col style={{ width: '14%' }} />
-          <col style={{ width: '10%' }} />
-          <col style={{ width: '8%' }} />
-          <col style={{ width: '8%' }} />
-          <col style={{ width: '10%' }} />
-        </colgroup>
+      <table className="w-full">
         <thead>
           <tr className="border-b border-gray-200">
-            <th className="text-left py-3 px-4" style={{ width: '35%' }}>
+            <th className="text-left py-3 px-4 w-1/3">
               <button
                 onClick={() => handleSort('keyword')}
                 className="flex items-center gap-1.5 text-sm font-semibold text-gray-700 hover:text-gray-900"
@@ -389,7 +380,7 @@ export default function ConceptsTable({
                 <SortIcon field="keyword" />
               </button>
             </th>
-            <th className="text-left py-3 px-4" style={{ width: '15%' }}>
+            <th className="text-left py-3 px-4 w-32">
               <button
                 onClick={() => handleSort('concept')}
                 className="flex items-center gap-1.5 text-sm font-semibold text-gray-700 hover:text-gray-900"
@@ -440,10 +431,10 @@ export default function ConceptsTable({
               onClick={() => onConceptClick?.(row.concept)}
               className="border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors"
             >
-              <td className="py-3 px-4">
+              <td className="py-3 px-4 w-1/3">
                 <span className="text-sm font-medium text-gray-900">{row.keyword}</span>
               </td>
-              <td className="py-3 px-4">
+              <td className="py-3 px-4 w-32 max-w-[128px]">
                 <span className="text-sm text-gray-500 truncate block" title={row.concept.name}>
                   {row.concept.name || '—'}
                 </span>
