@@ -77,13 +77,27 @@ export default function HelpContentPage() {
         const map: Record<string, boolean> = {};
         data.articles.forEach((article: Article) => {
           // Check if any navigation item links to this article
+          // Handle various href formats: /slug, /docs/slug, /category/slug, slug
+          const slug = article.slug;
+          const slugParts = slug.split('/');
+          const lastSlugPart = slugParts[slugParts.length - 1]; // e.g., "overview" from "keywords/overview"
+
           const hasNav = navItems.some((item: any) => {
             if (!item.href) return false;
+            const href = item.href;
             return (
-              item.href === `/${article.slug}` ||
-              item.href === article.slug ||
-              item.href === `/google-biz-optimizer/${article.slug}` ||
-              item.href.includes(article.slug)
+              // Exact matches
+              href === `/${slug}` ||
+              href === slug ||
+              href === `/docs/${slug}` ||
+              href === `/google-biz-optimizer/${slug}` ||
+              // For slugs with folder prefixes like "keywords/rank-tracking"
+              href === `/${lastSlugPart}` ||
+              href === `/docs/${lastSlugPart}` ||
+              // Partial match - href contains the slug
+              href.includes(slug) ||
+              // Or slug contains href (without leading slash)
+              slug.includes(href.replace(/^\//, ''))
             );
           });
           map[article.slug] = hasNav;

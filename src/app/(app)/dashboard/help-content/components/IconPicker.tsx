@@ -34,6 +34,9 @@ const COMMON_ICONS = [
   // Users & People
   'User', 'Users', 'UserPlus', 'UserCheck', 'UserX', 'Contact', 'CircleUser',
 
+  // Faces & Expressions
+  'Smile', 'SmilePlus', 'Frown', 'Meh', 'Laugh', 'Angry', 'Annoyed',
+
   // Business & Commerce
   'Building', 'Building2', 'Store', 'Briefcase', 'CreditCard', 'Wallet',
   'ShoppingCart', 'ShoppingBag', 'Receipt', 'DollarSign', 'Coins', 'PiggyBank',
