@@ -117,7 +117,7 @@ export async function GET(request: NextRequest) {
         { data: widgets },
         { data: gbpLocations }
       ] = await Promise.all([
-        supabaseAdmin.from('accounts').select('id, created_at, status').not('email', 'is', null),
+        supabaseAdmin.from('accounts').select('id, created_at, subscription_status, plan, is_free_account, trial_end').not('email', 'is', null),
         supabaseAdmin.from('businesses').select('id, created_at'),
         supabaseAdmin.from('review_submissions').select('id, created_at, platform, verified'),
         supabaseAdmin.from('prompt_pages').select('id, created_at'),
@@ -132,9 +132,19 @@ export async function GET(request: NextRequest) {
         .eq('status', 'published');
 
       // Calculate account status breakdown
-      const accountsActive = accounts?.filter(a => a.status === 'active').length || 0;
-      const accountsTrial = accounts?.filter(a => a.status === 'trial').length || 0;
-      const accountsPaid = accounts?.filter(a => a.status === 'paid').length || 0;
+      // subscription_status values: 'active', 'trialing', 'canceled', 'incomplete', 'past_due', null
+      const accountsActive = accounts?.filter(a =>
+        a.subscription_status === 'active' ||
+        a.subscription_status === 'trialing' ||
+        (a.trial_end && new Date(a.trial_end) > now)
+      ).length || 0;
+      const accountsTrial = accounts?.filter(a =>
+        a.subscription_status === 'trialing' ||
+        (a.trial_end && new Date(a.trial_end) > now && !a.subscription_status)
+      ).length || 0;
+      const accountsPaid = accounts?.filter(a =>
+        a.subscription_status === 'active' && !a.is_free_account
+      ).length || 0;
 
       // Calculate platform distribution
       const platformCounts: Record<string, number> = {};
@@ -251,6 +261,12 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('Admin analytics error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    console.error('Admin analytics error details:', { message: errorMessage, stack: errorStack });
+    return NextResponse.json({
+      error: 'Internal server error',
+      details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+    }, { status: 500 });
   }
 } 

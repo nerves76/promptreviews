@@ -25,7 +25,8 @@ export type FeatureType =
   | 'keyword_enrichment'
   | 'sentiment_analysis'
   | 'backlinks'
-  | 'concept_schedule';
+  | 'concept_schedule'
+  | 'review_matching';
 
 export interface CreditBalance {
   accountId: string;

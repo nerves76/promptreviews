@@ -106,6 +106,7 @@ export async function GET(request: NextRequest) {
         geoGridEnabled: schedule.geo_grid_enabled,
         llmVisibilityEnabled: schedule.llm_visibility_enabled,
         llmProviders: schedule.llm_providers as LLMProvider[],
+        reviewMatchingEnabled: schedule.review_matching_enabled,
       }
     );
 
@@ -162,6 +163,7 @@ export async function POST(request: NextRequest) {
       geoGridEnabled = true,
       llmVisibilityEnabled = true,
       llmProviders = ['chatgpt', 'claude', 'gemini', 'perplexity'],
+      reviewMatchingEnabled = false,
     } = body;
 
     if (!keywordId) {
@@ -259,6 +261,7 @@ export async function POST(request: NextRequest) {
         geoGridEnabled,
         llmVisibilityEnabled,
         llmProviders: llmProviders as LLMProvider[],
+        reviewMatchingEnabled,
       }
     );
 
@@ -274,6 +277,7 @@ export async function POST(request: NextRequest) {
       geo_grid_enabled: geoGridEnabled,
       llm_visibility_enabled: llmVisibilityEnabled,
       llm_providers: llmProviders,
+      review_matching_enabled: reviewMatchingEnabled,
       estimated_credits: costBreakdown.total,
       is_enabled: true,
       paused_llm_schedule_id: existingSchedule

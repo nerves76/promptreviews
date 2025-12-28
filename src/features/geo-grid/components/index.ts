@@ -14,3 +14,4 @@ export { GeoGridTrendCard } from './GeoGridTrendCard';
 export { GeoGridKeywordPicker } from './GeoGridKeywordPicker';
 export { AddKeywordsToGridModal } from './AddKeywordsToGridModal';
 export { GeoGridScheduleSettings } from './GeoGridScheduleSettings';
+export { GeoGridConfigSettings } from './GeoGridConfigSettings';

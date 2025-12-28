@@ -74,6 +74,7 @@ export function ScheduleSettingsModal({
   const [geoGridEnabled, setGeoGridEnabled] = useState(true);
   const [llmVisibilityEnabled, setLlmVisibilityEnabled] = useState(true);
   const [llmProviders, setLlmProviders] = useState<LLMProvider[]>([...LLM_PROVIDERS]);
+  const [reviewMatchingEnabled, setReviewMatchingEnabled] = useState(false);
 
   // Override warning modal
   const [showOverrideWarning, setShowOverrideWarning] = useState(false);
@@ -102,6 +103,7 @@ export function ScheduleSettingsModal({
           setGeoGridEnabled(response.schedule.geoGridEnabled);
           setLlmVisibilityEnabled(response.schedule.llmVisibilityEnabled);
           setLlmProviders(response.schedule.llmProviders);
+          setReviewMatchingEnabled(response.schedule.reviewMatchingEnabled);
         }
 
         if (response.costBreakdown) {
@@ -133,6 +135,7 @@ export function ScheduleSettingsModal({
           geoGridEnabled,
           llmVisibilityEnabled,
           llmProviders,
+          reviewMatchingEnabled,
         });
 
         setCostBreakdown(response.costBreakdown);
@@ -143,7 +146,7 @@ export function ScheduleSettingsModal({
     }
 
     fetchCostPreview();
-  }, [keywordId, searchRankEnabled, geoGridEnabled, llmVisibilityEnabled, llmProviders, isLoading, isOpen]);
+  }, [keywordId, searchRankEnabled, geoGridEnabled, llmVisibilityEnabled, llmProviders, reviewMatchingEnabled, isLoading, isOpen]);
 
   // Handle save
   const handleSave = useCallback(async (skipWarning = false) => {
@@ -159,6 +162,7 @@ export function ScheduleSettingsModal({
         geoGridEnabled,
         llmVisibilityEnabled,
         llmProviders,
+        reviewMatchingEnabled,
       });
       setShowOverrideWarning(true);
       return;
@@ -181,6 +185,7 @@ export function ScheduleSettingsModal({
         geoGridEnabled,
         llmVisibilityEnabled,
         llmProviders,
+        reviewMatchingEnabled,
       });
 
       setSchedule(response.schedule);
@@ -194,7 +199,7 @@ export function ScheduleSettingsModal({
       setShowOverrideWarning(false);
       setPendingSaveData(null);
     }
-  }, [keywordId, frequency, dayOfWeek, dayOfMonth, hour, searchRankEnabled, geoGridEnabled, llmVisibilityEnabled, llmProviders, schedule, schedulesToPause, onScheduleUpdated, onClose]);
+  }, [keywordId, frequency, dayOfWeek, dayOfMonth, hour, searchRankEnabled, geoGridEnabled, llmVisibilityEnabled, llmProviders, reviewMatchingEnabled, schedule, schedulesToPause, onScheduleUpdated, onClose]);
 
   // Handle delete
   const handleDelete = useCallback(async () => {
@@ -330,6 +335,19 @@ export function ScheduleSettingsModal({
                     <div className="flex items-center gap-2">
                       <Icon name="FaSparkles" className="w-4 h-4 text-purple-500" />
                       <span className="text-sm text-gray-700">LLM visibility</span>
+                    </div>
+                  </label>
+
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={reviewMatchingEnabled}
+                      onChange={(e) => setReviewMatchingEnabled(e.target.checked)}
+                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    />
+                    <div className="flex items-center gap-2">
+                      <Icon name="FaStar" className="w-4 h-4 text-amber-500" />
+                      <span className="text-sm text-gray-700">Review matching</span>
                     </div>
                   </label>
                 </div>
@@ -468,7 +486,7 @@ export function ScheduleSettingsModal({
               </Button>
               <Button
                 onClick={() => handleSave(false)}
-                disabled={isSaving || (!searchRankEnabled && !geoGridEnabled && !llmVisibilityEnabled)}
+                disabled={isSaving || (!searchRankEnabled && !geoGridEnabled && !llmVisibilityEnabled && !reviewMatchingEnabled)}
               >
                 {isSaving ? (
                   <>

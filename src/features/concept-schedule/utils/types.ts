@@ -44,10 +44,16 @@ export interface LLMVisibilityCostBreakdown {
   cost: number;
 }
 
+export interface ReviewMatchingCostBreakdown {
+  enabled: boolean;
+  cost: number; // Flat rate per check
+}
+
 export interface ConceptCostBreakdown {
   searchRank: SearchRankCostBreakdown;
   geoGrid: GeoGridCostBreakdown;
   llmVisibility: LLMVisibilityCostBreakdown;
+  reviewMatching: ReviewMatchingCostBreakdown;
   total: number;
 }
 
@@ -67,6 +73,7 @@ export interface ConceptScheduleRow {
   geo_grid_enabled: boolean;
   llm_visibility_enabled: boolean;
   llm_providers: string[];
+  review_matching_enabled: boolean;
   estimated_credits: number;
   is_enabled: boolean;
   next_scheduled_at: string | null;
@@ -93,6 +100,7 @@ export interface ConceptSchedule {
   geoGridEnabled: boolean;
   llmVisibilityEnabled: boolean;
   llmProviders: LLMProvider[];
+  reviewMatchingEnabled: boolean;
   estimatedCredits: number;
   isEnabled: boolean;
   nextScheduledAt: string | null;
@@ -117,6 +125,7 @@ export interface CreateConceptScheduleRequest {
   geoGridEnabled?: boolean;
   llmVisibilityEnabled?: boolean;
   llmProviders?: LLMProvider[];
+  reviewMatchingEnabled?: boolean;
 }
 
 export interface UpdateConceptScheduleRequest {
@@ -128,6 +137,7 @@ export interface UpdateConceptScheduleRequest {
   geoGridEnabled?: boolean;
   llmVisibilityEnabled?: boolean;
   llmProviders?: LLMProvider[];
+  reviewMatchingEnabled?: boolean;
   isEnabled?: boolean;
 }
 
@@ -137,6 +147,7 @@ export interface CostPreviewRequest {
   geoGridEnabled: boolean;
   llmVisibilityEnabled: boolean;
   llmProviders: LLMProvider[];
+  reviewMatchingEnabled: boolean;
 }
 
 // ============================================
@@ -196,6 +207,12 @@ export interface ConceptCheckResult {
     checksPerformed: number;
     error?: string;
   };
+  reviewMatchingResult?: {
+    success: boolean;
+    reviewsScanned: number;
+    matchesFound: number;
+    error?: string;
+  };
   error?: string;
 }
 
@@ -227,6 +244,7 @@ export function transformConceptScheduleRow(row: ConceptScheduleRow): ConceptSch
     geoGridEnabled: row.geo_grid_enabled,
     llmVisibilityEnabled: row.llm_visibility_enabled,
     llmProviders: row.llm_providers as LLMProvider[],
+    reviewMatchingEnabled: row.review_matching_enabled,
     estimatedCredits: row.estimated_credits,
     isEnabled: row.is_enabled,
     nextScheduledAt: row.next_scheduled_at,

@@ -24,6 +24,7 @@ import {
   GeoGridTrendCard,
   GeoGridKeywordPicker,
   GeoGridScheduleSettings,
+  GeoGridConfigSettings,
   useGeoGridConfig,
   useGeoGridResults,
   useGeoGridSummary,
@@ -685,13 +686,20 @@ export default function LocalRankingGridsPage() {
             keywordUsageCounts={keywordUsageCounts}
           />
 
-          {/* Schedule Settings */}
+          {/* Settings - Grid Config & Schedule */}
           {config && (
-            <GeoGridScheduleSettings
-              config={config}
-              keywordCount={trackedKeywords.length}
-              onScheduleUpdated={refreshConfig}
-            />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <GeoGridConfigSettings
+                config={config}
+                keywordCount={trackedKeywords.length}
+                onConfigUpdated={refreshConfig}
+              />
+              <GeoGridScheduleSettings
+                config={config}
+                keywordCount={trackedKeywords.length}
+                onScheduleUpdated={refreshConfig}
+              />
+            </div>
           )}
         </div>
 

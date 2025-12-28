@@ -1,7 +1,9 @@
 'use client';
 
+import { useState } from 'react';
 import Icon from '@/components/Icon';
 import { type KeywordData } from '../../keywordUtils';
+import { apiClient } from '@/utils/apiClient';
 
 export interface ReviewsEditSectionProps {
   /** The keyword being displayed */
@@ -24,6 +26,8 @@ export interface ReviewsEditSectionProps {
   onSave: () => Promise<void>;
   /** Callback to cancel editing */
   onCancel: () => void;
+  /** Callback after review matching completes */
+  onReviewMatchComplete?: () => void;
 }
 
 /**

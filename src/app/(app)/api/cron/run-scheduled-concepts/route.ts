@@ -22,6 +22,7 @@ import type { ConceptScheduleRow, ConceptCheckResult, ConceptCronSummary } from 
 import type { LLMProvider } from '@/features/llm-visibility/utils/types';
 import { sendNotificationToAccount } from '@/utils/notifications';
 import { refundFeature, ensureBalanceExists } from '@/lib/credits';
+import { reprocessKeywordMatchesForAccount } from '@/features/keywords/reprocessKeywordMatches';
 
 // Cost limit per check run (safety measure)
 const MAX_COST_PER_RUN_USD = 10.0;
@@ -100,7 +101,7 @@ export async function GET(request: NextRequest) {
 
       try {
         // Check if any check types are enabled
-        if (!schedule.searchRankEnabled && !schedule.geoGridEnabled && !schedule.llmVisibilityEnabled) {
+        if (!schedule.searchRankEnabled && !schedule.geoGridEnabled && !schedule.llmVisibilityEnabled && !schedule.reviewMatchingEnabled) {
           console.log(`⏭️ [Scheduled Concepts] Schedule ${scheduleId} has no check types enabled, skipping`);
           result.status = 'skipped';
           result.error = 'No check types enabled';
@@ -122,6 +123,7 @@ export async function GET(request: NextRequest) {
             geoGridEnabled: schedule.geoGridEnabled,
             llmVisibilityEnabled: schedule.llmVisibilityEnabled,
             llmProviders: schedule.llmProviders,
+            reviewMatchingEnabled: schedule.reviewMatchingEnabled,
           }
         );
 
@@ -244,6 +246,29 @@ export async function GET(request: NextRequest) {
             result.llmVisibilityResult = {
               success: false,
               checksPerformed: 0,
+              error: error instanceof Error ? error.message : 'Unknown error',
+            };
+            hasAnyFailure = true;
+          }
+        }
+
+        // 4. Review Matching Checks
+        if (schedule.reviewMatchingEnabled) {
+          try {
+            const reviewMatchResult = await runReviewMatchingChecks(
+              supabase,
+              accountId,
+              keywordId,
+              checkId
+            );
+            result.reviewMatchingResult = reviewMatchResult;
+            if (reviewMatchResult.success) hasAnySuccess = true;
+            else hasAnyFailure = true;
+          } catch (error) {
+            result.reviewMatchingResult = {
+              success: false,
+              reviewsScanned: 0,
+              matchesFound: 0,
               error: error instanceof Error ? error.message : 'Unknown error',
             };
             hasAnyFailure = true;
@@ -561,4 +586,51 @@ async function runLLMVisibilityChecks(
     success: checksPerformed > 0,
     checksPerformed,
   };
+}
+
+/**
+ * Run review matching checks for a keyword
+ * Scans all reviews for the account and matches against the keyword
+ */
+async function runReviewMatchingChecks(
+  supabase: any,
+  accountId: string,
+  keywordId: string,
+  checkId: string
+): Promise<{ success: boolean; reviewsScanned: number; matchesFound: number; error?: string }> {
+  try {
+    console.log(`  📝 Review matching check for keyword ${keywordId}`);
+
+    // Run the full reprocess for the account
+    // This will scan all reviews and update keyword match counts
+    const result = await reprocessKeywordMatchesForAccount(supabase, accountId, {
+      clearExisting: false, // Don't clear, just add new matches
+      updateUsageCounts: true,
+    });
+
+    // Get updated keyword stats
+    const { data: keyword } = await supabase
+      .from('keywords')
+      .select('review_usage_count, alias_match_count')
+      .eq('id', keywordId)
+      .single();
+
+    const matchesFound = (keyword?.review_usage_count || 0) + (keyword?.alias_match_count || 0);
+
+    console.log(`  ✅ Review matching complete: ${result.totalProcessed} reviews scanned, ${matchesFound} matches found`);
+
+    return {
+      success: true,
+      reviewsScanned: result.totalProcessed,
+      matchesFound,
+    };
+  } catch (error) {
+    console.error(`  ❌ Review matching failed:`, error);
+    return {
+      success: false,
+      reviewsScanned: 0,
+      matchesFound: 0,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
 }

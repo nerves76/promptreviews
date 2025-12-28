@@ -627,6 +627,7 @@ export default function RankTrackingPage() {
       <PageCard
         icon={<Icon name="FaChartLine" className="w-8 h-8 text-slate-blue" size={32} />}
         topMargin="mt-8"
+        className="!px-4 md:!px-4 lg:!px-6"
       >
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-6 w-full gap-2">

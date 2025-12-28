@@ -54,6 +54,7 @@ export async function POST(request: NextRequest) {
       geoGridEnabled = true,
       llmVisibilityEnabled = true,
       llmProviders = ['chatgpt', 'claude', 'gemini', 'perplexity'],
+      reviewMatchingEnabled = false,
     } = body;
 
     if (!keywordId) {
@@ -88,6 +89,7 @@ export async function POST(request: NextRequest) {
         geoGridEnabled,
         llmVisibilityEnabled,
         llmProviders: llmProviders as LLMProvider[],
+        reviewMatchingEnabled,
       }
     );
 

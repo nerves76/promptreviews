@@ -17,6 +17,7 @@ import type {
   SearchRankCostBreakdown,
   GeoGridCostBreakdown,
   LLMVisibilityCostBreakdown,
+  ReviewMatchingCostBreakdown,
 } from '../utils/types';
 import type { CreditBalance } from '@/lib/credits/types';
 
@@ -59,11 +60,15 @@ export function getLLMCostPerQuestion(providers: LLMProvider[]): number {
 // Main Cost Calculation
 // ============================================
 
+// Cost for review matching (flat rate per check)
+export const REVIEW_MATCHING_CREDIT_COST = 1;
+
 interface CalculateCostOptions {
   searchRankEnabled: boolean;
   geoGridEnabled: boolean;
   llmVisibilityEnabled: boolean;
   llmProviders: LLMProvider[];
+  reviewMatchingEnabled: boolean;
 }
 
 interface KeywordData {
@@ -170,14 +175,22 @@ export async function calculateConceptScheduleCost(
       : 0,
   };
 
+  // Calculate review matching cost
+  // Flat rate per check
+  const reviewMatchingCost: ReviewMatchingCostBreakdown = {
+    enabled: options.reviewMatchingEnabled,
+    cost: options.reviewMatchingEnabled ? REVIEW_MATCHING_CREDIT_COST : 0,
+  };
+
   // Calculate total
   const total =
-    searchRankCost.cost + geoGridCost.cost + llmVisibilityCost.cost;
+    searchRankCost.cost + geoGridCost.cost + llmVisibilityCost.cost + reviewMatchingCost.cost;
 
   return {
     searchRank: searchRankCost,
     geoGrid: geoGridCost,
     llmVisibility: llmVisibilityCost,
+    reviewMatching: reviewMatchingCost,
     total,
   };
 }
@@ -249,6 +262,9 @@ export async function debitConceptScheduleCredits(
             cost: costBreakdown.llmVisibility.cost,
           }
         : null,
+      reviewMatching: costBreakdown.reviewMatching.enabled
+        ? { cost: costBreakdown.reviewMatching.cost }
+        : null,
     },
     idempotencyKey,
     description: `Concept schedule check (${formatCostDescription(costBreakdown)})`,
@@ -271,6 +287,9 @@ function formatCostDescription(costBreakdown: ConceptCostBreakdown): string {
   if (costBreakdown.llmVisibility.enabled) {
     parts.push(`LLM: ${costBreakdown.llmVisibility.questionCount} questions`);
   }
+  if (costBreakdown.reviewMatching.enabled) {
+    parts.push('review matching');
+  }
 
   return parts.join(', ') || 'no checks enabled';
 }
@@ -285,6 +304,7 @@ export const conceptScheduleCredits = {
   debitConceptScheduleCredits,
   calculateLLMCheckCost,
   getLLMCostPerQuestion,
+  REVIEW_MATCHING_CREDIT_COST,
 };
 
 export default conceptScheduleCredits;
