@@ -26,10 +26,28 @@ interface RankData {
   locationName: string;
 }
 
+/** Geo grid summary stats */
+interface GeoGridSummary {
+  pointsInTop3: number;
+  pointsInTop10: number;
+  pointsInTop20: number;
+  pointsNotFound: number;
+  totalPoints: number;
+  averagePosition: number | null;
+}
+
+/** Geo grid data for a concept */
+interface GeoGridData {
+  isTracked: boolean;
+  locationName: string | null;
+  summary: GeoGridSummary | null;
+}
+
 interface ConceptsTableProps {
   concepts: KeywordData[];
   volumeData?: Map<string, VolumeData>;
   rankData?: Map<string, RankData>;
+  gridData?: Map<string, GeoGridData>;
   onConceptClick?: (concept: KeywordData) => void;
   onCheckRank?: (keyword: string, conceptId: string) => void;
   onCheckVolume?: (keyword: string) => void;
@@ -50,6 +68,11 @@ interface KeywordRow {
   mobileChecked: boolean; // Was a mobile rank check performed?
   rankLocation: string | null;
   change: number | null;
+  // Grid tracking data (at concept level)
+  gridTracked: boolean;
+  gridPointsInTop10: number | null;
+  gridTotalPoints: number | null;
+  gridLocation: string | null;
 }
 
 // ============================================
@@ -98,6 +121,7 @@ export default function ConceptsTable({
   concepts,
   volumeData,
   rankData,
+  gridData,
   onConceptClick,
   onCheckRank,
   onCheckVolume,
@@ -131,6 +155,9 @@ export default function ConceptsTable({
                           concept.searchQuery ||
                           concept.phrase;
 
+      // Get grid data for this concept (grid tracking is at concept level)
+      const conceptGrid = gridData?.get(concept.id);
+
       if (concept.searchTerms && concept.searchTerms.length > 0) {
         // Add a row for each search term
         concept.searchTerms.forEach((term) => {
@@ -150,6 +177,10 @@ export default function ConceptsTable({
             mobileChecked: termRank?.mobile !== null && termRank?.mobile !== undefined,
             rankLocation: termRank?.locationName ?? null,
             change: null,
+            gridTracked: conceptGrid?.isTracked ?? false,
+            gridPointsInTop10: conceptGrid?.summary?.pointsInTop10 ?? null,
+            gridTotalPoints: conceptGrid?.summary?.totalPoints ?? null,
+            gridLocation: conceptGrid?.locationName ?? null,
           });
         });
       } else {
@@ -170,12 +201,16 @@ export default function ConceptsTable({
           mobileChecked: termRank?.mobile !== null && termRank?.mobile !== undefined,
           rankLocation: termRank?.locationName ?? null,
           change: null,
+          gridTracked: conceptGrid?.isTracked ?? false,
+          gridPointsInTop10: conceptGrid?.summary?.pointsInTop10 ?? null,
+          gridTotalPoints: conceptGrid?.summary?.totalPoints ?? null,
+          gridLocation: conceptGrid?.locationName ?? null,
         });
       }
     });
 
     return allRows;
-  }, [concepts, volumeData, rankData, normalizeTermForLookup]);
+  }, [concepts, volumeData, rankData, gridData, normalizeTermForLookup]);
 
   // Sort rows
   const sortedRows = useMemo(() => {
@@ -265,7 +300,7 @@ export default function ConceptsTable({
       <table className="w-full">
         <thead>
           <tr className="border-b border-gray-200">
-            <th className="text-left py-3 px-4">
+            <th className="text-left py-3 px-4 min-w-[280px]">
               <button
                 onClick={() => handleSort('keyword')}
                 className="flex items-center gap-1.5 text-sm font-semibold text-gray-700 hover:text-gray-900"
@@ -300,6 +335,9 @@ export default function ConceptsTable({
                 Rank
                 <SortIcon field="rank" />
               </button>
+            </th>
+            <th className="text-center py-3 px-4 w-24">
+              <span className="text-sm font-semibold text-gray-700">Grid</span>
             </th>
             <th className="text-center py-3 px-4 w-24">
               <button
@@ -390,6 +428,28 @@ export default function ConceptsTable({
                   </div>
                 ) : (
                   <span className="text-gray-400">—</span>
+                )}
+              </td>
+              <td className="py-3 px-4 text-center">
+                {row.gridTracked && row.gridTotalPoints !== null && row.gridTotalPoints > 0 ? (
+                  <div className="flex flex-col items-center">
+                    <span className={`text-sm font-medium ${
+                      row.gridPointsInTop10 === row.gridTotalPoints
+                        ? 'text-green-600'
+                        : row.gridPointsInTop10 !== null && row.gridPointsInTop10 > 0
+                          ? 'text-amber-600'
+                          : 'text-gray-500'
+                    }`}>
+                      {row.gridPointsInTop10 ?? 0}/{row.gridTotalPoints}
+                    </span>
+                    <span className="text-[10px] text-gray-400">
+                      {Math.round(((row.gridPointsInTop10 ?? 0) / row.gridTotalPoints) * 100)}% top 10
+                    </span>
+                  </div>
+                ) : row.gridTracked ? (
+                  <span className="text-xs text-gray-400" title="No grid checks yet">—</span>
+                ) : (
+                  <span className="text-gray-300">—</span>
                 )}
               </td>
               <td className="py-3 px-4 text-center">

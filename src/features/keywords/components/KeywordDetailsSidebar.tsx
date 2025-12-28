@@ -21,6 +21,7 @@ import { useAuth } from '@/auth';
 import {
   HeaderStats,
   RankTrackingSection,
+  GeoGridSection,
   DiscoveredQuestionsSection,
   ReviewsEditSection,
   SEOTrackingSection,
@@ -29,6 +30,7 @@ import {
   RecentReviewsSection,
   type LLMProvider as SidebarLLMProvider,
 } from './sidebar';
+import { ConceptScheduleSettings } from '@/features/concept-schedule';
 
 export interface KeywordDetailsSidebarProps {
   isOpen: boolean;
@@ -439,6 +441,14 @@ export function KeywordDetailsSidebar({
                             />
                           )}
 
+                          {/* Geo Grid Tracking Status */}
+                          {keyword.isUsedInGeoGrid && (
+                            <GeoGridSection
+                              geoGridStatus={geoGridStatus}
+                              isLoading={geoGridStatusLoading}
+                            />
+                          )}
+
                           {/* Discovered Questions from Google */}
                           <DiscoveredQuestionsSection
                             rankStatus={rankStatus}
@@ -545,6 +555,12 @@ export function KeywordDetailsSidebar({
                           {keyword.isUsedInRankTracking && (
                             <TrackingLocationsSection rankStatus={rankStatus} />
                           )}
+
+                          {/* Concept Schedule */}
+                          <ConceptScheduleSettings
+                            keywordId={keyword.id}
+                            keywordName={keyword.name}
+                          />
 
                           {/* Group selector */}
                           {showGroupSelector && groups.length > 0 && (

@@ -55,6 +55,34 @@ interface RankData {
   locationName: string;
 }
 
+/** Geo grid summary stats */
+interface GeoGridSummary {
+  pointsInTop3: number;
+  pointsInTop10: number;
+  pointsInTop20: number;
+  pointsNotFound: number;
+  totalPoints: number;
+  averagePosition: number | null;
+}
+
+/** Geo grid data for a concept */
+interface GeoGridData {
+  isTracked: boolean;
+  locationName: string | null;
+  summary: GeoGridSummary | null;
+}
+
+/** Enrichment data from batch-enrich API */
+interface EnrichmentResponse {
+  enrichment: Record<string, {
+    geoGridStatus: {
+      isTracked: boolean;
+      locationName: string | null;
+      summary: GeoGridSummary | null;
+    } | null;
+  }>;
+}
+
 export default function RankTrackingPage() {
   const pathname = usePathname();
   // Track selected account to refetch when it changes
@@ -65,6 +93,7 @@ export default function RankTrackingPage() {
   const [checkingVolumeTerm, setCheckingVolumeTerm] = useState<string | null>(null);
   const [researchResults, setResearchResults] = useState<ResearchResult[]>([]);
   const [rankChecks, setRankChecks] = useState<RankCheck[]>([]);
+  const [gridDataMap, setGridDataMap] = useState<Map<string, GeoGridData>>(new Map());
 
   // Auto-check state for rank
   const [isAutoChecking, setIsAutoChecking] = useState(false);
@@ -176,11 +205,44 @@ export default function RankTrackingPage() {
     }
   }, []);
 
+  // Fetch grid data for concepts using batch-enrich API
+  const fetchGridData = useCallback(async (keywordIds: string[]) => {
+    if (keywordIds.length === 0) return;
+
+    try {
+      const response = await apiClient.post<EnrichmentResponse>('/keywords/batch-enrich', {
+        keywordIds,
+      });
+
+      const newGridData = new Map<string, GeoGridData>();
+      const enrichment = response.enrichment as Record<string, {
+        geoGridStatus: {
+          isTracked: boolean;
+          locationName: string | null;
+          summary: GeoGridSummary | null;
+        } | null;
+      }>;
+      for (const [keywordId, data] of Object.entries(enrichment)) {
+        if (data.geoGridStatus) {
+          newGridData.set(keywordId, {
+            isTracked: data.geoGridStatus.isTracked,
+            locationName: data.geoGridStatus.locationName,
+            summary: data.geoGridStatus.summary,
+          });
+        }
+      }
+      setGridDataMap(newGridData);
+    } catch (err) {
+      console.error('Failed to fetch grid data:', err);
+    }
+  }, []);
+
   // Clear data and refetch when account changes
   useEffect(() => {
     // Clear stale data immediately when account changes
     setResearchResults([]);
     setRankChecks([]);
+    setGridDataMap(new Map());
 
     if (selectedAccountId) {
       fetchResearchResults();
@@ -196,6 +258,19 @@ export default function RankTrackingPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Fetch grid data when concepts are loaded
+  useEffect(() => {
+    if (concepts.length > 0) {
+      // Only fetch grid data for concepts that are used in geo grid
+      const gridKeywordIds = concepts
+        .filter(c => c.isUsedInGeoGrid)
+        .map(c => c.id);
+      if (gridKeywordIds.length > 0) {
+        fetchGridData(gridKeywordIds);
+      }
+    }
+  }, [concepts, fetchGridData]);
 
   // Build term volume data map
   const volumeData = useMemo(() => {
@@ -563,6 +638,7 @@ export default function RankTrackingPage() {
           concepts={filteredConcepts}
           volumeData={volumeData}
           rankData={rankData}
+          gridData={gridDataMap}
           onCheckRank={handleCheckRank}
           onCheckVolume={handleCheckVolume}
           isLoading={conceptsLoading}
