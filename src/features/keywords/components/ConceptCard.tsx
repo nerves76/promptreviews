@@ -541,7 +541,8 @@ export function ConceptCard({
                   </span>
                 )}
                 {termVolumeData.size > 0 && (
-                  <span className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-blue-100 text-blue-700">
+                  <span className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-blue-100 text-blue-700 flex items-center gap-0.5">
+                    <Icon name="FaChartLine" className="w-2 h-2" />
                     {allLowVolume ? '<10' : formatVolume(totalVolume)} vol
                   </span>
                 )}
@@ -556,22 +557,24 @@ export function ConceptCard({
                   </span>
                 )}
                 {llmCitationStats && (
-                  <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${
+                  <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded flex items-center gap-0.5 ${
                     llmCitationStats.cited > 0
-                      ? 'bg-emerald-100 text-emerald-700'
+                      ? 'bg-purple-100 text-purple-700'
                       : 'bg-gray-100 text-gray-600'
                   }`}>
-                    LLM citations: {llmCitationStats.cited}/{llmCitationStats.total}
+                    <Icon name="FaSparkles" className="w-2 h-2" />
+                    {llmCitationStats.cited}/{llmCitationStats.total}
                   </span>
                 )}
                 {keyword.isUsedInRankTracking && rankingStats !== null && (
-                  <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${
+                  <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded flex items-center gap-0.5 ${
                     rankingStats.inTop10 === rankingStats.total
                       ? 'bg-green-100 text-green-700'
                       : rankingStats.inTop10 > 0
                         ? 'bg-amber-100 text-amber-700'
                         : 'bg-gray-100 text-gray-600'
                   }`}>
+                    <Icon name="FaGoogle" className="w-2 h-2" />
                     {rankingStats.inTop10}/{rankingStats.total} top 10
                   </span>
                 )}
