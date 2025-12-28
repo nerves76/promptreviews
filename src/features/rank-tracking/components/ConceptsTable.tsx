@@ -370,13 +370,13 @@ export default function ConceptsTable({
     <div className="overflow-x-auto">
       <table className="w-full table-fixed">
         <colgroup>
-          <col className="w-[35%]" /> {/* Keyword */}
-          <col className="w-[15%]" /> {/* Concept */}
-          <col className="w-[12%]" /> {/* Volume */}
-          <col className="w-[10%]" /> {/* Rank */}
-          <col className="w-[8%]" /> {/* Grid */}
-          <col className="w-[8%]" /> {/* Change */}
-          <col className="w-[12%]" /> {/* Actions */}
+          <col style={{ width: '35%' }} /> {/* Keyword */}
+          <col style={{ width: '15%' }} /> {/* Concept */}
+          <col style={{ width: '14%' }} /> {/* Volume */}
+          <col style={{ width: '10%' }} /> {/* Rank */}
+          <col style={{ width: '8%' }} /> {/* Grid */}
+          <col style={{ width: '8%' }} /> {/* Change */}
+          <col style={{ width: '10%' }} /> {/* Actions */}
         </colgroup>
         <thead>
           <tr className="border-b border-gray-200">
