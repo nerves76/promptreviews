@@ -409,10 +409,10 @@ export default function ConceptsTable({
         </colgroup>
         <thead>
           <tr className="border-b border-gray-200">
-            <th className="text-left py-3 pl-6 pr-4">
+            <th className="text-left py-3 pl-4 pr-4">
               <button
                 onClick={() => handleSort('keyword')}
-                className="flex items-center gap-1.5 text-sm font-semibold text-gray-700 hover:text-gray-900 ml-7"
+                className="flex items-center gap-1.5 text-sm font-semibold text-gray-700 hover:text-gray-900"
               >
                 Keyword
                 <SortIcon field="keyword" />
@@ -470,7 +470,7 @@ export default function ConceptsTable({
                 expandedRowKey === `${row.concept.id}::${row.keyword}` ? 'bg-blue-50' : ''
               }`}
             >
-              <td className="py-3 pl-6 pr-4">
+              <td className="py-3 pl-4 pr-4">
                 <div className="flex items-center gap-3">
                   <span className="w-4 flex-shrink-0 flex items-center justify-center">
                     {(row.desktopChecked || row.mobileChecked) && (
