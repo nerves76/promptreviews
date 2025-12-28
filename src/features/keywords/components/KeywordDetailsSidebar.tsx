@@ -370,10 +370,6 @@ export function KeywordDetailsSidebar({
     !keyword?.searchTerms?.length ||
     !keyword?.aliases?.length;
 
-  const terms = Array.from(termVolumeData.values());
-  const totalVolume = terms.reduce((sum, t) => sum + (t.searchVolume || 0), 0);
-  const allLowVolume = terms.length > 0 && terms.every(t => (t.searchVolume || 0) < 10);
-
   // === RENDER ===
   return (
     <Transition.Root show={isOpen} as={Fragment}>
@@ -422,9 +418,6 @@ export function KeywordDetailsSidebar({
                           <HeaderStats
                             keyword={keyword}
                             promptPagesCount={promptPages.length}
-                            totalVolume={totalVolume}
-                            allLowVolume={allLowVolume}
-                            termVolumeDataSize={termVolumeData.size}
                             isAnyEditing={isAnyEditing}
                             isSaving={isSaving}
                             onSave={async () => {

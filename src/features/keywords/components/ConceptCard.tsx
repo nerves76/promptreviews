@@ -695,15 +695,6 @@ export function ConceptCard({
       {/* Expandable content */}
       {(isExpanded || isEditing) && (
         <>
-          {/* Schedule Button - above AI Auto-fill */}
-          <div className="px-4 py-2">
-            <ConceptScheduleSettings
-              keywordId={keyword.id}
-              keywordName={keyword.name}
-              creditBalance={creditBalance}
-            />
-          </div>
-
           {/* AI Auto-fill Button */}
           {!isEditing && hasEmptySEOFields && onUpdate && !showOverwriteWarning && (
             <div className="px-4 py-2 flex justify-end text-xs">
@@ -740,6 +731,15 @@ export function ConceptCard({
               </div>
             </div>
           )}
+
+          {/* Schedule Settings - below AI Auto-fill */}
+          <div className="px-4 py-2">
+            <ConceptScheduleSettings
+              keywordId={keyword.id}
+              keywordName={keyword.name}
+              creditBalance={creditBalance}
+            />
+          </div>
 
           {/* Overwrite Warning */}
           {showOverwriteWarning && !isEditing && (
