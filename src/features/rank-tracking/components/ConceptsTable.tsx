@@ -397,16 +397,7 @@ export default function ConceptsTable({
 
   return (
     <div className="overflow-x-auto -mx-6">
-      <table className="w-full table-fixed">
-        <colgroup>
-          <col className="w-[240px]" />
-          <col className="w-[180px]" />
-          <col className="w-[100px]" />
-          <col className="w-[120px]" />
-          <col className="w-[70px]" />
-          <col className="w-[80px]" />
-          <col />
-        </colgroup>
+      <table className="w-full">
         <thead>
           <tr className="border-b border-gray-200">
             <th className="text-left py-3 pl-4 pr-4">
@@ -497,7 +488,7 @@ export default function ConceptsTable({
                 </div>
               </td>
               <td className="py-3 px-4">
-                <span className="text-xs text-gray-500 leading-tight">
+                <span className="text-xs text-gray-500 leading-snug">
                   {row.concept.name || '—'}
                 </span>
               </td>
