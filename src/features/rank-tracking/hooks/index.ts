@@ -21,4 +21,6 @@ export type {
   UseKeywordDiscoveryReturn,
   KeywordSuggestion,
   DiscoveryResult,
+  SearchIntent,
+  TrendPercentage,
 } from './useKeywordDiscovery';

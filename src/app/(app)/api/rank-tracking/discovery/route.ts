@@ -99,25 +99,70 @@ export async function POST(request: NextRequest) {
       cpc: null,
       competition: null,
       competitionLevel: null,
+      lowTopOfPageBid: null,
+      highTopOfPageBid: null,
       monthlySearches: [],
     };
 
     // Calculate trend from monthly data
     let trend: 'rising' | 'falling' | 'stable' | null = null;
-    if (volumeData.monthlySearches && volumeData.monthlySearches.length >= 3) {
-      const recent = volumeData.monthlySearches.slice(-3);
-      const avgRecent = recent.reduce((sum, m) => sum + m.searchVolume, 0) / recent.length;
-      const older = volumeData.monthlySearches.slice(-6, -3);
-      const avgOlder = older.length > 0
-        ? older.reduce((sum, m) => sum + m.searchVolume, 0) / older.length
-        : avgRecent;
+    let trendPercentage: { monthly: number | null; quarterly: number | null; yearly: number | null } = {
+      monthly: null,
+      quarterly: null,
+      yearly: null,
+    };
 
-      if (avgRecent > avgOlder * 1.1) {
-        trend = 'rising';
-      } else if (avgRecent < avgOlder * 0.9) {
-        trend = 'falling';
-      } else {
-        trend = 'stable';
+    if (volumeData.monthlySearches && volumeData.monthlySearches.length >= 2) {
+      const months = volumeData.monthlySearches;
+      const len = months.length;
+
+      // Monthly change (last month vs previous month)
+      if (len >= 2) {
+        const last = months[len - 1].searchVolume;
+        const prev = months[len - 2].searchVolume;
+        if (prev > 0) {
+          trendPercentage.monthly = Math.round(((last - prev) / prev) * 100);
+        }
+      }
+
+      // Quarterly change (avg of last 3 months vs avg of prior 3 months)
+      if (len >= 6) {
+        const recent3 = months.slice(-3);
+        const prior3 = months.slice(-6, -3);
+        const avgRecent = recent3.reduce((sum, m) => sum + m.searchVolume, 0) / 3;
+        const avgPrior = prior3.reduce((sum, m) => sum + m.searchVolume, 0) / 3;
+        if (avgPrior > 0) {
+          trendPercentage.quarterly = Math.round(((avgRecent - avgPrior) / avgPrior) * 100);
+        }
+      }
+
+      // Yearly change (avg of last 6 months vs avg of prior 6 months, or first 6 if available)
+      if (len >= 12) {
+        const recent6 = months.slice(-6);
+        const prior6 = months.slice(-12, -6);
+        const avgRecent = recent6.reduce((sum, m) => sum + m.searchVolume, 0) / 6;
+        const avgPrior = prior6.reduce((sum, m) => sum + m.searchVolume, 0) / 6;
+        if (avgPrior > 0) {
+          trendPercentage.yearly = Math.round(((avgRecent - avgPrior) / avgPrior) * 100);
+        }
+      }
+
+      // Simple trend classification
+      if (len >= 3) {
+        const recent = months.slice(-3);
+        const avgRecent = recent.reduce((sum, m) => sum + m.searchVolume, 0) / recent.length;
+        const older = months.slice(-6, -3);
+        const avgOlder = older.length > 0
+          ? older.reduce((sum, m) => sum + m.searchVolume, 0) / older.length
+          : avgRecent;
+
+        if (avgRecent > avgOlder * 1.1) {
+          trend = 'rising';
+        } else if (avgRecent < avgOlder * 0.9) {
+          trend = 'falling';
+        } else {
+          trend = 'stable';
+        }
       }
     }
 
@@ -141,7 +186,10 @@ export async function POST(request: NextRequest) {
       keyword: volumeData.keyword,
       volume: volumeData.searchVolume,
       trend,
+      trendPercentage,
       cpc: volumeData.cpc,
+      lowTopOfPageBid: volumeData.lowTopOfPageBid,
+      highTopOfPageBid: volumeData.highTopOfPageBid,
       competition: volumeData.competition,
       competitionLevel: volumeData.competitionLevel,
       monthlySearches: volumeData.monthlySearches,
@@ -252,8 +300,14 @@ export async function GET(request: NextRequest) {
         keyword: s.keyword,
         volume: s.searchVolume,
         cpc: s.cpc,
+        lowTopOfPageBid: s.lowTopOfPageBid,
+        highTopOfPageBid: s.highTopOfPageBid,
         competition: s.competition,
         competitionLevel: s.competitionLevel,
+        keywordDifficulty: s.keywordDifficulty,
+        searchIntent: s.searchIntent,
+        categories: s.categories,
+        trendPercentage: s.searchVolumeTrend,
       })),
       rateLimit: {
         limit: DAILY_DISCOVERY_LIMIT,

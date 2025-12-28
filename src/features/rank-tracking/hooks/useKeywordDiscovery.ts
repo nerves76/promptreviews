@@ -14,19 +14,38 @@ import { apiClient } from '@/utils/apiClient';
 // Types
 // ============================================
 
+export type SearchIntent = 'informational' | 'navigational' | 'commercial' | 'transactional';
+
+export interface TrendPercentage {
+  monthly: number | null;
+  quarterly: number | null;
+  yearly: number | null;
+}
+
 export interface KeywordSuggestion {
   keyword: string;
   searchVolume: number;
   cpc: number | null;
+  lowTopOfPageBid: number | null;
+  highTopOfPageBid: number | null;
   competition: 'LOW' | 'MEDIUM' | 'HIGH' | null;
+  competitionValue: number | null;
+  keywordDifficulty: number | null;
+  searchIntent: SearchIntent | null;
+  categories: string[];
+  trendPercentage: TrendPercentage | null;
 }
 
 export interface DiscoveryResult {
   keyword: string;
   searchVolume: number;
   cpc: number | null;
+  lowTopOfPageBid: number | null;
+  highTopOfPageBid: number | null;
   competition: 'LOW' | 'MEDIUM' | 'HIGH' | null;
-  monthlyTrend: { month: number; volume: number }[];
+  competitionValue: number | null;
+  trendPercentage: TrendPercentage | null;
+  monthlyTrend: { month: number; year: number; volume: number }[];
   suggestions: KeywordSuggestion[];
 }
 
@@ -77,7 +96,10 @@ export function useKeywordDiscovery(): UseKeywordDiscoveryReturn {
           keyword: string;
           volume: number;
           trend: 'rising' | 'falling' | 'stable' | null;
+          trendPercentage: TrendPercentage | null;
           cpc: number | null;
+          lowTopOfPageBid: number | null;
+          highTopOfPageBid: number | null;
           competition: number | null;
           competitionLevel: 'LOW' | 'MEDIUM' | 'HIGH' | null;
           monthlySearches: { year: number; month: number; searchVolume: number }[];
@@ -105,9 +127,14 @@ export function useKeywordDiscovery(): UseKeywordDiscoveryReturn {
           keyword: response.keyword,
           searchVolume: response.volume,
           cpc: response.cpc,
+          lowTopOfPageBid: response.lowTopOfPageBid,
+          highTopOfPageBid: response.highTopOfPageBid,
           competition: response.competitionLevel,
+          competitionValue: response.competition,
+          trendPercentage: response.trendPercentage,
           monthlyTrend: (response.monthlySearches || []).map(m => ({
             month: m.month,
+            year: m.year,
             volume: m.searchVolume,
           })),
           suggestions: [], // Suggestions come from separate call
@@ -155,8 +182,14 @@ export function useKeywordDiscovery(): UseKeywordDiscoveryReturn {
             keyword: string;
             volume: number;
             cpc: number | null;
+            lowTopOfPageBid: number | null;
+            highTopOfPageBid: number | null;
             competition: number | null;
             competitionLevel: 'LOW' | 'MEDIUM' | 'HIGH' | null;
+            keywordDifficulty: number | null;
+            searchIntent: SearchIntent | null;
+            categories: string[];
+            trendPercentage: TrendPercentage | null;
           }[];
           rateLimit?: {
             limit: number;
@@ -179,7 +212,14 @@ export function useKeywordDiscovery(): UseKeywordDiscoveryReturn {
           keyword: s.keyword,
           searchVolume: s.volume,
           cpc: s.cpc,
+          lowTopOfPageBid: s.lowTopOfPageBid,
+          highTopOfPageBid: s.highTopOfPageBid,
           competition: s.competitionLevel,
+          competitionValue: s.competition,
+          keywordDifficulty: s.keywordDifficulty,
+          searchIntent: s.searchIntent,
+          categories: s.categories || [],
+          trendPercentage: s.trendPercentage,
         }));
       } catch (err: any) {
         const message =

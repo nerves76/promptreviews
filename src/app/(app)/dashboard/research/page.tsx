@@ -14,7 +14,7 @@ import { BookmarkIcon as BookmarkIconSolid } from '@heroicons/react/24/solid';
 import Icon from '@/components/Icon';
 import PageCard from '@/app/(app)/components/PageCard';
 import { Button } from '@/app/(app)/components/ui/button';
-import { useKeywordDiscovery } from '@/features/rank-tracking/hooks';
+import { useKeywordDiscovery, SearchIntent, TrendPercentage } from '@/features/rank-tracking/hooks';
 import { useKeywords } from '@/features/keywords/hooks/useKeywords';
 import { useAccountData } from '@/auth/hooks/granularAuthHooks';
 import { apiClient } from '@/utils/apiClient';
@@ -237,6 +237,46 @@ export default function ResearchPage() {
     }
   };
 
+  // Search intent color and label
+  const getIntentStyle = (intent: SearchIntent | null) => {
+    switch (intent) {
+      case 'informational':
+        return { bg: 'bg-blue-100 text-blue-700', label: 'Info', icon: 'FaInfoCircle' as const };
+      case 'navigational':
+        return { bg: 'bg-purple-100 text-purple-700', label: 'Nav', icon: 'FaGlobe' as const };
+      case 'commercial':
+        return { bg: 'bg-orange-100 text-orange-700', label: 'Commercial', icon: 'FaStore' as const };
+      case 'transactional':
+        return { bg: 'bg-green-100 text-green-700', label: 'Transactional', icon: 'FaCreditCard' as const };
+      default:
+        return null;
+    }
+  };
+
+  // Keyword difficulty color (0-100 scale)
+  const getDifficultyStyle = (difficulty: number | null) => {
+    if (difficulty === null) return null;
+    if (difficulty < 30) return { color: 'text-green-600', label: 'Easy', bg: 'bg-green-100' };
+    if (difficulty < 50) return { color: 'text-yellow-600', label: 'Medium', bg: 'bg-yellow-100' };
+    if (difficulty < 70) return { color: 'text-orange-600', label: 'Hard', bg: 'bg-orange-100' };
+    return { color: 'text-red-600', label: 'Very hard', bg: 'bg-red-100' };
+  };
+
+  // Format trend percentage with sign
+  const formatTrendPct = (value: number | null) => {
+    if (value === null) return null;
+    const sign = value > 0 ? '+' : '';
+    return `${sign}${value}%`;
+  };
+
+  // Get trend color based on value
+  const getTrendColor = (value: number | null) => {
+    if (value === null) return 'text-gray-500';
+    if (value > 10) return 'text-green-600';
+    if (value < -10) return 'text-red-600';
+    return 'text-gray-600';
+  };
+
   return (
     <div>
       {/* Page Title */}
@@ -387,25 +427,64 @@ export default function ResearchPage() {
                   </div>
                 </div>
                 <div className="bg-white rounded-lg p-4">
-                  <div className="text-sm text-gray-500">CPC</div>
+                  <div className="text-sm text-gray-500">CPC range</div>
                   <div className="text-2xl font-bold text-gray-900">
-                    {result.cpc ? `$${result.cpc.toFixed(2)}` : '-'}
+                    {result.lowTopOfPageBid || result.highTopOfPageBid ? (
+                      <span>
+                        ${result.lowTopOfPageBid?.toFixed(2) || '0.00'} - ${result.highTopOfPageBid?.toFixed(2) || result.cpc?.toFixed(2) || '0.00'}
+                      </span>
+                    ) : result.cpc ? (
+                      `$${result.cpc.toFixed(2)}`
+                    ) : '-'}
                   </div>
                 </div>
                 <div className="bg-white rounded-lg p-4">
                   <div className="text-sm text-gray-500">Competition</div>
-                  <div className="text-2xl font-bold text-gray-900">
-                    {result.competition || '-'}
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl font-bold text-gray-900">
+                      {result.competition || '-'}
+                    </span>
+                    {result.competitionValue !== null && result.competitionValue !== undefined && (
+                      <span className="text-sm text-gray-500">({result.competitionValue})</span>
+                    )}
                   </div>
                 </div>
                 <div className="bg-white rounded-lg p-4">
                   <div className="text-sm text-gray-500">Trend</div>
-                  <div className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                    {getTrendIcon(result.trend)}
-                    {result.trend ? result.trend.charAt(0).toUpperCase() + result.trend.slice(1) : '-'}
+                  <div className="flex items-center gap-2">
+                    {result.trendPercentage?.quarterly !== null && result.trendPercentage?.quarterly !== undefined ? (
+                      <span className={`text-2xl font-bold ${getTrendColor(result.trendPercentage.quarterly)}`}>
+                        {formatTrendPct(result.trendPercentage.quarterly)}
+                      </span>
+                    ) : (
+                      <span className="text-2xl font-bold text-gray-900">-</span>
+                    )}
+                    <span className="text-xs text-gray-400">quarterly</span>
                   </div>
                 </div>
               </div>
+
+              {/* Extended metrics row */}
+              {(result.trendPercentage?.monthly !== null || result.trendPercentage?.yearly !== null) && (
+                <div className="flex items-center gap-6 mt-4 text-sm">
+                  {result.trendPercentage?.monthly !== null && (
+                    <div className="flex items-center gap-1">
+                      <span className="text-gray-500">Monthly:</span>
+                      <span className={getTrendColor(result.trendPercentage.monthly)}>
+                        {formatTrendPct(result.trendPercentage.monthly)}
+                      </span>
+                    </div>
+                  )}
+                  {result.trendPercentage?.yearly !== null && (
+                    <div className="flex items-center gap-1">
+                      <span className="text-gray-500">Yearly:</span>
+                      <span className={getTrendColor(result.trendPercentage.yearly)}>
+                        {formatTrendPct(result.trendPercentage.yearly)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {result.monthlyTrend && result.monthlyTrend.length > 0 && (
                 <div className="mt-6">
@@ -444,59 +523,84 @@ export default function ResearchPage() {
                   Related keywords ({suggestions.length})
                 </h3>
                 <div className="space-y-2">
-                  {suggestions.map((sug, i) => (
-                    <div
-                      key={i}
-                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                    >
-                      <div className="flex-1 min-w-0">
-                        <div className="font-medium text-gray-900">{sug.keyword}</div>
-                        <div className="flex items-center gap-3 text-sm text-gray-500 mt-0.5">
-                          <span>{sug.searchVolume?.toLocaleString() || 0}/mo</span>
-                          {sug.cpc && <span>CPC: ${sug.cpc.toFixed(2)}</span>}
-                          {sug.competition && (
-                            <>
-                              <span>Comp:</span>
+                  {suggestions.map((sug, i) => {
+                    const intentStyle = getIntentStyle(sug.searchIntent);
+                    const diffStyle = getDifficultyStyle(sug.keywordDifficulty);
+                    return (
+                      <div
+                        key={i}
+                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-medium text-gray-900">{sug.keyword}</span>
+                            {intentStyle && (
+                              <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs ${intentStyle.bg}`}>
+                                <Icon name={intentStyle.icon} size={10} />
+                                {intentStyle.label}
+                              </span>
+                            )}
+                            {diffStyle && (
+                              <span className={`px-1.5 py-0.5 rounded text-xs ${diffStyle.bg} ${diffStyle.color}`} title={`Difficulty: ${sug.keywordDifficulty}/100`}>
+                                KD: {sug.keywordDifficulty}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-3 text-sm text-gray-500 mt-1 flex-wrap">
+                            <span className="font-medium">{sug.searchVolume?.toLocaleString() || 0}/mo</span>
+                            {(sug.lowTopOfPageBid || sug.highTopOfPageBid) ? (
+                              <span title="CPC range for top of page ads">
+                                ${sug.lowTopOfPageBid?.toFixed(2) || '0.00'} - ${sug.highTopOfPageBid?.toFixed(2) || sug.cpc?.toFixed(2) || '0.00'}
+                              </span>
+                            ) : sug.cpc ? (
+                              <span>CPC: ${sug.cpc.toFixed(2)}</span>
+                            ) : null}
+                            {sug.competition && (
                               <span className={`px-1.5 py-0.5 rounded text-xs ${getCompetitionColor(sug.competition)}`}>
                                 {sug.competition}
                               </span>
-                            </>
-                          )}
+                            )}
+                            {sug.trendPercentage?.quarterly !== null && sug.trendPercentage?.quarterly !== undefined && (
+                              <span className={`text-xs ${getTrendColor(sug.trendPercentage.quarterly)}`}>
+                                {formatTrendPct(sug.trendPercentage.quarterly)} qtr
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1.5 ml-2">
+                          <button
+                            onClick={() => handleSaveResult(sug.keyword, sug)}
+                            disabled={savedResults.has(sug.keyword) || savingResult === sug.keyword}
+                            className={`p-1.5 rounded-lg transition-colors ${
+                              savedResults.has(sug.keyword)
+                                ? 'text-blue-600 bg-blue-50'
+                                : 'text-gray-400 hover:text-blue-600 hover:bg-blue-50'
+                            }`}
+                            title={savedResults.has(sug.keyword) ? 'Saved' : 'Save result'}
+                          >
+                            {savingResult === sug.keyword ? (
+                              <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
+                            ) : savedResults.has(sug.keyword) ? (
+                              <BookmarkIconSolid className="w-4 h-4" />
+                            ) : (
+                              <BookmarkIcon className="w-4 h-4" />
+                            )}
+                          </button>
+                          <button
+                            onClick={() => handleAddToLibrary(sug.keyword, sug.searchVolume, sug.cpc, sug)}
+                            disabled={addedKeywords.has(sug.keyword) || addingKeyword === sug.keyword}
+                            className={`text-sm px-3 py-1.5 rounded-lg transition-colors ${
+                              addedKeywords.has(sug.keyword)
+                                ? 'bg-green-100 text-green-700'
+                                : 'text-slate-blue hover:bg-slate-blue/10'
+                            }`}
+                          >
+                            {addedKeywords.has(sug.keyword) ? 'Added' : addingKeyword === sug.keyword ? 'Adding...' : 'Add'}
+                          </button>
                         </div>
                       </div>
-                      <div className="flex items-center gap-1.5">
-                        <button
-                          onClick={() => handleSaveResult(sug.keyword, sug)}
-                          disabled={savedResults.has(sug.keyword) || savingResult === sug.keyword}
-                          className={`p-1.5 rounded-lg transition-colors ${
-                            savedResults.has(sug.keyword)
-                              ? 'text-blue-600 bg-blue-50'
-                              : 'text-gray-400 hover:text-blue-600 hover:bg-blue-50'
-                          }`}
-                          title={savedResults.has(sug.keyword) ? 'Saved' : 'Save result'}
-                        >
-                          {savingResult === sug.keyword ? (
-                            <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
-                          ) : savedResults.has(sug.keyword) ? (
-                            <BookmarkIconSolid className="w-4 h-4" />
-                          ) : (
-                            <BookmarkIcon className="w-4 h-4" />
-                          )}
-                        </button>
-                        <button
-                          onClick={() => handleAddToLibrary(sug.keyword, sug.searchVolume, sug.cpc, sug)}
-                          disabled={addedKeywords.has(sug.keyword) || addingKeyword === sug.keyword}
-                          className={`text-sm px-3 py-1.5 rounded-lg transition-colors ${
-                            addedKeywords.has(sug.keyword)
-                              ? 'bg-green-100 text-green-700'
-                              : 'text-slate-blue hover:bg-slate-blue/10'
-                          }`}
-                        >
-                          {addedKeywords.has(sug.keyword) ? 'Added' : addingKeyword === sug.keyword ? 'Adding...' : 'Add'}
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}
