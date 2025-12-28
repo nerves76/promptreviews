@@ -399,8 +399,8 @@ export default function ConceptsTable({
     <div className="overflow-x-auto">
       <table className="min-w-full">
         <colgroup>
-          <col style={{ width: '25%', minWidth: '200px' }} />
-          <col style={{ width: '18%', minWidth: '140px' }} />
+          <col style={{ width: '28%', minWidth: '250px' }} />
+          <col style={{ width: '18%', minWidth: '150px' }} />
           <col style={{ minWidth: '80px' }} />
           <col style={{ minWidth: '100px' }} />
           <col style={{ minWidth: '70px' }} />
@@ -471,7 +471,7 @@ export default function ConceptsTable({
               }`}
             >
               <td className="py-3 px-4">
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-2.5">
                   <span className="w-3 flex-shrink-0 flex items-center justify-center">
                     {(row.desktopChecked || row.mobileChecked) && (
                       <button
