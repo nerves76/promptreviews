@@ -371,22 +371,22 @@ export default function ConceptsTable({
       <table className="w-full">
         <thead>
           <tr className="border-b border-gray-200">
-            <th className="text-left py-3 px-4 min-w-[280px]">
-              <button
-                onClick={() => handleSort('keyword')}
-                className="flex items-center gap-1.5 text-sm font-semibold text-gray-700 hover:text-gray-900"
-              >
-                Keyword
-                <SortIcon field="keyword" />
-              </button>
-            </th>
-            <th className="text-left py-3 px-4 w-48">
+            <th className="text-left py-3 px-4 w-32">
               <button
                 onClick={() => handleSort('concept')}
                 className="flex items-center gap-1.5 text-sm font-semibold text-gray-700 hover:text-gray-900"
               >
                 Concept
                 <SortIcon field="concept" />
+              </button>
+            </th>
+            <th className="text-left py-3 px-4">
+              <button
+                onClick={() => handleSort('keyword')}
+                className="flex items-center gap-1.5 text-sm font-semibold text-gray-700 hover:text-gray-900"
+              >
+                Keyword
+                <SortIcon field="keyword" />
               </button>
             </th>
             <th className="text-center py-3 px-4 w-28">
@@ -431,13 +431,13 @@ export default function ConceptsTable({
               onClick={() => onConceptClick?.(row.concept)}
               className="border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors"
             >
-              <td className="py-3 px-4">
-                <span className="text-sm font-medium text-gray-900">{row.keyword}</span>
-              </td>
-              <td className="py-3 px-4">
-                <span className="text-sm text-gray-600 truncate block max-w-[180px]" title={row.concept.name}>
+              <td className="py-3 px-4 w-32">
+                <span className="text-sm text-gray-500" title={row.concept.name}>
                   {row.concept.name || '—'}
                 </span>
+              </td>
+              <td className="py-3 px-4">
+                <span className="text-sm font-medium text-gray-900">{row.keyword}</span>
               </td>
               <td className="py-3 px-4 text-center">
                 {row.volume !== null ? (
