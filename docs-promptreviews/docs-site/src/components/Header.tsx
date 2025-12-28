@@ -51,12 +51,14 @@ export default function Header({ onSearchClick }: HeaderProps) {
             </Link>
 
             {/* App Link */}
-            <Link
+            <a
               href="https://app.promptreviews.app/dashboard"
+              target="_blank"
+              rel="noopener noreferrer"
               className="hidden sm:inline-flex items-center space-x-2 px-4 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-700 transition-colors"
             >
               <span>Open App</span>
-            </Link>
+            </a>
 
           </div>
         </div>
