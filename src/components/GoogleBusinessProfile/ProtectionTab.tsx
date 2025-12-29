@@ -198,8 +198,8 @@ export default function ProtectionTab({ accountPlan }: ProtectionTabProps) {
   if (!isLoading && !isEligible) {
     return (
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
-        <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <Icon name="FaShieldAlt" className="w-8 h-8 text-indigo-600" />
+        <div className="w-16 h-16 bg-slate-blue/10 rounded-full flex items-center justify-center mx-auto mb-4">
+          <Icon name="FaShieldAlt" className="w-8 h-8 text-slate-blue" />
         </div>
         <h2 className="text-xl font-semibold text-gray-900 mb-2">
           Profile Protection
@@ -231,7 +231,7 @@ export default function ProtectionTab({ accountPlan }: ProtectionTabProps) {
         </div>
         <Link
           href="/dashboard/plan"
-          className="inline-flex items-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-indigo-700 transition-colors"
+          className="inline-flex items-center gap-2 bg-slate-blue text-white px-6 py-3 rounded-lg font-medium hover:bg-slate-blue/90 transition-colors"
         >
           Upgrade to Builder
           <Icon name="FaArrowRight" className="w-4 h-4" />
@@ -257,8 +257,8 @@ export default function ProtectionTab({ accountPlan }: ProtectionTabProps) {
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
-              <Icon name="FaShieldAlt" className="w-5 h-5 text-indigo-600" />
+            <div className="w-10 h-10 bg-slate-blue/10 rounded-lg flex items-center justify-center">
+              <Icon name="FaShieldAlt" className="w-5 h-5 text-slate-blue" />
             </div>
             <div>
               <h2 className="text-lg font-semibold text-gray-900">Profile Protection</h2>
@@ -332,7 +332,7 @@ export default function ProtectionTab({ accountPlan }: ProtectionTabProps) {
               <button
                 onClick={() => updateSettings({ enabled: !settings.enabled })}
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  settings.enabled ? 'bg-indigo-600' : 'bg-gray-300'
+                  settings.enabled ? 'bg-slate-blue' : 'bg-gray-300'
                 }`}
               >
                 <span
@@ -353,7 +353,7 @@ export default function ProtectionTab({ accountPlan }: ProtectionTabProps) {
                     onClick={() => updateSettings({ notification_frequency: freq })}
                     className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                       settings.notification_frequency === freq
-                        ? 'bg-indigo-600 text-white'
+                        ? 'bg-slate-blue text-white'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   >
@@ -375,7 +375,7 @@ export default function ProtectionTab({ accountPlan }: ProtectionTabProps) {
               onClick={() => setStatusFilter('pending')}
               className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
                 statusFilter === 'pending'
-                  ? 'bg-indigo-100 text-indigo-700'
+                  ? 'bg-slate-blue/10 text-slate-blue'
                   : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
@@ -385,7 +385,7 @@ export default function ProtectionTab({ accountPlan }: ProtectionTabProps) {
               onClick={() => setStatusFilter('all')}
               className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
                 statusFilter === 'all'
-                  ? 'bg-indigo-100 text-indigo-700'
+                  ? 'bg-slate-blue/10 text-slate-blue'
                   : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
