@@ -60,6 +60,8 @@ const Header = React.memo(function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [mobileYourBusinessOpen, setMobileYourBusinessOpen] = useState(false);
+  const [mobileGetReviewsOpen, setMobileGetReviewsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const notificationsButtonRef = useRef<HTMLButtonElement>(null);
   const accountButtonRef = useRef<HTMLButtonElement>(null);
@@ -447,12 +449,15 @@ const Header = React.memo(function Header() {
     };
   }, []);
 
-  // Lock body scroll when mobile menu is open
+  // Lock body scroll when mobile menu is open and reset section states when closed
   useEffect(() => {
     if (menuOpen) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
+      // Reset collapsible sections when menu closes
+      setMobileYourBusinessOpen(false);
+      setMobileGetReviewsOpen(false);
     }
     return () => {
       document.body.style.overflow = '';
@@ -832,17 +837,32 @@ const Header = React.memo(function Header() {
                 </Link>
                 {!businessLoading && (
                   <>
-                    {/* Your Business Section */}
-                    <div className={`px-3 py-2 ${!hasBusiness ? 'opacity-50' : ''}`}>
-                      <div className={`text-sm font-medium ${hasBusiness ? 'text-gray-400' : 'text-gray-600'} mb-2 relative inline-block`}>
-                        Your business
-                        {hasBusiness && businessProfileLoaded && !businessProfileCompleted && (
-                          <span className="absolute -top-1 -right-16 bg-yellow-400 text-yellow-900 text-xs px-2 py-1 rounded-full font-bold animate-pulse">
-                            Start here!
-                          </span>
+                    {/* Your Business Section - Collapsible */}
+                    <div className={`${!hasBusiness ? 'opacity-50' : ''}`}>
+                      <button
+                        onClick={() => hasBusiness && setMobileYourBusinessOpen(!mobileYourBusinessOpen)}
+                        className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 ${
+                          hasBusiness ? 'text-white hover:bg-white/10' : 'text-gray-500 cursor-not-allowed'
+                        }`}
+                      >
+                        <span className="flex items-center gap-2">
+                          Your business
+                          {hasBusiness && businessProfileLoaded && !businessProfileCompleted && (
+                            <span className="bg-yellow-400 text-yellow-900 text-xs px-2 py-0.5 rounded-full font-bold animate-pulse">
+                              Start here!
+                            </span>
+                          )}
+                        </span>
+                        {hasBusiness && (
+                          <Icon
+                            name="FaChevronDown"
+                            className={`w-3 h-3 transition-transform duration-200 ${mobileYourBusinessOpen ? 'rotate-180' : ''}`}
+                            size={12}
+                          />
                         )}
-                      </div>
-                      <div className="space-y-1">
+                      </button>
+                      {mobileYourBusinessOpen && (
+                      <div className="space-y-1 pl-3 mt-1">
                         <Link
                           href={hasBusiness ? "/dashboard/business-profile" : "#"}
                           onClick={(e) => {
@@ -907,11 +927,27 @@ const Header = React.memo(function Header() {
                           Rank Tracking
                         </Link>
                       </div>
+                      )}
                     </div>
-                    {/* Get Reviews Section */}
-                    <div className={`px-3 py-2 ${!hasBusiness ? 'opacity-50' : ''}`}>
-                      <div className={`text-sm font-medium ${hasBusiness ? 'text-gray-400' : 'text-gray-600'} mb-2`}>Get reviews</div>
-                      <div className="space-y-1">
+                    {/* Get Reviews Section - Collapsible */}
+                    <div className={`${!hasBusiness ? 'opacity-50' : ''}`}>
+                      <button
+                        onClick={() => hasBusiness && setMobileGetReviewsOpen(!mobileGetReviewsOpen)}
+                        className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 ${
+                          hasBusiness ? 'text-white hover:bg-white/10' : 'text-gray-500 cursor-not-allowed'
+                        }`}
+                      >
+                        <span>Get reviews</span>
+                        {hasBusiness && (
+                          <Icon
+                            name="FaChevronDown"
+                            className={`w-3 h-3 transition-transform duration-200 ${mobileGetReviewsOpen ? 'rotate-180' : ''}`}
+                            size={12}
+                          />
+                        )}
+                      </button>
+                      {mobileGetReviewsOpen && (
+                      <div className="space-y-1 pl-3 mt-1">
                         <Link
                           href={hasBusiness ? "/prompt-pages" : "#"}
                           onClick={(e) => {
@@ -1018,6 +1054,7 @@ const Header = React.memo(function Header() {
                           Sentiment Analyzer
                         </Link>
                       </div>
+                      )}
                     </div>
 
                     {/* Always show Google Biz nav item - access control handled within the page */}
