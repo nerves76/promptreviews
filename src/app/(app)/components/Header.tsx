@@ -466,7 +466,7 @@ const Header = React.memo(function Header() {
           
           {/* Centered Desktop Nav */}
           <div className="hidden md:flex flex-1 justify-center">
-            <div className="flex space-x-8 ml-8">
+            <div className="flex space-x-3 lg:space-x-6 xl:space-x-8 ml-4 lg:ml-8">
                             <Link
                 href={hasBusiness ? "/dashboard" : "#"}
                 onClick={(e) => {
@@ -481,7 +481,7 @@ const Header = React.memo(function Header() {
                     : hasBusiness
                       ? "border-transparent text-white hover:border-white/30 hover:text-white/90"
                       : "border-transparent text-white/50 cursor-not-allowed"
-                } inline-flex items-center px-1 pt-1 border-b-4 text-base font-medium transition-colors duration-200 h-16 relative group`}
+                } inline-flex items-center px-1 pt-1 border-b-4 text-sm lg:text-base font-medium transition-colors duration-200 h-16 relative group whitespace-nowrap`}
               >
                 Dashboard
                 {!hasBusiness && (
@@ -521,7 +521,7 @@ const Header = React.memo(function Header() {
                           : hasBusiness
                             ? "border-transparent text-white hover:border-white/30 hover:text-white/90"
                             : "border-transparent text-white/50 cursor-not-allowed"
-                      } inline-flex items-center px-1 pt-1 border-b-4 text-base font-medium transition-colors duration-200 h-16 relative group`}
+                      } inline-flex items-center px-1 pt-1 border-b-4 text-sm lg:text-base font-medium transition-colors duration-200 h-16 relative group whitespace-nowrap`}
                           >
                       Google biz
                     </Link>
@@ -533,7 +533,7 @@ const Header = React.memo(function Header() {
                       isActive("/community")
                         ? "border-white text-white"
                         : "border-transparent text-white hover:border-white/30 hover:text-white/90"
-                    } inline-flex items-center px-1 pt-1 border-b-4 text-base font-medium transition-colors duration-200 h-16`}
+                    } inline-flex items-center px-1 pt-1 border-b-4 text-sm lg:text-base font-medium transition-colors duration-200 h-16 whitespace-nowrap`}
                   >
                     Community
                   </Link>
@@ -546,7 +546,7 @@ const Header = React.memo(function Header() {
                         isActive("/work-manager")
                           ? "border-white text-white"
                           : "border-transparent text-white hover:border-white/30 hover:text-white/90"
-                      } inline-flex items-center gap-1.5 px-1 pt-1 border-b-4 text-base font-medium transition-colors duration-200 h-16`}
+                      } inline-flex items-center gap-1.5 px-1 pt-1 border-b-4 text-sm lg:text-base font-medium transition-colors duration-200 h-16 whitespace-nowrap`}
                     >
                       <Icon name="FaTasks" size={14} />
                       Work Manager

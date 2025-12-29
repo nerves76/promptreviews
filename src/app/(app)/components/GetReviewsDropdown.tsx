@@ -124,7 +124,7 @@ const GetReviewsDropdown: React.FC<GetReviewsDropdownProps> = ({
         onClick={() => {
           setIsOpen(!isOpen);
         }}
-        className="border-transparent text-white hover:border-white/30 hover:text-white/90 inline-flex items-center px-1 pt-1 border-b-4 text-base font-medium transition-colors duration-200 h-16 text-left"
+        className="border-transparent text-white hover:border-white/30 hover:text-white/90 inline-flex items-center px-1 pt-1 border-b-4 text-sm lg:text-base font-medium transition-colors duration-200 h-16 text-left whitespace-nowrap"
         disabled={businessLoading}
       >
         <span className="mr-1 text-left">Get reviews</span>
