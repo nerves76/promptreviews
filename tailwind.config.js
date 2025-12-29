@@ -107,7 +107,8 @@ module.exports = {
       },
       colors: {
         "slate-blue": "#2E4A7D", // Primary slate blue used throughout the site
-        indigo: "#3730A3", // Secondary Dark
+        // Note: Don't define "indigo" here - it breaks Tailwind's default indigo palette
+        // Use "slate-blue" as the primary brand color instead
         "lavender-haze": "#D8C8DC", // Primary Light
         "soft-peach": "#FFC8A2", // Accent Warm
         "pale-gold": "#F9E79F", // Accent Gold

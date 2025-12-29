@@ -1480,7 +1480,7 @@ export default function UploadContactsPage() {
                     <button
                       type="submit"
                       onClick={handleUpload}
-                      className="px-6 py-2 bg-indigo text-white rounded-lg hover:bg-indigo/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo transition-colors"
+                      className="px-6 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue transition-colors"
                     >
                       Upload contacts
                     </button>
