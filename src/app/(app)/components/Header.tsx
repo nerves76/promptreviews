@@ -447,6 +447,18 @@ const Header = React.memo(function Header() {
     };
   }, []);
 
+  // Lock body scroll when mobile menu is open
+  useEffect(() => {
+    if (menuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [menuOpen]);
+
   return (
     <>
       {/* Account Utility Bar - Only shows when user has multiple accounts */}
@@ -768,12 +780,13 @@ const Header = React.memo(function Header() {
           isOpen={menuOpen}
           mounted={mounted}
           buttonRef={{ current: null } as React.RefObject<HTMLElement>}
-          className="md:hidden"
+          className="md:hidden overflow-y-auto"
           width="auto"
           style={{
             top: 80,
             left: 16,
             right: 16,
+            maxHeight: 'calc(100vh - 96px)',
             zIndex: 2147483647
           }}
         >
