@@ -2635,6 +2635,35 @@ export default function SocialPostingDashboard() {
                 </div>
               ) : (
                 <div className="space-y-6">
+                  {/* Success Messages for Create Post tab */}
+                  {postResult && postResult.success && (
+                    <div className="bg-green-50 border border-green-200 rounded-md p-4">
+                      <div className="flex items-center space-x-2 text-green-800 mb-2">
+                        <Icon name="FaCheck" className="w-4 h-4" />
+                        <span className="text-sm font-medium">Success</span>
+                      </div>
+                      <p className="text-sm text-green-700">{postResult.message}</p>
+                    </div>
+                  )}
+
+                  {/* Error Messages for Create Post tab */}
+                  {postResult && !postResult.success && (
+                    <div className="bg-red-50 border border-red-200 rounded-md p-4 relative">
+                      <button
+                        onClick={() => setPostResult(null)}
+                        className="absolute top-2 right-2 text-red-400 hover:text-red-600"
+                        aria-label="Dismiss"
+                      >
+                        <Icon name="FaTimes" className="w-4 h-4" />
+                      </button>
+                      <div className="flex items-center space-x-2 text-red-800 mb-2">
+                        <Icon name="FaExclamationTriangle" className="w-4 h-4" />
+                        <span className="text-sm font-medium">Error</span>
+                      </div>
+                      <p className="text-sm text-red-700">{postResult.message}</p>
+                    </div>
+                  )}
+
                   <div className="bg-white border border-gray-200 rounded-lg p-6">
                     <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                       <div>
@@ -2777,7 +2806,7 @@ export default function SocialPostingDashboard() {
                               </>
                             ) : (
                               <>
-                                <Icon name="MdFlashOn" className="w-3 h-3" />
+                                <Icon name="prompty" className="w-3 h-3" />
                                 <span>AI improve</span>
                               </>
                             )}
