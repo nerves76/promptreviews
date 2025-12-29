@@ -1,9 +1,7 @@
 "use client";
 import { usePathname } from "next/navigation";
 import Header from "./Header";
-import AnnouncementBanner from "./AnnouncementBanner";
 import FeedbackBubble from "./FeedbackBubble";
-import { useMemo } from "react";
 
 export default function AppMain({
   children,
@@ -14,7 +12,7 @@ export default function AppMain({
 }) {
   const pathname = usePathname();
   const isPublic =
-    pathname.startsWith("/r/") || 
+    pathname.startsWith("/r/") ||
     pathname.startsWith("/prompt-pages/") ||
     pathname.startsWith("/demo/") ||
     pathname.startsWith("/embed/") ||
@@ -28,7 +26,6 @@ export default function AppMain({
     <div className="min-h-screen">
       <main>
         {!isAuth && <Header />}
-        {!isAuth && <AnnouncementBanner />}
         {loader}
         {children}
         {/* Feedback bubble for authenticated users */}

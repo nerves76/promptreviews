@@ -147,6 +147,29 @@ const DashboardContent = React.memo(function DashboardContent({
   const [selectedType, setSelectedType] = useState("");
   const [copyLinkId, setCopyLinkId] = useState<string | null>(null);
   const [showStars, setShowStars] = useState(false);
+  const [announcement, setAnnouncement] = useState<{ message: string; button_text?: string; button_url?: string } | null>(null);
+
+  // Fetch active announcement for welcome section
+  useEffect(() => {
+    const fetchAnnouncement = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('announcements')
+          .select('message, button_text, button_url')
+          .eq('is_active', true)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single();
+
+        if (!error && data) {
+          setAnnouncement(data);
+        }
+      } catch (err) {
+        // Silently fail - will show default message
+      }
+    };
+    fetchAnnouncement();
+  }, []);
 
   // Using singleton Supabase client from supabaseClient.ts
 
@@ -446,14 +469,24 @@ const DashboardContent = React.memo(function DashboardContent({
           Dashboard
         </h1>
       </div>
-      {/* Existing welcome section (standard design) */}
+      {/* Welcome section with announcement */}
       <div className="mb-8">
         <h2 className="text-xl font-bold text-slate-blue">
           Welcome, {userName}!
         </h2>
         <p className="mt-2 text-sm text-gray-600 max-w-[650px]">
-          Put the kettle on! Let's chat with some customers and get some
-          reviews to grow your business.
+          {announcement?.message || "Let's chat with some customers and get some reviews to grow your business."}
+          {announcement?.button_text && announcement?.button_url && (
+            <>
+              {" "}
+              <a
+                href={announcement.button_url}
+                className="text-slate-blue underline hover:text-indigo-800 transition-colors"
+              >
+                {announcement.button_text}
+              </a>
+            </>
+          )}
         </p>
       </div>
 
