@@ -1,6 +1,22 @@
 # Keywords Feature Changelog
 
 ## [2025-12-28]
+### Fixed - Keyword Data Consistency Across Features
+- **Normalization consistency**: All keyword lookups now use shared `normalizePhrase()` function
+  - Handles lowercase, trim, and collapse multiple spaces to single space
+  - Prevents lookup mismatches when terms have irregular spacing
+  - Files: `useVolumeData.ts`, `useRankStatus.ts`, `useGeoGridStatus.ts`
+
+- **Auto-refresh on page visibility**: Added `visibilitychange` event listeners to all keyword hooks
+  - `useVolumeData` - Refetches volume data when page becomes visible
+  - `useRankStatus` - Refetches rank status when page becomes visible
+  - `useGeoGridStatus` - Refetches geo grid status when page becomes visible
+  - Ensures data is always fresh after running checks on other pages
+
+- **KeywordManager visibility refresh**: Added visibility change handler to refetch enrichment data
+  - When user navigates away and returns, enrichment data auto-refreshes
+  - Prevents stale data after running rank/volume checks elsewhere
+
 ### Added - Manual Review Matching Check
 - **New UI**: "Check reviews" button in Reviews section of keyword sidebar
 - **Location**: `components/sidebar/ReviewsEditSection.tsx`

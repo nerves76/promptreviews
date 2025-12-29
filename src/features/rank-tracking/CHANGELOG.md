@@ -1,5 +1,21 @@
 # Rank Tracking Feature - Changelog
 
+## [2025-12-28]
+### Fixed - Data Consistency Improvements
+- **Normalization fix in ConceptsTable**: Now uses shared `normalizePhrase()` function
+  - Previously used inline `toLowerCase().trim()` which didn't collapse multiple spaces
+  - Ensures volume/rank lookups match correctly with saved data
+  - Import: `import { normalizePhrase } from '@/features/keywords/keywordUtils'`
+
+- **Rank Tracking page normalization**: Updated `rankData` Map to use `normalizePhrase()`
+  - Ensures consistent lookup of rank check data by search term
+  - Matches normalization used when saving data
+
+- **Auto-refresh on visibility**: Page now refetches data when user navigates back
+  - Listens for `visibilitychange` events
+  - Calls `fetchResearchResults()` and `fetchRankChecks()` on page visible
+  - Ensures data is always fresh after running checks on other pages
+
 ## [2025-12-11]
 
 ### Added

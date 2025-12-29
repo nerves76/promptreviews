@@ -1,6 +1,20 @@
 # API Changelog
 
 ## [2025-12-28]
+### Fixed - Keyword Data Consistency
+**batch-enrich API improvements (`/api/keywords/batch-enrich`):**
+- Now fetches keyword search terms to build normalized term lookup map
+- Fetches orphan volume data (volume checked before keyword was linked) by normalized term
+- Merges orphan data with keyword-linked data, avoiding duplicates
+- Ensures volume data appears everywhere even if checked before term was added to keyword
+
+**Technical details:**
+- Fetches `keywords` with `id, phrase, search_terms` (not just `id`)
+- Builds `normalizedTermToKeywordId` map from keyword phrases and search terms
+- Parallel fetches: `volumeByKeywordId` (linked) + `volumeByTerm` (orphan)
+- Orphan query: `keyword_id IS NULL AND normalized_term IN (...)`
+- Deduplication: checks `normalizedTerm + locationCode` before adding
+
 ### Added - Review Matching Feature
 **New Endpoints:**
 - `POST /api/keywords/[id]/check-reviews` - Manually trigger review matching for a concept
