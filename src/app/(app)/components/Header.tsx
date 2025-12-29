@@ -791,6 +791,24 @@ const Header = React.memo(function Header() {
           }}
         >
           <div className="px-2 pt-2 pb-3 space-y-1 flex flex-col">
+                {/* Credits Badge - Mobile */}
+                {hasBusiness && creditBalance !== null && (
+                  <Link
+                    href="/dashboard/credits"
+                    onClick={() => setMenuOpen(false)}
+                    className={`flex items-center justify-between px-3 py-3 mb-2 rounded-md transition-colors ${
+                      creditBalance === 0
+                        ? 'bg-red-500/20 text-red-300'
+                        : creditBalance < 50
+                        ? 'bg-yellow-500/20 text-yellow-300'
+                        : 'bg-white/10 text-white'
+                    }`}
+                  >
+                    <span className="text-sm font-medium">Credits</span>
+                    <span className="text-lg font-bold">{creditBalance}</span>
+                  </Link>
+                )}
+
                 <Link
                   href={hasBusiness ? "/dashboard" : "#"}
                   onClick={(e) => {
