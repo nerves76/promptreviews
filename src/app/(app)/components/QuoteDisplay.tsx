@@ -96,27 +96,27 @@ export default function QuoteDisplay({
 
   return (
     <div className={`relative ${className}`}>
-      {/* Navigation Arrows - Desktop: further outside, Mobile: below */}
+      {/* Navigation Arrows - Desktop: inside container edges, Mobile: below */}
       <button
         onClick={previousQuote}
-        className="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-4 md:-translate-x-8 p-2.5 text-white/90 hover:text-white transition-all duration-200 z-10 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg hover:bg-white/15 hover:scale-105 hidden md:block"
+        className="absolute left-0 top-1/2 transform -translate-y-1/2 p-2 text-white/90 hover:text-white transition-all duration-200 z-10 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg hover:bg-white/15 hover:scale-105 hidden md:block"
         aria-label="Previous quote"
       >
-                    <Icon name="FaChevronLeft" className="h-5 w-5" size={20} />
+        <Icon name="FaChevronLeft" className="h-4 w-4" size={16} />
       </button>
       <button
         onClick={nextQuote}
-        className="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-4 md:translate-x-8 p-2.5 text-white/90 hover:text-white transition-all duration-200 z-10 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg hover:bg-white/15 hover:scale-105 hidden md:block"
+        className="absolute right-0 top-1/2 transform -translate-y-1/2 p-2 text-white/90 hover:text-white transition-all duration-200 z-10 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg hover:bg-white/15 hover:scale-105 hidden md:block"
         aria-label="Next quote"
       >
-                    <Icon name="FaChevronRight" className="h-5 w-5" size={20} />
+        <Icon name="FaChevronRight" className="h-4 w-4" size={16} />
       </button>
-      
+
       {/* Quote Content - Clean, no box */}
-      <div className="relative w-full md:min-w-[800px] md:max-w-[800px] py-4">
+      <div className="relative w-full max-w-[600px] py-3 px-12">
         <div className="text-center">
           {/* Quote Text */}
-          <blockquote className="text-xl font-medium text-white/95 mb-2 tracking-wide leading-relaxed drop-shadow-[0_1px_2px_rgba(0,0,0,0.1)]">
+          <blockquote className="text-base font-medium text-white/95 mb-2 tracking-wide leading-relaxed drop-shadow-[0_1px_2px_rgba(0,0,0,0.1)]">
             "{currentQuote.text}"
           </blockquote>
 
