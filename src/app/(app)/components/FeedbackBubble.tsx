@@ -72,13 +72,13 @@ export default function FeedbackBubble() {
             }}
           >
             <div
-              className="absolute w-4 h-4 rounded-full"
+              className="absolute w-2 h-2 rounded-full"
               style={{
-                background: 'radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.4) 40%, transparent 70%)',
-                top: '-2px',
+                background: 'radial-gradient(circle, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.2) 50%, transparent 100%)',
+                top: '0px',
                 left: '50%',
                 transform: 'translateX(-50%)',
-                filter: 'blur(1px)',
+                filter: 'blur(0.5px)',
               }}
             />
           </div>

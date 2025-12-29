@@ -21,12 +21,9 @@ export default function AppMain({
     pathname === "/infographic/embed";
   const isAuth = pathname.startsWith("/auth/") || pathname.startsWith("/reset-password");
 
-  // Pages that should NOT show the sidebar
+  // Pages that should NOT show the sidebar (only game for full-screen experience)
   const noSidebarPaths = [
     "/game",
-    "/community",
-    "/create-prompt-page",
-    "/prompt-pages",
   ];
   const showSidebar = !isAuth && !isPublic && !noSidebarPaths.some(p => pathname.startsWith(p));
 
