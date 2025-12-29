@@ -47,8 +47,9 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status') || 'pending';
 
     // Get monitored locations count
+    // Note: Locations are stored in google_business_locations when selected via the UI
     const { data: monitoredLocations, count: monitoredCount } = await supabase
-      .from('selected_gbp_locations')
+      .from('google_business_locations')
       .select('location_id, location_name', { count: 'exact' })
       .eq('account_id', accountId);
 

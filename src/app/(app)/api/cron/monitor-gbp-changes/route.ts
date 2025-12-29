@@ -172,9 +172,10 @@ export async function GET(request: NextRequest) {
         const fieldsToMonitor = settings?.protected_fields ||
           ['hours', 'address', 'phone', 'website', 'title', 'description'];
 
-        // Get selected locations for this account
+        // Get connected locations for this account
+        // Note: Locations are stored in google_business_locations when selected via the UI
         const { data: selectedLocations } = await supabase
-          .from('selected_gbp_locations')
+          .from('google_business_locations')
           .select('location_id, location_name')
           .eq('account_id', profile.account_id);
 
