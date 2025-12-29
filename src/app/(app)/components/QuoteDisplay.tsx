@@ -95,8 +95,8 @@ export default function QuoteDisplay({
   const currentQuote = quotes[currentIndex];
 
   return (
-    <div className={`relative ${className}`}>
-      {/* Navigation Arrows - Desktop: inside container edges, Mobile: below */}
+    <div className={`relative w-full max-w-[500px] mx-auto ${className}`}>
+      {/* Navigation Arrows - Fixed position at container edges */}
       <button
         onClick={previousQuote}
         className="absolute left-0 top-1/2 transform -translate-y-1/2 p-2 text-white/90 hover:text-white transition-all duration-200 z-10 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg hover:bg-white/15 hover:scale-105 hidden md:block"
@@ -112,8 +112,8 @@ export default function QuoteDisplay({
         <Icon name="FaChevronRight" className="h-4 w-4" size={16} />
       </button>
 
-      {/* Quote Content - Clean, no box */}
-      <div className="relative w-full max-w-[600px] py-3 px-12">
+      {/* Quote Content */}
+      <div className="py-3 px-12">
         <div className="text-center">
           {/* Quote Text */}
           <blockquote className="text-base font-medium text-white/95 mb-2 tracking-wide leading-relaxed drop-shadow-[0_1px_2px_rgba(0,0,0,0.1)]">

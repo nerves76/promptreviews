@@ -591,14 +591,14 @@ const Header = React.memo(function Header() {
                       <Icon name="FaUser" className="w-5 h-5 mr-3 text-white" size={20} />
                       <div className="flex-1">
                         <div className="font-medium">Account</div>
-                        <div className="text-sm text-gray-500">Manage your profile</div>
+                        <div className="text-sm text-white/70">Manage your profile</div>
                       </div>
                     </Link>
                     <Link href="/dashboard/analytics" className="flex items-center px-4 py-3 text-white hover:bg-white/10 transition-colors duration-200" onClick={() => setAccountMenuOpen(false)}>
                       <Icon name="FaChartLine" className="w-5 h-5 mr-3 text-white" size={20} />
                       <div className="flex-1">
                         <div className="font-medium">Analytics</div>
-                        <div className="text-sm text-gray-500">View performance metrics</div>
+                        <div className="text-sm text-white/70">View performance metrics</div>
                       </div>
                     </Link>
                     <Link href="/dashboard/plan" className="flex items-center px-4 py-3 text-white hover:bg-white/10 transition-colors duration-200" onClick={() => setAccountMenuOpen(false)}>
