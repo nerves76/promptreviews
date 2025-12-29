@@ -40,7 +40,7 @@ export default function FeedbackBubble() {
       {/* Floating Help Button with Glass Effect */}
       <button
         onClick={() => setIsModalOpen(true)}
-        className="fixed bottom-6 right-6 z-50 w-14 h-14 backdrop-blur-md bg-white/10 border border-white/20 text-white rounded-full shadow-lg hover:shadow-xl hover:bg-white/20 transition-all duration-200 flex items-center justify-center group"
+        className="fixed bottom-6 right-6 z-50 w-14 h-14 backdrop-blur-md bg-white/10 border border-white/20 text-white rounded-full shadow-lg hover:shadow-xl hover:bg-white/20 hover:-translate-y-0.5 hover:scale-105 transition-all duration-200 flex items-center justify-center group"
         style={{
           background: 'rgba(99, 102, 241, 0.15)',
           backdropFilter: 'blur(10px)',
@@ -49,7 +49,9 @@ export default function FeedbackBubble() {
         }}
         aria-label="Help & Support"
       >
-        <Icon name="FaQuestionCircle" className="w-6 h-6 text-blue-100 drop-shadow-sm" size={24} />
+        <div className="w-[34px] h-[34px] rounded-full bg-white/40 flex items-center justify-center drop-shadow-sm transition-all duration-200 group-hover:bg-white/60">
+          <span className="text-slate-700 text-[22px] font-semibold leading-none">?</span>
+        </div>
         
         {/* Tooltip */}
         <div className="absolute bottom-full right-0 mb-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">

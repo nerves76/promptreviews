@@ -88,7 +88,7 @@ export function FunnelStageGroup({
         <span className={`px-1.5 py-0.5 text-xs rounded ${funnelColor.bg} ${funnelColor.text}`}>
           {label}
         </span>
-        <span className="text-xs text-gray-400">{description}</span>
+        <span className="text-xs text-gray-500">{description}</span>
       </div>
 
       {/* Questions list with left border */}

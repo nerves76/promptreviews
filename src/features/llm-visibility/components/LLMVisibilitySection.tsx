@@ -234,7 +234,7 @@ export function LLMVisibilitySection({
 
           {/* Last Checked */}
           {summary?.lastCheckedAt && (
-            <div className="text-xs text-gray-400 text-center">
+            <div className="text-xs text-gray-500 text-center">
               Last checked: {new Date(summary.lastCheckedAt).toLocaleDateString()}
             </div>
           )}
@@ -273,7 +273,7 @@ function QuestionRow({
           const result = providerResults?.get(provider);
           const colors = LLM_PROVIDER_COLORS[provider];
 
-          let statusClass = 'bg-gray-100 text-gray-400'; // Not checked
+          let statusClass = 'bg-gray-100 text-gray-500'; // Not checked
           let icon = null;
 
           if (result) {

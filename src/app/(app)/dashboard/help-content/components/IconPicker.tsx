@@ -136,7 +136,7 @@ export default function IconPicker({ value, onChange, label = "Icon", placeholde
               <span className="text-sm text-gray-700">{value}</span>
             </>
           ) : (
-            <span className="text-sm text-gray-400">Select an icon...</span>
+            <span className="text-sm text-gray-500">Select an icon...</span>
           )}
         </button>
         {value && (

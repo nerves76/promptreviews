@@ -80,7 +80,7 @@ export function CollapsibleSection({
         <div className="flex items-center gap-2 min-w-0">
           <Icon
             name={isExpanded ? 'FaChevronDown' : 'FaChevronRight'}
-            className="w-3 h-3 text-gray-400 flex-shrink-0 transition-transform"
+            className="w-3 h-3 text-gray-500 flex-shrink-0 transition-transform"
           />
           {icon && <span className="flex-shrink-0">{icon}</span>}
           <span className="text-sm font-medium text-gray-700 truncate">{title}</span>

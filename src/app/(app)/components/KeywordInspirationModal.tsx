@@ -45,7 +45,7 @@ export default function KeywordInspirationModal({
   businessProfile,
 }: KeywordInspirationModalProps) {
   const [addedIndex, setAddedIndex] = useState<number | null>(null);
-  const secondaryColor = businessProfile?.secondary_color || "#4F46E5";
+  const secondaryColor = businessProfile?.secondary_color || "#2E4A7D";
   const hoverTextColor = getContrastTextColor(secondaryColor);
 
   // Add keyword to review or copy to clipboard as fallback
@@ -109,7 +109,7 @@ export default function KeywordInspirationModal({
       <div className="overflow-y-auto max-h-[60vh]">
         {keywords.length === 0 ? (
           <div className="text-center py-8">
-            <svg className="w-8 h-8 text-gray-400 mx-auto mb-3" fill="currentColor" viewBox="0 0 20 20">
+            <svg className="w-8 h-8 text-gray-500 mx-auto mb-3" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
             </svg>
             <p className="text-gray-700">No phrases available</p>

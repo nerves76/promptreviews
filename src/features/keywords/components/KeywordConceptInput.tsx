@@ -549,7 +549,7 @@ export default function KeywordConceptInput({
       <div className="space-y-1">
         <label className="block text-sm font-medium text-gray-600">
           Review phrase
-          <span className="text-gray-400 font-normal ml-1">(what you want your customers to say about you)</span>
+          <span className="text-gray-500 font-normal ml-1">(what you want your customers to say about you)</span>
         </label>
         <input
           type="text"
@@ -564,7 +564,7 @@ export default function KeywordConceptInput({
       <div className="space-y-1">
         <label className="block text-sm font-medium text-gray-600">
           Review aliases
-          <span className="text-gray-400 font-normal ml-1">(track close variants in your reviews)</span>
+          <span className="text-gray-500 font-normal ml-1">(track close variants in your reviews)</span>
         </label>
         {aliases.length > 0 && (
           <div className="flex flex-wrap gap-1.5 pb-1">
@@ -603,7 +603,7 @@ export default function KeywordConceptInput({
       <div className="space-y-1">
         <label className="block text-sm font-medium text-gray-600">
           Search terms
-          <span className="text-gray-400 font-normal ml-1">(used for rank tracking and Local Ranking Grid)</span>
+          <span className="text-gray-500 font-normal ml-1">(used for rank tracking and Local Ranking Grid)</span>
         </label>
         {searchTerms.length > 0 && (
           <div className="space-y-1.5 pb-1">
@@ -619,7 +619,7 @@ export default function KeywordConceptInput({
                 >
                   <button
                     onClick={() => handleSetCanonical(st.term)}
-                    className={`flex-shrink-0 ${st.isCanonical ? "text-yellow-500" : "text-gray-400 hover:text-yellow-500"}`}
+                    className={`flex-shrink-0 ${st.isCanonical ? "text-yellow-500" : "text-gray-500 hover:text-yellow-500"}`}
                     title={st.isCanonical ? "Canonical term (shown when space is limited)" : "Set as canonical"}
                   >
                     <Icon name={st.isCanonical ? "FaStar" : "FaRegStar"} size={12} />
@@ -634,7 +634,7 @@ export default function KeywordConceptInput({
                         {vol.trend && (
                           <span className={`${
                             vol.trend === 'rising' ? 'text-green-600' :
-                            vol.trend === 'falling' ? 'text-red-600' : 'text-gray-400'
+                            vol.trend === 'falling' ? 'text-red-600' : 'text-gray-500'
                           }`}>
                             {vol.trend === 'rising' ? '↑' : vol.trend === 'falling' ? '↓' : '→'}
                           </span>
@@ -749,7 +749,7 @@ export default function KeywordConceptInput({
       <div className="space-y-1">
         <label className="block text-sm font-medium text-gray-600">
           Location
-          <span className="text-gray-400 font-normal ml-1">(for rank tracking and volume lookups)</span>
+          <span className="text-gray-500 font-normal ml-1">(for rank tracking and volume lookups)</span>
         </label>
         {isLookingUpLocation ? (
           <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-500">
@@ -779,7 +779,7 @@ export default function KeywordConceptInput({
       <div className="space-y-1">
         <label className="block text-sm font-medium text-gray-600">
           Related questions
-          <span className="text-gray-400 font-normal ml-1">(for &quot;People Also Ask&quot; and LLM tracking, max 20)</span>
+          <span className="text-gray-500 font-normal ml-1">(for &quot;People Also Ask&quot; and LLM tracking, max 20)</span>
         </label>
         {relatedQuestions.length > 0 && (
           <div className="space-y-1.5 pb-1">

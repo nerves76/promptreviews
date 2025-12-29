@@ -49,7 +49,7 @@ export function CostBreakdownDisplay({
             <span className="text-gray-600">
               Search rank
               {costBreakdown.searchRank.enabled && (
-                <span className="text-gray-400 ml-1">
+                <span className="text-gray-500 ml-1">
                   ({costBreakdown.searchRank.searchTermCount} terms × {costBreakdown.searchRank.devicesCount} devices)
                 </span>
               )}
@@ -67,7 +67,7 @@ export function CostBreakdownDisplay({
             <span className="text-gray-600">
               Local grid
               {costBreakdown.geoGrid.enabled && (
-                <span className="text-gray-400 ml-1">
+                <span className="text-gray-500 ml-1">
                   ({costBreakdown.geoGrid.gridSize}×{costBreakdown.geoGrid.gridSize} × {costBreakdown.geoGrid.searchTermCount} terms)
                 </span>
               )}
@@ -85,7 +85,7 @@ export function CostBreakdownDisplay({
             <span className="text-gray-600">
               LLM visibility
               {costBreakdown.llmVisibility.enabled && (
-                <span className="text-gray-400 ml-1">
+                <span className="text-gray-500 ml-1">
                   ({costBreakdown.llmVisibility.questionCount} questions × {costBreakdown.llmVisibility.providers.length} providers)
                 </span>
               )}

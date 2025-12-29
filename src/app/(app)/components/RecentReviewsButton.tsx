@@ -86,7 +86,7 @@ export default function RecentReviewsButton({
     }
   };
 
-  const secondaryColor = businessProfile?.secondary_color || "#4F46E5";
+  const secondaryColor = businessProfile?.secondary_color || "#2E4A7D";
   const hoverTextColor = getContrastTextColor(secondaryColor);
 
   // Don't render anything if feature is disabled, loading, not enough reviews, or access denied

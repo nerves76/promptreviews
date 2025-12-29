@@ -377,7 +377,7 @@ export default function PhotoManagement({ locations, isConnected }: PhotoManagem
           onDragOver={handleDragOver}
           className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors"
         >
-                            <Icon name="FaUpload" className="w-8 h-8 text-gray-400 mx-auto mb-4" size={32} />
+                            <Icon name="FaUpload" className="w-8 h-8 text-gray-500 mx-auto mb-4" size={32} />
           <p className="text-lg font-medium text-gray-900 mb-2">
             Drag and drop images here
           </p>

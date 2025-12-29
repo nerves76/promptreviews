@@ -43,7 +43,7 @@ export default function TopActionButtons({
     background: isOffWhiteOrCream(businessProfile?.card_bg || "#FFFFFF")
       ? businessProfile?.card_bg || "#FFFFFF"
       : "#FFFFFF",
-    color: getAccessibleColor(businessProfile?.primary_color || "#4F46E5"),
+    color: getAccessibleColor(businessProfile?.primary_color || "#2E4A7D"),
     border: "1px solid #E5E7EB"
   };
 

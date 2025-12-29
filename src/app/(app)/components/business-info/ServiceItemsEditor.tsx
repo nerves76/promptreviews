@@ -349,7 +349,7 @@ export default function ServiceItemsEditor({
                     <div className={`absolute bottom-2 right-2 text-xs font-medium ${
                       (service.description || '').length > 275 ? 'text-red-500' :
                       (service.description || '').length > 250 ? 'text-yellow-500' :
-                      'text-gray-400'
+                      'text-gray-500'
                     }`}>
                       {(service.description || '').length}/300
                     </div>
@@ -387,7 +387,7 @@ export default function ServiceItemsEditor({
             : `Services will be applied to all ${selectedLocationCount} selected locations.`
           }
         </p>
-        <p className="text-xs text-gray-400">
+        <p className="text-xs text-gray-500">
           <span className="font-medium">Google</span> services are predefined by Google for better search visibility. 
           <span className="font-medium ml-2">Custom</span> services are your own unique offerings.
         </p>

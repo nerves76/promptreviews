@@ -1014,13 +1014,13 @@ export default function ReviewsPage() {
               Search
             </label>
             <div className="relative">
-              <span className="absolute inset-y-0 left-0 flex items-center pl-2 text-gray-400 pointer-events-none">
+              <span className="absolute inset-y-0 left-0 flex items-center pl-2 text-gray-500 pointer-events-none">
                 <Icon name="FaSearch" className="w-3.5 h-3.5" size={14} />
               </span>
               <input
                 type="text"
                 placeholder="Search by reviewer, platform, or text..."
-                className="pl-8 pr-3 w-52 rounded border border-gray-200 px-2 py-1 shadow-sm focus:ring-2 focus:ring-[#1A237E] focus:outline-none text-sm"
+                className="pl-8 pr-3 w-52 rounded border border-gray-200 px-2 py-1 shadow-sm focus:ring-2 focus:ring-slate-blue focus:outline-none text-sm"
               />
             </div>
           </div>
@@ -1083,7 +1083,7 @@ export default function ReviewsPage() {
             <label className="block text-xs font-semibold text-gray-500 mb-1 flex items-center gap-1">
               Sentiment
               <Icon name="FaQuestionCircle"
-                className="w-3.5 h-3.5 text-gray-400 cursor-pointer"
+                className="w-3.5 h-3.5 text-gray-500 cursor-pointer"
               />
             </label>
             <div className="flex items-end gap-2">
@@ -1116,7 +1116,7 @@ export default function ReviewsPage() {
                       <span>All</span>
                     </>
                   )}
-                  <Icon name="FaChevronDown" className="w-4 h-4 text-gray-400 ml-1" size={16} />
+                  <Icon name="FaChevronDown" className="w-4 h-4 text-gray-500 ml-1" size={16} />
                 </button>
                 {showEmojiDropdown && (
                   <div
@@ -1173,7 +1173,7 @@ export default function ReviewsPage() {
           </div>
         )}
         {filteredReviews.length === 0 ? (
-          <div className="text-center py-8 text-gray-400">
+          <div className="text-center py-8 text-gray-500">
             No reviews found.
           </div>
         ) : (
@@ -1201,12 +1201,12 @@ export default function ReviewsPage() {
                     {typeof platformIcon === 'string' ? (
                       <Icon 
                         name={platformIcon as IconName}
-                        className="w-6 h-6 text-[#1A237E]"
+                        className="w-6 h-6 text-slate-blue"
                         size={24}
                       />
                     ) : (
                       React.createElement(platformIcon, {
-                        className: "w-6 h-6 text-[#1A237E]",
+                        className: "w-6 h-6 text-slate-blue",
                         title: platformLabel
                       })
                     )}
@@ -1262,7 +1262,7 @@ export default function ReviewsPage() {
                       );
                     })()}
                   </div>
-                  <span className="ml-4 text-gray-400">
+                  <span className="ml-4 text-gray-500">
                     {isExpanded ? (
                       <Icon name="FaChevronDown" className="w-4 h-4" size={16} />
                     ) : (

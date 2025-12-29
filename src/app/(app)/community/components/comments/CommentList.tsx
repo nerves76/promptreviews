@@ -78,7 +78,7 @@ export function CommentList({ comments, currentUserId, onEdit, onDelete, onReact
         if (comment.deleted_at) {
           return (
             <div key={comment.id} className="pl-4 border-l-2 border-white/10 py-2 opacity-50">
-              <p className="text-white/50 italic text-sm">[Comment deleted]</p>
+              <p className="text-white/70 italic text-sm">[Comment deleted]</p>
             </div>
           );
         }
@@ -96,7 +96,7 @@ export function CommentList({ comments, currentUserId, onEdit, onDelete, onReact
                   {onEdit && (
                     <button
                       onClick={() => onEdit(comment.id)}
-                      className="p-1 text-white/50 hover:text-white transition-colors text-xs"
+                      className="p-1 text-white/70 hover:text-white transition-colors text-xs"
                       aria-label="Edit comment"
                     >
                       Edit

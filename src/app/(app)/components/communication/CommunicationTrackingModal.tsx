@@ -236,7 +236,7 @@ export default function CommunicationTrackingModal({
             </div>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-500"
+              className="text-gray-500 hover:text-gray-500"
             >
               <XMarkIcon className="w-6 h-6" />
             </button>
@@ -258,7 +258,7 @@ export default function CommunicationTrackingModal({
                     <Icon name="FaComments" className="w-4 h-4" />
                     <span>SMS</span>
                     {contact.phone && (
-                      <span className="text-xs text-gray-400">({contact.phone})</span>
+                      <span className="text-xs text-gray-500">({contact.phone})</span>
                     )}
                   </div>
                 </button>
@@ -276,7 +276,7 @@ export default function CommunicationTrackingModal({
                     <Icon name="FaEnvelope" className="w-4 h-4" />
                     <span>Email</span>
                     {contact.email && (
-                      <span className="text-xs text-gray-400">({contact.email})</span>
+                      <span className="text-xs text-gray-500">({contact.email})</span>
                     )}
                   </div>
                 </button>

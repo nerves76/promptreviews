@@ -192,7 +192,7 @@ export default function ReturnStateCard({
               <p className="text-gray-600 mb-4">
                 Thank you for supporting {businessName || 'us'}. Reviews help small businesses grow.
               </p>
-              <p className="text-gray-400 text-sm">You can close this tab now.</p>
+              <p className="text-gray-500 text-sm">You can close this tab now.</p>
             </div>
           )}
 

@@ -119,7 +119,7 @@ export function AccountUtilityBar() {
               <Icon name="FaTasks" className="w-3 h-3" size={12} />
               <span>Work Manager</span>
             </Link>
-            <span className="text-white/50">
+            <span className="text-white/70">
               {availableAccounts.length} accounts
             </span>
           </div>
@@ -185,9 +185,9 @@ export function AccountUtilityBar() {
                           )}
                         </div>
                         <div className="flex items-center gap-2 mt-0.5">
-                          <span className="text-xs text-white/50 capitalize">{account.role}</span>
+                          <span className="text-xs text-white/70 capitalize">{account.role}</span>
                           {account.is_primary && (
-                            <span className="text-xs text-white/40">Default</span>
+                            <span className="text-xs text-white/60">Default</span>
                           )}
                         </div>
                       </div>

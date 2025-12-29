@@ -166,7 +166,7 @@ export default function ResearchDomainsPage() {
               />
               <Icon
                 name="FaSearch"
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
                 size={18}
               />
             </div>
@@ -175,7 +175,7 @@ export default function ResearchDomainsPage() {
               disabled={analyzing || !domain.trim() || !hasEnoughCredits}
               className={`px-6 py-3 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2 whitespace-nowrap ${
                 analyzing || !domain.trim() || !hasEnoughCredits
-                  ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                  ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
                   : 'bg-slate-blue text-white hover:bg-slate-blue/90'
               }`}
             >
@@ -344,7 +344,7 @@ export default function ResearchDomainsPage() {
                               {techs.map((tech, i) => (
                                 <span key={i} className="px-2 py-0.5 bg-white border border-gray-200 rounded text-sm">
                                   {tech.name}
-                                  {tech.version && <span className="text-gray-400 ml-1 text-xs">{tech.version}</span>}
+                                  {tech.version && <span className="text-gray-500 ml-1 text-xs">{tech.version}</span>}
                                 </span>
                               ))}
                             </div>
@@ -369,7 +369,7 @@ export default function ResearchDomainsPage() {
               </ResultSection>
             )}
 
-            <div className="text-center text-sm text-gray-400 mt-8">
+            <div className="text-center text-sm text-gray-500 mt-8">
               Analyzed at {new Date(result.analyzedAt).toLocaleString()}
             </div>
           </div>

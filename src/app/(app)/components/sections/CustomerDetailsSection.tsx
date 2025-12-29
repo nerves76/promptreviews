@@ -24,7 +24,7 @@ function Tooltip(props: { text: string }) {
         type="button"
         onMouseEnter={() => setShow(true)}
         onMouseLeave={() => setShow(false)}
-        className="ml-1 text-gray-400 hover:text-gray-600"
+        className="ml-1 text-gray-500 hover:text-gray-600"
       >
         <span className="inline-block w-4 h-4 rounded-full border border-gray-300 text-xs leading-4 text-center">
           ?

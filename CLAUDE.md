@@ -68,6 +68,39 @@ FaGoogle, FaFacebook, FaLinkedin, FaYelp, FaTripadvisor
 grep "FaIconName" src/components/Icon.tsx
 ```
 
+## ⚠️ IMPORTANT: Brand Colors & Guidelines
+
+**Reference:** Full brand guidelines available at `/admin/brand-guidelines` (admin only)
+
+### Simplified Color Palette
+| Purpose | Hex | Tailwind Class |
+|---------|-----|----------------|
+| **Primary** | `#2E4A7D` | `slate-blue` |
+| **Gold (stars only)** | `#FFD700` | `brand-gold` |
+| **Success** | `#16a34a` | `green-600` |
+| **Error** | `#dc2626` | `red-600` |
+| **Warning** | `#f59e0b` | `amber-500` |
+| **Info** | `#3b82f6` | `blue-500` |
+
+### App Background Gradient
+```css
+background: linear-gradient(to bottom, #527DE7, #7864C8, #914AAE);
+```
+
+### Text Colors (WCAG AA Compliant)
+- **Headings:** `text-gray-900` (#111827)
+- **Body text:** `text-gray-600` (#4b5563)
+- **Muted/placeholder:** `text-gray-500` (#6b7280) - NOT gray-400
+- **On gradient:** `text-white`, `text-white/90`, `text-white/70` - NOT white/50 or lower
+
+### Rules
+- ✅ Use `slate-blue` for primary buttons, links, headings
+- ✅ Use opacity variants for hover (e.g., `hover:bg-slate-blue/80`)
+- ✅ Use Tailwind classes, not inline hex values
+- ❌ Never use `text-gray-400` for readable text (fails WCAG)
+- ❌ Never use `text-white/50` or lower for readable text
+- ❌ Never create new custom colors - use existing palette
+
 ## ⚠️ IMPORTANT: Known Issues
 - **Turbopack is currently broken** - DO NOT use the `--turbo` flag with Next.js dev server
 - The `npm run dev` command has been modified to run WITHOUT Turbopack
@@ -460,6 +493,12 @@ When working on this codebase:
 6. **Monitor performance** - Watch for unnecessary re-renders or API calls
 7. **Check migrations** - Always verify database migrations are in sync
 8. **Use existing utilities** - Leverage existing helper functions and hooks
+9. **Build for scalability** - When creating centralized components, design with scalability in mind:
+   - Use TypeScript interfaces for props with sensible defaults
+   - Support composition patterns (children, render props)
+   - Make styling customizable via className props
+   - Consider future use cases without over-engineering
+   - Place shared components in `/src/components/` or `/src/app/(app)/components/`
 
 ## Changelog Convention (Token-Saving Strategy)
 

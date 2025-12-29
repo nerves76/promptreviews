@@ -105,8 +105,8 @@ export default function PersonalizedNoteFeature({
       <div className={`${editMode ? 'flex flex-row justify-between items-start px-2 sm:px-2 py-2' : 'flex items-center justify-between mb-4'}`}>
         <div className="flex flex-col">
           <div className="flex items-center gap-3">
-            <Icon name="FaStickyNote" className={`${editMode ? 'w-7 h-7' : 'text-lg'}`} style={{ color: "#1A237E" }} size={editMode ? 28 : 18} />
-            <h3 className={`${editMode ? 'text-2xl font-bold text-[#1A237E]' : 'text-lg font-semibold text-gray-900'}`}>
+            <Icon name="FaStickyNote" className={`${editMode ? 'w-7 h-7' : 'text-lg'}`} style={{ color: "#2E4A7D" }} size={editMode ? 28 : 18} />
+            <h3 className={`${editMode ? 'text-2xl font-bold text-slate-blue' : 'text-lg font-semibold text-gray-900'}`}>
               Friendly Note Pop-up
             </h3>
           </div>
@@ -154,7 +154,7 @@ export default function PersonalizedNoteFeature({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
           <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center relative">
             <button
-              className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-xl"
+              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-xl"
               onClick={() => setShowConflictModal(false)}
               aria-label="Close"
             >

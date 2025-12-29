@@ -206,7 +206,7 @@ Here's your first tip: [icon] <— click here`;
                 className="rounded-lg"
               />
             ) : (
-              <div className="text-center text-gray-400">
+              <div className="text-center text-gray-500">
                 <Icon name="FaImage" className="w-16 h-16 mx-auto mb-2" />
                 <p>Welcome image</p>
               </div>

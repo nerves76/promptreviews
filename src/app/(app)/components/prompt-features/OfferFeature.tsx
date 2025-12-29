@@ -153,7 +153,7 @@ export default function OfferFeature({
       <div className="flex flex-row justify-between items-start mb-2 px-2 sm:px-4 py-2">
         <div className="flex flex-col">
           <div className="flex items-center gap-3">
-            <Icon name="FaGift" className="w-7 h-7" style={{ color: "#1A237E" }} size={28} />
+            <Icon name="FaGift" className="w-7 h-7" style={{ color: "#2E4A7D" }} size={28} />
             <span className="text-2xl font-bold text-slate-blue">
               Special Offer
             </span>
@@ -195,7 +195,7 @@ export default function OfferFeature({
               maxLength={TITLE_MAX}
               disabled={disabled}
             />
-            <div className="text-xs text-gray-400 text-right mt-1">
+            <div className="text-xs text-gray-500 text-right mt-1">
               {(offerTitle || '').length}/{TITLE_MAX}
             </div>
           </div>
@@ -212,7 +212,7 @@ export default function OfferFeature({
               maxLength={DESC_MAX}
               disabled={disabled}
             />
-            <div className="text-xs text-gray-400 text-right mt-1">
+            <div className="text-xs text-gray-500 text-right mt-1">
               {(offerDescription || '').length}/{DESC_MAX}
             </div>
           </div>
@@ -229,7 +229,7 @@ export default function OfferFeature({
               maxLength={URL_MAX}
               disabled={disabled}
             />
-            <div className="text-xs text-gray-400 text-right mt-1">
+            <div className="text-xs text-gray-500 text-right mt-1">
               {(offerUrl || '').length}/{URL_MAX}
             </div>
           </div>

@@ -91,7 +91,7 @@ export function ReactionBar({ reactions, userReactions, onReact }: ReactionBarPr
       <div className="relative" ref={pickerRef}>
         <button
           onClick={() => setShowPicker(!showPicker)}
-          className="inline-flex items-center justify-center w-7 h-7 rounded-full text-white/50 hover:text-white hover:bg-white/10 transition-colors border border-white/20"
+          className="inline-flex items-center justify-center w-7 h-7 rounded-full text-white/70 hover:text-white hover:bg-white/10 transition-colors border border-white/20"
           aria-label="Add reaction"
         >
           <Icon name="FaPlus" size={12} />

@@ -576,7 +576,7 @@ export default function EventPromptPageForm({
         {/* Event Information */}
         <div>
           <div className="mb-4 flex items-center gap-2">
-            <Icon name="FaCalendarAlt" className="w-5 h-5 text-[#1A237E]" />
+            <Icon name="FaCalendarAlt" className="w-5 h-5 text-slate-blue" />
             <h2 className="text-xl font-semibold text-slate-blue">
               Event Information
             </h2>

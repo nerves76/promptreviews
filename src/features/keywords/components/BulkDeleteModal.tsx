@@ -59,7 +59,7 @@ export function BulkDeleteModal({
           <button
             onClick={onClose}
             disabled={isDeleting}
-            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+            className="p-2 text-gray-500 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
           >
             <Icon name="FaTimes" className="w-5 h-5" />
           </button>
@@ -94,7 +94,7 @@ export function BulkDeleteModal({
                     className="px-3 py-2 flex items-center justify-between hover:bg-gray-50"
                   >
                     <div className="flex items-center gap-2 min-w-0">
-                      <Icon name="FaStar" className="w-3 h-3 text-gray-400 flex-shrink-0" />
+                      <Icon name="FaStar" className="w-3 h-3 text-gray-500 flex-shrink-0" />
                       <span className="text-sm text-gray-700 truncate">{keyword.name}</span>
                     </div>
                     {keyword.groupName && (

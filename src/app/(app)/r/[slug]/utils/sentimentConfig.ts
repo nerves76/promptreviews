@@ -21,7 +21,7 @@ export const sentimentOptions = [
   },
   {
     value: "neutral",
-    icon: React.createElement(FaMeh, { className: "text-gray-400" }),
+    icon: React.createElement(FaMeh, { className: "text-gray-500" }),
     label: "Neutral",
   },
   {

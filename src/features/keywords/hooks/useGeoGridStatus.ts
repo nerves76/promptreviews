@@ -204,7 +204,7 @@ export function getPositionColorClass(bucket: PositionBucket): string {
       return 'text-amber-600';
     case 'none':
     default:
-      return 'text-gray-400';
+      return 'text-gray-500';
   }
 }
 

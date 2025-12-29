@@ -122,7 +122,7 @@ export default function KickstartersFeature({
     
     if (backgroundType === "gradient") {
       return {
-        background: businessProfile?.gradient_start || '#4F46E5', // Use only the first gradient color
+        background: businessProfile?.gradient_start || '#2E4A7D', // Use only the first gradient color
       };
     } else {
       return {
@@ -286,7 +286,7 @@ export default function KickstartersFeature({
         <div className="flex flex-col">
           <div className="flex items-center gap-3">
             <Icon name="FaLightbulb" className={`${editMode ? 'w-7 h-7 text-slate-blue' : 'text-slate-blue text-lg'}`} size={editMode ? 28 : 18} />
-            <h3 className={`${editMode ? 'text-2xl font-bold text-[#1A237E]' : 'text-lg font-semibold text-gray-900'}`}>
+            <h3 className={`${editMode ? 'text-2xl font-bold text-slate-blue' : 'text-lg font-semibold text-gray-900'}`}>
               Kickstarters
             </h3>
             <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
@@ -337,7 +337,7 @@ export default function KickstartersFeature({
                 className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-sm transition-colors"
                 disabled={disabled}
               >
-                <Icon name="FaCog" className="w-4 h-4" style={{ color: "#1A237E" }} size={16} />
+                <Icon name="FaCog" className="w-4 h-4" style={{ color: "#2E4A7D" }} size={16} />
                 Manage
               </button>
               <span className="text-xs text-gray-500">
@@ -566,7 +566,7 @@ export default function KickstartersFeature({
               <h3 className="text-lg font-semibold">All Kickstarter Questions</h3>
               <button
                 onClick={() => setShowViewAll(false)}
-                className="text-gray-400 hover:text-gray-600 text-xl"
+                className="text-gray-500 hover:text-gray-600 text-xl"
                 aria-label="Close"
               >
                 ×

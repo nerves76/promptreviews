@@ -114,7 +114,7 @@ function formatVolume(volume: number | null): string {
 }
 
 function getPositionColor(position: number | null): string {
-  if (position === null) return 'text-gray-400';
+  if (position === null) return 'text-gray-500';
   if (position <= 3) return 'text-green-600';
   if (position <= 10) return 'text-blue-600';
   if (position <= 20) return 'text-amber-600';
@@ -146,7 +146,7 @@ function abbreviateState(location: string): string {
 
 function getChangeDisplay(change: number | null): React.ReactNode {
   if (change === null || change === 0) {
-    return <span className="text-gray-400">—</span>;
+    return <span className="text-gray-500">—</span>;
   }
   if (change > 0) {
     return (
@@ -489,7 +489,7 @@ export default function ConceptsTable({
                           e.stopPropagation();
                           handleToggleHistory(`${row.concept.id}::${row.keyword}`, row.concept.id, e);
                         }}
-                        className="text-gray-400 hover:text-gray-600 transition-colors"
+                        className="text-gray-500 hover:text-gray-600 transition-colors"
                       >
                         <Icon
                           name={expandedRowKey === `${row.concept.id}::${row.keyword}` ? 'FaChevronDown' : 'FaChevronRight'}
@@ -522,7 +522,7 @@ export default function ConceptsTable({
                       const country = parts.pop();
                       const cityState = abbreviateState(parts.join(', '));
                       return (
-                        <div className="text-[10px] text-gray-400 text-center" title={row.volumeLocation}>
+                        <div className="text-[10px] text-gray-500 text-center" title={row.volumeLocation}>
                           <div>{cityState}</div>
                           {country && <div>{country}</div>}
                         </div>
@@ -532,7 +532,7 @@ export default function ConceptsTable({
                 ) : (
                   <button
                     onClick={(e) => handleCheckVolume(row.keyword, row.concept.id, e)}
-                    className="text-xs text-gray-400 hover:text-blue-600 transition-colors"
+                    className="text-xs text-gray-500 hover:text-blue-600 transition-colors"
                     title="Check search volume"
                   >
                     Check
@@ -546,12 +546,12 @@ export default function ConceptsTable({
                       {/* Desktop rank */}
                       {row.desktopChecked && (
                         <span className="flex items-center gap-1" title="Desktop">
-                          <svg className="w-3.5 h-3.5 text-gray-400" viewBox="0 0 16 14" fill="currentColor">
+                          <svg className="w-3.5 h-3.5 text-gray-500" viewBox="0 0 16 14" fill="currentColor">
                             <rect x="0" y="0" width="16" height="10" rx="1" />
                             <rect x="5" y="11" width="6" height="1" />
                             <rect x="4" y="12" width="8" height="1" />
                           </svg>
-                          <span className={`font-semibold ${row.desktopRank !== null ? getPositionColor(row.desktopRank) : 'text-gray-400'}`}>
+                          <span className={`font-semibold ${row.desktopRank !== null ? getPositionColor(row.desktopRank) : 'text-gray-500'}`}>
                             {row.desktopRank !== null ? (row.desktopRank > 100 ? '>100' : row.desktopRank) : '>100'}
                           </span>
                         </span>
@@ -559,21 +559,21 @@ export default function ConceptsTable({
                       {/* Mobile rank */}
                       {row.mobileChecked && (
                         <span className="flex items-center gap-1" title="Mobile">
-                          <Icon name="FaMobile" className="w-3.5 h-3.5 text-gray-400" />
-                          <span className={`font-semibold ${row.mobileRank !== null ? getPositionColor(row.mobileRank) : 'text-gray-400'}`}>
+                          <Icon name="FaMobile" className="w-3.5 h-3.5 text-gray-500" />
+                          <span className={`font-semibold ${row.mobileRank !== null ? getPositionColor(row.mobileRank) : 'text-gray-500'}`}>
                             {row.mobileRank !== null ? (row.mobileRank > 100 ? '>100' : row.mobileRank) : '>100'}
                           </span>
                         </span>
                       )}
                     </div>
                     {row.rankLocation && (
-                      <span className="text-[10px] text-gray-400 truncate max-w-[100px]" title={row.rankLocation}>
+                      <span className="text-[10px] text-gray-500 truncate max-w-[100px]" title={row.rankLocation}>
                         {row.rankLocation}
                       </span>
                     )}
                   </div>
                 ) : (
-                  <span className="text-gray-400">—</span>
+                  <span className="text-gray-500">—</span>
                 )}
               </td>
               <td className="py-3 px-4 text-center">
@@ -591,12 +591,12 @@ export default function ConceptsTable({
                     }`}>
                       {row.gridPointsInTop10 ?? 0}/{row.gridTotalPoints}
                     </span>
-                    <span className="text-[10px] text-gray-400">
+                    <span className="text-[10px] text-gray-500">
                       {Math.round(((row.gridPointsInTop10 ?? 0) / row.gridTotalPoints) * 100)}% top 10
                     </span>
                   </div>
                 ) : row.gridTracked ? (
-                  <span className="text-xs text-gray-400" title="No grid checks yet">—</span>
+                  <span className="text-xs text-gray-500" title="No grid checks yet">—</span>
                 ) : (
                   <span className="text-gray-300">—</span>
                 )}

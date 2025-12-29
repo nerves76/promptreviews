@@ -1895,7 +1895,7 @@ export default function SocialPostingDashboard() {
               </h3>
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-slate-blue"
+                className="p-2 rounded-md text-gray-500 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-slate-blue"
               >
                 <Icon name={isMobileMenuOpen ? "FaTimes" : "FaBars"} className="w-5 h-5" size={20} />
               </button>
@@ -2044,7 +2044,7 @@ export default function SocialPostingDashboard() {
                         ? 'bg-slate-blue text-white'
                         : isConnected 
                           ? 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                          : 'text-gray-400 cursor-not-allowed'
+                          : 'text-gray-500 cursor-not-allowed'
                     }`}
                   >
                     Business Info
@@ -2057,7 +2057,7 @@ export default function SocialPostingDashboard() {
                         ? 'bg-slate-blue text-white'
                         : isConnected 
                           ? 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                          : 'text-gray-400 cursor-not-allowed'
+                          : 'text-gray-500 cursor-not-allowed'
                     }`}
                   >
                     Services
@@ -2070,7 +2070,7 @@ export default function SocialPostingDashboard() {
                         ? 'bg-slate-blue text-white'
                         : isConnected
                           ? 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                          : 'text-gray-400 cursor-not-allowed'
+                          : 'text-gray-500 cursor-not-allowed'
                     }`}
                   >
                     More
@@ -2093,7 +2093,7 @@ export default function SocialPostingDashboard() {
                         ? 'bg-slate-blue text-white'
                         : isConnected 
                           ? 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                          : 'text-gray-400 cursor-not-allowed'
+                          : 'text-gray-500 cursor-not-allowed'
                     }`}
                   >
                     Post
@@ -2106,7 +2106,7 @@ export default function SocialPostingDashboard() {
                         ? 'bg-slate-blue text-white'
                         : isConnected 
                           ? 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                          : 'text-gray-400 cursor-not-allowed'
+                          : 'text-gray-500 cursor-not-allowed'
                     }`}
                   >
                     Schedule
@@ -2119,7 +2119,7 @@ export default function SocialPostingDashboard() {
                         ? 'bg-slate-blue text-white'
                         : isConnected 
                           ? 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                          : 'text-gray-400 cursor-not-allowed'
+                          : 'text-gray-500 cursor-not-allowed'
                     }`}
                   >
                     Photos
@@ -2132,7 +2132,7 @@ export default function SocialPostingDashboard() {
                         ? 'bg-slate-blue text-white'
                         : isConnected 
                           ? 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                          : 'text-gray-400 cursor-not-allowed'
+                          : 'text-gray-500 cursor-not-allowed'
                     }`}
                   >
                     Reviews
@@ -2186,7 +2186,7 @@ export default function SocialPostingDashboard() {
                           disabled={isLoading}
                           className={`px-4 py-2 rounded-md transition-colors text-sm flex items-center space-x-2 ${
                             isLoading
-                              ? 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200'
+                              ? 'bg-gray-100 text-gray-500 cursor-not-allowed border border-gray-200'
                               : 'text-red-600 border border-red-200 hover:bg-red-50'
                           }`}
                         >
@@ -2422,7 +2422,7 @@ export default function SocialPostingDashboard() {
                           disabled={isExportingPDF || overviewLoading}
                           className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                             isExportingPDF || overviewLoading
-                              ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                              ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
                               : 'bg-slate-blue text-white hover:bg-blue-600'
                           }`}
                         >
@@ -2614,7 +2614,7 @@ export default function SocialPostingDashboard() {
             <div className="space-y-6">
               {!isConnected ? (
                 <div className="text-center py-12">
-                  <Icon name="FaGoogle" className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <Icon name="FaGoogle" className="w-12 h-12 text-gray-500 mx-auto mb-4" />
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">Connect Google Business Profile</h3>
                   <p className="text-gray-600 mb-4">
                     Connect your Google Business Profile to start posting updates to your business locations.
@@ -2702,7 +2702,7 @@ export default function SocialPostingDashboard() {
                           helperText={locations.length > 0 ? 'Posts will publish to every selected location.' : undefined}
                           emptyState={(
                             <div className="text-center py-8">
-                              <Icon name="FaMapMarker" className="w-8 h-8 text-gray-400 mx-auto mb-3" />
+                              <Icon name="FaMapMarker" className="w-8 h-8 text-gray-500 mx-auto mb-3" />
                               {hasAttemptedFetch ? (
                                 <>
                                   <p className="text-gray-600 mb-4">No business locations found</p>
@@ -2832,7 +2832,7 @@ export default function SocialPostingDashboard() {
                             disabled={uploadingImages}
                           />
                           <label htmlFor="image-upload" className="cursor-pointer">
-                            <Icon name="FaImage" className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                            <Icon name="FaImage" className="w-8 h-8 text-gray-500 mx-auto mb-2" />
                             <p className="text-sm text-gray-600">
                               {uploadingImages ? 'Processing images...' : 'Click to upload photos or drag and drop'}
                             </p>
@@ -2960,7 +2960,7 @@ export default function SocialPostingDashboard() {
             <div className="space-y-6">
               {!isConnected ? (
                 <div className="text-center py-12">
-                  <Icon name="FaImage" className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <Icon name="FaImage" className="w-12 h-12 text-gray-500 mx-auto mb-4" />
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">Connect Google Business Profile</h3>
                   <p className="text-gray-600 mb-4">
                     Connect your Google Business Profile to manage photos for your business locations.
@@ -2997,7 +2997,7 @@ export default function SocialPostingDashboard() {
             <div className="space-y-6">
               {!isConnected ? (
                 <div className="text-center py-12">
-                  <Icon name="FaStore" className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <Icon name="FaStore" className="w-12 h-12 text-gray-500 mx-auto mb-4" />
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">Connect Google Business Profile</h3>
                   <p className="text-gray-600 mb-4">
                     Connect your Google Business Profile to edit business information.
@@ -3035,7 +3035,7 @@ export default function SocialPostingDashboard() {
             <div className="space-y-6">
               {!isConnected ? (
                 <div className="text-center py-12">
-                  <Icon name="FaHandshake" className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <Icon name="FaHandshake" className="w-12 h-12 text-gray-500 mx-auto mb-4" />
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">Connect Google Business Profile</h3>
                   <p className="text-gray-600 mb-4">
                     Connect your Google Business Profile to manage categories and services.
@@ -3073,7 +3073,7 @@ export default function SocialPostingDashboard() {
             <div className="space-y-6">
               {!isConnected ? (
                 <div className="text-center py-12">
-                  <Icon name="FiMoreHorizontal" className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <Icon name="FiMoreHorizontal" className="w-12 h-12 text-gray-500 mx-auto mb-4" />
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">Connect Google Business Profile</h3>
                   <p className="text-gray-600 mb-4">
                     Connect your Google Business Profile to learn about additional features.
@@ -3394,7 +3394,7 @@ export default function SocialPostingDashboard() {
             <div className="space-y-6">
               {!isConnected ? (
                 <div className="text-center py-12">
-                  <Icon name="FaStar" className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <Icon name="FaStar" className="w-12 h-12 text-gray-500 mx-auto mb-4" />
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">Connect Google Business Profile</h3>
                   <p className="text-gray-600 mb-4">
                     Connect your Google Business Profile to manage reviews for your business locations.

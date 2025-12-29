@@ -448,7 +448,7 @@ export default function WorkManagerDetailsPanel({
           {/* Timeline */}
           {actionsLoading ? (
             <div className="flex items-center justify-center py-6">
-              <Icon name="FaSpinner" size={20} className="animate-spin text-gray-400" />
+              <Icon name="FaSpinner" size={20} className="animate-spin text-gray-500" />
             </div>
           ) : actions.length === 0 ? (
             <p className="text-sm text-gray-500 italic py-4">No activity yet</p>

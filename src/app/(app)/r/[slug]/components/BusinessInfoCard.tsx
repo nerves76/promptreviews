@@ -149,7 +149,7 @@ export default function BusinessInfoCard({ businessProfile, reviewType, promptPa
         {/* Employee Name or Business Name */}
         <h1
           className={`text-3xl font-bold text-center mb-1 ${getFontClass(businessProfile?.primary_font || "")}`}
-          style={{ color: businessProfile?.primary_color || "#4F46E5" }}
+          style={{ color: businessProfile?.primary_color || "#2E4A7D" }}
         >
           {reviewType === 'employee' && promptPage?.emp_first_name && promptPage?.emp_last_name ? (
             `${promptPage.emp_first_name} ${promptPage.emp_last_name}`

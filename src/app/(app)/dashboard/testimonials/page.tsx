@@ -381,8 +381,8 @@ export default function ReviewsPage() {
             onClick={() => setActiveTab(tab.key as "reviewer" | "platform")}
             className={`px-4 py-2 -mb-px border-b-2 font-medium transition-colors ${
               activeTab === tab.key
-                ? "border-[#1A237E] text-[#1A237E]"
-                : "border-transparent text-gray-500 hover:text-[#1A237E]"
+                ? "border-slate-blue text-slate-blue"
+                : "border-transparent text-gray-500 hover:text-slate-blue"
             }`}
           >
             {tab.label}
@@ -395,7 +395,7 @@ export default function ReviewsPage() {
         <input
           type="text"
           placeholder="Search by reviewer, platform, or text..."
-          className="w-full max-w-md rounded-lg border border-gray-200 px-4 py-2 shadow-sm focus:ring-2 focus:ring-[#1A237E] focus:outline-none"
+          className="w-full max-w-md rounded-lg border border-gray-200 px-4 py-2 shadow-sm focus:ring-2 focus:ring-slate-blue focus:outline-none"
         />
       </div>
 
@@ -420,9 +420,9 @@ export default function ReviewsPage() {
                     onClick={() => toggleExpand(group.reviewerKey)}
                   >
                     {expanded[group.reviewerKey] ? (
-                      <Icon name="FaChevronDown" className="text-[#1A237E]" />
+                      <Icon name="FaChevronDown" className="text-slate-blue" />
                     ) : (
-                                              <Icon name="FaChevronRight" className="text-[#1A237E]" />
+                                              <Icon name="FaChevronRight" className="text-slate-blue" />
                     )}
                     <span className="font-semibold text-lg text-gray-800">
                       {group.first_name || "[No Name]"}{" "}
@@ -433,7 +433,7 @@ export default function ReviewsPage() {
                         </span>
                       ) : null}
                     </span>
-                    <span className="ml-auto text-sm text-gray-400">
+                    <span className="ml-auto text-sm text-gray-500">
                       {group.reviews.length} review
                       {group.reviews.length !== 1 ? "s" : ""}
                     </span>
@@ -457,13 +457,13 @@ export default function ReviewsPage() {
                               className="absolute -top-4 -left-4 bg-white rounded-full shadow p-2 flex items-center justify-center"
                               title={label}
                             >
-                              <PlatformIcon className="w-6 h-6 text-[#1A237E]" />
+                              <PlatformIcon className="w-6 h-6 text-slate-blue" />
                             </div>
                             <div className="flex items-center gap-2 mb-2">
-                              <span className="font-semibold text-[#1A237E]">
+                              <span className="font-semibold text-slate-blue">
                                 {review.platform}
                               </span>
-                              <span className="text-xs text-gray-400 ml-2">
+                              <span className="text-xs text-gray-500 ml-2">
                                 {new Date(
                                   review.created_at,
                                 ).toLocaleDateString()}
@@ -557,14 +557,14 @@ export default function ReviewsPage() {
                   onClick={() => toggleExpand(group.platform)}
                 >
                   {expanded[group.platform] ? (
-                    <Icon name="FaChevronDown" className="text-[#1A237E]" />
+                    <Icon name="FaChevronDown" className="text-slate-blue" />
                   ) : (
-                    <Icon name="FaChevronRight" className="text-[#1A237E]" />
+                    <Icon name="FaChevronRight" className="text-slate-blue" />
                   )}
                   <span className="font-semibold text-lg text-gray-800">
                     {group.platform}
                   </span>
-                  <span className="ml-auto text-sm text-gray-400">
+                  <span className="ml-auto text-sm text-gray-500">
                     {group.reviews.length} review
                     {group.reviews.length !== 1 ? "s" : ""}
                   </span>
@@ -588,10 +588,10 @@ export default function ReviewsPage() {
                             className="absolute -top-4 -left-4 bg-white rounded-full shadow p-2 flex items-center justify-center"
                             title={label}
                           >
-                            <PlatformIcon className="w-6 h-6 text-[#1A237E]" />
+                            <PlatformIcon className="w-6 h-6 text-slate-blue" />
                           </div>
                           <div className="flex items-center gap-2 mb-2">
-                            <span className="font-semibold text-[#1A237E]">
+                            <span className="font-semibold text-slate-blue">
                               {review.first_name || "[No Name]"}{" "}
                               {review.last_name ? review.last_name : ""}
                             </span>
@@ -600,7 +600,7 @@ export default function ReviewsPage() {
                                 ({review.reviewer_role})
                               </span>
                             )}
-                            <span className="text-xs text-gray-400 ml-2">
+                            <span className="text-xs text-gray-500 ml-2">
                               {new Date(review.created_at).toLocaleDateString()}
                             </span>
                             <span

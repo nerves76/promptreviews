@@ -187,7 +187,7 @@ export function InlinePostComposer({ channelName, onSubmit }: InlinePostComposer
               {isSubmitting ? 'Posting...' : 'Send'}
             </button>
           )}
-          <p className="text-xs text-white/50">
+          <p className="text-xs text-white/70">
             <kbd className="px-2 py-1 bg-white/10 rounded">Enter</kbd> to send, <kbd className="px-2 py-1 bg-white/10 rounded">Shift + Enter</kbd> for new line
           </p>
         </div>

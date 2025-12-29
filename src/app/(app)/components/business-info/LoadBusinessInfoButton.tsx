@@ -289,7 +289,7 @@ export default function LoadBusinessInfoButton({
       disabled={isLoading || selectedLocationIds.length === 0 || detailsLoaded}
       className={`flex items-center space-x-2 px-4 py-2 text-sm rounded-md border relative overflow-hidden transition-all duration-300 ${
         isLoading || selectedLocationIds.length === 0 || detailsLoaded
-          ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+          ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed'
           : `bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 ${!detailsLoaded && !isLoading ? 'shine-button' : ''}`
       }`}
       title={selectedLocationIds.length > 1 ? `Will load data from ${locations.find(l => l.id === selectedLocationIds[0])?.name || 'first selected location'} as reference` : undefined}

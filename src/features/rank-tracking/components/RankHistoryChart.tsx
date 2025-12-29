@@ -325,7 +325,7 @@ export default function RankHistoryChart({
           <div className="text-center">
             <Icon name="FaChartLine" className="w-8 h-8 mx-auto mb-2 text-gray-300" />
             <p className="text-sm">No rank history yet</p>
-            <p className="text-xs text-gray-400 mt-1">Check rankings to see trends over time</p>
+            <p className="text-xs text-gray-500 mt-1">Check rankings to see trends over time</p>
           </div>
         </div>
       ) : (

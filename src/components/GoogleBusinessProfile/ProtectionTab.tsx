@@ -287,7 +287,7 @@ export default function ProtectionTab({ accountPlan }: ProtectionTabProps) {
                   key={loc.location_id}
                   className="inline-flex items-center gap-1 px-2 py-1 bg-white border border-gray-200 rounded text-sm text-gray-700"
                 >
-                  <Icon name="FaMapMarker" className="w-3 h-3 text-gray-400" />
+                  <Icon name="FaMapMarker" className="w-3 h-3 text-gray-500" />
                   {loc.location_name || 'Unnamed Location'}
                 </span>
               ))}

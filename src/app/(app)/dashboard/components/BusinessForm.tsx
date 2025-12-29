@@ -69,7 +69,7 @@ function Tooltip({ text }: { text: string }) {
         type="button"
         tabIndex={0}
         aria-label="Show help"
-        className="text-gray-400 hover:text-indigo-600 focus:outline-none"
+        className="text-gray-500 hover:text-indigo-600 focus:outline-none"
         onMouseEnter={() => setShow(true)}
         onMouseLeave={() => setShow(false)}
         onFocus={() => setShow(true)}

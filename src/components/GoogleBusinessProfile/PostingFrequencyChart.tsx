@@ -455,13 +455,13 @@ export default function PostingFrequencyChart({
                     {post.summary?.substring(0, 30) || formatTopicType(post.topicType)}
                     {post.summary && post.summary.length > 30 ? '...' : ''}
                   </span>
-                  <span className="text-gray-400 ml-2">
+                  <span className="text-gray-500 ml-2">
                     {formatTopicType(post.topicType)}
                   </span>
                 </div>
               ))}
               {tooltip.data.posts.length > 5 && (
-                <div className="text-xs text-gray-400 text-center pt-1">
+                <div className="text-xs text-gray-500 text-center pt-1">
                   +{tooltip.data.posts.length - 5} more
                 </div>
               )}

@@ -476,7 +476,7 @@ export default function BusinessLocationModal({
                       />
                     ) : (
                       <div className="w-24 h-24 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center bg-gray-50">
-                        <Icon name="FaImage" className="w-8 h-8 text-gray-400" size={32} />
+                        <Icon name="FaImage" className="w-8 h-8 text-gray-500" size={32} />
                       </div>
                     )}
                   </div>
@@ -494,7 +494,7 @@ export default function BusinessLocationModal({
                       htmlFor="location-photo-upload"
                       className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue cursor-pointer"
                     >
-                      <Icon name="FaImage" className="w-4 h-4 mr-2" style={{ color: "#1A237E" }} size={16} />
+                      <Icon name="FaImage" className="w-4 h-4 mr-2" style={{ color: "#2E4A7D" }} size={16} />
                       Upload photo
                     </label>
                     {locationPhotoError && (
@@ -676,7 +676,7 @@ export default function BusinessLocationModal({
               <div className="rounded-lg p-4 bg-slate-50 border border-slate-200 flex flex-col gap-2 shadow relative">
                 <div className="flex items-center justify-between mb-2 px-2 py-2">
                   <div className="flex items-center gap-3">
-                    <Icon name="FaStickyNote" className="w-7 h-7" style={{ color: "#1A237E" }} size={28} />
+                    <Icon name="FaStickyNote" className="w-7 h-7" style={{ color: "#2E4A7D" }} size={28} />
                     <span className="text-2xl font-bold text-slate-blue">
                       Friendly Note Pop-up
                     </span>

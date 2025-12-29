@@ -105,7 +105,7 @@ export function BulkActionBar({
                           }}
                           className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 transition-colors flex items-center gap-2"
                         >
-                          <Icon name="FaTags" className="w-3 h-3 text-gray-400" />
+                          <Icon name="FaTags" className="w-3 h-3 text-gray-500" />
                           <span>{group.name}</span>
                         </button>
                       ))}

@@ -345,7 +345,7 @@ export default function ShareModal({
                       </div>
                       <Icon
                         name={historyExpanded ? "FaChevronUp" : "FaChevronDown"}
-                        className="w-4 h-4 text-gray-400"
+                        className="w-4 h-4 text-gray-500"
                         size={16}
                       />
                     </button>
@@ -377,7 +377,7 @@ export default function ShareModal({
                                 </div>
                                 <button
                                   onClick={() => handleDeleteShare(share.id)}
-                                  className="text-gray-400 hover:text-red-600 transition-colors ml-2"
+                                  className="text-gray-500 hover:text-red-600 transition-colors ml-2"
                                   aria-label="Delete share record"
                                   title="Delete"
                                 >
@@ -636,7 +636,7 @@ export default function ShareModal({
                   transition-colors
                   ${
                     charInfo?.isOverLimit
-                      ? 'bg-white/20 text-white/40 cursor-not-allowed'
+                      ? 'bg-white/20 text-white/60 cursor-not-allowed'
                       : 'bg-white text-slate-900 hover:bg-white/90'
                   }
                 `}

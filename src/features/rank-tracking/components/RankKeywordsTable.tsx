@@ -233,7 +233,7 @@ export default function RankKeywordsTable({ keywords, isLoading, onRemove, onKey
                   <button
                     onClick={() => handleRemoveSingle(keyword.keywordId)}
                     disabled={isRemoving}
-                    className="text-gray-400 hover:text-red-500 disabled:opacity-50"
+                    className="text-gray-500 hover:text-red-500 disabled:opacity-50"
                     title="Remove from group"
                   >
                     <XMarkIcon className="w-4 h-4" />
@@ -257,7 +257,7 @@ export default function RankKeywordsTable({ keywords, isLoading, onRemove, onKey
 
 function PositionBadge({ position }: { position: number | null | undefined }) {
   if (position === null || position === undefined) {
-    return <span className="text-gray-400">—</span>;
+    return <span className="text-gray-500">—</span>;
   }
 
   const bgColor =
@@ -280,7 +280,7 @@ function PositionBadge({ position }: { position: number | null | undefined }) {
 
 function PositionChange({ change }: { change: number | null | undefined }) {
   if (change === null || change === undefined || change === 0) {
-    return <span className="text-gray-400">—</span>;
+    return <span className="text-gray-500">—</span>;
   }
 
   // Positive change means improved (moved up in rankings = lower number)
@@ -300,7 +300,7 @@ function PositionChange({ change }: { change: number | null | undefined }) {
 
 function VolumeDisplay({ volume }: { volume: number | null | undefined }) {
   if (volume === null || volume === undefined) {
-    return <span className="text-gray-400 text-sm" title="No volume data yet">—</span>;
+    return <span className="text-gray-500 text-sm" title="No volume data yet">—</span>;
   }
 
   // Format with K/M suffix for large numbers
@@ -319,7 +319,7 @@ function VolumeDisplay({ volume }: { volume: number | null | undefined }) {
 
 function DifficultyBadge({ difficulty }: { difficulty: number | null | undefined }) {
   if (difficulty === null || difficulty === undefined) {
-    return <span className="text-gray-400 text-sm" title="No difficulty data yet">—</span>;
+    return <span className="text-gray-500 text-sm" title="No difficulty data yet">—</span>;
   }
 
   const level =
@@ -352,7 +352,7 @@ function DifficultyBadge({ difficulty }: { difficulty: number | null | undefined
 
 function IntentBadge({ intent }: { intent: string | null | undefined }) {
   if (!intent) {
-    return <span className="text-gray-400 text-sm" title="No intent data yet">—</span>;
+    return <span className="text-gray-500 text-sm" title="No intent data yet">—</span>;
   }
 
   const config: Record<string, { bg: string; label: string; tooltip: string }> = {

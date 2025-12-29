@@ -21,7 +21,7 @@ export function ChannelList({ channels, activeChannelSlug, onChannelSelect }: Ch
 
   return (
     <nav aria-label="Community channels" className="space-y-1">
-      <h2 className="px-3 text-xs font-semibold text-white/50 uppercase tracking-wider mb-3">
+      <h2 className="px-3 text-xs font-semibold text-white/70 uppercase tracking-wider mb-3">
         Channels
       </h2>
 
@@ -55,7 +55,7 @@ export function ChannelList({ channels, activeChannelSlug, onChannelSelect }: Ch
 
             {channel.admin_only_posting && (
               <svg
-                className="w-3 h-3 text-white/50"
+                className="w-3 h-3 text-white/70"
                 fill="currentColor"
                 viewBox="0 0 20 20"
                 xmlns="http://www.w3.org/2000/svg"

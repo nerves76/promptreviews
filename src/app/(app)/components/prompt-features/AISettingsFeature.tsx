@@ -84,7 +84,7 @@ export default function AISettingsFeature({
         <div className="flex flex-col">
           <div className="flex items-center gap-3">
             <Icon name="prompty" className="w-8 h-8 text-slate-blue" size={32} />
-            <span className="text-2xl font-bold text-[#1A237E]">
+            <span className="text-2xl font-bold text-slate-blue">
               Generate with AI
             </span>
           </div>
@@ -119,7 +119,7 @@ export default function AISettingsFeature({
         <div className="flex flex-col">
           <div className="flex items-center gap-3">
             <Icon name="FaCheck" className="w-7 h-7 text-slate-blue" size={28} />
-            <span className="text-2xl font-bold text-[#1A237E]">
+            <span className="text-2xl font-bold text-slate-blue">
               Fix My Grammar
             </span>
           </div>

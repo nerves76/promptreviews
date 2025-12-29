@@ -794,7 +794,7 @@ export default function ProductPromptPageForm({
               required
             />
             <div className="mt-8 mb-2 flex items-center gap-3">
-              <FaStar className="w-7 h-7 text-[#1A237E]" />
+              <FaStar className="w-7 h-7 text-slate-blue" />
               <h2 className="text-2xl font-bold text-slate-blue flex items-center gap-1">
                 Features or benefits
                 <RobotTooltip text="This field is passed to AI for prompt generation." />
@@ -861,7 +861,7 @@ export default function ProductPromptPageForm({
               <div className="flex items-center justify-between mb-2 px-2 py-2">
                 <div className="flex items-center gap-3">
                   <FaCommentDots className="w-7 h-7 text-slate-blue" />
-                  <span className="text-2xl font-bold text-[#1A237E]">
+                  <span className="text-2xl font-bold text-slate-blue">
                     Personalized note pop-up
                   </span>
                 </div>
@@ -961,7 +961,7 @@ export default function ProductPromptPageForm({
               <div className="flex items-center justify-between mb-2 px-2 py-2">
                 <div className="flex items-center gap-3">
                   <FaStar className="w-7 h-7 text-slate-blue" />
-                  <span className="text-2xl font-bold text-[#1A237E]">
+                  <span className="text-2xl font-bold text-slate-blue">
                     Falling star animation
                   </span>
                 </div>
@@ -1117,7 +1117,7 @@ function Tooltip(props: { text: string }) {
         type="button"
         tabIndex={0}
         aria-label="Show help"
-        className="text-gray-400 hover:text-indigo-600 focus:outline-none"
+        className="text-gray-500 hover:text-indigo-600 focus:outline-none"
         onMouseEnter={() => setShow(true)}
         onMouseLeave={() => setShow(false)}
         onFocus={() => setShow(true)}

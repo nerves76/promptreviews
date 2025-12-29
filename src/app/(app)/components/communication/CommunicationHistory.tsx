@@ -136,7 +136,7 @@ export default function CommunicationHistory({
     return (
       <Card className={`p-4 ${className}`}>
         <div className="text-center py-6">
-          <Icon name="FaComments" className="w-8 h-8 text-gray-400 mx-auto mb-3" />
+          <Icon name="FaComments" className="w-8 h-8 text-gray-500 mx-auto mb-3" />
           <h3 className="text-sm font-medium text-gray-900 mb-1">No communication history</h3>
           <p className="text-xs text-gray-500">
             No emails or text messages have been sent to this contact yet.
@@ -221,7 +221,7 @@ export default function CommunicationHistory({
                 {(record.message_content.length > 100 || hasReminders) && (
                   <button
                     onClick={() => toggleExpanded(record.id)}
-                    className="text-gray-400 hover:text-gray-600 p-1"
+                    className="text-gray-500 hover:text-gray-600 p-1"
                   >
                     <Icon 
                       name={isExpanded ? "FaChevronUp" : "FaChevronDown"} 

@@ -290,7 +290,7 @@ export function SEOTrackingSection({
               ))}
             </div>
           ) : (
-            <div className="text-sm text-gray-400 italic bg-white/80 px-3 py-2.5 rounded-lg border border-gray-100 mb-3">
+            <div className="text-sm text-gray-500 italic bg-white/80 px-3 py-2.5 rounded-lg border border-gray-100 mb-3">
               No search terms added
             </div>
           )}
@@ -357,7 +357,7 @@ export function SEOTrackingSection({
                 </div>
               )}
 
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-gray-500">
                 <Icon name="FaStar" className="w-2.5 h-2.5 inline mr-1" />= Canonical term (shown
                 when space is limited)
               </p>
@@ -401,7 +401,7 @@ export function SEOTrackingSection({
                         key={provider}
                         onClick={() => onToggleLLMProvider(provider)}
                         className={`px-1.5 py-0.5 rounded text-[10px] font-medium transition-all ${
-                          isSelected ? `${colors.bg} ${colors.text}` : 'bg-gray-100 text-gray-400'
+                          isSelected ? `${colors.bg} ${colors.text}` : 'bg-gray-100 text-gray-500'
                         }`}
                         aria-label={`${isSelected ? 'Deselect' : 'Select'} ${LLM_PROVIDER_LABELS[provider]}`}
                       >
@@ -421,7 +421,7 @@ export function SEOTrackingSection({
               if (!displayQuestions || displayQuestions.length === 0) {
                 if (!isEditing) {
                   return (
-                    <div className="text-sm text-gray-400 italic bg-white/80 px-3 py-2.5 rounded-lg border border-gray-100">
+                    <div className="text-sm text-gray-500 italic bg-white/80 px-3 py-2.5 rounded-lg border border-gray-100">
                       No questions added
                     </div>
                   );
@@ -587,7 +587,7 @@ function SearchTermItem({
             {!term.isCanonical && (
               <button
                 onClick={() => onSetCanonical(term.term)}
-                className="p-1 text-gray-400 hover:text-blue-500 rounded transition-colors"
+                className="p-1 text-gray-500 hover:text-blue-500 rounded transition-colors"
                 title="Set as primary"
                 aria-label={`Set ${term.term} as primary term`}
               >
@@ -596,7 +596,7 @@ function SearchTermItem({
             )}
             <button
               onClick={() => onRemove(term.term)}
-              className="p-1 text-gray-400 hover:text-red-500 rounded transition-colors"
+              className="p-1 text-gray-500 hover:text-red-500 rounded transition-colors"
               title="Remove term"
               aria-label={`Remove search term: ${term.term}`}
             >
@@ -667,7 +667,7 @@ function SearchTermItem({
                       )}
                   </>
                 ) : (
-                  <span className="text-gray-400">—</span>
+                  <span className="text-gray-500">—</span>
                 )}
               </div>
             ))}
@@ -691,7 +691,7 @@ function SearchTermItem({
                     : geoGridStatus.summary.averagePosition <= 20
                       ? 'text-amber-600'
                       : 'text-gray-600'
-                : 'text-gray-400'
+                : 'text-gray-500'
             }`}>
               {geoGridStatus.summary.averagePosition
                 ? `Avg #${geoGridStatus.summary.averagePosition}`

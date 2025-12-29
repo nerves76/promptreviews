@@ -119,7 +119,7 @@ export function SearchTermRow({
               <button
                 onClick={onSetCanonical}
                 disabled={disabled}
-                className="p-1 text-gray-400 hover:text-blue-500 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="p-1 text-gray-500 hover:text-blue-500 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 title="Set as primary"
               >
                 <Icon name="FaStar" className="w-3 h-3" />
@@ -129,7 +129,7 @@ export function SearchTermRow({
               <button
                 onClick={onRemove}
                 disabled={disabled}
-                className="p-1 text-gray-400 hover:text-red-500 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="p-1 text-gray-500 hover:text-red-500 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 title="Remove term"
               >
                 <Icon name="FaTimes" className="w-3 h-3" />
@@ -156,7 +156,7 @@ export function SearchTermRow({
                 {volumeData.locationName || 'United States'}
               </div>
               {volumeData.researchedAt && (
-                <span className="text-[10px] text-gray-400">
+                <span className="text-[10px] text-gray-500">
                   ({getVolumeAge(volumeData.researchedAt)})
                 </span>
               )}
@@ -219,7 +219,7 @@ export function SearchTermRow({
                       )}
                   </>
                 ) : (
-                  <span className="text-gray-400">—</span>
+                  <span className="text-gray-500">—</span>
                 )}
               </div>
             ))}

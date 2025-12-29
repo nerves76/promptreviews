@@ -76,7 +76,7 @@ export function HeaderStats({
         >
           <span className="text-gray-500 block text-xs">Pages</span>
           <span
-            className={`font-medium ${promptPagesCount > 0 ? 'text-green-600' : 'text-gray-400'}`}
+            className={`font-medium ${promptPagesCount > 0 ? 'text-green-600' : 'text-gray-500'}`}
           >
             {promptPagesCount}
           </span>

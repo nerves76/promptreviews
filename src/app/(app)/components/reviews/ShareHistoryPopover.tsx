@@ -155,7 +155,7 @@ export default function ShareHistoryPopover({
           <h3 className="text-sm font-semibold text-gray-900">Share History</h3>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-gray-500 hover:text-gray-600 transition-colors"
             aria-label="Close"
           >
             <Icon name="FaTimes" className="w-4 h-4" size={16} />
@@ -169,7 +169,7 @@ export default function ShareHistoryPopover({
           <div className="p-8 text-center">
             <Icon
               name="FaSpinner"
-              className="w-6 h-6 text-gray-400 animate-spin mx-auto"
+              className="w-6 h-6 text-gray-500 animate-spin mx-auto"
               size={24}
             />
             <p className="text-sm text-gray-500 mt-2">Loading...</p>
@@ -191,7 +191,7 @@ export default function ShareHistoryPopover({
               size={32}
             />
             <p className="text-sm text-gray-500 mt-2">No shares yet</p>
-            <p className="text-xs text-gray-400 mt-1">
+            <p className="text-xs text-gray-500 mt-1">
               Share this review to track it here
             </p>
           </div>
@@ -231,7 +231,7 @@ export default function ShareHistoryPopover({
                     <button
                       onClick={() => handleDeleteShare(share.id)}
                       disabled={deletingId === share.id}
-                      className="text-gray-400 hover:text-red-600 transition-colors disabled:opacity-50"
+                      className="text-gray-500 hover:text-red-600 transition-colors disabled:opacity-50"
                       aria-label="Delete share record"
                       title="Delete share record"
                     >

@@ -93,7 +93,7 @@ function ClearSessionContent() {
   }, [invitationToken, router]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center p-4">
       <div className="bg-white rounded-lg shadow-lg p-8 max-w-2xl w-full">
         <h1 className="text-2xl font-bold text-gray-800 mb-6">Session Reset</h1>
         
@@ -141,7 +141,7 @@ function ClearSessionContent() {
 export default function ClearSession() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 flex items-center justify-center p-4">
+      <div className="min-h-screen flex items-center justify-center p-4">
         <div className="bg-white rounded-lg shadow-lg p-8 max-w-2xl w-full">
           <h1 className="text-2xl font-bold text-gray-800 mb-6">Session Reset</h1>
           <div className="animate-pulse">

@@ -86,7 +86,7 @@ export default function UnifiedPromptTypeSelectModal({
             </Dialog.Title>
             <button
               onClick={handleClose}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
+              className="text-gray-500 hover:text-gray-600 transition-colors"
             >
               <Icon name="FaTimes" className="w-5 h-5" size={20} />
             </button>
@@ -176,7 +176,7 @@ export default function UnifiedPromptTypeSelectModal({
               className={`px-6 py-2 rounded-lg font-medium transition-colors ${
                 selectedType
                   ? 'bg-slate-blue text-white hover:bg-slate-blue/90'
-                  : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  : 'bg-gray-100 text-gray-500 cursor-not-allowed'
               }`}
             >
               {mode === 'bulk' ? `Create ${selectedCount} pages` : 'Create page'}

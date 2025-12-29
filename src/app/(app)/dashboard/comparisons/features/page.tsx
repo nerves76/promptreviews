@@ -414,7 +414,7 @@ export default function FeaturesPage() {
         {/* Categories and features list */}
         {categories.length === 0 && features.length === 0 ? (
           <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
-            <Icon name="FaTags" size={32} className="mx-auto text-gray-400 mb-3" />
+            <Icon name="FaTags" size={32} className="mx-auto text-gray-500 mb-3" />
             <p className="text-gray-600 mb-4">No categories or features yet</p>
             <p className="text-sm text-gray-500 mb-4">
               Start by creating categories to group your features, then add features to compare.
@@ -481,7 +481,7 @@ export default function FeaturesPage() {
                               <div className="text-xs text-gray-500">{feature.benefit_framing}</div>
                             )}
                           </div>
-                          <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded">
+                          <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
                             {feature.feature_type}
                           </span>
                         </div>
@@ -532,7 +532,7 @@ export default function FeaturesPage() {
                             <div className="text-xs text-gray-500">{feature.benefit_framing}</div>
                           )}
                         </div>
-                        <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded">
+                        <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
                           {feature.feature_type}
                         </span>
                       </div>

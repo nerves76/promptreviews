@@ -439,7 +439,7 @@ export function GeoGridResultsTable({
                           }`}>
                             {group.avgPosition !== null ? `#${group.avgPosition.toFixed(1)}` : 'N/A'}
                           </div>
-                          <div className="text-xs text-gray-400 mt-1">
+                          <div className="text-xs text-gray-500 mt-1">
                             across {group.results.length} points
                           </div>
                         </div>
@@ -470,7 +470,7 @@ export function GeoGridResultsTable({
                                           </div>
                                         )}
                                         {competitor.address && (
-                                          <div className="text-xs text-gray-400 mt-0.5 truncate max-w-[250px]">
+                                          <div className="text-xs text-gray-500 mt-0.5 truncate max-w-[250px]">
                                             {competitor.address}
                                           </div>
                                         )}

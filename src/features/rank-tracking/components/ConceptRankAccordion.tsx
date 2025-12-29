@@ -74,7 +74,7 @@ interface ConceptRankAccordionProps {
 // ============================================
 
 function getPositionColor(position: number | null): string {
-  if (position === null) return 'text-gray-400';
+  if (position === null) return 'text-gray-500';
   if (position <= 3) return 'text-green-600';
   if (position <= 10) return 'text-blue-600';
   if (position <= 20) return 'text-amber-600';
@@ -231,7 +231,7 @@ export default function ConceptRankAccordion({
           ) : hasAnyRankings(termRankings) ? (
             <span className="text-xs text-gray-500">Not in top 100</span>
           ) : hasSearchTerms ? (
-            <span className="text-xs text-gray-400">Not tracked</span>
+            <span className="text-xs text-gray-500">Not tracked</span>
           ) : null}
         </div>
       </div>
@@ -269,7 +269,7 @@ export default function ConceptRankAccordion({
                       {editable && onRemoveSearchTerm && (
                         <button
                           onClick={() => onRemoveSearchTerm(concept.id, term.term)}
-                          className="p-1 text-gray-400 hover:text-red-500 rounded transition-colors"
+                          className="p-1 text-gray-500 hover:text-red-500 rounded transition-colors"
                           title="Remove term"
                         >
                           <Icon name="FaTimes" className="w-3 h-3" />
@@ -289,7 +289,7 @@ export default function ConceptRankAccordion({
                         <div className="text-xs text-gray-600">
                           <span className="text-gray-500">Monthly search volume:</span>{' '}
                           <span className="font-semibold text-gray-900">{formatVolume(volumeData.searchVolume)}</span>
-                          {volumeData.locationName && <span className="text-gray-400"> {volumeData.locationName}</span>}
+                          {volumeData.locationName && <span className="text-gray-500"> {volumeData.locationName}</span>}
                           {volumeData.cpc && (
                             <span className="ml-3 text-gray-500">
                               CPC: <span className="font-medium text-gray-700">${volumeData.cpc.toFixed(2)}</span>
@@ -307,7 +307,7 @@ export default function ConceptRankAccordion({
                           )}
                         </div>
                       ) : (
-                        <div className="text-xs text-gray-400">
+                        <div className="text-xs text-gray-500">
                           Monthly search volume: <span className="italic">Not checked yet</span>
                         </div>
                       )}
@@ -337,14 +337,14 @@ export default function ConceptRankAccordion({
                                 ) : (
                                   <span className="font-medium text-gray-500">Not in top 100</span>
                                 )}
-                                {device && <span className="text-gray-400"> ({device})</span>}
-                                {location && <span className="text-gray-400"> {location}</span>}
+                                {device && <span className="text-gray-500"> ({device})</span>}
+                                {location && <span className="text-gray-500"> {location}</span>}
                               </div>
                             );
                           })}
                         </div>
                       ) : (
-                        <div className="text-xs text-gray-400">
+                        <div className="text-xs text-gray-500">
                           Rank: <span className="italic">Not checked yet</span>
                         </div>
                       )}
@@ -434,7 +434,7 @@ export default function ConceptRankAccordion({
                       )}
                     </button>
                   </div>
-                  <p className="text-xs text-gray-400 mt-1">
+                  <p className="text-xs text-gray-500 mt-1">
                     {searchTerms.length}/{MAX_SEARCH_TERMS} terms
                   </p>
                 </div>
@@ -521,7 +521,7 @@ export default function ConceptRankAccordion({
                     </button>
                   ))}
                   {configs.length > 3 && (
-                    <span className="px-2 py-1 text-xs text-gray-400">
+                    <span className="px-2 py-1 text-xs text-gray-500">
                       +{configs.length - 3} more
                     </span>
                   )}

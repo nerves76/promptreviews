@@ -82,7 +82,7 @@ export function ConceptScheduleSettings({
 
   if (isLoading) {
     return (
-      <div className={`flex items-center gap-2 ${compact ? 'p-2' : 'p-3'} text-gray-400`}>
+      <div className={`flex items-center gap-2 ${compact ? 'p-2' : 'p-3'} text-gray-500`}>
         <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
         {!compact && <span className="text-sm">Loading...</span>}
       </div>
@@ -98,7 +98,7 @@ export function ConceptScheduleSettings({
           className={`p-2 rounded-lg transition-colors ${
             schedule
               ? 'text-green-600 hover:bg-green-50'
-              : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+              : 'text-gray-500 hover:text-gray-600 hover:bg-gray-100'
           }`}
           title={schedule ? `Scheduled: ${getScheduleSummary()}` : 'Set up schedule'}
         >
@@ -137,9 +137,9 @@ export function ConceptScheduleSettings({
               Active
             </span>
           ) : (
-            <span className="text-xs text-gray-400">Not scheduled</span>
+            <span className="text-xs text-gray-500">Not scheduled</span>
           )}
-          <Icon name="FaChevronRight" className="w-3 h-3 text-gray-400" />
+          <Icon name="FaChevronRight" className="w-3 h-3 text-gray-500" />
         </div>
       </button>
 

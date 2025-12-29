@@ -63,7 +63,7 @@ export function MentionAutocomplete({ users, selectedIndex, onSelect, position }
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <span className="font-medium text-gray-900 truncate">{user.display_name}</span>
-              <span className="text-gray-400">@</span>
+              <span className="text-gray-500">@</span>
               <span className="text-gray-600 truncate">{user.business_name}</span>
             </div>
           </div>

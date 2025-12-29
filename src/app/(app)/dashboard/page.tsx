@@ -1199,7 +1199,7 @@ const Dashboard = React.memo(function Dashboard() {
   return (
     <div className="min-h-screen flex flex-col justify-start px-4 sm:px-0">
       {/* Quotes Display - positioned between nav and PageCard */}
-      <div className="pt-12 pb-8 flex justify-center items-center">
+      <div className="pt-6 pb-4 flex justify-center items-center">
         <QuoteDisplay />
       </div>
 

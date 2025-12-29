@@ -122,7 +122,7 @@ export function PostFeed({
 
       {/* End of feed message */}
       {!hasMore && posts.length > 0 && (
-        <div className="text-center py-4 text-white/50 text-sm">You've reached the end</div>
+        <div className="text-center py-4 text-white/70 text-sm">You've reached the end</div>
       )}
     </div>
   );

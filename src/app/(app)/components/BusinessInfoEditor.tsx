@@ -389,7 +389,7 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
   if (!isConnected) {
     return (
       <div className="text-center py-12">
-        <Icon name="FaStore" className="w-12 h-12 text-gray-400 mx-auto mb-4" size={48} />
+        <Icon name="FaStore" className="w-12 h-12 text-gray-500 mx-auto mb-4" size={48} />
         <h3 className="text-lg font-medium text-gray-900 mb-2">
           Connect Google Business Profile First
         </h3>
@@ -403,7 +403,7 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
   if (locations.length === 0) {
     return (
       <div className="text-center py-12">
-        <Icon name="FaStore" className="w-12 h-12 text-gray-400 mx-auto mb-4" size={48} />
+        <Icon name="FaStore" className="w-12 h-12 text-gray-500 mx-auto mb-4" size={48} />
         <h3 className="text-lg font-medium text-gray-900 mb-2">
           No Business Locations Found
         </h3>
@@ -829,7 +829,7 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
               className={`flex items-center space-x-2 px-4 py-2 rounded-md font-medium border ${
                 selectedLocationIds.length > 0 && !isSaving
                   ? 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                  : 'border-gray-200 text-gray-400 cursor-not-allowed'
+                  : 'border-gray-200 text-gray-500 cursor-not-allowed'
               }`}
             >
               <span>Reset</span>

@@ -11,7 +11,7 @@ interface CommunicationProcessIndicatorProps {
 
 export default function CommunicationProcessIndicator({ 
   communicationType,
-  primaryColor = "#4F46E5", 
+  primaryColor = "#2E4A7D", 
   cardBackgroundColor = "#FFFFFF" 
 }: CommunicationProcessIndicatorProps) {
   const [activeStep, setActiveStep] = useState(0);

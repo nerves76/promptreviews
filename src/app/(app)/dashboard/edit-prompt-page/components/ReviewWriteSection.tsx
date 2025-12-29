@@ -248,7 +248,7 @@ const ReviewWriteSection: React.FC<ReviewWriteSectionProps> = ({
                     rows={2}
                     maxLength={160}
                   />
-                  <div className="text-xs text-gray-400 text-right">
+                  <div className="text-xs text-gray-500 text-right">
                     {platform.customInstructions?.length || 0}/160
                   </div>
                 </>
@@ -261,7 +261,7 @@ const ReviewWriteSection: React.FC<ReviewWriteSectionProps> = ({
                       Review Template
                     </label>
                     <HoverTooltip text="By filling this out, you give your client or customer a template that will make posting a review much easier and quicker. They will still be able to use the AI button to generate a new review if they are not sure about the one you provide, or they can choose to write a custom review on their own.">
-                      <Icon name="FaInfoCircle" className="w-3 h-3 text-gray-400 cursor-pointer" size={12} />
+                      <Icon name="FaInfoCircle" className="w-3 h-3 text-gray-500 cursor-pointer" size={12} />
                     </HoverTooltip>
                   </div>
                   <Textarea
@@ -278,7 +278,7 @@ const ReviewWriteSection: React.FC<ReviewWriteSectionProps> = ({
                     rows={3}
                     maxLength={REVIEW_CHAR_LIMIT}
                   />
-                  <div className="text-xs text-gray-400 text-right w-full">
+                  <div className="text-xs text-gray-500 text-right w-full">
                     {platform.reviewText?.length || 0}/{REVIEW_CHAR_LIMIT}
                   </div>
                   <button

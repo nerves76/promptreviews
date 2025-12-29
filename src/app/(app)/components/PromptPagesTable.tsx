@@ -336,7 +336,7 @@ export default function PromptPagesTable({
                       View contact
                     </Link>
                   ) : (
-                    <span className="text-gray-400">—</span>
+                    <span className="text-gray-500">—</span>
                   )}
                 </td>
                 <td className="whitespace-nowrap px-3 py-4 text-sm flex gap-2 items-center">

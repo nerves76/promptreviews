@@ -75,7 +75,7 @@ export function AddKeywordConceptModal({
           <h3 className="text-lg font-semibold text-gray-900">Add keyword concept</h3>
           <button
             onClick={handleClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-gray-500 hover:text-gray-600 transition-colors"
           >
             <Icon name="FaTimes" className="w-5 h-5" />
           </button>

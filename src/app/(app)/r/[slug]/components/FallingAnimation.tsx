@@ -96,7 +96,7 @@ export default function FallingAnimation({
       "text-blue-500": "#3b82f6",
       "text-yellow-500": "#eab308",
       "text-blue-300": "#93c5fd",
-      "text-gray-400": "#9ca3af",
+      "text-gray-500": "#9ca3af",
       "text-blue-200": "#bfdbfe",
       "text-orange-500": "#f97316",
       "text-green-600": "#16a34a",

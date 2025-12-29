@@ -285,14 +285,14 @@ export const loadAllFallingIcons = async (): Promise<{
     // Animals & Nature
     { key: "cat", label: "Cat", icon: FaCat, color: "text-orange-500", category: "Animals & Nature" },
     { key: "dog", label: "Dog", icon: FaDog, color: "text-brown-500", category: "Animals & Nature" },
-    { key: "dove", label: "Dove", icon: FaDove, color: "text-gray-400", category: "Animals & Nature" },
+    { key: "dove", label: "Dove", icon: FaDove, color: "text-gray-500", category: "Animals & Nature" },
     { key: "fish", label: "Fish", icon: FaFish, color: "text-blue-500", category: "Animals & Nature" },
     { key: "frog", label: "Frog", icon: FaFrog, color: "text-green-500", category: "Animals & Nature" },
-        { key: "bone", label: "Bone", icon: FaBone, color: "text-gray-400", category: "Animals & Nature" },
+        { key: "bone", label: "Bone", icon: FaBone, color: "text-gray-500", category: "Animals & Nature" },
     
     // Mythical & Fantasy
     { key: "dragon", label: "Dragon", icon: FaDragon, color: "text-red-600", category: "Mythical & Fantasy" },
-    { key: "ghost", label: "Ghost", icon: FaGhost, color: "text-gray-400", category: "Mythical & Fantasy" },
+    { key: "ghost", label: "Ghost", icon: FaGhost, color: "text-gray-500", category: "Mythical & Fantasy" },
     { key: "magic", label: "Magic", icon: FaMagic, color: "text-purple-500", category: "Mythical & Fantasy" },
     { key: "wizardhat", label: "Wizard Hat", icon: FaHatWizard, color: "text-purple-600", category: "Mythical & Fantasy" },
     { key: "skull", label: "Skull", icon: FaSkull, color: "text-gray-600", category: "Mythical & Fantasy" },

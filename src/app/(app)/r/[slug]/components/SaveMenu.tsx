@@ -69,7 +69,7 @@ export default function SaveMenu({
         className="flex items-center gap-2 px-4 py-2 rounded-lg shadow-md hover:bg-gray-50 transition-colors group"
         style={{
           background: businessProfile?.card_bg || "#FFFFFF",
-          color: getAccessibleColor(businessProfile?.primary_color || "#4F46E5"),
+          color: getAccessibleColor(businessProfile?.primary_color || "#2E4A7D"),
           border: "1px solid #E5E7EB"
         }}
       >
@@ -87,7 +87,7 @@ export default function SaveMenu({
           <button
             onClick={() => handleSaveOptionClick("calendar")}
             className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2"
-            style={{ color: businessProfile?.primary_color || "#4F46E5" }}
+            style={{ color: businessProfile?.primary_color || "#2E4A7D" }}
           >
             <Icon name="FaCalendarAlt" className="w-4 h-4" />
             Add to calendar
@@ -96,7 +96,7 @@ export default function SaveMenu({
           <button
             onClick={() => handleSaveOptionClick("email")}
             className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2"
-            style={{ color: businessProfile?.primary_color || "#4F46E5" }}
+            style={{ color: businessProfile?.primary_color || "#2E4A7D" }}
           >
             <Icon name="FaEnvelope" className="w-4 h-4" />
             Email to self
@@ -105,7 +105,7 @@ export default function SaveMenu({
           <button
             onClick={() => handleSaveOptionClick("home-screen")}
             className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2"
-            style={{ color: businessProfile?.primary_color || "#4F46E5" }}
+            style={{ color: businessProfile?.primary_color || "#2E4A7D" }}
           >
             <Icon name="FaHome" className="w-4 h-4" />
             Add to home screen
@@ -115,7 +115,7 @@ export default function SaveMenu({
             <button
               onClick={() => handleSaveOptionClick("copy-link")}
               className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2"
-              style={{ color: businessProfile?.primary_color || "#4F46E5" }}
+              style={{ color: businessProfile?.primary_color || "#2E4A7D" }}
             >
               <Icon name="FaLink" className="w-4 h-4" />
               Copy link
@@ -126,7 +126,7 @@ export default function SaveMenu({
             <button
               onClick={() => handleSaveOptionClick("reading-list")}
               className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2"
-              style={{ color: businessProfile?.primary_color || "#4F46E5" }}
+              style={{ color: businessProfile?.primary_color || "#2E4A7D" }}
             >
               <Icon name="FaBookmark" className="w-4 h-4" />
               Add to reading list
@@ -136,7 +136,7 @@ export default function SaveMenu({
           <button
             onClick={() => handleSaveOptionClick("pocket")}
             className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2"
-            style={{ color: businessProfile?.primary_color || "#4F46E5" }}
+            style={{ color: businessProfile?.primary_color || "#2E4A7D" }}
           >
             <svg
               className="w-4 h-4"
@@ -151,7 +151,7 @@ export default function SaveMenu({
           <button
             onClick={() => handleSaveOptionClick("instapaper")}
             className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2"
-            style={{ color: businessProfile?.primary_color || "#4F46E5" }}
+            style={{ color: businessProfile?.primary_color || "#2E4A7D" }}
           >
             <svg
               className="w-4 h-4"
@@ -167,7 +167,7 @@ export default function SaveMenu({
             <button
               onClick={() => handleSaveOptionClick("favorites")}
               className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2"
-              style={{ color: businessProfile?.primary_color || "#4F46E5" }}
+              style={{ color: businessProfile?.primary_color || "#2E4A7D" }}
             >
               <Icon name="FaFavorites" className="w-4 h-4" />
               Bookmark in browser

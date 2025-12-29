@@ -118,13 +118,13 @@ function DiscoveredQuestionItem({
         <Icon
           name={disabled ? 'FaQuestionCircle' : 'FaPlus'}
           className={`w-3.5 h-3.5 mt-0.5 flex-shrink-0 ${
-            disabled ? 'text-gray-400' : 'text-amber-500'
+            disabled ? 'text-gray-500' : 'text-amber-500'
           }`}
         />
         <div className="flex-1 min-w-0">
           <p className="text-sm text-gray-700">{question.question}</p>
           {question.answerDomain && (
-            <p className="text-xs text-gray-400 mt-0.5 flex items-center gap-1">
+            <p className="text-xs text-gray-500 mt-0.5 flex items-center gap-1">
               <span
                 className={`w-2 h-2 rounded-full ${
                   question.isOurs ? 'bg-green-400' : 'bg-gray-300'

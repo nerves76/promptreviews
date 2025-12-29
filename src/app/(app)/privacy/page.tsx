@@ -320,7 +320,7 @@ export default function PrivacyPage() {
         <p className="text-center text-gray-500 font-medium">
           <strong>Effective Date:</strong> January 2025
         </p>
-        <p className="text-center text-gray-400 mt-2">
+        <p className="text-center text-gray-500 mt-2">
           By using PromptReviews, you acknowledge that you have read, understood, and agree to this Privacy Policy.
         </p>
       </div>

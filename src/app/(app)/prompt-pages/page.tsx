@@ -1615,7 +1615,7 @@ function PromptPagesContent() {
           <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-8 max-w-md mx-4 text-center relative border-2 border-white shadow-2xl">
             <button
               onClick={() => setShowBusinessRequiredModal(false)}
-              className="absolute top-4 right-4 w-8 h-8 bg-white text-gray-400 hover:text-gray-600 rounded-full flex items-center justify-center border border-gray-200 hover:border-gray-300 transition-colors"
+              className="absolute top-4 right-4 w-8 h-8 bg-white text-gray-500 hover:text-gray-600 rounded-full flex items-center justify-center border border-gray-200 hover:border-gray-300 transition-colors"
               aria-label="Close"
             >
               ×

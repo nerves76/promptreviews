@@ -171,7 +171,7 @@ export default function ComparisonsPage() {
           <h3 className="text-lg font-semibold text-gray-900 mb-3">Recent comparison tables</h3>
           {tables.length === 0 ? (
             <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
-              <Icon name="FaColumns" size={32} className="mx-auto text-gray-400 mb-3" />
+              <Icon name="FaColumns" size={32} className="mx-auto text-gray-500 mb-3" />
               <p className="text-gray-600 mb-4">No comparison tables yet</p>
               <Button onClick={() => router.push("/dashboard/comparisons/tables/edit/new")}>
                 Create your first table
@@ -250,7 +250,7 @@ export default function ComparisonsPage() {
           <h3 className="text-lg font-semibold text-gray-900 mb-3">Competitors</h3>
           {competitors.length === 0 ? (
             <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
-              <Icon name="FaUsers" size={32} className="mx-auto text-gray-400 mb-3" />
+              <Icon name="FaUsers" size={32} className="mx-auto text-gray-500 mb-3" />
               <p className="text-gray-600 mb-4">No competitors added yet</p>
               <Button onClick={() => router.push("/dashboard/comparisons/competitors")}>
                 Add competitors
@@ -273,7 +273,7 @@ export default function ComparisonsPage() {
                   )}
                   <span className="text-sm font-medium text-gray-700">{comp.name}</span>
                   {comp.status === "archived" && (
-                    <span className="text-xs text-gray-400">(archived)</span>
+                    <span className="text-xs text-gray-500">(archived)</span>
                   )}
                 </div>
               ))}
@@ -313,7 +313,7 @@ function StatCard({
       onClick={onClick}
     >
       <div className="flex items-center justify-between mb-2">
-        <Icon name={icon} size={20} className="text-gray-400" />
+        <Icon name={icon} size={20} className="text-gray-500" />
         <span className="text-2xl font-bold text-gray-900">{value}</span>
       </div>
       <div className="text-sm font-medium text-gray-700">{title}</div>

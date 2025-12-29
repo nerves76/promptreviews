@@ -273,7 +273,7 @@ export function AddKeywordsToGridModal({
                   {/* Search */}
                   <div className="mb-4">
                     <div className="relative">
-                      <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                       <input
                         type="text"
                         value={searchQuery}
@@ -327,7 +327,7 @@ export function AddKeywordsToGridModal({
                               <button
                                 onClick={() => handleAddSingle(kw.id)}
                                 disabled={isAdding || isAtLimit}
-                                className="ml-3 px-3 py-1.5 text-sm font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 disabled:bg-gray-100 disabled:text-gray-400 rounded-lg transition-colors flex items-center gap-1"
+                                className="ml-3 px-3 py-1.5 text-sm font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 disabled:bg-gray-100 disabled:text-gray-500 rounded-lg transition-colors flex items-center gap-1"
                               >
                                 {isAdding ? (
                                   <>

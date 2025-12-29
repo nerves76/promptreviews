@@ -11,7 +11,7 @@ export const EMOJI_SENTIMENT_LABELS = [
 export const EMOJI_SENTIMENT_ICONS = [
   { icon: FaGrinHearts, color: "text-pink-400" },
   { icon: FaSmile, color: "text-green-500" },
-  { icon: FaMeh, color: "text-gray-400" },
+  { icon: FaMeh, color: "text-gray-500" },
   { icon: FaFrown, color: "text-orange-400" },
   { icon: FaAngry, color: "text-red-500" },
 ];

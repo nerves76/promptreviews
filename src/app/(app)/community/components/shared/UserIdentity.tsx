@@ -42,7 +42,7 @@ export function UserIdentity({ author, showBadge = true, className = '' }: UserI
 
       <div className="flex items-center gap-2 flex-wrap">
         <span className="text-white font-medium">{author.display_name}</span>
-        <span className="text-white/50">@</span>
+        <span className="text-white/70">@</span>
         <span className="text-white/70">{author.business_name}</span>
 
         {showBadge && author.is_promptreviews_team && <AdminBadge />}

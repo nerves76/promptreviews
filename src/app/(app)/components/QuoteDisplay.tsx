@@ -142,7 +142,7 @@ export default function QuoteDisplay({
           )}
 
           {/* Quote Counter - More subtle styling */}
-          <div className="mt-3 text-xs text-white/50 font-light">
+          <div className="mt-3 text-xs text-white/70 font-light">
             {currentIndex + 1} of {quotes.length}
           </div>
         </div>

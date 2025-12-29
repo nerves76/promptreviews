@@ -105,7 +105,7 @@ export default function CreateTaskModal({
             </div>
             <button
               onClick={handleClose}
-              className="text-gray-400 hover:text-gray-600 transition"
+              className="text-gray-500 hover:text-gray-600 transition"
               aria-label="Close"
             >
               <Icon name="FaTimes" size={20} />

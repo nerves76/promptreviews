@@ -135,7 +135,7 @@ export default function KeywordGroupAccordion({
               <button
                 type="button"
                 onClick={() => onGroupEdit(group)}
-                className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded transition-colors"
+                className="p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded transition-colors"
                 title="Edit group"
               >
                 <Icon name="FaEdit" className="w-3.5 h-3.5" />
@@ -145,7 +145,7 @@ export default function KeywordGroupAccordion({
               <button
                 type="button"
                 onClick={() => onGroupDelete(group.id)}
-                className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
                 title="Delete group"
               >
                 <Icon name="FaTrash" className="w-3.5 h-3.5" />
@@ -209,7 +209,7 @@ export function UngroupedKeywordsSection({
         <div className="flex items-center gap-3">
           <Icon
             name={isExpanded ? "FaChevronDown" : "FaChevronRight"}
-            className="w-3.5 h-3.5 text-gray-400"
+            className="w-3.5 h-3.5 text-gray-500"
           />
           <h3 className="font-medium text-gray-600">Ungrouped</h3>
           <span className="px-2 py-0.5 text-xs font-medium bg-gray-200 text-gray-500 rounded-full">

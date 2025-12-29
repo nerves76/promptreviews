@@ -155,7 +155,7 @@ export function ReviewsEditSection({
             />
           ) : (
             <div className="text-sm text-gray-700 bg-white/80 px-3 py-2.5 rounded-lg border border-gray-100">
-              {keyword.reviewPhrase || <span className="text-gray-400 italic">Not set</span>}
+              {keyword.reviewPhrase || <span className="text-gray-500 italic">Not set</span>}
             </div>
           )}
         </div>
@@ -188,7 +188,7 @@ export function ReviewsEditSection({
                   ))}
                 </div>
               ) : (
-                <span className="text-gray-400 italic">No aliases</span>
+                <span className="text-gray-500 italic">No aliases</span>
               )}
             </div>
           )}

@@ -685,7 +685,7 @@ export default function TeamPage() {
                       onMouseEnter={() => setShowRoleTooltip(true)}
                       onMouseLeave={() => setShowRoleTooltip(false)}
                       onClick={() => setShowRoleTooltip(!showRoleTooltip)}
-                      className="text-gray-400 hover:text-gray-600 focus:outline-none"
+                      className="text-gray-500 hover:text-gray-600 focus:outline-none"
                       aria-label="Role information"
                     >
                       <QuestionMarkCircleIcon className="w-4 h-4" />
@@ -865,7 +865,7 @@ export default function TeamPage() {
                     </p>
                     <p className="text-sm text-gray-500">{member.email}</p>
                     {member.business_name && (
-                      <p className="text-sm text-gray-400">{member.business_name}</p>
+                      <p className="text-sm text-gray-500">{member.business_name}</p>
                     )}
                   </div>
                 </div>
@@ -937,7 +937,7 @@ export default function TeamPage() {
                       )}
                     </p>
                     <p className="text-sm text-gray-500">{member.email}</p>
-                    <p className="text-xs text-gray-400 mt-1">Development & Technical Support</p>
+                    <p className="text-xs text-gray-500 mt-1">Development & Technical Support</p>
                   </div>
                 </div>
                 
@@ -1071,7 +1071,7 @@ export default function TeamPage() {
           </h2>
           <div className="text-center py-8">
             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <EnvelopeIcon className="w-8 h-8 text-gray-400" />
+              <EnvelopeIcon className="w-8 h-8 text-gray-500" />
             </div>
             <h3 className="text-sm font-medium text-gray-900 mb-2">No pending invitations</h3>
             <p className="text-sm text-gray-500 mb-6">

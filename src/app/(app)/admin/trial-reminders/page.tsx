@@ -125,7 +125,7 @@ export default function TrialRemindersPage() {
       <div className="min-h-screen bg-gray-900 text-white p-8">
         <div className="max-w-7xl mx-auto">
           <h1 className="text-3xl font-bold mb-8">Trial Reminders</h1>
-          <div className="text-gray-400">Loading...</div>
+          <div className="text-gray-500">Loading...</div>
         </div>
       </div>
     );
@@ -139,19 +139,19 @@ export default function TrialRemindersPage() {
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="bg-gray-800 rounded-lg p-6">
-            <h3 className="text-gray-400 text-sm font-medium">Total Reminders</h3>
+            <h3 className="text-gray-500 text-sm font-medium">Total Reminders</h3>
             <p className="text-2xl font-bold text-white">{stats.total}</p>
           </div>
           <div className="bg-gray-800 rounded-lg p-6">
-            <h3 className="text-gray-400 text-sm font-medium">Successful</h3>
+            <h3 className="text-gray-500 text-sm font-medium">Successful</h3>
             <p className="text-2xl font-bold text-green-400">{stats.successful}</p>
           </div>
           <div className="bg-gray-800 rounded-lg p-6">
-            <h3 className="text-gray-400 text-sm font-medium">Failed</h3>
+            <h3 className="text-gray-500 text-sm font-medium">Failed</h3>
             <p className="text-2xl font-bold text-red-400">{stats.failed}</p>
           </div>
           <div className="bg-gray-800 rounded-lg p-6">
-            <h3 className="text-gray-400 text-sm font-medium">Today</h3>
+            <h3 className="text-gray-500 text-sm font-medium">Today</h3>
             <p className="text-2xl font-bold text-blue-400">{stats.today}</p>
           </div>
         </div>
@@ -225,7 +225,7 @@ export default function TrialRemindersPage() {
             </table>
           </div>
           {logs.length === 0 && (
-            <div className="px-6 py-8 text-center text-gray-400">
+            <div className="px-6 py-8 text-center text-gray-500">
               No reminder logs found
             </div>
           )}

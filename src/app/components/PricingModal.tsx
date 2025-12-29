@@ -218,7 +218,7 @@ export default function PricingModal({
                         {cleanFeature}
                         {tooltipText && (
                           <span
-                            className="ml-2 text-gray-400 cursor-pointer"
+                            className="ml-2 text-gray-500 cursor-pointer"
                             tabIndex={0}
                             aria-label="More info"
                           >

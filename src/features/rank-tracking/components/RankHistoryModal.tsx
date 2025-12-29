@@ -53,7 +53,7 @@ function PositionBadge({ position, label }: { position: number | null; label: st
     return (
       <div className="text-center">
         <div className="text-xs text-gray-500 mb-1">{label}</div>
-        <div className="text-lg font-medium text-gray-400">--</div>
+        <div className="text-lg font-medium text-gray-500">--</div>
       </div>
     );
   }
@@ -79,7 +79,7 @@ function ChangeBadge({ change, label }: { change: number | null; label: string }
     return (
       <div className="text-center">
         <div className="text-xs text-gray-500 mb-1">{label}</div>
-        <div className="text-sm text-gray-400">--</div>
+        <div className="text-sm text-gray-500">--</div>
       </div>
     );
   }
@@ -193,7 +193,7 @@ export default function RankHistoryModal({
                   </div>
                   <button
                     onClick={onClose}
-                    className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                    className="p-2 text-gray-500 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                   >
                     <Icon name="FaTimes" className="w-5 h-5" />
                   </button>

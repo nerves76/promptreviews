@@ -180,7 +180,7 @@ export default function UnifiedKeywordsInput({
             className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
           />
           {inputValue && (
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500">
               Press Enter to add
             </div>
           )}
@@ -215,7 +215,7 @@ export default function UnifiedKeywordsInput({
             : 'No keywords selected'}
           {maxKeywords && ` (max: ${maxKeywords})`}
         </span>
-        <span className="text-gray-400">
+        <span className="text-gray-500">
           Keywords with 4+ words show usage indicators
         </span>
       </div>
@@ -228,7 +228,7 @@ export default function UnifiedKeywordsInput({
             <div className="relative">
               <Icon
                 name="FaSearch"
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400"
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500"
               />
               <input
                 type="text"

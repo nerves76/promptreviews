@@ -60,7 +60,7 @@ export function TrackingLocationsSection({ rankStatus }: TrackingLocationsSectio
               </div>
             </div>
             {location.latestCheck && (
-              <div className="text-xs text-gray-400 flex-shrink-0">
+              <div className="text-xs text-gray-500 flex-shrink-0">
                 {new Date(location.latestCheck.checkedAt).toLocaleDateString()}
               </div>
             )}

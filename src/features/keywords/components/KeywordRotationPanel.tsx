@@ -152,7 +152,7 @@ export default function KeywordRotationPanel({
         </div>
         <button
           onClick={() => setShowSettings(!showSettings)}
-          className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors"
+          className="p-1.5 text-gray-500 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors"
           title="Rotation settings"
         >
           <Icon name="FaCog" className="w-4 h-4" />
@@ -362,7 +362,7 @@ function OverusedKeywordRow({
       <button
         onClick={onRotate}
         disabled={!canRotate || isRotating}
-        className="px-3 py-1 text-sm bg-white border border-red-200 text-red-700 rounded hover:bg-red-100 disabled:bg-gray-100 disabled:text-gray-400 disabled:border-gray-200 transition-colors flex items-center gap-1.5"
+        className="px-3 py-1 text-sm bg-white border border-red-200 text-red-700 rounded hover:bg-red-100 disabled:bg-gray-100 disabled:text-gray-500 disabled:border-gray-200 transition-colors flex items-center gap-1.5"
         title={canRotate ? 'Rotate this keyword' : 'No replacements available'}
       >
         {isRotating ? (

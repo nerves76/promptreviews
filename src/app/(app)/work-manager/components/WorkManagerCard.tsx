@@ -110,11 +110,11 @@ export default function WorkManagerCard({
           {dueDateDisplay || (
             assigneeName ? (
               <>
-                <Icon name="FaUser" size={10} className="text-gray-400" />
+                <Icon name="FaUser" size={10} className="text-gray-500" />
                 <span className="truncate text-gray-600">{assigneeName}</span>
               </>
             ) : (
-              <span className="text-gray-400">No due date</span>
+              <span className="text-gray-500">No due date</span>
             )
           )}
         </div>
@@ -133,7 +133,7 @@ export default function WorkManagerCard({
       {/* Assignee avatar (if due date is shown) */}
       {dueDateDisplay && assigneeName && (
         <div className="mt-2 flex items-center gap-1 text-xs text-gray-500">
-          <Icon name="FaUser" size={10} className="text-gray-400" />
+          <Icon name="FaUser" size={10} className="text-gray-500" />
           <span className="truncate">{assigneeName}</span>
         </div>
       )}

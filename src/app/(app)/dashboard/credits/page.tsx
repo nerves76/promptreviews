@@ -413,7 +413,7 @@ export default function CreditsPage() {
                       <div className="text-gray-600 text-sm mb-1">
                         credits{isSubscription ? "/mo" : ""}
                       </div>
-                      <div className="text-xs text-gray-400 mb-3">
+                      <div className="text-xs text-gray-500 mb-3">
                         ${perCredit.toFixed(3)}/credit
                       </div>
                       <div className="text-xl font-semibold text-gray-900 flex-1">

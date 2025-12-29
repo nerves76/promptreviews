@@ -19,16 +19,31 @@ html[data-global-loading-long="true"] .global-overlay {
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;
   --background-end-rgb: 255, 255, 255;
-  
+
   /* Custom properties for dynamic styling */
   --primary-font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   --secondary-font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  --primary-color: #4F46E5;
-  --secondary-color: #818CF8;
+
+  /* === SIMPLIFIED BRAND PALETTE === */
+  --primary-color: #2E4A7D;      /* slate-blue - primary brand */
+  --secondary-color: #2E4A7D;    /* slate-blue - use opacity for variants */
   --background-color: #FFFFFF;
-  --text-color: #1F2937;
+  --text-color: #111827;         /* gray-900 */
+  --text-muted: #4b5563;         /* gray-600 */
   --card-bg: #FFFFFF;
-  --card-text: #1A1A1A;
+  --card-text: #111827;          /* gray-900 */
+  --border-color: #E5E7EB;       /* gray-200 */
+
+  /* Gradient colors */
+  --gradient-top: #527DE7;
+  --gradient-middle: #7864C8;
+  --gradient-bottom: #914AAE;
+
+  /* Status colors */
+  --success-color: #16a34a;      /* green-600 */
+  --error-color: #dc2626;        /* red-600 */
+  --warning-color: #f59e0b;      /* amber-500 */
+  --info-color: #3b82f6;         /* blue-500 */
 }
 
 @media (prefers-color-scheme: dark) {

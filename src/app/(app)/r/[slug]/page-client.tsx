@@ -581,7 +581,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
           if (typeof window !== 'undefined') {
             document.documentElement.style.setProperty('--primary-font', profileData.primary_font || 'Inter');
             document.documentElement.style.setProperty('--secondary-font', profileData.secondary_font || 'Inter');
-            document.documentElement.style.setProperty('--primary-color', profileData.primary_color || '#4F46E5');
+            document.documentElement.style.setProperty('--primary-color', profileData.primary_color || '#2E4A7D');
             document.documentElement.style.setProperty('--background-color', profileData.background_color || '#FFFFFF');
             document.documentElement.style.setProperty('--text-color', profileData.text_color || '#1F2937');
             document.documentElement.style.setProperty('--card-bg', profileData.card_bg || '#FFFFFF');
@@ -625,7 +625,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
           if (typeof window !== 'undefined') {
             document.documentElement.style.setProperty('--primary-font', 'Inter');
             document.documentElement.style.setProperty('--secondary-font', 'Inter');
-            document.documentElement.style.setProperty('--primary-color', '#4F46E5');
+            document.documentElement.style.setProperty('--primary-color', '#2E4A7D');
             document.documentElement.style.setProperty('--background-color', '#FFFFFF');
             document.documentElement.style.setProperty('--text-color', '#1F2937');
             document.documentElement.style.setProperty('--card-bg', '#FFFFFF');
@@ -1812,7 +1812,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
     // Apply styles immediately (don't wait for fonts)
     document.documentElement.style.setProperty('--primary-font', businessProfile.primary_font || 'Inter');
     document.documentElement.style.setProperty('--secondary-font', businessProfile.secondary_font || 'Inter');
-    document.documentElement.style.setProperty('--primary-color', businessProfile.primary_color || '#4F46E5');
+    document.documentElement.style.setProperty('--primary-color', businessProfile.primary_color || '#2E4A7D');
     document.documentElement.style.setProperty('--background-color', businessProfile.background_color || '#FFFFFF');
     document.documentElement.style.setProperty('--card-placeholder-color', businessProfile.card_placeholder_color || '#9CA3AF');
     document.documentElement.style.setProperty('--input-text-color', businessProfile.input_text_color || '#1F2937');
@@ -2028,7 +2028,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                     background: isOffWhiteOrCream(businessProfile?.card_bg || "#FFFFFF")
                       ? businessProfile?.card_bg || "#FFFFFF"
                       : "#FFFFFF",
-                    color: getAccessibleColor(businessProfile?.primary_color || "#4F46E5"),
+                    color: getAccessibleColor(businessProfile?.primary_color || "#2E4A7D"),
                     border: "1px solid #E5E7EB"
                   }}
                   title="Style your prompt pages"
@@ -2044,7 +2044,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                   background: isOffWhiteOrCream(businessProfile?.card_bg || "#FFFFFF")
                     ? businessProfile?.card_bg || "#FFFFFF"
                     : "#FFFFFF",
-                  color: getAccessibleColor(businessProfile?.primary_color || "#4F46E5"),
+                  color: getAccessibleColor(businessProfile?.primary_color || "#2E4A7D"),
                   border: "1px solid #E5E7EB"
                 }}
                 title="Back to prompt pages"
@@ -2093,7 +2093,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
               <button
                 onClick={() => handleSaveOption("calendar")}
                 className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2"
-                style={{ color: businessProfile?.primary_color || "#4F46E5" }}
+                style={{ color: businessProfile?.primary_color || "#2E4A7D" }}
               >
                 <Icon name="FaCalendarAlt" className="w-4 h-4" size={16} />
                 Add to calendar
@@ -2101,7 +2101,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
               <button
                 onClick={() => handleSaveOption("email")}
                 className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2"
-                style={{ color: businessProfile?.primary_color || "#4F46E5" }}
+                style={{ color: businessProfile?.primary_color || "#2E4A7D" }}
               >
                 <Icon name="FaEnvelope" className="w-4 h-4" size={16} />
                 Email to self
@@ -2109,7 +2109,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
               <button
                 onClick={() => handleSaveOption("home-screen")}
                 className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2"
-                style={{ color: businessProfile?.primary_color || "#4F46E5" }}
+                style={{ color: businessProfile?.primary_color || "#2E4A7D" }}
               >
                 <Icon name="FaHome" className="w-4 h-4" size={16} />
                 Add to home screen
@@ -2118,7 +2118,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                 <button
                   onClick={() => handleSaveOption("copy-link")}
                   className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2"
-                  style={{ color: businessProfile?.primary_color || "#4F46E5" }}
+                  style={{ color: businessProfile?.primary_color || "#2E4A7D" }}
                 >
                   <Icon name="FaLink" className="w-4 h-4" size={16} />
                   Copy Link
@@ -2128,7 +2128,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                 <button
                   onClick={() => handleSaveOption("reading-list")}
                   className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2"
-                  style={{ color: businessProfile?.primary_color || "#4F46E5" }}
+                  style={{ color: businessProfile?.primary_color || "#2E4A7D" }}
                 >
                   <Icon name="FaBookmark" className="w-4 h-4" size={16} />
                   Add to reading list
@@ -2137,7 +2137,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
               <button
                 onClick={() => handleSaveOption("pocket")}
                 className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2"
-                style={{ color: businessProfile?.primary_color || "#4F46E5" }}
+                style={{ color: businessProfile?.primary_color || "#2E4A7D" }}
               >
                 <svg
                   className="w-4 h-4"
@@ -2151,7 +2151,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
               <button
                 onClick={() => handleSaveOption("instapaper")}
                 className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2"
-                style={{ color: businessProfile?.primary_color || "#4F46E5" }}
+                style={{ color: businessProfile?.primary_color || "#2E4A7D" }}
               >
                 <svg
                   className="w-4 h-4"
@@ -2166,7 +2166,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                 <button
                   onClick={() => handleSaveOption("favorites")}
                   className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2"
-                  style={{ color: businessProfile?.primary_color || "#4F46E5" }}
+                  style={{ color: businessProfile?.primary_color || "#2E4A7D" }}
                 >
                   <Icon name="FaStar" className="w-4 h-4" size={16} />
                   Bookmark in Browser
@@ -2209,11 +2209,11 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                           name="FaEnvelope"
                           className="w-8 h-8 mr-3"
                           size={32}
-                          style={{ color: businessProfile?.primary_color || "#4F46E5" }}
+                          style={{ color: businessProfile?.primary_color || "#2E4A7D" }}
                         />
                         <h1
                           className="text-3xl font-bold text-left"
-                          style={{ color: businessProfile?.primary_color || "#4F46E5" }}
+                          style={{ color: businessProfile?.primary_color || "#2E4A7D" }}
                         >
                           {mergedEmojiFeedbackPageHeader}
                         </h1>
@@ -2359,7 +2359,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                               onClick={handleFeedbackSubmit}
                               className="px-6 py-3 rounded-lg font-semibold text-lg shadow-lg text-white hover:opacity-90 focus:outline-none transition"
                               style={{
-                                backgroundColor: businessProfile?.secondary_color || "#4F46E5",
+                                backgroundColor: businessProfile?.secondary_color || "#2E4A7D",
                                 fontFamily: businessProfile?.primary_font || "Inter",
                               }}
                               disabled={feedbackSubmitting}
@@ -2430,14 +2430,14 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                       <Icon 
                         name="FaCamera"
                         className="w-7 h-7"
-                        style={{ color: businessProfile?.primary_color || "#4F46E5" }}
+                        style={{ color: businessProfile?.primary_color || "#2E4A7D" }}
                       />
                     </div>
 
                     <div className="text-center mb-6 mt-0">
                       <h1 
                         className={`text-2xl font-bold ${getFontClass(businessProfile?.primary_font)}`}
-                        style={{ color: businessProfile?.primary_color || "#4F46E5", marginTop: "-5px", marginLeft: "4px" }}
+                        style={{ color: businessProfile?.primary_color || "#2E4A7D", marginTop: "-5px", marginLeft: "4px" }}
                       >
                         Photo + Testimonial
                       </h1>
@@ -2660,18 +2660,18 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                             className="flex-1 px-4 py-2 rounded-lg text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all duration-200 border-2"
                             disabled={photoSubmitting}
                             style={{
-                              backgroundColor: businessProfile?.secondary_color || "#4F46E5",
-                              borderColor: businessProfile?.secondary_color || "#4F46E5",
+                              backgroundColor: businessProfile?.secondary_color || "#2E4A7D",
+                              borderColor: businessProfile?.secondary_color || "#2E4A7D",
                             }}
                             onMouseEnter={(e) => {
                               if (!photoSubmitting && !e.currentTarget.disabled) {
                                 e.currentTarget.style.backgroundColor = "transparent";
-                                e.currentTarget.style.color = businessProfile?.secondary_color || "#4F46E5";
+                                e.currentTarget.style.color = businessProfile?.secondary_color || "#2E4A7D";
                               }
                             }}
                             onMouseLeave={(e) => {
                               if (!photoSubmitting && !e.currentTarget.disabled) {
-                                e.currentTarget.style.backgroundColor = businessProfile?.secondary_color || "#4F46E5";
+                                e.currentTarget.style.backgroundColor = businessProfile?.secondary_color || "#2E4A7D";
                                 e.currentTarget.style.color = "white";
                               }
                             }}
@@ -2853,7 +2853,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
                   <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl p-8 max-w-md w-full relative animate-fadein border-2 border-white">
                     <button
-                      className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 text-2xl font-bold focus:outline-none"
+                      className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 text-2xl font-bold focus:outline-none"
                       onClick={() => setShowLimitModal(false)}
                       aria-label="Close"
                     >
@@ -2890,7 +2890,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                   >
                     <div
                       className="mb-6 text-2xl font-bold text-center"
-                      style={{ color: businessProfile?.primary_color || "#4F46E5" }}
+                      style={{ color: businessProfile?.primary_color || "#2E4A7D" }}
                     >
                       {mergedEmojiFeedbackPopupHeader}
                     </div>
@@ -2906,8 +2906,8 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                       <button
                         className="w-full px-6 py-4 rounded-lg font-semibold text-lg shadow-lg text-white hover:opacity-90 focus:outline-none transition border-2"
                         style={{
-                          backgroundColor: businessProfile?.secondary_color || "#4F46E5",
-                          borderColor: businessProfile?.secondary_color || "#4F46E5",
+                          backgroundColor: businessProfile?.secondary_color || "#2E4A7D",
+                          borderColor: businessProfile?.secondary_color || "#2E4A7D",
                           fontFamily: businessProfile?.primary_font || "Inter",
                         }}
                         onClick={() => {
@@ -2936,8 +2936,8 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                         className="w-full px-6 py-4 rounded-lg font-semibold text-lg shadow-lg hover:opacity-90 focus:outline-none transition border-2"
                         style={{
                           backgroundColor: "transparent",
-                          borderColor: businessProfile?.secondary_color || "#4F46E5",
-                          color: businessProfile?.secondary_color || "#4F46E5",
+                          borderColor: businessProfile?.secondary_color || "#2E4A7D",
+                          color: businessProfile?.secondary_color || "#2E4A7D",
                           fontFamily: businessProfile?.primary_font || "Inter",
                         }}
                         onClick={() => {
@@ -3004,7 +3004,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                           <h2
                             className={`text-2xl font-bold mt-0 mb-6 ${businessProfile?.primary_font || "font-inter"}`}
                             style={{
-                              color: businessProfile?.primary_color || "#4F46E5",
+                              color: businessProfile?.primary_color || "#2E4A7D",
                             }}
                           >
                             <span className={`font-bold ${getFontClass(businessProfile?.primary_font || "Inter")}`}>Visit our website</span>
@@ -3016,7 +3016,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                              className="inline-block text-xl font-medium hover:opacity-80 transition-opacity"
                              style={{
                                color:
-                                 businessProfile?.primary_color || "#4F46E5",
+                                 businessProfile?.primary_color || "#2E4A7D",
                              }}
                              onClick={async () => {
                                if (!promptPage?.id) return;
@@ -3040,7 +3040,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                           <h2
                             className={`text-2xl font-bold mt-0 mb-6 text-center md:text-left ${businessProfile?.primary_font || "font-inter"}`}
                             style={{
-                              color: businessProfile?.primary_color || "#4F46E5",
+                              color: businessProfile?.primary_color || "#2E4A7D",
                             }}
                           >
                             <span className={`font-bold ${getFontClass(businessProfile?.primary_font || "Inter")}`}>Follow on social</span>
@@ -3068,7 +3068,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                               pinterest_url={
                                 businessProfile.pinterest_url || undefined
                               }
-                              color={businessProfile.primary_color || "#4F46E5"}
+                              color={businessProfile.primary_color || "#2E4A7D"}
                               onIconClick={async (platform) => {
                                 if (!promptPage?.id) return;
                                 await sendAnalyticsEvent({
@@ -3176,7 +3176,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
               </svg>
             </button>
             <h2 className="text-2xl font-bold mb-6 text-center" style={{
-              color: businessProfile?.primary_color || "#4F46E5"
+              color: businessProfile?.primary_color || "#2E4A7D"
             }}>
               Copy & open {fallbackModalPlatform || "the review site"}
             </h2>
@@ -3189,8 +3189,8 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
               onClick={(e) => (e.target as HTMLTextAreaElement).select()}
               style={{
                 background: businessProfile?.card_bg || "#F9FAFB",
-                borderColor: businessProfile?.primary_color || "#4F46E5",
-                boxShadow: `0 0 0 2px ${businessProfile?.primary_color || "#4F46E5"}33`,
+                borderColor: businessProfile?.primary_color || "#2E4A7D",
+                boxShadow: `0 0 0 2px ${businessProfile?.primary_color || "#2E4A7D"}33`,
                 color: businessProfile?.input_text_color || '#1F2937',
                 WebkitTextFillColor: businessProfile?.input_text_color || '#1F2937',
               }}
@@ -3206,8 +3206,8 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
               <button
                 className="w-full px-6 py-3 rounded-lg font-semibold text-base shadow-lg hover:opacity-90 focus:outline-none transition"
                 style={{
-                  backgroundColor: businessProfile?.secondary_color || "#4F46E5",
-                  color: getContrastTextColor(businessProfile?.secondary_color || "#4F46E5"),
+                  backgroundColor: businessProfile?.secondary_color || "#2E4A7D",
+                  color: getContrastTextColor(businessProfile?.secondary_color || "#2E4A7D"),
                 }}
                 onClick={async () => {
                   try {
@@ -3228,8 +3228,8 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
               <button
                 className="w-full px-6 py-3 rounded-lg font-semibold text-base shadow hover:opacity-90 focus:outline-none transition"
                 style={{
-                  backgroundColor: businessProfile?.primary_color || "#4F46E5",
-                  color: getContrastTextColor(businessProfile?.primary_color || "#4F46E5")
+                  backgroundColor: businessProfile?.primary_color || "#2E4A7D",
+                  color: getContrastTextColor(businessProfile?.primary_color || "#2E4A7D")
                 }}
                 onClick={() => {
                   if (fallbackModalUrl) {
@@ -3285,8 +3285,8 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
               setSentimentComplete(true);
             }
           }}
-          headerColor={businessProfile?.primary_color || "#4F46E5"}
-          buttonColor={businessProfile?.secondary_color || "#4F46E5"}
+          headerColor={businessProfile?.primary_color || "#2E4A7D"}
+          buttonColor={businessProfile?.secondary_color || "#2E4A7D"}
           fontFamily={businessProfile?.primary_font || "Inter"}
           promptPageId={promptPage?.id}
         />
@@ -3300,12 +3300,12 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
             style={{ 
               fontFamily: businessProfile?.primary_font || "Inter",
               backgroundColor: businessProfile?.card_bg || "#fff",
-              borderColor: businessProfile?.primary_color || "#4F46E5"
+              borderColor: businessProfile?.primary_color || "#2E4A7D"
             }}
           >
             <div
               className="mb-6 text-2xl font-bold text-center"
-              style={{ color: businessProfile?.primary_color || "#4F46E5" }}
+              style={{ color: businessProfile?.primary_color || "#2E4A7D" }}
             >
               {mergedEmojiFeedbackPopupHeader}
             </div>
@@ -3321,8 +3321,8 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
               <button
                 className="w-full px-6 py-4 rounded-lg font-semibold text-lg shadow-lg text-white hover:opacity-90 focus:outline-none transition border-2"
                 style={{
-                  backgroundColor: businessProfile?.secondary_color || "#4F46E5",
-                  borderColor: businessProfile?.secondary_color || "#4F46E5",
+                  backgroundColor: businessProfile?.secondary_color || "#2E4A7D",
+                  borderColor: businessProfile?.secondary_color || "#2E4A7D",
                   fontFamily: businessProfile?.primary_font || "Inter",
                 }}
                 onClick={() => {
@@ -3351,8 +3351,8 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                 className="w-full px-6 py-4 rounded-lg font-semibold text-lg shadow-lg hover:opacity-90 focus:outline-none transition border-2"
                 style={{
                   backgroundColor: "transparent",
-                  borderColor: businessProfile?.secondary_color || "#4F46E5",
-                  color: businessProfile?.secondary_color || "#4F46E5",
+                  borderColor: businessProfile?.secondary_color || "#2E4A7D",
+                  color: businessProfile?.secondary_color || "#2E4A7D",
                   fontFamily: businessProfile?.primary_font || "Inter",
                 }}
                 onClick={() => {

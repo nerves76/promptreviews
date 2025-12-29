@@ -167,7 +167,7 @@ export default function LocationPicker(props: LocationPickerProps) {
             type="button"
             disabled={disabled}
             onClick={() => setIsDropdownOpen((open) => !open)}
-            className="w-full flex items-center justify-between px-4 py-3 border border-gray-300 rounded-md bg-white hover:bg-gray-50 focus:ring-2 focus:ring-slate-blue focus:border-slate-blue disabled:bg-gray-100 disabled:text-gray-400"
+            className="w-full flex items-center justify-between px-4 py-3 border border-gray-300 rounded-md bg-white hover:bg-gray-50 focus:ring-2 focus:ring-slate-blue focus:border-slate-blue disabled:bg-gray-100 disabled:text-gray-500"
           >
             <span className="text-gray-800 truncate">{summaryLabel}</span>
             <Icon name={isDropdownOpen ? 'FaChevronUp' : 'FaChevronDown'} className="w-4 h-4 text-gray-500" />
@@ -239,7 +239,7 @@ export default function LocationPicker(props: LocationPickerProps) {
           onClick={() => setIsDropdownOpen((open) => !open)}
           className={`w-full flex items-center justify-between px-4 py-3 border rounded-md bg-white focus:ring-2 focus:ring-slate-blue focus:border-slate-blue ${
             maxReached ? 'border-amber-400 bg-amber-50' : 'border-gray-300 hover:bg-gray-50'
-          } disabled:bg-gray-100 disabled:text-gray-400`}
+          } disabled:bg-gray-100 disabled:text-gray-500`}
         >
           <span className="text-gray-800 truncate">{summaryLabel}</span>
           <Icon name={isDropdownOpen ? 'FaChevronUp' : 'FaChevronDown'} className="w-4 h-4 text-gray-500" />

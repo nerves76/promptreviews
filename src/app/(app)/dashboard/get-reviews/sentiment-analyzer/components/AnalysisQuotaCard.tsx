@@ -144,7 +144,7 @@ export default function AnalysisQuotaCard({ eligibility }: AnalysisQuotaCardProp
                 </li>
               ))}
             </ul>
-            <div className="mt-2 pt-2 border-t border-gray-700 text-gray-400">
+            <div className="mt-2 pt-2 border-t border-gray-700 text-gray-500">
               Includes AI phrase discovery
             </div>
           </div>

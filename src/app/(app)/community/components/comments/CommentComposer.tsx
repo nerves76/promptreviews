@@ -104,7 +104,7 @@ export function CommentComposer({ postId, onSubmit }: CommentComposerProps) {
     return (
       <button
         onClick={() => setIsExpanded(true)}
-        className="w-full px-4 py-3 text-left text-white/50 bg-white/5 border border-white/10 rounded-lg hover:bg-white/8 hover:border-white/20 transition-colors"
+        className="w-full px-4 py-3 text-left text-white/70 bg-white/5 border border-white/10 rounded-lg hover:bg-white/8 hover:border-white/20 transition-colors"
       >
         Add a comment...
       </button>
@@ -141,7 +141,7 @@ export function CommentComposer({ postId, onSubmit }: CommentComposerProps) {
       </div>
 
       <div className="flex items-center justify-between">
-        <span className={`text-xs ${charCount > 1800 ? 'text-red-400' : 'text-white/50'}`} aria-live="polite">
+        <span className={`text-xs ${charCount > 1800 ? 'text-red-400' : 'text-white/70'}`} aria-live="polite">
           {charCount}/2000
         </span>
 

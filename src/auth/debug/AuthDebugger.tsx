@@ -125,9 +125,9 @@ export function AuthDebugger() {
 
   const getStatusColor = (loading: boolean, value: any) => {
     if (loading) return 'text-yellow-500';
-    if (value === null || value === false) return 'text-gray-400';
+    if (value === null || value === false) return 'text-gray-500';
     if (value === true || value) return 'text-green-500';
-    return 'text-gray-400';
+    return 'text-gray-500';
   };
 
   const getLoadingIndicator = (loading: boolean) => {
@@ -158,7 +158,7 @@ export function AuthDebugger() {
         <h3 className="text-lg font-bold">🔍 Auth Debugger</h3>
         <button
           onClick={() => setIsExpanded(false)}
-          className="text-gray-400 hover:text-white"
+          className="text-gray-500 hover:text-white"
         >
           ✕
         </button>
@@ -190,7 +190,7 @@ export function AuthDebugger() {
 
       {/* Core Auth State */}
       <div className="mb-4">
-        <h4 className="text-sm font-bold mb-2 text-gray-400">Core State</h4>
+        <h4 className="text-sm font-bold mb-2 text-gray-500">Core State</h4>
         <div className="text-xs font-mono space-y-1">
           <div className="flex justify-between">
             <span>isInitialized:</span>
@@ -227,7 +227,7 @@ export function AuthDebugger() {
 
       {/* Loading States */}
       <div className="mb-4">
-        <h4 className="text-sm font-bold mb-2 text-gray-400">Loading States</h4>
+        <h4 className="text-sm font-bold mb-2 text-gray-500">Loading States</h4>
         <div className="text-xs font-mono space-y-1">
           <div className="flex justify-between">
             <span>adminLoading:</span>
@@ -252,7 +252,7 @@ export function AuthDebugger() {
 
       {/* Business & Account State */}
       <div className="mb-4">
-        <h4 className="text-sm font-bold mb-2 text-gray-400">Business & Account</h4>
+        <h4 className="text-sm font-bold mb-2 text-gray-500">Business & Account</h4>
         <div className="text-xs font-mono space-y-1">
           <div className="flex justify-between">
             <span>isAdminUser:</span>
@@ -283,11 +283,11 @@ export function AuthDebugger() {
 
       {/* Session Timing */}
       <div className="mb-4">
-        <h4 className="text-sm font-bold mb-2 text-gray-400">Session Timing</h4>
+        <h4 className="text-sm font-bold mb-2 text-gray-500">Session Timing</h4>
         <div className="text-xs font-mono space-y-1">
           <div className="flex justify-between">
             <span>sessionExpiry:</span>
-            <span className={auth.sessionExpiry ? 'text-green-500' : 'text-gray-400'}>
+            <span className={auth.sessionExpiry ? 'text-green-500' : 'text-gray-500'}>
               {auth.sessionExpiry ? new Date(auth.sessionExpiry).toLocaleTimeString() : 'null'}
             </span>
           </div>
@@ -308,7 +308,7 @@ export function AuthDebugger() {
 
       {/* Supabase Direct Check */}
       <div className="mb-4">
-        <h4 className="text-sm font-bold mb-2 text-gray-400">Supabase Direct</h4>
+        <h4 className="text-sm font-bold mb-2 text-gray-500">Supabase Direct</h4>
         <div className="text-xs font-mono space-y-1">
           <div className="flex justify-between">
             <span>session:</span>

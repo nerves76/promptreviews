@@ -142,7 +142,7 @@ export default function LocationPicker({
       case 'Country':
         return <Icon name="FaGlobe" className="w-3 h-3 text-purple-500" />;
       default:
-        return <Icon name="FaMapMarker" className="w-3 h-3 text-gray-400" />;
+        return <Icon name="FaMapMarker" className="w-3 h-3 text-gray-500" />;
     }
   };
 
@@ -169,7 +169,7 @@ export default function LocationPicker({
       ) : (
         <div className="relative">
           <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-            <Icon name="FaSearch" className="w-4 h-4 text-gray-400" />
+            <Icon name="FaSearch" className="w-4 h-4 text-gray-500" />
           </div>
           <input
             ref={inputRef}
@@ -187,7 +187,7 @@ export default function LocationPicker({
           />
           {isLoading && (
             <div className="absolute inset-y-0 right-3 flex items-center">
-              <Icon name="FaSpinner" className="w-4 h-4 text-gray-400 animate-spin" />
+              <Icon name="FaSpinner" className="w-4 h-4 text-gray-500 animate-spin" />
             </div>
           )}
         </div>
@@ -212,7 +212,7 @@ export default function LocationPicker({
             >
               {getLocationTypeIcon(option.locationType)}
               <span className="flex-1 truncate">{option.locationName}</span>
-              <span className="text-xs text-gray-400 capitalize">{option.locationType}</span>
+              <span className="text-xs text-gray-500 capitalize">{option.locationType}</span>
             </button>
           ))}
         </div>

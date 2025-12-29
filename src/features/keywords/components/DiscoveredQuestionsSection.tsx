@@ -110,7 +110,7 @@ export function DiscoveredQuestionsSection({
                 )}
               </div>
               {canAdd && (
-                <Icon name="FaPlus" className="w-3 h-3 text-gray-400 flex-shrink-0" />
+                <Icon name="FaPlus" className="w-3 h-3 text-gray-500 flex-shrink-0" />
               )}
             </div>
           );

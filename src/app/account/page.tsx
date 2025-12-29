@@ -161,7 +161,7 @@ export default function AccountPage() {
   return (
     <div className="min-h-screen w-full">
       <div className="min-h-screen flex items-center justify-center pb-12 px-2">
-        <PageCard icon={<FaUser className="w-9 h-9 text-[#1A237E]" />}>
+        <PageCard icon={<FaUser className="w-9 h-9 text-slate-blue" />}>
           <div className="flex items-center justify-between mb-16">
             <h1 className="text-3xl font-bold text-slate-blue">
               Account settings
@@ -284,7 +284,7 @@ export default function AccountPage() {
                       }
                     }}
                     disabled={isLoading}
-                    className="px-4 py-2 bg-[#2E4A7D] text-white rounded font-semibold shadow hover:bg-[#4666AF] transition-colors"
+                    className="px-4 py-2 bg-slate-blue text-white rounded font-semibold shadow hover:bg-slate-blue/80 transition-colors"
                   >
                     {isLoading
                       ? "Loading…"
@@ -363,7 +363,7 @@ function ChangePassword({ supabase }: { supabase: any }) {
     <div className="mt-4">
       <button
         type="button"
-        className="inline-flex items-center px-4 py-2 border-2 border-[#1A237E] text-[#1A237E] bg-white rounded-md font-semibold text-sm transition-colors duration-150 hover:bg-[#1A237E] hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1A237E]"
+        className="inline-flex items-center px-4 py-2 border-2 border-slate-blue text-slate-blue bg-white rounded-md font-semibold text-sm transition-colors duration-150 hover:bg-slate-blue hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue"
         onClick={() => setShowForm((v) => !v)}
       >
         {showForm ? "Cancel" : "Change password"}
@@ -426,7 +426,7 @@ function ChangePassword({ supabase }: { supabase: any }) {
               <button
                 onClick={handleCreateLinkedAccount}
                 disabled={createAccountLoading}
-                className="inline-flex items-center gap-2 px-4 py-2 border-2 border-[#1A237E] text-[#1A237E] bg-white rounded-md font-semibold text-sm transition-colors duration-150 hover:bg-[#1A237E] hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1A237E] disabled:opacity-60"
+                className="inline-flex items-center gap-2 px-4 py-2 border-2 border-slate-blue text-slate-blue bg-white rounded-md font-semibold text-sm transition-colors duration-150 hover:bg-slate-blue hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue disabled:opacity-60"
               >
                 <FaPlus className="w-4 h-4" />
                 {createAccountLoading ? "Creating…" : "Create new account"}
@@ -435,10 +435,7 @@ function ChangePassword({ supabase }: { supabase: any }) {
           </div>
           <button
             type="submit"
-            className="w-full px-4 py-3 rounded-2xl font-semibold mt-2 text-white"
-            style={{ background: "#1A237E" }}
-            onMouseOver={(e) => (e.currentTarget.style.background = "#3949ab")}
-            onMouseOut={(e) => (e.currentTarget.style.background = "#1A237E")}
+            className="w-full px-4 py-3 rounded-2xl font-semibold mt-2 text-white bg-slate-blue hover:bg-slate-blue/80 transition-colors"
             disabled={loading}
           >
             {loading ? "Changing..." : "Change password"}
@@ -487,7 +484,7 @@ function ChangeEmail({
     <div className="mt-2">
       <button
         type="button"
-        className="inline-flex items-center px-4 py-2 border-2 border-[#1A237E] text-[#1A237E] bg-white rounded-md font-semibold text-sm transition-colors duration-150 hover:bg-[#1A237E] hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1A237E]"
+        className="inline-flex items-center px-4 py-2 border-2 border-slate-blue text-slate-blue bg-white rounded-md font-semibold text-sm transition-colors duration-150 hover:bg-slate-blue hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue"
         onClick={() => setShowForm((v) => !v)}
       >
         {showForm ? "Cancel" : "Change email"}
@@ -508,10 +505,7 @@ function ChangeEmail({
           )}
           <button
             type="submit"
-            className="w-full px-4 py-2 rounded-2xl font-semibold mt-1 text-sm text-white"
-            style={{ background: "#1A237E" }}
-            onMouseOver={(e) => (e.currentTarget.style.background = "#3949ab")}
-            onMouseOut={(e) => (e.currentTarget.style.background = "#1A237E")}
+            className="w-full px-4 py-2 rounded-2xl font-semibold mt-1 text-sm text-white bg-slate-blue hover:bg-slate-blue/80 transition-colors"
             disabled={loading}
           >
             {loading ? "Changing..." : "Change email"}

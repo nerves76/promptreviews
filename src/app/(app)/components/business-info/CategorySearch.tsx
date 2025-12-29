@@ -145,7 +145,7 @@ export default function CategorySearch({
         
         {/* Search Icon */}
         <Icon name="FaSearch" className={`absolute left-3 top-3 w-4 h-4 ${
-          disabled ? 'text-gray-400' : 'text-gray-500'
+          disabled ? 'text-gray-500' : 'text-gray-500'
         }`} />
         
         {/* Loading/Clear/Success Icon */}
@@ -158,7 +158,7 @@ export default function CategorySearch({
               <button
                 onClick={handleClearSelection}
                 disabled={disabled}
-                className="text-gray-400 hover:text-red-600 disabled:cursor-not-allowed ml-1"
+                className="text-gray-500 hover:text-red-600 disabled:cursor-not-allowed ml-1"
                 title="Clear selection"
               >
                 <Icon name="FaTimes" className="w-3 h-3" />
@@ -168,7 +168,7 @@ export default function CategorySearch({
             <button
               onClick={() => setSearchTerm('')}
               disabled={disabled}
-              className="text-gray-400 hover:text-gray-600 disabled:cursor-not-allowed"
+              className="text-gray-500 hover:text-gray-600 disabled:cursor-not-allowed"
               title="Clear search"
             >
               <Icon name="FaTimes" className="w-4 h-4" />

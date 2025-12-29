@@ -761,7 +761,7 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
               {promotionCodeSuccess}
             </p>
           ) : (
-            <p className="text-xs text-gray-400 mt-1">
+            <p className="text-xs text-gray-500 mt-1">
               Have a special offer code? Enter it here to unlock benefits.
             </p>
           )}

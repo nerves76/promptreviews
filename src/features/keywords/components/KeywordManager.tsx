@@ -1252,7 +1252,7 @@ export default function KeywordManager({
           <button
             onClick={handleGenerateClick}
             disabled={isGenerating}
-            className="px-3 py-1.5 text-sm font-medium text-slate-blue bg-white border border-slate-blue rounded-md hover:bg-slate-blue/5 disabled:text-gray-400 disabled:border-gray-300 disabled:cursor-not-allowed flex items-center gap-2"
+            className="px-3 py-1.5 text-sm font-medium text-slate-blue bg-white border border-slate-blue rounded-md hover:bg-slate-blue/5 disabled:text-gray-500 disabled:border-gray-300 disabled:cursor-not-allowed flex items-center gap-2"
           >
             {isGenerating ? (
               <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
@@ -1457,7 +1457,7 @@ export default function KeywordManager({
                   }
                 }}
               />
-              <div className="text-xs text-gray-400 mt-1 text-right">
+              <div className="text-xs text-gray-500 mt-1 text-right">
                 {newGroupName.length}/30
               </div>
             </div>
@@ -1491,7 +1491,7 @@ export default function KeywordManager({
             {/* Modal Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b">
               <h3 className="text-lg font-semibold text-gray-800">Import concepts</h3>
-              <button onClick={resetImportModal} className="text-gray-400 hover:text-gray-600">
+              <button onClick={resetImportModal} className="text-gray-500 hover:text-gray-600">
                 <XMarkIcon className="w-5 h-5" />
               </button>
             </div>

@@ -207,7 +207,7 @@ const PromptPageEmbedModal: React.FC<PromptPageEmbedModalProps> = ({
               {!emojiSentimentEnabled ? (
                 <div className="text-center py-12">
                   <div className="mb-6">
-                    <Icon name="FaInfoCircle" className="text-gray-400 mx-auto mb-4" size={48} />
+                    <Icon name="FaInfoCircle" className="text-gray-500 mx-auto mb-4" size={48} />
                     <h3 className="text-xl font-semibold text-gray-700 mb-2">
                       Emoji Feedback Flow Not Enabled
                     </h3>

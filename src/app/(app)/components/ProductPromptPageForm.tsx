@@ -796,7 +796,7 @@ export default function ProductPromptPageForm({
         <div className="rounded-lg p-4 bg-slate-50 border border-slate-200 flex flex-col gap-2 shadow relative">
               <div className="flex items-center justify-between mb-2 px-2 py-2">
                 <div className="flex items-center gap-3">
-                  <Icon name="FaStickyNote" className="w-7 h-7" style={{ color: "#1A237E" }} size={28} />
+                  <Icon name="FaStickyNote" className="w-7 h-7" style={{ color: "#2E4A7D" }} size={28} />
                   <span className="text-2xl font-bold text-slate-blue">
                     Friendly Note Pop-up
                   </span>
@@ -939,7 +939,7 @@ export default function ProductPromptPageForm({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
           <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center relative">
             <button
-              className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-xl"
+              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-xl"
               onClick={() => setShowPopupConflictModal(null)}
               aria-label="Close"
             >

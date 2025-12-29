@@ -163,7 +163,7 @@ export const OptimizedImage = memo(({
   if (hasError) {
     return (
       <div className={`bg-gray-100 flex items-center justify-center ${className}`}>
-        <span className="text-gray-400 text-sm">Image failed to load</span>
+        <span className="text-gray-500 text-sm">Image failed to load</span>
       </div>
     );
   }

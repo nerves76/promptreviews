@@ -33,7 +33,7 @@ export default function KeywordInspirationButton({
   onOpenModal,
 }: KeywordInspirationButtonProps) {
   const hasKeywords = selectedKeywords && selectedKeywords.length > 0;
-  const secondaryColor = businessProfile?.secondary_color || "#4F46E5";
+  const secondaryColor = businessProfile?.secondary_color || "#2E4A7D";
   const hoverTextColor = getContrastTextColor(secondaryColor);
 
   // Don't render if feature is disabled or no keywords selected

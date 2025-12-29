@@ -77,7 +77,7 @@ export function CommentCard({
   if (comment.deleted_at) {
     return (
       <div className="bg-white/5 backdrop-blur-[10px] border border-white/10 rounded-lg p-3 opacity-50">
-        <p className="text-white/50 italic text-sm">[Comment deleted]</p>
+        <p className="text-white/70 italic text-sm">[Comment deleted]</p>
       </div>
     );
   }
@@ -96,7 +96,7 @@ export function CommentCard({
           <div className="relative">
             <button
               onClick={() => setShowActionsMenu(!showActionsMenu)}
-              className="p-1 rounded-lg text-white/50 hover:text-white hover:bg-white/10 transition-colors"
+              className="p-1 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors"
               aria-label="Comment actions"
             >
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">

@@ -192,7 +192,7 @@ export default function ReviewPlatformCard({
           name={iconName}
           className="w-7 h-7"
           size={28}
-          style={{ color: businessProfile?.primary_color || "#4F46E5" }}
+          style={{ color: businessProfile?.primary_color || "#2E4A7D" }}
         />
       </div>
 
@@ -207,13 +207,13 @@ export default function ReviewPlatformCard({
       >
         <div
           className={`text-2xl font-bold ${getFontClass(businessProfile?.primary_font)}`}
-          style={{ color: businessProfile?.primary_color || "#4F46E5", marginTop: "-5px", marginLeft: "4px" }}
+          style={{ color: businessProfile?.primary_color || "#2E4A7D", marginTop: "-5px", marginLeft: "4px" }}
         >
           Create a review for {(platform.platform || platform.name) === "Google Business Profile" ? "Google" : (platform.platform || platform.name) === "Other" && platform.customPlatform ? platform.customPlatform : (platform.platform || platform.name)}
         </div>
         <div className="flex-1" />
         {isAccordion && (
-          <span className="text-lg flex items-center justify-end" style={{ color: businessProfile?.primary_color || "#4F46E5" }}>
+          <span className="text-lg flex items-center justify-end" style={{ color: businessProfile?.primary_color || "#2E4A7D" }}>
             <svg
               width="24"
               height="24"
@@ -254,7 +254,7 @@ export default function ReviewPlatformCard({
                   <span className="font-semibold">Instructions</span>
                   <button
                     type="button"
-                    className="text-gray-400 hover:text-gray-700 ml-2"
+                    className="text-gray-500 hover:text-gray-700 ml-2"
                     onClick={() => onToggleInstructions(null)}
                     aria-label="Close instructions"
                   >
@@ -448,7 +448,7 @@ export default function ReviewPlatformCard({
                     title="Boost online visibility of your review by adding any of these suggested phrases"
                     onMouseEnter={(e) => {
                       e.currentTarget.style.backgroundColor = businessProfile?.secondary_color || "#6B7280";
-                      e.currentTarget.style.color = getContrastTextColor(businessProfile?.secondary_color || "#4F46E5");
+                      e.currentTarget.style.color = getContrastTextColor(businessProfile?.secondary_color || "#2E4A7D");
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.backgroundColor = "transparent";
@@ -588,8 +588,8 @@ export default function ReviewPlatformCard({
                   className="flex-1 px-4 py-3 rounded-lg text-base font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 flex items-center justify-center gap-2 transition-all duration-200 border-2"
                   style={{
                     backgroundColor: "transparent",
-                    borderColor: businessProfile?.secondary_color || "#4F46E5",
-                    color: businessProfile?.secondary_color || "#4F46E5",
+                    borderColor: businessProfile?.secondary_color || "#2E4A7D",
+                    color: businessProfile?.secondary_color || "#2E4A7D",
                   }}
                 >
                   Copy review
@@ -604,9 +604,9 @@ export default function ReviewPlatformCard({
                   }}
                   className="flex-1 px-4 py-3 rounded-lg text-base font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 flex items-center justify-center gap-2 transition-all duration-200 border-2"
                   style={{
-                    backgroundColor: businessProfile?.secondary_color || "#4F46E5",
-                    borderColor: businessProfile?.secondary_color || "#4F46E5",
-                    color: getContrastTextColor(businessProfile?.secondary_color || "#4F46E5"),
+                    backgroundColor: businessProfile?.secondary_color || "#2E4A7D",
+                    borderColor: businessProfile?.secondary_color || "#2E4A7D",
+                    color: getContrastTextColor(businessProfile?.secondary_color || "#2E4A7D"),
                   }}
                 >
                   <span className="text-center">Visit {label}</span>
@@ -619,21 +619,21 @@ export default function ReviewPlatformCard({
                 disabled={isSubmitting === idx || isCopied === idx || isRedirecting === idx}
                 className="flex-1 px-4 py-3 rounded-lg text-base font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all duration-200 border-2"
                 style={{
-                  backgroundColor: businessProfile?.secondary_color || "#4F46E5",
-                  borderColor: businessProfile?.secondary_color || "#4F46E5",
-                  color: getContrastTextColor(businessProfile?.secondary_color || "#4F46E5"),
+                  backgroundColor: businessProfile?.secondary_color || "#2E4A7D",
+                  borderColor: businessProfile?.secondary_color || "#2E4A7D",
+                  color: getContrastTextColor(businessProfile?.secondary_color || "#2E4A7D"),
                 }}
                 title={`We'll copy your review and open ${label}. Just paste and post.`}
                 onMouseEnter={(e) => {
                   if (isSubmitting !== idx && isCopied !== idx && isRedirecting !== idx && !e.currentTarget.disabled) {
                     e.currentTarget.style.backgroundColor = "transparent";
-                    e.currentTarget.style.color = businessProfile?.secondary_color || "#4F46E5";
+                    e.currentTarget.style.color = businessProfile?.secondary_color || "#2E4A7D";
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (isSubmitting !== idx && isCopied !== idx && isRedirecting !== idx && !e.currentTarget.disabled) {
-                    e.currentTarget.style.backgroundColor = businessProfile?.secondary_color || "#4F46E5";
-                    e.currentTarget.style.color = getContrastTextColor(businessProfile?.secondary_color || "#4F46E5");
+                    e.currentTarget.style.backgroundColor = businessProfile?.secondary_color || "#2E4A7D";
+                    e.currentTarget.style.color = getContrastTextColor(businessProfile?.secondary_color || "#2E4A7D");
                   }
                 }}
               >

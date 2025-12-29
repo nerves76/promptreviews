@@ -209,7 +209,7 @@ export default function ResearchPage() {
       case 'falling':
         return <ArrowTrendingDownIcon className="w-4 h-4 text-red-600" />;
       default:
-        return <MinusIcon className="w-4 h-4 text-gray-400" />;
+        return <MinusIcon className="w-4 h-4 text-gray-500" />;
     }
   };
 
@@ -309,7 +309,7 @@ export default function ResearchPage() {
                 Keyword
               </label>
               <div className="relative">
-                <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
                 <input
                   type="text"
                   value={searchQuery}
@@ -388,7 +388,7 @@ export default function ResearchPage() {
                     className={`p-2 rounded-lg transition-colors ${
                       savedResults.has(result.keyword)
                         ? 'text-blue-600 bg-blue-50'
-                        : 'text-gray-400 hover:text-blue-600 hover:bg-blue-50'
+                        : 'text-gray-500 hover:text-blue-600 hover:bg-blue-50'
                     }`}
                     title={savedResults.has(result.keyword) ? 'Saved' : 'Save result'}
                   >
@@ -459,7 +459,7 @@ export default function ResearchPage() {
                     ) : (
                       <span className="text-2xl font-bold text-gray-900">-</span>
                     )}
-                    <span className="text-xs text-gray-400">quarterly</span>
+                    <span className="text-xs text-gray-500">quarterly</span>
                   </div>
                 </div>
               </div>
@@ -507,7 +507,7 @@ export default function ResearchPage() {
                     {result.monthlyTrend.slice(-12).map((m: any, i: number) => {
                       const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
                       return (
-                        <div key={i} className="flex-1 text-center text-xs text-gray-400">
+                        <div key={i} className="flex-1 text-center text-xs text-gray-500">
                           {monthNames[m.month - 1]}
                         </div>
                       );
@@ -574,7 +574,7 @@ export default function ResearchPage() {
                             className={`p-1.5 rounded-lg transition-colors ${
                               savedResults.has(sug.keyword)
                                 ? 'text-blue-600 bg-blue-50'
-                                : 'text-gray-400 hover:text-blue-600 hover:bg-blue-50'
+                                : 'text-gray-500 hover:text-blue-600 hover:bg-blue-50'
                             }`}
                             title={savedResults.has(sug.keyword) ? 'Saved' : 'Save result'}
                           >
@@ -629,7 +629,7 @@ export default function ResearchPage() {
 
             {isLoadingSaved ? (
               <div className="flex items-center justify-center py-8">
-                <Icon name="FaSpinner" className="w-6 h-6 text-gray-400 animate-spin" />
+                <Icon name="FaSpinner" className="w-6 h-6 text-gray-500 animate-spin" />
               </div>
             ) : (
               <div className="space-y-2">
@@ -651,11 +651,11 @@ export default function ResearchPage() {
                             </span>
                           </>
                         )}
-                        <span className="text-gray-400">•</span>
-                        <span className="text-gray-400">{saved.locationName}</span>
+                        <span className="text-gray-500">•</span>
+                        <span className="text-gray-500">{saved.locationName}</span>
                         {saved.keywordId && (
                           <>
-                            <span className="text-gray-400">•</span>
+                            <span className="text-gray-500">•</span>
                             <span className="text-green-600 text-xs">In library</span>
                           </>
                         )}
@@ -667,7 +667,7 @@ export default function ResearchPage() {
                           setSearchQuery(saved.term);
                           setLocation({ code: saved.locationCode, name: saved.locationName });
                         }}
-                        className="p-1.5 text-gray-400 hover:text-slate-blue hover:bg-slate-blue/10 rounded-lg transition-colors"
+                        className="p-1.5 text-gray-500 hover:text-slate-blue hover:bg-slate-blue/10 rounded-lg transition-colors"
                         title="Search again"
                       >
                         <MagnifyingGlassIcon className="w-4 h-4" />
@@ -675,7 +675,7 @@ export default function ResearchPage() {
                       <button
                         onClick={() => handleDeleteSaved(saved.id)}
                         disabled={deletingId === saved.id}
-                        className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                        className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
                         title="Delete"
                       >
                         {deletingId === saved.id ? (

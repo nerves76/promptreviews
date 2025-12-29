@@ -172,7 +172,7 @@ export default function CompetitorsPage() {
         {/* Competitors list */}
         {filteredCompetitors.length === 0 ? (
           <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
-            <Icon name="FaUsers" size={32} className="mx-auto text-gray-400 mb-3" />
+            <Icon name="FaUsers" size={32} className="mx-auto text-gray-500 mb-3" />
             <p className="text-gray-600 mb-4">
               {searchQuery ? "No competitors match your search" : "No competitors yet"}
             </p>
@@ -239,7 +239,7 @@ export default function CompetitorsPage() {
                           {new URL(competitor.website_url).hostname}
                         </a>
                       ) : (
-                        <span className="text-sm text-gray-400">—</span>
+                        <span className="text-sm text-gray-500">—</span>
                       )}
                     </td>
                     <td className="px-4 py-3">

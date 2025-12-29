@@ -753,7 +753,7 @@ export default function LLMVisibilityPage() {
                             >
                               <Icon
                                 name={isExpanded ? 'FaChevronDown' : 'FaChevronRight'}
-                                className="w-3 h-3 text-gray-400 mt-1 flex-shrink-0"
+                                className="w-3 h-3 text-gray-500 mt-1 flex-shrink-0"
                               />
                               <span>{row.question}</span>
                             </button>
@@ -777,7 +777,7 @@ export default function LLMVisibilityPage() {
                                   e.stopPropagation();
                                   handleOpenConceptSidebar(row.conceptId);
                                 }}
-                                className="p-1 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded transition-colors"
+                                className="p-1 text-gray-500 hover:text-purple-600 hover:bg-purple-50 rounded transition-colors"
                                 title={`Edit ${row.conceptName}`}
                               >
                                 <Icon name="FaEdit" className="w-3 h-3" />
@@ -888,7 +888,7 @@ export default function LLMVisibilityPage() {
                                                   Brand mentioned
                                                 </span>
                                               )}
-                                              <span className="text-gray-400">
+                                              <span className="text-gray-500">
                                                 {formatRelativeTime(result.checkedAt)}
                                               </span>
                                             </div>

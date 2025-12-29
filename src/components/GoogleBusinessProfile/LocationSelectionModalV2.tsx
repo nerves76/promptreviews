@@ -122,7 +122,7 @@ export default function LocationSelectionModal({
               />
               <Icon 
                 name="FaSearch" 
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" 
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4" 
               />
             </div>
           </div>
@@ -141,7 +141,7 @@ export default function LocationSelectionModal({
               >
                 Select all (up to {planLimit})
               </button>
-              <span className="text-gray-400">|</span>
+              <span className="text-gray-500">|</span>
               <button
                 onClick={handleClearAll}
                 className="text-sm text-slate-blue hover:text-slate-700"

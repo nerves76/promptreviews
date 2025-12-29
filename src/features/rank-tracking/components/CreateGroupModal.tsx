@@ -103,7 +103,7 @@ export default function CreateGroupModal({ isOpen, onClose, onCreate, onSuccess 
                   <Dialog.Title className="text-lg font-semibold text-gray-900">
                     Create Keyword Group
                   </Dialog.Title>
-                  <button onClick={onClose} className="text-gray-400 hover:text-gray-500">
+                  <button onClick={onClose} className="text-gray-500 hover:text-gray-500">
                     <XMarkIcon className="w-5 h-5" />
                   </button>
                 </div>

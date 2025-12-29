@@ -74,7 +74,7 @@ export function Toast({ toast, onClose }: ToastProps) {
           setIsExiting(true);
           setTimeout(() => onClose(toast.id), 300);
         }}
-        className="text-gray-400 hover:text-gray-600 transition-colors"
+        className="text-gray-500 hover:text-gray-600 transition-colors"
         aria-label="Close notification"
       >
         <Icon name="FaTimes" className="w-4 h-4" size={16} />

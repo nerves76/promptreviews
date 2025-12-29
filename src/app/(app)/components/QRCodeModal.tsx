@@ -529,7 +529,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl,
                         className="mr-2"
                         disabled={!logoUrl || logoUrl.trim() === '' || logoError}
                       />
-                      <span className={`text-sm font-medium ${!logoUrl || logoUrl.trim() === '' || logoError ? 'text-gray-400' : 'text-gray-700'}`}>
+                      <span className={`text-sm font-medium ${!logoUrl || logoUrl.trim() === '' || logoError ? 'text-gray-500' : 'text-gray-700'}`}>
                         Show your logo
                       </span>
                     </label>
@@ -864,7 +864,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl,
                 </Dialog.Title>
                 <button
                   onClick={() => setShowIconSelector(false)}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-gray-500 hover:text-gray-600"
                 >
                   <XMarkIcon className="h-6 w-6" />
                 </button>

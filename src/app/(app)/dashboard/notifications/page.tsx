@@ -250,7 +250,7 @@ export default function NotificationsPage() {
             <div className="relative flex-1 min-w-[200px]">
               <Icon
                 name="FaSearch"
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40 w-4 h-4"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-white/60 w-4 h-4"
                 size={16}
               />
               <input
@@ -329,7 +329,7 @@ export default function NotificationsPage() {
           ) : filteredNotifications.length === 0 ? (
             <div className="text-center py-16 bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl">
               <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center mx-auto mb-4">
-                <Icon name="FaBell" className="w-8 h-8 text-white/40" size={32} />
+                <Icon name="FaBell" className="w-8 h-8 text-white/60" size={32} />
               </div>
               <p className="text-white font-medium text-lg">No notifications found</p>
               <p className="text-white/60 mt-2">
@@ -399,7 +399,7 @@ export default function NotificationsPage() {
                                   <p className="text-sm text-white/60 mt-1">
                                     {notification.message}
                                   </p>
-                                  <p className="text-xs text-white/40 mt-2">
+                                  <p className="text-xs text-white/60 mt-2">
                                     {formatDate(notification.created_at)}
                                   </p>
                                 </div>

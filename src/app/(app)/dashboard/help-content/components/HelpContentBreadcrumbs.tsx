@@ -33,7 +33,7 @@ export default function HelpContentBreadcrumbs({
               ) : (
                 <span className="font-semibold text-white">{item.label}</span>
               )}
-              {!isLast && <span className="text-white/50">/</span>}
+              {!isLast && <span className="text-white/70">/</span>}
             </li>
           );
         })}

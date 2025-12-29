@@ -276,7 +276,7 @@ export default function UploadContactsPage() {
     const reviewCount = contact.review_count || 0;
 
     return (
-      <span className={`text-sm font-medium ${reviewCount > 0 ? 'text-gray-900' : 'text-gray-400'}`}>
+      <span className={`text-sm font-medium ${reviewCount > 0 ? 'text-gray-900' : 'text-gray-500'}`}>
         {reviewCount}
       </span>
     );
@@ -867,7 +867,7 @@ export default function UploadContactsPage() {
         {sortField === field && (
           <Icon 
             name={sortDirection === 'asc' ? "FaChevronUp" : "FaChevronDown"} 
-            className="w-3 h-3 text-gray-400" 
+            className="w-3 h-3 text-gray-500" 
           />
         )}
       </div>
@@ -908,7 +908,7 @@ export default function UploadContactsPage() {
               className={`px-3 py-1.5 rounded-lg text-sm flex items-center gap-2 ${
                 !findingDuplicates && contacts.length >= 2
                   ? 'border-2 border-purple-600 text-purple-600 hover:bg-purple-50'
-                  : 'border-2 border-gray-300 text-gray-400 cursor-not-allowed'
+                  : 'border-2 border-gray-300 text-gray-500 cursor-not-allowed'
               }`}
             >
               <Icon name="FaSearch" className="w-4 h-4" />
@@ -973,7 +973,7 @@ export default function UploadContactsPage() {
               className={`px-3 py-1.5 rounded-lg text-sm flex items-center gap-2 ${
                 canAddContacts
                   ? 'border-2 border-blue-600 text-blue-600 hover:bg-blue-50'
-                  : 'border-2 border-gray-300 text-gray-400 cursor-not-allowed'
+                  : 'border-2 border-gray-300 text-gray-500 cursor-not-allowed'
               }`}
             >
               <Icon name="FaPlus" className="w-4 h-4" />
@@ -1062,7 +1062,7 @@ export default function UploadContactsPage() {
                         }}
                         className="px-4 py-2 text-sm rounded-lg font-semibold shadow-lg"
                         style={{
-                          backgroundColor: '#4F46E5',
+                          backgroundColor: '#2E4A7D',
                           color: '#FFFFFF',
                           border: '2px solid #3730A3',
                         }}
@@ -1070,7 +1070,7 @@ export default function UploadContactsPage() {
                           e.currentTarget.style.backgroundColor = '#4338CA';
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = '#4F46E5';
+                          e.currentTarget.style.backgroundColor = '#2E4A7D';
                         }}
                       >
                         Review & Merge
@@ -1295,7 +1295,7 @@ export default function UploadContactsPage() {
                       disabled={currentPage === 1}
                       className={`px-3 py-1 rounded text-sm ${
                         currentPage === 1 
-                          ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                          ? 'bg-gray-100 text-gray-500 cursor-not-allowed' 
                           : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
                       }`}
                     >
@@ -1333,7 +1333,7 @@ export default function UploadContactsPage() {
                       disabled={currentPage >= Math.ceil(totalCount / itemsPerPage)}
                       className={`px-3 py-1 rounded text-sm ${
                         currentPage >= Math.ceil(totalCount / itemsPerPage)
-                          ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                          ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
                           : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
                       }`}
                     >

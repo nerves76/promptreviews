@@ -232,7 +232,7 @@ export default function FreeAccountsPage() {
           </div>
         ) : freeAccounts.length === 0 ? (
           <div className="p-8 text-center text-gray-500">
-            <Icon name="FaUser" className="mx-auto mb-4 text-gray-400" size={48} />
+            <Icon name="FaUser" className="mx-auto mb-4 text-gray-500" size={48} />
             <p>No free accounts found</p>
           </div>
         ) : (

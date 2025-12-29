@@ -66,7 +66,7 @@ const BUCKET_LABELS: Record<PositionBucket, string> = {
 // ============================================
 
 function RatingStars({ rating }: { rating: number | null }) {
-  if (rating === null) return <span className="text-gray-400 text-sm">No rating</span>;
+  if (rating === null) return <span className="text-gray-500 text-sm">No rating</span>;
 
   const fullStars = Math.floor(rating);
   const hasHalfStar = rating - fullStars >= 0.5;
@@ -97,14 +97,14 @@ function CompetitorRow({
   competitor: { name: string; rating: number | null; reviewCount: number | null; position: number };
   index: number;
 }) {
-  const medalColors = ['text-yellow-500', 'text-gray-400', 'text-amber-600'];
+  const medalColors = ['text-yellow-500', 'text-gray-500', 'text-amber-600'];
 
   return (
     <div className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
       <div className="flex items-center gap-3">
         <div
           className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-            index < 3 ? medalColors[index] : 'text-gray-400'
+            index < 3 ? medalColors[index] : 'text-gray-500'
           } bg-gray-100`}
         >
           {competitor.position}
@@ -180,7 +180,7 @@ export function GeoGridPointModal({ isOpen, onClose, result, point }: GeoGridPoi
                     </div>
                     <button
                       onClick={onClose}
-                      className="text-gray-400 hover:text-gray-600 transition-colors"
+                      className="text-gray-500 hover:text-gray-600 transition-colors"
                     >
                       <XMarkIcon className="w-6 h-6" />
                     </button>
@@ -230,7 +230,7 @@ export function GeoGridPointModal({ isOpen, onClose, result, point }: GeoGridPoi
                   {result.topCompetitors.length > 0 && (
                     <div>
                       <div className="flex items-center gap-2 mb-3">
-                        <UserGroupIcon className="w-5 h-5 text-gray-400" />
+                        <UserGroupIcon className="w-5 h-5 text-gray-500" />
                         <h3 className="text-sm font-medium text-gray-500">Top Competitors</h3>
                       </div>
                       <div className="bg-gray-50 rounded-lg px-4">
@@ -243,10 +243,10 @@ export function GeoGridPointModal({ isOpen, onClose, result, point }: GeoGridPoi
 
                   {/* Location Details */}
                   <div className="mt-6 pt-4 border-t border-gray-200">
-                    <p className="text-xs text-gray-400">
+                    <p className="text-xs text-gray-500">
                       Checked: {new Date(result.checkedAt).toLocaleString()}
                     </p>
-                    <p className="text-xs text-gray-400">
+                    <p className="text-xs text-gray-500">
                       Coordinates: {result.pointLat.toFixed(5)}, {result.pointLng.toFixed(5)}
                     </p>
                   </div>

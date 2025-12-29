@@ -195,7 +195,7 @@ export function GeoGridScheduleSettings({
             Time (UTC)
           </label>
           <div className="flex items-center gap-2">
-            <ClockIcon className="w-5 h-5 text-gray-400" />
+            <ClockIcon className="w-5 h-5 text-gray-500" />
             <select
               value={hour}
               onChange={(e) => setHour(Number(e.target.value))}

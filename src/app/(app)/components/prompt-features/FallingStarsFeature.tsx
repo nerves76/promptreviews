@@ -249,7 +249,7 @@ export default function FallingStarsFeature({
             <div className="flex-shrink-0">
               <Icon name="FaStar" className={`${editMode ? 'w-7 h-7 text-slate-blue' : 'h-6 w-6 text-yellow-500'}`} size={editMode ? 28 : 24} />
             </div>
-            <h3 className={`${editMode ? 'text-2xl font-bold text-[#1A237E]' : 'text-lg font-semibold text-gray-900'}`}>
+            <h3 className={`${editMode ? 'text-2xl font-bold text-slate-blue' : 'text-lg font-semibold text-gray-900'}`}>
               Falling Star Animation
             </h3>
           </div>
@@ -341,7 +341,7 @@ export default function FallingStarsFeature({
               </Dialog.Title>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-gray-500 hover:text-gray-600"
               >
                 <XMarkIcon className="h-6 w-6" />
               </button>

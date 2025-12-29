@@ -202,7 +202,7 @@ export default function EmojiSentimentFeature({
         <div className="flex flex-col">
           <div className="flex items-center gap-3">
             <FaGrinHearts className={`${editMode ? 'w-7 h-7 text-slate-blue' : 'text-slate-blue text-lg'}`} />
-            <h3 className={`${editMode ? 'text-2xl font-bold text-[#1A237E]' : 'text-lg font-semibold text-gray-900'}`}>
+            <h3 className={`${editMode ? 'text-2xl font-bold text-slate-blue' : 'text-lg font-semibold text-gray-900'}`}>
               Emoji Feedback Flow
             </h3>
           </div>
@@ -232,7 +232,7 @@ export default function EmojiSentimentFeature({
             <button
               type="button"
               disabled
-              className="inline-flex items-center gap-1 px-3 py-1.5 bg-gray-100 text-gray-400 rounded cursor-not-allowed text-sm font-medium shadow h-9 align-middle whitespace-nowrap"
+              className="inline-flex items-center gap-1 px-3 py-1.5 bg-gray-100 text-gray-500 rounded cursor-not-allowed text-sm font-medium shadow h-9 align-middle whitespace-nowrap"
               title="Save your page to enable embed functionality"
             >
               <FaCodeBranch className="w-4 h-4" />
@@ -386,7 +386,7 @@ export default function EmojiSentimentFeature({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
           <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center relative">
             <button
-              className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-xl"
+              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-xl"
               onClick={() => setShowConflictModal(false)}
               aria-label="Close"
             >

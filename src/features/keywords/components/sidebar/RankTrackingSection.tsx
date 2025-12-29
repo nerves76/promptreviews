@@ -58,15 +58,15 @@ function RankingItem({ ranking }: { ranking: RankingData }) {
                     )}
                 </>
               ) : (
-                <span className="text-sm text-gray-400">Not found</span>
+                <span className="text-sm text-gray-500">Not found</span>
               )}
             </div>
-            <div className="text-xs text-gray-400 mt-0.5">
+            <div className="text-xs text-gray-500 mt-0.5">
               {new Date(ranking.latestCheck.checkedAt).toLocaleDateString()}
             </div>
           </div>
         ) : (
-          <span className="text-xs text-gray-400">No checks yet</span>
+          <span className="text-xs text-gray-500">No checks yet</span>
         )}
       </div>
 

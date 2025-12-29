@@ -106,16 +106,19 @@ module.exports = {
         "plus-jakarta-sans": ["Plus Jakarta Sans", "sans-serif"],
       },
       colors: {
-        "slate-blue": "#2E4A7D", // Primary slate blue used throughout the site
-        // Note: Don't define "indigo" here - it breaks Tailwind's default indigo palette
-        // Use "slate-blue" as the primary brand color instead
-        "lavender-haze": "#D8C8DC", // Primary Light
-        "soft-peach": "#FFC8A2", // Accent Warm
-        "pale-gold": "#F9E79F", // Accent Gold
-        "sky-glass": "#89CFEF", // Secondary Light
-        "light-glass": "#E7F6FF", // Secondary Light
-        "pure-white": "#FFFFFF", // Neutral Light
-        "charcoal-black": "#342D2D", // Neutral Dark
+        // === SIMPLIFIED BRAND PALETTE ===
+        // Primary brand color - use for buttons, links, headings, icons
+        "slate-blue": "#2E4A7D",
+
+        // Gold accent - use for stars and celebratory elements only
+        "brand-gold": "#FFD700",
+
+        // Status colors (for accessibility)
+        // Use Tailwind's green-600, red-600, amber-500, blue-500 directly
+
+        // Neutrals - use Tailwind's gray scale (gray-900, 600, 400, 200, 50, white)
+
+        // Glassmorphic - use white with opacity (white/20, white/90, etc.)
       },
       gap: {
         15: '3.75rem', // 60px

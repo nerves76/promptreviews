@@ -129,12 +129,12 @@ export function LocationSelector({
               )}
             </>
           ) : (
-            <div className="text-gray-400">{placeholder}</div>
+            <div className="text-gray-500">{placeholder}</div>
           )}
         </div>
         <Icon
           name="FaChevronDown"
-          className={`w-4 h-4 ml-2 text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+          className={`w-4 h-4 ml-2 text-gray-500 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
         />
       </button>
 

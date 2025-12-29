@@ -124,7 +124,7 @@ export default function UpcomingReminders({
     return (
       <Card className={`p-4 ${className}`}>
         <div className="text-center py-4">
-          <Icon name="FaBell" className="w-8 h-8 text-gray-400 mx-auto mb-3" />
+          <Icon name="FaBell" className="w-8 h-8 text-gray-500 mx-auto mb-3" />
           <h3 className="text-sm font-medium text-gray-900 mb-1">No upcoming reminders</h3>
           <p className="text-xs text-gray-500">
             All follow-up reminders for this contact are up to date.

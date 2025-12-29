@@ -142,13 +142,13 @@ export default function RecentReviewsModal({
             <Icon
               name="FaCommentDots"
               className="w-6 h-6"
-              style={{ color: businessProfile?.primary_color || "#4F46E5" }}
+              style={{ color: businessProfile?.primary_color || "#2E4A7D" }}
               size={24}
             />
             <h2
               className="text-xl font-bold"
               style={{
-                color: businessProfile?.primary_color || "#4F46E5",
+                color: businessProfile?.primary_color || "#2E4A7D",
                 fontFamily: businessProfile?.primary_font || "Inter"
               }}
             >
@@ -165,7 +165,7 @@ export default function RecentReviewsModal({
           {loading && (
             <div className="flex items-center justify-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2" 
-                   style={{ borderColor: businessProfile?.primary_color || "#4F46E5" }}>
+                   style={{ borderColor: businessProfile?.primary_color || "#2E4A7D" }}>
               </div>
               <span className="ml-3 text-gray-600">Loading reviews...</span>
             </div>
@@ -175,7 +175,7 @@ export default function RecentReviewsModal({
             <div className="text-center py-8">
               <Icon
                 name={accessDenied ? "FaLock" : "FaExclamationTriangle"}
-                className="w-8 h-8 text-gray-400 mx-auto mb-3"
+                className="w-8 h-8 text-gray-500 mx-auto mb-3"
                 size={32}
               />
               <p className="text-gray-600">{error}</p>
@@ -189,7 +189,7 @@ export default function RecentReviewsModal({
 
           {!loading && !error && reviews.length === 0 && (
             <div className="text-center py-8">
-              <Icon name="FaCommentDots" className="w-8 h-8 text-gray-400 mx-auto mb-3" size={32} />
+              <Icon name="FaCommentDots" className="w-8 h-8 text-gray-500 mx-auto mb-3" size={32} />
               <p className="text-gray-600">No recent reviews available</p>
             </div>
           )}
@@ -214,7 +214,7 @@ export default function RecentReviewsModal({
                     <div className="flex items-center space-x-2">
                       <span className="font-medium">{review.initials} via {review.platform}</span>
                     </div>
-                    <span className="text-gray-400">{review.date}</span>
+                    <span className="text-gray-500">{review.date}</span>
                   </div>
                 </div>
               ))}

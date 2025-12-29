@@ -11,6 +11,7 @@ import Icon from "@/components/Icon";
 import { useRouter } from "next/navigation";
 import { fetchOnboardingTasks, markTaskAsCompleted, markTaskAsIncomplete } from "@/utils/onboardingTasks";
 import { createClient } from '@/auth/providers/supabase';
+import HelpModal from './help/HelpModal';
 
 interface BusinessData {
   id?: string;
@@ -61,6 +62,7 @@ interface Task {
   link?: string;
   icon: React.ReactNode;
   completed: boolean;
+  helpArticleId?: string;
 }
 
 const GettingStarted: React.FC<GettingStartedProps> = ({
@@ -77,6 +79,8 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isVisible, setIsVisible] = useState(true);
   const [loading, setLoading] = useState(true);
+  const [helpModalOpen, setHelpModalOpen] = useState(false);
+  const [helpArticleId, setHelpArticleId] = useState<string | undefined>(undefined);
 
   // Initialize default tasks for new users via API
   useEffect(() => {
@@ -258,7 +262,8 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
             description: "Complete your business information",
             link: "/dashboard/business-profile",
             icon: <Icon name="FaStore" className="w-5 h-5" size={20} />,
-            completed: businessProfileComplete || taskStatus["business-profile"] || false
+            completed: businessProfileComplete || taskStatus["business-profile"] || false,
+            helpArticleId: "business-profile"
           },
           {
             id: "style-prompt-pages",
@@ -266,7 +271,8 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
             description: "Match your brand with custom styling",
             link: "/prompt-pages",
             icon: <Icon name="FaPalette" className="w-5 h-5" size={20} />,
-            completed: stylingComplete || taskStatus["style-prompt-pages"] || false
+            completed: stylingComplete || taskStatus["style-prompt-pages"] || false,
+            helpArticleId: "style-settings"
           },
           {
             id: "prompt-page-settings",
@@ -274,7 +280,8 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
             description: "Set keywords, dos and don'ts for better AI responses",
             link: "/prompt-pages?openSettings=true",
             icon: <Icon name="FaCog" className="w-5 h-5" size={20} />,
-            completed: keywordsComplete || taskStatus["prompt-page-settings"] || false
+            completed: keywordsComplete || taskStatus["prompt-page-settings"] || false,
+            helpArticleId: "prompt-pages/settings"
           },
           {
             id: "customize-universal",
@@ -282,7 +289,8 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
             description: "Configure your Universal Prompt Page settings",
             link: "/dashboard/edit-prompt-page/universal",
             icon: <Icon name="FaGlobe" className="w-5 h-5" size={20} />,
-            completed: universalPageCustomized || taskStatus["customize-universal"] || false
+            completed: universalPageCustomized || taskStatus["customize-universal"] || false,
+            helpArticleId: "prompt-pages/types/universal"
           },
           {
             id: "create-prompt-page",
@@ -290,14 +298,16 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
             description: "Build your first custom prompt page",
             link: "/dashboard/create-prompt-page",
             icon: <Icon name="FaPlus" className="w-5 h-5" size={20} />,
-            completed: hasCustomPromptPages || taskStatus["create-prompt-page"] || false
+            completed: hasCustomPromptPages || taskStatus["create-prompt-page"] || false,
+            helpArticleId: "getting-started/first-prompt-page"
           },
           {
             id: "share",
             title: "Share a Prompt Page with your audience",
             description: "Start collecting reviews from your customers",
             icon: <Icon name="FaShare" className="w-5 h-5" size={20} />,
-            completed: taskStatus["share"] || false
+            completed: taskStatus["share"] || false,
+            helpArticleId: "getting-started/first-review-request"
           }
         ];
 
@@ -312,7 +322,8 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
             description: "Complete your business information",
             link: "/dashboard/business-profile",
             icon: <Icon name="FaStore" className="w-5 h-5" size={20} />,
-            completed: false
+            completed: false,
+            helpArticleId: "business-profile"
           },
           {
             id: "style-prompt-pages",
@@ -320,7 +331,8 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
             description: "Match your brand with custom styling",
             link: "/prompt-pages",
             icon: <Icon name="FaPalette" className="w-5 h-5" size={20} />,
-            completed: false
+            completed: false,
+            helpArticleId: "style-settings"
           },
           {
             id: "prompt-page-settings",
@@ -328,7 +340,8 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
             description: "Set keywords, dos and don'ts for better AI responses",
             link: "/prompt-pages?openSettings=true",
             icon: <Icon name="FaCog" className="w-5 h-5" size={20} />,
-            completed: false
+            completed: false,
+            helpArticleId: "prompt-pages/settings"
           },
           {
             id: "customize-universal",
@@ -336,7 +349,8 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
             description: "Configure your Universal Prompt Page settings",
             link: "/dashboard/edit-prompt-page/universal",
             icon: <Icon name="FaGlobe" className="w-5 h-5" size={20} />,
-            completed: false
+            completed: false,
+            helpArticleId: "prompt-pages/types/universal"
           },
           {
             id: "create-prompt-page",
@@ -344,14 +358,16 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
             description: "Build your first custom prompt page",
             link: "/dashboard/create-prompt-page",
             icon: <Icon name="FaFileAlt" className="w-5 h-5" size={20} />,
-            completed: false
+            completed: false,
+            helpArticleId: "getting-started/first-prompt-page"
           },
           {
             id: "share",
             title: "Share a Prompt Page with your audience",
             description: "Start collecting reviews from your customers",
             icon: <Icon name="FaHandshake" className="w-5 h-5" size={20} />,
-            completed: false
+            completed: false,
+            helpArticleId: "getting-started/first-review-request"
           }
         ];
         setTasks(fallbackTasks);
@@ -409,6 +425,11 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
     // Just navigate - task completion is detected automatically by checking actual data
     // (e.g., checkBusinessProfileComplete, checkKeywordsAndGuidelinesComplete, etc.)
     router.push(link);
+  };
+
+  const handleLearnMore = (articleId: string) => {
+    setHelpArticleId(articleId);
+    setHelpModalOpen(true);
   };
 
   if (!isVisible || loading || !hasBusiness) {
@@ -491,19 +512,43 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
                   </span>
                 )}
               </div>
-              <p className={`text-sm opacity-80 ${task.completed ? 'line-through' : ''}`}>
-                {task.description}
-              </p>
+              <div className="flex items-center gap-2">
+                <p className={`text-sm opacity-80 ${task.completed ? 'line-through' : ''}`}>
+                  {task.description}
+                </p>
+                {task.helpArticleId && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleLearnMore(task.helpArticleId!);
+                    }}
+                    className="text-xs text-white/70 hover:text-white hover:underline transition-colors whitespace-nowrap"
+                  >
+                    Learn more
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         ))}
       </div>
-      
+
       {completedCount === totalTasks && (
         <div className="mt-4 text-center">
           <p className="text-green-300 font-medium">🎉 All set! You're ready to start collecting reviews!</p>
         </div>
       )}
+
+      {/* Help Modal */}
+      <HelpModal
+        isOpen={helpModalOpen}
+        onClose={() => {
+          setHelpModalOpen(false);
+          setHelpArticleId(undefined);
+        }}
+        initialArticleId={helpArticleId}
+      />
     </div>
   );
 };

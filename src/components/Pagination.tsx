@@ -105,7 +105,7 @@ export function Pagination({
         <div className="flex items-center gap-1">
           {pageNumbers.map((page, index) =>
             page === 'ellipsis' ? (
-              <span key={`ellipsis-${index}`} className="px-2 text-gray-400">
+              <span key={`ellipsis-${index}`} className="px-2 text-gray-500">
                 ...
               </span>
             ) : (

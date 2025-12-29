@@ -1072,7 +1072,7 @@ export default function GoogleBusinessScheduler({
                             />
                           ) : (
                             <div className="w-20 h-20 bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center">
-                              <Icon name={item.postKind === 'photo' ? 'FaImage' : 'FaFileAlt'} className="w-6 h-6 text-gray-400" />
+                              <Icon name={item.postKind === 'photo' ? 'FaImage' : 'FaFileAlt'} className="w-6 h-6 text-gray-500" />
                             </div>
                           )}
                         </div>
@@ -1089,7 +1089,7 @@ export default function GoogleBusinessScheduler({
                               {/* Location names */}
                               {item.selectedLocations && item.selectedLocations.length > 0 && (
                                 <div className="mt-1 text-xs text-gray-600">
-                                  <Icon name="FaMapMarkerAlt" className="inline w-3 h-3 mr-1 text-gray-400" />
+                                  <Icon name="FaMapMarkerAlt" className="inline w-3 h-3 mr-1 text-gray-500" />
                                   {item.selectedLocations.length === 1 ? (
                                     <span>{
                                       item.selectedLocations[0].name ||
@@ -1141,7 +1141,7 @@ export default function GoogleBusinessScheduler({
                                 disabled={cancellingIds.has(item.id)}
                                 className={`px-2 py-1 text-xs font-medium border rounded-md ${
                                   cancellingIds.has(item.id)
-                                    ? 'border-gray-200 text-gray-400 bg-gray-50 cursor-not-allowed'
+                                    ? 'border-gray-200 text-gray-500 bg-gray-50 cursor-not-allowed'
                                     : 'border-rose-200 text-rose-600 hover:bg-rose-50'
                                 }`}
                               >
@@ -1174,7 +1174,7 @@ export default function GoogleBusinessScheduler({
                             />
                           ) : (
                             <div className="w-20 h-20 bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center">
-                              <Icon name={item.postKind === 'photo' ? 'FaImage' : 'FaFileAlt'} className="w-6 h-6 text-gray-400" />
+                              <Icon name={item.postKind === 'photo' ? 'FaImage' : 'FaFileAlt'} className="w-6 h-6 text-gray-500" />
                             </div>
                           )}
                         </div>
@@ -1191,7 +1191,7 @@ export default function GoogleBusinessScheduler({
                               {/* Location names */}
                               {item.selectedLocations && item.selectedLocations.length > 0 && (
                                 <div className="mt-1 text-xs text-gray-600">
-                                  <Icon name="FaMapMarkerAlt" className="inline w-3 h-3 mr-1 text-gray-400" />
+                                  <Icon name="FaMapMarkerAlt" className="inline w-3 h-3 mr-1 text-gray-500" />
                                   {item.selectedLocations.length === 1 ? (
                                     <span>{
                                       item.selectedLocations[0].name ||

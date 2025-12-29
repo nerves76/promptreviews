@@ -392,7 +392,7 @@ export default function ReviewManagement({ locations, isConnected }: ReviewManag
         <div className="divide-y divide-gray-200">
           {isLoadingReviews ? (
             <div className="p-8 text-center">
-              <Icon name="FaSpinner" className="w-8 h-8 text-gray-400 mx-auto mb-4 animate-spin" />
+              <Icon name="FaSpinner" className="w-8 h-8 text-gray-500 mx-auto mb-4 animate-spin" />
               <p className="text-gray-600">Loading reviews...</p>
             </div>
           ) : reviews.length > 0 ? (
@@ -649,7 +649,7 @@ export default function ReviewManagement({ locations, isConnected }: ReviewManag
             ))
           ) : selectedLocation ? (
             <div className="p-8 text-center">
-              <Icon name="FaStar" className="w-8 h-8 text-gray-400 mx-auto mb-4" />
+              <Icon name="FaStar" className="w-8 h-8 text-gray-500 mx-auto mb-4" />
               <p className="text-gray-600">No reviews found for this location</p>
             </div>
           ) : (

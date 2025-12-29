@@ -896,7 +896,7 @@ export default function PromptPageForm({
                   {formData.review_type === "product" ? (
                     <>
                       <div className="mt-20 mb-2 flex items-center gap-2">
-                        <FaBoxOpen className="w-5 h-5 text-[#1A237E]" />
+                        <FaBoxOpen className="w-5 h-5 text-slate-blue" />
                         <h2 className="text-xl font-semibold text-slate-blue">
                           Product Description
                         </h2>
@@ -916,7 +916,7 @@ export default function PromptPageForm({
                         required
                       />
                       <div className="mt-8 mb-2 flex items-center gap-2">
-                        <FaStar className="w-5 h-5 text-[#1A237E]" />
+                        <FaStar className="w-5 h-5 text-slate-blue" />
                         <h2 className="text-xl font-semibold text-slate-blue flex items-center gap-1">
                           Features or Benefits{" "}
                           <RobotTooltip text="This field is passed to AI for prompt generation." />
@@ -984,7 +984,7 @@ export default function PromptPageForm({
                     <>
                       {/* Services Section (service type) */}
                       <div className="mt-20 mb-2 flex items-center gap-2">
-                        <FaWrench className="w-5 h-5 text-[#1A237E]" />
+                        <FaWrench className="w-5 h-5 text-slate-blue" />
                         <h2 className="text-xl font-semibold text-slate-blue flex items-center gap-1">
                           Services provided{" "}
                           <RobotTooltip text="This field is passed to AI for prompt generation." />
@@ -1044,7 +1044,7 @@ export default function PromptPageForm({
                         </button>
                       </div>
                       <div className="mt-10 mb-2 flex items-center gap-2">
-                        <FaTrophy className="w-5 h-5 text-[#1A237E]" />
+                        <FaTrophy className="w-5 h-5 text-slate-blue" />
                         <h2 className="text-xl font-semibold text-slate-blue flex items-center gap-1">
                           Outcome{" "}
                           <RobotTooltip text="This field is passed to AI for prompt generation." />
@@ -1074,7 +1074,7 @@ export default function PromptPageForm({
                     <div className="flex items-center justify-between mb-2 px-2 py-2">
                       <div className="flex items-center gap-3">
                         <FaCommentDots className="w-7 h-7 text-slate-blue" />
-                        <span className="text-2xl font-bold text-[#1A237E]">
+                        <span className="text-2xl font-bold text-slate-blue">
                           Personalized note pop-up
                         </span>
                       </div>
@@ -1436,7 +1436,7 @@ export default function PromptPageForm({
                 {formData.review_type === "product" ? (
                   <>
                     <div className="mt-20 mb-2 flex items-center gap-2">
-                      <FaBoxOpen className="w-5 h-5 text-[#1A237E]" />
+                      <FaBoxOpen className="w-5 h-5 text-slate-blue" />
                       <h2 className="text-xl font-semibold text-slate-blue">
                         Product Description
                       </h2>
@@ -1456,7 +1456,7 @@ export default function PromptPageForm({
                       required
                     />
                     <div className="mt-8 mb-2 flex items-center gap-2">
-                      <FaStar className="w-5 h-5 text-[#1A237E]" />
+                      <FaStar className="w-5 h-5 text-slate-blue" />
                       <h2 className="text-xl font-semibold text-slate-blue flex items-center gap-1">
                         Features or Benefits{" "}
                         <RobotTooltip text="This field is passed to AI for prompt generation." />
@@ -1524,7 +1524,7 @@ export default function PromptPageForm({
                   <>
                     {/* Services Section (service type) */}
                     <div className="mt-20 mb-2 flex items-center gap-2">
-                      <FaWrench className="w-5 h-5 text-[#1A237E]" />
+                      <FaWrench className="w-5 h-5 text-slate-blue" />
                       <h2 className="text-xl font-semibold text-slate-blue flex items-center gap-1">
                         Services provided{" "}
                         <RobotTooltip text="This field is passed to AI for prompt generation." />
@@ -1584,7 +1584,7 @@ export default function PromptPageForm({
                       </button>
                     </div>
                     <div className="mt-10 mb-2 flex items-center gap-2">
-                      <FaTrophy className="w-5 h-5 text-[#1A237E]" />
+                      <FaTrophy className="w-5 h-5 text-slate-blue" />
                       <h2 className="text-xl font-semibold text-slate-blue flex items-center gap-1">
                         Outcome{" "}
                         <RobotTooltip text="This field is passed to AI for prompt generation." />
@@ -1614,7 +1614,7 @@ export default function PromptPageForm({
                   <div className="flex items-center justify-between mb-2 px-2 py-2">
                     <div className="flex items-center gap-3">
                       <FaCommentDots className="w-7 h-7 text-slate-blue" />
-                      <span className="text-2xl font-bold text-[#1A237E]">
+                      <span className="text-2xl font-bold text-slate-blue">
                         Personalized note pop-up
                       </span>
                     </div>
@@ -1816,7 +1816,7 @@ export default function PromptPageForm({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
           <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center relative">
             <button
-              className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-xl"
+              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-xl"
               onClick={() => setShowPopupConflictModal(null)}
               aria-label="Close"
             >
@@ -1853,7 +1853,7 @@ function Tooltip({ text }: { text: string }) {
         type="button"
         tabIndex={0}
         aria-label="Show help"
-        className="text-gray-400 hover:text-indigo-600 focus:outline-none"
+        className="text-gray-500 hover:text-indigo-600 focus:outline-none"
         onMouseEnter={() => setShow(true)}
         onMouseLeave={() => setShow(false)}
         onFocus={() => setShow(true)}

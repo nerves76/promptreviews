@@ -177,7 +177,7 @@ export default function TablesPage() {
         {/* Tables list */}
         {filteredTables.length === 0 ? (
           <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
-            <Icon name="FaColumns" size={32} className="mx-auto text-gray-400 mb-3" />
+            <Icon name="FaColumns" size={32} className="mx-auto text-gray-500 mb-3" />
             <p className="text-gray-600 mb-4">
               {searchQuery ? "No tables match your search" : "No comparison tables yet"}
             </p>

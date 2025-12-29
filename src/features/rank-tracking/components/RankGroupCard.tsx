@@ -35,9 +35,9 @@ export default function RankGroupCard({ group, linkPrefix = '/dashboard/rank-tra
         <div className="flex items-start justify-between mb-3">
           <h3 className="font-semibold text-lg text-gray-900 line-clamp-1">{group.name}</h3>
           {group.device === 'desktop' ? (
-            <ComputerDesktopIcon className="w-5 h-5 text-gray-400 flex-shrink-0" />
+            <ComputerDesktopIcon className="w-5 h-5 text-gray-500 flex-shrink-0" />
           ) : (
-            <DevicePhoneMobileIcon className="w-5 h-5 text-gray-400 flex-shrink-0" />
+            <DevicePhoneMobileIcon className="w-5 h-5 text-gray-500 flex-shrink-0" />
           )}
         </div>
 
@@ -71,7 +71,7 @@ export default function RankGroupCard({ group, linkPrefix = '/dashboard/rank-tra
 
         {/* Last Checked */}
         {group.lastCheckedAt && (
-          <div className="mt-2 text-xs text-gray-400">
+          <div className="mt-2 text-xs text-gray-500">
             Last checked: {formatRelativeTime(group.lastCheckedAt)}
           </div>
         )}

@@ -44,7 +44,7 @@ const getIconUrl = (iconName: string, color: string) => {
 };
 
 const DEFAULT_TEXT_COLOR = "#374151";
-const DEFAULT_LINK_COLOR = "#4F46E5";
+const DEFAULT_LINK_COLOR = "#2E4A7D";
 const DEFAULT_CTA_TEXT = "Reviews help small businesses grow.";
 
 const EmailSignatureEmbedGenerator: React.FC<EmailSignatureEmbedGeneratorProps> = ({
@@ -680,7 +680,7 @@ const EmailSignatureEmbedGenerator: React.FC<EmailSignatureEmbedGeneratorProps> 
                 className="w-4 h-4 text-slate-600 border-gray-300 rounded focus:ring-slate-500 disabled:opacity-50"
               />
               <span className={`text-gray-700 ${availableSocials.length === 0 ? 'opacity-50' : ''}`}>Social links</span>
-              {availableSocials.length === 0 && <span className="text-xs text-gray-400">(add URLs above)</span>}
+              {availableSocials.length === 0 && <span className="text-xs text-gray-500">(add URLs above)</span>}
               {availableSocials.length > 0 && <span className="text-xs text-gray-500">({availableSocials.length} linked)</span>}
             </label>
           </div>

@@ -421,7 +421,7 @@ export default function DomainAnalysisPage() {
               />
               <Icon
                 name="FaSearch"
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
                 size={18}
               />
             </div>
@@ -430,7 +430,7 @@ export default function DomainAnalysisPage() {
               disabled={analyzing || !domain.trim() || !hasEnoughCredits}
               className={`px-6 py-3 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2 whitespace-nowrap ${
                 analyzing || !domain.trim() || !hasEnoughCredits
-                  ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                  ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
                   : 'bg-slate-blue text-white hover:bg-slate-blue/90'
               }`}
             >
@@ -638,7 +638,7 @@ export default function DomainAnalysisPage() {
                 </div>
               )}
               {result.lastVisited && (
-                <div className="mt-3 text-xs text-gray-400">
+                <div className="mt-3 text-xs text-gray-500">
                   Last crawled: {formatDate(result.lastVisited)}
                 </div>
               )}
@@ -764,7 +764,7 @@ export default function DomainAnalysisPage() {
                                 >
                                   {tech.name}
                                   {tech.version && (
-                                    <span className="text-gray-400 ml-1 text-xs">
+                                    <span className="text-gray-500 ml-1 text-xs">
                                       {tech.version}
                                     </span>
                                   )}
@@ -874,7 +874,7 @@ export default function DomainAnalysisPage() {
             )}
 
             {/* Analysis Meta */}
-            <div className="text-center text-sm text-gray-400 mt-8">
+            <div className="text-center text-sm text-gray-500 mt-8">
               Analyzed at {new Date(result.analyzedAt).toLocaleString()}
             </div>
             </div>{/* Close resultsRef div */}

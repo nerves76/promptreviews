@@ -168,7 +168,7 @@ export function PostComposer({ isOpen, mode, initialValues, channelName, onSubmi
             </Dialog.Title>
             <button
               onClick={handleClose}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
+              className="text-gray-500 hover:text-gray-600 transition-colors"
               aria-label="Close"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

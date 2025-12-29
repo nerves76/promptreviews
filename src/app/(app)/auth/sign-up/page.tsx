@@ -243,11 +243,11 @@ function SignUpContent() {
 
   if (emailSent) {
     return (
-      <>
+      <div className="min-h-screen">
         <SimpleMarketingNav />
-        <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600">
+        <div className="flex flex-col justify-center items-center py-8">
           <div className="p-8 rounded-2xl shadow-2xl text-center bg-white/90 backdrop-blur-sm border-2 border-white max-w-md w-full">
-            <h2 className="text-2xl font-bold mb-4 text-[#1A237E]">
+            <h2 className="text-2xl font-bold mb-4 text-slate-blue">
               {invitationToken ? 'Almost there! Check your email 📧' : message}
             </h2>
             <div className="text-gray-600 mb-6">
@@ -289,14 +289,14 @@ function SignUpContent() {
             </Link>
           </div>
         </div>
-      </>
+      </div>
     );
   }
 
   return (
-    <>
+    <div className="min-h-screen">
       <SimpleMarketingNav />
-      <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600">
+      <div className="flex flex-col justify-center items-center py-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <h1 className="mt-6 text-center text-3xl font-extrabold text-white">
             {invitationToken ? 'Join the team' : 'Create your account'}
@@ -491,7 +491,7 @@ function SignUpContent() {
           )}
         </form>
       </div>
-    </>
+    </div>
   );
 }
 
@@ -500,9 +500,9 @@ export default function SignUpPage() {
 
   return (
     <Suspense fallback={
-      <>
+      <div className="min-h-screen">
         <SimpleMarketingNav />
-        <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600">
+        <div className="flex flex-col justify-center items-center py-8">
                       <div className="p-8 rounded-2xl shadow-2xl text-center bg-white/90 backdrop-blur-sm border-2 border-white max-w-md w-full">
             <div className="animate-pulse">
               <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
@@ -511,7 +511,7 @@ export default function SignUpPage() {
             </div>
           </div>
         </div>
-      </>
+      </div>
     }>
       <SignUpContent />
     </Suspense>

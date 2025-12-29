@@ -20,13 +20,13 @@ export function CommunityHeader({ accountName, displayName, onGuidelinesClick, o
     <div className="bg-white/8 backdrop-blur-[10px] px-6 py-4 mt-[25px]">
       <div className="flex items-center gap-3">
         <h1 className="text-2xl font-bold text-white">Community</h1>
-        <span className="text-white/50">·</span>
+        <span className="text-white/70">·</span>
         <div className="flex items-center gap-2">
           <span className="text-white/70">{displayName || accountName}</span>
           {onEditDisplayName && (
             <button
               onClick={onEditDisplayName}
-              className="text-white/50 hover:text-white/90 transition-colors"
+              className="text-white/70 hover:text-white/90 transition-colors"
               aria-label="Edit display name"
             >
               <svg

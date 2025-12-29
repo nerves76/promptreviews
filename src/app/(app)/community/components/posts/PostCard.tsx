@@ -182,7 +182,7 @@ export function PostCard({
   if (post.deleted_at) {
     return (
       <article className="bg-white/5 backdrop-blur-[10px] border border-white/10 rounded-xl p-6 opacity-50">
-        <p className="text-white/50 italic">[Post deleted]</p>
+        <p className="text-white/70 italic">[Post deleted]</p>
       </article>
     );
   }
@@ -201,7 +201,7 @@ export function PostCard({
           <div className="relative">
             <button
               onClick={() => setShowActionsMenu(!showActionsMenu)}
-              className="p-1 rounded-lg text-white/50 hover:text-white hover:bg-white/10 transition-colors"
+              className="p-1 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors"
               aria-label="Post actions"
             >
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
@@ -361,7 +361,7 @@ export function PostCard({
           {/* Empty State */}
           {hasLoadedComments && !commentsLoading && comments.length === 0 && (
             <div className="text-center py-4">
-              <p className="text-white/50 text-sm">No comments yet. Be the first to comment!</p>
+              <p className="text-white/70 text-sm">No comments yet. Be the first to comment!</p>
             </div>
           )}
         </div>

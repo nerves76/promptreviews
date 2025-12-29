@@ -68,7 +68,7 @@ export function EditPostModal({ isOpen, post, onClose, onSubmit }: EditPostModal
             <button
               onClick={handleClose}
               disabled={isSubmitting}
-              className="text-white/50 hover:text-white transition-colors disabled:opacity-50"
+              className="text-white/70 hover:text-white transition-colors disabled:opacity-50"
               aria-label="Close"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -94,7 +94,7 @@ export function EditPostModal({ isOpen, post, onClose, onSubmit }: EditPostModal
                 className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500/50 disabled:opacity-50"
                 maxLength={200}
               />
-              <p className="text-xs text-white/50 mt-1">{title.length}/200 characters</p>
+              <p className="text-xs text-white/70 mt-1">{title.length}/200 characters</p>
             </div>
 
             {/* Body */}
@@ -112,7 +112,7 @@ export function EditPostModal({ isOpen, post, onClose, onSubmit }: EditPostModal
                 className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500/50 resize-none disabled:opacity-50"
                 maxLength={2000}
               />
-              <p className="text-xs text-white/50 mt-1">{body.length}/2000 characters</p>
+              <p className="text-xs text-white/70 mt-1">{body.length}/2000 characters</p>
             </div>
 
             {/* Error */}

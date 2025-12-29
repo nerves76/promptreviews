@@ -605,7 +605,7 @@ export default function ManualContactForm({
                   </h3>
                   <button
                     onClick={cancelReview}
-                    className="text-gray-400 hover:text-gray-600"
+                    className="text-gray-500 hover:text-gray-600"
                   >
                     <Icon name="FaTimes" className="w-5 h-5" />
                   </button>

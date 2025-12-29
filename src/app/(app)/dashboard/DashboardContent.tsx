@@ -148,6 +148,18 @@ const DashboardContent = React.memo(function DashboardContent({
   const [copyLinkId, setCopyLinkId] = useState<string | null>(null);
   const [showStars, setShowStars] = useState(false);
   const [announcement, setAnnouncement] = useState<{ message: string; button_text?: string; button_url?: string } | null>(null);
+  const [welcomeDismissed, setWelcomeDismissed] = useState(true); // Start hidden to prevent flash
+
+  // Check if welcome message was previously dismissed
+  useEffect(() => {
+    const dismissed = localStorage.getItem('dashboard_welcome_dismissed');
+    setWelcomeDismissed(dismissed === 'true');
+  }, []);
+
+  const handleDismissWelcome = () => {
+    setWelcomeDismissed(true);
+    localStorage.setItem('dashboard_welcome_dismissed', 'true');
+  };
 
   // Fetch active announcement for welcome section
   useEffect(() => {
@@ -470,25 +482,34 @@ const DashboardContent = React.memo(function DashboardContent({
         </h1>
       </div>
       {/* Welcome section with announcement */}
-      <div className="mb-8">
-        <h2 className="text-xl font-bold text-slate-blue">
-          Welcome, {userName}!
-        </h2>
-        <p className="mt-2 text-sm text-gray-600 max-w-[650px]">
-          {announcement?.message || "Let's chat with some customers and get some reviews to grow your business."}
-          {announcement?.button_text && announcement?.button_url && (
-            <>
-              {" "}
-              <a
-                href={announcement.button_url}
-                className="text-slate-blue underline hover:text-indigo-800 transition-colors"
-              >
-                {announcement.button_text}
-              </a>
-            </>
-          )}
-        </p>
-      </div>
+      {!welcomeDismissed && (
+        <div className="mb-8 rounded-lg p-6 bg-blue-100 border border-blue-200 relative">
+          <button
+            onClick={handleDismissWelcome}
+            className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition-colors"
+            aria-label="Dismiss welcome message"
+          >
+            <Icon name="FaTimes" size={16} />
+          </button>
+          <h2 className="text-xl font-bold text-slate-blue pr-8">
+            Welcome, {userName}!
+          </h2>
+          <p className="mt-2 text-sm text-gray-600 max-w-[650px]">
+            {announcement?.message || "Let's chat with some customers and get some reviews to grow your business."}
+            {announcement?.button_text && announcement?.button_url && (
+              <>
+                {" "}
+                <a
+                  href={announcement.button_url}
+                  className="text-slate-blue underline hover:text-indigo-800 transition-colors"
+                >
+                  {announcement.button_text}
+                </a>
+              </>
+            )}
+          </p>
+        </div>
+      )}
 
       {/* Getting Started Checklist */}
       <div className="mb-8">
@@ -625,7 +646,7 @@ const DashboardContent = React.memo(function DashboardContent({
                           onClick={handleCopyLink}
                           className="inline-flex items-center gap-1 px-3 py-1.5 bg-purple-100 text-purple-800 rounded hover:bg-purple-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap"
                         >
-                          <Icon name="FaLink" className="w-4 h-4" style={{ color: "#1A237E" }} size={16} />
+                          <Icon name="FaLink" className="w-4 h-4" style={{ color: "#2E4A7D" }} size={16} />
                           Copy link
                         </button>
                         <button
@@ -895,7 +916,7 @@ const DashboardContent = React.memo(function DashboardContent({
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
               <div className="bg-white rounded-lg shadow-lg p-8 max-w-3xl w-full text-center relative">
                 <button
-                  className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-xl"
+                  className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-xl"
                   onClick={() => setShowTypeModal(false)}
                   aria-label="Close"
                 >

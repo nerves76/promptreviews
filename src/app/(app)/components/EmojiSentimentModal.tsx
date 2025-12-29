@@ -40,8 +40,8 @@ const EmojiSentimentModal: React.FC<EmojiSentimentModalProps> = ({
   thankYouMessage = "Thank you for your feedback!",
   emojiLabels = EMOJI_SENTIMENT_LABELS,
   onPositive,
-  headerColor = "#4F46E5",
-  buttonColor = "#4F46E5",
+  headerColor = "#2E4A7D",
+  buttonColor = "#2E4A7D",
   fontFamily = "Inter",
   promptPageId,
   onEmojiEmbed,
@@ -83,7 +83,7 @@ const EmojiSentimentModal: React.FC<EmojiSentimentModalProps> = ({
           {emojiLabels.map((label, i) => {
             const iconDef = EMOJI_SENTIMENT_ICONS[i];
             const IconComponent = iconDef?.icon || EMOJI_SENTIMENT_ICONS[1].icon;
-            const color = iconDef?.color || "text-gray-400";
+            const color = iconDef?.color || "text-gray-500";
             return (
               <button
                 key={i}

@@ -32,7 +32,7 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
   <div className={`w-full ${className}`}>
     <div className="flex items-center gap-3">
       {icon}
-      <span className={titleClassName || "text-2xl font-bold text-[#1A237E]"}>
+      <span className={titleClassName || "text-2xl font-bold text-slate-blue"}>
         {title}
       </span>
     </div>

@@ -223,7 +223,7 @@ const ReviewPlatformsSection: React.FC<ReviewPlatformsSectionProps> = ({
               rows={2}
               maxLength={160}
             />
-            <div className="text-xs text-gray-400 text-right">
+            <div className="text-xs text-gray-500 text-right">
               {platform.customInstructions?.length || 0}/160
             </div>
           </div>
@@ -287,7 +287,7 @@ const ReviewPlatformsSection: React.FC<ReviewPlatformsSectionProps> = ({
                       📋 <strong>Note:</strong> Save the screenshot you provided as 
                       <code className="bg-gray-100 px-1 rounded">public/images/google-review-help.png</code>
                     </p>
-                    <p className="text-xs text-gray-400">
+                    <p className="text-xs text-gray-500">
                       The image will show the Google Business Profile interface with the "Read reviews" section highlighted
                     </p>
                     {/* Future image will go here: */}

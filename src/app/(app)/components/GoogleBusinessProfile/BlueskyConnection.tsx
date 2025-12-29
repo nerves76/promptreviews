@@ -107,7 +107,7 @@ export default function BlueskyConnection({ accountId }: BlueskyConnectionProps)
     return (
       <div className="bg-white border border-gray-200 rounded-lg p-6">
         <div className="flex items-center space-x-3">
-          <Icon name="FaSpinner" className="w-5 h-5 text-gray-400 animate-spin" />
+          <Icon name="FaSpinner" className="w-5 h-5 text-gray-500 animate-spin" />
           <span className="text-sm text-gray-600">Loading Bluesky connection...</span>
         </div>
       </div>

@@ -179,7 +179,7 @@ export default function FeedbackModal({
                       className="sr-only"
                     />
                     <Icon name={option.icon as any} className={`w-5 h-5 mr-3 ${
-                      category === option.value ? 'text-slate-blue' : 'text-gray-400'
+                      category === option.value ? 'text-slate-blue' : 'text-gray-500'
                     }`} size={20} />
                     <div>
                       <div className={`font-medium ${

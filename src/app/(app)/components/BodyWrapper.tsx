@@ -12,10 +12,10 @@ export default function BodyWrapper({
   
   // Check if this is a demo/embed page that should have transparent background
   const isEmbed = pathname.startsWith('/demo/') || pathname.startsWith('/embed/') || pathname === '/infographic/embed' || pathname === '/infographic-embed';
-  
+
   // Check if this is a prompt page that has its own custom gradient
   const isPromptPage = pathname.startsWith('/r/');
-  
+
   useEffect(() => {
     // Only modify styles, not classes to avoid hydration issues
     if (isEmbed) {

@@ -124,7 +124,7 @@ function NotificationItem({
           <p className={`text-sm font-medium ${notification.read ? "text-white/80" : "text-white"}`}>
             {notification.title}
           </p>
-          <p className="text-xs text-gray-400 mt-0.5 line-clamp-2">
+          <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">
             {notification.message}
           </p>
           <p className="text-xs text-gray-500 mt-1.5">
@@ -139,7 +139,7 @@ function NotificationItem({
         className="absolute top-2 right-2 p-1.5 rounded-full opacity-0 group-hover:opacity-100 hover:bg-white/20 transition-all"
         aria-label="Dismiss notification"
       >
-        <Icon name="FaTimes" className="w-3 h-3 text-gray-400 hover:text-white" size={12} />
+        <Icon name="FaTimes" className="w-3 h-3 text-gray-500 hover:text-white" size={12} />
       </button>
 
       {/* Unread indicator */}
@@ -154,7 +154,7 @@ function NotificationItem({
 function SectionHeader({ title }: { title: string }) {
   return (
     <div className="px-1 py-2">
-      <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+      <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
         {title}
       </span>
     </div>
@@ -180,7 +180,7 @@ export default function NotificationDropdown({
         {unreadCount > 0 && onMarkAllRead && (
           <button
             onClick={onMarkAllRead}
-            className="text-xs text-gray-400 hover:text-white transition-colors"
+            className="text-xs text-gray-500 hover:text-white transition-colors"
           >
             Mark all read
           </button>
@@ -196,10 +196,10 @@ export default function NotificationDropdown({
         /* Empty State */
         <div className="text-center py-8">
           <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center mx-auto mb-3">
-            <Icon name="FaBell" className="w-6 h-6 text-white/50" size={24} />
+            <Icon name="FaBell" className="w-6 h-6 text-white/70" size={24} />
           </div>
           <p className="text-white font-medium">No notifications</p>
-          <p className="text-sm text-gray-400 mt-1">You're all caught up!</p>
+          <p className="text-sm text-gray-500 mt-1">You're all caught up!</p>
         </div>
       ) : (
         /* Grouped Notifications */

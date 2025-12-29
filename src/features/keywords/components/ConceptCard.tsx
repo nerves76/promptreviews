@@ -553,7 +553,7 @@ export function ConceptCard({
           <div className="flex items-center gap-2 min-w-0 flex-1">
             <Icon
               name={isExpanded || isEditing ? 'FaChevronDown' : 'FaChevronRight'}
-              className="w-3 h-3 text-gray-400 flex-shrink-0 transition-transform"
+              className="w-3 h-3 text-gray-500 flex-shrink-0 transition-transform"
             />
             {isEditing ? (
               <input
@@ -568,8 +568,8 @@ export function ConceptCard({
               <div className="min-w-0">
                 <h3 className="text-lg font-medium text-gray-900 truncate">{keyword.name}</h3>
                 {(isExpanded && (keyword.searchVolumeLocationName || enrichedData?.geoGridStatus?.locationName || businessLocationName)) && (
-                  <div className="flex items-center gap-1 text-xs text-gray-400 mt-0.5">
-                    <Icon name="FaMapMarker" className="w-2 h-2 text-gray-400" />
+                  <div className="flex items-center gap-1 text-xs text-gray-500 mt-0.5">
+                    <Icon name="FaMapMarker" className="w-2 h-2 text-gray-500" />
                     <span className="truncate">{keyword.searchVolumeLocationName || enrichedData?.geoGridStatus?.locationName || businessLocationName}</span>
                   </div>
                 )}
@@ -662,7 +662,7 @@ export function ConceptCard({
                   setIsExpanded(true);
                   handleStartEditing();
                 }}
-                className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors"
+                className="p-1 text-gray-500 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors"
               >
                 <Icon name="FaEdit" className="w-3.5 h-3.5" />
               </button>
@@ -855,7 +855,7 @@ export function ConceptCard({
                   </div>
                   <button
                     onClick={() => handleRemoveSearchTerm(term.term)}
-                    className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
+                    className="p-1 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
                   >
                     <Icon name="FaTimes" className="w-3 h-3" />
                   </button>
@@ -921,7 +921,7 @@ export function ConceptCard({
                     const mobileRank = mobileRanking?.latestCheck?.position;
 
                     const getPositionColor = (pos: number | null) => {
-                      if (pos === null) return 'text-gray-400';
+                      if (pos === null) return 'text-gray-500';
                       if (pos <= 3) return 'text-green-600';
                       if (pos <= 10) return 'text-blue-600';
                       if (pos <= 20) return 'text-amber-600';
@@ -973,7 +973,7 @@ export function ConceptCard({
                             <div className="flex items-center justify-center gap-2">
                               {desktopRanking && (
                                 <span className="flex items-center gap-1" title="Desktop">
-                                  <svg className="w-3 h-3 text-gray-400" viewBox="0 0 16 14" fill="currentColor">
+                                  <svg className="w-3 h-3 text-gray-500" viewBox="0 0 16 14" fill="currentColor">
                                     <rect x="0" y="0" width="16" height="10" rx="1" />
                                     <rect x="5" y="11" width="6" height="1" />
                                     <rect x="4" y="12" width="8" height="1" />
@@ -985,7 +985,7 @@ export function ConceptCard({
                               )}
                               {mobileRanking && (
                                 <span className="flex items-center gap-1" title="Mobile">
-                                  <svg className="w-2.5 h-3.5 text-gray-400" viewBox="0 0 10 16" fill="currentColor">
+                                  <svg className="w-2.5 h-3.5 text-gray-500" viewBox="0 0 10 16" fill="currentColor">
                                     <rect x="0" y="0" width="10" height="16" rx="1.5" />
                                     <rect x="3.5" y="13" width="3" height="1" rx="0.5" fill="white" />
                                   </svg>
@@ -1019,7 +1019,7 @@ export function ConceptCard({
                                         : 'text-gray-500'
                                   }`}>
                                     {summary.pointsInTop10}/{summary.totalPoints}
-                                    <span className="text-xs text-gray-400 ml-0.5">({pct}%)</span>
+                                    <span className="text-xs text-gray-500 ml-0.5">({pct}%)</span>
                                   </span>
                                 );
                               }
@@ -1074,7 +1074,7 @@ export function ConceptCard({
               </table>
             </div>
           ) : (
-            <p className="text-sm text-gray-400 italic">No search terms added</p>
+            <p className="text-sm text-gray-500 italic">No search terms added</p>
           )}
         </CollapsibleSection>
 
@@ -1110,7 +1110,7 @@ export function ConceptCard({
                           <span className="flex-1 text-sm text-gray-700">{q.question}</span>
                           <button
                             onClick={() => handleRemoveQuestion(q.question)}
-                            className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors flex-shrink-0"
+                            className="p-1 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded transition-colors flex-shrink-0"
                           >
                             <Icon name="FaTimes" className="w-3 h-3" />
                           </button>
@@ -1173,7 +1173,7 @@ export function ConceptCard({
               })}
             </div>
           ) : (
-            <p className="text-sm text-gray-400 italic">No AI visibility questions added</p>
+            <p className="text-sm text-gray-500 italic">No AI visibility questions added</p>
           )}
         </CollapsibleSection>
 
@@ -1229,7 +1229,7 @@ export function ConceptCard({
                       {alias}
                       <button
                         onClick={() => handleRemoveAlias(alias)}
-                        className="text-gray-400 hover:text-red-500"
+                        className="text-gray-500 hover:text-red-500"
                       >
                         <Icon name="FaTimes" className="w-2.5 h-2.5" />
                       </button>
@@ -1272,12 +1272,12 @@ export function ConceptCard({
                       <div className="flex items-center gap-1.5">
                         <Icon name="FaStar" className="w-2.5 h-2.5 text-slate-blue flex-shrink-0" />
                         <span className="text-gray-700">
-                          {displayKeyword.reviewPhrase || <span className="text-gray-400 italic">No review phrase set</span>}
+                          {displayKeyword.reviewPhrase || <span className="text-gray-500 italic">No review phrase set</span>}
                         </span>
                       </div>
                     </td>
                     <td className="py-1.5 text-right">
-                      <span className={`font-medium ${displayKeyword.reviewUsageCount > 0 ? 'text-green-600' : 'text-gray-400'}`}>
+                      <span className={`font-medium ${displayKeyword.reviewUsageCount > 0 ? 'text-green-600' : 'text-gray-500'}`}>
                         {displayKeyword.reviewUsageCount}
                       </span>
                     </td>
@@ -1291,7 +1291,7 @@ export function ConceptCard({
                           <span className="text-gray-600">{alias}</span>
                         </div>
                       </td>
-                      <td className="py-1.5 text-right text-gray-400">—</td>
+                      <td className="py-1.5 text-right text-gray-500">—</td>
                     </tr>
                   ))}
                 </tbody>
@@ -1310,7 +1310,7 @@ export function ConceptCard({
                 )}
               </table>
               {displayKeyword.aliasMatchCount > 0 && (
-                <p className="text-[10px] text-gray-400 italic">
+                <p className="text-[10px] text-gray-500 italic">
                   Aliases combined: {displayKeyword.aliasMatchCount} match{displayKeyword.aliasMatchCount !== 1 ? 'es' : ''}
                 </p>
               )}

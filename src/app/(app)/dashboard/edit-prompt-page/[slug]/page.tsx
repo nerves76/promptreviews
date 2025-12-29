@@ -62,7 +62,7 @@ function Tooltip({ text }: { text: string }) {
         type="button"
         tabIndex={0}
         aria-label="Show help"
-        className="text-gray-400 hover:text-indigo-600 focus:outline-none"
+        className="text-gray-500 hover:text-indigo-600 focus:outline-none"
         onMouseEnter={() => setShow(true)}
         onMouseLeave={() => setShow(false)}
         onFocus={() => setShow(true)}
@@ -1375,35 +1375,35 @@ export default function EditPromptPage() {
   const getPageIcon = () => {
     // Check review_type first (more specific)
     if ((formData as any).review_type === "review_builder") {
-      return <Icon name="FaTools" className="w-9 h-9" style={{ color: "#1A237E" }} size={36} />;
+      return <Icon name="FaTools" className="w-9 h-9" style={{ color: "#2E4A7D" }} size={36} />;
     }
     if ((formData as any).review_type === "photo") {
-      return <Icon name="FaCamera" className="w-9 h-9" style={{ color: "#1A237E" }} />;
+      return <Icon name="FaCamera" className="w-9 h-9" style={{ color: "#2E4A7D" }} />;
     }
     if ((formData as any).review_type === "employee") {
-      return <Icon name="FaUser" className="w-9 h-9" style={{ color: "#1A237E" }} />;
+      return <Icon name="FaUser" className="w-9 h-9" style={{ color: "#2E4A7D" }} />;
     }
     if ((formData as any).review_type === "event") {
-      return <Icon name="MdEvent" className="w-9 h-9" style={{ color: "#1A237E" }} />;
+      return <Icon name="MdEvent" className="w-9 h-9" style={{ color: "#2E4A7D" }} />;
     }
     if ((formData as any).review_type === "product") {
-      return <svg className="w-9 h-9" style={{ color: "#1A237E" }}><use href="/icons-sprite.svg#FaBox" /></svg>;
+      return <svg className="w-9 h-9" style={{ color: "#2E4A7D" }}><use href="/icons-sprite.svg#FaBox" /></svg>;
     }
     if ((formData as any).review_type === "service") {
-      return <svg className="w-9 h-9" style={{ color: "#1A237E" }}><use href="/icons-sprite.svg#FaHandshake" /></svg>;
+      return <svg className="w-9 h-9" style={{ color: "#2E4A7D" }}><use href="/icons-sprite.svg#FaHandshake" /></svg>;
     }
     // Fall back to type field
     if (formData.type === "product") {
-      return <svg className="w-9 h-9" style={{ color: "#1A237E" }}><use href="/icons-sprite.svg#FaBox" /></svg>;
+      return <svg className="w-9 h-9" style={{ color: "#2E4A7D" }}><use href="/icons-sprite.svg#FaBox" /></svg>;
     }
     if (formData.type === "service") {
-      return <svg className="w-9 h-9" style={{ color: "#1A237E" }}><use href="/icons-sprite.svg#FaHandshake" /></svg>;
+      return <svg className="w-9 h-9" style={{ color: "#2E4A7D" }}><use href="/icons-sprite.svg#FaHandshake" /></svg>;
     }
     if (formData.type === "universal") {
-      return <Icon name="FaGlobe" className="w-9 h-9" style={{ color: "#1A237E" }} size={36} />;
+      return <Icon name="FaGlobe" className="w-9 h-9" style={{ color: "#2E4A7D" }} size={36} />;
     }
     // Default icon
-    return <svg className="w-9 h-9" style={{ color: "#1A237E" }}><use href="/icons-sprite.svg#FaHandshake" /></svg>;
+    return <svg className="w-9 h-9" style={{ color: "#2E4A7D" }}><use href="/icons-sprite.svg#FaHandshake" /></svg>;
   };
 
   // Determine the page title based on type

@@ -193,7 +193,7 @@ export function GeoGridKeywordPicker({
             <div className="text-center py-8">
               <Icon name="FaKey" className="w-8 h-8 text-gray-300 mx-auto mb-2" />
               <p className="text-gray-500">No keywords being tracked yet</p>
-              <p className="text-sm text-gray-400 mb-4">Add keywords to track their local ranking</p>
+              <p className="text-sm text-gray-500 mb-4">Add keywords to track their local ranking</p>
               {canAddMore && (
                 <button
                   onClick={() => setShowAddModal(true)}
@@ -250,7 +250,7 @@ export function GeoGridKeywordPicker({
                           <button
                             onClick={(e) => handleRemove(e, tk.id)}
                             disabled={removingId === tk.id}
-                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors disabled:opacity-50"
+                            className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded transition-colors disabled:opacity-50"
                             title="Remove from grid"
                           >
                             {removingId === tk.id ? (

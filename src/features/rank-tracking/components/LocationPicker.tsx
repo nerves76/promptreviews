@@ -41,7 +41,7 @@ export default function LocationPicker({ value, onChange, placeholder }: Locatio
     <div ref={wrapperRef} className="relative">
       {/* Input */}
       <div className="relative">
-        <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+        <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
         <input
           type="text"
           value={value ? value.name : query}
@@ -60,7 +60,7 @@ export default function LocationPicker({ value, onChange, placeholder }: Locatio
               onChange(null);
               setQuery('');
             }}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-600"
           >
             ×
           </button>
@@ -85,9 +85,9 @@ export default function LocationPicker({ value, onChange, placeholder }: Locatio
                 }}
                 className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2"
               >
-                <MapPinIcon className="w-4 h-4 text-gray-400" />
+                <MapPinIcon className="w-4 h-4 text-gray-500" />
                 <span className="text-sm">{loc.locationName}</span>
-                <span className="text-xs text-gray-400 ml-auto">{loc.locationType}</span>
+                <span className="text-xs text-gray-500 ml-auto">{loc.locationType}</span>
               </button>
             ))
           )}

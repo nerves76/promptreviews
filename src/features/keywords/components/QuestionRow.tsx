@@ -119,7 +119,7 @@ export function QuestionRow({
               e.stopPropagation();
               onRemove?.();
             }}
-            className="p-1 text-gray-400 hover:text-red-500 rounded transition-colors flex-shrink-0"
+            className="p-1 text-gray-500 hover:text-red-500 rounded transition-colors flex-shrink-0"
             title="Remove question"
             aria-label={`Remove question: ${question.question.substring(0, 50)}${question.question.length > 50 ? '...' : ''}`}
           >
@@ -135,7 +135,7 @@ export function QuestionRow({
                 {citedCount}/{totalProviders} cited
               </span>
             ) : (
-              <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-400">
+              <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-500">
                 Not checked
               </span>
             )}
@@ -165,7 +165,7 @@ export function QuestionRow({
             {onToggleExpand && (
               <Icon
                 name={isExpanded ? "FaChevronUp" : "FaChevronDown"}
-                className="w-3 h-3 text-gray-400"
+                className="w-3 h-3 text-gray-500"
               />
             )}
           </div>
@@ -228,13 +228,13 @@ export function QuestionRow({
                             <span className="text-gray-500">Not cited</span>
                           )}
                           {result.checkedAt && (
-                            <div className="text-[10px] text-gray-400 mt-0.5">
+                            <div className="text-[10px] text-gray-500 mt-0.5">
                               {new Date(result.checkedAt).toLocaleDateString()}
                             </div>
                           )}
                         </div>
                       ) : (
-                        <div className="text-xs text-gray-400">Not checked yet</div>
+                        <div className="text-xs text-gray-500">Not checked yet</div>
                       )}
                     </div>
                   );
@@ -274,7 +274,7 @@ export function QuestionRow({
                 )}
               </button>
               {totalCredits > 0 && (
-                <p className="text-[10px] text-center text-gray-400">
+                <p className="text-[10px] text-center text-gray-500">
                   Uses {totalCredits} credits
                 </p>
               )}

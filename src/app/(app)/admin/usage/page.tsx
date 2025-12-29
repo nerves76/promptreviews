@@ -295,7 +295,7 @@ export default function UsageAdminPage() {
                               className="flex items-center justify-between text-sm"
                             >
                               <div className="flex items-center gap-2 min-w-0">
-                                <span className="text-gray-400 w-4">{idx + 1}.</span>
+                                <span className="text-gray-500 w-4">{idx + 1}.</span>
                                 <span className="truncate text-gray-700">
                                   {account.business_name || account.email || 'Unknown'}
                                 </span>
@@ -316,7 +316,7 @@ export default function UsageAdminPage() {
 
                     {feature.top_accounts.length === 0 && (
                       <div className="border-t border-gray-100 pt-3">
-                        <p className="text-xs text-gray-400 text-center">No account data</p>
+                        <p className="text-xs text-gray-500 text-center">No account data</p>
                       </div>
                     )}
                   </div>

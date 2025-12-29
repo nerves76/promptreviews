@@ -283,7 +283,7 @@ function DomainCard({ domain, isChecking, onCheck, onDelete }: DomainCardProps) 
           </button>
           <button
             onClick={onDelete}
-            className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg"
+            className="p-2 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-lg"
             title="Delete domain"
           >
             <TrashIcon className="w-5 h-5" />

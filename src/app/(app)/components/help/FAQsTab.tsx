@@ -139,7 +139,7 @@ export default function FAQsTab({
         <div className="relative">
           <Icon 
             name="FaSearch" 
-            className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" 
+            className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" 
             size={16} 
           />
           <input
@@ -216,7 +216,7 @@ export default function FAQsTab({
                     </div>
                     <Icon 
                       name={expandedFaq === faq.id ? "FaChevronUp" : "FaChevronDown"} 
-                      className="w-4 h-4 text-gray-400 flex-shrink-0" 
+                      className="w-4 h-4 text-gray-500 flex-shrink-0" 
                       size={16} 
                     />
                   </div>

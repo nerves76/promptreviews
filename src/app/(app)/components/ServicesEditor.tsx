@@ -289,7 +289,7 @@ export default function ServicesEditor({ locations, isConnected }: ServicesEdito
               className={`flex items-center space-x-2 px-4 py-2 rounded-md font-medium border ${
                 selectedLocationIds.length > 0 && !isSaving
                   ? 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                  : 'border-gray-200 text-gray-400 cursor-not-allowed'
+                  : 'border-gray-200 text-gray-500 cursor-not-allowed'
               }`}
               title="Clear all form data and start over"
             >
@@ -481,7 +481,7 @@ export default function ServicesEditor({ locations, isConnected }: ServicesEdito
                       disabled={businessInfo.additionalCategories.length >= 9}
                       className={`text-sm flex items-center space-x-1 ${
                         businessInfo.additionalCategories.length >= 9
-                          ? 'text-gray-400 cursor-not-allowed'
+                          ? 'text-gray-500 cursor-not-allowed'
                           : 'text-slate-blue hover:text-slate-blue-dark'
                       }`}
                     >

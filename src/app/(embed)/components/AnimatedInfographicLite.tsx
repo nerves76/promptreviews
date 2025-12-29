@@ -126,7 +126,7 @@ export default function AnimatedInfographicLite({ debug = false }: { debug?: boo
                     key={i} 
                     filled={reviewFormStep >= 1 && i <= 5} 
                     className={`w-8 h-8 transition-all duration-300 ${
-                      reviewFormStep >= 1 ? 'text-yellow-400' : 'text-gray-400'
+                      reviewFormStep >= 1 ? 'text-yellow-400' : 'text-gray-500'
                     }`}
                   />
                 ))}

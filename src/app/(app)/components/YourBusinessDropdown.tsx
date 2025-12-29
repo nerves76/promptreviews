@@ -132,7 +132,7 @@ const YourBusinessDropdown: React.FC<YourBusinessDropdownProps> = ({
             ? "border-white text-white"
             : hasBusiness
               ? "border-transparent text-white hover:border-white/30 hover:text-white/90"
-              : "border-transparent text-white/50 cursor-not-allowed"
+              : "border-transparent text-white/70 cursor-not-allowed"
         } inline-flex items-center px-1 pt-1 border-b-4 text-sm lg:text-base font-medium transition-colors duration-200 h-16 text-left relative whitespace-nowrap`}
         disabled={businessLoading}
       >

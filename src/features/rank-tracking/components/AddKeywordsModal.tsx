@@ -226,7 +226,7 @@ export default function AddKeywordsModal({
                   {/* Search */}
                   <div className="mb-4">
                     <div className="relative">
-                      <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                       <input
                         type="text"
                         value={librarySearch}

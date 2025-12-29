@@ -79,7 +79,7 @@ export default function TestWidget() {
           
           <div className="space-y-6">
             <div className="bg-gray-900 text-green-400 p-4 rounded-lg overflow-x-auto">
-              <p className="text-sm mb-2 text-gray-400">{`// Option 1: JavaScript Widget`}</p>
+              <p className="text-sm mb-2 text-gray-500">{`// Option 1: JavaScript Widget`}</p>
               <pre className="text-sm">{`<div id="my-review-widget"></div>
 <script src="https://app.promptreviews.app/widgets/review-dashboard.js"></script>
 <script>
@@ -92,7 +92,7 @@ export default function TestWidget() {
             </div>
             
             <div className="bg-gray-900 text-yellow-400 p-4 rounded-lg overflow-x-auto">
-              <p className="text-sm mb-2 text-gray-400">{`// Option 2: Simple Iframe`}</p>
+              <p className="text-sm mb-2 text-gray-500">{`// Option 2: Simple Iframe`}</p>
               <pre className="text-sm">{`<iframe 
   src="https://app.promptreviews.app/embed/review-dashboard"
   width="100%"
@@ -104,7 +104,7 @@ export default function TestWidget() {
             </div>
             
             <div className="bg-gray-900 text-blue-400 p-4 rounded-lg overflow-x-auto">
-              <p className="text-sm mb-2 text-gray-400">{`// Option 3: Auto-init with Data Attributes`}</p>
+              <p className="text-sm mb-2 text-gray-500">{`// Option 3: Auto-init with Data Attributes`}</p>
               <pre className="text-sm">{`<div 
   id="widget"
   data-review-dashboard="true"

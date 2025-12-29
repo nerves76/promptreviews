@@ -205,7 +205,7 @@ export default function OverviewStats({
                 disabled={isLoading}
                 className={`flex items-center space-x-2 px-3 py-1.5 text-sm rounded-md border relative overflow-hidden transition-all duration-300 ${
                   isLoading
-                    ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                    ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed'
                     : `bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 shine-button`
                 }`}
                 style={{ zIndex: 10 }}

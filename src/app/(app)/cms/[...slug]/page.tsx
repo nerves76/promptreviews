@@ -127,7 +127,7 @@ export default async function CMSArticlePage({ params }: PageProps) {
 
         {/* Debug Info */}
         <div className="mt-12 pt-6 border-t border-white/10">
-          <details className="text-white/50 text-xs">
+          <details className="text-white/70 text-xs">
             <summary className="cursor-pointer">Debug Info</summary>
             <pre className="mt-2 bg-black/20 p-3 rounded overflow-auto">
               {JSON.stringify({

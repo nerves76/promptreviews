@@ -77,7 +77,7 @@ export function GuidelinesModal({ isOpen, requireAcceptance, onAccept, onClose, 
               <p className="text-sm font-medium flex-1">{toast.message}</p>
               <button
                 onClick={() => closeToast(toast.id)}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                className="text-gray-500 hover:text-gray-600 transition-colors"
                 aria-label="Close notification"
               >
                 ✕
@@ -100,7 +100,7 @@ export function GuidelinesModal({ isOpen, requireAcceptance, onAccept, onClose, 
               {!requireAcceptance && (
                 <button
                   onClick={handleClose}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  className="text-gray-500 hover:text-gray-600 transition-colors"
                   aria-label="Close"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -463,7 +463,7 @@ export default function TutorialsTab({
         <div className="relative">
           <Icon 
             name="FaSearch" 
-            className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" 
+            className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" 
             size={16} 
           />
           <input
@@ -532,7 +532,7 @@ export default function TutorialsTab({
                 </div>
                 <Icon 
                   name="FaChevronRight" 
-                  className="w-4 h-4 text-gray-400 group-hover:text-indigo-600 transition-colors flex-shrink-0" 
+                  className="w-4 h-4 text-gray-500 group-hover:text-indigo-600 transition-colors flex-shrink-0" 
                   size={16} 
                 />
               </div>

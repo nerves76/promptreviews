@@ -188,16 +188,16 @@ export default function SignIn() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600">
+      <div className="min-h-screen flex flex-col items-center justify-center">
         <div className="text-white text-lg">Loading...</div>
       </div>
     );
   }
 
   return (
-    <>
+    <div className="min-h-screen">
       <SimpleMarketingNav />
-      <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600">
+      <div className="flex flex-col justify-center items-center pt-8 pb-16">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <h1 className="mt-6 text-center text-3xl font-extrabold text-white">
             Welcome back
@@ -335,6 +335,6 @@ export default function SignIn() {
           )}
         </div>
       </div>
-    </>
+    </div>
   );
 }

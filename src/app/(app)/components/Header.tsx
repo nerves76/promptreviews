@@ -497,7 +497,7 @@ const Header = React.memo(function Header() {
                     ? "border-white text-white"
                     : hasBusiness
                       ? "border-transparent text-white hover:border-white/30 hover:text-white/90"
-                      : "border-transparent text-white/50 cursor-not-allowed"
+                      : "border-transparent text-white/70 cursor-not-allowed"
                 } inline-flex items-center px-1 pt-1 border-b-4 text-sm lg:text-base font-medium transition-colors duration-200 h-16 relative group whitespace-nowrap`}
               >
                 Dashboard
@@ -537,7 +537,7 @@ const Header = React.memo(function Header() {
                           ? "border-white text-white"
                           : hasBusiness
                             ? "border-transparent text-white hover:border-white/30 hover:text-white/90"
-                            : "border-transparent text-white/50 cursor-not-allowed"
+                            : "border-transparent text-white/70 cursor-not-allowed"
                       } inline-flex items-center px-1 pt-1 border-b-4 text-sm lg:text-base font-medium transition-colors duration-200 h-16 relative group whitespace-nowrap`}
                           >
                       Google biz
@@ -584,7 +584,7 @@ const Header = React.memo(function Header() {
                           ? "border-white text-white"
                           : hasBusiness 
                             ? "border-transparent text-white hover:border-white/30 hover:text-white/90"
-                            : "border-transparent text-white/50 cursor-not-allowed"
+                            : "border-transparent text-white/70 cursor-not-allowed"
                       } inline-flex items-center px-1 pt-1 border-b-4 text-base font-medium transition-colors duration-200 h-16 relative group`}
                           >
                       Social Posting
@@ -601,18 +601,22 @@ const Header = React.memo(function Header() {
             {hasBusiness && creditBalance !== null && (
               <Link
                 href="/dashboard/credits"
-                className={`hidden md:flex items-center gap-1.5 px-2 lg:px-3 py-1.5 rounded-full transition-colors whitespace-nowrap ${
+                className={`hidden md:flex items-center gap-1.5 px-2 lg:px-3 py-1.5 rounded-full transition-colors whitespace-nowrap relative group ${
                   creditBalance === 0
                     ? 'bg-red-500/20 text-red-300 hover:bg-red-500/30'
                     : creditBalance < 50
                     ? 'bg-yellow-500/20 text-yellow-300 hover:bg-yellow-500/30'
                     : 'bg-white/10 text-white hover:bg-white/20'
                 }`}
-                title="Use credits to schedule search and LLM visibility checks and more"
               >
                 <Icon name="FaCoins" size={14} className="lg:hidden" />
                 <span className="hidden lg:inline text-sm font-medium">Credits:</span>
                 <span className="text-sm font-medium">{creditBalance}</span>
+                {/* Tooltip */}
+                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none z-50">
+                  Use credits to schedule search and LLM visibility checks and more
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-transparent border-b-gray-900"></div>
+                </div>
               </Link>
             )}
 
@@ -631,7 +635,7 @@ const Header = React.memo(function Header() {
                   }}
                   aria-label="Show notifications"
                   >
-                  <Icon name="FaBell" className={`w-6 h-6 ${hasBusiness ? 'text-white hover:text-white/80' : 'text-white/50'} transition-colors`} size={24} />
+                  <Icon name="FaBell" className={`w-6 h-6 ${hasBusiness ? 'text-white hover:text-white/80' : 'text-white/70'} transition-colors`} size={24} />
                   {unreadCount > 0 && (
                     <span className="absolute -top-1 -right-1 bg-pink-300 text-slate-blue text-[10px] rounded-full w-4 h-4 flex items-center justify-center font-bold border border-white">
                       {unreadCount > 9 ? '9+' : unreadCount}
@@ -697,35 +701,35 @@ const Header = React.memo(function Header() {
                       <Icon name="FaUser" className="w-5 h-5 mr-3 text-white" size={20} />
                       <div className="flex-1">
                         <div className="font-medium">Account</div>
-                        <div className="text-sm text-gray-400">Manage your profile</div>
+                        <div className="text-sm text-gray-500">Manage your profile</div>
                       </div>
                     </Link>
                     <Link href="/dashboard/analytics" className="flex items-center px-4 py-3 text-white hover:bg-white/10 transition-colors duration-200" onClick={() => setAccountMenuOpen(false)}>
                       <Icon name="FaChartLine" className="w-5 h-5 mr-3 text-white" size={20} />
                       <div className="flex-1">
                         <div className="font-medium">Analytics</div>
-                        <div className="text-sm text-gray-400">View performance metrics</div>
+                        <div className="text-sm text-gray-500">View performance metrics</div>
                       </div>
                     </Link>
                     <Link href="/dashboard/plan" className="flex items-center px-4 py-3 text-white hover:bg-white/10 transition-colors duration-200" onClick={() => setAccountMenuOpen(false)}>
                       <Icon name="FaRocket" className="w-5 h-5 mr-3 text-white" size={20} />
                       <div className="flex-1">
                         <div className="font-medium">Plan</div>
-                        <div className="text-sm text-gray-400">Manage subscription</div>
+                        <div className="text-sm text-gray-500">Manage subscription</div>
                       </div>
                     </Link>
                     <Link href="/dashboard/credits" className="flex items-center px-4 py-3 text-white hover:bg-white/10 transition-colors duration-200" onClick={() => setAccountMenuOpen(false)}>
                       <Icon name="FaCoins" className="w-5 h-5 mr-3 text-white" size={20} />
                       <div className="flex-1">
                         <div className="font-medium">Credits</div>
-                        <div className="text-sm text-gray-400">Manage usage credits</div>
+                        <div className="text-sm text-gray-500">Manage usage credits</div>
                       </div>
                     </Link>
                     <Link href="/dashboard/team" className="flex items-center px-4 py-3 text-white hover:bg-white/10 transition-colors duration-200" onClick={() => setAccountMenuOpen(false)}>
                       <Icon name="FaUsers" className="w-5 h-5 mr-3 text-white" size={20} />
                       <div className="flex-1">
                         <div className="font-medium">Team</div>
-                        <div className="text-sm text-gray-400">Invite team members</div>
+                        <div className="text-sm text-gray-500">Invite team members</div>
                       </div>
                     </Link>
                     {isAdminUser && (
@@ -742,7 +746,7 @@ const Header = React.memo(function Header() {
                       <span className="mr-3 text-xl">🎮</span>
                       <div className="flex-1">
                         <div className="font-medium">Get Found Online: The Game</div>
-                        <div className="text-sm text-gray-400">Play and learn</div>
+                        <div className="text-sm text-gray-500">Play and learn</div>
                       </div>
                     </Link>
                     <div className="border-t border-white/20 my-2" />

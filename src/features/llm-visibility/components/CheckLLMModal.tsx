@@ -141,7 +141,7 @@ export default function CheckLLMModal({
             </div>
             <button
               onClick={handleClose}
-              className="p-1 text-gray-400 hover:text-gray-600 rounded transition-colors"
+              className="p-1 text-gray-500 hover:text-gray-600 rounded transition-colors"
             >
               <Icon name="FaTimes" className="w-5 h-5" />
             </button>
@@ -228,7 +228,7 @@ export default function CheckLLMModal({
                             Cited{result.citationPosition ? ` #${result.citationPosition}` : ''}
                           </span>
                         ) : (
-                          <span className="text-gray-400 text-xs">Not cited</span>
+                          <span className="text-gray-500 text-xs">Not cited</span>
                         )}
                         {result.brandMentioned ? (
                           <span className="text-blue-600 font-medium text-xs flex items-center gap-1" title="Brand name mentioned in response">
@@ -236,7 +236,7 @@ export default function CheckLLMModal({
                             Mentioned
                           </span>
                         ) : (
-                          <span className="text-gray-400 text-xs" title={businessName ? `${businessName} was not mentioned` : 'Business not mentioned'}>
+                          <span className="text-gray-500 text-xs" title={businessName ? `${businessName} was not mentioned` : 'Business not mentioned'}>
                             Not mentioned
                           </span>
                         )}

@@ -150,7 +150,7 @@ export default function SocialMediaIcons({
               href={icon.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-gray-400 hover:text-gray-500 transition-colors"
+              className="text-gray-500 hover:text-gray-500 transition-colors"
               style={{ color }}
               aria-label={`Visit our ${icon.name} page`}
               onClick={(e) => {

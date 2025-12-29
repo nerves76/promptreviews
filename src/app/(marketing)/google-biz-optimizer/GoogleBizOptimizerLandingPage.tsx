@@ -594,13 +594,13 @@ export default function GoogleBizOptimizerLandingPage() {
               </div>
               <span className="text-xl font-bold text-white">PromptReviews</span>
             </div>
-            <div className="flex items-center space-x-6 text-gray-400">
+            <div className="flex items-center space-x-6 text-gray-500">
               <Link href="/privacy" className="hover:text-white transition-colors">Privacy</Link>
               <Link href="/terms" className="hover:text-white transition-colors">Terms</Link>
               <Link href="mailto:support@promptreviews.app" className="hover:text-white transition-colors">Support</Link>
             </div>
           </div>
-          <div className="mt-8 pt-8 border-t border-gray-800 text-center text-gray-400">
+          <div className="mt-8 pt-8 border-t border-gray-800 text-center text-gray-500">
             <p>&copy; 2024 PromptReviews. All rights reserved.</p>
           </div>
         </div>

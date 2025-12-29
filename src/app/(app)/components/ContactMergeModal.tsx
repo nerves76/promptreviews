@@ -161,7 +161,7 @@ const ContactMergeModal: React.FC<ContactMergeModalProps> = ({
             </div>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
+              className="text-gray-500 hover:text-gray-600 transition-colors"
             >
               <Icon name="FaTimes" className="w-5 h-5" />
             </button>
@@ -252,7 +252,7 @@ const ContactMergeModal: React.FC<ContactMergeModalProps> = ({
               disabled={!primaryContactId || merging}
               className="px-6 py-2 rounded-lg font-medium"
               style={{
-                backgroundColor: primaryContactId && !merging ? '#4F46E5' : '#F3F4F6',
+                backgroundColor: primaryContactId && !merging ? '#2E4A7D' : '#F3F4F6',
                 color: primaryContactId && !merging ? '#FFFFFF' : '#9CA3AF',
                 cursor: primaryContactId && !merging ? 'pointer' : 'not-allowed',
               }}
@@ -263,7 +263,7 @@ const ContactMergeModal: React.FC<ContactMergeModalProps> = ({
               }}
               onMouseLeave={(e) => {
                 if (primaryContactId && !merging) {
-                  e.currentTarget.style.backgroundColor = '#4F46E5';
+                  e.currentTarget.style.backgroundColor = '#2E4A7D';
                 }
               }}
             >

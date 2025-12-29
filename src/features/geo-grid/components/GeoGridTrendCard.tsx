@@ -71,7 +71,7 @@ function StatBox({
       <div className="text-sm text-gray-500 mb-1">{label}</div>
       <div className="flex items-baseline gap-2">
         <span className={`text-3xl font-bold ${color}`}>{value}</span>
-        {subLabel && <span className="text-sm text-gray-400">{subLabel}</span>}
+        {subLabel && <span className="text-sm text-gray-500">{subLabel}</span>}
       </div>
       {change !== undefined && change !== 0 && (
         <div
@@ -143,7 +143,7 @@ export function GeoGridTrendCard({
     return (
       <div className="bg-white rounded-xl border-2 border-gray-200 shadow-lg p-6">
         <div className="flex items-center gap-3 mb-4">
-          <ChartBarIcon className="w-6 h-6 text-gray-400" />
+          <ChartBarIcon className="w-6 h-6 text-gray-500" />
           <h2 className="text-xl font-bold text-gray-900">Visibility Summary</h2>
         </div>
         <div className="text-center py-8">

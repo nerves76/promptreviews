@@ -273,7 +273,7 @@ export function ScheduleSettingsModal({
             </div>
             <button
               onClick={onClose}
-              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 text-gray-500 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
             >
               <Icon name="FaTimes" className="w-5 h-5" />
             </button>
@@ -283,7 +283,7 @@ export function ScheduleSettingsModal({
           <div className="p-4 space-y-4">
             {isLoading ? (
               <div className="py-8 text-center">
-                <Icon name="FaSpinner" className="w-6 h-6 animate-spin text-gray-400 mx-auto" />
+                <Icon name="FaSpinner" className="w-6 h-6 animate-spin text-gray-500 mx-auto" />
                 <p className="text-sm text-gray-500 mt-2">Loading schedule...</p>
               </div>
             ) : (

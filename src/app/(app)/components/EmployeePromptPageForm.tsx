@@ -622,7 +622,7 @@ export default function EmployeePromptPageForm({
         {/* Employee Information */}
         <div>
           <div className="mb-4 flex items-center gap-2">
-            <Icon name="FaUser" className="w-5 h-5 text-[#1A237E]" size={20} />
+            <Icon name="FaUser" className="w-5 h-5 text-slate-blue" size={20} />
             <h2 className="text-xl font-semibold text-slate-blue">
               Employee Information
             </h2>

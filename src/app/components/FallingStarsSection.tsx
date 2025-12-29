@@ -97,7 +97,7 @@ const FallingStarsSection: React.FC<FallingStarsSectionProps> = ({
     <div className="flex items-center justify-between px-2 py-2">
       <div className="flex items-center gap-3">
         <FaStar className="w-7 h-7 text-slate-blue" />
-        <span className="text-2xl font-bold text-[#1A237E]">
+        <span className="text-2xl font-bold text-slate-blue">
           Falling star animation
         </span>
       </div>
