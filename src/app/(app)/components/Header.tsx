@@ -608,7 +608,7 @@ const Header = React.memo(function Header() {
                     ? 'bg-yellow-500/20 text-yellow-300 hover:bg-yellow-500/30'
                     : 'bg-white/10 text-white hover:bg-white/20'
                 }`}
-                title="View credits"
+                title="Use credits to schedule search and LLM visibility checks and more"
               >
                 <Icon name="FaCoins" size={14} className="lg:hidden" />
                 <span className="hidden lg:inline text-sm font-medium">Credits:</span>
