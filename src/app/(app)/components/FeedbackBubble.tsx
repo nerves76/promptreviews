@@ -5,14 +5,28 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Icon from '@/components/Icon';
 import HelpModal from './help/HelpModal';
+import { usePathname } from 'next/navigation';
 
 export default function FeedbackBubble() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
-  // Debug logging
+  const [showShimmer, setShowShimmer] = useState(false);
+  const pathname = usePathname();
+  const isFirstRender = useRef(true);
+
+  // Trigger shimmer animation on page navigation (not on first load)
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+
+    setShowShimmer(true);
+    const timer = setTimeout(() => setShowShimmer(false), 1500);
+    return () => clearTimeout(timer);
+  }, [pathname]);
 
   // Add keyboard shortcut for help (?)
   useEffect(() => {
@@ -49,6 +63,26 @@ export default function FeedbackBubble() {
         }}
         aria-label="Help & Support"
       >
+        {/* Light sweep animation on page navigation */}
+        {showShimmer && (
+          <div
+            className="absolute inset-[-2px] rounded-full pointer-events-none"
+            style={{
+              animation: 'light-sweep 1.2s ease-in-out forwards',
+            }}
+          >
+            <div
+              className="absolute w-4 h-4 rounded-full"
+              style={{
+                background: 'radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.4) 40%, transparent 70%)',
+                top: '-2px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                filter: 'blur(1px)',
+              }}
+            />
+          </div>
+        )}
         <div className="w-[34px] h-[34px] rounded-full bg-white/40 flex items-center justify-center drop-shadow-sm transition-all duration-200 group-hover:bg-white/60">
           <span className="text-slate-700 text-[22px] font-semibold leading-none">?</span>
         </div>

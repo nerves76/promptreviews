@@ -148,21 +148,21 @@ export default function QuoteDisplay({
         </div>
       </div>
       
-      {/* Mobile Navigation - Below the quote with proper spacing */}
-      <div className="flex md:hidden justify-center gap-4 mt-6 mb-8">
+      {/* Mobile Navigation - Below the quote, compact */}
+      <div className="flex md:hidden justify-center gap-3 mt-2 mb-4">
         <button
           onClick={previousQuote}
-          className="p-2.5 text-white/90 hover:text-white transition-all duration-200 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg hover:bg-white/15"
+          className="p-1.5 text-white/90 hover:text-white transition-all duration-200 bg-white/10 backdrop-blur-md border border-white/20 rounded-md hover:bg-white/15"
           aria-label="Previous quote"
         >
-          <Icon name="FaChevronLeft" className="h-5 w-5" size={20} />
+          <Icon name="FaChevronLeft" className="h-4 w-4" size={16} />
         </button>
         <button
           onClick={nextQuote}
-          className="p-2.5 text-white/90 hover:text-white transition-all duration-200 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg hover:bg-white/15"
+          className="p-1.5 text-white/90 hover:text-white transition-all duration-200 bg-white/10 backdrop-blur-md border border-white/20 rounded-md hover:bg-white/15"
           aria-label="Next quote"
         >
-          <Icon name="FaChevronRight" className="h-5 w-5" size={20} />
+          <Icon name="FaChevronRight" className="h-4 w-4" size={16} />
         </button>
       </div>
     </div>

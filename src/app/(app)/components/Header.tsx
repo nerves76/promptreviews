@@ -12,8 +12,9 @@ import { fetchOnboardingTasks } from "@/utils/onboardingTasks";
 import { apiClient } from '@/utils/apiClient';
 import PromptReviewsLogo from "@/app/(app)/dashboard/components/PromptReviewsLogo";
 import { AccountUtilityBar } from './AccountUtilityBar';
-import GetReviewsDropdown from './GetReviewsDropdown';
-import YourBusinessDropdown from './YourBusinessDropdown';
+// Desktop nav dropdowns moved to Sidebar component
+// import GetReviewsDropdown from './GetReviewsDropdown';
+// import YourBusinessDropdown from './YourBusinessDropdown';
 import { useAccountSelection } from '@/utils/accountSelectionHooks';
 import DropdownPortal from './DropdownPortal';
 import NotificationDropdown, { Notification } from './NotificationDropdown';
@@ -481,120 +482,9 @@ const Header = React.memo(function Header() {
             </Link>
           </div>
           
-          {/* Centered Desktop Nav */}
-          <div className="hidden md:flex flex-1 justify-center">
-            <div className="flex space-x-3 lg:space-x-6 xl:space-x-8 ml-4 lg:ml-8">
-                            <Link
-                href={hasBusiness ? "/dashboard" : "#"}
-                onClick={(e) => {
-                  if (!hasBusiness) {
-                    e.preventDefault();
-                    router.push("/dashboard/create-business");
-                  }
-                }}
-                className={`${
-                  isActive("/dashboard")
-                    ? "border-white text-white"
-                    : hasBusiness
-                      ? "border-transparent text-white hover:border-white/30 hover:text-white/90"
-                      : "border-transparent text-white/70 cursor-not-allowed"
-                } inline-flex items-center px-1 pt-1 border-b-4 text-sm lg:text-base font-medium transition-colors duration-200 h-16 relative group whitespace-nowrap`}
-              >
-                Dashboard
-                {!hasBusiness && (
-                  <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap" style={{ zIndex: 2147483647 }}>
-                    Create business profile first
-                  </span>
-                )}
-              </Link>
-              {!businessLoading && (
-                <>
-                  <YourBusinessDropdown
-                    hasBusiness={hasBusiness}
-                    businessLoading={businessLoading}
-                    businessProfileCompleted={businessProfileCompleted}
-                    businessProfileLoaded={businessProfileLoaded}
-                    onNavigate={() => {}}
-                  />
-                  <GetReviewsDropdown 
-                    hasBusiness={hasBusiness}
-                    businessLoading={businessLoading}
-                    onNavigate={() => {}}
-                  />
+          {/* Desktop nav moved to Sidebar - only keeping right-side items */}
+          <div className="hidden md:flex flex-1" />
 
-                  {/* Always show Google Biz nav item - access control handled within the page */}
-                  {(
-                    <Link
-                      href={hasBusiness ? "/dashboard/google-business" : "#"}
-                      onClick={(e) => {
-                        if (!hasBusiness) {
-                          e.preventDefault();
-                          router.push("/dashboard/create-business");
-                        }
-                      }}
-                      className={`${
-                        isActive("/dashboard/google-business")
-                          ? "border-white text-white"
-                          : hasBusiness
-                            ? "border-transparent text-white hover:border-white/30 hover:text-white/90"
-                            : "border-transparent text-white/70 cursor-not-allowed"
-                      } inline-flex items-center px-1 pt-1 border-b-4 text-sm lg:text-base font-medium transition-colors duration-200 h-16 relative group whitespace-nowrap`}
-                          >
-                      Google biz
-                    </Link>
-                  )}
-
-                  <Link
-                    href="/community"
-                    className={`${
-                      isActive("/community")
-                        ? "border-white text-white"
-                        : "border-transparent text-white hover:border-white/30 hover:text-white/90"
-                    } inline-flex items-center px-1 pt-1 border-b-4 text-sm lg:text-base font-medium transition-colors duration-200 h-16 whitespace-nowrap`}
-                  >
-                    Community
-                  </Link>
-
-                  {/* Work Manager - Only show for single-account users with a board */}
-                  {!hasMultipleAccounts && hasWorkManagerBoard && (
-                    <Link
-                      href="/work-manager"
-                      className={`${
-                        isActive("/work-manager")
-                          ? "border-white text-white"
-                          : "border-transparent text-white hover:border-white/30 hover:text-white/90"
-                      } inline-flex items-center gap-1.5 px-1 pt-1 border-b-4 text-sm lg:text-base font-medium transition-colors duration-200 h-16 whitespace-nowrap`}
-                    >
-                      <Icon name="FaTasks" size={14} />
-                      Work Manager
-                    </Link>
-                  )}
-
-                    {/* Social Posting temporarily hidden until feature is ready
-                    <Link
-                      href={hasBusiness ? "/dashboard/google-business" : "#"}
-                      onClick={(e) => {
-                        if (!hasBusiness) {
-                          e.preventDefault();
-                          router.push("/dashboard/create-business");
-                        }
-                      }}
-                      className={`${
-                        isActive("/dashboard/google-business")
-                          ? "border-white text-white"
-                          : hasBusiness 
-                            ? "border-transparent text-white hover:border-white/30 hover:text-white/90"
-                            : "border-transparent text-white/70 cursor-not-allowed"
-                      } inline-flex items-center px-1 pt-1 border-b-4 text-base font-medium transition-colors duration-200 h-16 relative group`}
-                          >
-                      Social Posting
-                    </Link>
-                    */}
-                </>
-              )}
-            </div>
-          </div>
-          
           {/* Right Side - Desktop: Notifications and User Account | Mobile: Hamburger Menu */}
           <div className="flex items-center gap-4">
             {/* Credits Badge - Desktop Only */}
