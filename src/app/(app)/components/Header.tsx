@@ -601,7 +601,7 @@ const Header = React.memo(function Header() {
             {hasBusiness && creditBalance !== null && (
               <Link
                 href="/dashboard/credits"
-                className={`hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-colors ${
+                className={`hidden md:flex items-center gap-1.5 px-2 lg:px-3 py-1.5 rounded-full transition-colors whitespace-nowrap ${
                   creditBalance === 0
                     ? 'bg-red-500/20 text-red-300 hover:bg-red-500/30'
                     : creditBalance < 50
@@ -610,7 +610,9 @@ const Header = React.memo(function Header() {
                 }`}
                 title="View credits"
               >
-                <span className="text-sm font-medium">Credits: {creditBalance}</span>
+                <Icon name="FaCoins" size={14} className="lg:hidden" />
+                <span className="hidden lg:inline text-sm font-medium">Credits:</span>
+                <span className="text-sm font-medium">{creditBalance}</span>
               </Link>
             )}
 
