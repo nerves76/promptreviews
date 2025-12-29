@@ -33,10 +33,10 @@ const PromptTypeSelectModal: React.FC<PromptTypeSelectModalProps> = ({
       />
       
       {/* Modal */}
-      <div className="bg-gradient-to-br from-indigo-50 via-white to-purple-50 rounded-2xl shadow-2xl max-w-4xl w-full relative my-8 flex flex-col border border-white/20 backdrop-blur-sm" style={{ width: '100%', maxWidth: '56rem' }}>
+      <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl max-w-4xl w-full relative my-8 flex flex-col border border-white/40" style={{ width: '100%', maxWidth: '56rem' }}>
         {/* Header */}
-        <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-fuchsia-600 rounded-t-2xl p-6">
-          <h2 className="text-2xl font-bold text-white text-center">
+        <div className="bg-white/20 backdrop-blur-md border-b border-white/30 rounded-t-2xl p-6">
+          <h2 className="text-2xl font-bold text-gray-900 text-center">
             Select prompt page type
           </h2>
         </div>

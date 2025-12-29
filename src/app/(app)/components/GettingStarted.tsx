@@ -490,45 +490,45 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
                     </span>
                   )}
                 </div>
-                {task.link && !task.completed && (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleTaskLinkClick(task.link!);
-                    }}
-                    className={`text-sm rounded px-2 py-1 transition-colors ${
-                      task.id === 'business-profile'
-                        ? 'bg-yellow-400 text-yellow-900 hover:bg-yellow-300 font-bold'
-                        : 'bg-white bg-opacity-20 hover:bg-opacity-30'
-                    }`}
-                  >
-                    Go →
-                  </button>
-                )}
-                {!task.link && !task.completed && (
-                  <span className="text-xs bg-white bg-opacity-20 rounded px-2 py-1">
-                    Click icon to complete
-                  </span>
-                )}
+                <div className="flex items-center gap-3">
+                  {task.helpArticleId && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleLearnMore(task.helpArticleId!);
+                      }}
+                      className="text-xs text-white/70 hover:text-white underline transition-colors whitespace-nowrap"
+                    >
+                      Learn more
+                    </button>
+                  )}
+                  {task.link && !task.completed && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleTaskLinkClick(task.link!);
+                      }}
+                      className={`text-sm rounded px-2 py-1 transition-colors ${
+                        task.id === 'business-profile'
+                          ? 'bg-yellow-400 text-yellow-900 hover:bg-yellow-300 font-bold'
+                          : 'bg-white bg-opacity-20 hover:bg-opacity-30'
+                      }`}
+                    >
+                      Go →
+                    </button>
+                  )}
+                  {!task.link && !task.completed && (
+                    <span className="text-xs bg-white bg-opacity-20 rounded px-2 py-1">
+                      Click icon to complete
+                    </span>
+                  )}
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <p className={`text-sm opacity-80 ${task.completed ? 'line-through' : ''}`}>
-                  {task.description}
-                </p>
-                {task.helpArticleId && (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleLearnMore(task.helpArticleId!);
-                    }}
-                    className="text-xs text-white/70 hover:text-white hover:underline transition-colors whitespace-nowrap"
-                  >
-                    Learn more
-                  </button>
-                )}
-              </div>
+              <p className={`text-sm opacity-80 ${task.completed ? 'line-through' : ''}`}>
+                {task.description}
+              </p>
             </div>
           </div>
         ))}

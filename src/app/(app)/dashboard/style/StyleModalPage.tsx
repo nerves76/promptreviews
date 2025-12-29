@@ -746,18 +746,18 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
         onMouseDown={handleMouseDown}
       >
         {/* Draggable header */}
-        <div className="modal-header flex items-center justify-between p-4 cursor-move bg-gradient-to-r from-indigo-600 via-purple-600 to-fuchsia-600 rounded-t-2xl">
+        <div className="modal-header flex items-center justify-between p-4 cursor-move bg-white/20 backdrop-blur-md border-b border-white/30 rounded-t-2xl">
           <div className="w-1/3">
-            <h2 className="text-xl font-semibold text-white">Prompt page style</h2>
+            <h2 className="text-xl font-semibold text-gray-900">Prompt page style</h2>
           </div>
           <div className="w-1/3 flex justify-center">
-            <div className="bg-white/20 backdrop-blur-sm rounded-lg p-2">
-              <Icon name="FaArrowsAlt" className="text-white" size={16} />
+            <div className="bg-slate-blue/20 rounded-lg p-2">
+              <Icon name="FaArrowsAlt" className="text-slate-blue" size={16} />
             </div>
           </div>
           <div className="w-1/3 flex justify-end items-center gap-2 pr-8">
             <button
-              className="px-5 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg font-semibold hover:bg-white/30 transition text-sm border border-white/30"
+              className="px-5 py-2 bg-slate-blue text-white rounded-lg font-semibold hover:bg-slate-blue/80 transition text-sm"
               onClick={handleSave}
               disabled={saving}
             >

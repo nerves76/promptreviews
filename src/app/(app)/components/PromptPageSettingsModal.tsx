@@ -266,27 +266,27 @@ export default function PromptPageSettingsModal({
           onMouseDown={handleMouseDown}
         >
           {/* Draggable header */}
-          <div className="modal-header flex items-center justify-between p-4 cursor-move bg-gradient-to-r from-indigo-600 via-purple-600 to-fuchsia-600 rounded-t-2xl">
+          <div className="modal-header flex items-center justify-between p-4 cursor-move bg-white/20 backdrop-blur-md border-b border-white/30 rounded-t-2xl">
             <div className="w-1/3">
               <div>
-                <h2 className="text-xl font-semibold text-white">
-                  Prompt Page Settings
+                <h2 className="text-xl font-semibold text-gray-900">
+                  Prompt page settings
                 </h2>
-                <p className="text-xs text-white/80 mt-1">
+                <p className="text-xs text-gray-600 mt-1">
                   Set global defaults for keywords, AI, review platforms, and more.
                 </p>
               </div>
             </div>
             <div className="w-1/3 flex justify-center">
-              <div className="bg-white/20 backdrop-blur-sm rounded-lg p-2">
-                <Icon name="FaArrowsAlt" className="text-white/90" size={16} />
+              <div className="bg-slate-blue/20 rounded-lg p-2">
+                <Icon name="FaArrowsAlt" className="text-slate-blue" size={16} />
               </div>
             </div>
             <div className="w-1/3 flex justify-end pr-8">
               <button
                 onClick={handleSave}
                 disabled={isSubmitting}
-                className="px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg font-semibold hover:bg-white/30 transition text-sm border border-white/30 flex items-center gap-2"
+                className="px-4 py-2 bg-slate-blue text-white rounded-lg font-semibold hover:bg-slate-blue/80 transition text-sm flex items-center gap-2"
               >
                 {isSubmitting && (
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>

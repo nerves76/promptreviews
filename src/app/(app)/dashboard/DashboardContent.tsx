@@ -986,11 +986,11 @@ const DashboardContent = React.memo(function DashboardContent({
                 </span>
               ))}
               {/* Modal content - always visible */}
-              <div className="bg-gradient-to-br from-indigo-50 via-white to-purple-50 rounded-2xl shadow-2xl max-w-md w-full text-center relative z-10 border border-white/20 backdrop-blur-sm">
+              <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl max-w-md w-full text-center relative z-10 border border-white/40">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-fuchsia-600 rounded-t-2xl p-6">
-                  <h2 className="text-2xl font-bold text-white">
-                    Prompt Page Published! 🎉
+                <div className="bg-white/20 backdrop-blur-md border-b border-white/30 rounded-t-2xl p-6">
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    Prompt page published!
                   </h2>
                 </div>
                 

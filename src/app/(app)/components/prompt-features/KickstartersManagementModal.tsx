@@ -296,13 +296,13 @@ export default function KickstartersManagementModal({
         </button>
 
         {/* Draggable header - unique class name to prevent interference */}
-        <div className="kickstarters-modal-header flex items-center justify-between p-4 cursor-move bg-gradient-to-r from-indigo-600 via-purple-600 to-fuchsia-600 rounded-t-2xl">
+        <div className="kickstarters-modal-header flex items-center justify-between p-4 cursor-move bg-white/20 backdrop-blur-md border-b border-white/30 rounded-t-2xl">
           <div className="flex items-center gap-3">
-            <div className="bg-white/20 backdrop-blur-sm rounded-lg p-2">
-              <Icon name="FaLightbulb" className="text-white text-xl" size={20} />
+            <div className="bg-slate-blue/20 rounded-lg p-2">
+              <Icon name="FaLightbulb" className="text-slate-blue text-xl" size={20} />
             </div>
-            <h2 className="text-xl font-bold text-white">Manage kickstarters</h2>
-            <span className="text-sm text-white/70 bg-white/20 backdrop-blur-sm px-2 py-1 rounded-full">
+            <h2 className="text-xl font-bold text-gray-900">Manage kickstarters</h2>
+            <span className="text-sm text-gray-600 bg-white/50 px-2 py-1 rounded-full">
               AKA Prompts
             </span>
           </div>
@@ -310,7 +310,7 @@ export default function KickstartersManagementModal({
             <button
               type="button"
               onClick={handleSave}
-              className="px-4 py-2 bg-white/20 backdrop-blur-sm text-white border border-white/30 rounded-lg hover:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 transition-colors font-semibold"
+              className="px-4 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-blue/80 focus:outline-none focus:ring-2 focus:ring-slate-blue/50 focus:ring-offset-2 transition-colors font-semibold"
             >
               Save selection
             </button>
