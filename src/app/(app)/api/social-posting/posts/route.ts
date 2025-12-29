@@ -70,14 +70,10 @@ export async function POST(request: NextRequest) {
         .eq('account_id', accountId)
         .limit(1);
 
-      let accountId = null;
+      let gbpAccountId: string | null = null;
       if (locationData && locationData.length > 0 && locationData[0].account_name) {
-        // Extract account ID from the stored account name (accounts/{id})
-        accountId = locationData[0].account_name.replace('accounts/', '');
-      }
-
-      // If we don't have the account ID from stored data, we'll let the adapter handle it
-      if (!accountId) {
+        // Extract GBP account ID from the stored account name (accounts/{id})
+        gbpAccountId = locationData[0].account_name.replace('accounts/', '');
       }
 
       // Create adapter with the authenticated client
@@ -87,9 +83,9 @@ export async function POST(request: NextRequest) {
         redirectUri: process.env.GOOGLE_REDIRECT_URI!
       });
 
-      // Set the client, account ID, and mark as authenticated
+      // Set the client, GBP account ID, and mark as authenticated
       (gbpAdapter as any).client = client;
-      (gbpAdapter as any).accountId = accountId; // Pass account ID to avoid API calls
+      (gbpAdapter as any).accountId = gbpAccountId; // Pass GBP account ID to avoid API calls
       (gbpAdapter as any).isAuth = true;
       
       postManager.registerAdapter('google-business-profile', gbpAdapter);
@@ -125,10 +121,12 @@ export async function POST(request: NextRequest) {
     
   } catch (error) {
     console.error('Error publishing post:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(
-      { 
-        success: false, 
-        error: 'Failed to publish post' 
+      {
+        success: false,
+        error: 'Failed to publish post',
+        details: errorMessage
       },
       { status: 500 }
     );
