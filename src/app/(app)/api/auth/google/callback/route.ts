@@ -347,14 +347,26 @@ export async function GET(request: NextRequest) {
               userId: user.id
             });
 
+            // Get the name of the account that has the conflicting connection
+            let conflictingAccountName = 'another account';
+            const { data: conflictingAccount } = await supabaseAdmin
+              .from('accounts')
+              .select('business_name, first_name')
+              .eq('id', otherAccountId)
+              .single();
+
+            if (conflictingAccount) {
+              conflictingAccountName = conflictingAccount.business_name || conflictingAccount.first_name || 'another account';
+            }
+
             const separator = returnUrl.includes('?') ? '&' : '?';
             const errorMessage = encodeURIComponent(
-              `This Google account (${googleEmail}) is already connected to a different PromptReviews account. ` +
-              `To use it here, please: 1) Switch to the other account and disconnect it, OR 2) Go to Google Account Security → Third-party apps → Revoke PromptReviews access, then try again.`
+              `This Google account (${googleEmail}) is already connected to "${conflictingAccountName}". ` +
+              `Switch to that account and disconnect there, or revoke access in Google Account Security → Third-party apps.`
             );
 
             return NextResponse.redirect(
-              new URL(`${returnUrl}${separator}error=already_connected&conflictEmail=${encodeURIComponent(googleEmail)}&message=${errorMessage}`, request.url)
+              new URL(`${returnUrl}${separator}error=already_connected&conflictEmail=${encodeURIComponent(googleEmail)}&conflictAccount=${encodeURIComponent(conflictingAccountName)}&message=${errorMessage}`, request.url)
             );
           } else {
             // All existing connections are stale/expired - clean them up and allow this connection

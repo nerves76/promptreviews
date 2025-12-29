@@ -433,8 +433,12 @@ export default function SocialPostingDashboard() {
       } else if (hasError === 'already_connected') {
         // Handle duplicate Google account connection error with special formatting
         const email = conflictEmail ? decodeURIComponent(conflictEmail) : 'this Google account';
+        const conflictAccount = urlParams.get('conflictAccount');
+        const accountName = conflictAccount ? decodeURIComponent(conflictAccount) : 'another account';
+
+        // Use the message from the URL, or build a default one
         const detailedMessage = message ? decodeURIComponent(message) :
-          `The Google account ${email} is already connected to a different PromptReviews account. To use it here, you need to disconnect it from the other account first, or revoke access in your Google Account settings.`;
+          `This Google account (${email}) is already connected to "${accountName}". Switch to that account and disconnect there, or revoke access in Google Account Security → Third-party apps.`;
 
         setPostResult({
           success: false,
