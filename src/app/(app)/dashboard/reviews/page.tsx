@@ -41,6 +41,7 @@ interface Review {
   star_rating?: number | null;
   location_name?: string | null;
   business_location_id?: string | null;
+  source_channel?: string | null;
 }
 
 interface ReviewerGroup {
@@ -459,7 +460,7 @@ export default function ReviewsPage() {
         let reviewsQuery = supabase
           .from("review_submissions")
           .select(
-            "id, prompt_page_id, first_name, last_name, reviewer_role, platform, review_content, created_at, status, emoji_sentiment_selection, verified, verified_at, platform_url, imported_from_google, contact_id, star_rating, location_name, business_location_id"
+            "id, prompt_page_id, first_name, last_name, reviewer_role, platform, review_content, created_at, status, emoji_sentiment_selection, verified, verified_at, platform_url, imported_from_google, contact_id, star_rating, location_name, business_location_id, source_channel"
           );
 
         // Apply filtering based on account_id
@@ -790,10 +791,13 @@ export default function ReviewsPage() {
   // Compute filtered reviews
   const filteredReviews = reviews.filter((r) => {
     const platformMatch = !platformFilter || r.platform === platformFilter;
+    // Status filter: verified, imported (from Google or spreadsheet), or not verified
+    const isImported = r.source_channel === 'gbp_import' || r.source_channel === 'csv_upload' || r.imported_from_google;
     const verifiedMatch =
       !verifiedFilter ||
       (verifiedFilter === "verified" && r.verified) ||
-      (verifiedFilter === "not_verified" && !r.verified);
+      (verifiedFilter === "imported" && !r.verified && isImported) ||
+      (verifiedFilter === "not_verified" && !r.verified && !isImported);
     const emojiMatch =
       !emojiFilter || r.emoji_sentiment_selection === emojiFilter;
     // Location filter: match by business_location_id or by location_name text
@@ -1043,7 +1047,7 @@ export default function ReviewsPage() {
           </div>
           <div>
             <label className="block text-xs font-semibold text-gray-500 mb-1">
-              Verified
+              Status
             </label>
             <select
               className="border rounded px-2 py-1"
@@ -1052,7 +1056,8 @@ export default function ReviewsPage() {
             >
               <option value="">All</option>
               <option value="verified">Verified</option>
-              <option value="not_verified">Not Verified</option>
+              <option value="imported">Imported</option>
+              <option value="not_verified">Not verified</option>
             </select>
           </div>
           {/* Location Filter - only show if there are locations or reviews have location data */}
@@ -1234,15 +1239,22 @@ export default function ReviewsPage() {
                         Verified
                       </span>
                     ) : (
-                      <span className="ml-2 inline-block px-2 py-1 text-xs bg-gray-100 text-gray-500 rounded">
-                        Not verified
-                      </span>
-                    )}
-                    {review.imported_from_google && (
-                      <span className="ml-2 inline-flex items-center gap-1 px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded">
-                        <Icon name="FaGoogle" className="w-3 h-3" size={12} />
-                        Imported
-                      </span>
+                      // Show import source for non-verified reviews
+                      (review.source_channel === 'gbp_import' || review.imported_from_google) ? (
+                        <span className="ml-2 inline-flex items-center gap-1 px-2 py-1 text-xs bg-blue-50 text-blue-600 rounded">
+                          <Icon name="FaGoogle" className="w-3 h-3" size={12} />
+                          Imported from Google
+                        </span>
+                      ) : review.source_channel === 'csv_upload' ? (
+                        <span className="ml-2 inline-flex items-center gap-1 px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded">
+                          <Icon name="FaUpload" className="w-3 h-3" size={12} />
+                          Imported from spreadsheet
+                        </span>
+                      ) : (
+                        <span className="ml-2 inline-block px-2 py-1 text-xs bg-gray-100 text-gray-500 rounded">
+                          Not verified
+                        </span>
+                      )
                     )}
                     {(review.location_name || review.business_location_id) && (() => {
                       const locationName = review.business_location_id

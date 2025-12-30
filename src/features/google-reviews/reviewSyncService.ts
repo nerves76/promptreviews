@@ -251,7 +251,8 @@ export class GoogleReviewSyncService {
             google_location_id: locationId,
             google_location_name: locationName ?? null,
             google_business_location_id: googleBusinessLocationId ?? null,
-            location_name: locationName ?? null
+            location_name: locationName ?? null,
+            source_channel: 'gbp_import', // Track import source
           })
           .select('id, created_at, google_review_id, review_content')
           .single();

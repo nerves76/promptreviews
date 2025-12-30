@@ -203,6 +203,7 @@ export async function POST(request: NextRequest) {
         submitted_at: reviewDate,
         review_text_copy: record.review_content.trim(), // For verification matching if needed
         auto_verification_status: 'verified', // Manual = verified
+        source_channel: 'csv_upload', // Track import source
       });
 
       // Track if we need to link/create contact
