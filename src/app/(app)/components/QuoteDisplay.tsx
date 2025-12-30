@@ -95,7 +95,7 @@ export default function QuoteDisplay({
   const currentQuote = quotes[currentIndex];
 
   return (
-    <div className={`relative w-full max-w-[500px] mx-auto ${className}`}>
+    <div className={`relative w-full max-w-2xl mx-auto ${className}`}>
       {/* Navigation Arrows - Fixed position at container edges */}
       <button
         onClick={previousQuote}
