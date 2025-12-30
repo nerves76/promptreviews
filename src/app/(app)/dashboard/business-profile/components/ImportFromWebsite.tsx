@@ -109,65 +109,67 @@ export default function ImportFromWebsite({ onImport, isVisible = true }: Import
   };
 
   return (
-    <div className="mb-4 rounded-lg bg-blue-50 border border-blue-200 p-4">
-      <div className="flex items-start gap-3">
-        <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
-          <Icon name="prompty" size={16} className="text-blue-600" />
+    <div className="mb-4 py-3 px-4">
+      <div className="flex items-center gap-3">
+        <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
+          <Icon name="prompty" size={14} className="text-white" />
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="font-medium text-gray-900 text-sm mb-0.5"><span className="text-blue-600">Quick start:</span> Import from your website</h3>
-          <p className="text-xs text-gray-600 mb-2">
-            We&apos;ll scan your site and use AI to fill out everything we can. You can edit before saving.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-2">
-            <input
-              type="text"
-              value={url}
-              onChange={(e) => {
-                setUrl(e.target.value);
-                setError(null);
-              }}
-              onKeyDown={handleKeyDown}
-              placeholder="yourwebsite.com"
-              disabled={isLoading}
-              className={`flex-1 px-3 py-1.5 text-sm rounded-md border bg-white ${
-                error ? "border-red-300 focus:ring-red-500 focus:border-red-500" : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"
-              } focus:outline-none focus:ring-1 disabled:bg-gray-50 disabled:cursor-not-allowed`}
-            />
-            <button
-              type="button"
-              onClick={handleImport}
-              disabled={isLoading || !url.trim()}
-              className={`px-4 py-1.5 text-sm rounded-md font-medium transition-all flex items-center justify-center gap-2 whitespace-nowrap ${
-                isLoading || !url.trim()
-                  ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                  : success
-                  ? "bg-green-500 text-white hover:bg-green-600"
-                  : "bg-blue-600 text-white hover:bg-blue-700"
-              }`}
-            >
-              {isLoading ? (
-                <>
-                  <Icon name="FaSpinner" size={12} className="animate-spin" />
-                  <span>Scanning...</span>
-                </>
-              ) : success ? (
-                <>
-                  <Icon name="FaCheck" size={12} />
-                  <span>Done!</span>
-                </>
-              ) : (
-                <>
-                  <Icon name="FaSearch" size={12} />
-                  <span>Scan & fill</span>
-                </>
-              )}
-            </button>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <span className="font-medium text-white text-sm"><span className="text-white/70">Quick start:</span> Import from your website</span>
+              <span className="text-white/60 text-xs hidden sm:inline">We&apos;ll scan your site and use AI to fill out everything we can. You can edit before saving.</span>
+            </div>
+            <div className="flex flex-1 gap-2 items-center">
+              <input
+                type="text"
+                value={url}
+                onChange={(e) => {
+                  setUrl(e.target.value);
+                  setError(null);
+                }}
+                onKeyDown={handleKeyDown}
+                placeholder="yourwebsite.com"
+                disabled={isLoading}
+                className={`flex-1 max-w-xs px-3 py-1.5 text-sm rounded-md border bg-white/90 ${
+                  error ? "border-red-300 focus:ring-red-500 focus:border-red-500" : "border-white/30 focus:ring-white/50 focus:border-white/50"
+                } focus:outline-none focus:ring-1 disabled:bg-white/50 disabled:cursor-not-allowed placeholder:text-gray-400`}
+              />
+              <button
+                type="button"
+                onClick={handleImport}
+                disabled={isLoading || !url.trim()}
+                className={`px-3 py-1.5 text-sm rounded-md font-medium transition-all flex items-center justify-center gap-1.5 whitespace-nowrap ${
+                  isLoading || !url.trim()
+                    ? "bg-white/30 text-white/50 cursor-not-allowed"
+                    : success
+                    ? "bg-green-500 text-white hover:bg-green-600"
+                    : "bg-white/20 text-white hover:bg-white/30 border border-white/30"
+                }`}
+              >
+                {isLoading ? (
+                  <>
+                    <Icon name="FaSpinner" size={12} className="animate-spin" />
+                    <span>Scanning...</span>
+                  </>
+                ) : success ? (
+                  <>
+                    <Icon name="FaCheck" size={12} />
+                    <span>Done!</span>
+                  </>
+                ) : (
+                  <>
+                    <Icon name="FaSearch" size={12} />
+                    <span>Scan & fill</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
 
           {/* Error message */}
           {error && (
-            <div className="mt-2 flex items-center gap-2 text-red-700 text-xs bg-red-50 border border-red-200 rounded-md px-2 py-1.5">
+            <div className="mt-2 flex items-center gap-2 text-red-200 text-xs bg-red-500/20 border border-red-400/30 rounded-md px-2 py-1.5">
               <Icon name="FaExclamationTriangle" size={12} />
               <span>{error}</span>
             </div>
@@ -175,7 +177,7 @@ export default function ImportFromWebsite({ onImport, isVisible = true }: Import
 
           {/* Success message */}
           {success && (
-            <div className="mt-2 text-green-700 text-xs bg-green-50 border border-green-200 rounded-md px-2 py-1.5">
+            <div className="mt-2 text-green-200 text-xs bg-green-500/20 border border-green-400/30 rounded-md px-2 py-1.5">
               Website info imported! Review the fields below and make any edits.
             </div>
           )}

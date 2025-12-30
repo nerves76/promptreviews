@@ -1339,7 +1339,7 @@ function PromptPagesContent() {
                   </p>
                 </div>
 
-                {(!account || !hasLocationAccess(account.plan)) ? (
+                {(!account || account.plan !== 'maven') ? (
                   <div className="max-w-7xl mx-auto text-center py-12">
                     <div className="bg-white rounded-lg p-6 max-w-md mx-auto shadow-xl">
                       <Icon name="FaMapMarker" className="w-12 h-12 mx-auto mb-4 text-slate-blue" size={48} />
