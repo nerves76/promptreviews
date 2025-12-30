@@ -127,13 +127,6 @@ export default function KeywordInspirationFeature({
             <span className="text-2xl font-bold text-slate-blue">
               Suggested Phrases Menu
             </span>
-            <div className="relative group">
-              <Icon name="prompty" className="w-5 h-5 text-slate-blue" size={20} />
-              <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block w-72 px-3 py-2 text-sm text-white bg-gray-900 rounded-lg shadow-lg z-10">
-                Keywords are used by Prompty AI and inserted into reviews for better rankings in Google and LLMs like ChatGPT.
-                <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-gray-900"></div>
-              </div>
-            </div>
           </div>
           <div className="text-sm text-gray-700 mt-[3px] ml-9">
             Display a "Suggested phrases" button on your Prompt Page that allows users to choose to add any of your phrases to their review.

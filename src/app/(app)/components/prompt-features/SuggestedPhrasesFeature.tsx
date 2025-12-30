@@ -107,6 +107,13 @@ export default function SuggestedPhrasesFeature({
       <div className="flex items-center gap-2 mb-4">
         <Icon name="FaKey" className="w-7 h-7 text-slate-blue" size={28} />
         <h3 className="text-2xl font-bold text-slate-blue">Suggested Phrases</h3>
+        <div className="relative group">
+          <Icon name="prompty" className="w-5 h-5 text-slate-blue" size={20} />
+          <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block w-72 px-3 py-2 text-sm text-white bg-gray-900 rounded-lg shadow-lg z-10">
+            Keywords are used by Prompty AI and inserted into reviews for better rankings in Google and LLMs like ChatGPT.
+            <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-gray-900"></div>
+          </div>
+        </div>
       </div>
 
       <div className="mb-4">
