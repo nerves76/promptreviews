@@ -1092,11 +1092,11 @@ function PromptPagesContent() {
                     <div className="mb-8 relative">
                       {/* Overlay with upgrade message */}
                       <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/30 backdrop-blur-sm rounded-lg">
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 max-w-md mx-auto shadow-xl">
-                          <Icon name="FaColumns" className="w-16 h-16 mx-auto mb-4 text-slate-blue" size={64} />
-                          <h3 className="font-semibold text-blue-900 mb-2">Upgrade to Builder</h3>
-                          <p className="text-sm text-blue-700 mb-4">
-                            Campaign pages let you import contacts, run personalized review outreach campaigns, and track engagement with alerts and reminders. Upgrade to Builder or higher to unlock this feature.
+                        <div className="bg-white rounded-lg p-6 max-w-md mx-auto shadow-xl">
+                          <Icon name="FaColumns" className="w-12 h-12 mx-auto mb-4 text-slate-blue" size={48} />
+                          <h3 className="font-semibold text-gray-900 mb-2">Upgrade to Builder to get access</h3>
+                          <p className="text-sm text-gray-600 mb-4">
+                            Campaign pages let you import contacts, run personalized review outreach campaigns, and track engagement with alerts and reminders.
                           </p>
                           <button
                             type="button"
