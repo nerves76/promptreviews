@@ -109,79 +109,84 @@ export default function ImportFromWebsite({ onImport, isVisible = true }: Import
   };
 
   return (
-    <div className="mb-4 py-3 px-4">
-      <div className="flex items-center gap-3">
-        <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
-          <Icon name="prompty" size={14} className="text-white" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <span className="font-medium text-white text-sm"><span className="text-white/70">Quick start:</span> Import from your website</span>
-              <span className="text-white/60 text-xs hidden sm:inline">We&apos;ll scan your site and use AI to fill out everything we can. You can edit before saving.</span>
-            </div>
-            <div className="flex flex-1 gap-2 items-center">
-              <input
-                type="text"
-                value={url}
-                onChange={(e) => {
-                  setUrl(e.target.value);
-                  setError(null);
-                }}
-                onKeyDown={handleKeyDown}
-                placeholder="yourwebsite.com"
-                disabled={isLoading}
-                className={`flex-1 max-w-xs px-3 py-1.5 text-sm rounded-md border bg-white/90 ${
-                  error ? "border-red-300 focus:ring-red-500 focus:border-red-500" : "border-white/30 focus:ring-white/50 focus:border-white/50"
-                } focus:outline-none focus:ring-1 disabled:bg-white/50 disabled:cursor-not-allowed placeholder:text-gray-400`}
-              />
-              <button
-                type="button"
-                onClick={handleImport}
-                disabled={isLoading || !url.trim()}
-                className={`px-3 py-1.5 text-sm rounded-md font-medium transition-all flex items-center justify-center gap-1.5 whitespace-nowrap ${
-                  isLoading || !url.trim()
-                    ? "bg-white/30 text-white/50 cursor-not-allowed"
-                    : success
-                    ? "bg-green-500 text-white hover:bg-green-600"
-                    : "bg-white/20 text-white hover:bg-white/30 border border-white/30"
-                }`}
-              >
-                {isLoading ? (
-                  <>
-                    <Icon name="FaSpinner" size={12} className="animate-spin" />
-                    <span>Scanning...</span>
-                  </>
-                ) : success ? (
-                  <>
-                    <Icon name="FaCheck" size={12} />
-                    <span>Done!</span>
-                  </>
-                ) : (
-                  <>
-                    <Icon name="FaSearch" size={12} />
-                    <span>Scan & fill</span>
-                  </>
-                )}
-              </button>
-            </div>
+    <div className="mt-4 mb-8 flex justify-center px-4">
+      <div className="bg-white/15 backdrop-blur-md border border-white/30 rounded-xl px-6 py-5 max-w-md w-full text-center">
+        {/* Header */}
+        <div className="flex items-center justify-center gap-2 mb-2">
+          <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center">
+            <Icon name="prompty" size={14} className="text-white" />
           </div>
-
-          {/* Error message */}
-          {error && (
-            <div className="mt-2 flex items-center gap-2 text-red-200 text-xs bg-red-500/20 border border-red-400/30 rounded-md px-2 py-1.5">
-              <Icon name="FaExclamationTriangle" size={12} />
-              <span>{error}</span>
-            </div>
-          )}
-
-          {/* Success message */}
-          {success && (
-            <div className="mt-2 text-green-200 text-xs bg-green-500/20 border border-green-400/30 rounded-md px-2 py-1.5">
-              Website info imported! Review the fields below and make any edits.
-            </div>
-          )}
+          <span className="font-bold text-lg">
+            <span className="text-green-300">Quick start:</span> <span className="text-white">Import from your website</span>
+          </span>
         </div>
+
+        {/* Description */}
+        <p className="text-white text-sm mb-4">
+          We&apos;ll scan your site and use AI to fill out everything we can. You can edit before saving.
+        </p>
+
+        {/* Input and button */}
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={url}
+            onChange={(e) => {
+              setUrl(e.target.value);
+              setError(null);
+            }}
+            onKeyDown={handleKeyDown}
+            placeholder="yourwebsite.com"
+            disabled={isLoading}
+            className={`flex-1 px-3 py-2 text-sm rounded-lg border bg-white/90 ${
+              error ? "border-red-300 focus:ring-red-500 focus:border-red-500" : "border-white/30 focus:ring-white/50 focus:border-white/50"
+            } focus:outline-none focus:ring-1 disabled:bg-white/50 disabled:cursor-not-allowed placeholder:text-gray-400`}
+          />
+          <button
+            type="button"
+            onClick={handleImport}
+            disabled={isLoading || !url.trim()}
+            className={`px-4 py-2 text-sm rounded-lg font-medium transition-all flex items-center justify-center gap-1.5 whitespace-nowrap ${
+              isLoading || !url.trim()
+                ? "bg-green-300/30 text-green-300/50 cursor-not-allowed"
+                : success
+                ? "bg-green-500 text-white hover:bg-green-600"
+                : "bg-green-300 text-slate-blue hover:bg-green-200"
+            }`}
+          >
+            {isLoading ? (
+              <>
+                <Icon name="FaSpinner" size={12} className="animate-spin" />
+                <span>Scanning...</span>
+              </>
+            ) : success ? (
+              <>
+                <Icon name="FaCheck" size={12} />
+                <span>Done!</span>
+              </>
+            ) : (
+              <>
+                <Icon name="FaSearch" size={12} />
+                <span>Scan & fill</span>
+              </>
+            )}
+          </button>
+        </div>
+
+        {/* Error message */}
+        {error && (
+          <div className="mt-3 flex items-center justify-center gap-2 text-red-200 text-xs bg-red-500/20 border border-red-400/30 rounded-lg px-3 py-2">
+            <Icon name="FaExclamationTriangle" size={12} />
+            <span>{error}</span>
+          </div>
+        )}
+
+        {/* Success message */}
+        {success && (
+          <div className="mt-3 text-green-200 text-xs bg-green-500/20 border border-green-400/30 rounded-lg px-3 py-2">
+            Website info imported! Review the fields below and make any edits.
+          </div>
+        )}
       </div>
     </div>
   );

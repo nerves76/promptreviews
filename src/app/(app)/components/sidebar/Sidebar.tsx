@@ -141,8 +141,8 @@ export function Sidebar({
   if (!isHydrated) {
     return (
       <aside
-        className="hidden md:flex flex-col h-full w-64"
-        style={{ backgroundColor: "#2e4a7d" }}
+        className="hidden md:flex flex-col min-h-screen sticky top-0 w-64"
+        style={{ backgroundColor: "#1e293b" }}
       />
     );
   }
@@ -150,13 +150,13 @@ export function Sidebar({
   return (
     <aside
       className={`
-        hidden md:flex flex-col h-full
+        hidden md:flex flex-col min-h-screen sticky top-0
         border-r border-white/20
         transition-all duration-300 ease-in-out
         ${isCollapsed ? "w-16" : "w-64"}
       `}
       style={{
-        backgroundColor: "#2e4a7d",
+        backgroundColor: "#1e293b",
       }}
     >
       {/* Header with toggle at top */}

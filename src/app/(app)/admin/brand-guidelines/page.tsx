@@ -28,6 +28,7 @@ const brandColors: ColorGroup[] = [
     description: "The main brand color used for buttons, links, headings, and icons",
     colors: [
       { name: "Slate Blue", hex: "#2E4A7D", tailwind: "slate-blue", usage: "Primary buttons, headings, links, icons" },
+      { name: "Slate Dark", hex: "#1e293b", tailwind: "slate-800", usage: "Sidebar, utility bars, dark UI elements" },
       { name: "Brand Gold", hex: "#FFD700", tailwind: "brand-gold", usage: "Stars, celebrations, rewards only" },
     ]
   },
@@ -198,7 +199,7 @@ export default function BrandGuidelinesPage() {
       {/* Quick reference */}
       <div className="bg-slate-blue text-white rounded-lg p-6 mb-8">
         <h2 className="text-lg font-semibold mb-4">Quick reference</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
           <div>
             <p className="text-white/70 mb-1">Primary</p>
             <button
@@ -206,6 +207,15 @@ export default function BrandGuidelinesPage() {
               className="font-mono hover:bg-white/10 px-2 py-1 rounded transition-colors"
             >
               #2E4A7D
+            </button>
+          </div>
+          <div>
+            <p className="text-white/70 mb-1">Slate Dark</p>
+            <button
+              onClick={() => handleCopy('#1e293b', 'Slate Dark')}
+              className="font-mono hover:bg-white/10 px-2 py-1 rounded transition-colors"
+            >
+              #1e293b
             </button>
           </div>
           <div>
