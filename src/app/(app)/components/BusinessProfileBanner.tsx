@@ -74,28 +74,25 @@ export default function BusinessProfileBanner({
   if (loading || !shouldShow) return null;
 
   return (
-    <div className={`bg-gradient-to-r from-blue-50 to-indigo-100 border border-blue-200 rounded-lg p-4 mb-6 shadow-lg ${className}`}>
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex items-start space-x-3 flex-1">
-          <div className="flex-shrink-0 mt-0.5">
-            <Icon name="FaExclamationTriangle" className="h-6 w-6 text-blue-600 animate-pulse" size={24} />
+    <div className={`max-w-2xl mx-auto bg-gradient-to-r from-blue-50 to-indigo-100 border border-blue-200 rounded-lg p-3 mb-6 shadow-md ${className}`}>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center space-x-2 flex-1">
+          <div className="flex-shrink-0">
+            <Icon name="FaExclamationTriangle" className="h-5 w-5 text-blue-600 animate-pulse" size={20} />
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="text-lg font-bold text-blue-900">
-              Complete your business profile first!
-            </h3>
-            <p className="text-blue-800 text-sm mt-1">
-              To get the most out of Prompt Reviews, make sure to fill out your business information first.
+            <p className="text-blue-900 text-sm font-medium">
+              <span className="font-bold">Complete your business profile</span> to get the most out of Prompt Reviews.
             </p>
           </div>
         </div>
         <div className="flex-shrink-0">
           <Link
             href="/dashboard/business-profile"
-            className="inline-flex items-center gap-2 bg-slate-blue text-white hover:bg-slate-blue/90 font-semibold py-2 px-4 rounded-lg transition-colors shadow-md whitespace-nowrap"
+            className="inline-flex items-center gap-1.5 bg-slate-blue text-white hover:bg-slate-blue/90 font-semibold py-1.5 px-3 rounded-lg transition-colors shadow-sm whitespace-nowrap text-sm"
           >
             Complete profile
-            <Icon name="FaArrowRight" className="h-4 w-4" size={16} />
+            <Icon name="FaArrowRight" className="h-3 w-3" size={12} />
           </Link>
         </div>
       </div>

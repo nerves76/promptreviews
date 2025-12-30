@@ -31,7 +31,7 @@ export default function AppMain({
     return <main>{children}</main>;
   }
   return (
-    <div className="h-screen flex bg-transparent">
+    <div className="min-h-screen flex bg-transparent">
       {/* Sidebar - full height, desktop only */}
       {showSidebar && <Sidebar />}
 
@@ -41,7 +41,7 @@ export default function AppMain({
         {!isAuth && <Header />}
 
         {/* Main content */}
-        <main className="flex-1 overflow-auto bg-transparent">
+        <main className="flex-1 bg-transparent">
           {loader}
           {children}
         </main>
