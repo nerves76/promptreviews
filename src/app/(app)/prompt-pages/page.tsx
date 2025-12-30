@@ -1341,16 +1341,16 @@ function PromptPagesContent() {
 
                 {(!account || !hasLocationAccess(account.plan)) ? (
                   <div className="max-w-7xl mx-auto text-center py-12">
-                    <div className="bg-white/10 backdrop-blur-sm border border-white/30 rounded-lg p-6 max-w-md mx-auto">
-                      <Icon name="FaMapMarker" className="w-16 h-16 mx-auto mb-4 text-white" size={64} />
-                      <h3 className="font-semibold text-white mb-2">Upgrade to Maven</h3>
-                      <p className="text-sm text-white/80 mb-4">
-                        Location prompt pages are available with the Maven tier. Upgrade your plan to unlock this feature.
+                    <div className="bg-white rounded-lg p-6 max-w-md mx-auto shadow-xl">
+                      <Icon name="FaMapMarker" className="w-12 h-12 mx-auto mb-4 text-slate-blue" size={48} />
+                      <h3 className="font-semibold text-gray-900 mb-2">Upgrade to Maven to get access</h3>
+                      <p className="text-sm text-gray-600 mb-4">
+                        Location prompt pages let you create location-specific review collection pages for each of your business locations.
                       </p>
                       <button
                         type="button"
                         onClick={() => router.push('/dashboard/plan')}
-                        className="bg-teal-500 text-white px-6 py-2 rounded hover:bg-teal-600 font-medium transition"
+                        className="bg-slate-blue text-white px-6 py-2 rounded hover:bg-slate-blue/90 font-medium transition"
                       >
                         Upgrade now
                       </button>
