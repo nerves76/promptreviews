@@ -570,6 +570,7 @@ model accounts {
   review_reminder_logs            review_reminder_logs[]
   review_share_events             review_share_events[]
   review_share_images             review_share_images[]
+  rss_feed_sources                rss_feed_sources[]
   selected_gbp_locations          selected_gbp_locations[]
   sentiment_analysis_runs         sentiment_analysis_runs[]
   sidebar_favorites               sidebar_favorites[]
@@ -1650,6 +1651,7 @@ model google_business_scheduled_posts {
   google_business_scheduled_post_results google_business_scheduled_post_results[]
   accounts                               accounts                                 @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   users                                  users                                    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  rss_feed_items                         rss_feed_items[]
 
   @@index([account_id], map: "idx_google_business_scheduled_posts_account")
   @@index([additional_platforms], map: "idx_google_business_scheduled_posts_additional_platforms", type: Gin)
@@ -3634,6 +3636,62 @@ model sidebar_favorites {
   @@schema("public")
 }
 
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model rss_feed_items {
+  id                              String                           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  feed_source_id                  String                           @db.Uuid
+  item_guid                       String
+  item_url                        String?
+  title                           String?
+  description                     String?
+  image_url                       String?
+  published_at                    DateTime?                        @db.Timestamptz(6)
+  status                          String                           @default("pending")
+  scheduled_post_id               String?                          @db.Uuid
+  skip_reason                     String?
+  error_message                   String?
+  discovered_at                   DateTime                         @default(now()) @db.Timestamptz(6)
+  processed_at                    DateTime?                        @db.Timestamptz(6)
+  rss_feed_sources                rss_feed_sources                 @relation(fields: [feed_source_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  google_business_scheduled_posts google_business_scheduled_posts? @relation(fields: [scheduled_post_id], references: [id], onUpdate: NoAction)
+
+  @@unique([feed_source_id, item_guid], map: "idx_rss_feed_items_unique")
+  @@index([feed_source_id, discovered_at(sort: Desc)], map: "idx_rss_feed_items_discovered")
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model rss_feed_sources {
+  id                       String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  account_id               String           @db.Uuid
+  feed_url                 String
+  feed_name                String
+  polling_interval_minutes Int              @default(60)
+  last_polled_at           DateTime?        @db.Timestamptz(6)
+  last_successful_poll_at  DateTime?        @db.Timestamptz(6)
+  post_template            String           @default("{title}\n\n{description}")
+  include_link             Boolean          @default(true)
+  max_content_length       Int              @default(1500)
+  target_locations         Json             @default("[]")
+  additional_platforms     Json             @default("{}")
+  is_active                Boolean          @default(true)
+  error_count              Int              @default(0)
+  last_error               String?
+  posts_today              Int              @default(0)
+  posts_today_reset_at     DateTime         @default(dbgenerated("CURRENT_DATE")) @db.Date
+  created_at               DateTime         @default(now()) @db.Timestamptz(6)
+  updated_at               DateTime         @default(now()) @db.Timestamptz(6)
+  rss_feed_items           rss_feed_items[]
+  accounts                 accounts         @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([account_id], map: "idx_rss_feed_sources_account")
+  @@schema("public")
+}
+
 enum aal_level {
   aal1
   aal2
@@ -3781,6 +3839,7 @@ enum review_source_channel {
   social_share
   referral
   unknown
+  csv_upload
 
   @@schema("public")
 }

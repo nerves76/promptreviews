@@ -82,6 +82,13 @@ export const GOOGLE_BUSINESS_SECTION: NavSection = {
       description: "Manage your Google Business Profile",
       requiresBusiness: true,
     },
+    {
+      path: "/dashboard/rss-feeds",
+      label: "RSS feeds",
+      icon: "FaLink",
+      description: "Auto-post from RSS to GBP & Bluesky",
+      requiresBusiness: true,
+    },
   ],
 };
 

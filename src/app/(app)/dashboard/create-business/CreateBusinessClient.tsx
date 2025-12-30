@@ -334,7 +334,7 @@ export default function CreateBusinessClient() {
 
   if (loading || isRedirecting) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600">
+      <div className="min-h-screen bg-gray-50">
         <AppLoader />
       </div>
     );

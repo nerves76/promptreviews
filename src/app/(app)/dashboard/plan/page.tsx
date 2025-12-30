@@ -1167,7 +1167,7 @@ export default function PlanPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 flex flex-col items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center">
         <AppLoader variant="centered" />
       </div>
     );
