@@ -199,7 +199,7 @@ export default function NotificationDropdown({
             <Icon name="FaBell" className="w-6 h-6 text-white/70" size={24} />
           </div>
           <p className="text-white font-medium">No notifications</p>
-          <p className="text-sm text-gray-500 mt-1">You're all caught up!</p>
+          <p className="text-sm text-white/60 mt-1">You're all caught up!</p>
         </div>
       ) : (
         /* Grouped Notifications */
