@@ -234,17 +234,15 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
       
       // Make a single API call with all selected locations
       // Use apiClient to ensure X-Selected-Account header is sent
+      // Only send fields that are editable on this page (description and hours)
+      // Services and categories are edited on separate pages
       const result = await apiClient.post<{ success: boolean; message?: string; error?: string }>(
         '/business-information/update-location',
         {
           locationIds: selectedLocationIds,  // Send as array
           updates: {
             description: businessInfo.description,
-            regularHours: businessInfo.regularHours,
-            serviceItems: businessInfo.serviceItems,
-            primaryCategory: businessInfo.primaryCategory,
-            additionalCategories: businessInfo.additionalCategories
-            // Note: We don't include locationName since it shouldn't be changed
+            regularHours: businessInfo.regularHours
           }
         }
       );
