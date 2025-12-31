@@ -36,14 +36,14 @@ export default function FeedItemsList({ feedId }: FeedItemsListProps) {
     fetchItems();
   }, [feedId]);
 
-  const handleClearErrors = async () => {
+  const handleClearFailed = async () => {
     setClearing(true);
     try {
-      await apiClient.post(`/rss-feeds/${feedId}/clear-errors`);
+      await apiClient.delete(`/rss-feeds/${feedId}/clear-failed`);
       // Refresh the list
       await fetchItems();
     } catch (err) {
-      console.error("Failed to clear errors:", err);
+      console.error("Failed to clear failed items:", err);
     } finally {
       setClearing(false);
     }
@@ -130,7 +130,7 @@ export default function FeedItemsList({ feedId }: FeedItemsListProps) {
         <h4 className="font-medium text-gray-900">Recent items</h4>
         {failedCount > 0 && (
           <button
-            onClick={handleClearErrors}
+            onClick={handleClearFailed}
             disabled={clearing}
             className="px-3 py-1 text-xs font-medium text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50"
           >
