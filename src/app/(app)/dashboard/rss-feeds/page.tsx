@@ -325,6 +325,27 @@ export default function RssFeedsPage() {
                         <p className="text-sm text-gray-500 truncate">
                           {feed.feedUrl}
                         </p>
+                        {/* Target platforms */}
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {feed.targetLocations.map((loc) => (
+                            <span
+                              key={loc.id}
+                              className="inline-flex items-center px-2 py-0.5 text-xs bg-blue-100 text-blue-700 rounded"
+                            >
+                              <Icon name="FaGoogle" size={10} className="mr-1" />
+                              {loc.name || "GBP Location"}
+                            </span>
+                          ))}
+                          {feed.additionalPlatforms?.bluesky?.enabled && (
+                            <span className="inline-flex items-center px-2 py-0.5 text-xs bg-sky-100 text-sky-700 rounded">
+                              <Icon name="FaGlobe" size={10} className="mr-1" />
+                              Bluesky
+                            </span>
+                          )}
+                          {feed.targetLocations.length === 0 && !feed.additionalPlatforms?.bluesky?.enabled && (
+                            <span className="text-xs text-amber-600">No targets configured</span>
+                          )}
+                        </div>
                       </div>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
