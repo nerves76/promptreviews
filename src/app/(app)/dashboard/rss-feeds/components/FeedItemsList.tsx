@@ -13,27 +13,43 @@ export default function FeedItemsList({ feedId }: FeedItemsListProps) {
   const [items, setItems] = useState<RssFeedItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [clearing, setClearing] = useState(false);
+
+  const fetchItems = async () => {
+    try {
+      setLoading(true);
+      const response = await apiClient.get<FeedDetailResponse>(
+        `/rss-feeds/${feedId}`
+      );
+      if (response.success) {
+        setItems(response.recentItems || []);
+      }
+    } catch (err) {
+      console.error("Failed to fetch items:", err);
+      setError("Failed to load feed items");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    async function fetchItems() {
-      try {
-        setLoading(true);
-        const response = await apiClient.get<FeedDetailResponse>(
-          `/rss-feeds/${feedId}`
-        );
-        if (response.success) {
-          setItems(response.recentItems || []);
-        }
-      } catch (err) {
-        console.error("Failed to fetch items:", err);
-        setError("Failed to load feed items");
-      } finally {
-        setLoading(false);
-      }
-    }
-
     fetchItems();
   }, [feedId]);
+
+  const handleClearErrors = async () => {
+    setClearing(true);
+    try {
+      await apiClient.post(`/rss-feeds/${feedId}/clear-errors`);
+      // Refresh the list
+      await fetchItems();
+    } catch (err) {
+      console.error("Failed to clear errors:", err);
+    } finally {
+      setClearing(false);
+    }
+  };
+
+  const failedCount = items.filter((i) => i.status === "failed").length;
 
   const getStatusBadge = (status: RssFeedItem["status"]) => {
     switch (status) {
@@ -110,7 +126,25 @@ export default function FeedItemsList({ feedId }: FeedItemsListProps) {
 
   return (
     <div className="p-4">
-      <h4 className="font-medium text-gray-900 mb-3">Recent items</h4>
+      <div className="flex items-center justify-between mb-3">
+        <h4 className="font-medium text-gray-900">Recent items</h4>
+        {failedCount > 0 && (
+          <button
+            onClick={handleClearErrors}
+            disabled={clearing}
+            className="px-3 py-1 text-xs font-medium text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50"
+          >
+            {clearing ? (
+              <>
+                <Icon name="FaSpinner" size={10} className="inline mr-1 animate-spin" />
+                Clearing...
+              </>
+            ) : (
+              <>Clear {failedCount} failed item{failedCount !== 1 ? "s" : ""}</>
+            )}
+          </button>
+        )}
+      </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>

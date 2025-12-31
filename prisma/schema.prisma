@@ -514,6 +514,7 @@ model accounts {
   keyword_last_reset_date         DateTime?                         @db.Date
   is_client_account               Boolean?                          @default(false)
   monthly_credit_allocation       Int?
+  low_balance_warning_count       Int?                              @default(0)
   account_events                  account_events[]
   account_invitations             account_invitations[]
   account_users                   account_users[]

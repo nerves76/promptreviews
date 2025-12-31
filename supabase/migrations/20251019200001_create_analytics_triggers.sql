@@ -133,8 +133,8 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 AS $$
 BEGIN
-  -- Only count when status changes to 'published'
-  IF NEW.status = 'published' AND (OLD IS NULL OR OLD.status != 'published') THEN
+  -- Only count when status changes to 'completed' (the enum value for published posts)
+  IF NEW.status = 'completed' AND (OLD IS NULL OR OLD.status != 'completed') THEN
     PERFORM increment_metric('total_gbp_posts_published', 1);
   END IF;
   RETURN NEW;
