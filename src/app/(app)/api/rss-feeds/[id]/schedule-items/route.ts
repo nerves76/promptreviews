@@ -272,7 +272,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
           await debit(supabase, accountId, 1, {
             featureType: 'rss_manual_post',
             idempotencyKey,
-            metadata: {
+            featureMetadata: {
               feedId: id,
               feedName: feedSource.feedName,
               itemGuid: item.guid,

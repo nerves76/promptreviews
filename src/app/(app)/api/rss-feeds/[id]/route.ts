@@ -51,13 +51,13 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Feed not found' }, { status: 404 });
     }
 
-    // Fetch recent items for this feed
+    // Fetch all items for this feed (up to 200)
     const { data: items } = await supabase
       .from('rss_feed_items')
       .select('*')
       .eq('feed_source_id', id)
       .order('discovered_at', { ascending: false })
-      .limit(50);
+      .limit(200);
 
     const recentItems: RssFeedItem[] = (items || []).map((item) => ({
       id: item.id,

@@ -10,7 +10,7 @@ import { ParsedFeed, ParsedFeedItem } from '../types';
 const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.svg'];
 
 // Configure parser with custom fields for media
-const parser = new Parser({
+const parserConfig = {
   customFields: {
     feed: [
       ['itunes:image', 'itunesImage'],
@@ -23,7 +23,9 @@ const parser = new Parser({
     ],
   },
   timeout: 30000, // 30 second timeout
-});
+};
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const parser = new Parser(parserConfig as any);
 
 /**
  * Fetch and parse an RSS feed from a URL
@@ -35,7 +37,7 @@ export async function parseFeed(feedUrl: string): Promise<ParsedFeed> {
     // Extract feed-level image (podcast cover art) as fallback
     const feedImage = extractFeedImage(feed);
 
-    const items: ParsedFeedItem[] = feed.items.map((item) => ({
+    const items: ParsedFeedItem[] = feed.items.map((item: Parser.Item) => ({
       guid: extractGuid(item),
       title: item.title || '',
       description: extractDescription(item),
@@ -87,7 +89,8 @@ export async function validateFeed(
  * Extract feed-level image (podcast cover art, channel image)
  * Used as fallback when items don't have their own images
  */
-function extractFeedImage(feed: Parser.Output<Record<string, unknown>>): string | null {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function extractFeedImage(feed: any): string | null {
   const typedFeed = feed as Record<string, unknown>;
 
   // Check itunes:image (common for podcast feeds)
