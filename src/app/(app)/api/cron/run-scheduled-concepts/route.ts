@@ -154,8 +154,7 @@ export async function GET(request: NextRequest) {
           await sendNotificationToAccount(accountId, 'credit_check_skipped', {
             required: creditCheck.required,
             available: creditCheck.available,
-            keywordId,
-            scheduleType: 'concept_schedule',
+            feature: 'concept_schedule',
           });
 
           result.status = 'insufficient_credits';

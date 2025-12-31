@@ -165,6 +165,7 @@ export async function GET(request: NextRequest) {
           await sendNotificationToAccount(accountId, 'credit_check_skipped', {
             required: creditCheck.required,
             available: creditCheck.available,
+            feature: 'geo_grid',
           });
 
           // Update last_scheduled_run_at to advance the schedule (don't retry immediately)

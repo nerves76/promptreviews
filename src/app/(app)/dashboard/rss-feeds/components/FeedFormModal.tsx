@@ -81,10 +81,14 @@ export default function FeedFormModal({
         // Fetch GBP locations
         const locationsRes = await apiClient.get<{
           success: boolean;
-          locations: GbpLocation[];
-        }>("/google-business/locations");
+          locations: Array<{ locationId: string; locationName: string; address: string }>;
+        }>("/social-posting/platforms/google-business-profile/locations");
         if (locationsRes.success) {
-          setGbpLocations(locationsRes.locations || []);
+          // Map to expected format
+          setGbpLocations((locationsRes.locations || []).map(loc => ({
+            id: loc.locationId,
+            locationName: loc.locationName,
+          })));
         }
       } catch (err) {
         console.error("Failed to fetch GBP locations:", err);

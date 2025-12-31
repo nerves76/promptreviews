@@ -20,6 +20,7 @@ import { createClient } from '@supabase/supabase-js';
 import { runBacklinkCheck, calculateBacklinkCheckCost } from '@/features/backlinks/services';
 import { getBalance, debit } from '@/lib/credits';
 import { BACKLINK_CREDIT_COSTS } from '@/features/backlinks/utils/types';
+import { sendNotificationToAccount } from '@/utils/notifications';
 
 export async function GET(request: NextRequest) {
   const startTime = Date.now();
@@ -102,19 +103,18 @@ export async function GET(request: NextRequest) {
         if (balance.totalCredits < creditCost) {
           console.log(`⚠️ [Scheduled BacklinkChecks] Insufficient credits for ${domain} (need ${creditCost}, have ${balance.totalCredits})`);
 
-          // Update warning timestamp to avoid spamming
-          const lastWarning = domainRow.last_credit_warning_sent_at;
-          const hoursSinceWarning = lastWarning
-            ? (Date.now() - new Date(lastWarning).getTime()) / (1000 * 60 * 60)
-            : 24;
+          // Send notification about skipped check
+          await sendNotificationToAccount(accountId, 'credit_check_skipped', {
+            required: creditCost,
+            available: balance.totalCredits,
+            feature: 'backlinks',
+          });
 
-          if (hoursSinceWarning >= 24) {
-            // Update warning timestamp
-            await supabase
-              .from('backlink_domains')
-              .update({ last_credit_warning_sent_at: new Date().toISOString() })
-              .eq('id', domainId);
-          }
+          // Update warning timestamp to avoid spamming
+          await supabase
+            .from('backlink_domains')
+            .update({ last_credit_warning_sent_at: new Date().toISOString() })
+            .eq('id', domainId);
 
           results.insufficientCredits++;
           results.details.push({
