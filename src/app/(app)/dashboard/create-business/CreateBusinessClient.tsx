@@ -334,7 +334,7 @@ export default function CreateBusinessClient() {
 
   if (loading || isRedirecting) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen">
         <AppLoader />
       </div>
     );

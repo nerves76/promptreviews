@@ -962,13 +962,13 @@ const Dashboard = React.memo(function Dashboard() {
 
   if (error && !forceSuccessView) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <div className="text-center bg-white rounded-lg p-8 shadow-lg border border-gray-200">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Error loading dashboard</h2>
-          <p className="text-gray-600 mb-4">{error}</p>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center bg-white/10 backdrop-blur-md rounded-lg p-8 border border-white/20">
+          <h2 className="text-2xl font-bold text-white mb-2">Error loading dashboard</h2>
+          <p className="text-white/90 mb-4">{error}</p>
           <Button
             onClick={() => window.location.reload()}
-            className="bg-slate-blue hover:bg-slate-blue/90 text-white"
+            className="bg-white/20 hover:bg-white/30 text-white border border-white/30"
           >
             Try again
           </Button>
