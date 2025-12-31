@@ -80,14 +80,17 @@ export default function FeedFormModal({
       try {
         // Fetch GBP locations
         const locationsRes = await apiClient.get<{
-          success: boolean;
-          locations: Array<{ locationId: string; locationName: string; address: string }>;
+          data?: {
+            locations: Array<{ location_id: string; location_name: string; address: string }>;
+          };
+          error?: string;
         }>("/social-posting/platforms/google-business-profile/locations");
-        if (locationsRes.success) {
-          // Map to expected format
-          setGbpLocations((locationsRes.locations || []).map(loc => ({
-            id: loc.locationId,
-            locationName: loc.locationName,
+
+        if (locationsRes.data?.locations) {
+          // Map to expected format (API returns snake_case)
+          setGbpLocations(locationsRes.data.locations.map(loc => ({
+            id: loc.location_id,
+            locationName: loc.location_name,
           })));
         }
       } catch (err) {
