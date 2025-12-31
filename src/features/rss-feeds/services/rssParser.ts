@@ -32,13 +32,17 @@ export async function parseFeed(feedUrl: string): Promise<ParsedFeed> {
   try {
     const feed = await parser.parseURL(feedUrl);
 
+    // Extract feed-level image (podcast cover art) as fallback
+    const feedImage = extractFeedImage(feed);
+
     const items: ParsedFeedItem[] = feed.items.map((item) => ({
       guid: extractGuid(item),
       title: item.title || '',
       description: extractDescription(item),
       link: item.link || '',
       pubDate: item.pubDate ? new Date(item.pubDate) : null,
-      imageUrl: extractImageUrl(item),
+      // Use item image if available, otherwise fall back to feed image
+      imageUrl: extractImageUrl(item) || feedImage,
     }));
 
     return {
@@ -77,6 +81,38 @@ export async function validateFeed(
     const message = error instanceof Error ? error.message : 'Unknown error';
     return { valid: false, error: message };
   }
+}
+
+/**
+ * Extract feed-level image (podcast cover art, channel image)
+ * Used as fallback when items don't have their own images
+ */
+function extractFeedImage(feed: Parser.Output<Record<string, unknown>>): string | null {
+  const typedFeed = feed as Record<string, unknown>;
+
+  // Check itunes:image (common for podcast feeds)
+  const itunesImage = typedFeed.itunesImage as { $?: { href?: string } } | string | undefined;
+  if (itunesImage) {
+    if (typeof itunesImage === 'string') {
+      return itunesImage;
+    }
+    if (itunesImage.$?.href) {
+      return itunesImage.$.href;
+    }
+  }
+
+  // Check standard RSS image element
+  const image = typedFeed.image as { url?: string } | undefined;
+  if (image?.url) {
+    return image.url;
+  }
+
+  // Check for image in feed object directly
+  if (feed.image?.url) {
+    return feed.image.url;
+  }
+
+  return null;
 }
 
 /**
