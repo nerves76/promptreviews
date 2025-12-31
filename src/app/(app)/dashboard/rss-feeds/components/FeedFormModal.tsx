@@ -14,6 +14,7 @@ import {
 
 interface FeedFormModalProps {
   feed: RssFeedSource | null;
+  accountId: string;
   onClose: () => void;
   onSaved: () => void;
 }
@@ -31,6 +32,7 @@ interface BlueskyConnection {
 
 export default function FeedFormModal({
   feed,
+  accountId,
   onClose,
   onSaved,
 }: FeedFormModalProps) {
@@ -91,17 +93,16 @@ export default function FeedFormModal({
       try {
         // Fetch Bluesky connections
         const blueskyRes = await apiClient.get<{
-          success: boolean;
-          connections: BlueskyConnection[];
-        }>("/social-posting/connections?platform=bluesky");
-        if (blueskyRes.success) {
-          setBlueskyConnections(
-            (blueskyRes.connections || []).filter((c) => c.status === "active")
-          );
-          // Auto-select first connection if only one
-          if (blueskyRes.connections?.length === 1 && !blueskyConnectionId) {
-            setBlueskyConnectionId(blueskyRes.connections[0].id);
-          }
+          connections: Array<{ id: string; platform: string; handle: string; status: string }>;
+        }>(`/social-posting/connections?accountId=${accountId}`);
+        // Filter for active Bluesky connections
+        const activeBluesky = (blueskyRes.connections || [])
+          .filter((c) => c.platform === "bluesky" && c.status === "active")
+          .map((c) => ({ id: c.id, identifier: c.handle || "Bluesky", status: c.status }));
+        setBlueskyConnections(activeBluesky);
+        // Auto-select first connection if only one
+        if (activeBluesky.length === 1 && !blueskyConnectionId) {
+          setBlueskyConnectionId(activeBluesky[0].id);
         }
       } catch (err) {
         console.error("Failed to fetch Bluesky connections:", err);
@@ -111,7 +112,7 @@ export default function FeedFormModal({
     }
 
     fetchPlatforms();
-  }, [blueskyConnectionId]);
+  }, [accountId]);
 
   // Toggle GBP location selection
   const toggleLocation = (location: GbpLocation) => {
@@ -380,7 +381,7 @@ export default function FeedFormModal({
                       <p className="text-sm text-gray-500">
                         No Bluesky accounts connected.{" "}
                         <a
-                          href="/dashboard/social-posting"
+                          href="/dashboard/google-business"
                           className="text-slate-blue hover:underline"
                         >
                           Connect Bluesky

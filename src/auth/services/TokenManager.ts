@@ -22,7 +22,8 @@ class TokenManager {
   private refreshTimer: NodeJS.Timeout | null = null;
   private supabase = createClient();
   private isRefreshing = false;
-  
+  private refreshPromise: Promise<void> | null = null;
+
   // Event callbacks for critical updates only
   private onSessionExpired?: () => void;
   private onUserChanged?: (userId: string | null) => void;
@@ -122,28 +123,36 @@ class TokenManager {
     }, refreshIn);
   }
   
-  private async refreshTokenProactively() {
-    if (this.isRefreshing) return;
-    
-    this.isRefreshing = true;
-    
-    try {
-      const { data, error } = await this.supabase.auth.refreshSession();
-      
-      if (error) {
-        console.error('❌ TokenManager: Refresh failed:', error);
-        this.onSessionExpired?.();
-        return;
-      }
-      
-      if (data.session) {
-        console.log('✅ TokenManager: Token refreshed successfully');
-        this.session = data.session;
-        this.scheduleTokenRefresh();
-      }
-    } finally {
-      this.isRefreshing = false;
+  private async refreshTokenProactively(): Promise<void> {
+    if (this.isRefreshing && this.refreshPromise) {
+      // Wait for existing refresh to complete
+      return this.refreshPromise;
     }
+
+    this.isRefreshing = true;
+
+    this.refreshPromise = (async () => {
+      try {
+        const { data, error } = await this.supabase.auth.refreshSession();
+
+        if (error) {
+          console.error('❌ TokenManager: Refresh failed:', error);
+          this.onSessionExpired?.();
+          return;
+        }
+
+        if (data.session) {
+          console.log('✅ TokenManager: Token refreshed successfully');
+          this.session = data.session;
+          this.scheduleTokenRefresh();
+        }
+      } finally {
+        this.isRefreshing = false;
+        this.refreshPromise = null;
+      }
+    })();
+
+    return this.refreshPromise;
   }
   
   /**
@@ -151,16 +160,20 @@ class TokenManager {
    * This is the main method components should use
    */
   async getAccessToken(): Promise<string | null> {
+    // If a refresh is in progress, wait for it to complete
+    if (this.isRefreshing && this.refreshPromise) {
+      await this.refreshPromise;
+      return this.session?.access_token || null;
+    }
+
     // If we have a valid session, return its token
     if (this.session && this.isSessionValid()) {
       return this.session.access_token;
     }
-    
+
     // Try to refresh if needed
-    if (!this.isRefreshing) {
-      await this.refreshTokenProactively();
-    }
-    
+    await this.refreshTokenProactively();
+
     return this.session?.access_token || null;
   }
   

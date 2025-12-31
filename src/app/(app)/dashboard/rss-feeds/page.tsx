@@ -410,9 +410,10 @@ export default function RssFeedsPage() {
       </PageCard>
 
       {/* Modals */}
-      {(showAddModal || editingFeed) && (
+      {(showAddModal || editingFeed) && selectedAccountId && (
         <FeedFormModal
           feed={editingFeed}
+          accountId={selectedAccountId}
           onClose={() => {
             setShowAddModal(false);
             setEditingFeed(null);
