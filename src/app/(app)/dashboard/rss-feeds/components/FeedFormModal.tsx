@@ -404,8 +404,7 @@ export default function FeedFormModal({
                     className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:ring-2 focus:ring-slate-blue focus:border-transparent font-mono text-sm"
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    Available tokens: {"{title}"}, {"{description}"},{" "}
-                    {"{link}"}
+                    Available tokens: {"{title}"}, {"{description}"}
                   </p>
                 </div>
 
@@ -418,7 +417,7 @@ export default function FeedFormModal({
                     className="rounded border-gray-300 text-slate-blue focus:ring-slate-blue"
                   />
                   <span className="text-sm text-gray-700">
-                    Include article link in post
+                    Append article link at end of post
                   </span>
                 </label>
 

@@ -172,8 +172,12 @@ function applyTemplate(
 ): string {
   let content = template
     .replace(/{title}/g, item.title || '')
-    .replace(/{description}/g, item.description || '')
-    .replace(/{link}/g, feedSource.includeLink ? item.link : '');
+    .replace(/{description}/g, item.description || '');
+
+  // Auto-append link at the end if includeLink is enabled
+  if (feedSource.includeLink && item.link) {
+    content = content.trim() + '\n\n' + item.link;
+  }
 
   // Trim to max length
   if (content.length > feedSource.maxContentLength) {
