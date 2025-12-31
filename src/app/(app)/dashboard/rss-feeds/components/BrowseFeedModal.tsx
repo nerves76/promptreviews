@@ -356,12 +356,16 @@ export default function BrowseFeedModal({
 
                 {/* Schedule Preview */}
                 {selectedGuids.size > 0 && (
-                  <div className="p-3 bg-blue-50 rounded-lg">
+                  <div className="p-3 bg-blue-50 rounded-lg space-y-2">
                     <p className="text-sm text-blue-800">
                       <strong>{selectedGuids.size}</strong> posts scheduled for:{" "}
                       {scheduledDates.slice(0, 5).join(", ")}
                       {scheduledDates.length > 5 &&
                         ` and ${scheduledDates.length - 5} more`}
+                    </p>
+                    <p className="text-sm text-amber-700 flex items-center">
+                      <Icon name="FaCoins" size={12} className="mr-1.5" />
+                      This will use <strong className="mx-1">{selectedGuids.size}</strong> credit{selectedGuids.size !== 1 ? "s" : ""}
                     </p>
                   </div>
                 )}
@@ -399,7 +403,7 @@ export default function BrowseFeedModal({
                   Scheduling...
                 </>
               ) : (
-                `Schedule ${selectedGuids.size} post${selectedGuids.size !== 1 ? "s" : ""}`
+                `Schedule ${selectedGuids.size} post${selectedGuids.size !== 1 ? "s" : ""} (${selectedGuids.size} credit${selectedGuids.size !== 1 ? "s" : ""})`
               )}
             </button>
           </div>

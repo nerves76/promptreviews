@@ -675,6 +675,10 @@ export default function GoogleBusinessScheduler({
           <p className="text-sm text-gray-600">
             Pick your locations, choose when to publish, and decide whether you&apos;re posting an update or scheduling a photo upload.
           </p>
+          <div className="mt-2 flex items-center text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-3 py-2">
+            <Icon name="FaCoins" className="w-4 h-4 mr-2 flex-shrink-0" />
+            <span>Each scheduled post uses <strong>1 credit</strong> when created.</span>
+          </div>
         </div>
 
         {submissionResult && (
@@ -1016,7 +1020,7 @@ export default function GoogleBusinessScheduler({
                   : 'bg-slate-600 hover:bg-slate-700'
               }`}
             >
-              {isSubmitting ? 'Saving…' : editingId ? 'Update Schedule' : 'Schedule'}
+              {isSubmitting ? 'Saving…' : editingId ? 'Update Schedule' : 'Schedule (1 credit)'}
             </button>
           </div>
         </div>
