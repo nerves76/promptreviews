@@ -1,5 +1,42 @@
 # API Changelog
 
+## [2025-12-30]
+### Added - Credit Warning System
+**Comprehensive credit warning notifications across all scheduled features**
+
+**Cron Updates:**
+- `/api/cron/send-credit-warnings` - Complete rewrite to check all features
+  - Low balance warning: Triggers when balance < 20% of (monthly + purchased credits)
+  - Maximum 2 low balance warnings per billing period
+  - Skips free accounts (no monthly credits)
+  - Checks upcoming schedules for: geo-grid, rank tracking, LLM visibility, concept schedule, backlinks
+  - Sends `credit_warning_upcoming` notification 24h before scheduled check if insufficient credits
+
+- `/api/cron/refresh-monthly-credits` - Resets `low_balance_warning_count` when granting credits
+
+- `/api/cron/run-scheduled-geogrids` - Added `feature: 'geo_grid'` to skip notification
+
+- `/api/cron/run-scheduled-concepts` - Fixed key from `scheduleType` to `feature: 'concept_schedule'`
+
+- `/api/cron/run-scheduled-backlink-checks` - Added missing skip notification
+
+**Notification Updates (`/src/utils/notifications.ts`):**
+- New type: `credit_balance_low` - Low balance warning notification
+- Updated: `credit_warning_upcoming` - Now feature-aware with dynamic messages
+- Updated: `credit_check_skipped` - Now feature-aware with dynamic messages
+- All use `{{featureName}}` variable in email templates
+
+**Feature Names:**
+| Feature Key | Display Name |
+|-------------|--------------|
+| `geo_grid` | Local Ranking Grid |
+| `rank_tracking` | Rank Tracking |
+| `llm_visibility` | LLM Visibility |
+| `concept_schedule` | Concept Schedule |
+| `backlinks` | Backlink Check |
+
+**Documentation:** `/docs/CREDIT_WARNING_SYSTEM.md`
+
 ## [2025-12-28]
 ### Fixed - Keyword Data Consistency
 **batch-enrich API improvements (`/api/keywords/batch-enrich`):**

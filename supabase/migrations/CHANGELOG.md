@@ -1,5 +1,22 @@
 # Database Migrations Changelog
 
+## [2025-12-30]
+### Migrations Added
+
+#### 20260130000000_add_credit_balance_low_email_template.sql
+- **NEW FEATURE**: Credit warning email templates with feature awareness
+- **email_templates table**: Added `credit_balance_low` template for low balance warnings
+- **Updated templates**: `credit_warning_upcoming` and `credit_check_skipped` now use `{{featureName}}` variable
+- **Purpose**: Enable feature-specific credit warning emails (e.g., "Rank Tracking Check Skipped" vs generic message)
+- **Related Documentation**: `/docs/CREDIT_WARNING_SYSTEM.md`
+
+#### 20260130000001_add_low_balance_warning_count.sql
+- **NEW FEATURE**: Track low balance warning frequency per billing period
+- **accounts table**: Added `low_balance_warning_count` column (INTEGER, DEFAULT 0)
+- **Purpose**: Limit low balance warnings to max 2 per billing period to avoid spam
+- **Reset**: Counter resets when monthly credits are granted via `refresh-monthly-credits` cron
+- **Related Documentation**: `/docs/CREDIT_WARNING_SYSTEM.md`
+
 ## [2025-12-28]
 ### Migrations Added
 

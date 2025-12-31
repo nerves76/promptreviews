@@ -47,6 +47,15 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Feed not found' }, { status: 404 });
     }
 
+    // First count how many failed items exist
+    const { count: totalFailed } = await supabase
+      .from('rss_feed_items')
+      .select('*', { count: 'exact', head: true })
+      .eq('feed_source_id', id)
+      .eq('status', 'failed');
+
+    console.log(`[RSS Clear Failed] Found ${totalFailed} failed items for feed ${id}`);
+
     // Delete failed items
     const { data: deleted, error: deleteError } = await supabase
       .from('rss_feed_items')
@@ -58,14 +67,17 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     if (deleteError) {
       console.error('[RSS Clear Failed] Delete error:', deleteError);
       return NextResponse.json(
-        { error: 'Failed to clear items' },
+        { error: `Failed to clear items: ${deleteError.message}` },
         { status: 500 }
       );
     }
 
+    console.log(`[RSS Clear Failed] Deleted ${deleted?.length || 0} of ${totalFailed} failed items`);
+
     return NextResponse.json({
       success: true,
       clearedCount: deleted?.length || 0,
+      totalFailed: totalFailed || 0,
     });
   } catch (error) {
     console.error('[RSS Clear Failed] Unexpected error:', error);

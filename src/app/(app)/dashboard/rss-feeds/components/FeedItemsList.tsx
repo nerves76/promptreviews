@@ -14,6 +14,7 @@ export default function FeedItemsList({ feedId }: FeedItemsListProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [clearing, setClearing] = useState(false);
+  const [clearMessage, setClearMessage] = useState<string | null>(null);
 
   const fetchItems = async () => {
     try {
@@ -38,12 +39,22 @@ export default function FeedItemsList({ feedId }: FeedItemsListProps) {
 
   const handleClearFailed = async () => {
     setClearing(true);
+    setClearMessage(null);
     try {
-      await apiClient.delete(`/rss-feeds/${feedId}/clear-failed`);
+      const result = await apiClient.delete<{ success: boolean; clearedCount: number; totalFailed: number }>(
+        `/rss-feeds/${feedId}/clear-failed`
+      );
+      const msg = result.clearedCount === result.totalFailed
+        ? `Cleared ${result.clearedCount} failed items`
+        : `Cleared ${result.clearedCount} of ${result.totalFailed} failed items`;
+      setClearMessage(msg);
       // Refresh the list
       await fetchItems();
-    } catch (err) {
+      // Clear message after 3 seconds
+      setTimeout(() => setClearMessage(null), 3000);
+    } catch (err: any) {
       console.error("Failed to clear failed items:", err);
+      setClearMessage(`Error: ${err.message || 'Failed to clear items'}`);
     } finally {
       setClearing(false);
     }
@@ -145,6 +156,15 @@ export default function FeedItemsList({ feedId }: FeedItemsListProps) {
           </button>
         )}
       </div>
+      {clearMessage && (
+        <div className={`mb-3 px-3 py-2 text-sm rounded-lg ${
+          clearMessage.startsWith('Error')
+            ? 'bg-red-50 text-red-700'
+            : 'bg-green-50 text-green-700'
+        }`}>
+          {clearMessage}
+        </div>
+      )}
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
