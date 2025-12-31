@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/auth/providers/supabase';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 import { transformFeedSource } from '@/features/rss-feeds/services/feedProcessor';
+import { parseFeed } from '@/features/rss-feeds/services/rssParser';
 import {
   CreateFeedRequest,
   RSS_LIMITS,
@@ -198,10 +199,54 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Auto-fetch and populate initial items so user can immediately browse
+    let initialItemCount = 0;
+    try {
+      console.log('[RSS Feeds] Fetching initial items for new feed...');
+      const parsedFeed = await parseFeed(body.feedUrl);
+
+      if (parsedFeed.items.length > 0) {
+        // Create initial_sync items for all existing RSS items
+        const itemsToInsert = parsedFeed.items.map((item) => ({
+          feed_source_id: feed.id,
+          item_guid: item.guid,
+          item_url: item.link,
+          title: item.title,
+          description: item.description?.substring(0, 500),
+          image_url: item.imageUrl,
+          published_at: item.pubDate?.toISOString() || null,
+          status: 'initial_sync',
+          skip_reason: 'first_sync',
+          discovered_at: new Date().toISOString(),
+        }));
+
+        const { error: itemsError } = await supabase
+          .from('rss_feed_items')
+          .insert(itemsToInsert);
+
+        if (itemsError) {
+          console.error('[RSS Feeds] Error creating initial items:', itemsError);
+        } else {
+          initialItemCount = itemsToInsert.length;
+          console.log(`[RSS Feeds] Created ${initialItemCount} initial_sync items`);
+        }
+
+        // Update last_polled_at to mark initial sync complete
+        await supabase
+          .from('rss_feed_sources')
+          .update({ last_polled_at: new Date().toISOString() })
+          .eq('id', feed.id);
+      }
+    } catch (fetchError) {
+      // Don't fail the whole request if initial fetch fails
+      console.error('[RSS Feeds] Error fetching initial items:', fetchError);
+    }
+
     return NextResponse.json(
       {
         success: true,
         feed: transformFeedSource(feed),
+        initialItemCount,
       },
       { status: 201 }
     );
