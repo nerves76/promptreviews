@@ -32,6 +32,7 @@ export default function RssFeedsPage() {
   const [browsingFeed, setBrowsingFeed] = useState<RssFeedSource | null>(null);
   const [expandedFeedId, setExpandedFeedId] = useState<string | null>(null);
   const [processingFeedId, setProcessingFeedId] = useState<string | null>(null);
+  const [resettingFeedId, setResettingFeedId] = useState<string | null>(null);
 
   // Fetch feeds
   const fetchFeeds = useCallback(async () => {
@@ -128,6 +129,35 @@ export default function RssFeedsPage() {
       setError(errorMessage);
     } finally {
       setProcessingFeedId(null);
+    }
+  };
+
+  // Reset feed - clear all items and re-sync
+  const handleResetFeed = async (feedId: string) => {
+    if (!confirm("Reset this feed? This will delete all scheduled posts from this feed and re-sync items as 'Available'.")) {
+      return;
+    }
+
+    setResettingFeedId(feedId);
+    try {
+      const response = await apiClient.post<{
+        success: boolean;
+        message: string;
+        itemCount: number;
+        deletedScheduledPosts: number;
+      }>(`/rss-feeds/${feedId}/reset`);
+
+      if (response.success) {
+        setSuccess(response.message);
+        fetchFeeds();
+      }
+    } catch (err: unknown) {
+      console.error("Failed to reset feed:", err);
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to reset feed";
+      setError(errorMessage);
+    } finally {
+      setResettingFeedId(null);
     }
   };
 
@@ -355,6 +385,18 @@ export default function RssFeedsPage() {
                         title="Edit feed"
                       >
                         <Icon name="FaEdit" size={14} />
+                      </button>
+                      <button
+                        onClick={() => handleResetFeed(feed.id)}
+                        className="px-2 py-1 text-xs text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                        title="Reset feed - clear all and re-sync as Available"
+                        disabled={resettingFeedId === feed.id}
+                      >
+                        {resettingFeedId === feed.id ? (
+                          <Icon name="FaSpinner" size={12} className="animate-spin" />
+                        ) : (
+                          "Reset"
+                        )}
                       </button>
                       <button
                         onClick={() => handleDeleteFeed(feed.id)}
