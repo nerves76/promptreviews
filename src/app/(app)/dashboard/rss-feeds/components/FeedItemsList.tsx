@@ -82,6 +82,12 @@ export default function FeedItemsList({ feedId }: FeedItemsListProps) {
             Failed
           </span>
         );
+      case "initial_sync":
+        return (
+          <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-blue-100 text-blue-700">
+            Available
+          </span>
+        );
       case "pending":
       default:
         return (

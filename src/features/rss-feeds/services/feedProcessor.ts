@@ -39,14 +39,6 @@ export async function processFeed(
   };
 
   try {
-    // Check if we've hit the daily limit
-    const postsRemaining = await getPostsRemainingToday(supabase, feedSource);
-    if (postsRemaining <= 0) {
-      result.errors.push('Daily post limit reached');
-      await updateFeedLastPolled(supabase, feedSource.id, null);
-      return result;
-    }
-
     // Fetch and parse the feed
     const feed = await parseFeed(feedSource.feedUrl);
     result.itemsDiscovered = feed.items.length;
@@ -54,10 +46,38 @@ export async function processFeed(
     // Get existing item guids to avoid duplicates
     const existingGuids = await getExistingItemGuids(supabase, feedSource.id);
 
-    // Filter to only new items
+    // Filter to only new items (not in our database)
     const newItems = feed.items.filter(
       (item) => !existingGuids.has(item.guid)
     );
+
+    // IMPORTANT: Check if this is the FIRST sync for this feed
+    // If no items exist in our database, this is initial sync - we should NOT auto-post
+    // Instead, mark all items as "initial_sync" so users can manually choose which to post
+    const isFirstSync = existingGuids.size === 0 && newItems.length > 0;
+
+    if (isFirstSync) {
+      console.log(`[RSS] First sync for feed ${feedSource.feedName} - marking ${newItems.length} items as initial_sync (not auto-posting)`);
+
+      // Mark all items as initial_sync - user can manually schedule via Browse
+      for (const item of newItems) {
+        await createFeedItem(supabase, feedSource.id, item, 'initial_sync', 'first_sync');
+        result.itemsSkipped++;
+      }
+
+      // Update feed source - success but no posts
+      await updateFeedLastPolled(supabase, feedSource.id, null);
+      return result;
+    }
+
+    // Not first sync - process normally but only for truly NEW items
+    // Check if we've hit the daily limit
+    const postsRemaining = await getPostsRemainingToday(supabase, feedSource);
+    if (postsRemaining <= 0) {
+      result.errors.push('Daily post limit reached');
+      await updateFeedLastPolled(supabase, feedSource.id, null);
+      return result;
+    }
 
     // Process each new item (limited by daily quota)
     let processedCount = 0;
@@ -304,7 +324,7 @@ async function createFeedItem(
   supabase: SupabaseClient,
   feedSourceId: string,
   item: ParsedFeedItem,
-  status: 'pending' | 'scheduled' | 'skipped' | 'failed',
+  status: 'pending' | 'scheduled' | 'skipped' | 'failed' | 'initial_sync',
   skipReason: string | null = null,
   errorMessage: string | null = null,
   scheduledPostId: string | null = null
