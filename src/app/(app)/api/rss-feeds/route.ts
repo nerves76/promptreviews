@@ -59,9 +59,10 @@ export async function GET(request: NextRequest) {
       feeds: transformedFeeds,
     });
   } catch (error) {
-    console.error('[RSS Feeds] Unexpected error:', error);
+    console.error('[RSS Feeds] Unexpected error in POST:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: `Internal server error: ${errorMessage}` },
       { status: 500 }
     );
   }
@@ -162,27 +163,37 @@ export async function POST(request: NextRequest) {
     }
 
     // Create the feed
+    const insertPayload = {
+      account_id: accountId,
+      feed_url: body.feedUrl,
+      feed_name: body.feedName,
+      polling_interval_minutes: pollingInterval,
+      post_template: body.postTemplate || '{title}\n\n{description}',
+      include_link: body.includeLink ?? true,
+      max_content_length: body.maxContentLength || 1500,
+      target_locations: body.targetLocations || [],
+      additional_platforms: body.additionalPlatforms || {},
+      is_active: body.isActive ?? true,
+    };
+
+    console.log('[RSS Feeds] Creating feed with payload:', JSON.stringify(insertPayload, null, 2));
+
     const { data: feed, error } = await supabase
       .from('rss_feed_sources')
-      .insert({
-        account_id: accountId,
-        feed_url: body.feedUrl,
-        feed_name: body.feedName,
-        polling_interval_minutes: pollingInterval,
-        post_template: body.postTemplate || '{title}\n\n{description}',
-        include_link: body.includeLink ?? true,
-        max_content_length: body.maxContentLength || 1500,
-        target_locations: body.targetLocations || [],
-        additional_platforms: body.additionalPlatforms || {},
-        is_active: body.isActive ?? true,
-      })
+      .insert(insertPayload)
       .select()
       .single();
 
     if (error) {
       console.error('[RSS Feeds] Error creating feed:', error);
+      console.error('[RSS Feeds] Error details:', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code,
+      });
       return NextResponse.json(
-        { error: 'Failed to create feed' },
+        { error: `Failed to create feed: ${error.message}` },
         { status: 500 }
       );
     }
@@ -195,9 +206,10 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (error) {
-    console.error('[RSS Feeds] Unexpected error:', error);
+    console.error('[RSS Feeds] Unexpected error in POST:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: `Internal server error: ${errorMessage}` },
       { status: 500 }
     );
   }

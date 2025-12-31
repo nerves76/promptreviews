@@ -24,7 +24,8 @@ export type NotificationType =
   | 'system_announcement'
   | 'review_auto_verified'
   | 'credit_warning_upcoming'
-  | 'credit_check_skipped';
+  | 'credit_check_skipped'
+  | 'credit_balance_low';
 
 export interface NotificationData {
   [key: string]: any;
@@ -162,9 +163,28 @@ export const NOTIFICATION_REGISTRY: Record<NotificationType, NotificationConfig>
   'credit_warning_upcoming': {
     inAppPrefField: 'in_app_credit_warnings',
     emailPrefField: 'email_credit_warnings',
-    getTitle: () => 'Low Credit Balance',
-    getMessage: (data) =>
-      `Your scheduled Local Ranking Grid check needs ${data.required} credits but you only have ${data.available}.`,
+    getTitle: (data) => {
+      const featureNames: Record<string, string> = {
+        geo_grid: 'Local Ranking Grid',
+        rank_tracking: 'Rank Tracking',
+        llm_visibility: 'LLM Visibility',
+        concept_schedule: 'Concept Schedule',
+        backlinks: 'Backlink Check',
+      };
+      const feature = featureNames[data.feature] || 'Scheduled Check';
+      return `Low Credits for ${feature}`;
+    },
+    getMessage: (data) => {
+      const featureNames: Record<string, string> = {
+        geo_grid: 'Local Ranking Grid',
+        rank_tracking: 'Rank Tracking',
+        llm_visibility: 'LLM Visibility',
+        concept_schedule: 'Concept Schedule',
+        backlinks: 'Backlink Check',
+      };
+      const feature = featureNames[data.feature] || 'scheduled check';
+      return `Your upcoming ${feature.toLowerCase()} needs ${data.required} credits but you only have ${data.available}.`;
+    },
     actionUrl: '/dashboard/credits',
     actionLabel: 'Buy Credits',
     getEmailVariables: (data, baseUrl) => ({
@@ -172,6 +192,13 @@ export const NOTIFICATION_REGISTRY: Record<NotificationType, NotificationConfig>
       required: data.required,
       available: data.available,
       scheduledFor: data.scheduledFor || 'soon',
+      featureName: data.feature ? {
+        geo_grid: 'Local Ranking Grid',
+        rank_tracking: 'Rank Tracking',
+        llm_visibility: 'LLM Visibility',
+        concept_schedule: 'Concept Schedule',
+        backlinks: 'Backlink Check',
+      }[data.feature] || 'scheduled check' : 'scheduled check',
       buyCreditsUrl: `${baseUrl}/dashboard/credits`,
       year: new Date().getFullYear(),
     }),
@@ -180,15 +207,59 @@ export const NOTIFICATION_REGISTRY: Record<NotificationType, NotificationConfig>
   'credit_check_skipped': {
     inAppPrefField: 'in_app_credit_warnings',
     emailPrefField: 'email_credit_warnings',
-    getTitle: () => 'Local Ranking Grid Check Skipped',
-    getMessage: (data) =>
-      `Your scheduled Local Ranking Grid check was skipped - needed ${data.required} credits but only ${data.available} available.`,
+    getTitle: (data) => {
+      const featureNames: Record<string, string> = {
+        geo_grid: 'Local Ranking Grid',
+        rank_tracking: 'Rank Tracking',
+        llm_visibility: 'LLM Visibility',
+        concept_schedule: 'Concept Schedule',
+        backlinks: 'Backlink Check',
+      };
+      const feature = featureNames[data.feature] || 'Scheduled Check';
+      return `${feature} Check Skipped`;
+    },
+    getMessage: (data) => {
+      const featureNames: Record<string, string> = {
+        geo_grid: 'Local Ranking Grid',
+        rank_tracking: 'Rank Tracking',
+        llm_visibility: 'LLM Visibility',
+        concept_schedule: 'Concept Schedule',
+        backlinks: 'Backlink Check',
+      };
+      const feature = featureNames[data.feature] || 'scheduled check';
+      return `Your ${feature.toLowerCase()} was skipped - needed ${data.required} credits but only ${data.available} available.`;
+    },
     actionUrl: '/dashboard/credits',
     actionLabel: 'Buy Credits',
     getEmailVariables: (data, baseUrl) => ({
       firstName: data.firstName || 'there',
       required: data.required,
       available: data.available,
+      featureName: data.feature ? {
+        geo_grid: 'Local Ranking Grid',
+        rank_tracking: 'Rank Tracking',
+        llm_visibility: 'LLM Visibility',
+        concept_schedule: 'Concept Schedule',
+        backlinks: 'Backlink Check',
+      }[data.feature] || 'scheduled check' : 'scheduled check',
+      buyCreditsUrl: `${baseUrl}/dashboard/credits`,
+      year: new Date().getFullYear(),
+    }),
+  },
+
+  'credit_balance_low': {
+    inAppPrefField: 'in_app_credit_warnings',
+    emailPrefField: 'email_credit_warnings',
+    getTitle: () => 'Credit balance low',
+    getMessage: (data) =>
+      `Your credit balance (${data.available}) is below 20% of your monthly allocation. Consider purchasing more credits to avoid interruption to scheduled checks.`,
+    actionUrl: '/dashboard/credits',
+    actionLabel: 'Buy Credits',
+    getEmailVariables: (data, baseUrl) => ({
+      firstName: data.firstName || 'there',
+      available: data.available,
+      monthlyCredits: data.monthlyCredits,
+      threshold: data.threshold,
       buyCreditsUrl: `${baseUrl}/dashboard/credits`,
       year: new Date().getFullYear(),
     }),
