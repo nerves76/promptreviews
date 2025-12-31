@@ -178,13 +178,20 @@ function isImageUrl(url: string): boolean {
 
 /**
  * Extract image URL from item
- * Checks enclosure, media:content, media:thumbnail, itunes:image
+ * Priority: content images > enclosure > itunes:image > media:content > media:thumbnail
  * Skips non-image media (audio, video) commonly found in podcast feeds
  */
 function extractImageUrl(item: Parser.Item): string | null {
   const typedItem = item as Record<string, unknown>;
 
-  // Check enclosure - only if it's an image type
+  // 1. First priority: image embedded in content (most specific to this post)
+  const content = item.content || (typedItem['content:encoded'] as string) || item.summary || '';
+  const imgMatch = content.match(/<img[^>]+src=["']([^"']+)["']/i);
+  if (imgMatch?.[1]) {
+    return imgMatch[1];
+  }
+
+  // 2. Check enclosure - only if it's an image type
   // Podcasts use enclosure for audio files, so we must filter by MIME type
   const enclosure = typedItem.enclosure as { url?: string; type?: string } | undefined;
   if (enclosure?.url) {
@@ -199,7 +206,7 @@ function extractImageUrl(item: Parser.Item): string | null {
     // Otherwise skip (likely audio/video)
   }
 
-  // Check itunes:image (common in podcast feeds for artwork)
+  // 3. Check itunes:image (common in podcast feeds for episode artwork)
   const itunesImage = typedItem.itunesImage as { $?: { href?: string } } | string | undefined;
   if (itunesImage) {
     if (typeof itunesImage === 'string') {
@@ -210,7 +217,7 @@ function extractImageUrl(item: Parser.Item): string | null {
     }
   }
 
-  // Check media:content - only images
+  // 4. Check media:content - only images
   const mediaContent = typedItem.mediaContent as Array<{ $?: { url?: string; medium?: string; type?: string } }> | undefined;
   if (mediaContent && Array.isArray(mediaContent)) {
     for (const media of mediaContent) {
@@ -226,20 +233,13 @@ function extractImageUrl(item: Parser.Item): string | null {
     }
   }
 
-  // Check media:thumbnail (always images)
+  // 5. Check media:thumbnail (always images)
   const mediaThumbnail = typedItem.mediaThumbnail as Array<{ $?: { url?: string } }> | undefined;
   if (mediaThumbnail && Array.isArray(mediaThumbnail)) {
     const thumb = mediaThumbnail[0];
     if (thumb?.$?.url) {
       return thumb.$.url;
     }
-  }
-
-  // Try to extract first image from content/description
-  const content = item.content || (typedItem['content:encoded'] as string) || item.summary || '';
-  const imgMatch = content.match(/<img[^>]+src=["']([^"']+)["']/i);
-  if (imgMatch?.[1]) {
-    return imgMatch[1];
   }
 
   return null;
