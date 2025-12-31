@@ -183,27 +183,28 @@ export default function OverviewStats({
     <div ref={animationRef} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* Review Progress Chart */}
       <div className="lg:col-span-2 bg-white rounded-lg border border-gray-200 p-6">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <div className="flex items-start gap-1">
-              <h2 className="text-xl font-bold text-slate-blue">Review progress</h2>
-              <div className="flex-shrink-0 mt-0.5">
-                <GBPHelpBubble
-                  metric="metrics/monthly-patterns"
-                  tooltip="Understanding review patterns"
-                  size="sm"
-                />
+        <div className="flex flex-col gap-4 mb-6">
+          {/* Top row: Title and Load Data button */}
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="flex items-start gap-1">
+                <h2 className="text-xl font-bold text-slate-blue">Review progress</h2>
+                <div className="flex-shrink-0 mt-0.5">
+                  <GBPHelpBubble
+                    metric="metrics/monthly-patterns"
+                    tooltip="Understanding review patterns"
+                    size="sm"
+                  />
+                </div>
               </div>
+              <p className="text-sm text-gray-500">Last 12 months</p>
             </div>
-            <p className="text-sm text-gray-500">Last 12 months</p>
-          </div>
-          <div className="flex items-center space-x-4">
             {/* Load Data Button - Always visible when onLoadData is provided */}
             {onLoadData && (
               <button
                 onClick={onLoadData}
                 disabled={isLoading}
-                className={`flex items-center space-x-2 px-3 py-1.5 text-sm rounded-md border relative overflow-hidden transition-all duration-300 ${
+                className={`flex items-center space-x-2 px-3 py-1.5 text-sm rounded-md border relative overflow-hidden transition-all duration-300 flex-shrink-0 ${
                   isLoading
                     ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed'
                     : `bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 shine-button`
@@ -223,33 +224,33 @@ export default function OverviewStats({
                 )}
               </button>
             )}
-            
-            {/* Legend */}
-            <div className="flex items-center space-x-4 text-sm">
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                <span className="text-gray-600">5 Star</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-                <span className="text-gray-600">4 Star</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
-                <span className="text-gray-600">3 Star</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-orange-400 rounded-full"></div>
-                <span className="text-gray-600">2 Star</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                <span className="text-gray-600">1 Star</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-gray-400 rounded-full"></div>
-                <span className="text-gray-600">No rating</span>
-              </div>
+          </div>
+
+          {/* Legend - wraps on smaller screens */}
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+            <div className="flex items-center space-x-1.5">
+              <div className="w-2.5 h-2.5 bg-green-500 rounded-full flex-shrink-0"></div>
+              <span className="text-gray-600">5 Star</span>
+            </div>
+            <div className="flex items-center space-x-1.5">
+              <div className="w-2.5 h-2.5 bg-green-400 rounded-full flex-shrink-0"></div>
+              <span className="text-gray-600">4 Star</span>
+            </div>
+            <div className="flex items-center space-x-1.5">
+              <div className="w-2.5 h-2.5 bg-yellow-400 rounded-full flex-shrink-0"></div>
+              <span className="text-gray-600">3 Star</span>
+            </div>
+            <div className="flex items-center space-x-1.5">
+              <div className="w-2.5 h-2.5 bg-orange-400 rounded-full flex-shrink-0"></div>
+              <span className="text-gray-600">2 Star</span>
+            </div>
+            <div className="flex items-center space-x-1.5">
+              <div className="w-2.5 h-2.5 bg-red-500 rounded-full flex-shrink-0"></div>
+              <span className="text-gray-600">1 Star</span>
+            </div>
+            <div className="flex items-center space-x-1.5">
+              <div className="w-2.5 h-2.5 bg-gray-400 rounded-full flex-shrink-0"></div>
+              <span className="text-gray-600">No rating</span>
             </div>
           </div>
         </div>
