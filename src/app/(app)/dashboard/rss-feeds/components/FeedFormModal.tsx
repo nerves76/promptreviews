@@ -443,18 +443,30 @@ export default function FeedFormModal({
                   </div>
                 </div>
 
-                {/* Active Toggle */}
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={isActive}
-                    onChange={(e) => setIsActive(e.target.checked)}
-                    className="rounded border-gray-300 text-slate-blue focus:ring-slate-blue"
-                  />
-                  <span className="text-sm text-gray-700">
-                    Feed is active (will be checked for new posts)
-                  </span>
-                </label>
+                {/* Active/Paused Toggle - Only show when editing */}
+                {isEditing && (
+                  <div className="pt-4 border-t border-gray-200">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-700">Feed status</p>
+                        <p className="text-xs text-gray-500">
+                          {isActive ? "Feed is being checked for new posts" : "Feed is paused and won't be checked"}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setIsActive(!isActive)}
+                        className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                          isActive
+                            ? "bg-green-100 text-green-700 hover:bg-green-200"
+                            : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                        }`}
+                      >
+                        {isActive ? "Active" : "Paused"}
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
