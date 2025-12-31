@@ -22,7 +22,7 @@ VALUES (
 
     <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 20px; margin: 20px 0;">
       <p style="margin: 0; font-weight: 600; color: #856404;">
-        ⚠️ Your credit balance (<strong>{{available}} credits</strong>) is below 20% of your monthly allocation.
+        ⚠️ Your credit balance (<strong>{{available}} credits</strong>) is running low.
       </p>
     </div>
 
@@ -44,7 +44,7 @@ VALUES (
 
 ⚠️ CREDIT BALANCE LOW
 
-Your credit balance ({{available}} credits) is below 20% of your monthly allocation.
+Your credit balance ({{available}} credits) is running low.
 
 To avoid interruption to your scheduled rank checks, geo-grid scans, and LLM visibility tracking, consider purchasing more credits.
 

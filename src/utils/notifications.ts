@@ -187,21 +187,24 @@ export const NOTIFICATION_REGISTRY: Record<NotificationType, NotificationConfig>
     },
     actionUrl: '/dashboard/credits',
     actionLabel: 'Buy Credits',
-    getEmailVariables: (data, baseUrl) => ({
-      firstName: data.firstName || 'there',
-      required: data.required,
-      available: data.available,
-      scheduledFor: data.scheduledFor || 'soon',
-      featureName: data.feature ? {
+    getEmailVariables: (data, baseUrl) => {
+      const featureNames: Record<string, string> = {
         geo_grid: 'Local Ranking Grid',
         rank_tracking: 'Rank Tracking',
         llm_visibility: 'LLM Visibility',
         concept_schedule: 'Concept Schedule',
         backlinks: 'Backlink Check',
-      }[data.feature] || 'scheduled check' : 'scheduled check',
-      buyCreditsUrl: `${baseUrl}/dashboard/credits`,
-      year: new Date().getFullYear(),
-    }),
+      };
+      return {
+        firstName: data.firstName || 'there',
+        required: data.required,
+        available: data.available,
+        scheduledFor: data.scheduledFor || 'soon',
+        featureName: data.feature ? featureNames[data.feature as string] || 'scheduled check' : 'scheduled check',
+        buyCreditsUrl: `${baseUrl}/dashboard/credits`,
+        year: new Date().getFullYear(),
+      };
+    },
   },
 
   'credit_check_skipped': {
@@ -231,20 +234,23 @@ export const NOTIFICATION_REGISTRY: Record<NotificationType, NotificationConfig>
     },
     actionUrl: '/dashboard/credits',
     actionLabel: 'Buy Credits',
-    getEmailVariables: (data, baseUrl) => ({
-      firstName: data.firstName || 'there',
-      required: data.required,
-      available: data.available,
-      featureName: data.feature ? {
+    getEmailVariables: (data, baseUrl) => {
+      const featureNames: Record<string, string> = {
         geo_grid: 'Local Ranking Grid',
         rank_tracking: 'Rank Tracking',
         llm_visibility: 'LLM Visibility',
         concept_schedule: 'Concept Schedule',
         backlinks: 'Backlink Check',
-      }[data.feature] || 'scheduled check' : 'scheduled check',
-      buyCreditsUrl: `${baseUrl}/dashboard/credits`,
-      year: new Date().getFullYear(),
-    }),
+      };
+      return {
+        firstName: data.firstName || 'there',
+        required: data.required,
+        available: data.available,
+        featureName: data.feature ? featureNames[data.feature as string] || 'scheduled check' : 'scheduled check',
+        buyCreditsUrl: `${baseUrl}/dashboard/credits`,
+        year: new Date().getFullYear(),
+      };
+    },
   },
 
   'credit_balance_low': {
@@ -252,13 +258,12 @@ export const NOTIFICATION_REGISTRY: Record<NotificationType, NotificationConfig>
     emailPrefField: 'email_credit_warnings',
     getTitle: () => 'Credit balance low',
     getMessage: (data) =>
-      `Your credit balance (${data.available}) is below 20% of your monthly allocation. Consider purchasing more credits to avoid interruption to scheduled checks.`,
+      `Your credit balance (${data.available} credits) is running low. Consider purchasing more credits to avoid interruption to scheduled checks.`,
     actionUrl: '/dashboard/credits',
     actionLabel: 'Buy Credits',
     getEmailVariables: (data, baseUrl) => ({
       firstName: data.firstName || 'there',
       available: data.available,
-      monthlyCredits: data.monthlyCredits,
       threshold: data.threshold,
       buyCreditsUrl: `${baseUrl}/dashboard/credits`,
       year: new Date().getFullYear(),

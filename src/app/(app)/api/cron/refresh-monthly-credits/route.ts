@@ -252,6 +252,12 @@ export async function GET(request: NextRequest) {
           })
           .eq('account_id', account.id);
 
+        // Reset low balance warning count for new billing period
+        await supabase
+          .from('accounts')
+          .update({ low_balance_warning_count: 0 })
+          .eq('id', account.id);
+
         console.log(`✅ [Monthly Credits] Granted ${monthlyCredits} credits to ${account.id} (${account.plan})`);
 
         results.processed++;

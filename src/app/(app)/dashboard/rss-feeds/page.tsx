@@ -276,8 +276,9 @@ export default function RssFeedsPage() {
                     )
                   }
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
+                  {/* Top row: feed info and status */}
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-start gap-3 min-w-0 flex-1">
                       <Icon
                         name={
                           expandedFeedId === feed.id
@@ -285,78 +286,86 @@ export default function RssFeedsPage() {
                             : "FaChevronRight"
                         }
                         size={14}
-                        className="text-gray-400"
+                        className="text-gray-400 mt-1 flex-shrink-0"
                       />
-                      <div>
+                      <div className="min-w-0">
                         <h3 className="font-medium text-gray-900">
                           {feed.feedName}
                         </h3>
-                        <p className="text-sm text-gray-500 truncate max-w-md">
+                        <p className="text-sm text-gray-500 truncate">
                           {feed.feedUrl}
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2 flex-shrink-0">
                       {getStatusBadge(feed)}
-                      <span className="text-sm text-gray-500">
+                      <span className="text-sm text-gray-500 hidden sm:inline">
                         Last polled: {formatLastPolled(feed.lastPolledAt)}
                       </span>
-                      <div
-                        className="flex items-center gap-1"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <button
-                          onClick={() => handleToggleActive(feed)}
-                          className="p-2 text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
-                          title={feed.isActive ? "Pause feed" : "Activate feed"}
-                        >
-                          <Icon
-                            name={feed.isActive ? "FaTimes" : "FaCheck"}
-                            size={14}
-                          />
-                        </button>
-                        <button
-                          onClick={() => handleProcessFeed(feed.id)}
-                          className="p-2 text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
-                          title="Process feed now"
-                          disabled={
-                            !feed.isActive || processingFeedId === feed.id
-                          }
-                        >
-                          {processingFeedId === feed.id ? (
-                            <Icon
-                              name="FaSpinner"
-                              size={14}
-                              className="animate-spin"
-                            />
-                          ) : (
-                            <Icon name="FaRedo" size={14} />
-                          )}
-                        </button>
-                        <button
-                          onClick={() => setBrowsingFeed(feed)}
-                          className="p-2 text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
-                          title="Browse & schedule items"
-                        >
-                          <Icon name="FaSearch" size={14} />
-                        </button>
-                        <button
-                          onClick={() => setEditingFeed(feed)}
-                          className="p-2 text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
-                          title="Edit feed"
-                        >
-                          <Icon name="FaEdit" size={14} />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteFeed(feed.id)}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                          title="Delete feed"
-                        >
-                          <Icon name="FaTrash" size={14} />
-                        </button>
-                      </div>
                     </div>
                   </div>
+
+                  {/* Bottom row: actions */}
+                  <div
+                    className="flex items-center justify-between mt-3 pt-3 border-t border-gray-200"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <span className="text-xs text-gray-500 sm:hidden">
+                      Last polled: {formatLastPolled(feed.lastPolledAt)}
+                    </span>
+                    <div className="flex items-center gap-1 ml-auto">
+                      <button
+                        onClick={() => handleToggleActive(feed)}
+                        className="p-2 text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
+                        title={feed.isActive ? "Pause feed" : "Activate feed"}
+                      >
+                        <Icon
+                          name={feed.isActive ? "FaTimes" : "FaCheck"}
+                          size={14}
+                        />
+                      </button>
+                      <button
+                        onClick={() => handleProcessFeed(feed.id)}
+                        className="p-2 text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
+                        title="Process feed now"
+                        disabled={
+                          !feed.isActive || processingFeedId === feed.id
+                        }
+                      >
+                        {processingFeedId === feed.id ? (
+                          <Icon
+                            name="FaSpinner"
+                            size={14}
+                            className="animate-spin"
+                          />
+                        ) : (
+                          <Icon name="FaRedo" size={14} />
+                        )}
+                      </button>
+                      <button
+                        onClick={() => setBrowsingFeed(feed)}
+                        className="p-2 text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
+                        title="Browse & schedule items"
+                      >
+                        <Icon name="FaSearch" size={14} />
+                      </button>
+                      <button
+                        onClick={() => setEditingFeed(feed)}
+                        className="p-2 text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
+                        title="Edit feed"
+                      >
+                        <Icon name="FaEdit" size={14} />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteFeed(feed.id)}
+                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Delete feed"
+                      >
+                        <Icon name="FaTrash" size={14} />
+                      </button>
+                    </div>
+                  </div>
+
                   {feed.lastError && (
                     <div className="mt-2 text-sm text-red-600 bg-red-50 p-2 rounded">
                       Error: {feed.lastError}
