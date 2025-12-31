@@ -15,6 +15,7 @@ export default function FeedItemsList({ feedId }: FeedItemsListProps) {
   const [error, setError] = useState<string | null>(null);
   const [clearing, setClearing] = useState(false);
   const [clearMessage, setClearMessage] = useState<string | null>(null);
+  const [unschedulingId, setUnschedulingId] = useState<string | null>(null);
 
   const fetchItems = async () => {
     try {
@@ -57,6 +58,24 @@ export default function FeedItemsList({ feedId }: FeedItemsListProps) {
       setClearMessage(`Error: ${err.message || 'Failed to clear items'}`);
     } finally {
       setClearing(false);
+    }
+  };
+
+  const handleUnschedule = async (itemId: string) => {
+    if (!confirm("Unschedule this item? The scheduled post will be deleted.")) {
+      return;
+    }
+
+    setUnschedulingId(itemId);
+    try {
+      await apiClient.post(`/rss-feeds/${feedId}/unschedule-item`, { itemId });
+      // Refresh the list
+      await fetchItems();
+    } catch (err: any) {
+      console.error("Failed to unschedule item:", err);
+      alert(err.message || "Failed to unschedule item");
+    } finally {
+      setUnschedulingId(null);
     }
   };
 
@@ -179,6 +198,7 @@ export default function FeedItemsList({ feedId }: FeedItemsListProps) {
               <th className="pb-2 font-medium">Published</th>
               <th className="pb-2 font-medium">Status</th>
               <th className="pb-2 font-medium">Processed</th>
+              <th className="pb-2 font-medium w-20"></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
@@ -237,6 +257,22 @@ export default function FeedItemsList({ feedId }: FeedItemsListProps) {
                     >
                       View post
                     </a>
+                  )}
+                </td>
+                <td className="py-3">
+                  {item.status === "scheduled" && (
+                    <button
+                      onClick={() => handleUnschedule(item.id)}
+                      disabled={unschedulingId === item.id}
+                      className="px-2 py-1 text-xs text-red-600 hover:bg-red-50 rounded transition-colors disabled:opacity-50"
+                      title="Unschedule this item"
+                    >
+                      {unschedulingId === item.id ? (
+                        <Icon name="FaSpinner" size={12} className="animate-spin" />
+                      ) : (
+                        "Unschedule"
+                      )}
+                    </button>
                   )}
                 </td>
               </tr>
