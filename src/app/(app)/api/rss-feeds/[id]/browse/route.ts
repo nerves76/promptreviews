@@ -19,7 +19,9 @@ export interface BrowseFeedItem {
   link: string;
   imageUrl: string | null;
   publishedAt: string | null;
-  alreadyScheduled: boolean;
+  // More detailed status info
+  existingStatus: 'scheduled' | 'initial_sync' | 'skipped' | 'failed' | null;
+  alreadyScheduled: boolean; // Kept for backward compatibility
 }
 
 /**
@@ -70,28 +72,31 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    // Get existing items to mark which are already scheduled
+    // Get existing items to mark their status
     const { data: existingItems } = await supabase
       .from('rss_feed_items')
       .select('item_guid, status')
       .eq('feed_source_id', id);
 
-    const scheduledGuids = new Set(
-      (existingItems || [])
-        .filter((item) => item.status === 'scheduled')
-        .map((item) => item.item_guid)
+    // Create a map for quick lookup
+    const statusMap = new Map(
+      (existingItems || []).map((item) => [item.item_guid, item.status])
     );
 
-    // Transform items with scheduled status
-    const items: BrowseFeedItem[] = parsedFeed.items.map((item) => ({
-      guid: item.guid,
-      title: item.title,
-      description: item.description,
-      link: item.link,
-      imageUrl: item.imageUrl,
-      publishedAt: item.pubDate ? item.pubDate.toISOString() : null,
-      alreadyScheduled: scheduledGuids.has(item.guid),
-    }));
+    // Transform items with status info
+    const items: BrowseFeedItem[] = parsedFeed.items.map((item) => {
+      const status = statusMap.get(item.guid) as BrowseFeedItem['existingStatus'] | undefined;
+      return {
+        guid: item.guid,
+        title: item.title,
+        description: item.description,
+        link: item.link,
+        imageUrl: item.imageUrl,
+        publishedAt: item.pubDate ? item.pubDate.toISOString() : null,
+        existingStatus: status || null,
+        alreadyScheduled: status === 'scheduled',
+      };
+    });
 
     // Sort by publish date (newest first)
     items.sort((a, b) => {
