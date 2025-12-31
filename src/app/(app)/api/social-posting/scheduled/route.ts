@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/auth/providers/supabase';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
+import { getBalance, debit, InsufficientCreditsError } from '@/lib/credits';
 import type {
   GoogleBusinessScheduledMediaDescriptor,
   GoogleBusinessScheduledPost,
@@ -161,6 +162,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check credit balance before scheduling
+    const balance = await getBalance(supabase, accountId);
+    if (balance.totalCredits < 1) {
+      return NextResponse.json(
+        { success: false, error: 'Insufficient credits. You need at least 1 credit to schedule a post.' },
+        { status: 402 }
+      );
+    }
+
     const postType = postKind === 'post' ? body.postType ?? 'WHATS_NEW' : null;
 
     // Prepare additional platforms data
@@ -217,6 +227,31 @@ export async function POST(request: NextRequest) {
           { success: false, error: 'Scheduled, but failed to initialize per-location tracking.' },
           { status: 500 }
         );
+      }
+    }
+
+    // Debit 1 credit for the scheduled post
+    const idempotencyKey = `scheduled_post:${scheduled.id}`;
+    try {
+      await debit(supabase, accountId, 1, {
+        featureType: 'scheduled_post',
+        idempotencyKey,
+        metadata: {
+          postId: scheduled.id,
+          postKind,
+          scheduledDate,
+          locationCount: locations.length,
+        },
+      });
+    } catch (creditError) {
+      // If credit debit fails, we still keep the post (it was already created)
+      // but log the error for investigation
+      if (creditError instanceof InsufficientCreditsError) {
+        // This shouldn't happen since we checked balance above, but handle gracefully
+        console.error('[Schedule] Credit debit failed - insufficient credits:', creditError);
+      } else {
+        // Idempotency errors are OK - post was already charged
+        console.log('[Schedule] Credit debit idempotency check:', creditError);
       }
     }
 

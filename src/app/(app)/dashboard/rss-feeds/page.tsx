@@ -14,6 +14,7 @@ import {
 import FeedFormModal from "./components/FeedFormModal";
 import FeedItemsList from "./components/FeedItemsList";
 import TestFeedModal from "./components/TestFeedModal";
+import BrowseFeedModal from "./components/BrowseFeedModal";
 
 export default function RssFeedsPage() {
   useAuthGuard();
@@ -28,6 +29,7 @@ export default function RssFeedsPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showTestModal, setShowTestModal] = useState(false);
   const [editingFeed, setEditingFeed] = useState<RssFeedSource | null>(null);
+  const [browsingFeed, setBrowsingFeed] = useState<RssFeedSource | null>(null);
   const [expandedFeedId, setExpandedFeedId] = useState<string | null>(null);
   const [processingFeedId, setProcessingFeedId] = useState<string | null>(null);
 
@@ -332,6 +334,13 @@ export default function RssFeedsPage() {
                           )}
                         </button>
                         <button
+                          onClick={() => setBrowsingFeed(feed)}
+                          className="p-2 text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
+                          title="Browse & schedule items"
+                        >
+                          <Icon name="FaSearch" size={14} />
+                        </button>
+                        <button
                           onClick={() => setEditingFeed(feed)}
                           className="p-2 text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
                           title="Edit feed"
@@ -403,7 +412,7 @@ export default function RssFeedsPage() {
             </li>
             <li>
               <Icon name="FaInfoCircle" size={12} className="inline mr-2 text-gray-400" />
-              Use the post template to customize how content appears
+              Audio and video files are not uploaded, only images
             </li>
           </ul>
         </div>
@@ -429,6 +438,18 @@ export default function RssFeedsPage() {
             setShowTestModal(false);
             setShowAddModal(true);
             // The form will be pre-filled via state
+          }}
+        />
+      )}
+
+      {browsingFeed && (
+        <BrowseFeedModal
+          feedId={browsingFeed.id}
+          feedName={browsingFeed.feedName}
+          onClose={() => setBrowsingFeed(null)}
+          onScheduled={() => {
+            setSuccess("Items scheduled successfully");
+            fetchFeeds();
           }}
         />
       )}
