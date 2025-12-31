@@ -32,7 +32,8 @@ body:before {
 
 /* Force remove gradient from min-h-screen class which is used by infographic */
 /* Exclude review-builder-container which needs its gradient */
-.min-h-screen:not(.review-builder-container),
+/* Exclude aside (sidebar) elements which need their background */
+.min-h-screen:not(.review-builder-container):not(aside),
 div.min-h-screen:not(.review-builder-container) {
   background: transparent !important;
   background-image: none !important;
