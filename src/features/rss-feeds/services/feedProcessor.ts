@@ -232,34 +232,39 @@ async function createScheduledPost(
   // Schedule for today (will be picked up by next daily cron)
   const today = new Date().toISOString().split('T')[0];
 
+  const insertPayload = {
+    account_id: feedSource.accountId,
+    user_id: accountUser.user_id,
+    post_kind: 'post',
+    post_type: 'WHATS_NEW',
+    content: {
+      summary: content,
+      metadata: {
+        source: 'rss_feed',
+        feedId: feedSource.id,
+        feedName: feedSource.feedName,
+        itemGuid: item.guid,
+        itemUrl: item.link,
+      },
+    },
+    scheduled_date: today,
+    timezone: 'UTC', // Use UTC for simplicity
+    selected_locations: feedSource.targetLocations,
+    media_paths: mediaPaths.length > 0 ? mediaPaths : [],
+    additional_platforms: feedSource.additionalPlatforms || {},
+    status: 'pending' as const,
+  };
+
+  console.log('[RSS] Creating scheduled post with payload:', JSON.stringify(insertPayload, null, 2));
+
   const { data: post, error } = await supabase
     .from('google_business_scheduled_posts')
-    .insert({
-      account_id: feedSource.accountId,
-      user_id: accountUser.user_id,
-      post_kind: 'post',
-      post_type: 'WHATS_NEW',
-      content: {
-        summary: content,
-        metadata: {
-          source: 'rss_feed',
-          feedId: feedSource.id,
-          feedName: feedSource.feedName,
-          itemGuid: item.guid,
-          itemUrl: item.link,
-        },
-      },
-      scheduled_date: today,
-      timezone: 'UTC', // Use UTC for simplicity
-      selected_locations: feedSource.targetLocations,
-      media_paths: mediaPaths.length > 0 ? mediaPaths : [],
-      additional_platforms: feedSource.additionalPlatforms || {},
-      status: 'pending',
-    })
+    .insert(insertPayload)
     .select('id')
     .single();
 
   if (error) {
+    console.error('[RSS] Insert error:', error);
     throw new Error(`Failed to create scheduled post: ${error.message}`);
   }
 
