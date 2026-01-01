@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Dialog } from "@headlessui/react";
 import Icon from "@/components/Icon";
+import HelpBubble from "@/components/ui/HelpBubble";
 import { apiClient } from "@/utils/apiClient";
 import {
   RssFeedSource,
@@ -251,8 +252,9 @@ export default function FeedFormModal({
               </Dialog.Title>
 
             {error && (
-              <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">
-                {error}
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm flex items-start gap-2">
+                <Icon name="FaExclamationTriangle" size={16} className="mt-0.5 flex-shrink-0" />
+                <span>{error}</span>
               </div>
             )}
 
@@ -268,8 +270,13 @@ export default function FeedFormModal({
               <div className="space-y-6">
                 {/* Feed URL */}
                 <div>
-                  <label className="block font-medium text-sm text-gray-700 mb-1">
+                  <label className="flex items-center gap-1.5 font-medium text-sm text-gray-700 mb-1">
                     Feed URL
+                    <HelpBubble
+                      articlePath="rss-feeds/finding-feed-urls"
+                      tooltip="How to find feed URLs"
+                      size="sm"
+                    />
                   </label>
                   <input
                     type="url"
@@ -366,6 +373,19 @@ export default function FeedFormModal({
                   <label className="block font-medium text-sm text-gray-700 mb-2">
                     Post to platforms
                   </label>
+
+                  {/* Warning if no platforms available */}
+                  {gbpLocations.length === 0 && blueskyConnections.length === 0 && (
+                    <div className="mb-4 p-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-lg text-sm flex items-start gap-2">
+                      <Icon name="FaExclamationTriangle" size={16} className="mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="font-medium">No platforms connected</p>
+                        <p className="text-amber-700 mt-1">
+                          Connect a Google Business Profile or Bluesky account first to use RSS auto-posting.
+                        </p>
+                      </div>
+                    </div>
+                  )}
 
                   {/* GBP Locations */}
                   {gbpLocations.length > 0 && (
@@ -551,8 +571,8 @@ export default function FeedFormModal({
               </button>
               <button
                 onClick={handleSave}
-                disabled={saving || loading}
-                className="px-4 py-2 text-sm font-medium text-white bg-slate-blue rounded-lg hover:bg-slate-blue/90 transition-colors disabled:opacity-50"
+                disabled={saving || loading || (gbpLocations.length === 0 && blueskyConnections.length === 0)}
+                className="px-4 py-2 text-sm font-medium text-white bg-slate-blue rounded-lg hover:bg-slate-blue/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {saving ? (
                   <>
