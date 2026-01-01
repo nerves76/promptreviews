@@ -28,7 +28,6 @@ import BusinessHealthMetrics from '@/components/GoogleBusinessProfile/BusinessHe
 import HelpModal from '@/app/(app)/components/help/HelpModal';
 import ButtonSpinner from '@/components/ButtonSpinner';
 import LocationPicker from '@/components/GoogleBusinessProfile/LocationPicker';
-import GoogleBusinessScheduler from '@/app/(app)/components/GoogleBusinessProfile/Scheduler/GoogleBusinessScheduler';
 import BlueskyConnection from '@/app/(app)/components/GoogleBusinessProfile/BlueskyConnection';
 import ProtectionTab from '@/components/GoogleBusinessProfile/ProtectionTab';
 import { exportOverviewToPDF } from '@/utils/googleBusinessProfile/pdfExport';
@@ -298,12 +297,12 @@ export default function SocialPostingDashboard() {
   }, [imageUrls]);
 
   // Tab state with URL parameter support and dynamic default based on connection
-  const [activeTab, setActiveTab] = useState<'connect' | 'overview' | 'create-post' | 'schedule' | 'photos' | 'business-info' | 'services' | 'more' | 'reviews' | 'protection'>(() => {
+  const [activeTab, setActiveTab] = useState<'connect' | 'overview' | 'create-post' | 'photos' | 'business-info' | 'services' | 'more' | 'reviews' | 'protection'>(() => {
     // Initialize from URL parameter if available
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
-      const tabParam = urlParams.get('tab') as 'connect' | 'overview' | 'create-post' | 'schedule' | 'photos' | 'business-info' | 'services' | 'more' | 'reviews' | 'protection';
-      if (tabParam && ['connect', 'overview', 'create-post', 'schedule', 'photos', 'business-info', 'services', 'more', 'reviews', 'protection'].includes(tabParam)) {
+      const tabParam = urlParams.get('tab') as 'connect' | 'overview' | 'create-post' | 'photos' | 'business-info' | 'services' | 'more' | 'reviews' | 'protection';
+      if (tabParam && ['connect', 'overview', 'create-post', 'photos', 'business-info', 'services', 'more', 'reviews', 'protection'].includes(tabParam)) {
         return tabParam;
       }
     }
@@ -338,7 +337,7 @@ export default function SocialPostingDashboard() {
   }, [currentPlan]);
 
   // Update URL when tab changes
-  const changeTab = (newTab: 'connect' | 'overview' | 'create-post' | 'schedule' | 'photos' | 'business-info' | 'services' | 'more' | 'reviews' | 'protection') => {
+  const changeTab = (newTab: 'connect' | 'overview' | 'create-post' | 'photos' | 'business-info' | 'services' | 'more' | 'reviews' | 'protection') => {
     setActiveTab(newTab);
     setIsMobileMenuOpen(false); // Close mobile menu when tab changes
     
@@ -1886,7 +1885,6 @@ export default function SocialPostingDashboard() {
                 {activeTab === 'connect' && 'Connect'}
                 {activeTab === 'overview' && 'Overview'}
                 {activeTab === 'create-post' && 'Post'}
-                {activeTab === 'schedule' && 'Schedule'}
                 {activeTab === 'photos' && 'Photos'}
                 {activeTab === 'business-info' && 'Business Info'}
                 {activeTab === 'services' && 'Services'}
@@ -1955,17 +1953,6 @@ export default function SocialPostingDashboard() {
                 } ${(!isConnected || locations.length === 0) ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 Post
-              </button>
-              <button
-                onClick={() => changeTab('schedule')}
-                disabled={!isConnected || locations.length === 0}
-                className={`py-2 px-3 border-b-2 font-medium text-sm rounded-t-md transition-colors whitespace-nowrap ${
-                  activeTab === 'schedule' && isConnected && locations.length > 0
-                    ? 'border-slate-blue text-slate-blue bg-white shadow-sm'
-                    : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-100'
-                } ${(!isConnected || locations.length === 0) ? 'opacity-50 cursor-not-allowed' : ''}`}
-              >
-                Schedule
               </button>
               <button
                 onClick={() => changeTab('photos')}
@@ -2097,19 +2084,6 @@ export default function SocialPostingDashboard() {
                     }`}
                   >
                     Post
-                  </button>
-                  <button
-                    onClick={() => changeTab('schedule')}
-                    disabled={!isConnected}
-                    className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium ${
-                      activeTab === 'schedule' && isConnected
-                        ? 'bg-slate-blue text-white'
-                        : isConnected 
-                          ? 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                          : 'text-gray-500 cursor-not-allowed'
-                    }`}
-                  >
-                    Schedule
                   </button>
                   <button
                     onClick={() => changeTab('photos')}
@@ -2943,17 +2917,6 @@ export default function SocialPostingDashboard() {
                 </div>
               )}
             </div>
-          )}
-
-          {activeTab === 'schedule' && selectedAccountId && (
-            <GoogleBusinessScheduler
-              locations={scopedLocations}
-              initialLocationIds={selectedLocations}
-              isConnected={isConnected}
-              maxLocations={planLocationLimit ?? undefined}
-              minimumDate={todayIso}
-              accountId={selectedAccountId}
-            />
           )}
 
           {activeTab === 'photos' && (
