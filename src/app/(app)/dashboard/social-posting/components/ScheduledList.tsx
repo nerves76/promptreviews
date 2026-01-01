@@ -4,6 +4,7 @@ import { useState } from "react";
 import Icon from "@/components/Icon";
 import { apiClient } from "@/utils/apiClient";
 import type { GoogleBusinessScheduledPost } from "@/features/social-posting";
+import EditScheduleModal from "./EditScheduleModal";
 
 interface ScheduledListProps {
   posts: GoogleBusinessScheduledPost[];
@@ -28,6 +29,7 @@ export default function ScheduledList({
   onError,
 }: ScheduledListProps) {
   const [cancellingId, setCancellingId] = useState<string | null>(null);
+  const [editingPost, setEditingPost] = useState<GoogleBusinessScheduledPost | null>(null);
 
   const handleCancel = async (postId: string) => {
     if (!confirm("Are you sure you want to cancel this scheduled post?")) {
@@ -182,22 +184,48 @@ export default function ScheduledList({
               </div>
             </div>
 
-            {/* Cancel button */}
-            <button
-              onClick={() => handleCancel(post.id)}
-              disabled={cancellingId === post.id}
-              className="p-2 text-gray-400 hover:text-red-600 transition-colors disabled:opacity-50"
-              title="Cancel post"
-            >
-              {cancellingId === post.id ? (
-                <Icon name="FaSpinner" size={16} className="animate-spin" />
-              ) : (
-                <Icon name="FaTimes" size={16} />
+            {/* Action buttons */}
+            <div className="flex items-center gap-1">
+              {/* Edit button - only for pending posts */}
+              {post.status === "pending" && (
+                <button
+                  onClick={() => setEditingPost(post)}
+                  className="p-2 text-gray-400 hover:text-slate-blue transition-colors"
+                  title="Edit post"
+                >
+                  <Icon name="FaEdit" size={16} />
+                </button>
               )}
-            </button>
+              {/* Cancel button */}
+              <button
+                onClick={() => handleCancel(post.id)}
+                disabled={cancellingId === post.id}
+                className="p-2 text-gray-400 hover:text-red-600 transition-colors disabled:opacity-50"
+                title="Cancel post"
+              >
+                {cancellingId === post.id ? (
+                  <Icon name="FaSpinner" size={16} className="animate-spin" />
+                ) : (
+                  <Icon name="FaTimes" size={16} />
+                )}
+              </button>
+            </div>
           </div>
         </div>
       ))}
+
+      {/* Edit modal */}
+      {editingPost && (
+        <EditScheduleModal
+          post={editingPost}
+          isOpen={!!editingPost}
+          onClose={() => setEditingPost(null)}
+          onSave={() => {
+            setEditingPost(null);
+            onCancelComplete(); // Reuse this to refresh the list
+          }}
+        />
+      )}
     </div>
   );
 }
