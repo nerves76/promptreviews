@@ -65,6 +65,15 @@ export interface GoogleBusinessScheduledPost {
       enabled: boolean;
       connectionId: string;
     };
+    linkedin?: {
+      enabled: boolean;
+      connectionId: string;
+      targets?: Array<{
+        type: 'personal' | 'organization';
+        id: string;
+        name: string;
+      }>;
+    };
   };
 }
 

@@ -16,6 +16,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient, createServiceRoleClient } from '@/auth/providers/supabase';
 import { cookies } from 'next/headers';
+import { LinkedInAdapter, type LinkedInOrganization } from '@/features/social-posting/platforms/linkedin/LinkedInAdapter';
 
 // LinkedIn API endpoints
 const LINKEDIN_TOKEN_URL = 'https://www.linkedin.com/oauth/v2/accessToken';
@@ -207,6 +208,20 @@ export async function GET(request: NextRequest) {
       name: profile.name
     });
 
+    // Fetch admin organizations (if user has w_organization_social scope)
+    console.log('[LinkedIn Callback] Fetching admin organizations...');
+    let organizations: LinkedInOrganization[] = [];
+    try {
+      organizations = await LinkedInAdapter.getAdminOrganizations(tokens.access_token);
+      console.log('[LinkedIn Callback] Organizations fetched:', {
+        count: organizations.length,
+        orgs: organizations.map(o => ({ id: o.id, name: o.name }))
+      });
+    } catch (orgError) {
+      console.warn('[LinkedIn Callback] Failed to fetch organizations (non-fatal):', orgError);
+      // Continue without organizations - they can reconnect later if needed
+    }
+
     // Calculate token expiration
     const expiresAt = new Date(Date.now() + tokens.expires_in * 1000).toISOString();
 
@@ -241,14 +256,16 @@ export async function GET(request: NextRequest) {
             accessToken: tokens.access_token,
             refreshToken: tokens.refresh_token || null,
             expiresAt: expiresAt,
-            linkedinId: profile.sub
+            linkedinId: profile.sub,
+            organizations: organizations // Store admin organizations
           },
           metadata: {
             name: profile.name,
             handle: profile.name,
             linkedinId: profile.sub,
             picture: profile.picture || null,
-            email: profile.email || null
+            email: profile.email || null,
+            organizations: organizations // Also in metadata for easy access
           },
           status: 'active',
           last_validated_at: new Date().toISOString()
@@ -271,7 +288,8 @@ export async function GET(request: NextRequest) {
     console.log('[LinkedIn Callback] Connection saved successfully:', {
       connectionId: connection.id,
       accountId: stateData.accountId,
-      profileName: profile.name
+      profileName: profile.name,
+      organizationCount: organizations.length
     });
 
     // Redirect back to integrations page with success message

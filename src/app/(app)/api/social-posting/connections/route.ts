@@ -79,7 +79,9 @@ export async function GET(request: NextRequest) {
       displayName: conn.metadata?.displayName || conn.metadata?.teamName || null,
       connectedAt: conn.connected_at,
       lastValidatedAt: conn.last_validated_at,
-      error: conn.status === 'error' ? conn.error_message : null
+      error: conn.status === 'error' ? conn.error_message : null,
+      // Include organizations for LinkedIn connections
+      organizations: conn.platform === 'linkedin' ? (conn.metadata?.organizations || []) : undefined
     }));
 
     return NextResponse.json({

@@ -35,6 +35,11 @@ interface ScheduledJobRecord {
     linkedin?: {
       enabled: boolean;
       connectionId: string;
+      targets?: Array<{
+        type: 'personal' | 'organization';
+        id: string;
+        name: string;
+      }>;
     };
   } | null;
 }
@@ -269,6 +274,7 @@ async function processBlueskyPost(options: {
 /**
  * Post to LinkedIn using the LinkedInAdapter
  * Only supports 'post' kind, not 'photo' uploads
+ * @param targetAuthorUrn - Optional author URN for organization posting (urn:li:organization:XXX)
  */
 async function processLinkedInPost(options: {
   supabaseAdmin: ReturnType<typeof createServiceRoleClient>;
@@ -276,8 +282,9 @@ async function processLinkedInPost(options: {
   content: ScheduledJobRecord['content'];
   caption: string | null;
   media: GoogleBusinessScheduledMediaDescriptor[];
+  targetAuthorUrn?: string;
 }): Promise<{ success: boolean; postId?: string; error?: string }> {
-  const { supabaseAdmin, connectionId, content, caption, media } = options;
+  const { supabaseAdmin, connectionId, content, caption, media, targetAuthorUrn } = options;
 
   try {
     // Fetch LinkedIn connection credentials
@@ -369,14 +376,17 @@ async function processLinkedInPost(options: {
       .map((item) => item.publicUrl)
       .filter(Boolean);
 
-    // Create the post
-    const result = await adapter.createPost({
-      content: postText,
-      platforms: ['linkedin'],
-      mediaUrls: mediaUrls.length > 0 ? mediaUrls : undefined,
-      status: 'published',
-      callToAction: content?.callToAction || undefined,
-    });
+    // Create the post (pass targetAuthorUrn for organization posts)
+    const result = await adapter.createPost(
+      {
+        content: postText,
+        platforms: ['linkedin'],
+        mediaUrls: mediaUrls.length > 0 ? mediaUrls : undefined,
+        status: 'published',
+        callToAction: content?.callToAction || undefined,
+      },
+      targetAuthorUrn // Optional: for organization posting
+    );
 
     if (result.success) {
       return {
@@ -719,9 +729,11 @@ async function processJob(
   }
 
   // Process LinkedIn posting if enabled (only for 'post' kind)
-  let linkedinSuccess = false;
-  let linkedinError: string | null = null;
-  let linkedinPostId: string | null = null;
+  // Now supports multiple targets (personal profile + organizations)
+  let linkedinSuccessCount = 0;
+  let linkedinFailureCount = 0;
+  const linkedinErrors: Array<{ targetId: string; targetName: string; error: string }> = [];
+  const linkedinResults: Array<{ targetId: string; targetName: string; success: boolean; postId?: string }> = [];
 
   // Post to LinkedIn if enabled - either alongside GBP or standalone
   const shouldPostToLinkedIn =
@@ -731,47 +743,86 @@ async function processJob(
     (locations.length === 0 || successCount > 0 || blueskySuccess); // Either social-only OR at least one platform succeeded
 
   if (shouldPostToLinkedIn && job.additional_platforms?.linkedin?.connectionId) {
-    console.log(`[Cron] Attempting LinkedIn cross-post for job ${job.id}`);
     const linkedinConnectionId = job.additional_platforms.linkedin.connectionId;
+    const linkedinTargets = job.additional_platforms.linkedin.targets || [];
 
-    try {
-      const linkedinResult = await processLinkedInPost({
-        supabaseAdmin,
-        connectionId: linkedinConnectionId,
-        content: job.content,
-        caption: job.caption,
-        media: ensureArray(job.media_paths),
-      });
+    // If no targets specified (legacy), default to personal profile only
+    const targetsToProcess = linkedinTargets.length > 0
+      ? linkedinTargets
+      : [{ type: 'personal' as const, id: linkedinConnectionId, name: 'Personal Profile' }];
 
-      linkedinSuccess = linkedinResult.success;
-      linkedinPostId = linkedinResult.postId || null;
-      linkedinError = linkedinResult.error || null;
+    console.log(`[Cron] Attempting LinkedIn posts for job ${job.id} to ${targetsToProcess.length} target(s)`);
 
-      if (linkedinSuccess) {
-        console.log(`[Cron] LinkedIn post successful for job ${job.id}: ${linkedinPostId}`);
-      } else {
-        console.warn(`[Cron] LinkedIn post failed for job ${job.id}: ${linkedinError}`);
-      }
+    for (const target of targetsToProcess) {
+      try {
+        // For organization posts, use the org URN as the author
+        // For personal posts, don't pass targetAuthorUrn (adapter will use personal profile)
+        const targetAuthorUrn = target.type === 'organization' ? target.id : undefined;
 
-      // Store LinkedIn result in the results table with platform='linkedin'
-      const firstLocation = locations[0];
-      await supabaseAdmin
-        .from('google_business_scheduled_post_results')
-        .insert({
-          scheduled_post_id: job.id,
-          location_id: firstLocation?.id || 'linkedin-standalone',
-          location_name: firstLocation?.name || 'LinkedIn',
-          platform: 'linkedin',
-          status: linkedinSuccess ? 'success' : 'failed',
-          published_at: linkedinSuccess ? new Date().toISOString() : null,
-          google_resource_id: linkedinPostId,
-          error_message: linkedinError,
+        console.log(`[Cron] Posting to LinkedIn ${target.type}: ${target.name}`);
+
+        const linkedinResult = await processLinkedInPost({
+          supabaseAdmin,
+          connectionId: linkedinConnectionId,
+          content: job.content,
+          caption: job.caption,
+          media: ensureArray(job.media_paths),
+          targetAuthorUrn,
         });
-    } catch (error) {
-      console.error(`[Cron] Unexpected error posting to LinkedIn for job ${job.id}:`, error);
-      linkedinError = error instanceof Error ? error.message : 'Unexpected LinkedIn error';
+
+        if (linkedinResult.success) {
+          linkedinSuccessCount++;
+          linkedinResults.push({
+            targetId: target.id,
+            targetName: target.name,
+            success: true,
+            postId: linkedinResult.postId,
+          });
+          console.log(`[Cron] LinkedIn post to ${target.name} successful: ${linkedinResult.postId}`);
+        } else {
+          linkedinFailureCount++;
+          const error = linkedinResult.error || 'Unknown error';
+          linkedinErrors.push({ targetId: target.id, targetName: target.name, error });
+          linkedinResults.push({
+            targetId: target.id,
+            targetName: target.name,
+            success: false,
+          });
+          console.warn(`[Cron] LinkedIn post to ${target.name} failed: ${error}`);
+        }
+
+        // Store result in the results table with platform='linkedin'
+        await supabaseAdmin
+          .from('google_business_scheduled_post_results')
+          .insert({
+            scheduled_post_id: job.id,
+            location_id: `linkedin-${target.type}-${target.id}`,
+            location_name: `${target.name} (${target.type === 'organization' ? 'Company' : 'Personal'})`,
+            platform: 'linkedin',
+            status: linkedinResult.success ? 'success' : 'failed',
+            published_at: linkedinResult.success ? new Date().toISOString() : null,
+            google_resource_id: linkedinResult.postId || null,
+            error_message: linkedinResult.error || null,
+          });
+
+        // Rate limit between LinkedIn posts
+        if (targetsToProcess.indexOf(target) < targetsToProcess.length - 1) {
+          await sleep(RATE_DELAY_MS);
+        }
+      } catch (error) {
+        console.error(`[Cron] Unexpected error posting to LinkedIn ${target.name} for job ${job.id}:`, error);
+        linkedinFailureCount++;
+        const errorMsg = error instanceof Error ? error.message : 'Unexpected LinkedIn error';
+        linkedinErrors.push({ targetId: target.id, targetName: target.name, error: errorMsg });
+      }
     }
   }
+
+  // For backwards compatibility, derive overall linkedin success/error
+  const linkedinSuccess = linkedinSuccessCount > 0;
+  const linkedinError = linkedinErrors.length > 0
+    ? linkedinErrors.map(e => `${e.targetName}: ${e.error}`).join('; ')
+    : null;
 
   // Calculate overall status considering GBP, Bluesky, and LinkedIn
   let overallStatus: 'completed' | 'partial_success' | 'failed';
@@ -816,7 +867,11 @@ async function processJob(
     errors: locationErrors,
     googleResourceIds,
     bluesky: blueskySuccess ? { success: true, postId: blueskyPostId } : (blueskyError ? { success: false, error: blueskyError } : undefined),
-    linkedin: linkedinSuccess ? { success: true, postId: linkedinPostId } : (linkedinError ? { success: false, error: linkedinError } : undefined),
+    linkedin: linkedinResults.length > 0 ? {
+      successCount: linkedinSuccessCount,
+      failureCount: linkedinFailureCount,
+      results: linkedinResults,
+    } : undefined,
   };
 }
 

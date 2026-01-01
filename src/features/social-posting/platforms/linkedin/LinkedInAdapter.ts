@@ -13,11 +13,18 @@ import type {
   ValidationResult
 } from '../../core/types/platform';
 
+export interface LinkedInOrganization {
+  id: string;        // urn:li:organization:XXX
+  name: string;
+  logoUrl?: string;
+}
+
 export interface LinkedInCredentials {
   accessToken: string;
   refreshToken: string;
   expiresAt: string; // ISO date string
   linkedinId: string; // urn:li:person:xxx
+  organizations?: LinkedInOrganization[]; // Admin organizations
 }
 
 export interface LinkedInTokens {
@@ -39,7 +46,7 @@ const LINKEDIN_AUTH_URL = 'https://www.linkedin.com/oauth/v2/authorization';
 const LINKEDIN_TOKEN_URL = 'https://www.linkedin.com/oauth/v2/accessToken';
 const LINKEDIN_API_BASE = 'https://api.linkedin.com';
 const LINKEDIN_API_VERSION = '202411';
-const LINKEDIN_SCOPES = ['openid', 'profile', 'w_member_social'];
+const LINKEDIN_SCOPES = ['openid', 'profile', 'w_member_social', 'w_organization_social'];
 
 export class LinkedInAdapter implements PlatformAdapter {
   private credentials?: LinkedInCredentials;
@@ -240,18 +247,115 @@ export class LinkedInAdapter implements PlatformAdapter {
   }
 
   /**
-   * Upload an image to LinkedIn and get the image URN
+   * Get organizations where the user is an admin
+   * Returns empty array if user has no admin organizations or if the scope isn't granted
    */
-  async uploadImage(imageUrl: string): Promise<string> {
+  static async getAdminOrganizations(accessToken: string): Promise<LinkedInOrganization[]> {
+    try {
+      // Get organization ACLs where user is ADMINISTRATOR
+      const aclResponse = await fetch(
+        `${LINKEDIN_API_BASE}/rest/organizationAcls?q=roleAssignee&role=ADMINISTRATOR`,
+        {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'X-Restli-Protocol-Version': '2.0.0',
+            'LinkedIn-Version': LINKEDIN_API_VERSION
+          }
+        }
+      );
+
+      if (!aclResponse.ok) {
+        // If 403, user doesn't have w_organization_social scope - that's OK
+        if (aclResponse.status === 403) {
+          console.log('LinkedIn: User does not have organization admin access');
+          return [];
+        }
+        const errorData = await aclResponse.text();
+        console.error('LinkedIn organization ACLs fetch failed:', errorData);
+        return [];
+      }
+
+      const aclData = await aclResponse.json();
+      const elements = aclData.elements || [];
+
+      if (elements.length === 0) {
+        return [];
+      }
+
+      // Extract organization URNs from ACLs
+      const orgUrns: string[] = elements.map((acl: any) => acl.organization).filter(Boolean);
+
+      if (orgUrns.length === 0) {
+        return [];
+      }
+
+      // Fetch organization details for each org
+      const organizations: LinkedInOrganization[] = [];
+
+      for (const orgUrn of orgUrns) {
+        try {
+          // Extract org ID from URN (urn:li:organization:12345 -> 12345)
+          const orgId = orgUrn.replace('urn:li:organization:', '');
+
+          const orgResponse = await fetch(
+            `${LINKEDIN_API_BASE}/rest/organizations/${orgId}`,
+            {
+              method: 'GET',
+              headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'X-Restli-Protocol-Version': '2.0.0',
+                'LinkedIn-Version': LINKEDIN_API_VERSION
+              }
+            }
+          );
+
+          if (orgResponse.ok) {
+            const orgData = await orgResponse.json();
+            organizations.push({
+              id: orgUrn,
+              name: orgData.localizedName || orgData.name || 'Unknown Organization',
+              logoUrl: orgData.logoV2?.original || undefined
+            });
+          }
+        } catch (err) {
+          console.error(`LinkedIn: Failed to fetch org details for ${orgUrn}:`, err);
+          // Still include the org with just the ID
+          organizations.push({
+            id: orgUrn,
+            name: 'Organization'
+          });
+        }
+      }
+
+      return organizations;
+    } catch (error) {
+      console.error('LinkedIn organization fetch error:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Upload an image to LinkedIn and get the image URN
+   * @param imageUrl - URL of the image to upload
+   * @param ownerOverride - Optional owner URN for organization uploads (urn:li:organization:XXX)
+   */
+  async uploadImage(imageUrl: string, ownerOverride?: string): Promise<string> {
     if (!this.credentials?.accessToken || !this.credentials?.linkedinId) {
       throw new Error('Not authenticated with LinkedIn');
     }
 
     // Step 1: Initialize the upload
-    // LinkedIn requires owner URN in format "urn:li:person:XXXXX"
-    const ownerUrn = this.credentials.linkedinId.startsWith('urn:')
-      ? this.credentials.linkedinId
-      : `urn:li:person:${this.credentials.linkedinId}`;
+    // Use override if provided (for org posts), otherwise use personal profile
+    let ownerUrn: string;
+    if (ownerOverride) {
+      ownerUrn = ownerOverride;
+    } else {
+      // LinkedIn requires owner URN in format "urn:li:person:XXXXX"
+      ownerUrn = this.credentials.linkedinId.startsWith('urn:')
+        ? this.credentials.linkedinId
+        : `urn:li:person:${this.credentials.linkedinId}`;
+    }
 
     const initResponse = await fetch(`${LINKEDIN_API_BASE}/rest/images?action=initializeUpload`, {
       method: 'POST',
@@ -370,8 +474,11 @@ export class LinkedInAdapter implements PlatformAdapter {
 
   /**
    * Create a post on LinkedIn
+   * @param post - The post content
+   * @param targetAuthorUrn - Optional author URN for organization posting (urn:li:organization:XXX)
+   *                          If not provided, posts to personal profile
    */
-  async createPost(post: UniversalPost): Promise<PlatformPostResult> {
+  async createPost(post: UniversalPost, targetAuthorUrn?: string): Promise<PlatformPostResult> {
     if (!this.isAuthenticated()) {
       return {
         success: false,
@@ -397,11 +504,18 @@ export class LinkedInAdapter implements PlatformAdapter {
         postContent = `${postContent}\n\n${post.callToAction.url}`;
       }
 
-      // Build the post body
-      // LinkedIn requires author URN in format "urn:li:person:XXXXX"
-      const authorUrn = this.credentials!.linkedinId.startsWith('urn:')
-        ? this.credentials!.linkedinId
-        : `urn:li:person:${this.credentials!.linkedinId}`;
+      // Determine author URN
+      // If targetAuthorUrn is provided (for org posting), use it
+      // Otherwise, use the personal profile URN
+      let authorUrn: string;
+      if (targetAuthorUrn) {
+        authorUrn = targetAuthorUrn;
+      } else {
+        // LinkedIn requires author URN in format "urn:li:person:XXXXX"
+        authorUrn = this.credentials!.linkedinId.startsWith('urn:')
+          ? this.credentials!.linkedinId
+          : `urn:li:person:${this.credentials!.linkedinId}`;
+      }
 
       const postBody: Record<string, unknown> = {
         author: authorUrn,
@@ -423,7 +537,8 @@ export class LinkedInAdapter implements PlatformAdapter {
 
         for (const url of imageUrls) {
           try {
-            const imageUrn = await this.uploadImage(url);
+            // Pass authorUrn for organization uploads (images must be owned by the author)
+            const imageUrn = await this.uploadImage(url, authorUrn);
             imageUrns.push(imageUrn);
           } catch (uploadError) {
             console.error('Failed to upload image to LinkedIn:', uploadError);

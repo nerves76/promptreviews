@@ -13,11 +13,18 @@ export interface GbpLocation {
   address: string;
 }
 
+export interface LinkedInOrganization {
+  id: string;        // urn:li:organization:XXX
+  name: string;
+  logoUrl?: string;
+}
+
 export interface SocialConnection {
   id: string;
   platform: string;
   status: string;
   handle: string | null;
+  organizations?: LinkedInOrganization[]; // LinkedIn admin organizations
 }
 
 // Alias for backwards compatibility
@@ -119,7 +126,22 @@ export default function CreatePostModal({
     return [];
   });
   const [postToBluesky, setPostToBluesky] = useState(!!editingDraft?.additionalPlatforms?.bluesky?.enabled);
-  const [postToLinkedIn, setPostToLinkedIn] = useState(!!editingDraft?.additionalPlatforms?.linkedin?.enabled);
+
+  // LinkedIn target selection - can include personal profile and/or organizations
+  // Each target is { type: 'personal' | 'organization', id: string, name: string }
+  const [linkedInTargets, setLinkedInTargets] = useState<Array<{ type: 'personal' | 'organization'; id: string; name: string }>>(() => {
+    if (editingDraft?.additionalPlatforms?.linkedin?.targets) {
+      return editingDraft.additionalPlatforms.linkedin.targets;
+    }
+    // Legacy: if linkedin was enabled but no targets, default to personal profile
+    if (editingDraft?.additionalPlatforms?.linkedin?.enabled && linkedinConnection) {
+      return [{ type: 'personal' as const, id: linkedinConnection.id, name: linkedinConnection.handle || 'My Profile' }];
+    }
+    return [];
+  });
+
+  // Derived state for backwards compatibility
+  const postToLinkedIn = linkedInTargets.length > 0;
 
   // Schedule mode: 'immediate' posts now, 'draft' adds to queue, 'scheduled' schedules for later
   const [scheduleMode, setScheduleMode] = useState<"immediate" | "draft" | "scheduled">("immediate");
@@ -229,12 +251,28 @@ export default function CreatePostModal({
     );
   };
 
+  // Toggle LinkedIn target selection (personal profile or organization)
+  const toggleLinkedInTarget = (type: 'personal' | 'organization', id: string, name: string) => {
+    setLinkedInTargets((prev) => {
+      const exists = prev.some(t => t.type === type && t.id === id);
+      if (exists) {
+        return prev.filter(t => !(t.type === type && t.id === id));
+      }
+      return [...prev, { type, id, name }];
+    });
+  };
+
+  // Check if a LinkedIn target is selected
+  const isLinkedInTargetSelected = (type: 'personal' | 'organization', id: string) => {
+    return linkedInTargets.some(t => t.type === type && t.id === id);
+  };
+
   // Validation
   const canSubmit = useMemo(() => {
     // Must have at least one platform
     const hasGbp = selectedLocationIds.length > 0;
     const hasBluesky = postToBluesky && blueskyConnection?.id;
-    const hasLinkedIn = postToLinkedIn && linkedinConnection?.id;
+    const hasLinkedIn = linkedInTargets.length > 0 && linkedinConnection?.id;
     if (!hasGbp && !hasBluesky && !hasLinkedIn) return false;
 
     // Must have content
@@ -258,7 +296,7 @@ export default function CreatePostModal({
     selectedLocationIds,
     postToBluesky,
     blueskyConnection,
-    postToLinkedIn,
+    linkedInTargets,
     linkedinConnection,
     mode,
     postContent,
@@ -316,7 +354,7 @@ export default function CreatePostModal({
       }
 
       // Add additional platforms if enabled
-      const additionalPlatforms: Record<string, { enabled: boolean; connectionId: string }> = {};
+      const additionalPlatforms: Record<string, any> = {};
 
       if (postToBluesky && blueskyConnection?.id) {
         additionalPlatforms.bluesky = {
@@ -325,10 +363,11 @@ export default function CreatePostModal({
         };
       }
 
-      if (postToLinkedIn && linkedinConnection?.id) {
+      if (linkedInTargets.length > 0 && linkedinConnection?.id) {
         additionalPlatforms.linkedin = {
           enabled: true,
           connectionId: linkedinConnection.id,
+          targets: linkedInTargets, // Array of { type, id, name }
         };
       }
 
@@ -719,22 +758,44 @@ export default function CreatePostModal({
                       </div>
                     )}
 
-                    {/* LinkedIn */}
+                    {/* LinkedIn - Multi-target selection */}
                     {linkedinConnection && (
-                      <div>
+                      <div className="space-y-2">
+                        {/* Personal Profile */}
                         <label className={`flex items-center gap-2 ${mode === "photo" ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}>
                           <input
                             type="checkbox"
-                            checked={postToLinkedIn && mode !== "photo"}
-                            onChange={(e) => setPostToLinkedIn(e.target.checked)}
+                            checked={isLinkedInTargetSelected('personal', linkedinConnection.id) && mode !== "photo"}
+                            onChange={() => toggleLinkedInTarget('personal', linkedinConnection.id, linkedinConnection.handle || 'My Profile')}
                             disabled={mode === "photo"}
                             className="rounded border-gray-300 text-slate-blue focus:ring-slate-blue disabled:opacity-50"
                           />
                           <Icon name="FaLinkedin" size={14} className="text-[#0A66C2]" />
                           <span className="text-sm text-gray-700">
-                            LinkedIn ({linkedinConnection.handle || "connected"})
+                            {linkedinConnection.handle || "My Profile"} (Personal)
                           </span>
                         </label>
+
+                        {/* Organization Pages */}
+                        {linkedinConnection.organizations?.map((org) => (
+                          <label
+                            key={org.id}
+                            className={`flex items-center gap-2 ${mode === "photo" ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isLinkedInTargetSelected('organization', org.id) && mode !== "photo"}
+                              onChange={() => toggleLinkedInTarget('organization', org.id, org.name)}
+                              disabled={mode === "photo"}
+                              className="rounded border-gray-300 text-slate-blue focus:ring-slate-blue disabled:opacity-50"
+                            />
+                            <Icon name="FaBuilding" size={14} className="text-[#0A66C2]" />
+                            <span className="text-sm text-gray-700">
+                              {org.name} (Company)
+                            </span>
+                          </label>
+                        ))}
+
                         {mode === "photo" && (
                           <p className="text-xs text-gray-500 ml-6 mt-1">
                             Photo gallery uploads are GBP only

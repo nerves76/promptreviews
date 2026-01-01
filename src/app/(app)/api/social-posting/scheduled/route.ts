@@ -34,6 +34,11 @@ interface ScheduleRequestBody {
     linkedin?: {
       enabled: boolean;
       connectionId: string;
+      targets?: Array<{
+        type: 'personal' | 'organization';
+        id: string;
+        name: string;
+      }>;
     };
   };
   status?: 'draft' | 'pending';
