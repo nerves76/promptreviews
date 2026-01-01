@@ -284,38 +284,54 @@ async function processJob(
     };
   }
 
-  const { data: tokens, error: tokenError } = await supabaseAdmin
-    .from('google_business_profiles')
-    .select('access_token, refresh_token, expires_at, selected_account_id, selected_account_name')
-    .eq('account_id', job.account_id)
-    .maybeSingle();
+  // Check if we have GBP locations to process
+  const hasGbpLocations = ensureArray(job.selected_locations).length > 0;
 
-  if (tokenError || !tokens) {
-    await supabaseAdmin
-      .from('google_business_scheduled_posts')
-      .update({
-        status: 'failed',
-        error_log: {
-          message: 'Missing Google Business authentication tokens',
-        },
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', job.id);
+  // Only fetch GBP tokens if we have GBP locations
+  let tokens: {
+    access_token: string;
+    refresh_token: string;
+    expires_at: string | null;
+    selected_account_id: string | null;
+    selected_account_name: string | null;
+  } | null = null;
+  let client: GoogleBusinessProfileClient | null = null;
 
-    return {
-      id: job.id,
-      skipped: false,
-      successCount: 0,
-      failureCount: job.selected_locations?.length ?? 0,
-      error: 'Missing Google Business tokens',
-    };
+  if (hasGbpLocations) {
+    const { data: tokenData, error: tokenError } = await supabaseAdmin
+      .from('google_business_profiles')
+      .select('access_token, refresh_token, expires_at, selected_account_id, selected_account_name')
+      .eq('account_id', job.account_id)
+      .maybeSingle();
+
+    if (tokenError || !tokenData) {
+      await supabaseAdmin
+        .from('google_business_scheduled_posts')
+        .update({
+          status: 'failed',
+          error_log: {
+            message: 'Missing Google Business authentication tokens',
+          },
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', job.id);
+
+      return {
+        id: job.id,
+        skipped: false,
+        successCount: 0,
+        failureCount: job.selected_locations?.length ?? 0,
+        error: 'Missing Google Business tokens',
+      };
+    }
+
+    tokens = tokenData;
+    client = new GoogleBusinessProfileClient({
+      accessToken: tokens.access_token,
+      refreshToken: tokens.refresh_token,
+      expiresAt: tokens.expires_at ? new Date(tokens.expires_at).getTime() : Date.now() + 3600000,
+    });
   }
-
-  const client = new GoogleBusinessProfileClient({
-    accessToken: tokens.access_token,
-    refreshToken: tokens.refresh_token,
-    expiresAt: tokens.expires_at ? new Date(tokens.expires_at).getTime() : Date.now() + 3600000,
-  });
 
   const { data: resultRows, error: resultsError } = await supabaseAdmin
     .from('google_business_scheduled_post_results')
@@ -360,27 +376,33 @@ async function processJob(
     accountMap.set(locationId, cleanAccount);
   });
 
-  let fallbackAccount = cleanAccountId(tokens.selected_account_id) || cleanAccountId(tokens.selected_account_name);
+  let fallbackAccount: string | null = null;
+  if (tokens && client) {
+    fallbackAccount = cleanAccountId(tokens.selected_account_id) || cleanAccountId(tokens.selected_account_name);
 
-  if (!fallbackAccount) {
-    try {
-      const accounts = await client.listAccounts();
-      if (accounts.length > 0) {
-        fallbackAccount = cleanAccountId(accounts[0].name);
+    if (!fallbackAccount) {
+      try {
+        const accounts = await client.listAccounts();
+        if (accounts.length > 0) {
+          fallbackAccount = cleanAccountId(accounts[0].name);
+        }
+      } catch (error) {
+        console.warn('[Cron] Unable to fetch accounts for fallback', error);
       }
-    } catch (error) {
-      console.warn('[Cron] Unable to fetch accounts for fallback', error);
     }
   }
 
   const locations = ensureArray(job.selected_locations);
-  if (locations.length === 0) {
+  const hasBluesky = job.additional_platforms?.bluesky?.enabled && job.additional_platforms.bluesky.connectionId;
+
+  // If no GBP locations AND no Bluesky, fail
+  if (locations.length === 0 && !hasBluesky) {
     await supabaseAdmin
       .from('google_business_scheduled_posts')
       .update({
         status: 'failed',
         error_log: {
-          message: 'No locations selected for scheduled job',
+          message: 'No platforms selected for scheduled job',
         },
         updated_at: new Date().toISOString(),
       })
@@ -391,7 +413,7 @@ async function processJob(
       skipped: false,
       successCount: 0,
       failureCount: 0,
-      error: 'No locations to process',
+      error: 'No platforms to process',
     };
   }
 
@@ -400,7 +422,15 @@ async function processJob(
   const locationErrors: Array<{ locationId: string; error: string }> = [];
   const googleResourceIds: Array<{ locationId: string; resourceId: string }> = [];
 
+  // Process GBP locations (only if we have a client)
   for (const location of locations) {
+    if (!client) {
+      // This shouldn't happen since locations.length > 0 means hasGbpLocations was true
+      failureCount += 1;
+      locationErrors.push({ locationId: location.id, error: 'GBP client not initialized' });
+      continue;
+    }
+
     const rawLocationId = location.id;
     const { locationId, accountIdHint } = extractLocationId(rawLocationId);
     const accountId = cleanAccountId(accountMap.get(rawLocationId) || accountMap.get(locationId) || accountIdHint || fallbackAccount);
@@ -495,23 +525,26 @@ async function processJob(
     await sleep(RATE_DELAY_MS);
   }
 
-  // Process Bluesky posting if enabled (only for 'post' kind, after Google Business succeeds)
+  // Process Bluesky posting if enabled (only for 'post' kind)
   let blueskySuccess = false;
   let blueskyError: string | null = null;
   let blueskyPostId: string | null = null;
 
-  if (
-    successCount > 0 && // Only attempt Bluesky if at least one Google location succeeded
+  // Post to Bluesky if enabled - either alongside GBP or standalone
+  const shouldPostToBluesky =
     job.post_kind === 'post' && // Only support posts, not photo uploads
     job.additional_platforms?.bluesky?.enabled &&
-    job.additional_platforms.bluesky.connectionId
-  ) {
+    job.additional_platforms.bluesky.connectionId &&
+    (locations.length === 0 || successCount > 0); // Either Bluesky-only OR at least one GBP succeeded
+
+  if (shouldPostToBluesky && job.additional_platforms?.bluesky?.connectionId) {
     console.log(`[Cron] Attempting Bluesky cross-post for job ${job.id}`);
+    const blueskyConnectionId = job.additional_platforms.bluesky.connectionId;
 
     try {
       const blueskyResult = await processBlueskyPost({
         supabaseAdmin,
-        connectionId: job.additional_platforms.bluesky.connectionId,
+        connectionId: blueskyConnectionId,
         content: job.content,
         caption: job.caption,
         media: ensureArray(job.media_paths),
@@ -528,33 +561,42 @@ async function processJob(
       }
 
       // Store Bluesky result in the results table with platform='bluesky'
-      // Use the first location as a placeholder since Bluesky posts aren't location-specific
+      // Use the first location as a placeholder, or 'bluesky-only' for standalone Bluesky posts
       const firstLocation = locations[0];
-      if (firstLocation) {
-        await supabaseAdmin
-          .from('google_business_scheduled_post_results')
-          .insert({
-            scheduled_post_id: job.id,
-            location_id: firstLocation.id,
-            location_name: firstLocation.name || null,
-            platform: 'bluesky',
-            status: blueskySuccess ? 'success' : 'failed',
-            published_at: blueskySuccess ? new Date().toISOString() : null,
-            google_resource_id: blueskyPostId,
-            error_message: blueskyError,
-          });
-      }
+      await supabaseAdmin
+        .from('google_business_scheduled_post_results')
+        .insert({
+          scheduled_post_id: job.id,
+          location_id: firstLocation?.id || 'bluesky-standalone',
+          location_name: firstLocation?.name || 'Bluesky',
+          platform: 'bluesky',
+          status: blueskySuccess ? 'success' : 'failed',
+          published_at: blueskySuccess ? new Date().toISOString() : null,
+          google_resource_id: blueskyPostId,
+          error_message: blueskyError,
+        });
     } catch (error) {
       console.error(`[Cron] Unexpected error posting to Bluesky for job ${job.id}:`, error);
       blueskyError = error instanceof Error ? error.message : 'Unexpected Bluesky error';
     }
   }
 
-  const overallStatus = successCount === locations.length
-    ? 'completed'
-    : successCount > 0
-      ? 'partial_success'
-      : 'failed';
+  // Calculate overall status considering both GBP and Bluesky
+  let overallStatus: 'completed' | 'partial_success' | 'failed';
+
+  if (locations.length === 0) {
+    // Bluesky-only post
+    overallStatus = blueskySuccess ? 'completed' : 'failed';
+  } else if (successCount === locations.length) {
+    // All GBP locations succeeded
+    overallStatus = 'completed';
+  } else if (successCount > 0 || blueskySuccess) {
+    // Some GBP succeeded or Bluesky succeeded
+    overallStatus = 'partial_success';
+  } else {
+    // Everything failed
+    overallStatus = 'failed';
+  }
 
   await supabaseAdmin
     .from('google_business_scheduled_posts')
