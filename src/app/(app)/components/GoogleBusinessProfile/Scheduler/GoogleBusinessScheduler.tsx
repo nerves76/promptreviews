@@ -855,15 +855,7 @@ export default function GoogleBusinessScheduler({
                       </label>
                     ) : (
                       <a
-                        href="/dashboard/google-business"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          window.location.href = '/dashboard/google-business';
-                          setTimeout(() => {
-                            const connectTab = document.querySelector('[data-tab="connect"]') as HTMLElement;
-                            connectTab?.click();
-                          }, 100);
-                        }}
+                        href="/dashboard/social-posting"
                         className="text-sm font-medium text-blue-600 hover:text-blue-700"
                       >
                         Connect Bluesky

@@ -256,10 +256,13 @@ export async function PATCH(
       updates.scheduled_date = body.scheduledDate;
     }
 
-    const nextLocations = body.locations ? normalizeLocations(body.locations) : null;
-    if (nextLocations && nextLocations.length === 0) {
+    const nextLocations = body.locations !== undefined ? normalizeLocations(body.locations) : null;
+    // Allow empty locations if social platforms are enabled
+    const hasBluesky = body.additionalPlatforms?.bluesky?.enabled;
+    const hasLinkedIn = body.additionalPlatforms?.linkedin?.enabled;
+    if (nextLocations && nextLocations.length === 0 && !hasBluesky && !hasLinkedIn) {
       return NextResponse.json(
-        { success: false, error: 'At least one location must remain selected.' },
+        { success: false, error: 'At least one platform must be selected.' },
         { status: 400 }
       );
     }
@@ -278,6 +281,16 @@ export async function PATCH(
 
     if (nextMedia) {
       updates.media_paths = nextMedia;
+    }
+
+    // Handle additional platforms (Bluesky, LinkedIn)
+    if (body.additionalPlatforms !== undefined) {
+      updates.additional_platforms = body.additionalPlatforms;
+    }
+
+    // Handle status change (e.g., from draft to pending)
+    if (body.status && ['draft', 'pending'].includes(body.status)) {
+      updates.status = body.status;
     }
 
     if (Object.keys(updates).length === 0) {

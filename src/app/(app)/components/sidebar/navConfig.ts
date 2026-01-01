@@ -96,6 +96,13 @@ export const GOOGLE_BUSINESS_SECTION: NavSection = {
       description: "Auto-post from RSS to GBP & Bluesky",
       requiresBusiness: true,
     },
+    {
+      path: "/dashboard/integrations",
+      label: "Integrations",
+      icon: "FaShare",
+      description: "Connect GBP, Bluesky, and LinkedIn",
+      requiresBusiness: true,
+    },
   ],
 };
 

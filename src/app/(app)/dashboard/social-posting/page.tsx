@@ -39,6 +39,7 @@ export default function SocialPostingPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [loadingPlatforms, setLoadingPlatforms] = useState(false);
   const [platformData, setPlatformData] = useState<PlatformData | null>(null);
+  const [editingDraft, setEditingDraft] = useState<GoogleBusinessScheduledPost | null>(null);
 
   // Fetch all scheduled data
   const fetchData = useCallback(async () => {
@@ -97,12 +98,14 @@ export default function SocialPostingPage() {
     setError(message);
   };
 
-  // Handle create post button - fetch platforms first, then show modal
-  const handleCreatePost = async () => {
+  // Handle edit draft - fetch platforms and open modal with draft data
+  const handleEditDraft = async (draft: GoogleBusinessScheduledPost) => {
     setLoadingPlatforms(true);
+    setEditingDraft(draft);
     try {
       const gbpLocations: PlatformData["gbpLocations"] = [];
       let blueskyConnection: PlatformData["blueskyConnection"] = null;
+      let linkedinConnection: PlatformData["linkedinConnection"] = null;
 
       // Fetch GBP locations
       try {
@@ -129,9 +132,9 @@ export default function SocialPostingPage() {
         console.error("Failed to fetch GBP locations:", err);
       }
 
-      // Fetch Bluesky connections
+      // Fetch social platform connections
       try {
-        const blueskyRes = await apiClient.get<{
+        const connectionsRes = await apiClient.get<{
           connections: Array<{
             id: string;
             platform: string;
@@ -140,7 +143,9 @@ export default function SocialPostingPage() {
           }>;
         }>("/social-posting/connections");
 
-        const activeBluesky = (blueskyRes.connections || []).find(
+        const connections = connectionsRes.connections || [];
+
+        const activeBluesky = connections.find(
           (c) => c.platform === "bluesky" && c.status === "active"
         );
         if (activeBluesky) {
@@ -151,11 +156,109 @@ export default function SocialPostingPage() {
             handle: activeBluesky.handle,
           };
         }
+
+        const activeLinkedIn = connections.find(
+          (c) => c.platform === "linkedin" && c.status === "active"
+        );
+        if (activeLinkedIn) {
+          linkedinConnection = {
+            id: activeLinkedIn.id,
+            platform: activeLinkedIn.platform,
+            status: activeLinkedIn.status,
+            handle: activeLinkedIn.handle,
+          };
+        }
       } catch (err) {
-        console.error("Failed to fetch Bluesky connection:", err);
+        console.error("Failed to fetch social connections:", err);
       }
 
-      setPlatformData({ gbpLocations, blueskyConnection });
+      setPlatformData({ gbpLocations, blueskyConnection, linkedinConnection });
+      setShowCreateModal(true);
+    } catch (err) {
+      console.error("Failed to load platforms:", err);
+      setError("Failed to load platforms");
+      setEditingDraft(null);
+    } finally {
+      setLoadingPlatforms(false);
+    }
+  };
+
+  // Handle create post button - fetch platforms first, then show modal
+  const handleCreatePost = async () => {
+    setLoadingPlatforms(true);
+    try {
+      const gbpLocations: PlatformData["gbpLocations"] = [];
+      let blueskyConnection: PlatformData["blueskyConnection"] = null;
+      let linkedinConnection: PlatformData["linkedinConnection"] = null;
+
+      // Fetch GBP locations
+      try {
+        const locationsRes = await apiClient.get<{
+          data?: {
+            locations: Array<{
+              location_id: string;
+              location_name: string;
+              address: string;
+            }>;
+          };
+        }>("/social-posting/platforms/google-business-profile/locations");
+
+        if (locationsRes.data?.locations) {
+          locationsRes.data.locations.forEach((loc) => {
+            gbpLocations.push({
+              id: loc.location_id,
+              name: loc.location_name,
+              address: loc.address,
+            });
+          });
+        }
+      } catch (err) {
+        console.error("Failed to fetch GBP locations:", err);
+      }
+
+      // Fetch social platform connections (Bluesky, LinkedIn, etc.)
+      try {
+        const connectionsRes = await apiClient.get<{
+          connections: Array<{
+            id: string;
+            platform: string;
+            handle: string;
+            status: string;
+          }>;
+        }>("/social-posting/connections");
+
+        const connections = connectionsRes.connections || [];
+
+        // Find active Bluesky connection
+        const activeBluesky = connections.find(
+          (c) => c.platform === "bluesky" && c.status === "active"
+        );
+        if (activeBluesky) {
+          blueskyConnection = {
+            id: activeBluesky.id,
+            platform: activeBluesky.platform,
+            status: activeBluesky.status,
+            handle: activeBluesky.handle,
+          };
+        }
+
+        // Find active LinkedIn connection
+        const activeLinkedIn = connections.find(
+          (c) => c.platform === "linkedin" && c.status === "active"
+        );
+        if (activeLinkedIn) {
+          linkedinConnection = {
+            id: activeLinkedIn.id,
+            platform: activeLinkedIn.platform,
+            status: activeLinkedIn.status,
+            handle: activeLinkedIn.handle,
+          };
+        }
+      } catch (err) {
+        console.error("Failed to fetch social connections:", err);
+      }
+
+      setPlatformData({ gbpLocations, blueskyConnection, linkedinConnection });
       setShowCreateModal(true);
     } catch (err) {
       console.error("Failed to load platforms:", err);
@@ -188,7 +291,7 @@ export default function SocialPostingPage() {
               Post scheduling
             </h1>
             <p className="text-gray-600">
-              Manage scheduled posts for Google Business Profile and Bluesky.
+              Manage scheduled posts for Google Business Profile, Bluesky, and LinkedIn.
             </p>
           </div>
           <button
@@ -275,6 +378,7 @@ export default function SocialPostingPage() {
             onScheduleComplete={handleScheduleComplete}
             onReorderComplete={handleReorderComplete}
             onError={handleError}
+            onEditDraft={handleEditDraft}
           />
         )}
 
@@ -286,6 +390,10 @@ export default function SocialPostingPage() {
         <div className="mt-8 p-4 bg-blue-50 rounded-lg">
           <h4 className="font-medium text-blue-900 mb-2">How it works</h4>
           <ul className="text-sm text-blue-800 space-y-1">
+            <li>
+              <Icon name="FaCheck" size={12} className="inline mr-2" />
+              <a href="/dashboard/integrations" className="underline hover:text-blue-900">Connect your accounts</a> to enable posting
+            </li>
             <li>
               <Icon name="FaCheck" size={12} className="inline mr-2" />
               RSS feeds automatically schedule posts based on your settings
@@ -314,10 +422,25 @@ export default function SocialPostingPage() {
         <CreatePostModal
           accountId={selectedAccountId}
           platformData={platformData}
-          onClose={() => setShowCreateModal(false)}
-          onCreated={() => {
+          editingDraft={editingDraft}
+          onClose={() => {
             setShowCreateModal(false);
-            setSuccess("Post created successfully");
+            setEditingDraft(null);
+          }}
+          onCreated={(result) => {
+            setShowCreateModal(false);
+            setEditingDraft(null);
+
+            // Set appropriate success message based on mode and result
+            let message = "Post created successfully";
+            if (result?.mode === "immediate") {
+              message = result.published ? "Post published successfully" : "Post queued for publishing";
+            } else if (result?.mode === "scheduled") {
+              message = "Post scheduled successfully";
+            } else if (result?.mode === "draft") {
+              message = editingDraft ? "Draft updated successfully" : "Draft saved successfully";
+            }
+            setSuccess(message);
             fetchData();
           }}
         />

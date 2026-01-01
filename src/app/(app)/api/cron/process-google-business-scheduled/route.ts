@@ -32,6 +32,10 @@ interface ScheduledJobRecord {
       enabled: boolean;
       connectionId: string;
     };
+    linkedin?: {
+      enabled: boolean;
+      connectionId: string;
+    };
   } | null;
 }
 
@@ -262,6 +266,138 @@ async function processBlueskyPost(options: {
   }
 }
 
+/**
+ * Post to LinkedIn using the LinkedInAdapter
+ * Only supports 'post' kind, not 'photo' uploads
+ */
+async function processLinkedInPost(options: {
+  supabaseAdmin: ReturnType<typeof createServiceRoleClient>;
+  connectionId: string;
+  content: ScheduledJobRecord['content'];
+  caption: string | null;
+  media: GoogleBusinessScheduledMediaDescriptor[];
+}): Promise<{ success: boolean; postId?: string; error?: string }> {
+  const { supabaseAdmin, connectionId, content, caption, media } = options;
+
+  try {
+    // Fetch LinkedIn connection credentials
+    const { data: connection, error: connError } = await supabaseAdmin
+      .from('social_platform_connections')
+      .select('credentials, status')
+      .eq('id', connectionId)
+      .eq('platform', 'linkedin')
+      .maybeSingle();
+
+    if (connError || !connection) {
+      return { success: false, error: 'LinkedIn connection not found' };
+    }
+
+    if (connection.status !== 'active') {
+      return { success: false, error: `LinkedIn connection status is ${connection.status}` };
+    }
+
+    const credentials = connection.credentials as {
+      accessToken: string;
+      refreshToken?: string;
+      expiresAt?: string;
+      linkedinId: string;
+    };
+
+    if (!credentials.accessToken || !credentials.linkedinId) {
+      return { success: false, error: 'Missing LinkedIn credentials' };
+    }
+
+    // Check if token needs refresh
+    if (credentials.expiresAt && new Date(credentials.expiresAt) < new Date()) {
+      // Token expired, try to refresh
+      if (credentials.refreshToken) {
+        try {
+          const { LinkedInAdapter } = await import('@/features/social-posting/platforms/linkedin');
+          const refreshedTokens = await LinkedInAdapter.refreshAccessToken(credentials.refreshToken);
+
+          // Update stored credentials
+          const newExpiresAt = new Date(Date.now() + refreshedTokens.expiresIn * 1000).toISOString();
+          await supabaseAdmin
+            .from('social_platform_connections')
+            .update({
+              credentials: {
+                ...credentials,
+                accessToken: refreshedTokens.accessToken,
+                refreshToken: refreshedTokens.refreshToken || credentials.refreshToken,
+                expiresAt: newExpiresAt,
+              },
+              last_validated_at: new Date().toISOString(),
+            })
+            .eq('id', connectionId);
+
+          credentials.accessToken = refreshedTokens.accessToken;
+        } catch (refreshError) {
+          console.error('[Cron] LinkedIn token refresh failed:', refreshError);
+          // Mark connection as needing reauth
+          await supabaseAdmin
+            .from('social_platform_connections')
+            .update({
+              status: 'error',
+              error_message: 'Token expired and refresh failed. Please reconnect.',
+            })
+            .eq('id', connectionId);
+          return { success: false, error: 'LinkedIn token expired and refresh failed' };
+        }
+      } else {
+        return { success: false, error: 'LinkedIn token expired and no refresh token available' };
+      }
+    }
+
+    // Import and initialize LinkedIn adapter
+    const { LinkedInAdapter } = await import('@/features/social-posting/platforms/linkedin');
+    const adapter = new LinkedInAdapter({
+      accessToken: credentials.accessToken,
+      refreshToken: credentials.refreshToken || '',
+      expiresAt: credentials.expiresAt || new Date(Date.now() + 3600000).toISOString(),
+      linkedinId: credentials.linkedinId,
+    });
+
+    // Prepare post content
+    const postText = content?.summary?.trim() || caption?.trim() || '';
+    if (!postText) {
+      return { success: false, error: 'No content to post to LinkedIn' };
+    }
+
+    // Prepare media URLs (LinkedIn needs publicly accessible URLs)
+    const mediaUrls = ensureArray(media)
+      .slice(0, 9) // LinkedIn supports up to 9 images
+      .map((item) => item.publicUrl)
+      .filter(Boolean);
+
+    // Create the post
+    const result = await adapter.createPost({
+      content: postText,
+      platforms: ['linkedin'],
+      mediaUrls: mediaUrls.length > 0 ? mediaUrls : undefined,
+      status: 'published',
+      callToAction: content?.callToAction || undefined,
+    });
+
+    if (result.success) {
+      return {
+        success: true,
+        postId: result.platformPostId,
+      };
+    } else {
+      return {
+        success: false,
+        error: result.error || 'Unknown LinkedIn posting error',
+      };
+    }
+  } catch (error) {
+    console.error('[Cron] LinkedIn posting error:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unexpected LinkedIn error',
+    };
+  }
+}
+
 async function processJob(
   job: ScheduledJobRecord,
   supabaseAdmin: ReturnType<typeof createServiceRoleClient>
@@ -394,9 +530,10 @@ async function processJob(
 
   const locations = ensureArray(job.selected_locations);
   const hasBluesky = job.additional_platforms?.bluesky?.enabled && job.additional_platforms.bluesky.connectionId;
+  const hasLinkedIn = job.additional_platforms?.linkedin?.enabled && job.additional_platforms.linkedin.connectionId;
 
-  // If no GBP locations AND no Bluesky, fail
-  if (locations.length === 0 && !hasBluesky) {
+  // If no GBP locations AND no Bluesky AND no LinkedIn, fail
+  if (locations.length === 0 && !hasBluesky && !hasLinkedIn) {
     await supabaseAdmin
       .from('google_business_scheduled_posts')
       .update({
@@ -581,29 +718,91 @@ async function processJob(
     }
   }
 
-  // Calculate overall status considering both GBP and Bluesky
+  // Process LinkedIn posting if enabled (only for 'post' kind)
+  let linkedinSuccess = false;
+  let linkedinError: string | null = null;
+  let linkedinPostId: string | null = null;
+
+  // Post to LinkedIn if enabled - either alongside GBP or standalone
+  const shouldPostToLinkedIn =
+    job.post_kind === 'post' && // Only support posts, not photo uploads
+    job.additional_platforms?.linkedin?.enabled &&
+    job.additional_platforms.linkedin.connectionId &&
+    (locations.length === 0 || successCount > 0 || blueskySuccess); // Either social-only OR at least one platform succeeded
+
+  if (shouldPostToLinkedIn && job.additional_platforms?.linkedin?.connectionId) {
+    console.log(`[Cron] Attempting LinkedIn cross-post for job ${job.id}`);
+    const linkedinConnectionId = job.additional_platforms.linkedin.connectionId;
+
+    try {
+      const linkedinResult = await processLinkedInPost({
+        supabaseAdmin,
+        connectionId: linkedinConnectionId,
+        content: job.content,
+        caption: job.caption,
+        media: ensureArray(job.media_paths),
+      });
+
+      linkedinSuccess = linkedinResult.success;
+      linkedinPostId = linkedinResult.postId || null;
+      linkedinError = linkedinResult.error || null;
+
+      if (linkedinSuccess) {
+        console.log(`[Cron] LinkedIn post successful for job ${job.id}: ${linkedinPostId}`);
+      } else {
+        console.warn(`[Cron] LinkedIn post failed for job ${job.id}: ${linkedinError}`);
+      }
+
+      // Store LinkedIn result in the results table with platform='linkedin'
+      const firstLocation = locations[0];
+      await supabaseAdmin
+        .from('google_business_scheduled_post_results')
+        .insert({
+          scheduled_post_id: job.id,
+          location_id: firstLocation?.id || 'linkedin-standalone',
+          location_name: firstLocation?.name || 'LinkedIn',
+          platform: 'linkedin',
+          status: linkedinSuccess ? 'success' : 'failed',
+          published_at: linkedinSuccess ? new Date().toISOString() : null,
+          google_resource_id: linkedinPostId,
+          error_message: linkedinError,
+        });
+    } catch (error) {
+      console.error(`[Cron] Unexpected error posting to LinkedIn for job ${job.id}:`, error);
+      linkedinError = error instanceof Error ? error.message : 'Unexpected LinkedIn error';
+    }
+  }
+
+  // Calculate overall status considering GBP, Bluesky, and LinkedIn
   let overallStatus: 'completed' | 'partial_success' | 'failed';
 
   if (locations.length === 0) {
-    // Bluesky-only post
-    overallStatus = blueskySuccess ? 'completed' : 'failed';
+    // Social-only post (Bluesky and/or LinkedIn)
+    const socialSuccess = blueskySuccess || linkedinSuccess;
+    overallStatus = socialSuccess ? 'completed' : 'failed';
   } else if (successCount === locations.length) {
     // All GBP locations succeeded
     overallStatus = 'completed';
-  } else if (successCount > 0 || blueskySuccess) {
-    // Some GBP succeeded or Bluesky succeeded
+  } else if (successCount > 0 || blueskySuccess || linkedinSuccess) {
+    // Some GBP succeeded or social platforms succeeded
     overallStatus = 'partial_success';
   } else {
     // Everything failed
     overallStatus = 'failed';
   }
 
+  // Build error log
+  const errorLog: Record<string, any> = {};
+  if (locationErrors.length > 0) errorLog.locations = locationErrors;
+  if (blueskyError) errorLog.bluesky = blueskyError;
+  if (linkedinError) errorLog.linkedin = linkedinError;
+
   await supabaseAdmin
     .from('google_business_scheduled_posts')
     .update({
       status: overallStatus,
-      published_at: successCount > 0 ? new Date().toISOString() : null,
-      error_log: locationErrors.length > 0 ? { locations: locationErrors, bluesky: blueskyError } : (blueskyError ? { bluesky: blueskyError } : null),
+      published_at: successCount > 0 || blueskySuccess || linkedinSuccess ? new Date().toISOString() : null,
+      error_log: Object.keys(errorLog).length > 0 ? errorLog : null,
       updated_at: new Date().toISOString(),
     })
     .eq('id', job.id);
@@ -617,6 +816,7 @@ async function processJob(
     errors: locationErrors,
     googleResourceIds,
     bluesky: blueskySuccess ? { success: true, postId: blueskyPostId } : (blueskyError ? { success: false, error: blueskyError } : undefined),
+    linkedin: linkedinSuccess ? { success: true, postId: linkedinPostId } : (linkedinError ? { success: false, error: linkedinError } : undefined),
   };
 }
 

@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
     const folder = typeof folderFromPayload === 'string' && folderFromPayload.trim().length > 0
       ? folderFromPayload.trim()
       : 'social-posts/scheduled';
-    const bucket = process.env.GBP_SCHEDULED_MEDIA_BUCKET || 'testimonial-photos';
+    const bucket = process.env.GBP_SCHEDULED_MEDIA_BUCKET || 'post-images';
 
     if (!file || typeof file === "string") {
       return NextResponse.json({ error: "No file uploaded" }, { status: 400 });

@@ -10,6 +10,7 @@ interface QueueItemProps {
   selected: boolean;
   onSelect: (selected: boolean) => void;
   onRemove: () => void;
+  onEdit?: () => void;
 }
 
 export default function QueueItem({
@@ -17,6 +18,7 @@ export default function QueueItem({
   selected,
   onSelect,
   onRemove,
+  onEdit,
 }: QueueItemProps) {
   const {
     attributes,
@@ -161,13 +163,24 @@ export default function QueueItem({
                 </span>
               )}
             </div>
-            <button
-              onClick={onRemove}
-              className="p-1 text-gray-400 hover:text-red-600 transition-colors flex-shrink-0"
-              title="Remove from queue"
-            >
-              <Icon name="FaTimes" size={14} />
-            </button>
+            <div className="flex items-center gap-1 flex-shrink-0">
+              {onEdit && (
+                <button
+                  onClick={onEdit}
+                  className="p-1 text-gray-400 hover:text-slate-blue transition-colors"
+                  title="Edit draft"
+                >
+                  <Icon name="FaEdit" size={14} />
+                </button>
+              )}
+              <button
+                onClick={onRemove}
+                className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                title="Remove from queue"
+              >
+                <Icon name="FaTimes" size={14} />
+              </button>
+            </div>
           </div>
 
           {/* Content preview */}

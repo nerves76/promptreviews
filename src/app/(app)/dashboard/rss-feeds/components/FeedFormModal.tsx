@@ -420,7 +420,7 @@ export default function FeedFormModal({
                     <p className="text-sm text-gray-500 mb-3">
                       No Google Business Profile locations connected.{" "}
                       <a
-                        href="/dashboard/google-business"
+                        href="/dashboard/integrations"
                         className="text-slate-blue hover:underline"
                       >
                         Connect GBP
@@ -472,7 +472,7 @@ export default function FeedFormModal({
                       <p className="text-sm text-gray-500">
                         No Bluesky accounts connected.{" "}
                         <a
-                          href="/dashboard/google-business"
+                          href="/dashboard/social-posting"
                           className="text-slate-blue hover:underline"
                         >
                           Connect Bluesky

@@ -27,6 +27,7 @@ interface ContentQueueProps {
   onScheduleComplete: () => void;
   onReorderComplete: () => void;
   onError: (message: string) => void;
+  onEditDraft?: (draft: GoogleBusinessScheduledPost) => void;
 }
 
 export default function ContentQueue({
@@ -34,6 +35,7 @@ export default function ContentQueue({
   onScheduleComplete,
   onReorderComplete,
   onError,
+  onEditDraft,
 }: ContentQueueProps) {
   const [items, setItems] = useState(drafts);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -184,6 +186,7 @@ export default function ContentQueue({
                 selected={selectedIds.has(item.id)}
                 onSelect={(selected) => handleSelectItem(item.id, selected)}
                 onRemove={() => handleRemoveFromQueue(item.id)}
+                onEdit={onEditDraft ? () => onEditDraft(item) : undefined}
               />
             ))}
           </div>

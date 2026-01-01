@@ -319,6 +319,7 @@ export async function POST(request: NextRequest) {
  * DELETE /api/social-posting/connections
  *
  * Delete a social platform connection
+ * Query params: ?platform=bluesky|linkedin
  */
 export async function DELETE(request: NextRequest) {
   try {
@@ -355,18 +356,35 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    // Delete all connections for this account and platform (Bluesky)
-    // This allows users to disconnect and reconnect without unique constraint violations
-    console.log('[Social Connections DELETE] Deleting Bluesky connection for account:', accountId);
+    // Get platform from query params (default to bluesky for backwards compatibility)
+    const { searchParams } = new URL(request.url);
+    const platform = searchParams.get('platform') || 'bluesky';
+
+    // Validate platform
+    const validPlatforms = ['bluesky', 'linkedin', 'twitter', 'slack'];
+    if (!validPlatforms.includes(platform)) {
+      console.warn('[Social Connections DELETE] Invalid platform:', platform);
+      return NextResponse.json(
+        {
+          error: 'Invalid platform',
+          details: `Platform '${platform}' is not supported`
+        },
+        { status: 400 }
+      );
+    }
+
+    // Delete connection for this account and platform
+    console.log(`[Social Connections DELETE] Deleting ${platform} connection for account:`, accountId);
     const { error: deleteError } = await supabase
       .from('social_platform_connections')
       .delete()
       .eq('account_id', accountId)
-      .eq('platform', 'bluesky');
+      .eq('platform', platform);
 
     if (deleteError) {
       console.error('❌ [Social Connections DELETE] Database error deleting connection:', {
         accountId,
+        platform,
         error: deleteError.message,
         code: deleteError.code
       });
@@ -379,11 +397,11 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    console.log('✅ [Social Connections DELETE] Connection deleted successfully for account:', accountId);
+    console.log(`✅ [Social Connections DELETE] ${platform} connection deleted for account:`, accountId);
 
     return NextResponse.json({
       success: true,
-      message: 'Bluesky connection disconnected successfully'
+      message: `${platform.charAt(0).toUpperCase() + platform.slice(1)} connection disconnected successfully`
     });
   } catch (error) {
     console.error('❌ [Social Connections DELETE] Unexpected error:', {

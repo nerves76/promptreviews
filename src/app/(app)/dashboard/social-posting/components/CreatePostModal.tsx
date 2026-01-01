@@ -5,7 +5,7 @@ import { Dialog } from "@headlessui/react";
 import imageCompression from "browser-image-compression";
 import Icon from "@/components/Icon";
 import { apiClient } from "@/utils/apiClient";
-import type { GoogleBusinessScheduledMediaDescriptor } from "@/features/social-posting";
+import type { GoogleBusinessScheduledMediaDescriptor, GoogleBusinessScheduledPost } from "@/features/social-posting";
 
 export interface GbpLocation {
   id: string;
@@ -13,23 +13,28 @@ export interface GbpLocation {
   address: string;
 }
 
-export interface BlueskyConnection {
+export interface SocialConnection {
   id: string;
   platform: string;
   status: string;
   handle: string | null;
 }
 
+// Alias for backwards compatibility
+export type BlueskyConnection = SocialConnection;
+
 export interface PlatformData {
   gbpLocations: GbpLocation[];
-  blueskyConnection: BlueskyConnection | null;
+  blueskyConnection: SocialConnection | null;
+  linkedinConnection: SocialConnection | null;
 }
 
 interface CreatePostModalProps {
   onClose: () => void;
-  onCreated: () => void;
+  onCreated: (result?: { mode: "immediate" | "scheduled" | "draft"; published?: boolean }) => void;
   accountId: string;
   platformData: PlatformData;
+  editingDraft?: GoogleBusinessScheduledPost | null;
 }
 
 interface SchedulerMedia extends GoogleBusinessScheduledMediaDescriptor {
@@ -83,28 +88,41 @@ export default function CreatePostModal({
   onCreated,
   accountId,
   platformData,
+  editingDraft,
 }: CreatePostModalProps) {
   // Platform data from props
-  const { gbpLocations, blueskyConnection } = platformData;
+  const { gbpLocations, blueskyConnection, linkedinConnection } = platformData;
 
-  // Form state
-  const [mode, setMode] = useState<"post" | "photo">("post");
-  const [postContent, setPostContent] = useState("");
-  const [caption, setCaption] = useState("");
-  const [ctaEnabled, setCtaEnabled] = useState(false);
-  const [ctaType, setCtaType] = useState("LEARN_MORE");
-  const [ctaUrl, setCtaUrl] = useState("");
-  const [selectedLocationIds, setSelectedLocationIds] = useState<string[]>(
+  // Initialize form state from editingDraft if provided
+  const [mode, setMode] = useState<"post" | "photo">(editingDraft?.postKind || "post");
+  const [postContent, setPostContent] = useState(editingDraft?.content?.summary || "");
+  const [caption, setCaption] = useState(editingDraft?.caption || "");
+  const [ctaEnabled, setCtaEnabled] = useState(!!editingDraft?.content?.callToAction);
+  const [ctaType, setCtaType] = useState(editingDraft?.content?.callToAction?.actionType || "LEARN_MORE");
+  const [ctaUrl, setCtaUrl] = useState(editingDraft?.content?.callToAction?.url || "");
+  const [selectedLocationIds, setSelectedLocationIds] = useState<string[]>(() => {
+    if (editingDraft?.selectedLocations?.length) {
+      return editingDraft.selectedLocations.map(loc => loc.id);
+    }
     // Auto-select if only one location
-    gbpLocations.length === 1 ? [gbpLocations[0].id] : []
-  );
-  const [scheduledDate, setScheduledDate] = useState("");
-  const [timezone, setTimezone] = useState(DEFAULT_TIMEZONE);
-  const [mediaItems, setMediaItems] = useState<SchedulerMedia[]>([]);
-  const [postToBluesky, setPostToBluesky] = useState(false);
+    return gbpLocations.length === 1 ? [gbpLocations[0].id] : [];
+  });
+  const [scheduledDate, setScheduledDate] = useState(editingDraft?.scheduledDate || "");
+  const [timezone, setTimezone] = useState(editingDraft?.timezone || DEFAULT_TIMEZONE);
+  const [mediaItems, setMediaItems] = useState<SchedulerMedia[]>(() => {
+    if (editingDraft?.mediaPaths?.length) {
+      return editingDraft.mediaPaths.map(m => ({
+        ...m,
+        previewUrl: m.publicUrl,
+      }));
+    }
+    return [];
+  });
+  const [postToBluesky, setPostToBluesky] = useState(!!editingDraft?.additionalPlatforms?.bluesky?.enabled);
+  const [postToLinkedIn, setPostToLinkedIn] = useState(!!editingDraft?.additionalPlatforms?.linkedin?.enabled);
 
-  // Schedule mode: 'draft' adds to queue, 'scheduled' schedules immediately
-  const [scheduleMode, setScheduleMode] = useState<"draft" | "scheduled">("draft");
+  // Schedule mode: 'immediate' posts now, 'draft' adds to queue, 'scheduled' schedules for later
+  const [scheduleMode, setScheduleMode] = useState<"immediate" | "draft" | "scheduled">("immediate");
 
   // Loading states
   const [isUploading, setIsUploading] = useState(false);
@@ -149,30 +167,38 @@ export default function CreatePostModal({
           // Compress the image
           const compressed = await imageCompression(file, compressionOptions);
 
-          // Upload to server
+          // Upload to server (use upload-image endpoint for Supabase storage)
           const formData = new FormData();
           formData.append("file", compressed);
           formData.append("folder", "social-posts/scheduled");
 
-          const response = await fetch("/api/social-posting/photos/upload", {
+          const response = await fetch("/api/social-posting/upload-image", {
             method: "POST",
             body: formData,
             credentials: "include",
           });
 
           if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || "Failed to upload image");
+            const errorData = await response.json().catch(() => ({}));
+            console.error("Upload failed:", response.status, errorData);
+            throw new Error(errorData.error || `Upload failed with status ${response.status}`);
           }
 
           const data = await response.json();
 
-          if (data.success && data.media) {
+          // upload-image returns { url, bucket, path, size, mime, checksum, originalName }
+          if (data.url) {
             setMediaItems((prev) => [
               ...prev,
               {
-                ...data.media,
-                previewUrl: data.media.publicUrl,
+                bucket: data.bucket,
+                path: data.path,
+                publicUrl: data.url,
+                size: data.size,
+                mime: data.mime,
+                checksum: data.checksum,
+                originalName: data.originalName,
+                previewUrl: data.url,
               },
             ]);
           }
@@ -208,14 +234,18 @@ export default function CreatePostModal({
     // Must have at least one platform
     const hasGbp = selectedLocationIds.length > 0;
     const hasBluesky = postToBluesky && blueskyConnection?.id;
-    if (!hasGbp && !hasBluesky) return false;
+    const hasLinkedIn = postToLinkedIn && linkedinConnection?.id;
+    if (!hasGbp && !hasBluesky && !hasLinkedIn) return false;
 
     // Must have content
     if (mode === "post" && !postContent.trim()) return false;
     if (mode === "photo" && mediaItems.length === 0) return false;
 
-    // If scheduled, must have date
+    // If scheduled for later, must have date
     if (scheduleMode === "scheduled" && !scheduledDate) return false;
+
+    // Photo mode only works with GBP, not immediate posting to other platforms
+    if (mode === "photo" && scheduleMode === "immediate" && selectedLocationIds.length === 0) return false;
 
     // CTA validation
     if (ctaEnabled && mode === "post") {
@@ -228,6 +258,8 @@ export default function CreatePostModal({
     selectedLocationIds,
     postToBluesky,
     blueskyConnection,
+    postToLinkedIn,
+    linkedinConnection,
     mode,
     postContent,
     mediaItems,
@@ -239,13 +271,23 @@ export default function CreatePostModal({
   ]);
 
   // Submit handler
-  const handleSubmit = async () => {
-    if (!canSubmit) return;
+  const handleSubmit = async (asDraft = false) => {
+    const effectiveMode = asDraft ? "draft" : scheduleMode;
+
+    // Validation for non-draft modes
+    if (!asDraft && !canSubmit) return;
+
+    // For drafts, just need content
+    if (asDraft) {
+      if (mode === "post" && !postContent.trim()) return;
+      if (mode === "photo" && mediaItems.length === 0) return;
+    }
 
     setIsSubmitting(true);
     setError(null);
 
     try {
+      // All modes (immediate, draft, scheduled) use the /social-posting/scheduled API
       const payloadLocations = selectedLocationIds.map((id) => {
         const loc = gbpLocations.find((l) => l.id === id);
         return { id, name: loc?.name || "" };
@@ -257,24 +299,41 @@ export default function CreatePostModal({
         media: mediaItems.map(({ previewUrl, ...rest }) => rest),
       };
 
-      // Set date and timezone based on schedule mode
-      if (scheduleMode === "scheduled") {
+      // Set date, timezone, and status based on schedule mode
+      if (effectiveMode === "immediate") {
+        // Use today's date for immediate posting - cron will pick it up quickly
+        body.scheduledDate = new Date().toISOString().split("T")[0];
+        body.timezone = timezone;
+        body.status = "pending";
+      } else if (effectiveMode === "scheduled") {
         body.scheduledDate = scheduledDate;
         body.timezone = timezone;
+        body.status = "pending";
       } else {
         // Draft - no date
         body.scheduledDate = null;
         body.status = "draft";
       }
 
-      // Add Bluesky if enabled
+      // Add additional platforms if enabled
+      const additionalPlatforms: Record<string, { enabled: boolean; connectionId: string }> = {};
+
       if (postToBluesky && blueskyConnection?.id) {
-        body.additionalPlatforms = {
-          bluesky: {
-            enabled: true,
-            connectionId: blueskyConnection.id,
-          },
+        additionalPlatforms.bluesky = {
+          enabled: true,
+          connectionId: blueskyConnection.id,
         };
+      }
+
+      if (postToLinkedIn && linkedinConnection?.id) {
+        additionalPlatforms.linkedin = {
+          enabled: true,
+          connectionId: linkedinConnection.id,
+        };
+      }
+
+      if (Object.keys(additionalPlatforms).length > 0) {
+        body.additionalPlatforms = additionalPlatforms;
       }
 
       // Add content based on mode
@@ -296,16 +355,55 @@ export default function CreatePostModal({
         body.caption = caption.trim() || null;
       }
 
-      const response = await apiClient.post<{ success: boolean; error?: string }>(
-        "/social-posting/scheduled",
-        body
-      );
+      let postId: string | undefined;
 
-      if (!response.success) {
-        throw new Error(response.error || "Failed to create post");
+      if (editingDraft) {
+        // Update existing draft
+        const response = await apiClient.patch<{ success: boolean; error?: string; data?: { id: string } }>(
+          `/social-posting/scheduled/${editingDraft.id}`,
+          body
+        );
+
+        if (!response.success) {
+          throw new Error(response.error || "Failed to update draft");
+        }
+        postId = editingDraft.id;
+      } else {
+        // Create new post
+        const response = await apiClient.post<{ success: boolean; error?: string; data?: { id: string } }>(
+          "/social-posting/scheduled",
+          body
+        );
+
+        if (!response.success) {
+          throw new Error(response.error || "Failed to create post");
+        }
+        postId = response.data?.id;
       }
 
-      onCreated();
+      // For immediate posting, trigger processing now
+      let published = false;
+      if (effectiveMode === "immediate" && postId) {
+        try {
+          const processResult = await apiClient.post<{ success: boolean; postStatus?: string; error?: string }>(
+            "/social-posting/process-now",
+            { postId }
+          );
+
+          if (processResult.success && processResult.postStatus === "completed") {
+            published = true;
+          } else if (!processResult.success) {
+            console.warn("Immediate processing failed:", processResult.error);
+            setError(`Post created but publishing failed: ${processResult.error || "Unknown error"}. It will be processed by the scheduler.`);
+            // Don't return - still call onCreated to refresh the list
+          }
+        } catch (processError) {
+          console.warn("Failed to trigger immediate processing:", processError);
+          setError("Post created but couldn't trigger immediate publishing. It will be processed by the scheduler.");
+        }
+      }
+
+      onCreated({ mode: effectiveMode, published });
     } catch (err) {
       console.error("Submit error:", err);
       setError(err instanceof Error ? err.message : "Failed to create post");
@@ -314,7 +412,7 @@ export default function CreatePostModal({
     }
   };
 
-  const hasNoPlatforms = gbpLocations.length === 0 && !blueskyConnection;
+  const hasNoPlatforms = gbpLocations.length === 0 && !blueskyConnection && !linkedinConnection;
 
   return (
     <Dialog open={true} onClose={onClose} className="relative z-50">
@@ -346,7 +444,7 @@ export default function CreatePostModal({
           <Dialog.Panel className="bg-white rounded-xl shadow-xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <Dialog.Title className="text-xl font-bold text-gray-900 mb-4">
-                Create post
+                {editingDraft ? "Edit draft" : "Create post"}
               </Dialog.Title>
 
               {error && (
@@ -371,14 +469,14 @@ export default function CreatePostModal({
                     No platforms connected
                   </h3>
                   <p className="text-gray-600 mb-4">
-                    Connect a Google Business Profile or Bluesky account to
+                    Connect a Google Business Profile, Bluesky, or LinkedIn account to
                     create posts.
                   </p>
                   <a
-                    href="/dashboard/google-business"
+                    href="/dashboard/social-posting"
                     className="inline-flex items-center gap-2 px-4 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-blue/90"
                   >
-                    <Icon name="FaGoogle" size={16} />
+                    <Icon name="FaLink" size={16} />
                     Connect platforms
                   </a>
                 </div>
@@ -621,11 +719,35 @@ export default function CreatePostModal({
                       </div>
                     )}
 
-                    {gbpLocations.length === 0 && !blueskyConnection && (
+                    {/* LinkedIn */}
+                    {linkedinConnection && (
+                      <div>
+                        <label className={`flex items-center gap-2 ${mode === "photo" ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}>
+                          <input
+                            type="checkbox"
+                            checked={postToLinkedIn && mode !== "photo"}
+                            onChange={(e) => setPostToLinkedIn(e.target.checked)}
+                            disabled={mode === "photo"}
+                            className="rounded border-gray-300 text-slate-blue focus:ring-slate-blue disabled:opacity-50"
+                          />
+                          <Icon name="FaLinkedin" size={14} className="text-[#0A66C2]" />
+                          <span className="text-sm text-gray-700">
+                            LinkedIn ({linkedinConnection.handle || "connected"})
+                          </span>
+                        </label>
+                        {mode === "photo" && (
+                          <p className="text-xs text-gray-500 ml-6 mt-1">
+                            Photo gallery uploads are GBP only
+                          </p>
+                        )}
+                      </div>
+                    )}
+
+                    {gbpLocations.length === 0 && !blueskyConnection && !linkedinConnection && (
                       <p className="text-sm text-gray-500">
                         No platforms connected.{" "}
                         <a
-                          href="/dashboard/google-business"
+                          href="/dashboard/social-posting"
                           className="text-slate-blue hover:underline"
                         >
                           Connect now
@@ -644,17 +766,17 @@ export default function CreatePostModal({
                         <input
                           type="radio"
                           name="scheduleMode"
-                          value="draft"
-                          checked={scheduleMode === "draft"}
-                          onChange={() => setScheduleMode("draft")}
+                          value="immediate"
+                          checked={scheduleMode === "immediate"}
+                          onChange={() => setScheduleMode("immediate")}
                           className="mt-1 text-slate-blue focus:ring-slate-blue"
                         />
                         <div>
                           <span className="text-sm font-medium text-gray-700">
-                            Add to queue
+                            Post now
                           </span>
                           <p className="text-xs text-gray-500">
-                            Save as draft and schedule later with other posts
+                            Publish immediately to selected platforms
                           </p>
                         </div>
                       </label>
@@ -672,10 +794,10 @@ export default function CreatePostModal({
                         />
                         <div>
                           <span className="text-sm font-medium text-gray-700">
-                            Schedule now
+                            Schedule for later
                           </span>
                           <p className="text-xs text-gray-500">
-                            Pick a date and schedule immediately (1 credit)
+                            Pick a date and time (1 credit)
                           </p>
                         </div>
                       </label>
@@ -728,33 +850,42 @@ export default function CreatePostModal({
 
               {/* Actions */}
               {!hasNoPlatforms && (
-                <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-200">
+                <div className="flex justify-between mt-6 pt-4 border-t border-gray-200">
                   <button
-                    onClick={onClose}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                    onClick={() => handleSubmit(true)}
+                    disabled={isSubmitting || (!postContent.trim() && mode === "post") || (mediaItems.length === 0 && mode === "photo")}
+                    className="px-4 py-2 text-sm font-medium text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Cancel
+                    Save as draft
                   </button>
-                  <button
-                    onClick={handleSubmit}
-                    disabled={!canSubmit || isSubmitting}
-                    className="px-4 py-2 text-sm font-medium text-white bg-slate-blue rounded-lg hover:bg-slate-blue/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <Icon
-                          name="FaSpinner"
-                          className="inline mr-2 animate-spin"
-                          size={14}
-                        />
-                        Creating...
-                      </>
-                    ) : scheduleMode === "draft" ? (
-                      "Add to queue"
-                    ) : (
-                      "Schedule post"
-                    )}
-                  </button>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={onClose}
+                      className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => handleSubmit()}
+                      disabled={!canSubmit || isSubmitting}
+                      className="px-4 py-2 text-sm font-medium text-white bg-slate-blue rounded-lg hover:bg-slate-blue/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <Icon
+                            name="FaSpinner"
+                            className="inline mr-2 animate-spin"
+                            size={14}
+                          />
+                          {scheduleMode === "immediate" ? "Publishing..." : scheduleMode === "draft" ? "Saving..." : "Scheduling..."}
+                        </>
+                      ) : scheduleMode === "immediate" ? (
+                        "Post now"
+                      ) : (
+                        "Schedule post"
+                      )}
+                    </button>
+                  </div>
                 </div>
               )}
             </div>

@@ -31,6 +31,10 @@ interface ScheduleRequestBody {
       enabled: boolean;
       connectionId: string;
     };
+    linkedin?: {
+      enabled: boolean;
+      connectionId: string;
+    };
   };
   status?: 'draft' | 'pending';
 }
@@ -126,11 +130,12 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Check for at least one platform (GBP locations or Bluesky)
+    // Check for at least one platform (GBP locations, Bluesky, or LinkedIn)
     const hasBluesky = body.additionalPlatforms?.bluesky?.enabled;
-    if (locations.length === 0 && !hasBluesky) {
+    const hasLinkedIn = body.additionalPlatforms?.linkedin?.enabled;
+    if (locations.length === 0 && !hasBluesky && !hasLinkedIn) {
       return NextResponse.json(
-        { success: false, error: 'At least one platform (GBP location or Bluesky) must be selected' },
+        { success: false, error: 'At least one platform must be selected' },
         { status: 400 }
       );
     }
@@ -195,7 +200,7 @@ export async function POST(request: NextRequest) {
       } : null,
       caption: body.caption ?? null,
       scheduled_date: isDraft ? null : scheduledDate,
-      timezone: isDraft ? null : timezone,
+      timezone: timezone || 'UTC',
       selected_locations: locations,
       media_paths: media,
       additional_platforms: additionalPlatforms,
@@ -213,7 +218,7 @@ export async function POST(request: NextRequest) {
     if (insertError || !scheduled) {
       console.error('[Schedule] Failed to insert scheduled post:', insertError);
       return NextResponse.json(
-        { success: false, error: 'Failed to schedule Google Business content.' },
+        { success: false, error: `Failed to schedule content: ${insertError?.message || 'Unknown error'}` },
         { status: 500 }
       );
     }
