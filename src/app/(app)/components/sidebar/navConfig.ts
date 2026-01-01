@@ -84,7 +84,7 @@ export const GOOGLE_BUSINESS_SECTION: NavSection = {
     },
     {
       path: "/dashboard/social-posting",
-      label: "Social content",
+      label: "Post scheduling",
       icon: "FaCalendarAlt",
       description: "Queue and schedule posts",
       requiresBusiness: true,

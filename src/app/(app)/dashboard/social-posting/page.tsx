@@ -114,7 +114,7 @@ export default function SocialPostingPage() {
         <div className="flex items-start justify-between mb-6">
           <div>
             <h1 className="text-2xl font-bold text-slate-blue mb-2">
-              Social content
+              Post scheduling
             </h1>
             <p className="text-gray-600">
               Manage your content queue and scheduled posts for Google Business Profile and Bluesky.
