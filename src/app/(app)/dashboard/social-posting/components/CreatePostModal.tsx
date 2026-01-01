@@ -380,7 +380,7 @@ export default function CreatePostModal({
     <Dialog open={true} onClose={onClose} className="relative z-50">
       <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
       <div className="fixed inset-0 flex items-center justify-center p-4">
-        <div className="relative">
+        <div className="relative w-full max-w-2xl">
           {/* Close button */}
           <button
             onClick={onClose}
@@ -403,7 +403,7 @@ export default function CreatePostModal({
             </svg>
           </button>
 
-          <Dialog.Panel className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <Dialog.Panel className="bg-white rounded-xl shadow-xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <Dialog.Title className="text-xl font-bold text-gray-900 mb-4">
                 Create post
