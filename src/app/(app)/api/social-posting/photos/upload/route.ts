@@ -129,7 +129,7 @@ export async function POST(request: NextRequest) {
       locationAccountId,
       locationId,
       file,
-      'PHOTO'
+      { mediaFormat: 'PHOTO' }
     );
 
     if (!uploadResult.success) {

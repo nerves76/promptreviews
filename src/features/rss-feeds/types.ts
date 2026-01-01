@@ -21,6 +21,8 @@ export interface RssFeedSource {
   targetLocations: TargetLocation[];
   additionalPlatforms: AdditionalPlatforms;
   isActive: boolean;
+  autoPost: boolean;
+  autoPostIntervalDays: number;
   errorCount: number;
   lastError: string | null;
   postsToday: number;
@@ -98,6 +100,8 @@ export interface CreateFeedRequest {
   targetLocations: TargetLocation[];
   additionalPlatforms?: AdditionalPlatforms;
   isActive?: boolean;
+  autoPost?: boolean;
+  autoPostIntervalDays?: number;
 }
 
 export interface UpdateFeedRequest {
@@ -109,6 +113,8 @@ export interface UpdateFeedRequest {
   targetLocations?: TargetLocation[];
   additionalPlatforms?: AdditionalPlatforms;
   isActive?: boolean;
+  autoPost?: boolean;
+  autoPostIntervalDays?: number;
 }
 
 export interface TestFeedRequest {

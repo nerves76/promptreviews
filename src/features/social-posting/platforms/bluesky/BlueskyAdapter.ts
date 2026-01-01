@@ -130,7 +130,8 @@ export class BlueskyAdapter implements PlatformAdapter {
           handle: this.session.handle,
           email: this.session.email,
           accessJwt: this.session.accessJwt,
-          refreshJwt: this.session.refreshJwt
+          refreshJwt: this.session.refreshJwt,
+          active: true
         });
 
         // Update session tokens after refresh

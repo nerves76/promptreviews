@@ -41,47 +41,45 @@ function ensureArray<T>(value: T | T[] | undefined | null): T[] {
 
 function normalizeLocations(input: unknown): Array<{ id: string; name?: string }> {
   const list = ensureArray(input as any);
-  return list
-    .map((item) => {
-      if (!item) return null;
-      if (typeof item === 'string') {
-        return { id: item, name: undefined };
-      }
-      if (typeof item === 'object' && 'id' in item) {
-        const name = typeof (item as any).name === 'string' ? (item as any).name : undefined;
-        const id = String((item as any).id).trim();
-        if (!id) return null;
-        return { id, name };
-      }
-      return null;
-    })
-    .filter((loc): loc is { id: string; name?: string } => !!loc?.id);
+  const mapped = list.map((item): { id: string; name?: string } | null => {
+    if (!item) return null;
+    if (typeof item === 'string') {
+      return { id: item, name: undefined };
+    }
+    if (typeof item === 'object' && 'id' in item) {
+      const name = typeof (item as any).name === 'string' ? (item as any).name : undefined;
+      const id = String((item as any).id).trim();
+      if (!id) return null;
+      return { id, name };
+    }
+    return null;
+  });
+  return mapped.filter((loc): loc is { id: string; name?: string } => loc !== null && !!loc.id);
 }
 
 function normalizeMedia(input: unknown): GoogleBusinessScheduledMediaDescriptor[] {
   const list = ensureArray(input as any);
-  return list
-    .map((item) => {
-      if (!item || typeof item !== 'object') return null;
-      const bucket = typeof (item as any).bucket === 'string' ? (item as any).bucket : undefined;
-      const path = typeof (item as any).path === 'string' ? (item as any).path : undefined;
-      const publicUrl = typeof (item as any).publicUrl === 'string' ? (item as any).publicUrl : undefined;
-      const size = Number((item as any).size ?? 0);
-      const mime = typeof (item as any).mime === 'string' ? (item as any).mime : undefined;
-      if (!bucket || !path || !publicUrl || !mime) {
-        return null;
-      }
-      return {
-        bucket,
-        path,
-        publicUrl,
-        mime,
-        size: Number.isFinite(size) ? size : 0,
-        checksum: typeof (item as any).checksum === 'string' ? (item as any).checksum : undefined,
-        originalName: typeof (item as any).originalName === 'string' ? (item as any).originalName : undefined,
-      } satisfies GoogleBusinessScheduledMediaDescriptor;
-    })
-    .filter((media): media is GoogleBusinessScheduledMediaDescriptor => !!media);
+  const mapped = list.map((item): GoogleBusinessScheduledMediaDescriptor | null => {
+    if (!item || typeof item !== 'object') return null;
+    const bucket = typeof (item as any).bucket === 'string' ? (item as any).bucket : undefined;
+    const path = typeof (item as any).path === 'string' ? (item as any).path : undefined;
+    const publicUrl = typeof (item as any).publicUrl === 'string' ? (item as any).publicUrl : undefined;
+    const size = Number((item as any).size ?? 0);
+    const mime = typeof (item as any).mime === 'string' ? (item as any).mime : undefined;
+    if (!bucket || !path || !publicUrl || !mime) {
+      return null;
+    }
+    return {
+      bucket,
+      path,
+      publicUrl,
+      mime,
+      size: Number.isFinite(size) ? size : 0,
+      checksum: typeof (item as any).checksum === 'string' ? (item as any).checksum : undefined,
+      originalName: typeof (item as any).originalName === 'string' ? (item as any).originalName : undefined,
+    };
+  });
+  return mapped.filter((media): media is GoogleBusinessScheduledMediaDescriptor => media !== null);
 }
 
 function isDateString(value: string): boolean {
@@ -236,7 +234,7 @@ export async function POST(request: NextRequest) {
       await debit(supabase, accountId, 1, {
         featureType: 'scheduled_post',
         idempotencyKey,
-        metadata: {
+        featureMetadata: {
           postId: scheduled.id,
           postKind,
           scheduledDate,
@@ -312,6 +310,10 @@ export async function GET(request: NextRequest) {
         error_log,
         created_at,
         updated_at,
+        queue_order,
+        source_type,
+        rss_feed_item_id,
+        additional_platforms,
         google_business_scheduled_post_results (
           id,
           scheduled_post_id,
@@ -327,7 +329,9 @@ export async function GET(request: NextRequest) {
       `
       )
       .eq('account_id', accountId)
-      .order('scheduled_date', { ascending: true })
+      .neq('status', 'cancelled')
+      .order('scheduled_date', { ascending: true, nullsFirst: true })
+      .order('queue_order', { ascending: true })
       .order('created_at', { ascending: true });
 
     if (error) {
@@ -340,6 +344,7 @@ export async function GET(request: NextRequest) {
 
     const today = todayUtc();
 
+    const drafts: GoogleBusinessScheduledPost[] = [];
     const upcoming: GoogleBusinessScheduledPost[] = [];
     const past: GoogleBusinessScheduledPost[] = [];
 
@@ -361,6 +366,10 @@ export async function GET(request: NextRequest) {
         errorLog: row.error_log,
         createdAt: row.created_at,
         updatedAt: row.updated_at,
+        queueOrder: row.queue_order ?? 0,
+        sourceType: row.source_type ?? 'manual',
+        rssFeedItemId: row.rss_feed_item_id ?? null,
+        additionalPlatforms: row.additional_platforms ?? undefined,
       };
 
       if (row.google_business_scheduled_post_results) {
@@ -380,10 +389,17 @@ export async function GET(request: NextRequest) {
         );
       }
 
-      const isUpcoming = mapped.status === 'pending' || mapped.status === 'processing';
-      if (isUpcoming && mapped.scheduledDate >= today) {
-        upcoming.push(mapped);
+      // Categorize into drafts, upcoming, or past
+      if (mapped.status === 'draft') {
+        drafts.push(mapped);
+      } else if (mapped.status === 'pending' || mapped.status === 'processing') {
+        if (mapped.scheduledDate && mapped.scheduledDate >= today) {
+          upcoming.push(mapped);
+        } else {
+          past.push(mapped);
+        }
       } else {
+        // completed, partial_success, failed
         past.push(mapped);
       }
     });
@@ -391,6 +407,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       data: {
+        drafts,
         upcoming,
         past,
       },

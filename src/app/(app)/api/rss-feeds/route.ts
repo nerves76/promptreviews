@@ -175,6 +175,8 @@ export async function POST(request: NextRequest) {
       target_locations: body.targetLocations || [],
       additional_platforms: body.additionalPlatforms || {},
       is_active: body.isActive ?? true,
+      auto_post: body.autoPost ?? true,
+      auto_post_interval_days: body.autoPostIntervalDays || 1,
     };
 
     console.log('[RSS Feeds] Creating feed with payload:', JSON.stringify(insertPayload, null, 2));

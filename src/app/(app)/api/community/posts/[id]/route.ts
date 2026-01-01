@@ -17,9 +17,10 @@ import { validatePostData } from '../../utils/validation';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     // Verify authentication
     const authResult = await verifyAuth(request);
     if (!authResult.success) {
@@ -30,7 +31,7 @@ export async function GET(
     const { data: post, error } = await supabase
       .from('posts')
       .select('*')
-      .eq('id', params.id)
+      .eq('id', id)
       .is('deleted_at', null)
       .single();
 
@@ -58,9 +59,10 @@ export async function GET(
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     // Verify authentication
     const authResult = await verifyAuth(request);
     if (!authResult.success) {
@@ -70,7 +72,7 @@ export async function PATCH(
     const { userId } = authResult;
 
     // Check ownership
-    const canModify = await canModifyPost(userId!, params.id);
+    const canModify = await canModifyPost(userId!, id);
     if (!canModify) {
       return NextResponse.json(
         { error: 'You can only update your own posts', code: 'FORBIDDEN' },
@@ -127,7 +129,7 @@ export async function PATCH(
     const { data: post, error } = await supabase
       .from('posts')
       .update(updates)
-      .eq('id', params.id)
+      .eq('id', id)
       .is('deleted_at', null)
       .select()
       .single();
@@ -157,9 +159,10 @@ export async function PATCH(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     // Verify authentication
     const authResult = await verifyAuth(request);
     if (!authResult.success) {
@@ -169,7 +172,7 @@ export async function DELETE(
     const { userId } = authResult;
 
     // Check ownership or admin status
-    const canModify = await canModifyPost(userId!, params.id);
+    const canModify = await canModifyPost(userId!, id);
     if (!canModify) {
       return NextResponse.json(
         { error: 'You can only delete your own posts', code: 'FORBIDDEN' },
@@ -182,7 +185,7 @@ export async function DELETE(
     const { error } = await supabase
       .from('posts')
       .update({ deleted_at: new Date().toISOString() })
-      .eq('id', params.id)
+      .eq('id', id)
       .is('deleted_at', null);
 
     if (error) {

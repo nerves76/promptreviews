@@ -178,6 +178,20 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       updates.is_active = body.isActive;
     }
 
+    if (body.autoPost !== undefined) {
+      updates.auto_post = body.autoPost;
+    }
+
+    if (body.autoPostIntervalDays !== undefined) {
+      if (body.autoPostIntervalDays < 1 || body.autoPostIntervalDays > 30) {
+        return NextResponse.json(
+          { error: 'Auto-post interval must be between 1 and 30 days' },
+          { status: 400 }
+        );
+      }
+      updates.auto_post_interval_days = body.autoPostIntervalDays;
+    }
+
     // Validate at least one platform if locations or platforms are being updated
     if (body.targetLocations !== undefined || body.additionalPlatforms !== undefined) {
       const targetLocations = body.targetLocations ?? [];

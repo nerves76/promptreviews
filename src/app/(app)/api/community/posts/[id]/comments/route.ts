@@ -16,9 +16,10 @@ import { validateCommentData, validatePagination } from '../../../utils/validati
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     // Verify authentication
     const authResult = await verifyAuth(request);
     if (!authResult.success) {
@@ -37,7 +38,7 @@ export async function GET(
     const { data: comments, error, count } = await supabase
       .from('post_comments')
       .select('*', { count: 'exact' })
-      .eq('post_id', params.id)
+      .eq('post_id', id)
       .is('deleted_at', null)
       .order('created_at', { ascending: true })
       .range(offset, offset + limit - 1);
@@ -74,9 +75,10 @@ export async function GET(
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     // Verify authentication
     const authResult = await verifyAuth(request);
     if (!authResult.success) {
@@ -107,7 +109,7 @@ export async function POST(
     const { data: post, error: postError } = await supabase
       .from('posts')
       .select('id')
-      .eq('id', params.id)
+      .eq('id', id)
       .is('deleted_at', null)
       .single();
 
@@ -122,7 +124,7 @@ export async function POST(
     const { data: comment, error: createError } = await supabase
       .from('post_comments')
       .insert({
-        post_id: params.id,
+        post_id: id,
         author_id: userId,
         body: body.body.trim()
       })

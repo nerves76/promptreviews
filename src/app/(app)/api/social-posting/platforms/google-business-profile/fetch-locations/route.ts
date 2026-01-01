@@ -228,8 +228,8 @@ export async function POST(request: NextRequest) {
               status = 'UNVERIFIED';
             }
             
-            // Extract Google Place ID and coordinates from metadata
-            const googlePlaceId = location.metadata?.placeId || null;
+            // Extract Google Place ID and coordinates from locationKey
+            const googlePlaceId = location.locationKey?.placeId || null;
             const lat = location.latlng?.latitude || null;
             const lng = location.latlng?.longitude || null;
 

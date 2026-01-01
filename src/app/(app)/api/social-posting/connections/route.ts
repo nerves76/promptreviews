@@ -36,39 +36,14 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get the account ID from the request query
-    const url = new URL(request.url);
-    const accountId = url.searchParams.get('accountId');
-
+    // Get account ID from header (set by apiClient for account isolation)
+    const accountId = await getRequestAccountId(request, user.id, supabase);
     if (!accountId) {
-      console.warn('[Social Connections GET] Missing accountId parameter for user:', user.id);
+      console.warn('[Social Connections GET] No valid account found for user:', user.id);
       return NextResponse.json(
         {
-          error: 'Account ID is required',
-          details: 'Please provide an accountId query parameter'
-        },
-        { status: 400 }
-      );
-    }
-
-    // Verify user has access to this account
-    const { data: membership, error: membershipError } = await supabase
-      .from('account_users')
-      .select('account_id')
-      .eq('account_id', accountId)
-      .eq('user_id', user.id)
-      .maybeSingle();
-
-    if (membershipError || !membership) {
-      console.warn('[Social Connections GET] Access denied:', {
-        userId: user.id,
-        requestedAccountId: accountId,
-        membershipError: membershipError?.message
-      });
-      return NextResponse.json(
-        {
-          error: 'Access denied',
-          details: 'You do not have permission to access this account'
+          error: 'Account not found',
+          details: 'No valid account found for this user'
         },
         { status: 403 }
       );
@@ -152,12 +127,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body = await request.json();
-    const { accountId, platform, identifier, appPassword } = body;
+    // Get account ID from header (set by apiClient for account isolation)
+    const accountId = await getRequestAccountId(request, user.id, supabase);
+    if (!accountId) {
+      console.warn('[Social Connections POST] No valid account found for user:', user.id);
+      return NextResponse.json(
+        {
+          error: 'Account not found',
+          details: 'No valid account found for this user'
+        },
+        { status: 403 }
+      );
+    }
 
-    if (!accountId || !platform || !identifier || !appPassword) {
+    const body = await request.json();
+    const { platform, identifier, appPassword } = body;
+
+    if (!platform || !identifier || !appPassword) {
       console.warn('[Social Connections POST] Missing required fields:', {
-        hasAccountId: !!accountId,
         hasPlatform: !!platform,
         hasIdentifier: !!identifier,
         hasAppPassword: !!appPassword
@@ -165,32 +152,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error: 'Missing required fields',
-          details: 'accountId, platform, identifier, and appPassword are all required'
+          details: 'platform, identifier, and appPassword are all required'
         },
         { status: 400 }
-      );
-    }
-
-    // Verify user has access to this account
-    const { data: membership, error: membershipError } = await supabase
-      .from('account_users')
-      .select('account_id')
-      .eq('account_id', accountId)
-      .eq('user_id', user.id)
-      .maybeSingle();
-
-    if (membershipError || !membership) {
-      console.warn('[Social Connections POST] Access denied:', {
-        userId: user.id,
-        requestedAccountId: accountId,
-        membershipError: membershipError?.message
-      });
-      return NextResponse.json(
-        {
-          error: 'Access denied',
-          details: 'You do not have permission to manage connections for this account'
-        },
-        { status: 403 }
       );
     }
 
@@ -378,38 +342,14 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const url = new URL(request.url);
-    const accountId = url.searchParams.get('accountId');
-
+    // Get account ID from header (set by apiClient for account isolation)
+    const accountId = await getRequestAccountId(request, user.id, supabase);
     if (!accountId) {
-      console.warn('[Social Connections DELETE] Missing accountId parameter for user:', user.id);
+      console.warn('[Social Connections DELETE] No valid account found for user:', user.id);
       return NextResponse.json(
         {
-          error: 'Account ID is required',
-          details: 'Please provide an accountId query parameter'
-        },
-        { status: 400 }
-      );
-    }
-
-    // Verify user has access to this account
-    const { data: membership, error: membershipError } = await supabase
-      .from('account_users')
-      .select('account_id')
-      .eq('account_id', accountId)
-      .eq('user_id', user.id)
-      .maybeSingle();
-
-    if (membershipError || !membership) {
-      console.warn('[Social Connections DELETE] Access denied:', {
-        userId: user.id,
-        requestedAccountId: accountId,
-        membershipError: membershipError?.message
-      });
-      return NextResponse.json(
-        {
-          error: 'Access denied',
-          details: 'You do not have permission to manage connections for this account'
+          error: 'Account not found',
+          details: 'No valid account found for this user'
         },
         { status: 403 }
       );

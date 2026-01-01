@@ -28,7 +28,8 @@ export type FeatureType =
   | 'concept_schedule'
   | 'review_matching'
   | 'rss_manual_post'
-  | 'rss_auto_post';
+  | 'rss_auto_post'
+  | 'scheduled_post';
 
 export interface CreditBalance {
   accountId: string;

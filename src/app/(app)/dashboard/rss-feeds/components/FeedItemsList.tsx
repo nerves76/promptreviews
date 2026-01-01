@@ -20,14 +20,8 @@ export default function FeedItemsList({ feedId }: FeedItemsListProps) {
   // Selection state
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
-  // Scheduling state
-  const [scheduling, setScheduling] = useState(false);
-  const [scheduleDate, setScheduleDate] = useState(() => {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    return tomorrow.toISOString().split("T")[0];
-  });
-  const [intervalDays, setIntervalDays] = useState(7);
+  // Add to queue state
+  const [addingToQueue, setAddingToQueue] = useState(false);
 
   const fetchItems = async () => {
     try {
@@ -115,37 +109,42 @@ export default function FeedItemsList({ feedId }: FeedItemsListProps) {
     }
   };
 
-  const handleScheduleSelected = async () => {
+  const handleAddToQueue = async () => {
     if (selectedIds.size === 0) return;
 
-    const selectedItems = items.filter((i) => selectedIds.has(i.id));
-
-    setScheduling(true);
+    setAddingToQueue(true);
     try {
-      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "America/Los_Angeles";
-
-      await apiClient.post(`/rss-feeds/${feedId}/schedule-items`, {
-        items: selectedItems.map((item) => ({
-          guid: item.itemGuid,
-          title: item.title || "",
-          description: item.description || "",
-          link: item.itemUrl || "",
-          imageUrl: item.imageUrl,
-        })),
-        startDate: scheduleDate,
-        intervalDays,
-        timezone,
+      const result = await apiClient.post<{
+        success: boolean;
+        data?: {
+          addedCount: number;
+          skippedCount: number;
+          failedCount: number;
+        };
+        error?: string;
+      }>("/social-posting/queue/add-from-rss", {
+        feedId,
+        items: Array.from(selectedIds).map((id) => ({ itemId: id })),
       });
 
-      setSelectedIds(new Set());
-      setClearMessage(`Scheduled ${selectedItems.length} posts`);
-      setTimeout(() => setClearMessage(null), 3000);
-      await fetchItems();
+      if (result.success && result.data) {
+        setSelectedIds(new Set());
+        const { addedCount, skippedCount } = result.data;
+        if (skippedCount > 0) {
+          setClearMessage(`Added ${addedCount} to queue (${skippedCount} already in queue)`);
+        } else {
+          setClearMessage(`Added ${addedCount} to queue`);
+        }
+        setTimeout(() => setClearMessage(null), 3000);
+        await fetchItems();
+      } else {
+        alert(result.error || "Failed to add to queue");
+      }
     } catch (err: any) {
-      console.error("Failed to schedule items:", err);
-      alert(err.message || "Failed to schedule items");
+      console.error("Failed to add to queue:", err);
+      alert(err.message || "Failed to add to queue");
     } finally {
-      setScheduling(false);
+      setAddingToQueue(false);
     }
   };
 
@@ -196,12 +195,6 @@ export default function FeedItemsList({ feedId }: FeedItemsListProps) {
       minute: "2-digit",
     });
   };
-
-  const minDate = useMemo(() => {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    return tomorrow.toISOString().split("T")[0];
-  }, []);
 
   if (loading) {
     return (
@@ -257,7 +250,7 @@ export default function FeedItemsList({ feedId }: FeedItemsListProps) {
         </div>
       </div>
 
-      {/* Schedule controls - show when items are available */}
+      {/* Add to queue controls - show when items are available */}
       {availableItems.length > 0 && (
         <div className="mb-4 p-3 bg-blue-50 rounded-lg">
           <div className="flex flex-wrap items-center gap-3">
@@ -277,44 +270,29 @@ export default function FeedItemsList({ feedId }: FeedItemsListProps) {
 
             {selectedIds.size > 0 && (
               <>
-                <div className="flex items-center gap-2 text-sm">
-                  <span className="text-gray-600">Start:</span>
-                  <input
-                    type="date"
-                    value={scheduleDate}
-                    min={minDate}
-                    onChange={(e) => setScheduleDate(e.target.value)}
-                    className="border border-gray-300 px-2 py-1 rounded text-sm"
-                  />
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <span className="text-gray-600">Every:</span>
-                  <select
-                    value={intervalDays}
-                    onChange={(e) => setIntervalDays(parseInt(e.target.value))}
-                    className="border border-gray-300 px-2 py-1 rounded text-sm"
-                  >
-                    <option value={1}>1 day</option>
-                    <option value={2}>2 days</option>
-                    <option value={3}>3 days</option>
-                    <option value={7}>7 days</option>
-                    <option value={14}>14 days</option>
-                  </select>
-                </div>
                 <button
-                  onClick={handleScheduleSelected}
-                  disabled={scheduling}
+                  onClick={handleAddToQueue}
+                  disabled={addingToQueue}
                   className="px-3 py-1 text-sm font-medium text-white bg-slate-blue rounded-lg hover:bg-slate-blue/90 transition-colors disabled:opacity-50"
                 >
-                  {scheduling ? (
+                  {addingToQueue ? (
                     <>
                       <Icon name="FaSpinner" size={12} className="inline mr-1 animate-spin" />
-                      Scheduling...
+                      Adding...
                     </>
                   ) : (
-                    <>Schedule {selectedIds.size} post{selectedIds.size !== 1 ? "s" : ""}</>
+                    <>
+                      <Icon name="FaPlus" size={12} className="inline mr-1" />
+                      Add to queue
+                    </>
                   )}
                 </button>
+                <a
+                  href="/dashboard/social-posting"
+                  className="text-xs text-slate-blue hover:underline"
+                >
+                  View queue →
+                </a>
               </>
             )}
           </div>
@@ -410,10 +388,10 @@ export default function FeedItemsList({ feedId }: FeedItemsListProps) {
                   )}
                   {item.scheduledPostId && (
                     <a
-                      href="/dashboard/social-posting/scheduled"
+                      href="/dashboard/social-posting"
                       className="block text-xs text-slate-blue hover:underline"
                     >
-                      View post
+                      View in queue
                     </a>
                   )}
                 </td>

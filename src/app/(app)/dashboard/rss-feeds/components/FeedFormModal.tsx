@@ -42,7 +42,7 @@ export default function FeedFormModal({
   const [feedUrl, setFeedUrl] = useState(feed?.feedUrl || "");
   const [feedName, setFeedName] = useState(feed?.feedName || "");
   const [pollingInterval, setPollingInterval] = useState(
-    feed?.pollingIntervalMinutes || 60
+    feed?.pollingIntervalMinutes || 10080 // Default to weekly
   );
   const [postTemplate, setPostTemplate] = useState(
     feed?.postTemplate || "{title}\n\n{description}"
@@ -61,6 +61,10 @@ export default function FeedFormModal({
     feed?.additionalPlatforms?.bluesky?.connectionId || ""
   );
   const [isActive, setIsActive] = useState(feed?.isActive ?? true);
+  const [autoPost, setAutoPost] = useState(feed?.autoPost ?? true);
+  const [autoPostIntervalDays, setAutoPostIntervalDays] = useState(
+    feed?.autoPostIntervalDays || 1
+  );
 
   // Loading states
   const [loading, setLoading] = useState(false);
@@ -75,6 +79,9 @@ export default function FeedFormModal({
 
   // Fetch available GBP locations and Bluesky connections
   useEffect(() => {
+    // Guard: don't fetch if no account selected
+    if (!accountId) return;
+
     async function fetchPlatforms() {
       setLoading(true);
       try {
@@ -98,10 +105,10 @@ export default function FeedFormModal({
       }
 
       try {
-        // Fetch Bluesky connections
+        // Fetch Bluesky connections (accountId sent via X-Selected-Account header by apiClient)
         const blueskyRes = await apiClient.get<{
           connections: Array<{ id: string; platform: string; handle: string; status: string }>;
-        }>(`/social-posting/connections?accountId=${accountId}`);
+        }>("/social-posting/connections");
         // Filter for active Bluesky connections
         const activeBluesky = (blueskyRes.connections || [])
           .filter((c) => c.platform === "bluesky" && c.status === "active")
@@ -179,6 +186,8 @@ export default function FeedFormModal({
           targetLocations: selectedLocations,
           additionalPlatforms,
           isActive,
+          autoPost,
+          autoPostIntervalDays,
         };
         await apiClient.patch(`/rss-feeds/${feed.id}`, updateData);
       } else {
@@ -192,6 +201,8 @@ export default function FeedFormModal({
           targetLocations: selectedLocations,
           additionalPlatforms,
           isActive,
+          autoPost,
+          autoPostIntervalDays,
         };
         await apiClient.post("/rss-feeds", createData);
       }
@@ -208,24 +219,36 @@ export default function FeedFormModal({
   };
 
   const pollingOptions = [
-    { value: 15, label: "Every 15 minutes" },
-    { value: 30, label: "Every 30 minutes" },
-    { value: 60, label: "Every hour" },
     { value: 120, label: "Every 2 hours" },
     { value: 360, label: "Every 6 hours" },
     { value: 720, label: "Every 12 hours" },
     { value: 1440, label: "Once daily" },
+    { value: 10080, label: "Once weekly" },
+    { value: 43200, label: "Once monthly" },
   ];
 
   return (
     <Dialog open={true} onClose={onClose} className="relative z-50">
       <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
       <div className="fixed inset-0 flex items-center justify-center p-4">
-        <Dialog.Panel className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-          <div className="p-6">
-            <Dialog.Title className="text-xl font-bold text-gray-900 mb-4">
-              {isEditing ? "Edit RSS feed" : "Add RSS feed"}
-            </Dialog.Title>
+        <div className="relative">
+          {/* Red X close button - breaching top right corner */}
+          <button
+            onClick={onClose}
+            className="absolute -top-3 -right-3 bg-white border border-gray-200 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 flex items-center justify-center hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 z-50"
+            style={{ width: 48, height: 48 }}
+            aria-label="Close modal"
+          >
+            <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+
+          <Dialog.Panel className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <Dialog.Title className="text-xl font-bold text-gray-900 mb-4">
+                {isEditing ? "Edit RSS feed" : "Add RSS feed"}
+              </Dialog.Title>
 
             {error && (
               <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">
@@ -295,6 +318,47 @@ export default function FeedFormModal({
                       </option>
                     ))}
                   </select>
+                </div>
+
+                {/* Auto-post Settings */}
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={autoPost}
+                      onChange={(e) => setAutoPost(e.target.checked)}
+                      className="rounded border-gray-300 text-slate-blue focus:ring-slate-blue w-5 h-5"
+                    />
+                    <div>
+                      <span className="font-medium text-gray-900">Auto-post new items</span>
+                      <p className="text-sm text-gray-500">
+                        Automatically schedule new feed items as posts
+                      </p>
+                    </div>
+                  </label>
+
+                  {autoPost && (
+                    <div className="mt-4 ml-8">
+                      <label className="block text-sm text-gray-700 mb-1">
+                        Post frequency
+                      </label>
+                      <select
+                        value={autoPostIntervalDays}
+                        onChange={(e) =>
+                          setAutoPostIntervalDays(parseInt(e.target.value))
+                        }
+                        className="border border-gray-300 px-3 py-2 rounded-lg focus:ring-2 focus:ring-slate-blue focus:border-transparent"
+                      >
+                        <option value={1}>One post per day</option>
+                        <option value={2}>One post every 2 days</option>
+                        <option value={3}>One post every 3 days</option>
+                        <option value={7}>One post per week</option>
+                      </select>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Each auto-post uses 1 credit
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 {/* Target Platforms */}
@@ -508,6 +572,7 @@ export default function FeedFormModal({
             </div>
           </div>
         </Dialog.Panel>
+        </div>
       </div>
     </Dialog>
   );

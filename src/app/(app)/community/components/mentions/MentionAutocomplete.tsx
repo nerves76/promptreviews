@@ -18,12 +18,13 @@ interface MentionableUser {
 
 interface MentionAutocompleteProps {
   users: MentionableUser[];
-  selectedIndex: number;
+  selectedIndex?: number;
+  query?: string;
   onSelect: (user: MentionableUser) => void;
   position: { top: number; left: number };
 }
 
-export function MentionAutocomplete({ users, selectedIndex, onSelect, position }: MentionAutocompleteProps) {
+export function MentionAutocomplete({ users, selectedIndex = 0, query, onSelect, position }: MentionAutocompleteProps) {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Scroll selected item into view

@@ -892,7 +892,7 @@ export class GoogleBusinessProfileClient {
             }
 
           } catch (locationError) {
-            console.warn(`⚠️ Failed to fetch reviews for location ${locationId}:`, locationError);
+            console.warn(`⚠️ Failed to fetch reviews for location ${canonicalLocationId}:`, locationError);
             // Continue with other locations
           }
         }
@@ -967,10 +967,10 @@ export class GoogleBusinessProfileClient {
       
       // Use empty arrays for other data that would come from different APIs
       // The helper functions will handle empty data gracefully
-      const locationInfo = { status: 'fulfilled', value: null };
-      const insights = { status: 'fulfilled', value: [] };
-      const photos = { status: 'fulfilled', value: [] };
-      const localPosts = { status: 'fulfilled', value: [] };
+      const locationInfo = { status: 'fulfilled' as const, value: null };
+      const insights = { status: 'fulfilled' as const, value: [] as any[] };
+      const photos = { status: 'fulfilled' as const, value: [] as any[] };
+      const localPosts = { status: 'fulfilled' as const, value: [] as any[] };
 
       // Process the results, handling any rejections gracefully
       const location = locationInfo.status === 'fulfilled' ? locationInfo.value : null;
@@ -1105,7 +1105,7 @@ export class GoogleBusinessProfileClient {
       
       
       // New API returns multiDailyMetricsTimeSeries array
-      return response.multiDailyMetricsTimeSeries || [];
+      return (response as any).multiDailyMetricsTimeSeries || [];
     } catch (error: any) {
       console.error('❌ [NEW API] Failed to fetch performance data:', error);
       console.error('❌ [NEW API] Error details:', {
@@ -1182,9 +1182,9 @@ export class GoogleBusinessProfileClient {
 
     // Restore original base URL
     this.config.baseUrl = originalBaseUrl;
-    
-    
-    return response.locationMetrics || [];
+
+
+    return (response as any).locationMetrics || [];
   }
 
   /**
@@ -1211,8 +1211,8 @@ export class GoogleBusinessProfileClient {
 
       // Restore original base URL
       this.config.baseUrl = originalBaseUrl;
-      
-      return response.mediaItems || [];
+
+      return (response as any).mediaItems || [];
     } catch (error: any) {
       console.error('❌ Failed to fetch location photos:', error);
       // Don't throw error, return empty array to allow other data to load
@@ -1264,8 +1264,8 @@ export class GoogleBusinessProfileClient {
 
       // Restore original base URL
       this.config.baseUrl = originalBaseUrl;
-      
-      return response.localPosts || [];
+
+      return (response as any).localPosts || [];
     } catch (error: any) {
       console.error('❌ Failed to fetch local posts:', error);
       // Don't throw error, return empty array to allow other data to load

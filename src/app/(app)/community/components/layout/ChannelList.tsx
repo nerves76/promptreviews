@@ -59,7 +59,7 @@ export function ChannelList({ channels, activeChannelSlug, onChannelSelect }: Ch
                 fill="currentColor"
                 viewBox="0 0 20 20"
                 xmlns="http://www.w3.org/2000/svg"
-                title="Admin-only posting"
+                aria-label="Admin-only posting"
               >
                 <path
                   fillRule="evenodd"

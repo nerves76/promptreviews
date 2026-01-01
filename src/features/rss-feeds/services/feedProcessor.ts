@@ -71,13 +71,34 @@ export async function processFeed(
     }
 
     // Not first sync - process normally but only for truly NEW items
-    // Check if we've hit the daily limit
+
+    // Check if auto-post is disabled - just mark items as pending for manual queue
+    if (!feedSource.autoPost) {
+      console.log(`[RSS] Auto-post disabled for feed ${feedSource.feedName} - marking ${newItems.length} items as pending`);
+
+      for (const item of newItems) {
+        await createFeedItem(supabase, feedSource.id, item, 'pending', null);
+      }
+      result.itemsSkipped = newItems.length;
+
+      await updateFeedLastPolled(supabase, feedSource.id, null);
+      return result;
+    }
+
+    // Auto-post is enabled - check daily limit
     const postsRemaining = await getPostsRemainingToday(supabase, feedSource);
     if (postsRemaining <= 0) {
       result.errors.push('Daily post limit reached');
       await updateFeedLastPolled(supabase, feedSource.id, null);
       return result;
     }
+
+    // Calculate scheduled dates for new items, spaced by autoPostIntervalDays
+    const scheduleDates = await calculateScheduleDates(
+      supabase,
+      feedSource,
+      Math.min(newItems.length, postsRemaining)
+    );
 
     // Process each new item (limited by daily quota)
     let processedCount = 0;
@@ -89,7 +110,8 @@ export async function processFeed(
       }
 
       try {
-        const itemResult = await processItem(supabase, feedSource, item);
+        const scheduledDate = scheduleDates[processedCount] || scheduleDates[scheduleDates.length - 1];
+        const itemResult = await processItem(supabase, feedSource, item, scheduledDate);
         if (itemResult.status === 'scheduled') {
           result.itemsScheduled++;
           processedCount++;
@@ -118,12 +140,64 @@ export async function processFeed(
 }
 
 /**
+ * Calculate scheduled dates for new items, spaced by autoPostIntervalDays
+ * Finds the last scheduled post date and adds intervals from there
+ */
+async function calculateScheduleDates(
+  supabase: SupabaseClient,
+  feedSource: RssFeedSource,
+  count: number
+): Promise<string[]> {
+  const intervalDays = feedSource.autoPostIntervalDays || 1;
+
+  // Find the latest scheduled post date for this feed's account
+  const { data: latestPost } = await supabase
+    .from('google_business_scheduled_posts')
+    .select('scheduled_date')
+    .eq('account_id', feedSource.accountId)
+    .in('status', ['pending', 'processing'])
+    .not('scheduled_date', 'is', null)
+    .order('scheduled_date', { ascending: false })
+    .limit(1)
+    .single();
+
+  // Start from either the day after the latest scheduled post, or today
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  let startDate: Date;
+  if (latestPost?.scheduled_date) {
+    const lastScheduled = new Date(latestPost.scheduled_date);
+    // Add interval days to the last scheduled date
+    startDate = new Date(lastScheduled);
+    startDate.setDate(startDate.getDate() + intervalDays);
+    // But ensure we don't schedule in the past
+    if (startDate < today) {
+      startDate = today;
+    }
+  } else {
+    startDate = today;
+  }
+
+  // Generate dates for each item
+  const dates: string[] = [];
+  for (let i = 0; i < count; i++) {
+    const date = new Date(startDate);
+    date.setDate(date.getDate() + i * intervalDays);
+    dates.push(date.toISOString().split('T')[0]);
+  }
+
+  return dates;
+}
+
+/**
  * Process a single RSS item - check credits, create scheduled post
  */
 async function processItem(
   supabase: SupabaseClient,
   feedSource: RssFeedSource,
-  item: ParsedFeedItem
+  item: ParsedFeedItem,
+  scheduledDate: string
 ): Promise<{ status: 'scheduled' | 'skipped'; skipReason?: string }> {
   // Check if we have any target platforms configured
   const hasGbpLocations = feedSource.targetLocations.length > 0;
@@ -145,7 +219,7 @@ async function processItem(
   const content = applyTemplate(feedSource.postTemplate, item, feedSource);
 
   // Create the scheduled post
-  const scheduledPostId = await createScheduledPost(supabase, feedSource, item, content);
+  const scheduledPostId = await createScheduledPost(supabase, feedSource, item, content, scheduledDate);
 
   // Debit credits
   const idempotencyKey = `rss_post:${feedSource.id}:${item.guid}`;
@@ -214,7 +288,8 @@ async function createScheduledPost(
   supabase: SupabaseClient,
   feedSource: RssFeedSource,
   item: ParsedFeedItem,
-  content: string
+  content: string,
+  scheduledDate: string
 ): Promise<string> {
   // Get the account's user_id (needed for scheduled posts)
   const { data: accountUser } = await supabase
@@ -249,9 +324,6 @@ async function createScheduledPost(
     }];
   }
 
-  // Schedule for today (will be picked up by next daily cron)
-  const today = new Date().toISOString().split('T')[0];
-
   const insertPayload = {
     account_id: feedSource.accountId,
     user_id: accountUser.user_id,
@@ -267,7 +339,7 @@ async function createScheduledPost(
         itemUrl: item.link,
       },
     },
-    scheduled_date: today,
+    scheduled_date: scheduledDate,
     timezone: 'UTC', // Use UTC for simplicity
     selected_locations: feedSource.targetLocations,
     media_paths: mediaPaths.length > 0 ? mediaPaths : [],
@@ -495,6 +567,8 @@ export function transformFeedSource(row: Record<string, unknown>): RssFeedSource
     targetLocations: (row.target_locations || []) as RssFeedSource['targetLocations'],
     additionalPlatforms: (row.additional_platforms || {}) as RssFeedSource['additionalPlatforms'],
     isActive: row.is_active as boolean,
+    autoPost: row.auto_post as boolean,
+    autoPostIntervalDays: row.auto_post_interval_days as number,
     errorCount: row.error_count as number,
     lastError: row.last_error as string | null,
     postsToday: row.posts_today as number,

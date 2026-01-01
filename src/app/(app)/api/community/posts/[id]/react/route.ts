@@ -15,9 +15,10 @@ import { validateReaction, ReactionType } from '../../../utils/validation';
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     // Verify authentication
     const authResult = await verifyAuth(request);
     if (!authResult.success) {
@@ -48,7 +49,7 @@ export async function POST(
     const { data: post, error: postError } = await supabase
       .from('posts')
       .select('id')
-      .eq('id', params.id)
+      .eq('id', id)
       .is('deleted_at', null)
       .single();
 
@@ -63,7 +64,7 @@ export async function POST(
     const { data: existingReaction } = await supabase
       .from('post_reactions')
       .select('*')
-      .eq('post_id', params.id)
+      .eq('post_id', id)
       .eq('user_id', userId)
       .eq('reaction', body.reaction)
       .maybeSingle();
@@ -73,7 +74,7 @@ export async function POST(
       const { error: deleteError } = await supabase
         .from('post_reactions')
         .delete()
-        .eq('post_id', params.id)
+        .eq('post_id', id)
         .eq('user_id', userId)
         .eq('reaction', body.reaction);
 
@@ -91,7 +92,7 @@ export async function POST(
       const { error: insertError } = await supabase
         .from('post_reactions')
         .insert({
-          post_id: params.id,
+          post_id: id,
           user_id: userId,
           reaction: body.reaction
         });

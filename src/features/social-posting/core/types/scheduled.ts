@@ -7,12 +7,15 @@
 export type GoogleBusinessScheduledPostKind = 'post' | 'photo';
 
 export type GoogleBusinessScheduledPostStatus =
+  | 'draft'
   | 'pending'
   | 'processing'
   | 'completed'
   | 'partial_success'
   | 'failed'
   | 'cancelled';
+
+export type GoogleBusinessScheduledPostSourceType = 'manual' | 'rss';
 
 export type GoogleBusinessScheduledPostResultStatus =
   | 'pending'
@@ -43,7 +46,7 @@ export interface GoogleBusinessScheduledPost {
   postType: 'WHATS_NEW' | null;
   content: any | null; // richer typing applied at usage sites
   caption: string | null;
-  scheduledDate: string; // ISO date string (YYYY-MM-DD)
+  scheduledDate: string | null; // ISO date string (YYYY-MM-DD), null for drafts
   timezone: string;
   selectedLocations: GoogleBusinessScheduledLocationSummary[];
   mediaPaths: GoogleBusinessScheduledMediaDescriptor[];
@@ -52,6 +55,17 @@ export interface GoogleBusinessScheduledPost {
   errorLog: Record<string, any> | null;
   createdAt: string;
   updatedAt: string;
+  // New fields for content queue
+  queueOrder: number;
+  sourceType: GoogleBusinessScheduledPostSourceType;
+  rssFeedItemId: string | null;
+  // Additional platforms for cross-posting
+  additionalPlatforms?: {
+    bluesky?: {
+      enabled: boolean;
+      connectionId: string;
+    };
+  };
 }
 
 export interface GoogleBusinessScheduledPostResult {

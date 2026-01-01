@@ -244,10 +244,10 @@ export default function GoogleBusinessScheduler({
 
     try {
       setIsLoadingBluesky(true);
-      // Use apiClient to ensure proper auth headers
+      // Use apiClient - accountId sent via X-Selected-Account header
       const data = await apiClient.get<{
         connections: BlueskyConnection[];
-      }>(`/social-posting/connections?accountId=${accountId}`);
+      }>("/social-posting/connections");
 
       if (data.connections) {
         const bluesky = data.connections.find((conn: any) => conn.platform === 'bluesky');

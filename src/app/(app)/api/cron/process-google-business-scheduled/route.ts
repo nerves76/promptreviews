@@ -144,7 +144,7 @@ async function processPost(options: {
     sourceUrl: item.publicUrl,
   }));
 
-  const payload = {
+  const payload: import('@/features/social-posting/platforms/google-business-profile/googleBusinessProfile').CreateLocalPostRequest = {
     languageCode: 'en-US',
     summary,
     topicType: postType === 'EVENT' ? 'EVENT' : 'STANDARD',
@@ -660,11 +660,10 @@ export async function GET(request: NextRequest) {
           .eq('id', job?.id ?? '');
 
         summaries.push({
-          id: job?.id,
+          id: job?.id ?? '',
           skipped: false,
           successCount: 0,
           failureCount: job?.selected_locations?.length ?? 0,
-          status: 'failed',
           error: jobError instanceof Error ? jobError.message : 'Unexpected error',
         });
       }

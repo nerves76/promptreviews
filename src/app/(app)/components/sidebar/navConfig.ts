@@ -83,6 +83,13 @@ export const GOOGLE_BUSINESS_SECTION: NavSection = {
       requiresBusiness: true,
     },
     {
+      path: "/dashboard/social-posting",
+      label: "Social content",
+      icon: "FaCalendarAlt",
+      description: "Queue and schedule posts",
+      requiresBusiness: true,
+    },
+    {
       path: "/dashboard/rss-feeds",
       label: "RSS feeds",
       icon: "FaLink",

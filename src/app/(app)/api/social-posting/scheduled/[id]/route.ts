@@ -14,47 +14,45 @@ function ensureArray<T>(value: T | T[] | undefined | null): T[] {
 
 function normalizeLocations(input: unknown): Array<{ id: string; name?: string }> {
   const list = ensureArray(input as any);
-  return list
-    .map((item) => {
-      if (!item) return null;
-      if (typeof item === 'string') {
-        return { id: item, name: undefined };
-      }
-      if (typeof item === 'object' && 'id' in item) {
-        const name = typeof (item as any).name === 'string' ? (item as any).name : undefined;
-        const id = String((item as any).id).trim();
-        if (!id) return null;
-        return { id, name };
-      }
-      return null;
-    })
-    .filter((loc): loc is { id: string; name?: string } => !!loc?.id);
+  const mapped = list.map((item): { id: string; name?: string } | null => {
+    if (!item) return null;
+    if (typeof item === 'string') {
+      return { id: item, name: undefined };
+    }
+    if (typeof item === 'object' && 'id' in item) {
+      const name = typeof (item as any).name === 'string' ? (item as any).name : undefined;
+      const id = String((item as any).id).trim();
+      if (!id) return null;
+      return { id, name };
+    }
+    return null;
+  });
+  return mapped.filter((loc): loc is { id: string; name?: string } => loc !== null && !!loc.id);
 }
 
 function normalizeMedia(input: unknown): GoogleBusinessScheduledMediaDescriptor[] {
   const list = ensureArray(input as any);
-  return list
-    .map((item) => {
-      if (!item || typeof item !== 'object') return null;
-      const bucket = typeof (item as any).bucket === 'string' ? (item as any).bucket : undefined;
-      const path = typeof (item as any).path === 'string' ? (item as any).path : undefined;
-      const publicUrl = typeof (item as any).publicUrl === 'string' ? (item as any).publicUrl : undefined;
-      const size = Number((item as any).size ?? 0);
-      const mime = typeof (item as any).mime === 'string' ? (item as any).mime : undefined;
-      if (!bucket || !path || !publicUrl || !mime) {
-        return null;
-      }
-      return {
-        bucket,
-        path,
-        publicUrl,
-        mime,
-        size: Number.isFinite(size) ? size : 0,
-        checksum: typeof (item as any).checksum === 'string' ? (item as any).checksum : undefined,
-        originalName: typeof (item as any).originalName === 'string' ? (item as any).originalName : undefined,
-      } satisfies GoogleBusinessScheduledMediaDescriptor;
-    })
-    .filter((media): media is GoogleBusinessScheduledMediaDescriptor => !!media);
+  const mapped = list.map((item): GoogleBusinessScheduledMediaDescriptor | null => {
+    if (!item || typeof item !== 'object') return null;
+    const bucket = typeof (item as any).bucket === 'string' ? (item as any).bucket : undefined;
+    const path = typeof (item as any).path === 'string' ? (item as any).path : undefined;
+    const publicUrl = typeof (item as any).publicUrl === 'string' ? (item as any).publicUrl : undefined;
+    const size = Number((item as any).size ?? 0);
+    const mime = typeof (item as any).mime === 'string' ? (item as any).mime : undefined;
+    if (!bucket || !path || !publicUrl || !mime) {
+      return null;
+    }
+    return {
+      bucket,
+      path,
+      publicUrl,
+      mime,
+      size: Number.isFinite(size) ? size : 0,
+      checksum: typeof (item as any).checksum === 'string' ? (item as any).checksum : undefined,
+      originalName: typeof (item as any).originalName === 'string' ? (item as any).originalName : undefined,
+    };
+  });
+  return mapped.filter((media): media is GoogleBusinessScheduledMediaDescriptor => media !== null);
 }
 
 function isDateString(value: string): boolean {
@@ -82,6 +80,10 @@ async function fetchScheduledPost(supabase: any, id: string) {
         error_log,
         created_at,
         updated_at,
+        queue_order,
+        source_type,
+        rss_feed_item_id,
+        additional_platforms,
         google_business_scheduled_post_results (
           id,
           scheduled_post_id,
@@ -126,6 +128,10 @@ function mapRecordToScheduledPost(row: any): GoogleBusinessScheduledPost & {
     errorLog: row.error_log,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+    queueOrder: row.queue_order ?? 0,
+    sourceType: row.source_type ?? 'manual',
+    rssFeedItemId: row.rss_feed_item_id ?? null,
+    additionalPlatforms: row.additional_platforms ?? undefined,
   };
 
   if (row.google_business_scheduled_post_results) {
@@ -150,9 +156,10 @@ function mapRecordToScheduledPost(row: any): GoogleBusinessScheduledPost & {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const supabase = await createServerSupabaseClient();
     const {
       data: { user },
@@ -168,7 +175,7 @@ export async function GET(
       return NextResponse.json({ success: false, error: 'Account context unavailable' }, { status: 400 });
     }
 
-    const record = await fetchScheduledPost(supabase, params.id);
+    const record = await fetchScheduledPost(supabase, id);
     if (!record || record.account_id !== accountId) {
       return NextResponse.json({ success: false, error: 'Scheduled item not found' }, { status: 404 });
     }
@@ -185,9 +192,10 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const body = await request.json();
     const supabase = await createServerSupabaseClient();
     const {
@@ -204,14 +212,14 @@ export async function PATCH(
       return NextResponse.json({ success: false, error: 'Account context unavailable' }, { status: 400 });
     }
 
-    const record = await fetchScheduledPost(supabase, params.id);
+    const record = await fetchScheduledPost(supabase, id);
     if (!record || record.account_id !== accountId) {
       return NextResponse.json({ success: false, error: 'Scheduled item not found' }, { status: 404 });
     }
 
-    if (record.status !== 'pending') {
+    if (record.status !== 'pending' && record.status !== 'draft') {
       return NextResponse.json(
-        { success: false, error: 'Only pending schedules can be edited.' },
+        { success: false, error: 'Only pending or draft items can be edited.' },
         { status: 400 }
       );
     }
@@ -279,7 +287,7 @@ export async function PATCH(
     const { data: updated, error: updateError } = await supabase
       .from('google_business_scheduled_posts')
       .update(updates)
-      .eq('id', params.id)
+      .eq('id', id)
       .select(
         `
         id,
@@ -321,7 +329,7 @@ export async function PATCH(
         const { error: deleteError } = await supabase
           .from('google_business_scheduled_post_results')
           .delete()
-          .eq('scheduled_post_id', params.id)
+          .eq('scheduled_post_id', id)
           .in('location_id', toRemove);
 
         if (deleteError) {
@@ -334,7 +342,7 @@ export async function PATCH(
           .from('google_business_scheduled_post_results')
           .insert(
             toAdd.map((loc) => ({
-              scheduled_post_id: params.id,
+              scheduled_post_id: id,
               location_id: loc.id,
               location_name: loc.name ?? null,
               status: 'pending',
@@ -347,7 +355,7 @@ export async function PATCH(
       }
     }
 
-    const refreshed = await fetchScheduledPost(supabase, params.id);
+    const refreshed = await fetchScheduledPost(supabase, id);
     if (!refreshed) {
       return NextResponse.json({ success: false, error: 'Failed to load updated schedule.' }, { status: 500 });
     }
@@ -364,9 +372,10 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const supabase = await createServerSupabaseClient();
     const {
       data: { user },
@@ -382,7 +391,7 @@ export async function DELETE(
       return NextResponse.json({ success: false, error: 'Account context unavailable' }, { status: 400 });
     }
 
-    const record = await fetchScheduledPost(supabase, params.id);
+    const record = await fetchScheduledPost(supabase, id);
     if (!record || record.account_id !== accountId) {
       return NextResponse.json({ success: false, error: 'Scheduled item not found' }, { status: 404 });
     }
@@ -397,7 +406,7 @@ export async function DELETE(
     const { error: updateError } = await supabase
       .from('google_business_scheduled_posts')
       .update({ status: 'cancelled', updated_at: new Date().toISOString() })
-      .eq('id', params.id);
+      .eq('id', id);
 
     if (updateError) {
       console.error('[Schedule] cancel error:', updateError);

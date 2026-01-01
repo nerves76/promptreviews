@@ -23,10 +23,10 @@ export default function BlueskyConnection({ accountId }: BlueskyConnectionProps)
   const fetchConnectionStatus = async () => {
     try {
       setIsLoading(true);
-      // Use apiClient to ensure proper auth headers
+      // Use apiClient - accountId sent via X-Selected-Account header
       const data = await apiClient.get<{
         connections: Array<{ platform: string; status: string; handle: string | null }>;
-      }>(`/social-posting/connections?accountId=${accountId}`);
+      }>("/social-posting/connections");
 
       if (data.connections) {
         const bluesky = data.connections.find((conn: any) => conn.platform === 'bluesky');
@@ -61,12 +61,11 @@ export default function BlueskyConnection({ accountId }: BlueskyConnectionProps)
     setError(null);
 
     try {
-      // Use apiClient to ensure proper auth headers
+      // Use apiClient - accountId sent via X-Selected-Account header
       const data = await apiClient.post<{
         connection?: { handle: string };
         error?: string;
       }>('/social-posting/connections', {
-        accountId,
         platform: 'bluesky',
         identifier,
         appPassword,
@@ -94,8 +93,8 @@ export default function BlueskyConnection({ accountId }: BlueskyConnectionProps)
     }
 
     try {
-      // Use apiClient to ensure proper auth headers
-      await apiClient.delete(`/social-posting/connections?accountId=${accountId}`);
+      // Use apiClient - accountId sent via X-Selected-Account header
+      await apiClient.delete("/social-posting/connections");
       setIsConnected(false);
       setHandle(null);
     } catch (err) {

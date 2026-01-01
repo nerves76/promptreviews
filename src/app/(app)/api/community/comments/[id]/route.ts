@@ -15,9 +15,10 @@ import { createServiceClient } from '../../utils/supabase';
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     // Verify authentication
     const authResult = await verifyAuth(request);
     if (!authResult.success) {
@@ -27,7 +28,7 @@ export async function PATCH(
     const { userId } = authResult;
 
     // Check ownership
-    const canModify = await canModifyComment(userId!, params.id);
+    const canModify = await canModifyComment(userId!, id);
     if (!canModify) {
       return NextResponse.json(
         { error: 'You can only update your own comments', code: 'FORBIDDEN' },
@@ -68,7 +69,7 @@ export async function PATCH(
         body: body.body.trim(),
         updated_at: new Date().toISOString()
       })
-      .eq('id', params.id)
+      .eq('id', id)
       .is('deleted_at', null)
       .select()
       .single();
@@ -98,9 +99,10 @@ export async function PATCH(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     // Verify authentication
     const authResult = await verifyAuth(request);
     if (!authResult.success) {
@@ -110,7 +112,7 @@ export async function DELETE(
     const { userId } = authResult;
 
     // Check ownership or admin status
-    const canModify = await canModifyComment(userId!, params.id);
+    const canModify = await canModifyComment(userId!, id);
     if (!canModify) {
       return NextResponse.json(
         { error: 'You can only delete your own comments', code: 'FORBIDDEN' },
@@ -123,7 +125,7 @@ export async function DELETE(
     const { error } = await supabase
       .from('post_comments')
       .update({ deleted_at: new Date().toISOString() })
-      .eq('id', params.id)
+      .eq('id', id)
       .is('deleted_at', null);
 
     if (error) {

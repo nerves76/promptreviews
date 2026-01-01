@@ -453,19 +453,22 @@ export default function RssFeedsPage() {
           <ul className="text-sm text-blue-800 space-y-1">
             <li>
               <Icon name="FaCheck" size={12} className="inline mr-2" />
-              RSS feeds are checked hourly for new content
+              RSS feeds are checked regularly based on the interval you set
             </li>
             <li>
               <Icon name="FaCheck" size={12} className="inline mr-2" />
-              New items are automatically scheduled as posts
+              Set new posts to publish automatically
             </li>
             <li>
               <Icon name="FaCheck" size={12} className="inline mr-2" />
-              Posts are published daily at 1 PM UTC
+              Manage your posting queue{" "}
+              <a href="/dashboard/social-posting" className="underline hover:text-blue-900">
+                here
+              </a>
             </li>
             <li>
               <Icon name="FaCheck" size={12} className="inline mr-2" />
-              Each auto-post uses 1 credit
+              Each post costs 1 credit
             </li>
           </ul>
         </div>

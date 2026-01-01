@@ -1632,27 +1632,31 @@ model google_business_scheduled_post_results {
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model google_business_scheduled_posts {
-  id                                     String                                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  account_id                             String                                   @db.Uuid
-  user_id                                String                                   @db.Uuid
-  post_kind                              google_business_scheduled_post_kind      @default(post)
-  post_type                              String?
-  content                                Json?
-  caption                                String?
-  scheduled_date                         DateTime                                 @db.Date
-  timezone                               String
-  selected_locations                     Json                                     @default("[]")
-  media_paths                            Json                                     @default("[]")
-  status                                 google_business_scheduled_post_status    @default(pending)
-  published_at                           DateTime?                                @db.Timestamptz(6)
-  error_log                              Json?
-  created_at                             DateTime                                 @default(now()) @db.Timestamptz(6)
-  updated_at                             DateTime                                 @default(now()) @db.Timestamptz(6)
-  additional_platforms                   Json                                     @default("{}")
-  google_business_scheduled_post_results google_business_scheduled_post_results[]
-  accounts                               accounts                                 @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  users                                  users                                    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  rss_feed_items                         rss_feed_items[]
+  id                                                                              String                                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  account_id                                                                      String                                   @db.Uuid
+  user_id                                                                         String                                   @db.Uuid
+  post_kind                                                                       google_business_scheduled_post_kind      @default(post)
+  post_type                                                                       String?
+  content                                                                         Json?
+  caption                                                                         String?
+  scheduled_date                                                                  DateTime?                                @db.Date
+  timezone                                                                        String
+  selected_locations                                                              Json                                     @default("[]")
+  media_paths                                                                     Json                                     @default("[]")
+  status                                                                          google_business_scheduled_post_status    @default(pending)
+  published_at                                                                    DateTime?                                @db.Timestamptz(6)
+  error_log                                                                       Json?
+  created_at                                                                      DateTime                                 @default(now()) @db.Timestamptz(6)
+  updated_at                                                                      DateTime                                 @default(now()) @db.Timestamptz(6)
+  additional_platforms                                                            Json                                     @default("{}")
+  queue_order                                                                     Int?                                     @default(0)
+  source_type                                                                     String?                                  @default("manual")
+  rss_feed_item_id                                                                String?                                  @db.Uuid
+  google_business_scheduled_post_results                                          google_business_scheduled_post_results[]
+  accounts                                                                        accounts                                 @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  rss_feed_items_google_business_scheduled_posts_rss_feed_item_idTorss_feed_items rss_feed_items?                          @relation("google_business_scheduled_posts_rss_feed_item_idTorss_feed_items", fields: [rss_feed_item_id], references: [id], onUpdate: NoAction)
+  users                                                                           users                                    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  rss_feed_items                                                                  rss_feed_items[]
 
   @@index([account_id], map: "idx_google_business_scheduled_posts_account")
   @@index([additional_platforms], map: "idx_google_business_scheduled_posts_additional_platforms", type: Gin)
@@ -3641,22 +3645,23 @@ model sidebar_favorites {
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model rss_feed_items {
-  id                              String                           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  feed_source_id                  String                           @db.Uuid
-  item_guid                       String
-  item_url                        String?
-  title                           String?
-  description                     String?
-  image_url                       String?
-  published_at                    DateTime?                        @db.Timestamptz(6)
-  status                          String                           @default("pending")
-  scheduled_post_id               String?                          @db.Uuid
-  skip_reason                     String?
-  error_message                   String?
-  discovered_at                   DateTime                         @default(now()) @db.Timestamptz(6)
-  processed_at                    DateTime?                        @db.Timestamptz(6)
-  rss_feed_sources                rss_feed_sources                 @relation(fields: [feed_source_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  google_business_scheduled_posts google_business_scheduled_posts? @relation(fields: [scheduled_post_id], references: [id], onUpdate: NoAction)
+  id                                                                                               String                            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  feed_source_id                                                                                   String                            @db.Uuid
+  item_guid                                                                                        String
+  item_url                                                                                         String?
+  title                                                                                            String?
+  description                                                                                      String?
+  image_url                                                                                        String?
+  published_at                                                                                     DateTime?                         @db.Timestamptz(6)
+  status                                                                                           String                            @default("pending")
+  scheduled_post_id                                                                                String?                           @db.Uuid
+  skip_reason                                                                                      String?
+  error_message                                                                                    String?
+  discovered_at                                                                                    DateTime                          @default(now()) @db.Timestamptz(6)
+  processed_at                                                                                     DateTime?                         @db.Timestamptz(6)
+  google_business_scheduled_posts_google_business_scheduled_posts_rss_feed_item_idTorss_feed_items google_business_scheduled_posts[] @relation("google_business_scheduled_posts_rss_feed_item_idTorss_feed_items")
+  rss_feed_sources                                                                                 rss_feed_sources                  @relation(fields: [feed_source_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  google_business_scheduled_posts                                                                  google_business_scheduled_posts?  @relation(fields: [scheduled_post_id], references: [id], onUpdate: NoAction)
 
   @@unique([feed_source_id, item_guid], map: "idx_rss_feed_items_unique")
   @@index([feed_source_id, discovered_at(sort: Desc)], map: "idx_rss_feed_items_discovered")
@@ -3671,7 +3676,7 @@ model rss_feed_sources {
   account_id               String           @db.Uuid
   feed_url                 String
   feed_name                String
-  polling_interval_minutes Int              @default(60)
+  polling_interval_minutes Int              @default(10080)
   last_polled_at           DateTime?        @db.Timestamptz(6)
   last_successful_poll_at  DateTime?        @db.Timestamptz(6)
   post_template            String           @default("{title}\n\n{description}")
@@ -3686,6 +3691,8 @@ model rss_feed_sources {
   posts_today_reset_at     DateTime         @default(dbgenerated("CURRENT_DATE")) @db.Date
   created_at               DateTime         @default(now()) @db.Timestamptz(6)
   updated_at               DateTime         @default(now()) @db.Timestamptz(6)
+  auto_post                Boolean          @default(true)
+  auto_post_interval_days  Int              @default(1)
   rss_feed_items           rss_feed_items[]
   accounts                 accounts         @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
@@ -3774,6 +3781,7 @@ enum google_business_scheduled_post_status {
   partial_success
   failed
   cancelled
+  draft
 
   @@schema("public")
 }

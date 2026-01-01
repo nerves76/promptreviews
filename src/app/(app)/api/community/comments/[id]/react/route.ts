@@ -15,9 +15,10 @@ import { validateReaction } from '../../../utils/validation';
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     // Verify authentication
     const authResult = await verifyAuth(request);
     if (!authResult.success) {
@@ -48,7 +49,7 @@ export async function POST(
     const { data: comment, error: commentError } = await supabase
       .from('post_comments')
       .select('id')
-      .eq('id', params.id)
+      .eq('id', id)
       .is('deleted_at', null)
       .single();
 
@@ -63,7 +64,7 @@ export async function POST(
     const { data: existingReaction } = await supabase
       .from('comment_reactions')
       .select('*')
-      .eq('comment_id', params.id)
+      .eq('comment_id', id)
       .eq('user_id', userId)
       .eq('reaction', body.reaction)
       .maybeSingle();
@@ -73,7 +74,7 @@ export async function POST(
       const { error: deleteError } = await supabase
         .from('comment_reactions')
         .delete()
-        .eq('comment_id', params.id)
+        .eq('comment_id', id)
         .eq('user_id', userId)
         .eq('reaction', body.reaction);
 
@@ -91,7 +92,7 @@ export async function POST(
       const { error: insertError } = await supabase
         .from('comment_reactions')
         .insert({
-          comment_id: params.id,
+          comment_id: id,
           user_id: userId,
           reaction: body.reaction
         });
