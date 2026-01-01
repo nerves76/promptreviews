@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import PageCard from "@/app/(app)/components/PageCard";
 import Icon from "@/components/Icon";
-import FiveStarSpinner from "@/app/(app)/components/FiveStarSpinner";
+import GlobalOverlayLoader from "@/app/(app)/components/GlobalOverlayLoader";
 import { useAuthGuard } from "@/utils/authGuard";
 import { useAccountData } from "@/auth/hooks/granularAuthHooks";
 import { apiClient } from "@/utils/apiClient";
@@ -307,11 +307,7 @@ export default function SocialPostingPage() {
       </PageCard>
 
       {/* Full-page loading overlay */}
-      {loadingPlatforms && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <FiveStarSpinner size={48} />
-        </div>
-      )}
+      <GlobalOverlayLoader visible={loadingPlatforms} blocking />
 
       {/* Create Post Modal */}
       {showCreateModal && selectedAccountId && platformData && (
