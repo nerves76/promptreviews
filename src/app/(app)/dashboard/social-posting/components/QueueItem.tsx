@@ -129,6 +129,22 @@ export default function QueueItem({
           className="w-4 h-4 mt-1 rounded border-gray-300 text-slate-blue focus:ring-slate-blue"
         />
 
+        {/* Thumbnail if media exists */}
+        {item.mediaPaths && item.mediaPaths.length > 0 && item.mediaPaths[0].publicUrl && (
+          <div className="flex-shrink-0">
+            <img
+              src={item.mediaPaths[0].publicUrl}
+              alt="Post thumbnail"
+              className="w-14 h-14 object-cover rounded-lg bg-gray-100"
+            />
+            {item.mediaPaths.length > 1 && (
+              <span className="block text-center text-xs text-gray-500 mt-0.5">
+                +{item.mediaPaths.length - 1}
+              </span>
+            )}
+          </div>
+        )}
+
         {/* Content */}
         <div className="flex-1 min-w-0">
           {/* Title row */}
