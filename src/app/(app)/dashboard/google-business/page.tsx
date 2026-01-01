@@ -2613,6 +2613,20 @@ export default function SocialPostingDashboard() {
                 </div>
               ) : (
                 <div className="space-y-6">
+                  {/* Link to Post Scheduling */}
+                  <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                    <p className="text-sm text-blue-800">
+                      <Icon name="FaCalendarAlt" size={14} className="inline mr-2" />
+                      Want to schedule posts in advance?
+                    </p>
+                    <a
+                      href="/dashboard/social-posting"
+                      className="text-sm font-medium text-slate-blue hover:underline"
+                    >
+                      Go to Post Scheduling →
+                    </a>
+                  </div>
+
                   {/* Success Messages for Create Post tab */}
                   {postResult && postResult.success && (
                     <div className="bg-green-50 border border-green-200 rounded-md p-4">
@@ -2947,10 +2961,24 @@ export default function SocialPostingDashboard() {
                   </button>
                 </div>
               ) : (
-                <PhotoManagement 
-                  locations={scopedLocations}
-                  isConnected={isConnected}
-                />
+                <>
+                  <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg mb-4">
+                    <p className="text-sm text-blue-800">
+                      <Icon name="FaCalendarAlt" size={14} className="inline mr-2" />
+                      Want to schedule photo uploads in advance?
+                    </p>
+                    <a
+                      href="/dashboard/social-posting"
+                      className="text-sm font-medium text-slate-blue hover:underline"
+                    >
+                      Go to Post Scheduling →
+                    </a>
+                  </div>
+                  <PhotoManagement
+                    locations={scopedLocations}
+                    isConnected={isConnected}
+                  />
+                </>
               )}
             </div>
           )}
