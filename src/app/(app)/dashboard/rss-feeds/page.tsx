@@ -241,8 +241,7 @@ export default function RssFeedsPage() {
           RSS feed automation
         </h1>
         <p className="text-gray-600 mb-4">
-          Automatically post content from RSS feeds to Google Business Profile
-          and Bluesky.
+          Automatically post content from your blog, podcasts, Reddit, YouTube and more to your Google Profile and Bluesky.
         </p>
 
         <button
