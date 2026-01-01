@@ -1,29 +1,35 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { Dialog } from "@headlessui/react";
 import imageCompression from "browser-image-compression";
 import Icon from "@/components/Icon";
 import { apiClient } from "@/utils/apiClient";
 import type { GoogleBusinessScheduledMediaDescriptor } from "@/features/social-posting";
 
-interface CreatePostModalProps {
-  onClose: () => void;
-  onCreated: () => void;
-  accountId: string;
-}
-
-interface GbpLocation {
+export interface GbpLocation {
   id: string;
   name: string;
   address: string;
 }
 
-interface BlueskyConnection {
+export interface BlueskyConnection {
   id: string;
   platform: string;
   status: string;
   handle: string | null;
+}
+
+export interface PlatformData {
+  gbpLocations: GbpLocation[];
+  blueskyConnection: BlueskyConnection | null;
+}
+
+interface CreatePostModalProps {
+  onClose: () => void;
+  onCreated: () => void;
+  accountId: string;
+  platformData: PlatformData;
 }
 
 interface SchedulerMedia extends GoogleBusinessScheduledMediaDescriptor {
@@ -76,7 +82,11 @@ export default function CreatePostModal({
   onClose,
   onCreated,
   accountId,
+  platformData,
 }: CreatePostModalProps) {
+  // Platform data from props
+  const { gbpLocations, blueskyConnection } = platformData;
+
   // Form state
   const [mode, setMode] = useState<"post" | "photo">("post");
   const [postContent, setPostContent] = useState("");
@@ -84,7 +94,10 @@ export default function CreatePostModal({
   const [ctaEnabled, setCtaEnabled] = useState(false);
   const [ctaType, setCtaType] = useState("LEARN_MORE");
   const [ctaUrl, setCtaUrl] = useState("");
-  const [selectedLocationIds, setSelectedLocationIds] = useState<string[]>([]);
+  const [selectedLocationIds, setSelectedLocationIds] = useState<string[]>(
+    // Auto-select if only one location
+    gbpLocations.length === 1 ? [gbpLocations[0].id] : []
+  );
   const [scheduledDate, setScheduledDate] = useState("");
   const [timezone, setTimezone] = useState(DEFAULT_TIMEZONE);
   const [mediaItems, setMediaItems] = useState<SchedulerMedia[]>([]);
@@ -93,13 +106,7 @@ export default function CreatePostModal({
   // Schedule mode: 'draft' adds to queue, 'scheduled' schedules immediately
   const [scheduleMode, setScheduleMode] = useState<"draft" | "scheduled">("draft");
 
-  // Platform data
-  const [gbpLocations, setGbpLocations] = useState<GbpLocation[]>([]);
-  const [blueskyConnection, setBlueskyConnection] =
-    useState<BlueskyConnection | null>(null);
-
   // Loading states
-  const [loading, setLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -110,72 +117,6 @@ export default function CreatePostModal({
     date.setDate(date.getDate() + 1);
     return date.toISOString().split("T")[0];
   }, []);
-
-  // Fetch platforms on mount
-  useEffect(() => {
-    if (!accountId) return;
-
-    async function fetchPlatforms() {
-      setLoading(true);
-      try {
-        // Fetch GBP locations
-        const locationsRes = await apiClient.get<{
-          data?: {
-            locations: Array<{
-              location_id: string;
-              location_name: string;
-              address: string;
-            }>;
-          };
-        }>("/social-posting/platforms/google-business-profile/locations");
-
-        if (locationsRes.data?.locations) {
-          const locs = locationsRes.data.locations.map((loc) => ({
-            id: loc.location_id,
-            name: loc.location_name,
-            address: loc.address,
-          }));
-          setGbpLocations(locs);
-          // Auto-select if only one location
-          if (locs.length === 1) {
-            setSelectedLocationIds([locs[0].id]);
-          }
-        }
-      } catch (err) {
-        console.error("Failed to fetch GBP locations:", err);
-      }
-
-      try {
-        // Fetch Bluesky connections
-        const blueskyRes = await apiClient.get<{
-          connections: Array<{
-            id: string;
-            platform: string;
-            handle: string;
-            status: string;
-          }>;
-        }>("/social-posting/connections");
-
-        const activeBluesky = (blueskyRes.connections || []).find(
-          (c) => c.platform === "bluesky" && c.status === "active"
-        );
-        if (activeBluesky) {
-          setBlueskyConnection({
-            id: activeBluesky.id,
-            platform: activeBluesky.platform,
-            status: activeBluesky.status,
-            handle: activeBluesky.handle,
-          });
-        }
-      } catch (err) {
-        console.error("Failed to fetch Bluesky connection:", err);
-      }
-
-      setLoading(false);
-    }
-
-    fetchPlatforms();
-  }, [accountId]);
 
   // Handle file selection
   const handleFilesSelected = useCallback(
@@ -419,12 +360,7 @@ export default function CreatePostModal({
                 </div>
               )}
 
-              {loading ? (
-                <div className="flex flex-col items-center justify-center py-16">
-                  <Icon name="FaSpinner" size={32} className="animate-spin text-slate-blue" />
-                  <p className="text-gray-500 mt-4 text-sm">Loading platforms...</p>
-                </div>
-              ) : hasNoPlatforms ? (
+              {hasNoPlatforms ? (
                 <div className="text-center py-8">
                   <Icon
                     name="FaExclamationTriangle"
@@ -791,7 +727,7 @@ export default function CreatePostModal({
               )}
 
               {/* Actions */}
-              {!loading && !hasNoPlatforms && (
+              {!hasNoPlatforms && (
                 <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-200">
                   <button
                     onClick={onClose}

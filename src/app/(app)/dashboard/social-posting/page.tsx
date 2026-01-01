@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import PageCard from "@/app/(app)/components/PageCard";
 import Icon from "@/components/Icon";
+import FiveStarSpinner from "@/app/(app)/components/FiveStarSpinner";
 import { useAuthGuard } from "@/utils/authGuard";
 import { useAccountData } from "@/auth/hooks/granularAuthHooks";
 import { apiClient } from "@/utils/apiClient";
@@ -10,7 +11,7 @@ import type { GoogleBusinessScheduledPost } from "@/features/social-posting";
 import ContentQueue from "./components/ContentQueue";
 import ScheduledList from "./components/ScheduledList";
 import HistoryList from "./components/HistoryList";
-import CreatePostModal from "./components/CreatePostModal";
+import CreatePostModal, { type PlatformData } from "./components/CreatePostModal";
 
 type TabType = "scheduled" | "drafts" | "history";
 
@@ -36,6 +37,8 @@ export default function SocialPostingPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [loadingPlatforms, setLoadingPlatforms] = useState(false);
+  const [platformData, setPlatformData] = useState<PlatformData | null>(null);
 
   // Fetch all scheduled data
   const fetchData = useCallback(async () => {
@@ -94,6 +97,74 @@ export default function SocialPostingPage() {
     setError(message);
   };
 
+  // Handle create post button - fetch platforms first, then show modal
+  const handleCreatePost = async () => {
+    setLoadingPlatforms(true);
+    try {
+      const gbpLocations: PlatformData["gbpLocations"] = [];
+      let blueskyConnection: PlatformData["blueskyConnection"] = null;
+
+      // Fetch GBP locations
+      try {
+        const locationsRes = await apiClient.get<{
+          data?: {
+            locations: Array<{
+              location_id: string;
+              location_name: string;
+              address: string;
+            }>;
+          };
+        }>("/social-posting/platforms/google-business-profile/locations");
+
+        if (locationsRes.data?.locations) {
+          locationsRes.data.locations.forEach((loc) => {
+            gbpLocations.push({
+              id: loc.location_id,
+              name: loc.location_name,
+              address: loc.address,
+            });
+          });
+        }
+      } catch (err) {
+        console.error("Failed to fetch GBP locations:", err);
+      }
+
+      // Fetch Bluesky connections
+      try {
+        const blueskyRes = await apiClient.get<{
+          connections: Array<{
+            id: string;
+            platform: string;
+            handle: string;
+            status: string;
+          }>;
+        }>("/social-posting/connections");
+
+        const activeBluesky = (blueskyRes.connections || []).find(
+          (c) => c.platform === "bluesky" && c.status === "active"
+        );
+        if (activeBluesky) {
+          blueskyConnection = {
+            id: activeBluesky.id,
+            platform: activeBluesky.platform,
+            status: activeBluesky.status,
+            handle: activeBluesky.handle,
+          };
+        }
+      } catch (err) {
+        console.error("Failed to fetch Bluesky connection:", err);
+      }
+
+      setPlatformData({ gbpLocations, blueskyConnection });
+      setShowCreateModal(true);
+    } catch (err) {
+      console.error("Failed to load platforms:", err);
+      setError("Failed to load platforms");
+    } finally {
+      setLoadingPlatforms(false);
+    }
+  };
+
   const tabs: { id: TabType; label: string; count: number }[] = [
     { id: "scheduled", label: "Scheduled", count: upcoming.length },
     { id: "drafts", label: "Drafts", count: drafts.length },
@@ -121,8 +192,9 @@ export default function SocialPostingPage() {
             </p>
           </div>
           <button
-            onClick={() => setShowCreateModal(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-blue/90 transition-colors whitespace-nowrap flex-shrink-0"
+            onClick={handleCreatePost}
+            disabled={loadingPlatforms}
+            className="flex items-center gap-2 px-4 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-blue/90 transition-colors whitespace-nowrap flex-shrink-0 disabled:opacity-50"
           >
             <Icon name="FaPlus" size={14} />
             Create post
@@ -234,10 +306,18 @@ export default function SocialPostingPage() {
         </div>
       </PageCard>
 
+      {/* Full-page loading overlay */}
+      {loadingPlatforms && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <FiveStarSpinner size={48} />
+        </div>
+      )}
+
       {/* Create Post Modal */}
-      {showCreateModal && selectedAccountId && (
+      {showCreateModal && selectedAccountId && platformData && (
         <CreatePostModal
           accountId={selectedAccountId}
+          platformData={platformData}
           onClose={() => setShowCreateModal(false)}
           onCreated={() => {
             setShowCreateModal(false);
