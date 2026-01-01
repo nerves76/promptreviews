@@ -38,7 +38,7 @@ export interface LinkedInProfile {
 const LINKEDIN_AUTH_URL = 'https://www.linkedin.com/oauth/v2/authorization';
 const LINKEDIN_TOKEN_URL = 'https://www.linkedin.com/oauth/v2/accessToken';
 const LINKEDIN_API_BASE = 'https://api.linkedin.com';
-const LINKEDIN_API_VERSION = '202401';
+const LINKEDIN_API_VERSION = '202411';
 const LINKEDIN_SCOPES = ['openid', 'profile', 'w_member_social'];
 
 export class LinkedInAdapter implements PlatformAdapter {
