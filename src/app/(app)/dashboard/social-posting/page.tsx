@@ -10,6 +10,7 @@ import type { GoogleBusinessScheduledPost } from "@/features/social-posting";
 import ContentQueue from "./components/ContentQueue";
 import ScheduledList from "./components/ScheduledList";
 import HistoryList from "./components/HistoryList";
+import CreatePostModal from "./components/CreatePostModal";
 
 type TabType = "queue" | "scheduled" | "history";
 
@@ -34,6 +35,7 @@ export default function SocialPostingPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   // Fetch all scheduled data
   const fetchData = useCallback(async () => {
@@ -109,12 +111,23 @@ export default function SocialPostingPage() {
           />
         }
       >
-        <h1 className="text-2xl font-bold text-slate-blue mb-2">
-          Social content
-        </h1>
-        <p className="text-gray-600 mb-6">
-          Manage your content queue and scheduled posts for Google Business Profile and Bluesky.
-        </p>
+        <div className="flex items-start justify-between mb-6">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-blue mb-2">
+              Social content
+            </h1>
+            <p className="text-gray-600">
+              Manage your content queue and scheduled posts for Google Business Profile and Bluesky.
+            </p>
+          </div>
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-blue/90 transition-colors"
+          >
+            <Icon name="FaPlus" size={14} />
+            Create post
+          </button>
+        </div>
 
         {/* Messages */}
         {error && (
@@ -220,6 +233,19 @@ export default function SocialPostingPage() {
           </ul>
         </div>
       </PageCard>
+
+      {/* Create Post Modal */}
+      {showCreateModal && selectedAccountId && (
+        <CreatePostModal
+          accountId={selectedAccountId}
+          onClose={() => setShowCreateModal(false)}
+          onCreated={() => {
+            setShowCreateModal(false);
+            setSuccess("Post created successfully");
+            fetchData();
+          }}
+        />
+      )}
     </div>
   );
 }

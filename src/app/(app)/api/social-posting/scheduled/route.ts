@@ -21,7 +21,7 @@ interface ScheduleRequestBody {
     metadata?: Record<string, any> | null;
   } | null;
   caption?: string | null;
-  scheduledDate?: string;
+  scheduledDate?: string | null;
   timezone?: string;
   locations?: Array<{ id: string; name?: string }>;
   media?: GoogleBusinessScheduledMediaDescriptor[];
@@ -32,6 +32,7 @@ interface ScheduleRequestBody {
       connectionId: string;
     };
   };
+  status?: 'draft' | 'pending';
 }
 
 function ensureArray<T>(value: T | T[] | undefined | null): T[] {
@@ -95,42 +96,48 @@ export async function POST(request: NextRequest) {
     const body: ScheduleRequestBody = await request.json();
 
     const postKind: GoogleBusinessScheduledPostKind = body.postKind ?? 'post';
-    const scheduledDate = body.scheduledDate?.trim();
-    const timezone = body.timezone?.trim();
+    const scheduledDate = body.scheduledDate?.trim() || null;
+    const timezone = body.timezone?.trim() || null;
     const locations = normalizeLocations(body.locations);
     const media = normalizeMedia(body.media);
+    const isDraft = body.status === 'draft' || !scheduledDate;
 
-    if (!scheduledDate || !isDateString(scheduledDate)) {
-      return NextResponse.json(
-        { success: false, error: 'scheduledDate must be provided in YYYY-MM-DD format' },
-        { status: 400 }
-      );
+    // For non-drafts, validate date and timezone
+    if (!isDraft) {
+      if (!scheduledDate || !isDateString(scheduledDate)) {
+        return NextResponse.json(
+          { success: false, error: 'scheduledDate must be provided in YYYY-MM-DD format' },
+          { status: 400 }
+        );
+      }
+
+      if (!timezone) {
+        return NextResponse.json(
+          { success: false, error: 'timezone is required' },
+          { status: 400 }
+        );
+      }
+
+      if (scheduledDate < todayUtc()) {
+        return NextResponse.json(
+          { success: false, error: 'scheduledDate must not be in the past' },
+          { status: 400 }
+        );
+      }
     }
 
-    if (!timezone) {
+    // Check for at least one platform (GBP locations or Bluesky)
+    const hasBluesky = body.additionalPlatforms?.bluesky?.enabled;
+    if (locations.length === 0 && !hasBluesky) {
       return NextResponse.json(
-        { success: false, error: 'timezone is required' },
-        { status: 400 }
-      );
-    }
-
-    if (locations.length === 0) {
-      return NextResponse.json(
-        { success: false, error: 'At least one location must be selected for scheduling' },
-        { status: 400 }
-      );
-    }
-
-    if (scheduledDate < todayUtc()) {
-      return NextResponse.json(
-        { success: false, error: 'scheduledDate must not be in the past' },
+        { success: false, error: 'At least one platform (GBP location or Bluesky) must be selected' },
         { status: 400 }
       );
     }
 
     if (postKind === 'post' && !body.content?.summary) {
       return NextResponse.json(
-        { success: false, error: 'Post content summary is required for scheduled posts' },
+        { success: false, error: 'Post content summary is required' },
         { status: 400 }
       );
     }
@@ -160,13 +167,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check credit balance before scheduling
-    const balance = await getBalance(supabase, accountId);
-    if (balance.totalCredits < 1) {
-      return NextResponse.json(
-        { success: false, error: 'Insufficient credits. You need at least 1 credit to schedule a post.' },
-        { status: 402 }
-      );
+    // Check credit balance before scheduling (not for drafts)
+    if (!isDraft) {
+      const balance = await getBalance(supabase, accountId);
+      if (balance.totalCredits < 1) {
+        return NextResponse.json(
+          { success: false, error: 'Insufficient credits. You need at least 1 credit to schedule a post.' },
+          { status: 402 }
+        );
+      }
     }
 
     const postType = postKind === 'post' ? body.postType ?? 'WHATS_NEW' : null;
@@ -185,13 +194,14 @@ export async function POST(request: NextRequest) {
         metadata: body.content.metadata ?? null,
       } : null,
       caption: body.caption ?? null,
-      scheduled_date: scheduledDate,
-      timezone,
+      scheduled_date: isDraft ? null : scheduledDate,
+      timezone: isDraft ? null : timezone,
       selected_locations: locations,
       media_paths: media,
       additional_platforms: additionalPlatforms,
-      status: 'pending' as const,
+      status: isDraft ? 'draft' : 'pending',
       error_log: body.errorLog ?? null,
+      source_type: 'manual',
     };
 
     const { data: scheduled, error: insertError } = await supabase
@@ -228,28 +238,30 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Debit 1 credit for the scheduled post
-    const idempotencyKey = `scheduled_post:${scheduled.id}`;
-    try {
-      await debit(supabase, accountId, 1, {
-        featureType: 'scheduled_post',
-        idempotencyKey,
-        featureMetadata: {
-          postId: scheduled.id,
-          postKind,
-          scheduledDate,
-          locationCount: locations.length,
-        },
-      });
-    } catch (creditError) {
-      // If credit debit fails, we still keep the post (it was already created)
-      // but log the error for investigation
-      if (creditError instanceof InsufficientCreditsError) {
-        // This shouldn't happen since we checked balance above, but handle gracefully
-        console.error('[Schedule] Credit debit failed - insufficient credits:', creditError);
-      } else {
-        // Idempotency errors are OK - post was already charged
-        console.log('[Schedule] Credit debit idempotency check:', creditError);
+    // Debit 1 credit for the scheduled post (not for drafts)
+    if (!isDraft) {
+      const idempotencyKey = `scheduled_post:${scheduled.id}`;
+      try {
+        await debit(supabase, accountId, 1, {
+          featureType: 'scheduled_post',
+          idempotencyKey,
+          featureMetadata: {
+            postId: scheduled.id,
+            postKind,
+            scheduledDate,
+            locationCount: locations.length,
+          },
+        });
+      } catch (creditError) {
+        // If credit debit fails, we still keep the post (it was already created)
+        // but log the error for investigation
+        if (creditError instanceof InsufficientCreditsError) {
+          // This shouldn't happen since we checked balance above, but handle gracefully
+          console.error('[Schedule] Credit debit failed - insufficient credits:', creditError);
+        } else {
+          // Idempotency errors are OK - post was already charged
+          console.log('[Schedule] Credit debit idempotency check:', creditError);
+        }
       }
     }
 
