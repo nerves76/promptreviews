@@ -12,7 +12,7 @@ import ScheduledList from "./components/ScheduledList";
 import HistoryList from "./components/HistoryList";
 import CreatePostModal from "./components/CreatePostModal";
 
-type TabType = "queue" | "scheduled" | "history";
+type TabType = "scheduled" | "drafts" | "history";
 
 interface ScheduledDataResponse {
   success: boolean;
@@ -28,7 +28,7 @@ export default function SocialPostingPage() {
   useAuthGuard();
   const { selectedAccountId } = useAccountData();
 
-  const [activeTab, setActiveTab] = useState<TabType>("queue");
+  const [activeTab, setActiveTab] = useState<TabType>("scheduled");
   const [drafts, setDrafts] = useState<GoogleBusinessScheduledPost[]>([]);
   const [upcoming, setUpcoming] = useState<GoogleBusinessScheduledPost[]>([]);
   const [past, setPast] = useState<GoogleBusinessScheduledPost[]>([]);
@@ -95,8 +95,8 @@ export default function SocialPostingPage() {
   };
 
   const tabs: { id: TabType; label: string; count: number }[] = [
-    { id: "queue", label: "Queue", count: drafts.length },
     { id: "scheduled", label: "Scheduled", count: upcoming.length },
+    { id: "drafts", label: "Drafts", count: drafts.length },
     { id: "history", label: "History", count: past.length },
   ];
 
@@ -117,7 +117,7 @@ export default function SocialPostingPage() {
               Post scheduling
             </h1>
             <p className="text-gray-600">
-              Manage your content queue and scheduled posts for Google Business Profile and Bluesky.
+              Manage scheduled posts for Google Business Profile and Bluesky.
             </p>
           </div>
           <button
@@ -186,15 +186,6 @@ export default function SocialPostingPage() {
         )}
 
         {/* Tab content */}
-        {!loading && activeTab === "queue" && (
-          <ContentQueue
-            drafts={drafts}
-            onScheduleComplete={handleScheduleComplete}
-            onReorderComplete={handleReorderComplete}
-            onError={handleError}
-          />
-        )}
-
         {!loading && activeTab === "scheduled" && (
           <ScheduledList
             posts={upcoming}
@@ -202,6 +193,15 @@ export default function SocialPostingPage() {
               setSuccess("Post cancelled");
               fetchData();
             }}
+            onError={handleError}
+          />
+        )}
+
+        {!loading && activeTab === "drafts" && (
+          <ContentQueue
+            drafts={drafts}
+            onScheduleComplete={handleScheduleComplete}
+            onReorderComplete={handleReorderComplete}
             onError={handleError}
           />
         )}
@@ -216,11 +216,11 @@ export default function SocialPostingPage() {
           <ul className="text-sm text-blue-800 space-y-1">
             <li>
               <Icon name="FaCheck" size={12} className="inline mr-2" />
-              Add content to queue from RSS feeds or create manually
+              RSS feeds automatically schedule posts based on your settings
             </li>
             <li>
               <Icon name="FaCheck" size={12} className="inline mr-2" />
-              Drag to reorder, then bulk schedule with your preferred interval
+              Create posts manually or save as drafts for later
             </li>
             <li>
               <Icon name="FaCheck" size={12} className="inline mr-2" />
