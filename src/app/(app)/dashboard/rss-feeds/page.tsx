@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import PageCard from "@/app/(app)/components/PageCard";
 import Icon from "@/components/Icon";
+import HelpModal from "@/app/(app)/components/help/HelpModal";
 import { useAuthGuard } from "@/utils/authGuard";
 import { useAccountData } from "@/auth/hooks/granularAuthHooks";
 import { apiClient } from "@/utils/apiClient";
@@ -31,6 +32,7 @@ export default function RssFeedsPage() {
   const [editingFeed, setEditingFeed] = useState<RssFeedSource | null>(null);
   const [browsingFeed, setBrowsingFeed] = useState<RssFeedSource | null>(null);
   const [expandedFeedId, setExpandedFeedId] = useState<string | null>(null);
+  const [showFeedUrlHelp, setShowFeedUrlHelp] = useState(false);
   const [processingFeedId, setProcessingFeedId] = useState<string | null>(null);
   const [resettingFeedId, setResettingFeedId] = useState<string | null>(null);
 
@@ -238,10 +240,18 @@ export default function RssFeedsPage() {
         <h1 className="text-2xl font-bold text-slate-blue mb-2">
           RSS feed automation
         </h1>
-        <p className="text-gray-600 mb-6">
+        <p className="text-gray-600 mb-4">
           Automatically post content from RSS feeds to Google Business Profile
           and Bluesky.
         </p>
+
+        <button
+          onClick={() => setShowFeedUrlHelp(true)}
+          className="text-sm text-slate-blue hover:underline mb-6 flex items-center gap-1.5"
+        >
+          <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold">?</span>
+          Learn how to find your feed URL
+        </button>
 
         {/* Messages */}
         {error && (
@@ -528,6 +538,13 @@ export default function RssFeedsPage() {
           }}
         />
       )}
+
+      {/* Feed URL Help Modal */}
+      <HelpModal
+        isOpen={showFeedUrlHelp}
+        onClose={() => setShowFeedUrlHelp(false)}
+        initialArticleId="rss-feeds/finding-feed-urls"
+      />
     </div>
   );
 }

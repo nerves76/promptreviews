@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { Dialog } from "@headlessui/react";
 import imageCompression from "browser-image-compression";
 import Icon from "@/components/Icon";
+import FiveStarSpinner from "@/app/(app)/components/FiveStarSpinner";
 import { apiClient } from "@/utils/apiClient";
 import type { GoogleBusinessScheduledMediaDescriptor } from "@/features/social-posting";
 
@@ -420,12 +421,9 @@ export default function CreatePostModal({
               )}
 
               {loading ? (
-                <div className="flex justify-center py-12">
-                  <Icon
-                    name="FaSpinner"
-                    className="animate-spin text-slate-blue"
-                    size={32}
-                  />
+                <div className="flex flex-col items-center justify-center py-16">
+                  <FiveStarSpinner size={32} />
+                  <p className="text-gray-500 mt-4 text-sm">Loading platforms...</p>
                 </div>
               ) : hasNoPlatforms ? (
                 <div className="text-center py-8">
