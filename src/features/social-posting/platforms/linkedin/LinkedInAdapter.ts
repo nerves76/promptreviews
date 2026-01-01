@@ -248,12 +248,17 @@ export class LinkedInAdapter implements PlatformAdapter {
     }
 
     // Step 1: Initialize the upload
+    // LinkedIn requires owner URN in format "urn:li:person:XXXXX"
+    const ownerUrn = this.credentials.linkedinId.startsWith('urn:')
+      ? this.credentials.linkedinId
+      : `urn:li:person:${this.credentials.linkedinId}`;
+
     const initResponse = await fetch(`${LINKEDIN_API_BASE}/rest/images?action=initializeUpload`, {
       method: 'POST',
       headers: this.getApiHeaders(),
       body: JSON.stringify({
         initializeUploadRequest: {
-          owner: this.credentials.linkedinId
+          owner: ownerUrn
         }
       })
     });
@@ -393,8 +398,13 @@ export class LinkedInAdapter implements PlatformAdapter {
       }
 
       // Build the post body
+      // LinkedIn requires author URN in format "urn:li:person:XXXXX"
+      const authorUrn = this.credentials!.linkedinId.startsWith('urn:')
+        ? this.credentials!.linkedinId
+        : `urn:li:person:${this.credentials!.linkedinId}`;
+
       const postBody: Record<string, unknown> = {
-        author: this.credentials!.linkedinId,
+        author: authorUrn,
         commentary: postContent,
         visibility: 'PUBLIC',
         distribution: {
