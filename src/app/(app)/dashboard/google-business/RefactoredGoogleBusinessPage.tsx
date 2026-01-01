@@ -42,6 +42,9 @@ interface GoogleBusinessLocation {
 }
 
 export function RefactoredGoogleBusinessPage() {
+  // ╔══════════════════════════════════════════════════════════════════════════╗
+  // ║                         AUTH & ACCOUNT CONTEXT                           ║
+  // ╚══════════════════════════════════════════════════════════════════════════╝
   // Use granular auth hooks to prevent refresh issues
   const { plan: currentPlan = 'free' } = useSubscriptionData();
   const { user } = useAuthUser();
@@ -54,8 +57,8 @@ export function RefactoredGoogleBusinessPage() {
   useEffect(() => {
     accountIdRef.current = selectedAccountId || account?.id || null;
   }, [selectedAccountId, account?.id]);
-  
-  
+
+
   /**
    * GOOGLE BUSINESS PROFILE STATE DOCUMENTATION
    * 
@@ -81,11 +84,12 @@ export function RefactoredGoogleBusinessPage() {
    *    - Must create new array on change for React to detect updates
    *    - Uses localStorage for persistence across page refreshes
    */
-  
-  // Loading and connection state
+
+  // ╔══════════════════════════════════════════════════════════════════════════╗
+  // ║                         CONNECTION STATE                                 ║
+  // ║  OAuth connection status, email, loading states                         ║
+  // ╚══════════════════════════════════════════════════════════════════════════╝
   const [isLoading, setIsLoading] = useState(true);
-  
-  // Connection state with localStorage persistence
   const [connectedEmail, setConnectedEmail] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
@@ -94,7 +98,11 @@ export function RefactoredGoogleBusinessPage() {
     }
     return false;
   });
-  
+
+  // ╔══════════════════════════════════════════════════════════════════════════╗
+  // ║                       LOCATION MANAGEMENT STATE                          ║
+  // ║  Locations list, selection, fetching, plan limits                       ║
+  // ╚══════════════════════════════════════════════════════════════════════════╝
   const [locations, setLocations] = useState<GoogleBusinessLocation[]>(() => {
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem('google-business-locations');
@@ -184,8 +192,11 @@ export function RefactoredGoogleBusinessPage() {
       setSelectedLocations(selectedLocations.slice(0, maxGBPLocations));
     }
   }, [locations, maxGBPLocations, selectedLocations]);
-  
-  // Initialize postContent with saved data
+
+  // ╔══════════════════════════════════════════════════════════════════════════╗
+  // ║                        POST CREATION STATE                               ║
+  // ║  Post content, images, CTA, posting status, AI improvement              ║
+  // ╚══════════════════════════════════════════════════════════════════════════╝
   const [postContent, setPostContent] = useState(() => {
     if (typeof window !== 'undefined') {
       const savedContent = localStorage.getItem('googleBusinessPostContent');
@@ -223,12 +234,20 @@ export function RefactoredGoogleBusinessPage() {
   const [rateLimitedUntil, setRateLimitedUntil] = useState<number | null>(null);
   const [showDisconnectConfirm, setShowDisconnectConfirm] = useState(false);
 
-  // Cross-posting state
+  // ╔══════════════════════════════════════════════════════════════════════════╗
+  // ║                        CROSS-POSTING STATE                               ║
+  // ║  Bluesky, LinkedIn connections and posting toggles                      ║
+  // ╚══════════════════════════════════════════════════════════════════════════╝
   const [blueskyConnection, setBlueskyConnection] = useState<{ id: string; handle: string } | null>(null);
   const [linkedinConnection, setLinkedinConnection] = useState<{ id: string; handle: string } | null>(null);
   const [postToBluesky, setPostToBluesky] = useState(false);
   const [postToLinkedIn, setPostToLinkedIn] = useState(false);
   const [isLoadingPlatforms, setIsLoadingPlatforms] = useState(false);
+
+  // ╔══════════════════════════════════════════════════════════════════════════╗
+  // ║                           UI & MODAL STATE                               ║
+  // ║  Modal visibility, help modals, import state                            ║
+  // ╚══════════════════════════════════════════════════════════════════════════╝
   const [showImportModal, setShowImportModal] = useState(false);
   const [isImportingReviews, setIsImportingReviews] = useState(false);
   const [importResult, setImportResult] = useState<{ success: boolean; message: string; count?: number; errors?: string[]; totalErrorCount?: number } | null>(null);
@@ -266,7 +285,10 @@ export function RefactoredGoogleBusinessPage() {
   const loadingRef = useRef(false); // More persistent loading prevention
   const initialLoadDone = useRef(false); // Track if initial load has been completed
 
-  // Overview page state - with localStorage persistence
+  // ╔══════════════════════════════════════════════════════════════════════════╗
+  // ║                          OVERVIEW STATE                                  ║
+  // ║  Overview/analytics data, loading, errors                               ║
+  // ╚══════════════════════════════════════════════════════════════════════════╝
   // Cache version: increment to invalidate old cached data when adding new fields
   const OVERVIEW_CACHE_VERSION = 3; // v3 adds postsData
   const [overviewData, setOverviewData] = useState<any>(() => {
@@ -302,7 +324,10 @@ export function RefactoredGoogleBusinessPage() {
     imageUrlsRef.current = imageUrls;
   }, [imageUrls]);
 
-  // Tab state with URL parameter support and dynamic default based on connection
+  // ╔══════════════════════════════════════════════════════════════════════════╗
+  // ║                       TAB & NAVIGATION STATE                             ║
+  // ║  Active tab, URL sync, mobile menu                                      ║
+  // ╚══════════════════════════════════════════════════════════════════════════╝
   const [activeTab, setActiveTab] = useState<'connect' | 'overview' | 'create-post' | 'photos' | 'business-info' | 'services' | 'more' | 'reviews' | 'protection'>(() => {
     // Initialize from URL parameter if available
     if (typeof window !== 'undefined') {
@@ -318,6 +343,11 @@ export function RefactoredGoogleBusinessPage() {
 
   // Mobile menu state
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // ╔══════════════════════════════════════════════════════════════════════════╗
+  // ║                      TAB & URL SYNC EFFECTS                              ║
+  // ║  URL parameter sync, default tab selection, tab change handler          ║
+  // ╚══════════════════════════════════════════════════════════════════════════╝
 
   // Set default tab based on connection status
   useEffect(() => {
@@ -528,7 +558,10 @@ export function RefactoredGoogleBusinessPage() {
     // IMPORTANT: No automatic refresh after initial load to prevent form resets
   }, []); // Empty dependencies - this should only run once on mount
 
-  // Persist state to localStorage
+  // ╔══════════════════════════════════════════════════════════════════════════╗
+  // ║                    LOCALSTORAGE PERSISTENCE EFFECTS                      ║
+  // ║  Sync state changes to localStorage                                     ║
+  // ╚══════════════════════════════════════════════════════════════════════════╝
   useEffect(() => {
     localStorage.setItem('google-business-connected', isConnected.toString());
   }, [isConnected]);
@@ -716,7 +749,10 @@ export function RefactoredGoogleBusinessPage() {
     fetchSocialConnections();
   }, [activeTab, isConnected]);
 
-  // Simplified platform loading - no API validation calls
+  // ╔══════════════════════════════════════════════════════════════════════════╗
+  // ║                       PLATFORM LOADING LOGIC                             ║
+  // ║  loadPlatforms callback - fetches GBP connection status and locations   ║
+  // ╚══════════════════════════════════════════════════════════════════════════╝
   const loadPlatforms = useCallback(async (accountOverride?: string) => {
     
     // Prevent multiple simultaneous calls using ref (more reliable)
@@ -910,6 +946,10 @@ export function RefactoredGoogleBusinessPage() {
     }
   }, []); // Remove dependency to prevent useEffect from running multiple times
 
+  // ╔══════════════════════════════════════════════════════════════════════════╗
+  // ║                        CONNECTION HANDLERS                               ║
+  // ║  OAuth connect/disconnect, location fetching and selection              ║
+  // ╚══════════════════════════════════════════════════════════════════════════╝
   const handleConnect = async () => {
     // Check if user has GBP access before connecting
     if (!hasGBPAccess) {
@@ -1370,12 +1410,16 @@ export function RefactoredGoogleBusinessPage() {
     setHasAttemptedFetch(true);
     localStorage.setItem('google-business-fetch-attempted', 'true');
     
-    setPostResult({ 
-      success: false, 
-      message: 'Location selection cancelled. You can select locations later from the settings.' 
+    setPostResult({
+      success: false,
+      message: 'Location selection cancelled. You can select locations later from the settings.'
     });
   };
 
+  // ╔══════════════════════════════════════════════════════════════════════════╗
+  // ║                          POST HANDLERS                                   ║
+  // ║  Post creation, AI improvement, image upload                            ║
+  // ╚══════════════════════════════════════════════════════════════════════════╝
   const handlePost = async () => {
     if (!postContent.trim() || selectedLocations.length === 0) {
       setPostResult({ success: false, message: 'Please enter post content and select at least one location' });
@@ -1695,7 +1739,10 @@ export function RefactoredGoogleBusinessPage() {
     }
   };
 
-  // Handle overview data fetching
+  // ╔══════════════════════════════════════════════════════════════════════════╗
+  // ║                        OVERVIEW HANDLERS                                 ║
+  // ║  Overview data fetching, quick actions, PDF export, review import       ║
+  // ╚══════════════════════════════════════════════════════════════════════════╝
   const fetchOverviewData = async (locationId: string) => {
     if (!locationId) return;
 
@@ -1849,6 +1896,11 @@ export function RefactoredGoogleBusinessPage() {
       setIsImportingReviews(false);
     }
   };
+
+  // ╔══════════════════════════════════════════════════════════════════════════╗
+  // ║                              RENDER                                      ║
+  // ║  Loading states and main UI render                                      ║
+  // ╚══════════════════════════════════════════════════════════════════════════╝
 
   // Also check if we're connected but locations are still being loaded
   const isStillLoadingLocations = isConnected && locations.length === 0 && isLoadingPlatforms;
