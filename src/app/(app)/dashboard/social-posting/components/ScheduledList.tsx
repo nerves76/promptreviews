@@ -162,7 +162,7 @@ export default function ScheduledList({
               {/* Date and status row */}
               <div className="flex items-center gap-3 mb-2">
                 <span className="font-medium text-slate-blue">
-                  {formatDate(post.scheduledDate)}
+                  Scheduled for {formatDate(post.scheduledDate)}
                 </span>
                 {getStatusBadge(post.status)}
               </div>
