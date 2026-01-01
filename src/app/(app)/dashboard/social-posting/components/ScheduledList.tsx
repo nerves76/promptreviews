@@ -90,15 +90,19 @@ export default function ScheduledList({
     const platforms = [];
 
     if (post.selectedLocations && post.selectedLocations.length > 0) {
-      platforms.push(
-        <span
-          key="gbp"
-          className="inline-flex items-center px-2 py-0.5 text-xs bg-blue-100 text-blue-700 rounded"
-        >
-          <Icon name="FaGoogle" size={10} className="mr-1" />
-          GBP ({post.selectedLocations.length})
-        </span>
-      );
+      // Show each GBP location by name
+      post.selectedLocations.forEach((location, index) => {
+        const locationName = location.name || location.id;
+        platforms.push(
+          <span
+            key={`gbp-${index}`}
+            className="inline-flex items-center px-2 py-0.5 text-xs bg-blue-100 text-blue-700 rounded"
+          >
+            <Icon name="FaGoogle" size={10} className="mr-1" />
+            {locationName}
+          </span>
+        );
+      });
     }
 
     if (post.additionalPlatforms?.bluesky?.enabled) {

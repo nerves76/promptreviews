@@ -65,18 +65,22 @@ export default function QueueItem({
 
   // Get target platforms
   const getTargetPlatforms = () => {
-    const platforms = [];
+    const platforms: React.ReactNode[] = [];
 
     if (item.selectedLocations && item.selectedLocations.length > 0) {
-      platforms.push(
-        <span
-          key="gbp"
-          className="inline-flex items-center px-2 py-0.5 text-xs bg-blue-100 text-blue-700 rounded"
-        >
-          <Icon name="FaGoogle" size={10} className="mr-1" />
-          GBP ({item.selectedLocations.length})
-        </span>
-      );
+      // Show each GBP location by name
+      item.selectedLocations.forEach((location, index) => {
+        const locationName = location.name || location.id;
+        platforms.push(
+          <span
+            key={`gbp-${index}`}
+            className="inline-flex items-center px-2 py-0.5 text-xs bg-blue-100 text-blue-700 rounded"
+          >
+            <Icon name="FaGoogle" size={10} className="mr-1" />
+            {locationName}
+          </span>
+        );
+      });
     }
 
     if (item.additionalPlatforms?.bluesky?.enabled) {
