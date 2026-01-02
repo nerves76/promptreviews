@@ -7,11 +7,12 @@
  * Sends height to parent window via postMessage for iframe auto-resize
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import FeaturesComparisonWidget from '@/components/marketing/FeaturesComparisonWidget';
 
 export default function FeaturesWidgetEmbed() {
   const [isClient, setIsClient] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setIsClient(true);
@@ -24,15 +25,12 @@ export default function FeaturesWidgetEmbed() {
 
     // Send height to parent window for iframe resizing
     const sendHeight = () => {
-      const body = document.body;
-      const html = document.documentElement;
-      const height = Math.max(
-        body.scrollHeight,
-        body.offsetHeight,
-        html.clientHeight,
-        html.scrollHeight,
-        html.offsetHeight
-      );
+      const container = containerRef.current;
+      if (!container) return;
+
+      // Get the container's full height including padding
+      const rect = container.getBoundingClientRect();
+      const height = Math.ceil(rect.height);
 
       // Only send if height actually changed
       if (Math.abs(height - lastHeight) > 5) {
@@ -79,7 +77,7 @@ export default function FeaturesWidgetEmbed() {
           overflow: hidden;
         }
       `}</style>
-      <div className="py-12 px-4">
+      <div ref={containerRef} className="py-12 px-4">
         <div className="max-w-6xl mx-auto">
           <FeaturesComparisonWidget />
         </div>
