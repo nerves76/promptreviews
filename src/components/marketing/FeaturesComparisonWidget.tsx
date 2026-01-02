@@ -25,11 +25,11 @@ const featuresWeHave: Feature[] = [
     icon: 'FaQrcode'
   },
   {
-    text: 'Tools to make writing reviews easier (with or without AI)',
+    text: 'AI-assisted review writing (optional)',
     icon: 'FaLightbulb'
   },
   {
-    text: 'Google Business Profile management (multi-location)',
+    text: 'Google Business Profile management',
     icon: 'FaGoogle'
   },
   {
@@ -45,11 +45,11 @@ const featuresWeHave: Feature[] = [
     icon: 'FaGlobe'
   },
   {
-    text: 'Contact upload & campaign tools',
+    text: 'Contact management & review campaigns',
     icon: 'FaUpload'
   },
   {
-    text: 'Emoji-based private feedback flow',
+    text: 'Private feedback collection before public reviews',
     icon: 'FaSmile'
   },
   {
@@ -57,7 +57,7 @@ const featuresWeHave: Feature[] = [
     icon: 'FaUsers'
   },
   {
-    text: 'Review Sentiment Analysis for insights',
+    text: 'Review sentiment analysis',
     icon: 'FaChartLine'
   }
 ];
@@ -68,7 +68,7 @@ const featuresWeDontHave: Feature[] = [
     icon: 'FaTimes'
   },
   {
-    text: 'No automated reminders or insistent alerts for your customers',
+    text: 'No spammy follow-ups to your customers',
     icon: 'FaTimes'
   },
   {
@@ -76,11 +76,11 @@ const featuresWeDontHave: Feature[] = [
     icon: 'FaTimes'
   },
   {
-    text: 'No inflated pricing or hidden upgrades',
+    text: 'No text generation without human oversight',
     icon: 'FaTimes'
   },
   {
-    text: 'No automated content updates',
+    text: 'No holding your data hostage',
     icon: 'FaTimes'
   }
 ];
@@ -102,7 +102,7 @@ export default function FeaturesComparisonWidget({ className = '' }: FeaturesCom
         <div className="mb-6">
           <h3 className="text-2xl font-bold text-white mb-2">Features we <em>do</em> have</h3>
           <p className="text-white/90">
-            Our human-first & AI-assisted approach means making it easier for you and your customers to connect.
+            Human-first tools that make it easier for you and your customers to connect.
           </p>
         </div>
 
