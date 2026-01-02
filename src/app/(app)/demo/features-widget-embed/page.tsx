@@ -73,10 +73,17 @@ export default function FeaturesWidgetEmbed() {
   }
 
   return (
-    <div className="py-12 px-4">
-      <div className="max-w-6xl mx-auto">
-        <FeaturesComparisonWidget />
+    <>
+      <style jsx global>{`
+        html, body {
+          overflow: hidden;
+        }
+      `}</style>
+      <div className="py-12 px-4">
+        <div className="max-w-6xl mx-auto">
+          <FeaturesComparisonWidget />
+        </div>
       </div>
-    </div>
+    </>
   );
 }
