@@ -473,7 +473,7 @@ export default function KeywordsInputLegacyAdapter({
           onKeyDown={handleInputKeyDown}
           onFocus={() => setIsFocused(true)}
           onBlur={handleInputBlur}
-          placeholder={placeholder}
+          placeholder="best pizza Seattle, wood-fired oven, authentic Italian"
           disabled={disabled}
           className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
         />
@@ -483,6 +483,7 @@ export default function KeywordsInputLegacyAdapter({
           </div>
         )}
       </div>
+      <p className="text-xs text-gray-500">Enter keywords separated by commas</p>
 
       {/* Keywords chips display with usage indicators */}
       {enrichedKeywords.length > 0 && (
