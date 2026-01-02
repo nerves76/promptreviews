@@ -131,14 +131,15 @@ export default function KeywordInspirationModal({
                   {keyword}
                 </span>
 
-                {/* Add Button */}
+                {/* Add Button - uses slate-blue for consistent visibility */}
                 <button
                   onClick={() => handleAddKeyword(keyword, index)}
-                  className="ml-3 px-2.5 py-1.5 rounded-md border font-medium text-xs transition-all duration-200 flex items-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-opacity-50 hover:shadow-md"
+                  className={`ml-3 px-2.5 py-1.5 rounded-md border font-medium text-xs transition-all duration-200 flex items-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-opacity-50 hover:shadow-md ${
+                    addedIndex === index
+                      ? "border-green-300 bg-green-100 text-green-800"
+                      : "border-slate-blue bg-slate-blue/10 text-slate-blue hover:bg-slate-blue hover:text-white"
+                  }`}
                   style={{
-                    borderColor: addedIndex === index ? "#6EE7B7" : secondaryColor,
-                    backgroundColor: addedIndex === index ? "#6EE7B7" : "transparent",
-                    color: addedIndex === index ? "#065F46" : secondaryColor,
                     fontFamily: businessProfile?.primary_font || "Inter",
                   }}
                   aria-label={`Add ${keyword}`}
