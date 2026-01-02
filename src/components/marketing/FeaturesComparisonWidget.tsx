@@ -49,7 +49,7 @@ const featuresWeHave: Feature[] = [
     icon: 'FaUpload'
   },
   {
-    text: 'Private feedback collection before public reviews',
+    text: 'Catch concerns privately before they go public',
     icon: 'FaSmile'
   },
   {
