@@ -72,6 +72,8 @@ export default function KeywordsInputLegacyAdapter({
   const [isFocused, setIsFocused] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedLibraryKeywords, setSelectedLibraryKeywords] = useState<Set<string>>(new Set());
+  const [libraryAddSuccess, setLibraryAddSuccess] = useState(false);
   const libraryRef = useRef<HTMLDivElement>(null);
 
   // AI Generation state
@@ -185,14 +187,41 @@ export default function KeywordsInputLegacyAdapter({
     onChange(updatedKeywords);
   };
 
-  const handleSelectFromLibrary = (phrase: string) => {
-    if (maxKeywords && cleanKeywords.length >= maxKeywords) {
-      alert(`Maximum ${maxKeywords} keywords allowed`);
+  const handleToggleLibraryKeyword = (phrase: string) => {
+    const newSelected = new Set(selectedLibraryKeywords);
+    if (newSelected.has(phrase)) {
+      newSelected.delete(phrase);
+    } else {
+      newSelected.add(phrase);
+    }
+    setSelectedLibraryKeywords(newSelected);
+  };
+
+  const handleAddSelectedLibraryKeywords = () => {
+    const selectedArray = Array.from(selectedLibraryKeywords);
+
+    if (maxKeywords && cleanKeywords.length + selectedArray.length > maxKeywords) {
+      alert(`Maximum ${maxKeywords} keywords allowed. You can add ${maxKeywords - cleanKeywords.length} more.`);
       return;
     }
-    if (!cleanKeywords.some((k) => k.toLowerCase() === phrase.toLowerCase())) {
-      onChange([...cleanKeywords, phrase]);
+
+    // Filter out any that are already in cleanKeywords (shouldn't happen but be safe)
+    const newPhrases = selectedArray.filter(
+      (phrase) => !cleanKeywords.some((k) => k.toLowerCase() === phrase.toLowerCase())
+    );
+
+    if (newPhrases.length > 0) {
+      onChange([...cleanKeywords, ...newPhrases]);
     }
+
+    // Show success message and clear selection
+    setLibraryAddSuccess(true);
+    setSelectedLibraryKeywords(new Set());
+
+    // Hide success after 2 seconds
+    setTimeout(() => {
+      setLibraryAddSuccess(false);
+    }, 2000);
   };
 
   // AI Generation handlers (from old component)
@@ -570,7 +599,10 @@ export default function KeywordsInputLegacyAdapter({
             </div>
             <button
               type="button"
-              onClick={() => setShowPicker(false)}
+              onClick={() => {
+                setShowPicker(false);
+                setSelectedLibraryKeywords(new Set());
+              }}
               className="w-6 h-6 flex items-center justify-center rounded-full bg-blue-200 hover:bg-blue-300 transition-colors"
               aria-label="Close library"
             >
@@ -578,7 +610,7 @@ export default function KeywordsInputLegacyAdapter({
             </button>
           </div>
           <div className="p-3 border-b border-blue-100">
-            <p className="text-xs text-blue-700 mb-2">Click keywords to add them to your Prompt Page</p>
+            <p className="text-xs text-blue-700 mb-2">Select keywords to add to your Prompt Page</p>
             <div className="relative">
               <Icon
                 name="FaSearch"
@@ -605,34 +637,69 @@ export default function KeywordsInputLegacyAdapter({
               </div>
             ) : (
               <div className="flex flex-wrap gap-1.5">
-                {availableKeywords.slice(0, 50).map((kw) => (
-                  <button
-                    key={kw.id}
-                    type="button"
-                    onClick={() => handleSelectFromLibrary(kw.phrase)}
-                    className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-blue-700 bg-blue-100 border border-blue-200 rounded-full hover:bg-blue-200 hover:border-blue-300 transition-colors"
-                  >
-                    {kw.phrase}
-                    {kw.showUsageIndicator && kw.reviewUsageCount > 0 && (
-                      <span
-                        className={`px-1 rounded text-xs ${
-                          kw.usageColor === 'red'
-                            ? 'bg-red-100 text-red-600'
-                            : kw.usageColor === 'orange'
-                              ? 'bg-orange-100 text-orange-600'
-                              : kw.usageColor === 'yellow'
-                                ? 'bg-yellow-100 text-yellow-600'
-                                : 'bg-gray-200 text-gray-500'
-                        }`}
-                        title={`Found in ${kw.reviewUsageCount} review${kw.reviewUsageCount !== 1 ? 's' : ''}`}
-                      >
-                        {kw.reviewUsageCount}
-                      </span>
-                    )}
-                  </button>
-                ))}
+                {availableKeywords.slice(0, 50).map((kw) => {
+                  const isSelected = selectedLibraryKeywords.has(kw.phrase);
+                  return (
+                    <button
+                      key={kw.id}
+                      type="button"
+                      onClick={() => handleToggleLibraryKeyword(kw.phrase)}
+                      className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full transition-colors ${
+                        isSelected
+                          ? 'text-white bg-blue-600 border border-blue-600'
+                          : 'text-blue-700 bg-blue-100 border border-blue-200 hover:bg-blue-200 hover:border-blue-300'
+                      }`}
+                    >
+                      {isSelected && (
+                        <Icon name="FaCheck" className="w-2.5 h-2.5" />
+                      )}
+                      {kw.phrase}
+                      {kw.showUsageIndicator && kw.reviewUsageCount > 0 && (
+                        <span
+                          className={`px-1 rounded text-xs ${
+                            isSelected
+                              ? 'bg-white/20 text-white'
+                              : kw.usageColor === 'red'
+                                ? 'bg-red-100 text-red-600'
+                                : kw.usageColor === 'orange'
+                                  ? 'bg-orange-100 text-orange-600'
+                                  : kw.usageColor === 'yellow'
+                                    ? 'bg-yellow-100 text-yellow-600'
+                                    : 'bg-gray-200 text-gray-500'
+                          }`}
+                          title={`Found in ${kw.reviewUsageCount} review${kw.reviewUsageCount !== 1 ? 's' : ''}`}
+                        >
+                          {kw.reviewUsageCount}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             )}
+          </div>
+          {/* Footer with Add button */}
+          <div className="px-3 py-2 bg-blue-100 border-t border-blue-200 flex items-center justify-between">
+            {libraryAddSuccess ? (
+              <div className="flex items-center gap-1.5 text-green-700">
+                <Icon name="FaCheckCircle" className="w-4 h-4" />
+                <span className="text-sm font-medium">Keywords added!</span>
+              </div>
+            ) : (
+              <span className="text-xs text-blue-600">
+                {selectedLibraryKeywords.size > 0
+                  ? `${selectedLibraryKeywords.size} selected`
+                  : 'Click to select keywords'}
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={handleAddSelectedLibraryKeywords}
+              disabled={selectedLibraryKeywords.size === 0}
+              className="px-3 py-1.5 text-xs font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+            >
+              Add {selectedLibraryKeywords.size > 0 ? selectedLibraryKeywords.size : ''} keyword{selectedLibraryKeywords.size !== 1 ? 's' : ''}
+            </button>
           </div>
         </div>
       )}

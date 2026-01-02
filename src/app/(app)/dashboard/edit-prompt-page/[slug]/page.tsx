@@ -1058,6 +1058,11 @@ export default function EditPromptPage() {
         // Keyword auto-rotation
         keyword_auto_rotate_enabled: formState.keyword_auto_rotate_enabled ?? formState.keywordAutoRotateEnabled ?? false,
 
+        // Keywords and inspiration
+        keywords: formState.keywords || [],
+        keyword_inspiration_enabled: formState.keyword_inspiration_enabled ?? formState.keywordInspirationEnabled ?? false,
+        selected_keyword_inspirations: formState.selected_keyword_inspirations || formState.selectedKeywordInspirations || [],
+
         // Motivational Nudge
         motivational_nudge_enabled: formState.motivational_nudge_enabled ?? formState.motivationalNudgeEnabled ?? true,
         motivational_nudge_text: formState.motivational_nudge_text || formState.motivationalNudgeText || "{business_name} needs your STAR POWER so more people find them online!",
@@ -1387,14 +1392,14 @@ export default function EditPromptPage() {
       return <Icon name="MdEvent" className="w-9 h-9" style={{ color: "#2E4A7D" }} />;
     }
     if ((formData as any).review_type === "product") {
-      return <svg className="w-9 h-9" style={{ color: "#2E4A7D" }}><use href="/icons-sprite.svg#FaBox" /></svg>;
+      return <svg className="w-9 h-9" style={{ color: "#2E4A7D" }}><use href="/icons-sprite.svg#FaBoxOpen" /></svg>;
     }
     if ((formData as any).review_type === "service") {
       return <svg className="w-9 h-9" style={{ color: "#2E4A7D" }}><use href="/icons-sprite.svg#FaHandshake" /></svg>;
     }
     // Fall back to type field
     if (formData.type === "product") {
-      return <svg className="w-9 h-9" style={{ color: "#2E4A7D" }}><use href="/icons-sprite.svg#FaBox" /></svg>;
+      return <svg className="w-9 h-9" style={{ color: "#2E4A7D" }}><use href="/icons-sprite.svg#FaBoxOpen" /></svg>;
     }
     if (formData.type === "service") {
       return <svg className="w-9 h-9" style={{ color: "#2E4A7D" }}><use href="/icons-sprite.svg#FaHandshake" /></svg>;
