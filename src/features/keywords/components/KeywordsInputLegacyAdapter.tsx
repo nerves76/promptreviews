@@ -157,17 +157,26 @@ export default function KeywordsInputLegacyAdapter({
         return;
       }
 
-      // Also add to unified system if not already there
-      for (const phrase of newPhrases) {
-        const exists = allKeywords.some((kw) => kw.phrase.toLowerCase() === phrase.toLowerCase());
-        if (!exists) {
-          await createKeyword(phrase, undefined, promptPageId);
-        }
-      }
-
+      // Update state immediately - don't wait for API calls
       onChange(updatedKeywords);
       setInputValue('');
-      refresh();
+
+      // Add to unified system in background (non-blocking)
+      // This ensures keywords are added to form even if API fails
+      (async () => {
+        try {
+          for (const phrase of newPhrases) {
+            const exists = allKeywords.some((kw) => kw.phrase.toLowerCase() === phrase.toLowerCase());
+            if (!exists) {
+              await createKeyword(phrase, undefined, promptPageId);
+            }
+          }
+          refresh();
+        } catch (err) {
+          console.error('Error adding keywords to unified system:', err);
+          // Keywords are already added to the form, so this is non-fatal
+        }
+      })();
     }
   };
 
