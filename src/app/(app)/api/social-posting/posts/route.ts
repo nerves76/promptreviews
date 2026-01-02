@@ -11,9 +11,28 @@ import { createServerSupabaseClient } from '@/auth/providers/supabase';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 import type { UniversalPost, PlatformId } from '@/features/social-posting';
 
+// LinkedIn target for multi-target posting (personal profile + organizations)
+interface LinkedInTarget {
+  type: 'personal' | 'organization';
+  id: string;
+  name: string;
+}
+
+// Extended post data type to include additionalPlatforms
+interface ExtendedPostData extends UniversalPost {
+  additionalPlatforms?: {
+    bluesky?: boolean | { enabled: boolean; connectionId: string };
+    linkedin?: boolean | {
+      enabled: boolean;
+      connectionId: string;
+      targets?: LinkedInTarget[];
+    };
+  };
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const postData: UniversalPost = await request.json();
+    const postData: ExtendedPostData = await request.json();
     
     // Validate request
     if (!postData.content || !postData.platforms || postData.platforms.length === 0) {
@@ -104,17 +123,171 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
     
-    // Publish the post
+    // Publish the post to GBP
     const publishResults = await postManager.publishPost(postData);
-    
-    // Check if any publication failed
-    const hasFailures = Object.values(publishResults).some(result => !result.success);
-    
+
+    // Check if any GBP publication failed
+    const hasGbpFailures = Object.values(publishResults).some(result => !result.success);
+
+    // Handle LinkedIn cross-posting if requested
+    // Supports both legacy boolean format and new targets format
+    let linkedinResults: Array<{ target: string; success: boolean; postId?: string; error?: string }> = [];
+
+    const linkedinConfig = postData.additionalPlatforms?.linkedin;
+    if (linkedinConfig) {
+      try {
+        // Fetch LinkedIn connection for this account
+        const { data: linkedinConnection, error: connError } = await supabase
+          .from('social_platform_connections')
+          .select('id, credentials, status')
+          .eq('account_id', accountId)
+          .eq('platform', 'linkedin')
+          .eq('status', 'active')
+          .maybeSingle();
+
+        if (connError || !linkedinConnection) {
+          console.warn('[Posts] LinkedIn cross-post requested but no active connection found');
+          linkedinResults.push({ target: 'linkedin', success: false, error: 'LinkedIn connection not found or inactive' });
+        } else {
+          const credentials = linkedinConnection.credentials as {
+            accessToken: string;
+            refreshToken?: string;
+            expiresAt?: string;
+            linkedinId: string;
+          };
+
+          if (!credentials.accessToken || !credentials.linkedinId) {
+            linkedinResults.push({ target: 'linkedin', success: false, error: 'Missing LinkedIn credentials' });
+          } else {
+            // Check if token needs refresh
+            let tokenRefreshFailed = false;
+            if (credentials.expiresAt && new Date(credentials.expiresAt) < new Date()) {
+              if (credentials.refreshToken) {
+                try {
+                  const { LinkedInAdapter } = await import('@/features/social-posting/platforms/linkedin');
+                  const refreshedTokens = await LinkedInAdapter.refreshAccessToken(credentials.refreshToken);
+
+                  // Update stored credentials
+                  const newExpiresAt = new Date(Date.now() + refreshedTokens.expiresIn * 1000).toISOString();
+                  await supabase
+                    .from('social_platform_connections')
+                    .update({
+                      credentials: {
+                        ...credentials,
+                        accessToken: refreshedTokens.accessToken,
+                        expiresAt: newExpiresAt,
+                      },
+                      updated_at: new Date().toISOString(),
+                    })
+                    .eq('id', linkedinConnection.id);
+
+                  credentials.accessToken = refreshedTokens.accessToken;
+                  credentials.expiresAt = newExpiresAt;
+                } catch (refreshError) {
+                  console.error('[Posts] LinkedIn token refresh failed:', refreshError);
+                  linkedinResults.push({ target: 'linkedin', success: false, error: 'LinkedIn token expired and refresh failed' });
+                  tokenRefreshFailed = true;
+                }
+              } else {
+                linkedinResults.push({ target: 'linkedin', success: false, error: 'LinkedIn token expired' });
+                tokenRefreshFailed = true;
+              }
+            }
+
+            // If token is valid, proceed with posting
+            if (!tokenRefreshFailed) {
+              const { LinkedInAdapter } = await import('@/features/social-posting/platforms/linkedin');
+              const adapter = new LinkedInAdapter({
+                accessToken: credentials.accessToken,
+                refreshToken: credentials.refreshToken || '',
+                expiresAt: credentials.expiresAt || new Date(Date.now() + 3600000).toISOString(),
+                linkedinId: credentials.linkedinId,
+              });
+
+              // Determine targets to post to
+              let targets: LinkedInTarget[] = [];
+
+              if (typeof linkedinConfig === 'boolean') {
+                // Legacy format: just post to personal profile
+                targets = [{ type: 'personal', id: credentials.linkedinId, name: 'Personal Profile' }];
+              } else if (linkedinConfig.targets && linkedinConfig.targets.length > 0) {
+                // New format: use provided targets
+                targets = linkedinConfig.targets;
+              } else {
+                // New format but no targets specified: default to personal profile
+                targets = [{ type: 'personal', id: credentials.linkedinId, name: 'Personal Profile' }];
+              }
+
+              // Post to each target
+              for (const target of targets) {
+                try {
+                  // Determine the author URN based on target type
+                  const authorUrn = target.type === 'organization'
+                    ? target.id  // Organization URN (urn:li:organization:XXX)
+                    : credentials.linkedinId.startsWith('urn:')
+                      ? credentials.linkedinId
+                      : `urn:li:person:${credentials.linkedinId}`;
+
+                  const result = await adapter.createPost(
+                    {
+                      content: postData.content,
+                      platforms: ['linkedin'],
+                      mediaUrls: postData.mediaUrls,
+                      status: 'published',
+                      callToAction: postData.callToAction,
+                    },
+                    authorUrn  // Pass author URN for organization posting
+                  );
+
+                  linkedinResults.push({
+                    target: target.name,
+                    success: result.success,
+                    postId: result.platformPostId,
+                    error: result.error,
+                  });
+
+                  if (result.success) {
+                    console.log(`[Posts] LinkedIn cross-post to ${target.name} successful:`, result.platformPostId);
+                  } else {
+                    console.warn(`[Posts] LinkedIn cross-post to ${target.name} failed:`, result.error);
+                  }
+
+                  // Small delay between posts to avoid rate limiting
+                  if (targets.length > 1) {
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                  }
+                } catch (targetError) {
+                  console.error(`[Posts] LinkedIn cross-post to ${target.name} error:`, targetError);
+                  linkedinResults.push({
+                    target: target.name,
+                    success: false,
+                    error: targetError instanceof Error ? targetError.message : 'Unknown error',
+                  });
+                }
+              }
+            }
+          }
+        }
+      } catch (linkedinError) {
+        console.error('[Posts] LinkedIn cross-post error:', linkedinError);
+        linkedinResults.push({
+          target: 'linkedin',
+          success: false,
+          error: linkedinError instanceof Error ? linkedinError.message : 'Unknown LinkedIn error',
+        });
+      }
+    }
+
+    // Determine overall success
+    const hasLinkedInFailures = linkedinResults.length > 0 && linkedinResults.some(r => !r.success);
+    const hasFailures = hasGbpFailures || hasLinkedInFailures;
+
     return NextResponse.json({
       success: !hasFailures,
       data: {
         validationResults,
         publishResults,
+        linkedin: linkedinResults.length > 0 ? linkedinResults : undefined,
         optimizedContent: postManager.optimizePostForPlatforms(postData)
       }
     });

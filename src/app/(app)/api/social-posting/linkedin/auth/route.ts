@@ -90,7 +90,12 @@ export async function GET(request: NextRequest) {
     });
 
     // Build LinkedIn authorization URL
-    const scopes = ['openid', 'profile', 'w_member_social'];
+    // Scopes required:
+    // - openid, profile: Basic authentication and user info
+    // - w_member_social: Post to personal profile
+    // - w_organization_social: Post to organization pages
+    // - rw_organization_admin: Fetch organizations user is admin of
+    const scopes = ['openid', 'profile', 'w_member_social', 'w_organization_social', 'rw_organization_admin'];
     const authUrl = new URL('https://www.linkedin.com/oauth/v2/authorization');
     authUrl.searchParams.set('response_type', 'code');
     authUrl.searchParams.set('client_id', clientId);

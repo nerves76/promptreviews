@@ -245,9 +245,10 @@ export function RefactoredGoogleBusinessPage() {
   // ║  Bluesky, LinkedIn connections and posting toggles                      ║
   // ╚══════════════════════════════════════════════════════════════════════════╝
   const [blueskyConnection, setBlueskyConnection] = useState<{ id: string; handle: string } | null>(null);
-  const [linkedinConnection, setLinkedinConnection] = useState<{ id: string; handle: string } | null>(null);
+  const [linkedinConnection, setLinkedinConnection] = useState<{ id: string; handle: string; organizations?: Array<{ id: string; name: string; logoUrl?: string }> } | null>(null);
   const [postToBluesky, setPostToBluesky] = useState(false);
-  const [postToLinkedIn, setPostToLinkedIn] = useState(false);
+  // LinkedIn targets - supports personal profile + organization pages
+  const [linkedInTargets, setLinkedInTargets] = useState<Array<{ type: 'personal' | 'organization'; id: string; name: string }>>([]);
   const [isLoadingPlatforms, setIsLoadingPlatforms] = useState(false);
 
   // ╔══════════════════════════════════════════════════════════════════════════╗
@@ -737,15 +738,28 @@ export function RefactoredGoogleBusinessPage() {
     const fetchSocialConnections = async () => {
       try {
         const data = await apiClient.get<{
-          connections: Array<{ platform: string; status: string; handle: string; id: string }>;
+          connections: Array<{
+            platform: string;
+            status: string;
+            handle: string;
+            id: string;
+            organizations?: Array<{ id: string; name: string; logoUrl?: string }>;
+          }>;
         }>('/social-posting/connections');
 
         if (data.connections) {
           const bluesky = data.connections.find(c => c.platform === 'bluesky' && c.status === 'active');
           const linkedin = data.connections.find(c => c.platform === 'linkedin' && c.status === 'active');
 
+          console.log('[GBP] LinkedIn connection from API:', linkedin);
+          console.log('[GBP] LinkedIn organizations:', linkedin?.organizations);
+
           setBlueskyConnection(bluesky ? { id: bluesky.id, handle: bluesky.handle } : null);
-          setLinkedinConnection(linkedin ? { id: linkedin.id, handle: linkedin.handle } : null);
+          setLinkedinConnection(linkedin ? {
+            id: linkedin.id,
+            handle: linkedin.handle,
+            organizations: linkedin.organizations
+          } : null);
         }
       } catch (err) {
         console.error('Failed to fetch social connections:', err);
@@ -1476,12 +1490,19 @@ export function RefactoredGoogleBusinessPage() {
       }
 
       // Build additional platforms for cross-posting
-      const additionalPlatforms: { bluesky?: boolean; linkedin?: boolean } = {};
+      const additionalPlatforms: {
+        bluesky?: { enabled: boolean; connectionId: string };
+        linkedin?: { enabled: boolean; connectionId: string; targets: Array<{ type: 'personal' | 'organization'; id: string; name: string }> };
+      } = {};
       if (postToBluesky && blueskyConnection) {
-        additionalPlatforms.bluesky = true;
+        additionalPlatforms.bluesky = { enabled: true, connectionId: blueskyConnection.id };
       }
-      if (postToLinkedIn && linkedinConnection) {
-        additionalPlatforms.linkedin = true;
+      if (linkedInTargets.length > 0 && linkedinConnection) {
+        additionalPlatforms.linkedin = {
+          enabled: true,
+          connectionId: linkedinConnection.id,
+          targets: linkedInTargets
+        };
       }
 
       // Post to each selected location individually
@@ -2412,32 +2433,72 @@ export function RefactoredGoogleBusinessPage() {
                           </div>
 
                           {/* LinkedIn */}
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-3">
-                              {linkedinConnection ? (
-                                <input
-                                  type="checkbox"
-                                  checked={postToLinkedIn}
-                                  onChange={(e) => setPostToLinkedIn(e.target.checked)}
-                                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
-                                />
-                              ) : (
-                                <div className="w-4 h-4" />
-                              )}
-                              <div className="flex items-center space-x-2">
-                                <Icon name="FaLinkedin" className="w-5 h-5 text-[#0A66C2]" />
-                                <span className="text-sm text-gray-700">
-                                  LinkedIn {linkedinConnection ? `(${linkedinConnection.handle})` : ''}
-                                </span>
+                          <div className="space-y-2">
+                            {linkedinConnection ? (
+                              <>
+                                {/* Personal Profile */}
+                                <div className="flex items-center space-x-3">
+                                  <input
+                                    type="checkbox"
+                                    checked={linkedInTargets.some(t => t.type === 'personal' && t.id === linkedinConnection.id)}
+                                    onChange={() => {
+                                      const exists = linkedInTargets.some(t => t.type === 'personal' && t.id === linkedinConnection.id);
+                                      if (exists) {
+                                        setLinkedInTargets(prev => prev.filter(t => !(t.type === 'personal' && t.id === linkedinConnection.id)));
+                                      } else {
+                                        setLinkedInTargets(prev => [...prev, { type: 'personal', id: linkedinConnection.id, name: linkedinConnection.handle || 'My Profile' }]);
+                                      }
+                                    }}
+                                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+                                  />
+                                  <div className="flex items-center space-x-2">
+                                    <Icon name="FaLinkedin" className="w-5 h-5 text-[#0A66C2]" />
+                                    <span className="text-sm text-gray-700">
+                                      {linkedinConnection.handle || 'My Profile'} (Personal)
+                                    </span>
+                                  </div>
+                                </div>
+                                {/* Organization Pages */}
+                                {linkedinConnection.organizations?.map((org) => (
+                                  <div key={org.id} className="flex items-center space-x-3 ml-6">
+                                    <input
+                                      type="checkbox"
+                                      checked={linkedInTargets.some(t => t.type === 'organization' && t.id === org.id)}
+                                      onChange={() => {
+                                        const exists = linkedInTargets.some(t => t.type === 'organization' && t.id === org.id);
+                                        if (exists) {
+                                          setLinkedInTargets(prev => prev.filter(t => !(t.type === 'organization' && t.id === org.id)));
+                                        } else {
+                                          setLinkedInTargets(prev => [...prev, { type: 'organization', id: org.id, name: org.name }]);
+                                        }
+                                      }}
+                                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+                                    />
+                                    <div className="flex items-center space-x-2">
+                                      <Icon name="FaBuilding" className="w-4 h-4 text-gray-500" />
+                                      <span className="text-sm text-gray-700">
+                                        {org.name} (Company)
+                                      </span>
+                                    </div>
+                                  </div>
+                                ))}
+                              </>
+                            ) : (
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center space-x-3">
+                                  <div className="w-4 h-4" />
+                                  <div className="flex items-center space-x-2">
+                                    <Icon name="FaLinkedin" className="w-5 h-5 text-[#0A66C2]" />
+                                    <span className="text-sm text-gray-700">LinkedIn</span>
+                                  </div>
+                                </div>
+                                <a
+                                  href="/dashboard/integrations"
+                                  className="text-xs text-slate-blue hover:underline font-medium"
+                                >
+                                  Connect
+                                </a>
                               </div>
-                            </div>
-                            {!linkedinConnection && (
-                              <a
-                                href="/dashboard/integrations"
-                                className="text-xs text-slate-blue hover:underline font-medium"
-                              >
-                                Connect
-                              </a>
                             )}
                           </div>
                         </div>

@@ -45,7 +45,7 @@ export interface LinkedInProfile {
 const LINKEDIN_AUTH_URL = 'https://www.linkedin.com/oauth/v2/authorization';
 const LINKEDIN_TOKEN_URL = 'https://www.linkedin.com/oauth/v2/accessToken';
 const LINKEDIN_API_BASE = 'https://api.linkedin.com';
-const LINKEDIN_API_VERSION = '202411';
+const LINKEDIN_API_VERSION = '202501';
 const LINKEDIN_SCOPES = ['openid', 'profile', 'w_member_social', 'w_organization_social', 'r_organization_admin', 'rw_organization_admin'];
 
 export class LinkedInAdapter implements PlatformAdapter {
@@ -257,26 +257,53 @@ export class LinkedInAdapter implements PlatformAdapter {
       // This requires rw_organization_admin scope
       const url = `${LINKEDIN_API_BASE}/rest/organizationAcls?q=roleAssignee&role=ADMINISTRATOR&state=APPROVED`;
       console.log('LinkedIn: Fetching admin organizations from:', url);
+      console.log('LinkedIn: Using API version:', LINKEDIN_API_VERSION);
 
       const aclResponse = await fetch(url, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
           'X-Restli-Protocol-Version': '2.0.0',
-          'LinkedIn-Version': LINKEDIN_API_VERSION,
-          'Content-Type': 'application/json'
+          'LinkedIn-Version': LINKEDIN_API_VERSION
         }
       });
 
+      // Log full response details for debugging
+      console.log('LinkedIn organizationAcls response status:', aclResponse.status);
+      const responseText = await aclResponse.text();
+      console.log('LinkedIn organizationAcls response body:', responseText);
+
       if (!aclResponse.ok) {
-        const errorData = await aclResponse.text();
-        console.error(`LinkedIn organizationAcls failed (${aclResponse.status}):`, errorData);
-        console.log('LinkedIn: Make sure rw_organization_admin scope is granted');
+        console.error(`LinkedIn organizationAcls failed (${aclResponse.status})`);
+
+        // Try parsing error for more details
+        try {
+          const errorJson = JSON.parse(responseText);
+          console.error('LinkedIn error details:', JSON.stringify(errorJson, null, 2));
+
+          // Check if it's a scope/permission issue
+          if (aclResponse.status === 403) {
+            console.log('LinkedIn: 403 Forbidden - This usually means:');
+            console.log('  1. The app needs "Advertising API" or "Community Management API" product enabled');
+            console.log('  2. The rw_organization_admin scope needs to be approved by LinkedIn');
+            console.log('  3. The user needs to disconnect and reconnect to grant new scopes');
+          }
+        } catch {
+          // Not JSON, already logged the text
+        }
+
         return [];
       }
 
-      const aclData = await aclResponse.json();
-      console.log('LinkedIn organizationAcls response:', JSON.stringify(aclData, null, 2));
+      let aclData;
+      try {
+        aclData = JSON.parse(responseText);
+      } catch {
+        console.error('LinkedIn: Failed to parse organizationAcls response as JSON');
+        return [];
+      }
+
+      console.log('LinkedIn organizationAcls parsed:', JSON.stringify(aclData, null, 2));
       const elements = aclData.elements || [];
 
       if (elements.length === 0) {
@@ -285,14 +312,16 @@ export class LinkedInAdapter implements PlatformAdapter {
       }
 
       // Extract organization URNs from ACLs
-      // Response format: { organization: "urn:li:organization:12345", role: "ADMINISTRATOR", ... }
+      // Response format varies - check both 'organization' and 'organizationTarget'
       const orgUrns: string[] = elements
-        .map((acl: any) => acl.organization)
+        .map((acl: any) => acl.organization || acl.organizationTarget)
         .filter((urn: string) => urn && urn.startsWith('urn:li:organization:'));
 
       console.log('LinkedIn: Found organization URNs:', orgUrns);
 
       if (orgUrns.length === 0) {
+        console.log('LinkedIn: ACLs found but no organization URNs extracted');
+        console.log('LinkedIn: ACL elements structure:', JSON.stringify(elements[0], null, 2));
         return [];
       }
 

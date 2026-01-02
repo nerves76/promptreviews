@@ -140,6 +140,7 @@ export default function SocialPostingPage() {
             platform: string;
             handle: string;
             status: string;
+            organizations?: Array<{ id: string; name: string; logoUrl?: string }>;
           }>;
         }>("/social-posting/connections");
 
@@ -166,6 +167,7 @@ export default function SocialPostingPage() {
             platform: activeLinkedIn.platform,
             status: activeLinkedIn.status,
             handle: activeLinkedIn.handle,
+            organizations: activeLinkedIn.organizations,
           };
         }
       } catch (err) {
@@ -224,6 +226,7 @@ export default function SocialPostingPage() {
             platform: string;
             handle: string;
             status: string;
+            organizations?: Array<{ id: string; name: string; logoUrl?: string }>;
           }>;
         }>("/social-posting/connections");
 
@@ -252,6 +255,7 @@ export default function SocialPostingPage() {
             platform: activeLinkedIn.platform,
             status: activeLinkedIn.status,
             handle: activeLinkedIn.handle,
+            organizations: activeLinkedIn.organizations,
           };
         }
       } catch (err) {

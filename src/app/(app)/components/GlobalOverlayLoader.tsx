@@ -18,7 +18,7 @@ export default function GlobalOverlayLoader({
 }: GlobalOverlayLoaderProps) {
   if (!visible) return null;
 
-  const spinnerSize = size ?? (blocking ? 48 : 24);
+  const spinnerSize = size ?? (blocking ? 32 : 24);
 
   if (blocking) {
     return (
@@ -28,7 +28,8 @@ export default function GlobalOverlayLoader({
         role="status"
         className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 transition-opacity duration-150"
       >
-        <div className="flex flex-col items-center select-none">
+        {/* Offset by half sidebar width (128px) on desktop to center in content area */}
+        <div className="flex flex-col items-center select-none md:ml-32">
           <FiveStarSpinner size={spinnerSize} />
           <span className="sr-only">Loading</span>
         </div>

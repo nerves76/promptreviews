@@ -106,29 +106,44 @@ LinkedIn supports two types of posting targets:
 
 #### Organization Pages Setup
 
-To post to company/organization pages, additional setup is required:
+To post to company/organization pages, additional setup is required in the LinkedIn Developer Portal.
 
 **Step 1: LinkedIn Developer Portal Setup**
 
 1. Go to https://developer.linkedin.com/
 2. Select your app (or create one)
 3. Go to **Products** tab
-4. Request access to **"Advertising API"**
+4. Request access to one of these products (either works):
+   - **"Advertising API"** - Most common, enables organization management
+   - **"Community Management API"** - Alternative if Advertising API isn't available
 5. Wait for LinkedIn approval (can take hours to days)
+6. LinkedIn may request additional verification for your app
 
-**Step 2: Verify Scopes**
+**Step 2: Verify Scopes Are Available**
 
-After approval, check **Auth** tab → **OAuth 2.0 scopes**:
+After product approval, check **Auth** tab → **OAuth 2.0 scopes**. You need ALL of these:
 - ✅ `openid` - Required for authentication
 - ✅ `profile` - Required for user info
 - ✅ `w_member_social` - Personal profile posting
-- ✅ `w_organization_social` - Organization posting (requires Advertising API)
+- ✅ `w_organization_social` - Organization posting
+- ✅ `rw_organization_admin` - Required to fetch organizations you admin
 
-**Step 3: Reconnect**
+**Important:** The scopes must be listed in your app's OAuth settings. If `rw_organization_admin` or `w_organization_social` is missing, your product request may still be pending.
 
-1. Disconnect LinkedIn in Prompt Reviews
-2. Reconnect to get the new scope granted
-3. Organizations you admin will now appear
+**Step 3: Reconnect LinkedIn**
+
+After scopes are granted:
+1. Disconnect LinkedIn in Prompt Reviews (Settings → Integrations)
+2. Reconnect to LinkedIn - this triggers a new OAuth flow with the new scopes
+3. During OAuth, LinkedIn will ask you to grant the additional permissions
+4. Organizations you admin will now appear in the Create Post modal
+
+**Step 4: Verify Organization Admin Status**
+
+You must be an **Admin** of the LinkedIn Company Page to post to it:
+1. Go to your LinkedIn Company Page
+2. Click **Admin tools** → **Page admins**
+3. Verify your account is listed as an Admin (not just a Content Admin)
 
 **Capabilities:**
 - Text posts (3000 character limit)
@@ -375,10 +390,18 @@ GBP_SCHEDULED_MAX_JOBS=25
 
 ### LinkedIn organizations not appearing
 
-1. **Check admin access** - You must be an admin of the LinkedIn company page
-2. **Check API approval** - Your LinkedIn app needs "Advertising API" product enabled
-3. **Check scopes** - Verify `w_organization_social` is listed in Auth → OAuth 2.0 scopes
-4. **Reconnect** - Disconnect and reconnect LinkedIn to get new scopes
+1. **Check admin access** - You must be a full Admin (not Content Admin) of the LinkedIn company page
+2. **Check API product approval** - Your LinkedIn app needs one of these products enabled:
+   - "Advertising API"
+   - "Community Management API"
+3. **Verify all required scopes** - Check Auth → OAuth 2.0 scopes for:
+   - `w_organization_social` - For posting to orgs
+   - `rw_organization_admin` - For fetching orgs (this is critical!)
+4. **Reconnect** - Disconnect and reconnect LinkedIn to grant new scopes
+5. **Check server logs** - Look for "LinkedIn organizationAcls" errors:
+   - 403 error usually means missing `rw_organization_admin` scope
+   - Empty response means no orgs found where you're admin
+6. **LinkedIn API version** - We use API version `202501`; older versions may be sunset
 
 ### Bluesky connection failing
 

@@ -127,7 +127,7 @@ export default function LinkedInConnection({ accountId }: LinkedInConnectionProp
               </span>
             </div>
             <p className="text-sm text-blue-700">
-              Your Google Business posts can now be automatically shared to LinkedIn when you schedule them.
+              Share posts to your LinkedIn profile and company pages when creating or scheduling content.
             </p>
           </div>
 
@@ -142,7 +142,7 @@ export default function LinkedInConnection({ accountId }: LinkedInConnectionProp
         <div className="space-y-4">
           <div className="bg-gray-50 border border-gray-200 rounded-md p-4">
             <p className="text-sm text-gray-700 mb-3">
-              Cross-post your Google Business updates to LinkedIn automatically. Just connect your account and check the box when scheduling posts.
+              Connect LinkedIn to share posts to your personal profile and company pages you manage.
             </p>
             <ul className="text-sm text-gray-600 space-y-1">
               <li className="flex items-center space-x-2">
