@@ -46,7 +46,7 @@ const LINKEDIN_AUTH_URL = 'https://www.linkedin.com/oauth/v2/authorization';
 const LINKEDIN_TOKEN_URL = 'https://www.linkedin.com/oauth/v2/accessToken';
 const LINKEDIN_API_BASE = 'https://api.linkedin.com';
 const LINKEDIN_API_VERSION = '202411';
-const LINKEDIN_SCOPES = ['openid', 'profile', 'w_member_social', 'w_organization_social'];
+const LINKEDIN_SCOPES = ['openid', 'profile', 'w_member_social', 'w_organization_social', 'r_organization_admin', 'rw_organization_admin'];
 
 export class LinkedInAdapter implements PlatformAdapter {
   private credentials?: LinkedInCredentials;
@@ -248,43 +248,49 @@ export class LinkedInAdapter implements PlatformAdapter {
 
   /**
    * Get organizations where the user is an admin
-   * Returns empty array if user has no admin organizations or if the scope isn't granted
+   * Requires rw_organization_admin or r_organization_admin scope
+   * Docs: https://learn.microsoft.com/en-us/linkedin/marketing/community-management/organizations/organization-access-control-by-role
    */
   static async getAdminOrganizations(accessToken: string): Promise<LinkedInOrganization[]> {
     try {
-      // Get organization ACLs where user is ADMINISTRATOR
-      const aclResponse = await fetch(
-        `${LINKEDIN_API_BASE}/rest/organizationAcls?q=roleAssignee&role=ADMINISTRATOR`,
-        {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'X-Restli-Protocol-Version': '2.0.0',
-            'LinkedIn-Version': LINKEDIN_API_VERSION
-          }
+      // Use organizationAcls endpoint with roleAssignee finder
+      // This requires rw_organization_admin scope
+      const url = `${LINKEDIN_API_BASE}/rest/organizationAcls?q=roleAssignee&role=ADMINISTRATOR&state=APPROVED`;
+      console.log('LinkedIn: Fetching admin organizations from:', url);
+
+      const aclResponse = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'X-Restli-Protocol-Version': '2.0.0',
+          'LinkedIn-Version': LINKEDIN_API_VERSION,
+          'Content-Type': 'application/json'
         }
-      );
+      });
 
       if (!aclResponse.ok) {
-        // If 403, user doesn't have w_organization_social scope - that's OK
-        if (aclResponse.status === 403) {
-          console.log('LinkedIn: User does not have organization admin access');
-          return [];
-        }
         const errorData = await aclResponse.text();
-        console.error('LinkedIn organization ACLs fetch failed:', errorData);
+        console.error(`LinkedIn organizationAcls failed (${aclResponse.status}):`, errorData);
+        console.log('LinkedIn: Make sure rw_organization_admin scope is granted');
         return [];
       }
 
       const aclData = await aclResponse.json();
+      console.log('LinkedIn organizationAcls response:', JSON.stringify(aclData, null, 2));
       const elements = aclData.elements || [];
 
       if (elements.length === 0) {
+        console.log('LinkedIn: No organization ACLs found - user may not be admin of any organizations');
         return [];
       }
 
       // Extract organization URNs from ACLs
-      const orgUrns: string[] = elements.map((acl: any) => acl.organization).filter(Boolean);
+      // Response format: { organization: "urn:li:organization:12345", role: "ADMINISTRATOR", ... }
+      const orgUrns: string[] = elements
+        .map((acl: any) => acl.organization)
+        .filter((urn: string) => urn && urn.startsWith('urn:li:organization:'));
+
+      console.log('LinkedIn: Found organization URNs:', orgUrns);
 
       if (orgUrns.length === 0) {
         return [];
@@ -312,15 +318,23 @@ export class LinkedInAdapter implements PlatformAdapter {
 
           if (orgResponse.ok) {
             const orgData = await orgResponse.json();
+            console.log(`LinkedIn org ${orgId} details:`, JSON.stringify(orgData, null, 2));
             organizations.push({
               id: orgUrn,
               name: orgData.localizedName || orgData.name || 'Unknown Organization',
               logoUrl: orgData.logoV2?.original || undefined
             });
+          } else {
+            const orgError = await orgResponse.text();
+            console.error(`LinkedIn: Failed to fetch org ${orgId}:`, orgError);
+            // Still include the org with just the ID
+            organizations.push({
+              id: orgUrn,
+              name: `Organization ${orgId}`
+            });
           }
         } catch (err) {
           console.error(`LinkedIn: Failed to fetch org details for ${orgUrn}:`, err);
-          // Still include the org with just the ID
           organizations.push({
             id: orgUrn,
             name: 'Organization'

@@ -11,35 +11,41 @@ import { useSearchParams } from 'next/navigation';
 import Icon from '@/components/Icon';
 import PageCard from '@/app/(app)/components/PageCard';
 import PageLoader from '@/app/(app)/components/PageLoader';
-import PhotoManagement from '@/app/(app)/components/PhotoManagement';
-import ReviewManagement from '@/app/(app)/components/ReviewManagement';
-import BusinessInfoEditor from '@/app/(app)/components/BusinessInfoEditor';
-import ServicesEditor from '@/app/(app)/components/ServicesEditor';
 import { createClient } from '@/auth/providers/supabase';
 import { apiClient } from '@/utils/apiClient';
 import { useBusinessData, useAuthUser, useAccountData, useSubscriptionData } from '@/auth/hooks/granularAuthHooks';
-import UnrespondedReviewsWidget from '@/app/(app)/components/UnrespondedReviewsWidget';
 import { safeTransformLocations, validateTransformedLocations } from '@/lib/google-business/safe-transformer';
 import { getMaxLocationsForPlan, getPlanDisplayName } from '@/auth/utils/planUtils';
-// Using V2 to force webpack to reload
 import LocationSelectionModal from '@/components/GoogleBusinessProfile/LocationSelectionModalV2';
-import OverviewStats from '@/components/GoogleBusinessProfile/OverviewStats';
-import PostingFrequencyChart from '@/components/GoogleBusinessProfile/PostingFrequencyChart';
-import BusinessHealthMetrics from '@/components/GoogleBusinessProfile/BusinessHealthMetrics';
 import HelpModal from '@/app/(app)/components/help/HelpModal';
 import ButtonSpinner from '@/components/ButtonSpinner';
 import LocationPicker from '@/components/GoogleBusinessProfile/LocationPicker';
 import ProtectionTab from '@/components/GoogleBusinessProfile/ProtectionTab';
 import { exportOverviewToPDF } from '@/utils/googleBusinessProfile/pdfExport';
-// Using built-in alert for notifications instead of react-toastify
 
-interface GoogleBusinessLocation {
-  id: string;
-  name: string;
-  address: string;
-  status?: string; // Made optional and flexible since we don't use it
-  _debug?: any; // Debug info from safe transformer (only in dev)
-}
+// Extracted types
+import type { GoogleBusinessLocation, GoogleBusinessTab } from './types/google-business';
+
+// Extracted hooks
+import { useTabRouting } from './hooks/useTabRouting';
+
+// Extracted components - Tabs
+import { PhotosTab } from './components/tabs/PhotosTab';
+import { BusinessInfoTab } from './components/tabs/BusinessInfoTab';
+import { ServicesTab } from './components/tabs/ServicesTab';
+import { ReviewsTab } from './components/tabs/ReviewsTab';
+import { MoreTab } from './components/tabs/MoreTab';
+import { OverviewTab } from './components/tabs/OverviewTab';
+import { ConnectTab } from './components/tabs/ConnectTab';
+
+// Extracted components - Navigation
+import { TabNavigation } from './components/TabNavigation';
+import { MobileTabMenu } from './components/MobileTabMenu';
+
+// Extracted components - Modals
+import { DisconnectConfirmModal } from './components/modals/DisconnectConfirmModal';
+import { FetchLocationsModal } from './components/modals/FetchLocationsModal';
+import { ImportReviewsModal } from './components/modals/ImportReviewsModal';
 
 export function RefactoredGoogleBusinessPage() {
   // ╔══════════════════════════════════════════════════════════════════════════╗
@@ -1992,682 +1998,63 @@ export function RefactoredGoogleBusinessPage() {
               </button>
             </div>
 
-            {/* Desktop Navigation - Updated to wrap on smaller screens */}
-            <nav className="hidden md:flex -mb-px flex-wrap gap-2">
-              <button
-                onClick={() => changeTab('connect')}
-                className={`py-2 px-3 border-b-2 font-medium text-sm rounded-t-md transition-colors whitespace-nowrap ${
-                  activeTab === 'connect'
-                    ? 'border-slate-blue text-slate-blue bg-white shadow-sm'
-                    : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-100'
-                }`}
-              >
-                Connect
-              </button>
-              <button
-                onClick={() => changeTab('overview')}
-                className={`py-2 px-3 border-b-2 font-medium text-sm rounded-t-md transition-colors whitespace-nowrap ${
-                  activeTab === 'overview'
-                    ? 'border-slate-blue text-slate-blue bg-white shadow-sm'
-                    : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-100'
-                }`}
-              >
-                Overview
-              </button>
-              <button
-                onClick={() => changeTab('business-info')}
-                disabled={!isConnected || locations.length === 0}
-                className={`py-2 px-3 border-b-2 font-medium text-sm rounded-t-md transition-colors whitespace-nowrap ${
-                  activeTab === 'business-info' && isConnected && locations.length > 0
-                    ? 'border-slate-blue text-slate-blue bg-white shadow-sm'
-                    : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-100'
-                } ${(!isConnected || locations.length === 0) ? 'opacity-50 cursor-not-allowed' : ''}`}
-              >
-                Business Info
-              </button>
-              <button
-                onClick={() => changeTab('services')}
-                disabled={!isConnected || locations.length === 0}
-                className={`py-2 px-3 border-b-2 font-medium text-sm rounded-t-md transition-colors whitespace-nowrap ${
-                  activeTab === 'services' && isConnected && locations.length > 0
-                    ? 'border-slate-blue text-slate-blue bg-white shadow-sm'
-                    : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-100'
-                } ${(!isConnected || locations.length === 0) ? 'opacity-50 cursor-not-allowed' : ''}`}
-              >
-                Services
-              </button>
-              <button
-                onClick={() => changeTab('create-post')}
-                disabled={!isConnected || locations.length === 0}
-                className={`py-2 px-3 border-b-2 font-medium text-sm rounded-t-md transition-colors whitespace-nowrap ${
-                  activeTab === 'create-post' && isConnected && locations.length > 0
-                    ? 'border-slate-blue text-slate-blue bg-white shadow-sm'
-                    : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-100'
-                } ${(!isConnected || locations.length === 0) ? 'opacity-50 cursor-not-allowed' : ''}`}
-              >
-                Post
-              </button>
-              <button
-                onClick={() => changeTab('photos')}
-                disabled={!isConnected || locations.length === 0}
-                className={`py-2 px-3 border-b-2 font-medium text-sm rounded-t-md transition-colors whitespace-nowrap ${
-                  activeTab === 'photos' && isConnected && locations.length > 0
-                    ? 'border-slate-blue text-slate-blue bg-white shadow-sm'
-                    : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-100'
-                } ${(!isConnected || locations.length === 0) ? 'opacity-50 cursor-not-allowed' : ''}`}
-              >
-                Photos
-              </button>
-              <button
-                onClick={() => changeTab('reviews')}
-                disabled={!isConnected || locations.length === 0}
-                className={`py-2 px-3 border-b-2 font-medium text-sm rounded-t-md transition-colors whitespace-nowrap ${
-                  activeTab === 'reviews' && isConnected && locations.length > 0
-                    ? 'border-slate-blue text-slate-blue bg-white shadow-sm'
-                    : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-100'
-                } ${(!isConnected || locations.length === 0) ? 'opacity-50 cursor-not-allowed' : ''}`}
-              >
-                Reviews
-              </button>
-              <button
-                onClick={() => changeTab('more')}
-                disabled={!isConnected || locations.length === 0}
-                className={`py-2 px-3 border-b-2 font-medium text-sm rounded-t-md transition-colors whitespace-nowrap ${
-                  activeTab === 'more' && isConnected && locations.length > 0
-                    ? 'border-slate-blue text-slate-blue bg-white shadow-sm'
-                    : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-100'
-                } ${(!isConnected || locations.length === 0) ? 'opacity-50 cursor-not-allowed' : ''}`}
-              >
-                More
-              </button>
-              <button
-                onClick={() => changeTab('protection')}
-                className={`py-2 px-3 border-b-2 font-medium text-sm rounded-t-md transition-colors whitespace-nowrap ${
-                  activeTab === 'protection'
-                    ? 'border-slate-blue text-slate-blue bg-white shadow-sm'
-                    : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-100'
-                }`}
-              >
-                Protection
-              </button>
-            </nav>
+            {/* Desktop Navigation */}
+            <TabNavigation
+              activeTab={activeTab}
+              isConnected={isConnected}
+              hasLocations={locations.length > 0}
+              onTabChange={changeTab}
+            />
 
             {/* Mobile Navigation Menu */}
-            {isMobileMenuOpen && (
-              <div className="md:hidden bg-gray-50 border-t border-gray-200">
-                <div className="px-2 py-3 space-y-1">
-                  <button
-                    onClick={() => changeTab('connect')}
-                    className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium ${
-                      activeTab === 'connect'
-                        ? 'bg-slate-blue text-white'
-                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                    }`}
-                  >
-                    Connect
-                  </button>
-                  <button
-                    onClick={() => changeTab('overview')}
-                    className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium ${
-                      activeTab === 'overview'
-                        ? 'bg-slate-blue text-white'
-                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                    }`}
-                  >
-                    Overview
-                  </button>
-                  <button
-                    onClick={() => changeTab('business-info')}
-                    disabled={!isConnected}
-                    className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium ${
-                      activeTab === 'business-info' && isConnected
-                        ? 'bg-slate-blue text-white'
-                        : isConnected 
-                          ? 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                          : 'text-gray-500 cursor-not-allowed'
-                    }`}
-                  >
-                    Business Info
-                  </button>
-                  <button
-                    onClick={() => changeTab('services')}
-                    disabled={!isConnected}
-                    className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium ${
-                      activeTab === 'services' && isConnected
-                        ? 'bg-slate-blue text-white'
-                        : isConnected 
-                          ? 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                          : 'text-gray-500 cursor-not-allowed'
-                    }`}
-                  >
-                    Services
-                  </button>
-                  <button
-                    onClick={() => changeTab('more')}
-                    disabled={!isConnected}
-                    className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium ${
-                      activeTab === 'more' && isConnected
-                        ? 'bg-slate-blue text-white'
-                        : isConnected
-                          ? 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                          : 'text-gray-500 cursor-not-allowed'
-                    }`}
-                  >
-                    More
-                  </button>
-                  <button
-                    onClick={() => changeTab('protection')}
-                    className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium ${
-                      activeTab === 'protection'
-                        ? 'bg-slate-blue text-white'
-                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                    }`}
-                  >
-                    Protection
-                  </button>
-                  <button
-                    onClick={() => changeTab('create-post')}
-                    disabled={!isConnected}
-                    className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium ${
-                      activeTab === 'create-post' && isConnected
-                        ? 'bg-slate-blue text-white'
-                        : isConnected 
-                          ? 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                          : 'text-gray-500 cursor-not-allowed'
-                    }`}
-                  >
-                    Post
-                  </button>
-                  <button
-                    onClick={() => changeTab('photos')}
-                    disabled={!isConnected}
-                    className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium ${
-                      activeTab === 'photos' && isConnected
-                        ? 'bg-slate-blue text-white'
-                        : isConnected 
-                          ? 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                          : 'text-gray-500 cursor-not-allowed'
-                    }`}
-                  >
-                    Photos
-                  </button>
-                  <button
-                    onClick={() => changeTab('reviews')}
-                    disabled={!isConnected}
-                    className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium ${
-                      activeTab === 'reviews' && isConnected
-                        ? 'bg-slate-blue text-white'
-                        : isConnected 
-                          ? 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                          : 'text-gray-500 cursor-not-allowed'
-                    }`}
-                  >
-                    Reviews
-                  </button>
-                </div>
-              </div>
-            )}
+            <MobileTabMenu
+              activeTab={activeTab}
+              isConnected={isConnected}
+              isOpen={isMobileMenuOpen}
+              onTabChange={changeTab}
+            />
           </div>
 
           {/* Tab Content */}
           {activeTab === 'connect' && (
-            <div className="space-y-6">
-              {/* Show loading state when syncing after OAuth */}
-              {isLoading && isConnected && locations.length === 0 && (
-                <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-                  <div className="flex items-center space-x-3">
-                    <Icon name="FaSpinner" className="w-5 h-5 text-blue-600 animate-spin" />
-                    <div>
-                      <h4 className="text-sm font-medium text-blue-800">Syncing Connection...</h4>
-                      <p className="text-xs text-blue-700 mt-1">
-                        Verifying your Google Business Profile connection. Please wait...
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-              
-              {/* Google Business Profile Connection Status */}
-              <div className="bg-gray-50 rounded-lg p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                      <Icon name="FaGoogle" className="w-6 h-6 text-blue-600" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold">Google Business Profile</h3>
-                      <p className="text-sm text-gray-600">
-                        Connect to post updates to your business locations
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    {isConnected ? (
-                      <>
-                        <div className="flex items-center space-x-2 text-green-600">
-                          <Icon name="FaCheck" className="w-4 h-4" />
-                          <span className="text-sm font-medium">Connected</span>
-                        </div>
-                        <button
-                          onClick={() => setShowDisconnectConfirm(true)}
-                          disabled={isLoading}
-                          className={`px-4 py-2 rounded-md transition-colors text-sm flex items-center space-x-2 ${
-                            isLoading
-                              ? 'bg-gray-100 text-gray-500 cursor-not-allowed border border-gray-200'
-                              : 'text-red-600 border border-red-200 hover:bg-red-50'
-                          }`}
-                        >
-                          {isLoading ? (
-                            <>
-                              <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
-                              <span>Disconnecting...</span>
-                            </>
-                          ) : (
-                            <>
-                              <Icon name="FaTimes" className="w-4 h-4" />
-                              <span>Disconnect</span>
-                            </>
-                          )}
-                        </button>
-                      </>
-                    ) : (
-                      <div className="flex flex-col items-end space-y-2">
-                        <button
-                          onClick={handleConnect}
-                          disabled={isLoading}
-                          className="px-4 py-2 bg-slate-600 text-white rounded-md hover:bg-slate-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center space-x-2 text-sm"
-                        >
-                          {isLoading ? (
-                            <>
-                              <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
-                              <span>Connecting...</span>
-                            </>
-                          ) : (
-                            <>
-                              <Icon name="FaGoogle" className="w-4 h-4" />
-                              <span>Connect Google Business</span>
-                            </>
-                          )}
-                        </button>
-                        <p className="text-xs text-gray-500 text-right max-w-xs">
-                          ⚠️ Important: Check ALL permission boxes when prompted by Google
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-
-
-                {/* Show fetching progress indicator */}
-                {fetchingLocations === 'google-business-profile' && (
-                  <div className="bg-blue-50 border border-blue-200 rounded-md p-4 mb-4">
-                    <div className="flex items-center space-x-3">
-                      <Icon name="FaSpinner" className="w-5 h-5 text-blue-600 animate-spin" />
-                      <div>
-                        <h4 className="text-sm font-medium text-blue-800">Fetching Business Locations...</h4>
-                        <p className="text-xs text-blue-700 mt-1">
-                          This typically takes 1-2 minutes due to Google API rate limits. Please wait...
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                
-                {isConnected && locations.length === 0 && !fetchingLocations && (
-                  <div className={`border rounded-md p-4 ${hasAttemptedFetch ? 'bg-yellow-50 border-yellow-200' : 'bg-blue-50 border-blue-200'}`}>
-                    <div className="flex items-start space-x-3">
-                      <Icon name={hasAttemptedFetch ? "FaExclamationTriangle" : "FaInfoCircle"} className={`w-5 h-5 mt-0.5 ${hasAttemptedFetch ? 'text-yellow-600' : 'text-blue-600'}`} />
-                      <div>
-                        <h4 className={`text-sm font-medium mb-1 ${hasAttemptedFetch ? 'text-yellow-800' : 'text-blue-800'}`}>
-                          {hasAttemptedFetch ? 'No Locations Found' : 'Next Step: Fetch Your Business Locations'}
-                        </h4>
-                        <p className={`text-sm mb-3 ${hasAttemptedFetch ? 'text-yellow-700' : 'text-blue-700'}`}>
-                          {hasAttemptedFetch 
-                            ? 'Your Google Business Profile appears to have no locations, or they couldn\'t be retrieved. You can try fetching again or check your Google Business Profile.'
-                            : 'Great! Your Google Business Profile is connected. Now fetch your business locations to start creating posts and managing your online presence.'
-                          }
-                        </p>
-                        <div className="flex space-x-2">
-                          <button
-                            onClick={() => handleFetchLocations()}
-                            disabled={fetchingLocations === 'google-business-profile' || Boolean(rateLimitedUntil && Date.now() < rateLimitedUntil)}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center space-x-2 ${
-                              fetchingLocations === 'google-business-profile' || Boolean(rateLimitedUntil && Date.now() < rateLimitedUntil)
-                                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                : 'bg-slate-600 text-white hover:bg-slate-700'
-                            }`}
-                          >
-                            {fetchingLocations === 'google-business-profile' ? (
-                              <>
-                                <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
-                                <span>Fetching (1-2 min)...</span>
-                              </>
-                            ) : Boolean(rateLimitedUntil && Date.now() < rateLimitedUntil) ? (
-                              <>
-                                <Icon name="FaClock" className="w-4 h-4" />
-                                <span>Rate limited ({rateLimitedUntil ? Math.ceil((rateLimitedUntil - Date.now()) / 1000) : 0}s)</span>
-                              </>
-                            ) : (
-                              <span>Fetch business locations</span>
-                            )}
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Connection Success & Locations */}
-                {isConnected && locations.length > 0 && (
-                  <div className="bg-green-50 border border-green-200 rounded-md p-4">
-                    <div className="flex items-start space-x-3">
-                      <Icon name="FaCheck" className="w-5 h-5 text-green-600 mt-0.5" />
-                      <div>
-                        <h4 className="text-sm font-medium text-green-800 mb-1">
-                          Setup Complete!
-                        </h4>
-                        <p className="text-sm text-green-700 mb-3">
-                          {selectedLocations.length > 0
-                            ? `Managing ${selectedLocations.length} of ${locations.length} business location${locations.length !== 1 ? 's' : ''}.`
-                            : `${locations.length} business location${locations.length !== 1 ? 's' : ''} available.`
-                          } Your Google Business Profile is ready!
-                        </p>
-                        <div className="flex flex-wrap gap-2">
-                          <button
-                            onClick={() => changeTab('overview')}
-                            className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm font-medium"
-                          >
-                            View Overview →
-                          </button>
-                          <button
-                            onClick={handleFetchLocations}
-                            className="px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors text-sm font-medium flex items-center space-x-1"
-                          >
-                            <Icon name="FaCog" className="w-3 h-3" />
-                            <span>Choose location(s)</span>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Success Messages */}
-              {postResult && postResult.success && (
-                <div className="bg-green-50 border border-green-200 rounded-md p-4">
-                  <div className="flex items-center space-x-2 text-green-800 mb-2">
-                    <Icon name="FaCheck" className="w-4 h-4" />
-                    <span className="text-sm font-medium">Success</span>
-                  </div>
-                  <p className="text-sm text-green-700">{postResult.message}</p>
-                  {/* 🔧 FIX: Add refresh button if connected but no locations visible */}
-                  {isConnected && locations.length === 0 && (
-                    <div className="mt-3">
-                      <button
-                        onClick={() => {
-                          setIsLoading(true);
-                          loadPlatforms();
-                        }}
-                        className="px-3 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700 transition-colors"
-                      >
-                        Refresh Connection Status
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Error Messages */}
-              {postResult && !postResult.success && (
-                <div className="bg-red-50 border border-red-200 rounded-md p-4 relative">
-                  <button
-                    onClick={() => setPostResult(null)}
-                    className="absolute top-2 right-2 text-red-400 hover:text-red-600"
-                    aria-label="Dismiss"
-                  >
-                    <Icon name="FaTimes" className="w-4 h-4" />
-                  </button>
-                  <div className="flex items-center space-x-2 text-red-800 mb-2">
-                    <Icon name="FaExclamationTriangle" className="w-4 h-4" />
-                    <span className="text-sm font-medium">Error</span>
-                  </div>
-                  <p className="text-sm text-red-700">{postResult.message}</p>
-                  
-                  {rateLimitCountdown > 0 && (
-                    <div className="mt-2 flex items-center space-x-2 text-sm text-red-600">
-                      <Icon name="FaClock" className="w-3 h-3" />
-                      <span>You can retry in {rateLimitCountdown} seconds</span>
-                    </div>
-                  )}
-                </div>
-              )}
-
-            </div>
+            <ConnectTab
+              isConnected={isConnected}
+              isLoading={isLoading}
+              locations={locations}
+              selectedLocations={selectedLocations}
+              hasAttemptedFetch={hasAttemptedFetch}
+              fetchingLocations={fetchingLocations}
+              rateLimitedUntil={rateLimitedUntil}
+              rateLimitCountdown={rateLimitCountdown}
+              postResult={postResult}
+              onConnect={handleConnect}
+              onShowDisconnectConfirm={() => setShowDisconnectConfirm(true)}
+              onFetchLocations={handleFetchLocations}
+              onLoadPlatforms={loadPlatforms}
+              onChangeTab={changeTab}
+              onClearPostResult={() => setPostResult(null)}
+              setIsLoading={setIsLoading}
+            />
           )}
 
           {activeTab === 'overview' && (
-            <div className="space-y-6">
-              {/* GBP Access Message for Growers */}
-              {!hasGBPAccess && gbpAccessMessage && (
-                <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <p className="text-yellow-800">
-                    {gbpAccessMessage}
-                    <button
-                      onClick={() => window.open('/dashboard/plan', '_blank')}
-                      className="ml-2 text-yellow-900 underline hover:no-underline"
-                    >
-                      Upgrade your plan
-                    </button>
-                    {' '}to connect your Google Business Profile.
-                  </p>
-                </div>
-              )}
-              {/* Always show the impressive charts and stats */}
-              {(
-                <div id="overview-content" className="space-y-6">
-                  <div className="bg-white border border-gray-200 rounded-lg p-6 pdf-hide">
-                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-                      <div>
-                        <h2 className="text-xl font-semibold text-gray-900">Overview</h2>
-                        <p className="text-sm text-gray-600 mt-1">
-                          Monitor reviews, profile health, and engagement for your Google Business locations.
-                        </p>
-                      </div>
-                      {/* Export Button - Show only when connected and has data */}
-                      {isConnected && scopedLocations.length > 0 && (
-                        <button
-                          onClick={handleExportPDF}
-                          disabled={isExportingPDF || overviewLoading}
-                          className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                            isExportingPDF || overviewLoading
-                              ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
-                              : 'bg-slate-blue text-white hover:bg-blue-600'
-                          }`}
-                        >
-                          {isExportingPDF ? (
-                            <>
-                              <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
-                              <span>Generating PDF...</span>
-                            </>
-                          ) : (
-                            <>
-                              <Icon name="MdDownload" className="w-4 h-4" />
-                              <span>Download PDF</span>
-                            </>
-                          )}
-                        </button>
-                      )}
-                    </div>
-
-                    <div className="mt-6">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">Locations:</p>
-                      {scopedLocations.length <= 1 ? (
-                        <div className="rounded-md border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700">
-                          Google Business Profile: {scopedLocations[0]?.name || 'No locations connected'}
-                        </div>
-                      ) : (
-                        <LocationPicker
-                          className="bg-gray-50 rounded-lg p-4"
-                          mode="single"
-                          locations={scopedLocations}
-                          selectedId={resolvedSelectedLocation?.id}
-                          onSelect={(id) => handleLocationChange(id)}
-                          isLoading={isLoadingPlatforms || (isConnected && scopedLocations.length === 0)}
-                          disabled={!isConnected || scopedLocations.length === 0}
-                          placeholder="Select a location"
-                          emptyState={isConnected ? (
-                            <div className="px-4 py-3 border border-dashed border-gray-300 rounded-md text-sm text-gray-600 bg-gray-50">
-                              No Google Business locations found. Fetch your locations to get started.
-                            </div>
-                          ) : (
-                            <div className="px-4 py-3 border border-dashed border-gray-300 rounded-md text-sm text-gray-600 bg-gray-50">
-                              Connect your Google Business Profile to load locations.
-                            </div>
-                          )}
-                        />
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Error State */}
-                  {overviewError && (
-                    <div className="bg-red-50 border border-red-200 rounded-md p-4">
-                      <div className="flex items-center space-x-2 text-red-800 mb-2">
-                        <Icon name="FaExclamationTriangle" className="w-4 h-4" />
-                        <span className="text-sm font-medium">Error Loading Overview</span>
-                      </div>
-                      <p className="text-sm text-red-700">{overviewError}</p>
-                      <button
-                        onClick={() => selectedLocationId && fetchOverviewData(selectedLocationId)}
-                        className="mt-2 text-sm text-red-600 hover:text-red-700 font-medium"
-                      >
-                        Try Again
-                      </button>
-                    </div>
-                  )}
-
-                  {/* Overview Stats - Show actual data or zero state for errors */}
-                  {!overviewError && (
-                    <OverviewStats
-                      totalReviews={overviewData?.reviewTrends?.totalReviews || 0}
-                      reviewTrend={overviewData?.reviewTrends?.reviewTrend || 0}
-                      averageRating={overviewData?.reviewTrends?.averageRating || 0}
-                      monthlyReviewData={overviewData?.reviewTrends?.monthlyReviewData || (() => {
-                        // Generate 12 months of empty data as fallback
-                        const months = [];
-                        const now = new Date();
-                        for (let i = 11; i >= 0; i--) {
-                          const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-                          const monthName = date.toLocaleDateString('en-US', { month: 'short' });
-                          months.push({
-                            month: monthName,
-                            fiveStar: 0,
-                            fourStar: 0,
-                            threeStar: 0,
-                            twoStar: 0,
-                            oneStar: 0,
-                            noRating: 0
-                          });
-                        }
-                        return months;
-                      })()}
-                      isLoading={overviewLoading}
-                    />
-                  )}
-
-                  {/* Posting Frequency Chart */}
-                  {!overviewError && (
-                    <PostingFrequencyChart
-                      postsData={overviewData?.postsData || []}
-                      isLoading={overviewLoading}
-                    />
-                  )}
-
-                  <BusinessHealthMetrics
-                    locationId={selectedLocationId || 'demo'}
-                    profileData={overviewData?.profileData || {
-                      completeness: 92,
-                      photosCount: 47,
-                      hoursComplete: true,
-                      phoneComplete: true,
-                      websiteComplete: true,
-                      categoryComplete: true,
-                      categoriesUsed: 3,
-                      maxCategories: 9,
-                      servicesCount: 8,
-                      servicesWithDescriptions: 6,
-                      businessDescriptionLength: 525,
-                      businessDescriptionMaxLength: 750,
-                      seoScore: 7,
-                      photosByCategory: {
-                        'LOGO': 1,
-                        'COVER': 2,
-                        'INTERIOR': 12,
-                        'EXTERIOR': 8,
-                        'TEAM': 4,
-                        'PRODUCT': 15
-                      }
-                    }}
-                    engagementData={overviewData?.engagementData || {
-                      unrespondedReviews: 3,
-                      totalReviews: 15,  // Add totalReviews for demo data
-                      totalQuestions: 12,
-                      unansweredQuestions: 2,
-                      recentPosts: 1,
-                      recentPhotos: 0,
-                      lastPostDate: '2024-07-15',
-                      lastPhotoDate: '2024-06-28'
-                    }}
-                    performanceData={overviewData?.performanceData || {
-                      monthlyViews: 0,
-                      viewsTrend: 0,
-                      topSearchQueries: [],
-                      customerActions: {
-                        websiteClicks: 0,
-                        phoneCalls: 0,
-                        directionRequests: 0,
-                        photoViews: 0
-                      }
-                    }}
-                    optimizationOpportunities={overviewData?.optimizationOpportunities || [
-                      { id: '1', priority: 'high', title: 'Upload more photos', description: 'Your profile needs 2+ photos this month. Current: 0/2 photos uploaded.' },
-                      { id: '2', priority: 'low', title: 'Optimize business description', description: 'Add 225 more characters to maximize your 750-character description for better SEO.' },
-                      { id: '3', priority: 'high', title: 'Respond to 3 reviews', description: 'You have 3 unresponded reviews that need attention to improve customer relations.' },
-                      { id: '4', priority: 'medium', title: 'Add more service categories', description: 'Use 6 more of your available 9 categories to improve discoverability.' }
-                    ]}
-                    isLoading={overviewLoading}
-                    onQuickAction={handleOverviewQuickAction}
-                  />
-
-                  {/* Loading State */}
-                  {overviewLoading && !overviewData && (
-                    <div className="space-y-6">
-                      <OverviewStats
-                        totalReviews={0}
-                        reviewTrend={0}
-                        averageRating={0}
-                        monthlyReviewData={[]}
-                        isLoading={true}
-                      />
-                      <PostingFrequencyChart
-                        postsData={[]}
-                        isLoading={true}
-                      />
-                      <BusinessHealthMetrics
-                        locationId=""
-                        profileData={{} as any}
-                        engagementData={{} as any}
-                        performanceData={{} as any}
-                        optimizationOpportunities={[]}
-                        isLoading={true}
-                      />
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
+            <OverviewTab
+              hasGBPAccess={hasGBPAccess}
+              gbpAccessMessage={gbpAccessMessage}
+              isConnected={isConnected}
+              scopedLocations={scopedLocations}
+              isLoadingPlatforms={isLoadingPlatforms}
+              selectedLocationId={selectedLocationId}
+              resolvedSelectedLocation={resolvedSelectedLocation}
+              onLocationChange={handleLocationChange}
+              overviewData={overviewData}
+              overviewLoading={overviewLoading}
+              overviewError={overviewError}
+              onRefreshOverview={fetchOverviewData}
+              isExportingPDF={isExportingPDF}
+              onExportPDF={handleExportPDF}
+              onQuickAction={handleOverviewQuickAction}
+            />
           )}
 
           {activeTab === 'create-post' && (
@@ -3090,445 +2477,42 @@ export function RefactoredGoogleBusinessPage() {
           )}
 
           {activeTab === 'photos' && (
-            <div className="space-y-6">
-              {!isConnected ? (
-                <div className="text-center py-12">
-                  <Icon name="FaImage" className="w-12 h-12 text-gray-500 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Connect Google Business Profile</h3>
-                  <p className="text-gray-600 mb-4">
-                    Connect your Google Business Profile to manage photos for your business locations.
-                  </p>
-                  <button
-                    onClick={handleConnect}
-                    disabled={isLoading}
-                    className="px-6 py-2 bg-slate-600 text-white rounded-md hover:bg-slate-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center space-x-2 mx-auto"
-                  >
-                    {isLoading ? (
-                      <>
-                        <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
-                        <span>Connecting...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Icon name="FaGoogle" className="w-4 h-4" />
-                        <span>Connect Google Business</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-              ) : (
-                <>
-                  <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg mb-4">
-                    <p className="text-sm text-blue-800">
-                      <Icon name="FaCalendarAlt" size={14} className="inline mr-2" />
-                      Want to schedule photo uploads in advance?
-                    </p>
-                    <a
-                      href="/dashboard/social-posting"
-                      className="text-sm font-medium text-slate-blue hover:underline"
-                    >
-                      Go to Post Scheduling →
-                    </a>
-                  </div>
-                  <PhotoManagement
-                    locations={scopedLocations}
-                    isConnected={isConnected}
-                  />
-                </>
-              )}
-            </div>
+            <PhotosTab
+              isConnected={isConnected}
+              isLoading={isLoading}
+              scopedLocations={scopedLocations}
+              onConnect={handleConnect}
+            />
           )}
 
           {/* Business Information Tab */}
           {activeTab === 'business-info' && (
-            <div className="space-y-6">
-              {!isConnected ? (
-                <div className="text-center py-12">
-                  <Icon name="FaStore" className="w-12 h-12 text-gray-500 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Connect Google Business Profile</h3>
-                  <p className="text-gray-600 mb-4">
-                    Connect your Google Business Profile to edit business information.
-                  </p>
-                  <button
-                    onClick={handleConnect}
-                    disabled={isLoading}
-                    className="px-6 py-2 bg-slate-600 text-white rounded-md hover:bg-slate-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center space-x-2 mx-auto"
-                  >
-                    {isLoading ? (
-                      <>
-                        <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
-                        <span>Connecting...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Icon name="FaGoogle" className="w-4 h-4" />
-                        <span>Connect Google Business</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-              ) : (
-                <BusinessInfoEditor 
-                  key="business-info-editor" 
-                  locations={scopedLocations}
-                  isConnected={isConnected}
-                />
-              )}
-            </div>
+            <BusinessInfoTab
+              isConnected={isConnected}
+              isLoading={isLoading}
+              scopedLocations={scopedLocations}
+              onConnect={handleConnect}
+            />
           )}
 
           {/* Services Tab */}
           {activeTab === 'services' && (
-            <div className="space-y-6">
-              {!isConnected ? (
-                <div className="text-center py-12">
-                  <Icon name="FaHandshake" className="w-12 h-12 text-gray-500 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Connect Google Business Profile</h3>
-                  <p className="text-gray-600 mb-4">
-                    Connect your Google Business Profile to manage categories and services.
-                  </p>
-                  <button
-                    onClick={handleConnect}
-                    disabled={isLoading}
-                    className="px-6 py-2 bg-slate-600 text-white rounded-md hover:bg-slate-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center space-x-2 mx-auto"
-                  >
-                    {isLoading ? (
-                      <>
-                        <ButtonSpinner />
-                        <span>Connecting...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Icon name="FaGoogle" className="w-4 h-4" />
-                        <span>Connect Google Business</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-              ) : (
-                <ServicesEditor 
-                  key="services-editor" 
-                  locations={scopedLocations}
-                  isConnected={isConnected}
-                />
-              )}
-            </div>
+            <ServicesTab
+              isConnected={isConnected}
+              isLoading={isLoading}
+              scopedLocations={scopedLocations}
+              onConnect={handleConnect}
+            />
           )}
 
           {/* More Tab - Features Not Available via API */}
           {activeTab === 'more' && (
-            <div className="space-y-6">
-              {!isConnected ? (
-                <div className="text-center py-12">
-                  <Icon name="FiMoreHorizontal" className="w-12 h-12 text-gray-500 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Connect Google Business Profile</h3>
-                  <p className="text-gray-600 mb-4">
-                    Connect your Google Business Profile to learn about additional features.
-                  </p>
-                  <button
-                    onClick={handleConnect}
-                    disabled={isLoading}
-                    className="px-6 py-2 bg-slate-600 text-white rounded-md hover:bg-slate-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center space-x-2 mx-auto"
-                  >
-                    {isLoading ? (
-                      <>
-                        <ButtonSpinner />
-                        <span>Connecting...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Icon name="FaGoogle" className="w-4 h-4" />
-                        <span>Connect Google Business</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <div className="flex items-start space-x-3">
-                      <Icon name="FaInfoCircle" className="w-5 h-5 text-blue-600 mt-0.5" />
-                      <div className="flex-1">
-                        <p className="text-blue-900 font-medium mb-2">
-                          Additional Google Business Features
-                        </p>
-                        <p className="text-blue-800 text-sm mb-2">
-                          These features are not available through the API but can be managed directly in your Google Business Profile account. Each feature below includes instructions on how to use it effectively.
-                        </p>
-                        <p className="text-blue-700 text-xs italic">
-                          Note: Offer posts can be created through the API - use the "Post" tab to create special offers and promotions.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Products Section */}
-                  <div className="bg-white rounded-lg border border-gray-200 p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center space-x-3">
-                        <Icon name="FaBoxOpen" className="w-6 h-6 text-slate-blue" />
-                        <h3 className="text-lg font-semibold text-gray-900">Products</h3>
-                      </div>
-                      <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">Recommended</span>
-                    </div>
-                    
-                    <p className="text-gray-700 mb-4">
-                      Showcase a photo, product description, and a link. If you are a service business that has productized services (e.g. brand design package, or moss removal and gutter cleaning), you can also create products.
-                    </p>
-
-                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
-                      <h4 className="font-medium text-gray-900 mb-2">How to Add Products:</h4>
-                      <ol className="space-y-2 text-sm text-gray-700">
-                        <li>1. Go to your Google Business Profile</li>
-                        <li>2. Click "Products" in the menu</li>
-                        <li>3. Add product name, photo, price, and description</li>
-                        <li>4. For services, create "productized" offerings (e.g., "1-Hour Consultation - $99")</li>
-                      </ol>
-                    </div>
-
-                    <button
-                      onClick={() => setShowProductsHelpModal(true)}
-                      className="text-sm text-blue-600 hover:text-blue-800 font-medium underline"
-                    >
-                      View Complete Products Guide →
-                    </button>
-                  </div>
-
-                  {/* Q&A Section */}
-                  <div className="bg-white rounded-lg border border-gray-200 p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center space-x-3">
-                        <Icon name="FaQuestionCircle" className="w-6 h-6 text-purple-600" />
-                        <h3 className="text-lg font-semibold text-gray-900">Questions & Answers</h3>
-                      </div>
-                      <span className="px-2 py-1 text-xs font-medium bg-purple-100 text-purple-800 rounded-full">High impact</span>
-                    </div>
-                    
-                    <p className="text-gray-700 mb-4">
-                      Answer customer questions to build trust and improve your visibility in search results. Q&A appears prominently in your listing.
-                    </p>
-
-                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
-                      <h4 className="font-medium text-gray-900 mb-2">Best Practices:</h4>
-                      <ul className="space-y-2 text-sm text-gray-700">
-                        <li className="flex items-start space-x-2">
-                          <Icon name="FaCheck" className="w-4 h-4 text-green-600 mt-0.5" />
-                          <span>Monitor questions daily and respond within 24 hours</span>
-                        </li>
-                        <li className="flex items-start space-x-2">
-                          <Icon name="FaCheck" className="w-4 h-4 text-green-600 mt-0.5" />
-                          <span>Add your own FAQs proactively (have a colleague ask common questions)</span>
-                        </li>
-                        <li className="flex items-start space-x-2">
-                          <Icon name="FaCheck" className="w-4 h-4 text-green-600 mt-0.5" />
-                          <span>Include keywords naturally in your answers for SEO</span>
-                        </li>
-                        <li className="flex items-start space-x-2">
-                          <Icon name="FaCheck" className="w-4 h-4 text-green-600 mt-0.5" />
-                          <span>Upvote helpful questions to make them more visible</span>
-                        </li>
-                      </ul>
-                    </div>
-
-                    <a 
-                      href="https://business.google.com" 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center space-x-2 text-sm text-purple-600 hover:text-purple-800 font-medium"
-                    >
-                      <span>Manage Q&A in Google Business</span>
-                      <Icon name="FaLink" className="w-3 h-3" />
-                    </a>
-                  </div>
-
-                  {/* Booking/Appointments Section */}
-                  <div className="bg-white rounded-lg border border-gray-200 p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center space-x-3">
-                        <Icon name="FaCalendarAlt" className="w-6 h-6 text-blue-600" />
-                        <h3 className="text-lg font-semibold text-gray-900">Booking & Appointments</h3>
-                      </div>
-                      <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">Integration required</span>
-                    </div>
-                    
-                    <p className="text-gray-700 mb-4">
-                      Let customers book appointments directly from your Google listing. Requires integration with a supported booking provider.
-                    </p>
-
-                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
-                      <h4 className="font-medium text-gray-900 mb-2">Supported Booking Providers:</h4>
-                      <ul className="grid grid-cols-2 gap-2 text-sm text-gray-700">
-                        <li>• Square Appointments</li>
-                        <li>• Booksy</li>
-                        <li>• SimplyBook.me</li>
-                        <li>• Setmore</li>
-                        <li>• Appointy</li>
-                        <li>• And many more...</li>
-                      </ul>
-                    </div>
-
-                    <a 
-                      href="https://support.google.com/business/answer/7087150" 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center space-x-2 text-sm text-blue-600 hover:text-blue-800 font-medium"
-                    >
-                      <span>Learn about booking setup</span>
-                      <Icon name="FaLink" className="w-3 h-3" />
-                    </a>
-                  </div>
-
-                  {/* Messaging Section */}
-                  <div className="bg-white rounded-lg border border-gray-200 p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center space-x-3">
-                        <Icon name="FaComments" className="w-6 h-6 text-green-600" />
-                        <h3 className="text-lg font-semibold text-gray-900">Messaging</h3>
-                      </div>
-                      <span className="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">Mobile only</span>
-                    </div>
-                    
-                    <p className="text-gray-700 mb-4">
-                      Enable customers to message you directly from Google Search and Maps. Manage conversations through the Google Business app.
-                    </p>
-
-                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
-                      <h4 className="font-medium text-gray-900 mb-2">Setup Tips:</h4>
-                      <ul className="space-y-2 text-sm text-gray-700">
-                        <li className="flex items-start space-x-2">
-                          <Icon name="FaCheck" className="w-4 h-4 text-green-600 mt-0.5" />
-                          <span>Enable messaging in your Business Profile settings</span>
-                        </li>
-                        <li className="flex items-start space-x-2">
-                          <Icon name="FaCheck" className="w-4 h-4 text-green-600 mt-0.5" />
-                          <span>Set up welcome messages and FAQs</span>
-                        </li>
-                        <li className="flex items-start space-x-2">
-                          <Icon name="FaCheck" className="w-4 h-4 text-green-600 mt-0.5" />
-                          <span>Download the Google Business app for notifications</span>
-                        </li>
-                        <li className="flex items-start space-x-2">
-                          <Icon name="FaCheck" className="w-4 h-4 text-green-600 mt-0.5" />
-                          <span>Respond within 24 hours to maintain responsiveness badge</span>
-                        </li>
-                      </ul>
-                    </div>
-                  </div>
-
-                  {/* Attributes Section */}
-                  <div className="bg-white rounded-lg border border-gray-200 p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center space-x-3">
-                        <Icon name="FaTags" className="w-6 h-6 text-indigo-600" />
-                        <h3 className="text-lg font-semibold text-gray-900">Attributes</h3>
-                      </div>
-                      <span className="px-2 py-1 text-xs font-medium bg-indigo-100 text-indigo-800 rounded-full">High value</span>
-                    </div>
-                    
-                    <p className="text-gray-700 mb-4">
-                      Special badges and features that help customers understand what makes your business unique. These appear as icons and filters in search results.
-                    </p>
-
-                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
-                      <h4 className="font-medium text-gray-900 mb-2">Important Attributes to Add:</h4>
-                      <div className="grid grid-cols-2 gap-3 text-sm text-gray-700">
-                        <div>
-                          <p className="font-medium text-gray-900 mb-1">Identity Attributes:</p>
-                          <ul className="space-y-1">
-                            <li>• Women-owned</li>
-                            <li>• Black-owned</li>
-                            <li>• Veteran-owned</li>
-                            <li>• LGBTQ+ friendly</li>
-                            <li>• Family-owned</li>
-                          </ul>
-                        </div>
-                        <div>
-                          <p className="font-medium text-gray-900 mb-1">Accessibility & Features:</p>
-                          <ul className="space-y-1">
-                            <li>• Wheelchair accessible</li>
-                            <li>• Outdoor seating</li>
-                            <li>• Free Wi-Fi</li>
-                            <li>• Pet friendly</li>
-                            <li>• Contactless payments</li>
-                          </ul>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-                      <p className="text-sm text-blue-800">
-                        <strong>Pro Tip:</strong> Attributes help you appear in filtered searches. When someone searches for "Black-owned restaurants near me" or filters for "wheelchair accessible," your business will show up if you've added these attributes.
-                      </p>
-                    </div>
-
-                    <a 
-                      href="https://business.google.com" 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center space-x-2 text-sm text-indigo-600 hover:text-indigo-800 font-medium"
-                    >
-                      <span>Manage Attributes in Google Business</span>
-                      <Icon name="FaLink" className="w-3 h-3" />
-                    </a>
-                  </div>
-
-                  {/* Menu/Services List Section */}
-                  <div className="bg-white rounded-lg border border-gray-200 p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center space-x-3">
-                        <Icon name="FaList" className="w-6 h-6 text-orange-600" />
-                        <h3 className="text-lg font-semibold text-gray-900">Menu (Restaurants Only)</h3>
-                      </div>
-                      <span className="px-2 py-1 text-xs font-medium bg-orange-100 text-orange-800 rounded-full">Industry specific</span>
-                    </div>
-                    
-                    <p className="text-gray-700 mb-4">
-                      Add your full menu with prices, descriptions, and dietary information. Helps customers find specific dishes they're looking for.
-                    </p>
-
-                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
-                      <h4 className="font-medium text-gray-900 mb-2">Menu Best Practices:</h4>
-                      <ul className="space-y-2 text-sm text-gray-700">
-                        <li className="flex items-start space-x-2">
-                          <Icon name="FaCheck" className="w-4 h-4 text-green-600 mt-0.5" />
-                          <span>Include popular dishes with photos</span>
-                        </li>
-                        <li className="flex items-start space-x-2">
-                          <Icon name="FaCheck" className="w-4 h-4 text-green-600 mt-0.5" />
-                          <span>Mark dietary restrictions (vegan, gluten-free, etc.)</span>
-                        </li>
-                        <li className="flex items-start space-x-2">
-                          <Icon name="FaCheck" className="w-4 h-4 text-green-600 mt-0.5" />
-                          <span>Keep prices updated</span>
-                        </li>
-                        <li className="flex items-start space-x-2">
-                          <Icon name="FaCheck" className="w-4 h-4 text-green-600 mt-0.5" />
-                          <span>Add seasonal items promptly</span>
-                        </li>
-                      </ul>
-                    </div>
-                  </div>
-
-                  {/* Access Google Business Button */}
-                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6 text-center">
-                    <Icon name="FaGoogle" className="w-12 h-12 text-blue-600 mx-auto mb-3" />
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Manage All Features in Google</h3>
-                    <p className="text-gray-700 mb-4">
-                      Access your Google Business Profile to manage these features and more.
-                    </p>
-                    <a 
-                      href="https://business.google.com" 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center space-x-2 px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-                    >
-                      <Icon name="FaLink" className="w-4 h-4" />
-                      <span>Open Google Business Profile</span>
-                    </a>
-                  </div>
-                </div>
-              )}
-            </div>
+            <MoreTab
+              isConnected={isConnected}
+              isLoading={isLoading}
+              onConnect={handleConnect}
+              onShowProductsHelp={() => setShowProductsHelpModal(true)}
+            />
           )}
 
           {/* Protection Tab - GBP Profile Protection */}
@@ -3538,44 +2522,14 @@ export function RefactoredGoogleBusinessPage() {
 
           {/* Reviews Management Tab */}
           {activeTab === 'reviews' && (
-            <div className="space-y-6">
-              {!isConnected ? (
-                <div className="text-center py-12">
-                  <Icon name="FaStar" className="w-12 h-12 text-gray-500 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Connect Google Business Profile</h3>
-                  <p className="text-gray-600 mb-4">
-                    Connect your Google Business Profile to manage reviews for your business locations.
-                  </p>
-                  <button
-                    onClick={handleConnect}
-                    disabled={isLoading}
-                    className="px-6 py-2 bg-slate-600 text-white rounded-md hover:bg-slate-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center space-x-2 mx-auto"
-                  >
-                    {isLoading ? (
-                      <>
-                        <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
-                        <span>Connecting...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Icon name="FaGoogle" className="w-4 h-4" />
-                        <span>Connect Google Business</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-              ) : (
-                <>
-                  <UnrespondedReviewsWidget 
-                    locationIds={selectedLocationId ? [selectedLocationId] : selectedLocations}
-                  />
-                  <ReviewManagement 
-                    locations={scopedLocations}
-                    isConnected={isConnected}
-                  />
-                </>
-              )}
-            </div>
+            <ReviewsTab
+              isConnected={isConnected}
+              isLoading={isLoading}
+              scopedLocations={scopedLocations}
+              selectedLocationId={selectedLocationId}
+              selectedLocations={selectedLocations}
+              onConnect={handleConnect}
+            />
           )}
 
 
@@ -3584,262 +2538,41 @@ export function RefactoredGoogleBusinessPage() {
       </PageCard>
       
       {/* Disconnect Confirmation Dialog */}
-      {showDisconnectConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <div className="flex items-center space-x-3 mb-4">
-              <Icon name="FaExclamationTriangle" className="w-6 h-6 text-red-500" />
-              <h3 className="text-lg font-semibold text-gray-900">Disconnect Google Business Profile?</h3>
-            </div>
-            <p className="text-gray-600 mb-6">
-              This will remove your Google Business Profile connection and all stored business locations. 
-              You'll need to reconnect and fetch your locations again to use posting features.
-            </p>
-            <div className="flex space-x-3">
-              <button
-                onClick={() => {
-                  setShowDisconnectConfirm(false);
-                  handleDisconnect();
-                }}
-                disabled={isLoading}
-                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:bg-gray-300 transition-colors flex items-center space-x-2"
-              >
-                {isLoading ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    <span>Disconnecting...</span>
-                  </>
-                ) : (
-                  <>
-                    <Icon name="FaTimes" className="w-4 h-4" />
-                    <span>Yes, Disconnect</span>
-                  </>
-                )}
-              </button>
-              <button
-                onClick={() => setShowDisconnectConfirm(false)}
-                disabled={isLoading}
-                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 disabled:bg-gray-100 transition-colors"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <DisconnectConfirmModal
+        isOpen={showDisconnectConfirm}
+        isLoading={isLoading}
+        onConfirm={() => {
+          setShowDisconnectConfirm(false);
+          handleDisconnect();
+        }}
+        onCancel={() => setShowDisconnectConfirm(false)}
+      />
 
       {/* Import Reviews Modal */}
-      {showImportModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 relative border border-gray-200">
-            {/* Standardized circular close button - matches DraggableModal size */}
-            <button
-              onClick={() => {
-                setShowImportModal(false);
-                setImportResult(null);
-              }}
-              className="absolute -top-3 -right-3 bg-white border border-gray-200 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 z-20"
-              style={{ width: 36, height: 36 }}
-              aria-label="Close modal"
-            >
-              <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-
-            {/* Modal Header */}
-            <div className="px-6 pt-6 pb-4 border-b border-gray-100">
-              <h3 className="text-xl font-semibold text-gray-900">Import & verify Google reviews</h3>
-            </div>
-
-            {/* Modal Body */}
-            <div className="px-6 py-5 space-y-5">
-              {/* Description */}
-              <div className="text-sm text-gray-600 leading-relaxed space-y-3">
-                <p>
-                  Import your Google Business Profile reviews and <strong>automatically verify</strong> any matching Prompt Page submissions. This links reviews submitted through your Prompt Pages to the actual Google reviews.
-                </p>
-                <p>
-                  You can also showcase imported reviews in a widget, launch a double-dip campaign
-                  <span className="relative inline-block ml-1 group">
-                    <Icon
-                      name="FaQuestionCircle"
-                      className="w-4 h-4 text-blue-500 cursor-help hover:text-blue-700 transition-colors"
-                    />
-                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none w-64 z-50">
-                      A double-dip campaign is just my silly terminology for asking contacts to take a review they've already written and edit/alter/improve and post on another review site. My advice? Go for the "triple-dip." YOLO! - Chris
-                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800"></div>
-                    </div>
-                  </span>
-                  , or filter out contacts who have already reviewed you.
-                </p>
-              </div>
-
-              {/* Location Selection */}
-              <div>
-                <LocationPicker
-                  mode="single"
-                  label="Select Location to Import From"
-                  locations={scopedLocations}
-                  selectedId={(selectedLocationId && scopedLocations.some(loc => loc.id === selectedLocationId)) ? selectedLocationId : resolvedSelectedLocation?.id}
-                  onSelect={(id) => setSelectedLocationId(id)}
-                  isLoading={isLoadingPlatforms}
-                  disabled={isImportingReviews}
-                  placeholder="Choose a location"
-                  emptyState={(
-                    <div className="px-3 py-2 border border-dashed border-gray-300 rounded-md text-sm text-gray-600 bg-gray-50">
-                      No Google Business locations available. Fetch locations to import reviews.
-                    </div>
-                  )}
-                />
-              </div>
-
-              {/* Import Options Section */}
-              <div className="space-y-3">
-                <div>
-                  <p className="text-sm font-medium text-gray-900 mb-1">Import options</p>
-                  <p className="text-xs text-gray-500">
-                    If you've imported before, choose the second option to grab only the Google reviews that are
-                    new since your last import. We'll ignore anything that's already saved in Prompt Reviews.
-                  </p>
-                </div>
-                <div className="space-y-3">
-                  <label className="flex items-start space-x-3 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="importType"
-                      value="all"
-                      checked={selectedImportType === 'all'}
-                      onChange={(e) => setSelectedImportType(e.target.value as 'all')}
-                      disabled={isImportingReviews}
-                      className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 disabled:opacity-50"
-                    />
-                    <div className="flex-1">
-                      <div className="font-medium text-gray-900">Import All Reviews</div>
-                      <div className="text-sm text-gray-500">Import all reviews from this location</div>
-                    </div>
-                  </label>
-
-                  <label className="flex items-start space-x-3 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="importType"
-                      value="new"
-                      checked={selectedImportType === 'new'}
-                      onChange={(e) => setSelectedImportType(e.target.value as 'new')}
-                      disabled={isImportingReviews}
-                      className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 disabled:opacity-50"
-                    />
-                    <div className="flex-1">
-                      <div className="font-medium text-gray-900">Import Only New Reviews</div>
-                      <div className="text-sm text-gray-500">Add reviews Google received after your last import (duplicates are skipped)</div>
-                    </div>
-                  </label>
-                </div>
-
-                {/* Import Button */}
-                <button
-                  onClick={() => handleImportReviews(selectedImportType)}
-                  disabled={isImportingReviews || !selectedLocationId}
-                  className="w-full mt-6 px-4 py-3 bg-slate-600 text-white font-medium rounded-lg hover:bg-slate-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center space-x-2 shadow-sm"
-                >
-                  {isImportingReviews ? (
-                    <>
-                      <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
-                      <span>Importing & verifying...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Icon name="FaDownload" className="w-4 h-4" />
-                      <span>Import & verify reviews</span>
-                    </>
-                  )}
-                </button>
-              </div>
-
-              {/* Import Result */}
-              {importResult && (
-                <div className={`p-4 rounded-lg ${
-                  importResult.success ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
-                }`}>
-                  <div className={`flex items-center space-x-2 ${
-                    importResult.success ? 'text-green-800' : 'text-red-800'
-                  }`}>
-                    <Icon 
-                      name={importResult.success ? "FaCheck" : "FaExclamationTriangle"} 
-                      className="w-4 h-4" 
-                    />
-                    <span className="text-sm font-medium">
-                      {importResult.success ? 'Success' : 'Error'}
-                    </span>
-                  </div>
-                  <p className={`text-sm mt-1 ${
-                    importResult.success ? 'text-green-700' : 'text-red-700'
-                  }`}>
-                    {importResult.message}
-                    {importResult.count !== undefined && ` (${importResult.count} reviews)`}
-                  </p>
-                  {importResult.errors && importResult.errors.length > 0 && (
-                    <div className="mt-2 text-xs text-red-600">
-                      <p className="font-medium mb-1">Error details:</p>
-                      <ul className="list-disc list-inside space-y-1">
-                        {importResult.errors.map((error, idx) => (
-                          <li key={idx}>{error}</li>
-                        ))}
-                      </ul>
-                      {importResult.totalErrorCount && importResult.totalErrorCount > 5 && (
-                        <p className="mt-1 italic">...and {importResult.totalErrorCount - 5} more errors</p>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      <ImportReviewsModal
+        isOpen={showImportModal}
+        isImporting={isImportingReviews}
+        locations={scopedLocations}
+        selectedLocationId={selectedLocationId}
+        resolvedSelectedLocation={resolvedSelectedLocation}
+        isLoadingPlatforms={isLoadingPlatforms}
+        selectedImportType={selectedImportType}
+        importResult={importResult}
+        onClose={() => {
+          setShowImportModal(false);
+          setImportResult(null);
+        }}
+        onLocationSelect={(id) => setSelectedLocationId(id)}
+        onImportTypeChange={(type) => setSelectedImportType(type)}
+        onImport={handleImportReviews}
+      />
       
       {/* Fetch Locations Confirmation Modal */}
-      {showFetchConfirmModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <div className="flex items-center space-x-3 mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Fetch Business Locations</h3>
-            </div>
-            <p className="text-gray-600 mb-6">
-              This will retrieve all your Google Business Profile locations and their details.
-              The process is usually quick but may take a moment depending on the number of locations.
-            </p>
-            <div className="bg-blue-50 border border-blue-200 rounded p-3 mb-6">
-              <div className="flex items-start space-x-2">
-                <Icon name="FaInfoCircle" className="w-4 h-4 text-blue-600 mt-0.5" />
-                <div className="text-sm text-blue-800">
-                  <p className="font-medium mb-1">What happens next:</p>
-                  <ul className="list-disc list-inside space-y-1 text-xs">
-                    <li>Choose locations to manage (limited by plan)</li>
-                    <li>Location details saved for quick access</li>
-                    <li>Post updates to your selected locations</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-            <div className="flex space-x-3">
-              <button
-                onClick={performFetchLocations}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center space-x-2"
-              >
-                <span>Fetch locations</span>
-              </button>
-              <button
-                onClick={() => setShowFetchConfirmModal(false)}
-                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <FetchLocationsModal
+        isOpen={showFetchConfirmModal}
+        onConfirm={performFetchLocations}
+        onCancel={() => setShowFetchConfirmModal(false)}
+      />
       
       {/* Products Help Modal */}
       <HelpModal
