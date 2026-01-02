@@ -29,7 +29,7 @@ export const TOP_NAV_ITEMS: NavItem[] = [
  */
 export const REVIEWS_SECTION: NavSection = {
   id: "reviews",
-  label: "Reviews",
+  label: "Get reviews",
   icon: "FaStar",
   collapsible: false,
   items: [
@@ -71,13 +71,13 @@ export const REVIEWS_SECTION: NavSection = {
  */
 export const GOOGLE_BUSINESS_SECTION: NavSection = {
   id: "google-business",
-  label: "Google business",
+  label: "Google Business Profile",
   icon: "FaGoogle",
   collapsible: false,
   items: [
     {
       path: "/dashboard/google-business",
-      label: "Google business",
+      label: "Google Business Profile",
       icon: "FaGoogle",
       description: "Manage your Google Business Profile",
       requiresBusiness: true,
