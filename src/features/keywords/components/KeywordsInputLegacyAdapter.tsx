@@ -482,7 +482,7 @@ export default function KeywordsInputLegacyAdapter({
           onKeyDown={handleInputKeyDown}
           onFocus={() => setIsFocused(true)}
           onBlur={handleInputBlur}
-          placeholder="best pizza Seattle, wood-fired oven, authentic Italian"
+          placeholder="Best wood-fired pizza in Seattle!, Great spot for pizza and beer"
           disabled={disabled}
           className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
         />
