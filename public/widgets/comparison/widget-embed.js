@@ -147,14 +147,15 @@
 
     /* Highlight column for Prompt Reviews (F-pattern) */
     .pr-comparison-highlight {
-      background-color: rgba(99, 102, 241, 0.08) !important;
-      border-left: 1px solid rgba(99, 102, 241, 0.15);
-      border-right: 1px solid rgba(99, 102, 241, 0.15);
+      background-color: rgba(255, 255, 255, 0.12) !important;
+      border-left: 1px solid rgba(255, 255, 255, 0.15);
+      border-right: 1px solid rgba(255, 255, 255, 0.15);
     }
 
     .pr-comparison-highlight-header {
-      background-color: #e0e7ff !important;
-      color: #4338ca;
+      background-color: rgba(255, 255, 255, 0.15) !important;
+      border-left: 1px solid rgba(255, 255, 255, 0.2);
+      border-right: 1px solid rgba(255, 255, 255, 0.2);
     }
 
     .pr-comparison-category-row td {
