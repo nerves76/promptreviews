@@ -224,7 +224,7 @@ export default function HomePage() {
           {/* Search Bar */}
           <div className="max-w-md mx-auto">
             <div className="relative">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-white/70" />
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-white" />
               <input
                 type="text"
                 placeholder="Search documentation..."
