@@ -856,7 +856,7 @@ const overviewStatsData = useMemo(() => {
               <div className="flex gap-4 items-center">
                 <div className="w-16 h-16 flex-shrink-0" style={{ transform: 'scaleX(-1)' }}>
                   <img
-                    src="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/prompty-teaching-about-your-business.png"
+                    src="/images/prompty-teacher-teaching-how-to-grow-business.png"
                     alt="Prompty mascot"
                     className="w-full h-full object-contain"
                   />

@@ -1232,7 +1232,7 @@ Reviews can help you rank better in search engines when they contain relevant to
 • AI Don'ts are things to avoid: e.g., **"And never dare say our Goose Juice is dry"**
 
 You can update your don'ts over time by testing outputs and reviewing what gets generated.`}
-        imageUrl="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/prompty-teaching-about-your-business.png"
+        imageUrl="/images/prompty-teacher-teaching-how-to-grow-business.png"
         imageAlt="Prompty teaching about your business"
         buttonText="Got it, let's go!"
       /> */}

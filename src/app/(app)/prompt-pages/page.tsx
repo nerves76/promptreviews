@@ -1670,7 +1670,7 @@ When a customer writes a review and clicks "Copy & open" a few important things 
 There are different kinds of Prompt Pages for different use cases. If this is your first Prompt Reviews rodeo, we recommend [checking out the full Prompt Page tutorial|help:prompt-overview].
 
 Also, the help bubble in the bottom-right of your screen is always there for you when you get stuck!`}
-        imageUrl="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/prompty-teaching-about-your-business.png"
+        imageUrl="/images/prompty-teacher-teaching-how-to-grow-business.png"
         imageAlt="Prompty teaching about Prompt Pages"
         buttonText="Let's get some reviews!"
       />
