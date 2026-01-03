@@ -80,7 +80,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       ? [table.single_competitor_id]
       : table.competitor_ids || [];
 
-    const { data: competitors } = await supabase
+    // Fetch ALL active competitors (for swap dropdown) and table's competitors
+    const { data: allCompetitorsRaw } = await supabase
       .from('competitors')
       .select(`
         *,
@@ -94,8 +95,13 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
           feature:comparison_features(slug)
         )
       `)
-      .in('id', competitorIds.filter(Boolean))
-      .eq('status', 'active');
+      .eq('status', 'active')
+      .order('display_order');
+
+    // Filter to get just the table's configured competitors
+    const competitors = (allCompetitorsRaw || []).filter(c =>
+      competitorIds.filter(Boolean).includes(c.id)
+    );
 
     // Build the response in embed-friendly format
     const formattedCategories = (categories || []).map(cat => ({
@@ -134,6 +140,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         id: comp.id,
         slug: comp.slug,
         name: comp.name,
+        description: comp.description,
         logo: comp.logo_url,
         website: comp.website_url,
         pricing: comp.pricing,
@@ -146,6 +153,33 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       .filter(Boolean)
       .map((id: string) => formattedCompetitors.find(c => c.id === id))
       .filter(Boolean);
+
+    // Format ALL competitors for swap dropdown
+    const formattedAllCompetitors = (allCompetitorsRaw || []).map(comp => {
+      const featureMap: Record<string, FeatureValue> = {};
+
+      (comp.features as CompetitorFeature[] || []).forEach((cf) => {
+        if (cf.feature?.slug) {
+          featureMap[cf.feature.slug] = {
+            hasFeature: cf.has_feature,
+            value: cf.value_text || cf.value_number,
+            isLimited: cf.is_limited,
+            notes: cf.notes,
+          };
+        }
+      });
+
+      return {
+        id: comp.id,
+        slug: comp.slug,
+        name: comp.name,
+        description: comp.description,
+        logo: comp.logo_url,
+        website: comp.website_url,
+        pricing: comp.pricing,
+        features: featureMap,
+      };
+    });
 
     // Build PromptReviews feature values (default to all true, with overrides)
     const promptReviewsFeatures: Record<string, FeatureValue> = {};
@@ -169,6 +203,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       design: table.design || {},
       categories: formattedCategories,
       competitors: orderedCompetitors,
+      allCompetitors: formattedAllCompetitors, // All competitors for swap dropdown
       promptReviews: {
         features: promptReviewsFeatures,
       },
