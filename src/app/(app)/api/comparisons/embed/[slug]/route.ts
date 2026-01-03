@@ -144,6 +144,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         logo: comp.logo_url,
         website: comp.website_url,
         pricing: comp.pricing,
+        pricing_description: comp.pricing_description,
         features: featureMap,
       };
     });
@@ -177,6 +178,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         logo: comp.logo_url,
         website: comp.website_url,
         pricing: comp.pricing,
+        pricing_description: comp.pricing_description,
         features: featureMap,
       };
     });

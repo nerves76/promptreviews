@@ -29,6 +29,7 @@ interface Competitor {
   name: string;
   description: string | null;
   logo_url: string | null;
+  pricing_description: string | null;
   features: { feature_id: string; has_feature: boolean; is_limited: boolean }[];
 }
 
@@ -393,8 +394,8 @@ export default function PreviewTablePage({ params }: { params: Promise<{ slug: s
                     </React.Fragment>
                   ))}
 
-                  {/* Pricing notes row */}
-                  {table.pricing_notes && Object.keys(table.pricing_notes).length > 0 && (
+                  {/* Pricing row - always show if competitors have pricing */}
+                  {displayedCompetitors.some(c => c.pricing_description) && (
                     <>
                       <tr className="bg-black/10 border-b border-white/20">
                         <td
@@ -411,15 +412,15 @@ export default function PreviewTablePage({ params }: { params: Promise<{ slug: s
                         <td className="px-6 py-4 text-sm text-white/90 font-medium">
                           Starting price
                         </td>
-                        <td className="px-4 py-4 text-center bg-white/5 border-x border-white/10">
-                          <span className="text-sm text-white/80">
-                            {table.pricing_notes.promptreviews || "—"}
+                        <td className="px-4 py-4 bg-white/5 border-x border-white/10">
+                          <span className="text-xs text-white/80 leading-relaxed">
+                            Pricing tiers start at $17/month. $85/month for multi-location businesses.
                           </span>
                         </td>
                         {displayedCompetitors.map((comp) => (
-                          <td key={comp.id} className="px-4 py-4 text-center">
-                            <span className="text-sm text-white/70">
-                              {table.pricing_notes?.[comp.slug] || "—"}
+                          <td key={comp.id} className="px-4 py-4">
+                            <span className="text-xs text-white/70 leading-relaxed">
+                              {comp.pricing_description || "—"}
                             </span>
                           </td>
                         ))}

@@ -3582,6 +3582,7 @@ model competitors {
   created_by                          String?               @db.Uuid
   updated_by                          String?               @db.Uuid
   description                         String?
+  pricing_description                 String?
   comparison_tables                   comparison_tables[]
   competitor_features                 competitor_features[]
   users_competitors_created_byTousers users?                @relation("competitors_created_byTousers", fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
