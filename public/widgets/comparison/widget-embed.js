@@ -394,7 +394,9 @@
       html += '<div class="pr-comparison-header-cell">';
       html += '<div class="pr-comparison-logo-wrapper pr-comparison-logo-wrapper-comp">';
       if (comp.logo) {
-        html += '<img src="' + escapeHtml(comp.logo) + '" alt="' + escapeHtml(comp.name) + '" class="pr-comparison-logo" onerror="this.outerHTML=\'<div class=pr-comparison-logo-placeholder>' + escapeHtml(comp.name.charAt(0)) + '</div>\'">';
+        // Make logo URL absolute if it's relative
+        var logoUrl = comp.logo.startsWith('/') ? API_BASE + comp.logo : comp.logo;
+        html += '<img src="' + escapeHtml(logoUrl) + '" alt="' + escapeHtml(comp.name) + '" class="pr-comparison-logo" onerror="this.outerHTML=\'<div class=pr-comparison-logo-placeholder>' + escapeHtml(comp.name.charAt(0)) + '</div>\'">';
       } else {
         html += '<div class="pr-comparison-logo-placeholder">' + escapeHtml(comp.name.charAt(0)) + '</div>';
       }
@@ -448,8 +450,9 @@
       }
     }
 
-    // Pricing notes section
-    if (data.pricingNotes && Object.keys(data.pricingNotes).length > 0) {
+    // Pricing section - show if any competitor has pricing_description
+    var hasPricing = data.competitors.some(function(c) { return c.pricing_description; });
+    if (hasPricing) {
       // Pricing category header
       html += '<tr class="pr-comparison-category-row">';
       html += '<td colspan="' + (2 + data.competitors.length) + '">';
@@ -458,15 +461,14 @@
 
       // Pricing row
       html += '<tr>';
-      html += '<td class="pr-comparison-feature-name">Starting price</td>';
+      html += '<td class="pr-comparison-feature-name">Plans & pricing</td>';
       html += '<td class="pr-comparison-highlight">';
-      html += '<span class="pr-comparison-text-value">' + escapeHtml(data.pricingNotes.promptreviews || '—') + '</span>';
+      html += '<span class="pr-comparison-text-value">Pricing tiers start at $17/month. $85/month for multi-location businesses.</span>';
       html += '</td>';
 
       for (var pi = 0; pi < data.competitors.length; pi++) {
-        var compSlug = data.competitors[pi].slug;
         html += '<td>';
-        html += '<span class="pr-comparison-text-value">' + escapeHtml(data.pricingNotes[compSlug] || '—') + '</span>';
+        html += '<span class="pr-comparison-text-value">' + escapeHtml(data.competitors[pi].pricing_description || '—') + '</span>';
         html += '</td>';
       }
       html += '</tr>';
