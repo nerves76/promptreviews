@@ -360,13 +360,13 @@ export default function PreviewTablePage({ params }: { params: Promise<{ slug: s
                           Starting price
                         </td>
                         <td className="px-4 py-4 bg-white/5 border-x border-white/10">
-                          <span className="text-xs text-white/80 leading-relaxed">
+                          <span className="text-sm text-white leading-relaxed">
                             Pricing tiers start at $17/month. $85/month for multi-location businesses.
                           </span>
                         </td>
                         {displayedCompetitors.map((comp) => (
                           <td key={comp.id} className="px-4 py-4">
-                            <span className="text-xs text-white/70 leading-relaxed">
+                            <span className="text-sm text-white/90 leading-relaxed">
                               {comp.pricing_description || "—"}
                             </span>
                           </td>
