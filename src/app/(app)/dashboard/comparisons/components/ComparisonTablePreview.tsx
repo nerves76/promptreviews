@@ -112,7 +112,7 @@ export default function ComparisonTablePreview({
                   <div className="bg-gray-900 border border-gray-700 rounded-lg p-3 shadow-xl">
                     <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-3 h-3 bg-gray-900 border-l border-t border-gray-700 rotate-45" />
                     <p className="text-xs text-gray-100 leading-relaxed relative z-10">
-                      Prompt Reviews is a marketing platform focused on helping small businesses leverage trust and community to empower growth. It features a built-in Slack-like community for collaboration, Prompt Pages for keyword-powered reviews, and is human-first and AI-assisted. Includes Google Business management, SEO tracking, analytics, and more.
+                      Prompt Reviews is a marketing platform and community that helps small businesses grow by turning trust building into sustainable growth. It's human-first and AI-assisted, focused on review capture, Google Business Profile management, and tracking performance in local and AI-driven search.
                     </p>
                   </div>
                 </div>
