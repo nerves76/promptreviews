@@ -73,7 +73,7 @@
       background: rgba(255, 255, 255, 0.1);
       font-weight: 600;
       font-size: 13px;
-      color: #374151;
+      color: white;
       border-bottom: 1px solid rgba(255, 255, 255, 0.2);
     }
 
@@ -82,7 +82,7 @@
       text-align: left;
       width: 30%;
       font-weight: 500;
-      color: #374151;
+      color: white;
     }
 
     .pr-comparison-header-cell {
