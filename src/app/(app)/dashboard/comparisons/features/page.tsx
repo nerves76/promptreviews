@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 import { useCoreAuth } from "@/auth/context/CoreAuthContext";
 import { Button } from "@/app/(app)/components/ui/button";
 import { Input } from "@/app/(app)/components/ui/input";
@@ -76,7 +77,7 @@ export default function FeaturesPage() {
     }
   }, [user, authLoading]);
 
-  // Group features by category
+  // Group features by category and sort by display_order
   const featuresByCategory = features.reduce(
     (acc, feature) => {
       const catId = feature.category_id || "uncategorized";
@@ -88,6 +89,11 @@ export default function FeaturesPage() {
     },
     {} as Record<string, Feature[]>
   );
+
+  // Sort features within each category by display_order
+  Object.keys(featuresByCategory).forEach((catId) => {
+    featuresByCategory[catId].sort((a, b) => a.display_order - b.display_order);
+  });
 
   const handleSaveCategory = async () => {
     if (!editingItem || editingItem.type !== "category") return;
@@ -172,6 +178,46 @@ export default function FeaturesPage() {
       fetchData();
     } catch (err: any) {
       setError(err.message || "Failed to delete");
+    }
+  };
+
+  const handleDragEnd = async (result: DropResult) => {
+    if (!result.destination) return;
+
+    const { source, destination, draggableId } = result;
+
+    // Only handle reordering within the same category
+    if (source.droppableId !== destination.droppableId) return;
+    if (source.index === destination.index) return;
+
+    const categoryId = source.droppableId;
+    const categoryFeatures = [...(featuresByCategory[categoryId] || [])];
+
+    // Reorder the features
+    const [movedFeature] = categoryFeatures.splice(source.index, 1);
+    categoryFeatures.splice(destination.index, 0, movedFeature);
+
+    // Optimistically update the UI
+    const newFeatures = features.map((f) => {
+      const newIndex = categoryFeatures.findIndex((cf) => cf.id === f.id);
+      if (newIndex !== -1) {
+        return { ...f, display_order: newIndex };
+      }
+      return f;
+    });
+    setFeatures(newFeatures);
+
+    // Persist to backend
+    try {
+      await apiClient.post("/admin/comparisons/features/reorder", {
+        categoryId: categoryId === "uncategorized" ? null : categoryId,
+        featureIds: categoryFeatures.map((f) => f.id),
+      });
+    } catch (err: any) {
+      console.error("Failed to reorder features:", err);
+      setError("Failed to save new order");
+      // Revert on error
+      fetchData();
     }
   };
 
@@ -421,145 +467,198 @@ export default function FeaturesPage() {
             </p>
           </div>
         ) : (
-          <div className="space-y-4">
-            {categories.map((category) => (
-              <div key={category.id} className="border border-gray-200 rounded-lg overflow-hidden">
-                <div className="bg-gray-50 px-4 py-3 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    {category.icon_name && (
-                      <Icon name={category.icon_name as any} size={18} className="text-gray-500" />
-                    )}
-                    <div>
-                      <div className="font-medium text-gray-900">{category.name}</div>
-                      {category.description && (
-                        <div className="text-sm text-gray-500">{category.description}</div>
+          <DragDropContext onDragEnd={handleDragEnd}>
+            <div className="space-y-4">
+              {categories.map((category) => (
+                <div key={category.id} className="border border-gray-200 rounded-lg overflow-hidden">
+                  <div className="bg-gray-50 px-4 py-3 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      {category.icon_name && (
+                        <Icon name={category.icon_name as any} size={18} className="text-gray-500" />
                       )}
+                      <div>
+                        <div className="font-medium text-gray-900">{category.name}</div>
+                        {category.description && (
+                          <div className="text-sm text-gray-500">{category.description}</div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() =>
+                          setEditingItem({ type: "category", id: category.id, data: category })
+                        }
+                      >
+                        <Icon name="FaEdit" size={12} />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setDeleteConfirm({ type: "category", id: category.id })}
+                      >
+                        <Icon name="FaTrash" size={12} />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() =>
+                          setEditingItem({
+                            type: "feature",
+                            id: null,
+                            data: { name: "", feature_type: "boolean", category_id: category.id },
+                          })
+                        }
+                      >
+                        <Icon name="FaPlus" size={12} />
+                      </Button>
                     </div>
                   </div>
-                  <div className="flex gap-1">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() =>
-                        setEditingItem({ type: "category", id: category.id, data: category })
-                      }
-                    >
-                      <Icon name="FaEdit" size={12} />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setDeleteConfirm({ type: "category", id: category.id })}
-                    >
-                      <Icon name="FaTrash" size={12} />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() =>
-                        setEditingItem({
-                          type: "feature",
-                          id: null,
-                          data: { name: "", feature_type: "boolean", category_id: category.id },
-                        })
-                      }
-                    >
-                      <Icon name="FaPlus" size={12} />
-                    </Button>
-                  </div>
-                </div>
 
-                {/* Features in category */}
-                {featuresByCategory[category.id]?.length > 0 && (
-                  <div className="divide-y divide-gray-100">
-                    {featuresByCategory[category.id].map((feature) => (
-                      <div key={feature.id} className="px-4 py-2 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div>
-                            <div className="text-sm font-medium text-gray-800">{feature.name}</div>
-                            {feature.benefit_framing && (
-                              <div className="text-xs text-gray-500">{feature.benefit_framing}</div>
+                  {/* Features in category */}
+                  <Droppable droppableId={category.id}>
+                    {(provided, snapshot) => (
+                      <div
+                        ref={provided.innerRef}
+                        {...provided.droppableProps}
+                        className={`divide-y divide-gray-100 min-h-[40px] ${
+                          snapshot.isDraggingOver ? "bg-blue-50" : ""
+                        }`}
+                      >
+                        {(featuresByCategory[category.id] || []).map((feature, index) => (
+                          <Draggable key={feature.id} draggableId={feature.id} index={index}>
+                            {(provided, snapshot) => (
+                              <div
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                className={`px-4 py-2 flex items-center justify-between ${
+                                  snapshot.isDragging ? "bg-white shadow-lg rounded" : ""
+                                }`}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <div
+                                    {...provided.dragHandleProps}
+                                    className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600"
+                                  >
+                                    <Icon name="FaBars" size={12} />
+                                  </div>
+                                  <div>
+                                    <div className="text-sm font-medium text-gray-800">{feature.name}</div>
+                                    {feature.benefit_framing && (
+                                      <div className="text-xs text-gray-500">{feature.benefit_framing}</div>
+                                    )}
+                                  </div>
+                                  <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
+                                    {feature.feature_type}
+                                  </span>
+                                </div>
+                                <div className="flex gap-1">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() =>
+                                      setEditingItem({ type: "feature", id: feature.id, data: feature })
+                                    }
+                                  >
+                                    <Icon name="FaEdit" size={12} />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setDeleteConfirm({ type: "feature", id: feature.id })}
+                                  >
+                                    <Icon name="FaTrash" size={12} />
+                                  </Button>
+                                </div>
+                              </div>
                             )}
+                          </Draggable>
+                        ))}
+                        {provided.placeholder}
+                        {!featuresByCategory[category.id]?.length && (
+                          <div className="px-4 py-3 text-sm text-gray-500 text-center">
+                            No features in this category
                           </div>
-                          <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
-                            {feature.feature_type}
-                          </span>
-                        </div>
-                        <div className="flex gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() =>
-                              setEditingItem({ type: "feature", id: feature.id, data: feature })
-                            }
-                          >
-                            <Icon name="FaEdit" size={12} />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setDeleteConfirm({ type: "feature", id: feature.id })}
-                          >
-                            <Icon name="FaTrash" size={12} />
-                          </Button>
-                        </div>
+                        )}
                       </div>
-                    ))}
-                  </div>
-                )}
-
-                {!featuresByCategory[category.id]?.length && (
-                  <div className="px-4 py-3 text-sm text-gray-500 text-center">
-                    No features in this category
-                  </div>
-                )}
-              </div>
-            ))}
-
-            {/* Uncategorized features */}
-            {featuresByCategory["uncategorized"]?.length > 0 && (
-              <div className="border border-gray-200 rounded-lg overflow-hidden">
-                <div className="bg-gray-50 px-4 py-3">
-                  <div className="font-medium text-gray-600">Uncategorized</div>
+                    )}
+                  </Droppable>
                 </div>
-                <div className="divide-y divide-gray-100">
-                  {featuresByCategory["uncategorized"].map((feature) => (
-                    <div key={feature.id} className="px-4 py-2 flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div>
-                          <div className="text-sm font-medium text-gray-800">{feature.name}</div>
-                          {feature.benefit_framing && (
-                            <div className="text-xs text-gray-500">{feature.benefit_framing}</div>
-                          )}
-                        </div>
-                        <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
-                          {feature.feature_type}
-                        </span>
+              ))}
+
+              {/* Uncategorized features */}
+              {featuresByCategory["uncategorized"]?.length > 0 && (
+                <div className="border border-gray-200 rounded-lg overflow-hidden">
+                  <div className="bg-gray-50 px-4 py-3">
+                    <div className="font-medium text-gray-600">Uncategorized</div>
+                  </div>
+                  <Droppable droppableId="uncategorized">
+                    {(provided, snapshot) => (
+                      <div
+                        ref={provided.innerRef}
+                        {...provided.droppableProps}
+                        className={`divide-y divide-gray-100 ${
+                          snapshot.isDraggingOver ? "bg-blue-50" : ""
+                        }`}
+                      >
+                        {featuresByCategory["uncategorized"].map((feature, index) => (
+                          <Draggable key={feature.id} draggableId={feature.id} index={index}>
+                            {(provided, snapshot) => (
+                              <div
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                className={`px-4 py-2 flex items-center justify-between ${
+                                  snapshot.isDragging ? "bg-white shadow-lg rounded" : ""
+                                }`}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <div
+                                    {...provided.dragHandleProps}
+                                    className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600"
+                                  >
+                                    <Icon name="FaBars" size={12} />
+                                  </div>
+                                  <div>
+                                    <div className="text-sm font-medium text-gray-800">{feature.name}</div>
+                                    {feature.benefit_framing && (
+                                      <div className="text-xs text-gray-500">{feature.benefit_framing}</div>
+                                    )}
+                                  </div>
+                                  <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
+                                    {feature.feature_type}
+                                  </span>
+                                </div>
+                                <div className="flex gap-1">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() =>
+                                      setEditingItem({ type: "feature", id: feature.id, data: feature })
+                                    }
+                                  >
+                                    <Icon name="FaEdit" size={12} />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setDeleteConfirm({ type: "feature", id: feature.id })}
+                                  >
+                                    <Icon name="FaTrash" size={12} />
+                                  </Button>
+                                </div>
+                              </div>
+                            )}
+                          </Draggable>
+                        ))}
+                        {provided.placeholder}
                       </div>
-                      <div className="flex gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() =>
-                            setEditingItem({ type: "feature", id: feature.id, data: feature })
-                          }
-                        >
-                          <Icon name="FaEdit" size={12} />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setDeleteConfirm({ type: "feature", id: feature.id })}
-                        >
-                          <Icon name="FaTrash" size={12} />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
+                    )}
+                  </Droppable>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          </DragDropContext>
         )}
       </div>
     </PageCard>
