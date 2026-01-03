@@ -170,6 +170,33 @@
 
     .pr-comparison-feature-name {
       font-weight: 500;
+      font-size: 15px;
+      color: white;
+    }
+
+    .pr-comparison-feature-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .pr-comparison-tooltip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 10px;
+      font-weight: 600;
+      cursor: help;
+      flex-shrink: 0;
+    }
+
+    .pr-comparison-tooltip:hover {
+      background: rgba(255, 255, 255, 0.3);
       color: white;
     }
 
@@ -181,8 +208,8 @@
       width: 28px;
       height: 28px;
       border-radius: 50%;
-      background: rgba(34, 197, 94, 0.2);
-      color: #22c55e;
+      background: rgba(34, 197, 94, 0.3);
+      color: #4ade80;
       font-size: 16px;
       font-weight: bold;
     }
@@ -194,7 +221,7 @@
       width: 28px;
       height: 28px;
       border-radius: 50%;
-      background: rgba(239, 68, 68, 0.2);
+      background: rgba(239, 68, 68, 0.3);
       color: #f87171;
       font-size: 16px;
       font-weight: bold;
@@ -429,7 +456,11 @@
         var feature = features[f];
 
         html += '<tr>';
-        html += '<td class="pr-comparison-feature-name">' + escapeHtml(feature.benefitName || feature.name) + '</td>';
+        html += '<td class="pr-comparison-feature-name"><div class="pr-comparison-feature-label">' + escapeHtml(feature.benefitName || feature.name);
+        if (feature.description) {
+          html += '<span class="pr-comparison-tooltip" title="' + escapeHtml(feature.description) + '">?</span>';
+        }
+        html += '</div></td>';
 
         // PromptReviews value (highlighted column)
         var prFeature = data.promptReviews.features[feature.slug] || { hasFeature: true, isLimited: false };
