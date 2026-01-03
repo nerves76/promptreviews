@@ -175,9 +175,7 @@
     }
 
     .pr-comparison-feature-label {
-      display: flex;
-      align-items: center;
-      gap: 6px;
+      display: inline;
     }
 
     .pr-comparison-tooltip {
@@ -192,7 +190,8 @@
       font-size: 10px;
       font-weight: 600;
       cursor: help;
-      flex-shrink: 0;
+      margin-left: 5px;
+      vertical-align: middle;
     }
 
     .pr-comparison-tooltip:hover {
@@ -566,11 +565,11 @@
         var feature = features[f];
 
         html += '<tr>';
-        html += '<td class="pr-comparison-feature-name"><div class="pr-comparison-feature-label">' + escapeHtml(feature.benefitName || feature.name);
+        html += '<td class="pr-comparison-feature-name"><span class="pr-comparison-feature-label">' + escapeHtml(feature.benefitName || feature.name);
         if (feature.description) {
           html += '<span class="pr-comparison-tooltip" title="' + escapeHtml(feature.description) + '">?</span>';
         }
-        html += '</div></td>';
+        html += '</span></td>';
 
         // PromptReviews value (highlighted column)
         var prFeature = data.promptReviews.features[feature.slug] || { hasFeature: true, isLimited: false };
