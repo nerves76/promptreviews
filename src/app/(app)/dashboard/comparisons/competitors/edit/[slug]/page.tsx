@@ -33,6 +33,7 @@ interface Competitor {
   id: string;
   slug: string;
   name: string;
+  description: string | null;
   logo_url: string | null;
   website_url: string | null;
   status: "active" | "archived";
@@ -60,6 +61,7 @@ export default function EditCompetitorPage({ params }: { params: Promise<{ slug:
   // Form state
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
+  const [description, setDescription] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
   const [websiteUrl, setWebsiteUrl] = useState("");
   const [status, setStatus] = useState<"active" | "archived">("active");
@@ -87,6 +89,7 @@ export default function EditCompetitorPage({ params }: { params: Promise<{ slug:
           const comp = data.competitor;
           setName(comp.name);
           setSlug(comp.slug);
+          setDescription(comp.description || "");
           setLogoUrl(comp.logo_url || "");
           setWebsiteUrl(comp.website_url || "");
           setStatus(comp.status);
@@ -161,6 +164,7 @@ export default function EditCompetitorPage({ params }: { params: Promise<{ slug:
       const payload = {
         name,
         slug,
+        description: description || null,
         logo_url: logoUrl || null,
         website_url: websiteUrl || null,
         status,
@@ -282,6 +286,20 @@ export default function EditCompetitorPage({ params }: { params: Promise<{ slug:
                 placeholder="e.g., birdeye"
               />
             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Brief company description (4-5 sentences) shown on hover in comparison tables..."
+              rows={4}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              This description appears when users hover over the company logo in comparison tables.
+            </p>
           </div>
 
           <div className="grid grid-cols-2 gap-4">

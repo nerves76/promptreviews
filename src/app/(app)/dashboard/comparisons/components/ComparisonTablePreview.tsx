@@ -22,6 +22,7 @@ interface Competitor {
   id: string;
   slug: string;
   name: string;
+  description: string | null;
   logo_url: string | null;
   features: { feature_id: string; has_feature: boolean; is_limited: boolean; notes: string | null }[];
 }
@@ -102,26 +103,50 @@ export default function ComparisonTablePreview({
             <th className="py-3 px-2 text-left font-medium text-gray-700 w-1/3">Feature</th>
             {/* PromptReviews column - always first (F-pattern) */}
             <th className="py-3 px-2 text-center font-medium bg-indigo-50 text-indigo-900">
-              <div className="flex flex-col items-center gap-1">
-                <span className="text-xs text-indigo-600">Prompt Reviews</span>
+              <div className="relative group">
+                <div className="flex flex-col items-center gap-1 cursor-pointer">
+                  <span className="text-xs text-indigo-600 group-hover:text-indigo-800 transition-colors">Prompt Reviews</span>
+                </div>
+                {/* Hover card tooltip */}
+                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-56 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 delay-150 z-50 pointer-events-none group-hover:pointer-events-auto">
+                  <div className="bg-gray-900 border border-gray-700 rounded-lg p-3 shadow-xl">
+                    <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-3 h-3 bg-gray-900 border-l border-t border-gray-700 rotate-45" />
+                    <p className="text-xs text-gray-100 leading-relaxed relative z-10">
+                      Prompt Reviews is a marketing platform focused on helping small businesses leverage trust and community to empower growth. It features a built-in Slack-like community for collaboration, Prompt Pages for keyword-powered reviews, and is human-first and AI-assisted. Includes Google Business management, SEO tracking, analytics, and more.
+                    </p>
+                  </div>
+                </div>
               </div>
             </th>
             {/* Competitor columns */}
             {competitors.map((comp) => (
               <th key={comp.id} className="py-3 px-2 text-center font-medium text-gray-700">
-                <div className="flex flex-col items-center gap-1">
-                  {comp.logo_url ? (
-                    <img
-                      src={comp.logo_url}
-                      alt={comp.name}
-                      className="w-6 h-6 rounded object-contain"
-                    />
-                  ) : (
-                    <div className="w-6 h-6 bg-gray-200 rounded flex items-center justify-center">
-                      <span className="text-xs">{comp.name[0]}</span>
+                <div className="relative group">
+                  <div className="flex flex-col items-center gap-1 cursor-pointer">
+                    {comp.logo_url ? (
+                      <img
+                        src={comp.logo_url}
+                        alt={comp.name}
+                        className="w-6 h-6 rounded object-contain transition-transform group-hover:scale-110"
+                      />
+                    ) : (
+                      <div className="w-6 h-6 bg-gray-200 rounded flex items-center justify-center transition-transform group-hover:scale-110">
+                        <span className="text-xs">{comp.name[0]}</span>
+                      </div>
+                    )}
+                    <span className="text-xs truncate max-w-20">{comp.name}</span>
+                  </div>
+                  {/* Hover card tooltip */}
+                  {comp.description && (
+                    <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-56 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 delay-150 z-50 pointer-events-none group-hover:pointer-events-auto">
+                      <div className="bg-gray-900 border border-gray-700 rounded-lg p-3 shadow-xl">
+                        <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-3 h-3 bg-gray-900 border-l border-t border-gray-700 rotate-45" />
+                        <p className="text-xs text-gray-100 leading-relaxed relative z-10">
+                          {comp.description}
+                        </p>
+                      </div>
                     </div>
                   )}
-                  <span className="text-xs truncate max-w-20">{comp.name}</span>
                 </div>
               </th>
             ))}

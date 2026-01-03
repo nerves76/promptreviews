@@ -272,7 +272,7 @@ export default function PreviewTablePage({ params }: { params: Promise<{ slug: s
                           <div className="bg-white/10 backdrop-blur-xl border border-white/30 rounded-xl p-4 shadow-xl">
                             <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white/10 backdrop-blur-xl border-l border-t border-white/30 rotate-45" />
                             <p className="text-sm text-white/90 leading-relaxed relative z-10">
-                              Prompt Reviews is a review management platform built for small businesses and agencies. It uses AI to help customers write authentic reviews, with customizable prompt pages, keyword optimization, and multi-platform support. The platform includes review widgets, team collaboration, and detailed analytics to grow your online reputation.
+                              Prompt Reviews is a marketing platform focused on helping small businesses leverage trust and community to empower growth. It features a built-in Slack-like community for collaboration amongst small businesses. Prompt Pages offer unique ways to capture keyword-powered reviews that improve online visibility. The platform is human-first and AI-assisted, including review widgets, Google Business management, SEO and AI search tracking, team collaboration, analytics, and research tools.
                             </p>
                           </div>
                         </div>

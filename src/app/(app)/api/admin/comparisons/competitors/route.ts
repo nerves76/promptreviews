@@ -112,6 +112,7 @@ export async function POST(request: NextRequest) {
       .insert({
         name: body.name,
         slug: body.slug,
+        description: body.description || null,
         logo_url: body.logo_url || null,
         website_url: body.website_url || null,
         pricing: body.pricing || {},

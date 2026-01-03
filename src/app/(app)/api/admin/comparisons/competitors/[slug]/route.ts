@@ -90,6 +90,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       .update({
         name: body.name,
         slug: body.slug,
+        description: body.description,
         logo_url: body.logo_url,
         website_url: body.website_url,
         pricing: body.pricing || {},
