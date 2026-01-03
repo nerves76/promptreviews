@@ -90,6 +90,11 @@
       flex-direction: column;
       align-items: center;
       gap: 8px;
+      min-height: 100px;
+    }
+
+    .pr-comparison-table th {
+      vertical-align: top;
     }
 
     .pr-comparison-logo-wrapper {
@@ -102,11 +107,7 @@
       overflow: hidden;
     }
 
-    .pr-comparison-logo-wrapper-pr {
-      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-      box-shadow: 0 8px 16px rgba(99, 102, 241, 0.3);
-    }
-
+    .pr-comparison-logo-wrapper-pr,
     .pr-comparison-logo-wrapper-comp {
       background: linear-gradient(135deg, rgba(165, 180, 252, 0.5) 0%, rgba(192, 132, 252, 0.5) 100%);
     }
@@ -137,10 +138,7 @@
       white-space: nowrap;
     }
 
-    .pr-comparison-name-pr {
-      color: #4338ca;
-    }
-
+    .pr-comparison-name-pr,
     .pr-comparison-name-comp {
       color: white;
     }
@@ -499,7 +497,7 @@
     html += '<th class="pr-comparison-feature-header">';
     html += '<div class="pr-comparison-header-cell">';
     html += '<div class="pr-comparison-logo-wrapper pr-comparison-logo-wrapper-comp">';
-    html += '<svg viewBox="0 0 24 24" class="pr-comparison-logo" fill="white" style="width: 36px; height: 36px;"><path d="M12 2C11.45 2 11 2.45 11 3V4.29L5.71 6.59C5.28 6.78 5 7.2 5 7.67L5 8L2 14C2 15.66 3.34 17 5 17C6.66 17 8 15.66 8 14L5 8L11 5.5V19H7V21H17V19H13V5.5L19 8L16 14C16 15.66 17.34 17 19 17C20.66 17 22 15.66 22 14L19 8V7.67C19 7.2 18.72 6.78 18.29 6.59L13 4.29V3C13 2.45 12.55 2 12 2ZM5 9.33L6.77 13H3.23L5 9.33ZM19 9.33L20.77 13H17.23L19 9.33Z"/></svg>';
+    html += '<svg viewBox="0 0 24 24" class="pr-comparison-logo" fill="white"><path d="M12 2C11.45 2 11 2.45 11 3V4.29L5.71 6.59C5.28 6.78 5 7.2 5 7.67L5 8L2 14C2 15.66 3.34 17 5 17C6.66 17 8 15.66 8 14L5 8L11 5.5V19H7V21H17V19H13V5.5L19 8L16 14C16 15.66 17.34 17 19 17C20.66 17 22 15.66 22 14L19 8V7.67C19 7.2 18.72 6.78 18.29 6.59L13 4.29V3C13 2.45 12.55 2 12 2ZM5 9.33L6.77 13H3.23L5 9.33ZM19 9.33L20.77 13H17.23L19 9.33Z"/></svg>';
     html += '</div>';
     html += '<span class="pr-comparison-name" style="color: rgba(255,255,255,0.8);">Features</span>';
     html += '</div></th>';
@@ -546,6 +544,30 @@
     // Body
     html += '<tbody>';
 
+    // Pricing section - show FIRST if any competitor has pricing_description
+    var hasPricing = data.competitors.some(function(c) { return c.pricing_description; });
+    if (hasPricing) {
+      // Pricing category header
+      html += '<tr class="pr-comparison-category-row">';
+      html += '<td colspan="' + (2 + data.competitors.length) + '">';
+      html += '<span style="margin-right: 8px;">💰</span>Pricing';
+      html += '</td></tr>';
+
+      // Pricing row
+      html += '<tr>';
+      html += '<td class="pr-comparison-feature-name">Plans & pricing</td>';
+      html += '<td class="pr-comparison-highlight">';
+      html += '<span class="pr-comparison-text-value">Pricing tiers start at $17/month. $85/month for multi-location businesses.</span>';
+      html += '</td>';
+
+      for (var pi = 0; pi < data.competitors.length; pi++) {
+        html += '<td>';
+        html += '<span class="pr-comparison-text-value">' + escapeHtml(data.competitors[pi].pricing_description || '—') + '</span>';
+        html += '</td>';
+      }
+      html += '</tr>';
+    }
+
     // Categories and features
     for (var c = 0; c < data.categories.length; c++) {
       var category = data.categories[c];
@@ -589,30 +611,6 @@
 
         html += '</tr>';
       }
-    }
-
-    // Pricing section - show if any competitor has pricing_description
-    var hasPricing = data.competitors.some(function(c) { return c.pricing_description; });
-    if (hasPricing) {
-      // Pricing category header
-      html += '<tr class="pr-comparison-category-row">';
-      html += '<td colspan="' + (2 + data.competitors.length) + '">';
-      html += '<span style="margin-right: 8px;">💰</span>Pricing';
-      html += '</td></tr>';
-
-      // Pricing row
-      html += '<tr>';
-      html += '<td class="pr-comparison-feature-name">Plans & pricing</td>';
-      html += '<td class="pr-comparison-highlight">';
-      html += '<span class="pr-comparison-text-value">Pricing tiers start at $17/month. $85/month for multi-location businesses.</span>';
-      html += '</td>';
-
-      for (var pi = 0; pi < data.competitors.length; pi++) {
-        html += '<td>';
-        html += '<span class="pr-comparison-text-value">' + escapeHtml(data.competitors[pi].pricing_description || '—') + '</span>';
-        html += '</td>';
-      }
-      html += '</tr>';
     }
 
     html += '</tbody></table>';
