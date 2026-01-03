@@ -340,6 +340,40 @@ export default function PreviewTablePage({ params }: { params: Promise<{ slug: s
 
                 {/* Body */}
                 <tbody>
+                  {/* Pricing row - first row for visibility */}
+                  {displayedCompetitors.some(c => c.pricing_description) && (
+                    <>
+                      <tr className="bg-black/10 border-b border-white/20">
+                        <td
+                          colSpan={2 + displayedCompetitors.length}
+                          className="px-6 py-4 text-sm font-bold text-white/90 uppercase tracking-wider"
+                        >
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-gradient-to-r from-indigo-400 to-purple-400" />
+                            Pricing
+                          </div>
+                        </td>
+                      </tr>
+                      <tr className="border-b border-white/10">
+                        <td className="px-6 py-4 text-sm text-white/90 font-medium">
+                          Starting price
+                        </td>
+                        <td className="px-4 py-4 bg-white/5 border-x border-white/10">
+                          <span className="text-xs text-white/80 leading-relaxed">
+                            Pricing tiers start at $17/month. $85/month for multi-location businesses.
+                          </span>
+                        </td>
+                        {displayedCompetitors.map((comp) => (
+                          <td key={comp.id} className="px-4 py-4">
+                            <span className="text-xs text-white/70 leading-relaxed">
+                              {comp.pricing_description || "—"}
+                            </span>
+                          </td>
+                        ))}
+                      </tr>
+                    </>
+                  )}
+
                   {featuresByCategory.map((category, catIndex) => (
                     <React.Fragment key={category.id}>
                       {/* Category header */}
@@ -394,39 +428,6 @@ export default function PreviewTablePage({ params }: { params: Promise<{ slug: s
                     </React.Fragment>
                   ))}
 
-                  {/* Pricing row - always show if competitors have pricing */}
-                  {displayedCompetitors.some(c => c.pricing_description) && (
-                    <>
-                      <tr className="bg-black/10 border-b border-white/20">
-                        <td
-                          colSpan={2 + displayedCompetitors.length}
-                          className="px-6 py-4 text-sm font-bold text-white/90 uppercase tracking-wider"
-                        >
-                          <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full bg-gradient-to-r from-indigo-400 to-purple-400" />
-                            Pricing
-                          </div>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td className="px-6 py-4 text-sm text-white/90 font-medium">
-                          Starting price
-                        </td>
-                        <td className="px-4 py-4 bg-white/5 border-x border-white/10">
-                          <span className="text-xs text-white/80 leading-relaxed">
-                            Pricing tiers start at $17/month. $85/month for multi-location businesses.
-                          </span>
-                        </td>
-                        {displayedCompetitors.map((comp) => (
-                          <td key={comp.id} className="px-4 py-4">
-                            <span className="text-xs text-white/70 leading-relaxed">
-                              {comp.pricing_description || "—"}
-                            </span>
-                          </td>
-                        ))}
-                      </tr>
-                    </>
-                  )}
                 </tbody>
               </table>
             </div>
