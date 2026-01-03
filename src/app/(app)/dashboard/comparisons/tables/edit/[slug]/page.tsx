@@ -83,7 +83,6 @@ export default function EditTablePage({ params }: { params: Promise<{ slug: stri
     accentColor: "#4f46e5",
     showPricing: true,
   });
-  const [pricingNotes, setPricingNotes] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const fetchData = async () => {
@@ -117,7 +116,6 @@ export default function EditTablePage({ params }: { params: Promise<{ slug: stri
           setSingleCompetitorId(table.single_competitor_id);
           setSelectedCategoryIds(table.category_ids || []);
           setPromptreviewsOverrides(table.promptreviews_overrides || {});
-          setPricingNotes(table.pricing_notes || {});
           setDesign(table.design || { accentColor: "#4f46e5", showPricing: true });
 
           setAllCategories(data.categories || []);
@@ -184,7 +182,6 @@ export default function EditTablePage({ params }: { params: Promise<{ slug: stri
         category_ids: selectedCategoryIds,
         feature_ids: [], // Not using feature override for now
         promptreviews_overrides: promptreviewsOverrides,
-        pricing_notes: pricingNotes,
         design,
       };
 
@@ -450,44 +447,6 @@ export default function EditTablePage({ params }: { params: Promise<{ slug: stri
               </div>
             </section>
           )}
-
-          {/* Pricing notes */}
-          <section className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">Pricing notes</h3>
-            <p className="text-sm text-gray-500">
-              Add freeform text about pricing for each competitor (e.g., "From $299/mo", "Custom pricing only").
-            </p>
-
-            <div className="space-y-3">
-              {/* Prompt Reviews pricing */}
-              <div className="flex items-center gap-3">
-                <label className="w-32 text-sm font-medium text-indigo-700">Prompt Reviews</label>
-                <Input
-                  value={pricingNotes.promptreviews || ""}
-                  onChange={(e) =>
-                    setPricingNotes((prev) => ({ ...prev, promptreviews: e.target.value }))
-                  }
-                  placeholder="e.g., Free plan available. Paid from $49/mo"
-                  className="flex-1"
-                />
-              </div>
-
-              {/* Competitor pricing */}
-              {selectedCompetitors.map((comp) => (
-                <div key={comp.id} className="flex items-center gap-3">
-                  <label className="w-32 text-sm font-medium text-gray-700 truncate">{comp.name}</label>
-                  <Input
-                    value={pricingNotes[comp.slug] || ""}
-                    onChange={(e) =>
-                      setPricingNotes((prev) => ({ ...prev, [comp.slug]: e.target.value }))
-                    }
-                    placeholder="e.g., From $299/mo"
-                    className="flex-1"
-                  />
-                </div>
-              ))}
-            </div>
-          </section>
 
           {/* Embed code */}
           {!isNew && status === "published" && (

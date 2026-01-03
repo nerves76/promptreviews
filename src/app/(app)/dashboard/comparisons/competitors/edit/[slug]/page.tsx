@@ -34,6 +34,7 @@ interface Competitor {
   slug: string;
   name: string;
   description: string | null;
+  pricing_description: string | null;
   logo_url: string | null;
   website_url: string | null;
   status: "active" | "archived";
@@ -62,6 +63,7 @@ export default function EditCompetitorPage({ params }: { params: Promise<{ slug:
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [description, setDescription] = useState("");
+  const [pricingDescription, setPricingDescription] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
   const [websiteUrl, setWebsiteUrl] = useState("");
   const [status, setStatus] = useState<"active" | "archived">("active");
@@ -90,6 +92,7 @@ export default function EditCompetitorPage({ params }: { params: Promise<{ slug:
           setName(comp.name);
           setSlug(comp.slug);
           setDescription(comp.description || "");
+          setPricingDescription(comp.pricing_description || "");
           setLogoUrl(comp.logo_url || "");
           setWebsiteUrl(comp.website_url || "");
           setStatus(comp.status);
@@ -165,6 +168,7 @@ export default function EditCompetitorPage({ params }: { params: Promise<{ slug:
         name,
         slug,
         description: description || null,
+        pricing_description: pricingDescription || null,
         logo_url: logoUrl || null,
         website_url: websiteUrl || null,
         status,
@@ -299,6 +303,20 @@ export default function EditCompetitorPage({ params }: { params: Promise<{ slug:
             />
             <p className="mt-1 text-xs text-gray-500">
               This description appears when users hover over the company logo in comparison tables.
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Pricing description</label>
+            <textarea
+              value={pricingDescription}
+              onChange={(e) => setPricingDescription(e.target.value)}
+              placeholder="e.g., Prices not publicly listed. Users report plans starting at $299/month per location."
+              rows={2}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              Brief pricing summary shown in the Pricing row of comparison tables.
             </p>
           </div>
 

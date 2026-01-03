@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Competitor Comparison Widget Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 40px;
+            background: #f5f5f5;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .info {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .info p {
+            margin: 5px 0;
+            color: #666;
+        }
+        .test-container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <h1>Competitor Comparison Widget - Logo Verification</h1>
+    
+    <div class="info">
+        <p><strong>Purpose:</strong> Test that competitor logos are displaying correctly</p>
+        <p><strong>Expected:</strong> All competitor logos should load (no broken images or fallback initials)</p>
+        <p><strong>Note:</strong> You'll need a published comparison table. Create one at <a href="http://localhost:3002/dashboard/comparisons/tables" target="_blank">/dashboard/comparisons/tables</a></p>
+    </div>
+
+    <div class="test-container">
+        <!-- Replace 'your-table-slug' with an actual comparison table slug -->
+        <div data-comparison-id="your-table-slug"></div>
+        
+        <p style="margin-top: 20px; color: #999; font-size: 14px;">
+            ⚠️ Update the data-comparison-id attribute above with your actual table slug
+        </p>
+    </div>
+
+    <!-- Load the widget from local dev server -->
+    <script src="http://localhost:3002/widgets/comparison/widget-embed.js"></script>
+</body>
+</html>
