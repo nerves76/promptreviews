@@ -357,7 +357,7 @@ export default function PreviewTablePage({ params }: { params: Promise<{ slug: s
                       </tr>
                       <tr className="border-b border-white/10">
                         <td className="px-6 py-4 text-sm text-white/90 font-medium">
-                          Starting price
+                          Plans & pricing
                         </td>
                         <td className="px-4 py-4 bg-white/5 border-x border-white/10">
                           <span className="text-sm text-white leading-relaxed">
