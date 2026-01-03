@@ -200,6 +200,105 @@
       color: white;
     }
 
+    /* Competitor header with hover card */
+    .pr-comparison-header-wrapper {
+      position: relative;
+    }
+
+    .pr-comparison-hover-card {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      top: 100%;
+      margin-top: 8px;
+      width: 240px;
+      padding: 12px;
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.2s ease;
+      z-index: 100;
+      pointer-events: none;
+    }
+
+    .pr-comparison-header-wrapper:hover .pr-comparison-hover-card {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .pr-comparison-hover-card p {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.5;
+      color: white;
+      font-weight: 400;
+      text-align: left;
+    }
+
+    /* Swap dropdown */
+    .pr-comparison-swap-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 6px;
+      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.7);
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .pr-comparison-swap-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+    }
+
+    .pr-comparison-swap-dropdown {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      top: 100%;
+      margin-top: 4px;
+      min-width: 160px;
+      background: rgba(15, 23, 42, 0.98);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+      z-index: 200;
+      overflow: hidden;
+    }
+
+    .pr-comparison-swap-option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      font-size: 13px;
+      color: white;
+      cursor: pointer;
+      transition: background 0.1s ease;
+    }
+
+    .pr-comparison-swap-option:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .pr-comparison-swap-option img {
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+      object-fit: contain;
+    }
+
     /* Feature value indicators */
     .pr-comparison-check {
       display: inline-flex;
@@ -417,7 +516,9 @@
     // Competitor columns
     for (var i = 0; i < data.competitors.length; i++) {
       var comp = data.competitors[i];
+      var compIndex = i;
       html += '<th>';
+      html += '<div class="pr-comparison-header-wrapper">';
       html += '<div class="pr-comparison-header-cell">';
       html += '<div class="pr-comparison-logo-wrapper pr-comparison-logo-wrapper-comp">';
       if (comp.logo) {
@@ -429,6 +530,15 @@
       }
       html += '</div>';
       html += '<span class="pr-comparison-name pr-comparison-name-comp">' + escapeHtml(comp.name) + '</span>';
+      // Swap button
+      if (data.allCompetitors && data.allCompetitors.length > data.competitors.length) {
+        html += '<button class="pr-comparison-swap-btn" data-comp-index="' + compIndex + '" data-comp-id="' + comp.id + '">↻ Swap</button>';
+      }
+      html += '</div>';
+      // Hover card for description
+      if (comp.description) {
+        html += '<div class="pr-comparison-hover-card"><p>' + escapeHtml(comp.description) + '</p></div>';
+      }
       html += '</div></th>';
     }
     html += '</tr></thead>';
@@ -518,6 +628,69 @@
     return renderMultiComparisonTable(data);
   }
 
+  // --- Swap Functionality ---
+
+  /**
+   * Setup swap button click handlers
+   */
+  function setupSwapHandlers(container) {
+    var swapBtns = container.querySelectorAll('.pr-comparison-swap-btn');
+    swapBtns.forEach(function(btn) {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var existingDropdown = container.querySelector('.pr-comparison-swap-dropdown');
+        if (existingDropdown) {
+          existingDropdown.remove();
+          return;
+        }
+
+        var compIndex = parseInt(btn.getAttribute('data-comp-index'));
+        var currentCompId = btn.getAttribute('data-comp-id');
+        var data = container._comparisonData;
+        var displayedIds = container._displayedCompetitors.map(function(c) { return c.id; });
+
+        // Get available competitors (not currently displayed)
+        var available = (data.allCompetitors || []).filter(function(c) {
+          return !displayedIds.includes(c.id);
+        });
+
+        if (available.length === 0) return;
+
+        // Create dropdown
+        var dropdown = document.createElement('div');
+        dropdown.className = 'pr-comparison-swap-dropdown';
+
+        available.forEach(function(comp) {
+          var option = document.createElement('div');
+          option.className = 'pr-comparison-swap-option';
+          var logoUrl = comp.logo && comp.logo.startsWith('/') ? API_BASE + comp.logo : comp.logo;
+          option.innerHTML = (logoUrl ? '<img src="' + escapeHtml(logoUrl) + '" alt="">' : '') + escapeHtml(comp.name);
+          option.addEventListener('click', function() {
+            // Swap the competitor
+            container._displayedCompetitors[compIndex] = comp;
+            // Re-render with updated competitors
+            var newData = Object.assign({}, data, { competitors: container._displayedCompetitors });
+            container.innerHTML = renderMultiComparisonTable(newData);
+            setupSwapHandlers(container);
+          });
+          dropdown.appendChild(option);
+        });
+
+        btn.parentElement.appendChild(dropdown);
+
+        // Close dropdown when clicking outside
+        setTimeout(function() {
+          document.addEventListener('click', function closeDropdown(e) {
+            if (!dropdown.contains(e.target)) {
+              dropdown.remove();
+              document.removeEventListener('click', closeDropdown);
+            }
+          });
+        }, 10);
+      });
+    });
+  }
+
   // --- Initialization ---
 
   /**
@@ -559,12 +732,19 @@
         return;
       }
 
+      // Store data for swap functionality
+      container._comparisonData = data;
+      container._displayedCompetitors = data.competitors.slice();
+
       // Render the table
       if (data.tableType === 'single') {
         container.innerHTML = renderSingleComparisonTable(data);
       } else {
         container.innerHTML = renderMultiComparisonTable(data);
       }
+
+      // Add swap button click handlers
+      setupSwapHandlers(container);
 
     } catch (error) {
       console.error('PromptReviews Comparison Widget Error:', error);
