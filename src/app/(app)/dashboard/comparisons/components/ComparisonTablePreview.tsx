@@ -14,6 +14,7 @@ interface Feature {
   slug: string;
   name: string;
   benefit_framing: string | null;
+  description: string | null;
   feature_type: string;
   category_id: string | null;
 }
@@ -111,7 +112,7 @@ export default function ComparisonTablePreview({
                 <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-56 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 delay-150 z-50 pointer-events-none group-hover:pointer-events-auto">
                   <div className="bg-gray-900 border border-gray-700 rounded-lg p-3 shadow-xl">
                     <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-3 h-3 bg-gray-900 border-l border-t border-gray-700 rotate-45" />
-                    <p className="text-xs text-gray-100 leading-relaxed relative z-10">
+                    <p className="text-sm text-white leading-relaxed relative z-10">
                       Prompt Reviews is a marketing platform and community that helps small businesses grow by turning trust building into sustainable growth. It's human-first and AI-assisted, focused on review capture, Google Business Profile management, and tracking performance in local and AI-driven search.
                     </p>
                   </div>
@@ -141,7 +142,7 @@ export default function ComparisonTablePreview({
                     <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-56 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 delay-150 z-50 pointer-events-none group-hover:pointer-events-auto">
                       <div className="bg-gray-900 border border-gray-700 rounded-lg p-3 shadow-xl">
                         <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-3 h-3 bg-gray-900 border-l border-t border-gray-700 rotate-45" />
-                        <p className="text-xs text-gray-100 leading-relaxed relative z-10">
+                        <p className="text-sm text-white leading-relaxed relative z-10">
                           {comp.description}
                         </p>
                       </div>
@@ -172,7 +173,23 @@ export default function ComparisonTablePreview({
                 return (
                   <tr key={feature.id} className="border-b border-gray-100 hover:bg-gray-50">
                     <td className="py-2 px-2 text-gray-700">
-                      {feature.benefit_framing || feature.name}
+                      <div className="flex items-center gap-1.5">
+                        {feature.benefit_framing || feature.name}
+                        {feature.description && (
+                          <div className="relative group/tip">
+                            <div className="w-3.5 h-3.5 rounded-full bg-gray-200 flex items-center justify-center cursor-help hover:bg-gray-300 transition-colors">
+                              <span className="text-[9px] text-gray-500 font-medium">?</span>
+                            </div>
+                            <div className="absolute left-5 top-1/2 -translate-y-1/2 w-56 opacity-0 invisible group-hover/tip:opacity-100 group-hover/tip:visible transition-all duration-200 z-50 pointer-events-none">
+                              <div className="bg-gray-900 border border-gray-700 rounded-lg p-2.5 shadow-xl">
+                                <p className="text-xs text-white leading-relaxed">
+                                  {feature.description}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </td>
                     {/* PromptReviews value */}
                     <td className="py-2 px-2 text-center bg-indigo-50/50">
