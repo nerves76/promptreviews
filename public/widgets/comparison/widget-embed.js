@@ -142,7 +142,7 @@
     }
 
     .pr-comparison-name-comp {
-      color: #4b5563;
+      color: white;
     }
 
     /* Highlight column for Prompt Reviews (F-pattern) */
@@ -158,19 +158,19 @@
     }
 
     .pr-comparison-category-row td {
-      background: rgba(243, 244, 246, 0.6);
+      background: rgba(0, 0, 0, 0.1);
       font-weight: 600;
       font-size: 14px;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      color: #1f2937;
+      color: white;
       padding: 12px 16px;
-      border-bottom: 2px solid rgba(209, 213, 219, 0.5);
+      border-bottom: 2px solid rgba(255, 255, 255, 0.2);
     }
 
     .pr-comparison-feature-name {
       font-weight: 500;
-      color: #374151;
+      color: white;
     }
 
     /* Feature value indicators */
@@ -212,7 +212,7 @@
 
     .pr-comparison-text-value {
       font-size: 13px;
-      color: #4b5563;
+      color: white;
     }
 
     /* Responsive */
@@ -288,6 +288,41 @@
   `;
 
   // --- Utility Functions ---
+
+  /**
+   * Map icon names to SVG icons or Unicode symbols
+   */
+  var ICON_MAP = {
+    'FaStar': '⭐',
+    'FaComments': '💬',
+    'FaMapMarker': '📍',
+    'FaCoins': '💰',
+    'FaChartLine': '📊',
+    'FaCog': '⚙️',
+    'FaCheck': '✓',
+    'FaTimes': '✗',
+    'FaUser': '👤',
+    'FaUsers': '👥',
+    'FaEnvelope': '✉️',
+    'FaPhone': '📞',
+    'FaGlobe': '🌐',
+    'FaSearch': '🔍',
+    'FaRocket': '🚀',
+    'FaLightbulb': '💡',
+    'FaShieldAlt': '🛡️',
+    'FaCalendarAlt': '📅',
+    'FaBell': '🔔',
+    'FaImage': '🖼️',
+    'FaLink': '🔗'
+  };
+
+  /**
+   * Get icon for a given icon name
+   */
+  function getIcon(iconName) {
+    if (!iconName) return '';
+    return ICON_MAP[iconName] || '';
+  }
 
   /**
    * Render a feature value indicator
@@ -379,8 +414,9 @@
       // Category header row
       html += '<tr class="pr-comparison-category-row">';
       html += '<td colspan="' + (2 + data.competitors.length) + '">';
-      if (category.icon) {
-        html += '<span style="margin-right: 8px;">' + category.icon + '</span>';
+      var categoryIcon = getIcon(category.icon);
+      if (categoryIcon) {
+        html += '<span style="margin-right: 8px;">' + categoryIcon + '</span>';
       }
       html += escapeHtml(category.name);
       html += '</td></tr>';
