@@ -689,6 +689,78 @@
     });
   }
 
+  // --- Schema.org Structured Data ---
+
+  /**
+   * Generate JSON-LD schema from comparison data
+   */
+  function generateSchema(data) {
+    // Collect all features from categories
+    var featureList = [];
+    (data.categories || []).forEach(function(cat) {
+      (cat.features || []).forEach(function(f) {
+        var prFeature = data.promptReviews.features[f.slug];
+        if (prFeature && prFeature.hasFeature) {
+          featureList.push(f.benefitName || f.name);
+        }
+      });
+    });
+
+    // Build SoftwareApplication schema for Prompt Reviews
+    var schema = {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Prompt Reviews",
+      "description": "AI-powered review management platform that helps businesses collect, manage, and showcase customer reviews.",
+      "url": "https://promptreviews.app",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Web",
+      "offers": {
+        "@type": "AggregateOffer",
+        "lowPrice": "17",
+        "highPrice": "85",
+        "priceCurrency": "USD",
+        "offerCount": "3"
+      },
+      "featureList": featureList
+    };
+
+    // Add competitors as related software if present
+    if (data.competitors && data.competitors.length > 0) {
+      schema.isSimilarTo = data.competitors.map(function(comp) {
+        var compSchema = {
+          "@type": "SoftwareApplication",
+          "name": comp.name,
+          "applicationCategory": "BusinessApplication"
+        };
+        if (comp.website) {
+          compSchema.url = comp.website;
+        }
+        if (comp.description) {
+          compSchema.description = comp.description;
+        }
+        return compSchema;
+      });
+    }
+
+    return schema;
+  }
+
+  /**
+   * Inject JSON-LD schema into page head
+   */
+  function injectSchema(data) {
+    // Only inject once per page
+    if (document.getElementById('pr-comparison-schema')) return;
+
+    var schema = generateSchema(data);
+    var script = document.createElement('script');
+    script.id = 'pr-comparison-schema';
+    script.type = 'application/ld+json';
+    script.textContent = JSON.stringify(schema, null, 2);
+    document.head.appendChild(script);
+  }
+
   // --- Initialization ---
 
   /**
@@ -743,6 +815,9 @@
 
       // Add swap button click handlers
       setupSwapHandlers(container);
+
+      // Inject JSON-LD schema for SEO
+      injectSchema(data);
 
     } catch (error) {
       console.error('PromptReviews Comparison Widget Error:', error);
