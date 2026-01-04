@@ -561,7 +561,8 @@
       html += '<tr>';
       html += '<td class="pr-comparison-feature-name">Plans & pricing</td>';
       html += '<td class="pr-comparison-highlight">';
-      html += '<span class="pr-comparison-text-value">Pricing tiers start at $17/month. $85/month for multi-location businesses.</span>';
+      var prPricing = (data.promptReviews && data.promptReviews.pricing_description) || 'Pricing tiers start at $17/month. $85/month for multi-location businesses.';
+      html += '<span class="pr-comparison-text-value">' + escapeHtml(prPricing) + '</span>';
       html += '</td>';
 
       for (var pi = 0; pi < data.competitors.length; pi++) {

@@ -81,6 +81,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       : table.competitor_ids || [];
 
     // Fetch ALL active competitors (for swap dropdown) and table's competitors
+    // Exclude Prompt Reviews (is_us = true) from competitors list
     const { data: allCompetitorsRaw } = await supabase
       .from('competitors')
       .select(`
@@ -96,7 +97,26 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         )
       `)
       .eq('status', 'active')
+      .or('is_us.is.null,is_us.eq.false')
       .order('display_order');
+
+    // Fetch Prompt Reviews data separately
+    const { data: promptReviewsData } = await supabase
+      .from('competitors')
+      .select(`
+        *,
+        features:competitor_features(
+          feature_id,
+          has_feature,
+          value_text,
+          value_number,
+          is_limited,
+          notes,
+          feature:comparison_features(slug)
+        )
+      `)
+      .eq('is_us', true)
+      .single();
 
     // Filter to get just the table's configured competitors
     const competitors = (allCompetitorsRaw || []).filter(c =>
@@ -183,18 +203,32 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       };
     });
 
-    // Build PromptReviews feature values (default to all true, with overrides)
+    // Build PromptReviews feature values from database
     const promptReviewsFeatures: Record<string, FeatureValue> = {};
-    const overrides = (table.promptreviews_overrides || {}) as Record<string, Partial<FeatureValue>>;
 
+    if (promptReviewsData?.features) {
+      (promptReviewsData.features as CompetitorFeature[]).forEach((cf) => {
+        if (cf.feature?.slug) {
+          promptReviewsFeatures[cf.feature.slug] = {
+            hasFeature: cf.has_feature,
+            value: cf.value_text || cf.value_number,
+            isLimited: cf.is_limited,
+            notes: cf.notes,
+          };
+        }
+      });
+    }
+
+    // Fallback: ensure all features have a value (default to true if not in DB)
     (features || []).forEach(f => {
-      const override = overrides[f.slug];
-      promptReviewsFeatures[f.slug] = {
-        hasFeature: override?.hasFeature ?? true,
-        value: override?.value ?? null,
-        isLimited: override?.isLimited ?? false,
-        notes: override?.notes ?? null,
-      };
+      if (!promptReviewsFeatures[f.slug]) {
+        promptReviewsFeatures[f.slug] = {
+          hasFeature: true,
+          value: null,
+          isLimited: false,
+          notes: null,
+        };
+      }
     });
 
     const responseData = {
@@ -208,6 +242,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       allCompetitors: formattedAllCompetitors, // All competitors for swap dropdown
       promptReviews: {
         features: promptReviewsFeatures,
+        pricing_description: promptReviewsData?.pricing_description || 'Pricing tiers start at $17/month. $85/month for multi-location businesses.',
       },
       pricingNotes: table.pricing_notes || {},
     };
