@@ -101,6 +101,52 @@ background: linear-gradient(to bottom, #527DE7, #7864C8, #914AAE);
 - ❌ Never use `text-white/50` or lower for readable text
 - ❌ Never create new custom colors - use existing palette
 
+## ⚠️ IMPORTANT: Modal Component
+
+**ALWAYS use the centralized Modal component for new modals.** Located at `/src/app/(app)/components/ui/modal.tsx`.
+
+### Usage
+```tsx
+import { Modal } from '@/app/(app)/components/ui/modal';
+import { Button } from '@/app/(app)/components/ui/button';
+
+<Modal isOpen={isOpen} onClose={onClose} title="Confirm action" size="md">
+  <p>Are you sure you want to proceed?</p>
+  <Modal.Footer>
+    <Button variant="secondary" onClick={onClose}>Cancel</Button>
+    <Button onClick={handleConfirm}>Confirm</Button>
+  </Modal.Footer>
+</Modal>
+```
+
+### Props
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `isOpen` | boolean | required | Controls modal visibility |
+| `onClose` | () => void | required | Called when modal should close |
+| `title` | string | - | Optional title (renders in header) |
+| `size` | 'sm' \| 'md' \| 'lg' \| 'xl' \| '2xl' \| '3xl' \| '4xl' \| 'full' | 'md' | Modal width |
+| `showCloseButton` | boolean | true | Show red X close button |
+| `allowOverflow` | boolean | false | Allow content overflow (for dropdowns) |
+| `className` | string | - | Additional classes for modal panel |
+
+### Sub-components
+- `<Modal.Header>` - Custom header section
+- `<Modal.Body>` - Body with `space-y-4` spacing
+- `<Modal.Footer>` - Footer with `flex justify-end gap-3`
+
+### Features
+- ✅ Standardized red X close button (floating, top-right)
+- ✅ Smooth fade + scale animations
+- ✅ Backdrop click to close
+- ✅ Accessibility via Headless UI
+- ✅ Consistent styling across app
+
+### When NOT to use
+- Complex modals with drag functionality (use DraggableModal)
+- Modals with custom glass/blur designs (e.g., GlassSuccessModal)
+- Public-facing prompt page modals with unique branding
+
 ## ⚠️ IMPORTANT: Known Issues
 - **Turbopack is currently broken** - DO NOT use the `--turbo` flag with Next.js dev server
 - The `npm run dev` command has been modified to run WITHOUT Turbopack
