@@ -7,19 +7,27 @@ import { getPricingTiersDisplay } from "@/features/sentiment-analyzer/services/c
 
 interface AnalysisQuotaCardProps {
   eligibility: EligibilityResponse;
+  /** Number of reviews the user selected to analyze */
+  selectedLimit: number;
+  /** Credit cost for the selected limit */
+  selectedCreditCost: number;
+  /** Tier label for the selected limit */
+  selectedTierLabel: string;
 }
 
-export default function AnalysisQuotaCard({ eligibility }: AnalysisQuotaCardProps) {
+export default function AnalysisQuotaCard({
+  eligibility,
+  selectedLimit,
+  selectedCreditCost,
+  selectedTierLabel,
+}: AnalysisQuotaCardProps) {
   const {
     reviewCount,
     minReviewsRequired,
-    creditCost,
     creditBalance,
-    tierLabel,
-    eligible,
   } = eligibility;
 
-  const hasEnoughCredits = creditBalance >= creditCost;
+  const hasEnoughCredits = creditBalance >= selectedCreditCost;
   const hasEnoughReviews = reviewCount >= minReviewsRequired;
 
   return (
@@ -51,10 +59,10 @@ export default function AnalysisQuotaCard({ eligibility }: AnalysisQuotaCardProp
                 Analysis cost
               </div>
               <div className="text-2xl font-bold mb-2 text-indigo-600">
-                {creditCost} credits
+                {selectedCreditCost} credits
               </div>
               <div className="text-xs text-gray-500">
-                {tierLabel}
+                {selectedTierLabel}
               </div>
             </div>
 
@@ -68,8 +76,8 @@ export default function AnalysisQuotaCard({ eligibility }: AnalysisQuotaCardProp
               </div>
               <div className="text-xs text-gray-500">
                 {hasEnoughCredits
-                  ? `${creditBalance - creditCost} remaining after analysis`
-                  : `Need ${creditCost - creditBalance} more`
+                  ? `${creditBalance - selectedCreditCost} remaining after analysis`
+                  : `Need ${selectedCreditCost - creditBalance} more`
                 }
               </div>
             </div>
@@ -97,7 +105,7 @@ export default function AnalysisQuotaCard({ eligibility }: AnalysisQuotaCardProp
               <span className="text-xl flex-shrink-0">⚠️</span>
               <div className="flex-1">
                 <p className="text-sm text-yellow-800">
-                  You need {creditCost} credits to run this analysis, but you only have {creditBalance}.
+                  You need {selectedCreditCost} credits to run this analysis, but you only have {creditBalance}.
                 </p>
                 <Link
                   href="/dashboard/plan"
@@ -112,7 +120,7 @@ export default function AnalysisQuotaCard({ eligibility }: AnalysisQuotaCardProp
               <span className="text-xl flex-shrink-0">✅</span>
               <div className="flex-1">
                 <p className="text-sm text-green-800">
-                  Ready to analyze! This will use {creditCost} credits to analyze {reviewCount.toLocaleString()} reviews.
+                  Ready to analyze! This will use {selectedCreditCost} credits to analyze {selectedLimit.toLocaleString()} most recent reviews.
                 </p>
               </div>
             </div>

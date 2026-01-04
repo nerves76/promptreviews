@@ -8,7 +8,9 @@ import PageCard from "@/app/(app)/components/PageCard";
 import StandardLoader from "@/app/(app)/components/StandardLoader";
 import AnalysisQuotaCard from "./components/AnalysisQuotaCard";
 import RunAnalysisButton from "./components/RunAnalysisButton";
+import ReviewLimitSelector from "./components/ReviewLimitSelector";
 import AnalysisResultsView from "./components/AnalysisResultsView";
+import { calculateSentimentAnalysisCost, getTierLabel } from "@/features/sentiment-analyzer/services/credits";
 import {
   EligibilityResponse,
   SentimentAnalysisResult,
@@ -23,6 +25,15 @@ export default function SentimentAnalyzerPage() {
   const [error, setError] = useState<string | null>(null);
   const [eligibility, setEligibility] = useState<EligibilityResponse | null>(null);
   const [latestAnalysis, setLatestAnalysis] = useState<SentimentAnalysisResult | null>(null);
+  const [selectedLimit, setSelectedLimit] = useState<number | null>(null);
+
+  // Calculate cost and tier label for the selected limit
+  const selectedCreditCost = selectedLimit
+    ? calculateSentimentAnalysisCost(selectedLimit)
+    : eligibility?.creditCost || 0;
+  const selectedTierLabel = selectedLimit
+    ? getTierLabel(selectedLimit)
+    : eligibility?.tierLabel || "";
 
   // Fetch eligibility data and latest analysis
   useEffect(() => {
@@ -45,6 +56,8 @@ export default function SentimentAnalyzerPage() {
         const eligibilityData: EligibilityResponse = await eligibilityResponse.json();
         console.log('[Sentiment Analyzer Page] Eligibility data:', eligibilityData);
         setEligibility(eligibilityData);
+        // Default to analyzing all reviews
+        setSelectedLimit(eligibilityData.reviewCount);
 
         // Fetch latest analysis from history
         const historyResponse = await fetch(
@@ -186,16 +199,35 @@ export default function SentimentAnalyzerPage() {
       )}
 
       {/* Quota Card - Always visible */}
-      {eligibility && (
-        <AnalysisQuotaCard eligibility={eligibility} />
+      {eligibility && selectedLimit && (
+        <AnalysisQuotaCard
+          eligibility={eligibility}
+          selectedLimit={selectedLimit}
+          selectedCreditCost={selectedCreditCost}
+          selectedTierLabel={selectedTierLabel}
+        />
+      )}
+
+      {/* Review Limit Selector */}
+      {eligibility && !latestAnalysis && selectedLimit && (
+        <div className="mb-6">
+          <ReviewLimitSelector
+            totalReviews={eligibility.reviewCount}
+            selectedLimit={selectedLimit}
+            onChange={setSelectedLimit}
+            creditBalance={eligibility.creditBalance}
+          />
+        </div>
       )}
 
       {/* Run Analysis Button */}
-      {eligibility && !latestAnalysis && selectedAccountId && (
+      {eligibility && !latestAnalysis && selectedAccountId && selectedLimit && (
         <div className="my-8 flex justify-center">
           <RunAnalysisButton
             eligibility={eligibility}
             accountId={selectedAccountId}
+            reviewLimit={selectedLimit}
+            creditCost={selectedCreditCost}
             onAnalysisComplete={handleAnalysisComplete}
             onAnalysisError={handleAnalysisError}
           />
@@ -246,7 +278,7 @@ export default function SentimentAnalyzerPage() {
               </a>
             </div>
           )}
-          {eligibility.creditBalance < eligibility.creditCost && eligibility.reviewCount >= eligibility.minReviewsRequired && (
+          {eligibility.creditBalance < selectedCreditCost && eligibility.reviewCount >= eligibility.minReviewsRequired && (
             <div className="flex items-center justify-center gap-4 mt-6">
               <a
                 href="/dashboard/plan"
@@ -262,18 +294,71 @@ export default function SentimentAnalyzerPage() {
       {/* Latest Analysis Results */}
       {latestAnalysis && (
         <div className="mt-6">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
             <h2 className="text-2xl font-bold text-gray-900">
-              Latest Analysis
+              Latest analysis
             </h2>
-            {eligibility && selectedAccountId && (
-              <RunAnalysisButton
-                eligibility={eligibility}
-                accountId={selectedAccountId}
-                onAnalysisComplete={handleAnalysisComplete}
-                onAnalysisError={handleAnalysisError}
-              />
-            )}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+              {/* Compact Review Limit Selector */}
+              {eligibility && selectedLimit && (
+                <div className="flex items-center gap-2">
+                  <label className="text-sm text-gray-600 whitespace-nowrap">
+                    Analyze:
+                  </label>
+                  <select
+                    value={selectedLimit}
+                    onChange={(e) => setSelectedLimit(Number(e.target.value))}
+                    className="text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  >
+                    {(() => {
+                      const options: { limit: number; credits: number; label: string }[] = [];
+                      const tiers = [
+                        { maxReviews: 50, credits: 5 },
+                        { maxReviews: 100, credits: 10 },
+                        { maxReviews: 500, credits: 20 },
+                        { maxReviews: 1000, credits: 35 },
+                        { maxReviews: 5000, credits: 75 },
+                        { maxReviews: 10000, credits: 125 },
+                      ];
+
+                      for (const tier of tiers) {
+                        if (tier.maxReviews < eligibility.reviewCount) {
+                          options.push({
+                            limit: tier.maxReviews,
+                            credits: tier.credits,
+                            label: `${tier.maxReviews} most recent`,
+                          });
+                        }
+                      }
+
+                      // Add "all reviews" option
+                      const allCost = calculateSentimentAnalysisCost(eligibility.reviewCount);
+                      options.push({
+                        limit: eligibility.reviewCount,
+                        credits: allCost,
+                        label: `All ${eligibility.reviewCount}`,
+                      });
+
+                      return options.map((opt) => (
+                        <option key={opt.limit} value={opt.limit}>
+                          {opt.label} ({opt.credits} credits)
+                        </option>
+                      ));
+                    })()}
+                  </select>
+                </div>
+              )}
+              {eligibility && selectedAccountId && selectedLimit && (
+                <RunAnalysisButton
+                  eligibility={eligibility}
+                  accountId={selectedAccountId}
+                  reviewLimit={selectedLimit}
+                  creditCost={selectedCreditCost}
+                  onAnalysisComplete={handleAnalysisComplete}
+                  onAnalysisError={handleAnalysisError}
+                />
+              )}
+            </div>
           </div>
           <AnalysisResultsView results={latestAnalysis} />
         </div>

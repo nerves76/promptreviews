@@ -7,6 +7,10 @@ import { EligibilityResponse, AnalysisResponse } from "../types";
 interface RunAnalysisButtonProps {
   eligibility: EligibilityResponse;
   accountId: string;
+  /** Number of reviews to analyze. If not provided, uses all available. */
+  reviewLimit?: number;
+  /** Credit cost for the selected review limit */
+  creditCost: number;
   onAnalysisComplete: (response: AnalysisResponse) => void;
   onAnalysisError: (error: string) => void;
 }
@@ -23,11 +27,16 @@ const PROGRESS_MESSAGES = [
 export default function RunAnalysisButton({
   eligibility,
   accountId,
+  reviewLimit,
+  creditCost,
   onAnalysisComplete,
   onAnalysisError,
 }: RunAnalysisButtonProps) {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
+
+  // Use the provided reviewLimit or fall back to total review count
+  const reviewsToAnalyze = reviewLimit || eligibility.reviewCount;
 
   const handleRunAnalysis = async () => {
     setIsAnalyzing(true);
@@ -39,7 +48,10 @@ export default function RunAnalysisButton({
     }, 3000);
 
     try {
-      const data = await apiClient.post<AnalysisResponse>('/sentiment-analyzer/analyze', { accountId });
+      const data = await apiClient.post<AnalysisResponse>('/sentiment-analyzer/analyze', {
+        accountId,
+        reviewLimit: reviewsToAnalyze,
+      });
       clearInterval(messageInterval);
       onAnalysisComplete(data);
     } catch (error) {
@@ -51,16 +63,19 @@ export default function RunAnalysisButton({
     }
   };
 
-  const { eligible, reviewCount, creditCost, minReviewsRequired, creditBalance } = eligibility;
+  const { eligible, reviewCount, minReviewsRequired, creditBalance } = eligibility;
 
   // Determine disabled state and message
+  // Check if the selected limit can be afforded
+  const canAfford = creditBalance >= creditCost;
+  const hasEnoughReviews = reviewCount >= minReviewsRequired;
+  const isEligible = hasEnoughReviews && canAfford;
+
   let disabledReason = '';
-  if (!eligible) {
-    if (reviewCount < minReviewsRequired) {
-      disabledReason = 'Not enough reviews';
-    } else if (creditBalance < creditCost) {
-      disabledReason = 'Insufficient credits';
-    }
+  if (!hasEnoughReviews) {
+    disabledReason = 'Not enough reviews';
+  } else if (!canAfford) {
+    disabledReason = 'Insufficient credits';
   }
 
   return (
@@ -91,7 +106,7 @@ export default function RunAnalysisButton({
             </div>
             <div className="flex-1">
               <p className="text-sm font-medium text-indigo-900">
-                Analyzing your {reviewCount.toLocaleString()} reviews...
+                Analyzing your {reviewsToAnalyze.toLocaleString()} most recent reviews...
               </p>
               <p className="text-xs text-indigo-700 mt-1">
                 {PROGRESS_MESSAGES[currentMessageIndex]}
@@ -106,11 +121,11 @@ export default function RunAnalysisButton({
 
       <button
         onClick={handleRunAnalysis}
-        disabled={!eligible || isAnalyzing}
+        disabled={!isEligible || isAnalyzing}
         className={`
           px-6 py-3 rounded-lg font-semibold text-white transition-all
           ${
-            !eligible || isAnalyzing
+            !isEligible || isAnalyzing
               ? 'bg-gray-400 cursor-not-allowed'
               : 'bg-slate-600 hover:bg-slate-700 shadow-lg hover:shadow-xl'
           }
@@ -154,7 +169,7 @@ export default function RunAnalysisButton({
                 d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
               />
             </svg>
-            Run analysis ({creditCost} credits)
+            Run analysis ({creditCost} credit{creditCost === 1 ? '' : 's'})
           </span>
         )}
       </button>
