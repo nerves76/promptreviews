@@ -1,5 +1,6 @@
 "use client";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@/auth";
 import Header from "./Header";
 import FeedbackBubble from "./FeedbackBubble";
 import Sidebar from "./sidebar/Sidebar";
@@ -12,6 +13,8 @@ export default function AppMain({
   loader?: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const { account } = useAuth();
+
   const isPublic =
     pathname.startsWith("/r/") ||
     pathname.startsWith("/prompt-pages/") ||
@@ -21,11 +24,16 @@ export default function AppMain({
     pathname === "/infographic/embed";
   const isAuth = pathname.startsWith("/auth/") || pathname.startsWith("/reset-password");
 
-  // Pages that should NOT show the sidebar (only game for full-screen experience)
+  // Pages that should NOT show the sidebar
   const noSidebarPaths = [
     "/game",
+    "/dashboard/create-business",
   ];
-  const showSidebar = !isAuth && !isPublic && !noSidebarPaths.some(p => pathname.startsWith(p));
+
+  // Hide sidebar during onboarding (no plan yet) or on excluded paths
+  const hasValidPlan = account?.plan && account.plan !== 'no_plan' && account.plan !== 'NULL';
+  const isOnboarding = !hasValidPlan && !account?.is_free_account;
+  const showSidebar = !isAuth && !isPublic && !isOnboarding && !noSidebarPaths.some(p => pathname.startsWith(p));
 
   if (isPublic) {
     return <main>{children}</main>;
