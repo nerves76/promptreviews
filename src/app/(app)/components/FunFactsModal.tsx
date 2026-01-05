@@ -52,7 +52,7 @@ export default function FunFactsModal({
           <span className="text-white">Fun facts</span>
         </div>
       }
-      maxWidth="max-w-md"
+      maxWidth="max-w-xl"
       opaqueBody={true}
       lightBackdrop={true}
     >
