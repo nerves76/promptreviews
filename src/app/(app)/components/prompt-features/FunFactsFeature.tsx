@@ -127,7 +127,7 @@ export default function FunFactsFeature({
           <div>
             <h3 className="text-lg font-semibold text-gray-900">Fun facts</h3>
             <p className="text-sm text-gray-600">
-              Display interesting facts about your business
+              Help customers connect with your story
             </p>
           </div>
         </div>
@@ -162,6 +162,11 @@ export default function FunFactsFeature({
       {/* Content when enabled */}
       {enabled && (
         <div className="space-y-4">
+          {/* Explanatory copy */}
+          <p className="text-sm text-gray-600">
+            Share what makes your business unique. Fun facts appear as a button on your review page, letting customers learn more about you before writing their review. Great for highlighting years in business, team size, awards, or anything memorable.
+          </p>
+
           {/* Manage Button */}
           <button
             type="button"
