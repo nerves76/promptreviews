@@ -14,6 +14,8 @@ import {
 import dynamic from "next/dynamic";
 import PromptReviewsLogo from "@/app/(app)/dashboard/components/PromptReviewsLogo";
 import { getFallingIcon } from "@/app/(app)/components/prompt-modules/fallingStarsConfig";
+import { FunFact } from "@/types/funFacts";
+import FunFactsModal from "@/app/(app)/components/FunFactsModal";
 
 // Dynamically import FallingAnimation
 const FallingAnimation = dynamic(() => import("./FallingAnimation"), {
@@ -114,6 +116,7 @@ export default function ReviewBuilderWizard({
   const [showPersonalNote, setShowPersonalNote] = useState(true);
   const [canShowPersonalNote, setCanShowPersonalNote] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [showFunFactsModal, setShowFunFactsModal] = useState(false);
   const attemptStorageKey = useMemo(
     () => (promptPage?.slug ? `reviewBuilderAiAttempts_${promptPage.slug}` : null),
     [promptPage?.slug],
@@ -213,6 +216,23 @@ export default function ReviewBuilderWizard({
   }, [keywordDisplayOptions]);
 
 const businessName = businessProfile?.business_name || businessProfile?.name || "our business";
+
+  // Helper function to get fun facts to display
+  const getFunFactsToDisplay = (): FunFact[] => {
+    const allFacts: FunFact[] = businessProfile?.fun_facts || [];
+    const selectedIds: string[] = promptPage?.selected_fun_facts || null;
+
+    if (selectedIds !== null && Array.isArray(selectedIds)) {
+      return allFacts
+        .filter((fact) => selectedIds.includes(fact.id))
+        .slice(0, 10);
+    }
+
+    return allFacts.slice(0, 10);
+  };
+
+  const funFactsEnabled = promptPage?.fun_facts_enabled || false;
+  const funFactsToDisplay = getFunFactsToDisplay();
 
 const builderQuestions = useMemo(() => {
   if (Array.isArray(promptPage?.builder_questions) && promptPage.builder_questions.length > 0) {
@@ -879,7 +899,7 @@ const builderQuestions = useMemo(() => {
       <div className="mx-auto max-w-2xl relative z-10">
         {/* Business Logo */}
         {businessProfile?.logo_url && (
-          <div className="flex justify-center mb-8">
+          <div className="flex flex-col items-center mb-8">
             <div className="relative w-28 h-28 rounded-full overflow-hidden bg-white shadow-lg ring-4 ring-white/20 animate-coin-flip">
               <img
                 src={businessProfile.logo_url}
@@ -887,6 +907,16 @@ const builderQuestions = useMemo(() => {
                 className="w-full h-full object-cover"
               />
             </div>
+            {/* Fun Facts Button */}
+            {funFactsEnabled && funFactsToDisplay.length > 0 && (
+              <button
+                onClick={() => setShowFunFactsModal(true)}
+                className="mt-4 px-4 py-1.5 border border-white/40 rounded-full text-sm font-medium text-white/90 hover:bg-white/10 transition-colors flex items-center gap-2"
+              >
+                <Icon name="FaLightbulb" size={14} />
+                <span>Fun facts</span>
+              </button>
+            )}
           </div>
         )}
 
@@ -1065,6 +1095,16 @@ const builderQuestions = useMemo(() => {
             </div>
           </div>
         )}
+
+      {/* Fun Facts Modal */}
+      {showFunFactsModal && (
+        <FunFactsModal
+          isOpen={showFunFactsModal}
+          onClose={() => setShowFunFactsModal(false)}
+          facts={funFactsToDisplay}
+          businessProfile={businessProfile}
+        />
+      )}
     </div>
   );
 }

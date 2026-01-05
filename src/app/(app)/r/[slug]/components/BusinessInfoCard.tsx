@@ -9,7 +9,9 @@ import React from 'react';
 import Image from 'next/image';
 import { getFontClass } from '../utils/fontUtils';
 import RecentReviewsButton from '../../../components/RecentReviewsButton';
+import FunFactsButton from './FunFactsButton';
 import { applyCardTransparency } from '@/utils/colorUtils';
+import { FunFact } from '@/types/funFacts';
 
 interface BusinessProfile {
   business_name?: string;
@@ -17,6 +19,7 @@ interface BusinessProfile {
   primary_font?: string;
   secondary_font?: string;
   primary_color?: string;
+  secondary_color?: string;
   card_bg?: string;
   card_text?: string;
   card_transparency?: number;
@@ -36,9 +39,20 @@ interface BusinessInfoCardProps {
   reviewType?: string;
   promptPage?: any; // Add prompt page data for employee-specific logic
   onOpenRecentReviews?: () => void; // Callback to open recent reviews modal
+  funFacts?: FunFact[]; // Fun facts to display
+  funFactsEnabled?: boolean; // Whether fun facts are enabled
+  onOpenFunFacts?: () => void; // Callback to open fun facts modal
 }
 
-export default function BusinessInfoCard({ businessProfile, reviewType, promptPage, onOpenRecentReviews }: BusinessInfoCardProps) {
+export default function BusinessInfoCard({
+  businessProfile,
+  reviewType,
+  promptPage,
+  onOpenRecentReviews,
+  funFacts = [],
+  funFactsEnabled = false,
+  onOpenFunFacts
+}: BusinessInfoCardProps) {
   // For service pages, only show City, State. For location pages, show full address
   const shouldShowFullAddress = reviewType === 'location' || reviewType === 'universal';
   
@@ -172,6 +186,21 @@ export default function BusinessInfoCard({ businessProfile, reviewType, promptPa
           )
         )}
       </div>
+
+      {/* Fun Facts Button - Positioned at bottom-left */}
+      {funFactsEnabled && funFacts.length > 0 && onOpenFunFacts && (
+        <div className="absolute bottom-4 left-4 sm:bottom-4 sm:left-4" style={{
+          bottom: 'calc(1rem - 6px)',
+          left: 'calc(1rem - 6px)',
+        }}>
+          <FunFactsButton
+            facts={funFacts}
+            enabled={funFactsEnabled}
+            businessProfile={businessProfile}
+            onOpenModal={onOpenFunFacts}
+          />
+        </div>
+      )}
 
       {/* Recent Reviews Button - Positioned separately at bottom-right */}
       {promptPage?.id && promptPage?.recent_reviews_enabled && onOpenRecentReviews && (

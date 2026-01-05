@@ -42,6 +42,8 @@ interface UniversalPromptFormState {
   friendly_note: string;
   kickstarters_enabled: boolean;
   selected_kickstarters: string[];
+  fun_facts_enabled: boolean;
+  selected_fun_facts: string[];
   recent_reviews_enabled: boolean;
   recent_reviews_scope: 'current_page' | 'all_pages';
   keywords?: string[];
@@ -231,6 +233,10 @@ export default function UniversalEditPromptPage() {
           selected_kickstarters: universalPage?.selected_kickstarters ??
             (Array.isArray(businessProfile?.default_selected_kickstarters) ? businessProfile.default_selected_kickstarters : []),
 
+          // Fun facts
+          fun_facts_enabled: universalPage?.fun_facts_enabled ?? false,
+          selected_fun_facts: universalPage?.selected_fun_facts ?? [],
+
           // Business default inheritance for recent reviews features
           recent_reviews_enabled: universalPage?.recent_reviews_enabled ?? businessProfile?.default_recent_reviews_enabled ?? false,
           recent_reviews_scope: universalPage?.recent_reviews_scope || businessProfile?.default_recent_reviews_scope || 'current_page',
@@ -372,6 +378,8 @@ export default function UniversalEditPromptPage() {
         friendly_note: formState.friendly_note,
         kickstarters_enabled: formState.kickstarters_enabled,
         selected_kickstarters: formState.selected_kickstarters,
+        fun_facts_enabled: formState.fun_facts_enabled,
+        selected_fun_facts: formState.selected_fun_facts,
         recent_reviews_enabled: formState.recent_reviews_enabled,
         recent_reviews_scope: formState.recent_reviews_scope,
         keywords: formState.keywords,
@@ -414,6 +422,8 @@ export default function UniversalEditPromptPage() {
         friendly_note: formState.friendly_note,
         kickstarters_enabled: formState.kickstarters_enabled,
         selected_kickstarters: formState.selected_kickstarters,
+        fun_facts_enabled: formState.fun_facts_enabled,
+        selected_fun_facts: formState.selected_fun_facts,
         recent_reviews_enabled: formState.recent_reviews_enabled,
         recent_reviews_scope: formState.recent_reviews_scope,
         keywords: formState.keywords,

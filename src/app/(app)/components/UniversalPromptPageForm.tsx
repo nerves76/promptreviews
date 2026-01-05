@@ -28,6 +28,7 @@ import {
   MotivationalNudgeFeature,
   RoleFieldFeature,
   SuggestedPhrasesFeature,
+  FunFactsFeature,
   type ReviewPlatform
 } from "./prompt-features";
 import { generateContextualReview } from "@/utils/aiReviewGeneration";
@@ -110,10 +111,15 @@ export default function UniversalPromptPageForm({
     friendly_note: initialData?.friendly_note || businessProfile?.default_friendly_note || "",
     
     kickstarters_enabled: initialData?.kickstarters_enabled ?? businessProfile?.default_kickstarters_enabled ?? false,
-    selected_kickstarters: Array.isArray(initialData?.selected_kickstarters) 
-      ? initialData.selected_kickstarters 
+    selected_kickstarters: Array.isArray(initialData?.selected_kickstarters)
+      ? initialData.selected_kickstarters
       : (Array.isArray(businessProfile?.default_selected_kickstarters) ? businessProfile.default_selected_kickstarters : []),
-    
+
+    fun_facts_enabled: initialData?.fun_facts_enabled ?? false,
+    selected_fun_facts: Array.isArray(initialData?.selected_fun_facts)
+      ? initialData.selected_fun_facts
+      : [],
+
     recent_reviews_enabled: initialData?.recent_reviews_enabled ?? businessProfile?.default_recent_reviews_enabled ?? false,
     recent_reviews_scope: initialData?.recent_reviews_scope || businessProfile?.default_recent_reviews_scope || 'current_page',
 
@@ -552,6 +558,22 @@ export default function UniversalPromptPageForm({
         businessProfile={businessProfile}
         initialData={initialData}
         editMode={true}
+        accountId={businessProfile?.account_id}
+      />
+
+      {/* Fun Facts Feature */}
+      <FunFactsFeature
+        enabled={formData.fun_facts_enabled}
+        selectedFactIds={formData.selected_fun_facts}
+        allFacts={businessProfile?.fun_facts || []}
+        businessName={businessProfile?.name || businessProfile?.business_name || "Business Name"}
+        onEnabledChange={(enabled) => {
+          setFormData((prev: any) => ({ ...prev, fun_facts_enabled: enabled }));
+        }}
+        onSelectedChange={(factIds) => {
+          setFormData((prev: any) => ({ ...prev, selected_fun_facts: factIds }));
+        }}
+        onFactsChange={() => { /* Handled by API */ }}
         accountId={businessProfile?.account_id}
       />
 

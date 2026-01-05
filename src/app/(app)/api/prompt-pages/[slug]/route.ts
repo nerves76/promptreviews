@@ -114,7 +114,10 @@ function filterBusinessProfile(business: any) {
     industry: business.industry,
     industry_other: business.industry_other,
     ai_dos: business.ai_dos,
-    ai_donts: business.ai_donts
+    ai_donts: business.ai_donts,
+
+    // Fun facts (public display feature)
+    fun_facts: business.fun_facts
 
     // EXCLUDED SENSITIVE FIELDS:
     // - business_email, signup_email (email addresses)

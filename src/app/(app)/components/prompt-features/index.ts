@@ -17,6 +17,8 @@ export { default as KeywordInspirationFeature } from './KeywordInspirationFeatur
 export { default as MotivationalNudgeFeature } from './MotivationalNudgeFeature';
 export { default as RoleFieldFeature } from './RoleFieldFeature';
 export { default as SuggestedPhrasesFeature } from './SuggestedPhrasesFeature';
+export { default as FunFactsFeature } from './FunFactsFeature';
+export { default as FunFactsManagementModal } from './FunFactsManagementModal';
 
 // Export types
 export type { PersonalizedNoteFeatureProps } from './PersonalizedNoteFeature';
@@ -29,4 +31,5 @@ export type { KickstartersFeatureProps, Kickstarter } from './KickstartersFeatur
 export type { KeywordInspirationFeatureProps } from './KeywordInspirationFeature';
 export type { MotivationalNudgeFeatureProps } from './MotivationalNudgeFeature';
 export type { RoleFieldFeatureProps } from './RoleFieldFeature';
-export type { SuggestedPhrasesFeatureProps } from './SuggestedPhrasesFeature'; 
+export type { SuggestedPhrasesFeatureProps } from './SuggestedPhrasesFeature';
+export type { FunFactsFeatureProps } from './FunFactsFeature'; 

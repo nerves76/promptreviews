@@ -53,8 +53,11 @@ const RecentReviewsModal = dynamic(() => import("@/app/(app)/components/RecentRe
 const KeywordInspirationModal = dynamic(() => import("@/app/(app)/components/KeywordInspirationModal"), {
   ssr: false
 });
-const StyleModalPage = dynamic(() => import("../../dashboard/style/StyleModalPage"), { 
-  ssr: false 
+const FunFactsModal = dynamic(() => import("@/app/(app)/components/FunFactsModal"), {
+  ssr: false
+});
+const StyleModalPage = dynamic(() => import("../../dashboard/style/StyleModalPage"), {
+  ssr: false
 });
 
 // ⚡ PERFORMANCE: Convert heavy components to dynamic imports
@@ -84,6 +87,7 @@ import { getPlatformIcon, splitName, sendAnalyticsEvent, isOffWhiteOrCream } fro
 import { sentimentOptions } from "./utils/sentimentConfig";
 import { getAttributionData, flattenAttributionForApi, AttributionData } from "./utils/attributionTracking";
 import { EMOJI_SENTIMENT_ICONS } from "@/app/(app)/components/prompt-modules/emojiSentimentConfig";
+import { FunFact } from "@/types/funFacts";
 
 interface StyleSettings {
   name: string;
@@ -304,6 +308,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
   const [photoReviewerRole, setPhotoReviewerRole] = useState("");
   const [showSentimentModal, setShowSentimentModal] = useState(false);
   const [showRecentReviewsModal, setShowRecentReviewsModal] = useState(false);
+  const [showFunFactsModal, setShowFunFactsModal] = useState(false);
   const [showKeywordInspirationModal, setShowKeywordInspirationModal] = useState(false);
   const [keywordInspirationPlatformIndex, setKeywordInspirationPlatformIndex] = useState<number>(0);
   const [unifiedKeywords, setUnifiedKeywords] = useState<string[]>([]);
@@ -1681,6 +1686,23 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
       : !!promptPage?.falling_icon;
   const mergedFallingIcon = promptPage?.falling_icon || "star";
 
+  // Helper function to get fun facts to display
+  // Uses page-level selection if available, otherwise falls back to all business facts
+  const getFunFactsToDisplay = (): FunFact[] => {
+    const allFacts: FunFact[] = businessProfile?.fun_facts || [];
+    const selectedIds: string[] = promptPage?.selected_fun_facts || null;
+
+    // If page has explicit selection, filter to only those
+    if (selectedIds !== null && Array.isArray(selectedIds)) {
+      return allFacts
+        .filter((fact) => selectedIds.includes(fact.id))
+        .slice(0, 10);
+    }
+
+    // Otherwise return all facts (up to 10)
+    return allFacts.slice(0, 10);
+  };
+
   // Only compute these after promptPage and businessProfile are loaded
   const showOffer = mergedOfferEnabled;
   const offerTitle = mergedOfferTitle;
@@ -2184,6 +2206,9 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                 reviewType={promptPage?.review_type}
                 promptPage={promptPage}
                 onOpenRecentReviews={() => setShowRecentReviewsModal(true)}
+                funFacts={getFunFactsToDisplay()}
+                funFactsEnabled={promptPage?.fun_facts_enabled || false}
+                onOpenFunFacts={() => setShowFunFactsModal(true)}
               />
               {/* Product Module for Product Pages */}
               <ProductModule
@@ -3429,6 +3454,16 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
           isOpen={showRecentReviewsModal}
           onClose={() => setShowRecentReviewsModal(false)}
           promptPageId={promptPage.id}
+          businessProfile={businessProfile}
+        />
+      )}
+
+      {/* Fun Facts Modal */}
+      {showFunFactsModal && (
+        <FunFactsModal
+          isOpen={showFunFactsModal}
+          onClose={() => setShowFunFactsModal(false)}
+          facts={getFunFactsToDisplay()}
           businessProfile={businessProfile}
         />
       )}

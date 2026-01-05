@@ -36,7 +36,7 @@ export const REVIEWS_SECTION: NavSection = {
     {
       path: "/prompt-pages",
       label: "Prompt Pages",
-      icon: "FaFileAlt",
+      icon: "prompty",
       description: "Create review collection pages",
     },
     {
@@ -100,7 +100,7 @@ export const GOOGLE_BUSINESS_SECTION: NavSection = {
       path: "/dashboard/rss-feeds",
       label: "RSS feeds",
       icon: "FaRss",
-      description: "Auto-post from RSS to GBP & Bluesky",
+      description: "Auto post from RSS to GBP, LinkedIn, and Blue Sky.",
       requiresBusiness: true,
     },
   ],
@@ -117,9 +117,9 @@ export const SEO_VISIBILITY_SECTION: NavSection = {
   items: [
     {
       path: "/dashboard/keywords",
-      label: "Keywords",
+      label: "Keyword Concepts",
       icon: "FaKey",
-      description: "Manage keyword concepts",
+      description: "Manage your keyword library.",
       requiresBusiness: true,
     },
     {
@@ -131,9 +131,9 @@ export const SEO_VISIBILITY_SECTION: NavSection = {
     },
     {
       path: "/dashboard/keywords/llm-visibility",
-      label: "LLM visibility",
+      label: "AI Search",
       icon: "FaSparkles",
-      description: "Track AI search visibility",
+      description: "Track LLM visibility",
       requiresBusiness: true,
     },
     {
@@ -141,6 +141,13 @@ export const SEO_VISIBILITY_SECTION: NavSection = {
       label: "Research",
       icon: "FaSearch",
       description: "Keywords, domains, backlinks",
+      requiresBusiness: true,
+    },
+    {
+      path: "/dashboard/rank-tracking",
+      label: "Rank tracking",
+      icon: "FaChartLine",
+      description: "Track rankings in Google",
       requiresBusiness: true,
     },
   ],

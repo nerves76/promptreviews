@@ -25,8 +25,10 @@ import {
   KeywordInspirationFeature,
   MotivationalNudgeFeature,
   RoleFieldFeature,
-  SuggestedPhrasesFeature
+  SuggestedPhrasesFeature,
+  FunFactsFeature
 } from "./prompt-features";
+import { FunFact } from "@/types/funFacts";
 import { useFallingStars } from "@/hooks/useFallingStars";
 import { Input } from "@/app/(app)/components/ui/input";
 import { Textarea } from "@/app/(app)/components/ui/textarea";
@@ -121,6 +123,8 @@ export default function ServicePromptPageForm({
       falling_icon_color: initialData?.falling_icon_color || "#fbbf24",
       kickstarters_enabled: initialData?.kickstarters_enabled ?? false,
       selected_kickstarters: Array.isArray(initialData?.selected_kickstarters) ? initialData.selected_kickstarters : [],
+      fun_facts_enabled: initialData?.fun_facts_enabled ?? false,
+      selected_fun_facts: Array.isArray(initialData?.selected_fun_facts) ? initialData.selected_fun_facts : [],
       recent_reviews_enabled: initialData?.recent_reviews_enabled ?? false,
       // Handle both snake_case and camelCase for recent_reviews_scope
       recent_reviews_scope: initialData?.recent_reviews_scope || initialData?.recentReviewsScope || "current_page",
@@ -426,6 +430,9 @@ export default function ServicePromptPageForm({
           // Explicitly include kickstarters fields to ensure they're saved
           kickstarters_enabled: formData.kickstarters_enabled,
           selected_kickstarters: formData.selected_kickstarters,
+          // Fun Facts fields
+          fun_facts_enabled: formData.fun_facts_enabled,
+          selected_fun_facts: formData.selected_fun_facts,
           // Explicitly include keyword inspiration fields
           keyword_inspiration_enabled: formData.keyword_inspiration_enabled,
           selected_keyword_inspirations: formData.selected_keyword_inspirations,
@@ -801,6 +808,18 @@ export default function ServicePromptPageForm({
             selected_kickstarters: initialData?.selected_kickstarters,
           }}
           editMode={true}
+          accountId={businessProfile?.account_id}
+        />
+
+        {/* Fun Facts Section */}
+        <FunFactsFeature
+          enabled={formData.fun_facts_enabled}
+          selectedFactIds={formData.selected_fun_facts}
+          allFacts={businessProfile?.fun_facts || []}
+          businessName={businessProfile?.name || businessProfile?.business_name || "Business Name"}
+          onEnabledChange={(enabled) => updateFormData('fun_facts_enabled', enabled)}
+          onSelectedChange={(factIds) => updateFormData('selected_fun_facts', factIds)}
+          onFactsChange={() => { /* Handled by API */ }}
           accountId={businessProfile?.account_id}
         />
 
