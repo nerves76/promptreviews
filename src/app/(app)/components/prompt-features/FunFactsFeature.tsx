@@ -164,7 +164,7 @@ export default function FunFactsFeature({
         <div className="space-y-4">
           {/* Explanatory copy */}
           <p className="text-sm text-gray-600">
-            Share what makes your business unique. Fun facts appear as a button on your review page, letting customers learn more about you before writing their review. Great for highlighting years in business, team size, awards, or anything memorable.
+            Fun facts appear as a button on your Prompt Page. Use this feature to share additional details that may help your customers with their review. Example: highlight terminology unique to your business or share things like years in business, number of employees, awards, etc.
           </p>
 
           {/* Manage Button */}
