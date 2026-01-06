@@ -33,6 +33,10 @@ const featuresWeHave: Feature[] = [
     icon: 'FaGoogle'
   },
   {
+    text: 'AI search visibility tracking',
+    icon: 'FaEye'
+  },
+  {
     text: 'Google Maps ranking grid',
     icon: 'FaMapMarker'
   },
