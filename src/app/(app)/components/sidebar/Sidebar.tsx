@@ -141,7 +141,7 @@ export function Sidebar({
   if (!isHydrated) {
     return (
       <aside
-        className="hidden md:flex flex-col min-h-screen sticky top-0 w-64 bg-slate-800"
+        className="hidden md:flex flex-col h-screen w-64 bg-slate-800"
         style={{ backgroundColor: "#1e293b" }}
       />
     );
@@ -150,7 +150,7 @@ export function Sidebar({
   return (
     <aside
       className={`
-        hidden md:flex flex-col min-h-screen sticky top-0
+        hidden md:flex flex-col h-screen
         border-r border-white/20
         transition-all duration-300 ease-in-out
         bg-slate-800

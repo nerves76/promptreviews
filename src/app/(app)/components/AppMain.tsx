@@ -39,17 +39,17 @@ export default function AppMain({
     return <main>{children}</main>;
   }
   return (
-    <div className="min-h-screen flex bg-transparent">
-      {/* Sidebar - full height, desktop only */}
+    <div className="h-screen flex bg-transparent overflow-hidden">
+      {/* Sidebar - full height, desktop only, independent scroll */}
       {showSidebar && <Sidebar />}
 
       {/* Main column: Header + Content */}
-      <div className="flex-1 flex flex-col min-w-0 bg-transparent">
-        {/* Header */}
+      <div className="flex-1 flex flex-col min-w-0 bg-transparent overflow-hidden">
+        {/* Header - fixed at top */}
         {!isAuth && <Header />}
 
-        {/* Main content */}
-        <main className="flex-1 bg-transparent">
+        {/* Main content - scrolls independently */}
+        <main className="flex-1 bg-transparent overflow-y-auto">
           {loader}
           {children}
         </main>
