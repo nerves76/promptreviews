@@ -267,7 +267,7 @@ export function GeoGridTrendCard({
       </div>
 
       {/* API Cost (for admin visibility) */}
-      {summary.totalApiCostUsd && summary.totalApiCostUsd > 0 && (
+      {(summary.totalApiCostUsd ?? 0) > 0 && (
         <div className="mt-4 pt-4 border-t border-gray-200">
           <p className="text-xs text-gray-500">
             API cost: ${summary.totalApiCostUsd.toFixed(4)}
