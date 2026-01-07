@@ -63,25 +63,40 @@ export default function FeedbackBubble() {
         }}
         aria-label="Help & Support"
       >
-        {/* Light sweep animation on page navigation */}
+        {/* Animated light sweep on page navigation */}
         {showShimmer && (
-          <div
-            className="absolute inset-[-2px] rounded-full pointer-events-none"
-            style={{
-              animation: 'light-sweep 1.2s ease-in-out forwards',
-            }}
+          <svg
+            className="absolute inset-[-4px] w-[calc(100%+8px)] h-[calc(100%+8px)] pointer-events-none"
+            viewBox="0 0 64 64"
+            style={{ transform: 'rotate(-90deg)' }}
           >
-            <div
-              className="absolute w-2 h-2 rounded-full"
+            <defs>
+              <filter id="glow" x="-200%" y="-200%" width="500%" height="500%">
+                <feGaussianBlur stdDeviation="8" result="coloredBlur"/>
+                <feMerge>
+                  <feMergeNode in="coloredBlur"/>
+                  <feMergeNode in="coloredBlur"/>
+                  <feMergeNode in="coloredBlur"/>
+                  <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+              </filter>
+            </defs>
+            {/* Single glowing trace */}
+            <circle
+              cx="32"
+              cy="32"
+              r="30"
+              fill="none"
+              stroke="rgba(255,255,255,0.35)"
+              strokeWidth="1"
+              strokeLinecap="round"
+              filter="url(#glow)"
               style={{
-                background: 'radial-gradient(circle, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.2) 50%, transparent 100%)',
-                top: '0px',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                filter: 'blur(0.5px)',
+                strokeDasharray: '20 168',
+                animation: 'light-trace 2.5s linear forwards',
               }}
             />
-          </div>
+          </svg>
         )}
         <div className="w-[34px] h-[34px] rounded-full bg-white/40 flex items-center justify-center drop-shadow-sm transition-all duration-200 group-hover:bg-white/60">
           <span className="text-slate-700 text-[22px] font-semibold leading-none">?</span>

@@ -160,7 +160,7 @@ export const BOTTOM_NAV_ITEMS: NavItem[] = [
   {
     path: "/dashboard/analytics",
     label: "Analytics",
-    icon: "FaChartLine",
+    icon: "FaChartBar",
     description: "View performance metrics",
     requiresBusiness: true,
   },
