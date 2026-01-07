@@ -9,7 +9,7 @@ import Icon from "@/components/Icon";
 import { getAccountIdForUser } from "@/auth/utils/accounts";
 import { isAdmin } from "@/utils/admin";
 import { EMOJI_SENTIMENT_LABELS, EMOJI_SENTIMENT_ICONS } from "@/app/(app)/components/prompt-modules/emojiSentimentConfig";
-import PageCard from "@/app/(app)/components/PageCard";
+import PageCard, { PageCardHeader } from "@/app/(app)/components/PageCard";
 import StandardLoader from "@/app/(app)/components/StandardLoader";
 import {
   BarChart,
@@ -528,14 +528,12 @@ export default function AnalyticsPage() {
   }
 
   return (
-          <PageCard icon={<Icon name="FaChartLine" className="w-9 h-9 text-slate-blue" size={36} />}>
-      <div className="flex items-center justify-between mt-2 mb-8">
-        <div className="flex flex-col mt-0 md:mt-[-2px]">
-          <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">
-            Analytics
-          </h1>
-        </div>
-      </div>
+          <PageCard icon={<Icon name="FaChartBar" className="w-9 h-9 text-slate-blue" size={36} />}>
+      <PageCardHeader
+        title="Analytics"
+        variant="large"
+        marginBottom="mb-4"
+      />
 
       <div className="mb-8 flex flex-col md:flex-row md:items-center gap-4">
         <label className="text-base font-semibold text-gray-700">

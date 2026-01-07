@@ -16,7 +16,7 @@ import { isAdmin } from "@/utils/admin";
 import BusinessProfileForm from "../components/BusinessProfileForm";
 import DashboardCard from "../components/DashboardCard";
 import PageLoader from "@/app/(app)/components/PageLoader";
-import PageCard from "@/app/(app)/components/PageCard";
+import PageCard, { PageCardHeader } from "@/app/(app)/components/PageCard";
 import imageCompression from 'browser-image-compression';
 import { trackEvent, GA_EVENTS } from "@/utils/analytics";
 import { markTaskAsCompleted } from "@/utils/onboardingTasks";
@@ -1109,31 +1109,22 @@ export default function BusinessProfilePage() {
         {!hasBeenSaved && <ImportFromWebsite onImport={handleWebsiteImport} />}
 
         <PageCard icon={<Icon name="FaStore" className="w-9 h-9 text-slate-blue" size={36} />}>
-      
-      <div className="flex items-start justify-between mt-2 mb-4">
-        <div className="flex flex-col mt-0 md:mt-[3px]">
-          <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">
-            Your business
-          </h1>
-          <p className="text-gray-600 text-base max-w-md mt-0 mb-10">
-            Fill out your business info to help Prompty AI generate authentic reviews. Refine your answers over time to get even better reviews.
-          </p>
-        </div>
-        <div
-          className="flex items-start pr-4 md:pr-6"
-          style={{ alignSelf: "flex-start" }}
-        >
+
+      <PageCardHeader
+        title="Your business"
+        description="Fill out your business info to help Prompty AI generate authentic reviews. Refine your answers over time to get even better reviews."
+        variant="large"
+        actions={
           <button
             type="submit"
             form="business-profile-form"
             disabled={isSubmitting}
             className="py-2 px-6 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-slate-blue hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{ marginTop: "0.25rem" }}
           >
             {isSubmitting ? "Saving..." : "Save"}
           </button>
-        </div>
-      </div>
+        }
+      />
 
       {/* Top error and success messages */}
       {error && (

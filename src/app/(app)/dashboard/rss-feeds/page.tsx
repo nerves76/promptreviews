@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import PageCard from "@/app/(app)/components/PageCard";
+import PageCard, { PageCardHeader } from "@/app/(app)/components/PageCard";
 import Icon from "@/components/Icon";
 import HelpModal from "@/app/(app)/components/help/HelpModal";
 import { useAuthGuard } from "@/utils/authGuard";
@@ -237,12 +237,12 @@ export default function RssFeedsPage() {
           </div>
         }
       >
-        <h1 className="text-2xl font-bold text-slate-blue mb-2">
-          RSS feed automation
-        </h1>
-        <p className="text-gray-600 mb-4">
-          Automatically post content from your blog, podcasts, Reddit, YouTube and more to your Google Profile and Bluesky.
-        </p>
+        <PageCardHeader
+          title="RSS feed automation"
+          description="Automatically post content from your blog, podcasts, Reddit, YouTube and more to your Google Profile and Bluesky."
+          variant="default"
+          marginBottom="mb-4"
+        />
 
         <button
           onClick={() => setShowFeedUrlHelp(true)}

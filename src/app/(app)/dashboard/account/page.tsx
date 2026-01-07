@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { createClient, getUserOrMock } from "@/auth/providers/supabase";
 import { useRouter } from "next/navigation";
 import Icon from "@/components/Icon";
-import PageCard from "@/app/(app)/components/PageCard";
+import PageCard, { PageCardHeader } from "@/app/(app)/components/PageCard";
 import PageLoader from "@/app/(app)/components/PageLoader";
 import { trackEvent, GA_EVENTS } from "@/utils/analytics";
 import { useAuth } from "@/auth";
@@ -449,11 +449,10 @@ export default function AccountPage() {
   return (
     <div className="min-h-screen flex justify-center items-start px-4 sm:px-0">
       <PageCard icon={<CowboyIcon />}>
-      {/* Page Title */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Account</h1>
-        <p className="text-gray-600 mt-1">Manage your account settings and preferences</p>
-      </div>
+      <PageCardHeader
+        title="Account"
+        description="Manage your account settings and preferences"
+      />
 
       {/* Success/Error Messages */}
       {resetPasswordMessage && (
