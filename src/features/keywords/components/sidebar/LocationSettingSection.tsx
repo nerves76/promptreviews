@@ -155,7 +155,7 @@ export function LocationSettingSection({
 
       {/* Collapsible content */}
       {!isCollapsed && (
-        <div className="px-5 pt-5 pb-5">
+        <div className="px-5 py-5 border-t border-gray-100">
           <p className="text-xs text-gray-500 mb-3">
             Set a default location for volume and rank checks on this keyword.
           </p>

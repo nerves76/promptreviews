@@ -164,7 +164,7 @@ export function ReviewsEditSection({
 
       {/* Collapsible content */}
       {!isCollapsed && (
-        <div className="p-5 space-y-5">
+        <div className="p-5 space-y-5 border-t border-gray-100">
         {/* Review Phrase */}
         <div>
           <label className="text-sm font-medium text-gray-700 block mb-1">

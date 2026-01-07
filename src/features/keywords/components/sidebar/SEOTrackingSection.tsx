@@ -289,7 +289,7 @@ export function SEOTrackingSection({
 
       {/* Collapsible content */}
       {!isCollapsed && (
-        <div className="px-5 pt-5 pb-5 space-y-5">
+        <div className="px-5 py-5 space-y-5 border-t border-gray-100">
         {/* Search Terms */}
         <div>
           <label className="text-sm font-medium text-gray-700 block mb-1">Search terms</label>
