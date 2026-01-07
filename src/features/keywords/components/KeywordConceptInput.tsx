@@ -42,6 +42,8 @@ interface KeywordConceptInputProps {
   businessLocationName?: string | null;
   placeholder?: string;
   className?: string;
+  /** Optional button to render next to the Add concept button */
+  generateButton?: React.ReactNode;
 }
 
 /**
@@ -64,6 +66,7 @@ export default function KeywordConceptInput({
   businessLocationName,
   placeholder = "Name this concept (e.g., Green eggs and ham)",
   className = "",
+  generateButton,
 }: KeywordConceptInputProps) {
   // Form visibility
   const [showForm, setShowForm] = useState(false);
@@ -404,7 +407,7 @@ export default function KeywordConceptInput({
   // Show "Add concept" button when form is closed
   if (!showForm) {
     return (
-      <div className={className}>
+      <div className={`flex items-center gap-3 ${className}`}>
         <button
           onClick={() => setShowForm(true)}
           className="px-4 py-2 bg-slate-blue text-white rounded-lg text-sm font-medium hover:bg-slate-blue/90 flex items-center gap-2"
@@ -414,6 +417,7 @@ export default function KeywordConceptInput({
           </svg>
           Add concept
         </button>
+        {generateButton}
       </div>
     );
   }
