@@ -66,13 +66,13 @@ export default function FeedbackBubble() {
         {/* Animated light sweep on page navigation */}
         {showShimmer && (
           <svg
-            className="absolute inset-[-4px] w-[calc(100%+8px)] h-[calc(100%+8px)] pointer-events-none"
-            viewBox="0 0 64 64"
+            className="absolute inset-0 w-full h-full pointer-events-none"
+            viewBox="0 0 56 56"
             style={{ transform: 'rotate(-90deg)' }}
           >
             <defs>
               <filter id="glow" x="-200%" y="-200%" width="500%" height="500%">
-                <feGaussianBlur stdDeviation="8" result="coloredBlur"/>
+                <feGaussianBlur stdDeviation="6" result="coloredBlur"/>
                 <feMerge>
                   <feMergeNode in="coloredBlur"/>
                   <feMergeNode in="coloredBlur"/>
@@ -83,17 +83,17 @@ export default function FeedbackBubble() {
             </defs>
             {/* Single glowing trace */}
             <circle
-              cx="32"
-              cy="32"
-              r="30"
+              cx="28"
+              cy="28"
+              r="27"
               fill="none"
-              stroke="rgba(255,255,255,0.35)"
+              stroke="rgba(255,255,255,0.6)"
               strokeWidth="1"
               strokeLinecap="round"
               filter="url(#glow)"
               style={{
-                strokeDasharray: '20 168',
-                animation: 'light-trace 2.5s linear forwards',
+                strokeDasharray: '17 153',
+                animation: 'light-trace 1.3s linear forwards',
               }}
             />
           </svg>

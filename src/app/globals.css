@@ -528,7 +528,7 @@ body:has(.fixed.inset-0) {
 /* Light sweep animation for help button - draws around the circle and fades */
 @keyframes light-trace {
   0% {
-    stroke-dashoffset: 188;
+    stroke-dashoffset: 170;
     opacity: 0;
   }
   15% {
@@ -544,7 +544,7 @@ body:has(.fixed.inset-0) {
     opacity: 0.1;
   }
   100% {
-    stroke-dashoffset: -188;
+    stroke-dashoffset: 4;
     opacity: 0;
   }
 }
