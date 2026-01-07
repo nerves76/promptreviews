@@ -73,6 +73,14 @@ interface GeoGridData {
   summary: GeoGridSummary | null;
 }
 
+/** Schedule status data */
+interface ScheduleStatusData {
+  isScheduled: boolean;
+  frequency: 'daily' | 'weekly' | 'monthly' | null;
+  isEnabled: boolean;
+  nextScheduledAt: string | null;
+}
+
 /** Enrichment data from batch-enrich API */
 interface EnrichmentResponse {
   enrichment: Record<string, {
@@ -81,6 +89,7 @@ interface EnrichmentResponse {
       locationName: string | null;
       summary: GeoGridSummary | null;
     } | null;
+    scheduleStatus?: ScheduleStatusData | null;
   }>;
 }
 
@@ -94,6 +103,7 @@ export default function RankTrackingPage() {
   const [researchResults, setResearchResults] = useState<ResearchResult[]>([]);
   const [rankChecks, setRankChecks] = useState<RankCheck[]>([]);
   const [gridDataMap, setGridDataMap] = useState<Map<string, GeoGridData>>(new Map());
+  const [scheduleDataMap, setScheduleDataMap] = useState<Map<string, ScheduleStatusData>>(new Map());
 
   // Track which keyword is currently being checked (for button loading state)
   const [checkingRankKeyword, setCheckingRankKeyword] = useState<string | null>(null);
@@ -206,8 +216,8 @@ export default function RankTrackingPage() {
     }
   }, []);
 
-  // Fetch grid data for concepts using batch-enrich API
-  const fetchGridData = useCallback(async (keywordIds: string[]) => {
+  // Fetch grid data and schedule status for concepts using batch-enrich API
+  const fetchEnrichmentData = useCallback(async (keywordIds: string[]) => {
     if (keywordIds.length === 0) return;
 
     try {
@@ -216,14 +226,9 @@ export default function RankTrackingPage() {
       });
 
       const newGridData = new Map<string, GeoGridData>();
-      const enrichment = response.enrichment as Record<string, {
-        geoGridStatus: {
-          isTracked: boolean;
-          locationName: string | null;
-          summary: GeoGridSummary | null;
-        } | null;
-      }>;
-      for (const [keywordId, data] of Object.entries(enrichment)) {
+      const newScheduleData = new Map<string, ScheduleStatusData>();
+
+      for (const [keywordId, data] of Object.entries(response.enrichment)) {
         if (data.geoGridStatus) {
           newGridData.set(keywordId, {
             isTracked: data.geoGridStatus.isTracked,
@@ -231,10 +236,14 @@ export default function RankTrackingPage() {
             summary: data.geoGridStatus.summary,
           });
         }
+        if (data.scheduleStatus) {
+          newScheduleData.set(keywordId, data.scheduleStatus);
+        }
       }
       setGridDataMap(newGridData);
+      setScheduleDataMap(newScheduleData);
     } catch (err) {
-      console.error('Failed to fetch grid data:', err);
+      console.error('Failed to fetch enrichment data:', err);
     }
   }, []);
 
@@ -244,6 +253,7 @@ export default function RankTrackingPage() {
     setResearchResults([]);
     setRankChecks([]);
     setGridDataMap(new Map());
+    setScheduleDataMap(new Map());
 
     if (selectedAccountId) {
       fetchResearchResults();
@@ -277,17 +287,13 @@ export default function RankTrackingPage() {
   }, [selectedAccountId, fetchResearchResults, fetchRankChecks]);
 
   // Fetch grid data when concepts are loaded
+  // Fetch enrichment data (grid status + schedule status) for all concepts
   useEffect(() => {
     if (concepts.length > 0) {
-      // Only fetch grid data for concepts that are used in geo grid
-      const gridKeywordIds = concepts
-        .filter(c => c.isUsedInGeoGrid)
-        .map(c => c.id);
-      if (gridKeywordIds.length > 0) {
-        fetchGridData(gridKeywordIds);
-      }
+      const keywordIds = concepts.map(c => c.id);
+      fetchEnrichmentData(keywordIds);
     }
-  }, [concepts, fetchGridData]);
+  }, [concepts, fetchEnrichmentData]);
 
   // Build term volume data map
   const volumeData = useMemo(() => {
@@ -646,6 +652,7 @@ export default function RankTrackingPage() {
           volumeData={volumeData}
           rankData={rankData}
           gridData={gridDataMap}
+          scheduleData={scheduleDataMap}
           onConceptClick={handleConceptClick}
           onCheckRank={handleCheckRank}
           onCheckVolume={handleCheckVolume}

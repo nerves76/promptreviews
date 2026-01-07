@@ -48,6 +48,14 @@ interface GeoGridData {
   summary: GeoGridSummary | null;
 }
 
+/** Schedule status data for a concept */
+interface ScheduleStatusData {
+  isScheduled: boolean;
+  frequency: 'daily' | 'weekly' | 'monthly' | null;
+  isEnabled: boolean;
+  nextScheduledAt: string | null;
+}
+
 /** History data point for chart */
 interface RankHistoryDataPoint {
   date: string;
@@ -70,6 +78,7 @@ interface ConceptsTableProps {
   volumeData?: Map<string, VolumeData>;
   rankData?: Map<string, RankData>;
   gridData?: Map<string, GeoGridData>;
+  scheduleData?: Map<string, ScheduleStatusData>;
   onConceptClick?: (concept: KeywordData) => void;
   onCheckRank?: (keyword: string, conceptId: string) => void;
   onCheckVolume?: (keyword: string, conceptId: string) => void;
@@ -99,6 +108,10 @@ interface KeywordRow {
   gridPointsInTop10: number | null;
   gridTotalPoints: number | null;
   gridLocation: string | null;
+  // Schedule data (at concept level)
+  isScheduled: boolean;
+  scheduleFrequency: string | null;
+  scheduleEnabled: boolean;
 }
 
 // ============================================
@@ -171,6 +184,7 @@ export default function ConceptsTable({
   volumeData,
   rankData,
   gridData,
+  scheduleData,
   onConceptClick,
   onCheckRank,
   onCheckVolume,
@@ -261,6 +275,8 @@ export default function ConceptsTable({
 
       // Get grid data for this concept (grid tracking is at concept level)
       const conceptGrid = gridData?.get(concept.id);
+      // Get schedule data for this concept
+      const conceptSchedule = scheduleData?.get(concept.id);
 
       if (concept.searchTerms && concept.searchTerms.length > 0) {
         // Add a row for each search term
@@ -285,6 +301,9 @@ export default function ConceptsTable({
             gridPointsInTop10: conceptGrid?.summary?.pointsInTop10 ?? null,
             gridTotalPoints: conceptGrid?.summary?.totalPoints ?? null,
             gridLocation: conceptGrid?.locationName ?? null,
+            isScheduled: conceptSchedule?.isScheduled ?? false,
+            scheduleFrequency: conceptSchedule?.frequency ?? null,
+            scheduleEnabled: conceptSchedule?.isEnabled ?? false,
           });
         });
       } else {
@@ -309,12 +328,15 @@ export default function ConceptsTable({
           gridPointsInTop10: conceptGrid?.summary?.pointsInTop10 ?? null,
           gridTotalPoints: conceptGrid?.summary?.totalPoints ?? null,
           gridLocation: conceptGrid?.locationName ?? null,
+          isScheduled: conceptSchedule?.isScheduled ?? false,
+          scheduleFrequency: conceptSchedule?.frequency ?? null,
+          scheduleEnabled: conceptSchedule?.isEnabled ?? false,
         });
       }
     });
 
     return allRows;
-  }, [concepts, volumeData, rankData, gridData, normalizeTermForLookup]);
+  }, [concepts, volumeData, rankData, gridData, scheduleData, normalizeTermForLookup]);
 
   // Sort rows
   const sortedRows = useMemo(() => {
@@ -512,6 +534,19 @@ export default function ConceptsTable({
                     onClick={() => onConceptClick?.(row.concept)}
                   >
                     <span>{row.keyword}</span>
+                    {row.isScheduled && row.scheduleFrequency && (
+                      <span
+                        className={`px-1.5 py-0.5 text-[10px] font-medium rounded flex items-center gap-0.5 flex-shrink-0 ${
+                          row.scheduleEnabled
+                            ? 'bg-green-100 text-green-700'
+                            : 'bg-gray-100 text-gray-500'
+                        }`}
+                        title={row.scheduleEnabled ? `Scheduled ${row.scheduleFrequency}` : 'Schedule paused'}
+                      >
+                        <Icon name="FaCalendarAlt" className="w-2.5 h-2.5" />
+                        {row.scheduleFrequency.charAt(0).toUpperCase() + row.scheduleFrequency.slice(1)}
+                      </span>
+                    )}
                     <span className="w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center invisible group-hover/row:visible flex-shrink-0 mt-0.5">
                       <Icon
                         name="FaChevronRight"
