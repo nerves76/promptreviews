@@ -414,15 +414,23 @@ export default function ConceptsTable({
 
   return (
     <div className="overflow-x-auto -mx-6">
-      <table className="w-full min-w-[970px]">
+      <table className="w-full min-w-[1000px]">
         {/* Column widths: Keyword, Concept, Volume, Rank, Change, Grid, Actions */}
-        <colgroup><col style={{ minWidth: '280px' }} /><col style={{ minWidth: '120px' }} /><col style={{ minWidth: '90px' }} /><col style={{ minWidth: '110px' }} /><col style={{ minWidth: '70px' }} /><col style={{ minWidth: '80px' }} /><col style={{ minWidth: '220px' }} /></colgroup>
+        <colgroup>
+          <col style={{ width: '30%', minWidth: '250px' }} />
+          <col style={{ width: '18%', minWidth: '160px' }} />
+          <col style={{ width: '10%', minWidth: '80px' }} />
+          <col style={{ width: '12%', minWidth: '100px' }} />
+          <col style={{ width: '8%', minWidth: '70px' }} />
+          <col style={{ width: '8%', minWidth: '70px' }} />
+          <col style={{ width: '14%', minWidth: '200px' }} />
+        </colgroup>
         <thead>
           <tr className="border-b border-gray-200">
             <th className="text-left py-3 pl-4 pr-4">
               <button
                 onClick={() => handleSort('keyword')}
-                className="flex items-center gap-1.5 text-sm font-semibold text-gray-700 hover:text-gray-900"
+                className="flex items-center gap-1.5 text-sm font-semibold text-gray-700 hover:text-gray-900 ml-5"
               >
                 Keyword
                 <SortIcon field="keyword" />
@@ -476,38 +484,48 @@ export default function ConceptsTable({
           {paginatedRows.map((row, index) => (
             <React.Fragment key={`${row.concept.id}-${row.keyword}-${index}`}>
             <tr
-              className={`border-b border-gray-100 hover:bg-white transition-colors ${
+              className={`group/row border-b border-gray-100 hover:bg-white transition-colors ${
                 expandedRowKey === `${row.concept.id}::${row.keyword}` ? 'bg-blue-50' : ''
               }`}
             >
               <td className="py-3 pl-4 pr-4">
-                <div className="flex items-center gap-3">
-                  <span className="w-4 flex-shrink-0 flex items-center justify-center">
-                    {(row.desktopChecked || row.mobileChecked) && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleToggleHistory(`${row.concept.id}::${row.keyword}`, row.concept.id, e);
-                        }}
-                        className="text-gray-500 hover:text-gray-600 transition-colors"
-                      >
-                        <Icon
-                          name={expandedRowKey === `${row.concept.id}::${row.keyword}` ? 'FaChevronDown' : 'FaChevronRight'}
-                          className="w-3 h-3"
-                        />
-                      </button>
-                    )}
-                  </span>
-                  <span
-                    className="text-sm font-medium text-gray-900 cursor-pointer hover:text-slate-blue"
+                <div className="flex items-center gap-2">
+                  {(row.desktopChecked || row.mobileChecked) ? (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleToggleHistory(`${row.concept.id}::${row.keyword}`, row.concept.id, e);
+                      }}
+                      className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
+                      title="Show rank history"
+                    >
+                      <Icon
+                        name={expandedRowKey === `${row.concept.id}::${row.keyword}` ? 'FaChevronDown' : 'FaChevronRight'}
+                        className="w-3 h-3"
+                      />
+                    </button>
+                  ) : (
+                    <span className="w-3 flex-shrink-0" />
+                  )}
+                  <button
+                    className="text-sm font-medium text-gray-900 cursor-pointer hover:text-slate-blue text-left inline-flex items-start gap-1.5 group"
                     onClick={() => onConceptClick?.(row.concept)}
                   >
-                    {row.keyword}
-                  </span>
+                    <span>{row.keyword}</span>
+                    <span className="w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center invisible group-hover/row:visible flex-shrink-0 mt-0.5">
+                      <Icon
+                        name="FaChevronRight"
+                        className="w-2.5 h-2.5 text-gray-500"
+                      />
+                    </span>
+                  </button>
                 </div>
               </td>
               <td className="py-3 px-4">
-                <span className="text-xs text-gray-500 leading-snug">
+                <span
+                  className="text-xs text-gray-500 block truncate max-w-[160px]"
+                  title={row.concept.name || undefined}
+                >
                   {row.concept.name || '—'}
                 </span>
               </td>

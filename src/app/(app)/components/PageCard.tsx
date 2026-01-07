@@ -1,6 +1,76 @@
 import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 
+/**
+ * PageCardHeader - Standardized header for PageCard content
+ *
+ * Usage:
+ *   <PageCard icon={...}>
+ *     <PageCardHeader
+ *       title="Page title"
+ *       description="Optional description text"
+ *       actions={<Button>Action</Button>}
+ *     />
+ *     {/* rest of content *\/}
+ *   </PageCard>
+ *
+ * Features:
+ * - Responsive: stacks vertically on mobile, horizontal row on md+ (768px)
+ * - Actions stay on one line and don't shrink
+ * - Consistent typography and spacing
+ * - Supports both h1 (standalone pages) and h2 (sub-pages) variants
+ */
+interface PageCardHeaderProps {
+  /** Main title text (required) */
+  title: string;
+  /** Optional description below title */
+  description?: string;
+  /** Optional action buttons/elements on the right */
+  actions?: React.ReactNode;
+  /** Additional className for the container */
+  className?: string;
+  /** Whether to add top margin for icon clearance (default: true) */
+  iconClearance?: boolean;
+  /** Size variant - "default" uses h2/text-2xl, "large" uses h1/text-4xl */
+  variant?: "default" | "large";
+  /** Bottom margin for the container (default: "mb-6") */
+  marginBottom?: string;
+}
+
+export function PageCardHeader({
+  title,
+  description,
+  actions,
+  className = "",
+  iconClearance = true,
+  variant = "default",
+  marginBottom = "mb-6",
+}: PageCardHeaderProps) {
+  const isLarge = variant === "large";
+  const HeadingTag = isLarge ? "h1" : "h2";
+  const headingSize = isLarge ? "text-4xl" : "text-2xl";
+
+  return (
+    <div className={`flex flex-col md:flex-row md:items-start md:justify-between ${marginBottom} w-full gap-4 ${className}`}>
+      <div className="flex flex-col min-w-0">
+        <HeadingTag className={`${headingSize} font-bold text-slate-blue mb-2 ${iconClearance ? 'mt-4' : ''}`}>
+          {title}
+        </HeadingTag>
+        {description && (
+          <p className="text-gray-600 text-base">
+            {description}
+          </p>
+        )}
+      </div>
+      {actions && (
+        <div className="flex items-center gap-3 flex-shrink-0">
+          {actions}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /*
  * USAGE INSTRUCTION:
  *
@@ -91,7 +161,7 @@ const PageCard = React.memo(function PageCard({
   return (
     <div className={`w-full mx-auto px-4 sm:px-6 md:px-8 lg:px-12 ${topMargin} mb-16 flex justify-center items-start`}>
       <div
-        className={`page relative w-full max-w-[1000px] rounded-2xl bg-white/90 shadow-2xl border-2 border-white pt-4 px-4 md:px-8 lg:px-12 pb-8 ${className}`}
+        className={`page relative w-full max-w-[1280px] rounded-2xl bg-white/90 shadow-2xl border-2 border-white pt-4 px-4 md:px-8 lg:px-12 pb-8 ${className}`}
         style={{ overflow: "visible" }} // Restore to visible for icon breaching
       >
         {icon && (

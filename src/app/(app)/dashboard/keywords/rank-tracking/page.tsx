@@ -9,7 +9,7 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import PageCard from '@/app/(app)/components/PageCard';
+import PageCard, { PageCardHeader } from '@/app/(app)/components/PageCard';
 import Icon from '@/components/Icon';
 import { CheckRankModal, CheckVolumeModal, ConceptsTable, AddKeywordConceptModal } from '@/features/rank-tracking/components';
 import { useKeywords, useKeywordDetails } from '@/features/keywords/hooks/useKeywords';
@@ -642,38 +642,35 @@ export default function RankTrackingPage() {
       {/* Content in PageCard */}
       <PageCard
         icon={<Icon name="FaChartLine" className="w-8 h-8 text-slate-blue" size={32} />}
-        topMargin="mt-8"
+        topMargin="mt-16"
         className="!px-4 md:!px-4 lg:!px-6"
       >
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-6 w-full gap-2">
-          <div className="flex flex-col">
-            <h2 className="text-2xl font-bold text-slate-blue mt-4 mb-2">Rank tracking</h2>
-            <p className="text-gray-600 text-base max-w-md">
-              Monitor your Google search rankings across desktop and mobile devices.
-            </p>
-          </div>
-          {/* Actions */}
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setShowAddModal(true)}
-              className="px-4 py-2 text-sm font-medium text-white bg-slate-blue rounded-lg hover:bg-slate-blue/90 flex items-center gap-2 transition-colors"
-            >
-              <Icon name="FaPlus" className="w-4 h-4" />
-              Keyword
-            </button>
-            <div className="relative w-64">
-              <Icon name="FaSearch" className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search keywords..."
-                className="w-full pl-10 pr-4 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-slate-blue/50 focus:border-slate-blue/30 transition-all"
-              />
-            </div>
-          </div>
-        </div>
+        <PageCardHeader
+          title="Rank tracking"
+          description="Monitor your Google search rankings across desktop and mobile devices."
+          actions={
+            <>
+              <button
+                onClick={() => setShowAddModal(true)}
+                className="px-4 py-2 text-sm font-medium text-white bg-slate-blue rounded-lg hover:bg-slate-blue/90 flex items-center gap-2 transition-colors"
+              >
+                <Icon name="FaPlus" className="w-4 h-4" />
+                Keyword
+              </button>
+              <div className="relative w-48 md:w-64">
+                <Icon name="FaSearch" className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search keywords..."
+                  className="w-full pl-10 pr-4 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-slate-blue/50 focus:border-slate-blue/30 transition-all"
+                />
+              </div>
+            </>
+          }
+        />
 
         {/* Keywords Table */}
         <ConceptsTable

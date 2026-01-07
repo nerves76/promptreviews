@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, Fragment, useCallback } from 'react';
-import { Transition, Dialog } from '@headlessui/react';
+import { useState, useEffect, useCallback } from 'react';
+import { Dialog } from '@headlessui/react';
 import Icon from '@/components/Icon';
 import {
   type KeywordData,
@@ -28,6 +28,7 @@ import {
   TrackingLocationsSection,
   PromptPagesSection,
   RecentReviewsSection,
+  LocationSettingSection,
   type LLMProvider as SidebarLLMProvider,
 } from './sidebar';
 import { ConceptScheduleSettings } from '@/features/concept-schedule';
@@ -141,12 +142,15 @@ export function KeywordDetailsSidebar({
   // === EDITING STATE ===
   const [isEditingReviews, setIsEditingReviews] = useState(false);
   const [isEditingSEO, setIsEditingSEO] = useState(false);
+  const [isEditingLocation, setIsEditingLocation] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [editedReviewPhrase, setEditedReviewPhrase] = useState(keyword?.reviewPhrase || '');
   const [editedSearchTerms, setEditedSearchTerms] = useState(keyword?.searchTerms || []);
   const [editedAliasesInput, setEditedAliasesInput] = useState((keyword?.aliases || []).join(', '));
   const [editedLocationScope, setEditedLocationScope] = useState(keyword?.locationScope || null);
   const [editedGroupId, setEditedGroupId] = useState<string | null>(keyword?.groupId || null);
+  const [editedLocationCode, setEditedLocationCode] = useState<number | null>(keyword?.searchVolumeLocationCode ?? null);
+  const [editedLocationName, setEditedLocationName] = useState<string | null>(keyword?.searchVolumeLocationName ?? null);
   const [newSearchTerm, setNewSearchTerm] = useState('');
   const [relevanceWarning, setRelevanceWarning] = useState<{
     term: string;
@@ -156,7 +160,7 @@ export function KeywordDetailsSidebar({
   const [volumeLookupError, setVolumeLookupError] = useState<string | null>(null);
   const [isLookingUpVolume, setIsLookingUpVolume] = useState(false);
 
-  const isAnyEditing = isEditingReviews || isEditingSEO;
+  const isAnyEditing = isEditingReviews || isEditingSEO || isEditingLocation;
   const questionLLMMap = buildQuestionLLMMap(llmResults);
 
   // === EFFECTS ===
@@ -176,9 +180,12 @@ export function KeywordDetailsSidebar({
       setEditedAliasesInput((keyword.aliases || []).join(', '));
       setEditedLocationScope(keyword.locationScope);
       setEditedGroupId(keyword.groupId);
+      setEditedLocationCode(keyword.searchVolumeLocationCode ?? null);
+      setEditedLocationName(keyword.searchVolumeLocationName ?? null);
       resetQuestions(keyword.relatedQuestions || []);
       setIsEditingReviews(false);
       setIsEditingSEO(false);
+      setIsEditingLocation(false);
       setNewSearchTerm('');
       setRelevanceWarning(null);
       resetEnrichment();
@@ -241,6 +248,35 @@ export function KeywordDetailsSidebar({
     resetEnrichment();
     setNewSearchTerm('');
     setRelevanceWarning(null);
+  };
+
+  const handleLocationChange = (location: { code: number; name: string } | null) => {
+    setEditedLocationCode(location?.code ?? null);
+    setEditedLocationName(location?.name ?? null);
+  };
+
+  const handleCancelLocation = () => {
+    if (!keyword) return;
+    setEditedLocationCode(keyword.searchVolumeLocationCode ?? null);
+    setEditedLocationName(keyword.searchVolumeLocationName ?? null);
+    setIsEditingLocation(false);
+  };
+
+  const handleSaveLocation = async () => {
+    if (!keyword) return;
+    setIsSaving(true);
+    try {
+      await onUpdate(keyword.id, {
+        searchVolumeLocationCode: editedLocationCode,
+        searchVolumeLocationName: editedLocationName,
+      });
+      if (onRefresh) await onRefresh();
+      setIsEditingLocation(false);
+    } catch (error) {
+      console.error('Failed to save location:', error);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleAddQuestion = () => {
@@ -372,40 +408,32 @@ export function KeywordDetailsSidebar({
 
   // === RENDER ===
   return (
-    <Transition.Root show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-50" onClose={onClose}>
-        <Transition.Child
-          as={Fragment}
-          enter="ease-in-out duration-300"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="ease-in-out duration-300"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
-        >
-          <div className="fixed inset-0 transition-opacity" />
-        </Transition.Child>
+    <>
+      {/* Backdrop - rendered outside Dialog for smooth animation */}
+      <div
+        className={`fixed inset-0 bg-black/20 z-40 transition-opacity duration-300 ease-in-out ${
+          isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        }`}
+        onClick={onClose}
+        aria-hidden="true"
+      />
 
-        <div className="fixed inset-0 overflow-hidden">
-          <div className="absolute inset-0 overflow-hidden">
-            <div className="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-10">
-              <Transition.Child
-                as={Fragment}
-                enter="transform transition ease-in-out duration-300"
-                enterFrom="translate-x-full"
-                enterTo="translate-x-0"
-                leave="transform transition ease-in-out duration-300"
-                leaveFrom="translate-x-0"
-                leaveTo="translate-x-full"
-              >
-                <Dialog.Panel className="pointer-events-auto w-screen max-w-md h-full">
-                  <div className="h-full flex flex-col backdrop-blur-xl shadow-2xl">
+      {/* Sliding panel */}
+      <div
+        className={`fixed inset-y-0 right-0 z-50 w-full max-w-md transition-transform duration-300 ease-in-out ${
+          isOpen ? 'translate-x-0' : 'translate-x-full'
+        }`}
+      >
+        {/* Dialog wrapper for accessibility (focus trap, escape key) - only active when open */}
+        <Dialog open={isOpen} onClose={onClose} className="relative" static>
+          <Dialog.Panel className="h-full backdrop-blur-xl shadow-2xl">
+              <div className="h-full flex flex-col">
                     <div className="flex-1 overflow-y-auto p-6">
                       {/* Close button */}
                       <div className="flex justify-end mb-2">
                         <button
                           onClick={onClose}
-                          className="p-1.5 text-gray-500 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                          className="p-1.5 text-white hover:text-white/80 hover:bg-white/10 rounded-lg transition-colors"
                           aria-label="Close sidebar"
                         >
                           <Icon name="FaTimes" className="w-5 h-5" />
@@ -423,6 +451,7 @@ export function KeywordDetailsSidebar({
                             onSave={async () => {
                               if (isEditingReviews) await handleSaveReviews();
                               if (isEditingSEO) await handleSaveSEO();
+                              if (isEditingLocation) await handleSaveLocation();
                             }}
                           />
 
@@ -449,6 +478,18 @@ export function KeywordDetailsSidebar({
                             maxQuestions={20}
                             onAddQuestion={handleAddDiscoveredQuestion}
                             existingQuestions={keyword.relatedQuestions}
+                          />
+
+                          {/* Location Setting */}
+                          <LocationSettingSection
+                            locationCode={editedLocationCode}
+                            locationName={editedLocationName}
+                            onLocationChange={handleLocationChange}
+                            isEditing={isEditingLocation}
+                            isSaving={isSaving}
+                            onStartEditing={() => setIsEditingLocation(true)}
+                            onSave={handleSaveLocation}
+                            onCancel={handleCancelLocation}
                           />
 
                           {/* AI Generate button */}
@@ -605,6 +646,7 @@ export function KeywordDetailsSidebar({
                                 onClick={async () => {
                                   if (isEditingReviews) await handleSaveReviews();
                                   if (isEditingSEO) await handleSaveSEO();
+                                  if (isEditingLocation) await handleSaveLocation();
                                 }}
                                 disabled={isSaving}
                                 className="w-full py-2.5 text-sm font-medium text-white bg-slate-blue rounded-lg hover:bg-slate-blue/90 disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg"
@@ -616,15 +658,12 @@ export function KeywordDetailsSidebar({
                           )}
                         </div>
                       )}
-                    </div>
                   </div>
-                </Dialog.Panel>
-              </Transition.Child>
-            </div>
-          </div>
-        </div>
-      </Dialog>
-    </Transition.Root>
+                </div>
+          </Dialog.Panel>
+        </Dialog>
+      </div>
+    </>
   );
 }
 

@@ -100,6 +100,7 @@ background: linear-gradient(to bottom, #527DE7, #7864C8, #914AAE);
 - ❌ Never use `text-gray-400` for readable text (fails WCAG)
 - ❌ Never use `text-white/50` or lower for readable text
 - ❌ Never create new custom colors - use existing palette
+- ❌ Never use `bg-purple-50` for buttons/interactive elements (too light, appears white)
 
 ## ⚠️ IMPORTANT: Modal Component
 
@@ -253,7 +254,6 @@ PromptReviews is a review management platform that allows businesses to collect,
 
 ### Email Services
 - **Resend:** Transactional email service
-- **Mailgun:** Alternative email service (via mailgun.js)
 - Email templates stored in database
 
 ### Analytics & Monitoring

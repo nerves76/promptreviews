@@ -31,3 +31,7 @@ export {
   type RecentReviewsSectionProps,
   type RecentReview,
 } from './RecentReviewsSection';
+export {
+  LocationSettingSection,
+  type LocationSettingProps,
+} from './LocationSettingSection';

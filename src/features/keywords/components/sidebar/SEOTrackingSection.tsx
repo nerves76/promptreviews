@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Icon from '@/components/Icon';
 import { type KeywordData, type SearchTerm, type RelatedQuestion, type FunnelStage, type ResearchResultData } from '../../keywordUtils';
@@ -122,6 +123,8 @@ export interface SEOTrackingSectionProps {
   expandedQuestionIndex: number | null;
   /** Callback to toggle question expansion */
   onToggleQuestionExpand: (index: number | null) => void;
+  /** Whether section is initially collapsed (default: false) */
+  defaultCollapsed?: boolean;
 }
 
 /**
@@ -215,51 +218,78 @@ export function SEOTrackingSection({
   llmError,
   expandedQuestionIndex,
   onToggleQuestionExpand,
+  defaultCollapsed = false,
 }: SEOTrackingSectionProps) {
   const searchTermsAtLimit = editedSearchTerms.length >= MAX_SEARCH_TERMS;
   const questionsAtLimit = editedQuestions.length >= MAX_QUESTIONS;
+  const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
+
+  // Expand when editing starts
+  useEffect(() => {
+    if (isEditing) {
+      setIsCollapsed(false);
+    }
+  }, [isEditing]);
 
   // Get display questions (edited if editing, otherwise from keyword)
   const displayQuestions = isEditing ? editedQuestions : keyword.relatedQuestions;
 
   return (
-    <div className="p-5 bg-white/60 backdrop-blur-sm border border-gray-100/50 rounded-xl">
-      {/* Section header */}
-      <div className="flex items-center justify-between mb-4">
+    <div className="bg-white/60 backdrop-blur-sm border border-gray-200 rounded-xl overflow-hidden">
+      {/* Section header - clickable to collapse */}
+      <div
+        className="flex items-center justify-between p-5 cursor-pointer select-none"
+        onClick={() => !isEditing && setIsCollapsed(!isCollapsed)}
+      >
         <div className="flex items-center gap-2">
           <Icon name="FaChartLine" className="w-5 h-5 text-slate-blue" />
           <span className="text-lg font-semibold text-gray-800">SEO & LLM tracking</span>
         </div>
-        {!isEditing ? (
-          <button
-            onClick={onStartEditing}
-            className="p-1.5 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
-            title="Edit SEO section"
-            aria-label="Edit SEO section"
-          >
-            <Icon name="FaEdit" className="w-4 h-4" />
-          </button>
-        ) : (
-          <div className="flex items-center gap-2">
-            <button
-              onClick={onCancel}
-              className="px-2.5 py-1 text-xs font-medium text-gray-600 hover:text-gray-800 rounded-lg transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={onSave}
-              disabled={isSaving}
-              className="px-2.5 py-1 text-xs font-medium text-white bg-slate-blue rounded-lg hover:bg-slate-blue/90 disabled:opacity-50 flex items-center gap-1"
-            >
-              {isSaving && <Icon name="FaSpinner" className="w-2.5 h-2.5 animate-spin" />}
-              Save
-            </button>
-          </div>
-        )}
+        <div className="flex items-center gap-2">
+          {!isEditing ? (
+            <>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onStartEditing();
+                }}
+                className="p-1.5 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+                title="Edit SEO section"
+                aria-label="Edit SEO section"
+              >
+                <Icon name="FaEdit" className="w-4 h-4" />
+              </button>
+              <Icon
+                name="FaChevronDown"
+                className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${
+                  isCollapsed ? '' : 'rotate-180'
+                }`}
+              />
+            </>
+          ) : (
+            <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+              <button
+                onClick={onCancel}
+                className="px-2.5 py-1 text-xs font-medium text-gray-600 hover:text-gray-800 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={onSave}
+                disabled={isSaving}
+                className="px-2.5 py-1 text-xs font-medium text-white bg-slate-blue rounded-lg hover:bg-slate-blue/90 disabled:opacity-50 flex items-center gap-1"
+              >
+                {isSaving && <Icon name="FaSpinner" className="w-2.5 h-2.5 animate-spin" />}
+                Save
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
-      <div className="space-y-5">
+      {/* Collapsible content */}
+      {!isCollapsed && (
+        <div className="px-5 pt-5 pb-5 space-y-5">
         {/* Search Terms */}
         <div>
           <label className="text-sm font-medium text-gray-700 block mb-1">Search terms</label>
@@ -524,7 +554,8 @@ export function SEOTrackingSection({
             <p className="text-xs text-amber-600">Maximum of {MAX_QUESTIONS} questions reached</p>
           )}
         </div>
-      </div>
+        </div>
+      )}
     </div>
   );
 }

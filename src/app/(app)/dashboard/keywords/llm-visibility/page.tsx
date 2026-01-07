@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import PageCard from '@/app/(app)/components/PageCard';
+import PageCard, { PageCardHeader } from '@/app/(app)/components/PageCard';
 import Icon from '@/components/Icon';
 import { apiClient } from '@/utils/apiClient';
 import { useAccountData } from '@/auth/hooks/granularAuthHooks';
@@ -533,26 +533,22 @@ export default function LLMVisibilityPage() {
       {/* Content in PageCard */}
       <PageCard
         icon={<Icon name="FaSparkles" className="w-8 h-8 text-slate-blue" size={32} />}
-        topMargin="mt-8"
+        topMargin="mt-16"
       >
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-6 w-full gap-2">
-          <div className="flex flex-col">
-            <h2 className="text-2xl font-bold text-slate-blue mb-2">LLM visibility</h2>
-            <p className="text-gray-600 text-base max-w-md">
-              Track whether AI assistants cite your domain or mention your brand when answering questions.
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
+        <PageCardHeader
+          title="LLM visibility"
+          description="Track whether AI assistants cite your domain or mention your brand when answering questions."
+          actions={
             <Link
               href="/dashboard/keywords"
-              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-purple-600 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-slate-blue hover:bg-slate-blue/90 rounded-lg transition-colors"
             >
               <Icon name="FaPlus" className="w-4 h-4" />
               Add concept
             </Link>
-          </div>
-        </div>
+          }
+        />
 
         {/* Error Message */}
         {error && (

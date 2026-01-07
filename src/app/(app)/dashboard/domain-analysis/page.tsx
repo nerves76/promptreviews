@@ -11,7 +11,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiClient } from '@/utils/apiClient';
 import { useAuth } from '@/auth';
-import PageCard from '@/app/(app)/components/PageCard';
+import PageCard, { PageCardHeader } from '@/app/(app)/components/PageCard';
 import StandardLoader from '@/app/(app)/components/StandardLoader';
 import Icon from '@/components/Icon';
 import { useToast, ToastContainer } from '@/app/(app)/components/reviews/Toast';
@@ -392,16 +392,13 @@ export default function DomainAnalysisPage() {
     <div className="min-h-screen flex justify-center items-start px-4 sm:px-0">
       <PageCard icon={<Icon name="FaGlobe" className="w-8 h-8 text-slate-blue" size={32} />}>
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-6 w-full gap-2">
-          <div className="flex flex-col mt-0 md:mt-[3px]">
-            <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">
-              Domain analysis
-            </h1>
-            <p className="text-gray-600 text-base max-w-md mt-0 mb-6">
-              Analyze any domain's technology stack, registration details, and SEO metrics.
-            </p>
-          </div>
-        </div>
+        <PageCardHeader
+          title="Domain analysis"
+          description="Analyze any domain's technology stack, registration details, and SEO metrics."
+          variant="large"
+          iconClearance={false}
+          marginBottom="mb-8"
+        />
 
         {/* Input Section */}
         <div className="bg-white rounded-xl border-2 border-gray-200 shadow-lg p-6 mb-8">

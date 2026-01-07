@@ -144,7 +144,7 @@ export const SEO_VISIBILITY_SECTION: NavSection = {
       requiresBusiness: true,
     },
     {
-      path: "/dashboard/rank-tracking",
+      path: "/dashboard/keywords/rank-tracking",
       label: "Rank tracking",
       icon: "FaChartLine",
       description: "Track rankings in Google",

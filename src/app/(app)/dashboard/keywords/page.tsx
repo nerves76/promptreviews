@@ -213,7 +213,7 @@ export default function KeywordsPage() {
       {/* Content in PageCard */}
       <PageCard
         icon={<Icon name="FaKey" className="w-8 h-8 text-slate-blue" size={32} />}
-        topMargin="mt-8"
+        topMargin="mt-16"
       >
         <KeywordManager
           onCheckRank={handleCheckRank}

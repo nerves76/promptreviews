@@ -1,6 +1,6 @@
 'use client';
 
-import PageCard from '@/app/(app)/components/PageCard';
+import PageCard, { PageCardHeader } from '@/app/(app)/components/PageCard';
 import Icon from '@/components/Icon';
 import { useAuthGuard } from '@/utils/authGuard';
 import { useAccountData } from '@/auth/hooks/granularAuthHooks';
@@ -31,12 +31,11 @@ export default function IntegrationsPage() {
       <PageCard
         icon={<Icon name="FaShare" className="w-7 h-7 text-slate-blue" size={28} />}
       >
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-slate-blue mb-2">Integrations</h1>
-          <p className="text-gray-600">
-            Connect your social media accounts to schedule and cross-post content.
-          </p>
-        </div>
+        <PageCardHeader
+          title="Integrations"
+          description="Connect your social media accounts to schedule and cross-post content."
+          iconClearance={false}
+        />
 
         <div className="space-y-6">
           {/* Google Business Profile */}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import PageCard from "@/app/(app)/components/PageCard";
+import PageCard, { PageCardHeader } from "@/app/(app)/components/PageCard";
 import Icon from "@/components/Icon";
 import GlobalOverlayLoader from "@/app/(app)/components/GlobalOverlayLoader";
 import { useAuthGuard } from "@/utils/authGuard";
@@ -289,24 +289,21 @@ export default function SocialPostingPage() {
           />
         }
       >
-        <div className="flex items-start justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-blue mb-2">
-              Post scheduling
-            </h1>
-            <p className="text-gray-600">
-              Manage scheduled posts for Google Business Profile, Bluesky, and LinkedIn.
-            </p>
-          </div>
-          <button
-            onClick={handleCreatePost}
-            disabled={loadingPlatforms}
-            className="flex items-center gap-2 px-4 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-blue/90 transition-colors whitespace-nowrap flex-shrink-0 disabled:opacity-50"
-          >
-            <Icon name="FaPlus" size={14} />
-            Create post
-          </button>
-        </div>
+        <PageCardHeader
+          title="Post scheduling"
+          description="Manage scheduled posts for Google Business Profile, Bluesky, and LinkedIn."
+          iconClearance={false}
+          actions={
+            <button
+              onClick={handleCreatePost}
+              disabled={loadingPlatforms}
+              className="flex items-center gap-2 px-4 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-blue/90 transition-colors whitespace-nowrap disabled:opacity-50"
+            >
+              <Icon name="FaPlus" size={14} />
+              Create post
+            </button>
+          }
+        />
 
         {/* Messages */}
         {error && (
