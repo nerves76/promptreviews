@@ -7,9 +7,8 @@
 'use client';
 
 import { useState, useCallback, useEffect, useMemo } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import PageCard, { PageCardHeader } from '@/app/(app)/components/PageCard';
+import { SubNav } from '@/app/(app)/components/SubNav';
 import Icon from '@/components/Icon';
 import { CheckRankModal, CheckVolumeModal, ConceptsTable, AddKeywordConceptModal } from '@/features/rank-tracking/components';
 import { useKeywords, useKeywordDetails } from '@/features/keywords/hooks/useKeywords';
@@ -86,8 +85,7 @@ interface EnrichmentResponse {
 }
 
 export default function RankTrackingPage() {
-  const pathname = usePathname();
-  // Track selected account to refetch when it changes
+    // Track selected account to refetch when it changes
   const { selectedAccountId } = useAccountData();
   const { business } = useBusinessData();
   const [searchQuery, setSearchQuery] = useState('');
@@ -601,43 +599,13 @@ export default function RankTrackingPage() {
       </div>
 
       {/* Main Tab Navigation (Library | Rank Tracking | LLM Visibility) */}
-      <div className="flex justify-center w-full mt-0 mb-0 z-20 px-4">
-        <div className="flex bg-white/10 backdrop-blur-sm border border-white/30 rounded-full p-1 shadow-lg gap-0">
-          <Link
-            href="/dashboard/keywords"
-            className={`px-6 py-1.5 font-semibold text-sm focus:outline-none transition-all duration-200 rounded-full flex items-center gap-2
-              ${pathname === '/dashboard/keywords'
-                ? 'bg-slate-blue text-white'
-                : 'bg-transparent text-white hover:bg-white/10'}
-            `}
-          >
-            <Icon name="FaKey" className="w-[18px] h-[18px]" size={18} />
-            Library
-          </Link>
-          <Link
-            href="/dashboard/keywords/rank-tracking"
-            className={`px-6 py-1.5 font-semibold text-sm focus:outline-none transition-all duration-200 rounded-full flex items-center gap-2
-              ${pathname.startsWith('/dashboard/keywords/rank-tracking')
-                ? 'bg-slate-blue text-white'
-                : 'bg-transparent text-white hover:bg-white/10'}
-            `}
-          >
-            <Icon name="FaChartLine" className="w-[18px] h-[18px]" size={18} />
-            Rank Tracking
-          </Link>
-          <Link
-            href="/dashboard/keywords/llm-visibility"
-            className={`px-6 py-1.5 font-semibold text-sm focus:outline-none transition-all duration-200 rounded-full flex items-center gap-2
-              ${pathname.startsWith('/dashboard/keywords/llm-visibility')
-                ? 'bg-slate-blue text-white'
-                : 'bg-transparent text-white hover:bg-white/10'}
-            `}
-          >
-            <Icon name="FaSparkles" className="w-[18px] h-[18px]" size={18} />
-            LLM Visibility
-          </Link>
-        </div>
-      </div>
+      <SubNav
+        items={[
+          { label: 'Library', icon: 'FaKey', href: '/dashboard/keywords', matchType: 'exact' },
+          { label: 'Rank Tracking', icon: 'FaChartLine', href: '/dashboard/keywords/rank-tracking', matchType: 'startsWith' },
+          { label: 'LLM Visibility', icon: 'FaSparkles', href: '/dashboard/keywords/llm-visibility', matchType: 'startsWith' },
+        ]}
+      />
 
       {/* Content in PageCard */}
       <PageCard

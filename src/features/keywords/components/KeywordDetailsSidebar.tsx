@@ -421,7 +421,7 @@ export function KeywordDetailsSidebar({
       {/* Sliding panel */}
       <div
         className={`fixed inset-y-0 right-0 z-50 w-full max-w-md transition-transform duration-300 ease-in-out ${
-          isOpen ? 'translate-x-0' : 'translate-x-full'
+          isOpen ? 'translate-x-0' : 'translate-x-full pointer-events-none'
         }`}
       >
         {/* Dialog wrapper for accessibility (focus trap, escape key) - only active when open */}
