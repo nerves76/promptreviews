@@ -503,14 +503,16 @@ export function ConceptCard({
         matchesFound: result.matchesFound,
       });
 
-      // Clear result after 5 seconds
-      setTimeout(() => setCheckReviewsResult(null), 5000);
+      // Update local optimistic data with the new counts from the API response
+      // This avoids needing to call the PATCH endpoint
+      setOptimisticData(prev => ({
+        ...prev,
+        reviewUsageCount: result.exactMatches ?? 0,
+        aliasMatchCount: result.aliasMatches ?? 0,
+      }));
 
-      // Trigger a refresh of the keyword data if onUpdate is available
-      if (onUpdate) {
-        // Re-fetch the keyword to get updated counts
-        onUpdate(keyword.id, {});
-      }
+      // Clear result message after 5 seconds
+      setTimeout(() => setCheckReviewsResult(null), 5000);
     } catch (err) {
       console.error('Failed to check reviews:', err);
     } finally {
