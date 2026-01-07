@@ -36,7 +36,7 @@ export const REVIEWS_SECTION: NavSection = {
     {
       path: "/prompt-pages",
       label: "Prompt Pages",
-      icon: "prompty",
+      icon: "promptPages",
       description: "Create review collection pages",
     },
     {
