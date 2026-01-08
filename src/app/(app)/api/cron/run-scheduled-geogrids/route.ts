@@ -4,7 +4,7 @@
  * Runs every hour to execute scheduled geo-grid rank checks.
  * Queries configs where next_scheduled_at <= NOW() and runs the checks.
  *
- * Security: Uses CRON_SECRET_TOKEN for authorization.
+ * Security: Uses CRON_SECRET for authorization.
  *
  * Flow:
  * 1. Find all configs due to run
@@ -15,8 +15,9 @@
  * 3. Return summary
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { logCronExecution, verifyCronSecret } from '@/lib/cronLogger';
 import { runRankChecks } from '@/features/geo-grid/services/rank-checker';
 import { generateDailySummary } from '@/features/geo-grid/services/summary-aggregator';
 import { transformConfigToResponse } from '@/features/geo-grid/utils/transforms';
@@ -34,29 +35,10 @@ import { sendNotificationToAccount } from '@/utils/notifications';
 const MAX_COST_PER_RUN_USD = 5.0;
 
 export async function GET(request: NextRequest) {
-  const startTime = Date.now();
-  console.log('🔄 [Scheduled GeoGrids] Starting scheduled check job');
+  const authError = verifyCronSecret(request);
+  if (authError) return authError;
 
-  try {
-    // Verify the request is from Vercel cron
-    const authHeader = request.headers.get('authorization');
-    const expectedToken = process.env.CRON_SECRET_TOKEN;
-
-    if (!expectedToken) {
-      return NextResponse.json(
-        { error: 'Cron secret not configured' },
-        { status: 500 }
-      );
-    }
-
-    if (authHeader !== `Bearer ${expectedToken}`) {
-      console.error('❌ [Scheduled GeoGrids] Invalid cron authorization token');
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
+  return logCronExecution('run-scheduled-geogrids', async () => {
     // Create Supabase client with service role key
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -72,11 +54,7 @@ export async function GET(request: NextRequest) {
       .lte('next_scheduled_at', new Date().toISOString());
 
     if (configsError) {
-      console.error('❌ [Scheduled GeoGrids] Failed to fetch configs:', configsError);
-      return NextResponse.json(
-        { error: 'Failed to fetch configurations' },
-        { status: 500 }
-      );
+      throw new Error('Failed to fetch configurations');
     }
 
     console.log(`📋 [Scheduled GeoGrids] Found ${dueConfigs?.length || 0} configs due to run`);
@@ -291,13 +269,8 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const duration = Date.now() - startTime;
-    console.log(`✅ [Scheduled GeoGrids] Job complete in ${duration}ms`);
-    console.log(`   Processed: ${results.processed}, Skipped: ${results.skipped}, Insufficient: ${results.insufficientCredits}, Errors: ${results.errors}`);
-
-    return NextResponse.json({
+    return {
       success: true,
-      duration: `${duration}ms`,
       summary: {
         total: dueConfigs?.length || 0,
         processed: results.processed,
@@ -305,13 +278,6 @@ export async function GET(request: NextRequest) {
         insufficientCredits: results.insufficientCredits,
         errors: results.errors,
       },
-      details: results.details,
-    });
-  } catch (error) {
-    console.error('❌ [Scheduled GeoGrids] Fatal error in cron job:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
+    };
+  });
 }

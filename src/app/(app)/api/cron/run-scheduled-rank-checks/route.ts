@@ -4,7 +4,7 @@
  * Runs every hour to execute scheduled SERP rank checks.
  * Queries groups where next_scheduled_at <= NOW() and runs the checks.
  *
- * Security: Uses CRON_SECRET_TOKEN for authorization.
+ * Security: Uses CRON_SECRET for authorization.
  *
  * Flow:
  * 1. Find all groups due to run
@@ -15,8 +15,9 @@
  * 3. Return summary
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { logCronExecution, verifyCronSecret } from '@/lib/cronLogger';
 import {
   runRankChecks,
   transformGroupToResponse,
@@ -32,29 +33,10 @@ import { sendNotificationToAccount } from '@/utils/notifications';
 import { checkRankForDomain } from '@/features/rank-tracking/api/dataforseo-serp-client';
 
 export async function GET(request: NextRequest) {
-  const startTime = Date.now();
-  console.log('🔄 [Scheduled RankChecks] Starting scheduled check job');
+  const authError = verifyCronSecret(request);
+  if (authError) return authError;
 
-  try {
-    // Verify the request is from Vercel cron
-    const authHeader = request.headers.get('authorization');
-    const expectedToken = process.env.CRON_SECRET_TOKEN;
-
-    if (!expectedToken) {
-      return NextResponse.json(
-        { error: 'Cron secret not configured' },
-        { status: 500 }
-      );
-    }
-
-    if (authHeader !== `Bearer ${expectedToken}`) {
-      console.error('❌ [Scheduled RankChecks] Invalid cron authorization token');
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
+  return logCronExecution('run-scheduled-rank-checks', async () => {
     // Create Supabase client with service role key
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -70,11 +52,7 @@ export async function GET(request: NextRequest) {
       .lte('next_scheduled_at', new Date().toISOString());
 
     if (groupsError) {
-      console.error('❌ [Scheduled RankChecks] Failed to fetch groups:', groupsError);
-      return NextResponse.json(
-        { error: 'Failed to fetch configurations' },
-        { status: 500 }
-      );
+      throw new Error('Failed to fetch configurations');
     }
 
     console.log(`📋 [Scheduled RankChecks] Found ${dueGroups?.length || 0} groups due to run`);
@@ -359,13 +337,8 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const duration = Date.now() - startTime;
-    console.log(`✅ [Scheduled RankChecks] Job complete in ${duration}ms`);
-    console.log(`   Processed: ${results.processed}, Skipped: ${results.skipped}, Insufficient: ${results.insufficientCredits}, Errors: ${results.errors}`);
-
-    return NextResponse.json({
+    return {
       success: true,
-      duration: `${duration}ms`,
       summary: {
         total: dueGroups?.length || 0,
         processed: results.processed,
@@ -373,15 +346,8 @@ export async function GET(request: NextRequest) {
         insufficientCredits: results.insufficientCredits,
         errors: results.errors,
       },
-      details: results.details,
-    });
-  } catch (error) {
-    console.error('❌ [Scheduled RankChecks] Fatal error in cron job:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
+    };
+  });
 }
 
 /**

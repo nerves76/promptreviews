@@ -10,7 +10,7 @@
  * 1. Expire remaining included credits from the current month
  * 2. Grant new monthly included credits based on account tier
  *
- * Security: Uses CRON_SECRET_TOKEN for authorization.
+ * Security: Uses CRON_SECRET for authorization.
  *
  * Credit allocation (in priority order):
  * 1. monthly_credit_allocation (if set) - custom per-account override
@@ -22,8 +22,9 @@
  * 3. Client accounts (is_client_account=true): 100 credits default
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { logCronExecution, verifyCronSecret } from '@/lib/cronLogger';
 import {
   credit,
   getTierCredits,
@@ -31,29 +32,10 @@ import {
 } from '@/lib/credits';
 
 export async function GET(request: NextRequest) {
-  const startTime = Date.now();
-  console.log('🔄 [Monthly Credits] Starting credit refresh job');
+  const authError = verifyCronSecret(request);
+  if (authError) return authError;
 
-  try {
-    // Verify the request is from Vercel cron
-    const authHeader = request.headers.get('authorization');
-    const expectedToken = process.env.CRON_SECRET_TOKEN;
-
-    if (!expectedToken) {
-      return NextResponse.json(
-        { error: 'Cron secret not configured' },
-        { status: 500 }
-      );
-    }
-
-    if (authHeader !== `Bearer ${expectedToken}`) {
-      console.error('❌ [Monthly Credits] Invalid cron authorization token');
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
+  return logCronExecution('refresh-monthly-credits', async () => {
     // Check if today is the last day of the month
     // This cron runs on days 28-31, but we only process on the actual last day
     const now = new Date();
@@ -65,13 +47,13 @@ export async function GET(request: NextRequest) {
     const lastDayOfMonth = new Date(Date.UTC(currentYear, currentMonth + 1, 0)).getUTCDate();
 
     if (today !== lastDayOfMonth) {
-      console.log(`⏭️ [Monthly Credits] Today is ${today}, last day is ${lastDayOfMonth}. Skipping.`);
-      return NextResponse.json({
+      return {
         success: true,
-        skipped: true,
-        reason: `Not the last day of the month (today: ${today}, last: ${lastDayOfMonth})`,
-        duration: `${Date.now() - startTime}ms`,
-      });
+        summary: {
+          skipped: true,
+          reason: `Not the last day of the month (today: ${today}, last: ${lastDayOfMonth})`,
+        },
+      };
     }
 
     console.log(`📅 [Monthly Credits] Today is the last day of the month (${today})`);
@@ -98,11 +80,7 @@ export async function GET(request: NextRequest) {
       .or('and(plan.in.(grower,builder,maven),is_free_account.eq.false),is_client_account.eq.true,monthly_credit_allocation.not.is.null');
 
     if (accountsError) {
-      console.error('❌ [Monthly Credits] Failed to fetch accounts:', accountsError);
-      return NextResponse.json(
-        { error: 'Failed to fetch accounts' },
-        { status: 500 }
-      );
+      throw new Error('Failed to fetch accounts');
     }
 
     console.log(`📋 [Monthly Credits] Found ${accounts?.length || 0} eligible accounts`);
@@ -295,26 +273,14 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const duration = Date.now() - startTime;
-    console.log(`✅ [Monthly Credits] Job complete in ${duration}ms`);
-    console.log(`   Processed: ${results.processed}, Skipped: ${results.skipped}, Errors: ${results.errors}`);
-
-    return NextResponse.json({
+    return {
       success: true,
-      duration: `${duration}ms`,
       summary: {
         total: accounts?.length || 0,
         processed: results.processed,
         skipped: results.skipped,
         errors: results.errors,
       },
-      details: results.details,
-    });
-  } catch (error) {
-    console.error('❌ [Monthly Credits] Fatal error in cron job:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
+    };
+  });
 }

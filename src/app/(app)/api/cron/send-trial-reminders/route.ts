@@ -1,37 +1,23 @@
 /**
  * Cron Job: Send Trial Reminders
- * 
+ *
  * Automatically sends reminder emails to users whose trial expires in 3 days.
  * This endpoint is called by Vercel's cron service daily at 9 AM UTC.
- * 
+ *
  * Security: Uses a secret token to ensure only Vercel can call this endpoint.
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { sendTrialReminderEmail } from '@/utils/emailTemplates';
+import { logCronExecution, verifyCronSecret } from '@/lib/cronLogger';
 
 export async function GET(request: NextRequest) {
-  try {
-    // Verify the request is from Vercel cron
-    const authHeader = request.headers.get('authorization');
-    const expectedToken = process.env.CRON_SECRET_TOKEN;
-    
-    if (!expectedToken) {
-      return NextResponse.json(
-        { error: 'Cron secret not configured' }, 
-        { status: 500 }
-      );
-    }
+  // Verify the request is from Vercel cron
+  const authError = verifyCronSecret(request);
+  if (authError) return authError;
 
-    if (authHeader !== `Bearer ${expectedToken}`) {
-      console.error('Invalid cron authorization token');
-      return NextResponse.json(
-        { error: 'Unauthorized' }, 
-        { status: 401 }
-      );
-    }
-
+  return logCronExecution('send-trial-reminders', async () => {
     // Create Supabase client with service role key for admin access
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -61,13 +47,9 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error('Error fetching accounts for trial reminders:', error);
-      return NextResponse.json(
-        { error: 'Failed to fetch accounts' }, 
-        { status: 500 }
-      );
+      return { success: false, error: 'Failed to fetch accounts' };
     }
 
-    const results = [];
     let successCount = 0;
     let errorCount = 0;
     let skippedCount = 0;
@@ -84,7 +66,7 @@ export async function GET(request: NextRequest) {
         // Check if we've already sent a reminder for this account today
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        
+
         const { data: existingReminders } = await supabase
           .from('trial_reminder_logs')
           .select('id')
@@ -95,12 +77,6 @@ export async function GET(request: NextRequest) {
 
         if (existingReminders && existingReminders.length > 0) {
           skippedCount++;
-          results.push({
-            accountId: account.id,
-            email: profile.email,
-            status: 'skipped',
-            reason: 'Already sent today'
-          });
           continue;
         }
 
@@ -122,27 +98,16 @@ export async function GET(request: NextRequest) {
 
         if (result.success) {
           successCount++;
-          results.push({
-            accountId: account.id,
-            email: profile.email,
-            status: 'sent'
-          });
         } else {
           errorCount++;
-          results.push({
-            accountId: account.id,
-            email: profile.email,
-            status: 'failed',
-            error: result.error
-          });
         }
       } catch (error) {
         errorCount++;
-        
+
         // Handle the profiles array from inner join
         const profile = Array.isArray(account.profiles) ? account.profiles[0] : account.profiles;
         const email = profile?.email || 'unknown';
-        
+
         // Log the error
         await supabase
           .from('trial_reminder_logs')
@@ -153,33 +118,17 @@ export async function GET(request: NextRequest) {
             success: false,
             error_message: error instanceof Error ? error.message : 'Unknown error'
           });
-
-        results.push({
-          accountId: account.id,
-          email: email,
-          status: 'failed',
-          error: error instanceof Error ? error.message : 'Unknown error'
-        });
       }
     }
 
-
-    return NextResponse.json({
-      success: true,
+    return {
+      success: errorCount === 0,
       summary: {
         total: accounts?.length || 0,
         sent: successCount,
         failed: errorCount,
         skipped: skippedCount
-      },
-      results
-    });
-
-  } catch (error) {
-    console.error('Error in trial reminder cron job:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' }, 
-      { status: 500 }
-    );
-  }
-} 
+      }
+    };
+  });
+}

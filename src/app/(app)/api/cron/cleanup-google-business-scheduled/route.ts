@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { createServiceRoleClient } from '@/auth/providers/supabase';
+import { logCronExecution, verifyCronSecret } from '@/lib/cronLogger';
 import type { GoogleBusinessScheduledMediaDescriptor } from '@/features/social-posting';
 
 const RETENTION_DAYS = Number(process.env.GBP_SCHEDULED_RETENTION_DAYS ?? 7);
@@ -10,17 +11,10 @@ function millis(days: number) {
 }
 
 export async function GET(request: NextRequest) {
-  try {
-    const expectedToken = process.env.CRON_SECRET_TOKEN;
-    if (!expectedToken) {
-      return NextResponse.json({ success: false, error: 'Cron secret not configured' }, { status: 500 });
-    }
+  const authError = verifyCronSecret(request);
+  if (authError) return authError;
 
-    const authHeader = request.headers.get('authorization');
-    if (authHeader !== `Bearer ${expectedToken}`) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
-
+  return logCronExecution('cleanup-google-business-scheduled', async () => {
     const supabaseAdmin = createServiceRoleClient();
     const cutoffIso = new Date(Date.now() - millis(RETENTION_DAYS)).toISOString();
 
@@ -34,7 +28,10 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error('[Cleanup] Failed to load posts for cleanup', error);
-      return NextResponse.json({ success: false, error: 'Failed to load posts for cleanup' }, { status: 500 });
+      return {
+        success: false,
+        error: 'Failed to load posts for cleanup',
+      };
     }
 
     let filesDeleted = 0;
@@ -61,13 +58,12 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    return NextResponse.json({
+    return {
       success: true,
-      postsProcessed: posts?.length ?? 0,
-      filesDeleted,
-    });
-  } catch (error) {
-    console.error('[Cleanup] Unexpected error', error);
-    return NextResponse.json({ success: false, error: 'Unexpected cleanup error' }, { status: 500 });
-  }
+      summary: {
+        postsProcessed: posts?.length ?? 0,
+        filesDeleted,
+      },
+    };
+  });
 }

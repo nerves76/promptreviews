@@ -5,14 +5,15 @@
  * Purpose: Poll RSS feeds and create scheduled posts for new items
  *
  * Flow:
- * 1. Authenticate with CRON_SECRET_TOKEN
+ * 1. Authenticate with CRON_SECRET
  * 2. Get feeds due for polling
  * 3. Process each feed (with rate limiting)
  * 4. Return summary with counts and errors
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { createServiceRoleClient } from '@/auth/providers/supabase';
+import { logCronExecution, verifyCronSecret } from '@/lib/cronLogger';
 import {
   processFeed,
   getFeedsDueForPolling,
@@ -31,55 +32,31 @@ function sleep(ms: number): Promise<void> {
 }
 
 export async function GET(request: NextRequest) {
-  const startTime = Date.now();
+  const authError = verifyCronSecret(request);
+  if (authError) return authError;
 
-  // Authenticate with cron secret
-  const authHeader = request.headers.get('authorization');
-  const expectedToken = process.env.CRON_SECRET_TOKEN || process.env.CRON_SECRET;
+  return logCronExecution('process-rss-feeds', async () => {
+    const result: ProcessAllFeedsResult = {
+      processed: 0,
+      skipped: 0,
+      errors: 0,
+      results: [],
+    };
 
-  if (!expectedToken) {
-    console.error('[RSS Cron] CRON_SECRET_TOKEN not configured');
-    return NextResponse.json(
-      { error: 'Server configuration error' },
-      { status: 500 }
-    );
-  }
-
-  if (authHeader !== `Bearer ${expectedToken}`) {
-    console.warn('[RSS Cron] Unauthorized request');
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
-  console.log('🔄 [RSS Cron] Starting RSS feed processing...');
-
-  const result: ProcessAllFeedsResult = {
-    processed: 0,
-    skipped: 0,
-    errors: 0,
-    results: [],
-  };
-
-  try {
     const supabase = createServiceRoleClient();
 
     // Get feeds that are due for polling
     const feedsDue = await getFeedsDueForPolling(supabase, MAX_FEEDS_PER_RUN);
-    console.log(`📋 [RSS Cron] Found ${feedsDue.length} feeds due for polling`);
 
     if (feedsDue.length === 0) {
-      console.log('✅ [RSS Cron] No feeds to process');
-      return NextResponse.json({
+      return {
         success: true,
-        message: 'No feeds due for processing',
-        duration: `${Date.now() - startTime}ms`,
-        ...result,
-      });
+        summary: { message: 'No feeds due for processing', ...result },
+      };
     }
 
     // Process each feed
     for (const feedSource of feedsDue) {
-      console.log(`🔄 [RSS Cron] Processing feed: ${feedSource.feedName}`);
-
       try {
         const feedResult = await processFeed(supabase, feedSource);
         result.results.push(feedResult);
@@ -88,20 +65,8 @@ export async function GET(request: NextRequest) {
         if (feedResult.errors.length > 0) {
           result.errors++;
         }
-
-        console.log(
-          `✅ [RSS Cron] Feed "${feedSource.feedName}": ` +
-            `discovered=${feedResult.itemsDiscovered}, ` +
-            `scheduled=${feedResult.itemsScheduled}, ` +
-            `skipped=${feedResult.itemsSkipped}, ` +
-            `failed=${feedResult.itemsFailed}`
-        );
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Unknown error';
-        console.error(
-          `❌ [RSS Cron] Failed to process feed "${feedSource.feedName}":`,
-          message
-        );
 
         result.errors++;
         result.results.push({
@@ -121,31 +86,15 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const duration = Date.now() - startTime;
-    console.log(
-      `✅ [RSS Cron] Completed: processed=${result.processed}, ` +
-        `errors=${result.errors}, duration=${duration}ms`
-    );
-
-    return NextResponse.json({
+    return {
       success: true,
-      duration: `${duration}ms`,
-      ...result,
-    });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    console.error('❌ [RSS Cron] Fatal error:', message);
-
-    return NextResponse.json(
-      {
-        success: false,
-        error: message,
-        duration: `${Date.now() - startTime}ms`,
-        ...result,
+      summary: {
+        processed: result.processed,
+        skipped: result.skipped,
+        errors: result.errors,
       },
-      { status: 500 }
-    );
-  }
+    };
+  });
 }
 
 // Also support POST for manual triggers

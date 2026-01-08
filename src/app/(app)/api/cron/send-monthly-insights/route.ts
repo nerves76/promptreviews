@@ -10,8 +10,9 @@
  * This endpoint is called by Vercel's cron service monthly.
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { logCronExecution, verifyCronSecret } from '@/lib/cronLogger';
 import { GoogleBusinessProfileClient } from '@/features/social-posting/platforms/google-business-profile/googleBusinessProfileClient';
 import { sendTemplatedEmail } from '@/utils/emailTemplates';
 import { getAccountIdForUser } from '@/auth/utils/accounts';
@@ -33,26 +34,10 @@ interface LocationMetrics {
 }
 
 export async function GET(request: NextRequest) {
-  try {
-    // Verify the request is from Vercel cron
-    const authHeader = request.headers.get('authorization');
-    const expectedToken = process.env.CRON_SECRET_TOKEN;
-    
-    if (!expectedToken) {
-      return NextResponse.json(
-        { error: 'Cron secret not configured' }, 
-        { status: 500 }
-      );
-    }
+  const authError = verifyCronSecret(request);
+  if (authError) return authError;
 
-    if (authHeader !== `Bearer ${expectedToken}`) {
-      console.error('Invalid cron authorization token');
-      return NextResponse.json(
-        { error: 'Unauthorized' }, 
-        { status: 401 }
-      );
-    }
-
+  return logCronExecution('send-monthly-insights', async () => {
     // Create Supabase client with service role key for admin access
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -80,19 +65,14 @@ export async function GET(request: NextRequest) {
       .eq('selected_gbp_locations.include_in_insights', true);
 
     if (accountsError) {
-      console.error('Error fetching accounts with GBP:', accountsError);
-      return NextResponse.json(
-        { error: 'Failed to fetch accounts with selected GBP locations' }, 
-        { status: 500 }
-      );
+      throw new Error('Failed to fetch accounts with selected GBP locations');
     }
 
     if (!accountsWithGBP || accountsWithGBP.length === 0) {
-      return NextResponse.json({
+      return {
         success: true,
-        message: 'No accounts with selected GBP locations',
-        emails_sent: 0
-      });
+        summary: { emails_sent: 0, message: 'No accounts with selected GBP locations' },
+      };
     }
 
 
@@ -319,22 +299,14 @@ export async function GET(request: NextRequest) {
     }
 
 
-    return NextResponse.json({
+    return {
       success: true,
       summary: {
         sent: successCount,
         skipped: skippedCount,
         failed: errorCount,
-        total: accountsWithGBP.length
+        total: accountsWithGBP.length,
       },
-      results
-    });
-
-  } catch (error) {
-    console.error('Critical error in monthly insights cron:', error);
-    return NextResponse.json(
-      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
-      { status: 500 }
-    );
-  }
+    };
+  });
 }

@@ -11,8 +11,9 @@
 export const maxDuration = 30;
 export const dynamic = 'force-dynamic';
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { logCronExecution, verifyCronSecret } from '@/lib/cronLogger';
 import { findBestMatch } from '@/utils/reviewVerification';
 import { sendNotificationToAccount } from '@/utils/notifications';
 import * as Sentry from '@sentry/nextjs';
@@ -23,15 +24,10 @@ const supabase = createClient(
 );
 
 export async function GET(request: NextRequest) {
-  const startTime = Date.now();
+  const authError = verifyCronSecret(request);
+  if (authError) return authError;
 
-  try {
-    const authHeader = request.headers.get('authorization');
-    if (authHeader !== `Bearer ${process.env.CRON_SECRET_TOKEN}`) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    console.log('🔍 Starting lightweight verification (database only)...');
+  return logCronExecution('verify-google-reviews', async () => {
 
     // Find pending Prompt Page submissions
     const { data: pendingSubmissions, error: fetchError } = await supabase
@@ -47,16 +43,14 @@ export async function GET(request: NextRequest) {
 
     if (fetchError) {
       Sentry.captureException(fetchError);
-      return NextResponse.json({ error: 'Database error' }, { status: 500 });
+      throw new Error('Database error');
     }
 
     if (!pendingSubmissions || pendingSubmissions.length === 0) {
-      return NextResponse.json({
+      return {
         success: true,
-        verified: 0,
-        message: 'No pending submissions',
-        duration: Date.now() - startTime
-      });
+        summary: { verified: 0, message: 'No pending submissions' },
+      };
     }
 
     // Group by account
@@ -164,18 +158,14 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    return NextResponse.json({
+    return {
       success: true,
-      verified,
-      checked,
-      accounts: byAccount.size,
-      duration: Date.now() - startTime,
-      version: 'v6-database-only'
-    });
-
-  } catch (error: any) {
-    console.error('❌ Error:', error);
-    Sentry.captureException(error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
+      summary: {
+        verified,
+        checked,
+        accounts: byAccount.size,
+        version: 'v6-database-only',
+      },
+    };
+  });
 }

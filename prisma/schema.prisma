@@ -3706,6 +3706,26 @@ model rss_feed_sources {
   @@schema("public")
 }
 
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model cron_execution_logs {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  job_name      String
+  started_at    DateTime  @default(now()) @db.Timestamptz(6)
+  completed_at  DateTime? @db.Timestamptz(6)
+  status        String    @default("running")
+  duration_ms   Int?
+  summary       Json?
+  error_message String?
+  created_at    DateTime? @default(now()) @db.Timestamptz(6)
+
+  @@index([job_name], map: "idx_cron_logs_job_name")
+  @@index([started_at(sort: Desc)], map: "idx_cron_logs_started_at")
+  @@index([status], map: "idx_cron_logs_status")
+  @@schema("public")
+}
+
 enum aal_level {
   aal1
   aal2

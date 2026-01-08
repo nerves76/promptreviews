@@ -5,7 +5,7 @@
  * 1. Warn users with low credit balance (< 20% of monthly allocation)
  * 2. Warn about upcoming scheduled checks that may fail due to insufficient credits
  *
- * Security: Uses CRON_SECRET_TOKEN for authorization.
+ * Security: Uses CRON_SECRET for authorization.
  *
  * Features checked:
  * - Low balance warning (max 2 per billing period)
@@ -16,8 +16,9 @@
  * - Backlink checks
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { logCronExecution, verifyCronSecret } from '@/lib/cronLogger';
 import {
   calculateGeogridCost,
   getBalance,
@@ -49,29 +50,10 @@ interface WarningResult {
 }
 
 export async function GET(request: NextRequest) {
-  const startTime = Date.now();
-  console.log('🔔 [Credit Warnings] Starting credit warning job');
+  const authError = verifyCronSecret(request);
+  if (authError) return authError;
 
-  try {
-    // Verify the request is from Vercel cron
-    const authHeader = request.headers.get('authorization');
-    const expectedToken = process.env.CRON_SECRET_TOKEN;
-
-    if (!expectedToken) {
-      return NextResponse.json(
-        { error: 'Cron secret not configured' },
-        { status: 500 }
-      );
-    }
-
-    if (authHeader !== `Bearer ${expectedToken}`) {
-      console.error('❌ [Credit Warnings] Invalid cron authorization token');
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
+  return logCronExecution('send-credit-warnings', async () => {
     // Create Supabase client with service role key
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -626,22 +608,8 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // =========================================================================
-    // SUMMARY
-    // =========================================================================
-    const duration = Date.now() - startTime;
-    console.log(`✅ [Credit Warnings] Job complete in ${duration}ms`);
-    console.log(`   Low balance warnings: ${results.lowBalanceWarnings}`);
-    console.log(`   Upcoming warnings: ${results.upcomingWarnings}`);
-    console.log(`   Sufficient credits: ${results.sufficientCredits}`);
-    console.log(`   Skipped (cooldown): ${results.skippedCooldown}`);
-    console.log(`   Skipped (max warnings): ${results.skippedMaxWarnings}`);
-    console.log(`   Skipped (free account): ${results.skippedFreeAccount}`);
-    console.log(`   Errors: ${results.errors}`);
-
-    return NextResponse.json({
+    return {
       success: true,
-      duration: `${duration}ms`,
       summary: {
         lowBalanceWarnings: results.lowBalanceWarnings,
         upcomingWarnings: results.upcomingWarnings,
@@ -651,13 +619,6 @@ export async function GET(request: NextRequest) {
         skippedFreeAccount: results.skippedFreeAccount,
         errors: results.errors,
       },
-      details: results.details,
-    });
-  } catch (error) {
-    console.error('❌ [Credit Warnings] Fatal error in cron job:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
+    };
+  });
 }

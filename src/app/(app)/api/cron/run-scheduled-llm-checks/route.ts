@@ -4,7 +4,7 @@
  * Runs every hour to execute scheduled LLM visibility checks.
  * Queries keywords where next_scheduled_at <= NOW() and runs the checks.
  *
- * Security: Uses CRON_SECRET_TOKEN for authorization.
+ * Security: Uses CRON_SECRET for authorization.
  *
  * Flow:
  * 1. Find all scheduled keywords due to run
@@ -15,8 +15,9 @@
  * 3. Return summary
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { logCronExecution, verifyCronSecret } from '@/lib/cronLogger';
 import {
   LLMProvider,
   LLMVisibilityScheduleRow,
@@ -34,29 +35,10 @@ import {
 import { sendNotificationToAccount } from '@/utils/notifications';
 
 export async function GET(request: NextRequest) {
-  const startTime = Date.now();
-  console.log('🤖 [Scheduled LLMChecks] Starting scheduled check job');
+  const authError = verifyCronSecret(request);
+  if (authError) return authError;
 
-  try {
-    // Verify the request is from Vercel cron
-    const authHeader = request.headers.get('authorization');
-    const expectedToken = process.env.CRON_SECRET_TOKEN;
-
-    if (!expectedToken) {
-      return NextResponse.json(
-        { error: 'Cron secret not configured' },
-        { status: 500 }
-      );
-    }
-
-    if (authHeader !== `Bearer ${expectedToken}`) {
-      console.error('❌ [Scheduled LLMChecks] Invalid cron authorization token');
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
+  return logCronExecution('run-scheduled-llm-checks', async () => {
     // Create Supabase client with service role key
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -72,11 +54,7 @@ export async function GET(request: NextRequest) {
       .lte('next_scheduled_at', new Date().toISOString());
 
     if (schedulesError) {
-      console.error('❌ [Scheduled LLMChecks] Failed to fetch schedules:', schedulesError);
-      return NextResponse.json(
-        { error: 'Failed to fetch schedules' },
-        { status: 500 }
-      );
+      throw new Error('Failed to fetch schedules');
     }
 
     console.log(`📋 [Scheduled LLMChecks] Found ${dueSchedules?.length || 0} schedules due to run`);
@@ -370,25 +348,16 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const duration = Date.now() - startTime;
-    console.log(
-      `✅ [Scheduled LLMChecks] Complete in ${duration}ms: ` +
-      `${results.processed} processed, ${results.skipped} skipped, ` +
-      `${results.insufficientCredits} insufficient credits, ${results.errors} errors`
-    );
-
-    return NextResponse.json({
+    return {
       success: true,
-      duration,
-      ...results,
-    });
-  } catch (error) {
-    console.error('❌ [Scheduled LLMChecks] Fatal error:', error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Internal server error' },
-      { status: 500 }
-    );
-  }
+      summary: {
+        processed: results.processed,
+        skipped: results.skipped,
+        insufficientCredits: results.insufficientCredits,
+        errors: results.errors,
+      },
+    };
+  });
 }
 
 /**

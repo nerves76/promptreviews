@@ -9,32 +9,17 @@
  * This endpoint is called by Vercel's cron service on the 1st of each month.
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { logCronExecution, verifyCronSecret } from '@/lib/cronLogger';
 
 const PROMPTYBOT_EMAIL = 'promptybot@promptreviews.app';
 
 export async function GET(request: NextRequest) {
-  try {
-    // Verify the request is from Vercel cron
-    const authHeader = request.headers.get('authorization');
-    const expectedToken = process.env.CRON_SECRET_TOKEN;
+  const authError = verifyCronSecret(request);
+  if (authError) return authError;
 
-    if (!expectedToken) {
-      return NextResponse.json(
-        { error: 'Cron secret not configured' },
-        { status: 500 }
-      );
-    }
-
-    if (authHeader !== `Bearer ${expectedToken}`) {
-      console.error('Invalid cron authorization token');
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
+  return logCronExecution('post-monthly-stats', async () => {
     // Create Supabase admin client
     const supabaseAdmin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -56,7 +41,7 @@ export async function GET(request: NextRequest) {
 
     if (channelError || !generalChannel) {
       console.error('Error fetching general channel:', channelError);
-      return NextResponse.json({ error: 'General channel not found' }, { status: 500 });
+      return { success: false, error: 'General channel not found' };
     }
 
     const GENERAL_CHANNEL_ID = generalChannel.id;
@@ -66,7 +51,7 @@ export async function GET(request: NextRequest) {
 
     if (botUserError) {
       console.error('Error fetching users:', botUserError);
-      return NextResponse.json({ error: 'Failed to fetch users' }, { status: 500 });
+      return { success: false, error: 'Failed to fetch users' };
     }
 
     let promptyBotId = botUser.users.find(u => u.email === PROMPTYBOT_EMAIL)?.id;
@@ -84,7 +69,7 @@ export async function GET(request: NextRequest) {
 
       if (createBotError || !newBot.user) {
         console.error('Error creating PromptyBot:', createBotError);
-        return NextResponse.json({ error: 'Failed to create bot user' }, { status: 500 });
+        return { success: false, error: 'Failed to create bot user' };
       }
 
       promptyBotId = newBot.user.id;
@@ -103,7 +88,7 @@ export async function GET(request: NextRequest) {
 
       if (profileError) {
         console.error('Error creating bot profile:', profileError);
-        return NextResponse.json({ error: 'Failed to create bot profile' }, { status: 500 });
+        return { success: false, error: 'Failed to create bot profile' };
       }
     }
 
@@ -134,7 +119,7 @@ export async function GET(request: NextRequest) {
 
       if (createAccountError || !newAccount) {
         console.error('Error creating PromptyBot account:', createAccountError);
-        return NextResponse.json({ error: 'Failed to create bot account' }, { status: 500 });
+        return { success: false, error: 'Failed to create bot account' };
       }
 
       promptyBotAccountId = newAccount.id;
@@ -160,7 +145,7 @@ export async function GET(request: NextRequest) {
 
       if (businessError) {
         console.error('Error creating PromptyBot business:', businessError);
-        return NextResponse.json({ error: 'Failed to create bot business', details: businessError.message }, { status: 500 });
+        return { success: false, error: 'Failed to create bot business' };
       }
     }
 
@@ -180,7 +165,7 @@ export async function GET(request: NextRequest) {
 
     if (accountsError) {
       console.error('Error fetching accounts:', accountsError);
-      return NextResponse.json({ error: 'Failed to fetch accounts' }, { status: 500 });
+      return { success: false, error: 'Failed to fetch accounts' };
     }
 
     // Get total reviews
@@ -190,7 +175,7 @@ export async function GET(request: NextRequest) {
 
     if (totalReviewsError) {
       console.error('Error fetching total reviews:', totalReviewsError);
-      return NextResponse.json({ error: 'Failed to fetch total reviews' }, { status: 500 });
+      return { success: false, error: 'Failed to fetch total reviews' };
     }
 
     // Get reviews from last month
@@ -202,23 +187,23 @@ export async function GET(request: NextRequest) {
 
     if (lastMonthReviewsError) {
       console.error('Error fetching last month reviews:', lastMonthReviewsError);
-      return NextResponse.json({ error: 'Failed to fetch last month reviews' }, { status: 500 });
+      return { success: false, error: 'Failed to fetch last month reviews' };
     }
 
     // Format numbers with commas
     const formatNumber = (num: number | null) => (num || 0).toLocaleString('en-US');
 
     // Create the post body with simple formatting (no markdown needed)
-    const postTitle = `Happy ${currentMonthName} Star Catchers! 🌟`;
+    const postTitle = `Happy ${currentMonthName} Star Catchers!`;
     const postBody = `How many reviews did you capture last month?
 
-📊 ${lastMonthName} Review Stats
+${lastMonthName} Review Stats
 
-👥 ${formatNumber(totalAccounts)} Prompt Reviews Accounts
-⭐ ${formatNumber(totalReviewsCount)} Total Reviews Captured
-🎉 ${formatNumber(lastMonthReviewsCount)} New Reviews in ${lastMonthName}
+${formatNumber(totalAccounts)} Prompt Reviews Accounts
+${formatNumber(totalReviewsCount)} Total Reviews Captured
+${formatNumber(lastMonthReviewsCount)} New Reviews in ${lastMonthName}
 
-Keep up the amazing work capturing those reviews! 💫`;
+Keep up the amazing work capturing those reviews!`;
 
     // Create the community post
     const { data: post, error: postError } = await supabaseAdmin
@@ -235,32 +220,23 @@ Keep up the amazing work capturing those reviews! 💫`;
 
     if (postError) {
       console.error('Error creating post:', postError);
-      return NextResponse.json({
+      return {
+        success: false,
         error: 'Failed to create post',
-        details: postError.message,
-        code: postError.code,
-        hint: postError.hint
-      }, { status: 500 });
+      };
     }
 
-    console.log('✅ Monthly stats post created successfully:', post.id);
+    console.log('Monthly stats post created successfully:', post.id);
 
-    return NextResponse.json({
+    return {
       success: true,
-      post_id: post.id,
-      stats: {
+      summary: {
+        post_id: post.id,
         total_accounts: totalAccounts || 0,
         total_reviews: totalReviewsCount || 0,
         last_month_reviews: lastMonthReviewsCount || 0,
-        month: lastMonthName
-      }
-    });
-
-  } catch (error) {
-    console.error('Error in post-monthly-stats cron:', error);
-    return NextResponse.json(
-      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
-      { status: 500 }
-    );
-  }
+        month: lastMonthName,
+      },
+    };
+  });
 }

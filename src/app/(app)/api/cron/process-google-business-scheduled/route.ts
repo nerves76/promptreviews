@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { createServiceRoleClient } from '@/auth/providers/supabase';
 import { GoogleBusinessProfileClient } from '@/features/social-posting/platforms/google-business-profile/googleBusinessProfileClient';
 import type { GoogleBusinessScheduledMediaDescriptor } from '@/features/social-posting';
+import { logCronExecution, verifyCronSecret } from '@/lib/cronLogger';
 
 const RATE_DELAY_MS = Number(process.env.GBP_SCHEDULED_RATE_DELAY_MS ?? 5000);
 const MAX_JOBS_PER_RUN = Number(process.env.GBP_SCHEDULED_MAX_JOBS ?? 25);
@@ -876,33 +877,10 @@ async function processJob(
 }
 
 export async function GET(request: NextRequest) {
-  try {
-    // Vercel cron jobs use CRON_SECRET in authorization header automatically
-    const expectedToken = process.env.CRON_SECRET_TOKEN || process.env.CRON_SECRET;
+  const authError = verifyCronSecret(request);
+  if (authError) return authError;
 
-    // In production, Vercel adds the Authorization header for cron jobs
-    // In development or manual testing, we check for the Bearer token
-    const authHeader = request.headers.get('authorization');
-
-    // Check if the auth header matches either CRON_SECRET or CRON_SECRET_TOKEN
-    // Vercel might send either one depending on configuration
-    if (!authHeader) {
-      return NextResponse.json({ success: false, error: 'Unauthorized - no auth header' }, { status: 401 });
-    }
-
-    const validAuth =
-      (process.env.CRON_SECRET && authHeader === `Bearer ${process.env.CRON_SECRET}`) ||
-      (process.env.CRON_SECRET_TOKEN && authHeader === `Bearer ${process.env.CRON_SECRET_TOKEN}`);
-
-    if (!validAuth) {
-      // Log for debugging (remove in production)
-      console.log('[Cron] Auth failed');
-      console.log('[Cron] Received header:', authHeader.substring(0, 20) + '...');
-      console.log('[Cron] CRON_SECRET set:', !!process.env.CRON_SECRET);
-      console.log('[Cron] CRON_SECRET_TOKEN set:', !!process.env.CRON_SECRET_TOKEN);
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
-
+  return logCronExecution('process-google-business-scheduled', async () => {
     const supabaseAdmin = createServiceRoleClient();
     const today = new Date().toISOString().split('T')[0];
 
@@ -934,15 +912,21 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error('[Cron] Failed to load scheduled jobs', error);
-      return NextResponse.json({ success: false, error: 'Failed to load scheduled jobs' }, { status: 500 });
+      return { success: false, error: 'Failed to load scheduled jobs' };
     }
 
     const summaries = [] as Array<Awaited<ReturnType<typeof processJob>>>;
+    let totalSuccess = 0;
+    let totalFailed = 0;
 
     for (const job of jobs ?? []) {
       try {
         const summary = await processJob(job as ScheduledJobRecord, supabaseAdmin);
         summaries.push(summary);
+        if (!summary.skipped) {
+          totalSuccess += summary.successCount || 0;
+          totalFailed += summary.failureCount || 0;
+        }
       } catch (jobError) {
         console.error(`[Cron] Failed to process job ${job?.id}`, jobError);
         await supabaseAdmin
@@ -963,16 +947,17 @@ export async function GET(request: NextRequest) {
           failureCount: job?.selected_locations?.length ?? 0,
           error: jobError instanceof Error ? jobError.message : 'Unexpected error',
         });
+        totalFailed += job?.selected_locations?.length ?? 0;
       }
     }
 
-    return NextResponse.json({
+    return {
       success: true,
-      processed: summaries.length,
-      summaries,
-    });
-  } catch (error) {
-    console.error('[Cron] Unexpected error', error);
-    return NextResponse.json({ success: false, error: 'Unexpected error while processing scheduled posts' }, { status: 500 });
-  }
+      summary: {
+        jobsProcessed: summaries.length,
+        totalSuccess,
+        totalFailed,
+      },
+    };
+  });
 }

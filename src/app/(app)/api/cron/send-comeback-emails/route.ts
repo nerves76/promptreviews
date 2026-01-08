@@ -8,9 +8,10 @@
  * 3. Haven't reactivated since cancellation
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
+import { logCronExecution, verifyCronSecret } from '@/lib/cronLogger';
 
 // Helper to create Supabase admin client (lazy initialization)
 function createSupabaseAdmin() {
@@ -32,15 +33,12 @@ function createResendClient() {
 }
 
 export async function GET(request: NextRequest) {
-  const supabaseAdmin = createSupabaseAdmin();
-  const resend = createResendClient();
-  try {
-    // Verify cron secret
-    const authHeader = request.headers.get('authorization');
-    if (authHeader !== `Bearer ${process.env.CRON_SECRET_TOKEN}`) {
-      console.error('❌ Unauthorized cron request');
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+  const authError = verifyCronSecret(request);
+  if (authError) return authError;
+
+  return logCronExecution('send-comeback-emails', async () => {
+    const supabaseAdmin = createSupabaseAdmin();
+    const resend = createResendClient();
 
 
     // Find accounts cancelled around 90 days ago
@@ -61,17 +59,14 @@ export async function GET(request: NextRequest) {
       .not('deleted_at', 'is', null);
 
     if (fetchError) {
-      console.error('❌ Error fetching cancelled accounts:', fetchError);
-      return NextResponse.json({ error: 'Failed to fetch accounts' }, { status: 500 });
+      throw new Error('Failed to fetch accounts');
     }
 
     if (!cancelledAccounts || cancelledAccounts.length === 0) {
-      return NextResponse.json({ 
-        success: true, 
-        message: 'No accounts to email',
-        checked: 0,
-        sent: 0 
-      });
+      return {
+        success: true,
+        summary: { checked: 0, sent: 0, message: 'No accounts to email' },
+      };
     }
 
 
@@ -90,12 +85,10 @@ export async function GET(request: NextRequest) {
     const accountsToEmail = cancelledAccounts.filter(a => !alreadyEmailed.has(a.id));
 
     if (accountsToEmail.length === 0) {
-      return NextResponse.json({ 
-        success: true, 
-        message: 'All accounts already emailed',
-        checked: cancelledAccounts.length,
-        sent: 0 
-      });
+      return {
+        success: true,
+        summary: { checked: cancelledAccounts.length, sent: 0, message: 'All accounts already emailed' },
+      };
     }
 
 
@@ -108,8 +101,7 @@ export async function GET(request: NextRequest) {
       .single();
 
     if (templateError || !template) {
-      console.error('❌ Error fetching email template:', templateError);
-      return NextResponse.json({ error: 'Email template not found' }, { status: 500 });
+      throw new Error('Email template not found');
     }
 
     let successCount = 0;
@@ -205,50 +197,22 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const summary = {
+    return {
       success: true,
-      message: `Comeback email campaign completed`,
-      stats: {
+      summary: {
         checked: cancelledAccounts.length,
         eligible: accountsToEmail.length,
         sent: successCount,
-        failed: failCount
+        failed: failCount,
       },
-      errors: errors.length > 0 ? errors : undefined
     };
-
-
-    return NextResponse.json(summary);
-
-  } catch (error) {
-    console.error('❌ Comeback email cron error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error', details: String(error) },
-      { status: 500 }
-    );
-  }
+  });
 }
 
 // POST endpoint for manual triggering (admin only)
 export async function POST(request: NextRequest) {
-  try {
-    // Check for admin authentication
-    const authHeader = request.headers.get('authorization');
-    
-    // You can implement your own admin auth check here
-    // For now, we'll use the same cron token
-    if (authHeader !== `Bearer ${process.env.CRON_SECRET_TOKEN}`) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+  const authError = verifyCronSecret(request);
+  if (authError) return authError;
 
-    // Call the GET handler
-    return GET(request);
-    
-  } catch (error) {
-    console.error('Manual trigger error:', error);
-    return NextResponse.json(
-      { error: 'Failed to trigger comeback emails' },
-      { status: 500 }
-    );
-  }
+  return GET(request);
 }

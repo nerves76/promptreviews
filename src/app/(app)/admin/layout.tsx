@@ -209,6 +209,16 @@ export default function AdminLayout({
                 API Usage
               </Link>
               <Link
+                href="/admin/cron-jobs"
+                className={`py-2 px-1 text-sm font-medium transition-colors ${
+                  isActive('/admin/cron-jobs')
+                    ? 'border-b-2 border-slate-blue text-slate-blue'
+                    : 'border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                Cron Jobs
+              </Link>
+              <Link
                 href="/dashboard/comparisons"
                 className={`py-2 px-1 text-sm font-medium transition-colors ${
                   isActive('/dashboard/comparisons')

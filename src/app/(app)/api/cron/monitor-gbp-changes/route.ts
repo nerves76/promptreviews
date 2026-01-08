@@ -18,11 +18,12 @@
  * - Uses ON CONFLICT for duplicate prevention
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { GoogleBusinessProfileClient } from '@/features/social-posting/platforms/google-business-profile/googleBusinessProfileClient';
 import { sendGbpProtectionAlertEmail } from '@/utils/emailTemplates';
 import { createGbpChangeNotification, shouldSendEmail } from '@/utils/notifications';
+import { logCronExecution, verifyCronSecret } from '@/lib/cronLogger';
 import crypto from 'crypto';
 
 // Helper to create a hash for snapshot comparison
@@ -70,28 +71,10 @@ function formatFieldName(field: string): string {
 }
 
 export async function GET(request: NextRequest) {
-  const startTime = Date.now();
+  const authError = verifyCronSecret(request);
+  if (authError) return authError;
 
-  try {
-    // Verify the request is from Vercel cron
-    const authHeader = request.headers.get('authorization');
-    const expectedToken = process.env.CRON_SECRET_TOKEN;
-
-    if (!expectedToken) {
-      return NextResponse.json(
-        { error: 'Cron secret not configured' },
-        { status: 500 }
-      );
-    }
-
-    if (authHeader !== `Bearer ${expectedToken}`) {
-      console.error('Invalid cron authorization token');
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
+  return logCronExecution('monitor-gbp-changes', async () => {
     // Create Supabase client with service role key for admin access
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -131,13 +114,13 @@ export async function GET(request: NextRequest) {
 
     if (profilesError) {
       console.error('Error fetching GBP profiles:', profilesError);
-      return NextResponse.json(
-        { error: 'Failed to fetch GBP profiles' },
-        { status: 500 }
-      );
+      return {
+        success: false,
+        error: 'Failed to fetch GBP profiles',
+      };
     }
 
-    console.log(`📊 Found ${gbpProfiles?.length || 0} eligible accounts to check`);
+    console.log(`Found ${gbpProfiles?.length || 0} eligible accounts to check`);
 
     const results: any[] = [];
     let totalChangesDetected = 0;
@@ -468,16 +451,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const duration = Date.now() - startTime;
-
-    console.log(`✅ GBP monitoring complete in ${duration}ms`);
-    console.log(`   Accounts: ${gbpProfiles?.length || 0}`);
-    console.log(`   Locations: ${totalLocationsChecked}`);
-    console.log(`   Changes: ${totalChangesDetected}`);
-    console.log(`   Emails: ${totalEmailsSent}`);
-    console.log(`   Notification Errors: ${totalNotificationErrors}`);
-
-    return NextResponse.json({
+    return {
       success: true,
       summary: {
         accountsProcessed: gbpProfiles?.length || 0,
@@ -485,16 +459,7 @@ export async function GET(request: NextRequest) {
         changesDetected: totalChangesDetected,
         emailsSent: totalEmailsSent,
         notificationErrors: totalNotificationErrors,
-        durationMs: duration
       },
-      results
-    });
-
-  } catch (error) {
-    console.error('Error in GBP monitoring cron job:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
+    };
+  });
 }

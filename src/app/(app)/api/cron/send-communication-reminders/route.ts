@@ -7,8 +7,9 @@
  * Called daily by Vercel's cron service to check for due reminders.
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { createServiceRoleClient } from '@/auth/providers/supabase';
+import { logCronExecution, verifyCronSecret } from '@/lib/cronLogger';
 import { sendTemplatedEmail } from '@/utils/emailTemplates';
 import { captureError, captureMessage, setContext } from '@/utils/sentry';
 import { resend } from '@/utils/resend';
@@ -50,7 +51,7 @@ async function sendAdminErrorNotification(error: any, context: any) {
   try {
     const adminEmail = process.env.ADMIN_ERROR_EMAIL || 'team@promptreviews.app';
     
-    await resend.emails.send({
+    await resend.client.emails.send({
       from: 'Prompt Reviews System <team@updates.promptreviews.app>',
       to: adminEmail,
       subject: '🚨 Communication Reminder Cron Job Failed',
@@ -110,39 +111,23 @@ This is an automated notification. Please check the logs and Sentry for more det
 }
 
 export async function GET(request: NextRequest) {
-  // Track metrics for monitoring
-  const cronContext = {
-    startTime: new Date(),
-    processedCount: 0,
-    failureCount: 0,
-    errors: [] as Array<{ reminderId: string; error: string }>
-  };
+  const authError = verifyCronSecret(request);
+  if (authError) return authError;
 
-  // Set Sentry context for this cron job
-  setContext('cron_job', {
-    type: 'communication_reminders',
-    startTime: cronContext.startTime.toISOString()
-  });
+  return logCronExecution('send-communication-reminders', async () => {
+    // Track metrics for monitoring
+    const cronContext = {
+      startTime: new Date(),
+      processedCount: 0,
+      failureCount: 0,
+      errors: [] as Array<{ reminderId: string; error: string }>
+    };
 
-  try {
-    // Verify the request is from Vercel cron
-    const authHeader = request.headers.get('authorization');
-    const expectedToken = process.env.CRON_SECRET_TOKEN;
-    
-    if (!expectedToken) {
-      return NextResponse.json(
-        { error: 'Cron secret not configured' }, 
-        { status: 500 }
-      );
-    }
-
-    if (authHeader !== `Bearer ${expectedToken}`) {
-      console.error('Invalid cron authorization token');
-      return NextResponse.json(
-        { error: 'Unauthorized' }, 
-        { status: 401 }
-      );
-    }
+    // Set Sentry context for this cron job
+    setContext('cron_job', {
+      type: 'communication_reminders',
+      startTime: cronContext.startTime.toISOString()
+    });
 
     // Create Supabase client with service role key for admin access
     const supabase = createServiceRoleClient();
@@ -185,38 +170,31 @@ export async function GET(request: NextRequest) {
       .limit(100); // Process in batches
 
     if (remindersError) {
-      console.error('Error fetching due reminders:', remindersError);
-      
       // Capture error in Sentry
       captureError(new Error('Failed to fetch communication reminders'), {
         remindersError,
         query: 'follow_up_reminders with status=pending'
       });
-      
+
       // Send admin notification
       await sendAdminErrorNotification(
         { ...remindersError, message: 'Failed to fetch reminders from database' },
         cronContext
       );
-      
-      return NextResponse.json(
-        { error: 'Failed to fetch reminders' },
-        { status: 500 }
-      );
+
+      throw new Error('Failed to fetch reminders');
     }
 
     if (!dueReminders || dueReminders.length === 0) {
-      
       // Log to Sentry as info (not an error, but good to track)
       captureMessage('No due communication reminders found', 'info', {
         checkTime: new Date().toISOString()
       });
-      
-      return NextResponse.json({
+
+      return {
         success: true,
-        message: 'No due reminders to process',
-        processed: 0
-      });
+        summary: { message: 'No due reminders to process', processed: 0 },
+      };
     }
 
 
@@ -428,41 +406,15 @@ You can view and manage this communication in your dashboard.`;
       );
     }
 
-    return NextResponse.json({
+    return {
       success: true,
-      message: `Processed ${dueReminders.length} due reminders`,
-      processed,
-      failed,
-      total: dueReminders.length,
-      ...(failed > 0 && { failedReminders })
-    });
-
-  } catch (error) {
-    console.error('❌ Critical error in communication reminders cron job:', error);
-    
-    // Capture critical error in Sentry
-    captureError(error as Error, {
-      cronJob: 'communication_reminders',
-      context: cronContext
-    }, {
-      level: 'error',
-      cronJob: 'communication_reminders'
-    });
-    
-    // Send admin notification for critical failure
-    await sendAdminErrorNotification(
-      error,
-      cronContext
-    );
-    
-    return NextResponse.json(
-      { 
-        error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error'
+      summary: {
+        processed,
+        failed,
+        total: dueReminders.length,
       },
-      { status: 500 }
-    );
-  }
+    };
+  });
 }
 
 /**

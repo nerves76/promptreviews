@@ -8,21 +8,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceRoleClient } from '@/auth/providers/supabase';
 import { sendTeamInvitationEmail } from '@/utils/emailTemplates';
+import { logCronExecution, verifyCronSecret } from '@/lib/cronLogger';
 
 export async function POST(request: NextRequest) {
-  try {
-    const supabaseAdmin = createServiceRoleClient();
+  const authError = verifyCronSecret(request);
+  if (authError) return authError;
 
-    // Verify cron job authorization
-    const authHeader = request.headers.get('authorization');
-    const cronSecret = process.env.CRON_SECRET;
-    
-    if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
+  return logCronExecution('send-invitation-reminders', async () => {
+    const supabaseAdmin = createServiceRoleClient();
 
 
     // Find invitations that need reminders:
@@ -56,19 +49,14 @@ export async function POST(request: NextRequest) {
       .is('accepted_at', null);
 
     if (invitationsError) {
-      console.error('Error fetching pending invitations:', invitationsError);
-      return NextResponse.json(
-        { error: 'Failed to fetch pending invitations' },
-        { status: 500 }
-      );
+      throw new Error('Failed to fetch pending invitations');
     }
 
     if (!pendingInvitations || pendingInvitations.length === 0) {
-      return NextResponse.json({
+      return {
         success: true,
-        message: 'No invitations need reminders',
-        reminders_sent: 0
-      });
+        summary: { reminders_sent: 0, message: 'No invitations need reminders' },
+      };
     }
 
 
@@ -154,21 +142,14 @@ export async function POST(request: NextRequest) {
     }
 
 
-    return NextResponse.json({
+    return {
       success: true,
-      message: `Sent ${remindersSent} invitation reminders`,
-      reminders_sent: remindersSent,
-      invitations_checked: pendingInvitations.length,
-      errors: errors.length > 0 ? errors : undefined
-    });
-
-  } catch (error) {
-    console.error('Invitation reminders error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error during reminder sending' },
-      { status: 500 }
-    );
-  }
+      summary: {
+        reminders_sent: remindersSent,
+        invitations_checked: pendingInvitations.length,
+      },
+    };
+  });
 }
 
 // GET endpoint for checking how many reminders would be sent
