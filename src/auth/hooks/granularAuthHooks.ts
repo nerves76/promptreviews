@@ -81,8 +81,8 @@ export function useAuthActions() {
  * Won't re-render on auth state changes
  */
 export function useAccountData() {
-  const { account, accountId, selectedAccountId, accounts } = useAccount();
-  
+  const { account, accountId, selectedAccountId, accounts, accountLoading, accountsLoading } = useAccount();
+
   return useMemo(() => ({
     account,
     accountId,
@@ -91,7 +91,10 @@ export function useAccountData() {
     hasAccount: !!account,
     accountName: account?.account_name || null,
     accountPlan: account?.plan || null,
-  }), [account, accountId, selectedAccountId, accounts]);
+    accountLoading,
+    accountsLoading,
+    isAccountReady: !accountLoading && !accountsLoading && !!selectedAccountId,
+  }), [account, accountId, selectedAccountId, accounts, accountLoading, accountsLoading]);
 }
 
 /**

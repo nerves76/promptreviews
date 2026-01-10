@@ -300,7 +300,7 @@ export default function ReviewsPage() {
   const { loading: authLoading, shouldRedirect } = useAuthGuard();
   const supabase = createClient();
   const router = useRouter();
-  const { selectedAccountId } = useAccountData();
+  const { selectedAccountId, accountLoading } = useAccountData();
   const { toasts, closeToast, success, error: showError } = useToast();
 
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -354,11 +354,12 @@ export default function ReviewsPage() {
     if (selectedAccountId) {
       setAccountId(selectedAccountId);
       setError(null);
-    } else {
+    } else if (!accountLoading) {
+      // Only set error if account loading is complete
       setError("No account selected");
       setAccountId(null);
     }
-  }, [selectedAccountId]);
+  }, [selectedAccountId, accountLoading]);
 
   // Check if GBP is connected for import modal
   useEffect(() => {
@@ -961,7 +962,7 @@ export default function ReviewsPage() {
     return '';
   };
 
-  if (authLoading || loading) {
+  if (authLoading || accountLoading || loading) {
     return (
       <PageCard>
         <StandardLoader isLoading={true} mode="inline" />

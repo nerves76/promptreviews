@@ -28,7 +28,7 @@ export default function AccountPage() {
   // Don't use useAuthGuard here as we're handling auth manually below
   // useAuthGuard();
   const router = useRouter();
-  const { selectedAccountId, account: authAccount } = useAuth();
+  const { selectedAccountId, account: authAccount, accountLoading: authAccountLoading } = useAuth();
   const [user, setUser] = useState<any>(null);
   const [account, setAccount] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -69,8 +69,13 @@ export default function AccountPage() {
 
         // Get account ID from auth context
         const accountId = selectedAccountId || authAccount?.id;
-        
+
         if (!accountId) {
+          // Check if auth is still loading
+          if (authAccountLoading) {
+            // Wait for auth to finish loading
+            return;
+          }
           // User is authenticated but has no account yet
           // Don't redirect, just show a message
           setError("No account found. Please create a business first.");
@@ -122,7 +127,7 @@ export default function AccountPage() {
     };
 
     loadAccountData();
-  }, [router, selectedAccountId, authAccount?.id]);
+  }, [router, selectedAccountId, authAccount?.id, authAccountLoading]);
 
   const handleSignOut = async () => {
     // Track sign out event
