@@ -37,31 +37,34 @@ export default function LibraryTaskPreview({
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="relative flex flex-col h-full">
+      {/* Close button - small red circle at top right */}
+      <button
+        onClick={onClose}
+        className="absolute -top-2 -right-2 w-8 h-8 bg-white border border-gray-200 rounded-full shadow-md hover:shadow-lg transition-shadow duration-200 flex items-center justify-center hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 z-10"
+        aria-label="Close preview"
+      >
+        <svg className="w-3 h-3 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+
       {/* Header */}
-      <div className="flex items-start justify-between p-6 border-b border-gray-200">
-        <div className="flex-1 pr-4">
-          {/* Category badge */}
-          <div className="flex items-center gap-2 mb-2">
-            <span className={`text-xs font-medium px-2 py-0.5 rounded ${categoryColors.bg} ${categoryColors.text}`}>
-              {categoryInfo?.label || task.category}
-            </span>
-            <span className={`text-xs font-medium px-2 py-0.5 rounded ${difficultyColors.bg} ${difficultyColors.text}`}>
-              {difficultyInfo?.label || task.difficulty}
-            </span>
-            <span className="text-xs text-gray-500 flex items-center gap-1">
-              <Icon name="FaClock" size={10} />
-              {timeInfo?.label || task.time_estimate}
-            </span>
-          </div>
-          <h2 className="text-xl font-bold text-gray-900">{task.title}</h2>
+      <div className="p-6 border-b border-gray-200/50">
+        {/* Category badges */}
+        <div className="flex items-center gap-2 mb-3">
+          <span className={`text-xs font-medium px-2.5 py-1 rounded-lg ${categoryColors.bg} ${categoryColors.text}`}>
+            {categoryInfo?.label || task.category}
+          </span>
+          <span className={`text-xs font-medium px-2.5 py-1 rounded-lg ${difficultyColors.bg} ${difficultyColors.text}`}>
+            {difficultyInfo?.label || task.difficulty}
+          </span>
+          <span className="text-xs text-gray-500 flex items-center gap-1">
+            <Icon name="FaClock" size={10} />
+            {timeInfo?.label || task.time_estimate}
+          </span>
         </div>
-        <button
-          onClick={onClose}
-          className="text-gray-400 hover:text-gray-600 transition-colors"
-        >
-          <Icon name="FaTimes" size={20} />
-        </button>
+        <h2 className="text-xl font-bold text-gray-900 pr-6">{task.title}</h2>
       </div>
 
       {/* Content */}
