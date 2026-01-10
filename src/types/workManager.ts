@@ -231,6 +231,13 @@ export interface WMRelevantTool {
   route: string;
 }
 
+// Further reading link (external resources)
+export interface WMFurtherReading {
+  title: string;
+  url: string;
+  source: string; // e.g., "Moz", "Search Engine Land", "Google"
+}
+
 // Library task from database
 export interface WMLibraryTask {
   id: string;
@@ -245,6 +252,7 @@ export interface WMLibraryTask {
   difficulty: WMLibraryDifficulty;
   time_estimate: WMLibraryTimeEstimate;
   relevant_tools: WMRelevantTool[];
+  further_reading: WMFurtherReading[];
   sort_order: number;
   is_active: boolean;
   created_at?: string;

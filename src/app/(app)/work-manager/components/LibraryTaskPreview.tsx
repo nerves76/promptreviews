@@ -124,6 +124,35 @@ export default function LibraryTaskPreview({
           </div>
         )}
 
+        {/* Further Reading */}
+        {task.further_reading && task.further_reading.length > 0 && (
+          <div>
+            <h3 className="text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2">
+              <Icon name="FaGlobe" size={14} />
+              Further reading
+            </h3>
+            <div className="space-y-2">
+              {task.further_reading.map((link, index) => (
+                <a
+                  key={index}
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-start gap-3 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors group"
+                >
+                  <Icon name="FaExternalLinkAlt" size={12} className="text-gray-400 mt-1 flex-shrink-0 group-hover:text-slate-blue" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 group-hover:text-slate-blue truncate">
+                      {link.title}
+                    </p>
+                    <p className="text-xs text-gray-500">{link.source}</p>
+                  </div>
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Tags Section */}
         <div className="space-y-4">
           {/* Goals */}
