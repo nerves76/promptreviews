@@ -304,16 +304,16 @@ export default function LibraryBrowser({ isOpen, onClose, onTaskAdded }: Library
                         <button
                           onClick={handleAddPack}
                           disabled={isAddingPack}
-                          className="flex items-center gap-2 px-4 py-1.5 bg-slate-blue text-white rounded-lg text-sm font-medium hover:bg-slate-blue/90 transition-colors disabled:opacity-50"
+                          className="flex items-center gap-2 px-5 py-2.5 bg-slate-blue/90 backdrop-blur-sm text-white rounded-xl text-sm font-medium hover:bg-slate-blue transition-all disabled:opacity-50 shadow-lg whitespace-nowrap"
                         >
                           {isAddingPack ? (
                             <>
-                              <Icon name="FaSpinner" size={12} className="animate-spin" />
+                              <Icon name="FaSpinner" size={14} className="animate-spin" />
                               Adding...
                             </>
                           ) : (
                             <>
-                              <Icon name="FaPlus" size={12} />
+                              <Icon name="FaPlus" size={14} />
                               Add all {tasks.length} tasks
                             </>
                           )}
