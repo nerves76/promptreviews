@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 import { PromptPage } from "./PromptPagesTable";
 import PromptPageCard from "./PromptPageCard";
@@ -39,6 +39,31 @@ export default function PromptPagesKanban({
 }: PromptPagesKanbanProps) {
   const [draggedCardId, setDraggedCardId] = useState<string | null>(null);
   const [activePage, setActivePage] = useState<PromptPage | null>(null);
+  const [activeColumnIndex, setActiveColumnIndex] = useState(0);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  const statuses: Array<keyof StatusLabels> = ["draft", "in_queue", "sent", "follow_up", "complete"];
+
+  // Handle scroll to update active column indicator
+  const handleScroll = useCallback(() => {
+    if (!scrollContainerRef.current) return;
+    const container = scrollContainerRef.current;
+    const scrollLeft = container.scrollLeft;
+    const columnWidth = container.offsetWidth * 0.85;
+    const newIndex = Math.round(scrollLeft / columnWidth);
+    setActiveColumnIndex(Math.min(newIndex, statuses.length - 1));
+  }, [statuses.length]);
+
+  // Scroll to a specific column
+  const scrollToColumn = useCallback((index: number) => {
+    if (!scrollContainerRef.current) return;
+    const container = scrollContainerRef.current;
+    const columnWidth = container.offsetWidth * 0.85;
+    container.scrollTo({
+      left: index * columnWidth,
+      behavior: 'smooth'
+    });
+  }, []);
 
   // Group pages by status
   const columnData = useMemo(() => {
@@ -216,90 +241,142 @@ export default function PromptPagesKanban({
   const accessiblePages = promptPages.slice(0, maxPages);
   const accessiblePageIds = new Set(accessiblePages.map((p) => p.id));
 
+  // Render a single column (shared between mobile and desktop)
+  // columnType: 'mobile' = 85vw with snap, 'desktop' = fixed 280px width
+  const renderColumn = (column: typeof columnData[0], columnType: 'mobile' | 'desktop' = 'desktop') => (
+    <div
+      key={column.id}
+      className={
+        columnType === 'mobile'
+          ? "w-[85vw] flex-shrink-0 snap-center"
+          : "w-[280px] flex-shrink-0"
+      }
+    >
+      {/* Column Header */}
+      <div
+        className={`${column.color} border rounded-t-lg p-3 flex items-center justify-between`}
+      >
+        <div className="flex items-center gap-2">
+          <h3 className="font-bold text-gray-900">{column.label}</h3>
+          <span className="text-sm text-gray-600">({column.pages.length})</span>
+        </div>
+        <button
+          type="button"
+          onClick={() => onEditLabel(column.id)}
+          className="text-gray-600 hover:text-gray-900 transition"
+          title="Edit column name"
+          aria-label={`Edit ${column.label} label`}
+        >
+          <Icon name="FaEdit" size={18} />
+        </button>
+      </div>
+
+      {/* Droppable Column */}
+      <Droppable droppableId={column.id}>
+        {(provided, snapshot) => (
+          <div
+            ref={provided.innerRef}
+            {...provided.droppableProps}
+            className={`
+              bg-white/30 backdrop-blur-md border-l border-r border-b rounded-b-lg p-3
+              ${columnType === 'mobile' ? "min-h-[60vh]" : "min-h-[400px] max-h-[calc(100vh-300px)]"} overflow-y-auto
+              transition-colors
+              ${snapshot.isDraggingOver ? "bg-blue-100/40 border-blue-300" : "border-white/40"}
+            `}
+          >
+            {column.pages.length === 0 ? (
+              <div className="text-center py-12 text-white">
+                <Icon name="FaArrowsAlt" size={32} className="mx-auto mb-2 opacity-70" />
+                <p className="text-sm">No pages in {column.label}</p>
+                <p className="text-xs mt-1">Drag cards here</p>
+              </div>
+            ) : (
+              column.pages.map((page, index) => {
+                const isAccessible = accessiblePageIds.has(page.id);
+
+                return (
+                  <Draggable
+                    key={page.id}
+                    draggableId={page.id}
+                    index={index}
+                    isDragDisabled={!isAccessible}
+                  >
+                    {(provided, snapshot) => (
+                      <div
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        {...provided.dragHandleProps}
+                        className={isAccessible ? "" : "opacity-50 cursor-not-allowed"}
+                        title={
+                          !isAccessible
+                            ? `Upgrade to access more than ${maxPages} prompt pages`
+                            : undefined
+                        }
+                      >
+                        <PromptPageCard
+                          page={page}
+                          business={business}
+                          isDragging={snapshot.isDragging || draggedCardId === page.id}
+                          onOpen={(selected) => setActivePage(selected)}
+                        />
+                      </div>
+                    )}
+                  </Draggable>
+                );
+              })
+            )}
+            {provided.placeholder}
+          </div>
+        )}
+      </Droppable>
+    </div>
+  );
+
   return (
     <DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 pb-4">
-        {columnData.map((column) => (
-          <div key={column.id} className="min-w-0">
-            {/* Column Header */}
-            <div
-              className={`${column.color} border rounded-t-lg p-3 flex items-center justify-between`}
-            >
-              <div className="flex items-center gap-2">
-                <h3 className="font-bold text-gray-900">{column.label}</h3>
-                <span className="text-sm text-gray-600">({column.pages.length})</span>
-              </div>
+      {/* Mobile: Horizontal scroll with snap */}
+      <div className="md:hidden">
+        {/* Column indicator pills */}
+        <div className="flex gap-1.5 mb-3 px-4 overflow-x-auto pb-1 scrollbar-hide">
+          <div className="flex gap-1.5 mx-auto">
+            {columnData.map((column, index) => (
               <button
-                type="button"
-                onClick={() => onEditLabel(column.id)}
-                className="text-gray-600 hover:text-gray-900 transition"
-                title="Edit column name"
-                aria-label={`Edit ${column.label} label`}
+                key={column.id}
+                onClick={() => scrollToColumn(index)}
+                className={`
+                  px-2.5 py-1 rounded-full text-xs font-medium transition-all whitespace-nowrap flex-shrink-0
+                  ${index === activeColumnIndex
+                    ? `${column.color} text-gray-900 shadow-md`
+                    : 'bg-white/30 text-white/70 hover:bg-white/40'
+                  }
+                `}
               >
-                <Icon name="FaEdit" size={18} />
+                {column.label} ({column.pages.length})
               </button>
-            </div>
-
-            {/* Droppable Column */}
-            <Droppable droppableId={column.id}>
-              {(provided, snapshot) => (
-                <div
-                  ref={provided.innerRef}
-                  {...provided.droppableProps}
-                  className={`
-                    bg-white/30 backdrop-blur-md border-l border-r border-b rounded-b-lg p-3
-                    min-h-[400px] max-h-[calc(100vh-300px)] overflow-y-auto
-                    transition-colors
-                    ${snapshot.isDraggingOver ? "bg-blue-100/40 border-blue-300" : "border-white/40"}
-                  `}
-                >
-                  {column.pages.length === 0 ? (
-                    <div className="text-center py-12 text-white">
-                      <Icon name="FaArrowsAlt" size={32} className="mx-auto mb-2 opacity-70" />
-                      <p className="text-sm">No pages in {column.label}</p>
-                      <p className="text-xs mt-1">Drag cards here</p>
-                    </div>
-                  ) : (
-                    column.pages.map((page, index) => {
-                      const isAccessible = accessiblePageIds.has(page.id);
-
-                      return (
-                        <Draggable
-                          key={page.id}
-                          draggableId={page.id}
-                          index={index}
-                          isDragDisabled={!isAccessible}
-                        >
-                          {(provided, snapshot) => (
-                            <div
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              {...provided.dragHandleProps}
-                              className={isAccessible ? "" : "opacity-50 cursor-not-allowed"}
-                              title={
-                                !isAccessible
-                                  ? `Upgrade to access more than ${maxPages} prompt pages`
-                                  : undefined
-                              }
-                            >
-                              <PromptPageCard
-                                page={page}
-                                business={business}
-                                isDragging={snapshot.isDragging || draggedCardId === page.id}
-                                onOpen={(selected) => setActivePage(selected)}
-                              />
-                            </div>
-                          )}
-                        </Draggable>
-                      );
-                    })
-                  )}
-                  {provided.placeholder}
-                </div>
-              )}
-            </Droppable>
+            ))}
           </div>
-        ))}
+        </div>
+
+        {/* Swipeable columns */}
+        <div
+          ref={scrollContainerRef}
+          onScroll={handleScroll}
+          className="flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide px-[7.5vw] pb-4"
+        >
+          {columnData.map((column) => renderColumn(column, 'mobile'))}
+        </div>
+
+        {/* Swipe hint */}
+        <div className="flex justify-center items-center gap-2 text-white/50 text-xs mt-2">
+          <Icon name="FaChevronLeft" size={10} />
+          <span>Swipe to navigate</span>
+          <Icon name="FaChevronRight" size={10} />
+        </div>
+      </div>
+
+      {/* Desktop/Tablet: Horizontal scroll with fixed-width columns */}
+      <div className="hidden md:flex gap-4 overflow-x-auto pb-4 px-2">
+        {columnData.map((column) => renderColumn(column, 'desktop'))}
       </div>
 
       {/* Plan Upgrade Notice */}

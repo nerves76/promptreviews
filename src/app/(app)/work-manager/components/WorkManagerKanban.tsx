@@ -173,10 +173,15 @@ export default function WorkManagerKanban({
   };
 
   // Render a single column (shared between mobile and desktop)
-  const renderColumn = (column: typeof columnData[0], isMobile: boolean = false) => (
+  // columnType: 'mobile' = 85vw with snap, 'desktop' = fixed 280px width
+  const renderColumn = (column: typeof columnData[0], columnType: 'mobile' | 'desktop' = 'desktop') => (
     <div
       key={column.id}
-      className={isMobile ? "w-[85vw] flex-shrink-0 snap-center" : "min-w-0"}
+      className={
+        columnType === 'mobile'
+          ? "w-[85vw] flex-shrink-0 snap-center"
+          : "w-[280px] flex-shrink-0"
+      }
     >
       {/* Column Header */}
       <div
@@ -218,7 +223,7 @@ export default function WorkManagerKanban({
             {...provided.droppableProps}
             className={`
               bg-white/30 backdrop-blur-md border-l border-r border-b border-white/30 rounded-b-lg p-3
-              ${isMobile ? "min-h-[60vh]" : "min-h-[calc(100vh-200px)]"} overflow-y-auto
+              ${columnType === 'mobile' ? "min-h-[60vh]" : "min-h-[calc(100vh-200px)]"} overflow-y-auto
               transition-colors
               ${snapshot.isDraggingOver ? "bg-blue-100/40 border-blue-300" : ""}
             `}
@@ -285,7 +290,7 @@ export default function WorkManagerKanban({
           onScroll={handleScroll}
           className="flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide px-[7.5vw] pb-4"
         >
-          {columnData.map((column) => renderColumn(column, true))}
+          {columnData.map((column) => renderColumn(column, 'mobile'))}
         </div>
 
         {/* Swipe hint */}
@@ -296,9 +301,9 @@ export default function WorkManagerKanban({
         </div>
       </div>
 
-      {/* Desktop: Grid layout */}
-      <div className="hidden md:grid md:grid-cols-3 lg:grid-cols-5 gap-4 pb-4">
-        {columnData.map((column) => renderColumn(column, false))}
+      {/* Desktop/Tablet: Horizontal scroll with fixed-width columns */}
+      <div className="hidden md:flex gap-4 overflow-x-auto pb-4 px-2">
+        {columnData.map((column) => renderColumn(column, 'desktop'))}
       </div>
     </DragDropContext>
   );
