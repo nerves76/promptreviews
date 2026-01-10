@@ -14,6 +14,7 @@ import {
   WM_PRIORITY_COLORS,
   WMUserInfo,
 } from "@/types/workManager";
+import MentionInput from "./MentionInput";
 
 interface WorkManagerDetailsPanelProps {
   task: WMTask;
@@ -123,15 +124,16 @@ export default function WorkManagerDetailsPanel({
     }
   };
 
-  const handleAddNote = async () => {
-    if (!newNote.trim()) return;
+  const handleAddNote = async (content: string, mentionedUserIds: string[]) => {
+    if (!content.trim()) return;
 
     setIsAddingNote(true);
     try {
       const response = await apiClient.post("/work-manager/task-actions", {
         task_id: task.id,
         activity_type: "note",
-        content: newNote.trim(),
+        content: content.trim(),
+        mentioned_user_ids: mentionedUserIds,
       });
       setActions((prev) => [response.action, ...prev]);
       setNewNote("");
@@ -416,34 +418,16 @@ export default function WorkManagerDetailsPanel({
         <section className="space-y-3">
           <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Activity</h3>
 
-          {/* Add Note */}
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={newNote}
-              onChange={(e) => setNewNote(e.target.value)}
-              placeholder="Add a note..."
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  handleAddNote();
-                }
-              }}
-            />
-            <button
-              type="button"
-              onClick={handleAddNote}
-              disabled={isAddingNote || !newNote.trim()}
-              className="px-3 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-blue/90 disabled:opacity-50"
-            >
-              {isAddingNote ? (
-                <Icon name="FaSpinner" size={14} className="animate-spin" />
-              ) : (
-                <Icon name="FaPlus" size={14} />
-              )}
-            </button>
-          </div>
+          {/* Add Note with @mention support */}
+          <MentionInput
+            value={newNote}
+            onChange={setNewNote}
+            onSubmit={handleAddNote}
+            placeholder="Add a comment... (type @ to mention)"
+            users={accountUsers}
+            disabled={isAddingNote}
+            isSubmitting={isAddingNote}
+          />
 
           {/* Timeline */}
           {actionsLoading ? (

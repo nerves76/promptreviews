@@ -161,12 +161,7 @@ async function processTeamMembers(supabase: any, supabaseAdmin: any, user: any, 
       .select(`
         user_id,
         role,
-        created_at,
-        accounts (
-          first_name,
-          last_name,
-          business_name
-        )
+        created_at
       `)
       .eq('account_id', accountUser.account_id)
       .order('created_at', { ascending: true });
@@ -179,20 +174,38 @@ async function processTeamMembers(supabase: any, supabaseAdmin: any, user: any, 
       );
     }
 
-    
+
     // Get all user IDs we need to fetch
     const userIds = accountUsers.map((au: any) => au.user_id);
-    
-    // Fetch all users and create a map
+
+    // Fetch user profiles for names
+    const { data: userProfiles, error: profilesError } = await supabaseAdmin
+      .from('user_profiles')
+      .select('id, first_name, last_name, avatar_url')
+      .in('id', userIds);
+
+    if (profilesError) {
+      console.error('Error fetching user profiles:', profilesError);
+    }
+
+    // Create a map of user_id to profile
+    const profileMap = new Map();
+    if (userProfiles) {
+      userProfiles.forEach((p: any) => {
+        profileMap.set(p.id, p);
+      });
+    }
+
+    // Fetch all users and create a map for emails
     const { data: authUsersData, error: listError } = await supabaseAdmin.auth.admin.listUsers({
       page: 1,
       perPage: 1000
     });
-    
+
     if (listError) {
       console.error('Error fetching users list:', listError);
     }
-    
+
     // Create a map of user_id to email
     const userEmailMap = new Map();
     if (authUsersData?.users) {
@@ -200,19 +213,31 @@ async function processTeamMembers(supabase: any, supabaseAdmin: any, user: any, 
         userEmailMap.set(u.id, u.email);
       });
     }
-    
-    // Map the account users with their emails
+
+    // Get account info for business_name fallback
+    const { data: accountData } = await supabaseAdmin
+      .from('accounts')
+      .select('first_name, last_name, business_name')
+      .eq('id', accountUser.account_id)
+      .single();
+
+    // Map the account users with their emails and profiles
     const membersWithDetails = accountUsers.map((accountUserEntry: any) => {
       const email = userEmailMap.get(accountUserEntry.user_id) || '';
-      
-      
+      const profile = profileMap.get(accountUserEntry.user_id);
+
+      // Use profile name first, then fall back to account name for owner
+      const firstName = profile?.first_name || (accountUserEntry.role === 'owner' ? accountData?.first_name : '') || '';
+      const lastName = profile?.last_name || (accountUserEntry.role === 'owner' ? accountData?.last_name : '') || '';
+
       return {
         user_id: accountUserEntry.user_id,
         role: accountUserEntry.role,
         email: email,
-        first_name: accountUserEntry.accounts?.[0]?.first_name || '',
-        last_name: accountUserEntry.accounts?.[0]?.last_name || '',
-        business_name: accountUserEntry.accounts?.[0]?.business_name || '',
+        first_name: firstName,
+        last_name: lastName,
+        avatar_url: profile?.avatar_url || '',
+        business_name: accountData?.business_name || '',
         created_at: accountUserEntry.created_at,
         is_current_user: accountUserEntry.user_id === user.id
       };
