@@ -326,19 +326,22 @@ export async function checkChatGPTVisibility(params: {
       }
     }
 
-    // Extract full response text for brand checking, then truncate for storage
+    // Extract full response text for brand checking
     let fullResponseText: string | null = null;
-    let responseSnippet: string | null = null;
     if (result.markdown) {
       fullResponseText = result.markdown;
-      responseSnippet = result.markdown.substring(0, MAX_SNIPPET_LENGTH);
     } else if (result.items && result.items.length > 0) {
       const firstItem = result.items[0];
       if (firstItem.content) {
         fullResponseText = firstItem.content;
-        responseSnippet = firstItem.content.substring(0, MAX_SNIPPET_LENGTH);
       }
     }
+
+    // Check for brand mention in FULL response text
+    const brandMentioned = checkBrandMentioned(fullResponseText, businessName);
+
+    // Extract snippet - centered around brand mention if found
+    const responseSnippet = extractSnippet(fullResponseText, businessName);
 
     // Extract brand entities mentioned in the response
     const mentionedBrands: LLMBrandEntity[] = [];
@@ -353,9 +356,6 @@ export async function checkChatGPTVisibility(params: {
         }
       }
     }
-
-    // Check for brand mention in FULL response text (not just snippet)
-    const brandMentioned = checkBrandMentioned(fullResponseText, businessName);
 
     console.log(
       `🤖 [DataForSEO AI] ChatGPT: ${citations.length} citations, ` +
@@ -451,16 +451,14 @@ export async function checkLLMResponseVisibility(params: {
     let citationPosition: number | null = null;
     let citationUrl: string | null = null;
     let fullResponseText: string | null = null;
-    let responseSnippet: string | null = null;
 
     // Find the assistant message
     const assistantMessage = result.message?.find(m => m.role === 'assistant');
 
     if (assistantMessage) {
-      // Get full response for brand checking, truncate for storage
+      // Get full response for brand checking
       if (assistantMessage.content) {
         fullResponseText = assistantMessage.content;
-        responseSnippet = assistantMessage.content.substring(0, MAX_SNIPPET_LENGTH);
       }
 
       // Extract citations from annotations
@@ -489,8 +487,11 @@ export async function checkLLMResponseVisibility(params: {
       }
     }
 
-    // Check for brand mention in FULL response text (not just snippet)
+    // Check for brand mention in FULL response text
     const brandMentioned = checkBrandMentioned(fullResponseText, businessName);
+
+    // Extract snippet - centered around brand mention if found
+    const responseSnippet = extractSnippet(fullResponseText, businessName);
 
     console.log(
       `🤖 [DataForSEO AI] ${provider}: ${citations.length} citations, ` +
@@ -646,18 +647,17 @@ function createErrorResult(
 }
 
 /**
- * Check if the business name is mentioned in the response text.
- * Uses case-insensitive matching and handles common variations.
+ * Find the position of a brand mention in text.
+ * Returns the index of the match, or -1 if not found.
  */
-function checkBrandMentioned(responseText: string | null, businessName: string | null): boolean {
-  if (!responseText || !businessName) return false;
-
+function findBrandPosition(responseText: string, businessName: string): number {
   const normalizedResponse = responseText.toLowerCase();
   const normalizedBrand = businessName.toLowerCase().trim();
 
   // Direct match
-  if (normalizedResponse.includes(normalizedBrand)) {
-    return true;
+  const directIndex = normalizedResponse.indexOf(normalizedBrand);
+  if (directIndex !== -1) {
+    return directIndex;
   }
 
   // Also check without common suffixes like LLC, Inc, etc.
@@ -665,11 +665,64 @@ function checkBrandMentioned(responseText: string | null, businessName: string |
     .replace(/\s*(llc|inc|corp|ltd|co|company|corporation)\.?$/i, '')
     .trim();
 
-  if (brandWithoutSuffix.length > 2 && normalizedResponse.includes(brandWithoutSuffix)) {
-    return true;
+  if (brandWithoutSuffix.length > 2) {
+    return normalizedResponse.indexOf(brandWithoutSuffix);
   }
 
-  return false;
+  return -1;
+}
+
+/**
+ * Check if the business name is mentioned in the response text.
+ * Uses case-insensitive matching and handles common variations.
+ */
+function checkBrandMentioned(responseText: string | null, businessName: string | null): boolean {
+  if (!responseText || !businessName) return false;
+  return findBrandPosition(responseText, businessName) !== -1;
+}
+
+/**
+ * Extract a snippet from the response, centered around the brand mention if found.
+ * If no brand mention, returns the first MAX_SNIPPET_LENGTH characters.
+ */
+function extractSnippet(
+  fullText: string | null,
+  businessName: string | null,
+  maxLength: number = MAX_SNIPPET_LENGTH
+): string | null {
+  if (!fullText) return null;
+
+  // If no business name or brand not found, return start of text
+  if (!businessName) {
+    return fullText.substring(0, maxLength);
+  }
+
+  const brandPosition = findBrandPosition(fullText, businessName);
+  if (brandPosition === -1) {
+    return fullText.substring(0, maxLength);
+  }
+
+  // Center the snippet around the brand mention
+  const padding = Math.floor(maxLength / 2);
+  let start = Math.max(0, brandPosition - padding);
+  let end = Math.min(fullText.length, start + maxLength);
+
+  // Adjust start if we're near the end
+  if (end - start < maxLength) {
+    start = Math.max(0, end - maxLength);
+  }
+
+  let snippet = fullText.substring(start, end);
+
+  // Add ellipsis if truncated
+  if (start > 0) {
+    snippet = '...' + snippet.substring(3);
+  }
+  if (end < fullText.length) {
+    snippet = snippet.substring(0, snippet.length - 3) + '...';
+  }
+
+  return snippet;
 }
 
 // ============================================
