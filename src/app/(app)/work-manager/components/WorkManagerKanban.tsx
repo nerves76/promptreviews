@@ -156,18 +156,18 @@ export default function WorkManagerKanban({
           <div key={column.id} className="min-w-0">
             {/* Column Header */}
             <div
-              className={`${column.color} border rounded-t-lg p-3 flex items-center justify-between`}
+              className={`${column.color} border border-white/30 rounded-t-lg p-3 flex items-center justify-between`}
             >
               <div className="flex items-center gap-2">
-                <h3 className="font-bold text-gray-900">{column.label}</h3>
-                <span className="text-sm text-gray-600">({column.tasks.length})</span>
+                <h3 className="font-bold text-white">{column.label}</h3>
+                <span className="text-sm text-white/70">({column.tasks.length})</span>
               </div>
               <div className="flex items-center gap-1">
                 {onAddTask && (
                   <button
                     type="button"
                     onClick={() => onAddTask(column.id)}
-                    className="text-gray-600 hover:text-gray-900 transition p-1"
+                    className="text-white/70 hover:text-white transition p-1"
                     title={`Add task to ${column.label}`}
                     aria-label={`Add task to ${column.label}`}
                   >
@@ -177,7 +177,7 @@ export default function WorkManagerKanban({
                 <button
                   type="button"
                   onClick={() => onEditLabel(column.id)}
-                  className="text-gray-600 hover:text-gray-900 transition p-1"
+                  className="text-white/70 hover:text-white transition p-1"
                   title="Edit column name"
                   aria-label={`Edit ${column.label} label`}
                 >
@@ -193,10 +193,10 @@ export default function WorkManagerKanban({
                   ref={provided.innerRef}
                   {...provided.droppableProps}
                   className={`
-                    bg-white/30 backdrop-blur-md border-l border-r border-b rounded-b-lg p-3
-                    min-h-[400px] max-h-[calc(100vh-300px)] overflow-y-auto
+                    bg-white/30 backdrop-blur-md border-l border-r border-b border-white/30 rounded-b-lg p-3
+                    min-h-[calc(100vh-200px)] overflow-y-auto
                     transition-colors
-                    ${snapshot.isDraggingOver ? "bg-blue-100/40 border-blue-300" : "border-white/40"}
+                    ${snapshot.isDraggingOver ? "bg-blue-100/40 border-blue-300" : ""}
                   `}
                 >
                   {column.tasks.length === 0 ? (
