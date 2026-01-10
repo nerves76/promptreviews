@@ -9,6 +9,9 @@ export type WMTaskStatus = 'backlog' | 'todo' | 'in_progress' | 'review' | 'done
 // Priority enum matching database
 export type WMTaskPriority = 'low' | 'medium' | 'high';
 
+// Source type for tracking where tasks originated
+export type WMTaskSourceType = 'manual' | 'gbp_suggestion';
+
 // Action type enum matching database
 export type WMActionType =
   | 'note'
@@ -87,6 +90,9 @@ export interface WMTask {
   created_by: string | null;
   created_at: string;
   updated_at: string;
+  // Source tracking fields
+  source_type: WMTaskSourceType | null;
+  source_reference: string | null;
   // Joined fields (optional, populated by API)
   assignee?: WMUserInfo | null;
   creator?: WMUserInfo | null;
@@ -126,6 +132,8 @@ export interface CreateTaskRequest {
   priority?: WMTaskPriority;
   due_date?: string | null;
   assigned_to?: string | null;
+  source_type?: WMTaskSourceType;
+  source_reference?: string;
 }
 
 export interface UpdateTaskRequest {

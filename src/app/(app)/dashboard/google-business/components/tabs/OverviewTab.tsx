@@ -4,7 +4,8 @@ import Icon from '@/components/Icon';
 import LocationPicker from '@/components/GoogleBusinessProfile/LocationPicker';
 import OverviewStats from '@/components/GoogleBusinessProfile/OverviewStats';
 import PostingFrequencyChart from '@/components/GoogleBusinessProfile/PostingFrequencyChart';
-import BusinessHealthMetrics from '@/components/GoogleBusinessProfile/BusinessHealthMetrics';
+import BusinessHealthMetrics, { OptimizationOpportunity } from '@/components/GoogleBusinessProfile/BusinessHealthMetrics';
+import { useWorkManagerIntegration } from '@/hooks/useWorkManagerIntegration';
 import type { GoogleBusinessLocation } from '../../types/google-business';
 
 interface OverviewTabProps {
@@ -53,6 +54,18 @@ export function OverviewTab({
   onExportPDF,
   onQuickAction,
 }: OverviewTabProps) {
+  // Work Manager integration
+  const { addSuggestionToWorkManager, isAddingToWorkManager } = useWorkManagerIntegration();
+
+  const handleAddToWorkManager = async (suggestion: OptimizationOpportunity) => {
+    await addSuggestionToWorkManager({
+      id: suggestion.id,
+      title: suggestion.title,
+      description: suggestion.description,
+      priority: suggestion.priority,
+    });
+  };
+
   // Generate 12 months of empty data as fallback
   const getEmptyMonthlyData = () => {
     const months = [];
@@ -247,6 +260,8 @@ export function OverviewTab({
           ]}
           isLoading={overviewLoading}
           onQuickAction={onQuickAction}
+          onAddToWorkManager={handleAddToWorkManager}
+          isAddingToWorkManager={isAddingToWorkManager}
         />
 
         {/* Loading State */}

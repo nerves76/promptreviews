@@ -44,27 +44,6 @@ export function Sidebar({
   // For now, assume GBP access if they have a business
   const hasGbpAccess = hasGbpAccessProp ?? hasBusiness;
 
-  // Track if user has Work Manager boards (for single-account users)
-  const [hasWorkManagerBoard, setHasWorkManagerBoard] = useState(false);
-
-  // Fetch Work Manager boards for single-account users
-  useEffect(() => {
-    const checkWorkManagerBoards = async () => {
-      if (!hasBusiness || hasMultipleAccounts) {
-        setHasWorkManagerBoard(false);
-        return;
-      }
-      try {
-        const response = await apiClient.get<{ boards: unknown[] }>('/work-manager/boards');
-        setHasWorkManagerBoard((response.boards || []).length > 0);
-      } catch {
-        // Silently fail - just don't show the link
-        setHasWorkManagerBoard(false);
-      }
-    };
-    checkWorkManagerBoards();
-  }, [hasBusiness, hasMultipleAccounts]);
-
   // Sidebar state
   const {
     isCollapsed,
@@ -114,16 +93,16 @@ export function Sidebar({
   // Filter bottom nav items based on conditions
   const visibleBottomItems = useMemo(() => {
     return BOTTOM_NAV_ITEMS.filter((item) => {
-      // Work Manager: only show for single-account users who have a board
+      // Work Manager: show for all users with a business
       if (item.conditional === "workManager") {
-        return !hasMultipleAccounts && hasWorkManagerBoard;
+        return hasBusiness;
       }
       if (item.conditional === "adminOnly" && !isAdmin) {
         return false;
       }
       return true;
     });
-  }, [hasMultipleAccounts, hasWorkManagerBoard, isAdmin]);
+  }, [hasBusiness, isAdmin]);
 
   const handleToggleFavorite = async (path: string) => {
     try {

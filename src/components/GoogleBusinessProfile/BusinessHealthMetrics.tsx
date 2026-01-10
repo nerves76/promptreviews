@@ -63,7 +63,14 @@ interface BusinessHealthMetricsProps {
   optimizationOpportunities: OptimizationOpportunity[];
   isLoading?: boolean;
   onQuickAction?: (action: string, data?: any) => void;
+  /** Callback to add a suggestion to Work Manager */
+  onAddToWorkManager?: (suggestion: OptimizationOpportunity) => Promise<void>;
+  /** ID of the suggestion currently being added to Work Manager */
+  isAddingToWorkManager?: string | null;
 }
+
+// Export the OptimizationOpportunity type for use in other components
+export type { OptimizationOpportunity };
 
 // Custom hook for counting animation
 function useCountUp(end: number, duration: number = 2000, shouldAnimate: boolean = false) {
@@ -140,7 +147,9 @@ export default function BusinessHealthMetrics({
   performanceData,
   optimizationOpportunities,
   isLoading = false,
-  onQuickAction
+  onQuickAction,
+  onAddToWorkManager,
+  isAddingToWorkManager,
 }: BusinessHealthMetricsProps) {
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   
@@ -798,14 +807,34 @@ export default function BusinessHealthMetrics({
                       </div>
                       <p className="text-xs text-gray-600">{opportunity.description}</p>
                     </div>
-                    {opportunity.actionUrl && (
-                      <button
-                        onClick={() => onQuickAction?.('navigate', { url: opportunity.actionUrl })}
-                        className="ml-2 text-slate-blue hover:text-slate-700"
-                      >
-                        <Icon name="FaArrowRight" className="w-3 h-3" />
-                      </button>
-                    )}
+                    <div className="flex items-center gap-1">
+                      {onAddToWorkManager && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onAddToWorkManager(opportunity);
+                          }}
+                          disabled={isAddingToWorkManager === opportunity.id}
+                          className="p-1 text-gray-400 hover:text-slate-blue transition-colors disabled:opacity-50"
+                          title="Add to Work Manager"
+                        >
+                          {isAddingToWorkManager === opportunity.id ? (
+                            <Icon name="FaSpinner" className="w-3 h-3 animate-spin" />
+                          ) : (
+                            <Icon name="FaPlusCircle" className="w-3 h-3" />
+                          )}
+                        </button>
+                      )}
+                      {opportunity.actionUrl && (
+                        <button
+                          onClick={() => onQuickAction?.('navigate', { url: opportunity.actionUrl })}
+                          className="p-1 text-slate-blue hover:text-slate-700"
+                          title="Go to action"
+                        >
+                          <Icon name="FaArrowRight" className="w-3 h-3" />
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))

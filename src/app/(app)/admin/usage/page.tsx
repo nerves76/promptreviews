@@ -117,15 +117,15 @@ export default function UsageAdminPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">AI & API usage</h2>
-          <p className="text-gray-600 mt-1">
+          <h2 className="text-2xl font-bold text-white">AI & API usage</h2>
+          <p className="text-white/80 mt-1">
             Track OpenAI and DataForSEO costs across all accounts
           </p>
         </div>
 
         {/* Time Range Selector */}
         <div className="flex items-center gap-2">
-          <label className="text-sm text-gray-600">Time range:</label>
+          <label className="text-sm text-white/80">Time range:</label>
           <select
             value={days}
             onChange={(e) => setDays(parseInt(e.target.value, 10))}

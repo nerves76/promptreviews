@@ -182,8 +182,8 @@ export default function BrandGuidelinesPage() {
   return (
     <div className="max-w-6xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Brand guidelines</h1>
-        <p className="text-gray-600">
+        <h1 className="text-3xl font-bold text-white mb-2">Brand guidelines</h1>
+        <p className="text-white/80">
           Click any color code to copy it to your clipboard.
         </p>
       </div>

@@ -203,8 +203,8 @@ export default function CreditsAdminPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900">Credit Management</h2>
-        <p className="text-gray-600 mt-1">Search accounts and manage credits</p>
+        <h2 className="text-2xl font-bold text-white">Credit management</h2>
+        <p className="text-white/80 mt-1">Search accounts and manage credits</p>
       </div>
 
       {/* Messages */}

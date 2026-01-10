@@ -622,8 +622,8 @@ export default function AdminPage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Admin user management</h1>
-            <p className="mt-2 text-gray-600">
+            <h1 className="text-3xl font-bold text-white">Admin user management</h1>
+            <p className="mt-2 text-white/80">
               Search and manage users with comprehensive data cleanup and repair capabilities
             </p>
           </div>

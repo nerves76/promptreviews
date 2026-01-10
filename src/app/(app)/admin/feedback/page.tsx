@@ -102,9 +102,9 @@ export default function AdminFeedbackPage() {
   return (
     <div className="max-w-6xl mx-auto">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">Feedback Management</h1>
+          <h1 className="text-3xl font-bold text-white">Feedback management</h1>
           <div className="flex gap-2">
-            <span className="text-sm text-gray-600">
+            <span className="text-sm text-white/80">
               {unreadCount} unread, {readCount} read
             </span>
           </div>

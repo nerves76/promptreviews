@@ -130,8 +130,8 @@ export default function FreeAccountsPage() {
     <div className="max-w-6xl mx-auto">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Free Account Management</h1>
-          <p className="text-gray-600 mt-2">Create and manage free accounts with specific plan levels</p>
+          <h1 className="text-3xl font-bold text-white">Free account management</h1>
+          <p className="text-white/80 mt-2">Create and manage free accounts with specific plan levels</p>
         </div>
       </div>
 

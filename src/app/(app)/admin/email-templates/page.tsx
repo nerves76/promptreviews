@@ -179,8 +179,8 @@ export default function EmailTemplatesPage() {
   return (
     <div className="max-w-7xl mx-auto">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Email Templates</h1>
-        <div className="text-sm text-gray-600">
+        <h1 className="text-3xl font-bold text-white">Email templates</h1>
+        <div className="text-sm text-white/80">
           {templates.length} templates
         </div>
       </div>

@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Icon from "@/components/Icon";
 import { useAuth } from "@/auth";
 import { apiClient } from "@/utils/apiClient";
 import CreateBoardModal from "./components/CreateBoardModal";
-import { WMBoardListItem } from "@/types/workManager";
+import { WMBoardListItem, WMBoard } from "@/types/workManager";
 
 interface UserAccount {
   account_id: string;
@@ -24,9 +24,28 @@ export default function WorkManagerDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isAutoCreating, setIsAutoCreating] = useState(false);
+  const autoCreateAttempted = useRef(false);
 
   // Check if user has multiple accounts
   const hasMultipleAccounts = accounts && accounts.length > 1;
+
+  // Auto-create board for single-account users
+  const autoCreateBoard = async () => {
+    if (autoCreateAttempted.current) return;
+    autoCreateAttempted.current = true;
+
+    try {
+      setIsAutoCreating(true);
+      const response = await apiClient.post<{ board: WMBoard; created: boolean }>('/work-manager/boards/ensure', {});
+      // Redirect to the board (whether newly created or existing)
+      router.replace(`/work-manager/${response.board.id}`);
+    } catch (err: any) {
+      console.error("Failed to auto-create board:", err);
+      setError(err.message || "Failed to create board");
+      setIsAutoCreating(false);
+    }
+  };
 
   // Fetch boards
   const fetchBoards = async () => {
@@ -49,12 +68,18 @@ export default function WorkManagerDashboard() {
     }
   }, [isInitialized, user]);
 
-  // Redirect single-account users with a board directly to their board
+  // Handle single-account users: auto-create board or redirect to existing
   useEffect(() => {
-    if (!hasMultipleAccounts && boards.length === 1 && !isLoading) {
-      router.replace(`/work-manager/${boards[0].id}`);
+    if (!hasMultipleAccounts && !isLoading && !isAutoCreating) {
+      if (boards.length === 1) {
+        // Redirect to existing board
+        router.replace(`/work-manager/${boards[0].id}`);
+      } else if (boards.length === 0 && !error) {
+        // Auto-create a board for single-account users
+        autoCreateBoard();
+      }
     }
-  }, [hasMultipleAccounts, boards, isLoading, router]);
+  }, [hasMultipleAccounts, boards, isLoading, isAutoCreating, error, router]);
 
   const handleBoardCreated = (boardId: string) => {
     fetchBoards();
@@ -67,35 +92,16 @@ export default function WorkManagerDashboard() {
     return board.account_name || "Unnamed Board";
   };
 
-  // Don't show dashboard for single-account users
-  if (!hasMultipleAccounts && !isLoading && boards.length <= 1) {
-    if (boards.length === 0) {
-      return (
-        <div className="min-h-screen p-6">
-          <div className="max-w-2xl mx-auto text-center py-20">
-            <Icon name="FaTasks" size={64} className="mx-auto mb-6 text-white/30" />
-            <h1 className="text-2xl font-bold text-white mb-4">
-              Work Manager
-            </h1>
-            <p className="text-white/70 mb-8">
-              Work Manager is available for agencies managing multiple client accounts.
-              Add another account to get started.
-            </p>
-            <Link
-              href="/dashboard/settings"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-white text-slate-blue rounded-lg hover:bg-white/90 font-medium"
-            >
-              <Icon name="FaCog" size={16} />
-              Go to Settings
-            </Link>
-          </div>
-        </div>
-      );
-    }
-    // Will redirect to board
+  // Show loading while redirecting single-account users or auto-creating
+  if (!hasMultipleAccounts && (isLoading || isAutoCreating || boards.length <= 1)) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Icon name="FaSpinner" size={32} className="animate-spin text-white" />
+        <div className="text-center">
+          <Icon name="FaSpinner" size={32} className="animate-spin text-white mx-auto mb-4" />
+          <p className="text-white/70">
+            {isAutoCreating ? "Setting up your board..." : "Loading..."}
+          </p>
+        </div>
       </div>
     );
   }
