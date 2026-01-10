@@ -1301,7 +1301,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
         break;
       case "calendar":
         // Create calendar event
-        const calendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=Review ${encodeURIComponent(businessProfile?.business_name || "")}&details=Review page: ${encodeURIComponent(window.location.href)}`;
+        const calendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=Don't forget to review ${encodeURIComponent(businessProfile?.business_name || "")}&details=Review page: ${encodeURIComponent(window.location.href)}`;
         window.open(calendarUrl);
         break;
       case "copy-link":
