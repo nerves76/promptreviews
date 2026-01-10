@@ -254,7 +254,7 @@ export default function WorkManagerBoardPage() {
               onClick={() => setIsLibraryOpen(true)}
               className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 font-medium transition-colors"
             >
-              <Icon name="FaBook" size={14} />
+              <Icon name="FaBookmark" size={14} />
               Browse library
             </button>
             <button
