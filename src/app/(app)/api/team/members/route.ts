@@ -275,7 +275,7 @@ async function processTeamMembers(supabase: any, supabaseAdmin: any, user: any, 
       }
     }
 
-    const accountData = {
+    const accountSummary = {
       id: account?.id,
       first_name: account?.first_name,
       last_name: account?.last_name,
@@ -290,7 +290,7 @@ async function processTeamMembers(supabase: any, supabaseAdmin: any, user: any, 
 
     return NextResponse.json({
       members,
-      account: accountData,
+      account: accountSummary,
       current_user_role: accountUser.role
     });
 
