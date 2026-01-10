@@ -250,7 +250,7 @@ export default function WorkManagerBoardPage() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => setIsCreateTaskOpen(true)}
-              className="inline-flex items-center gap-2 text-white hover:text-white/80 font-medium transition"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-blue/90 font-medium shadow"
             >
               <Icon name="FaPlus" size={14} />
               Add task
