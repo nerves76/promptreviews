@@ -170,11 +170,11 @@ export interface WMKanbanColumn {
 
 // Status color configuration
 export const WM_STATUS_COLORS: Record<WMTaskStatus, string> = {
-  backlog: 'bg-slate-300/60 backdrop-blur-sm border-slate-100/70',
-  todo: 'bg-blue-300/60 backdrop-blur-sm border-blue-100/70',
-  in_progress: 'bg-amber-300/60 backdrop-blur-sm border-amber-100/70',
-  review: 'bg-purple-300/60 backdrop-blur-sm border-purple-100/70',
-  done: 'bg-emerald-300/60 backdrop-blur-sm border-emerald-100/70',
+  backlog: 'bg-slate-500/70 backdrop-blur-sm',
+  todo: 'bg-blue-500/70 backdrop-blur-sm',
+  in_progress: 'bg-amber-500/70 backdrop-blur-sm',
+  review: 'bg-purple-500/70 backdrop-blur-sm',
+  done: 'bg-emerald-500/70 backdrop-blur-sm',
 };
 
 // Priority color configuration
