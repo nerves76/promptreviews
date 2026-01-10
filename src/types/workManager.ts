@@ -10,7 +10,7 @@ export type WMTaskStatus = 'backlog' | 'todo' | 'in_progress' | 'review' | 'done
 export type WMTaskPriority = 'low' | 'medium' | 'high';
 
 // Source type for tracking where tasks originated
-export type WMTaskSourceType = 'manual' | 'gbp_suggestion';
+export type WMTaskSourceType = 'manual' | 'gbp_suggestion' | 'library';
 
 // Action type enum matching database
 export type WMActionType =
@@ -205,3 +205,136 @@ export const WM_PRIORITY_LABELS: Record<WMTaskPriority, string> = {
 
 // Status order for iteration
 export const WM_STATUS_ORDER: WMTaskStatus[] = ['backlog', 'todo', 'in_progress', 'review', 'done'];
+
+// ============================================
+// Task Library Types
+// ============================================
+
+// Library task category
+export type WMLibraryCategory =
+  | 'research'
+  | 'search_visibility'
+  | 'ai_visibility'
+  | 'local_visibility'
+  | 'fix_issues'
+  | 'track_maintain';
+
+// Library task difficulty
+export type WMLibraryDifficulty = 'easy' | 'medium' | 'advanced';
+
+// Library task time estimate
+export type WMLibraryTimeEstimate = '5_15_min' | '15_45_min' | '45_120_min' | 'multi_step';
+
+// Relevant tool link
+export interface WMRelevantTool {
+  name: string;
+  route: string;
+}
+
+// Library task from database
+export interface WMLibraryTask {
+  id: string;
+  title: string;
+  description: string | null;
+  instructions: string | null;
+  education: string | null;
+  category: WMLibraryCategory;
+  goals: string[];
+  page_types: string[];
+  offsite_sources: string[];
+  difficulty: WMLibraryDifficulty;
+  time_estimate: WMLibraryTimeEstimate;
+  relevant_tools: WMRelevantTool[];
+  sort_order: number;
+  is_active: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+// Library pack from database
+export interface WMLibraryPack {
+  id: string;
+  name: string;
+  description: string | null;
+  icon: string | null;
+  sort_order: number;
+  is_active: boolean;
+  task_count?: number; // Computed field from API
+  created_at?: string;
+  updated_at?: string;
+}
+
+// Library taxonomy constants
+export const WM_LIBRARY_CATEGORIES = [
+  { id: 'research', label: 'Research' },
+  { id: 'search_visibility', label: 'Search visibility' },
+  { id: 'ai_visibility', label: 'AI visibility' },
+  { id: 'local_visibility', label: 'Local visibility' },
+  { id: 'fix_issues', label: 'Fix issues' },
+  { id: 'track_maintain', label: 'Track & maintain' },
+] as const;
+
+export const WM_LIBRARY_GOALS = [
+  'Improve rankings for keyword',
+  'Improve traffic',
+  'Get more leads',
+  'Get more sales',
+  'Improve click-through rate',
+  'Optimize Google Business',
+  'Improve mentions in LLMs',
+  'Improve site structure',
+  'Discover keyword phrases',
+  'Increase authority',
+  'Get links and mentions',
+] as const;
+
+export const WM_LIBRARY_PAGE_TYPES = [
+  'Site-wide',
+  'Homepage',
+  'Service page',
+  'Case study',
+  'Blog post',
+  'Location page',
+  'About page',
+  'Contact page',
+  'FAQ page',
+  'Pricing page',
+] as const;
+
+export const WM_LIBRARY_OFFSITE_SOURCES = [
+  'Google Business Profile',
+  'Directories / Citations',
+  'Social Profiles',
+  'PR / Mentions',
+  'Backlinks',
+] as const;
+
+export const WM_LIBRARY_DIFFICULTY = [
+  { id: 'easy', label: 'Easy' },
+  { id: 'medium', label: 'Medium' },
+  { id: 'advanced', label: 'Advanced' },
+] as const;
+
+export const WM_LIBRARY_TIME_ESTIMATES = [
+  { id: '5_15_min', label: '5-15 minutes' },
+  { id: '15_45_min', label: '15-45 minutes' },
+  { id: '45_120_min', label: '45-120 minutes' },
+  { id: 'multi_step', label: 'Multi-step project' },
+] as const;
+
+// Category colors for display
+export const WM_LIBRARY_CATEGORY_COLORS: Record<WMLibraryCategory, { bg: string; text: string }> = {
+  research: { bg: 'bg-indigo-100', text: 'text-indigo-700' },
+  search_visibility: { bg: 'bg-blue-100', text: 'text-blue-700' },
+  ai_visibility: { bg: 'bg-purple-100', text: 'text-purple-700' },
+  local_visibility: { bg: 'bg-green-100', text: 'text-green-700' },
+  fix_issues: { bg: 'bg-red-100', text: 'text-red-700' },
+  track_maintain: { bg: 'bg-amber-100', text: 'text-amber-700' },
+};
+
+// Difficulty colors for display
+export const WM_LIBRARY_DIFFICULTY_COLORS: Record<WMLibraryDifficulty, { bg: string; text: string }> = {
+  easy: { bg: 'bg-green-100', text: 'text-green-700' },
+  medium: { bg: 'bg-amber-100', text: 'text-amber-700' },
+  advanced: { bg: 'bg-red-100', text: 'text-red-700' },
+};

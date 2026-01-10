@@ -10,6 +10,7 @@ import WorkManagerKanban from "../components/WorkManagerKanban";
 import WMStatusLabelEditor from "../components/WMStatusLabelEditor";
 import CreateTaskModal from "../components/CreateTaskModal";
 import WorkManagerDetailsPanel from "../components/WorkManagerDetailsPanel";
+import LibraryBrowser from "../components/LibraryBrowser";
 import {
   WMBoard,
   WMTask,
@@ -37,6 +38,7 @@ export default function WorkManagerBoardPage() {
   const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false);
   const [createTaskDefaultStatus, setCreateTaskDefaultStatus] = useState<WMTaskStatus>("backlog");
   const [selectedTask, setSelectedTask] = useState<WMTask | null>(null);
+  const [isLibraryOpen, setIsLibraryOpen] = useState(false);
 
   const hasMultipleAccounts = accounts && accounts.length > 1;
 
@@ -249,6 +251,13 @@ export default function WorkManagerBoardPage() {
           </div>
           <div className="flex items-center gap-3">
             <button
+              onClick={() => setIsLibraryOpen(true)}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 font-medium transition-colors"
+            >
+              <Icon name="FaBook" size={14} />
+              Browse library
+            </button>
+            <button
               onClick={() => setIsCreateTaskOpen(true)}
               className="inline-flex items-center gap-2 px-4 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-blue/90 font-medium shadow"
             >
@@ -305,6 +314,13 @@ export default function WorkManagerBoardPage() {
           onTaskDeleted={handleTaskDeleted}
         />
       )}
+
+      {/* Library Browser */}
+      <LibraryBrowser
+        isOpen={isLibraryOpen}
+        onClose={() => setIsLibraryOpen(false)}
+        onTaskAdded={fetchTasks}
+      />
     </div>
   );
 }
