@@ -223,40 +223,38 @@ export default function WorkManagerBoardPage() {
     );
   }
 
-  const boardDisplayName = board.name || board.business_name || board.account_name || "Task Board";
+  const businessName = board.business_name || board.account_name || board.name || "Your Business";
 
   return (
     <div className="min-h-screen">
       {/* Header */}
-      <div className="bg-white/95 backdrop-blur-sm border-b border-white/20 shadow-sm">
-        <div className="max-w-[1800px] mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              {hasMultipleAccounts && (
-                <Link
-                  href="/work-manager"
-                  className="text-gray-500 hover:text-gray-700 transition"
-                  title="Back to boards"
-                >
-                  <Icon name="FaArrowLeft" size={18} />
-                </Link>
-              )}
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">{boardDisplayName}</h1>
-                {board.business_name && board.name && (
-                  <p className="text-sm text-gray-500">{board.business_name}</p>
-                )}
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setIsCreateTaskOpen(true)}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-blue/90 font-medium shadow"
+      <div className="max-w-[1800px] mx-auto px-6 py-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            {hasMultipleAccounts && (
+              <Link
+                href="/work-manager"
+                className="text-white/70 hover:text-white transition"
+                title="Back to boards"
               >
-                <Icon name="FaPlus" size={14} />
-                Add Task
-              </button>
+                <Icon name="FaArrowLeft" size={18} />
+              </Link>
+            )}
+            <div>
+              <h1 className="text-2xl font-bold text-white">{businessName} Work Manager</h1>
+              <p className="text-sm text-white/70 mt-1">
+                Manage SEO and AI Search tasks. Use our library of optimization tasks or create your own.
+              </p>
             </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setIsCreateTaskOpen(true)}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-white text-slate-blue rounded-lg hover:bg-white/90 font-medium shadow"
+            >
+              <Icon name="FaPlus" size={14} />
+              Add task
+            </button>
           </div>
         </div>
       </div>
