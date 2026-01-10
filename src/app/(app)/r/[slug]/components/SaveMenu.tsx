@@ -145,7 +145,7 @@ export default function SaveMenu({
             >
               <path d="M20.5 3.5H3.5C2.67 3.5 2 4.17 2 5v14c0 .83.67 1.5 1.5 1.5h17c.83 0 1.5-.67 1.5-1.5V5c0-.83-.67-1.5-1.5-1.5zM12 19.5H4v-15h8v15zm8 0h-7v-15h7v15z" />
             </svg>
-            Save to pocket
+            Save to Pocket
           </button>
           
           <button
@@ -160,7 +160,7 @@ export default function SaveMenu({
             >
               <path d="M20.5 3.5H3.5C2.67 3.5 2 4.17 2 5v14c0 .83.67 1.5 1.5 1.5h17c.83 0 1.5-.67 1.5-1.5V5c0-.83-.67-1.5-1.5-1.5zM12 19.5H4v-15h8v15zm8 0h-7v-15h7v15z" />
             </svg>
-            Save to instapaper
+            Save to Instapaper
           </button>
           
           {availableFeatures.bookmarks && (

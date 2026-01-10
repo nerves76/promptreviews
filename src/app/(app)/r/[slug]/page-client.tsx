@@ -1272,7 +1272,8 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
         // Add to browser's reading list
         if ("share" in navigator) {
           navigator.share({
-            title: `Review ${businessProfile?.business_name}`,
+            title: `Don't forget to review ${businessProfile?.business_name}`,
+            text: "Reviews help small businesses grow!",
             url: window.location.href,
           });
         }
@@ -1285,7 +1286,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
         break;
       case "email":
         // Open email client
-        window.location.href = `mailto:?subject=Review ${businessProfile?.business_name}&body=Here's the review page: ${window.location.href}`;
+        window.location.href = `mailto:?subject=Don't forget to review ${encodeURIComponent(businessProfile?.business_name || "")}&body=Reviews help small businesses grow!%0A%0AReview page: ${encodeURIComponent(window.location.href)}`;
         break;
       case "pocket":
         // Open Pocket save dialog
@@ -1301,7 +1302,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
         break;
       case "calendar":
         // Create calendar event
-        const calendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=Don't forget to review ${encodeURIComponent(businessProfile?.business_name || "")}&details=Review page: ${encodeURIComponent(window.location.href)}`;
+        const calendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=Don't forget to review ${encodeURIComponent(businessProfile?.business_name || "")}&details=${encodeURIComponent("Reviews help small businesses grow!\n\nReview page: " + window.location.href)}`;
         window.open(calendarUrl);
         break;
       case "copy-link":
