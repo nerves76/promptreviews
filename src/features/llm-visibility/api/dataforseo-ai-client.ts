@@ -326,13 +326,16 @@ export async function checkChatGPTVisibility(params: {
       }
     }
 
-    // Extract response snippet from markdown or items
+    // Extract full response text for brand checking, then truncate for storage
+    let fullResponseText: string | null = null;
     let responseSnippet: string | null = null;
     if (result.markdown) {
+      fullResponseText = result.markdown;
       responseSnippet = result.markdown.substring(0, MAX_SNIPPET_LENGTH);
     } else if (result.items && result.items.length > 0) {
       const firstItem = result.items[0];
       if (firstItem.content) {
+        fullResponseText = firstItem.content;
         responseSnippet = firstItem.content.substring(0, MAX_SNIPPET_LENGTH);
       }
     }
@@ -351,8 +354,8 @@ export async function checkChatGPTVisibility(params: {
       }
     }
 
-    // Check for brand mention in response text
-    const brandMentioned = checkBrandMentioned(responseSnippet, businessName);
+    // Check for brand mention in FULL response text (not just snippet)
+    const brandMentioned = checkBrandMentioned(fullResponseText, businessName);
 
     console.log(
       `🤖 [DataForSEO AI] ChatGPT: ${citations.length} citations, ` +
@@ -447,14 +450,16 @@ export async function checkLLMResponseVisibility(params: {
     let domainCited = false;
     let citationPosition: number | null = null;
     let citationUrl: string | null = null;
+    let fullResponseText: string | null = null;
     let responseSnippet: string | null = null;
 
     // Find the assistant message
     const assistantMessage = result.message?.find(m => m.role === 'assistant');
 
     if (assistantMessage) {
-      // Get response snippet from content
+      // Get full response for brand checking, truncate for storage
       if (assistantMessage.content) {
+        fullResponseText = assistantMessage.content;
         responseSnippet = assistantMessage.content.substring(0, MAX_SNIPPET_LENGTH);
       }
 
@@ -484,8 +489,8 @@ export async function checkLLMResponseVisibility(params: {
       }
     }
 
-    // Check for brand mention in response text
-    const brandMentioned = checkBrandMentioned(responseSnippet, businessName);
+    // Check for brand mention in FULL response text (not just snippet)
+    const brandMentioned = checkBrandMentioned(fullResponseText, businessName);
 
     console.log(
       `🤖 [DataForSEO AI] ${provider}: ${citations.length} citations, ` +
