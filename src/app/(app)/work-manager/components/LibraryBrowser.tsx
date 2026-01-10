@@ -7,6 +7,7 @@ import Icon from '@/components/Icon';
 import { apiClient } from '@/utils/apiClient';
 import LibraryTaskCard from './LibraryTaskCard';
 import LibraryTaskPreview from './LibraryTaskPreview';
+import { useToast, ToastContainer } from '@/app/(app)/components/reviews/Toast';
 import {
   WMLibraryTask,
   WMLibraryPack,
@@ -30,6 +31,9 @@ type NavigationItem =
   | { type: 'pack'; id: string };
 
 export default function LibraryBrowser({ isOpen, onClose, onTaskAdded }: LibraryBrowserProps) {
+  // Toast notifications
+  const toast = useToast();
+
   // Data state
   const [packs, setPacks] = useState<WMLibraryPack[]>([]);
   const [tasks, setTasks] = useState<WMLibraryTask[]>([]);
@@ -126,8 +130,10 @@ export default function LibraryBrowser({ isOpen, onClose, onTaskAdded }: Library
       });
       onTaskAdded();
       setPreviewTask(null);
+      toast.success('Task added to your board!');
     } catch (error) {
       console.error('Error adding task:', error);
+      toast.error('Failed to add task. Please try again.');
     } finally {
       setIsAddingTask(false);
     }
@@ -142,10 +148,10 @@ export default function LibraryBrowser({ isOpen, onClose, onTaskAdded }: Library
         pack_id: selectedPack.id,
       });
       onTaskAdded();
-      // Show success message
-      alert(`Added ${response.count} tasks to your board!`);
+      toast.success(`Added ${response.count} tasks to your board!`);
     } catch (error) {
       console.error('Error adding pack:', error);
+      toast.error('Failed to add tasks. Please try again.');
     } finally {
       setIsAddingPack(false);
     }
@@ -375,6 +381,9 @@ export default function LibraryBrowser({ isOpen, onClose, onTaskAdded }: Library
             </Transition.Child>
           </div>
         </div>
+
+        {/* Toast notifications */}
+        <ToastContainer toasts={toast.toasts} onClose={toast.closeToast} />
       </Dialog>
     </Transition>
   );
