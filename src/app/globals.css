@@ -601,3 +601,14 @@ body:has(.fixed.inset-0) {
 .animate-rotate-three {
   animation: rotate-three 1s linear infinite;
 }
+
+/* Utility to hide scrollbars while maintaining scroll functionality */
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;  /* Chrome, Safari, Opera */
+  }
+}

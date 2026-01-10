@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 import WorkManagerCard from "./WorkManagerCard";
 import Icon from "@/components/Icon";
@@ -34,11 +34,34 @@ export default function WorkManagerKanban({
 }: WorkManagerKanbanProps) {
   const [draggedCardId, setDraggedCardId] = useState<string | null>(null);
   const [localTasks, setLocalTasks] = useState<WMTask[]>(tasks);
+  const [activeColumnIndex, setActiveColumnIndex] = useState(0);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Sync local tasks with props
   useEffect(() => {
     setLocalTasks(tasks);
   }, [tasks]);
+
+  // Handle scroll to update active column indicator
+  const handleScroll = useCallback(() => {
+    if (!scrollContainerRef.current) return;
+    const container = scrollContainerRef.current;
+    const scrollLeft = container.scrollLeft;
+    const columnWidth = container.offsetWidth * 0.85; // 85% of container width
+    const newIndex = Math.round(scrollLeft / columnWidth);
+    setActiveColumnIndex(Math.min(newIndex, WM_STATUS_ORDER.length - 1));
+  }, []);
+
+  // Scroll to a specific column
+  const scrollToColumn = useCallback((index: number) => {
+    if (!scrollContainerRef.current) return;
+    const container = scrollContainerRef.current;
+    const columnWidth = container.offsetWidth * 0.85;
+    container.scrollTo({
+      left: index * columnWidth,
+      behavior: 'smooth'
+    });
+  }, []);
 
   // Group tasks by status
   const columnData = useMemo(() => {
@@ -149,86 +172,133 @@ export default function WorkManagerKanban({
     }
   };
 
+  // Render a single column (shared between mobile and desktop)
+  const renderColumn = (column: typeof columnData[0], isMobile: boolean = false) => (
+    <div
+      key={column.id}
+      className={isMobile ? "w-[85vw] flex-shrink-0 snap-center" : "min-w-0"}
+    >
+      {/* Column Header */}
+      <div
+        className={`${column.color} border border-white/30 rounded-t-lg p-3 flex items-center justify-between`}
+      >
+        <div className="flex items-center gap-2">
+          <h3 className="font-bold text-white">{column.label}</h3>
+          <span className="text-sm text-white/70">({column.tasks.length})</span>
+        </div>
+        <div className="flex items-center gap-1">
+          {onAddTask && (
+            <button
+              type="button"
+              onClick={() => onAddTask(column.id)}
+              className="text-white/70 hover:text-white transition p-1"
+              title={`Add task to ${column.label}`}
+              aria-label={`Add task to ${column.label}`}
+            >
+              <Icon name="FaPlus" size={14} />
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => onEditLabel(column.id)}
+            className="text-white/70 hover:text-white transition p-1"
+            title="Edit column name"
+            aria-label={`Edit ${column.label} label`}
+          >
+            <Icon name="FaEdit" size={14} />
+          </button>
+        </div>
+      </div>
+
+      {/* Droppable Column */}
+      <Droppable droppableId={column.id}>
+        {(provided, snapshot) => (
+          <div
+            ref={provided.innerRef}
+            {...provided.droppableProps}
+            className={`
+              bg-white/30 backdrop-blur-md border-l border-r border-b border-white/30 rounded-b-lg p-3
+              ${isMobile ? "min-h-[60vh]" : "min-h-[calc(100vh-200px)]"} overflow-y-auto
+              transition-colors
+              ${snapshot.isDraggingOver ? "bg-blue-100/40 border-blue-300" : ""}
+            `}
+          >
+            {column.tasks.length === 0 ? (
+              <div className="text-center py-12 text-white/60">
+                <p className="text-sm font-medium">No tasks in {column.label}</p>
+                <p className="text-xs mt-1">Drag tasks here or add new</p>
+              </div>
+            ) : (
+              column.tasks.map((task, index) => (
+                <Draggable key={task.id} draggableId={task.id} index={index}>
+                  {(provided, snapshot) => (
+                    <div
+                      ref={provided.innerRef}
+                      {...provided.draggableProps}
+                      {...provided.dragHandleProps}
+                    >
+                      <WorkManagerCard
+                        task={task}
+                        isDragging={snapshot.isDragging || draggedCardId === task.id}
+                        onOpen={onTaskClick}
+                      />
+                    </div>
+                  )}
+                </Draggable>
+              ))
+            )}
+            {provided.placeholder}
+          </div>
+        )}
+      </Droppable>
+    </div>
+  );
+
   return (
     <DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 pb-4">
-        {columnData.map((column) => (
-          <div key={column.id} className="min-w-0">
-            {/* Column Header */}
-            <div
-              className={`${column.color} border border-white/30 rounded-t-lg p-3 flex items-center justify-between`}
-            >
-              <div className="flex items-center gap-2">
-                <h3 className="font-bold text-white">{column.label}</h3>
-                <span className="text-sm text-white/70">({column.tasks.length})</span>
-              </div>
-              <div className="flex items-center gap-1">
-                {onAddTask && (
-                  <button
-                    type="button"
-                    onClick={() => onAddTask(column.id)}
-                    className="text-white/70 hover:text-white transition p-1"
-                    title={`Add task to ${column.label}`}
-                    aria-label={`Add task to ${column.label}`}
-                  >
-                    <Icon name="FaPlus" size={14} />
-                  </button>
-                )}
-                <button
-                  type="button"
-                  onClick={() => onEditLabel(column.id)}
-                  className="text-white/70 hover:text-white transition p-1"
-                  title="Edit column name"
-                  aria-label={`Edit ${column.label} label`}
-                >
-                  <Icon name="FaEdit" size={14} />
-                </button>
-              </div>
-            </div>
-
-            {/* Droppable Column */}
-            <Droppable droppableId={column.id}>
-              {(provided, snapshot) => (
-                <div
-                  ref={provided.innerRef}
-                  {...provided.droppableProps}
-                  className={`
-                    bg-white/30 backdrop-blur-md border-l border-r border-b border-white/30 rounded-b-lg p-3
-                    min-h-[calc(100vh-200px)] overflow-y-auto
-                    transition-colors
-                    ${snapshot.isDraggingOver ? "bg-blue-100/40 border-blue-300" : ""}
-                  `}
-                >
-                  {column.tasks.length === 0 ? (
-                    <div className="text-center py-12 text-white/60">
-                      <p className="text-sm font-medium">No tasks in {column.label}</p>
-                      <p className="text-xs mt-1">Drag tasks here or add new</p>
-                    </div>
-                  ) : (
-                    column.tasks.map((task, index) => (
-                      <Draggable key={task.id} draggableId={task.id} index={index}>
-                        {(provided, snapshot) => (
-                          <div
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            {...provided.dragHandleProps}
-                          >
-                            <WorkManagerCard
-                              task={task}
-                              isDragging={snapshot.isDragging || draggedCardId === task.id}
-                              onOpen={onTaskClick}
-                            />
-                          </div>
-                        )}
-                      </Draggable>
-                    ))
-                  )}
-                  {provided.placeholder}
-                </div>
-              )}
-            </Droppable>
+      {/* Mobile: Horizontal scroll with snap */}
+      <div className="md:hidden">
+        {/* Column indicator pills - scrollable on very small screens */}
+        <div className="flex gap-1.5 mb-3 px-4 overflow-x-auto pb-1 scrollbar-hide">
+          <div className="flex gap-1.5 mx-auto">
+            {columnData.map((column, index) => (
+              <button
+                key={column.id}
+                onClick={() => scrollToColumn(index)}
+                className={`
+                  px-2.5 py-1 rounded-full text-xs font-medium transition-all whitespace-nowrap flex-shrink-0
+                  ${index === activeColumnIndex
+                    ? `${column.color} text-white shadow-md`
+                    : 'bg-white/30 text-white/70 hover:bg-white/40'
+                  }
+                `}
+              >
+                {column.label} ({column.tasks.length})
+              </button>
+            ))}
           </div>
-        ))}
+        </div>
+
+        {/* Swipeable columns */}
+        <div
+          ref={scrollContainerRef}
+          onScroll={handleScroll}
+          className="flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide px-[7.5vw] pb-4"
+        >
+          {columnData.map((column) => renderColumn(column, true))}
+        </div>
+
+        {/* Swipe hint */}
+        <div className="flex justify-center items-center gap-2 text-white/50 text-xs mt-2">
+          <Icon name="FaChevronLeft" size={10} />
+          <span>Swipe to navigate</span>
+          <Icon name="FaChevronRight" size={10} />
+        </div>
+      </div>
+
+      {/* Desktop: Grid layout */}
+      <div className="hidden md:grid md:grid-cols-3 lg:grid-cols-5 gap-4 pb-4">
+        {columnData.map((column) => renderColumn(column, false))}
       </div>
     </DragDropContext>
   );
