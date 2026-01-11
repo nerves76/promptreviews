@@ -386,10 +386,10 @@ export default function CreateBusinessClient() {
                   {isSubmitting ? (
                     <>
                       <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      Creating...
+                      Saving...
                     </>
                   ) : (
-                    "Create business"
+                    "Save & continue"
                   )}
                 </button>
               }

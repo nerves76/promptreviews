@@ -788,8 +788,8 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
             </svg>
           )}
           {loading ? (
-            loadingState === 'creating' ? "Creating..." : "Redirecting..."
-          ) : "Create business"}
+            loadingState === 'creating' ? "Saving..." : "Redirecting..."
+          ) : "Save & continue"}
         </button>
       </div>
     </form>
