@@ -186,26 +186,30 @@ This is NOT a location-based business. Do NOT include any city, state, or geogra
 - aliases
 Focus only on the service/product terms. Set location_scope to "national".`;
     } else if (locationAliases && locationAliases.length > 0) {
+      // Pick a random location alias to use consistently for this enrichment
+      const selectedLocation = locationAliases[Math.floor(Math.random() * locationAliases.length)];
       locationInstructions = `
 LOCATION HANDLING:
-This is a location-based business serving: ${businessCity || ""}${businessCity && businessState ? ", " : ""}${businessState || ""}
-Location name variations to use: ${locationAliases.join(", ")}
+This is a location-based business. Use this location name: "${selectedLocation}"
 
-IMPORTANT: Include location in approximately 50-70% of generated content for natural variety:
-- For review_phrase: Include location using one of the variations above
-- For search_terms: Include location in 2 out of 3 terms, varying which alias you use
-- For aliases: Include location in about half, mix in some without location
+IMPORTANT: Use "${selectedLocation}" consistently throughout:
+- review_phrase: MUST include "${selectedLocation}" (e.g., "Best plumber in ${selectedLocation}!")
+- search_terms: ALL 3 terms MUST include "${selectedLocation}"
+- aliases: Include "${selectedLocation}" in most aliases
 
-When including location, rotate through the variations naturally for variety.`;
+Be consistent - use "${selectedLocation}" everywhere, do not mix different location names.`;
     } else if (businessCity || businessState) {
+      const locationName = businessCity || businessState;
       locationInstructions = `
 LOCATION HANDLING:
-This is a location-based business in ${businessCity || ""}${businessCity && businessState ? ", " : ""}${businessState || ""}.
+This is a location-based business. Use this location: "${locationName}"
 
-IMPORTANT: Include location in approximately 50-70% of generated content for natural variety:
-- For review_phrase: Usually include city/state
-- For search_terms: Include location in 2 out of 3 terms
-- For aliases: Include location in about half`;
+IMPORTANT: Use "${locationName}" consistently throughout:
+- review_phrase: MUST include "${locationName}" (e.g., "Best plumber in ${locationName}!")
+- search_terms: ALL 3 terms MUST include "${locationName}"
+- aliases: Include "${locationName}" in most aliases
+
+Be consistent - use "${locationName}" everywhere.`;
     }
 
     const systemPrompt = `You are a keyword optimization expert for local SEO and review generation.
