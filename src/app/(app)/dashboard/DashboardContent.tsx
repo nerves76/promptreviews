@@ -539,7 +539,7 @@ const DashboardContent = React.memo(function DashboardContent({
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
               <div className="bg-indigo-50 rounded-lg p-6 flex flex-col items-center w-full">
-                <p className="text-lg font-semibold text-indigo-700 mb-2 flex items-center gap-1">
+                <p className="text-lg font-semibold text-slate-blue mb-2 flex items-center gap-1">
                   Total reviews
                   <span className="relative group">
                     <Icon name="FaQuestionCircle" className="w-4 h-4 text-slate-blue cursor-pointer" size={16} />
@@ -566,7 +566,7 @@ const DashboardContent = React.memo(function DashboardContent({
                 </div>
                 <Link
                   href="/dashboard/reviews/sources"
-                  className="mt-4 text-sm text-indigo-600 hover:text-indigo-800 flex items-center gap-1 transition-colors"
+                  className="mt-4 text-sm text-slate-blue hover:text-slate-blue/80 flex items-center gap-1 transition-colors"
                 >
                   View by source
                   <Icon name="FaArrowRight" size={12} />
