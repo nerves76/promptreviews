@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import PageCard, { PageCardHeader } from '@/app/(app)/components/PageCard';
 import { SubNav } from '@/app/(app)/components/SubNav';
 import Icon from '@/components/Icon';
@@ -73,7 +74,11 @@ const FUNNEL_COLORS: Record<string, { bg: string; text: string }> = {
  * Displays all questions in a flat table with concept column.
  */
 export default function LLMVisibilityPage() {
-    // Track selected account to refetch when it changes
+  // Read query params for deep linking
+  const searchParams = useSearchParams();
+  const conceptFromUrl = searchParams.get('concept');
+
+  // Track selected account to refetch when it changes
   const { selectedAccountId } = useAccountData();
   const { business } = useBusinessData();
   const [keywords, setKeywords] = useState<KeywordWithQuestions[]>([]);
@@ -103,9 +108,16 @@ export default function LLMVisibilityPage() {
   const [sortField, setSortField] = useState<SortField>('concept');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
 
-  // Filter state
-  const [filterConcept, setFilterConcept] = useState<string | null>(null);
+  // Filter state - initialize from URL if present
+  const [filterConcept, setFilterConcept] = useState<string | null>(conceptFromUrl);
   const [filterFunnel, setFilterFunnel] = useState<string | null>(null);
+
+  // Update filter when URL param changes
+  useEffect(() => {
+    if (conceptFromUrl) {
+      setFilterConcept(conceptFromUrl);
+    }
+  }, [conceptFromUrl]);
 
   // Expanded row state (for showing details)
   const [expandedRow, setExpandedRow] = useState<string | null>(null);

@@ -7,6 +7,7 @@
 'use client';
 
 import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useSearchParams } from 'next/navigation';
 import PageCard, { PageCardHeader } from '@/app/(app)/components/PageCard';
 import { SubNav } from '@/app/(app)/components/SubNav';
 import Icon from '@/components/Icon';
@@ -94,10 +95,21 @@ interface EnrichmentResponse {
 }
 
 export default function RankTrackingPage() {
-    // Track selected account to refetch when it changes
+  // Read query params for deep linking
+  const searchParams = useSearchParams();
+  const conceptFromUrl = searchParams.get('concept');
+
+  // Track selected account to refetch when it changes
   const { selectedAccountId } = useAccountData();
   const { business } = useBusinessData();
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(conceptFromUrl || '');
+
+  // Update search when URL param changes
+  useEffect(() => {
+    if (conceptFromUrl) {
+      setSearchQuery(conceptFromUrl);
+    }
+  }, [conceptFromUrl]);
   const [checkingKeyword, setCheckingKeyword] = useState<{ keyword: string; conceptId: string; locationCode?: number; locationName?: string } | null>(null);
   const [checkingVolumeTerm, setCheckingVolumeTerm] = useState<{ term: string; conceptId: string } | null>(null);
   const [researchResults, setResearchResults] = useState<ResearchResult[]>([]);

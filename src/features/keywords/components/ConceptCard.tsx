@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 import Icon from '@/components/Icon';
 import { CollapsibleSection } from './CollapsibleSection';
@@ -897,7 +898,18 @@ export function ConceptCard({
           defaultExpanded={false}
           forceExpanded={isEditing}
           icon={<Icon name="FaSearch" className="w-3.5 h-3.5 text-slate-blue" />}
-          headerAction={undefined}
+          headerAction={
+            !isEditing && keyword.isUsedInRankTracking && (displayKeyword.searchTerms?.length || 0) > 0 ? (
+              <Link
+                href={`/dashboard/keywords/rank-tracking?concept=${encodeURIComponent(keyword.name)}`}
+                className="text-xs text-slate-blue hover:text-slate-blue/80 flex items-center gap-1"
+                title="View rank tracking details"
+              >
+                <Icon name="FaChartLine" className="w-3 h-3" />
+                <span>Details</span>
+              </Link>
+            ) : undefined
+          }
         >
           {isEditing ? (
             /* Edit mode */
@@ -1161,7 +1173,18 @@ export function ConceptCard({
           defaultExpanded={false}
           forceExpanded={isEditing}
           icon={<Icon name="FaSparkles" className="w-3.5 h-3.5 text-slate-blue" />}
-          headerAction={undefined /* Each question has its own check button */}
+          headerAction={
+            !isEditing && (displayKeyword.relatedQuestions?.length || 0) > 0 ? (
+              <Link
+                href={`/dashboard/keywords/llm-visibility?concept=${encodeURIComponent(keyword.name)}`}
+                className="text-xs text-slate-blue hover:text-slate-blue/80 flex items-center gap-1"
+                title="View AI visibility details"
+              >
+                <Icon name="FaSparkles" className="w-3 h-3" />
+                <span>Details</span>
+              </Link>
+            ) : undefined
+          }
         >
           {isEditing ? (
             /* Edit mode */
