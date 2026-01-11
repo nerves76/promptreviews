@@ -22,6 +22,8 @@ import {
   LLMProvider,
   LLM_PROVIDERS,
 } from '@/features/llm-visibility/utils/types';
+import { Modal } from '@/app/(app)/components/ui/modal';
+import { Button } from '@/app/(app)/components/ui/button';
 import {
   useAIEnrichment,
   applyEnrichmentResult,
@@ -62,6 +64,8 @@ interface ConceptCardProps {
   onOpenDetails?: (keyword: KeywordData) => void;
   /** Callback to update keyword */
   onUpdate?: (id: string, updates: Partial<KeywordData>) => Promise<KeywordData | null>;
+  /** Callback to delete keyword */
+  onDelete?: (id: string) => Promise<void>;
   /** Callback when user wants to check rank for a search term */
   onCheckRank?: (term: string, conceptId: string) => void;
   /** Callback when user wants to check AI visibility for a question */
@@ -92,6 +96,7 @@ export function ConceptCard({
   keyword,
   onOpenDetails,
   onUpdate,
+  onDelete,
   onCheckRank,
   onCheckLLMVisibility,
   showEditActions = true,
@@ -163,6 +168,10 @@ export function ConceptCard({
 
   // Card expansion state (accordion behavior)
   const [isExpanded, setIsExpanded] = useState(false);
+
+  // Delete confirmation state
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Check reviews state
   const [isCheckingReviews, setIsCheckingReviews] = useState(false);
@@ -522,6 +531,20 @@ export function ConceptCard({
     }
   };
 
+  // Handle delete confirmation
+  const handleDeleteConfirm = async () => {
+    if (!onDelete) return;
+    setIsDeleting(true);
+    try {
+      await onDelete(keyword.id);
+      setShowDeleteModal(false);
+    } catch (err) {
+      console.error('Failed to delete concept:', err);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   // Merge keyword data with optimistic updates
   const displayKeyword = useMemo(() => {
     if (!optimisticData) return keyword;
@@ -596,69 +619,86 @@ export function ConceptCard({
             {!isEditing && (
               <>
                 {promptPageNames.length > 0 && (
-                  <span className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-green-100 text-green-700">
-                    {promptPageNames.length} page{promptPageNames.length !== 1 ? 's' : ''}
+                  <span
+                    className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-green-100 text-green-700"
+                    title={`Used on ${promptPageNames.length} Prompt Page${promptPageNames.length !== 1 ? 's' : ''}: ${promptPageNames.join(', ')}`}
+                  >
+                    [P] {promptPageNames.length}
                   </span>
                 )}
                 {termVolumeData.size > 0 && (
-                  <span className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-blue-100 text-blue-700 flex items-center gap-0.5">
+                  <span
+                    className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-blue-100 text-blue-700 flex items-center gap-0.5"
+                    title="Monthly search volume from Google"
+                  >
                     <Icon name="FaChartLine" className="w-2 h-2" />
                     {allLowVolume ? '<10' : formatVolume(totalVolume)} vol
                   </span>
                 )}
                 {keyword.reviewPhrase && (
-                  <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded flex items-center gap-0.5 ${
-                    (keyword.reviewUsageCount + keyword.aliasMatchCount) > 0
-                      ? 'bg-amber-100 text-amber-700'
-                      : 'bg-gray-100 text-gray-500'
-                  }`}>
+                  <span
+                    className={`px-1.5 py-0.5 text-[10px] font-medium rounded flex items-center gap-0.5 ${
+                      (keyword.reviewUsageCount + keyword.aliasMatchCount) > 0
+                        ? 'bg-amber-100 text-amber-700'
+                        : 'bg-gray-100 text-gray-500'
+                    }`}
+                    title="Number of your reviews that mention this keyword"
+                  >
                     <Icon name="FaStar" className="w-2 h-2" />
                     {keyword.reviewUsageCount + keyword.aliasMatchCount} in reviews
                   </span>
                 )}
                 {llmCitationStats && (
-                  <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded flex items-center gap-0.5 ${
-                    llmCitationStats.cited > 0
-                      ? 'bg-purple-100 text-purple-700'
-                      : 'bg-gray-100 text-gray-600'
-                  }`}>
+                  <span
+                    className={`px-1.5 py-0.5 text-[10px] font-medium rounded flex items-center gap-0.5 ${
+                      llmCitationStats.cited > 0
+                        ? 'bg-purple-100 text-purple-700'
+                        : 'bg-gray-100 text-gray-600'
+                    }`}
+                    title={`AI visibility: ${llmCitationStats.cited} of ${llmCitationStats.total} AI responses cite your business`}
+                  >
                     <Icon name="FaSparkles" className="w-2 h-2" />
                     {llmCitationStats.cited}/{llmCitationStats.total}
                   </span>
                 )}
                 {keyword.isUsedInRankTracking && rankingStats !== null && (
-                  <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded flex items-center gap-0.5 ${
-                    rankingStats.inTop10 === rankingStats.total
-                      ? 'bg-green-100 text-green-700'
-                      : rankingStats.inTop10 > 0
-                        ? 'bg-amber-100 text-amber-700'
-                        : 'bg-gray-100 text-gray-600'
-                  }`}>
+                  <span
+                    className={`px-1.5 py-0.5 text-[10px] font-medium rounded flex items-center gap-0.5 ${
+                      rankingStats.inTop10 === rankingStats.total
+                        ? 'bg-green-100 text-green-700'
+                        : rankingStats.inTop10 > 0
+                          ? 'bg-amber-100 text-amber-700'
+                          : 'bg-gray-100 text-gray-600'
+                    }`}
+                    title={`Google ranking: ${rankingStats.inTop10} of ${rankingStats.total} search terms rank in the top 10`}
+                  >
                     <Icon name="FaGoogle" className="w-2 h-2" />
                     {rankingStats.inTop10}/{rankingStats.total} top 10
                   </span>
                 )}
                 {keyword.isUsedInGeoGrid && enrichedData?.geoGridStatus?.summary && enrichedData.geoGridStatus.summary.totalPoints > 0 && (
-                  <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded flex items-center gap-0.5 ${
-                    enrichedData.geoGridStatus.summary.pointsInTop10 === enrichedData.geoGridStatus.summary.totalPoints
-                      ? 'bg-green-100 text-green-700'
-                      : enrichedData.geoGridStatus.summary.pointsInTop10 > 0
-                        ? 'bg-amber-100 text-amber-700'
-                        : 'bg-gray-100 text-gray-600'
-                  }`}
-                    title={enrichedData.geoGridStatus.locationName || 'Geo Grid'}
+                  <span
+                    className={`px-1.5 py-0.5 text-[10px] font-medium rounded flex items-center gap-0.5 ${
+                      enrichedData.geoGridStatus.summary.pointsInTop10 === enrichedData.geoGridStatus.summary.totalPoints
+                        ? 'bg-green-100 text-green-700'
+                        : enrichedData.geoGridStatus.summary.pointsInTop10 > 0
+                          ? 'bg-amber-100 text-amber-700'
+                          : 'bg-gray-100 text-gray-600'
+                    }`}
+                    title={`Local ranking grid: ${enrichedData.geoGridStatus.summary.pointsInTop10} of ${enrichedData.geoGridStatus.summary.totalPoints} grid points rank in top 10${enrichedData.geoGridStatus.locationName ? ` (${enrichedData.geoGridStatus.locationName})` : ''}`}
                   >
                     <Icon name="FaMapMarker" className="w-2 h-2" />
                     {enrichedData.geoGridStatus.summary.pointsInTop10}/{enrichedData.geoGridStatus.summary.totalPoints} top 10
                   </span>
                 )}
                 {enrichedData?.scheduleStatus?.isScheduled && enrichedData.scheduleStatus.frequency && (
-                  <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded flex items-center gap-0.5 ${
-                    enrichedData.scheduleStatus.isEnabled
-                      ? 'bg-indigo-100 text-indigo-700'
-                      : 'bg-gray-100 text-gray-500'
-                  }`}
-                    title={enrichedData.scheduleStatus.isEnabled ? 'Schedule active' : 'Schedule paused'}
+                  <span
+                    className={`px-1.5 py-0.5 text-[10px] font-medium rounded flex items-center gap-0.5 ${
+                      enrichedData.scheduleStatus.isEnabled
+                        ? 'bg-slate-blue/10 text-slate-blue'
+                        : 'bg-gray-100 text-gray-500'
+                    }`}
+                    title={`Scheduled checks: ${enrichedData.scheduleStatus.frequency} (${enrichedData.scheduleStatus.isEnabled ? 'active' : 'paused'})`}
                   >
                     <Icon name="FaCalendarAlt" className="w-2 h-2" />
                     {enrichedData.scheduleStatus.frequency.charAt(0).toUpperCase() + enrichedData.scheduleStatus.frequency.slice(1)}
@@ -678,6 +718,17 @@ export function ConceptCard({
                 aria-label={`Edit ${keyword.name}`}
               >
                 <Icon name="FaEdit" className="w-3.5 h-3.5" />
+              </button>
+            )}
+            {/* Delete button */}
+            {showEditActions && !isEditing && onDelete && (
+              <button
+                type="button"
+                onClick={() => setShowDeleteModal(true)}
+                className="p-1 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
+                aria-label={`Delete ${keyword.name}`}
+              >
+                <Icon name="FaTrash" className="w-3.5 h-3.5" />
               </button>
             )}
             {/* Edit mode actions */}
@@ -970,6 +1021,18 @@ export function ConceptCard({
                               <span className="w-2.5 h-2.5 flex-shrink-0" />
                             )}
                             <span className="text-sm font-medium text-gray-900">{term.term}</span>
+                            {/* Schedule indicator */}
+                            {enrichedData?.scheduleStatus?.isScheduled && enrichedData.scheduleStatus.isEnabled && (
+                              enrichedData.scheduleStatus.searchRankEnabled ||
+                              (enrichedData.scheduleStatus.geoGridEnabled && keyword.isUsedInGeoGrid)
+                            ) && (
+                              <span
+                                className="text-slate-blue ml-1"
+                                title={`Scheduled ${enrichedData.scheduleStatus.frequency}`}
+                              >
+                                <Icon name="FaCalendarAlt" className="w-2.5 h-2.5" />
+                              </span>
+                            )}
                           </div>
                         </td>
                         <td className="py-2 px-2 text-center">
@@ -1181,6 +1244,16 @@ export function ConceptCard({
                     isEditing={false}
                     onCheckQuestion={onCheckLLMVisibility ? (idx, question) => onCheckLLMVisibility(question, keyword.id) : undefined}
                     selectedProviders={LLM_PROVIDERS}
+                    scheduleInfo={
+                      enrichedData?.scheduleStatus?.isScheduled &&
+                      enrichedData.scheduleStatus.isEnabled &&
+                      enrichedData.scheduleStatus.llmVisibilityEnabled
+                        ? {
+                            isScheduled: true,
+                            frequency: enrichedData.scheduleStatus.frequency,
+                          }
+                        : null
+                    }
                   />
                 );
               })}
@@ -1343,6 +1416,45 @@ export function ConceptCard({
         </div>
       </>
       )}
+
+      {/* Delete confirmation modal */}
+      <Modal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        title="Delete concept"
+        size="sm"
+      >
+        <p className="text-sm text-gray-600">
+          Are you sure you want to delete <strong>&quot;{keyword.name}&quot;</strong>?
+        </p>
+        <p className="text-sm text-gray-500 mt-2">
+          This will permanently remove this concept and all its associated search terms,
+          AI visibility questions, and tracking history. This action cannot be undone.
+        </p>
+        <Modal.Footer>
+          <Button
+            variant="secondary"
+            onClick={() => setShowDeleteModal(false)}
+            disabled={isDeleting}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={handleDeleteConfirm}
+            disabled={isDeleting}
+          >
+            {isDeleting ? (
+              <>
+                <Icon name="FaSpinner" className="w-4 h-4 animate-spin mr-2" />
+                Deleting...
+              </>
+            ) : (
+              'Delete concept'
+            )}
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 }

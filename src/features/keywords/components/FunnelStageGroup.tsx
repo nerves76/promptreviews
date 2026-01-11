@@ -36,6 +36,11 @@ export interface FunnelStageGroupProps {
   selectedProviders?: LLMProvider[];
   /** Check result for a specific question (indexed by question index) */
   checkResult?: { questionIndex: number; success: boolean; message: string } | null;
+  /** Schedule info for showing schedule indicator on questions */
+  scheduleInfo?: {
+    isScheduled: boolean;
+    frequency: string | null;
+  } | null;
 }
 
 /**
@@ -72,6 +77,7 @@ export function FunnelStageGroup({
   checkingIndex = null,
   selectedProviders = [],
   checkResult = null,
+  scheduleInfo = null,
 }: FunnelStageGroupProps) {
   // Don't render if no questions for this stage
   if (questions.length === 0) {
@@ -108,6 +114,7 @@ export function FunnelStageGroup({
             isChecking={checkingIndex === question.originalIndex}
             selectedProviders={selectedProviders}
             checkResult={checkResult?.questionIndex === question.originalIndex ? checkResult : null}
+            scheduleInfo={scheduleInfo}
           />
         ))}
       </div>

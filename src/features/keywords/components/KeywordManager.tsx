@@ -89,6 +89,10 @@ export interface ScheduleStatusData {
   frequency: 'daily' | 'weekly' | 'monthly' | null;
   isEnabled: boolean;
   nextScheduledAt: string | null;
+  searchRankEnabled: boolean;
+  geoGridEnabled: boolean;
+  llmVisibilityEnabled: boolean;
+  reviewMatchingEnabled: boolean;
 }
 
 export interface EnrichmentData {
@@ -1409,6 +1413,7 @@ export default function KeywordManager({
                     keyword={keyword}
                     onOpenDetails={handleKeywordClick}
                     onUpdate={updateKeyword}
+                    onDelete={deleteKeyword}
                     onCheckRank={onCheckRank}
                     onCheckLLMVisibility={onCheckLLMVisibility}
                     promptPageNames={promptPageUsage[keyword.id] || []}

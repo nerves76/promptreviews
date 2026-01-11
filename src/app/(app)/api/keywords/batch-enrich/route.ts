@@ -94,6 +94,10 @@ interface ScheduleStatusData {
   frequency: 'daily' | 'weekly' | 'monthly' | null;
   isEnabled: boolean;
   nextScheduledAt: string | null;
+  searchRankEnabled: boolean;
+  geoGridEnabled: boolean;
+  llmVisibilityEnabled: boolean;
+  reviewMatchingEnabled: boolean;
 }
 
 interface EnrichmentData {
@@ -285,7 +289,7 @@ export async function POST(request: NextRequest) {
       // 6. Fetch concept schedules for all keywords
       serviceSupabase
         .from('concept_schedules')
-        .select('keyword_id, schedule_frequency, is_enabled, next_scheduled_at')
+        .select('keyword_id, schedule_frequency, is_enabled, next_scheduled_at, search_rank_enabled, geo_grid_enabled, llm_visibility_enabled, review_matching_enabled')
         .eq('account_id', accountId)
         .in('keyword_id', filteredKeywordIds),
     ]);
@@ -313,6 +317,10 @@ export async function POST(request: NextRequest) {
             frequency: schedule.schedule_frequency as 'daily' | 'weekly' | 'monthly' | null,
             isEnabled: schedule.is_enabled,
             nextScheduledAt: schedule.next_scheduled_at,
+            searchRankEnabled: schedule.search_rank_enabled ?? false,
+            geoGridEnabled: schedule.geo_grid_enabled ?? false,
+            llmVisibilityEnabled: schedule.llm_visibility_enabled ?? false,
+            reviewMatchingEnabled: schedule.review_matching_enabled ?? false,
           };
         }
       }

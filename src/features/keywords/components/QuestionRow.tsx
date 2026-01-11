@@ -46,6 +46,11 @@ interface QuestionRowProps {
     success: boolean;
     message: string;
   } | null;
+  /** Schedule info for showing schedule indicator */
+  scheduleInfo?: {
+    isScheduled: boolean;
+    frequency: string | null;
+  } | null;
 }
 
 export function QuestionRow({
@@ -61,6 +66,7 @@ export function QuestionRow({
   isChecking = false,
   selectedProviders = [],
   checkResult,
+  scheduleInfo,
 }: QuestionRowProps) {
   const funnelColor = getFunnelStageColor(question.funnelStage);
 
@@ -110,7 +116,17 @@ export function QuestionRow({
         )}
 
         {/* Question text */}
-        <span className="flex-1 text-sm text-gray-700">{question.question}</span>
+        <span className="flex-1 text-sm text-gray-700 flex items-center gap-1">
+          {question.question}
+          {scheduleInfo?.isScheduled && (
+            <span
+              className="text-slate-blue flex-shrink-0"
+              title={`Scheduled ${scheduleInfo.frequency}`}
+            >
+              <Icon name="FaCalendarAlt" className="w-2.5 h-2.5" />
+            </span>
+          )}
+        </span>
 
         {/* Right side - remove button (edit mode) OR citation status + expand indicator */}
         {isEditing ? (
