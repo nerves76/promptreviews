@@ -661,7 +661,7 @@ export default function ReviewPlatformCard({
           >
             By submitting, you agree to our{" "}
             <a
-              href="https://promptreviews.app/terms"
+              href="https://promptreviews.app/terms/"
               target="_blank"
               rel="noopener noreferrer"
               className="underline hover:opacity-100"
