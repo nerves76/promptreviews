@@ -84,7 +84,8 @@ grep "FaIconName" src/components/Icon.tsx
 
 ### App Background Gradient
 ```css
-background: linear-gradient(to bottom, #527DE7, #7864C8, #914AAE);
+background: linear-gradient(to bottom, #527DE7, #7B6BA8, #E8A87C);
+/* Blue → Muted lavender → Peach (sunset effect) */
 ```
 
 ### Text Colors (WCAG AA Compliant)

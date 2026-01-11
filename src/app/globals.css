@@ -34,10 +34,10 @@ html[data-global-loading-long="true"] .global-overlay {
   --card-text: #111827;          /* gray-900 */
   --border-color: #E5E7EB;       /* gray-200 */
 
-  /* Gradient colors */
+  /* Gradient colors - blue to peach sunset */
   --gradient-top: #527DE7;
-  --gradient-middle: #7864C8;
-  --gradient-bottom: #914AAE;
+  --gradient-middle: #7B6BA8;
+  --gradient-bottom: #E8A87C;
 
   /* Status colors */
   --success-color: #16a34a;      /* green-600 */

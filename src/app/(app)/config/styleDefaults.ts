@@ -16,8 +16,8 @@ export const GLASSY_DEFAULTS = {
   background_type: 'gradient' as const,
   background_color: '#FFFFFF',
   gradient_start: '#2563EB',
-  gradient_middle: '#7864C8',
-  gradient_end: '#914AAE',
+  gradient_middle: '#7B6BA8',
+  gradient_end: '#E8A87C',
   card_bg: '#FFFFFF',
   card_text: '#FFFFFF', // White text for glassy design
   card_placeholder_color: '#9CA3AF',
