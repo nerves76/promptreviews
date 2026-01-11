@@ -821,6 +821,7 @@ export default function LLMVisibilityPage() {
                             <button
                               onClick={() => setCheckingModal({ question: row.question, conceptId: row.conceptId })}
                               className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 transition-colors"
+                              title="Check if AI assistants cite your business for this question"
                             >
                               <Icon name="FaSearch" className="w-3 h-3" />
                               Check

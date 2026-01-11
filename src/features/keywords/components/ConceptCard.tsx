@@ -717,6 +717,7 @@ export function ConceptCard({
                 }}
                 className="p-1 text-gray-500 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors"
                 aria-label={`Edit ${keyword.name}`}
+                title="Edit concept"
               >
                 <Icon name="FaEdit" className="w-3.5 h-3.5" />
               </button>
@@ -728,6 +729,7 @@ export function ConceptCard({
                 onClick={() => setShowDeleteModal(true)}
                 className="p-1 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
                 aria-label={`Delete ${keyword.name}`}
+                title="Delete concept"
               >
                 <Icon name="FaTrash" className="w-3.5 h-3.5" />
               </button>
@@ -777,6 +779,7 @@ export function ConceptCard({
                 }}
                 disabled={isEnriching}
                 className="px-2.5 py-1 text-slate-blue border border-slate-blue rounded-lg hover:bg-slate-blue/5 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 transition-colors"
+                title="Use AI to generate search terms and questions for this concept"
               >
                 {isEnriching ? (
                   <>
