@@ -473,7 +473,7 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
             Business location
           </label>
           <p className="text-xs text-gray-500 mb-3 italic">
-            You do not need to have a street address listed, but knowing your approximate location can help Prompty AI.
+            You do not need to have a street address listed but knowing your location is important for local visibility.
           </p>
           <label
             className="block text-xs font-medium text-gray-500 mb-1"
