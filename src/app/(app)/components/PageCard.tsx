@@ -159,9 +159,9 @@ const PageCard = React.memo(function PageCard({
   const isRightPositioned = !!bottomRightImage;
 
   return (
-    <div className={`w-full mx-auto px-4 sm:px-4 md:px-6 lg:px-8 ${topMargin} mb-16 flex justify-center items-start`}>
+    <div className={`w-full mx-auto px-4 ${topMargin} mb-16 flex justify-center items-start`}>
       <div
-        className={`page relative w-full max-w-[1280px] rounded-2xl bg-white/90 shadow-2xl border-2 border-white pt-4 px-4 md:px-8 lg:px-12 pb-8 ${className}`}
+        className={`page relative w-full max-w-[1280px] rounded-2xl bg-white/90 shadow-2xl border-2 border-white pt-4 px-6 md:px-8 pb-8 ${className}`}
         style={{ overflow: "visible" }} // Restore to visible for icon breaching
       >
         {icon && (

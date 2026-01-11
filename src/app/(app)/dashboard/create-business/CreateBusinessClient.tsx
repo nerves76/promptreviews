@@ -369,7 +369,7 @@ export default function CreateBusinessClient() {
 
   return (
     <>
-      <div className="min-h-screen flex justify-center items-start px-4 sm:px-0">
+      <div className="min-h-screen flex justify-center items-start">
         <div className="w-full">
           <PageCard icon={<Icon name="FaStore" className="w-9 h-9 text-slate-blue" size={36} />}>
             <PageCardHeader
