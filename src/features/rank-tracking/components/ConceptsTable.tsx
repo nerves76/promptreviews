@@ -435,7 +435,7 @@ export default function ConceptsTable({
   }
 
   return (
-    <div className="overflow-x-auto -mx-6">
+    <div className="overflow-x-auto border border-gray-200 rounded-xl">
       <table className="w-full min-w-[1000px]">
         {/* Column widths: Keyword, Concept, Volume, Rank, Change, Grid, Actions */}
         <colgroup>
@@ -448,11 +448,11 @@ export default function ConceptsTable({
           <col style={{ width: '14%', minWidth: '200px' }} />
         </colgroup>
         <thead>
-          <tr className="border-b border-gray-200">
+          <tr className="bg-gray-50 border-b border-gray-200">
             <th className="text-left py-3 pl-4 pr-4">
               <button
                 onClick={() => handleSort('keyword')}
-                className="flex items-center gap-1.5 text-sm font-semibold text-gray-700 hover:text-gray-900 ml-5"
+                className="flex items-center gap-1.5 text-xs font-semibold text-gray-600 uppercase tracking-wider hover:text-gray-900 ml-5"
               >
                 Keyword
                 <SortIcon field="keyword" />
@@ -461,7 +461,7 @@ export default function ConceptsTable({
             <th className="text-left py-3 px-4">
               <button
                 onClick={() => handleSort('concept')}
-                className="flex items-center gap-1.5 text-sm font-semibold text-gray-700 hover:text-gray-900"
+                className="flex items-center gap-1.5 text-xs font-semibold text-gray-600 uppercase tracking-wider hover:text-gray-900"
               >
                 Concept
                 <SortIcon field="concept" />
@@ -470,7 +470,7 @@ export default function ConceptsTable({
             <th className="text-center py-3 px-4">
               <button
                 onClick={() => handleSort('volume')}
-                className="flex items-center gap-1.5 text-sm font-semibold text-gray-700 hover:text-gray-900 mx-auto"
+                className="flex items-center gap-1.5 text-xs font-semibold text-gray-600 uppercase tracking-wider hover:text-gray-900 mx-auto"
               >
                 Volume
                 <SortIcon field="volume" />
@@ -479,7 +479,7 @@ export default function ConceptsTable({
             <th className="text-center py-3 px-4">
               <button
                 onClick={() => handleSort('rank')}
-                className="flex items-center gap-1.5 text-sm font-semibold text-gray-700 hover:text-gray-900 mx-auto"
+                className="flex items-center gap-1.5 text-xs font-semibold text-gray-600 uppercase tracking-wider hover:text-gray-900 mx-auto"
               >
                 Rank
                 <SortIcon field="rank" />
@@ -488,17 +488,17 @@ export default function ConceptsTable({
             <th className="text-center py-3 px-4">
               <button
                 onClick={() => handleSort('change')}
-                className="flex items-center gap-1.5 text-sm font-semibold text-gray-700 hover:text-gray-900 mx-auto"
+                className="flex items-center gap-1.5 text-xs font-semibold text-gray-600 uppercase tracking-wider hover:text-gray-900 mx-auto"
               >
                 Change
                 <SortIcon field="change" />
               </button>
             </th>
             <th className="text-center py-3 px-4">
-              <span className="text-sm font-semibold text-gray-700">Grid</span>
+              <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider">Grid</span>
             </th>
             <th className="text-center py-3 pl-4 pr-6">
-              <span className="text-sm font-semibold text-gray-700">Actions</span>
+              <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</span>
             </th>
           </tr>
         </thead>
@@ -506,7 +506,7 @@ export default function ConceptsTable({
           {paginatedRows.map((row, index) => (
             <React.Fragment key={`${row.concept.id}-${row.keyword}-${index}`}>
             <tr
-              className={`group/row border-b border-gray-100 hover:bg-white transition-colors ${
+              className={`group/row border-b border-gray-100 hover:bg-gray-50 transition-colors ${
                 expandedRowKey === `${row.concept.id}::${row.keyword}` ? 'bg-blue-50' : ''
               }`}
             >
