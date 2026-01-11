@@ -26,6 +26,7 @@ import { refundFeature, ensureBalanceExists } from '@/lib/credits';
 import { KeywordMatchService } from '@/features/keywords/keywordMatchService';
 import { syncKeywordUsageCounts } from '@/features/keywords/reprocessKeywordMatches';
 import type { SyncedReviewRecord } from '@/features/google-reviews/reviewSyncService';
+import { checkRankForDomain } from '@/features/rank-tracking/api/dataforseo-serp-client';
 
 // Cost limit per check run (safety measure)
 const MAX_COST_PER_RUN_USD = 10.0;
@@ -340,7 +341,7 @@ async function runSearchRankChecks(
   // Get keyword with search terms
   const { data: keyword, error: keywordError } = await supabase
     .from('keywords')
-    .select('phrase, search_terms')
+    .select('phrase, search_terms, search_volume_location_code, search_volume_location_name')
     .eq('id', keywordId)
     .single();
 
@@ -354,48 +355,111 @@ async function runSearchRankChecks(
     searchTerms.push({ term: keyword.phrase, isCanonical: true });
   }
 
-  // Get business for target domain
+  // Get business for target domain and location
   const { data: business } = await supabase
     .from('businesses')
-    .select('website')
+    .select('business_website, location_code, location_name')
     .eq('account_id', accountId)
     .single();
 
-  const targetDomain = business?.website
-    ? new URL(business.website.startsWith('http') ? business.website : `https://${business.website}`).hostname
-    : null;
+  // Extract target domain
+  let targetDomain: string | null = null;
+  if (business?.business_website) {
+    try {
+      const url = business.business_website.startsWith('http')
+        ? business.business_website
+        : `https://${business.business_website}`;
+      targetDomain = new URL(url).hostname.replace(/^www\./, '');
+    } catch {
+      targetDomain = business.business_website.replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0];
+    }
+  }
 
   if (!targetDomain) {
     return { success: false, checksPerformed: 0, error: 'No target website configured' };
   }
 
+  // Get location code - prefer keyword-specific location, then business location, then default to US
+  const locationCode = keyword.search_volume_location_code || business?.location_code || 2840; // 2840 = United States
+  const locationName = keyword.search_volume_location_name || business?.location_name || 'United States';
+
   let checksPerformed = 0;
+  let totalApiCost = 0;
 
   // Run rank checks for each term (desktop + mobile)
   for (const termObj of searchTerms) {
     const term = typeof termObj === 'string' ? termObj : termObj.term;
+    if (!term) continue;
 
-    for (const device of ['desktop', 'mobile']) {
+    for (const device of ['desktop', 'mobile'] as const) {
       try {
-        // TODO: Integrate with DataForSEO or existing rank checking service
-        // For now, just log and store a placeholder
-        console.log(`  🔍 Rank check: "${term}" (${device})`);
+        console.log(`  🔍 Rank check: "${term}" (${device}) in ${locationName}`);
 
-        // Store rank check result (placeholder - actual implementation would call DataForSEO)
+        // Call actual DataForSEO API
+        const result = await checkRankForDomain({
+          keyword: term,
+          locationCode,
+          targetDomain,
+          device,
+          depth: 100,
+        });
+
+        // Extract SERP visibility metrics
+        const paa = result.serpFeatures.peopleAlsoAsk;
+        const ai = result.serpFeatures.aiOverview;
+        const fs = result.serpFeatures.featuredSnippet;
+
+        // Store rank check result
         await supabase.from('rank_checks').insert({
           account_id: accountId,
           keyword_id: keywordId,
           search_query_used: term,
           device,
-          position: null, // Would be populated by actual check
+          location_code: locationCode,
+          location_name: locationName,
+          position: result.position,
+          found_url: result.url,
+          serp_features: result.serpFeatures,
+          top_competitors: result.topCompetitors,
+          api_cost_usd: result.cost,
           checked_at: new Date().toISOString(),
+          // SERP visibility summary columns
+          paa_question_count: paa.questions.length,
+          paa_ours_count: paa.ourQuestionCount,
+          ai_overview_present: ai.present,
+          ai_overview_ours_cited: ai.isOursCited,
+          ai_overview_citation_count: ai.citations.length,
+          featured_snippet_present: fs.present,
+          featured_snippet_ours: fs.isOurs,
         });
 
         checksPerformed++;
+        totalApiCost += result.cost;
+
+        // Log result
+        if (result.position !== null) {
+          console.log(`    ✅ Found at position ${result.position}`);
+        } else {
+          console.log(`    ❌ Not found in top 100`);
+        }
+
+        // Small delay between API calls to avoid rate limiting
+        await new Promise((resolve) => setTimeout(resolve, 200));
       } catch (error) {
         console.error(`  ❌ Rank check failed for "${term}" (${device}):`, error);
       }
     }
+  }
+
+  // Track API usage
+  if (checksPerformed > 0) {
+    await supabase.from('ai_usage').insert({
+      account_id: accountId,
+      feature: 'concept_schedule_rank_tracking',
+      tokens_used: checksPerformed,
+      cost_usd: totalApiCost,
+      metadata: { keywordId, checkId, scheduled: true },
+    });
   }
 
   return {
