@@ -122,8 +122,9 @@ body {
   background: linear-gradient(
     to bottom,
     rgb(82, 125, 231) 0%,
-    rgb(120, 100, 200) 50%,
-    rgb(145, 74, 174) 100%
+    rgb(82, 125, 231) 40%,
+    rgb(123, 107, 168) 75%,
+    rgb(232, 168, 124) 100%
   ) fixed !important;
   /* Remove explicit size to let gradient cover full document height */
   background-attachment: fixed !important;
@@ -150,8 +151,9 @@ body::before {
   background: linear-gradient(
     to bottom,
     rgb(82, 125, 231) 0%,
-    rgb(120, 100, 200) 50%,
-    rgb(145, 74, 174) 100%
+    rgb(82, 125, 231) 40%,
+    rgb(123, 107, 168) 75%,
+    rgb(232, 168, 124) 100%
   );
   pointer-events: none;
 }
