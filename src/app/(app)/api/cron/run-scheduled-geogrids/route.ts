@@ -46,12 +46,14 @@ export async function GET(request: NextRequest) {
     );
 
     // Get all configs that are due to run
+    // Include configs where next_scheduled_at is NULL (legacy data before trigger was added)
+    const now = new Date().toISOString();
     const { data: dueConfigs, error: configsError } = await supabase
       .from('gg_configs')
       .select('*')
       .not('schedule_frequency', 'is', null)
       .eq('is_enabled', true)
-      .lte('next_scheduled_at', new Date().toISOString());
+      .or(`next_scheduled_at.lte.${now},next_scheduled_at.is.null`);
 
     if (configsError) {
       throw new Error('Failed to fetch configurations');

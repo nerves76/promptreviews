@@ -44,12 +44,14 @@ export async function GET(request: NextRequest) {
     );
 
     // Get all groups that are due to run
+    // Include groups where next_scheduled_at is NULL (legacy data before trigger was added)
+    const now = new Date().toISOString();
     const { data: dueGroups, error: groupsError } = await supabase
       .from('rank_keyword_groups')
       .select('*')
       .not('schedule_frequency', 'is', null)
       .eq('is_enabled', true)
-      .lte('next_scheduled_at', new Date().toISOString());
+      .or(`next_scheduled_at.lte.${now},next_scheduled_at.is.null`);
 
     if (groupsError) {
       throw new Error('Failed to fetch configurations');

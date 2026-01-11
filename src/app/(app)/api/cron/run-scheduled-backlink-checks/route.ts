@@ -35,12 +35,14 @@ export async function GET(request: NextRequest) {
     );
 
     // Get all domains that are due to run
+    // Include domains where next_scheduled_at is NULL (legacy data before trigger was added)
+    const now = new Date().toISOString();
     const { data: dueDomains, error: domainsError } = await supabase
       .from('backlink_domains')
       .select('*')
       .not('schedule_frequency', 'is', null)
       .eq('is_enabled', true)
-      .lte('next_scheduled_at', new Date().toISOString());
+      .or(`next_scheduled_at.lte.${now},next_scheduled_at.is.null`);
 
     if (domainsError) {
       throw new Error('Failed to fetch configurations');

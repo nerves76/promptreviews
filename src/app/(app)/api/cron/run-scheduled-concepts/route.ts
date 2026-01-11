@@ -42,12 +42,14 @@ export async function GET(request: NextRequest) {
     );
 
     // Get all concept schedules that are due to run
+    // Include schedules where next_scheduled_at is NULL (legacy data before trigger was added)
+    const now = new Date().toISOString();
     const { data: dueSchedules, error: schedulesError } = await supabase
       .from('concept_schedules')
       .select('*')
       .not('schedule_frequency', 'is', null)
       .eq('is_enabled', true)
-      .lte('next_scheduled_at', new Date().toISOString());
+      .or(`next_scheduled_at.lte.${now},next_scheduled_at.is.null`);
 
     if (schedulesError) {
       throw new Error('Failed to fetch schedules');
