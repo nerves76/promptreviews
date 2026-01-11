@@ -33,6 +33,8 @@ interface ImportedBusinessInfo {
   pinterest_url?: string;
   bluesky_url?: string;
   twitter_url?: string;
+  is_location_based?: boolean;
+  location_aliases?: string[];
 }
 
 // Validate URL format
@@ -270,6 +272,8 @@ Return a JSON object with these fields (only include fields where you can confid
 - industry: The business category/industry (e.g., "Restaurant", "Home Services", "Healthcare", "Professional Services", "Retail")
 - differentiators: An array of 3-5 unique selling points or differentiators. Keep each one concise (1 sentence max). Look for years in business, special expertise, awards, unique approach, certifications, guarantees, etc. Examples: "Family-owned since 1985", "Award-winning customer service", "Same-day emergency repairs"
 - years_in_business: How long the business has been operating (as a NUMBER ONLY). Look for phrases like "Since 1985", "Established 1999", "Over 20 years of experience", "Founded in 2010". Calculate the number of years and return ONLY the number, e.g. "25" or "20". Do not include words like "years" or "over".
+- is_location_based: Boolean (true/false). Set to true if the business serves a specific geographic area (look for "serving [area]", "based in [city]", service area mentions, local phone numbers, addresses, "proudly serving", etc.). Set to false for online-only businesses, national e-commerce, or businesses with no geographic focus.
+- location_aliases: An array of location names, nicknames, and abbreviations. Include the city name, state, common abbreviations, regional names, and well-known nicknames - even if not explicitly on the website. Use your knowledge of what locals call the area. Examples: Portland OR should include ["Pacific Northwest", "Oregon", "Portland", "PDX", "Rose City"]. Los Angeles should include ["Southern California", "California", "Los Angeles", "LA", "SoCal", "City of Angels"]. Only include if is_location_based is true.
 
 Website Title: ${title}
 Meta Description: ${metaDescription}

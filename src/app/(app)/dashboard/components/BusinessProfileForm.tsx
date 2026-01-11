@@ -134,6 +134,7 @@ export default function BusinessProfileForm({
   formId,
 }: BusinessProfileFormProps) {
   const [industryType, setIndustryType] = useState<"B2B" | "B2C" | "Both">("Both");
+  const [locationAliasesInput, setLocationAliasesInput] = useState<string | null>(null);
 
   return (
     <form onSubmit={onSubmit} className="w-full mx-auto relative" id={formId}>
@@ -278,7 +279,7 @@ export default function BusinessProfileForm({
       <div className="mb-8">
         <h2 className="mt-4 mb-8 text-2xl font-bold text-slate-blue flex items-center gap-3">
           <Icon name="FaHandshake" className="w-7 h-7 text-slate-blue" size={28} />
-          Services or Offerings
+          Services or offerings
           <RobotTooltip text="Made available for AI prompt generation." />
         </h2>
         {/* Only show input fields if there are services, otherwise show just the button */}
@@ -288,7 +289,7 @@ export default function BusinessProfileForm({
             className="inline-flex items-center px-4 py-2 border border-slate-blue text-slate-blue rounded hover:bg-slate-blue hover:text-white transition-colors font-semibold"
             onClick={() => setServices([""])}
           >
-            + Add a Service or Offering
+            + Add a service or offering
           </button>
         ) : (
           <div className="space-y-4">
@@ -316,8 +317,78 @@ export default function BusinessProfileForm({
               className="inline-flex items-center px-4 py-2 border border-slate-blue text-slate-blue rounded hover:bg-slate-blue hover:text-white transition-colors font-semibold mt-2"
               onClick={() => setServices([...services, ""])}
             >
-              + Add a Service or Offering
+              + Add a service or offering
             </button>
+          </div>
+        )}
+      </div>
+
+      {/* Service Area Section */}
+      <div className="mb-8">
+        <h2 className="mt-4 mb-8 text-2xl font-bold text-slate-blue flex items-center gap-3">
+          <Icon name="FaMapMarker" className="w-7 h-7 text-slate-blue" size={28} />
+          Service area
+        </h2>
+        <div className="mb-4 flex items-center justify-between">
+          <div>
+            <label className="block font-bold text-lg text-slate-blue mb-1">
+              Do you have a specific service area?
+            </label>
+            <p className="text-sm text-gray-500">
+              Reviews with location information can improve your visibility in those areas
+            </p>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={form.is_location_based ?? true}
+            onClick={() => setForm((f: any) => ({ ...f, is_location_based: !(f.is_location_based ?? true) }))}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2 ${
+              (form.is_location_based ?? true) ? 'bg-slate-blue' : 'bg-gray-300'
+            }`}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                (form.is_location_based ?? true) ? 'translate-x-6' : 'translate-x-1'
+              }`}
+            />
+          </button>
+        </div>
+
+        {/* Location aliases - only show when location-based is enabled */}
+        {(form.is_location_based ?? true) && (
+          <div className="mb-4">
+            <label
+              className="block font-semibold text-sm text-gray-500 mb-1 flex items-center gap-1"
+              htmlFor="location_aliases"
+            >
+              Location nicknames{" "}
+              <RobotTooltip text="Used in both AI and non-AI features to help users include keywords in their reviews." />
+            </label>
+            <p className="text-xs text-gray-500 mb-2">
+              What do the locals use to describe the area where you serve?
+            </p>
+            <input
+              type="text"
+              id="location_aliases"
+              name="location_aliases"
+              className="w-full border px-3 py-2 rounded"
+              value={locationAliasesInput ?? (form.location_aliases || []).join(', ')}
+              onChange={(e) => {
+                // Store raw text during typing
+                setLocationAliasesInput(e.target.value);
+              }}
+              onBlur={(e) => {
+                // Trim and clean up when user leaves the field
+                const aliases = e.target.value
+                  .split(',')
+                  .map((s: string) => s.trim())
+                  .filter((s: string) => s.length > 0);
+                setForm((f: any) => ({ ...f, location_aliases: aliases }));
+                setLocationAliasesInput(null); // Reset to use form value
+              }}
+              placeholder="Pacific Northwest, Oregon, Portland, PDX, Rose City"
+            />
           </div>
         )}
       </div>
@@ -651,6 +722,7 @@ export default function BusinessProfileForm({
             placeholder="Country"
           />
         </div>
+
         {/* Industry Selector Integration */}
         <IndustrySelector
           value={form.industry || []}

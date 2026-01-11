@@ -387,7 +387,6 @@ model users {
   review_reminder_settings                   review_reminder_settings[]
   selected_gbp_locations                     selected_gbp_locations[]
   social_platform_connections                social_platform_connections[]
-  user_profiles                              user_profiles?
   wm_boards                                  wm_boards[]
   wm_task_actions                            wm_task_actions[]
   wm_tasks_wm_tasks_assigned_toTousers       wm_tasks[]                        @relation("wm_tasks_assigned_toTousers")
@@ -971,6 +970,8 @@ model businesses {
   twitter_url                           String?
   location_code                         Int?
   location_name                         String?
+  is_location_based                     Boolean?             @default(true)
+  location_aliases                      String[]             @default([])
   accounts                              accounts             @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_businesses_account_id")
   review_submissions                    review_submissions[]
 
@@ -3598,77 +3599,6 @@ model keyword_sets {
   review_keyword_matches review_keyword_matches[]
 
   @@index([account_id], map: "idx_keyword_sets_account_id")
-  @@schema("public")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model user_profiles {
-  id         String    @id @db.Uuid
-  first_name String?
-  last_name  String?
-  avatar_url String?
-  created_at DateTime? @default(now()) @db.Timestamptz(6)
-  updated_at DateTime? @default(now()) @db.Timestamptz(6)
-  users      users     @relation(fields: [id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@index([first_name, last_name], map: "idx_user_profiles_names")
-  @@schema("public")
-}
-
-model wm_library_pack_tasks {
-  id               String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  pack_id          String           @db.Uuid
-  task_id          String           @db.Uuid
-  sort_order       Int?             @default(0)
-  wm_library_packs wm_library_packs @relation(fields: [pack_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  wm_library_tasks wm_library_tasks @relation(fields: [task_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@unique([pack_id, task_id])
-  @@index([pack_id], map: "idx_wm_library_pack_tasks_pack_id")
-  @@index([task_id], map: "idx_wm_library_pack_tasks_task_id")
-  @@schema("public")
-}
-
-model wm_library_packs {
-  id                    String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name                  String
-  description           String?
-  icon                  String?
-  sort_order            Int?                    @default(0)
-  is_active             Boolean?                @default(true)
-  created_at            DateTime?               @default(now()) @db.Timestamptz(6)
-  updated_at            DateTime?               @default(now()) @db.Timestamptz(6)
-  wm_library_pack_tasks wm_library_pack_tasks[]
-
-  @@index([is_active], map: "idx_wm_library_packs_is_active")
-  @@index([sort_order], map: "idx_wm_library_packs_sort_order")
-  @@schema("public")
-}
-
-model wm_library_tasks {
-  id                    String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  title                 String
-  description           String?
-  instructions          String?
-  education             String?
-  category              String
-  goals                 String[]                @default([])
-  page_types            String[]                @default([])
-  offsite_sources       String[]                @default([])
-  difficulty            String
-  time_estimate         String
-  relevant_tools        Json?                   @default("[]")
-  sort_order            Int?                    @default(0)
-  is_active             Boolean?                @default(true)
-  created_at            DateTime?               @default(now()) @db.Timestamptz(6)
-  updated_at            DateTime?               @default(now()) @db.Timestamptz(6)
-  wm_library_pack_tasks wm_library_pack_tasks[]
-
-  @@index([category], map: "idx_wm_library_tasks_category")
-  @@index([difficulty], map: "idx_wm_library_tasks_difficulty")
-  @@index([is_active], map: "idx_wm_library_tasks_is_active")
-  @@index([sort_order], map: "idx_wm_library_tasks_sort_order")
   @@schema("public")
 }
 

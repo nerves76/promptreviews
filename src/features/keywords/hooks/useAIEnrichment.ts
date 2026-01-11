@@ -50,6 +50,10 @@ export interface UseAIEnrichmentOptions {
   businessCity?: string | null;
   /** Business state for geographic context */
   businessState?: string | null;
+  /** Whether the business is location-based (default: true) */
+  isLocationBased?: boolean;
+  /** Location name variations (e.g., ["Portland", "PDX", "Rose City"]) */
+  locationAliases?: string[];
 }
 
 /**
@@ -104,6 +108,8 @@ export function useAIEnrichment({
   businessName,
   businessCity,
   businessState,
+  isLocationBased = true,
+  locationAliases = [],
 }: UseAIEnrichmentOptions): UseAIEnrichmentReturn {
   const [isEnriching, setIsEnriching] = useState(false);
   const [enrichError, setEnrichError] = useState<string | null>(null);
@@ -125,6 +131,8 @@ export function useAIEnrichment({
         businessName: businessName || undefined,
         businessCity: businessCity || undefined,
         businessState: businessState || undefined,
+        isLocationBased,
+        locationAliases: locationAliases.length > 0 ? locationAliases : undefined,
       });
 
       if (response.success && response.enrichment) {
@@ -161,7 +169,7 @@ export function useAIEnrichment({
     } finally {
       setIsEnriching(false);
     }
-  }, [keyword, businessName, businessCity, businessState]);
+  }, [keyword, businessName, businessCity, businessState, isLocationBased, locationAliases]);
 
   const reset = useCallback(() => {
     setEnrichError(null);

@@ -30,15 +30,18 @@ interface ImportedBusinessInfo {
   pinterest_url?: string;
   bluesky_url?: string;
   twitter_url?: string;
+  is_location_based?: boolean;
+  location_aliases?: string[];
 }
 
 interface ImportFromWebsiteProps {
   onImport: (data: ImportedBusinessInfo, websiteUrl: string) => void;
   isVisible?: boolean;
+  initialUrl?: string;
 }
 
-export default function ImportFromWebsite({ onImport, isVisible = true }: ImportFromWebsiteProps) {
-  const [url, setUrl] = useState("");
+export default function ImportFromWebsite({ onImport, isVisible = true, initialUrl = "" }: ImportFromWebsiteProps) {
+  const [url, setUrl] = useState(initialUrl);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);

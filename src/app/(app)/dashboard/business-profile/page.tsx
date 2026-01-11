@@ -168,6 +168,8 @@ export default function BusinessProfilePage() {
     kickstarters_background_design: false,
     location_code: null as number | null,
     location_name: null as string | null,
+    is_location_based: true,
+    location_aliases: [] as string[],
     };
   });
   const [loading, setLoading] = useState(true);
@@ -257,6 +259,8 @@ export default function BusinessProfilePage() {
     pinterest_url?: string;
     bluesky_url?: string;
     twitter_url?: string;
+    is_location_based?: boolean;
+    location_aliases?: string[];
   }, websiteUrl: string) => {
     // Only fill empty fields - don't overwrite existing data
     const updates: Record<string, string> = {};
@@ -308,8 +312,26 @@ export default function BusinessProfilePage() {
       }
     }
 
+    // Handle location-based settings
+    // is_location_based: Only set if currently using default (true) and scraper detected it's not location-based
+    if (data.is_location_based === false && form.is_location_based !== false) {
+      setForm((prev: typeof form) => ({ ...prev, is_location_based: false }));
+    }
+
+    // location_aliases: Only set if current aliases are empty and scraper found some
+    if (data.location_aliases && data.location_aliases.length > 0) {
+      const currentAliasesEmpty = !form.location_aliases || form.location_aliases.length === 0;
+      if (currentAliasesEmpty) {
+        setForm((prev: typeof form) => ({ ...prev, location_aliases: data.location_aliases }));
+      }
+    }
+
     // Show success message
-    const fieldCount = Object.keys(updates).length + (data.services_offered?.length ? 1 : 0) + (data.differentiators?.length ? 1 : 0);
+    const fieldCount = Object.keys(updates).length
+      + (data.services_offered?.length ? 1 : 0)
+      + (data.differentiators?.length ? 1 : 0)
+      + (data.is_location_based === false ? 1 : 0)
+      + (data.location_aliases?.length ? 1 : 0);
     if (fieldCount > 0) {
       setSuccess(`Imported ${fieldCount} field${fieldCount > 1 ? 's' : ''} from your website. Review and edit as needed.`);
       setTimeout(() => setSuccess(""), 5000);
@@ -455,6 +477,8 @@ export default function BusinessProfilePage() {
             kickstarters_background_design: false,
             location_code: null,
             location_name: null,
+            is_location_based: true,
+            location_aliases: [],
           });
           setServices([""]);
           setLogoUrl(null);
@@ -488,6 +512,8 @@ export default function BusinessProfilePage() {
             kickstarters_background_design: businessData.kickstarters_background_design ?? false,
             location_code: businessData.location_code || null,
             location_name: businessData.location_name || null,
+            is_location_based: businessData.is_location_based ?? true,
+            location_aliases: businessData.location_aliases || [],
           });
           setServices(
             Array.isArray(businessData.services_offered)
@@ -892,6 +918,8 @@ export default function BusinessProfilePage() {
         industries_other: form.industries_other || null,
         location_code: form.location_code,
         location_name: form.location_name,
+        is_location_based: form.is_location_based,
+        location_aliases: form.location_aliases,
       };
 
       // Debug logging - always enabled to help troubleshoot save issues
@@ -1106,7 +1134,7 @@ export default function BusinessProfilePage() {
     <div className="min-h-screen flex justify-center items-start px-4 sm:px-0">
       <div className="w-full">
         {/* Import from website section - hidden after first save */}
-        {!hasBeenSaved && <ImportFromWebsite onImport={handleWebsiteImport} />}
+        {!hasBeenSaved && <ImportFromWebsite onImport={handleWebsiteImport} initialUrl={form.business_website} />}
 
         <PageCard icon={<Icon name="FaStore" className="w-9 h-9 text-slate-blue" size={36} />}>
 

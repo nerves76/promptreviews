@@ -142,7 +142,14 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { phrase, businessName, businessCity, businessState } = body;
+    const {
+      phrase,
+      businessName,
+      businessCity,
+      businessState,
+      isLocationBased = true,
+      locationAliases = [],
+    } = body;
 
     if (!phrase || typeof phrase !== "string") {
       return NextResponse.json(
@@ -167,6 +174,39 @@ export async function POST(request: NextRequest) {
     ]
       .filter(Boolean)
       .join(", ");
+
+    // Build location handling instructions based on settings
+    let locationInstructions = "";
+    if (!isLocationBased) {
+      locationInstructions = `
+LOCATION HANDLING:
+This is NOT a location-based business. Do NOT include any city, state, or geographic references in:
+- review_phrase
+- search_terms
+- aliases
+Focus only on the service/product terms. Set location_scope to "national".`;
+    } else if (locationAliases && locationAliases.length > 0) {
+      locationInstructions = `
+LOCATION HANDLING:
+This is a location-based business serving: ${businessCity || ""}${businessCity && businessState ? ", " : ""}${businessState || ""}
+Location name variations to use: ${locationAliases.join(", ")}
+
+IMPORTANT: Include location in approximately 50-70% of generated content for natural variety:
+- For review_phrase: Include location using one of the variations above
+- For search_terms: Include location in 2 out of 3 terms, varying which alias you use
+- For aliases: Include location in about half, mix in some without location
+
+When including location, rotate through the variations naturally for variety.`;
+    } else if (businessCity || businessState) {
+      locationInstructions = `
+LOCATION HANDLING:
+This is a location-based business in ${businessCity || ""}${businessCity && businessState ? ", " : ""}${businessState || ""}.
+
+IMPORTANT: Include location in approximately 50-70% of generated content for natural variety:
+- For review_phrase: Usually include city/state
+- For search_terms: Include location in 2 out of 3 terms
+- For aliases: Include location in about half`;
+    }
 
     const systemPrompt = `You are a keyword optimization expert for local SEO and review generation.
 
@@ -224,6 +264,7 @@ Respond with ONLY valid JSON, no markdown or explanation.`;
 
     const userPrompt = `Keyword phrase: "${trimmedPhrase}"
 ${businessContext ? `\nBusiness context: ${businessContext}` : ""}
+${locationInstructions}
 
 Generate the enriched keyword data as JSON with this exact structure:
 {

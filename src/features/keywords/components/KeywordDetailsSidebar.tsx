@@ -107,6 +107,8 @@ export function KeywordDetailsSidebar({
     businessName: account?.business_name || account?.businesses?.[0]?.name,
     businessCity: account?.businesses?.[0]?.address_city,
     businessState: account?.businesses?.[0]?.address_state,
+    isLocationBased: account?.businesses?.[0]?.is_location_based ?? true,
+    locationAliases: account?.businesses?.[0]?.location_aliases || [],
   });
 
   // Related questions
