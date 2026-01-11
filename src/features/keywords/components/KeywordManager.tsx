@@ -1076,6 +1076,36 @@ export default function KeywordManager({
         </div>
       )}
 
+      {/* Add Concept Section */}
+      <div ref={addKeywordFormRef} className="mb-4 p-4 bg-white border border-gray-200 rounded-lg">
+        <div className="mb-4">
+          <h3 className="text-base font-semibold text-gray-800">Add concept</h3>
+          <p className="text-sm text-gray-500">Each concept includes search terms for rank tracking, review phrases, and questions for AI visibility.</p>
+        </div>
+        <KeywordConceptInput
+          generateButton={
+            <button
+              onClick={handleGenerateClick}
+              disabled={isGenerating}
+              className="px-4 py-2 text-sm font-medium text-slate-blue bg-white border border-slate-blue rounded-lg hover:bg-slate-blue/5 disabled:text-gray-500 disabled:border-gray-300 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {isGenerating ? (
+                <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
+              ) : (
+                <Icon name="prompty" className="w-4 h-4" />
+              )}
+              <span>{isGenerating ? 'Generating...' : 'Generate 10 concepts'}</span>
+            </button>
+          }
+          onKeywordAdded={handleAddEnrichedKeyword}
+          businessName={businessName}
+          businessCity={businessCity}
+          businessState={businessState}
+          businessLocationCode={business?.location_code}
+          businessLocationName={business?.location_name}
+        />
+      </div>
+
       {/* AI Keyword Generator Panel */}
       {showGeneratorPanel && (
         <div className="mb-4 border border-gray-200 rounded-lg bg-white shadow-lg overflow-hidden">
@@ -1243,36 +1273,6 @@ export default function KeywordManager({
           </div>
         </div>
       )}
-
-      {/* Add Concept Section */}
-      <div ref={addKeywordFormRef} className="mb-4 p-4 bg-white border border-gray-200 rounded-lg">
-        <div className="mb-4">
-          <h3 className="text-base font-semibold text-gray-800">Add concept</h3>
-          <p className="text-sm text-gray-500">Each concept includes search terms for rank tracking, review phrases, and questions for AI visibility.</p>
-        </div>
-        <KeywordConceptInput
-          generateButton={
-            <button
-              onClick={handleGenerateClick}
-              disabled={isGenerating}
-              className="px-4 py-2 text-sm font-medium text-slate-blue bg-white border border-slate-blue rounded-lg hover:bg-slate-blue/5 disabled:text-gray-500 disabled:border-gray-300 disabled:cursor-not-allowed flex items-center gap-2"
-            >
-              {isGenerating ? (
-                <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
-              ) : (
-                <Icon name="prompty" className="w-4 h-4" />
-              )}
-              <span>{isGenerating ? 'Generating...' : 'Generate 10 concepts'}</span>
-            </button>
-          }
-          onKeywordAdded={handleAddEnrichedKeyword}
-          businessName={businessName}
-          businessCity={businessCity}
-          businessState={businessState}
-          businessLocationCode={business?.location_code}
-          businessLocationName={business?.location_name}
-        />
-      </div>
 
       {/* Group tabs and search header */}
       <div className="flex items-center justify-between gap-4 mb-4">
