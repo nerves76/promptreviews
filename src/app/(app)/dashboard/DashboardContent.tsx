@@ -501,7 +501,7 @@ const DashboardContent = React.memo(function DashboardContent({
                 {" "}
                 <a
                   href={announcement.button_url}
-                  className="text-slate-blue underline hover:text-indigo-800 transition-colors"
+                  className="text-slate-blue underline hover:text-slate-blue/70 transition-colors"
                 >
                   {announcement.button_text}
                 </a>
@@ -533,12 +533,12 @@ const DashboardContent = React.memo(function DashboardContent({
             <div className="flex items-center gap-2 mb-4">
               <Icon name="MdBarChart" className="w-6 h-6 text-slate-blue" size={24} />
               <h3 className="text-xl font-bold text-slate-blue mr-4">Review stats</h3>
-              <Link href="/dashboard/analytics" className="text-slate-blue underline text-base font-medium hover:text-indigo-800 transition ml-auto">
+              <Link href="/dashboard/analytics" className="text-slate-blue underline text-base font-medium hover:text-slate-blue/70 transition ml-auto">
                 View more stats
               </Link>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
-              <div className="bg-indigo-50 rounded-lg p-6 flex flex-col items-center w-full">
+              <div className="bg-slate-blue/5 rounded-lg p-6 flex flex-col items-center w-full">
                 <p className="text-lg font-semibold text-slate-blue mb-2 flex items-center gap-1">
                   Total reviews
                   <span className="relative group">
@@ -932,7 +932,7 @@ const DashboardContent = React.memo(function DashboardContent({
                       onClick={() =>
                         !type.comingSoon && handlePromptTypeSelect(type.key)
                       }
-                      className={`flex flex-col items-center gap-2 p-6 rounded-lg border border-gray-200 hover:border-indigo-400 shadow-sm hover:shadow-md transition-all bg-gray-50 hover:bg-indigo-50 focus:outline-none ${type.comingSoon ? "opacity-60 cursor-not-allowed relative" : ""}`}
+                      className={`flex flex-col items-center gap-2 p-6 rounded-lg border border-gray-200 hover:border-slate-blue/50 shadow-sm hover:shadow-md transition-all bg-gray-50 hover:bg-slate-blue/5 focus:outline-none ${type.comingSoon ? "opacity-60 cursor-not-allowed relative" : ""}`}
                       disabled={!!type.comingSoon}
                       tabIndex={type.comingSoon ? -1 : 0}
                     >
@@ -1086,7 +1086,7 @@ function UniversalTooltip() {
         type="button"
         tabIndex={0}
         aria-label="Show Universal Prompt Page info"
-        className="text-slate-blue hover:text-indigo-600 focus:outline-none"
+        className="text-slate-blue hover:text-slate-blue/70 focus:outline-none"
         onClick={() => setShow((v) => !v)}
         onBlur={() => setShow(false)}
         style={{ lineHeight: 1 }}
