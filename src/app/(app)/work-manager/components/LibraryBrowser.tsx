@@ -182,7 +182,7 @@ export default function LibraryBrowser({ isOpen, onClose, onTaskAdded }: Library
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" />
+          <div className="fixed inset-0 bg-black/20" />
         </Transition.Child>
 
         <div className="fixed inset-0 overflow-y-auto">
@@ -196,35 +196,35 @@ export default function LibraryBrowser({ isOpen, onClose, onTaskAdded }: Library
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="relative w-full max-w-7xl h-[90vh] bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl flex overflow-hidden border border-white/20">
-                {/* Close button - breaching top right corner */}
+              <Dialog.Panel className="relative w-full max-w-7xl h-[90vh] bg-white/15 backdrop-blur-xl rounded-2xl shadow-2xl flex border border-white/30">
+                {/* Close button - positioned outside panel bounds */}
                 <button
-                  className="absolute -top-3 -right-3 bg-white border border-gray-200 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 flex items-center justify-center hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 z-50"
-                  style={{ width: 48, height: 48 }}
+                  className="absolute -top-5 -right-5 bg-white/70 backdrop-blur-xl border border-white/50 rounded-full shadow-lg hover:bg-white/90 transition-all duration-200 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-red-500/50 z-[60]"
+                  style={{ width: 40, height: 40 }}
                   onClick={onClose}
                   aria-label="Close modal"
                 >
-                  <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
 
                 {/* Sidebar */}
-                <div className="w-64 flex-shrink-0 bg-white/80 backdrop-blur-sm border-r border-gray-200/50 flex flex-col">
-                  <div className="p-5 border-b border-gray-200/50">
-                    <h2 className="text-xl font-bold text-gray-900">Task library</h2>
-                    <p className="text-sm text-gray-500 mt-1">Browse SEO & AI tasks</p>
+                <div className="w-64 flex-shrink-0 bg-white/10 border-r border-white/20 flex flex-col overflow-hidden rounded-l-2xl">
+                  <div className="p-5 border-b border-white/20">
+                    <h2 className="text-xl font-bold text-white">Task library</h2>
+                    <p className="text-sm text-white/70 mt-1">Browse SEO & AI tasks</p>
                   </div>
 
                   <div className="flex-1 overflow-y-auto p-4 space-y-6">
                     {/* Packs section */}
                     <div>
-                      <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 px-1">Packs</h3>
+                      <h3 className="text-xs font-semibold text-white/60 uppercase tracking-wide mb-2 px-1">Packs</h3>
                       <div className="space-y-1">
                         {isLoadingPacks ? (
-                          <div className="text-sm text-gray-500 py-2 px-1">Loading...</div>
+                          <div className="text-sm text-white/60 py-2 px-1">Loading...</div>
                         ) : packs.length === 0 ? (
-                          <div className="text-sm text-gray-500 py-2 px-1">No packs available</div>
+                          <div className="text-sm text-white/60 py-2 px-1">No packs available</div>
                         ) : (
                           packs.map(pack => (
                             <button
@@ -233,7 +233,7 @@ export default function LibraryBrowser({ isOpen, onClose, onTaskAdded }: Library
                               className={`w-full text-left px-3 py-2.5 rounded-xl text-sm transition-all flex items-center gap-2 ${
                                 selectedNav.type === 'pack' && selectedNav.id === pack.id
                                   ? 'bg-slate-blue text-white shadow-md'
-                                  : 'text-gray-700 hover:bg-white/80 hover:shadow-sm'
+                                  : 'text-white/90 hover:bg-white/20'
                               }`}
                             >
                               {pack.icon && <Icon name={pack.icon as any} size={14} />}
@@ -242,7 +242,7 @@ export default function LibraryBrowser({ isOpen, onClose, onTaskAdded }: Library
                                 <span className={`text-xs font-medium ${
                                   selectedNav.type === 'pack' && selectedNav.id === pack.id
                                     ? 'text-white/80'
-                                    : 'text-gray-500'
+                                    : 'text-white/60'
                                 }`}>
                                   {pack.task_count}
                                 </span>
@@ -255,14 +255,14 @@ export default function LibraryBrowser({ isOpen, onClose, onTaskAdded }: Library
 
                     {/* Categories section */}
                     <div>
-                      <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 px-1">Categories</h3>
+                      <h3 className="text-xs font-semibold text-white/60 uppercase tracking-wide mb-2 px-1">Categories</h3>
                       <div className="space-y-1">
                         <button
                           onClick={() => handleNavSelect({ type: 'all' })}
                           className={`w-full text-left px-3 py-2.5 rounded-xl text-sm transition-all ${
                             selectedNav.type === 'all'
                               ? 'bg-slate-blue text-white shadow-md'
-                              : 'text-gray-700 hover:bg-white/80 hover:shadow-sm'
+                              : 'text-white/90 hover:bg-white/20'
                           }`}
                         >
                           All tasks
@@ -274,7 +274,7 @@ export default function LibraryBrowser({ isOpen, onClose, onTaskAdded }: Library
                             className={`w-full text-left px-3 py-2.5 rounded-xl text-sm transition-all ${
                               selectedNav.type === 'category' && selectedNav.id === category.id
                                 ? 'bg-slate-blue text-white shadow-md'
-                                : 'text-gray-700 hover:bg-white/80 hover:shadow-sm'
+                                : 'text-white/90 hover:bg-white/20'
                             }`}
                           >
                             {category.label}
@@ -286,15 +286,15 @@ export default function LibraryBrowser({ isOpen, onClose, onTaskAdded }: Library
                 </div>
 
                 {/* Main content */}
-                <div className="flex-1 flex flex-col min-w-0">
+                <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
                   {/* Header */}
-                  <div className="p-5 border-b border-gray-200/50 bg-white/60 backdrop-blur-sm">
+                  <div className="p-5 border-b border-white/20 bg-white/5">
                     <div className="flex items-start justify-between gap-6">
                       {/* Title and description - takes more space */}
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-2xl font-bold text-gray-900">{getNavLabel()}</h3>
+                        <h3 className="text-2xl font-bold text-white">{getNavLabel()}</h3>
                         {selectedPack?.description && (
-                          <p className="text-sm text-gray-600 mt-1 max-w-2xl">{selectedPack.description}</p>
+                          <p className="text-sm text-white/70 mt-1 max-w-2xl">{selectedPack.description}</p>
                         )}
                       </div>
 
@@ -349,15 +349,15 @@ export default function LibraryBrowser({ isOpen, onClose, onTaskAdded }: Library
                   <div className="flex-1 overflow-y-auto p-5">
                     {isLoadingTasks ? (
                       <div className="flex items-center justify-center py-16">
-                        <Icon name="FaSpinner" size={28} className="animate-spin text-slate-blue/50" />
+                        <Icon name="FaSpinner" size={28} className="animate-spin text-white/60" />
                       </div>
                     ) : tasks.length === 0 ? (
                       <div className="text-center py-16">
-                        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
-                          <Icon name="FaInbox" size={28} className="text-gray-500" />
+                        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-white/20 flex items-center justify-center">
+                          <Icon name="FaInbox" size={28} className="text-white/60" />
                         </div>
-                        <p className="text-gray-600 font-medium">No tasks found</p>
-                        <p className="text-sm text-gray-500 mt-1">
+                        <p className="text-white font-medium">No tasks found</p>
+                        <p className="text-sm text-white/60 mt-1">
                           {selectedNav.type === 'pack'
                             ? 'This pack has no tasks yet'
                             : 'Try adjusting your filters'}
@@ -379,7 +379,7 @@ export default function LibraryBrowser({ isOpen, onClose, onTaskAdded }: Library
 
                 {/* Task preview sidebar */}
                 {previewTask && (
-                  <div className="w-[420px] flex-shrink-0 border-l border-gray-200/50 bg-white/90 backdrop-blur-sm">
+                  <div className="w-[420px] flex-shrink-0 border-l border-white/20 bg-white/10 overflow-hidden rounded-r-2xl">
                     <LibraryTaskPreview
                       task={previewTask}
                       onClose={() => setPreviewTask(null)}
