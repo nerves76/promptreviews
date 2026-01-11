@@ -46,11 +46,13 @@ export default function AppMain({
       {/* Main column: Header + Content */}
       <div className="flex-1 flex flex-col min-w-0 bg-transparent overflow-hidden">
         {/* Main content - scrolls independently, header scrolls with content */}
-        {/* md:pl-4 provides clearance for PageCard icons that breach left */}
-        <main className="flex-1 bg-transparent overflow-y-auto md:pl-4">
+        <main className="flex-1 bg-transparent overflow-y-auto">
           {!isAuth && <Header />}
-          {loader}
-          {children}
+          {/* md:pl-4 provides clearance for PageCard icons that breach left */}
+          <div className="md:pl-4">
+            {loader}
+            {children}
+          </div>
         </main>
       </div>
 
