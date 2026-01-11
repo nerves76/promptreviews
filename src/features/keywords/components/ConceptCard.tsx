@@ -627,20 +627,22 @@ export function ConceptCard({
                     [P] {promptPageNames.length}
                   </span>
                 )}
+                {/* Search volume - grey */}
                 {termVolumeData.size > 0 && (
                   <span
-                    className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-blue-100 text-blue-700 flex items-center gap-0.5"
+                    className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-gray-100 text-gray-600 flex items-center gap-0.5"
                     title="Monthly search volume from Google"
                   >
                     <Icon name="FaChartLine" className="w-2 h-2" />
                     {allLowVolume ? '<10' : formatVolume(totalVolume)} vol
                   </span>
                 )}
+                {/* Reviews - gold */}
                 {keyword.reviewPhrase && (
                   <span
                     className={`px-1.5 py-0.5 text-[10px] font-medium rounded flex items-center gap-0.5 ${
                       (keyword.reviewUsageCount + keyword.aliasMatchCount) > 0
-                        ? 'bg-amber-100 text-amber-700'
+                        ? 'bg-yellow-100 text-yellow-700'
                         : 'bg-gray-100 text-gray-500'
                     }`}
                     title="Number of your reviews that mention this keyword"
@@ -649,11 +651,12 @@ export function ConceptCard({
                     {keyword.reviewUsageCount + keyword.aliasMatchCount} in reviews
                   </span>
                 )}
+                {/* AI visibility - rose */}
                 {llmCitationStats && (
                   <span
                     className={`px-1.5 py-0.5 text-[10px] font-medium rounded flex items-center gap-0.5 ${
                       llmCitationStats.cited > 0
-                        ? 'bg-purple-100 text-purple-700'
+                        ? 'bg-rose-100 text-rose-700'
                         : 'bg-gray-100 text-gray-600'
                     }`}
                     title={`AI visibility: ${llmCitationStats.cited} of ${llmCitationStats.total} AI responses cite your business`}
@@ -662,41 +665,32 @@ export function ConceptCard({
                     {llmCitationStats.cited}/{llmCitationStats.total}
                   </span>
                 )}
+                {/* Google ranking - blue */}
                 {keyword.isUsedInRankTracking && rankingStats !== null && (
                   <span
-                    className={`px-1.5 py-0.5 text-[10px] font-medium rounded flex items-center gap-0.5 ${
-                      rankingStats.inTop10 === rankingStats.total
-                        ? 'bg-green-100 text-green-700'
-                        : rankingStats.inTop10 > 0
-                          ? 'bg-amber-100 text-amber-700'
-                          : 'bg-gray-100 text-gray-600'
-                    }`}
+                    className="px-1.5 py-0.5 text-[10px] font-medium rounded flex items-center gap-0.5 bg-blue-100 text-blue-700"
                     title={`Google ranking: ${rankingStats.inTop10} of ${rankingStats.total} search terms rank in the top 10`}
                   >
                     <Icon name="FaGoogle" className="w-2 h-2" />
                     {rankingStats.inTop10}/{rankingStats.total} top 10
                   </span>
                 )}
+                {/* Local ranking grid - orange */}
                 {keyword.isUsedInGeoGrid && enrichedData?.geoGridStatus?.summary && enrichedData.geoGridStatus.summary.totalPoints > 0 && (
                   <span
-                    className={`px-1.5 py-0.5 text-[10px] font-medium rounded flex items-center gap-0.5 ${
-                      enrichedData.geoGridStatus.summary.pointsInTop10 === enrichedData.geoGridStatus.summary.totalPoints
-                        ? 'bg-green-100 text-green-700'
-                        : enrichedData.geoGridStatus.summary.pointsInTop10 > 0
-                          ? 'bg-amber-100 text-amber-700'
-                          : 'bg-gray-100 text-gray-600'
-                    }`}
+                    className="px-1.5 py-0.5 text-[10px] font-medium rounded flex items-center gap-0.5 bg-orange-100 text-orange-700"
                     title={`Local ranking grid: ${enrichedData.geoGridStatus.summary.pointsInTop10} of ${enrichedData.geoGridStatus.summary.totalPoints} grid points rank in top 10${enrichedData.geoGridStatus.locationName ? ` (${enrichedData.geoGridStatus.locationName})` : ''}`}
                   >
                     <Icon name="FaMapMarker" className="w-2 h-2" />
                     {enrichedData.geoGridStatus.summary.pointsInTop10}/{enrichedData.geoGridStatus.summary.totalPoints} top 10
                   </span>
                 )}
+                {/* Schedule - green */}
                 {enrichedData?.scheduleStatus?.isScheduled && enrichedData.scheduleStatus.frequency && (
                   <span
                     className={`px-1.5 py-0.5 text-[10px] font-medium rounded flex items-center gap-0.5 ${
                       enrichedData.scheduleStatus.isEnabled
-                        ? 'bg-slate-blue/10 text-slate-blue'
+                        ? 'bg-green-100 text-green-700'
                         : 'bg-gray-100 text-gray-500'
                     }`}
                     title={`Scheduled checks: ${enrichedData.scheduleStatus.frequency} (${enrichedData.scheduleStatus.isEnabled ? 'active' : 'paused'})`}
