@@ -605,7 +605,7 @@ export default function ConceptsTable({
                             <rect x="4" y="12" width="8" height="1" />
                           </svg>
                           <span className={`font-semibold ${row.desktopRank !== null ? getPositionColor(row.desktopRank) : 'text-gray-500'}`}>
-                            {row.desktopRank !== null ? (row.desktopRank > 100 ? '>100' : row.desktopRank) : '>100'}
+                            {row.desktopRank !== null ? row.desktopRank : '>100'}
                           </span>
                         </span>
                       )}
@@ -614,7 +614,7 @@ export default function ConceptsTable({
                         <span className="flex items-center gap-1" title="Mobile">
                           <Icon name="FaMobile" className="w-3.5 h-3.5 text-gray-500" />
                           <span className={`font-semibold ${row.mobileRank !== null ? getPositionColor(row.mobileRank) : 'text-gray-500'}`}>
-                            {row.mobileRank !== null ? (row.mobileRank > 100 ? '>100' : row.mobileRank) : '>100'}
+                            {row.mobileRank !== null ? row.mobileRank : '>100'}
                           </span>
                         </span>
                       )}

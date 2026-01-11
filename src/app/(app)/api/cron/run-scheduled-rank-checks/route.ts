@@ -245,6 +245,9 @@ export async function GET(request: NextRequest) {
                   group_id: groupId,
                   keyword_id: keyword.keyword_id,
                   search_query_used: searchQuery,
+                  device: group.device,
+                  location_code: group.locationCode,
+                  location_name: group.locationName,
                   position: result.position,
                   found_url: result.url,
                   matched_target_url: keyword.target_url

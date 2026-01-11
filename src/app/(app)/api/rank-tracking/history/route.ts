@@ -116,11 +116,14 @@ export async function GET(request: NextRequest) {
       };
 
       // Keep the latest check for each device on each day
-      if (check.device === 'desktop') {
+      // Treat null/undefined device as 'desktop' (legacy data before device column was added)
+      const deviceType = check.device || 'desktop';
+
+      if (deviceType === 'desktop') {
         if (!entry.desktop || new Date(check.checked_at) > new Date(entry.desktop.checkedAt)) {
           entry.desktop = deviceData;
         }
-      } else if (check.device === 'mobile') {
+      } else if (deviceType === 'mobile') {
         if (!entry.mobile || new Date(check.checked_at) > new Date(entry.mobile.checkedAt)) {
           entry.mobile = deviceData;
         }
