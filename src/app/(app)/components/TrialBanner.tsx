@@ -167,7 +167,7 @@ export default function TrialBanner({
             <div className="flex items-center space-x-3">
               <a
                 href="/dashboard/plan"
-                className="flex-shrink-0 bg-white/90 hover:bg-white text-indigo-700 px-4 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md"
+                className="flex-shrink-0 bg-white/90 hover:bg-white text-slate-blue px-4 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md"
               >
                 Upgrade
               </a>
