@@ -39,10 +39,6 @@
       "schedule": "0 1 * * *"
     },
     {
-      "path": "/api/cron/monitor-gbp-changes",
-      "schedule": "0 8 * * *"
-    },
-    {
       "path": "/api/cron/cleanup-notifications",
       "schedule": "0 3 * * *"
     },
@@ -51,28 +47,8 @@
       "schedule": "0 23 28-31 * *"
     },
     {
-      "path": "/api/cron/run-scheduled-geogrids",
-      "schedule": "0 * * * *"
-    },
-    {
-      "path": "/api/cron/send-credit-warnings",
-      "schedule": "0 8 * * *"
-    },
-    {
-      "path": "/api/cron/run-scheduled-rank-checks",
-      "schedule": "0 * * * *"
-    },
-    {
       "path": "/api/cron/run-scheduled-llm-checks",
       "schedule": "0 6 * * *"
-    },
-    {
-      "path": "/api/cron/run-scheduled-backlink-checks",
-      "schedule": "0 * * * *"
-    },
-    {
-      "path": "/api/cron/run-scheduled-concepts",
-      "schedule": "0 * * * *"
     },
     {
       "path": "/api/cron/process-rss-feeds",
@@ -95,7 +71,11 @@
       "schedule": "0 11 15 * *"
     },
     {
-      "path": "/api/cron/send-communication-reminders",
+      "path": "/api/cron/hourly-dispatcher",
+      "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/daily-8am-dispatcher",
       "schedule": "0 8 * * *"
     }
   ],
@@ -131,4 +111,4 @@
       ]
     }
   ]
-} 
+}
