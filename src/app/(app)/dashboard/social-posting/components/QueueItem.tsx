@@ -121,7 +121,7 @@ export default function QueueItem({
         <button
           {...attributes}
           {...listeners}
-          className="p-1 text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing mt-1"
+          className="p-1 text-gray-500 hover:text-gray-600 cursor-grab active:cursor-grabbing mt-1"
           title="Drag to reorder"
         >
           <Icon name="FaBars" size={16} />
@@ -167,7 +167,7 @@ export default function QueueItem({
               {onEdit && (
                 <button
                   onClick={onEdit}
-                  className="p-1 text-gray-400 hover:text-slate-blue transition-colors"
+                  className="p-1 text-gray-500 hover:text-slate-blue transition-colors"
                   title="Edit draft"
                 >
                   <Icon name="FaEdit" size={14} />
@@ -175,7 +175,7 @@ export default function QueueItem({
               )}
               <button
                 onClick={onRemove}
-                className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                className="p-1 text-gray-500 hover:text-red-600 transition-colors"
                 title="Remove from queue"
               >
                 <Icon name="FaTimes" size={14} />

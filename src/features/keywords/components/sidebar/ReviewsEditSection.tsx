@@ -136,7 +136,7 @@ export function ReviewsEditSection({
               </button>
               <Icon
                 name="FaChevronDown"
-                className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${
+                className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${
                   isCollapsed ? '' : 'rotate-180'
                 }`}
               />

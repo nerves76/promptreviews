@@ -127,7 +127,7 @@ export function LocationSettingSection({
               </button>
               <Icon
                 name="FaChevronDown"
-                className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${
+                className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${
                   isCollapsed ? '' : 'rotate-180'
                 }`}
               />
@@ -184,7 +184,7 @@ export function LocationSettingSection({
                   </div>
                   <button
                     onClick={handleClear}
-                    className="text-gray-400 hover:text-gray-600 p-1"
+                    className="text-gray-500 hover:text-gray-600 p-1"
                     title="Clear location"
                   >
                     <Icon name="FaTimes" className="w-3.5 h-3.5" />
@@ -192,7 +192,7 @@ export function LocationSettingSection({
                 </div>
               ) : (
                 <div className="relative">
-                  <Icon name="FaSearch" className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Icon name="FaSearch" className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                   <input
                     type="text"
                     value={query}
@@ -224,9 +224,9 @@ export function LocationSettingSection({
                         onClick={() => handleSelect(loc)}
                         className="w-full px-4 py-2.5 text-left hover:bg-gray-50 flex items-center gap-2 border-b border-gray-50 last:border-0"
                       >
-                        <Icon name="FaMapMarker" className="w-4 h-4 text-gray-400" />
+                        <Icon name="FaMapMarker" className="w-4 h-4 text-gray-500" />
                         <span className="text-sm text-gray-700">{loc.locationName}</span>
-                        <span className="text-xs text-gray-400 ml-auto">{loc.locationType}</span>
+                        <span className="text-xs text-gray-500 ml-auto">{loc.locationType}</span>
                       </button>
                     ))
                   )}

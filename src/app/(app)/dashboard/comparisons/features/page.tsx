@@ -539,7 +539,7 @@ export default function FeaturesPage() {
                                 <div className="flex items-center gap-3">
                                   <div
                                     {...provided.dragHandleProps}
-                                    className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600"
+                                    className="cursor-grab active:cursor-grabbing text-gray-500 hover:text-gray-600"
                                   >
                                     <Icon name="FaBars" size={12} />
                                   </div>
@@ -615,7 +615,7 @@ export default function FeaturesPage() {
                                 <div className="flex items-center gap-3">
                                   <div
                                     {...provided.dragHandleProps}
-                                    className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600"
+                                    className="cursor-grab active:cursor-grabbing text-gray-500 hover:text-gray-600"
                                   >
                                     <Icon name="FaBars" size={12} />
                                   </div>

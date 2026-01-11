@@ -356,7 +356,7 @@ export default function RankHistoryChart({
               Checked on {chartData[0]?.label}
             </p>
           </div>
-          <p className="text-xs text-gray-400 text-center max-w-xs">
+          <p className="text-xs text-gray-500 text-center max-w-xs">
             Run more rank checks to see trends over time. The chart will show position changes as more data is collected.
           </p>
         </div>

@@ -190,7 +190,7 @@ export default function ScheduledList({
               {post.status === "pending" && (
                 <button
                   onClick={() => setEditingPost(post)}
-                  className="p-2 text-gray-400 hover:text-slate-blue transition-colors"
+                  className="p-2 text-gray-500 hover:text-slate-blue transition-colors"
                   title="Edit post"
                 >
                   <Icon name="FaEdit" size={16} />
@@ -200,7 +200,7 @@ export default function ScheduledList({
               <button
                 onClick={() => handleCancel(post.id)}
                 disabled={cancellingId === post.id}
-                className="p-2 text-gray-400 hover:text-red-600 transition-colors disabled:opacity-50"
+                className="p-2 text-gray-500 hover:text-red-600 transition-colors disabled:opacity-50"
                 title="Cancel post"
               >
                 {cancellingId === post.id ? (

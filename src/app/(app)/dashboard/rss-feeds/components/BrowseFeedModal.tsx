@@ -196,7 +196,7 @@ export default function BrowseFeedModal({
               </Dialog.Title>
               <button
                 onClick={onClose}
-                className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100"
+                className="p-2 text-gray-500 hover:text-gray-600 rounded-lg hover:bg-gray-100"
               >
                 <Icon name="FaTimes" size={16} />
               </button>
@@ -334,7 +334,7 @@ export default function BrowseFeedModal({
                             {item.description.length > 150 && "..."}
                           </p>
                         )}
-                        <div className="flex items-center gap-3 mt-2 text-xs text-gray-400">
+                        <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
                           <span>{formatDate(item.publishedAt)}</span>
                           {item.imageUrl && (
                             <span className="flex items-center gap-1">

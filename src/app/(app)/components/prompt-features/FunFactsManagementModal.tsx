@@ -214,7 +214,7 @@ export default function FunFactsManagementModal({
                       maxLength={MAX_LABEL_LENGTH}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent"
                     />
-                    <div className="text-xs text-gray-400 mt-1 text-right">
+                    <div className="text-xs text-gray-500 mt-1 text-right">
                       {newLabel.length}/{MAX_LABEL_LENGTH}
                     </div>
                   </div>
@@ -230,7 +230,7 @@ export default function FunFactsManagementModal({
                       maxLength={MAX_VALUE_LENGTH}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent"
                     />
-                    <div className="text-xs text-gray-400 mt-1 text-right">
+                    <div className="text-xs text-gray-500 mt-1 text-right">
                       {newValue.length}/{MAX_VALUE_LENGTH}
                     </div>
                   </div>
@@ -312,7 +312,7 @@ export default function FunFactsManagementModal({
                       <button
                         onClick={() => handleDeleteFact(fact.id)}
                         disabled={saving}
-                        className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
+                        className="p-1.5 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
                         title="Delete fact"
                       >
                         <Icon name="FaTrash" size={12} />
@@ -355,7 +355,7 @@ export default function FunFactsManagementModal({
                       </div>
                       <button
                         onClick={() => toggleFact(fact.id)}
-                        className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
+                        className="p-1.5 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
                         title="Remove from selection"
                       >
                         <Icon name="FaTimes" size={12} />

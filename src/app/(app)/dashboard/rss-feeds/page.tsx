@@ -325,7 +325,7 @@ export default function RssFeedsPage() {
                             : "FaChevronRight"
                         }
                         size={14}
-                        className="text-gray-400 mt-1 flex-shrink-0"
+                        className="text-gray-500 mt-1 flex-shrink-0"
                       />
                       <div className="min-w-0">
                         <h3 className="font-medium text-gray-900">
@@ -487,15 +487,15 @@ export default function RssFeedsPage() {
           <h4 className="font-medium text-gray-900 mb-2">Media handling</h4>
           <ul className="text-sm text-gray-600 space-y-1">
             <li>
-              <Icon name="FaImage" size={12} className="inline mr-2 text-gray-400" />
+              <Icon name="FaImage" size={12} className="inline mr-2 text-gray-500" />
               Images from your feed are automatically included in posts
             </li>
             <li>
-              <Icon name="FaLink" size={12} className="inline mr-2 text-gray-400" />
+              <Icon name="FaLink" size={12} className="inline mr-2 text-gray-500" />
               For podcast or video feeds, posts link back to the original content
             </li>
             <li>
-              <Icon name="FaInfoCircle" size={12} className="inline mr-2 text-gray-400" />
+              <Icon name="FaInfoCircle" size={12} className="inline mr-2 text-gray-500" />
               Audio and video files are not uploaded, only images
             </li>
           </ul>

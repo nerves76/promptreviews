@@ -140,7 +140,7 @@ export default function LibraryTaskPreview({
                   rel="noopener noreferrer"
                   className="flex items-start gap-3 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors group"
                 >
-                  <Icon name="FaExternalLinkAlt" size={12} className="text-gray-400 mt-1 flex-shrink-0 group-hover:text-slate-blue" />
+                  <Icon name="FaExternalLinkAlt" size={12} className="text-gray-500 mt-1 flex-shrink-0 group-hover:text-slate-blue" />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-gray-900 group-hover:text-slate-blue truncate">
                       {link.title}

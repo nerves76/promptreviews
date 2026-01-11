@@ -547,8 +547,18 @@ export function ConceptCard({
     }`}>
       {/* Header - clickable to expand/collapse */}
       <div
-        className={`px-4 py-3 transition-colors cursor-pointer hover:bg-gray-50/50 ${isExpanded || isEditing ? 'border-b border-gray-100' : ''}`}
+        role="button"
+        tabIndex={isEditing ? -1 : 0}
+        className={`px-4 py-3 transition-colors cursor-pointer hover:bg-gray-50/50 ${isExpanded || isEditing ? 'border-b border-gray-100' : ''} focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-inset`}
         onClick={() => !isEditing && setIsExpanded(!isExpanded)}
+        onKeyDown={(e) => {
+          if (!isEditing && (e.key === 'Enter' || e.key === ' ')) {
+            e.preventDefault();
+            setIsExpanded(!isExpanded);
+          }
+        }}
+        aria-expanded={isExpanded}
+        aria-label={`${concept.name} keyword concept, ${isExpanded ? 'collapse' : 'expand'} details`}
       >
         <div className="flex items-center justify-between gap-2">
           {/* Left: expand icon + title + location */}

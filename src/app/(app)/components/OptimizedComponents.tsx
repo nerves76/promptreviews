@@ -46,28 +46,45 @@ export const OptimizedSpinner = memo(({ size = 'md', className = '' }: { size?: 
 OptimizedSpinner.displayName = 'OptimizedSpinner';
 
 // Optimized Card Component
-export const OptimizedCard = memo(({ 
-  children, 
-  className = '', 
+export const OptimizedCard = memo(({
+  children,
+  className = '',
   onClick,
-  ...props 
+  ariaLabel,
+  ...props
 }: {
   children: React.ReactNode;
   className?: string;
   onClick?: () => void;
+  ariaLabel?: string;
   [key: string]: any;
 }) => {
   const handleClick = useCallback(() => {
     if (onClick) onClick();
   }, [onClick]);
 
-  const cardClasses = useMemo(() => 
-    `bg-white rounded-lg shadow-sm border border-gray-200 p-6 ${onClick ? 'cursor-pointer hover:shadow-md transition-shadow' : ''} ${className}`,
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (onClick && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault();
+      onClick();
+    }
+  }, [onClick]);
+
+  const cardClasses = useMemo(() =>
+    `bg-white rounded-lg shadow-sm border border-gray-200 p-6 ${onClick ? 'cursor-pointer hover:shadow-md transition-shadow focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2' : ''} ${className}`,
     [className, onClick]
   );
 
+  // Add accessibility attributes only when clickable
+  const a11yProps = onClick ? {
+    role: 'button' as const,
+    tabIndex: 0,
+    onKeyDown: handleKeyDown,
+    'aria-label': ariaLabel,
+  } : {};
+
   return (
-    <div className={cardClasses} onClick={handleClick} {...props}>
+    <div className={cardClasses} onClick={handleClick} {...a11yProps} {...props}>
       {children}
     </div>
   );

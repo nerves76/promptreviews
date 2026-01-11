@@ -518,7 +518,7 @@ export default function ConceptsTable({
                         e.stopPropagation();
                         handleToggleHistory(`${row.concept.id}::${row.keyword}`, row.concept.id, e);
                       }}
-                      className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
+                      className="text-gray-500 hover:text-gray-600 transition-colors flex-shrink-0"
                       title="Show rank history"
                     >
                       <Icon

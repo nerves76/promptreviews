@@ -1428,7 +1428,7 @@ export default function UploadContactsPage() {
                           onClick={() => router.push('/dashboard')}
                           className="ml-4 px-4 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-blue/90 font-semibold transition-colors"
                         >
-                          Click here to see them, edit and share
+                          View prompt pages
                         </button>
                       )}
                     </div>

@@ -79,7 +79,7 @@ export default function EditScheduleModal({
             </Dialog.Title>
             <button
               onClick={onClose}
-              className="p-1 text-gray-400 hover:text-gray-600"
+              className="p-1 text-gray-500 hover:text-gray-600"
             >
               <Icon name="FaTimes" size={20} />
             </button>

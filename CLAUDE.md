@@ -148,6 +148,143 @@ import { Button } from '@/app/(app)/components/ui/button';
 - Modals with custom glass/blur designs (e.g., GlassSuccessModal)
 - Public-facing prompt page modals with unique branding
 
+## ⚠️ IMPORTANT: Accessibility (a11y) Requirements
+
+**All UI components MUST be accessible.** Follow WCAG 2.1 Level AA guidelines.
+
+### Buttons & Interactive Elements
+
+#### Icon-Only Buttons - ALWAYS add `aria-label`
+```tsx
+// ✅ CORRECT - Has aria-label for screen readers
+<button onClick={onDelete} aria-label="Delete item" title="Delete">
+  <Icon name="FaTrash" className="w-4 h-4" />
+</button>
+
+// ❌ WRONG - Screen readers can't announce purpose
+<button onClick={onDelete} title="Delete">
+  <Icon name="FaTrash" className="w-4 h-4" />
+</button>
+```
+
+#### Clickable Divs - MUST have keyboard support
+If you use `onClick` on a non-button element, you MUST add:
+- `role="button"`
+- `tabIndex={0}`
+- `onKeyDown` handler for Enter/Space keys
+
+```tsx
+// ✅ CORRECT - Full keyboard accessibility
+<div
+  role="button"
+  tabIndex={0}
+  onClick={handleClick}
+  onKeyDown={(e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleClick();
+    }
+  }}
+  className="cursor-pointer ..."
+>
+  Clickable content
+</div>
+
+// ❌ WRONG - Not keyboard accessible
+<div onClick={handleClick} className="cursor-pointer">
+  Clickable content
+</div>
+```
+
+**Better approach:** Use `<button>` instead of `<div>` when possible.
+
+### Dialog/Modal Accessibility
+- **ALWAYS add `aria-label`** to Dialog components
+- Use `Dialog.Title` for the modal heading
+- Close button must have `aria-label="Close"` or `aria-label="Close modal"`
+
+```tsx
+// ✅ CORRECT
+<Dialog open={isOpen} onClose={onClose} aria-label="Confirm deletion">
+  <Dialog.Title>Delete item?</Dialog.Title>
+  ...
+</Dialog>
+```
+
+### Form Inputs
+Every input MUST have an associated label:
+```tsx
+// Option 1: Explicit label with htmlFor/id
+<label htmlFor="email-input">Email</label>
+<input id="email-input" type="email" ... />
+
+// Option 2: aria-label for icon inputs
+<input type="search" aria-label="Search contacts" placeholder="Search..." />
+
+// Option 3: Wrap input in label
+<label>
+  Email
+  <input type="email" ... />
+</label>
+```
+
+### Color Contrast (WCAG AA - 4.5:1 ratio)
+| Use Case | Correct | Wrong |
+|----------|---------|-------|
+| Muted text | `text-gray-500` | `text-gray-400` |
+| Placeholder | `text-gray-500` | `text-gray-400` |
+| Body text | `text-gray-600` | `text-gray-400` |
+| On gradients | `text-white/70`+ | `text-white/50` |
+
+**Never use `text-gray-400` for any readable text** - it fails WCAG contrast requirements.
+
+### Images
+- **Informative images:** Descriptive alt text
+- **Decorative images:** `alt=""` or use CSS background
+- **Logos:** Include business name in alt text
+
+```tsx
+// ✅ Informative image
+<Image src={photo} alt="Customer John reviewing our product" />
+
+// ✅ Logo with context
+<Image src={logo} alt={`${businessName} logo`} />
+
+// ✅ Decorative (screen readers skip)
+<Image src={pattern} alt="" aria-hidden="true" />
+```
+
+### Link Text
+**Never use vague link text.** Links should describe their destination.
+
+```tsx
+// ✅ CORRECT - Descriptive
+<a href="/docs">Read the documentation</a>
+<button onClick={viewPages}>View your prompt pages</button>
+
+// ❌ WRONG - Vague
+<a href="/docs">Click here</a>
+<button onClick={viewPages}>Click here to see them</button>
+```
+
+### Focus States
+All interactive elements need visible focus indicators:
+```tsx
+// ✅ Standard focus pattern
+className="focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
+```
+
+### Accessibility Checklist
+Before submitting UI code:
+- [ ] All icon-only buttons have `aria-label`
+- [ ] All modals/dialogs have `aria-label`
+- [ ] All form inputs have labels
+- [ ] Clickable non-buttons have `role="button"` + keyboard support
+- [ ] No `text-gray-400` for readable text
+- [ ] All images have appropriate alt text
+- [ ] No vague "click here" link text
+- [ ] Focus states are visible on interactive elements
+
 ## ⚠️ IMPORTANT: Known Issues
 - **Turbopack is currently broken** - DO NOT use the `--turbo` flag with Next.js dev server
 - The `npm run dev` command has been modified to run WITHOUT Turbopack

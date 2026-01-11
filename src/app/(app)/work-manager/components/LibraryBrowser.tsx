@@ -222,9 +222,9 @@ export default function LibraryBrowser({ isOpen, onClose, onTaskAdded }: Library
                       <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 px-1">Packs</h3>
                       <div className="space-y-1">
                         {isLoadingPacks ? (
-                          <div className="text-sm text-gray-400 py-2 px-1">Loading...</div>
+                          <div className="text-sm text-gray-500 py-2 px-1">Loading...</div>
                         ) : packs.length === 0 ? (
-                          <div className="text-sm text-gray-400 py-2 px-1">No packs available</div>
+                          <div className="text-sm text-gray-500 py-2 px-1">No packs available</div>
                         ) : (
                           packs.map(pack => (
                             <button
@@ -242,7 +242,7 @@ export default function LibraryBrowser({ isOpen, onClose, onTaskAdded }: Library
                                 <span className={`text-xs font-medium ${
                                   selectedNav.type === 'pack' && selectedNav.id === pack.id
                                     ? 'text-white/80'
-                                    : 'text-gray-400'
+                                    : 'text-gray-500'
                                 }`}>
                                   {pack.task_count}
                                 </span>
@@ -354,7 +354,7 @@ export default function LibraryBrowser({ isOpen, onClose, onTaskAdded }: Library
                     ) : tasks.length === 0 ? (
                       <div className="text-center py-16">
                         <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
-                          <Icon name="FaInbox" size={28} className="text-gray-400" />
+                          <Icon name="FaInbox" size={28} className="text-gray-500" />
                         </div>
                         <p className="text-gray-600 font-medium">No tasks found</p>
                         <p className="text-sm text-gray-500 mt-1">

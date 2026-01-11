@@ -486,7 +486,7 @@ const DashboardContent = React.memo(function DashboardContent({
         <div className="mb-8 rounded-lg p-6 bg-blue-100 border border-blue-200 relative">
           <button
             onClick={handleDismissWelcome}
-            className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition-colors"
+            className="absolute top-3 right-3 text-gray-500 hover:text-gray-600 transition-colors"
             aria-label="Dismiss welcome message"
           >
             <Icon name="FaTimes" size={16} />

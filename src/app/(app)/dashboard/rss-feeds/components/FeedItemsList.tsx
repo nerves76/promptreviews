@@ -340,7 +340,7 @@ export default function FeedItemsList({ feedId }: FeedItemsListProps) {
                 <td className="py-3 pr-4">
                   <div className="flex items-start gap-2">
                     {item.imageUrl && (
-                      <Icon name="FaImage" size={12} className="text-gray-400 mt-1 flex-shrink-0" />
+                      <Icon name="FaImage" size={12} className="text-gray-500 mt-1 flex-shrink-0" />
                     )}
                     <div className="min-w-0">
                       <p className="font-medium text-gray-900 truncate max-w-xs">

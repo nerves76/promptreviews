@@ -108,7 +108,7 @@ export default function ReviewLimitSelector({
                   disabled={isDisabled}
                   className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"
                 />
-                <span className={`text-sm ${isDisabled ? "text-gray-400" : "text-gray-900"}`}>
+                <span className={`text-sm ${isDisabled ? "text-gray-500" : "text-gray-900"}`}>
                   {option.label}
                 </span>
               </div>
@@ -118,7 +118,7 @@ export default function ReviewLimitSelector({
                     isSelected
                       ? "text-indigo-600"
                       : isDisabled
-                      ? "text-gray-400"
+                      ? "text-gray-500"
                       : "text-gray-600"
                   }`}
                 >

@@ -815,7 +815,7 @@ export default function BusinessHealthMetrics({
                             onAddToWorkManager(opportunity);
                           }}
                           disabled={isAddingToWorkManager === opportunity.id}
-                          className="p-1 text-gray-400 hover:text-slate-blue transition-colors disabled:opacity-50"
+                          className="p-1 text-gray-500 hover:text-slate-blue transition-colors disabled:opacity-50"
                           title="Add to Work Manager"
                           aria-label="Add to Work Manager"
                         >
