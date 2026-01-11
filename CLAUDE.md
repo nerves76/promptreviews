@@ -2,6 +2,20 @@
 
 This file provides important context for AI assistants working on the PromptReviews codebase.
 
+## ⚠️ CRITICAL: Pre-Commit TypeScript Check
+**ALWAYS run `npx tsc --noEmit` before committing code changes.**
+
+- If errors are found, fix them before committing
+- This prevents TypeScript errors from accumulating in the codebase
+- CI will also run this check on GitHub, but catching errors locally is faster
+
+```bash
+# Run before committing
+npx tsc --noEmit
+
+# If errors found, fix them, then commit
+```
+
 ## ⚠️ CRITICAL: Domain Information
 - **The correct domain is promptreviews.app** (NOT .com)
 - All email addresses should use @promptreviews.app
