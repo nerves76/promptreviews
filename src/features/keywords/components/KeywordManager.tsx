@@ -709,6 +709,8 @@ export default function KeywordManager({
         yearsInBusiness: normalized.years_in_business || '0',
         servicesOffered: Array.isArray(normalized.services_offered) ? normalized.services_offered.join(', ') : '',
         industriesServed: normalized.industries_served,
+        isLocationBased: business?.is_location_based ?? true,
+        locationAliases: business?.location_aliases ?? [],
       });
 
       // Normalize keywords to ensure searchTerms is always an array

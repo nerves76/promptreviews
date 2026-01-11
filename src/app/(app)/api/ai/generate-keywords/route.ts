@@ -90,7 +90,9 @@ export async function POST(request: NextRequest) {
       differentiators,
       yearsInBusiness,
       servicesOffered,
-      industriesServed // Optional
+      industriesServed, // Optional
+      isLocationBased = true, // Whether to include location in keywords
+      locationAliases = [], // Location name variations (e.g., ["Portland", "PDX", "Rose City"])
     } = await request.json();
 
     // Validate required fields (yearsInBusiness is now optional)
@@ -118,6 +120,83 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Build location instructions based on settings
+    const locationNames = locationAliases.length > 0
+      ? locationAliases.join(', ')
+      : `${city}, ${state}`;
+
+    let locationInstructions = '';
+    let locationExamples = '';
+
+    if (!isLocationBased) {
+      // Non-location-based business: NO location keywords
+      locationInstructions = `
+IMPORTANT: This is NOT a location-based business. Generate ALL 10 keywords as GENERAL/SERVICE-FOCUSED.
+• Do NOT include any city names, state names, "near me", or geographic references
+• Focus entirely on service quality, specializations, expertise, and differentiators
+• Concept names should be generic (e.g., "Emergency Dental Care" NOT "Portland Emergency Dental")`;
+
+      locationExamples = `
+Examples of GENERAL/SERVICE-FOCUSED (the ONLY type you should generate):
+- conceptName: "Same-day emergency dental"
+- searchTerms: ["emergency dental care same day", "same day dental appointment", "urgent dental care"]
+- reviewPhrase: "Got same day emergency dental care - lifesaver!"
+- relatedQuestions: [
+    { "question": "Can I get a same-day dental appointment for an emergency?", "funnelStage": "bottom" },
+    { "question": "What counts as a dental emergency?", "funnelStage": "top" }
+  ]
+
+- conceptName: "Family dentist"
+- searchTerms: ["best family dentist", "family dental care", "dentist for kids and adults"]
+- reviewPhrase: "Great family dentist - treats the whole family!"
+- relatedQuestions: [
+    { "question": "What should I look for in a family dentist?", "funnelStage": "top" },
+    { "question": "At what age should kids start seeing a dentist?", "funnelStage": "top" }
+  ]`;
+    } else {
+      // Location-based business: Mix of location and general keywords
+      locationInstructions = `
+IMPORTANT: Generate a MIX of keyword types:
+• 4-5 keywords should be LOCATION-SPECIFIC (use location variations in search terms and review phrases)
+• 5-6 keywords should be GENERAL/SERVICE-FOCUSED (no location, focus on service quality)
+
+CRITICAL - Concept names should be GENERIC (no location):
+• CORRECT: "Family Dentist", "Emergency Plumber", "Marketing Consultant"
+• WRONG: "Portland Family Dentist", "Portland Emergency Plumber"
+
+Location goes in the searchTerms and reviewPhrase, NOT in the conceptName.
+
+Available location names to use: ${locationNames}
+Rotate through these location variations naturally in your location-specific keywords.`;
+
+      locationExamples = `
+Examples of LOCATION-SPECIFIC (use the location names provided above):
+- conceptName: "Family dentist"  (NO location in concept name!)
+- searchTerms: ["best family dentist ${city}", "${city} family dentist", "family dentist near me ${city}"]
+- reviewPhrase: "Best family dentist in ${city} - highly recommend!"
+- relatedQuestions: [
+    { "question": "How do I find a good family dentist in ${city}?", "funnelStage": "middle" },
+    { "question": "What should I look for in a family dentist?", "funnelStage": "top" }
+  ]
+
+- conceptName: "Barbershop"  (NO location in concept name!)
+- searchTerms: ["barbershop ${city}", "${city} barbershop", "${city} barbers"]
+- reviewPhrase: "Best barbershop in ${city} - always a great cut!"
+- relatedQuestions: [
+    { "question": "What is the best barbershop in ${city}?", "funnelStage": "middle" },
+    { "question": "How much does a haircut cost in ${city}?", "funnelStage": "bottom" }
+  ]
+
+Examples of GENERAL/SERVICE-FOCUSED:
+- conceptName: "Same-day emergency dental"
+- searchTerms: ["emergency dental care same day", "same day dental appointment", "urgent dental care"]
+- reviewPhrase: "Got same day emergency dental care - lifesaver!"
+- relatedQuestions: [
+    { "question": "Can I get a same-day dental appointment for an emergency?", "funnelStage": "bottom" },
+    { "question": "What counts as a dental emergency?", "funnelStage": "top" }
+  ]`;
+    }
+
     // Build the prompt for OpenAI
     const prompt = `Generate 10 SEO-optimized keyword ideas for a ${businessType} business.
 
@@ -129,10 +208,7 @@ Business Information:
 - Services/Offerings: ${servicesOffered}${industriesServed ? `\n- Industries Served: ${industriesServed}` : ''}
 
 These keywords will be used to help customers find this business when searching for reviews.
-
-IMPORTANT: Generate a MIX of keyword types:
-• 4-5 keywords should be LOCATION-SPECIFIC (include city name, "near me", neighborhood names, etc.)
-• 5-6 keywords should be GENERAL/SERVICE-FOCUSED (no location, focus on service quality, specializations, or differentiators)
+${locationInstructions}
 
 The keywords should:
 • Sound like real search phrases people would use when looking for reviews
@@ -142,7 +218,7 @@ The keywords should:
 • Include a variety of lengths and styles
 
 For each keyword concept, provide:
-1. A short concept name (2-4 words) that describes the topic - this is the canonical name for the concept
+1. A short concept name (2-4 words) that describes the topic - NEVER include location in the concept name
 2. THREE closely related search term variations - different word orders and phrasings that people might actually type into Google
 3. A natural-sounding review phrase that incorporates the concept organically
 4. 2-3 related questions people might ask AI assistants or search engines about this topic
@@ -157,36 +233,11 @@ For related_questions:
   • "top" = awareness (educational: "What is X?", "Why do I need X?")
   • "middle" = consideration (comparison: "What is the best X?", "How do I choose X?")
   • "bottom" = decision (purchase-intent: "How much does X cost?", "Where can I find X near me?")
-- Include location when relevant to the keyword
-
-Examples of LOCATION-SPECIFIC:
-- conceptName: "Portland barbershop"
-- searchTerms: ["barbershop portland", "portland barbershop", "portland barbers"]
-- reviewPhrase: "Best barbershop in Portland - always a great cut!"
-- relatedQuestions: [
-    { "question": "What is the best barbershop in Portland?", "funnelStage": "middle" },
-    { "question": "How much does a haircut cost in Portland?", "funnelStage": "bottom" }
-  ]
-
-- conceptName: "Portland family dentist"
-- searchTerms: ["best family dentist Portland OR", "Portland family dentist", "family dentist near me Portland"]
-- reviewPhrase: "Best family dentist in Portland - highly recommend!"
-- relatedQuestions: [
-    { "question": "How do I find a good family dentist in Portland?", "funnelStage": "middle" },
-    { "question": "What should I look for in a family dentist?", "funnelStage": "top" }
-  ]
-
-Examples of GENERAL/SERVICE-FOCUSED:
-- conceptName: "Same-day emergency dental"
-- searchTerms: ["emergency dental care same day", "same day dental appointment", "urgent dental care"]
-- reviewPhrase: "Got same day emergency dental care - lifesaver!"
-- relatedQuestions: [
-    { "question": "Can I get a same-day dental appointment for an emergency?", "funnelStage": "bottom" },
-    { "question": "What counts as a dental emergency?", "funnelStage": "top" }
-  ]
+${isLocationBased ? '- Include location when relevant to location-specific keywords' : '- Do NOT include any location references'}
+${locationExamples}
 
 Format your output as a JSON array of objects with these fields:
-- conceptName: Short name for this concept (2-4 words, title case)
+- conceptName: Short name for this concept (2-4 words, title case, NO LOCATION)
 - searchTerms: Array of 3 related search phrases (different word orders/phrasings of the same concept)
 - reviewPhrase: A SHORT, punchy review phrase (5-12 words, authentic, conversational)
 - relatedQuestions: Array of 2-3 objects with "question" and "funnelStage" fields

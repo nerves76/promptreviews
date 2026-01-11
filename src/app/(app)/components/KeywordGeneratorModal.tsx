@@ -23,6 +23,8 @@ interface KeywordGeneratorModalProps {
   yearsInBusiness: string;
   servicesOffered: string;
   industriesServed?: string; // Optional
+  isLocationBased?: boolean; // Whether to include location in generated keywords
+  locationAliases?: string[]; // Location name variations (e.g., ["Portland", "PDX", "Rose City"])
   preGeneratedKeywords?: GeneratedKeyword[]; // Pass pre-generated keywords to skip API call
   preGeneratedUsageInfo?: { current: number; limit: number; remaining: number } | null; // Pass usage info from parent
 }
@@ -42,6 +44,8 @@ export default function KeywordGeneratorModal({
   yearsInBusiness,
   servicesOffered,
   industriesServed,
+  isLocationBased = true,
+  locationAliases = [],
   preGeneratedKeywords,
   preGeneratedUsageInfo,
 }: KeywordGeneratorModalProps) {
@@ -93,6 +97,8 @@ export default function KeywordGeneratorModal({
           yearsInBusiness,
           servicesOffered,
           industriesServed,
+          isLocationBased,
+          locationAliases,
         }),
       });
 

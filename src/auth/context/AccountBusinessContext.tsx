@@ -45,6 +45,9 @@ interface Business {
   // Location for keyword research
   location_code?: number | null;
   location_name?: string | null;
+  // Location-based keyword settings
+  is_location_based?: boolean;
+  location_aliases?: string[];
   created_at: string;
   updated_at: string;
 }

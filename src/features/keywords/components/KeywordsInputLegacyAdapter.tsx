@@ -33,6 +33,8 @@ interface KeywordsInputLegacyAdapterProps {
     years_in_business?: string | null;
     services_offered?: string | string[] | null;
     industries_served?: string;
+    is_location_based?: boolean;
+    location_aliases?: string[];
   };
   /** Optional prompt page ID for linking keywords */
   promptPageId?: string;
@@ -330,6 +332,8 @@ export default function KeywordsInputLegacyAdapter({
         yearsInBusiness: normalized.years_in_business || '0',
         servicesOffered: Array.isArray(normalized.services_offered) ? normalized.services_offered.join(', ') : '',
         industriesServed: normalized.industries_served,
+        isLocationBased: normalized.is_location_based ?? true,
+        locationAliases: normalized.location_aliases ?? [],
       });
 
       setGeneratedKeywords(data.keywords || []);
