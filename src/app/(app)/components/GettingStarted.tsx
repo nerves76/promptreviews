@@ -440,7 +440,7 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
   const totalTasks = tasks.length;
 
   return (
-    <div className="bg-gradient-to-r from-slate-blue to-purple-600 rounded-lg p-6 text-white shadow-lg mb-6">
+    <div className="bg-slate-blue rounded-lg p-6 text-white shadow-lg mb-6">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-2xl font-bold">Getting Started</h2>
         <div className="text-sm bg-white bg-opacity-20 rounded-full px-3 py-1">
