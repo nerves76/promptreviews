@@ -21,18 +21,21 @@ export const WidgetActions: React.FC<WidgetActionsProps> = ({
           <button
             onClick={onEditStyle}
             className="p-2 text-white bg-gray-700/50 rounded-md hover:bg-gray-700"
+            aria-label="Edit style"
           >
             <Icon name="FaPalette" size={18} />
           </button>
           <button
             onClick={onManageReviews}
             className="p-2 text-white bg-gray-700/50 rounded-md hover:bg-gray-700"
+            aria-label="Manage reviews"
           >
             <Icon name="FaList" size={18} />
           </button>
           <button
             onClick={onGetEmbedCode}
             className="p-2 text-white bg-gray-700/50 rounded-md hover:bg-gray-700"
+            aria-label="Get embed code"
           >
             <Icon name="FaCode" size={18} />
           </button>

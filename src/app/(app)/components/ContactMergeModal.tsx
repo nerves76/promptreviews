@@ -162,6 +162,7 @@ const ContactMergeModal: React.FC<ContactMergeModalProps> = ({
             <button
               onClick={onClose}
               className="text-gray-500 hover:text-gray-600 transition-colors"
+              aria-label="Close merge modal"
             >
               <Icon name="FaTimes" className="w-5 h-5" />
             </button>

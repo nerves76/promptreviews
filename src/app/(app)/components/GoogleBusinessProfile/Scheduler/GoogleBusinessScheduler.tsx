@@ -699,6 +699,7 @@ export default function GoogleBusinessScheduler({
             <button
               onClick={() => setSubmissionResult(null)}
               className="text-xs text-gray-500 hover:text-gray-700"
+              aria-label="Dismiss notification"
             >
               Dismiss
             </button>
@@ -905,6 +906,7 @@ export default function GoogleBusinessScheduler({
                     onClick={() => removeMediaItem(index)}
                     className="absolute -top-2 -right-2 bg-white border border-gray-300 rounded-full p-1 text-gray-600 shadow-sm hover:bg-gray-100"
                     title="Remove"
+                    aria-label={`Remove image ${media.originalName ?? (index + 1)}`}
                   >
                     <Icon name="FaTimes" className="w-3 h-3" />
                   </button>

@@ -271,6 +271,7 @@ export default function ConceptRankAccordion({
                           onClick={() => onRemoveSearchTerm(concept.id, term.term)}
                           className="p-1 text-gray-500 hover:text-red-500 rounded transition-colors"
                           title="Remove term"
+                          aria-label={`Remove search term "${term.term}"`}
                         >
                           <Icon name="FaTimes" className="w-3 h-3" />
                         </button>
@@ -426,6 +427,7 @@ export default function ConceptRankAccordion({
                       onClick={handleAddTerm}
                       disabled={!newTerm.trim() || isAddingTerm}
                       className="px-3 py-1.5 text-sm font-medium text-white bg-blue-500 rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      aria-label={isAddingTerm ? "Adding search term..." : "Add search term"}
                     >
                       {isAddingTerm ? (
                         <Icon name="FaSpinner" className="w-3 h-3 animate-spin" />

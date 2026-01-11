@@ -161,6 +161,7 @@ export default function LocationPicker({
               onClick={handleClear}
               className="p-1 hover:bg-gray-200 rounded-full transition-colors"
               title="Clear location"
+              aria-label="Clear location"
             >
               <Icon name="FaTimes" className="w-3 h-3 text-gray-500" />
             </button>

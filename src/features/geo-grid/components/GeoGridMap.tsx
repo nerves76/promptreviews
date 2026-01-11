@@ -168,6 +168,10 @@ export function GeoGridMap({
           const pointSize = isCenter ? sizeConfig.centerPoint : sizeConfig.point;
           const bucketColor = data ? BUCKET_COLORS[data.bucket] : 'bg-gray-300';
 
+          const pointLabel = data
+            ? `${BUCKET_LABELS[data.bucket]}${data.avgPosition ? ` (avg #${Math.round(data.avgPosition)})` : ''}`
+            : 'No data';
+
           return (
             <button
               key={point}
@@ -185,7 +189,8 @@ export function GeoGridMap({
                 left: `${position.x}%`,
                 top: `${position.y}%`,
               }}
-              title={data ? `${BUCKET_LABELS[data.bucket]}${data.avgPosition ? ` (avg #${Math.round(data.avgPosition)})` : ''}` : 'No data'}
+              title={pointLabel}
+              aria-label={`Grid point ${point}: ${pointLabel}`}
             >
               {data?.avgPosition && (
                 <span className={`text-white font-bold ${sizeConfig.fontSize}`}>

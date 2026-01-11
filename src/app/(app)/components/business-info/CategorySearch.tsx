@@ -160,6 +160,7 @@ export default function CategorySearch({
                 disabled={disabled}
                 className="text-gray-500 hover:text-red-600 disabled:cursor-not-allowed ml-1"
                 title="Clear selection"
+                aria-label="Clear selection"
               >
                 <Icon name="FaTimes" className="w-3 h-3" />
               </button>
@@ -170,6 +171,7 @@ export default function CategorySearch({
               disabled={disabled}
               className="text-gray-500 hover:text-gray-600 disabled:cursor-not-allowed"
               title="Clear search"
+              aria-label="Clear search"
             >
               <Icon name="FaTimes" className="w-4 h-4" />
             </button>

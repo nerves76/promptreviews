@@ -346,8 +346,9 @@ function SignUpContent() {
           className="mt-8 p-8 rounded-2xl shadow-2xl w-full max-w-md space-y-6 bg-white/90 backdrop-blur-sm border-2 border-white"
         >
           <div>
-            <label className="block font-medium mb-1">First name</label>
+            <label htmlFor="signup-firstname" className="block font-medium mb-1">First name</label>
             <input
+              id="signup-firstname"
               type="text"
               required
               className="w-full border rounded px-3 py-2"
@@ -358,8 +359,9 @@ function SignUpContent() {
             />
           </div>
           <div>
-            <label className="block font-medium mb-1">Last name</label>
+            <label htmlFor="signup-lastname" className="block font-medium mb-1">Last name</label>
             <input
+              id="signup-lastname"
               type="text"
               required
               className="w-full border rounded px-3 py-2"
@@ -370,8 +372,9 @@ function SignUpContent() {
             />
           </div>
           <div>
-            <label className="block font-medium mb-1">Email</label>
+            <label htmlFor="signup-email" className="block font-medium mb-1">Email</label>
             <input
+              id="signup-email"
               type="email"
               required
               className="w-full border rounded px-3 py-2"
@@ -387,9 +390,10 @@ function SignUpContent() {
             )}
           </div>
           <div>
-            <label className="block font-medium mb-1">Password</label>
+            <label htmlFor="signup-password" className="block font-medium mb-1">Password</label>
             <div className="relative">
               <input
+                id="signup-password"
                 type={showPassword ? "text" : "password"}
                 required
                 className="w-full border rounded px-3 py-2 pr-10"
@@ -404,6 +408,7 @@ function SignUpContent() {
                 className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
                 tabIndex={-1}
                 disabled={loading}
+                aria-label={showPassword ? "Hide password" : "Show password"}
               >
                 {showPassword ? (
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">

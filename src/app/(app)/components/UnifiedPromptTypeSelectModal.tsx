@@ -87,6 +87,7 @@ export default function UnifiedPromptTypeSelectModal({
             <button
               onClick={handleClose}
               className="text-gray-500 hover:text-gray-600 transition-colors"
+              aria-label="Close"
             >
               <Icon name="FaTimes" className="w-5 h-5" size={20} />
             </button>

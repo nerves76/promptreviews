@@ -230,8 +230,9 @@ export default function SignIn() {
             <>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="block font-medium mb-1">Email</label>
+                  <label htmlFor="signin-email" className="block font-medium mb-1">Email</label>
                   <input
+                    id="signin-email"
                     type="email"
                     required
                     className="w-full border rounded px-3 py-2"
@@ -243,9 +244,10 @@ export default function SignIn() {
                 </div>
 
                 <div>
-                  <label className="block font-medium mb-1">Password</label>
+                  <label htmlFor="signin-password" className="block font-medium mb-1">Password</label>
                   <div className="relative">
                     <input
+                      id="signin-password"
                       type={showPassword ? "text" : "password"}
                       required
                       className="w-full border rounded px-3 py-2 pr-10"
@@ -259,6 +261,7 @@ export default function SignIn() {
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
                       tabIndex={-1}
+                      aria-label={showPassword ? "Hide password" : "Show password"}
                     >
                       {showPassword ? (
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
@@ -304,8 +307,9 @@ export default function SignIn() {
           ) : (
             <form onSubmit={handlePasswordReset} className="space-y-4">
               <div>
-                <label className="block font-medium mb-1">Email</label>
+                <label htmlFor="reset-email" className="block font-medium mb-1">Email</label>
                 <input
+                  id="reset-email"
                   type="email"
                   required
                   className="w-full border rounded px-3 py-2"

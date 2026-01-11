@@ -817,6 +817,7 @@ export default function BusinessHealthMetrics({
                           disabled={isAddingToWorkManager === opportunity.id}
                           className="p-1 text-gray-400 hover:text-slate-blue transition-colors disabled:opacity-50"
                           title="Add to Work Manager"
+                          aria-label="Add to Work Manager"
                         >
                           {isAddingToWorkManager === opportunity.id ? (
                             <Icon name="FaSpinner" className="w-3 h-3 animate-spin" />
@@ -830,6 +831,7 @@ export default function BusinessHealthMetrics({
                           onClick={() => onQuickAction?.('navigate', { url: opportunity.actionUrl })}
                           className="p-1 text-slate-blue hover:text-slate-700"
                           title="Go to action"
+                          aria-label="Go to action"
                         >
                           <Icon name="FaArrowRight" className="w-3 h-3" />
                         </button>

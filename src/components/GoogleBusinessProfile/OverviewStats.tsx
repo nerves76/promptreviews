@@ -432,6 +432,7 @@ export default function OverviewStats({
             <button
               onClick={() => setTooltip(null)}
               className="absolute -top-2 -right-2 w-5 h-5 bg-gray-200 rounded-full flex items-center justify-center hover:bg-gray-300 transition-colors"
+              aria-label="Close tooltip"
             >
               <Icon name="FaTimes" className="w-3 h-3 text-gray-600" />
             </button>

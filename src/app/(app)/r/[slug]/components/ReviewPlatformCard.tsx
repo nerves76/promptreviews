@@ -474,6 +474,7 @@ export default function ReviewPlatformCard({
                     onMouseLeave={(e) => {
                       e.currentTarget.style.opacity = "1";
                     }}
+                    aria-label={openInstructionsIdx === idx ? "Hide instructions" : "Show instructions"}
                   >
                     <svg
                       width="16"
@@ -527,6 +528,7 @@ export default function ReviewPlatformCard({
                     backgroundColor: applyCardTransparency(businessProfile?.card_bg || "#FFFFFF", 0.85),
                   }}
                   title="AI will check and correct spelling and grammar errors in your review"
+                  aria-label={fixGrammarLoading === idx ? "Fixing grammar..." : `Fix grammar${fixGrammarCounts[idx] > 0 ? ` (${fixGrammarCounts[idx]}/3)` : ""}`}
                 >
                   {fixGrammarLoading === idx ? (
                     <>
