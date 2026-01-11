@@ -558,7 +558,7 @@ export function ConceptCard({
           }
         }}
         aria-expanded={isExpanded}
-        aria-label={`${concept.name} keyword concept, ${isExpanded ? 'collapse' : 'expand'} details`}
+        aria-label={`${keyword.name} keyword concept, ${isExpanded ? 'collapse' : 'expand'} details`}
       >
         <div className="flex items-center justify-between gap-2">
           {/* Left: expand icon + title + location */}
