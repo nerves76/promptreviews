@@ -210,12 +210,6 @@ export default function RankHistoryChart({
     return chartData.some(d => d.desktop !== null || d.mobile !== null);
   }, [chartData]);
 
-  // Check if we have very limited data (just 1 data point)
-  const hasLimitedData = useMemo(() => {
-    const pointsWithData = chartData.filter(d => d.desktop !== null || d.mobile !== null);
-    return pointsWithData.length === 1;
-  }, [chartData]);
-
   // Calculate Y-axis domain based on actual positions
   const yDomain = useMemo(() => {
     const positions: number[] = [];
@@ -334,32 +328,6 @@ export default function RankHistoryChart({
             <p className="text-xs text-gray-500 mt-1">Check rankings to see trends over time</p>
           </div>
         </div>
-      ) : hasLimitedData ? (
-        // Single data point - show simplified view
-        <div className="h-64 flex flex-col items-center justify-center">
-          <div className="text-center mb-4">
-            {chartData[0]?.desktop !== null && (
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <span className="w-3 h-3 rounded-full" style={{ backgroundColor: DEVICE_COLORS.desktop }} />
-                <span className="text-gray-600">Desktop:</span>
-                <span className="font-semibold text-lg">#{chartData[0].desktop}</span>
-              </div>
-            )}
-            {chartData[0]?.mobile !== null && (
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <span className="w-3 h-3 rounded-full" style={{ backgroundColor: DEVICE_COLORS.mobile }} />
-                <span className="text-gray-600">Mobile:</span>
-                <span className="font-semibold text-lg">#{chartData[0].mobile}</span>
-              </div>
-            )}
-            <p className="text-xs text-gray-500 mt-3">
-              Checked on {chartData[0]?.label}
-            </p>
-          </div>
-          <p className="text-xs text-gray-500 text-center max-w-xs">
-            Run more rank checks to see trends over time. The chart will show position changes as more data is collected.
-          </p>
-        </div>
       ) : (
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
@@ -432,7 +400,7 @@ export default function RankHistoryChart({
       )}
 
       {/* Position guide - only show when chart is displayed */}
-      {hasAnyData && !hasLimitedData && (
+      {hasAnyData && (
         <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-center gap-6 text-xs text-gray-500">
           <span className="flex items-center gap-1.5">
             <span className="w-3 h-0.5 bg-green-500 rounded"></span>
