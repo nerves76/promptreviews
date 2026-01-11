@@ -213,6 +213,7 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
   const [industryType, setIndustryType] = useState<"B2B" | "B2C" | "Both">("Both");
   const [promotionCodeError, setPromotionCodeError] = useState("");
   const [promotionCodeSuccess, setPromotionCodeSuccess] = useState("");
+  const [showPromotionCode, setShowPromotionCode] = useState(false);
   
   // Auto-save form data to localStorage
   useEffect(() => {
@@ -728,44 +729,45 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
         </div>
       </div>
 
-      {/* Promotion Code Section */}
-      <div className="mb-16">
-        <h2 className="mt-4 mb-8 text-2xl font-bold text-slate-blue flex items-center gap-3">
-          <Icon name="FaGift" size={28} className="text-slate-blue" />
-          Promotion code
-        </h2>
-        <div className="mb-4">
-          <label className="block font-semibold text-sm text-gray-500 mb-1">
-            Promotion code (optional)
-          </label>
-          <input
-            type="text"
-            name="promotion_code"
-            className={`w-full border px-3 py-2 rounded ${
-              promotionCodeError 
-                ? 'border-red-500 focus:border-red-500' 
-                : promotionCodeSuccess 
-                  ? 'border-green-500 focus:border-green-500' 
-                  : 'border-gray-300 focus:border-slate-blue'
-            }`}
-            value={form.promotion_code || ""}
-            onChange={handleChange}
-            placeholder="Enter promotion code if you have one"
+      {/* Promotion Code Section - Subtle accordion */}
+      <div className="mb-8">
+        <button
+          type="button"
+          onClick={() => setShowPromotionCode(!showPromotionCode)}
+          className="text-sm text-gray-500 hover:text-slate-blue transition-colors flex items-center gap-2"
+        >
+          <Icon
+            name={showPromotionCode ? "FaChevronDown" : "FaChevronRight"}
+            size={10}
+            className="text-gray-400"
           />
-          {promotionCodeError ? (
-            <p className="text-xs text-red-600 mt-1">
-              {promotionCodeError}
-            </p>
-          ) : promotionCodeSuccess ? (
-            <p className="text-xs text-green-600 mt-1">
-              {promotionCodeSuccess}
-            </p>
-          ) : (
-            <p className="text-xs text-gray-500 mt-1">
-              Have a special offer code? Enter it here to unlock benefits.
-            </p>
-          )}
-        </div>
+          Have a promotion code?
+        </button>
+
+        {showPromotionCode && (
+          <div className="mt-3 pl-4 border-l-2 border-gray-200">
+            <input
+              type="text"
+              name="promotion_code"
+              className={`w-full max-w-xs border px-3 py-2 rounded text-sm ${
+                promotionCodeError
+                  ? 'border-red-500 focus:border-red-500'
+                  : promotionCodeSuccess
+                    ? 'border-green-500 focus:border-green-500'
+                    : 'border-gray-300 focus:border-slate-blue'
+              }`}
+              value={form.promotion_code || ""}
+              onChange={handleChange}
+              placeholder="Enter code"
+            />
+            {promotionCodeError && (
+              <p className="text-xs text-red-600 mt-1">{promotionCodeError}</p>
+            )}
+            {promotionCodeSuccess && (
+              <p className="text-xs text-green-600 mt-1">{promotionCodeSuccess}</p>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Submit Button */}
