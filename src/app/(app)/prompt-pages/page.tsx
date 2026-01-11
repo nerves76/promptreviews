@@ -1515,7 +1515,7 @@ function PromptPagesContent() {
                     setCopySuccess("Copied!");
                     setTimeout(() => setCopySuccess(""), 2000);
                   }}
-                  className="w-full flex items-center justify-between p-3 bg-purple-500/30 hover:bg-purple-500/50 backdrop-blur-sm rounded-lg border border-purple-300/30 transition-colors cursor-pointer"
+                  className="w-full flex items-center justify-between p-3 bg-slate-blue/30 hover:bg-slate-blue/50 backdrop-blur-sm rounded-lg border border-slate-blue/30 transition-colors cursor-pointer"
                 >
                   <span className="text-sm font-medium text-white">Get link</span>
                   <span className="text-white text-sm font-medium">
@@ -1538,7 +1538,7 @@ function PromptPagesContent() {
                       showNfcText: false,
                     });
                   }}
-                  className="w-full flex items-center justify-between p-3 bg-indigo-500/30 hover:bg-indigo-500/50 backdrop-blur-sm rounded-lg border border-indigo-300/30 transition-colors cursor-pointer"
+                  className="w-full flex items-center justify-between p-3 bg-slate-blue/30 hover:bg-slate-blue/50 backdrop-blur-sm rounded-lg border border-slate-blue/30 transition-colors cursor-pointer"
                 >
                   <span className="text-sm font-medium text-white">Generate QR code</span>
                   <span className="text-white text-sm font-medium">Create</span>
