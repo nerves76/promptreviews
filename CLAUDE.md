@@ -95,12 +95,14 @@ background: linear-gradient(to bottom, #527DE7, #7864C8, #914AAE);
 
 ### Rules
 - ✅ Use `slate-blue` for primary buttons, links, headings
-- ✅ Use opacity variants for hover (e.g., `hover:bg-slate-blue/80`)
+- ✅ Use opacity variants for hover (e.g., `hover:bg-slate-blue/90` to lighten)
+- ✅ Consistent hover behavior: buttons should lighten on hover, not change color
 - ✅ Use Tailwind classes, not inline hex values
 - ❌ Never use `text-gray-400` for readable text (fails WCAG)
 - ❌ Never use `text-white/50` or lower for readable text
 - ❌ Never create new custom colors - use existing palette
-- ❌ Never use `bg-purple-50` for buttons/interactive elements (too light, appears white)
+- ❌ **Never use purple or indigo** (`purple-*`, `indigo-*`, `violet-*`) - use `slate-blue` instead
+  - Exception: When you need many distinct colors for indicators/categories (e.g., chart legends)
 
 ## ⚠️ IMPORTANT: Modal Component
 
