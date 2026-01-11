@@ -34,12 +34,12 @@ html[data-global-loading-long="true"] .global-overlay {
   --card-text: #111827;          /* gray-900 */
   --border-color: #E5E7EB;       /* gray-200 */
 
-  /* App gradient - blue to peach sunset (defined once, used everywhere) */
+  /* App gradient - blue to slate blue (defined once, used everywhere) */
   --app-gradient: linear-gradient(
     to bottom,
     rgb(82, 125, 231) 0%,
-    rgb(82, 125, 231) 50%,
-    rgb(232, 168, 124) 100%
+    rgb(82, 125, 231) 65%,
+    #2E4A7D 100%
   );
   --gradient-top-color: rgb(82, 125, 231);
 

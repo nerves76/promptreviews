@@ -32,14 +32,14 @@ export function SidebarSection({
   const headerContent = (
     <div
       className={`
-        flex items-center gap-2 px-3 py-2
+        flex items-center gap-2 px-3 pt-2 pb-3
         ${hasActiveItem ? "text-white" : "text-white/70"}
         ${isCollapsed ? "justify-center" : ""}
       `}
     >
       {/* Section label - hidden when sidebar collapsed */}
       {!isCollapsed && (
-        <span className="text-xs font-semibold uppercase tracking-wider">
+        <span className="text-sm font-semibold text-white uppercase tracking-wider">
           {section.label}
         </span>
       )}
@@ -47,7 +47,7 @@ export function SidebarSection({
   );
 
   return (
-    <div className="mb-4">
+    <div className="mb-4 pt-4 border-t border-white/10">
       {/* Section header - only show when expanded */}
       {!isCollapsed && headerContent}
 
