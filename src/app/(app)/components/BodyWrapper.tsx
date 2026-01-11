@@ -33,7 +33,7 @@ export default function BodyWrapper({
       document.body.style.setProperty('min-height', '100vh');
     } else {
       // Apply gradient background for app pages (dashboard, etc) with !important to override any other styles
-      document.body.style.setProperty('background', 'linear-gradient(to bottom, rgb(82, 125, 231) 0%, rgb(120, 100, 200) 50%, rgb(145, 74, 174) 100%) fixed', 'important');
+      document.body.style.setProperty('background', 'linear-gradient(to bottom, rgb(82, 125, 231) 0%, rgb(123, 107, 168) 50%, rgb(232, 168, 124) 100%) fixed', 'important');
       document.body.style.setProperty('background-attachment', 'fixed', 'important');
       document.documentElement.style.setProperty('background-color', 'rgb(82, 125, 231)', 'important');
       document.body.style.setProperty('min-height', '100vh', 'important');
