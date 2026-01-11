@@ -42,10 +42,10 @@ import { apiClient } from "@/utils/apiClient";
 
 const StylePage = dynamic(() => import("../dashboard/style/StyleModalPage"), { ssr: false });
 
-type PromptPagesTab = 'catch-all' | 'campaign' | 'locations' | 'settings';
+type PromptPagesTab = 'catch-all' | 'campaign' | 'locations' | 'settings' | 'public' | 'individual';
 type CampaignType = 'public' | 'individual' | 'universal' | 'location';
 
-const TAB_TO_CAMPAIGN_TYPE: Record<Exclude<PromptPagesTab, 'settings'>, CampaignType> = {
+const TAB_TO_CAMPAIGN_TYPE: Record<Exclude<PromptPagesTab, 'settings' | 'public' | 'individual'>, CampaignType> = {
   'catch-all': 'public',
   campaign: 'individual',
   locations: 'location',
@@ -365,7 +365,7 @@ function PromptPagesContent() {
         // DEVELOPMENT MODE: Use API endpoint to bypass RLS issues
         if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined' && localStorage.getItem('dev_auth_bypass') === 'true') {
           try {
-            const apiResult = await apiClient.get(`/businesses?account_id=${accountId}`);
+            const apiResult = await apiClient.get<{ businesses: any[] }>(`/businesses?account_id=${accountId}`);
             businessProfiles = apiResult.businesses || [];
             businessError = null;
           } catch (err) {
@@ -427,7 +427,7 @@ function PromptPagesContent() {
           } catch {}
 
           try {
-            const ensureData = await apiClient.post('/prompt-pages/ensure-universal', {});
+            const ensureData = await apiClient.post<{ page: any }>('/prompt-pages/ensure-universal', {});
             universalPage = ensureData.page || null;
           } catch (error) {
             if (process.env.NODE_ENV === 'development') {
@@ -509,7 +509,7 @@ function PromptPagesContent() {
 
   const fetchLocations = async (accountId: string) => {
     try {
-      const data = await apiClient.get('/business-locations');
+      const data = await apiClient.get<{ locations: LocationWithPromptPage[]; count: number; limit: number; can_create_more: boolean }>('/business-locations');
       setLocations(data.locations || []);
       setLocationLimits({
         current: data.count || 0,
@@ -524,7 +524,7 @@ function PromptPagesContent() {
   const handleCreateLocation = async (locationData: Partial<BusinessLocation>) => {
     try {
 
-      const data = await apiClient.post('/business-locations', locationData);
+      const data = await apiClient.post<{ location: LocationWithPromptPage }>('/business-locations', locationData);
 
       setLocations(prev => [...prev, data.location]);
       setLocationLimits(prev => ({ ...prev, current: prev.current + 1 }));
@@ -551,7 +551,7 @@ function PromptPagesContent() {
     if (!editingLocation?.id) return;
 
     try {
-      const data = await apiClient.put(`/business-locations/${editingLocation.id}`, locationData);
+      const data = await apiClient.put<{ location: LocationWithPromptPage }>(`/business-locations/${editingLocation.id}`, locationData);
 
       setLocations(prev => prev.map(loc =>
         loc.id === editingLocation.id ? data.location : loc
@@ -623,7 +623,7 @@ function PromptPagesContent() {
             } else {
               // If we can't find it in the state yet, try to get it from the API
               try {
-                const locationsData = await apiClient.get('/business-locations');
+                const locationsData = await apiClient.get<{ locations: Array<{ prompt_page_slug?: string }> }>('/business-locations');
                 const latestLocation = locationsData.locations?.[0];
                 if (latestLocation?.prompt_page_slug) {
                   data.url = `${window.location.origin}/r/${latestLocation.prompt_page_slug}`;
@@ -1426,9 +1426,9 @@ function PromptPagesContent() {
       {/* Style Modal */}
       {showStyleModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <StylePage 
-            onClose={() => setShowStyleModal(false)} 
-            accountId={selectedAccountId || authAccountId}
+          <StylePage
+            onClose={() => setShowStyleModal(false)}
+            accountId={selectedAccountId || authAccountId || undefined}
           />
         </div>
       )}
@@ -1534,7 +1534,7 @@ function PromptPagesContent() {
                       open: true,
                       url,
                       clientName,
-                      logoUrl: businessProfile?.logo_url || undefined,
+                      logoUrl: business?.logo_url || undefined,
                       showNfcText: false,
                     });
                   }}

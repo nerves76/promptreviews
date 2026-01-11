@@ -180,6 +180,8 @@ interface BusinessProfile {
   industry_other?: string;
   ai_dos?: string;
   ai_donts?: string;
+  // Fun facts for prompt pages
+  fun_facts?: FunFact[];
 }
 
 // Functions now imported from utils
@@ -600,15 +602,23 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
         } else {
           // Use default business profile if none found
           console.warn("Business profile not found, using defaults");
-          const defaultProfile = {
+          const defaultProfile: BusinessProfile = {
             business_name: 'Business',
             name: 'Business',
+            logo_url: null,
             primary_font: GLASSY_DEFAULTS.primary_font,
             secondary_font: GLASSY_DEFAULTS.secondary_font,
             primary_color: GLASSY_DEFAULTS.primary_color,
             secondary_color: GLASSY_DEFAULTS.secondary_color,
             background_color: GLASSY_DEFAULTS.background_color,
             text_color: '#1F2937',
+            facebook_url: null,
+            instagram_url: null,
+            bluesky_url: null,
+            tiktok_url: null,
+            youtube_url: null,
+            linkedin_url: null,
+            pinterest_url: null,
             background_type: 'gradient',
             gradient_start: '#2563EB',
             gradient_middle: '#7864C8',
@@ -623,7 +633,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
             card_border_transparency: 0.5,
             review_platforms: []
           };
-          
+
           setBusinessProfile(defaultProfile);
           
           // Apply default styles
@@ -1111,7 +1121,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
       // Use the centralized AI generation utility
       const { generateContextualReview } = await import('@/utils/aiReviewGeneration');
       const generatedReview = await generateContextualReview(
-        businessProfile,
+        businessProfile as unknown as Parameters<typeof generateContextualReview>[0],
         promptPage,
         {
           firstName: reviewerFirstNames[idx] || "",
@@ -1547,9 +1557,9 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
       // Use the centralized AI testimonial generation utility
       const { generateContextualTestimonial, parseReviewerName } = await import('@/utils/aiReviewGeneration');
       const { firstName, lastName } = parseReviewerName(photoReviewerLastName);
-      
+
       const generatedTestimonial = await generateContextualTestimonial(
-        businessProfile,
+        businessProfile as unknown as Parameters<typeof generateContextualTestimonial>[0],
         promptPage,
         {
           firstName,
@@ -2272,7 +2282,6 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                                   border: "none",
                                   color: businessProfile?.input_text_color || '#1F2937',
                                   WebkitTextFillColor: businessProfile?.input_text_color || '#1F2937',
-                                  WebkitTextFillColor: businessProfile?.input_text_color || '#1F2937',
                                 }}
                                 required
                               />
@@ -2297,7 +2306,6 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                                   boxShadow: "inset 0 2px 4px 0 rgba(0,0,0,0.2), inset 0 1px 2px 0 rgba(0,0,0,0.15)",
                                   border: "none",
                                   color: businessProfile?.input_text_color || '#1F2937',
-                                  WebkitTextFillColor: businessProfile?.input_text_color || '#1F2937',
                                   WebkitTextFillColor: businessProfile?.input_text_color || '#1F2937',
                                 }}
                                 required

@@ -35,6 +35,7 @@ interface KickstartersCarouselProps {
     primary_color?: string;
     secondary_color?: string;
     primary_font?: string;
+    secondary_font?: string;
     card_bg?: string;
     card_transparency?: number;
     kickstarters_background_design?: boolean;

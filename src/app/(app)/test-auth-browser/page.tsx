@@ -84,7 +84,8 @@ export default function BrowserAuthTest() {
 
         // Test 4: Client-side Supabase Session
         try {
-          const { supabase } = await import("@/auth/providers/supabase");
+          const { createClient } = await import("@/auth/providers/supabase");
+          const supabase = createClient();
           const { data: { session }, error } = await supabase.auth.getSession();
 
           if (error) {

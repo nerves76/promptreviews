@@ -294,7 +294,7 @@ const Header = React.memo(function Header() {
         return;
       }
       try {
-        const response = await apiClient.get('/work-manager/boards');
+        const response = await apiClient.get<{ boards: unknown[] }>('/work-manager/boards');
         setHasWorkManagerBoard((response.boards || []).length > 0);
       } catch (error) {
         // Silently fail - just don't show the link
@@ -680,7 +680,7 @@ const Header = React.memo(function Header() {
         <DropdownPortal
           isOpen={menuOpen}
           mounted={mounted}
-          buttonRef={{ current: null } as React.RefObject<HTMLElement>}
+          buttonRef={{ current: null } as React.RefObject<HTMLElement | null>}
           className="md:hidden overflow-y-auto"
           width="auto"
           style={{

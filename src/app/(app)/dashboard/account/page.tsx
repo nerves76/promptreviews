@@ -435,7 +435,7 @@ export default function AccountPage() {
       <div className="min-h-screen flex justify-center items-start px-4 sm:px-0">
         <PageCard icon={<CowboyIcon />}>
           <div className="text-center p-8">
-            <Icon name="FaExclamationCircle" className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
+            <Icon name="FaExclamationTriangle" className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
             <h2 className="text-xl font-semibold text-gray-900 mb-2">No Account Found</h2>
             <p className="text-gray-600 mb-6">{error}</p>
             <a

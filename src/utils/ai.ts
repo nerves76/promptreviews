@@ -3,12 +3,12 @@ interface BusinessProfile {
   features_or_benefits: string[];
   company_values: string;
   differentiators: string;
-  years_in_business: number;
+  years_in_business: number | string;
   industries_served: string;
   taglines: string;
   team_founder_info: string;
   keywords: string;
-  industry?: string[];
+  industry?: (string | null)[];
   industry_other?: string;
   ai_dos?: string;
   ai_donts?: string;

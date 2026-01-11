@@ -645,7 +645,7 @@ export async function getNewLostBacklinks(params: {
   } = params;
 
   // Build filters based on type
-  const filters: string[][] = [];
+  const filters: (string | boolean)[][] = [];
 
   if (type === 'new') {
     // New backlinks: first_seen within date range

@@ -5,6 +5,7 @@ import { generateContextualReview, generateContextualTestimonial } from "@/utils
 import Icon from "@/components/Icon";
 import { checkAccountLimits } from "@/utils/accountLimits";
 import { useAuth } from "@/auth";
+import { useAccountData } from "@/auth/hooks/granularAuthHooks";
 import { Dialog } from "@headlessui/react";
 import { getUserOrMock, createClient } from "@/auth/providers/supabase";
 import { markTaskAsCompleted } from "@/utils/onboardingTasks";
@@ -41,7 +42,7 @@ interface BusinessProfile {
   address_city?: string | null;
   address_state?: string | null;
   about_us?: string | null;
-  services_offered: string[];
+  services_offered: string[] | string;
   company_values?: string;
   differentiators?: string;
   years_in_business?: string | number | null;
@@ -52,6 +53,7 @@ interface BusinessProfile {
   default_offer_enabled?: boolean;
   default_offer_title?: string;
   default_offer_body?: string;
+  default_offer_url?: string;
   default_offer_timelock?: boolean;
   gradient_start?: string;
   gradient_middle?: string;
@@ -72,6 +74,32 @@ interface BusinessProfile {
   updated_at?: string;
   account_id?: string;
   phone?: string;
+  // Additional fields used in the form
+  kickstarters_enabled?: boolean;
+  selected_kickstarters?: string[];
+  kickstarters_background_design?: boolean;
+  emoji_sentiment_enabled?: boolean;
+  emoji_sentiment_question?: string;
+  emoji_feedback_message?: string;
+  emoji_thank_you_message?: string;
+  emoji_feedback_popup_header?: string;
+  emoji_feedback_page_header?: string;
+  emoji_labels?: string[];
+  falling_enabled?: boolean;
+  falling_icon?: string;
+  falling_icon_color?: string;
+  show_friendly_note?: boolean;
+  friendly_note?: string;
+  recent_reviews_enabled?: boolean;
+  recent_reviews_scope?: string;
+  ai_button_enabled?: boolean;
+  fix_grammar_enabled?: boolean;
+  nfc_text_enabled?: boolean;
+  ai_dos?: string;
+  ai_donts?: string;
+  custom_kickstarters?: any[];
+  // Allow additional properties for flexibility
+  [key: string]: unknown;
 }
 
 type CampaignTypeOption = 'public' | 'individual' | 'universal' | 'location';
@@ -111,7 +139,7 @@ const initialFormData = {
   phone: "",
   product_description: "",
   review_platforms: [] as ReviewPlatformLink[],
-  services_offered: [],
+  services_offered: [] as string[],
   friendly_note: "",
   status: "draft",
   role: "",
@@ -120,6 +148,7 @@ const initialFormData = {
   offer_body: 'Use this code "1234" to get a discount on your next purchase.',
   offer_url: "",
   offer_timelock: false,
+  offerTimelock: false,
   review_type: "service",
   campaign_type: getStoredCampaignTypePreference(),
   video_recipient: "",
@@ -129,13 +158,22 @@ const initialFormData = {
   video_preset: "quick",
   video_max_length: 30,
   video_quality: "720p",
+  // Falling stars settings (both snake_case and camelCase for compatibility)
   falling_icon: "star",
+  fallingIcon: "star",
+  falling_icon_color: "#FFD700",
+  fallingIconColor: "#FFD700",
+  falling_enabled: true,
+  fallingEnabled: true,
   no_platform_review_template: "",
+  // Emoji sentiment settings
   emojiThankYouMessage: "Thank you for your feedback. It's important to us.",
   emojiSentimentEnabled: false,
   emojiSentimentQuestion: "How was your experience?",
   emojiFeedbackMessage:
     "We value your feedback! Let us know how we can do better.",
+  emojiFeedbackPopupHeader: "How can we improve?",
+  emojiFeedbackPageHeader: "Please share your feedback",
   emojiLabels: [
     "Excellent",
     "Satisfied",
@@ -143,8 +181,22 @@ const initialFormData = {
     "Unsatisfied",
     "Frustrated",
   ],
-  fallingEnabled: true,
+  // Recent reviews settings (both snake_case and camelCase)
+  recent_reviews_enabled: false,
+  recentReviewsEnabled: false,
+  recent_reviews_scope: "current_page",
+  recentReviewsScope: "current_page",
+  // Kickstarters settings (both snake_case and camelCase)
+  kickstarters_enabled: true,
+  kickstartersEnabled: true,
+  selected_kickstarters: [] as string[],
+  selectedKickstarters: [] as string[],
+  // AI settings
   aiButtonEnabled: true,
+  fixGrammarEnabled: false,
+  nfcTextEnabled: false,
+  showFriendlyNote: false,
+  // Other settings
   business_name: "",
   contact_id: "",
   keywords: [] as string[],
@@ -165,7 +217,8 @@ export default function CreatePromptPageClient({
 }: CreatePromptPageClientProps = {}) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { selectedAccountId, account } = useAuth();
+  const { account } = useAuth();
+  const { selectedAccountId } = useAccountData();
   const accountId = selectedAccountId || account?.id;
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -212,10 +265,6 @@ export default function CreatePromptPageClient({
       ...initialFormData,
       review_type: initialReviewType,
       campaign_type: campaignType,
-      // Initialize missing fields that should be in formData
-      falling_icon_color: '#FFD700',
-      recent_reviews_enabled: false,
-      recent_reviews_scope: 'current_page'
     };
     return initialData;
   });
@@ -538,7 +587,7 @@ export default function CreatePromptPageClient({
             : typeof businessData.services_offered === "string"
               ? businessData.services_offered
                   .split(/,|\n/)
-                  .map((service) => service.trim())
+                  .map((service: string) => service.trim())
                   .filter(Boolean)
               : [],
           });
@@ -968,16 +1017,29 @@ export default function CreatePromptPageClient({
       };
       
       // Convert businessProfile to match AI function interface
-      const aiBusinessProfile = businessProfile ? {
-        ...businessProfile,
-        services_offered: Array.isArray(businessProfile.services_offered) 
-          ? businessProfile.services_offered.join(", ")
-          : businessProfile.services_offered || ""
-      } : {
-        business_name: "Business",
-        services_offered: ""
+      // Create a clean object that matches the expected AI BusinessProfile interface
+      const servicesString = Array.isArray(businessProfile?.services_offered)
+        ? businessProfile.services_offered.join(", ")
+        : (typeof businessProfile?.services_offered === 'string' ? businessProfile.services_offered : "");
+
+      const aiBusinessProfile = {
+        business_name: businessProfile?.business_name || businessProfile?.name || "Business",
+        name: businessProfile?.name || undefined,
+        services_offered: servicesString,
+        company_values: businessProfile?.company_values || undefined,
+        differentiators: businessProfile?.differentiators || undefined,
+        years_in_business: businessProfile?.years_in_business ?? undefined,
+        industries_served: businessProfile?.industries_served || undefined,
+        team_founder_info: businessProfile?.team_founder_info || undefined,
+        keywords: businessProfile?.keywords || undefined,
+        industry: businessProfile?.industry || undefined,
+        industry_other: businessProfile?.industry_other ?? undefined,
+        ai_dos: businessProfile?.ai_dos || undefined,
+        ai_donts: businessProfile?.ai_donts || undefined,
+        address_city: businessProfile?.address_city ?? undefined,
+        address_state: businessProfile?.address_state ?? undefined,
       };
-      
+
       const review = await generateContextualReview(
         aiBusinessProfile,
         pageData,
@@ -1041,18 +1103,31 @@ export default function CreatePromptPageClient({
       };
       
       // Convert businessProfile to match AI function interface
-      const aiBusinessProfile = businessProfile ? {
-        ...businessProfile,
-        services_offered: Array.isArray(businessProfile.services_offered) 
-          ? businessProfile.services_offered.join(", ")
-          : businessProfile.services_offered || ""
-      } : {
-        business_name: "Business",
-        services_offered: ""
+      // Create a clean object that matches the expected AI BusinessProfile interface
+      const photoServicesString = Array.isArray(businessProfile?.services_offered)
+        ? businessProfile.services_offered.join(", ")
+        : (typeof businessProfile?.services_offered === 'string' ? businessProfile.services_offered : "");
+
+      const photoAiBusinessProfile = {
+        business_name: businessProfile?.business_name || businessProfile?.name || "Business",
+        name: businessProfile?.name || undefined,
+        services_offered: photoServicesString,
+        company_values: businessProfile?.company_values || undefined,
+        differentiators: businessProfile?.differentiators || undefined,
+        years_in_business: businessProfile?.years_in_business ?? undefined,
+        industries_served: businessProfile?.industries_served || undefined,
+        team_founder_info: businessProfile?.team_founder_info || undefined,
+        keywords: businessProfile?.keywords || undefined,
+        industry: businessProfile?.industry || undefined,
+        industry_other: businessProfile?.industry_other ?? undefined,
+        ai_dos: businessProfile?.ai_dos || undefined,
+        ai_donts: businessProfile?.ai_donts || undefined,
+        address_city: businessProfile?.address_city ?? undefined,
+        address_state: businessProfile?.address_state ?? undefined,
       };
-      
+
       const review = await generateContextualTestimonial(
-        aiBusinessProfile,
+        photoAiBusinessProfile,
         pageData,
         reviewerData,
         formData.friendly_note
@@ -1295,7 +1370,7 @@ export default function CreatePromptPageClient({
         // Auto-create contact for individual prompt pages
         if (formData.campaign_type === 'individual' && formData.first_name) {
           try {
-            const contactResult = await apiClient.post('/contacts/create-from-prompt-page', {
+            const contactResult = await apiClient.post<{ message?: string }>('/contacts/create-from-prompt-page', {
               promptPageData: {
                 first_name: formData.first_name,
                 last_name: formData.last_name,
@@ -1871,27 +1946,42 @@ export default function CreatePromptPageClient({
     
     if (formData.review_type === "service") {
       // Ensure all required fields for service are present
+      // Use consistent snake_case for database fields, camelCase for form fields
+      const fallingIconColorValue = formData.falling_icon_color || formData.fallingIconColor || '#FFD700';
+      const fallingIconValue = formData.falling_icon || formData.fallingIcon || 'star';
+      const fallingEnabledValue = formData.falling_enabled ?? formData.fallingEnabled ?? true;
+      const offerTimelockValue = formData.offer_timelock ?? formData.offerTimelock ?? false;
+      const recentReviewsScopeValue = formData.recent_reviews_scope || formData.recentReviewsScope || 'current_page';
+      const recentReviewsEnabledValue = formData.recent_reviews_enabled ?? formData.recentReviewsEnabled ?? false;
+      const kickstartersEnabledValue = formData.kickstarters_enabled ?? formData.kickstartersEnabled ?? true;
+      const selectedKickstartersValue = formData.selected_kickstarters || formData.selectedKickstarters || [];
+
       const serviceInitialData = {
         ...initialFormData,
         ...formData,
         review_type: "service",
         // Use the already correctly determined campaign type from formData
         campaign_type: formData.campaign_type,
-        // CRITICAL: Include falling star and other settings explicitly
-        falling_icon_color: formData.falling_icon_color || formData.fallingIconColor || '#FFD700',
-        falling_icon: formData.falling_icon || formData.fallingIcon || 'star',
-        falling_enabled: formData.falling_enabled ?? formData.fallingEnabled ?? true,
-        offer_timelock: formData.offer_timelock ?? formData.offerTimelock ?? false,
-        offerTimelock: formData.offer_timelock ?? formData.offerTimelock ?? false, // Add camelCase version
-        recent_reviews_scope: formData.recent_reviews_scope || formData.recentReviewsScope || 'current_page',
-        recentReviewsScope: formData.recent_reviews_scope || formData.recentReviewsScope || 'current_page', // Add camelCase version
-        recent_reviews_enabled: formData.recent_reviews_enabled ?? formData.recentReviewsEnabled ?? false,
-        recentReviewsEnabled: formData.recent_reviews_enabled ?? formData.recentReviewsEnabled ?? false, // Add camelCase version
-        // Ensure all required fields for PromptPageForm are present
+        // Falling stars settings (snake_case for DB, camelCase for form)
+        falling_icon_color: fallingIconColorValue,
+        fallingIconColor: fallingIconColorValue,
+        falling_icon: fallingIconValue,
+        fallingIcon: fallingIconValue,
+        falling_enabled: fallingEnabledValue,
+        fallingEnabled: fallingEnabledValue,
+        // Offer settings
+        offer_timelock: offerTimelockValue,
+        offerTimelock: offerTimelockValue,
         offer_enabled: formData.offer_enabled ?? false,
         offer_title: formData.offer_title ?? "",
         offer_body: formData.offer_body ?? "",
         offer_url: formData.offer_url ?? "",
+        // Recent reviews settings
+        recent_reviews_scope: recentReviewsScopeValue,
+        recentReviewsScope: recentReviewsScopeValue,
+        recent_reviews_enabled: recentReviewsEnabledValue,
+        recentReviewsEnabled: recentReviewsEnabledValue,
+        // Emoji sentiment settings
         emojiSentimentEnabled: formData.emojiSentimentEnabled ?? false,
         emojiSentimentQuestion:
           formData.emojiSentimentQuestion ?? "How was your experience?",
@@ -1907,16 +1997,14 @@ export default function CreatePromptPageClient({
           "Unsatisfied",
           "Frustrated",
         ],
+        // Other settings
         review_platforms: formData.review_platforms ?? [],
-        fallingEnabled: formData.fallingEnabled ?? initialFormData.fallingEnabled,
-        fallingIcon: formData.falling_icon || formData.fallingIcon || "star",
-        falling_icon_color: formData.falling_icon_color || formData.fallingIconColor || "#FFD700",
         aiButtonEnabled: formData.aiButtonEnabled ?? true,
-        // Add kickstarters fields
-        kickstartersEnabled: formData.kickstartersEnabled ?? formData.kickstarters_enabled ?? true,
-        kickstarters_enabled: formData.kickstarters_enabled ?? formData.kickstartersEnabled ?? true,
-        selectedKickstarters: formData.selectedKickstarters || formData.selected_kickstarters || [],
-        selected_kickstarters: formData.selected_kickstarters || formData.selectedKickstarters || [],
+        // Kickstarters fields (snake_case for DB, camelCase for form)
+        kickstarters_enabled: kickstartersEnabledValue,
+        kickstartersEnabled: kickstartersEnabledValue,
+        selected_kickstarters: selectedKickstartersValue,
+        selectedKickstarters: selectedKickstartersValue,
       };
       
 

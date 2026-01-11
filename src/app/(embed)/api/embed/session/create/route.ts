@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createLead, createSession } from '@/lib/services/optimizerLeadService';
 
+type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
+type SessionScope = Record<string, JsonValue>;
+
 type RequestBody = {
   email?: string;
   leadId?: string;
-  scope?: Record<string, unknown>;
+  scope?: SessionScope;
   sourceBusiness?: string;
   sourceDomain?: string;
   utmSource?: string;

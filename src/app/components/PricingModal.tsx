@@ -242,7 +242,7 @@ export default function PricingModal({
                   style={{ minHeight: 20 }}
                 >
                   {tier.key === "grower" &&
-                    !hasHadPaidPlan &&
+                    growerTrialEligible &&
                     "*No credit card necessary"}
                 </div>
               </div>

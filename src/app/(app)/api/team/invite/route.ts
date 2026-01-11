@@ -87,6 +87,7 @@ export async function POST(request: NextRequest) {
           last_name,
           plan,
           max_users,
+          max_locations,
           email
         )
       `)

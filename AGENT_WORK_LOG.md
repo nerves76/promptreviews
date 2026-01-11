@@ -290,14 +290,134 @@ All warnings are related to third-party dependencies (Sentry/OpenTelemetry) and 
 - Review 2: Build Verification
 - Review 3: Lint Verification
 
+### Wave 4 (Parallel, after Wave 3)
+- Stream 7: Invalid IconName Errors (remaining)
+- Stream 8: KeywordData groupId Type Mismatch
+- Stream 9: PromptPage Type Missing Properties
+- Stream 10: React 19 RefObject Compatibility
+- Stream 11: AnimatedInfographic Position Type
+- Stream 12: CreatePromptPageClient Property Naming
+- Stream 13: Auth Context Account Type Issues
+- Stream 14: Unknown Type and Null Handling
+
+---
+
+## Wave 4 Work Streams
+
+### Stream 7: Invalid IconName Errors (Remaining)
+**Agent:** `icon-fixer-v2`
+**Status:** ✅ Complete
+**Files Fixed:**
+- `ActivityTimeline.tsx` - Changed config typing to use `IconName` type properly
+- `PromptPageDetailsPanel.tsx` - Fixed invalid icon names
+- `ReviewManagement.tsx` - Fixed FaRegClock → FaClock, FaExternalLinkAlt → FaLink
+- `ShareModal.tsx` - Fixed icon references
+
+---
+
+### Stream 8: KeywordData groupId Type Mismatch
+**Agent:** `keyword-fixer`
+**Status:** ✅ Complete
+**Files Fixed (7 files):**
+- `EmployeePromptPageForm.tsx`
+- `EventPromptPageForm.tsx`
+- `PhotoPromptPageForm.tsx`
+- `ProductPromptPageForm.tsx`
+- `ReviewBuilderPromptPageForm.tsx`
+- `ServicePromptPageForm.tsx`
+- `UniversalPromptPageForm.tsx`
+
+**Fix:** Changed `groupId: string` to `groupId: string | null` in KeywordData interface usage
+
+---
+
+### Stream 9: PromptPage Type Missing Properties
+**Agent:** `promptpage-fixer`
+**Status:** ✅ Complete
+**File:** `src/app/(app)/components/PromptPagesTable.tsx`
+
+**Properties Added:**
+- `client_name?: string | null`
+- `location?: string | null`
+- `business_name?: string | null`
+- `sort_order?: number | null`
+- `contacts.business_name?: string`
+
+---
+
+### Stream 10: React 19 RefObject Compatibility
+**Agent:** `refobject-fixer`
+**Status:** ✅ Complete
+**File:** `src/app/(app)/components/DropdownPortal.tsx`
+
+**Fix:** Changed `buttonRef: React.RefObject<HTMLElement>` to `buttonRef: React.RefObject<HTMLElement | null>` for React 19 compatibility
+
+---
+
+### Stream 11: AnimatedInfographic Position Type
+**Agent:** `infographic-fixer`
+**Status:** ✅ Complete
+**File:** `src/app/(app)/components/AnimatedInfographic.tsx`
+
+**Fix:** Expanded position interface from `{ top: string; left: string }` to include optional `right`, `bottom`, and `transform` properties
+
+---
+
+### Stream 12: CreatePromptPageClient Property Naming
+**Agent:** `naming-fixer`
+**Status:** ✅ Complete
+**File:** `src/app/(app)/create-prompt-page/CreatePromptPageClient.tsx`
+
+**Fixes Applied:**
+1. Added import for `useAccountData` hook, fixed `selectedAccountId` access
+2. Added `default_offer_url` to BusinessProfile interface
+3. Added explicit type annotation `(service: string)` in map callback
+4. Extended BusinessProfile interface with 20+ additional fields
+5. Added `apiClient.post<{ message?: string }>` type annotation
+6. Refactored duplicate property assignments to use extracted variables
+7. Extended `initialFormData` with all snake_case/camelCase property pairs
+8. Fixed AI business profile conversion to properly handle `services_offered` array/string
+
+---
+
+### Stream 13: Auth Context Account Type Issues
+**Agent:** `auth-fixer`
+**Status:** ✅ Complete
+**Files Fixed:**
+- `src/auth/types/auth.types.ts` - Added 11 new Account properties + `refreshAccount` method
+- `src/auth/hooks/granularAuthHooks.ts` - Fixed property name mismatches
+- `src/auth/context/index.ts` - Removed non-existent exports
+
+**Account Properties Added:**
+- `account_name`, `max_contacts`, `max_locations`, `max_users`, `max_prompt_pages`
+- `contact_count`, `location_count`, `prompt_page_count`, `custom_prompt_page_count`
+- `is_additional_account`, `business_creation_complete`
+
+---
+
+### Stream 14: Unknown Type and Null Handling
+**Agent:** `misc-fixer`
+**Status:** ✅ Complete
+**Files Fixed (10 files):**
+1. `CommunicationHistory.tsx` - Added `apiClient.get<{ records: CommunicationRecord[] }>` type
+2. `UpcomingReminders.tsx` - Added `apiClient.get<{ reminders: UpcomingReminder[] }>` type
+3. `NavigationDebugger.tsx` - Added explicit type annotations to filter/map callbacks
+4. `PricingModal.tsx` - Added null check for `reactivationOffer.discount`
+5. `ShareModal.tsx` - Fixed null-to-undefined conversion for `shareableImageUrl`
+6. `GoogleBusinessScheduler.tsx` - Fixed `editingId` state type, null checks for `scheduledDate`
+7. `overviewDataHelpers.ts` - Extended BusinessLocation interface with `attributes`, `products`
+8. `account/page.tsx` - Fixed SupabaseClient import, moved misplaced "Linked Accounts" section
+9. `test-auth-debug/route.ts` - Created explicit `AuthDebugResults` interface
+10. `Header.tsx` - Added type annotation for work-manager boards API call
+
 ---
 
 ## Final Summary
 
-**Total issues fixed:** 45+ individual fixes across 6 work streams
-**Streams completed:** 6/6 ✅
+**Total issues fixed:** 95+ individual fixes across 14 work streams
+**Streams completed:** 14/14 ✅
 
-### Fixes by Category
+### Fixes by Category (Wave 1-3)
 
 | Category | Issues Fixed | Details |
 |----------|-------------|---------|
@@ -308,14 +428,27 @@ All warnings are related to third-party dependencies (Sentry/OpenTelemetry) and 
 | Broken Imports | 2 files deleted | Legacy dead code removed |
 | npm Security | 7 vulnerabilities | Updated 13 packages |
 
+### Fixes by Category (Wave 4)
+
+| Category | Issues Fixed | Details |
+|----------|-------------|---------|
+| IconName Errors (v2) | 4 files | Fixed remaining invalid icon references |
+| KeywordData Types | 7 files | groupId nullable type fix |
+| PromptPage Interface | 5 properties | Added missing interface properties |
+| RefObject Compatibility | 1 file | React 19 null handling |
+| AnimatedInfographic | 1 file | Position type expansion |
+| CreatePromptPageClient | 8+ fixes | Property naming, interface expansion |
+| Auth Context Types | 3 files | Account interface + hook fixes |
+| Unknown/Null Handling | 10 files | Type annotations, null checks |
+
 ### Verification Results
 
-| Check | Before | After | Change |
-|-------|--------|-------|--------|
-| npm Vulnerabilities | 17 | 10 | -7 (41% reduction) |
-| ESLint Warnings | 154 | 153 | -1 |
-| TypeScript Errors | ~660 lines | 386 lines | -274 (41.5% reduction) |
-| Build Status | Unknown | SUCCESS | Production build passes |
+| Check | Wave 1-3 | Wave 4 | Total Change |
+|-------|----------|--------|--------------|
+| TypeScript Errors | 660 → 386 | 386 → 239 | **-421 (63.8% reduction)** |
+| npm Vulnerabilities | 17 → 10 | - | -7 (41% reduction) |
+| ESLint Warnings | 154 → 153 | - | -1 |
+| Build Status | Unknown → SUCCESS | - | Production build passes |
 
 ### Recommendations
 
@@ -324,3 +457,4 @@ All warnings are related to third-party dependencies (Sentry/OpenTelemetry) and 
 3. **Address ESLint warnings** - all 153 are `react-hooks/exhaustive-deps` (low priority)
 4. **Fix ESLint config** - 2 errors about missing `@typescript-eslint/no-explicit-any` rule
 5. **Consider CI/CD** - Add TypeScript and lint checks to prevent regressions
+6. **Continue error reduction** - 239 TypeScript errors remain, primarily in PromptPage forms and related components

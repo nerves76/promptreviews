@@ -550,17 +550,7 @@ export default function ServicePromptPageForm({
   };
 
   // Handle keyword update from sidebar
-  const handleKeywordUpdate = async (id: string, updates: Partial<{
-    phrase: string;
-    groupId: string;
-    status: 'active' | 'paused';
-    reviewPhrase: string;
-    searchQuery: string;
-    searchTerms: any[];
-    aliases: string[];
-    locationScope: string | null;
-    relatedQuestions: any[];
-  }>) => {
+  const handleKeywordUpdate = async (id: string, updates: Partial<KeywordData>): Promise<KeywordData | null> => {
     try {
       const data = await apiClient.put<{ keyword: KeywordData }>(`/keywords/${id}`, updates);
       if (data.keyword) {

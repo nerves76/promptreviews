@@ -108,9 +108,9 @@ export function AuthDebugger() {
       }
 
       // Check for expired session
-      if (auth.sessionExpiry) {
+      if (auth.sessionExpiresAt) {
         const now = new Date();
-        if (auth.sessionExpiry < now) {
+        if (auth.sessionExpiresAt < now) {
           checks.issues.push('Session expired');
         }
       }
@@ -286,15 +286,15 @@ export function AuthDebugger() {
         <h4 className="text-sm font-bold mb-2 text-gray-500">Session Timing</h4>
         <div className="text-xs font-mono space-y-1">
           <div className="flex justify-between">
-            <span>sessionExpiry:</span>
-            <span className={auth.sessionExpiry ? 'text-green-500' : 'text-gray-500'}>
-              {auth.sessionExpiry ? new Date(auth.sessionExpiry).toLocaleTimeString() : 'null'}
+            <span>sessionExpiresAt:</span>
+            <span className={auth.sessionExpiresAt ? 'text-green-500' : 'text-gray-500'}>
+              {auth.sessionExpiresAt ? new Date(auth.sessionExpiresAt).toLocaleTimeString() : 'null'}
             </span>
           </div>
           <div className="flex justify-between">
             <span>timeRemaining:</span>
-            <span className={auth.sessionTimeRemaining > 300 ? 'text-green-500' : 'text-yellow-500'}>
-              {Math.floor(auth.sessionTimeRemaining / 60)}m {auth.sessionTimeRemaining % 60}s
+            <span className={auth.sessionExpiresAt ? 'text-green-500' : 'text-gray-500'}>
+              {auth.sessionExpiresAt ? `${Math.floor((auth.sessionExpiresAt.getTime() - Date.now()) / 60000)}m` : 'N/A'}
             </span>
           </div>
           <div className="flex justify-between">
@@ -339,17 +339,17 @@ export function AuthDebugger() {
       <div className="mt-4 flex gap-2 flex-wrap">
         <button
           onClick={async () => {
-            await auth.refreshAuth();
-            alert('Auth refreshed');
+            await auth.refreshSession();
+            alert('Session refreshed');
           }}
           className="bg-blue-500 hover:bg-blue-600 px-3 py-1 rounded text-xs"
         >
-          Refresh Auth
+          Refresh Session
         </button>
         <button
           onClick={async () => {
-            await auth.refreshBusinessProfile();
-            alert('Business profile refreshed');
+            await auth.refreshBusiness();
+            alert('Business refreshed');
           }}
           className="bg-blue-500 hover:bg-blue-600 px-3 py-1 rounded text-xs"
         >
@@ -357,8 +357,8 @@ export function AuthDebugger() {
         </button>
         <button
           onClick={async () => {
-            await auth.refreshAccountDetails();
-            alert('Account details refreshed');
+            await auth.refreshAccount();
+            alert('Account refreshed');
           }}
           className="bg-blue-500 hover:bg-blue-600 px-3 py-1 rounded text-xs"
         >

@@ -354,7 +354,7 @@ export default function LibraryBrowser({ isOpen, onClose, onTaskAdded }: Library
                     ) : tasks.length === 0 ? (
                       <div className="text-center py-16">
                         <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-white/20 flex items-center justify-center">
-                          <Icon name="FaInbox" size={28} className="text-white/60" />
+                          <Icon name="FaBoxOpen" size={28} className="text-white/60" />
                         </div>
                         <p className="text-white font-medium">No tasks found</p>
                         <p className="text-sm text-white/60 mt-1">

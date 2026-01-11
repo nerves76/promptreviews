@@ -183,7 +183,7 @@ export default function ShareModal({
         url: shareUrl,
         text: shareText,
         title: productName,
-        imageUrl: shareableImageUrl,
+        imageUrl: shareableImageUrl ?? undefined,
         emailSubject: buildEmailSubject(productName),
       };
 
@@ -570,7 +570,7 @@ export default function ShareModal({
                           }}
                           className="mt-3 w-full max-w-md px-4 py-2 border-2 border-white/40 text-white hover:bg-white/10 rounded-lg font-medium text-sm flex items-center justify-center gap-2 transition-colors"
                         >
-                          <Icon name="FaDownload" className="w-4 h-4" size={16} />
+                          <Icon name="MdDownload" className="w-4 h-4" size={16} />
                           Download image
                         </button>
                         {selectedPlatform === 'linkedin' && (

@@ -519,10 +519,10 @@ export default function TutorialsTabNew({
         p: ({ node, ...props }) => (
           <p className="text-sm leading-6 text-slate-700 mb-3" {...props} />
         ),
-        ul: ({ node, ordered, ...props }) => (
+        ul: ({ node, ...props }) => (
           <ul className="list-disc pl-5 space-y-2 text-sm text-slate-700 mb-3" {...props} />
         ),
-        ol: ({ node, ordered, ...props }) => (
+        ol: ({ node, ...props }) => (
           <ol className="list-decimal pl-5 space-y-2 text-sm text-slate-700 mb-3" {...props} />
         ),
         li: ({ node, ...props }) => (
@@ -534,8 +534,10 @@ export default function TutorialsTabNew({
         blockquote: ({ node, ...props }) => (
           <blockquote className="border-l-4 border-indigo-200 pl-4 italic text-slate-600 my-4" {...props} />
         ),
-        code: ({ inline, className, children, ...props }) => {
-          if (inline) {
+        code: ({ className, children, ...props }) => {
+          // Check if this is an inline code element by examining className or parent context
+          const isInline = !className?.includes('language-');
+          if (isInline) {
             return (
               <code className="bg-slate-200/80 text-slate-800 px-1.5 py-0.5 rounded text-xs" {...props}>
                 {children}
@@ -543,11 +545,16 @@ export default function TutorialsTabNew({
             );
           }
           return (
-            <pre className="bg-slate-900/90 text-slate-50 rounded-lg p-4 overflow-x-auto text-xs" {...props}>
-              <code>{children}</code>
-            </pre>
+            <code className={className} {...props}>
+              {children}
+            </code>
           );
         },
+        pre: ({ children, ...props }) => (
+          <pre className="bg-slate-900/90 text-slate-50 rounded-lg p-4 overflow-x-auto text-xs" {...props}>
+            {children}
+          </pre>
+        ),
         hr: ({ node, ...props }) => (
           <hr className="my-6 border-slate-200" {...props} />
         ),
@@ -731,7 +738,7 @@ export default function TutorialsTabNew({
 
           <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-1">{selectedArticle.title}</h2>
           <div className="text-sm text-gray-600 font-medium mb-0">
-            From: {selectedCategory.title}
+            From: {selectedCategory?.title}
           </div>
         </div>
 

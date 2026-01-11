@@ -834,7 +834,7 @@ export default function AnalyticsPage() {
 
             <div className="bg-gradient-to-br from-purple-100 to-purple-200 rounded-lg p-6 border border-purple-300">
               <div className="flex items-center mb-2">
-                <Icon name="FaMagic" className="w-5 h-5 text-purple-700 mr-2" size={20} />
+                <Icon name="FaSparkles" className="w-5 h-5 text-purple-700 mr-2" size={20} />
                 <p className="text-sm font-medium text-purple-700">Total AI Usage</p>
               </div>
               <p className="text-3xl font-bold text-purple-900">

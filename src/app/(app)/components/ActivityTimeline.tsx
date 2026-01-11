@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Icon from "@/components/Icon";
+import Icon, { IconName } from "@/components/Icon";
 import { formatDistanceToNow } from "date-fns";
 import { useAuth } from "@/auth";
 
@@ -47,7 +47,13 @@ interface ActivityTimelineProps {
   onRefresh?: () => void;
 }
 
-const ACTIVITY_TYPE_CONFIG = {
+const ACTIVITY_TYPE_CONFIG: Record<string, {
+  icon: IconName;
+  label: string;
+  bgColor: string;
+  borderColor: string;
+  textColor: string;
+}> = {
   email: {
     icon: "FaEnvelope",
     label: "Email",

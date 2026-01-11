@@ -23,6 +23,7 @@ interface Feature {
   slug: string;
   name: string;
   benefit_framing: string | null;
+  description: string | null;
   feature_type: string;
   category_id: string | null;
 }
@@ -31,6 +32,7 @@ interface Competitor {
   id: string;
   slug: string;
   name: string;
+  description: string | null;
   logo_url: string | null;
   features: { feature_id: string; has_feature: boolean; is_limited: boolean; notes: string | null }[];
 }

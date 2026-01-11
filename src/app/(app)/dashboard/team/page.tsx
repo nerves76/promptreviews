@@ -187,19 +187,19 @@ export default function TeamPage() {
       // Fetch members - pass selected account if available
       const accountId = selectedAccountId || user?.id;
       const membersUrl = accountId ? `/team/members?account_id=${accountId}` : '/team/members';
-      const membersData = await apiClient.get(membersUrl);
+      const membersData = await apiClient.get<Omit<TeamData, 'invitations'>>(membersUrl);
 
       // Fetch invitations (only if user is owner)
-      let invitationsData = { invitations: [] };
+      let invitationsData: { invitations: Invitation[] } = { invitations: [] };
       if (membersData.current_user_role === 'owner') {
         try {
-          invitationsData = await apiClient.get('/team/invitations');
+          invitationsData = await apiClient.get<{ invitations: Invitation[] }>('/team/invitations');
         } catch (err) {
           console.warn('Failed to fetch invitations:', err);
         }
       }
 
-      
+
       setTeamData({
         ...membersData,
         invitations: invitationsData.invitations
@@ -264,7 +264,7 @@ export default function TeamPage() {
       'sendInvitation',
       async () => {
         try {
-          const data = await apiClient.post('/team/invite', {
+          const data = await apiClient.post<{ warnings?: string[]; success?: boolean }>('/team/invite', {
             email: inviteEmail.trim(),
             role: inviteRole,
           });
@@ -481,7 +481,7 @@ export default function TeamPage() {
       setError(null);
       setSuccess(null);
 
-      const data = await apiClient.post('/team/add-chris', {
+      const data = await apiClient.post<{ already_member?: boolean; success?: boolean }>('/team/add-chris', {
         account_id: selectedAccountId || teamData?.account?.id
       });
 

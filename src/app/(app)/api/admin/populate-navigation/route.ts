@@ -2,6 +2,21 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { requireAdminAccess } from "@/lib/admin/permissions";
 
+interface NavChild {
+  title: string;
+  href: string;
+  order_index: number;
+  icon_name?: string;
+}
+
+interface NavItem {
+  title: string;
+  icon_name: string;
+  order_index: number;
+  href?: string;
+  children?: NavChild[];
+}
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
@@ -29,7 +44,7 @@ export async function GET() {
       .delete()
       .neq('id', '00000000-0000-0000-0000-000000000000');
 
-    const navStructure = [
+    const navStructure: NavItem[] = [
       {
         title: 'Getting Started',
         icon_name: 'Rocket',

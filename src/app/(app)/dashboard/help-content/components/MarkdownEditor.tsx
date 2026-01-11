@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useMemo, useRef } from "react";
+import React, { useCallback, useMemo } from "react";
 import dynamic from "next/dynamic";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -29,7 +29,6 @@ export default function MarkdownEditor({
   placeholder = "Write your content in Markdown...",
   className = "",
 }: MarkdownEditorProps) {
-  const editorRef = useRef<any>(null);
 
   // SimpleMDE configuration
   const editorOptions = useMemo(() => {
@@ -37,7 +36,7 @@ export default function MarkdownEditor({
       autofocus: false,
       spellChecker: false,
       placeholder,
-      status: ["lines", "words", "cursor"],
+      status: ["lines", "words", "cursor"] as const,
       toolbar: [
         "bold",
         "italic",
@@ -57,13 +56,7 @@ export default function MarkdownEditor({
         "fullscreen",
         "|",
         "guide",
-      ],
-      previewRender: (text: string) => {
-        // Custom preview rendering
-        const container = document.createElement("div");
-        container.className = "markdown-preview prose max-w-none";
-        return container;
-      },
+      ] as const,
     };
   }, [placeholder]);
 
@@ -126,7 +119,6 @@ export default function MarkdownEditor({
         value={value}
         onChange={handleChange}
         options={editorOptions}
-        ref={editorRef}
       />
     </div>
   );

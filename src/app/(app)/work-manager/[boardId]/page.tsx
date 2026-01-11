@@ -45,7 +45,7 @@ export default function WorkManagerBoardPage() {
   // Fetch board data
   const fetchBoard = useCallback(async () => {
     try {
-      const response = await apiClient.get(`/work-manager/boards/${boardId}`);
+      const response = await apiClient.get<{ board: WMBoard }>(`/work-manager/boards/${boardId}`);
       setBoard(response.board);
       return response.board;
     } catch (err: any) {
@@ -57,7 +57,7 @@ export default function WorkManagerBoardPage() {
   // Fetch tasks
   const fetchTasks = useCallback(async () => {
     try {
-      const response = await apiClient.get(`/work-manager/tasks?boardId=${boardId}`);
+      const response = await apiClient.get<{ tasks: WMTask[] }>(`/work-manager/tasks?boardId=${boardId}`);
       setTasks(response.tasks || []);
     } catch (err: any) {
       console.error("Failed to fetch tasks:", err);
@@ -70,14 +70,22 @@ export default function WorkManagerBoardPage() {
     try {
       // This would need an API endpoint to get account users
       // For now, we'll use a simple approach
-      const response = await apiClient.get(`/team/members?accountId=${accountId}`);
+      interface TeamMember {
+        user_id?: string;
+        id?: string;
+        first_name?: string | null;
+        last_name?: string | null;
+        email?: string;
+        avatar_url?: string | null;
+      }
+      const response = await apiClient.get<{ members: TeamMember[] }>(`/team/members?accountId=${accountId}`);
       if (response.members) {
-        setAccountUsers(response.members.map((m: any) => ({
-          id: m.user_id || m.id,
-          first_name: m.first_name,
-          last_name: m.last_name,
-          email: m.email,
-          avatar_url: m.avatar_url,
+        setAccountUsers(response.members.map((m): WMUserInfo => ({
+          id: m.user_id || m.id || '',
+          first_name: m.first_name ?? null,
+          last_name: m.last_name ?? null,
+          email: m.email || '',
+          avatar_url: m.avatar_url ?? null,
         })));
       }
     } catch (err) {
@@ -151,7 +159,7 @@ export default function WorkManagerBoardPage() {
     // Refresh selected task data
     if (selectedTask) {
       try {
-        const response = await apiClient.get(`/work-manager/tasks/${selectedTask.id}`);
+        const response = await apiClient.get<{ task: WMTask }>(`/work-manager/tasks/${selectedTask.id}`);
         setSelectedTask(response.task);
       } catch (err) {
         // Task may have been deleted

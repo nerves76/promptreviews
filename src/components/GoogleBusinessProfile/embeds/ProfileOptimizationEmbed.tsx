@@ -127,7 +127,7 @@ export default function ProfileOptimizationEmbed({
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center">
-              <Icon name="FaChartPie" className="w-6 h-6 text-slate-blue" />
+              <Icon name="FaChartLine" className="w-6 h-6 text-slate-blue" />
             </div>
             <h3 className="text-lg font-semibold text-slate-blue">{title}</h3>
           </div>

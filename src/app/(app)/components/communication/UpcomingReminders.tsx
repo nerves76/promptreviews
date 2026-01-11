@@ -66,7 +66,7 @@ export default function UpcomingReminders({
       setError(null);
 
       // Use apiClient which automatically includes auth headers and X-Selected-Account
-      const data = await apiClient.get(`/communication/reminders?contactId=${contactId}`);
+      const data = await apiClient.get<{ reminders: UpcomingReminder[] }>(`/communication/reminders?contactId=${contactId}`);
       setReminders(data.reminders);
     } catch (err: any) {
       setError(err.message || 'Failed to fetch reminders');

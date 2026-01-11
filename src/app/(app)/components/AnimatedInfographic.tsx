@@ -297,7 +297,7 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
     description: string;
     highlight: string;
     learnMore: string | null;
-    position: { top: string; left: string };
+    position: { top?: string; left?: string; right?: string; bottom?: string; transform?: string };
   }
   
   interface ToolCategory {
@@ -2048,7 +2048,7 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
                 <p className="text-gray-300 text-sm mb-2">{toolCategories.flatMap(cat => cat.tools)[clickedTool].description}</p>
                 {toolCategories.flatMap(cat => cat.tools)[clickedTool].learnMore && (
                   <a 
-                    href={toolCategories.flatMap(cat => cat.tools)[clickedTool].learnMore}
+                    href={toolCategories.flatMap(cat => cat.tools)[clickedTool].learnMore ?? undefined}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-blue-400 hover:text-blue-300 text-sm font-medium"

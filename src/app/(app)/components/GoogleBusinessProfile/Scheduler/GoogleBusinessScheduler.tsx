@@ -156,7 +156,7 @@ export default function GoogleBusinessScheduler({
   const [submissionResult, setSubmissionResult] = useState<{ success: boolean; message: string } | null>(null);
   const [queue, setQueue] = useState<SchedulerQueueResponse>({ upcoming: [], past: [] });
   const [isLoadingQueue, setIsLoadingQueue] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string>('');
   const [isLoadingEdit, setIsLoadingEdit] = useState(false);
   const [cancellingIds, setCancellingIds] = useState<Set<string>>(new Set());
 
@@ -188,7 +188,7 @@ export default function GoogleBusinessScheduler({
     setScheduledDate(tomorrow);
     setTimezone(DEFAULT_TIMEZONE);
     setMediaItems([]);
-    setEditingId(null);
+    setEditingId('');
     // Don't clear submission result here - let user see the success/error message
   }, [locations, tomorrow]);
 
@@ -487,7 +487,7 @@ export default function GoogleBusinessScheduler({
       } else {
         // For edits, just clear the editing state
         console.log('[Scheduler] Clearing edit mode');
-        setEditingId(null);
+        setEditingId('');
       }
 
       // Fetch the updated queue - force cache bypass for edits
@@ -557,7 +557,14 @@ export default function GoogleBusinessScheduler({
 
       setEditingId(record.id);
       setMode(record.postKind);
-      setScheduledDate(record.scheduledDate);
+      // Use a default date (tomorrow) if scheduledDate is null (draft)
+      if (record.scheduledDate) {
+        setScheduledDate(record.scheduledDate);
+      } else {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        setScheduledDate(tomorrow.toISOString().split('T')[0]);
+      }
       setTimezone(record.timezone);
       setSelectedLocationIds(record.selectedLocations?.map((loc: any) => loc.id) ?? []);
       setMediaItems((record.mediaPaths ?? []).map((media: any) => ({
@@ -1224,10 +1231,10 @@ export default function GoogleBusinessScheduler({
                               {item.mediaPaths && item.mediaPaths.length > 1 && (
                                 <p className="mt-1 text-xs text-gray-500">+{item.mediaPaths.length - 1} more image{item.mediaPaths.length > 2 ? 's' : ''}</p>
                               )}
-                              {item.errorLog?.locations?.length > 0 && (
+                              {item.errorLog?.locations && item.errorLog.locations.length > 0 && (
                                 <div className="mt-2 text-xs text-rose-600">
                                   {item.errorLog.locations.length} failure(s):{' '}
-                                  {item.errorLog.locations.map((entry: any) => entry.locationId).join(', ')}
+                                  {item.errorLog.locations.map((entry: { locationId: string }) => entry.locationId).join(', ')}
                                 </div>
                               )}
                             </div>

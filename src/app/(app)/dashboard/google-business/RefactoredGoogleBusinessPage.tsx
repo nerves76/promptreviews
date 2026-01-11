@@ -52,7 +52,8 @@ export function RefactoredGoogleBusinessPage() {
   // ║                         AUTH & ACCOUNT CONTEXT                           ║
   // ╚══════════════════════════════════════════════════════════════════════════╝
   // Use granular auth hooks to prevent refresh issues
-  const { plan: currentPlan = 'free' } = useSubscriptionData();
+  const { currentPlan: currentPlanValue } = useSubscriptionData();
+  const currentPlan = currentPlanValue ?? 'free';
   const { user } = useAuthUser();
   const { business } = useBusinessData();
   const { account, selectedAccountId } = useAccountData();
@@ -859,7 +860,7 @@ export function RefactoredGoogleBusinessPage() {
           }
           
           // Ensure location_name is accessible before transformation
-          const locationsWithNames = locations.map(loc => ({
+          const locationsWithNames = locations.map((loc: { location_name?: string; name?: string; title?: string }) => ({
             ...loc,
             name: loc.location_name || loc.name, // Ensure name field exists
             title: loc.location_name || loc.title // Ensure title field exists
@@ -1014,8 +1015,8 @@ export function RefactoredGoogleBusinessPage() {
       // This prevents cross-account token leakage
       const activeAccountId = selectedAccountId || account?.id;
       if (!activeAccountId) {
-        setConnectionError('Unable to determine account context. Please refresh the page and try again.');
-        setIsConnecting(false);
+        setPostResult({ success: false, message: 'Unable to determine account context. Please refresh the page and try again.' });
+        setIsLoading(false);
         return;
       }
 
@@ -1734,11 +1735,11 @@ export function RefactoredGoogleBusinessPage() {
 
         if (error) {
           console.error('Error uploading image:', error);
-          // Make sure error has proper structure
+          // StorageError only has `message` property
           const errorObj = {
-            message: error?.message || 'Failed to upload image',
-            error: error?.error || error?.message || 'Unknown error',
-            statusCode: error?.statusCode || error?.status || '400'
+            message: error.message || 'Failed to upload image',
+            error: error.message || 'Unknown error',
+            statusCode: '400'
           };
           throw errorObj;
         }
@@ -2623,7 +2624,7 @@ export function RefactoredGoogleBusinessPage() {
           setShowImportModal(false);
           setImportResult(null);
         }}
-        onLocationSelect={(id) => setSelectedLocationId(id)}
+        onLocationSelect={(id) => setSelectedLocationId(id ?? '')}
         onImportTypeChange={(type) => setSelectedImportType(type)}
         onImport={handleImportReviews}
       />
@@ -2658,7 +2659,7 @@ export function RefactoredGoogleBusinessPage() {
         <LocationSelectionModal
           locations={pendingLocations}
           planLimit={getMaxLocationsForPlan(currentPlan)}
-          planName={getPlanDisplayName(currentPlan)}
+          planName={getPlanDisplayName(currentPlan) ?? 'Free'}
           onConfirm={handleLocationSelectionConfirm}
           onCancel={handleLocationSelectionCancel}
         />

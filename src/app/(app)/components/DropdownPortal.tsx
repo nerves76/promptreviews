@@ -11,7 +11,7 @@ interface DropdownPortalProps {
   isOpen: boolean;
   mounted: boolean;
   children: React.ReactNode;
-  buttonRef: React.RefObject<HTMLElement>;
+  buttonRef: React.RefObject<HTMLElement | null>;
   className?: string;
   style?: React.CSSProperties;
   align?: 'left' | 'right';

@@ -56,7 +56,7 @@ export default function CreateBoardModal({
     setError(null);
 
     try {
-      const response = await apiClient.post("/work-manager/boards", {
+      const response = await apiClient.post<{ board: { id: string } }>("/work-manager/boards", {
         account_id: selectedAccountId,
         name: boardName.trim() || undefined,
       });

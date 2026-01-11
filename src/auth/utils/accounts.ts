@@ -49,6 +49,7 @@ export interface Account {
   stripe_subscription_id?: string;
   subscription_status?: string;
   plan?: string;
+  billing_period?: 'monthly' | 'annual' | 'yearly' | string;
   trial_start?: string;
   trial_end?: string;
   has_had_paid_plan?: boolean;
@@ -508,7 +509,7 @@ export async function getAccountIdForUser(userId: string, supabaseClient?: any):
       console.log('✅ Found account_users records:', {
         userId,
         accountCount: accountUsers.length,
-        accounts: accountUsers.map(au => ({ accountId: au.account_id, role: au.role }))
+        accounts: accountUsers.map((au: { account_id: string; role: string }) => ({ accountId: au.account_id, role: au.role }))
       });
     }
 

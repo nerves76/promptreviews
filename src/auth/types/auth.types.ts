@@ -11,12 +11,14 @@ import { User, Session, AuthResponse } from '@supabase/supabase-js';
 export interface Account {
   id: string;
   name?: string;
+  account_name?: string;
   created_at: string;
   // Stripe-related fields
   stripe_customer_id?: string;
   stripe_subscription_id?: string;
   subscription_status?: string;
   plan?: string;
+  billing_period?: 'monthly' | 'annual' | 'yearly' | string;
   trial_start?: string;
   trial_end?: string;
   has_had_paid_plan?: boolean;
@@ -30,6 +32,19 @@ export interface Account {
   is_admin?: boolean;
   // Business relation
   businesses?: any[];
+  // Plan limits
+  max_contacts?: number;
+  max_locations?: number;
+  max_users?: number;
+  max_prompt_pages?: number;
+  // Usage counts
+  contact_count?: number;
+  location_count?: number;
+  prompt_page_count?: number;
+  custom_prompt_page_count?: number;
+  // Account flags
+  is_additional_account?: boolean;
+  business_creation_complete?: boolean;
 }
 
 /**
@@ -108,14 +123,15 @@ export interface AuthContextType extends AuthState {
   refreshBusinessProfile: () => Promise<void>;
   refreshAccountDetails: () => Promise<void>;
   refreshPaymentStatus: () => Promise<void>;
-  
+  refreshAccount: () => Promise<void>;
+
   // Navigation guards
   requireAuth: (redirectTo?: string) => boolean;
   requireAdmin: (redirectTo?: string) => boolean;
   requireBusiness: (redirectTo?: string) => boolean;
   requireActivePlan: () => boolean;
   requirePaymentMethod: () => boolean;
-  
+
   // Utility functions
   clearError: () => void;
 }

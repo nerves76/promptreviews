@@ -132,19 +132,21 @@ export function useAdminStatus() {
  */
 export function useSubscriptionData() {
   const subscription = useSubscription();
-  
+
   return useMemo(() => ({
-    plan: subscription.plan,
-    planDetails: subscription.planDetails,
+    currentPlan: subscription.currentPlan,
+    planDisplayName: subscription.planDisplayName,
+    planTier: subscription.planTier,
     isFreePlan: subscription.isFreePlan,
-    isPaidPlan: subscription.isPaidPlan,
-    canAccessFeature: subscription.canAccessFeature,
+    hasActivePlan: subscription.hasActivePlan,
+    canAccessFeatures: subscription.canAccessFeatures,
   }), [
-    subscription.plan,
-    subscription.planDetails,
+    subscription.currentPlan,
+    subscription.planDisplayName,
+    subscription.planTier,
     subscription.isFreePlan,
-    subscription.isPaidPlan,
-    subscription.canAccessFeature,
+    subscription.hasActivePlan,
+    subscription.canAccessFeatures,
   ]);
 }
 

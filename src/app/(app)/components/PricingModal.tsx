@@ -287,7 +287,7 @@ export default function PricingModal({
                 <div className={`mb-4 ${tier.text}`}>
                   {billingPeriod === 'monthly' ? (
                     <div>
-                      {isReactivation && reactivationOffer?.hasOffer ? (
+                      {isReactivation && reactivationOffer?.hasOffer && reactivationOffer.discount ? (
                         <>
                           <span className="text-lg line-through opacity-60">${tier.priceMonthly}</span>
                           <span className="text-2xl font-semibold ml-2">

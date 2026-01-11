@@ -153,7 +153,7 @@ export default function HelpFaqsAdminPage() {
   };
 
   if (authLoading || loading) {
-    return <StandardLoader />;
+    return <StandardLoader isLoading={true} />;
   }
 
   if (error) {

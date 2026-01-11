@@ -79,7 +79,7 @@ export default function LoadBusinessInfoButton({
       const selectedLocation = locations.find(loc => loc.id === referenceLocationId);
 
       // Use apiClient to ensure X-Selected-Account header is sent
-      const data = await apiClient.post<{ success: boolean; location: any; error?: string }>(
+      const data = await apiClient.post<{ success: boolean; location: any; error?: string; message?: string }>(
         '/business-information/location-details',
         { locationId: referenceLocationId }
       );

@@ -115,21 +115,21 @@ export function RefreshDebugger() {
     try {
       const originalPushState = history.pushState.bind(history);
       const originalReplaceState = history.replaceState.bind(history);
-      
-      history.pushState = function(...args: any[]) {
+
+      history.pushState = function(data: unknown, unused: string, url?: string | URL | null) {
         (window as any).__refreshDebugger.logSuspiciousEvent('history.pushState', {
-          url: args[2],
-          state: args[0]
+          url: url,
+          state: data
         });
-        return originalPushState.apply(history, args);
+        return originalPushState(data, unused, url);
       };
-      
-      history.replaceState = function(...args: any[]) {
+
+      history.replaceState = function(data: unknown, unused: string, url?: string | URL | null) {
         (window as any).__refreshDebugger.logSuspiciousEvent('history.replaceState', {
-          url: args[2],
-          state: args[0]
+          url: url,
+          state: data
         });
-        return originalReplaceState.apply(history, args);
+        return originalReplaceState(data, unused, url);
       };
     } catch (e) {
       console.log('Could not monitor history API - skipping');

@@ -41,9 +41,9 @@ export function NavigationDebugger() {
         
         // Detect navigation loops
         const recentNavs = this.logs.slice(-10);
-        const pathChanges = recentNavs.filter(l => l.type === 'pathname_change');
+        const pathChanges = recentNavs.filter((l: { type: string }) => l.type === 'pathname_change');
         if (pathChanges.length >= 4) {
-          const paths = pathChanges.map(p => p.details.to);
+          const paths = pathChanges.map((p: { details: { to: string } }) => p.details.to);
           // Check for A->B->A pattern
           if (paths[paths.length-1] === paths[paths.length-3] &&
               paths[paths.length-2] === paths[paths.length-4]) {
@@ -65,16 +65,16 @@ export function NavigationDebugger() {
         console.table(byType);
         
         // Show navigation patterns
-        const pathChanges = this.logs.filter(l => l.type === 'pathname_change');
+        const pathChanges = this.logs.filter((l: { type: string }) => l.type === 'pathname_change');
         if (pathChanges.length > 0) {
-          pathChanges.slice(-10).forEach(p => {
+          pathChanges.slice(-10).forEach((_p: unknown) => {
           });
         }
-        
+
         // Show recent router.push calls
-        const pushCalls = this.logs.filter(l => l.type === 'router_push');
+        const pushCalls = this.logs.filter((l: { type: string }) => l.type === 'router_push');
         if (pushCalls.length > 0) {
-          pushCalls.slice(-5).forEach(p => {
+          pushCalls.slice(-5).forEach((_p: unknown) => {
           });
         }
         
@@ -105,43 +105,43 @@ export function NavigationDebugger() {
     const originalForward = router.forward;
     const originalRefresh = router.refresh;
     
-    (router as any).push = function(url: string, ...args: any[]) {
-      (window as any).__navDebug.logNavigation('router_push', { 
-        url, 
-        args,
-        caller: new Error().stack?.split('\\n')[2] 
-      });
-      return originalPush.call(router, url, ...args);
-    };
-    
-    (router as any).replace = function(url: string, ...args: any[]) {
-      (window as any).__navDebug.logNavigation('router_replace', { 
-        url, 
-        args,
+    (router as any).push = function(url: string, options?: any) {
+      (window as any).__navDebug.logNavigation('router_push', {
+        url,
+        options,
         caller: new Error().stack?.split('\\n')[2]
       });
-      return originalReplace.call(router, url, ...args);
+      return originalPush.call(router, url, options);
     };
-    
-    (router as any).back = function(...args: any[]) {
+
+    (router as any).replace = function(url: string, options?: any) {
+      (window as any).__navDebug.logNavigation('router_replace', {
+        url,
+        options,
+        caller: new Error().stack?.split('\\n')[2]
+      });
+      return originalReplace.call(router, url, options);
+    };
+
+    (router as any).back = function() {
       (window as any).__navDebug.logNavigation('router_back', {
         caller: new Error().stack?.split('\\n')[2]
       });
-      return originalBack.call(router, ...args);
+      return originalBack.call(router);
     };
-    
-    (router as any).forward = function(...args: any[]) {
+
+    (router as any).forward = function() {
       (window as any).__navDebug.logNavigation('router_forward', {
         caller: new Error().stack?.split('\\n')[2]
       });
-      return originalForward.call(router, ...args);
+      return originalForward.call(router);
     };
-    
-    (router as any).refresh = function(...args: any[]) {
+
+    (router as any).refresh = function() {
       (window as any).__navDebug.logNavigation('router_refresh', {
         caller: new Error().stack?.split('\\n')[2]
       });
-      return originalRefresh.call(router, ...args);
+      return originalRefresh.call(router);
     };
     
     // Add console helper

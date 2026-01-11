@@ -2,8 +2,22 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient, createServiceRoleClient } from '@/auth/providers/supabase';
 import { cookies } from 'next/headers';
 
+interface AuthDebugResults {
+  timestamp: string;
+  environment: string | undefined;
+  vercelEnv: string | undefined;
+  hasSupabaseUrl: boolean;
+  hasAnonKey: boolean;
+  hasServiceKey: boolean;
+  cookies: Array<{ name: string; hasValue: boolean; length: number }> | Record<string, never>;
+  authHeader: string | null;
+  serverAuth: { hasUser: boolean; userId: string | null; error: string | null } | null;
+  serviceAuth: { hasUser: boolean; userId: string | null; error: string | null } | null;
+  errors: string[];
+}
+
 export async function GET(request: NextRequest) {
-  const results = {
+  const results: AuthDebugResults = {
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV,
     vercelEnv: process.env.VERCEL_ENV,

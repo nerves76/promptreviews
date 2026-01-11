@@ -20,9 +20,8 @@ export {
   useBusinessGuard
 } from './AuthContext';
 
-// Keep references to other contexts that might be used
-export { usePaymentState } from './PaymentContext';
-export { useSessionState } from './SessionContext';
+// Note: PaymentContext and SessionContext have been consolidated
+// Payment and session state are now available via useFeatures() and useCoreAuth()
 
 // Re-export types
 export type { User, Session } from '@supabase/supabase-js';

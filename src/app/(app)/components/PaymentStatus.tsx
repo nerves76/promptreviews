@@ -30,19 +30,26 @@ export default function PaymentStatus({ showDebug = false }: PaymentStatusProps)
     accountStatus,
     canAccessFeatures,
     hasHadPaidPlan,
-    isReactivated,
-    
+
     // Functions
-    refreshPaymentStatus,
-    requireActivePlan,
-    requirePaymentMethod,
-    
+    refreshSubscription,
+
     // Core states
     isLoading,
     accountLoading,
     isAuthenticated,
     account,
   } = useAuth();
+
+  // Derived state - account reactivation status
+  const isReactivated = hasHadPaidPlan && hasActivePlan;
+
+  // Helper functions for payment requirements
+  const requireActivePlan = () => !hasActivePlan && requiresPlanSelection;
+  const requirePaymentMethod = () => !hasPaymentMethod && accountStatus === 'requires_action';
+
+  // Alias for backward compatibility
+  const refreshPaymentStatus = refreshSubscription;
 
   if (!isAuthenticated) {
     return (
@@ -328,14 +335,19 @@ export default function PaymentStatus({ showDebug = false }: PaymentStatusProps)
 
 // Usage examples for different payment states
 export const PaymentStateExamples = () => {
-  const { 
-    trialStatus, 
-    hasActivePlan, 
-    canAccessFeatures, 
+  const {
+    trialStatus,
+    hasActivePlan,
+    canAccessFeatures,
     planTier,
-    requireActivePlan,
-    requirePaymentMethod 
+    requiresPlanSelection,
+    hasPaymentMethod,
+    accountStatus,
   } = useAuth();
+
+  // Helper functions for payment requirements
+  const requireActivePlan = () => !hasActivePlan && requiresPlanSelection;
+  const requirePaymentMethod = () => !hasPaymentMethod && accountStatus === 'requires_action';
 
   return (
     <div className="space-y-4">

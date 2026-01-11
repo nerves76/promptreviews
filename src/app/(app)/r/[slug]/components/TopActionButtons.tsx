@@ -17,6 +17,7 @@ interface BusinessProfile {
   card_transparency?: number;
   card_border_width?: number;
   card_border_color?: string;
+  card_border_transparency?: number;
   card_text?: string;
 }
 

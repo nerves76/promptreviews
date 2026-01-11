@@ -18,6 +18,12 @@ import UpcomingReminders from "@/app/(app)/components/communication/UpcomingRemi
 import { checkAccountLimits } from "@/utils/accountLimits";
 import { useAuth } from "@/auth";
 
+interface DuplicateGroup {
+  contacts: any[];
+  reason: 'exact_email' | 'similar_name' | 'exact_phone';
+  score: number;
+}
+
 export default function UploadContactsPage() {
   const supabase = createClient();
   const { selectedAccountId } = useAuth();
@@ -725,7 +731,7 @@ export default function UploadContactsPage() {
     setBulkProgress({ created: 0, failed: 0, total: selectedContactIds.length });
 
     try {
-      const result = await apiClient.post('/contacts/bulk-create-prompt-pages', {
+      const result = await apiClient.post<{ created: number; failed: number }>('/contacts/bulk-create-prompt-pages', {
         contactIds: selectedContactIds,
         promptType: promptType,
         includeReviews: includeReviews
@@ -763,10 +769,10 @@ export default function UploadContactsPage() {
     setError('');
     
     try {
-      const data = await apiClient.get('/contacts/find-duplicates');
+      const data = await apiClient.get<{ duplicateGroups: DuplicateGroup[] }>('/contacts/find-duplicates');
 
       setDuplicateGroups(data.duplicateGroups || []);
-      
+
       if (data.duplicateGroups.length === 0) {
         setSuccess('No duplicate contacts found!');
         setTimeout(() => setSuccess(''), 3000);
@@ -786,7 +792,7 @@ export default function UploadContactsPage() {
     try {
       const contactIds = selectedDuplicateGroup.contacts.map((c: any) => c.id);
 
-      const result = await apiClient.post('/contacts/merge', {
+      const result = await apiClient.post<{ deletedContacts: number; transferredReviews: number; transferredPromptPages: number }>('/contacts/merge', {
         primaryContactId,
         fieldsToKeep,
         contactIdsToMerge: contactIds

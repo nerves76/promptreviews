@@ -20,7 +20,7 @@ import {
 import { CheckLLMModal, LLMVisibilityTrendChart } from '@/features/llm-visibility/components';
 import { KeywordDetailsSidebar } from '@/features/keywords/components/KeywordDetailsSidebar';
 import { CheckRankModal } from '@/features/rank-tracking/components';
-import { type KeywordData } from '@/features/keywords/keywordUtils';
+import { type KeywordData, transformKeywordToResponse } from '@/features/keywords/keywordUtils';
 import { useBusinessData } from '@/auth/hooks/granularAuthHooks';
 
 interface KeywordWithQuestions {
@@ -903,7 +903,7 @@ export default function LLMVisibilityPage() {
                                                         ? 'bg-green-100 text-green-700 border border-green-200'
                                                         : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                                     }`}
-                                                    title={citation.title || citation.url}
+                                                    title={citation.title || citation.url || undefined}
                                                   >
                                                     <span className="font-medium">#{citation.position}</span>
                                                     <span className="truncate max-w-[150px]">{citation.domain}</span>

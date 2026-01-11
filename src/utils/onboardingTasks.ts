@@ -32,7 +32,8 @@ export async function fetchOnboardingTasks(accountId: string): Promise<TaskCompl
       return {};
     }
 
-    let data, error;
+    let data: { task_id: string; completed: boolean }[] | null;
+    let error: { message: string } | null;
 
     // DEVELOPMENT MODE: Use API endpoint to bypass RLS issues
     if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined' && localStorage.getItem('dev_auth_bypass') === 'true') {

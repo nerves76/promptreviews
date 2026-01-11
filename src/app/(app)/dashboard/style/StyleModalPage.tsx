@@ -9,6 +9,32 @@ const supabase = createClient();
 import Icon from "@/components/Icon";
 import { GLASSY_DEFAULTS } from "@/app/(app)/config/styleDefaults";
 
+// Type definition for style settings with flexible string types
+interface StyleSettings {
+  primary_font: string;
+  secondary_font: string;
+  primary_color: string;
+  secondary_color: string;
+  background_type: "gradient" | "solid";
+  background_color: string;
+  gradient_start: string;
+  gradient_middle: string;
+  gradient_end: string;
+  card_bg: string;
+  card_text: string;
+  card_placeholder_color: string;
+  input_text_color: string;
+  card_inner_shadow: boolean;
+  card_shadow_color: string;
+  card_shadow_intensity: number;
+  card_transparency: number;
+  card_border_width: number;
+  card_border_color: string;
+  card_border_transparency: number;
+  kickstarters_background_design: boolean;
+  kickstarters_primary_color: string;
+}
+
 // Only include fonts that are actually loaded and used in the project
 const fontOptions = [
   // Google Fonts
@@ -108,8 +134,11 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
   const modalRef = React.useRef<HTMLDivElement>(null);
   const [selectedPreset, setSelectedPreset] = React.useState<string | null>('glassy');
 
+  // Type for preset with name and all style settings
+  type PresetConfig = { name: string } & StyleSettings;
+
   // Preset configurations
-  const presets = {
+  const presets: Record<string, PresetConfig> = {
     glassy: {
       name: "Glassy",
       ...GLASSY_DEFAULTS,
@@ -247,7 +276,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
   };
 
   // Default to Glassy preset settings - using centralized config
-  const [settings, setSettings] = React.useState({
+  const [settings, setSettings] = React.useState<StyleSettings>({
     ...GLASSY_DEFAULTS,
     card_border_width: 1, // Ensure number type
     kickstarters_primary_color: GLASSY_DEFAULTS.primary_color, // Default to primary color
@@ -257,7 +286,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
   const [businessId, setBusinessId] = React.useState<string | null>(null);
 
   // Function to check if current settings match a preset
-  const checkIfMatchesPreset = (currentSettings: typeof settings): string | null => {
+  const checkIfMatchesPreset = (currentSettings: StyleSettings): string | null => {
     for (const [key, preset] of Object.entries(presets)) {
       const { name, ...presetSettings } = preset;
       let matches = true;
@@ -680,11 +709,12 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
 
   async function handleReset() {
     if (window.confirm('Are you sure you want to reset all style settings to default? This cannot be undone.')) {
-      const defaultSettings = {
+      const defaultSettings: StyleSettings = {
         ...GLASSY_DEFAULTS,
         card_border_width: 1,
+        kickstarters_primary_color: GLASSY_DEFAULTS.primary_color,
       };
-      
+
       setSettings(defaultSettings);
       
       // Immediately save the reset values to database

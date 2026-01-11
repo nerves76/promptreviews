@@ -1,6 +1,6 @@
 "use client";
 
-import { useAuth, useAuthGuard, useAdminGuard, useBusinessGuard } from '@/auth';
+import { useAuth, useAuthGuard } from '@/auth';
 
 export default function TestAuthContext() {
   const {
@@ -15,16 +15,18 @@ export default function TestAuthContext() {
     accountId,
     hasBusiness,
     businessLoading,
-    sessionExpiry,
-    sessionTimeRemaining,
+    sessionExpiresAt,
     signIn,
     signOut,
-    refreshAuth,
+    refreshSession,
     refreshAdminStatus,
-    refreshBusinessProfile,
+    refreshBusiness,
     clearError,
     isSessionExpiringSoon,
   } = useAuth();
+
+  // Calculate time remaining from sessionExpiresAt
+  const sessionTimeRemaining = sessionExpiresAt ? sessionExpiresAt.getTime() - Date.now() : null;
 
   // Test auth guard hook
   const { isAuthenticated: guardAuth, isLoading: guardLoading } = useAuthGuard();
@@ -122,7 +124,7 @@ export default function TestAuthContext() {
                 </span>
               </div>
               <button
-                onClick={() => refreshBusinessProfile()}
+                onClick={() => refreshBusiness()}
                 className="w-full mt-2 px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700"
               >
                 Refresh Business Profile
@@ -137,7 +139,7 @@ export default function TestAuthContext() {
               <div className="flex justify-between">
                 <span>Session Expiry:</span>
                 <span className="text-gray-600 text-xs">
-                  {sessionExpiry ? sessionExpiry.toLocaleString() : 'None'}
+                  {sessionExpiresAt ? sessionExpiresAt.toLocaleString() : 'None'}
                 </span>
               </div>
               <div className="flex justify-between">
@@ -153,7 +155,7 @@ export default function TestAuthContext() {
                 </span>
               </div>
               <button
-                onClick={() => refreshAuth()}
+                onClick={() => refreshSession()}
                 className="w-full mt-2 px-3 py-1 bg-orange-600 text-white rounded text-sm hover:bg-orange-700"
               >
                 Refresh Session

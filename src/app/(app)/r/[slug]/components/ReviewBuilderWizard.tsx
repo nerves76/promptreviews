@@ -261,10 +261,10 @@ const builderQuestions = useMemo(() => {
   // Initialize answers map
   useEffect(() => {
     setAnswers((prev) => {
-      const next: Record<string, string> = {};
-      builderQuestions.forEach((question, index) => {
+      const next: Record<string, string | string[]> = {};
+      builderQuestions.forEach((question: { id: string; questionType?: string }, index: number) => {
         const id = question.id || `review-builder-${index}`;
-        next[id] = prev[id] || "";
+        next[id] = prev[id] || (question.questionType === 'checkbox' ? [] : "");
       });
       return next;
     });
@@ -336,7 +336,7 @@ const builderQuestions = useMemo(() => {
     }
     if (step === 2) {
       // Step 2 is now questions - validate all required questions are answered
-      const missing = builderQuestions.filter((question) => {
+      const missing = builderQuestions.filter((question: { id: string; required?: boolean; questionType?: string }) => {
         if (!question.required) return false;
         const answer = answers[question.id];
 
@@ -447,7 +447,7 @@ const builderQuestions = useMemo(() => {
       const wordLimit = getWordLimitOrDefault(primaryPlatform?.wordCount);
 
       const answerSummary = builderQuestions
-        .map((question) => {
+        .map((question: { id: string; prompt: string }) => {
           const answer = answers[question.id];
           let response = "Not provided";
 
@@ -541,7 +541,7 @@ const builderQuestions = useMemo(() => {
     setSuccessMessage(null);
     try {
       await copyToClipboard(reviewText);
-      const builderAnswersPayload = builderQuestions.map((question) => ({
+      const builderAnswersPayload = builderQuestions.map((question: { id: string; prompt: string }) => ({
         id: question.id,
         prompt: question.prompt,
         answer: answers[question.id] || "",
@@ -639,7 +639,7 @@ const builderQuestions = useMemo(() => {
 
               {currentQuestion.questionType === 'checkbox' && currentQuestion.options ? (
                 <div className="space-y-3 bg-white/90 backdrop-blur rounded-lg p-4">
-                  {currentQuestion.options.map((option) => (
+                  {currentQuestion.options.map((option: string) => (
                     <label key={option} className="flex items-center gap-3 cursor-pointer hover:bg-white/50 p-2 rounded transition-colors">
                       <input
                         type="checkbox"
@@ -659,7 +659,7 @@ const builderQuestions = useMemo(() => {
                 </div>
               ) : currentQuestion.questionType === 'radio' && currentQuestion.options ? (
                 <div className="space-y-3 bg-white/90 backdrop-blur rounded-lg p-4">
-                  {currentQuestion.options.map((option) => (
+                  {currentQuestion.options.map((option: string) => (
                     <label key={option} className="flex items-center gap-3 cursor-pointer hover:bg-white/50 p-2 rounded transition-colors">
                       <input
                         type="radio"
@@ -744,7 +744,7 @@ const builderQuestions = useMemo(() => {
               </p>
               <button
                 type="button"
-                onClick={handleGenerateReview}
+                onClick={() => handleGenerateReview()}
                 disabled={aiGenerating || aiAttemptCount >= 3}
                 className="flex items-center justify-center gap-2 px-4 py-1 bg-white text-slate-900 text-sm font-medium rounded-lg hover:bg-white/90 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all shadow-lg"
               >
@@ -811,7 +811,7 @@ const builderQuestions = useMemo(() => {
                   <span className="text-2xl font-semibold text-white">2.</span>
                   <p className="text-lg text-white">Click to visit review site</p>
                   <div className="flex flex-wrap gap-2">
-                    {activePlatforms.map((platform, index) => {
+                    {activePlatforms.map((platform: { url: string; name?: string; platform?: string; customPlatform?: string }, index: number) => {
                       // Determine platform name for button text
                       const platformName = platform.name === "Other" && platform.customPlatform
                         ? platform.customPlatform

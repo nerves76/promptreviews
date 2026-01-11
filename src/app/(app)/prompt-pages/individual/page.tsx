@@ -7,7 +7,7 @@ import { createClient, getUserOrMock } from "@/auth/providers/supabase";
 import Link from "next/link";
 import Icon from "@/components/Icon";
 import PageCard from "@/app/(app)/components/PageCard";
-import UniversalPromptPageForm from "../../dashboard/edit-prompt-page/universal/UniversalPromptPageForm";
+import UniversalPromptPageForm from "@/app/(app)/components/UniversalPromptPageForm";
 import { useGlobalLoader } from "@/app/(app)/components/GlobalLoaderProvider";
 import QRCodeGenerator, { QR_FRAME_SIZES } from "../../dashboard/components/QRCodeGenerator";
 import dynamic from "next/dynamic";

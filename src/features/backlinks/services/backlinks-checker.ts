@@ -362,7 +362,7 @@ export async function runBacklinkCheck(
     };
   } catch (error) {
     console.error('❌ [Backlinks] Check failed:', error);
-    captureError(error, 'backlinks-checker', { domain: domain.domain });
+    captureError(error instanceof Error ? error : new Error(String(error)), { source: 'backlinks-checker', domain: domain.domain });
 
     return {
       success: false,

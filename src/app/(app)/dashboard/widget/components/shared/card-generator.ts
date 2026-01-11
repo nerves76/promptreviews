@@ -35,6 +35,9 @@ interface Design {
   showPlatform?: boolean;
   glassmorphism?: boolean;
   backdropBlur?: number;
+  innerShadow?: boolean;
+  innerShadowColor?: string;
+  innerShadowOpacity?: number;
 }
 
 // TODO: Move the createReviewCard function here. 

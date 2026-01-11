@@ -61,7 +61,8 @@ export class OptimizerReportGenerator {
 
   private addPageHeader(): void {
     // Add PromptReviews branding header on every page except first
-    if (this.pdf.getCurrentPageInfo().pageNumber > 1) {
+    const pageNum = (this.pdf as any).internal.getNumberOfPages();
+    if (pageNum > 1) {
       this.pdf.setFillColor(248, 250, 252); // Light gray background
       this.pdf.rect(0, 0, this.pageWidth, 15, 'F');
 
@@ -71,7 +72,6 @@ export class OptimizerReportGenerator {
       this.pdf.text('PromptReviews - Google Business Optimizer Report', this.margin, 8);
 
       // Add page number
-      const pageNum = this.pdf.getCurrentPageInfo().pageNumber;
       this.pdf.text(`Page ${pageNum}`, this.pageWidth - this.margin - 15, 8);
 
       this.currentY = 20;

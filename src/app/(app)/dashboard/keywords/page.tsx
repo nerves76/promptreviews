@@ -48,6 +48,8 @@ export default function KeywordsPage() {
           ? `${business.address_city}, ${business.address_state}`
           : business.address_city;
 
+        if (!searchQuery) return;
+
         const response = await apiClient.get<{
           locations: Array<{
             locationCode: number;

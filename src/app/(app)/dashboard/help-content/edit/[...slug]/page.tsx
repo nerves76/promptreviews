@@ -404,7 +404,7 @@ export default function ArticleEditorPage() {
   };
 
   if (authLoading || loading) {
-    return <StandardLoader />;
+    return <StandardLoader isLoading={true} />;
   }
 
   if (error && error.includes("Forbidden")) {

@@ -745,7 +745,7 @@ export default function ReviewsPage() {
     setImportSuccess(null);
 
     try {
-      const result = await apiClient.post<{ count?: number; skipped?: number }>('/google-business-profile/import-reviews', {
+      const result = await apiClient.post<{ count?: number; skipped?: number; message?: string }>('/google-business-profile/import-reviews', {
         locationId,
         importType: 'new',
       });

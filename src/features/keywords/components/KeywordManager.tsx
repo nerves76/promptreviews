@@ -1413,7 +1413,7 @@ export default function KeywordManager({
                     keyword={keyword}
                     onOpenDetails={handleKeywordClick}
                     onUpdate={updateKeyword}
-                    onDelete={deleteKeyword}
+                    onDelete={async (id: string) => { await deleteKeyword(id); }}
                     onCheckRank={onCheckRank}
                     onCheckLLMVisibility={onCheckLLMVisibility}
                     promptPageNames={promptPageUsage[keyword.id] || []}

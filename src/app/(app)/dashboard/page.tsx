@@ -1251,7 +1251,7 @@ const Dashboard = React.memo(function Dashboard() {
         <PricingModal
           onSelectTier={handleSelectTier}
           currentPlan={account?.plan}
-          currentBillingPeriod={account?.billing_period}
+          currentBillingPeriod={account?.billing_period as 'monthly' | 'annual' | undefined}
           showCanceledMessage={justCanceledStripe}
           onClose={handleClosePricingModal}
           onSignOut={handleSignOut}

@@ -92,7 +92,7 @@ export default function LibraryTaskPreview({
         {task.instructions && (
           <div>
             <h3 className="text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2">
-              <Icon name="FaListOl" size={14} />
+              <Icon name="FaFileAlt" size={14} />
               Instructions
             </h3>
             <div className="text-gray-600 text-sm whitespace-pre-line">
@@ -116,7 +116,7 @@ export default function LibraryTaskPreview({
                   target="_blank"
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-blue/10 text-slate-blue rounded-lg text-sm font-medium hover:bg-slate-blue/20 transition-colors"
                 >
-                  <Icon name="FaExternalLinkAlt" size={10} />
+                  <Icon name="FaLink" size={10} />
                   {tool.name}
                 </Link>
               ))}
@@ -140,7 +140,7 @@ export default function LibraryTaskPreview({
                   rel="noopener noreferrer"
                   className="flex items-start gap-3 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors group"
                 >
-                  <Icon name="FaExternalLinkAlt" size={12} className="text-gray-500 mt-1 flex-shrink-0 group-hover:text-slate-blue" />
+                  <Icon name="FaLink" size={12} className="text-gray-500 mt-1 flex-shrink-0 group-hover:text-slate-blue" />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-gray-900 group-hover:text-slate-blue truncate">
                       {link.title}

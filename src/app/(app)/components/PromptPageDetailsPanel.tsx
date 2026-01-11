@@ -33,7 +33,7 @@ export default function PromptPageDetailsPanel({
     slug: page.slug,
     status: page.status,
     account_id: page.account_id,
-    client_name: `${page.first_name || ""} ${page.last_name || ""}`.trim() || page.client_name,
+    client_name: `${page.first_name || ""} ${page.last_name || ""}`.trim() || page.client_name || undefined,
     location: page.location || business?.name,
   };
 
@@ -94,11 +94,11 @@ export default function PromptPageDetailsPanel({
 
       <div className="flex items-center gap-2 px-6 py-3 border-b border-gray-200 text-xs text-gray-600">
         <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
-          <Icon name="FaRegListAlt" size={12} />
+          <Icon name="FaFileAlt" size={12} />
           {reviewTypeDisplay}
         </span>
         <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-gray-100 text-gray-700 border border-gray-200 capitalize">
-          <Icon name="FaRegClock" size={12} />
+          <Icon name="FaClock" size={12} />
           {page.status.replace("_", " ")}
         </span>
         <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-white text-gray-700 border border-gray-200">
@@ -136,7 +136,7 @@ export default function PromptPageDetailsPanel({
                 href="/dashboard/contacts"
                 className="inline-flex items-center gap-1 text-xs text-slate-blue hover:text-slate-blue/80 underline"
               >
-                <Icon name="FaExternalLinkAlt" size={10} />
+                <Icon name="FaLink" size={10} />
                 View in Contacts
               </Link>
             )}
@@ -156,7 +156,7 @@ export default function PromptPageDetailsPanel({
               }
               className="inline-flex items-center gap-1 text-slate-blue hover:text-slate-blue/80 underline"
             >
-              <Icon name="FaPen" size={12} />
+              <Icon name="FaEdit" size={12} />
               Edit page
             </Link>
             <Link
@@ -165,7 +165,7 @@ export default function PromptPageDetailsPanel({
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1 text-slate-blue hover:text-slate-blue/80 underline"
             >
-              <Icon name="FaExternalLinkAlt" size={12} />
+              <Icon name="FaLink" size={12} />
               View live
             </Link>
             <button
@@ -198,11 +198,13 @@ export default function PromptPageDetailsPanel({
 
         <section className="space-y-3">
           <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Activity</h3>
-          <ActivityTimeline
-            promptPageId={page.id}
-            accountId={page.account_id}
-            contactId={page.contact_id}
-          />
+          {page.account_id && (
+            <ActivityTimeline
+              promptPageId={page.id}
+              accountId={page.account_id}
+              contactId={page.contact_id}
+            />
+          )}
         </section>
       </div>
     </div>

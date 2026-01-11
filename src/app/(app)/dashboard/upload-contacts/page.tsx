@@ -417,7 +417,7 @@ export default function UploadContactsPage() {
               onClick={handleDownloadTemplate}
               className="flex items-center gap-2 px-4 py-2 bg-white border border-blue-200 rounded-lg hover:bg-gray-50 transition-colors"
             >
-                                  <Icon name="FaDownload" className="text-slate-blue" />
+                                  <Icon name="MdDownload" className="text-slate-blue" />
               Download CSV template
             </button>
           </div>
@@ -491,7 +491,7 @@ export default function UploadContactsPage() {
         {/* CSV Column Descriptions Section */}
         <div className="mb-16">
           <h2 className="text-2xl font-bold text-slate-blue flex items-center gap-3 mb-12">
-                          <Icon name="FaList" className="w-7 h-7 text-slate-blue" />
+                          <Icon name="FaFileAlt" className="w-7 h-7 text-slate-blue" />
             CSV column descriptions
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

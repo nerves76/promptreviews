@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { apiClient } from "@/utils/apiClient";
-import Icon from "@/components/Icon";
+import Icon, { IconName } from "@/components/Icon";
 import PageCard from "@/app/(app)/components/PageCard";
 import StandardLoader from "@/app/(app)/components/StandardLoader";
 
@@ -40,16 +40,16 @@ const TIME_RANGE_LABELS: Record<TimeRange, string> = {
   all_time: "All time",
 };
 
-const SOURCE_ICONS: Record<string, string> = {
+const SOURCE_ICONS: Record<string, IconName> = {
   prompt_page_direct: "FaLink",
   prompt_page_qr: "FaQrcode",
   email_campaign: "FaEnvelope",
-  sms_campaign: "FaSms",
+  sms_campaign: "FaMobile",
   widget_cta: "FaCode",
   gbp_import: "FaGoogle",
-  social_share: "FaShareAlt",
-  referral: "FaUserFriends",
-  unknown: "FaQuestion",
+  social_share: "FaShare",
+  referral: "FaUsers",
+  unknown: "FaQuestionCircle",
 };
 
 const SOURCE_COLORS: Record<string, string> = {
@@ -74,7 +74,7 @@ export default function ReviewSourcesPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await apiClient.get("/reviews/sources");
+        const response = await apiClient.get<StatsData>("/reviews/sources");
         setData(response);
       } catch (err: any) {
         console.error("Error fetching review sources:", err);
@@ -90,7 +90,7 @@ export default function ReviewSourcesPage() {
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-[400px]">
-        <StandardLoader />
+        <StandardLoader isLoading={true} />
       </div>
     );
   }
@@ -155,7 +155,7 @@ export default function ReviewSourcesPage() {
       {stats.length === 0 ? (
         <PageCard>
           <div className="text-center py-12 text-gray-500">
-            <Icon name="FaChartPie" size={48} className="mx-auto mb-4 text-gray-300" />
+            <Icon name="FaChartBar" size={48} className="mx-auto mb-4 text-gray-300" />
             <p className="text-lg font-medium">No reviews yet</p>
             <p className="text-sm mt-1">
               Reviews will appear here once they start coming in with source tracking.

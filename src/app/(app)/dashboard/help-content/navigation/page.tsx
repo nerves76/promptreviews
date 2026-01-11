@@ -221,7 +221,7 @@ export default function HelpNavigationAdminPage() {
     }
   };
 
-  const renderTree = (nodes: TreeNode[], depth = 0): JSX.Element[] => {
+  const renderTree = (nodes: TreeNode[], depth = 0): React.ReactElement[] => {
     return nodes.map((node) => (
       <div key={node.id} className="border border-gray-200 rounded-lg p-4 bg-white shadow-sm mb-3">
         <div className="flex items-start justify-between gap-4">
@@ -256,7 +256,7 @@ export default function HelpNavigationAdminPage() {
   };
 
   if (authLoading || loading) {
-    return <StandardLoader />;
+    return <StandardLoader isLoading={true} />;
   }
 
   if (error) {

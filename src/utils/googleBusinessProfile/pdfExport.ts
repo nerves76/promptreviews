@@ -337,7 +337,7 @@ export async function exportOverviewToPDF(
     }
 
     // Add footers to all pages
-    const totalPages = pdf.getNumberOfPages();
+    const totalPages = (pdf as any).internal.getNumberOfPages();
     for (let i = 1; i <= totalPages; i++) {
       pdf.setPage(i);
       addFooter(i, totalPages);

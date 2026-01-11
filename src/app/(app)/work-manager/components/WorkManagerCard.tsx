@@ -40,7 +40,7 @@ export default function WorkManagerCard({
       dueDateClassName = "text-red-600 font-medium";
       dueDateDisplay = (
         <>
-          <Icon name="FaExclamationCircle" size={10} className="text-red-600" />
+          <Icon name="FaExclamationTriangle" size={10} className="text-red-600" />
           <span>Overdue</span>
         </>
       );
@@ -97,8 +97,8 @@ export default function WorkManagerCard({
         <span
           className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border ${priorityColors.bg} ${priorityColors.text} ${priorityColors.border}`}
         >
-          {task.priority === "high" && <Icon name="FaArrowUp" size={10} />}
-          {task.priority === "low" && <Icon name="FaArrowDown" size={10} />}
+          {task.priority === "high" && <Icon name="FaCaretUp" size={10} />}
+          {task.priority === "low" && <Icon name="FaCaretDown" size={10} />}
           {priorityLabel}
         </span>
       </div>

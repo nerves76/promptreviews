@@ -187,7 +187,7 @@ function AuthTestPageContent() {
       }
       
       const now = new Date();
-      const expiry = auth.sessionExpiry;
+      const expiry = auth.sessionExpiresAt;
       
       if (!expiry) {
         return { passed: false, message: 'Session exists but no expiry date' };
@@ -413,10 +413,10 @@ function AuthTestPageContent() {
           <h2 className="text-lg font-bold mb-4">Quick Actions</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <button
-              onClick={() => auth.refreshAuth()}
+              onClick={() => auth.refreshSession()}
               className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
             >
-              Refresh Auth
+              Refresh Session
             </button>
             <button
               onClick={() => auth.signOut()}

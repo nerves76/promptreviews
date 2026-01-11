@@ -83,7 +83,7 @@ function EmbedReviewDashboardContent() {
     };
   }, [components]); // Re-run when components change
   
-  const componentMap: Record<string, JSX.Element> = {
+  const componentMap: Record<string, React.ReactElement> = {
     overview: (
       <div key="overview">
         {showHeader && <h2 className={`text-xl font-bold mb-4 ${theme === 'dark' ? 'text-white' : 'text-white'}`}>Review Trends Overview</h2>}

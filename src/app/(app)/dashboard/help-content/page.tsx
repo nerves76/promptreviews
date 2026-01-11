@@ -212,7 +212,7 @@ export default function HelpContentPage() {
   };
 
   if (authLoading) {
-    return <StandardLoader />;
+    return <StandardLoader isLoading={true} />;
   }
 
   if (error && error.includes("Forbidden")) {
@@ -364,7 +364,7 @@ export default function HelpContentPage() {
         <PageCard>
           {loading ? (
             <div className="py-12">
-              <StandardLoader />
+              <StandardLoader isLoading={true} />
             </div>
           ) : error ? (
             <div className="py-12 text-center text-red-600">{error}</div>

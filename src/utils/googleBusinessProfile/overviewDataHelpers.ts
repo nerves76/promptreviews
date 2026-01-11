@@ -5,7 +5,13 @@
  * including profile completeness, optimization opportunities, and data transformations.
  */
 
-import type { BusinessLocation } from '@/features/social-posting/platforms/google-business-profile/googleBusinessProfile';
+import type { BusinessLocation as BaseBusinessLocation } from '@/features/social-posting/platforms/google-business-profile/googleBusinessProfile';
+
+// Extended BusinessLocation with additional fields that may be returned by the API
+interface BusinessLocation extends BaseBusinessLocation {
+  attributes?: Record<string, unknown>;
+  products?: unknown[];
+}
 
 // Types for overview data processing
 export interface ProfileCompletenessData {
@@ -548,8 +554,9 @@ export function identifyOptimizationOpportunities(
   }
 
   // Check review response rate
-  if (engagementData.totalReviews > 0) {
-    const responseRate = ((engagementData.totalReviews - engagementData.unrespondedReviews) / engagementData.totalReviews) * 100;
+  if (engagementData.totalReviews && engagementData.totalReviews > 0) {
+    const totalReviews = engagementData.totalReviews;
+    const responseRate = ((totalReviews - engagementData.unrespondedReviews) / totalReviews) * 100;
     if (responseRate < 80) {
       opportunities.push({
         id: 'improve-response-rate',

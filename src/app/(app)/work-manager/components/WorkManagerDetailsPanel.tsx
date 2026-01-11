@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { formatDistanceToNow, format, isPast, isToday } from "date-fns";
-import Icon from "@/components/Icon";
+import Icon, { IconName } from "@/components/Icon";
 import { apiClient } from "@/utils/apiClient";
 import {
   WMTask,
@@ -55,7 +55,7 @@ export default function WorkManagerDetailsPanel({
     const fetchActions = async () => {
       try {
         setActionsLoading(true);
-        const response = await apiClient.get(`/work-manager/task-actions?taskId=${task.id}`);
+        const response = await apiClient.get<{ actions: WMTaskAction[] }>(`/work-manager/task-actions?taskId=${task.id}`);
         setActions(response.actions || []);
       } catch (err) {
         console.error("Failed to fetch task actions:", err);
@@ -129,7 +129,7 @@ export default function WorkManagerDetailsPanel({
 
     setIsAddingNote(true);
     try {
-      const response = await apiClient.post("/work-manager/task-actions", {
+      const response = await apiClient.post<{ action: WMTaskAction }>("/work-manager/task-actions", {
         task_id: task.id,
         activity_type: "note",
         content: content.trim(),
@@ -159,16 +159,16 @@ export default function WorkManagerDetailsPanel({
     }
   }
 
-  const getActionIcon = (type: string) => {
+  const getActionIcon = (type: string): IconName => {
     switch (type) {
       case "note":
         return "FaStickyNote";
       case "status_change":
         return "FaCoins";
       case "assignment_change":
-        return "FaUserTag";
+        return "FaUser";
       case "priority_change":
-        return "FaFlag";
+        return "FaExclamationTriangle";
       case "due_date_change":
         return "FaCalendarAlt";
       case "created":
@@ -258,14 +258,14 @@ export default function WorkManagerDetailsPanel({
               {statusLabels[task.status]}
             </span>
             <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full border ${priorityColors.bg} ${priorityColors.text} ${priorityColors.border}`}>
-              {task.priority === "high" && <Icon name="FaArrowUp" size={10} />}
-              {task.priority === "low" && <Icon name="FaArrowDown" size={10} />}
+              {task.priority === "high" && <Icon name="FaCaretUp" size={10} />}
+              {task.priority === "low" && <Icon name="FaCaretDown" size={10} />}
               {WM_PRIORITY_LABELS[task.priority]}
             </span>
           </>
         )}
         <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-white text-gray-700 border border-gray-200">
-          <Icon name="FaCalendarPlus" size={10} />
+          <Icon name="FaCalendarAlt" size={10} />
           Created {formatDistanceToNow(new Date(task.created_at), { addSuffix: true })}
         </span>
       </div>
@@ -393,7 +393,7 @@ export default function WorkManagerDetailsPanel({
                   onClick={() => setIsEditing(true)}
                   className="inline-flex items-center gap-2 px-3 py-1.5 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 text-sm font-medium"
                 >
-                  <Icon name="FaPen" size={12} />
+                  <Icon name="FaEdit" size={12} />
                   Edit
                 </button>
                 <button

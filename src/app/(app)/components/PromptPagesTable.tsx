@@ -20,12 +20,17 @@ export interface PromptPage {
   nfc_text_enabled?: boolean;
   contact_id?: string;
   notes?: string;
+  client_name?: string | null;
+  location?: string | null;
+  business_name?: string | null;
+  sort_order?: number | null;
   contacts?: {
     id: string;
     first_name: string;
     last_name: string;
     email: string;
     phone: string;
+    business_name?: string;
   };
 }
 

@@ -964,97 +964,7 @@ export function ReviewManagementModal({
                   </button>
                 </div>
 
-                {false ? (
-                  <div className="p-4 bg-gray-50 rounded-lg border">
-                    <h4 className="font-semibold mb-3">Add new custom review</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">First name</label>
-                        <input
-                          type="text"
-                          placeholder="First Name"
-                          value={newCustomReview.first_name}
-                          onChange={(e) => setNewCustomReview({ ...newCustomReview, first_name: e.target.value })}
-                          className="p-2 border rounded-md w-full"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Last name</label>
-                        <input
-                          type="text"
-                          placeholder="Last Name"
-                          value={newCustomReview.last_name}
-                          onChange={(e) => setNewCustomReview({ ...newCustomReview, last_name: e.target.value })}
-                          className="p-2 border rounded-md w-full"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Reviewer role</label>
-                        <input
-                          type="text"
-                          placeholder="e.g. 'Verified Customer'"
-                          value={newCustomReview.reviewer_role}
-                          onChange={(e) => setNewCustomReview({ ...newCustomReview, reviewer_role: e.target.value })}
-                          className="p-2 border rounded-md w-full"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Star rating</label>
-                        <input
-                          type="number"
-                          placeholder="1-5"
-                          step="0.5"
-                          min="1"
-                          max="5"
-                          value={newCustomReview.star_rating !== null ? String(newCustomReview.star_rating) : ''}
-                          onChange={(e) => {
-                            const value = e.target.value;
-                            setNewCustomReview({
-                              ...newCustomReview,
-                              star_rating: value === '' ? null : parseFloat(value),
-                            });
-                          }}
-                          className="p-2 border rounded-md w-full"
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Review content</label>
-                      <textarea
-                        placeholder="Write the review content here..."
-                        value={newCustomReview.review_content}
-                        onChange={(e) => setNewCustomReview({ ...newCustomReview, review_content: e.target.value })}
-                        className={`w-full p-2 border rounded-md mb-1 ${
-                          newCustomReview.review_content.length > 250
-                            ? 'border-yellow-500 bg-yellow-50'
-                            : 'border-gray-300'
-                        }`}
-                        rows={3}
-                      />
-                      <div className="mb-3 flex items-center justify-between">
-                        <div className={`text-xs ${
-                          newCustomReview.review_content.length > 250
-                            ? 'text-yellow-600 font-medium'
-                            : 'text-gray-500'
-                        }`}>
-                          {newCustomReview.review_content.length}/250 characters
-                        </div>
-                        {newCustomReview.review_content.length > 250 && (
-                          <div className="text-xs text-yellow-600 flex items-center">
-                            <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                            </svg>
-                            Text will be truncated when saved
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex justify-end gap-3">
-                      <button onClick={() => setShowAddCustomReview(false)} className="text-gray-600">Cancel</button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-4 max-h-96 overflow-y-auto">
+                <div className="space-y-4 max-h-96 overflow-y-auto">
                     {selectedReviews.map((review, index) => (
                       <div key={review.review_id} className="p-4 bg-white rounded-lg border shadow-sm relative">
                         {/* Move arrows */}
@@ -1191,7 +1101,6 @@ export function ReviewManagementModal({
                       </div>
                     ))}
                   </div>
-                )}
               </div>
             )}
           </div>

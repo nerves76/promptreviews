@@ -201,7 +201,7 @@ export class AccountReactivationSystem {
       // ============================================
       // Log reactivation event
       // ============================================
-      await this.logReactivationEvent(userId, account.email, daysInactive);
+      await this.logReactivationEvent(accountId, account.email, daysInactive);
 
       // ============================================
       // Check if user had prompt pages or contacts
@@ -209,13 +209,13 @@ export class AccountReactivationSystem {
       const { data: promptPages } = await this.supabase
         .from('prompt_pages')
         .select('id')
-        .eq('account_id', userId)
+        .eq('account_id', accountId)
         .limit(1);
 
       const { data: contacts } = await this.supabase
         .from('contacts')
         .select('id')
-        .eq('account_id', userId)
+        .eq('account_id', accountId)
         .limit(1);
 
       const hasData = (promptPages && promptPages.length > 0) || (contacts && contacts.length > 0);

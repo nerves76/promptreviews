@@ -108,44 +108,44 @@ export function UltimateRefreshDebugger() {
     const originalClearTimeout = window.clearTimeout;
     const originalClearInterval = window.clearInterval;
     
-    window.setTimeout = function(...args: any[]) {
+    (window as any).setTimeout = function(...args: Parameters<typeof setTimeout>) {
       const stack = new Error().stack;
-      const id = originalSetTimeout.apply(window, args as any);
-      
+      const id = originalSetTimeout.apply(window, args);
+
       // Track timers that might cause refresh
-      const delay = args[1] || 0;
+      const delay = (args[1] as number) || 0;
       if (delay > 60000) { // Track timers > 1 minute
         (window as any).__ultimateDebugger.timers.set(id, {
           delay,
           stack,
           created: Date.now()
         });
-        
+
         (window as any).__ultimateDebugger.recordTrigger('TIMER_SET', {
           delay: Math.round(delay / 1000) + ' seconds',
           id
         }, stack);
       }
-      
+
       return id;
     };
-    
-    window.setInterval = function(...args: any[]) {
+
+    (window as any).setInterval = function(...args: Parameters<typeof setInterval>) {
       const stack = new Error().stack;
-      const id = originalSetInterval.apply(window, args as any);
-      
-      const interval = args[1] || 0;
+      const id = originalSetInterval.apply(window, args);
+
+      const interval = (args[1] as number) || 0;
       (window as any).__ultimateDebugger.intervals.set(id, {
         interval,
         stack,
         created: Date.now()
       });
-      
+
       (window as any).__ultimateDebugger.recordTrigger('INTERVAL_SET', {
         interval: Math.round(interval / 1000) + ' seconds',
         id
       }, stack);
-      
+
       return id;
     };
     
@@ -171,12 +171,11 @@ export function UltimateRefreshDebugger() {
       try {
         const originalReload = window.location.reload.bind(window.location);
         Object.defineProperty(window.location, 'reload', {
-          value: function(...args: any[]) {
+          value: function() {
             (window as any).__ultimateDebugger.recordTrigger('LOCATION_RELOAD', {
-              args,
               caller: new Error().stack
             });
-            return originalReload.apply(window.location, args);
+            return originalReload();
           },
           configurable: true
         });

@@ -64,7 +64,7 @@ function mapBusinessInfo(location: any, fallbackName: string) {
 export async function buildOverviewData({ tokens, locationId }: { tokens: OAuthTokens; locationId: string }): Promise<GoogleOverviewResult> {
   const client = new GoogleBusinessProfileClient({
     accessToken: tokens.accessToken,
-    refreshToken: tokens.refreshToken || undefined,
+    refreshToken: tokens.refreshToken ?? '',
     expiresAt: tokens.expiresAt ?? undefined,
   });
 

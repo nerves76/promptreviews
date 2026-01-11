@@ -130,9 +130,20 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     // Determine subscription status based on account data
     let subscriptionStatus: SubscriptionState['subscriptionStatus'] = null;
     let paymentStatus: SubscriptionState['paymentStatus'] = null;
-    
+
     if (account.subscription_status) {
       subscriptionStatus = account.subscription_status as SubscriptionState['subscriptionStatus'];
+
+      // Infer payment status from subscription status
+      if (subscriptionStatus === 'active' || subscriptionStatus === 'trialing') {
+        paymentStatus = 'current';
+      } else if (subscriptionStatus === 'past_due') {
+        paymentStatus = 'past_due';
+      } else if (subscriptionStatus === 'canceled' || subscriptionStatus === 'unpaid') {
+        paymentStatus = 'canceled';
+      } else if (subscriptionStatus === 'incomplete') {
+        paymentStatus = 'requires_action';
+      }
     } else if (account.plan && account.plan !== 'no_plan') {
       // Infer status from plan
       const trial = calculateTrialStatus();
@@ -147,8 +158,13 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
 
     // Payment method status
     const hasPaymentMethod = !!account.stripe_customer_id;
-    const paymentMethodStatus: SubscriptionState['paymentMethodStatus'] = 
+    const paymentMethodStatus: SubscriptionState['paymentMethodStatus'] =
       hasPaymentMethod ? 'valid' : 'missing';
+
+    // If no payment method and not on trial, require payment method
+    if (!hasPaymentMethod && subscriptionStatus && subscriptionStatus !== 'trialing') {
+      paymentStatus = 'requires_payment_method';
+    }
 
     return {
       subscriptionStatus,

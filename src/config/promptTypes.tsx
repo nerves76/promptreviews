@@ -78,7 +78,7 @@ export const promptTypes: PromptType[] = [
  */
 export const promptTypesWithDarkIcons: PromptType[] = promptTypes.map(type => ({
   ...type,
-  icon: React.cloneElement(type.icon as React.ReactElement, {
+  icon: React.cloneElement(type.icon as React.ReactElement<{ className?: string; style?: React.CSSProperties }>, {
     className: "w-7 h-7 text-slate-blue",
     style: { color: "#2E4A7D" }
   })

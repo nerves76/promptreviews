@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createBrowserClient } from "@supabase/ssr";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation";
 import {
   FaUser,
@@ -255,6 +256,36 @@ export default function AccountPage() {
                   Get notified when you get a new review.
                 </p>
               </div>
+              {/* Linked Accounts Section */}
+              <div className="mt-12">
+                <h3 className="text-xl font-bold flex items-center gap-2 mb-6 text-slate-blue">
+                  <FaLink className="w-6 h-6 text-slate-blue" />
+                  Linked accounts
+                </h3>
+                <div className="bg-white border border-indigo-100 rounded-lg p-4">
+                  <p className="text-gray-700 mb-4">
+                    Create an additional account under the same email and switch between them in the app.
+                  </p>
+                  {createAccountError && (
+                    <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded text-sm mb-3">
+                      {createAccountError}
+                    </div>
+                  )}
+                  {createAccountSuccess && (
+                    <div className="bg-green-50 border border-green-200 text-green-700 px-3 py-2 rounded text-sm mb-3">
+                      {createAccountSuccess}
+                    </div>
+                  )}
+                  <button
+                    onClick={handleCreateLinkedAccount}
+                    disabled={createAccountLoading}
+                    className="inline-flex items-center gap-2 px-4 py-2 border-2 border-slate-blue text-slate-blue bg-white rounded-md font-semibold text-sm transition-colors duration-150 hover:bg-slate-blue hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue disabled:opacity-60"
+                  >
+                    <FaPlus className="w-4 h-4" />
+                    {createAccountLoading ? "Creating..." : "Create new account"}
+                  </button>
+                </div>
+              </div>
           {/* Billing Section */}
           {account?.stripe_customer_id && (
                 <div className="mt-12">
@@ -322,7 +353,7 @@ export default function AccountPage() {
   );
 }
 
-function ChangePassword({ supabase }: { supabase: any }) {
+function ChangePassword({ supabase }: { supabase: SupabaseClient }) {
   const [showForm, setShowForm] = useState(false);
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -402,37 +433,6 @@ function ChangePassword({ supabase }: { supabase: any }) {
           {success && (
             <div className="text-green-600 text-sm mb-2">{success}</div>
           )}
-
-          {/* Linked Accounts */}
-          <div className="mt-12">
-            <h3 className="text-xl font-bold flex items-center gap-2 mb-6 text-slate-blue">
-              <FaLink className="w-6 h-6 text-slate-blue" />
-              Linked accounts
-            </h3>
-            <div className="bg-white border border-indigo-100 rounded-lg p-4">
-              <p className="text-gray-700 mb-4">
-                Create an additional account under the same email and switch between them in the app.
-              </p>
-              {createAccountError && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded text-sm mb-3">
-                  {createAccountError}
-                </div>
-              )}
-              {createAccountSuccess && (
-                <div className="bg-green-50 border border-green-200 text-green-700 px-3 py-2 rounded text-sm mb-3">
-                  {createAccountSuccess}
-                </div>
-              )}
-              <button
-                onClick={handleCreateLinkedAccount}
-                disabled={createAccountLoading}
-                className="inline-flex items-center gap-2 px-4 py-2 border-2 border-slate-blue text-slate-blue bg-white rounded-md font-semibold text-sm transition-colors duration-150 hover:bg-slate-blue hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue disabled:opacity-60"
-              >
-                <FaPlus className="w-4 h-4" />
-                {createAccountLoading ? "Creating…" : "Create new account"}
-              </button>
-            </div>
-          </div>
           <button
             type="submit"
             className="w-full px-4 py-3 rounded-2xl font-semibold mt-2 text-white bg-slate-blue hover:bg-slate-blue/80 transition-colors"
@@ -450,7 +450,7 @@ function ChangeEmail({
   supabase,
   currentEmail,
 }: {
-  supabase: any;
+  supabase: SupabaseClient;
   currentEmail: string;
 }) {
   const [showForm, setShowForm] = useState(false);

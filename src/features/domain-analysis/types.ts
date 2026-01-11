@@ -77,6 +77,11 @@ export interface WhoisOverviewResponse {
   tasks: WhoisTask[];
 }
 
+export interface WhoisResultContainer {
+  items: WhoisResult[] | null;
+  total_count?: number;
+}
+
 export interface WhoisTask {
   id: string;
   status_code: number;
@@ -90,7 +95,7 @@ export interface WhoisTask {
     function: string;
     target: string;
   };
-  result: WhoisResult[] | null;
+  result: WhoisResultContainer[] | null;
 }
 
 export interface WhoisResult {

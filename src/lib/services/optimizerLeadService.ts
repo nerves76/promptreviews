@@ -7,6 +7,8 @@ type SessionScope = Record<string, JsonValue>;
 
 interface CreateLeadInput {
   email: string;
+  business_name?: string;
+  google_account_email?: string;
   sourceBusiness?: string;
   sourceDomain?: string;
   utmSource?: string;

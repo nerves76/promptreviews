@@ -10,53 +10,66 @@ import type { AuthContextType } from '../types';
 /**
  * Main authentication hook
  * Now delegates to the CompositeAuthProvider's useAuth
+ * Note: Return type is inferred from CompositeAuthProvider which extends AuthContextType
  */
-export function useAuth(): AuthContextType {
-  return useCompositeAuth() as AuthContextType;
+export function useAuth() {
+  return useCompositeAuth();
 }
 
 /**
  * Hook to ensure user is authenticated
+ * Redirects to sign-in if not authenticated
  */
 export function useAuthGuard() {
-  const { isAuthenticated, isLoading, requireAuth } = useAuth();
-  
+  const { isAuthenticated, isLoading, signOut } = useAuth();
+
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      requireAuth();
+      // Redirect to sign-in page
+      if (typeof window !== 'undefined') {
+        window.location.href = '/auth/sign-in';
+      }
     }
-  }, [isAuthenticated, isLoading, requireAuth]);
-  
+  }, [isAuthenticated, isLoading]);
+
   return { isAuthenticated, isLoading };
 }
 
 /**
  * Hook to ensure user is an admin
+ * Redirects to home if not an admin
  */
 export function useAdminGuard() {
-  const { isAuthenticated, isAdminUser, isLoading, adminLoading, requireAdmin } = useAuth();
-  
+  const { isAuthenticated, isAdminUser, isLoading, adminLoading } = useAuth();
+
   useEffect(() => {
     if (!isLoading && !adminLoading && isAuthenticated && !isAdminUser) {
-      requireAdmin();
+      // Redirect non-admins to home
+      if (typeof window !== 'undefined') {
+        window.location.href = '/dashboard';
+      }
     }
-  }, [isAuthenticated, isAdminUser, isLoading, adminLoading, requireAdmin]);
-  
+  }, [isAuthenticated, isAdminUser, isLoading, adminLoading]);
+
   return { isAuthenticated, isAdminUser, isLoading: isLoading || adminLoading };
 }
 
 /**
  * Hook to ensure user has a business
+ * Redirects to business setup if no business profile
  */
 export function useBusinessGuard() {
-  const { isAuthenticated, hasBusiness, isLoading, businessLoading, requireBusiness } = useAuth();
-  
+  const { isAuthenticated, hasBusiness, isLoading, businessLoading } = useAuth();
+
   useEffect(() => {
     if (!isLoading && !businessLoading && isAuthenticated && !hasBusiness) {
-      requireBusiness();
+      // Redirect to business setup
+      if (typeof window !== 'undefined') {
+        window.location.href = '/dashboard/business-profile';
+      }
     }
-  }, [isAuthenticated, hasBusiness, isLoading, businessLoading, requireBusiness]);
-  
+  }, [isAuthenticated, hasBusiness, isLoading, businessLoading]);
+
   return { isAuthenticated, hasBusiness, isLoading: isLoading || businessLoading };
 }
 

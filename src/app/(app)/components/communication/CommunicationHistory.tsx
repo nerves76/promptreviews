@@ -82,7 +82,7 @@ export default function CommunicationHistory({
       setError(null);
 
       // Use apiClient which automatically includes auth headers and X-Selected-Account
-      const data = await apiClient.get(`/communication/records?contactId=${contactId}`);
+      const data = await apiClient.get<{ records: CommunicationRecord[] }>(`/communication/records?contactId=${contactId}`);
       setRecords(data.records);
     } catch (err: any) {
       setError(err.message || 'Failed to fetch communication history');

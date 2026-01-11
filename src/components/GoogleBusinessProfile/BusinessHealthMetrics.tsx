@@ -33,6 +33,8 @@ interface EngagementData {
   recentPhotos?: number;
   lastPostDate?: string;
   lastPhotoDate?: string;
+  averageResponseTimeMs?: number | null;  // Average time to respond to reviews in milliseconds
+  respondedReviewsCount?: number;  // Number of reviews that have been responded to
 }
 
 interface PerformanceData {
