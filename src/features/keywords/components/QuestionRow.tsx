@@ -164,14 +164,14 @@ export function QuestionRow({
                   onCheck();
                 }}
                 disabled={isChecking}
-                className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-white bg-purple-600 rounded hover:bg-purple-700 disabled:opacity-50 transition-colors"
+                className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-white bg-slate-blue rounded hover:bg-slate-blue/90 disabled:opacity-50 transition-colors"
                 title="Check AI visibility"
                 aria-label={`Check AI visibility for: ${question.question.substring(0, 50)}${question.question.length > 50 ? '...' : ''}`}
               >
                 {isChecking ? (
                   <Icon name="FaSpinner" className="w-3 h-3 animate-spin" />
                 ) : (
-                  <Icon name="FaSearch" className="w-3 h-3" />
+                  <Icon name="FaSparkles" className="w-3 h-3" />
                 )}
                 Check
               </button>
@@ -275,7 +275,7 @@ export function QuestionRow({
                   onCheck();
                 }}
                 disabled={isChecking || selectedProviders.length === 0}
-                className="w-full px-3 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                className="w-full px-3 py-2 text-sm font-medium text-white bg-slate-blue rounded-lg hover:bg-slate-blue/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
               >
                 {isChecking ? (
                   <>
@@ -284,7 +284,7 @@ export function QuestionRow({
                   </>
                 ) : (
                   <>
-                    <Icon name="prompty" className="w-4 h-4" />
+                    <Icon name="FaSparkles" className="w-4 h-4" />
                     {hasResults ? 'Re-check' : 'Check'} AI visibility ({selectedProviders.length} {selectedProviders.length === 1 ? 'provider' : 'providers'})
                   </>
                 )}
