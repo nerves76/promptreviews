@@ -160,10 +160,13 @@ IMPORTANT: Generate a MIX of keyword types:
 • EXACTLY 5 keywords MUST be LOCATION-SPECIFIC
 • EXACTLY 5 keywords MUST be GENERAL/SERVICE-FOCUSED (no location)
 
-LOCATION-SPECIFIC keywords (first 5) MUST have:
-• Location in ALL 3 search terms (e.g., "best plumber Portland", "Portland plumber", "plumber in Portland")
-• Location in the review phrase (e.g., "Best plumber in Portland - highly recommend!")
-• Use the location aliases provided: ${locationNames}
+Available location names: ${locationNames}
+
+LOCATION-SPECIFIC keywords (first 5) MUST:
+• Pick ONE location name per concept and use it consistently throughout that concept
+• Use that location in ALL 3 search terms (e.g., if you pick "PDX": "best plumber PDX", "PDX plumber", "plumber in PDX")
+• Use that SAME location in the review phrase (e.g., "Best plumber in PDX - highly recommend!")
+• Rotate through the location names across concepts (concept 1 uses "Portland", concept 2 uses "PDX", concept 3 uses "Oregon", etc.)
 
 GENERAL keywords (last 5) MUST have:
 • NO location references at all
@@ -176,31 +179,31 @@ CRITICAL - Concept names should NEVER have location:
 Location goes in the searchTerms and reviewPhrase ONLY, never in the conceptName.`;
 
       locationExamples = `
-Examples of LOCATION-SPECIFIC (use the location names provided above):
-- conceptName: "Family dentist"  (NO location in concept name!)
-- searchTerms: ["best family dentist ${city}", "${city} family dentist", "family dentist near me ${city}"]
-- reviewPhrase: "Best family dentist in ${city} - highly recommend!"
-- relatedQuestions: [
-    { "question": "How do I find a good family dentist in ${city}?", "funnelStage": "middle" },
-    { "question": "What should I look for in a family dentist?", "funnelStage": "top" }
-  ]
+Examples of LOCATION-SPECIFIC (pick ONE location per concept, use it everywhere in that concept):
 
-- conceptName: "Barbershop"  (NO location in concept name!)
-- searchTerms: ["barbershop ${city}", "${city} barbershop", "${city} barbers"]
-- reviewPhrase: "Best barbershop in ${city} - always a great cut!"
-- relatedQuestions: [
-    { "question": "What is the best barbershop in ${city}?", "funnelStage": "middle" },
-    { "question": "How much does a haircut cost in ${city}?", "funnelStage": "bottom" }
-  ]
+Concept 1 - uses "Portland":
+- conceptName: "Family dentist"
+- searchTerms: ["best family dentist Portland", "Portland family dentist", "family dentist in Portland"]
+- reviewPhrase: "Best family dentist in Portland - highly recommend!"
 
-Examples of GENERAL/SERVICE-FOCUSED:
-- conceptName: "Same-day emergency dental"
-- searchTerms: ["emergency dental care same day", "same day dental appointment", "urgent dental care"]
-- reviewPhrase: "Got same day emergency dental care - lifesaver!"
-- relatedQuestions: [
-    { "question": "Can I get a same-day dental appointment for an emergency?", "funnelStage": "bottom" },
-    { "question": "What counts as a dental emergency?", "funnelStage": "top" }
-  ]`;
+Concept 2 - uses "PDX":
+- conceptName: "Barbershop"
+- searchTerms: ["barbershop PDX", "PDX barbershop", "best barber PDX"]
+- reviewPhrase: "Best barbershop in PDX - always a great cut!"
+
+Concept 3 - uses "Oregon":
+- conceptName: "Emergency plumber"
+- searchTerms: ["emergency plumber Oregon", "Oregon emergency plumber", "24 hour plumber Oregon"]
+- reviewPhrase: "Best emergency plumber in Oregon - came same day!"
+
+Examples of GENERAL/SERVICE-FOCUSED (NO location at all):
+- conceptName: "Same-day service"
+- searchTerms: ["same day service", "fast turnaround", "quick service"]
+- reviewPhrase: "Got same-day service - lifesaver!"
+
+- conceptName: "Affordable pricing"
+- searchTerms: ["affordable prices", "budget friendly", "competitive rates"]
+- reviewPhrase: "Great quality at affordable prices!"`;
     }
 
     // Build the prompt for OpenAI
