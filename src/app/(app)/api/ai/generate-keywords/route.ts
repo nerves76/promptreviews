@@ -157,17 +157,23 @@ Examples of GENERAL/SERVICE-FOCUSED (the ONLY type you should generate):
       // Location-based business: Mix of location and general keywords
       locationInstructions = `
 IMPORTANT: Generate a MIX of keyword types:
-• 4-5 keywords should be LOCATION-SPECIFIC (use location variations in search terms and review phrases)
-• 5-6 keywords should be GENERAL/SERVICE-FOCUSED (no location, focus on service quality)
+• EXACTLY 5 keywords MUST be LOCATION-SPECIFIC
+• EXACTLY 5 keywords MUST be GENERAL/SERVICE-FOCUSED (no location)
 
-CRITICAL - Concept names should be GENERIC (no location):
+LOCATION-SPECIFIC keywords (first 5) MUST have:
+• Location in ALL 3 search terms (e.g., "best plumber Portland", "Portland plumber", "plumber in Portland")
+• Location in the review phrase (e.g., "Best plumber in Portland - highly recommend!")
+• Use the location aliases provided: ${locationNames}
+
+GENERAL keywords (last 5) MUST have:
+• NO location references at all
+• Focus on service quality, expertise, speed, etc.
+
+CRITICAL - Concept names should NEVER have location:
 • CORRECT: "Family Dentist", "Emergency Plumber", "Marketing Consultant"
 • WRONG: "Portland Family Dentist", "Portland Emergency Plumber"
 
-Location goes in the searchTerms and reviewPhrase, NOT in the conceptName.
-
-Available location names to use: ${locationNames}
-Rotate through these location variations naturally in your location-specific keywords.`;
+Location goes in the searchTerms and reviewPhrase ONLY, never in the conceptName.`;
 
       locationExamples = `
 Examples of LOCATION-SPECIFIC (use the location names provided above):
