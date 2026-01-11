@@ -157,11 +157,26 @@ export async function GET(request: NextRequest) {
       },
     };
 
+    // Debug: log what we found
+    console.log(`📊 [RankTracking History] keywordId=${keywordId}, rawChecks=${checks?.length || 0}, groupedDates=${history.length}`);
+    if (checks && checks.length > 0) {
+      const uniqueDates = [...new Set(checks.map(c => c.checked_at?.split('T')[0]))];
+      const devices = checks.map(c => c.device || 'NULL');
+      console.log(`📊 [RankTracking History] Unique dates: ${uniqueDates.join(', ')}`);
+      console.log(`📊 [RankTracking History] Devices: ${devices.join(', ')}`);
+    }
+
     return NextResponse.json({
       history,
       searchQueries,
       summary,
       keywordId,
+      // Debug info
+      debug: {
+        rawCheckCount: checks?.length || 0,
+        uniqueDates: [...new Set((checks || []).map(c => c.checked_at?.split('T')[0]))],
+        devices: (checks || []).map(c => c.device || 'NULL'),
+      },
     });
   } catch (error) {
     console.error('❌ [RankTracking] History GET error:', error);
