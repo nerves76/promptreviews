@@ -902,11 +902,10 @@ export function ConceptCard({
             !isEditing && keyword.isUsedInRankTracking && (displayKeyword.searchTerms?.length || 0) > 0 ? (
               <Link
                 href={`/dashboard/keywords/rank-tracking?concept=${encodeURIComponent(keyword.name)}`}
-                className="text-xs text-slate-blue hover:text-slate-blue/80 flex items-center gap-1"
+                className="text-xs text-slate-blue hover:text-slate-blue/80"
                 title="View rank tracking details"
               >
-                <Icon name="FaChartLine" className="w-3 h-3" />
-                <span>Details</span>
+                Details
               </Link>
             ) : undefined
           }
@@ -1177,11 +1176,10 @@ export function ConceptCard({
             !isEditing && (displayKeyword.relatedQuestions?.length || 0) > 0 ? (
               <Link
                 href={`/dashboard/keywords/llm-visibility?concept=${encodeURIComponent(keyword.name)}`}
-                className="text-xs text-slate-blue hover:text-slate-blue/80 flex items-center gap-1"
+                className="text-xs text-slate-blue hover:text-slate-blue/80"
                 title="View AI visibility details"
               >
-                <Icon name="FaSparkles" className="w-3 h-3" />
-                <span>Details</span>
+                Details
               </Link>
             ) : undefined
           }
