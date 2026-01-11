@@ -431,7 +431,7 @@ function SignUpContent() {
             <label htmlFor="accept-terms" className="text-sm text-gray-700">
               I agree to the{" "}
               <a
-                href="https://promptreviews.app/terms-of-service/"
+                href="https://promptreviews.app/terms/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-slate-blue hover:text-slate-700 underline"
