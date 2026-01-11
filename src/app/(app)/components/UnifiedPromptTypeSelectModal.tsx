@@ -74,7 +74,7 @@ export default function UnifiedPromptTypeSelectModal({
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} className="fixed z-50 inset-0 overflow-y-auto">
+    <Dialog open={open} onClose={handleClose} className="fixed z-50 inset-0 overflow-y-auto" aria-label="Create prompt page">
       <div className="flex items-center justify-center min-h-screen px-4">
         <div className="fixed inset-0 bg-black opacity-30" />
         

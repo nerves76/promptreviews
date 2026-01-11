@@ -306,7 +306,7 @@ export default function HelpNavigationAdminPage() {
 
         {/* Edit/Create Modal */}
         <Transition appear show={isModalOpen} as={Fragment}>
-          <Dialog as="div" className="relative z-50" onClose={cancelEdit}>
+          <Dialog as="div" className="relative z-50" onClose={cancelEdit} aria-label="Edit navigation item">
             <Transition.Child
               as={Fragment}
               enter="ease-out duration-300"

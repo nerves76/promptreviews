@@ -1440,6 +1440,7 @@ export default function ReviewsPage() {
           setImportSuccess(null);
         }}
         className="fixed z-50 inset-0 overflow-y-auto"
+        aria-label="Import reviews"
       >
         <div className="flex items-center justify-center min-h-screen px-4 py-8">
           <div

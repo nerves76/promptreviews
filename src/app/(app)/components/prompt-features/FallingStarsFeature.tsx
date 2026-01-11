@@ -330,6 +330,7 @@ export default function FallingStarsFeature({
         open={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         className="relative z-50"
+        aria-label="Choose falling icon"
       >
         <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
         

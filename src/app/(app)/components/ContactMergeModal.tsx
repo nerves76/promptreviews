@@ -141,7 +141,7 @@ const ContactMergeModal: React.FC<ContactMergeModalProps> = ({
   const reasonDisplay = getReasonDisplay();
 
   return (
-    <Dialog open={open} onClose={onClose} className="fixed z-50 inset-0 overflow-y-auto">
+    <Dialog open={open} onClose={onClose} className="fixed z-50 inset-0 overflow-y-auto" aria-label="Merge duplicate contacts">
       <div className="flex items-center justify-center min-h-screen px-4">
         <div className="fixed inset-0 bg-black opacity-30" />
         

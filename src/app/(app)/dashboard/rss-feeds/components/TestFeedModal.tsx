@@ -52,7 +52,7 @@ export default function TestFeedModal({ onClose, onUseUrl }: TestFeedModalProps)
   };
 
   return (
-    <Dialog open={true} onClose={onClose} className="relative z-50">
+    <Dialog open={true} onClose={onClose} className="relative z-50" aria-label="Test RSS feed">
       <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
       <div className="fixed inset-0 flex items-center justify-center p-4">
         <Dialog.Panel className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">

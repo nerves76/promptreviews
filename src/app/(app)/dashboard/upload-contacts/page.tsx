@@ -296,6 +296,7 @@ export default function UploadContactsPage() {
         open={showUpgradeModal}
         onClose={() => setShowUpgradeModal(false)}
         className="fixed z-50 inset-0 overflow-y-auto"
+        aria-label="Upgrade plan"
       >
         <div className="flex items-center justify-center min-h-screen px-4">
           <div

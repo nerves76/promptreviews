@@ -229,7 +229,7 @@ export default function FeedFormModal({
   ];
 
   return (
-    <Dialog open={true} onClose={onClose} className="relative z-50">
+    <Dialog open={true} onClose={onClose} className="relative z-50" aria-label="RSS feed settings">
       <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
       <div className="fixed inset-0 flex items-center justify-center p-4">
         <div className="relative">

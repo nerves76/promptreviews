@@ -86,7 +86,7 @@ export function GuidelinesModal({ isOpen, requireAcceptance, onAccept, onClose, 
           </div>
         ))}
       </div>
-      <Dialog open={isOpen} onClose={handleClose} className="relative z-50">
+      <Dialog open={isOpen} onClose={handleClose} className="relative z-50" aria-label="Community guidelines">
         {/* Backdrop */}
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm" aria-hidden="true" />
 

@@ -182,7 +182,7 @@ export function AddKeywordsToGridModal({
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-50" onClose={onClose}>
+      <Dialog as="div" className="relative z-50" onClose={onClose} aria-label="Add keywords to grid">
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-300"

@@ -241,7 +241,7 @@ export default function HelpFaqsAdminPage() {
 
         {/* Edit/Create FAQ Modal */}
         <Transition appear show={isModalOpen} as={Fragment}>
-          <Dialog as="div" className="relative z-50" onClose={cancelEdit}>
+          <Dialog as="div" className="relative z-50" onClose={cancelEdit} aria-label="Edit FAQ">
             <Transition.Child
               as={Fragment}
               enter="ease-out duration-300"

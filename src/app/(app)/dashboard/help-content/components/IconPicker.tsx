@@ -152,7 +152,7 @@ export default function IconPicker({ value, onChange, label = "Icon", placeholde
       </div>
 
       <Transition appear show={isOpen} as={Fragment}>
-        <Dialog as="div" className="relative z-50" onClose={() => setIsOpen(false)}>
+        <Dialog as="div" className="relative z-50" onClose={() => setIsOpen(false)} aria-label="Select icon">
           <Transition.Child
             as={Fragment}
             enter="ease-out duration-300"

@@ -1364,6 +1364,7 @@ export default function UploadContactsPage() {
           open={showUploadModal}
           onClose={() => setShowUploadModal(false)}
           className="fixed z-50 inset-0 overflow-y-auto"
+          aria-label="Upload contacts"
         >
           <div className="flex items-center justify-center min-h-screen px-4">
             <div
@@ -1502,6 +1503,7 @@ export default function UploadContactsPage() {
           open={showEditModal}
           onClose={() => setShowEditModal(false)}
           className="fixed z-50 inset-0 overflow-y-auto"
+          aria-label="Edit contact"
         >
           <div className="flex items-center justify-center min-h-screen px-4">
             <div

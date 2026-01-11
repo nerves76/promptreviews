@@ -425,7 +425,7 @@ export function KeywordDetailsSidebar({
         }`}
       >
         {/* Dialog wrapper for accessibility (focus trap, escape key) - only active when open */}
-        <Dialog open={isOpen} onClose={onClose} className="relative" static>
+        <Dialog open={isOpen} onClose={onClose} className="relative" static aria-label="Keyword details">
           <Dialog.Panel className="h-full backdrop-blur-xl shadow-2xl">
               <div className="h-full flex flex-col">
                     <div className="flex-1 overflow-y-auto p-6">

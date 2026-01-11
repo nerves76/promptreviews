@@ -154,7 +154,7 @@ export function PostComposer({ isOpen, mode, initialValues, channelName, onSubmi
   const bodyCount = body.length;
 
   return (
-    <Dialog open={isOpen} onClose={handleClose} className="relative z-50">
+    <Dialog open={isOpen} onClose={handleClose} className="relative z-50" aria-label="Compose post">
       {/* Backdrop */}
       <div className="fixed inset-0 bg-black/70 backdrop-blur-sm" aria-hidden="true" />
 

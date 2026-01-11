@@ -854,6 +854,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl,
           open={showIconSelector}
           onClose={() => setShowIconSelector(false)}
           className="relative z-50"
+          aria-label="Choose decorative icon"
         >
           <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
           <div className="fixed inset-0 flex items-center justify-center p-4">

@@ -454,7 +454,7 @@ export default function CreatePostModal({
   const hasNoPlatforms = gbpLocations.length === 0 && !blueskyConnection && !linkedinConnection;
 
   return (
-    <Dialog open={true} onClose={onClose} className="relative z-50">
+    <Dialog open={true} onClose={onClose} className="relative z-50" aria-label="Create social media post">
       <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
       <div className="fixed inset-0 flex items-center justify-center p-4">
         <div className="relative w-full max-w-2xl">
