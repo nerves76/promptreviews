@@ -38,7 +38,7 @@ html[data-global-loading-long="true"] .global-overlay {
   --app-gradient: linear-gradient(
     to bottom,
     rgb(82, 125, 231) 0%,
-    rgb(82, 125, 231) 65%,
+    rgb(82, 125, 231) 40%,
     #2E4A7D 100%
   );
   --gradient-top-color: rgb(82, 125, 231);
