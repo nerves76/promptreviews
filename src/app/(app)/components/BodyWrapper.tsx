@@ -32,10 +32,10 @@ export default function BodyWrapper({
       document.documentElement.style.removeProperty('background-color');
       document.body.style.setProperty('min-height', '100vh');
     } else {
-      // Apply gradient background for app pages (dashboard, etc) with !important to override any other styles
-      document.body.style.setProperty('background', 'linear-gradient(to bottom, rgb(82, 125, 231) 0%, rgb(82, 125, 231) 40%, rgb(123, 107, 168) 75%, rgb(232, 168, 124) 100%) fixed', 'important');
+      // Apply gradient background for app pages (dashboard, etc) - uses CSS variable defined in globals.css
+      document.body.style.setProperty('background', 'var(--app-gradient) fixed', 'important');
       document.body.style.setProperty('background-attachment', 'fixed', 'important');
-      document.documentElement.style.setProperty('background-color', 'rgb(82, 125, 231)', 'important');
+      document.documentElement.style.setProperty('background-color', 'var(--gradient-top-color)', 'important');
       document.body.style.setProperty('min-height', '100vh', 'important');
     }
     

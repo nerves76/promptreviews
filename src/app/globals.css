@@ -34,10 +34,15 @@ html[data-global-loading-long="true"] .global-overlay {
   --card-text: #111827;          /* gray-900 */
   --border-color: #E5E7EB;       /* gray-200 */
 
-  /* Gradient colors - blue to peach sunset */
-  --gradient-top: #527DE7;
-  --gradient-middle: #7B6BA8;
-  --gradient-bottom: #E8A87C;
+  /* App gradient - blue to peach sunset (defined once, used everywhere) */
+  --app-gradient: linear-gradient(
+    to bottom,
+    rgb(82, 125, 231) 0%,
+    rgb(82, 125, 231) 40%,
+    rgb(123, 107, 168) 75%,
+    rgb(232, 168, 124) 100%
+  );
+  --gradient-top-color: rgb(82, 125, 231);
 
   /* Status colors */
   --success-color: #16a34a;      /* green-600 */
@@ -119,13 +124,7 @@ body {
   box-sizing: border-box;
   min-height: 100vh;
   /* Apply gradient with fixed attachment for smooth scrolling */
-  background: linear-gradient(
-    to bottom,
-    rgb(82, 125, 231) 0%,
-    rgb(82, 125, 231) 40%,
-    rgb(123, 107, 168) 75%,
-    rgb(232, 168, 124) 100%
-  ) fixed !important;
+  background: var(--app-gradient) fixed !important;
   /* Remove explicit size to let gradient cover full document height */
   background-attachment: fixed !important;
   background-repeat: no-repeat !important;
@@ -148,13 +147,7 @@ body::before {
   right: 0;
   bottom: 0;
   z-index: -1;
-  background: linear-gradient(
-    to bottom,
-    rgb(82, 125, 231) 0%,
-    rgb(82, 125, 231) 40%,
-    rgb(123, 107, 168) 75%,
-    rgb(232, 168, 124) 100%
-  );
+  background: var(--app-gradient);
   pointer-events: none;
 }
 
