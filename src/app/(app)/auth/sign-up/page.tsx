@@ -283,7 +283,7 @@ function SignUpContent() {
               )}
             </div>
             <Link href="/auth/sign-in">
-              <button className="mt-4 px-6 py-2 bg-slate-blue text-white rounded font-semibold hover:bg-indigo-900">
+              <button className="mt-4 px-6 py-2 bg-slate-blue text-white rounded font-semibold hover:bg-slate-blue/90">
                 Sign in
               </button>
             </Link>
@@ -466,7 +466,7 @@ function SignUpContent() {
           
           <button
             type="submit"
-            className="w-full py-3 bg-slate-blue text-white rounded font-semibold hover:bg-indigo-900 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-3 bg-slate-blue text-white rounded font-semibold hover:bg-slate-blue/90 disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={loading}
           >
             {loading ? (invitationToken ? "Creating account..." : "Signing up...") : (invitationToken ? "Create account & join team" : "Sign up")}
