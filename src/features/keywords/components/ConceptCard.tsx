@@ -545,38 +545,37 @@ export function ConceptCard({
     <div className={`border rounded-xl shadow-sm overflow-hidden transition-all ${
       isEditing ? 'bg-white border-blue-300 ring-2 ring-blue-100' : isExpanded ? 'bg-blue-50 border-blue-200' : 'bg-white border-gray-200 hover:shadow-md'
     }`}>
-      {/* Header - clickable to expand/collapse */}
-      <div
-        role="button"
-        tabIndex={isEditing ? -1 : 0}
-        className={`px-4 py-3 transition-colors cursor-pointer hover:bg-gray-50/50 ${isExpanded || isEditing ? 'border-b border-gray-100' : ''} focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-inset`}
-        onClick={() => !isEditing && setIsExpanded(!isExpanded)}
-        onKeyDown={(e) => {
-          if (!isEditing && (e.key === 'Enter' || e.key === ' ')) {
-            e.preventDefault();
-            setIsExpanded(!isExpanded);
-          }
-        }}
-        aria-expanded={isExpanded}
-        aria-label={`${keyword.name} keyword concept, ${isExpanded ? 'collapse' : 'expand'} details`}
-      >
+      {/* Header - contains expand/collapse button and action buttons */}
+      <div className={`px-4 py-3 ${isExpanded || isEditing ? 'border-b border-gray-100' : ''}`}>
         <div className="flex items-center justify-between gap-2">
-          {/* Left: expand icon + title + location */}
-          <div className="flex items-center gap-2 min-w-0 flex-1">
-            <Icon
-              name={isExpanded || isEditing ? 'FaChevronDown' : 'FaChevronRight'}
-              className="w-3 h-3 text-gray-500 flex-shrink-0 transition-transform"
-            />
-            {isEditing ? (
+          {/* Left: expand/collapse button with icon + title + location */}
+          {isEditing ? (
+            <div className="flex items-center gap-2 min-w-0 flex-1">
+              <Icon
+                name="FaChevronDown"
+                className="w-3 h-3 text-gray-500 flex-shrink-0"
+              />
               <input
                 type="text"
                 value={editedName}
                 onChange={(e) => setEditedName(e.target.value)}
-                onClick={(e) => e.stopPropagation()}
                 className="flex-1 px-2 py-1 text-sm font-medium border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Concept name"
+                aria-label="Concept name"
               />
-            ) : (
+            </div>
+          ) : (
+            <button
+              type="button"
+              className="flex items-center gap-2 min-w-0 flex-1 text-left transition-colors hover:bg-gray-50/50 rounded -m-1 p-1 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              onClick={() => setIsExpanded(!isExpanded)}
+              aria-expanded={isExpanded}
+              aria-label={`${keyword.name} keyword concept, ${isExpanded ? 'collapse' : 'expand'} details`}
+            >
+              <Icon
+                name={isExpanded ? 'FaChevronDown' : 'FaChevronRight'}
+                className="w-3 h-3 text-gray-500 flex-shrink-0 transition-transform"
+              />
               <div className="min-w-0">
                 <h3 className="text-lg font-medium text-gray-900 truncate">{keyword.name}</h3>
                 {(isExpanded && (keyword.searchVolumeLocationName || enrichedData?.geoGridStatus?.locationName || businessLocationName)) && (
@@ -586,11 +585,11 @@ export function ConceptCard({
                   </div>
                 )}
               </div>
-            )}
-          </div>
+            </button>
+          )}
 
           {/* Right: badges and actions */}
-          <div className="flex items-center gap-2 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+          <div className="flex items-center gap-2 flex-shrink-0">
             {/* Quick stats badges */}
             {!isEditing && (
               <>
@@ -669,12 +668,12 @@ export function ConceptCard({
             {showEditActions && !isEditing && (
               <button
                 type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
+                onClick={() => {
                   setIsExpanded(true);
                   handleStartEditing();
                 }}
                 className="p-1 text-gray-500 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors"
+                aria-label={`Edit ${keyword.name}`}
               >
                 <Icon name="FaEdit" className="w-3.5 h-3.5" />
               </button>
