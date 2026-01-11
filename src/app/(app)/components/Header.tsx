@@ -1001,7 +1001,7 @@ const Header = React.memo(function Header() {
                             : "text-white hover:bg-white/10"
                         } flex items-center gap-2 px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
                       >
-                        <Icon name="FaTasks" size={14} />
+                        <Icon name="FaBars" size={14} />
                         Work Manager
                       </Link>
                     )}

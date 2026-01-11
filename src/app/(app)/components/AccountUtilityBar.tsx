@@ -116,7 +116,7 @@ export function AccountUtilityBar() {
               href="/work-manager"
               className="flex items-center gap-1.5 text-white/70 hover:text-white transition-colors"
             >
-              <Icon name="FaTasks" className="w-3 h-3" size={12} />
+              <Icon name="FaBars" className="w-3 h-3" size={12} />
               <span>Work Manager</span>
             </Link>
             <span className="text-white/70">
@@ -150,7 +150,7 @@ export function AccountUtilityBar() {
             {/* Header */}
             <div className="px-3 py-2 border-b border-white/10">
               <div className="flex items-center gap-2 text-xs text-white/70">
-                <Icon name="FaExchangeAlt" className="w-3 h-3" size={12} />
+                <Icon name="FaCoins" className="w-3 h-3" size={12} />
                 <span>Switch account</span>
               </div>
             </div>

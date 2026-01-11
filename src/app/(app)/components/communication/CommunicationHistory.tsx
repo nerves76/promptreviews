@@ -150,7 +150,7 @@ export default function CommunicationHistory({
     <Card className={`${className}`}>
       <div className="p-4 border-b">
         <div className="flex items-center gap-2">
-          <Icon name="FaHistory" className="w-5 h-5 text-gray-600" />
+          <Icon name="FaClock" className="w-5 h-5 text-gray-600" />
           <h3 className="text-sm font-medium text-gray-900">Communication History</h3>
           <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
             {records.length}

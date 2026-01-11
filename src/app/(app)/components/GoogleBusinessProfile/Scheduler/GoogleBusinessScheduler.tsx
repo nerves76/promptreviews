@@ -1030,7 +1030,7 @@ export default function GoogleBusinessScheduler({
             onClick={fetchQueue}
             className="flex items-center space-x-2 text-sm text-slate-600 hover:text-slate-800"
           >
-            <Icon name="FaSync" className={`w-3 h-3 ${isLoadingQueue ? 'animate-spin' : ''}`} />
+            <Icon name="FaRedo" className={`w-3 h-3 ${isLoadingQueue ? 'animate-spin' : ''}`} />
             <span>Refresh</span>
           </button>
         </div>
@@ -1087,7 +1087,7 @@ export default function GoogleBusinessScheduler({
                               {/* Location names */}
                               {item.selectedLocations && item.selectedLocations.length > 0 && (
                                 <div className="mt-1 text-xs text-gray-600">
-                                  <Icon name="FaMapMarkerAlt" className="inline w-3 h-3 mr-1 text-gray-500" />
+                                  <Icon name="FaMapMarker" className="inline w-3 h-3 mr-1 text-gray-500" />
                                   {item.selectedLocations.length === 1 ? (
                                     <span>{
                                       item.selectedLocations[0].name ||
@@ -1189,7 +1189,7 @@ export default function GoogleBusinessScheduler({
                               {/* Location names */}
                               {item.selectedLocations && item.selectedLocations.length > 0 && (
                                 <div className="mt-1 text-xs text-gray-600">
-                                  <Icon name="FaMapMarkerAlt" className="inline w-3 h-3 mr-1 text-gray-500" />
+                                  <Icon name="FaMapMarker" className="inline w-3 h-3 mr-1 text-gray-500" />
                                   {item.selectedLocations.length === 1 ? (
                                     <span>{
                                       item.selectedLocations[0].name ||

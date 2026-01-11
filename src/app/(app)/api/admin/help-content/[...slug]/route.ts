@@ -13,15 +13,16 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { slug: string | string[] } }
+  { params }: { params: Promise<{ slug: string[] }> }
 ) {
   try {
     // Verify admin access
     await requireAdminAccess();
 
+    const { slug: slugSegments } = await params;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     // Handle both single and multi-segment slugs
-    const slug = Array.isArray(params.slug) ? params.slug.join('/') : params.slug;
+    const slug = slugSegments.join('/');
 
     const { data, error } = await supabase
       .from('articles')
@@ -64,15 +65,16 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { slug: string | string[] } }
+  { params }: { params: Promise<{ slug: string[] }> }
 ) {
   try {
     // Verify admin access
     await requireAdminAccess();
 
+    const { slug: slugSegments } = await params;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     // Handle both single and multi-segment slugs
-    const slug = Array.isArray(params.slug) ? params.slug.join('/') : params.slug;
+    const slug = slugSegments.join('/');
     const body = await request.json();
 
     // Get existing article
@@ -223,15 +225,16 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { slug: string | string[] } }
+  { params }: { params: Promise<{ slug: string[] }> }
 ) {
   try {
     // Verify admin access
     await requireAdminAccess();
 
+    const { slug: slugSegments } = await params;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     // Handle both single and multi-segment slugs
-    const slug = Array.isArray(params.slug) ? params.slug.join('/') : params.slug;
+    const slug = slugSegments.join('/');
 
     const { error } = await supabase
       .from('articles')

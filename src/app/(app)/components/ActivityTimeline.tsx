@@ -63,7 +63,7 @@ const ACTIVITY_TYPE_CONFIG = {
     textColor: "text-green-700",
   },
   status_change: {
-    icon: "FaExchangeAlt",
+    icon: "FaCoins",
     label: "Status Change",
     bgColor: "bg-purple-50",
     borderColor: "border-purple-200",
@@ -77,7 +77,7 @@ const ACTIVITY_TYPE_CONFIG = {
     textColor: "text-amber-700",
   },
   manual: {
-    icon: "FaPencilAlt",
+    icon: "FaEdit",
     label: "Activity",
     bgColor: "bg-gray-50",
     borderColor: "border-gray-200",
@@ -398,7 +398,7 @@ export default function ActivityTimeline({
                         className="text-gray-500 hover:text-gray-700"
                         title="Edit"
                       >
-                        <Icon name="FaPencilAlt" size={12} />
+                        <Icon name="FaEdit" size={12} />
                       </button>
                       <button
                         type="button"

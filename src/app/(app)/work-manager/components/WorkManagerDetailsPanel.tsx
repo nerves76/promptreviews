@@ -164,7 +164,7 @@ export default function WorkManagerDetailsPanel({
       case "note":
         return "FaStickyNote";
       case "status_change":
-        return "FaExchangeAlt";
+        return "FaCoins";
       case "assignment_change":
         return "FaUserTag";
       case "priority_change":

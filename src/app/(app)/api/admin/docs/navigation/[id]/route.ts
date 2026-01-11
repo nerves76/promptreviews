@@ -15,8 +15,9 @@ function getSupabaseAdmin() {
   });
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     await requireAdminAccess();
     const body = await request.json();
 
@@ -33,7 +34,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
         is_active: body.is_active ?? true,
         updated_at: new Date().toISOString(),
       })
-      .eq('id', params.id)
+      .eq('id', id)
       .select()
       .single();
 
@@ -52,17 +53,18 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     await requireAdminAccess();
     const supabase = getSupabaseAdmin();
 
-    console.log('[DELETE Navigation] Attempting to delete navigation item:', params.id);
+    console.log('[DELETE Navigation] Attempting to delete navigation item:', id);
 
     const { data, error } = await supabase
       .from('navigation')
       .delete()
-      .eq('id', params.id)
+      .eq('id', id)
       .select();
 
     if (error) {

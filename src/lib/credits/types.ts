@@ -12,7 +12,8 @@ export type TransactionType =
   | 'feature_debit'
   | 'feature_refund'
   | 'manual_adjust'
-  | 'promo_grant';
+  | 'promo_grant'
+  | 'subscription_renewal';
 
 export type FeatureType =
   | 'geo_grid'

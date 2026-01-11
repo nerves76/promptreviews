@@ -233,7 +233,7 @@ export async function POST(request: NextRequest) {
       .eq('account_id', accountId);
 
     const existingContentSet = new Set(
-      existingReviews?.map(r => r.review_content?.toLowerCase().trim()).filter(Boolean) || []
+      existingReviews?.map((r: { review_content: string | null }) => r.review_content?.toLowerCase().trim()).filter(Boolean) || []
     );
 
     // Filter out duplicates
@@ -445,7 +445,7 @@ export async function GET(request: NextRequest) {
           .select('name')
           .eq('account_id', accountId);
         if (locations) {
-          locationNames = locations.map(l => l.name).filter(Boolean);
+          locationNames = locations.map((l: { name: string | null }) => l.name).filter(Boolean) as string[];
         }
       }
     }

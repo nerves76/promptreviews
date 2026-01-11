@@ -14,10 +14,10 @@ export const revalidate = 300; // 5 minutes
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
-    const { slug } = params;
+    const { slug } = await params;
     const searchParams = request.nextUrl.searchParams;
     const preview = searchParams.get('preview') === 'true';
 

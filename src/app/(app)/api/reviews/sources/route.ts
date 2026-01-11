@@ -54,13 +54,13 @@ export async function GET(request: NextRequest) {
     const oneYearAgo = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
 
     const fetchRangeStats = async (since?: Date) => {
+      // Build the query - Supabase doesn't have GROUP BY, so we fetch all and aggregate client-side
       let query = supabase
         .from("review_submissions")
-        .select("source_channel, count:id", { head: false })
+        .select("source_channel")
         .eq("account_id", accountId)
         .eq("status", "submitted")
-        .neq("review_type", "feedback")
-        .group("source_channel");
+        .neq("review_type", "feedback");
 
       if (since) {
         query = query.gte("created_at", since.toISOString());
@@ -68,18 +68,25 @@ export async function GET(request: NextRequest) {
 
       const { data, error } = await query;
       if (error) {
-        console.error("[reviews/sources] Error fetching grouped stats:", error);
+        console.error("[reviews/sources] Error fetching source stats:", error);
         throw error;
       }
 
-      const total = (data || []).reduce((sum, row: any) => sum + (row.count || 0), 0);
+      // Aggregate counts by source_channel
+      const countsByChannel: Record<string, number> = {};
+      for (const row of data || []) {
+        const channel = row.source_channel || "unknown";
+        countsByChannel[channel] = (countsByChannel[channel] || 0) + 1;
+      }
 
-      const stats = (data || [])
-        .map((row: any) => ({
-          source_channel: row.source_channel || "unknown",
-          label: SOURCE_CHANNEL_LABELS[row.source_channel] || row.source_channel || "unknown",
-          count: row.count || 0,
-          percentage: total > 0 ? Math.round((row.count || 0) / total * 100) : 0,
+      const total = data?.length || 0;
+
+      const stats = Object.entries(countsByChannel)
+        .map(([source_channel, count]) => ({
+          source_channel,
+          label: SOURCE_CHANNEL_LABELS[source_channel] || source_channel || "unknown",
+          count,
+          percentage: total > 0 ? Math.round((count / total) * 100) : 0,
         }))
         .sort((a, b) => b.count - a.count);
 

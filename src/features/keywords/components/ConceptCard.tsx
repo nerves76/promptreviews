@@ -898,17 +898,7 @@ export function ConceptCard({
           defaultExpanded={false}
           forceExpanded={isEditing}
           icon={<Icon name="FaSearch" className="w-3.5 h-3.5 text-slate-blue" />}
-          headerAction={
-            !isEditing && keyword.isUsedInRankTracking && (displayKeyword.searchTerms?.length || 0) > 0 ? (
-              <Link
-                href={`/dashboard/keywords/rank-tracking?concept=${encodeURIComponent(keyword.name)}`}
-                className="text-xs text-slate-blue hover:text-slate-blue/80"
-                title="View rank tracking details"
-              >
-                Details
-              </Link>
-            ) : undefined
-          }
+          headerAction={undefined}
         >
           {isEditing ? (
             /* Edit mode */
@@ -1159,6 +1149,18 @@ export function ConceptCard({
                   })}
                 </tbody>
               </table>
+              {/* Footer link to rank tracking page */}
+              {keyword.isUsedInRankTracking && (
+                <div className="mt-2 text-right">
+                  <Link
+                    href={`/dashboard/keywords/rank-tracking?concept=${encodeURIComponent(keyword.name)}`}
+                    className="text-xs text-slate-blue hover:text-slate-blue/80 inline-flex items-center gap-1"
+                  >
+                    View details
+                    <Icon name="FaChevronRight" className="w-2.5 h-2.5" />
+                  </Link>
+                </div>
+              )}
             </div>
           ) : (
             <p className="text-sm text-gray-500 italic">No search terms added</p>
@@ -1172,16 +1174,7 @@ export function ConceptCard({
           defaultExpanded={false}
           forceExpanded={isEditing}
           icon={<Icon name="FaSparkles" className="w-3.5 h-3.5 text-slate-blue" />}
-          headerAction={
-            !isEditing && (displayKeyword.relatedQuestions?.length || 0) > 0 ? (
-              <Link
-                href={`/dashboard/keywords/llm-visibility?concept=${encodeURIComponent(keyword.name)}`}
-                className="text-xs text-slate-blue hover:text-slate-blue/80"
-                title="View AI visibility details"
-              >
-                Details
-              </Link>
-            ) : undefined
+          headerAction={undefined
           }
         >
           {isEditing ? (
@@ -1278,6 +1271,16 @@ export function ConceptCard({
                   />
                 );
               })}
+              {/* Footer link to LLM visibility page */}
+              <div className="mt-2 text-right">
+                <Link
+                  href={`/dashboard/keywords/llm-visibility?concept=${encodeURIComponent(keyword.name)}`}
+                  className="text-xs text-slate-blue hover:text-slate-blue/80 inline-flex items-center gap-1"
+                >
+                  View details
+                  <Icon name="FaChevronRight" className="w-2.5 h-2.5" />
+                </Link>
+              </div>
             </div>
           ) : (
             <p className="text-sm text-gray-500 italic">No AI visibility questions added</p>

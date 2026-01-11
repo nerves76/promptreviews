@@ -338,7 +338,7 @@ export default function ShareModal({
                       className="w-full flex items-center justify-between px-4 py-3 bg-white hover:bg-gray-50 rounded-lg border border-gray-200 transition-colors"
                     >
                       <div className="flex items-center gap-2">
-                        <Icon name="FaHistory" className="w-4 h-4 text-gray-600" size={16} />
+                        <Icon name="FaClock" className="w-4 h-4 text-gray-600" size={16} />
                         <span className="text-sm font-medium text-gray-700">
                           Share history ({shareHistory.length})
                         </span>

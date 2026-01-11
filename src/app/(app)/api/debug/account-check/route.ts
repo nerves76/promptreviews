@@ -34,10 +34,16 @@ export async function GET(request: NextRequest) {
       .eq('email', user.email);
 
     // Check active triggers
-    const { data: triggers } = await supabaseAdmin.rpc('get_active_triggers', {
-      schema_name: 'auth',
-      table_name: 'users'
-    }).catch(() => ({ data: null }));
+    let triggers = null;
+    try {
+      const { data } = await supabaseAdmin.rpc('get_active_triggers', {
+        schema_name: 'auth',
+        table_name: 'users'
+      });
+      triggers = data;
+    } catch {
+      // Trigger info not available
+    }
 
     return NextResponse.json({
       debug: true,

@@ -136,7 +136,7 @@ export async function POST(request: NextRequest) {
           .update({
             max_users: desiredMaxUsers,
             max_locations: desiredMaxLocations,
-          })
+          } as Record<string, unknown>)
           .eq('id', accountId)
           .select('max_users, max_locations')
           .maybeSingle();

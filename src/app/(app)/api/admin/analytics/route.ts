@@ -153,45 +153,6 @@ export async function GET(request: NextRequest) {
         platformCounts[platform] = (platformCounts[platform] || 0) + 1;
       });
 
-      analyticsData = {
-        totalUsers: accounts?.length || 0,
-        totalAccounts: accounts?.length || 0,
-        totalBusinesses: businesses?.length || 0,
-        totalReviews: reviews?.length || 0,
-        totalPromptPages: promptPages?.length || 0,
-        totalWidgets: widgets?.length || 0,
-        totalGbpLocations: new Set(gbpLocations?.map(l => l.location_id)).size || 0,
-        totalGbpPosts: gbpPostsCount || 0,
-        reviewsThisMonth: reviews?.filter(r => new Date(r.created_at) >= monthAgo).length || 0,
-        reviewsThisWeek: reviews?.filter(r => new Date(r.created_at) >= weekAgo).length || 0,
-        newUsersThisMonth: accounts?.filter(u => new Date(u.created_at) >= monthAgo).length || 0,
-        newAccountsThisMonth: accounts?.filter(a => new Date(a.created_at) >= monthAgo).length || 0,
-        newBusinessesThisMonth: businesses?.filter(b => new Date(b.created_at) >= monthAgo).length || 0,
-        accountsActive,
-        accountsTrial,
-        accountsPaid,
-        reviewsByPlatform: platformCounts,
-        topPlatforms: [],
-        recentActivity: [],
-        businessGrowth: [],
-        reviewTrends: []
-      };
-
-      console.log('⚠️  Using slow analytics path');
-    }
-
-    // Calculate platform distribution
-    const platformCounts = analyticsData.reviewsByPlatform || {};
-    analyticsData.topPlatforms = Object.entries(platformCounts)
-      .map(([platform, count]) => ({ platform, count: Number(count) }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 5);
-
-    // These detailed calculations only work with slow path (when we have raw data)
-    // Fast path already sets these to empty arrays
-    if (!usedFastPath) {
-      const now = new Date();
-
       // Calculate recent activity (last 7 days)
       const activityMap: Record<string, { reviews: number; users: number }> = {};
       for (let i = 6; i >= 0; i--) {
@@ -200,21 +161,21 @@ export async function GET(request: NextRequest) {
         activityMap[dateStr] = { reviews: 0, users: 0 };
       }
 
-      reviews?.forEach(review => {
+      reviews?.forEach((review: { created_at: string }) => {
         const date = new Date(review.created_at).toISOString().split('T')[0];
         if (activityMap[date]) {
           activityMap[date].reviews++;
         }
       });
 
-      accounts?.forEach(account => {
+      accounts?.forEach((account: { created_at: string }) => {
         const date = new Date(account.created_at).toISOString().split('T')[0];
         if (activityMap[date]) {
           activityMap[date].users++;
         }
       });
 
-      analyticsData.recentActivity = Object.entries(activityMap)
+      const recentActivity = Object.entries(activityMap)
         .map(([date, data]) => ({ date, ...data }))
         .sort((a, b) => a.date.localeCompare(b.date));
 
@@ -226,14 +187,14 @@ export async function GET(request: NextRequest) {
         growthMap[monthStr] = 0;
       }
 
-      businesses?.forEach(business => {
+      businesses?.forEach((business: { created_at: string }) => {
         const month = new Date(business.created_at).toISOString().slice(0, 7);
         if (growthMap[month] !== undefined) {
           growthMap[month]++;
         }
       });
 
-      analyticsData.businessGrowth = Object.entries(growthMap)
+      const businessGrowth = Object.entries(growthMap)
         .map(([month, count]) => ({ date: month, count }))
         .sort((a, b) => a.date.localeCompare(b.date));
 
@@ -245,17 +206,50 @@ export async function GET(request: NextRequest) {
         trendMap[dateStr] = 0;
       }
 
-      reviews?.forEach(review => {
+      reviews?.forEach((review: { created_at: string }) => {
         const date = new Date(review.created_at).toISOString().split('T')[0];
         if (trendMap[date] !== undefined) {
           trendMap[date]++;
         }
       });
 
-      analyticsData.reviewTrends = Object.entries(trendMap)
+      const reviewTrends = Object.entries(trendMap)
         .map(([date, count]) => ({ date, count }))
         .sort((a, b) => a.date.localeCompare(b.date));
+
+      analyticsData = {
+        totalUsers: accounts?.length || 0,
+        totalAccounts: accounts?.length || 0,
+        totalBusinesses: businesses?.length || 0,
+        totalReviews: reviews?.length || 0,
+        totalPromptPages: promptPages?.length || 0,
+        totalWidgets: widgets?.length || 0,
+        totalGbpLocations: new Set(gbpLocations?.map(l => l.location_id)).size || 0,
+        totalGbpPosts: gbpPostsCount || 0,
+        reviewsThisMonth: reviews?.filter((r: { created_at: string }) => new Date(r.created_at) >= monthAgo).length || 0,
+        reviewsThisWeek: reviews?.filter((r: { created_at: string }) => new Date(r.created_at) >= weekAgo).length || 0,
+        newUsersThisMonth: accounts?.filter((u: { created_at: string }) => new Date(u.created_at) >= monthAgo).length || 0,
+        newAccountsThisMonth: accounts?.filter((a: { created_at: string }) => new Date(a.created_at) >= monthAgo).length || 0,
+        newBusinessesThisMonth: businesses?.filter((b: { created_at: string }) => new Date(b.created_at) >= monthAgo).length || 0,
+        accountsActive,
+        accountsTrial,
+        accountsPaid,
+        reviewsByPlatform: platformCounts,
+        topPlatforms: [],
+        recentActivity,
+        businessGrowth,
+        reviewTrends
+      };
+
+      console.log('⚠️  Using slow analytics path');
     }
+
+    // Calculate platform distribution
+    const platformCountsFinal = analyticsData.reviewsByPlatform || {};
+    analyticsData.topPlatforms = Object.entries(platformCountsFinal)
+      .map(([platform, count]) => ({ platform, count: Number(count) }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
 
     return NextResponse.json(analyticsData);
 

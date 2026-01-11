@@ -590,7 +590,7 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
                         onClick={() => router.push('/dashboard/google-business?reselect=true')}
                         className="inline-flex items-center space-x-2 text-sm font-medium text-blue-600 hover:text-blue-800"
                       >
-                        <Icon name="FaSync" className="w-4 h-4" size={16} />
+                        <Icon name="FaRedo" className="w-4 h-4" size={16} />
                         <span>Re-select your business locations</span>
                       </button>
                     </div>

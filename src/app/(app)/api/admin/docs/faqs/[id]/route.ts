@@ -14,8 +14,9 @@ function getSupabaseAdmin() {
   });
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const userId = await requireAdminAccess();
     const body = await request.json();
 
@@ -31,7 +32,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
         article_id: body.article_id ?? null,
         updated_by: userId,
       })
-      .eq('id', params.id)
+      .eq('id', id)
       .select()
       .single();
 
@@ -47,15 +48,16 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     await requireAdminAccess();
 
     const supabase = getSupabaseAdmin();
     const { error } = await supabase
       .from('faqs')
       .delete()
-      .eq('id', params.id);
+      .eq('id', id);
 
     if (error) {
       console.error('Error deleting FAQ:', error);
