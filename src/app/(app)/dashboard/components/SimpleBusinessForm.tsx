@@ -734,11 +734,11 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
         <button
           type="button"
           onClick={() => setShowPromotionCode(!showPromotionCode)}
-          className="text-sm text-gray-500 hover:text-slate-blue transition-colors flex items-center gap-2"
+          className="text-base text-gray-500 hover:text-slate-blue transition-colors flex items-center gap-2"
         >
           <Icon
             name={showPromotionCode ? "FaChevronDown" : "FaChevronRight"}
-            size={10}
+            size={12}
             className="text-gray-400"
           />
           Have a promotion code?
@@ -749,7 +749,7 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
             <input
               type="text"
               name="promotion_code"
-              className={`w-full max-w-xs border px-3 py-2 rounded text-sm ${
+              className={`w-full max-w-xs border px-3 py-2 rounded ${
                 promotionCodeError
                   ? 'border-red-500 focus:border-red-500'
                   : promotionCodeSuccess
