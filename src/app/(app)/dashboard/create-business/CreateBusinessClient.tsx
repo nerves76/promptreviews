@@ -9,7 +9,7 @@ const supabase = createClient();
 import { useAuth } from "@/auth";
 import SimpleBusinessForm from "../components/SimpleBusinessForm";
 import AppLoader from "@/app/(app)/components/AppLoader";
-import PageCard from "@/app/(app)/components/PageCard";
+import PageCard, { PageCardHeader } from "@/app/(app)/components/PageCard";
 import WelcomePopup from "@/app/(app)/components/WelcomePopup";
 import Icon from "@/components/Icon";
 import { ensureAccountExists } from "@/auth/utils/accounts";
@@ -370,30 +370,18 @@ export default function CreateBusinessClient() {
   return (
     <>
       <div className="min-h-screen flex justify-center items-start px-4 sm:px-0">
-        <PageCard icon={<Icon name="FaStore" className="w-9 h-9 text-slate-blue" size={36} />}>
-          <div className="max-w-4xl mx-auto">
-            {/* Welcome Message */}
-            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-8 w-full gap-4 relative">
-              <div className="flex-1">
-                <h1 className="text-4xl font-bold text-slate-blue pt-2">
-                  Create your business profile
-                </h1>
-                <p className="mt-3 text-sm text-gray-600 max-w-[650px]">
-                  Let's create your business profile so you can start collecting reviews and growing your reputation online.
-                </p>
-              </div>
-              
-              {/* Desktop button - shows on larger screens */}
-              <div className="hidden sm:block sm:flex-shrink-0 sm:mt-2">
+        <div className="w-full">
+          <PageCard icon={<Icon name="FaStore" className="w-9 h-9 text-slate-blue" size={36} />}>
+            <PageCardHeader
+              title="Create your business profile"
+              description="Let's create your business profile so you can start collecting reviews and growing your reputation online."
+              variant="large"
+              actions={
                 <button
                   type="button"
                   onClick={handleTopSaveClick}
                   disabled={isSubmitting}
-                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    isSubmitting
-                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                      : "bg-slate-blue text-white hover:bg-slate-blue/90"
-                  }`}
+                  className="py-2 px-6 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-slate-blue hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2"
                 >
                   {isSubmitting ? (
                     <>
@@ -401,40 +389,11 @@ export default function CreateBusinessClient() {
                       Creating...
                     </>
                   ) : (
-                    <>
-                      <svg className="w-4 h-4 text-white fill-current">
-                        <use href="/icons-sprite.svg#FaPlus" />
-                      </svg>
-                      Create business
-                    </>
+                    "Create business"
                   )}
                 </button>
-              </div>
-              
-              {/* Mobile button - shows on small screens */}
-              <div className="block sm:hidden mt-4">
-                <button
-                  type="button"
-                  onClick={handleTopSaveClick}
-                  disabled={isSubmitting}
-                  className="bg-slate-blue text-white py-2 px-4 rounded-lg hover:bg-slate-blue/90 transition-all duration-200 font-medium disabled:opacity-50 inline-flex items-center gap-2 shadow-lg text-sm"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      Creating...
-                    </>
-                  ) : (
-                    <>
-                      <svg className="w-4 h-4 text-white fill-current">
-                        <use href="/icons-sprite.svg#FaPlus" />
-                      </svg>
-                      Create business
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
+              }
+            />
 
             {/* Business Form - Allow form even without existing accountId */}
             {user && (
@@ -448,8 +407,8 @@ export default function CreateBusinessClient() {
                 }}
               />
             )}
-          </div>
-        </PageCard>
+          </PageCard>
+        </div>
       </div>
 
       {/* Welcome Popup with Carl Sagan quote */}
