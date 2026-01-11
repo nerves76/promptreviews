@@ -520,6 +520,7 @@ model accounts {
   keyword_suggestions_last_reset_date DateTime?                         @db.Date
   is_client_account                   Boolean?                          @default(false)
   monthly_credit_allocation           Int?
+  low_balance_warning_count           Int?                              @default(0)
   account_events                      account_events[]
   account_invitations                 account_invitations[]
   account_users                       account_users[]
@@ -532,6 +533,7 @@ model accounts {
   business_locations                  business_locations[]
   businesses                          businesses[]
   campaign_actions                    campaign_actions[]
+  comeback_email_logs                 comeback_email_logs[]
   comments                            comments[]
   communication_records               communication_records[]
   communication_templates             communication_templates[]
@@ -970,8 +972,6 @@ model businesses {
   twitter_url                           String?
   location_code                         Int?
   location_name                         String?
-  is_location_based                     Boolean?             @default(true)
-  location_aliases                      String[]             @default([])
   accounts                              accounts             @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_businesses_account_id")
   review_submissions                    review_submissions[]
 
@@ -3599,6 +3599,27 @@ model keyword_sets {
   review_keyword_matches review_keyword_matches[]
 
   @@index([account_id], map: "idx_keyword_sets_account_id")
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model comeback_email_logs {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  account_id        String   @db.Uuid
+  email             String
+  email_type        String
+  success           Boolean  @default(false)
+  resend_email_id   String?
+  days_since_cancel Int?
+  error_message     String?
+  sent_at           DateTime @default(now()) @db.Timestamptz(6)
+  created_at        DateTime @default(now()) @db.Timestamptz(6)
+  accounts          accounts @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([account_id, email_type], map: "idx_comeback_email_logs_unique_send")
+  @@index([account_id], map: "idx_comeback_email_logs_account_id")
+  @@index([email_type], map: "idx_comeback_email_logs_email_type")
+  @@index([sent_at(sort: Desc)], map: "idx_comeback_email_logs_sent_at")
   @@schema("public")
 }
 

@@ -24,6 +24,7 @@ export async function GET(request: NextRequest) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
+    // Get GBP connections with account info for email/name
     const { data: usersWithGBP, error: gbpError } = await supabase
       .from('google_business_profiles')
       .select(`
@@ -32,13 +33,13 @@ export async function GET(request: NextRequest) {
         access_token,
         refresh_token,
         expires_at,
-        profiles!inner(
+        accounts!inner(
           first_name,
           email
         )
       `)
-      .not('profiles.email', 'is', null)
-      .neq('profiles.email', '');
+      .not('accounts.email', 'is', null)
+      .neq('accounts.email', '');
 
     if (gbpError) {
       console.error('Error fetching users with GBP:', gbpError);
@@ -56,8 +57,8 @@ export async function GET(request: NextRequest) {
     for (const userData of usersWithGBP) {
       try {
         const userId = userData.user_id;
-        const profile = Array.isArray(userData.profiles) ? userData.profiles[0] : userData.profiles;
-        if (!profile) continue;
+        const account = Array.isArray(userData.accounts) ? userData.accounts[0] : userData.accounts;
+        if (!account || !account.email) continue;
 
         const { data: reminderSettings } = await supabase
           .from('review_reminder_settings')
@@ -134,8 +135,8 @@ export async function GET(request: NextRequest) {
           locations: account.locations
         }));
 
-        const emailResult = await sendTemplatedEmail('review_reminder', profile.email, {
-          firstName: profile.first_name || 'there',
+        const emailResult = await sendTemplatedEmail('review_reminder', account.email, {
+          firstName: account.first_name || 'there',
           reviewCount: totalReviews,
           accountCount,
           accounts
@@ -155,7 +156,7 @@ export async function GET(request: NextRequest) {
               review_ids: reviewIds,
               reminder_type: 'monthly_review',
               success: true,
-              email_sent_to: profile.email,
+              email_sent_to: account.email,
               review_count: totalReviews
             });
 
@@ -182,7 +183,7 @@ export async function GET(request: NextRequest) {
           successCount++;
         } else {
           errorCount++;
-          console.error(`Failed to send reminder to ${profile.email}:`, emailResult.error);
+          console.error(`Failed to send reminder to ${account.email}:`, emailResult.error);
         }
 
         await new Promise(resolve => setTimeout(resolve, 100));

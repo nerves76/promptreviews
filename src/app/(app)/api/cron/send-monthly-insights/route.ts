@@ -145,22 +145,23 @@ export async function GET(request: NextRequest) {
             // Get unresponded reviews
             const unrespondedReviews = await gbpClient.getUnrespondedReviewsForLocation(location.location_id);
             
-            // Get posting metrics (simplified - would need actual API calls)
-            // For now, we'll get this from our database if we're tracking posts
+            // Get posting metrics from scheduled posts results
             const { data: posts } = await supabase
-              .from('gbp_posts') // This table would need to be created
+              .from('google_business_scheduled_post_results')
               .select('created_at')
               .eq('location_id', location.location_id)
+              .eq('status', 'success')
               .gte('created_at', thirtyDaysAgo.toISOString())
               .order('created_at', { ascending: false });
 
-            // Get photo metrics (simplified - would need actual API calls)
+            // Get photo upload metrics
             const { data: photos } = await supabase
-              .from('gbp_photos') // This table would need to be created
-              .select('uploaded_at')
+              .from('google_business_media_uploads')
+              .select('created_at')
               .eq('location_id', location.location_id)
-              .gte('uploaded_at', thirtyDaysAgo.toISOString())
-              .order('uploaded_at', { ascending: false });
+              .eq('upload_status', 'success')
+              .gte('created_at', thirtyDaysAgo.toISOString())
+              .order('created_at', { ascending: false });
 
             locationMetrics.push({
               locationId: location.location_id,
@@ -172,7 +173,7 @@ export async function GET(request: NextRequest) {
                 postsThisMonth: posts?.length || 0,
                 photosUploadedThisMonth: photos?.length || 0,
                 lastPostDate: posts?.[0]?.created_at ? new Date(posts[0].created_at) : null,
-                lastPhotoDate: photos?.[0]?.uploaded_at ? new Date(photos[0].uploaded_at) : null,
+                lastPhotoDate: photos?.[0]?.created_at ? new Date(photos[0].created_at) : null,
                 averageRating: 0, // Would need to calculate
                 totalReviews: 0 // Would need to fetch
               }

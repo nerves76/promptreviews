@@ -72,9 +72,9 @@ export async function GET(request: NextRequest) {
 
     // Check which accounts haven't received comeback email yet
     const { data: emailHistory, error: historyError } = await supabaseAdmin
-      .from('communication_history')
+      .from('comeback_email_logs')
       .select('account_id')
-      .eq('type', 'comeback_email_3m')
+      .eq('email_type', 'comeback_3_months')
       .in('account_id', cancelledAccounts.map(a => a.id));
 
     if (historyError) {
@@ -146,24 +146,21 @@ export async function GET(request: NextRequest) {
         }
 
 
-        // Record the communication
+        // Record the send in comeback_email_logs table
+        // This prevents duplicate sends on subsequent cron runs
         const { error: recordError } = await supabaseAdmin
-          .from('communication_history')
+          .from('comeback_email_logs')
           .insert({
             account_id: account.id,
-            type: 'comeback_email_3m',
-            status: 'sent',
-            subject: subject,
-            content: textContent,
-            metadata: {
-              email_id: emailData?.id,
-              days_since_cancel: replacements['{{days_since_cancel}}'],
-              template: 'comeback_3_months'
-            }
+            email: account.email,
+            email_type: 'comeback_3_months',
+            success: true,
+            resend_email_id: emailData?.id,
+            days_since_cancel: replacements['{{days_since_cancel}}']
           });
 
         if (recordError) {
-          console.error('⚠️ Failed to record communication:', recordError);
+          console.error('⚠️ Failed to record comeback email:', recordError);
         }
 
         successCount++;
@@ -179,17 +176,13 @@ export async function GET(request: NextRequest) {
         // Record the failure
         try {
           await supabaseAdmin
-            .from('communication_history')
+            .from('comeback_email_logs')
             .insert({
               account_id: account.id,
-              type: 'comeback_email_3m',
-              status: 'failed',
-              subject: template.subject,
-              content: template.text_content,
-              metadata: {
-                error: String(error),
-                template: 'comeback_3_months'
-              }
+              email: account.email,
+              email_type: 'comeback_3_months',
+              success: false,
+              error_message: String(error)
             });
         } catch (recordError) {
           console.error('⚠️ Failed to record failure:', recordError);

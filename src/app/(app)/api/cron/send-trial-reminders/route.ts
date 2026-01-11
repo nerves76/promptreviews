@@ -30,18 +30,13 @@ export async function GET(request: NextRequest) {
     const threeDaysFromNowISO = threeDaysFromNow.toISOString();
 
     // Find users whose trial expires in 3 days
+    // Note: accounts table has first_name and email directly on it
     const { data: accounts, error } = await supabase
       .from('accounts')
-      .select(`
-        id,
-        trial_end,
-        profiles!inner(
-          first_name,
-          email
-        )
-      `)
+      .select('id, trial_end, first_name, email')
       .eq('plan', 'grower')
       .not('trial_end', 'is', null)
+      .not('email', 'is', null)
       .gte('trial_end', threeDaysFromNowISO)
       .lt('trial_end', new Date(threeDaysFromNow.getTime() + 24 * 60 * 60 * 1000).toISOString());
 
@@ -57,9 +52,8 @@ export async function GET(request: NextRequest) {
     // Send reminder emails
     for (const account of accounts || []) {
       try {
-        // Handle the profiles array from inner join
-        const profile = Array.isArray(account.profiles) ? account.profiles[0] : account.profiles;
-        if (!profile) {
+        // Skip if no email
+        if (!account.email) {
           continue;
         }
 
@@ -81,8 +75,8 @@ export async function GET(request: NextRequest) {
         }
 
         const result = await sendTrialReminderEmail(
-          profile.email,
-          profile.first_name || 'there'
+          account.email,
+          account.first_name || 'there'
         );
 
         // Log the reminder attempt
@@ -90,7 +84,7 @@ export async function GET(request: NextRequest) {
           .from('trial_reminder_logs')
           .insert({
             account_id: account.id,
-            email: profile.email,
+            email: account.email,
             reminder_type: 'trial_reminder',
             success: result.success,
             error_message: result.error || null
@@ -104,16 +98,12 @@ export async function GET(request: NextRequest) {
       } catch (error) {
         errorCount++;
 
-        // Handle the profiles array from inner join
-        const profile = Array.isArray(account.profiles) ? account.profiles[0] : account.profiles;
-        const email = profile?.email || 'unknown';
-
         // Log the error
         await supabase
           .from('trial_reminder_logs')
           .insert({
             account_id: account.id,
-            email: email,
+            email: account.email || 'unknown',
             reminder_type: 'trial_reminder',
             success: false,
             error_message: error instanceof Error ? error.message : 'Unknown error'
