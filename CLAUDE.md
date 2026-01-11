@@ -717,58 +717,58 @@ This saves tokens by letting AI quickly understand recent changes without readin
 
 ## Database Migration Rules
 
-**ALWAYS follow proper migration workflow:**
-1. **Use correct timestamps** - Migration files must use actual creation date/time (YYYYMMDDHHMMSS format)
-2. **Check migration status** - Run `npx supabase migration list` before making changes
-3. **Never bypass the system** - Don't run SQL directly in production or use repair commands as first solution
-4. **Fix sequencing properly** - If migrations are out of order, rename them to correct timestamps
-5. **Test locally first** - Run `npx supabase db reset --local` to verify migrations work
-6. **Push through system** - Use `npx supabase db push` to apply to remote
-7. **Keep environments in sync** - Migrations ensure local and remote databases match
-8. **Update Prisma schema** - After migrations, sync Prisma types (see Prisma workflow below)
+This project uses **Supabase migrations** for schema changes and **Prisma** for TypeScript types. Both must be kept in sync.
 
-**Common issues:**
-- If a migration is "out of sequence" (created later but named earlier), rename it to reflect actual creation time
-- Storage bucket policies require special handling - use DO blocks with error handling
-- Never suggest manual SQL execution in production dashboard as a first solution
-
-## Prisma Integration & Workflow
-
-This project uses a **dual approach** for database management:
-- **Supabase migrations** handle schema changes (DDL)
-- **Prisma** provides type-safe queries and TypeScript types
-
-### Prisma Setup
-- **Schema location:** `/prisma/schema.prisma` (54+ models)
-- **Generated types:** `/src/generated/prisma/`
-- **Client instance:** `/src/lib/prisma.ts`
-- **Configuration:** Uses DATABASE_URL from `.env.local`
-
-### Database Workflow After Schema Changes
-
-**IMPORTANT:** After applying any Supabase migrations, you MUST sync Prisma:
+### Migration Workflow (in order)
 
 ```bash
-# 1. Apply Supabase migrations
-npx supabase migration list        # Check status
-npx supabase db push               # Apply to remote
+# 1. Create migration file
+#    File: supabase/migrations/YYYYMMDDHHMMSS_description.sql
+#    Use actual creation timestamp (not arbitrary future date)
 
-# 2. Sync Prisma schema with database
+# 2. Test locally first
+npx supabase db reset --local      # Reset local DB and apply all migrations
+
+# 3. Verify local status
+npx supabase migration list        # Both columns should match
+
+# 4. Push to remote
+npx supabase db push --include-all # Apply pending migrations to production
+
+# 5. Sync Prisma types (REQUIRED after any schema change)
 npx prisma db pull                 # Pull latest schema from database
 npx prisma generate                # Generate new TypeScript types
 
-# 3. Verify the changes
-git diff prisma/schema.prisma     # Review schema changes
-git diff src/generated/prisma/    # Review type changes
+# 6. Verify and commit
+git diff prisma/schema.prisma      # Review schema changes
+git add -A && git commit           # Commit migration + Prisma changes together
 ```
+
+### Migration Rules
+- **Use correct timestamps** - Migration files must use actual creation date/time (YYYYMMDDHHMMSS format)
+- **Local first, then remote** - Always test locally before pushing to production
+- **Never bypass the system** - Don't run SQL directly in production or use repair commands as first solution
+- **Keep environments in sync** - Run `npx supabase migration list` to verify both columns match
+- **Always sync Prisma** - After any migration, run `prisma db pull && prisma generate`
+
+### Common Issues
+- **"Out of sequence" error** - Migration timestamp is earlier than already-applied migrations. Rename file to current timestamp.
+- **Column already exists** - Migration was partially applied. Use `npx supabase migration repair <id> --status reverted --linked` then push again.
+- **Local/remote mismatch** - Run `npx supabase db reset --local` to reset local, then `npx supabase db push --include-all` for remote.
+
+## Prisma Integration
+
+### Setup
+- **Schema location:** `/prisma/schema.prisma`
+- **Generated types:** `/src/generated/prisma/`
+- **Client instance:** `/src/lib/prisma.ts`
+- **Connection:** Uses DATABASE_URL from `.env.local`
 
 ### Using Prisma in Code
 
 ```typescript
-// Import the configured client
 import prisma from '@/lib/prisma'
 
-// Example: Type-safe queries
 const accounts = await prisma.accounts.findMany({
   where: { status: 'active' },
   include: { businesses: true }
@@ -776,10 +776,9 @@ const accounts = await prisma.accounts.findMany({
 ```
 
 ### Key Points
-- **Never use** `prisma migrate` commands - use Supabase migrations
-- **Always run** `prisma db pull` after database changes
-- **Generated types** provide full TypeScript support
-- **Both approaches work together** - Supabase for migrations, Prisma for queries
+- **Never use** `prisma migrate` commands - use Supabase migrations only
+- **Always run** `prisma db pull` after any database schema change
+- **Commit together** - Migration files and Prisma schema changes should be in the same commit
 
 ## ⚠️ CRITICAL: Account Isolation Rules
 
