@@ -92,14 +92,20 @@ export function AddKeywordConceptModal({
               id="concept-name"
               type="text"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => setName(e.target.value.slice(0, 50))}
               placeholder="e.g., Portland marketing services"
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-blue/50 focus:border-slate-blue/50 transition-all"
+              maxLength={50}
               autoFocus
             />
-            <p className="text-xs text-gray-500 mt-1">
-              A short name to identify this keyword concept
-            </p>
+            <div className="flex justify-between mt-1">
+              <p className="text-xs text-gray-500">
+                A short name to identify this keyword concept
+              </p>
+              <span className={`text-xs ${name.length >= 45 ? 'text-amber-600' : 'text-gray-400'}`}>
+                {name.length}/50
+              </span>
+            </div>
           </div>
 
           {/* Keyword to track */}

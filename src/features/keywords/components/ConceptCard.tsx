@@ -581,14 +581,20 @@ export function ConceptCard({
                 name="FaChevronDown"
                 className="w-3 h-3 text-gray-500 flex-shrink-0"
               />
-              <input
-                type="text"
-                value={editedName}
-                onChange={(e) => setEditedName(e.target.value)}
-                className="flex-1 px-2 py-1 text-sm font-medium border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Concept name"
-                aria-label="Concept name"
-              />
+              <div className="flex-1 relative">
+                <input
+                  type="text"
+                  value={editedName}
+                  onChange={(e) => setEditedName(e.target.value.slice(0, 50))}
+                  maxLength={50}
+                  className="w-full px-2 py-1 text-sm font-medium border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Concept name"
+                  aria-label="Concept name"
+                />
+                <span className={`absolute right-2 top-1/2 -translate-y-1/2 text-[10px] ${editedName.length >= 45 ? 'text-amber-600' : 'text-gray-400'}`}>
+                  {editedName.length}/50
+                </span>
+              </div>
             </div>
           ) : (
             <button

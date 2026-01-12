@@ -45,6 +45,17 @@ export interface Account {
   // Account flags
   is_additional_account?: boolean;
   business_creation_complete?: boolean;
+
+  // Agency fields
+  is_agncy?: boolean;
+  agncy_trial_start?: string;
+  agncy_trial_end?: string;
+  agncy_type?: 'freelancer' | 'small_agency' | 'mid_agency' | 'enterprise' | string;
+  agncy_employee_count?: '1' | '2-5' | '6-10' | '11-50' | '50+' | string;
+  agncy_expected_clients?: '1-5' | '6-20' | '21-50' | '50+' | string;
+  agncy_multi_location_pct?: '0-25' | '26-50' | '51-75' | '76-100' | string;
+  managing_agncy_id?: string;
+  agncy_billing_owner?: 'client' | 'agency';
 }
 
 /**
@@ -137,12 +148,17 @@ export interface AuthContextType extends AuthState {
 }
 
 /**
+ * Valid account user roles
+ */
+export type AccountUserRole = 'owner' | 'admin' | 'member' | 'support' | 'agency_manager' | 'agency_billing_manager';
+
+/**
  * Account user relationship
  */
 export interface AccountUser {
   account_id: string;
   user_id: string;
-  role: 'owner' | 'admin' | 'member';
+  role: AccountUserRole;
   created_at: string;
 }
 
@@ -151,11 +167,40 @@ export interface AccountUser {
  */
 export interface UserAccount {
   account_id: string;
-  role: 'owner' | 'admin' | 'member';
+  role: AccountUserRole;
   account_name?: string;
   plan?: string;
   first_name?: string;
   last_name?: string;
   business_name?: string;
   is_primary?: boolean;
+  is_agncy?: boolean;
+}
+
+/**
+ * Agency client access relationship
+ */
+export interface AgencyClientAccess {
+  id: string;
+  agency_account_id: string;
+  client_account_id: string;
+  user_id: string;
+  role: 'manager' | 'billing_manager';
+  status: 'pending' | 'active' | 'removed';
+  invited_at?: string;
+  accepted_at?: string;
+  removed_at?: string;
+  removed_by?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+/**
+ * Agency metadata for signup
+ */
+export interface AgencyMetadata {
+  agncy_type: 'freelancer' | 'small_agency' | 'mid_agency' | 'enterprise';
+  agncy_employee_count: '1' | '2-5' | '6-10' | '11-50' | '50+';
+  agncy_expected_clients: '1-5' | '6-20' | '21-50' | '50+';
+  agncy_multi_location_pct: '0-25' | '26-50' | '51-75' | '76-100';
 }

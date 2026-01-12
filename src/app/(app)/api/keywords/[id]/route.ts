@@ -246,7 +246,8 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
           { status: 400 }
         );
       }
-      updates.name = name.trim();
+      // Limit name to 50 characters
+      updates.name = name.trim().slice(0, 50);
     }
 
     if (phrase !== undefined) {

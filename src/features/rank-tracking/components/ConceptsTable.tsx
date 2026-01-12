@@ -560,19 +560,19 @@ export default function ConceptsTable({
 
   return (
     <div className="overflow-x-auto border border-gray-200 rounded-xl">
-      <table className="w-full min-w-[1300px]">
+      <table className="w-full" style={{ tableLayout: 'fixed', minWidth: '1200px' }}>
         {/* Column widths: Keyword, Concept, Volume, Rank, Change, URL, Checked, SERP, Grid, Actions */}
         <colgroup>
-          <col style={{ width: '20%', minWidth: '180px' }} />
-          <col style={{ width: '12%', minWidth: '110px' }} />
-          <col style={{ width: '7%', minWidth: '65px' }} />
-          <col style={{ width: '10%', minWidth: '95px' }} />
-          <col style={{ width: '5%', minWidth: '55px' }} />
-          <col style={{ width: '11%', minWidth: '100px' }} />
-          <col style={{ width: '6%', minWidth: '60px' }} />
-          <col style={{ width: '8%', minWidth: '85px' }} />
-          <col style={{ width: '6%', minWidth: '55px' }} />
-          <col style={{ width: '15%', minWidth: '200px' }} />
+          <col style={{ width: '180px' }} />
+          <col style={{ width: '100px' }} />
+          <col style={{ width: '70px' }} />
+          <col style={{ width: '100px' }} />
+          <col style={{ width: '60px' }} />
+          <col style={{ width: '120px' }} />
+          <col style={{ width: '70px' }} />
+          <col style={{ width: '90px' }} />
+          <col style={{ width: '60px' }} />
+          <col style={{ width: 'auto' }} />
         </colgroup>
         <thead>
           <tr className="bg-gray-50 border-b border-gray-200">
@@ -692,9 +692,10 @@ export default function ConceptsTable({
                   </button>
                 </div>
               </td>
-              <td className="py-3 px-4">
+              <td className="py-3 px-2">
                 <span
-                  className="text-xs text-gray-500 block truncate max-w-[160px]"
+                  className="text-xs text-gray-500 block"
+                  style={{ overflowWrap: 'break-word', wordBreak: 'break-word' }}
                   title={row.concept.name || undefined}
                 >
                   {row.concept.name || '—'}

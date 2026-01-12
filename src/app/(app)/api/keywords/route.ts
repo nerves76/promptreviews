@@ -360,7 +360,7 @@ export async function POST(request: NextRequest) {
       .insert({
         account_id: accountId,
         group_id: targetGroupId,
-        name: phrase.trim(), // Default name to phrase
+        name: phrase.trim().slice(0, 50), // Default name to phrase, limit to 50 chars
         phrase: phrase.trim(),
         normalized_phrase: normalizedPhrase,
         word_count: wordCount,

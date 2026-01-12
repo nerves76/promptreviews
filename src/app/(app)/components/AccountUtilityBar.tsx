@@ -110,8 +110,17 @@ export function AccountUtilityBar() {
             </button>
           </div>
 
-          {/* Right side - Work Manager link and Account count */}
+          {/* Right side - Agency Dashboard, Work Manager link and Account count */}
           <div className="flex items-center gap-4 text-xs">
+            {selectedAccount.is_agncy && (
+              <Link
+                href="/agency"
+                className="flex items-center gap-1.5 text-amber-300 hover:text-amber-200 transition-colors font-medium"
+              >
+                <Icon name="FaBriefcase" className="w-3 h-3" size={12} />
+                <span>Agency dashboard</span>
+              </Link>
+            )}
             <Link
               href="/work-manager"
               className="flex items-center gap-1.5 text-white/70 hover:text-white transition-colors"
