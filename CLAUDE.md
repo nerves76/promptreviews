@@ -36,6 +36,23 @@ npx tsc --noEmit
 - This applies to: headings, button labels, menu items, form labels, etc.
 - Exceptions: proper nouns, acronyms, product names (e.g., "Local Ranking Grid")
 
+## ⚠️ IMPORTANT: Button & Badge Text Must Not Wrap
+- **Button and badge text must NEVER wrap to multiple lines**
+- Always add `whitespace-nowrap` to buttons, badges, and pill-shaped elements
+- If text is too long, either:
+  - Shorten the text
+  - Use an icon instead
+  - Increase the container width
+- Examples:
+  ```tsx
+  // ✅ CORRECT - Text won't wrap
+  <button className="px-4 py-2 rounded whitespace-nowrap">Save changes</button>
+  <span className="px-2 py-1 rounded-full whitespace-nowrap">Start Here!</span>
+
+  // ❌ WRONG - Text can wrap and stack
+  <button className="px-4 py-2 rounded">Save changes</button>
+  ```
+
 ## ⚠️ CRITICAL: Icon System
 **NEVER guess icon names.** Only use icons from the `IconName` type in `/src/components/Icon.tsx`.
 

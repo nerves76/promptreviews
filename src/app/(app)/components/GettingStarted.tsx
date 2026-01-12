@@ -485,7 +485,7 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
                     {task.title}
                   </h3>
                   {task.id === 'business-profile' && !task.completed && (
-                    <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-bold animate-bounce border border-yellow-300">
+                    <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-bold animate-bounce border border-yellow-300 whitespace-nowrap">
                       Start Here!
                     </span>
                   )}
