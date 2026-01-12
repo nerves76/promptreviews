@@ -182,11 +182,16 @@ ALTER TYPE "public"."social_connection_status" OWNER TO "postgres";
 CREATE TYPE "public"."social_platform_type" AS ENUM (
     'bluesky',
     'twitter',
-    'slack'
+    'slack',
+    'linkedin'
 );
 
 
 ALTER TYPE "public"."social_platform_type" OWNER TO "postgres";
+
+
+COMMENT ON TYPE "public"."social_platform_type" IS 'Supported social platforms: bluesky, twitter, slack, linkedin';
+
 
 
 CREATE TYPE "public"."wm_action_type" AS ENUM (
@@ -316,6 +321,55 @@ ALTER FUNCTION "public"."build_nav_node"("node_id" "uuid") OWNER TO "postgres";
 
 COMMENT ON FUNCTION "public"."build_nav_node"("node_id" "uuid") IS 'Helper function that recursively builds a navigation node with all its nested children.';
 
+
+
+CREATE OR REPLACE FUNCTION "public"."calculate_backlink_next_scheduled_at"("p_frequency" "text", "p_day_of_week" integer, "p_day_of_month" integer, "p_hour" integer, "p_from_time" timestamp with time zone DEFAULT "now"()) RETURNS timestamp with time zone
+    LANGUAGE "plpgsql"
+    AS $$
+DECLARE
+  v_next TIMESTAMPTZ;
+  v_target_hour INTEGER;
+  v_current_dow INTEGER;
+  v_current_dom INTEGER;
+  v_days_to_add INTEGER;
+BEGIN
+  v_target_hour := COALESCE(p_hour, 9);
+
+  CASE p_frequency
+    WHEN 'daily' THEN
+      -- Next occurrence at target hour
+      v_next := DATE_TRUNC('day', p_from_time) + (v_target_hour || ' hours')::INTERVAL;
+      IF v_next <= p_from_time THEN
+        v_next := v_next + INTERVAL '1 day';
+      END IF;
+
+    WHEN 'weekly' THEN
+      -- Next occurrence on target day of week at target hour
+      v_current_dow := EXTRACT(DOW FROM p_from_time)::INTEGER;
+      v_days_to_add := (COALESCE(p_day_of_week, 1) - v_current_dow + 7) % 7;
+      v_next := DATE_TRUNC('day', p_from_time) + (v_days_to_add || ' days')::INTERVAL + (v_target_hour || ' hours')::INTERVAL;
+      IF v_next <= p_from_time THEN
+        v_next := v_next + INTERVAL '7 days';
+      END IF;
+
+    WHEN 'monthly' THEN
+      -- Next occurrence on target day of month at target hour
+      v_current_dom := EXTRACT(DAY FROM p_from_time)::INTEGER;
+      v_next := DATE_TRUNC('month', p_from_time) + ((COALESCE(p_day_of_month, 1) - 1) || ' days')::INTERVAL + (v_target_hour || ' hours')::INTERVAL;
+      IF v_next <= p_from_time THEN
+        v_next := v_next + INTERVAL '1 month';
+      END IF;
+
+    ELSE
+      v_next := NULL;
+  END CASE;
+
+  RETURN v_next;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."calculate_backlink_next_scheduled_at"("p_frequency" "text", "p_day_of_week" integer, "p_day_of_month" integer, "p_hour" integer, "p_from_time" timestamp with time zone) OWNER TO "postgres";
 
 
 CREATE OR REPLACE FUNCTION "public"."calculate_llm_next_scheduled_at"("p_frequency" "text", "p_day_of_week" integer, "p_day_of_month" integer, "p_hour" integer, "p_from_time" timestamp with time zone DEFAULT "now"()) RETURNS timestamp with time zone
@@ -1098,6 +1152,10 @@ $_$;
 
 
 ALTER FUNCTION "public"."get_account_user_count"("account_id" "uuid") OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."get_account_user_count"("account_id" "uuid") IS 'Returns count of billable users for an account. Excludes support and agency roles which don''t count toward max_users limit.';
+
 
 
 CREATE OR REPLACE FUNCTION "public"."get_accounts_eligible_for_deletion"("retention_days" integer DEFAULT 90) RETURNS TABLE("id" "uuid", "email" "text", "deleted_at" timestamp with time zone, "days_since_deletion" integer)
@@ -2267,7 +2325,7 @@ CREATE OR REPLACE FUNCTION "public"."trigger_gbp_post_published"() RETURNS "trig
     LANGUAGE "plpgsql" SECURITY DEFINER
     AS $$
 BEGIN
-  -- Only count when status changes to 'completed' (previously incorrectly used 'published')
+  -- Only count when status changes to 'completed' (published)
   IF NEW.status = 'completed' AND (OLD IS NULL OR OLD.status != 'completed') THEN
     PERFORM increment_metric('total_gbp_posts_published', 1);
   END IF;
@@ -2277,6 +2335,10 @@ $$;
 
 
 ALTER FUNCTION "public"."trigger_gbp_post_published"() OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."trigger_gbp_post_published"() IS 'Increments the total_gbp_posts_published metric when a scheduled post status changes to completed';
+
 
 
 CREATE OR REPLACE FUNCTION "public"."trigger_populate_account_user_fields"() RETURNS "trigger"
@@ -2436,6 +2498,44 @@ $$;
 
 
 ALTER FUNCTION "public"."update_account_invitations_updated_at"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."update_backlink_domains_updated_at"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$
+BEGIN
+  NEW.updated_at := NOW();
+  RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."update_backlink_domains_updated_at"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."update_backlink_next_scheduled_at"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$
+BEGIN
+  IF NEW.schedule_frequency IS NOT NULL AND NEW.is_enabled = true THEN
+    NEW.next_scheduled_at := calculate_backlink_next_scheduled_at(
+      NEW.schedule_frequency,
+      NEW.schedule_day_of_week,
+      NEW.schedule_day_of_month,
+      NEW.schedule_hour,
+      COALESCE(NEW.last_scheduled_run_at, NOW())
+    );
+  ELSE
+    NEW.next_scheduled_at := NULL;
+  END IF;
+
+  NEW.updated_at := NOW();
+  RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."update_backlink_next_scheduled_at"() OWNER TO "postgres";
 
 
 CREATE OR REPLACE FUNCTION "public"."update_campaign_actions_updated_at"() RETURNS "trigger"
@@ -2839,7 +2939,7 @@ CREATE TABLE IF NOT EXISTS "public"."account_invitations" (
     "accepted_at" timestamp with time zone,
     "created_at" timestamp with time zone DEFAULT "now"(),
     "updated_at" timestamp with time zone DEFAULT "now"(),
-    CONSTRAINT "account_invitations_role_check" CHECK (("role" = ANY (ARRAY['owner'::"text", 'member'::"text", 'support'::"text"])))
+    CONSTRAINT "account_invitations_role_check" CHECK (("role" = ANY (ARRAY['owner'::"text", 'admin'::"text", 'member'::"text", 'support'::"text", 'agency_manager'::"text", 'agency_billing_manager'::"text"])))
 );
 
 
@@ -2867,7 +2967,7 @@ CREATE TABLE IF NOT EXISTS "public"."account_users" (
     "user_email" "text",
     "business_name" "text",
     "account_name" "text",
-    CONSTRAINT "account_users_role_check" CHECK (("role" = ANY (ARRAY['owner'::"text", 'member'::"text", 'support'::"text"])))
+    CONSTRAINT "account_users_role_check" CHECK (("role" = ANY (ARRAY['owner'::"text", 'admin'::"text", 'member'::"text", 'support'::"text", 'agency_manager'::"text", 'agency_billing_manager'::"text"])))
 );
 
 
@@ -2899,6 +2999,10 @@ COMMENT ON COLUMN "public"."account_users"."business_name" IS 'Auto-populated fr
 
 
 COMMENT ON COLUMN "public"."account_users"."account_name" IS 'Display name of the account owner (first_name + last_name or email)';
+
+
+
+COMMENT ON CONSTRAINT "account_users_role_check" ON "public"."account_users" IS 'Valid roles: owner, admin, member, support (internal), agency_manager (agency access, no billing), agency_billing_manager (agency access with billing)';
 
 
 
@@ -3008,6 +3112,9 @@ CREATE TABLE IF NOT EXISTS "public"."businesses" (
     "twitter_url" "text",
     "location_code" integer,
     "location_name" "text",
+    "fun_facts" "jsonb" DEFAULT '[]'::"jsonb",
+    "is_location_based" boolean DEFAULT true,
+    "location_aliases" "text"[] DEFAULT '{}'::"text"[],
     CONSTRAINT "check_background_type" CHECK (("background_type" = ANY (ARRAY['solid'::"text", 'gradient'::"text"]))),
     CONSTRAINT "check_card_backdrop_blur" CHECK ((("card_backdrop_blur" >= 0) AND ("card_backdrop_blur" <= 20))),
     CONSTRAINT "check_card_border_transparency" CHECK ((("card_border_transparency" >= (0)::numeric) AND ("card_border_transparency" <= (1)::numeric))),
@@ -3404,6 +3511,18 @@ COMMENT ON COLUMN "public"."businesses"."location_name" IS 'Human-readable locat
 
 
 
+COMMENT ON COLUMN "public"."businesses"."fun_facts" IS 'Array of fun facts with label and value: [{id, label, value, created_at}]';
+
+
+
+COMMENT ON COLUMN "public"."businesses"."is_location_based" IS 'Whether to include location in AI-generated review phrases';
+
+
+
+COMMENT ON COLUMN "public"."businesses"."location_aliases" IS 'City/area name variations (e.g., Portland, PDX, Rose City)';
+
+
+
 CREATE OR REPLACE VIEW "public"."account_users_readable" AS
  SELECT "au"."account_id",
     "au"."user_id",
@@ -3471,15 +3590,20 @@ CREATE TABLE IF NOT EXISTS "public"."accounts" (
     "had_paid_plan" boolean DEFAULT false,
     "created_by_user_id" "uuid",
     "created_by" "uuid",
-    "sentiment_analyses_this_month" integer DEFAULT 0,
-    "sentiment_last_reset_date" "date" DEFAULT CURRENT_DATE,
-    "keyword_analyses_this_month" integer DEFAULT 0,
     "keyword_last_reset_date" "date",
-    "keyword_suggestions_this_month" integer DEFAULT 0,
-    "keyword_suggestions_last_reset_date" "date",
     "is_client_account" boolean DEFAULT false,
     "monthly_credit_allocation" integer,
     "low_balance_warning_count" integer DEFAULT 0,
+    "is_agncy" boolean DEFAULT false,
+    "agncy_trial_start" timestamp with time zone,
+    "agncy_trial_end" timestamp with time zone,
+    "agncy_type" "text",
+    "agncy_employee_count" "text",
+    "agncy_expected_clients" "text",
+    "agncy_multi_location_pct" "text",
+    "managing_agncy_id" "uuid",
+    "agncy_billing_owner" "text" DEFAULT 'client'::"text",
+    CONSTRAINT "accounts_agncy_billing_owner_check" CHECK (("agncy_billing_owner" = ANY (ARRAY['client'::"text", 'agency'::"text"]))),
     CONSTRAINT "accounts_billing_period_check" CHECK (("billing_period" = ANY (ARRAY['monthly'::"text", 'annual'::"text"])))
 );
 
@@ -3639,19 +3763,96 @@ COMMENT ON COLUMN "public"."accounts"."created_by" IS 'User who initiated accoun
 
 
 
-COMMENT ON COLUMN "public"."accounts"."sentiment_analyses_this_month" IS 'Counter for sentiment analyses run this month, resets monthly';
-
-
-
-COMMENT ON COLUMN "public"."accounts"."sentiment_last_reset_date" IS 'Date when sentiment analysis counter was last reset';
-
-
-
 COMMENT ON COLUMN "public"."accounts"."is_client_account" IS 'When true, account receives monthly credits even without a paid subscription';
 
 
 
 COMMENT ON COLUMN "public"."accounts"."monthly_credit_allocation" IS 'Custom monthly credit amount. If NULL, uses plan default. If set, overrides plan tier.';
+
+
+
+COMMENT ON COLUMN "public"."accounts"."low_balance_warning_count" IS 'Number of low credit balance warnings sent this billing period (max 2). Reset to 0 when monthly credits are granted.';
+
+
+
+COMMENT ON COLUMN "public"."accounts"."is_agncy" IS 'Whether this account is an agency account';
+
+
+
+COMMENT ON COLUMN "public"."accounts"."agncy_trial_start" IS 'Start of 30-day agency trial period';
+
+
+
+COMMENT ON COLUMN "public"."accounts"."agncy_trial_end" IS 'End of 30-day agency trial period';
+
+
+
+COMMENT ON COLUMN "public"."accounts"."agncy_type" IS 'Type of agency: freelancer, small_agency, mid_agency, enterprise';
+
+
+
+COMMENT ON COLUMN "public"."accounts"."agncy_employee_count" IS 'Number of employees at the agency';
+
+
+
+COMMENT ON COLUMN "public"."accounts"."agncy_expected_clients" IS 'Expected number of client accounts';
+
+
+
+COMMENT ON COLUMN "public"."accounts"."agncy_multi_location_pct" IS 'Percentage of clients expected to be multi-location';
+
+
+
+COMMENT ON COLUMN "public"."accounts"."managing_agncy_id" IS 'ID of the agency account managing this client account';
+
+
+
+COMMENT ON COLUMN "public"."accounts"."agncy_billing_owner" IS 'Who owns billing for this account: client or agency';
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."agncy_client_access" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "agency_account_id" "uuid" NOT NULL,
+    "client_account_id" "uuid" NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "role" "text" DEFAULT 'manager'::"text" NOT NULL,
+    "status" "text" DEFAULT 'pending'::"text" NOT NULL,
+    "invited_at" timestamp with time zone DEFAULT "now"(),
+    "accepted_at" timestamp with time zone,
+    "removed_at" timestamp with time zone,
+    "removed_by" "uuid",
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "updated_at" timestamp with time zone DEFAULT "now"(),
+    CONSTRAINT "agncy_client_access_role_check" CHECK (("role" = ANY (ARRAY['manager'::"text", 'billing_manager'::"text"]))),
+    CONSTRAINT "agncy_client_access_status_check" CHECK (("status" = ANY (ARRAY['pending'::"text", 'active'::"text", 'removed'::"text"])))
+);
+
+
+ALTER TABLE "public"."agncy_client_access" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."agncy_client_access" IS 'Tracks agency user access to client accounts';
+
+
+
+COMMENT ON COLUMN "public"."agncy_client_access"."agency_account_id" IS 'The agency account that owns this relationship';
+
+
+
+COMMENT ON COLUMN "public"."agncy_client_access"."client_account_id" IS 'The client account being managed';
+
+
+
+COMMENT ON COLUMN "public"."agncy_client_access"."user_id" IS 'The agency user who has access';
+
+
+
+COMMENT ON COLUMN "public"."agncy_client_access"."role" IS 'Access level: manager (no billing) or billing_manager (with billing)';
+
+
+
+COMMENT ON COLUMN "public"."agncy_client_access"."status" IS 'Relationship status: pending, active, or removed';
 
 
 
@@ -3895,6 +4096,182 @@ COMMENT ON COLUMN "public"."audit_logs"."event_category" IS 'Category of event: 
 
 
 COMMENT ON COLUMN "public"."audit_logs"."details" IS 'Additional event details and context as JSON';
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."backlink_anchors" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "account_id" "uuid" NOT NULL,
+    "check_id" "uuid" NOT NULL,
+    "anchor_text" "text" NOT NULL,
+    "backlinks_count" integer DEFAULT 0,
+    "referring_domains_count" integer DEFAULT 0,
+    "first_seen" "date",
+    "last_seen" "date",
+    "rank" integer,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL
+);
+
+
+ALTER TABLE "public"."backlink_anchors" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."backlink_anchors" IS 'Anchor text distribution for each check';
+
+
+
+COMMENT ON COLUMN "public"."backlink_anchors"."anchor_text" IS 'The anchor text used in backlinks';
+
+
+
+COMMENT ON COLUMN "public"."backlink_anchors"."backlinks_count" IS 'Number of backlinks using this anchor';
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."backlink_checks" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "account_id" "uuid" NOT NULL,
+    "domain_id" "uuid" NOT NULL,
+    "backlinks_total" integer DEFAULT 0,
+    "referring_domains_total" integer DEFAULT 0,
+    "referring_domains_nofollow" integer DEFAULT 0,
+    "referring_main_domains" integer DEFAULT 0,
+    "referring_ips" integer DEFAULT 0,
+    "referring_subnets" integer DEFAULT 0,
+    "rank" integer,
+    "backlinks_follow" integer DEFAULT 0,
+    "backlinks_nofollow" integer DEFAULT 0,
+    "backlinks_text" integer DEFAULT 0,
+    "backlinks_image" integer DEFAULT 0,
+    "backlinks_redirect" integer DEFAULT 0,
+    "backlinks_form" integer DEFAULT 0,
+    "backlinks_frame" integer DEFAULT 0,
+    "referring_pages" integer DEFAULT 0,
+    "api_cost_usd" numeric(10,6),
+    "checked_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL
+);
+
+
+ALTER TABLE "public"."backlink_checks" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."backlink_checks" IS 'Individual backlink check results over time';
+
+
+
+COMMENT ON COLUMN "public"."backlink_checks"."backlinks_total" IS 'Total number of backlinks pointing to domain';
+
+
+
+COMMENT ON COLUMN "public"."backlink_checks"."referring_domains_total" IS 'Total unique domains linking to target';
+
+
+
+COMMENT ON COLUMN "public"."backlink_checks"."rank" IS 'DataForSEO Rank - domain authority score (0-1000)';
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."backlink_domains" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "account_id" "uuid" NOT NULL,
+    "domain" "text" NOT NULL,
+    "schedule_frequency" "text",
+    "schedule_day_of_week" integer,
+    "schedule_day_of_month" integer,
+    "schedule_hour" integer DEFAULT 9 NOT NULL,
+    "next_scheduled_at" timestamp with time zone,
+    "last_scheduled_run_at" timestamp with time zone,
+    "is_enabled" boolean DEFAULT true NOT NULL,
+    "last_checked_at" timestamp with time zone,
+    "last_credit_warning_sent_at" timestamp with time zone,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "backlink_domains_schedule_day_of_month_check" CHECK ((("schedule_day_of_month" >= 1) AND ("schedule_day_of_month" <= 28))),
+    CONSTRAINT "backlink_domains_schedule_day_of_week_check" CHECK ((("schedule_day_of_week" >= 0) AND ("schedule_day_of_week" <= 6))),
+    CONSTRAINT "backlink_domains_schedule_frequency_check" CHECK (("schedule_frequency" = ANY (ARRAY['daily'::"text", 'weekly'::"text", 'monthly'::"text"]))),
+    CONSTRAINT "backlink_domains_schedule_hour_check" CHECK ((("schedule_hour" >= 0) AND ("schedule_hour" <= 23)))
+);
+
+
+ALTER TABLE "public"."backlink_domains" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."backlink_domains" IS 'Domains being tracked for backlink monitoring';
+
+
+
+COMMENT ON COLUMN "public"."backlink_domains"."domain" IS 'Domain to track (e.g., "example.com")';
+
+
+
+COMMENT ON COLUMN "public"."backlink_domains"."schedule_frequency" IS 'How often to check: daily, weekly, monthly';
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."backlink_new_lost" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "account_id" "uuid" NOT NULL,
+    "domain_id" "uuid" NOT NULL,
+    "check_id" "uuid" NOT NULL,
+    "change_type" "text" NOT NULL,
+    "source_url" "text",
+    "source_domain" "text",
+    "target_url" "text",
+    "anchor_text" "text",
+    "link_type" "text",
+    "is_follow" boolean DEFAULT true,
+    "first_seen" "date",
+    "last_seen" "date",
+    "source_rank" integer,
+    "detected_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "backlink_new_lost_change_type_check" CHECK (("change_type" = ANY (ARRAY['new'::"text", 'lost'::"text"])))
+);
+
+
+ALTER TABLE "public"."backlink_new_lost" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."backlink_new_lost" IS 'New and lost backlinks detected during checks';
+
+
+
+COMMENT ON COLUMN "public"."backlink_new_lost"."change_type" IS 'Whether this is a new or lost backlink';
+
+
+
+COMMENT ON COLUMN "public"."backlink_new_lost"."source_rank" IS 'DataForSEO Rank of the source domain';
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."backlink_referring_domains" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "account_id" "uuid" NOT NULL,
+    "check_id" "uuid" NOT NULL,
+    "referring_domain" "text" NOT NULL,
+    "backlinks_count" integer DEFAULT 0,
+    "rank" integer,
+    "backlinks_spam_score" numeric(5,2),
+    "first_seen" "date",
+    "last_seen" "date",
+    "is_follow" boolean DEFAULT true,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL
+);
+
+
+ALTER TABLE "public"."backlink_referring_domains" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."backlink_referring_domains" IS 'Top referring domains for each check';
+
+
+
+COMMENT ON COLUMN "public"."backlink_referring_domains"."rank" IS 'DataForSEO Rank of the referring domain';
+
+
+
+COMMENT ON COLUMN "public"."backlink_referring_domains"."backlinks_spam_score" IS 'Spam score (0-100) of the referring domain';
 
 
 
@@ -4365,6 +4742,8 @@ CREATE TABLE IF NOT EXISTS "public"."competitors" (
     "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "created_by" "uuid",
     "updated_by" "uuid",
+    "description" "text",
+    "pricing_description" "text",
     CONSTRAINT "competitors_name_not_empty" CHECK (("length"(TRIM(BOTH FROM "name")) > 0)),
     CONSTRAINT "competitors_status_check" CHECK (("status" = ANY (ARRAY['active'::"text", 'archived'::"text"]))),
     CONSTRAINT "competitors_valid_slug" CHECK (("slug" ~ '^[a-z0-9-]+$'::"text"))
@@ -4379,6 +4758,10 @@ COMMENT ON TABLE "public"."competitors" IS 'Competitor profiles for comparison t
 
 
 COMMENT ON COLUMN "public"."competitors"."pricing" IS 'JSONB with pricing tiers: {"tier": {"price": number, "period": "month"|"year"}}';
+
+
+
+COMMENT ON COLUMN "public"."competitors"."description" IS 'Brief company description (4-5 sentences) shown on hover in comparison tables';
 
 
 
@@ -4402,6 +4785,7 @@ CREATE TABLE IF NOT EXISTS "public"."concept_schedules" (
     "paused_llm_schedule_id" "uuid",
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "review_matching_enabled" boolean DEFAULT false NOT NULL,
     CONSTRAINT "concept_schedules_schedule_day_of_month_check" CHECK ((("schedule_day_of_month" IS NULL) OR (("schedule_day_of_month" >= 1) AND ("schedule_day_of_month" <= 28)))),
     CONSTRAINT "concept_schedules_schedule_day_of_week_check" CHECK ((("schedule_day_of_week" IS NULL) OR (("schedule_day_of_week" >= 0) AND ("schedule_day_of_week" <= 6)))),
     CONSTRAINT "concept_schedules_schedule_frequency_check" CHECK ((("schedule_frequency" IS NULL) OR (("schedule_frequency")::"text" = ANY ((ARRAY['daily'::character varying, 'weekly'::character varying, 'monthly'::character varying])::"text"[])))),
@@ -4410,6 +4794,10 @@ CREATE TABLE IF NOT EXISTS "public"."concept_schedules" (
 
 
 ALTER TABLE "public"."concept_schedules" OWNER TO "postgres";
+
+
+COMMENT ON COLUMN "public"."concept_schedules"."review_matching_enabled" IS 'When true, scheduled runs will scan all reviews for keyword matches and update usage counts';
+
 
 
 CREATE TABLE IF NOT EXISTS "public"."contacts" (
@@ -4598,7 +4986,7 @@ CREATE TABLE IF NOT EXISTS "public"."credit_pricing_rules" (
 ALTER TABLE "public"."credit_pricing_rules" OWNER TO "postgres";
 
 
-COMMENT ON TABLE "public"."credit_pricing_rules" IS 'Configurable pricing for credit-based features.';
+COMMENT ON TABLE "public"."credit_pricing_rules" IS 'Credit pricing rules for all features. Sentiment analysis uses tiered pricing based on review count.';
 
 
 
@@ -4665,6 +5053,27 @@ ALTER TABLE "public"."critical_function_health" OWNER TO "postgres";
 
 
 COMMENT ON VIEW "public"."critical_function_health" IS 'INTERNAL ADMIN ONLY: Global critical function health metrics across all tenants (function names, failure rates, average runtime). Access restricted to service_role. Query via authenticated admin API routes that check permissions before using service role.';
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."cron_execution_logs" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "job_name" "text" NOT NULL,
+    "started_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "completed_at" timestamp with time zone,
+    "status" "text" DEFAULT 'running'::"text" NOT NULL,
+    "duration_ms" integer,
+    "summary" "jsonb",
+    "error_message" "text",
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    CONSTRAINT "cron_logs_status_check" CHECK (("status" = ANY (ARRAY['running'::"text", 'success'::"text", 'error'::"text"])))
+);
+
+
+ALTER TABLE "public"."cron_execution_logs" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."cron_execution_logs" IS 'Logs execution history of cron jobs for monitoring and debugging';
 
 
 
@@ -5383,32 +5792,6 @@ COMMENT ON COLUMN "public"."invitation_events"."event_data" IS 'Additional event
 
 
 
-CREATE TABLE IF NOT EXISTS "public"."keyword_analysis_runs" (
-    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
-    "account_id" "uuid" NOT NULL,
-    "run_date" timestamp with time zone DEFAULT "now"() NOT NULL,
-    "review_count_analyzed" integer DEFAULT 0 NOT NULL,
-    "date_range_start" timestamp with time zone,
-    "date_range_end" timestamp with time zone,
-    "keywords_analyzed" "text"[] DEFAULT '{}'::"text"[] NOT NULL,
-    "results_json" "jsonb" DEFAULT '[]'::"jsonb" NOT NULL,
-    "total_mentions" integer DEFAULT 0 NOT NULL,
-    "keywords_with_mentions" integer DEFAULT 0 NOT NULL,
-    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL
-);
-
-
-ALTER TABLE "public"."keyword_analysis_runs" OWNER TO "postgres";
-
-
-COMMENT ON TABLE "public"."keyword_analysis_runs" IS 'Stores historical keyword mention analysis results for tracking trends over time';
-
-
-
-COMMENT ON COLUMN "public"."keyword_analysis_runs"."results_json" IS 'Array of keyword results: [{ keyword, mentionCount, reviewIds, excerpts }]';
-
-
-
 CREATE TABLE IF NOT EXISTS "public"."keyword_groups" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "account_id" "uuid" NOT NULL,
@@ -5498,6 +5881,30 @@ COMMENT ON COLUMN "public"."keyword_questions"."funnel_stage" IS 'Marketing funn
 
 
 
+CREATE TABLE IF NOT EXISTS "public"."keyword_research_results" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "account_id" "uuid" NOT NULL,
+    "term" "text" NOT NULL,
+    "normalized_term" "text" NOT NULL,
+    "search_volume" integer,
+    "cpc" numeric(10,2),
+    "competition" numeric(5,4),
+    "competition_level" "text",
+    "search_volume_trend" "jsonb",
+    "monthly_searches" "jsonb",
+    "location_code" integer NOT NULL,
+    "location_name" "text" NOT NULL,
+    "keyword_id" "uuid",
+    "linked_at" timestamp with time zone,
+    "researched_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "updated_at" timestamp with time zone DEFAULT "now"()
+);
+
+
+ALTER TABLE "public"."keyword_research_results" OWNER TO "postgres";
+
+
 CREATE TABLE IF NOT EXISTS "public"."keyword_review_matches_v2" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "keyword_id" "uuid" NOT NULL,
@@ -5584,6 +5991,8 @@ CREATE TABLE IF NOT EXISTS "public"."keywords" (
     "search_volume_trend" "jsonb",
     "metrics_updated_at" timestamp with time zone,
     "search_terms" "jsonb" DEFAULT '[]'::"jsonb",
+    "search_volume_location_code" integer,
+    "search_volume_location_name" "text",
     CONSTRAINT "keywords_competition_level_check" CHECK ((("competition_level" IS NULL) OR ("competition_level" = ANY (ARRAY['LOW'::"text", 'MEDIUM'::"text", 'HIGH'::"text"])))),
     CONSTRAINT "keywords_keyword_difficulty_check" CHECK ((("keyword_difficulty" IS NULL) OR (("keyword_difficulty" >= 0) AND ("keyword_difficulty" <= 100)))),
     CONSTRAINT "keywords_location_scope_check" CHECK ((("location_scope" IS NULL) OR ("location_scope" = ANY (ARRAY['local'::"text", 'city'::"text", 'region'::"text", 'state'::"text", 'national'::"text"])))),
@@ -5692,6 +6101,18 @@ COMMENT ON COLUMN "public"."keywords"."search_volume_trend" IS 'Search volume tr
 
 
 COMMENT ON COLUMN "public"."keywords"."metrics_updated_at" IS 'When SEO metrics were last fetched from DataForSEO';
+
+
+
+COMMENT ON COLUMN "public"."keywords"."search_terms" IS 'Array of search terms for SERP tracking. Each entry: {term: string, is_canonical: boolean, added_at: timestamp}. One term should have is_canonical=true.';
+
+
+
+COMMENT ON COLUMN "public"."keywords"."search_volume_location_code" IS 'DataForSEO location code used for volume lookup (e.g., 2840 = USA)';
+
+
+
+COMMENT ON COLUMN "public"."keywords"."search_volume_location_name" IS 'Human-readable location name for volume data (e.g., "Oregon, United States")';
 
 
 
@@ -5819,6 +6240,8 @@ CREATE TABLE IF NOT EXISTS "public"."prompt_pages" (
     "keyword_auto_rotate_enabled" boolean DEFAULT false,
     "keyword_auto_rotate_threshold" integer DEFAULT 16,
     "keyword_active_pool_size" integer DEFAULT 10,
+    "fun_facts_enabled" boolean DEFAULT false,
+    "selected_fun_facts" "jsonb",
     CONSTRAINT "check_universal_or_location" CHECK (((("is_universal" = true) AND ("business_location_id" IS NULL)) OR ("is_universal" = false))),
     CONSTRAINT "prompt_pages_recent_reviews_scope_check" CHECK (("recent_reviews_scope" = ANY (ARRAY['current_page'::"text", 'all_pages'::"text"])))
 );
@@ -6131,6 +6554,14 @@ COMMENT ON COLUMN "public"."prompt_pages"."keyword_active_pool_size" IS 'Maximum
 
 
 
+COMMENT ON COLUMN "public"."prompt_pages"."fun_facts_enabled" IS 'Whether fun facts feature is enabled for this prompt page';
+
+
+
+COMMENT ON COLUMN "public"."prompt_pages"."selected_fun_facts" IS 'Array of selected fun fact IDs for this prompt page, null means inherit from business';
+
+
+
 CREATE OR REPLACE VIEW "public"."keyword_rotation_status" WITH ("security_invoker"='true') AS
  SELECT "kppu"."prompt_page_id",
     "kppu"."account_id",
@@ -6152,45 +6583,6 @@ ALTER TABLE "public"."keyword_rotation_status" OWNER TO "postgres";
 
 COMMENT ON VIEW "public"."keyword_rotation_status" IS 'Aggregated keyword rotation status per prompt page. Uses SECURITY INVOKER to respect RLS on underlying tables.';
 
-
-
-CREATE TABLE IF NOT EXISTS "public"."keyword_set_locations" (
-    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
-    "keyword_set_id" "uuid" NOT NULL,
-    "google_business_location_id" "uuid" NOT NULL,
-    "created_at" timestamp with time zone DEFAULT "now"()
-);
-
-
-ALTER TABLE "public"."keyword_set_locations" OWNER TO "postgres";
-
-
-CREATE TABLE IF NOT EXISTS "public"."keyword_set_terms" (
-    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
-    "keyword_set_id" "uuid" NOT NULL,
-    "phrase" "text" NOT NULL,
-    "normalized_phrase" "text" NOT NULL,
-    "created_at" timestamp with time zone DEFAULT "now"()
-);
-
-
-ALTER TABLE "public"."keyword_set_terms" OWNER TO "postgres";
-
-
-CREATE TABLE IF NOT EXISTS "public"."keyword_sets" (
-    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
-    "account_id" "uuid" NOT NULL,
-    "name" "text" NOT NULL,
-    "scope_type" "text" DEFAULT 'account'::"text" NOT NULL,
-    "scope_payload" "jsonb" DEFAULT '{}'::"jsonb",
-    "created_by" "uuid",
-    "is_active" boolean DEFAULT true,
-    "created_at" timestamp with time zone DEFAULT "now"(),
-    "updated_at" timestamp with time zone DEFAULT "now"()
-);
-
-
-ALTER TABLE "public"."keyword_sets" OWNER TO "postgres";
 
 
 CREATE TABLE IF NOT EXISTS "public"."kickstarters" (
@@ -6777,7 +7169,23 @@ COMMENT ON TABLE "public"."rank_checks" IS 'Individual rank check results over t
 
 
 
+COMMENT ON COLUMN "public"."rank_checks"."group_id" IS 'Optional reference to a rank keyword group. NULL for manual single-keyword checks.';
+
+
+
 COMMENT ON COLUMN "public"."rank_checks"."search_query_used" IS 'Actual query sent to API (from keywords.search_query or keywords.phrase)';
+
+
+
+COMMENT ON COLUMN "public"."rank_checks"."location_code" IS 'DataForSEO location code used for this check';
+
+
+
+COMMENT ON COLUMN "public"."rank_checks"."location_name" IS 'Location name for display (e.g., "Portland, Oregon, United States")';
+
+
+
+COMMENT ON COLUMN "public"."rank_checks"."device" IS 'Device type: desktop or mobile';
 
 
 
@@ -7491,6 +7899,23 @@ COMMENT ON COLUMN "public"."trial_reminder_logs"."error_message" IS 'Error messa
 
 
 
+CREATE TABLE IF NOT EXISTS "public"."user_profiles" (
+    "id" "uuid" NOT NULL,
+    "first_name" "text",
+    "last_name" "text",
+    "avatar_url" "text",
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "updated_at" timestamp with time zone DEFAULT "now"()
+);
+
+
+ALTER TABLE "public"."user_profiles" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."user_profiles" IS 'User profile data including names for display in UI';
+
+
+
 CREATE TABLE IF NOT EXISTS "public"."widget_reviews" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "widget_id" "uuid" NOT NULL,
@@ -7573,6 +7998,60 @@ COMMENT ON COLUMN "public"."wm_boards"."status_labels" IS 'Custom labels for sta
 
 
 
+CREATE TABLE IF NOT EXISTS "public"."wm_library_pack_tasks" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "pack_id" "uuid" NOT NULL,
+    "task_id" "uuid" NOT NULL,
+    "sort_order" integer DEFAULT 0
+);
+
+
+ALTER TABLE "public"."wm_library_pack_tasks" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."wm_library_packs" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "name" "text" NOT NULL,
+    "description" "text",
+    "icon" "text",
+    "sort_order" integer DEFAULT 0,
+    "is_active" boolean DEFAULT true,
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "updated_at" timestamp with time zone DEFAULT "now"()
+);
+
+
+ALTER TABLE "public"."wm_library_packs" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."wm_library_tasks" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "title" "text" NOT NULL,
+    "description" "text",
+    "instructions" "text",
+    "education" "text",
+    "category" "text" NOT NULL,
+    "goals" "text"[] DEFAULT '{}'::"text"[],
+    "page_types" "text"[] DEFAULT '{}'::"text"[],
+    "offsite_sources" "text"[] DEFAULT '{}'::"text"[],
+    "difficulty" "text" NOT NULL,
+    "time_estimate" "text" NOT NULL,
+    "relevant_tools" "jsonb" DEFAULT '[]'::"jsonb",
+    "sort_order" integer DEFAULT 0,
+    "is_active" boolean DEFAULT true,
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "updated_at" timestamp with time zone DEFAULT "now"(),
+    "further_reading" "jsonb" DEFAULT '[]'::"jsonb"
+);
+
+
+ALTER TABLE "public"."wm_library_tasks" OWNER TO "postgres";
+
+
+COMMENT ON COLUMN "public"."wm_library_tasks"."further_reading" IS 'Array of external resource links: [{title: string, url: string, source: string}]';
+
+
+
 CREATE TABLE IF NOT EXISTS "public"."wm_task_actions" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "task_id" "uuid" NOT NULL,
@@ -7605,7 +8084,9 @@ CREATE TABLE IF NOT EXISTS "public"."wm_tasks" (
     "sort_order" integer DEFAULT 0,
     "created_by" "uuid",
     "created_at" timestamp with time zone DEFAULT "now"(),
-    "updated_at" timestamp with time zone DEFAULT "now"()
+    "updated_at" timestamp with time zone DEFAULT "now"(),
+    "source_type" "text",
+    "source_reference" "text"
 );
 
 
@@ -7617,6 +8098,14 @@ COMMENT ON TABLE "public"."wm_tasks" IS 'Work Manager tasks - individual work it
 
 
 COMMENT ON COLUMN "public"."wm_tasks"."sort_order" IS 'Order within a status column for drag-and-drop';
+
+
+
+COMMENT ON COLUMN "public"."wm_tasks"."source_type" IS 'Source of task creation: manual, gbp_suggestion, etc.';
+
+
+
+COMMENT ON COLUMN "public"."wm_tasks"."source_reference" IS 'Reference ID from source system (e.g., GBP suggestion ID)';
 
 
 
@@ -7660,6 +8149,16 @@ ALTER TABLE ONLY "public"."account_users"
 
 ALTER TABLE ONLY "public"."accounts"
     ADD CONSTRAINT "accounts_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."agncy_client_access"
+    ADD CONSTRAINT "agncy_client_access_agency_account_id_client_account_id_use_key" UNIQUE ("agency_account_id", "client_account_id", "user_id");
+
+
+
+ALTER TABLE ONLY "public"."agncy_client_access"
+    ADD CONSTRAINT "agncy_client_access_pkey" PRIMARY KEY ("id");
 
 
 
@@ -7710,6 +8209,36 @@ ALTER TABLE ONLY "public"."articles"
 
 ALTER TABLE ONLY "public"."audit_logs"
     ADD CONSTRAINT "audit_logs_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."backlink_anchors"
+    ADD CONSTRAINT "backlink_anchors_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."backlink_checks"
+    ADD CONSTRAINT "backlink_checks_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."backlink_domains"
+    ADD CONSTRAINT "backlink_domains_account_id_domain_key" UNIQUE ("account_id", "domain");
+
+
+
+ALTER TABLE ONLY "public"."backlink_domains"
+    ADD CONSTRAINT "backlink_domains_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."backlink_new_lost"
+    ADD CONSTRAINT "backlink_new_lost_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."backlink_referring_domains"
+    ADD CONSTRAINT "backlink_referring_domains_pkey" PRIMARY KEY ("id");
 
 
 
@@ -7888,6 +8417,11 @@ ALTER TABLE ONLY "public"."critical_function_successes"
 
 
 
+ALTER TABLE ONLY "public"."cron_execution_logs"
+    ADD CONSTRAINT "cron_execution_logs_pkey" PRIMARY KEY ("id");
+
+
+
 ALTER TABLE ONLY "public"."daily_stats"
     ADD CONSTRAINT "daily_stats_pkey" PRIMARY KEY ("date");
 
@@ -8057,11 +8591,6 @@ ALTER TABLE ONLY "public"."invitation_events"
 
 
 
-ALTER TABLE ONLY "public"."keyword_analysis_runs"
-    ADD CONSTRAINT "keyword_analysis_runs_pkey" PRIMARY KEY ("id");
-
-
-
 ALTER TABLE ONLY "public"."keyword_groups"
     ADD CONSTRAINT "keyword_groups_account_id_name_key" UNIQUE ("account_id", "name");
 
@@ -8092,6 +8621,16 @@ ALTER TABLE ONLY "public"."keyword_questions"
 
 
 
+ALTER TABLE ONLY "public"."keyword_research_results"
+    ADD CONSTRAINT "keyword_research_results_account_id_normalized_term_locatio_key" UNIQUE ("account_id", "normalized_term", "location_code");
+
+
+
+ALTER TABLE ONLY "public"."keyword_research_results"
+    ADD CONSTRAINT "keyword_research_results_pkey" PRIMARY KEY ("id");
+
+
+
 ALTER TABLE ONLY "public"."keyword_review_matches_v2"
     ADD CONSTRAINT "keyword_review_matches_v2_pkey" PRIMARY KEY ("id");
 
@@ -8099,21 +8638,6 @@ ALTER TABLE ONLY "public"."keyword_review_matches_v2"
 
 ALTER TABLE ONLY "public"."keyword_rotation_log"
     ADD CONSTRAINT "keyword_rotation_log_pkey" PRIMARY KEY ("id");
-
-
-
-ALTER TABLE ONLY "public"."keyword_set_locations"
-    ADD CONSTRAINT "keyword_set_locations_pkey" PRIMARY KEY ("id");
-
-
-
-ALTER TABLE ONLY "public"."keyword_set_terms"
-    ADD CONSTRAINT "keyword_set_terms_pkey" PRIMARY KEY ("id");
-
-
-
-ALTER TABLE ONLY "public"."keyword_sets"
-    ADD CONSTRAINT "keyword_sets_pkey" PRIMARY KEY ("id");
 
 
 
@@ -8427,6 +8951,11 @@ ALTER TABLE ONLY "public"."account_users"
 
 
 
+ALTER TABLE ONLY "public"."user_profiles"
+    ADD CONSTRAINT "user_profiles_pkey" PRIMARY KEY ("id");
+
+
+
 ALTER TABLE ONLY "public"."widget_reviews"
     ADD CONSTRAINT "widget_reviews_pkey" PRIMARY KEY ("id");
 
@@ -8444,6 +8973,26 @@ ALTER TABLE ONLY "public"."wm_boards"
 
 ALTER TABLE ONLY "public"."wm_boards"
     ADD CONSTRAINT "wm_boards_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."wm_library_pack_tasks"
+    ADD CONSTRAINT "wm_library_pack_tasks_pack_id_task_id_key" UNIQUE ("pack_id", "task_id");
+
+
+
+ALTER TABLE ONLY "public"."wm_library_pack_tasks"
+    ADD CONSTRAINT "wm_library_pack_tasks_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."wm_library_packs"
+    ADD CONSTRAINT "wm_library_packs_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."wm_library_tasks"
+    ADD CONSTRAINT "wm_library_tasks_pkey" PRIMARY KEY ("id");
 
 
 
@@ -8573,6 +9122,14 @@ CREATE INDEX "idx_accounts_is_admin" ON "public"."accounts" USING "btree" ("is_a
 
 
 
+CREATE INDEX "idx_accounts_is_agncy" ON "public"."accounts" USING "btree" ("is_agncy") WHERE ("is_agncy" = true);
+
+
+
+CREATE INDEX "idx_accounts_managing_agncy_id" ON "public"."accounts" USING "btree" ("managing_agncy_id") WHERE ("managing_agncy_id" IS NOT NULL);
+
+
+
 CREATE INDEX "idx_accounts_onboarding_step" ON "public"."accounts" USING "btree" ("onboarding_step");
 
 
@@ -8590,6 +9147,22 @@ CREATE INDEX "idx_accounts_promotion_code" ON "public"."accounts" USING "btree" 
 
 
 CREATE INDEX "idx_accounts_trial_end" ON "public"."accounts" USING "btree" ("trial_end");
+
+
+
+CREATE INDEX "idx_agncy_access_agency" ON "public"."agncy_client_access" USING "btree" ("agency_account_id");
+
+
+
+CREATE INDEX "idx_agncy_access_client" ON "public"."agncy_client_access" USING "btree" ("client_account_id");
+
+
+
+CREATE INDEX "idx_agncy_access_status" ON "public"."agncy_client_access" USING "btree" ("status") WHERE ("status" = 'active'::"text");
+
+
+
+CREATE INDEX "idx_agncy_access_user" ON "public"."agncy_client_access" USING "btree" ("user_id");
 
 
 
@@ -8738,6 +9311,62 @@ CREATE INDEX "idx_audit_logs_resource" ON "public"."audit_logs" USING "btree" ("
 
 
 CREATE INDEX "idx_audit_logs_user_id" ON "public"."audit_logs" USING "btree" ("user_id");
+
+
+
+CREATE INDEX "idx_backlink_anchors_account" ON "public"."backlink_anchors" USING "btree" ("account_id");
+
+
+
+CREATE INDEX "idx_backlink_anchors_check" ON "public"."backlink_anchors" USING "btree" ("check_id");
+
+
+
+CREATE INDEX "idx_backlink_checks_account" ON "public"."backlink_checks" USING "btree" ("account_id");
+
+
+
+CREATE INDEX "idx_backlink_checks_checked_at" ON "public"."backlink_checks" USING "btree" ("checked_at" DESC);
+
+
+
+CREATE INDEX "idx_backlink_checks_domain_date" ON "public"."backlink_checks" USING "btree" ("domain_id", "checked_at" DESC);
+
+
+
+CREATE INDEX "idx_backlink_domains_account" ON "public"."backlink_domains" USING "btree" ("account_id");
+
+
+
+CREATE INDEX "idx_backlink_domains_account_enabled" ON "public"."backlink_domains" USING "btree" ("account_id", "is_enabled");
+
+
+
+CREATE INDEX "idx_backlink_domains_schedule" ON "public"."backlink_domains" USING "btree" ("next_scheduled_at") WHERE (("is_enabled" = true) AND ("schedule_frequency" IS NOT NULL));
+
+
+
+CREATE INDEX "idx_backlink_new_lost_account" ON "public"."backlink_new_lost" USING "btree" ("account_id");
+
+
+
+CREATE INDEX "idx_backlink_new_lost_check" ON "public"."backlink_new_lost" USING "btree" ("check_id");
+
+
+
+CREATE INDEX "idx_backlink_new_lost_domain_date" ON "public"."backlink_new_lost" USING "btree" ("domain_id", "detected_at" DESC);
+
+
+
+CREATE INDEX "idx_backlink_new_lost_type" ON "public"."backlink_new_lost" USING "btree" ("domain_id", "change_type");
+
+
+
+CREATE INDEX "idx_backlink_referring_domains_account" ON "public"."backlink_referring_domains" USING "btree" ("account_id");
+
+
+
+CREATE INDEX "idx_backlink_referring_domains_check" ON "public"."backlink_referring_domains" USING "btree" ("check_id");
 
 
 
@@ -9101,6 +9730,18 @@ CREATE INDEX "idx_critical_successes_user" ON "public"."critical_function_succes
 
 
 
+CREATE INDEX "idx_cron_logs_job_name" ON "public"."cron_execution_logs" USING "btree" ("job_name");
+
+
+
+CREATE INDEX "idx_cron_logs_started_at" ON "public"."cron_execution_logs" USING "btree" ("started_at" DESC);
+
+
+
+CREATE INDEX "idx_cron_logs_status" ON "public"."cron_execution_logs" USING "btree" ("status");
+
+
+
 CREATE INDEX "idx_daily_stats_date" ON "public"."daily_stats" USING "btree" ("date" DESC);
 
 
@@ -9385,18 +10026,6 @@ CREATE INDEX "idx_invitation_events_type_date" ON "public"."invitation_events" U
 
 
 
-CREATE INDEX "idx_keyword_analysis_runs_account_date" ON "public"."keyword_analysis_runs" USING "btree" ("account_id", "run_date" DESC);
-
-
-
-CREATE INDEX "idx_keyword_analysis_runs_account_id" ON "public"."keyword_analysis_runs" USING "btree" ("account_id");
-
-
-
-CREATE INDEX "idx_keyword_analysis_runs_run_date" ON "public"."keyword_analysis_runs" USING "btree" ("run_date" DESC);
-
-
-
 CREATE INDEX "idx_keyword_groups_account" ON "public"."keyword_groups" USING "btree" ("account_id");
 
 
@@ -9406,22 +10035,6 @@ CREATE INDEX "idx_keyword_questions_funnel_stage" ON "public"."keyword_questions
 
 
 CREATE INDEX "idx_keyword_questions_keyword_id" ON "public"."keyword_questions" USING "btree" ("keyword_id");
-
-
-
-CREATE UNIQUE INDEX "idx_keyword_set_locations_unique" ON "public"."keyword_set_locations" USING "btree" ("keyword_set_id", "google_business_location_id");
-
-
-
-CREATE UNIQUE INDEX "idx_keyword_set_terms_unique_phrase" ON "public"."keyword_set_terms" USING "btree" ("keyword_set_id", "normalized_phrase");
-
-
-
-CREATE INDEX "idx_keyword_sets_account_id" ON "public"."keyword_sets" USING "btree" ("account_id");
-
-
-
-CREATE UNIQUE INDEX "idx_keyword_sets_account_name_unique" ON "public"."keyword_sets" USING "btree" ("account_id", "lower"("name"));
 
 
 
@@ -9457,7 +10070,15 @@ CREATE INDEX "idx_keywords_search_query" ON "public"."keywords" USING "btree" ("
 
 
 
+CREATE INDEX "idx_keywords_search_terms" ON "public"."keywords" USING "gin" ("search_terms" "jsonb_path_ops");
+
+
+
 CREATE INDEX "idx_keywords_usage" ON "public"."keywords" USING "btree" ("account_id", "review_usage_count" DESC);
+
+
+
+CREATE INDEX "idx_keywords_volume_location" ON "public"."keywords" USING "btree" ("account_id", "search_volume_location_code") WHERE ("search_volume_location_code" IS NOT NULL);
 
 
 
@@ -9510,6 +10131,18 @@ CREATE INDEX "idx_krm_v2_match_type" ON "public"."keyword_review_matches_v2" USI
 
 
 CREATE INDEX "idx_krm_v2_review" ON "public"."keyword_review_matches_v2" USING "btree" ("review_submission_id");
+
+
+
+CREATE INDEX "idx_krr_account" ON "public"."keyword_research_results" USING "btree" ("account_id");
+
+
+
+CREATE INDEX "idx_krr_keyword" ON "public"."keyword_research_results" USING "btree" ("keyword_id") WHERE ("keyword_id" IS NOT NULL);
+
+
+
+CREATE INDEX "idx_krr_term" ON "public"."keyword_research_results" USING "btree" ("normalized_term");
 
 
 
@@ -10261,6 +10894,10 @@ CREATE INDEX "idx_trial_reminder_logs_sent_at" ON "public"."trial_reminder_logs"
 
 
 
+CREATE INDEX "idx_user_profiles_names" ON "public"."user_profiles" USING "btree" ("first_name", "last_name");
+
+
+
 CREATE INDEX "idx_widget_reviews_business_id" ON "public"."widget_reviews" USING "btree" ("business_id");
 
 
@@ -10337,6 +10974,38 @@ CREATE INDEX "idx_widgets_widget_type" ON "public"."widgets" USING "btree" ("wid
 
 
 
+CREATE INDEX "idx_wm_library_pack_tasks_pack_id" ON "public"."wm_library_pack_tasks" USING "btree" ("pack_id");
+
+
+
+CREATE INDEX "idx_wm_library_pack_tasks_task_id" ON "public"."wm_library_pack_tasks" USING "btree" ("task_id");
+
+
+
+CREATE INDEX "idx_wm_library_packs_is_active" ON "public"."wm_library_packs" USING "btree" ("is_active");
+
+
+
+CREATE INDEX "idx_wm_library_packs_sort_order" ON "public"."wm_library_packs" USING "btree" ("sort_order");
+
+
+
+CREATE INDEX "idx_wm_library_tasks_category" ON "public"."wm_library_tasks" USING "btree" ("category");
+
+
+
+CREATE INDEX "idx_wm_library_tasks_difficulty" ON "public"."wm_library_tasks" USING "btree" ("difficulty");
+
+
+
+CREATE INDEX "idx_wm_library_tasks_is_active" ON "public"."wm_library_tasks" USING "btree" ("is_active");
+
+
+
+CREATE INDEX "idx_wm_library_tasks_sort_order" ON "public"."wm_library_tasks" USING "btree" ("sort_order");
+
+
+
 CREATE INDEX "idx_wm_task_actions_account_id" ON "public"."wm_task_actions" USING "btree" ("account_id");
 
 
@@ -10366,6 +11035,10 @@ CREATE INDEX "idx_wm_tasks_due_date" ON "public"."wm_tasks" USING "btree" ("due_
 
 
 CREATE INDEX "idx_wm_tasks_sort_order" ON "public"."wm_tasks" USING "btree" ("sort_order");
+
+
+
+CREATE INDEX "idx_wm_tasks_source_type" ON "public"."wm_tasks" USING "btree" ("source_type") WHERE ("source_type" IS NOT NULL);
 
 
 
@@ -10509,7 +11182,15 @@ CREATE OR REPLACE TRIGGER "track_time_spent_trigger" AFTER INSERT ON "public"."a
 
 
 
+CREATE OR REPLACE TRIGGER "trg_backlink_domains_updated_at" BEFORE UPDATE ON "public"."backlink_domains" FOR EACH ROW EXECUTE FUNCTION "public"."update_backlink_domains_updated_at"();
+
+
+
 CREATE OR REPLACE TRIGGER "trg_optimizer_leads_updated_at" BEFORE UPDATE ON "public"."optimizer_leads" FOR EACH ROW EXECUTE FUNCTION "public"."set_optimizer_leads_updated_at"();
+
+
+
+CREATE OR REPLACE TRIGGER "trg_update_backlink_next_scheduled_at" BEFORE INSERT OR UPDATE OF "schedule_frequency", "schedule_day_of_week", "schedule_day_of_month", "schedule_hour", "is_enabled", "last_scheduled_run_at" ON "public"."backlink_domains" FOR EACH ROW EXECUTE FUNCTION "public"."update_backlink_next_scheduled_at"();
 
 
 
@@ -10661,6 +11342,10 @@ CREATE OR REPLACE TRIGGER "update_google_business_scheduled_posts_updated_at" BE
 
 
 
+CREATE OR REPLACE TRIGGER "update_keyword_research_results_updated_at" BEFORE UPDATE ON "public"."keyword_research_results" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at_column"();
+
+
+
 CREATE OR REPLACE TRIGGER "update_metadata_templates_updated_at" BEFORE UPDATE ON "public"."metadata_templates" FOR EACH ROW EXECUTE FUNCTION "public"."update_metadata_templates_updated_at"();
 
 
@@ -10681,11 +11366,23 @@ CREATE OR REPLACE TRIGGER "update_social_platform_connections_updated_at" BEFORE
 
 
 
+CREATE OR REPLACE TRIGGER "update_user_profiles_updated_at" BEFORE UPDATE ON "public"."user_profiles" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at_column"();
+
+
+
 CREATE OR REPLACE TRIGGER "update_widget_reviews_updated_at" BEFORE UPDATE ON "public"."widget_reviews" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at_column"();
 
 
 
 CREATE OR REPLACE TRIGGER "update_widgets_updated_at" BEFORE UPDATE ON "public"."widgets" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at_column"();
+
+
+
+CREATE OR REPLACE TRIGGER "update_wm_library_packs_updated_at" BEFORE UPDATE ON "public"."wm_library_packs" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at_column"();
+
+
+
+CREATE OR REPLACE TRIGGER "update_wm_library_tasks_updated_at" BEFORE UPDATE ON "public"."wm_library_tasks" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at_column"();
 
 
 
@@ -10716,6 +11413,31 @@ ALTER TABLE ONLY "public"."account_users"
 
 ALTER TABLE ONLY "public"."accounts"
     ADD CONSTRAINT "accounts_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "auth"."users"("id") ON DELETE SET NULL;
+
+
+
+ALTER TABLE ONLY "public"."accounts"
+    ADD CONSTRAINT "accounts_managing_agncy_id_fkey" FOREIGN KEY ("managing_agncy_id") REFERENCES "public"."accounts"("id");
+
+
+
+ALTER TABLE ONLY "public"."agncy_client_access"
+    ADD CONSTRAINT "agncy_client_access_agency_account_id_fkey" FOREIGN KEY ("agency_account_id") REFERENCES "public"."accounts"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."agncy_client_access"
+    ADD CONSTRAINT "agncy_client_access_client_account_id_fkey" FOREIGN KEY ("client_account_id") REFERENCES "public"."accounts"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."agncy_client_access"
+    ADD CONSTRAINT "agncy_client_access_removed_by_fkey" FOREIGN KEY ("removed_by") REFERENCES "auth"."users"("id");
+
+
+
+ALTER TABLE ONLY "public"."agncy_client_access"
+    ADD CONSTRAINT "agncy_client_access_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
 
 
 
@@ -10786,6 +11508,56 @@ ALTER TABLE ONLY "public"."audit_logs"
 
 ALTER TABLE ONLY "public"."audit_logs"
     ADD CONSTRAINT "audit_logs_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE SET NULL;
+
+
+
+ALTER TABLE ONLY "public"."backlink_anchors"
+    ADD CONSTRAINT "backlink_anchors_account_id_fkey" FOREIGN KEY ("account_id") REFERENCES "public"."accounts"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."backlink_anchors"
+    ADD CONSTRAINT "backlink_anchors_check_id_fkey" FOREIGN KEY ("check_id") REFERENCES "public"."backlink_checks"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."backlink_checks"
+    ADD CONSTRAINT "backlink_checks_account_id_fkey" FOREIGN KEY ("account_id") REFERENCES "public"."accounts"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."backlink_checks"
+    ADD CONSTRAINT "backlink_checks_domain_id_fkey" FOREIGN KEY ("domain_id") REFERENCES "public"."backlink_domains"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."backlink_domains"
+    ADD CONSTRAINT "backlink_domains_account_id_fkey" FOREIGN KEY ("account_id") REFERENCES "public"."accounts"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."backlink_new_lost"
+    ADD CONSTRAINT "backlink_new_lost_account_id_fkey" FOREIGN KEY ("account_id") REFERENCES "public"."accounts"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."backlink_new_lost"
+    ADD CONSTRAINT "backlink_new_lost_check_id_fkey" FOREIGN KEY ("check_id") REFERENCES "public"."backlink_checks"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."backlink_new_lost"
+    ADD CONSTRAINT "backlink_new_lost_domain_id_fkey" FOREIGN KEY ("domain_id") REFERENCES "public"."backlink_domains"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."backlink_referring_domains"
+    ADD CONSTRAINT "backlink_referring_domains_account_id_fkey" FOREIGN KEY ("account_id") REFERENCES "public"."accounts"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."backlink_referring_domains"
+    ADD CONSTRAINT "backlink_referring_domains_check_id_fkey" FOREIGN KEY ("check_id") REFERENCES "public"."backlink_checks"("id") ON DELETE CASCADE;
 
 
 
@@ -11139,11 +11911,6 @@ ALTER TABLE ONLY "public"."invitation_events"
 
 
 
-ALTER TABLE ONLY "public"."keyword_analysis_runs"
-    ADD CONSTRAINT "keyword_analysis_runs_account_id_fkey" FOREIGN KEY ("account_id") REFERENCES "public"."accounts"("id") ON DELETE CASCADE;
-
-
-
 ALTER TABLE ONLY "public"."keyword_groups"
     ADD CONSTRAINT "keyword_groups_account_id_fkey" FOREIGN KEY ("account_id") REFERENCES "public"."accounts"("id") ON DELETE CASCADE;
 
@@ -11166,6 +11933,16 @@ ALTER TABLE ONLY "public"."keyword_prompt_page_usage"
 
 ALTER TABLE ONLY "public"."keyword_questions"
     ADD CONSTRAINT "keyword_questions_keyword_id_fkey" FOREIGN KEY ("keyword_id") REFERENCES "public"."keywords"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."keyword_research_results"
+    ADD CONSTRAINT "keyword_research_results_account_id_fkey" FOREIGN KEY ("account_id") REFERENCES "public"."accounts"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."keyword_research_results"
+    ADD CONSTRAINT "keyword_research_results_keyword_id_fkey" FOREIGN KEY ("keyword_id") REFERENCES "public"."keywords"("id") ON DELETE SET NULL;
 
 
 
@@ -11206,31 +11983,6 @@ ALTER TABLE ONLY "public"."keyword_rotation_log"
 
 ALTER TABLE ONLY "public"."keyword_rotation_log"
     ADD CONSTRAINT "keyword_rotation_log_rotated_out_keyword_id_fkey" FOREIGN KEY ("rotated_out_keyword_id") REFERENCES "public"."keywords"("id") ON DELETE SET NULL;
-
-
-
-ALTER TABLE ONLY "public"."keyword_set_locations"
-    ADD CONSTRAINT "keyword_set_locations_google_business_location_id_fkey" FOREIGN KEY ("google_business_location_id") REFERENCES "public"."google_business_locations"("id") ON DELETE CASCADE;
-
-
-
-ALTER TABLE ONLY "public"."keyword_set_locations"
-    ADD CONSTRAINT "keyword_set_locations_keyword_set_id_fkey" FOREIGN KEY ("keyword_set_id") REFERENCES "public"."keyword_sets"("id") ON DELETE CASCADE;
-
-
-
-ALTER TABLE ONLY "public"."keyword_set_terms"
-    ADD CONSTRAINT "keyword_set_terms_keyword_set_id_fkey" FOREIGN KEY ("keyword_set_id") REFERENCES "public"."keyword_sets"("id") ON DELETE CASCADE;
-
-
-
-ALTER TABLE ONLY "public"."keyword_sets"
-    ADD CONSTRAINT "keyword_sets_account_id_fkey" FOREIGN KEY ("account_id") REFERENCES "public"."accounts"("id") ON DELETE CASCADE;
-
-
-
-ALTER TABLE ONLY "public"."keyword_sets"
-    ADD CONSTRAINT "keyword_sets_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "auth"."users"("id") ON DELETE SET NULL;
 
 
 
@@ -11460,16 +12212,6 @@ ALTER TABLE ONLY "public"."review_keyword_matches"
 
 
 ALTER TABLE ONLY "public"."review_keyword_matches"
-    ADD CONSTRAINT "review_keyword_matches_keyword_set_id_fkey" FOREIGN KEY ("keyword_set_id") REFERENCES "public"."keyword_sets"("id") ON DELETE CASCADE;
-
-
-
-ALTER TABLE ONLY "public"."review_keyword_matches"
-    ADD CONSTRAINT "review_keyword_matches_keyword_term_id_fkey" FOREIGN KEY ("keyword_term_id") REFERENCES "public"."keyword_set_terms"("id") ON DELETE CASCADE;
-
-
-
-ALTER TABLE ONLY "public"."review_keyword_matches"
     ADD CONSTRAINT "review_keyword_matches_review_id_fkey" FOREIGN KEY ("review_id") REFERENCES "public"."review_submissions"("id") ON DELETE CASCADE;
 
 
@@ -11564,6 +12306,11 @@ ALTER TABLE ONLY "public"."trial_reminder_logs"
 
 
 
+ALTER TABLE ONLY "public"."user_profiles"
+    ADD CONSTRAINT "user_profiles_id_fkey" FOREIGN KEY ("id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+
 ALTER TABLE ONLY "public"."widget_reviews"
     ADD CONSTRAINT "widget_reviews_widget_id_fkey" FOREIGN KEY ("widget_id") REFERENCES "public"."widgets"("id") ON DELETE CASCADE;
 
@@ -11581,6 +12328,16 @@ ALTER TABLE ONLY "public"."wm_boards"
 
 ALTER TABLE ONLY "public"."wm_boards"
     ADD CONSTRAINT "wm_boards_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "auth"."users"("id");
+
+
+
+ALTER TABLE ONLY "public"."wm_library_pack_tasks"
+    ADD CONSTRAINT "wm_library_pack_tasks_pack_id_fkey" FOREIGN KEY ("pack_id") REFERENCES "public"."wm_library_packs"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."wm_library_pack_tasks"
+    ADD CONSTRAINT "wm_library_pack_tasks_task_id_fkey" FOREIGN KEY ("task_id") REFERENCES "public"."wm_library_tasks"("id") ON DELETE CASCADE;
 
 
 
@@ -11844,6 +12601,12 @@ CREATE POLICY "Admins have full access to navigation" ON "public"."navigation" U
 
 
 
+CREATE POLICY "Agency owners can manage agency access" ON "public"."agncy_client_access" USING ((EXISTS ( SELECT 1
+   FROM "public"."account_users" "au"
+  WHERE (("au"."account_id" = "agncy_client_access"."agency_account_id") AND ("au"."user_id" = "auth"."uid"()) AND ("au"."role" = 'owner'::"text")))));
+
+
+
 CREATE POLICY "Allow admins to manage quotes" ON "public"."quotes" TO "authenticated" USING ((EXISTS ( SELECT 1
    FROM "public"."accounts"
   WHERE (("accounts"."id" = "auth"."uid"()) AND ("accounts"."is_admin" = true))))) WITH CHECK ((EXISTS ( SELECT 1
@@ -12062,6 +12825,18 @@ CREATE POLICY "Authors can update their own comments" ON "public"."comments" FOR
 
 
 
+CREATE POLICY "Client owners can update agency access to their account" ON "public"."agncy_client_access" FOR UPDATE USING ((EXISTS ( SELECT 1
+   FROM "public"."account_users" "au"
+  WHERE (("au"."account_id" = "agncy_client_access"."client_account_id") AND ("au"."user_id" = "auth"."uid"()) AND ("au"."role" = 'owner'::"text")))));
+
+
+
+CREATE POLICY "Client owners can view agency access to their account" ON "public"."agncy_client_access" FOR SELECT USING ((EXISTS ( SELECT 1
+   FROM "public"."account_users" "au"
+  WHERE (("au"."account_id" = "agncy_client_access"."client_account_id") AND ("au"."user_id" = "auth"."uid"()) AND ("au"."role" = 'owner'::"text")))));
+
+
+
 CREATE POLICY "Everyone can view default kickstarters" ON "public"."kickstarters" FOR SELECT USING (("is_default" = true));
 
 
@@ -12240,6 +13015,26 @@ CREATE POLICY "Service role can manage trial reminder logs" ON "public"."trial_r
 
 
 
+CREATE POLICY "Service role full access backlink_anchors" ON "public"."backlink_anchors" TO "service_role" USING (true) WITH CHECK (true);
+
+
+
+CREATE POLICY "Service role full access backlink_checks" ON "public"."backlink_checks" TO "service_role" USING (true) WITH CHECK (true);
+
+
+
+CREATE POLICY "Service role full access backlink_domains" ON "public"."backlink_domains" TO "service_role" USING (true) WITH CHECK (true);
+
+
+
+CREATE POLICY "Service role full access backlink_new_lost" ON "public"."backlink_new_lost" TO "service_role" USING (true) WITH CHECK (true);
+
+
+
+CREATE POLICY "Service role full access backlink_referring_domains" ON "public"."backlink_referring_domains" TO "service_role" USING (true) WITH CHECK (true);
+
+
+
 CREATE POLICY "Service role full access gg_checks" ON "public"."gg_checks" TO "service_role" USING (true) WITH CHECK (true);
 
 
@@ -12281,6 +13076,10 @@ CREATE POLICY "Service role full access rank_group_keywords" ON "public"."rank_g
 
 
 CREATE POLICY "Service role full access rank_keyword_groups" ON "public"."rank_keyword_groups" TO "service_role" USING (true) WITH CHECK (true);
+
+
+
+CREATE POLICY "Service role has full access to cron logs" ON "public"."cron_execution_logs" USING (true) WITH CHECK (true);
 
 
 
@@ -12404,6 +13203,12 @@ CREATE POLICY "Users can delete keyword questions" ON "public"."keyword_question
 
 
 
+CREATE POLICY "Users can delete own account backlink_domains" ON "public"."backlink_domains" FOR DELETE USING ((EXISTS ( SELECT 1
+   FROM "public"."account_users" "au"
+  WHERE (("au"."account_id" = "backlink_domains"."account_id") AND ("au"."user_id" = "auth"."uid"())))));
+
+
+
 CREATE POLICY "Users can delete own account favorites" ON "public"."sidebar_favorites" FOR DELETE USING (("account_id" IN ( SELECT "au"."account_id"
    FROM "public"."account_users" "au"
   WHERE ("au"."user_id" = "auth"."uid"()))));
@@ -12425,12 +13230,6 @@ CREATE POLICY "Users can delete own account gg_configs" ON "public"."gg_configs"
 CREATE POLICY "Users can delete own account gg_tracked_keywords" ON "public"."gg_tracked_keywords" FOR DELETE USING ((EXISTS ( SELECT 1
    FROM "public"."account_users" "au"
   WHERE (("au"."account_id" = "gg_tracked_keywords"."account_id") AND ("au"."user_id" = "auth"."uid"())))));
-
-
-
-CREATE POLICY "Users can delete own account keyword analysis runs" ON "public"."keyword_analysis_runs" FOR DELETE USING (("account_id" IN ( SELECT "account_users"."account_id"
-   FROM "public"."account_users"
-  WHERE ("account_users"."user_id" = "auth"."uid"()))));
 
 
 
@@ -12611,6 +13410,18 @@ CREATE POLICY "Users can insert contacts for their accounts" ON "public"."contac
 
 
 
+CREATE POLICY "Users can insert credit balance for own accounts" ON "public"."credit_balances" FOR INSERT TO "authenticated" WITH CHECK (("account_id" IN ( SELECT "account_users"."account_id"
+   FROM "public"."account_users"
+  WHERE ("account_users"."user_id" = "auth"."uid"()))));
+
+
+
+CREATE POLICY "Users can insert credit ledger entries for own accounts" ON "public"."credit_ledger" FOR INSERT TO "authenticated" WITH CHECK (("account_id" IN ( SELECT "account_users"."account_id"
+   FROM "public"."account_users"
+  WHERE ("account_users"."user_id" = "auth"."uid"()))));
+
+
+
 CREATE POLICY "Users can insert items for own feeds" ON "public"."rss_feed_items" FOR INSERT WITH CHECK (("feed_source_id" IN ( SELECT "rss_feed_sources"."id"
    FROM "public"."rss_feed_sources"
   WHERE ("rss_feed_sources"."account_id" IN ( SELECT "account_users"."account_id"
@@ -12656,6 +13467,36 @@ CREATE POLICY "Users can insert notification preferences for their accounts" ON 
 
 
 
+CREATE POLICY "Users can insert own account backlink_anchors" ON "public"."backlink_anchors" FOR INSERT WITH CHECK ((EXISTS ( SELECT 1
+   FROM "public"."account_users" "au"
+  WHERE (("au"."account_id" = "backlink_anchors"."account_id") AND ("au"."user_id" = "auth"."uid"())))));
+
+
+
+CREATE POLICY "Users can insert own account backlink_checks" ON "public"."backlink_checks" FOR INSERT WITH CHECK ((EXISTS ( SELECT 1
+   FROM "public"."account_users" "au"
+  WHERE (("au"."account_id" = "backlink_checks"."account_id") AND ("au"."user_id" = "auth"."uid"())))));
+
+
+
+CREATE POLICY "Users can insert own account backlink_domains" ON "public"."backlink_domains" FOR INSERT WITH CHECK ((EXISTS ( SELECT 1
+   FROM "public"."account_users" "au"
+  WHERE (("au"."account_id" = "backlink_domains"."account_id") AND ("au"."user_id" = "auth"."uid"())))));
+
+
+
+CREATE POLICY "Users can insert own account backlink_new_lost" ON "public"."backlink_new_lost" FOR INSERT WITH CHECK ((EXISTS ( SELECT 1
+   FROM "public"."account_users" "au"
+  WHERE (("au"."account_id" = "backlink_new_lost"."account_id") AND ("au"."user_id" = "auth"."uid"())))));
+
+
+
+CREATE POLICY "Users can insert own account backlink_referring_domains" ON "public"."backlink_referring_domains" FOR INSERT WITH CHECK ((EXISTS ( SELECT 1
+   FROM "public"."account_users" "au"
+  WHERE (("au"."account_id" = "backlink_referring_domains"."account_id") AND ("au"."user_id" = "auth"."uid"())))));
+
+
+
 CREATE POLICY "Users can insert own account favorites" ON "public"."sidebar_favorites" FOR INSERT WITH CHECK (("account_id" IN ( SELECT "au"."account_id"
    FROM "public"."account_users" "au"
   WHERE ("au"."user_id" = "auth"."uid"()))));
@@ -12683,12 +13524,6 @@ CREATE POLICY "Users can insert own account gg_daily_summary" ON "public"."gg_da
 CREATE POLICY "Users can insert own account gg_tracked_keywords" ON "public"."gg_tracked_keywords" FOR INSERT WITH CHECK ((EXISTS ( SELECT 1
    FROM "public"."account_users" "au"
   WHERE (("au"."account_id" = "gg_tracked_keywords"."account_id") AND ("au"."user_id" = "auth"."uid"())))));
-
-
-
-CREATE POLICY "Users can insert own account keyword analysis runs" ON "public"."keyword_analysis_runs" FOR INSERT WITH CHECK (("account_id" IN ( SELECT "account_users"."account_id"
-   FROM "public"."account_users"
-  WHERE ("account_users"."user_id" = "auth"."uid"()))));
 
 
 
@@ -12802,9 +13637,19 @@ CREATE POLICY "Users can insert their own onboarding tasks" ON "public"."onboard
 
 
 
+CREATE POLICY "Users can insert their own profile" ON "public"."user_profiles" FOR INSERT TO "authenticated" WITH CHECK (("auth"."uid"() = "id"));
+
+
+
 CREATE POLICY "Users can insert their own widgets" ON "public"."widgets" FOR INSERT TO "authenticated" WITH CHECK ((EXISTS ( SELECT 1
    FROM "public"."account_users" "au"
   WHERE (("au"."account_id" = "widgets"."account_id") AND ("au"."user_id" = "auth"."uid"())))));
+
+
+
+CREATE POLICY "Users can manage their account research results" ON "public"."keyword_research_results" USING (("account_id" IN ( SELECT "account_users"."account_id"
+   FROM "public"."account_users"
+  WHERE ("account_users"."user_id" = "auth"."uid"()))));
 
 
 
@@ -12850,6 +13695,14 @@ CREATE POLICY "Users can update contacts for their accounts" ON "public"."contac
 
 
 
+CREATE POLICY "Users can update credit balance for own accounts" ON "public"."credit_balances" FOR UPDATE TO "authenticated" USING (("account_id" IN ( SELECT "account_users"."account_id"
+   FROM "public"."account_users"
+  WHERE ("account_users"."user_id" = "auth"."uid"())))) WITH CHECK (("account_id" IN ( SELECT "account_users"."account_id"
+   FROM "public"."account_users"
+  WHERE ("account_users"."user_id" = "auth"."uid"()))));
+
+
+
 CREATE POLICY "Users can update items from own feeds" ON "public"."rss_feed_items" FOR UPDATE USING (("feed_source_id" IN ( SELECT "rss_feed_sources"."id"
    FROM "public"."rss_feed_sources"
   WHERE ("rss_feed_sources"."account_id" IN ( SELECT "account_users"."account_id"
@@ -12862,6 +13715,12 @@ CREATE POLICY "Users can update keyword questions" ON "public"."keyword_question
    FROM ("public"."keywords" "k"
      JOIN "public"."account_users" "au" ON (("k"."account_id" = "au"."account_id")))
   WHERE (("k"."id" = "keyword_questions"."keyword_id") AND ("au"."user_id" = "auth"."uid"())))));
+
+
+
+CREATE POLICY "Users can update own account backlink_domains" ON "public"."backlink_domains" FOR UPDATE USING ((EXISTS ( SELECT 1
+   FROM "public"."account_users" "au"
+  WHERE (("au"."account_id" = "backlink_domains"."account_id") AND ("au"."user_id" = "auth"."uid"())))));
 
 
 
@@ -13070,6 +13929,10 @@ CREATE POLICY "Users can update their own onboarding tasks" ON "public"."onboard
 
 
 
+CREATE POLICY "Users can update their own profile" ON "public"."user_profiles" FOR UPDATE TO "authenticated" USING (("auth"."uid"() = "id"));
+
+
+
 CREATE POLICY "Users can update their own widgets" ON "public"."widgets" FOR UPDATE TO "authenticated" USING ((EXISTS ( SELECT 1
    FROM "public"."account_users" "au"
   WHERE (("au"."account_id" = "widgets"."account_id") AND ("au"."user_id" = "auth"."uid"())))));
@@ -13100,6 +13963,10 @@ CREATE POLICY "Users can view alerts for their accounts" ON "public"."gbp_change
 
 
 
+CREATE POLICY "Users can view all profiles" ON "public"."user_profiles" FOR SELECT TO "authenticated" USING (true);
+
+
+
 CREATE POLICY "Users can view boards for their accounts" ON "public"."wm_boards" FOR SELECT USING (("account_id" IN ( SELECT "account_users"."account_id"
    FROM "public"."account_users"
   WHERE ("account_users"."user_id" = "auth"."uid"()))));
@@ -13124,6 +13991,36 @@ CREATE POLICY "Users can view keyword questions" ON "public"."keyword_questions"
    FROM ("public"."keywords" "k"
      JOIN "public"."account_users" "au" ON (("k"."account_id" = "au"."account_id")))
   WHERE (("k"."id" = "keyword_questions"."keyword_id") AND ("au"."user_id" = "auth"."uid"())))));
+
+
+
+CREATE POLICY "Users can view own account backlink_anchors" ON "public"."backlink_anchors" FOR SELECT USING ((EXISTS ( SELECT 1
+   FROM "public"."account_users" "au"
+  WHERE (("au"."account_id" = "backlink_anchors"."account_id") AND ("au"."user_id" = "auth"."uid"())))));
+
+
+
+CREATE POLICY "Users can view own account backlink_checks" ON "public"."backlink_checks" FOR SELECT USING ((EXISTS ( SELECT 1
+   FROM "public"."account_users" "au"
+  WHERE (("au"."account_id" = "backlink_checks"."account_id") AND ("au"."user_id" = "auth"."uid"())))));
+
+
+
+CREATE POLICY "Users can view own account backlink_domains" ON "public"."backlink_domains" FOR SELECT USING ((EXISTS ( SELECT 1
+   FROM "public"."account_users" "au"
+  WHERE (("au"."account_id" = "backlink_domains"."account_id") AND ("au"."user_id" = "auth"."uid"())))));
+
+
+
+CREATE POLICY "Users can view own account backlink_new_lost" ON "public"."backlink_new_lost" FOR SELECT USING ((EXISTS ( SELECT 1
+   FROM "public"."account_users" "au"
+  WHERE (("au"."account_id" = "backlink_new_lost"."account_id") AND ("au"."user_id" = "auth"."uid"())))));
+
+
+
+CREATE POLICY "Users can view own account backlink_referring_domains" ON "public"."backlink_referring_domains" FOR SELECT USING ((EXISTS ( SELECT 1
+   FROM "public"."account_users" "au"
+  WHERE (("au"."account_id" = "backlink_referring_domains"."account_id") AND ("au"."user_id" = "auth"."uid"())))));
 
 
 
@@ -13176,12 +14073,6 @@ CREATE POLICY "Users can view own account gg_daily_summary" ON "public"."gg_dail
 CREATE POLICY "Users can view own account gg_tracked_keywords" ON "public"."gg_tracked_keywords" FOR SELECT USING ((EXISTS ( SELECT 1
    FROM "public"."account_users" "au"
   WHERE (("au"."account_id" = "gg_tracked_keywords"."account_id") AND ("au"."user_id" = "auth"."uid"())))));
-
-
-
-CREATE POLICY "Users can view own account keyword analysis runs" ON "public"."keyword_analysis_runs" FOR SELECT USING (("account_id" IN ( SELECT "account_users"."account_id"
-   FROM "public"."account_users"
-  WHERE ("account_users"."user_id" = "auth"."uid"()))));
 
 
 
@@ -13404,6 +14295,10 @@ CREATE POLICY "Users can view their own AI usage" ON "public"."ai_usage" FOR SEL
 
 
 
+CREATE POLICY "Users can view their own agency access" ON "public"."agncy_client_access" FOR SELECT USING (("user_id" = "auth"."uid"()));
+
+
+
 CREATE POLICY "Users can view their own communication records" ON "public"."communication_records" FOR SELECT USING (("account_id" IN ( SELECT "account_users"."account_id"
    FROM "public"."account_users"
   WHERE ("account_users"."user_id" = "auth"."uid"()))));
@@ -13612,6 +14507,9 @@ CREATE POLICY "admins_can_view_all_profiles" ON "public"."community_profiles" FO
 
 
 
+ALTER TABLE "public"."agncy_client_access" ENABLE ROW LEVEL SECURITY;
+
+
 ALTER TABLE "public"."ai_enrichment_usage" ENABLE ROW LEVEL SECURITY;
 
 
@@ -13685,6 +14583,21 @@ CREATE POLICY "authors_can_update_own_comments" ON "public"."post_comments" FOR 
 
 CREATE POLICY "authors_can_update_own_posts" ON "public"."posts" FOR UPDATE TO "authenticated" USING ((("author_id" = "auth"."uid"()) AND ("deleted_at" IS NULL))) WITH CHECK (("author_id" = "auth"."uid"()));
 
+
+
+ALTER TABLE "public"."backlink_anchors" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."backlink_checks" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."backlink_domains" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."backlink_new_lost" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."backlink_referring_domains" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."billing_audit_log" ENABLE ROW LEVEL SECURITY;
@@ -13790,6 +14703,9 @@ ALTER TABLE "public"."critical_function_errors" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."critical_function_successes" ENABLE ROW LEVEL SECURITY;
 
 
+ALTER TABLE "public"."cron_execution_logs" ENABLE ROW LEVEL SECURITY;
+
+
 ALTER TABLE "public"."daily_stats" ENABLE ROW LEVEL SECURITY;
 
 
@@ -13859,9 +14775,6 @@ ALTER TABLE "public"."google_business_scheduled_posts" ENABLE ROW LEVEL SECURITY
 ALTER TABLE "public"."invitation_events" ENABLE ROW LEVEL SECURITY;
 
 
-ALTER TABLE "public"."keyword_analysis_runs" ENABLE ROW LEVEL SECURITY;
-
-
 ALTER TABLE "public"."keyword_groups" ENABLE ROW LEVEL SECURITY;
 
 
@@ -13869,6 +14782,9 @@ ALTER TABLE "public"."keyword_prompt_page_usage" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."keyword_questions" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."keyword_research_results" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."keyword_review_matches_v2" ENABLE ROW LEVEL SECURITY;
@@ -14033,6 +14949,9 @@ ALTER TABLE "public"."social_platform_connections" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."trial_reminder_logs" ENABLE ROW LEVEL SECURITY;
 
 
+ALTER TABLE "public"."user_profiles" ENABLE ROW LEVEL SECURITY;
+
+
 CREATE POLICY "users_can_create_businesses" ON "public"."businesses" FOR INSERT TO "authenticated" WITH CHECK ((EXISTS ( SELECT 1
    FROM "public"."account_users"
   WHERE (("account_users"."account_id" = "businesses"."account_id") AND ("account_users"."user_id" = "auth"."uid"()) AND ("account_users"."role" = ANY (ARRAY['owner'::"text", 'admin'::"text"]))))));
@@ -14136,6 +15055,12 @@ GRANT ALL ON FUNCTION "public"."auto_populate_review_submission_business_id"() T
 GRANT ALL ON FUNCTION "public"."build_nav_node"("node_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."build_nav_node"("node_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."build_nav_node"("node_id" "uuid") TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."calculate_backlink_next_scheduled_at"("p_frequency" "text", "p_day_of_week" integer, "p_day_of_month" integer, "p_hour" integer, "p_from_time" timestamp with time zone) TO "anon";
+GRANT ALL ON FUNCTION "public"."calculate_backlink_next_scheduled_at"("p_frequency" "text", "p_day_of_week" integer, "p_day_of_month" integer, "p_hour" integer, "p_from_time" timestamp with time zone) TO "authenticated";
+GRANT ALL ON FUNCTION "public"."calculate_backlink_next_scheduled_at"("p_frequency" "text", "p_day_of_week" integer, "p_day_of_month" integer, "p_hour" integer, "p_from_time" timestamp with time zone) TO "service_role";
 
 
 
@@ -14514,6 +15439,18 @@ GRANT ALL ON FUNCTION "public"."update_account_invitations_updated_at"() TO "ser
 
 
 
+GRANT ALL ON FUNCTION "public"."update_backlink_domains_updated_at"() TO "anon";
+GRANT ALL ON FUNCTION "public"."update_backlink_domains_updated_at"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."update_backlink_domains_updated_at"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."update_backlink_next_scheduled_at"() TO "anon";
+GRANT ALL ON FUNCTION "public"."update_backlink_next_scheduled_at"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."update_backlink_next_scheduled_at"() TO "service_role";
+
+
+
 GRANT ALL ON FUNCTION "public"."update_campaign_actions_updated_at"() TO "anon";
 GRANT ALL ON FUNCTION "public"."update_campaign_actions_updated_at"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_campaign_actions_updated_at"() TO "service_role";
@@ -14682,6 +15619,12 @@ GRANT ALL ON TABLE "public"."accounts" TO "service_role";
 
 
 
+GRANT ALL ON TABLE "public"."agncy_client_access" TO "anon";
+GRANT ALL ON TABLE "public"."agncy_client_access" TO "authenticated";
+GRANT ALL ON TABLE "public"."agncy_client_access" TO "service_role";
+
+
+
 GRANT ALL ON TABLE "public"."ai_enrichment_usage" TO "anon";
 GRANT ALL ON TABLE "public"."ai_enrichment_usage" TO "authenticated";
 GRANT ALL ON TABLE "public"."ai_enrichment_usage" TO "service_role";
@@ -14733,6 +15676,36 @@ GRANT ALL ON TABLE "public"."articles" TO "service_role";
 GRANT ALL ON TABLE "public"."audit_logs" TO "anon";
 GRANT ALL ON TABLE "public"."audit_logs" TO "authenticated";
 GRANT ALL ON TABLE "public"."audit_logs" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."backlink_anchors" TO "anon";
+GRANT ALL ON TABLE "public"."backlink_anchors" TO "authenticated";
+GRANT ALL ON TABLE "public"."backlink_anchors" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."backlink_checks" TO "anon";
+GRANT ALL ON TABLE "public"."backlink_checks" TO "authenticated";
+GRANT ALL ON TABLE "public"."backlink_checks" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."backlink_domains" TO "anon";
+GRANT ALL ON TABLE "public"."backlink_domains" TO "authenticated";
+GRANT ALL ON TABLE "public"."backlink_domains" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."backlink_new_lost" TO "anon";
+GRANT ALL ON TABLE "public"."backlink_new_lost" TO "authenticated";
+GRANT ALL ON TABLE "public"."backlink_new_lost" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."backlink_referring_domains" TO "anon";
+GRANT ALL ON TABLE "public"."backlink_referring_domains" TO "authenticated";
+GRANT ALL ON TABLE "public"."backlink_referring_domains" TO "service_role";
 
 
 
@@ -14886,6 +15859,12 @@ GRANT ALL ON TABLE "public"."critical_function_health" TO "service_role";
 
 
 
+GRANT ALL ON TABLE "public"."cron_execution_logs" TO "anon";
+GRANT ALL ON TABLE "public"."cron_execution_logs" TO "authenticated";
+GRANT ALL ON TABLE "public"."cron_execution_logs" TO "service_role";
+
+
+
 GRANT ALL ON TABLE "public"."daily_stats" TO "anon";
 GRANT ALL ON TABLE "public"."daily_stats" TO "authenticated";
 GRANT ALL ON TABLE "public"."daily_stats" TO "service_role";
@@ -15036,12 +16015,6 @@ GRANT ALL ON TABLE "public"."invitation_events" TO "service_role";
 
 
 
-GRANT ALL ON TABLE "public"."keyword_analysis_runs" TO "anon";
-GRANT ALL ON TABLE "public"."keyword_analysis_runs" TO "authenticated";
-GRANT ALL ON TABLE "public"."keyword_analysis_runs" TO "service_role";
-
-
-
 GRANT ALL ON TABLE "public"."keyword_groups" TO "anon";
 GRANT ALL ON TABLE "public"."keyword_groups" TO "authenticated";
 GRANT ALL ON TABLE "public"."keyword_groups" TO "service_role";
@@ -15057,6 +16030,12 @@ GRANT ALL ON TABLE "public"."keyword_prompt_page_usage" TO "service_role";
 GRANT ALL ON TABLE "public"."keyword_questions" TO "anon";
 GRANT ALL ON TABLE "public"."keyword_questions" TO "authenticated";
 GRANT ALL ON TABLE "public"."keyword_questions" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."keyword_research_results" TO "anon";
+GRANT ALL ON TABLE "public"."keyword_research_results" TO "authenticated";
+GRANT ALL ON TABLE "public"."keyword_research_results" TO "service_role";
 
 
 
@@ -15087,24 +16066,6 @@ GRANT ALL ON TABLE "public"."prompt_pages" TO "service_role";
 GRANT ALL ON TABLE "public"."keyword_rotation_status" TO "anon";
 GRANT ALL ON TABLE "public"."keyword_rotation_status" TO "authenticated";
 GRANT ALL ON TABLE "public"."keyword_rotation_status" TO "service_role";
-
-
-
-GRANT ALL ON TABLE "public"."keyword_set_locations" TO "anon";
-GRANT ALL ON TABLE "public"."keyword_set_locations" TO "authenticated";
-GRANT ALL ON TABLE "public"."keyword_set_locations" TO "service_role";
-
-
-
-GRANT ALL ON TABLE "public"."keyword_set_terms" TO "anon";
-GRANT ALL ON TABLE "public"."keyword_set_terms" TO "authenticated";
-GRANT ALL ON TABLE "public"."keyword_set_terms" TO "service_role";
-
-
-
-GRANT ALL ON TABLE "public"."keyword_sets" TO "anon";
-GRANT ALL ON TABLE "public"."keyword_sets" TO "authenticated";
-GRANT ALL ON TABLE "public"."keyword_sets" TO "service_role";
 
 
 
@@ -15360,6 +16321,12 @@ GRANT ALL ON TABLE "public"."trial_reminder_logs" TO "service_role";
 
 
 
+GRANT ALL ON TABLE "public"."user_profiles" TO "anon";
+GRANT ALL ON TABLE "public"."user_profiles" TO "authenticated";
+GRANT ALL ON TABLE "public"."user_profiles" TO "service_role";
+
+
+
 GRANT ALL ON TABLE "public"."widget_reviews" TO "anon";
 GRANT ALL ON TABLE "public"."widget_reviews" TO "authenticated";
 GRANT ALL ON TABLE "public"."widget_reviews" TO "service_role";
@@ -15375,6 +16342,24 @@ GRANT ALL ON TABLE "public"."widgets" TO "service_role";
 GRANT ALL ON TABLE "public"."wm_boards" TO "anon";
 GRANT ALL ON TABLE "public"."wm_boards" TO "authenticated";
 GRANT ALL ON TABLE "public"."wm_boards" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."wm_library_pack_tasks" TO "anon";
+GRANT ALL ON TABLE "public"."wm_library_pack_tasks" TO "authenticated";
+GRANT ALL ON TABLE "public"."wm_library_pack_tasks" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."wm_library_packs" TO "anon";
+GRANT ALL ON TABLE "public"."wm_library_packs" TO "authenticated";
+GRANT ALL ON TABLE "public"."wm_library_packs" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."wm_library_tasks" TO "anon";
+GRANT ALL ON TABLE "public"."wm_library_tasks" TO "authenticated";
+GRANT ALL ON TABLE "public"."wm_library_tasks" TO "service_role";
 
 
 
