@@ -490,7 +490,28 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
                     </span>
                   )}
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex flex-col items-end gap-1">
+                  {task.link && !task.completed && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleTaskLinkClick(task.link!);
+                      }}
+                      className={`text-sm rounded px-3 py-1 transition-colors whitespace-nowrap ${
+                        task.id === 'business-profile'
+                          ? 'bg-yellow-400 text-yellow-900 hover:bg-yellow-300 font-bold'
+                          : 'bg-white bg-opacity-20 hover:bg-opacity-30'
+                      }`}
+                    >
+                      Go →
+                    </button>
+                  )}
+                  {!task.link && !task.completed && (
+                    <span className="text-xs bg-white bg-opacity-20 rounded px-2 py-1 whitespace-nowrap">
+                      Click icon to complete
+                    </span>
+                  )}
                   {task.helpArticleId && (
                     <button
                       type="button"
@@ -502,27 +523,6 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
                     >
                       Learn more
                     </button>
-                  )}
-                  {task.link && !task.completed && (
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleTaskLinkClick(task.link!);
-                      }}
-                      className={`text-sm rounded px-2 py-1 transition-colors ${
-                        task.id === 'business-profile'
-                          ? 'bg-yellow-400 text-yellow-900 hover:bg-yellow-300 font-bold'
-                          : 'bg-white bg-opacity-20 hover:bg-opacity-30'
-                      }`}
-                    >
-                      Go →
-                    </button>
-                  )}
-                  {!task.link && !task.completed && (
-                    <span className="text-xs bg-white bg-opacity-20 rounded px-2 py-1">
-                      Click icon to complete
-                    </span>
                   )}
                 </div>
               </div>
