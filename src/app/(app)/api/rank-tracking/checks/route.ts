@@ -39,7 +39,13 @@ export async function GET(request: NextRequest) {
         device,
         position,
         found_url,
-        checked_at
+        checked_at,
+        paa_question_count,
+        paa_ours_count,
+        ai_overview_present,
+        ai_overview_ours_cited,
+        featured_snippet_present,
+        featured_snippet_ours
       `)
       .eq('account_id', accountId)
       .order('checked_at', { ascending: false })

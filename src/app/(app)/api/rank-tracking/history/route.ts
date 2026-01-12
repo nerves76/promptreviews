@@ -64,7 +64,8 @@ export async function GET(request: NextRequest) {
         device,
         position,
         found_url,
-        checked_at
+        checked_at,
+        top_competitors
       `)
       .eq('keyword_id', keywordId)
       .eq('account_id', accountId)
@@ -141,6 +142,12 @@ export async function GET(request: NextRequest) {
     const firstDesktop = history.find(h => h.desktop?.position !== null)?.desktop;
     const firstMobile = history.find(h => h.mobile?.position !== null)?.mobile;
 
+    // Get the most recent check with URL and competitors
+    const sortedByDate = [...(checks || [])].sort(
+      (a, b) => new Date(b.checked_at).getTime() - new Date(a.checked_at).getTime()
+    );
+    const latestCheck = sortedByDate[0];
+
     const summary = {
       currentDesktopPosition: latestDesktop?.position ?? null,
       currentMobilePosition: latestMobile?.position ?? null,
@@ -155,6 +162,9 @@ export async function GET(request: NextRequest) {
         start: history[0]?.date || null,
         end: history[history.length - 1]?.date || null,
       },
+      // Include latest check details for expanded view
+      latestFoundUrl: latestCheck?.found_url ?? null,
+      topCompetitors: latestCheck?.top_competitors ?? null,
     };
 
     // Debug: log what we found

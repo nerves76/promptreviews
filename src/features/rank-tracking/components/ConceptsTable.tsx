@@ -24,11 +24,24 @@ interface VolumeData {
   locationName: string | null;
 }
 
-/** Rank data for a search term - stores both desktop and mobile */
+/** SERP features data */
+interface SerpFeatures {
+  paaQuestionCount: number | null;
+  paaOursCount: number | null;
+  aiOverviewPresent: boolean | null;
+  aiOverviewOursCited: boolean | null;
+  featuredSnippetPresent: boolean | null;
+  featuredSnippetOurs: boolean | null;
+}
+
+/** Rank data for a search term - stores both desktop and mobile with previous positions */
 interface RankData {
-  desktop: { position: number | null; checkedAt: string } | null;
-  mobile: { position: number | null; checkedAt: string } | null;
+  desktop: { position: number | null; checkedAt: string; foundUrl: string | null } | null;
+  mobile: { position: number | null; checkedAt: string; foundUrl: string | null } | null;
+  previousDesktop: { position: number | null; checkedAt: string } | null;
+  previousMobile: { position: number | null; checkedAt: string } | null;
   locationName: string;
+  serpFeatures: SerpFeatures | null;
 }
 
 /** Geo grid summary stats */
@@ -64,6 +77,14 @@ interface RankHistoryDataPoint {
   locationName: string | null;
 }
 
+/** Competitor data from SERP */
+interface CompetitorData {
+  position: number;
+  url: string;
+  title?: string;
+  domain?: string;
+}
+
 /** Summary stats for history */
 interface RankHistorySummary {
   currentDesktopPosition: number | null;
@@ -71,6 +92,8 @@ interface RankHistorySummary {
   desktopChange: number | null;
   mobileChange: number | null;
   totalChecks: number;
+  latestFoundUrl: string | null;
+  topCompetitors: CompetitorData[] | null;
 }
 
 interface ConceptsTableProps {
@@ -103,6 +126,11 @@ interface KeywordRow {
   mobileChecked: boolean; // Was a mobile rank check performed?
   rankLocation: string | null;
   change: number | null;
+  // URL and timing data
+  foundUrl: string | null;
+  lastChecked: string | null;
+  // SERP features
+  serpFeatures: SerpFeatures | null;
   // Grid tracking data (at concept level)
   gridTracked: boolean;
   gridPointsInTop10: number | null;
@@ -173,6 +201,66 @@ function getChangeDisplay(change: number | null): React.ReactNode {
       <span className="text-xs">↓</span>{Math.abs(change)}
     </span>
   );
+}
+
+/**
+ * Calculate position change from previous to current.
+ * Positive = improvement (moved up in rankings, lower position number)
+ * Negative = decline (moved down in rankings, higher position number)
+ */
+function calculatePositionChange(
+  currentPosition: number | null,
+  previousPosition: number | null
+): number | null {
+  if (currentPosition === null || previousPosition === null) {
+    return null;
+  }
+  // Previous - Current: positive means improvement (e.g., was #10, now #5 = +5)
+  return previousPosition - currentPosition;
+}
+
+/**
+ * Truncate a URL to show only the path portion (without domain)
+ * e.g., "https://example.com/services/plumbing" -> "/services/plumbing"
+ */
+function truncateUrl(url: string | null, maxLength: number = 30): string {
+  if (!url) return '';
+  try {
+    const urlObj = new URL(url);
+    let path = urlObj.pathname;
+    // Remove trailing slash if present (unless it's just "/")
+    if (path.length > 1 && path.endsWith('/')) {
+      path = path.slice(0, -1);
+    }
+    // Truncate if too long
+    if (path.length > maxLength) {
+      return path.slice(0, maxLength - 3) + '...';
+    }
+    return path || '/';
+  } catch {
+    // If URL parsing fails, just truncate the raw string
+    if (url.length > maxLength) {
+      return url.slice(0, maxLength - 3) + '...';
+    }
+    return url;
+  }
+}
+
+/**
+ * Format a date string relative to now (e.g., "2 days ago", "Today")
+ */
+function formatRelativeDate(dateStr: string | null): string {
+  if (!dateStr) return '—';
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 0) return 'Today';
+  if (diffDays === 1) return 'Yesterday';
+  if (diffDays < 7) return `${diffDays}d ago`;
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`;
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
 // ============================================
@@ -284,6 +372,21 @@ export default function ConceptsTable({
           const normalizedTerm = normalizeTermForLookup(term.term);
           const termVolume = volumeData?.get(normalizedTerm);
           const termRank = rankData?.get(normalizedTerm);
+          // Calculate change: use desktop change if available, otherwise mobile change
+          const desktopChange = calculatePositionChange(
+            termRank?.desktop?.position ?? null,
+            termRank?.previousDesktop?.position ?? null
+          );
+          const mobileChange = calculatePositionChange(
+            termRank?.mobile?.position ?? null,
+            termRank?.previousMobile?.position ?? null
+          );
+          // Prefer desktop change, fallback to mobile
+          const change = desktopChange ?? mobileChange;
+          // Use desktop URL if available, fallback to mobile
+          const foundUrl = termRank?.desktop?.foundUrl ?? termRank?.mobile?.foundUrl ?? null;
+          // Use most recent check date
+          const lastChecked = termRank?.desktop?.checkedAt ?? termRank?.mobile?.checkedAt ?? null;
           allRows.push({
             keyword: term.term,
             isCanonical: term.isCanonical,
@@ -296,7 +399,10 @@ export default function ConceptsTable({
             mobileRank: termRank?.mobile?.position ?? null,
             mobileChecked: termRank?.mobile !== null && termRank?.mobile !== undefined,
             rankLocation: termRank?.locationName ?? null,
-            change: null,
+            change,
+            foundUrl,
+            lastChecked,
+            serpFeatures: termRank?.serpFeatures ?? null,
             gridTracked: conceptGrid?.isTracked ?? false,
             gridPointsInTop10: conceptGrid?.summary?.pointsInTop10 ?? null,
             gridTotalPoints: conceptGrid?.summary?.totalPoints ?? null,
@@ -311,6 +417,21 @@ export default function ConceptsTable({
         const normalizedTerm = normalizeTermForLookup(conceptName);
         const termVolume = volumeData?.get(normalizedTerm);
         const termRank = rankData?.get(normalizedTerm);
+        // Calculate change: use desktop change if available, otherwise mobile change
+        const desktopChange = calculatePositionChange(
+          termRank?.desktop?.position ?? null,
+          termRank?.previousDesktop?.position ?? null
+        );
+        const mobileChange = calculatePositionChange(
+          termRank?.mobile?.position ?? null,
+          termRank?.previousMobile?.position ?? null
+        );
+        // Prefer desktop change, fallback to mobile
+        const change = desktopChange ?? mobileChange;
+        // Use desktop URL if available, fallback to mobile
+        const foundUrl = termRank?.desktop?.foundUrl ?? termRank?.mobile?.foundUrl ?? null;
+        // Use most recent check date
+        const lastChecked = termRank?.desktop?.checkedAt ?? termRank?.mobile?.checkedAt ?? null;
         allRows.push({
           keyword: conceptName,
           isCanonical: true,
@@ -323,7 +444,10 @@ export default function ConceptsTable({
           mobileRank: termRank?.mobile?.position ?? null,
           mobileChecked: termRank?.mobile !== null && termRank?.mobile !== undefined,
           rankLocation: termRank?.locationName ?? null,
-          change: null,
+          change,
+          foundUrl,
+          lastChecked,
+          serpFeatures: termRank?.serpFeatures ?? null,
           gridTracked: conceptGrid?.isTracked ?? false,
           gridPointsInTop10: conceptGrid?.summary?.pointsInTop10 ?? null,
           gridTotalPoints: conceptGrid?.summary?.totalPoints ?? null,
@@ -436,16 +560,19 @@ export default function ConceptsTable({
 
   return (
     <div className="overflow-x-auto border border-gray-200 rounded-xl">
-      <table className="w-full min-w-[1000px]">
-        {/* Column widths: Keyword, Concept, Volume, Rank, Change, Grid, Actions */}
+      <table className="w-full min-w-[1300px]">
+        {/* Column widths: Keyword, Concept, Volume, Rank, Change, URL, Checked, SERP, Grid, Actions */}
         <colgroup>
-          <col style={{ width: '30%', minWidth: '250px' }} />
-          <col style={{ width: '18%', minWidth: '160px' }} />
-          <col style={{ width: '10%', minWidth: '80px' }} />
-          <col style={{ width: '12%', minWidth: '100px' }} />
-          <col style={{ width: '8%', minWidth: '70px' }} />
-          <col style={{ width: '8%', minWidth: '70px' }} />
-          <col style={{ width: '14%', minWidth: '200px' }} />
+          <col style={{ width: '20%', minWidth: '180px' }} />
+          <col style={{ width: '12%', minWidth: '110px' }} />
+          <col style={{ width: '7%', minWidth: '65px' }} />
+          <col style={{ width: '10%', minWidth: '95px' }} />
+          <col style={{ width: '5%', minWidth: '55px' }} />
+          <col style={{ width: '11%', minWidth: '100px' }} />
+          <col style={{ width: '6%', minWidth: '60px' }} />
+          <col style={{ width: '8%', minWidth: '85px' }} />
+          <col style={{ width: '6%', minWidth: '55px' }} />
+          <col style={{ width: '15%', minWidth: '200px' }} />
         </colgroup>
         <thead>
           <tr className="bg-gray-50 border-b border-gray-200">
@@ -493,6 +620,15 @@ export default function ConceptsTable({
                 Change
                 <SortIcon field="change" />
               </button>
+            </th>
+            <th className="text-center py-3 px-4">
+              <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider">URL</span>
+            </th>
+            <th className="text-center py-3 px-4">
+              <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider">Checked</span>
+            </th>
+            <th className="text-center py-3 px-4">
+              <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider">SERP</span>
             </th>
             <th className="text-center py-3 px-4">
               <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider">Grid</span>
@@ -619,11 +755,17 @@ export default function ConceptsTable({
                         </span>
                       )}
                     </div>
-                    {row.rankLocation && (
-                      <span className="text-[10px] text-gray-500 truncate max-w-[100px]" title={row.rankLocation}>
-                        {row.rankLocation}
-                      </span>
-                    )}
+                    {row.rankLocation && (() => {
+                      const parts = row.rankLocation.split(', ');
+                      const country = parts.pop();
+                      const cityState = abbreviateState(parts.join(', '));
+                      return (
+                        <div className="text-[10px] text-gray-500 text-center" title={row.rankLocation}>
+                          <div>{cityState}</div>
+                          {country && <div>{country}</div>}
+                        </div>
+                      );
+                    })()}
                   </div>
                 ) : (
                   <span className="text-gray-500">—</span>
@@ -631,6 +773,80 @@ export default function ConceptsTable({
               </td>
               <td className="py-3 px-4 text-center">
                 {getChangeDisplay(row.change)}
+              </td>
+              <td className="py-3 px-4 text-center">
+                {row.foundUrl ? (
+                  <a
+                    href={row.foundUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-blue-600 hover:text-blue-800 hover:underline truncate block max-w-[110px]"
+                    title={row.foundUrl}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {truncateUrl(row.foundUrl, 25)}
+                  </a>
+                ) : (
+                  <span className="text-gray-400">—</span>
+                )}
+              </td>
+              <td className="py-3 px-4 text-center">
+                <span className="text-xs text-gray-500" title={row.lastChecked || undefined}>
+                  {formatRelativeDate(row.lastChecked)}
+                </span>
+              </td>
+              <td className="py-3 px-4 text-center">
+                {row.serpFeatures ? (
+                  <div className="flex items-center justify-center gap-1.5">
+                    {/* AI Overview */}
+                    {row.serpFeatures.aiOverviewPresent && (
+                      <span
+                        className={`inline-flex items-center justify-center w-5 h-5 rounded text-[10px] font-semibold ${
+                          row.serpFeatures.aiOverviewOursCited
+                            ? 'bg-purple-100 text-purple-700'
+                            : 'bg-gray-100 text-gray-500'
+                        }`}
+                        title={row.serpFeatures.aiOverviewOursCited ? 'AI Overview (cited)' : 'AI Overview present'}
+                      >
+                        AI
+                      </span>
+                    )}
+                    {/* Featured Snippet */}
+                    {row.serpFeatures.featuredSnippetPresent && (
+                      <span
+                        className={`inline-flex items-center justify-center w-5 h-5 rounded text-[10px] font-semibold ${
+                          row.serpFeatures.featuredSnippetOurs
+                            ? 'bg-amber-100 text-amber-700'
+                            : 'bg-gray-100 text-gray-500'
+                        }`}
+                        title={row.serpFeatures.featuredSnippetOurs ? 'Featured Snippet (ours)' : 'Featured Snippet present'}
+                      >
+                        FS
+                      </span>
+                    )}
+                    {/* People Also Ask */}
+                    {row.serpFeatures.paaQuestionCount !== null && row.serpFeatures.paaQuestionCount > 0 && (
+                      <span
+                        className={`inline-flex items-center justify-center w-5 h-5 rounded text-[10px] font-semibold ${
+                          row.serpFeatures.paaOursCount !== null && row.serpFeatures.paaOursCount > 0
+                            ? 'bg-blue-100 text-blue-700'
+                            : 'bg-gray-100 text-gray-500'
+                        }`}
+                        title={`PAA: ${row.serpFeatures.paaOursCount ?? 0}/${row.serpFeatures.paaQuestionCount} ours`}
+                      >
+                        ?
+                      </span>
+                    )}
+                    {/* No features detected */}
+                    {!row.serpFeatures.aiOverviewPresent &&
+                     !row.serpFeatures.featuredSnippetPresent &&
+                     (row.serpFeatures.paaQuestionCount === null || row.serpFeatures.paaQuestionCount === 0) && (
+                      <span className="text-gray-400">—</span>
+                    )}
+                  </div>
+                ) : (
+                  <span className="text-gray-400">—</span>
+                )}
               </td>
               <td className="py-3 px-4 text-center">
                 {row.gridTracked && row.gridTotalPoints !== null && row.gridTotalPoints > 0 ? (
@@ -703,8 +919,8 @@ export default function ConceptsTable({
             {/* Expanded history row */}
             {expandedRowKey === `${row.concept.id}::${row.keyword}` && (
               <tr className="bg-blue-50">
-                <td colSpan={7} className="py-2 px-6">
-                  <div className="max-w-[850px]">
+                <td colSpan={10} className="py-2 px-6">
+                  <div className="max-w-[900px]">
                     {/* Chart */}
                     <RankHistoryChart
                       history={historyData}
@@ -713,9 +929,65 @@ export default function ConceptsTable({
                       days={historyDays}
                       onDaysChange={setHistoryDays}
                     />
+
+                    {/* Details Panel */}
                     {historySummary && (
-                      <div className="mt-2 text-xs text-gray-500 text-center">
-                        {historySummary.totalChecks} rank checks
+                      <div className="mt-4 pt-4 border-t border-gray-200">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {/* Ranking URL */}
+                          <div>
+                            <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">Ranking URL</h4>
+                            {historySummary.latestFoundUrl ? (
+                              <a
+                                href={historySummary.latestFoundUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-sm text-blue-600 hover:text-blue-800 hover:underline break-all"
+                              >
+                                {historySummary.latestFoundUrl}
+                              </a>
+                            ) : (
+                              <span className="text-sm text-gray-400">No ranking found</span>
+                            )}
+                          </div>
+
+                          {/* Top Competitors */}
+                          <div>
+                            <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">Top Competitors</h4>
+                            {historySummary.topCompetitors && historySummary.topCompetitors.length > 0 ? (
+                              <ul className="space-y-1.5">
+                                {historySummary.topCompetitors.slice(0, 5).map((competitor, idx) => (
+                                  <li key={idx} className="flex items-start gap-2 text-sm">
+                                    <span className="text-gray-400 font-medium w-5 flex-shrink-0">
+                                      #{competitor.position}
+                                    </span>
+                                    <a
+                                      href={competitor.url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-gray-600 hover:text-blue-600 truncate"
+                                      title={competitor.url}
+                                    >
+                                      {competitor.domain || (() => {
+                                        try {
+                                          return new URL(competitor.url).hostname;
+                                        } catch {
+                                          return competitor.url;
+                                        }
+                                      })()}
+                                    </a>
+                                  </li>
+                                ))}
+                              </ul>
+                            ) : (
+                              <span className="text-sm text-gray-400">No competitor data</span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="mt-3 text-xs text-gray-500 text-center">
+                          {historySummary.totalChecks} rank checks
+                        </div>
                       </div>
                     )}
                   </div>

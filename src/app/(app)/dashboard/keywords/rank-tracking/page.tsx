@@ -48,13 +48,33 @@ interface RankCheck {
   position: number | null;
   found_url: string | null;
   checked_at: string;
+  // SERP features
+  paa_question_count: number | null;
+  paa_ours_count: number | null;
+  ai_overview_present: boolean | null;
+  ai_overview_ours_cited: boolean | null;
+  featured_snippet_present: boolean | null;
+  featured_snippet_ours: boolean | null;
+}
+
+/** SERP features data */
+interface SerpFeatures {
+  paaQuestionCount: number | null;
+  paaOursCount: number | null;
+  aiOverviewPresent: boolean | null;
+  aiOverviewOursCited: boolean | null;
+  featuredSnippetPresent: boolean | null;
+  featuredSnippetOurs: boolean | null;
 }
 
 /** Rank data for display */
 interface RankData {
-  desktop: { position: number | null; checkedAt: string } | null;
-  mobile: { position: number | null; checkedAt: string } | null;
+  desktop: { position: number | null; checkedAt: string; foundUrl: string | null } | null;
+  mobile: { position: number | null; checkedAt: string; foundUrl: string | null } | null;
+  previousDesktop: { position: number | null; checkedAt: string } | null;
+  previousMobile: { position: number | null; checkedAt: string } | null;
   locationName: string;
+  serpFeatures: SerpFeatures | null;
 }
 
 /** Geo grid summary stats */
@@ -321,7 +341,7 @@ export default function RankTrackingPage() {
     return map;
   }, [researchResults]);
 
-  // Build term rank data map (most recent check per term, combining desktop & mobile)
+  // Build term rank data map (most recent + previous check per term, combining desktop & mobile)
   const rankData = useMemo(() => {
     const map = new Map<string, RankData>();
     // Sort by checked_at descending to get most recent first
@@ -335,16 +355,47 @@ export default function RankTrackingPage() {
         map.set(normalizedTerm, {
           desktop: null,
           mobile: null,
+          previousDesktop: null,
+          previousMobile: null,
           locationName: check.location_name,
+          serpFeatures: null,
         });
       }
 
       const existing = map.get(normalizedTerm)!;
-      // Only set if not already set (keep most recent)
-      if (check.device === 'desktop' && !existing.desktop) {
-        existing.desktop = { position: check.position, checkedAt: check.checked_at };
-      } else if (check.device === 'mobile' && !existing.mobile) {
-        existing.mobile = { position: check.position, checkedAt: check.checked_at };
+      // Track current (most recent) and previous positions for each device
+      if (check.device === 'desktop') {
+        if (!existing.desktop) {
+          existing.desktop = { position: check.position, checkedAt: check.checked_at, foundUrl: check.found_url };
+          // Store SERP features from the most recent desktop check
+          existing.serpFeatures = {
+            paaQuestionCount: check.paa_question_count,
+            paaOursCount: check.paa_ours_count,
+            aiOverviewPresent: check.ai_overview_present,
+            aiOverviewOursCited: check.ai_overview_ours_cited,
+            featuredSnippetPresent: check.featured_snippet_present,
+            featuredSnippetOurs: check.featured_snippet_ours,
+          };
+        } else if (!existing.previousDesktop) {
+          existing.previousDesktop = { position: check.position, checkedAt: check.checked_at };
+        }
+      } else if (check.device === 'mobile') {
+        if (!existing.mobile) {
+          existing.mobile = { position: check.position, checkedAt: check.checked_at, foundUrl: check.found_url };
+          // If no desktop SERP features yet, use mobile
+          if (!existing.serpFeatures) {
+            existing.serpFeatures = {
+              paaQuestionCount: check.paa_question_count,
+              paaOursCount: check.paa_ours_count,
+              aiOverviewPresent: check.ai_overview_present,
+              aiOverviewOursCited: check.ai_overview_ours_cited,
+              featuredSnippetPresent: check.featured_snippet_present,
+              featuredSnippetOurs: check.featured_snippet_ours,
+            };
+          }
+        } else if (!existing.previousMobile) {
+          existing.previousMobile = { position: check.position, checkedAt: check.checked_at };
+        }
       }
     });
     return map;
