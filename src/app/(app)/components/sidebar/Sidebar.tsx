@@ -46,12 +46,20 @@ export function Sidebar({
 
   // Check if business profile is complete (has about_us OR services_offered)
   // Show "Start Here!" badge for new users who haven't filled in their profile
-  const isBusinessProfileIncomplete = useMemo(() => {
-    if (!hasBusiness || !business) return false;
+  const showBusinessProfileBadge = useMemo(() => {
+    // No business = no badge
+    if (!hasBusiness) return false;
+
+    // Business exists but data not loaded yet - show badge (will hide once data confirms completion)
+    if (!business) return true;
+
+    // Check if profile has meaningful content
     const hasAboutUs = !!(business.about_us && String(business.about_us).trim().length > 0);
     const hasServices = Array.isArray(business.services_offered)
       ? business.services_offered.filter((s: string) => s && s.trim()).length > 0
       : !!(business.services_offered && String(business.services_offered).trim().length > 0);
+
+    // Show badge if neither about_us nor services filled in
     return !hasAboutUs && !hasServices;
   }, [hasBusiness, business]);
 
@@ -183,7 +191,7 @@ export function Sidebar({
               isFavorited={isFavorited(item.path)}
               isDisabled={disabledItems.includes(item.path)}
               onToggleFavorite={handleToggleFavorite}
-              showStartHereBadge={item.path === "/dashboard/business-profile" && isBusinessProfileIncomplete}
+              showStartHereBadge={item.path === "/dashboard/business-profile" && showBusinessProfileBadge}
             />
           ))}
         </div>
