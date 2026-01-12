@@ -16,6 +16,7 @@ export function SidebarNavItem({
   isFavorited,
   isDisabled = false,
   onToggleFavorite,
+  showStartHereBadge = false,
 }: SidebarNavItemProps) {
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -41,7 +42,14 @@ export function SidebarNavItem({
       {!isCollapsed && (
         <>
           <div className="flex-1 min-w-0">
-            <span className="text-sm font-medium block">{item.label}</span>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium">{item.label}</span>
+              {showStartHereBadge && (
+                <span className="bg-yellow-100 text-yellow-800 text-[10px] px-1.5 py-0.5 rounded-full font-bold border border-yellow-300 whitespace-nowrap">
+                  Start Here!
+                </span>
+              )}
+            </div>
             {item.description && (
               <span className="text-xs text-white/50 block">{item.description}</span>
             )}

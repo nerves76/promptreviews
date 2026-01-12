@@ -33,7 +33,7 @@ export function Sidebar({
   isAdmin: isAdminProp,
 }: SidebarProps) {
   const pathname = usePathname();
-  const { hasBusiness: authHasBusiness } = useBusinessData();
+  const { hasBusiness: authHasBusiness, business } = useBusinessData();
   const { accounts } = useAccountData();
   const { isAdminUser } = useAuth();
 
@@ -43,6 +43,17 @@ export function Sidebar({
   const isAdmin = isAdminProp ?? isAdminUser;
   // For now, assume GBP access if they have a business
   const hasGbpAccess = hasGbpAccessProp ?? hasBusiness;
+
+  // Check if business profile is complete (has about_us OR services_offered)
+  // Show "Start Here!" badge for new users who haven't filled in their profile
+  const isBusinessProfileIncomplete = useMemo(() => {
+    if (!hasBusiness || !business) return false;
+    const hasAboutUs = !!(business.about_us && String(business.about_us).trim().length > 0);
+    const hasServices = Array.isArray(business.services_offered)
+      ? business.services_offered.filter((s: string) => s && s.trim()).length > 0
+      : !!(business.services_offered && String(business.services_offered).trim().length > 0);
+    return !hasAboutUs && !hasServices;
+  }, [hasBusiness, business]);
 
   // Sidebar state
   const {
@@ -172,6 +183,7 @@ export function Sidebar({
               isFavorited={isFavorited(item.path)}
               isDisabled={disabledItems.includes(item.path)}
               onToggleFavorite={handleToggleFavorite}
+              showStartHereBadge={item.path === "/dashboard/business-profile" && isBusinessProfileIncomplete}
             />
           ))}
         </div>

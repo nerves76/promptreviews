@@ -86,6 +86,8 @@ export interface SidebarNavItemProps {
   isFavorited: boolean;
   isDisabled?: boolean;
   onToggleFavorite: (path: string) => void;
+  /** Show "Start Here!" badge for new user onboarding */
+  showStartHereBadge?: boolean;
 }
 
 /**
