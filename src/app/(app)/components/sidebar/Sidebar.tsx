@@ -44,23 +44,44 @@ export function Sidebar({
   // For now, assume GBP access if they have a business
   const hasGbpAccess = hasGbpAccessProp ?? hasBusiness;
 
-  // Check if business profile is complete (has about_us OR services_offered)
-  // Show "Start Here!" badge for new users who haven't filled in their profile
+  // Check if business profile is complete - uses same logic as GettingStarted component
+  // Profile is complete if: hasName AND (hasAboutUs OR hasServices)
   const showBusinessProfileBadge = useMemo(() => {
     // No business = no badge
-    if (!hasBusiness) return false;
+    if (!hasBusiness) {
+      console.log('[Sidebar Badge] No business, hiding badge');
+      return false;
+    }
 
     // Business exists but data not loaded yet - show badge (will hide once data confirms completion)
-    if (!business) return true;
+    if (!business) {
+      console.log('[Sidebar Badge] Business loading, showing badge');
+      return true;
+    }
 
-    // Check if profile has meaningful content
+    // Same logic as checkBusinessProfileComplete in GettingStarted.tsx
+    const hasName = !!(business.name && String(business.name).trim().length > 0);
     const hasAboutUs = !!(business.about_us && String(business.about_us).trim().length > 0);
     const hasServices = Array.isArray(business.services_offered)
       ? business.services_offered.filter((s: string) => s && s.trim()).length > 0
       : !!(business.services_offered && String(business.services_offered).trim().length > 0);
 
-    // Show badge if neither about_us nor services filled in
-    return !hasAboutUs && !hasServices;
+    // Profile is complete if hasName AND (hasAboutUs OR hasServices)
+    const isProfileComplete = hasName && (hasAboutUs || hasServices);
+
+    console.log('[Sidebar Badge] Business data:', {
+      name: business.name,
+      about_us: business.about_us?.substring(0, 50),
+      services_offered: business.services_offered,
+      hasName,
+      hasAboutUs,
+      hasServices,
+      isProfileComplete,
+      showBadge: !isProfileComplete
+    });
+
+    // Show badge if profile is NOT complete
+    return !isProfileComplete;
   }, [hasBusiness, business]);
 
   // Sidebar state
