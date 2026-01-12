@@ -17,7 +17,8 @@ import {
   LLMVisibilitySummary,
   LLMVisibilityCheck,
 } from '@/features/llm-visibility/utils/types';
-import { CheckLLMModal, LLMVisibilityTrendChart } from '@/features/llm-visibility/components';
+import { CheckLLMModal, LLMVisibilityTrendChart, AddLLMConceptModal } from '@/features/llm-visibility/components';
+import { useKeywords } from '@/features/keywords/hooks/useKeywords';
 import { KeywordDetailsSidebar } from '@/features/keywords/components/KeywordDetailsSidebar';
 import { CheckRankModal } from '@/features/rank-tracking/components';
 import { type KeywordData, transformKeywordToResponse } from '@/features/keywords/keywordUtils';
@@ -90,6 +91,12 @@ export default function LLMVisibilityPage() {
 
   // Modal state for checking a single question
   const [checkingModal, setCheckingModal] = useState<{ question: string; conceptId: string } | null>(null);
+
+  // Modal state for adding new concept
+  const [showAddModal, setShowAddModal] = useState(false);
+
+  // Use keywords hook to create new concepts
+  const { createKeyword, refresh: refreshKeywords } = useKeywords({ autoFetch: false });
 
   // Sidebar state for editing concepts
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -368,6 +375,35 @@ export default function LLMVisibilityPage() {
     fetchData();
   }, [fetchData]);
 
+  // Handle adding a new LLM concept
+  const handleAddLLMConcept = useCallback(async (data: {
+    name: string;
+    questions: Array<{ question: string; funnelStage: 'top' | 'middle' | 'bottom' }>;
+  }) => {
+    // Create keyword with the name as the phrase
+    const newKeyword = await createKeyword(data.name);
+    if (!newKeyword) {
+      throw new Error('Failed to create keyword concept');
+    }
+
+    // Update the keyword to add the related questions and enable LLM visibility
+    const now = new Date().toISOString();
+    const relatedQuestions = data.questions.map((q) => ({
+      question: q.question,
+      funnelStage: q.funnelStage,
+      addedAt: now,
+    }));
+
+    await apiClient.put(`/keywords/${newKeyword.id}`, {
+      relatedQuestions,
+      isUsedInLLMVisibility: true,
+    });
+
+    // Refresh data
+    await refreshKeywords();
+    await fetchData();
+  }, [createKeyword, refreshKeywords, fetchData]);
+
   // Open sidebar to edit a concept
   const handleOpenConceptSidebar = useCallback(async (conceptId: string) => {
     setIsLoadingKeyword(true);
@@ -529,13 +565,13 @@ export default function LLMVisibilityPage() {
           title="LLM visibility"
           description="Track whether AI assistants cite your domain or mention your brand when answering questions."
           actions={
-            <Link
-              href="/dashboard/keywords"
+            <button
+              onClick={() => setShowAddModal(true)}
               className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-slate-blue hover:bg-slate-blue/90 rounded-lg transition-colors"
             >
               <Icon name="FaPlus" className="w-4 h-4" />
               Add concept
-            </Link>
+            </button>
           }
         />
 
@@ -988,6 +1024,13 @@ export default function LLMVisibilityPage() {
         onClose={() => setCheckingModal(null)}
         onCheckComplete={handleCheckComplete}
         businessName={business?.name || undefined}
+      />
+
+      {/* Add LLM Concept Modal */}
+      <AddLLMConceptModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onAdd={handleAddLLMConcept}
       />
 
       {/* Concept Details Sidebar */}

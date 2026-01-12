@@ -9,13 +9,14 @@ const SELECTED_ACCOUNT_KEY = 'promptreviews_selected_account';
 
 export interface UserAccount {
   account_id: string;
-  role: 'owner' | 'admin' | 'member' | 'support';
+  role: 'owner' | 'admin' | 'member' | 'support' | 'agency_manager' | 'agency_billing_manager';
   account_name?: string;
   plan?: string;
   first_name?: string;
   last_name?: string;
   business_name?: string;
   is_primary?: boolean; // The account that would be selected by default algorithm
+  is_agncy?: boolean; // Whether this account is an agency account
 }
 
 /**
@@ -76,7 +77,8 @@ export async function fetchUserAccounts(userId: string, supabaseClient?: any): P
           first_name,
           last_name,
           business_name,
-          plan
+          plan,
+          is_agncy
         )
       `)
       .eq("user_id", userId);
@@ -94,6 +96,7 @@ export async function fetchUserAccounts(userId: string, supabaseClient?: any): P
       first_name: au.accounts.first_name,
       last_name: au.accounts.last_name,
       business_name: au.accounts.business_name,
+      is_agncy: au.accounts.is_agncy || false,
     })) || [];
   } catch (error) {
     console.error('Error fetching user accounts:', error);

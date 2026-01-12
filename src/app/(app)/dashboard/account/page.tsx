@@ -771,6 +771,74 @@ export default function AccountPage() {
         </div>
       </div>
 
+      {/* Agency Section */}
+      <div className="mb-8">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <Icon name="FaBriefcase" className="text-slate-blue" />
+          Agency
+        </h2>
+        <div className="bg-white border border-gray-200 rounded-lg p-6">
+          {(account as any)?.is_agncy ? (
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                <Icon name="FaBriefcase" className="text-amber-600" size={20} />
+                <div>
+                  <p className="font-medium text-gray-900">Agency account</p>
+                  <p className="text-sm text-gray-600">
+                    You can manage client workspaces from the agency dashboard
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => router.push("/agency")}
+                className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-slate-blue hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue"
+              >
+                <Icon name="FaChartLine" className="w-4 h-4 mr-2 inline" />
+                Go to agency dashboard
+              </button>
+            </div>
+          ) : (account as any)?.managing_agncy_id ? (
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <Icon name="FaBriefcase" className="text-blue-600" size={20} />
+                <div>
+                  <p className="font-medium text-gray-900">Managed by an agency</p>
+                  <p className="text-sm text-gray-600">
+                    {(account as any)?.agncy_billing_owner === 'agency'
+                      ? 'Your agency pays for your subscription'
+                      : 'Your agency has access to this workspace'}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => router.push("/dashboard/settings/agency-access")}
+                className="px-4 py-2 border border-slate-blue rounded-md shadow-sm text-sm font-medium text-slate-blue bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue"
+              >
+                <Icon name="FaCog" className="w-4 h-4 mr-2 inline" />
+                Manage agency access
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <p className="text-sm text-gray-600">
+                Are you a marketing agency managing multiple client businesses?
+                Convert your account to an agency account to manage client workspaces,
+                handle billing, and view rollup analytics.
+              </p>
+              <div className="flex flex-wrap gap-3">
+                <button
+                  onClick={() => router.push("/dashboard/settings/agency-access")}
+                  className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue"
+                >
+                  <Icon name="FaCog" className="w-4 h-4 mr-2 inline" />
+                  Agency access settings
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Danger Zone Section */}
       <div className="mb-8">
         <h2 className="text-lg font-semibold text-red-600 mb-4 flex items-center gap-2">

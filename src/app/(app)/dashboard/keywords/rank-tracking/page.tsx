@@ -638,17 +638,23 @@ export default function RankTrackingPage() {
   }, [checkingKeyword, fetchRankChecks]);
 
   // Handle adding a new keyword concept
-  const handleAddKeywordConcept = useCallback(async (data: { name: string; keyword: string }) => {
-    // Create keyword with the name as the phrase and the keyword as a search term
+  const handleAddKeywordConcept = useCallback(async (data: { name: string; keywords: string[] }) => {
+    // Create keyword with the name as the phrase
     const newKeyword = await createKeyword(data.name);
     if (!newKeyword) {
       throw new Error('Failed to create keyword concept');
     }
 
-    // Update the keyword to add the search term and enable rank tracking
+    // Update the keyword to add the search terms and enable rank tracking
     const now = new Date().toISOString();
+    const searchTerms = data.keywords.map((term, index) => ({
+      term,
+      isCanonical: index === 0, // First keyword is canonical
+      addedAt: now,
+    }));
+
     await apiClient.put(`/keywords/${newKeyword.id}`, {
-      searchTerms: [{ term: data.keyword, isCanonical: true, addedAt: now }],
+      searchTerms,
       isUsedInRankTracking: true,
     });
 
@@ -692,7 +698,7 @@ export default function RankTrackingPage() {
                 className="px-4 py-2 text-sm font-medium text-white bg-slate-blue rounded-lg hover:bg-slate-blue/90 flex items-center gap-2 transition-colors"
               >
                 <Icon name="FaPlus" className="w-4 h-4" />
-                Keyword
+                Add concept
               </button>
               <div className="relative w-48 md:w-64">
                 <Icon name="FaSearch" className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />

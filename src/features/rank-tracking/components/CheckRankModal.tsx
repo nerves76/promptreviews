@@ -52,10 +52,17 @@ export default function CheckRankModal({
   const [isChecking, setIsChecking] = useState(false);
   const [result, setResult] = useState<{ desktop: RankResult; mobile: RankResult } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showConfirm, setShowConfirm] = useState(false);
 
-  const handleCheck = async () => {
+  const handleCheckClick = () => {
+    if (!location) return;
+    setShowConfirm(true);
+  };
+
+  const handleConfirmedCheck = async () => {
     if (!location) return;
 
+    setShowConfirm(false);
     setIsChecking(true);
     setError(null);
     setResult(null);
@@ -75,6 +82,7 @@ export default function CheckRankModal({
   const handleClose = () => {
     setResult(null);
     setError(null);
+    setShowConfirm(false);
     onClose();
   };
 
@@ -196,7 +204,7 @@ export default function CheckRankModal({
           </button>
           {!result && (
             <button
-              onClick={handleCheck}
+              onClick={handleCheckClick}
               disabled={!location || isChecking}
               className="px-4 py-2 text-sm font-medium text-white bg-slate-blue rounded-lg hover:bg-slate-blue/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
             >
@@ -208,13 +216,50 @@ export default function CheckRankModal({
               ) : (
                 <>
                   <Icon name="FaSearch" className="w-4 h-4" />
-                  Check now (2 credits)
+                  Check now
                 </>
               )}
             </button>
           )}
         </div>
       </div>
+
+      {/* Credit Confirmation Dialog */}
+      {showConfirm && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setShowConfirm(false)}
+          />
+          <div className="relative bg-white rounded-xl shadow-xl max-w-sm w-full mx-4 p-6">
+            <div className="text-center">
+              <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-amber-100 flex items-center justify-center">
+                <Icon name="FaCoins" className="w-6 h-6 text-amber-600" />
+              </div>
+              <h4 className="text-lg font-semibold text-gray-900 mb-2">
+                Confirm credit usage
+              </h4>
+              <p className="text-sm text-gray-600 mb-6">
+                This will use <strong>2 credits</strong> to check desktop and mobile rankings for &quot;{keyword}&quot; in {location?.name}.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowConfirm(false)}
+                  className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirmedCheck}
+                  className="flex-1 px-4 py-2 text-sm font-medium text-white bg-slate-blue rounded-lg hover:bg-slate-blue/90 transition-colors"
+                >
+                  Use 2 credits
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

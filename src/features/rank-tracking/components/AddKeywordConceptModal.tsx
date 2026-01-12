@@ -6,12 +6,12 @@ import Icon from '@/components/Icon';
 interface AddKeywordConceptModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAdd: (data: { name: string; keyword: string }) => Promise<void>;
+  onAdd: (data: { name: string; keywords: string[] }) => Promise<void>;
 }
 
 /**
- * Simple modal for adding a keyword concept from the rank tracking page.
- * Just asks for concept name and the keyword to track.
+ * Modal for adding a keyword concept from the rank tracking page.
+ * Supports adding multiple keywords/search terms to track.
  */
 export function AddKeywordConceptModal({
   isOpen,
@@ -19,11 +19,29 @@ export function AddKeywordConceptModal({
   onAdd,
 }: AddKeywordConceptModalProps) {
   const [name, setName] = useState('');
-  const [keyword, setKeyword] = useState('');
+  const [keywords, setKeywords] = useState<string[]>(['']);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   if (!isOpen) return null;
+
+  const handleKeywordChange = (index: number, value: string) => {
+    const newKeywords = [...keywords];
+    newKeywords[index] = value;
+    setKeywords(newKeywords);
+  };
+
+  const handleAddKeyword = () => {
+    if (keywords.length < 10) {
+      setKeywords([...keywords, '']);
+    }
+  };
+
+  const handleRemoveKeyword = (index: number) => {
+    if (keywords.length > 1) {
+      setKeywords(keywords.filter((_, i) => i !== index));
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,8 +50,10 @@ export function AddKeywordConceptModal({
       setError('Please enter a concept name');
       return;
     }
-    if (!keyword.trim()) {
-      setError('Please enter a keyword to track');
+
+    const validKeywords = keywords.map(k => k.trim()).filter(k => k.length > 0);
+    if (validKeywords.length === 0) {
+      setError('Please enter at least one keyword to track');
       return;
     }
 
@@ -41,10 +61,10 @@ export function AddKeywordConceptModal({
     setError(null);
 
     try {
-      await onAdd({ name: name.trim(), keyword: keyword.trim() });
+      await onAdd({ name: name.trim(), keywords: validKeywords });
       // Reset form
       setName('');
-      setKeyword('');
+      setKeywords(['']);
       onClose();
     } catch (err: any) {
       setError(err.message || 'Failed to add keyword');
@@ -55,7 +75,7 @@ export function AddKeywordConceptModal({
 
   const handleClose = () => {
     setName('');
-    setKeyword('');
+    setKeywords(['']);
     setError(null);
     onClose();
   };
@@ -108,22 +128,49 @@ export function AddKeywordConceptModal({
             </div>
           </div>
 
-          {/* Keyword to track */}
+          {/* Keywords to track */}
           <div>
-            <label htmlFor="keyword" className="block text-sm font-medium text-gray-700 mb-1">
-              Keyword to track
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Keywords to track
             </label>
-            <input
-              id="keyword"
-              type="text"
-              value={keyword}
-              onChange={(e) => setKeyword(e.target.value)}
-              placeholder="e.g., marketing consultant portland"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-blue/50 focus:border-slate-blue/50 transition-all"
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              The search term you want to track rankings for
-            </p>
+            <div className="space-y-2">
+              {keywords.map((keyword, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={keyword}
+                    onChange={(e) => handleKeywordChange(index, e.target.value)}
+                    placeholder={index === 0 ? "e.g., marketing consultant portland" : "Add another keyword..."}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-blue/50 focus:border-slate-blue/50 transition-all"
+                  />
+                  {keywords.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveKeyword(index)}
+                      className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                      aria-label="Remove keyword"
+                    >
+                      <Icon name="FaTimes" className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+            <div className="flex items-center justify-between mt-2">
+              <p className="text-xs text-gray-500">
+                Search terms you want to track rankings for
+              </p>
+              {keywords.length < 10 && (
+                <button
+                  type="button"
+                  onClick={handleAddKeyword}
+                  className="text-xs text-slate-blue hover:text-slate-blue/80 flex items-center gap-1 transition-colors"
+                >
+                  <Icon name="FaPlus" className="w-3 h-3" />
+                  Add another
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Error */}
@@ -155,7 +202,7 @@ export function AddKeywordConceptModal({
               ) : (
                 <>
                   <Icon name="FaPlus" className="w-4 h-4" />
-                  Add keyword
+                  Add concept
                 </>
               )}
             </button>

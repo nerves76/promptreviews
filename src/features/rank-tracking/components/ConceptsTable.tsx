@@ -563,15 +563,15 @@ export default function ConceptsTable({
       <table className="w-full" style={{ tableLayout: 'fixed', minWidth: '1200px' }}>
         {/* Column widths: Keyword, Concept, Volume, Rank, Change, URL, Checked, SERP, Grid, Actions */}
         <colgroup>
-          <col style={{ width: '180px' }} />
+          <col style={{ width: '280px' }} />
           <col style={{ width: '100px' }} />
           <col style={{ width: '70px' }} />
-          <col style={{ width: '100px' }} />
-          <col style={{ width: '60px' }} />
-          <col style={{ width: '120px' }} />
+          <col style={{ width: '145px' }} />
           <col style={{ width: '70px' }} />
-          <col style={{ width: '90px' }} />
-          <col style={{ width: '60px' }} />
+          <col style={{ width: '100px' }} />
+          <col style={{ width: '65px' }} />
+          <col style={{ width: '80px' }} />
+          <col style={{ width: '50px' }} />
           <col style={{ width: 'auto' }} />
         </colgroup>
         <thead>
@@ -729,19 +729,19 @@ export default function ConceptsTable({
                   </button>
                 )}
               </td>
-              <td className="py-3 px-4 text-center">
+              <td className="py-3 px-3 text-center">
                 {row.desktopChecked || row.mobileChecked ? (
-                  <div className="flex flex-col items-center">
-                    <div className="flex items-center gap-3">
+                  <div className="flex flex-col items-center gap-1.5">
+                    <div className="flex items-center gap-2 text-xs">
                       {/* Desktop rank */}
                       {row.desktopChecked && (
                         <span className="flex items-center gap-1" title="Desktop">
-                          <svg className="w-3.5 h-3.5 text-gray-500" viewBox="0 0 16 14" fill="currentColor">
+                          <svg className="w-3 h-3 text-gray-500" viewBox="0 0 16 14" fill="currentColor">
                             <rect x="0" y="0" width="16" height="10" rx="1" />
                             <rect x="5" y="11" width="6" height="1" />
                             <rect x="4" y="12" width="8" height="1" />
                           </svg>
-                          <span className={`font-semibold ${row.desktopRank !== null ? getPositionColor(row.desktopRank) : 'text-gray-500'}`}>
+                          <span className={`font-medium ${row.desktopRank !== null ? getPositionColor(row.desktopRank) : 'text-gray-500'}`}>
                             {row.desktopRank !== null ? row.desktopRank : '>100'}
                           </span>
                         </span>
@@ -749,8 +749,8 @@ export default function ConceptsTable({
                       {/* Mobile rank */}
                       {row.mobileChecked && (
                         <span className="flex items-center gap-1" title="Mobile">
-                          <Icon name="FaMobile" className="w-3.5 h-3.5 text-gray-500" />
-                          <span className={`font-semibold ${row.mobileRank !== null ? getPositionColor(row.mobileRank) : 'text-gray-500'}`}>
+                          <Icon name="FaMobile" className="w-2.5 h-2.5 text-gray-500" />
+                          <span className={`font-medium ${row.mobileRank !== null ? getPositionColor(row.mobileRank) : 'text-gray-500'}`}>
                             {row.mobileRank !== null ? row.mobileRank : '>100'}
                           </span>
                         </span>
@@ -761,7 +761,7 @@ export default function ConceptsTable({
                       const country = parts.pop();
                       const cityState = abbreviateState(parts.join(', '));
                       return (
-                        <div className="text-[10px] text-gray-500 text-center" title={row.rankLocation}>
+                        <div className="text-[9px] text-gray-500 text-center leading-tight" title={row.rankLocation}>
                           <div>{cityState}</div>
                           {country && <div>{country}</div>}
                         </div>
@@ -769,7 +769,7 @@ export default function ConceptsTable({
                     })()}
                   </div>
                 ) : (
-                  <span className="text-gray-500">—</span>
+                  <span className="text-gray-500 text-xs">—</span>
                 )}
               </td>
               <td className="py-3 px-4 text-center">

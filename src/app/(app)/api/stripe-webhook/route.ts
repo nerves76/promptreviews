@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
 import { credit, ensureBalanceExists } from "@/lib/credits";
+import { syncAgencyFreeWorkspace, getAgenciesForClient } from "@/lib/billing/agencyIncentive";
 
 // Lazy initialization to avoid build-time env var access
 function getStripeClient() {
@@ -150,6 +151,12 @@ export async function POST(req: NextRequest) {
     const plan = lookupKey.split("_")[0]; // e.g., 'maven_100' -> 'maven'
     const status = subscription.status;
 
+    // Check for agency billing metadata
+    const agencyAccountId = subscription.metadata?.agency_account_id;
+    const billingOwner = subscription.metadata?.billing_owner;
+    const clientAccountId = subscription.metadata?.account_id;
+    const isAgencyBilledSubscription = agencyAccountId && billingOwner === 'agency';
+
     // Enhanced debug logging
     console.log("📋 Webhook processing details:");
     console.log("  Customer ID:", customerId);
@@ -158,10 +165,16 @@ export async function POST(req: NextRequest) {
     console.log("  Lookup Key:", lookupKey);
     console.log("  Extracted Plan:", plan);
     console.log("  Status:", status);
+    if (isAgencyBilledSubscription) {
+      console.log("🏢 Agency Billing Detected:");
+      console.log("  Agency Account ID:", agencyAccountId);
+      console.log("  Client Account ID:", clientAccountId);
+      console.log("  Billing Owner:", billingOwner);
+    }
 
     // Determine if this is a paid plan
     const isPaidPlan = plan === "builder" || plan === "maven";
-    
+
     // Determine max users based on plan
     let maxUsers = 1; // Default for grower/free
     if (plan === "builder") {
@@ -180,160 +193,232 @@ export async function POST(req: NextRequest) {
     const billingPeriod = subscription.items.data[0]?.price.recurring?.interval === 'year' ? 'annual' : 'monthly';
     console.log("  Billing Period:", billingPeriod);
 
-    // Update the user's account in Supabase by customerId
-    console.log("🔄 Attempting to update account by customer ID:", customerId);
-    console.log("  Setting max_users to:", maxUsers);
-    let updateResult = await supabase
-      .from("accounts")
-      .update({
-        plan,
-        plan_lookup_key: lookupKey,
-        stripe_subscription_id: subscription.id,
-        subscription_status: status,
-        billing_period: billingPeriod,
-        max_users: maxUsers,
-        max_locations: maxLocations,
-        ...(isPaidPlan ? { has_had_paid_plan: true } : {}),
-      })
-      .eq("stripe_customer_id", customerId)
-      .select();
-    console.log("✅ Primary update result:", updateResult.data?.length || 0, "rows updated");
+    // Track account ID for agency sync
+    let updatedAccountId: string | null = null;
 
-    // Enhanced fallback: try multiple methods to find the account
-    if (!updateResult.data || updateResult.data.length === 0) {
-      console.log("⚠️  Primary update failed, trying fallback methods...");
-      
-      // Method 1: Try to get email from checkout session metadata
-      let email = subscription.metadata?.userEmail || subscription.metadata?.email || null;
-      
-      // Method 2: Fetch customer from Stripe if email is missing
-      if (!email) {
+    // Handle agency-billed subscriptions differently
+    if (isAgencyBilledSubscription && clientAccountId) {
+      console.log("🏢 Processing agency-billed subscription for client:", clientAccountId);
+
+      // Update the client account directly by ID (not by customer ID)
+      const agencyUpdateResult = await supabase
+        .from("accounts")
+        .update({
+          plan,
+          plan_lookup_key: lookupKey,
+          stripe_subscription_id: subscription.id,
+          subscription_status: status,
+          billing_period: billingPeriod,
+          max_users: maxUsers,
+          max_locations: maxLocations,
+          agncy_billing_owner: 'agency',
+          ...(isPaidPlan ? { has_had_paid_plan: true } : {}),
+        })
+        .eq("id", clientAccountId)
+        .select();
+
+      if (agencyUpdateResult.error) {
+        console.error("❌ Failed to update agency-billed client account:", agencyUpdateResult.error);
+      } else if (agencyUpdateResult.data && agencyUpdateResult.data.length > 0) {
+        console.log("✅ Agency-billed client account updated:", agencyUpdateResult.data);
+        updatedAccountId = clientAccountId;
+
+        // Sync agency free workspace incentive
+        console.log("🔄 Syncing agency free workspace for agency:", agencyAccountId);
         try {
-          const customer = await stripe.customers.retrieve(customerId);
-          if (
-            typeof customer === "object" &&
-            "email" in customer &&
-            customer.email
-          ) {
-            email = customer.email;
-            console.log("📧 Fetched email from Stripe customer:", email);
-          } else {
-            console.log("❌ No email found on Stripe customer object.");
+          const syncResult = await syncAgencyFreeWorkspace(supabase, agencyAccountId);
+          console.log("✅ Agency free workspace sync result:", syncResult.action);
+          if (syncResult.error) {
+            console.warn("⚠️ Agency sync warning:", syncResult.error);
           }
-        } catch (fetchErr) {
-          console.error("❌ Error fetching customer from Stripe:", fetchErr);
+        } catch (syncError) {
+          console.error("❌ Agency free workspace sync error:", syncError);
+          // Don't fail the webhook for sync errors
         }
+      } else {
+        console.error("❌ No client account found with ID:", clientAccountId);
       }
-      
-      // Method 3: Try to find by userId from metadata
-      const userId = subscription.metadata?.userId;
-      if (!email && userId) {
-        console.log("🔍 Trying to find account by userId from metadata:", userId);
-        const { data: accountData, error: accountError } = await supabase
-          .from("accounts")
-          .select("email")
-          .eq("id", userId)
-          .single();
-        
-        if (accountData && !accountError) {
-          email = accountData.email;
-          console.log("📧 Found email from userId lookup:", email);
-        } else {
-          console.log("❌ Could not find account by userId:", userId);
-        }
+
+      // Skip the normal update flow - handled above
+    } else {
+      // Normal subscription handling (non-agency)
+      console.log("🔄 Attempting to update account by customer ID:", customerId);
+      console.log("  Setting max_users to:", maxUsers);
+      let updateResult = await supabase
+        .from("accounts")
+        .update({
+          plan,
+          plan_lookup_key: lookupKey,
+          stripe_subscription_id: subscription.id,
+          subscription_status: status,
+          billing_period: billingPeriod,
+          max_users: maxUsers,
+          max_locations: maxLocations,
+          ...(isPaidPlan ? { has_had_paid_plan: true } : {}),
+        })
+        .eq("stripe_customer_id", customerId)
+        .select();
+      console.log("✅ Primary update result:", updateResult.data?.length || 0, "rows updated");
+
+      // Track updated account for agency sync
+      if (updateResult.data && updateResult.data.length > 0) {
+        updatedAccountId = updateResult.data[0].id;
       }
-      
-      // Method 4: Update by email if found
-      if (email) {
-        console.log("🔄 Fallback: updating account by email:", email);
-        updateResult = await supabase
-          .from("accounts")
-          .update({
-            plan,
-            plan_lookup_key: lookupKey,
-            stripe_subscription_id: subscription.id,
-            subscription_status: status,
-            stripe_customer_id: customerId, // CRITICAL: always set this for future events
-            billing_period: billingPeriod,
-            max_users: maxUsers,
-            max_locations: maxLocations,
-            ...(isPaidPlan ? { has_had_paid_plan: true } : {}),
-          })
-          .eq("email", email)
-          .select();
-        console.log("✅ Fallback update result:", updateResult.data?.length || 0, "rows updated");
-        
-        if (updateResult.data && updateResult.data.length > 0) {
-          console.log("🎉 Account successfully updated via email fallback!");
-        }
-      }
-      
-      // Method 5: Try by userId if email failed
-      if ((!updateResult.data || updateResult.data.length === 0) && userId) {
-        console.log("🔄 Last resort: updating account by userId:", userId);
-        updateResult = await supabase
-          .from("accounts")
-          .update({
-            plan,
-            plan_lookup_key: lookupKey,
-            stripe_subscription_id: subscription.id,
-            subscription_status: status,
-            stripe_customer_id: customerId, // CRITICAL: always set this for future events
-            billing_period: billingPeriod,
-            max_users: maxUsers,
-            max_locations: maxLocations,
-            ...(isPaidPlan ? { has_had_paid_plan: true } : {}),
-          })
-          .eq("id", userId)
-          .select();
-        console.log("✅ UserId fallback update result:", updateResult.data?.length || 0, "rows updated");
-        
-        if (updateResult.data && updateResult.data.length > 0) {
-          console.log("🎉 Account successfully updated via userId fallback!");
-        }
-      }
-      
-      // ============================================
-      // CRITICAL FIX: Store failed webhook for recovery
-      // This ensures no payment data is ever lost
-      // ============================================
+
+      // Enhanced fallback: try multiple methods to find the account
       if (!updateResult.data || updateResult.data.length === 0) {
-        console.error("🚨 CRITICAL: All update methods failed!");
-        console.error("  Customer ID:", customerId);
-        console.error("  Email:", email);
-        console.error("  User ID:", userId);
-        console.error("  Plan:", plan);
-        console.error("  Subscription ID:", subscription.id);
-        
-        // Import the recovery system
-        const { WebhookRecoverySystem } = await import('@/lib/webhook-recovery');
-        const recovery = new WebhookRecoverySystem(
-          process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          process.env.SUPABASE_SERVICE_ROLE_KEY!
+        console.log("⚠️  Primary update failed, trying fallback methods...");
+
+        // Method 1: Try to get email from checkout session metadata
+        let email = subscription.metadata?.userEmail || subscription.metadata?.email || null;
+
+        // Method 2: Fetch customer from Stripe if email is missing
+        if (!email) {
+          try {
+            const customer = await stripe.customers.retrieve(customerId);
+            if (
+              typeof customer === "object" &&
+              "email" in customer &&
+              customer.email
+            ) {
+              email = customer.email;
+              console.log("📧 Fetched email from Stripe customer:", email);
+            } else {
+              console.log("❌ No email found on Stripe customer object.");
+            }
+          } catch (fetchErr) {
+            console.error("❌ Error fetching customer from Stripe:", fetchErr);
+          }
+        }
+
+        // Method 3: Try to find by userId from metadata
+        const userId = subscription.metadata?.userId;
+        if (!email && userId) {
+          console.log("🔍 Trying to find account by userId from metadata:", userId);
+          const { data: accountData, error: accountError } = await supabase
+            .from("accounts")
+            .select("email")
+            .eq("id", userId)
+            .single();
+
+          if (accountData && !accountError) {
+            email = accountData.email;
+            console.log("📧 Found email from userId lookup:", email);
+          } else {
+            console.log("❌ Could not find account by userId:", userId);
+          }
+        }
+
+        // Method 4: Update by email if found
+        if (email) {
+          console.log("🔄 Fallback: updating account by email:", email);
+          updateResult = await supabase
+            .from("accounts")
+            .update({
+              plan,
+              plan_lookup_key: lookupKey,
+              stripe_subscription_id: subscription.id,
+              subscription_status: status,
+              stripe_customer_id: customerId, // CRITICAL: always set this for future events
+              billing_period: billingPeriod,
+              max_users: maxUsers,
+              max_locations: maxLocations,
+              ...(isPaidPlan ? { has_had_paid_plan: true } : {}),
+            })
+            .eq("email", email)
+            .select();
+          console.log("✅ Fallback update result:", updateResult.data?.length || 0, "rows updated");
+
+          if (updateResult.data && updateResult.data.length > 0) {
+            console.log("🎉 Account successfully updated via email fallback!");
+            updatedAccountId = updateResult.data[0].id;
+          }
+        }
+
+        // Method 5: Try by userId if email failed
+        if ((!updateResult.data || updateResult.data.length === 0) && userId) {
+          console.log("🔄 Last resort: updating account by userId:", userId);
+          updateResult = await supabase
+            .from("accounts")
+            .update({
+              plan,
+              plan_lookup_key: lookupKey,
+              stripe_subscription_id: subscription.id,
+              subscription_status: status,
+              stripe_customer_id: customerId, // CRITICAL: always set this for future events
+              billing_period: billingPeriod,
+              max_users: maxUsers,
+              max_locations: maxLocations,
+              ...(isPaidPlan ? { has_had_paid_plan: true } : {}),
+            })
+            .eq("id", userId)
+            .select();
+          console.log("✅ UserId fallback update result:", updateResult.data?.length || 0, "rows updated");
+
+          if (updateResult.data && updateResult.data.length > 0) {
+            console.log("🎉 Account successfully updated via userId fallback!");
+            updatedAccountId = updateResult.data[0].id;
+          }
+        }
+
+        // ============================================
+        // CRITICAL FIX: Store failed webhook for recovery
+        // This ensures no payment data is ever lost
+        // ============================================
+        if (!updateResult.data || updateResult.data.length === 0) {
+          console.error("🚨 CRITICAL: All update methods failed!");
+          console.error("  Customer ID:", customerId);
+          console.error("  Email:", email);
+          console.error("  User ID:", userId);
+          console.error("  Plan:", plan);
+          console.error("  Subscription ID:", subscription.id);
+
+          // Import the recovery system
+          const { WebhookRecoverySystem } = await import('@/lib/webhook-recovery');
+          const recovery = new WebhookRecoverySystem(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.SUPABASE_SERVICE_ROLE_KEY!
+          );
+
+          // Store for recovery
+          await recovery.storeFailedWebhook({
+            eventId: event.id,
+            eventType: event.type,
+            customerId: customerId,
+            subscriptionId: subscription.id,
+            payload: subscription,
+            error: `Could not match customer to account - tried customer_id: ${customerId}, email: ${email}, user_id: ${userId}`
+          });
+
+          // Don't return error - webhook was received successfully
+          // Recovery will happen asynchronously
+          console.log("📦 Webhook stored for recovery - will retry automatically");
+        }
+      }
+
+      if (updateResult.error) {
+        console.error("Supabase update error:", updateResult.error.message);
+        return NextResponse.json(
+          { error: updateResult.error.message },
+          { status: 500 },
         );
-        
-        // Store for recovery
-        await recovery.storeFailedWebhook({
-          eventId: event.id,
-          eventType: event.type,
-          customerId: customerId,
-          subscriptionId: subscription.id,
-          payload: subscription,
-          error: `Could not match customer to account - tried customer_id: ${customerId}, email: ${email}, user_id: ${userId}`
-        });
-        
-        // Don't return error - webhook was received successfully
-        // Recovery will happen asynchronously
-        console.log("📦 Webhook stored for recovery - will retry automatically");
       }
     }
-    
-    if (updateResult.error) {
-      console.error("Supabase update error:", updateResult.error.message);
-      return NextResponse.json(
-        { error: updateResult.error.message },
-        { status: 500 },
-      );
+
+    // For non-agency subscriptions, check if the updated account has a managing agency
+    // and sync their free workspace incentive
+    if (updatedAccountId && !isAgencyBilledSubscription) {
+      try {
+        const agenciesToSync = await getAgenciesForClient(supabase, updatedAccountId);
+        for (const agencyId of agenciesToSync) {
+          console.log("🔄 Syncing agency free workspace for managing agency:", agencyId);
+          const syncResult = await syncAgencyFreeWorkspace(supabase, agencyId);
+          console.log("✅ Agency free workspace sync result:", syncResult.action);
+        }
+      } catch (syncError) {
+        console.error("❌ Error syncing agency free workspace:", syncError);
+        // Don't fail webhook for sync errors
+      }
     }
   } else if (
     event.type === "invoice.payment_succeeded" ||
