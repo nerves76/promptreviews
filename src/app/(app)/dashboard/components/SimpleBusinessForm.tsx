@@ -625,7 +625,7 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
         <p className="text-gray-700 mb-4">
           We're curious — how did you first hear about Prompt Reviews?
         </p>
-        <div className="space-y-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <label className="flex items-center gap-3">
             <input
               type="radio"
@@ -633,7 +633,7 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
               value="google_search"
               checked={form.referral_source === "google_search"}
               onChange={handleChange}
-              className="w-4 h-4 text-indigo-600 focus:ring-indigo-500"
+              className="w-4 h-4 text-slate-blue focus:ring-slate-blue"
             />
             <span className="text-gray-700">Google search</span>
           </label>
@@ -644,7 +644,7 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
               value="chatgpt"
               checked={form.referral_source === "chatgpt"}
               onChange={handleChange}
-              className="w-4 h-4 text-indigo-600 focus:ring-indigo-500"
+              className="w-4 h-4 text-slate-blue focus:ring-slate-blue"
             />
             <span className="text-gray-700">ChatGPT</span>
           </label>
@@ -655,7 +655,7 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
               value="social_media"
               checked={form.referral_source === "social_media"}
               onChange={handleChange}
-              className="w-4 h-4 text-indigo-600 focus:ring-indigo-500"
+              className="w-4 h-4 text-slate-blue focus:ring-slate-blue"
             />
             <span className="text-gray-700">Social media (Instagram, Facebook, LinkedIn, etc.)</span>
           </label>
@@ -666,7 +666,7 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
               value="podcast_blog"
               checked={form.referral_source === "podcast_blog"}
               onChange={handleChange}
-              className="w-4 h-4 text-indigo-600 focus:ring-indigo-500"
+              className="w-4 h-4 text-slate-blue focus:ring-slate-blue"
             />
             <span className="text-gray-700">Podcast or blog</span>
           </label>
@@ -677,7 +677,7 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
               value="online_community"
               checked={form.referral_source === "online_community"}
               onChange={handleChange}
-              className="w-4 h-4 text-indigo-600 focus:ring-indigo-500"
+              className="w-4 h-4 text-slate-blue focus:ring-slate-blue"
             />
             <span className="text-gray-700">Online community / Slack group</span>
           </label>
@@ -688,7 +688,7 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
               value="word_of_mouth"
               checked={form.referral_source === "word_of_mouth"}
               onChange={handleChange}
-              className="w-4 h-4 text-indigo-600 focus:ring-indigo-500"
+              className="w-4 h-4 text-slate-blue focus:ring-slate-blue"
             />
             <span className="text-gray-700">Word of mouth (friend or colleague)</span>
           </label>
@@ -699,7 +699,7 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
               value="conference_event"
               checked={form.referral_source === "conference_event"}
               onChange={handleChange}
-              className="w-4 h-4 text-indigo-600 focus:ring-indigo-500"
+              className="w-4 h-4 text-slate-blue focus:ring-slate-blue"
             />
             <span className="text-gray-700">Conference or event</span>
           </label>
@@ -710,23 +710,22 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
               value="other"
               checked={form.referral_source === "other"}
               onChange={handleChange}
-              className="w-4 h-4 text-indigo-600 focus:ring-indigo-500 mt-1"
+              className="w-4 h-4 text-slate-blue focus:ring-slate-blue mt-1"
             />
-            <div className="flex-1">
-              <span className="text-gray-700">Other (please specify)</span>
-              {form.referral_source === "other" && (
-                <input
-                  type="text"
-                  name="referral_source_other"
-                  className="w-full mt-2 border px-3 py-2 rounded-lg bg-white focus:ring-2 focus:ring-indigo-300"
-                  value={form.referral_source_other || ""}
-                  onChange={handleChange}
-                  placeholder="Please tell us how you heard about us"
-                />
-              )}
-            </div>
+            <span className="text-gray-700">Other (please specify)</span>
           </label>
         </div>
+        {/* Other input - spans full width below the grid */}
+        {form.referral_source === "other" && (
+          <input
+            type="text"
+            name="referral_source_other"
+            className="w-full mt-3 border px-3 py-2 rounded-lg bg-white focus:ring-2 focus:ring-slate-blue/30"
+            value={form.referral_source_other || ""}
+            onChange={handleChange}
+            placeholder="Please tell us how you heard about us"
+          />
+        )}
       </div>
 
       {/* Promotion Code Section - Subtle accordion */}
