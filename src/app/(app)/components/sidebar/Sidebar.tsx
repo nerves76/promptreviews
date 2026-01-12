@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useBusinessData, useAccountData } from "@/auth/hooks/granularAuthHooks";
 import { useAuth } from "@/auth";
 import { apiClient } from "@/utils/apiClient";
+import { fetchOnboardingTasks } from "@/utils/onboardingTasks";
 
 import { SidebarProps } from "./types";
 import {
@@ -33,9 +34,9 @@ export function Sidebar({
   isAdmin: isAdminProp,
 }: SidebarProps) {
   const pathname = usePathname();
-  const { hasBusiness: authHasBusiness, business } = useBusinessData();
+  const { hasBusiness: authHasBusiness } = useBusinessData();
   const { accounts } = useAccountData();
-  const { isAdminUser } = useAuth();
+  const { isAdminUser, selectedAccountId } = useAuth();
 
   // Use props if provided, otherwise use auth context
   const hasBusiness = hasBusinessProp ?? authHasBusiness;
@@ -44,45 +45,31 @@ export function Sidebar({
   // For now, assume GBP access if they have a business
   const hasGbpAccess = hasGbpAccessProp ?? hasBusiness;
 
-  // Check if business profile is complete - uses same logic as GettingStarted component
-  // Profile is complete if: hasName AND (hasAboutUs OR hasServices)
-  const showBusinessProfileBadge = useMemo(() => {
-    // No business = no badge
-    if (!hasBusiness) {
-      console.log('[Sidebar Badge] No business, hiding badge');
-      return false;
-    }
+  // Track onboarding task completion for "Start Here!" badge
+  const [businessProfileTaskComplete, setBusinessProfileTaskComplete] = useState<boolean | null>(null);
 
-    // Business exists but data not loaded yet - show badge (will hide once data confirms completion)
-    if (!business) {
-      console.log('[Sidebar Badge] Business loading, showing badge');
-      return true;
-    }
+  // Fetch onboarding task status - same source of truth as GettingStarted component
+  useEffect(() => {
+    const checkOnboardingTask = async () => {
+      if (!selectedAccountId || !hasBusiness) {
+        setBusinessProfileTaskComplete(null);
+        return;
+      }
 
-    // Same logic as checkBusinessProfileComplete in GettingStarted.tsx
-    const hasName = !!(business.name && String(business.name).trim().length > 0);
-    const hasAboutUs = !!(business.about_us && String(business.about_us).trim().length > 0);
-    const hasServices = Array.isArray(business.services_offered)
-      ? business.services_offered.filter((s: string) => s && s.trim()).length > 0
-      : !!(business.services_offered && String(business.services_offered).trim().length > 0);
+      try {
+        const taskStatus = await fetchOnboardingTasks(selectedAccountId);
+        setBusinessProfileTaskComplete(taskStatus["business-profile"] || false);
+      } catch (error) {
+        console.error('[Sidebar] Error fetching onboarding tasks:', error);
+        setBusinessProfileTaskComplete(null);
+      }
+    };
 
-    // Profile is complete if hasName AND (hasAboutUs OR hasServices)
-    const isProfileComplete = hasName && (hasAboutUs || hasServices);
+    checkOnboardingTask();
+  }, [selectedAccountId, hasBusiness]);
 
-    console.log('[Sidebar Badge] Business data:', {
-      name: business.name,
-      about_us: business.about_us?.substring(0, 50),
-      services_offered: business.services_offered,
-      hasName,
-      hasAboutUs,
-      hasServices,
-      isProfileComplete,
-      showBadge: !isProfileComplete
-    });
-
-    // Show badge if profile is NOT complete
-    return !isProfileComplete;
-  }, [hasBusiness, business]);
+  // Show badge if: has business AND task is NOT complete
+  const showBusinessProfileBadge = hasBusiness && businessProfileTaskComplete === false;
 
   // Sidebar state
   const {
