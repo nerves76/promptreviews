@@ -1173,9 +1173,69 @@ export default function PlanPage() {
     );
   }
 
+  // Agency accounts have their own billing - show agency plan info
+  const isAgencyAccount = account?.is_agncy || authAccount?.is_agncy;
+  if (isAgencyAccount) {
+    const agencyTrialEnd = account?.agncy_trial_end || authAccount?.agncy_trial_end;
+    const trialEndDate = agencyTrialEnd ? new Date(agencyTrialEnd) : null;
+    const daysRemaining = trialEndDate ? Math.max(0, Math.ceil((trialEndDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24))) : 0;
+
+    return (
+      <div className="min-h-screen text-white flex flex-col">
+        <div className="max-w-2xl mx-auto w-full px-6 pt-12">
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold mb-4 text-white">Agency plan</h1>
+            <p className="text-xl text-white/70">
+              Your agency account includes full access to manage client accounts.
+            </p>
+          </div>
+
+          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-8 mb-8">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-2xl font-semibold text-white">Agency trial</h2>
+                <p className="text-white/70 mt-1">
+                  {daysRemaining > 0
+                    ? `${daysRemaining} day${daysRemaining !== 1 ? 's' : ''} remaining`
+                    : 'Trial expired'
+                  }
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-3xl font-bold text-white">Free</p>
+                <p className="text-white/60 text-sm">with paying client</p>
+              </div>
+            </div>
+
+            <div className="border-t border-white/20 pt-6">
+              <p className="text-white/80 mb-4">
+                Add a paying client to keep your agency account free after the trial ends.
+              </p>
+              <button
+                onClick={() => router.push('/agency/clients')}
+                className="w-full py-3 px-4 rounded-lg font-semibold bg-slate-blue hover:bg-slate-blue/90 text-white transition-colors"
+              >
+                Add client
+              </button>
+            </div>
+          </div>
+
+          <div className="text-center">
+            <button
+              onClick={() => router.push('/agency')}
+              className="text-white/70 hover:text-white transition-colors"
+            >
+              &larr; Back to agency dashboard
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
-      <div className="min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 text-white flex flex-col">
+      <div className="min-h-screen text-white flex flex-col">
         {/* Header */}
         <div className="max-w-6xl mx-auto w-full px-6 pt-12">
               <div className="text-center mb-12">
@@ -1343,7 +1403,7 @@ export default function PlanPage() {
                     disabled={(currentPlan === tier.key && billingPeriod === account?.billing_period) || !canManageBilling}
                     className={`w-full py-3 px-4 rounded-lg font-semibold transition-colors ${
                       currentPlan === tier.key && billingPeriod === account?.billing_period
-                        ? "bg-purple-400 text-purple-900 cursor-not-allowed"
+                        ? "bg-gray-500 text-white cursor-not-allowed"
                         : !canManageBilling
                         ? "bg-gray-600 text-gray-300 cursor-not-allowed"
                         : "bg-slate-blue hover:bg-slate-blue/90 text-white"

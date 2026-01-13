@@ -7,6 +7,9 @@ export interface PricingInput {
   isFreeAccount?: boolean | null;
   hasHadPaidPlan?: boolean | null;
   isAdditionalAccount?: boolean | null;
+  // Agency-specific fields
+  isAgency?: boolean | null;
+  agencyTrialEnd?: string | null;
 }
 
 export interface PricingDecision {
@@ -44,6 +47,44 @@ export function evaluatePricingRequirement(input: PricingInput): PricingDecision
       requiresPayment: false,
       reason: 'Free account',
     };
+  }
+
+  // Agency plan - agencies use their own billing system
+  if (plan === 'agency') {
+    const isAgency = input.isAgency ?? false;
+    const agencyTrialEnd = input.agencyTrialEnd ? new Date(input.agencyTrialEnd) : null;
+
+    if (isAgency && agencyTrialEnd) {
+      const now = new Date();
+      if (now <= agencyTrialEnd) {
+        return {
+          requiresPayment: false,
+          reason: 'Agency trial active',
+        };
+      }
+    }
+
+    // Agency with expired trial or no trial would need to handle agency billing
+    // For now, treat agencies as not requiring standard payment
+    if (isAgency) {
+      return {
+        requiresPayment: false,
+        reason: 'Agency account',
+      };
+    }
+  }
+
+  // Legacy check for agencies without agency plan set
+  const isAgency = input.isAgency ?? false;
+  const agencyTrialEnd = input.agencyTrialEnd ? new Date(input.agencyTrialEnd) : null;
+  if (isAgency && agencyTrialEnd) {
+    const now = new Date();
+    if (now <= agencyTrialEnd) {
+      return {
+        requiresPayment: false,
+        reason: 'Agency trial active',
+      };
+    }
   }
 
   // CRITICAL FIX: Additional accounts MUST have their own plan

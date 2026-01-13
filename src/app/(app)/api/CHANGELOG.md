@@ -1,5 +1,45 @@
 # API Changelog
 
+## [2026-01-11]
+### Added - Agency Accounts Feature
+**Complete agency management system for multi-client workspaces**
+
+**New API Routes:**
+- `/api/auth/agency-signup` - POST: Create user + agency account in one step (public, no auth required)
+- `/api/agency/signup` - POST: Create new agency account with metadata questionnaire (authenticated)
+- `/api/agency/convert` - GET: Check eligibility, POST: Convert existing account to agency
+- `/api/agency/trial-status` - GET: Check agency trial status and days remaining
+- `/api/agency/clients` - GET: List managed clients, POST: Invite client
+- `/api/agency/clients/[clientId]` - GET: Client details + metrics, DELETE: Disconnect
+- `/api/agency/accept` - POST: Client accepts agency invitation
+- `/api/agency/remove` - POST: Client removes agency access
+- `/api/agency/billing/take-over` - POST: Agency assumes client billing
+- `/api/agency/billing/release` - POST: Agency releases billing to client
+- `/api/agency/metrics` - GET: Rollup metrics across all clients
+
+**Stripe Webhook Updates (`/api/stripe-webhook`):**
+- Detects agency-billed subscriptions via metadata (`agency_account_id`, `billing_owner`)
+- Updates correct account (client, not agency's Stripe customer)
+- Syncs agency free workspace incentive after subscription changes
+- Handles both agency-billed and regular subscriptions correctly
+
+**New Billing Libraries:**
+- `/src/lib/billing/agencyTrial.ts` - 30-day trial logic, expiry handling
+- `/src/lib/billing/agencyIncentive.ts` - Free workspace when 1+ paying clients
+  - `checkAgencyFreeWorkspaceEligibility()` - Check if agency qualifies
+  - `activateAgencyFreeWorkspace()` - Grant free workspace
+  - `deactivateAgencyFreeWorkspace()` - Remove free workspace
+  - `syncAgencyFreeWorkspace()` - Auto-sync based on client status
+  - `getAgenciesForClient()` - Find agencies managing a client
+
+**Database Migrations:**
+- Added agency fields to `accounts` table (is_agncy, agncy_trial_*, agncy_type, etc.)
+- Added `managing_agncy_id` and `agncy_billing_owner` to accounts
+- Created `agncy_client_access` table for agency-client relationships
+- Added `agency_manager` and `agency_billing_manager` roles to account_users
+
+**Documentation:** `/docs/AGENCY_ACCOUNTS.md`
+
 ## [2025-12-30]
 ### Added - Credit Warning System
 **Comprehensive credit warning notifications across all scheduled features**

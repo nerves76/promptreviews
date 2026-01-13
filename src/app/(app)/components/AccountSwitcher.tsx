@@ -8,6 +8,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import Link from 'next/link';
 import { useAccountSelection } from '@/utils/accountSelectionHooks';
 import { type UserAccount } from '@/auth/utils/accountSelection';
 
@@ -58,8 +59,15 @@ export function AccountSwitcher() {
     return null;
   }
 
-  // Only show if user has multiple accounts
-  if (!hasMultipleAccounts) {
+  // Check if selected account is an agency
+  const isAgencyAccount = selectedAccount.is_agncy === true;
+
+  // Debug: log agency status
+  console.log('[AccountSwitcher] selectedAccount:', selectedAccount.account_id, 'is_agncy:', selectedAccount.is_agncy, 'isAgencyAccount:', isAgencyAccount, 'hasMultipleAccounts:', hasMultipleAccounts);
+
+  // Show if user has multiple accounts OR if this is an agency account
+  if (!hasMultipleAccounts && !isAgencyAccount) {
+    console.log('[AccountSwitcher] Hidden - single non-agency account');
     return null;
   }
 
@@ -162,6 +170,22 @@ export function AccountSwitcher() {
               Select which account you want to work with
             </p>
           </div>
+
+          {/* Agency Dashboard Link - Only shown for agency accounts */}
+          {isAgencyAccount && (
+            <div className="px-2 py-2 border-b border-white/20">
+              <Link
+                href="/agency"
+                onClick={() => setIsOpen(false)}
+                className="flex items-center gap-3 px-2 py-2 rounded-md text-white hover:bg-white/10 transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+                <span className="font-medium">Agency dashboard</span>
+              </Link>
+            </div>
+          )}
 
           {/* Account List */}
           <div className="max-h-64 overflow-y-auto">

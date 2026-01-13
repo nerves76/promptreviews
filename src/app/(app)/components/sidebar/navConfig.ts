@@ -116,6 +116,13 @@ export const SEO_VISIBILITY_SECTION: NavSection = {
   collapsible: false,
   items: [
     {
+      path: "/dashboard/research",
+      label: "Research",
+      icon: "FaSearch",
+      description: "Keywords, domains, backlinks",
+      requiresBusiness: true,
+    },
+    {
       path: "/dashboard/keywords",
       label: "Keyword Concepts",
       icon: "FaKey",
@@ -134,13 +141,6 @@ export const SEO_VISIBILITY_SECTION: NavSection = {
       label: "AI Search",
       icon: "FaSparkles",
       description: "Track LLM visibility",
-      requiresBusiness: true,
-    },
-    {
-      path: "/dashboard/research",
-      label: "Research",
-      icon: "FaSearch",
-      description: "Keywords, domains, backlinks",
       requiresBusiness: true,
     },
     {

@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/auth";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import Header from "../components/Header";
 import Icon from "@/components/Icon";
 import { useGlobalLoader } from "@/app/(app)/components/GlobalLoaderProvider";
 import { apiClient } from "@/utils/apiClient";
@@ -96,58 +95,95 @@ export default function AgencyLayout({
 
   const navItems = [
     { href: '/agency', label: 'Dashboard', icon: 'FaChartLine' as const },
-    { href: '/agency/clients', label: 'Clients', icon: 'FaUsers' as const },
+    { href: '/agency/clients', label: 'Work Manager', icon: 'FaUsers' as const },
   ];
 
   return (
     <div className="w-full min-h-screen pb-16 md:pb-24 lg:pb-32">
-      {/* Agency trial banner */}
+      {/* Agency trial banner - matches TrialBanner style */}
       {trialStatus && trialStatus.status === 'active' && trialStatus.days_remaining !== undefined && (
-        <div className="bg-blue-600 text-white px-4 py-2 text-center text-sm">
-          <Icon name="FaClock" className="inline w-4 h-4 mr-2" size={16} />
-          Agency trial: {trialStatus.days_remaining} days remaining
-          {!trialStatus.has_paying_client && (
-            <span className="ml-2 text-blue-200">
-              — Activate at least 1 paying client to keep agency features
-            </span>
-          )}
+        <div className="relative">
+          <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2">
+            <div className="bg-white/20 backdrop-blur-md border border-white/30 rounded-xl shadow-lg">
+              <div className="flex items-center justify-between py-3 px-4">
+                <div className="flex items-center flex-1 pr-8">
+                  <div className="flex-shrink-0 w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center overflow-hidden">
+                    <img
+                      src="/images/prompty-success.png"
+                      alt="Prompty"
+                      className="w-8 h-8 object-contain"
+                    />
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-sm font-medium text-white">
+                      Agency trial: {trialStatus.days_remaining} day{trialStatus.days_remaining !== 1 ? 's' : ''} remaining
+                      {!trialStatus.has_paying_client && (
+                        <span className="ml-2 text-white/70">
+                          — Add a paying client to keep your agency account free!
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <Link
+                    href="/agency/clients"
+                    className="flex-shrink-0 bg-white/90 hover:bg-white text-slate-blue px-4 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md"
+                  >
+                    Add client
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
       {/* Trial expired warning */}
       {trialStatus && trialStatus.status === 'expired' && trialStatus.requires_plan_selection && (
-        <div className="bg-amber-500 text-white px-4 py-2 text-center text-sm">
-          <Icon name="FaExclamationTriangle" className="inline w-4 h-4 mr-2" size={16} />
-          Agency trial expired.
-          <Link href="/dashboard/plan" className="ml-2 underline font-medium">
-            Select a plan
-          </Link>
-          {' '}to continue using agency features.
+        <div className="relative">
+          <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2">
+            <div className="bg-amber-500/80 backdrop-blur-md border border-amber-400/30 rounded-xl shadow-lg">
+              <div className="flex items-center justify-between py-3 px-4">
+                <div className="flex items-center flex-1">
+                  <Icon name="FaExclamationTriangle" className="text-white w-5 h-5 mr-3" size={20} />
+                  <p className="text-sm font-medium text-white">
+                    Agency trial expired. Select a plan to continue using agency features.
+                  </p>
+                </div>
+                <Link
+                  href="/dashboard/plan"
+                  className="flex-shrink-0 bg-white/90 hover:bg-white text-amber-700 px-4 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md"
+                >
+                  Select plan
+                </Link>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
       {/* Free workspace indicator */}
       {trialStatus && trialStatus.status === 'expired' && !trialStatus.requires_plan_selection && trialStatus.has_paying_client && (
-        <div className="bg-green-600 text-white px-4 py-2 text-center text-sm">
-          <Icon name="FaCheckCircle" className="inline w-4 h-4 mr-2" size={16} />
-          Free agency workspace active — You have {trialStatus.paying_clients_count} paying client{trialStatus.paying_clients_count !== 1 ? 's' : ''}
+        <div className="relative">
+          <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2">
+            <div className="bg-green-500/80 backdrop-blur-md border border-green-400/30 rounded-xl shadow-lg">
+              <div className="flex items-center py-3 px-4">
+                <Icon name="FaCheckCircle" className="text-white w-5 h-5 mr-3" size={20} />
+                <p className="text-sm font-medium text-white">
+                  Free agency workspace active — You have {trialStatus.paying_clients_count} paying client{trialStatus.paying_clients_count !== 1 ? 's' : ''}
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       )}
-
-      <Header />
 
       {/* Agency navigation */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
         <div className="flex items-center justify-between mb-6">
-          {/* Back to dashboard link */}
-          <Link
-            href="/dashboard"
-            className="flex items-center gap-2 text-white/70 hover:text-white transition-colors text-sm"
-          >
-            <Icon name="FaArrowLeft" size={14} />
-            Back to dashboard
-          </Link>
-
+          {/* Title */}
+          <h1 className="text-xl font-semibold text-white">Agency dashboard</h1>
           {/* Agency nav tabs */}
           <nav className="flex items-center gap-1 bg-white/10 rounded-lg p-1">
             {navItems.map((item) => (

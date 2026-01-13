@@ -9,10 +9,10 @@ import PageCard, { PageCardHeader } from "@/app/(app)/components/PageCard";
 import { apiClient } from "@/utils/apiClient";
 import { Button } from "@/app/(app)/components/ui/button";
 
-type AgencyType = 'freelancer' | 'small_agency' | 'mid_agency' | 'enterprise';
-type EmployeeCount = '1' | '2-5' | '6-10' | '11-50' | '50+';
-type ExpectedClients = '1-5' | '6-20' | '21-50' | '50+';
-type MultiLocationPct = '0-25' | '26-50' | '51-75' | '76-100';
+type AgencyType = 'just_me' | '2_10' | '10_20' | '20_40' | '40_plus';
+type PlanToAddClients = 'yes' | 'no';
+type ExpectedClientCount = '1-5' | '6-10' | '11-20' | '20+';
+type MultiLocationPct = '0' | '25' | '50' | '75_plus';
 
 interface ConversionCheckResponse {
   can_convert: boolean;
@@ -20,33 +20,31 @@ interface ConversionCheckResponse {
   is_owner: boolean;
 }
 
-const agencyTypeOptions: { value: AgencyType; label: string; description: string }[] = [
-  { value: 'freelancer', label: 'Freelancer', description: 'Independent consultant or solo practitioner' },
-  { value: 'small_agency', label: 'Small agency', description: '2-10 team members' },
-  { value: 'mid_agency', label: 'Mid-size agency', description: '11-50 team members' },
-  { value: 'enterprise', label: 'Enterprise', description: '50+ team members' },
+const agencyTypeOptions: { value: AgencyType; label: string }[] = [
+  { value: 'just_me', label: 'Just me' },
+  { value: '2_10', label: '2-10' },
+  { value: '10_20', label: '10-20' },
+  { value: '20_40', label: '20-40' },
+  { value: '40_plus', label: '40+' },
 ];
 
-const employeeCountOptions: { value: EmployeeCount; label: string }[] = [
-  { value: '1', label: 'Just me' },
-  { value: '2-5', label: '2-5 people' },
-  { value: '6-10', label: '6-10 people' },
-  { value: '11-50', label: '11-50 people' },
-  { value: '50+', label: '50+ people' },
+const planToAddClientsOptions: { value: PlanToAddClients; label: string }[] = [
+  { value: 'yes', label: 'Yes' },
+  { value: 'no', label: 'No' },
 ];
 
-const expectedClientsOptions: { value: ExpectedClients; label: string }[] = [
-  { value: '1-5', label: '1-5 clients' },
-  { value: '6-20', label: '6-20 clients' },
-  { value: '21-50', label: '21-50 clients' },
-  { value: '50+', label: '50+ clients' },
+const expectedClientCountOptions: { value: ExpectedClientCount; label: string }[] = [
+  { value: '1-5', label: '1-5' },
+  { value: '6-10', label: '6-10' },
+  { value: '11-20', label: '11-20' },
+  { value: '20+', label: '20+' },
 ];
 
 const multiLocationOptions: { value: MultiLocationPct; label: string }[] = [
-  { value: '0-25', label: '0-25% multi-location' },
-  { value: '26-50', label: '26-50% multi-location' },
-  { value: '51-75', label: '51-75% multi-location' },
-  { value: '76-100', label: '76-100% multi-location' },
+  { value: '0', label: '0' },
+  { value: '25', label: '25%' },
+  { value: '50', label: '50%' },
+  { value: '75_plus', label: '75%+' },
 ];
 
 export default function ConvertToAgencyPage() {
@@ -60,8 +58,8 @@ export default function ConvertToAgencyPage() {
   // Form state
   const [currentStep, setCurrentStep] = useState(1);
   const [agencyType, setAgencyType] = useState<AgencyType | null>(null);
-  const [employeeCount, setEmployeeCount] = useState<EmployeeCount | null>(null);
-  const [expectedClients, setExpectedClients] = useState<ExpectedClients | null>(null);
+  const [planToAddClients, setPlanToAddClients] = useState<PlanToAddClients | null>(null);
+  const [expectedClientCount, setExpectedClientCount] = useState<ExpectedClientCount | null>(null);
   const [multiLocationPct, setMultiLocationPct] = useState<MultiLocationPct | null>(null);
 
   // Submission state
@@ -94,7 +92,7 @@ export default function ConvertToAgencyPage() {
   }, [account?.id, accountLoading, router]);
 
   const handleSubmit = async () => {
-    if (!agencyType || !employeeCount || !expectedClients || !multiLocationPct) {
+    if (!agencyType || !planToAddClients || !expectedClientCount || !multiLocationPct) {
       setSubmitError('Please complete all questions');
       return;
     }
@@ -106,8 +104,8 @@ export default function ConvertToAgencyPage() {
       await apiClient.post('/agency/convert', {
         metadata: {
           agncy_type: agencyType,
-          agncy_employee_count: employeeCount,
-          agncy_expected_clients: expectedClients,
+          agncy_employee_count: planToAddClients, // repurposed field
+          agncy_expected_clients: expectedClientCount,
           agncy_multi_location_pct: multiLocationPct,
         },
       });
@@ -131,9 +129,9 @@ export default function ConvertToAgencyPage() {
       case 1:
         return agencyType !== null;
       case 2:
-        return employeeCount !== null;
+        return planToAddClients !== null;
       case 3:
-        return expectedClients !== null;
+        return expectedClientCount !== null;
       case 4:
         return multiLocationPct !== null;
       default:
@@ -267,48 +265,51 @@ export default function ConvertToAgencyPage() {
             <h3 className="font-medium text-blue-900 mb-2">Agency benefits include:</h3>
             <ul className="text-sm text-blue-800 space-y-1">
               <li>• Manage unlimited client workspaces from one dashboard</li>
-              <li>• Take over billing for clients and bill them directly</li>
               <li>• View rollup analytics across all clients</li>
-              <li>• Free agency workspace when you have 1+ paying clients</li>
+              <li>• Free agency account when you add 1+ paying clients</li>
               <li>• 30-day free trial to get started</li>
             </ul>
           </div>
         )}
 
-        {/* Step 1: Agency type */}
+        {/* Step 1: Agency type (employee count) */}
         {currentStep === 1 && (
           <div className="space-y-4">
-            <h3 className="text-lg font-medium text-gray-900">What type of agency are you?</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <h3 className="text-lg font-medium text-gray-900">How many employees do you have?</h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {agencyTypeOptions.map((option) => (
                 <button
                   key={option.value}
                   onClick={() => setAgencyType(option.value)}
-                  className={`p-4 border rounded-lg text-left transition-colors ${
+                  className={`py-3 px-4 border rounded-lg text-center transition-colors ${
                     agencyType === option.value
                       ? 'border-slate-blue bg-slate-blue/5 ring-2 ring-slate-blue'
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
                 >
                   <p className="font-medium text-gray-900">{option.label}</p>
-                  <p className="text-sm text-gray-500">{option.description}</p>
                 </button>
               ))}
             </div>
           </div>
         )}
 
-        {/* Step 2: Employee count */}
+        {/* Step 2: Plan to add clients */}
         {currentStep === 2 && (
           <div className="space-y-4">
-            <h3 className="text-lg font-medium text-gray-900">How many people work at your agency?</h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {employeeCountOptions.map((option) => (
+            <h3 className="text-lg font-medium text-gray-900">Do you plan on adding paid client accounts within 30 days?</h3>
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg mb-2">
+              <p className="text-sm text-blue-800">
+                Your agency account will be free if you add at least one paid client.
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              {planToAddClientsOptions.map((option) => (
                 <button
                   key={option.value}
-                  onClick={() => setEmployeeCount(option.value)}
+                  onClick={() => setPlanToAddClients(option.value)}
                   className={`p-4 border rounded-lg text-center transition-colors ${
-                    employeeCount === option.value
+                    planToAddClients === option.value
                       ? 'border-slate-blue bg-slate-blue/5 ring-2 ring-slate-blue'
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
@@ -320,17 +321,17 @@ export default function ConvertToAgencyPage() {
           </div>
         )}
 
-        {/* Step 3: Expected clients */}
+        {/* Step 3: Expected client count */}
         {currentStep === 3 && (
           <div className="space-y-4">
-            <h3 className="text-lg font-medium text-gray-900">How many clients do you expect to manage?</h3>
+            <h3 className="text-lg font-medium text-gray-900">How many clients do you plan to add in the next few months?</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {expectedClientsOptions.map((option) => (
+              {expectedClientCountOptions.map((option) => (
                 <button
                   key={option.value}
-                  onClick={() => setExpectedClients(option.value)}
+                  onClick={() => setExpectedClientCount(option.value)}
                   className={`p-4 border rounded-lg text-center transition-colors ${
-                    expectedClients === option.value
+                    expectedClientCount === option.value
                       ? 'border-slate-blue bg-slate-blue/5 ring-2 ring-slate-blue'
                       : 'border-gray-200 hover:border-gray-300'
                   }`}

@@ -62,11 +62,13 @@ export function clearStoredAccountSelection(userId: string): void {
 
 /**
  * Fetch user's available accounts
+ * Includes both direct account memberships AND agency-managed client accounts
  */
 export async function fetchUserAccounts(userId: string, supabaseClient?: any): Promise<UserAccount[]> {
   try {
     const client = supabaseClient || createClient();
-    
+
+    // 1. Fetch direct account memberships (account_users table)
     const { data: accountUsers, error } = await client
       .from("account_users")
       .select(`
@@ -88,7 +90,7 @@ export async function fetchUserAccounts(userId: string, supabaseClient?: any): P
       return [];
     }
 
-    return accountUsers?.map((au: any) => ({
+    const directAccounts: UserAccount[] = accountUsers?.map((au: any) => ({
       account_id: au.account_id,
       role: au.role,
       account_name: au.accounts.business_name || `${au.accounts.first_name} ${au.accounts.last_name}`.trim(),
@@ -98,6 +100,57 @@ export async function fetchUserAccounts(userId: string, supabaseClient?: any): P
       business_name: au.accounts.business_name,
       is_agncy: au.accounts.is_agncy || false,
     })) || [];
+
+    // 2. Find agency accounts that this user owns/admins
+    const agencyAccountIds = directAccounts
+      .filter(acc => acc.is_agncy && (acc.role === 'owner' || acc.role === 'admin'))
+      .map(acc => acc.account_id);
+
+    let agencyClientAccounts: UserAccount[] = [];
+
+    // 3. Fetch client accounts managed by those agencies (via managing_agncy_id)
+    if (agencyAccountIds.length > 0) {
+      const { data: managedClients, error: managedError } = await client
+        .from("accounts")
+        .select(`
+          id,
+          first_name,
+          last_name,
+          business_name,
+          plan,
+          is_agncy
+        `)
+        .in("managing_agncy_id", agencyAccountIds)
+        .is("deleted_at", null);
+
+      if (managedError) {
+        console.error('Error fetching agency-managed clients:', managedError);
+      } else {
+        agencyClientAccounts = managedClients?.map((acc: any) => ({
+          account_id: acc.id,
+          role: 'agency_manager' as UserAccount['role'],
+          account_name: acc.business_name || `${acc.first_name || ''} ${acc.last_name || ''}`.trim(),
+          plan: acc.plan,
+          first_name: acc.first_name,
+          last_name: acc.last_name,
+          business_name: acc.business_name,
+          is_agncy: acc.is_agncy || false,
+        })) || [];
+      }
+    }
+
+    // 4. Merge and dedupe (in case an account appears in both)
+    const allAccounts = [...directAccounts];
+    const existingIds = new Set(directAccounts.map(a => a.account_id));
+
+    for (const clientAccount of agencyClientAccounts) {
+      if (!existingIds.has(clientAccount.account_id)) {
+        allAccounts.push(clientAccount);
+        existingIds.add(clientAccount.account_id);
+      }
+    }
+
+    return allAccounts;
   } catch (error) {
     console.error('Error fetching user accounts:', error);
     return [];

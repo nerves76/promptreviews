@@ -112,6 +112,8 @@ export async function POST(request: NextRequest) {
         agncy_employee_count: body.metadata.agncy_employee_count,
         agncy_expected_clients: body.metadata.agncy_expected_clients,
         agncy_multi_location_pct: body.metadata.agncy_multi_location_pct,
+        // Ensure agency accounts can access dashboard without business creation
+        business_creation_complete: true,
       })
       .eq('id', accountId)
       .select()

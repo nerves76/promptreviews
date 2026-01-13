@@ -65,8 +65,16 @@ export function AccountUtilityBar() {
     };
   }, []);
 
-  // Don't render if loading, error, or single account
-  if (loading || error || !selectedAccount || !hasMultipleAccounts) {
+  // Check if selected account is an agency
+  const isAgencyAccount = selectedAccount?.is_agncy === true;
+
+  // Don't render if loading, error, or no selected account
+  if (loading || error || !selectedAccount) {
+    return null;
+  }
+
+  // Show if user has multiple accounts OR if this is an agency account
+  if (!hasMultipleAccounts && !isAgencyAccount) {
     return null;
   }
 
@@ -110,7 +118,7 @@ export function AccountUtilityBar() {
             </button>
           </div>
 
-          {/* Right side - Agency Dashboard, Work Manager link and Account count */}
+          {/* Right side - Agency Dashboard link and Account count */}
           <div className="flex items-center gap-4 text-xs">
             {selectedAccount.is_agncy && (
               <Link
@@ -121,16 +129,11 @@ export function AccountUtilityBar() {
                 <span>Agency dashboard</span>
               </Link>
             )}
-            <Link
-              href="/work-manager"
-              className="flex items-center gap-1.5 text-white/70 hover:text-white transition-colors"
-            >
-              <Icon name="FaBars" className="w-3 h-3" size={12} />
-              <span>Work Manager</span>
-            </Link>
-            <span className="text-white/70">
-              {availableAccounts.length} accounts
-            </span>
+            {hasMultipleAccounts && (
+              <span className="text-white/70">
+                {availableAccounts.length} accounts
+              </span>
+            )}
           </div>
         </div>
       </div>

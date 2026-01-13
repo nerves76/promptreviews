@@ -248,6 +248,9 @@ const Header = React.memo(function Header() {
     return false;
   };
 
+  // Check if we're on agency pages - hide credits/notifications/user menu there
+  const isAgencyPage = pathname?.startsWith('/agency');
+
   // Fetch notifications from API
   const fetchNotifications = async () => {
     if (!hasBusiness) return;
@@ -487,8 +490,8 @@ const Header = React.memo(function Header() {
 
           {/* Right Side - Desktop: Notifications and User Account | Mobile: Hamburger Menu */}
           <div className="flex items-center gap-4">
-            {/* Credits Badge - Desktop Only */}
-            {hasBusiness && creditBalance !== null && (
+            {/* Credits Badge - Desktop Only (hidden on agency pages) */}
+            {!isAgencyPage && hasBusiness && creditBalance !== null && (
               <Link
                 href="/dashboard/credits"
                 className={`hidden md:flex items-center gap-1.5 px-2 lg:px-3 py-1.5 rounded-full transition-colors whitespace-nowrap relative group ${
@@ -510,8 +513,8 @@ const Header = React.memo(function Header() {
               </Link>
             )}
 
-            {/* Notification Bell - Desktop Only */}
-            <div className="hidden md:flex items-center">
+            {/* Notification Bell - Desktop Only (hidden on agency pages) */}
+            {!isAgencyPage && <div className="hidden md:flex items-center">
               <div className="relative top-1">
                 <button
                   ref={notificationsButtonRef}
@@ -555,10 +558,10 @@ const Header = React.memo(function Header() {
                   />
                 </DropdownPortal>
               </div>
-            </div>
-            
-            {/* User Account - Desktop Only */}
-            <div className="hidden md:flex md:items-center">
+            </div>}
+
+            {/* User Account - Desktop Only (hidden on agency pages) */}
+            {!isAgencyPage && <div className="hidden md:flex md:items-center">
             {user ? (
               <div className="relative">
                 <button
@@ -662,8 +665,8 @@ const Header = React.memo(function Header() {
                 Sign in
               </Link>
             )}
-            </div>
-            
+            </div>}
+
             {/* Mobile Hamburger Menu */}
             <div className="md:hidden flex items-center">
               <button

@@ -70,11 +70,72 @@ export async function GET(request: NextRequest) {
         trial_start,
         trial_end,
         agncy_billing_owner,
+        monthly_credit_allocation,
         created_at
       `)
       .eq('managing_agncy_id', accountId)
       .is('deleted_at', null)
       .order('created_at', { ascending: false });
+
+    // Get credit balances for all clients
+    const clientIds = clientAccounts?.map(c => c.id) || [];
+    const { data: creditBalances } = clientIds.length > 0
+      ? await supabase
+          .from('credit_balances')
+          .select('account_id, included_credits, purchased_credits')
+          .in('account_id', clientIds)
+      : { data: [] };
+
+    // Get logos from businesses table
+    const { data: businessLogos } = clientIds.length > 0
+      ? await supabase
+          .from('businesses')
+          .select('account_id, logo_url')
+          .in('account_id', clientIds)
+      : { data: [] };
+
+    const logoMap = new Map(
+      businessLogos?.map(b => [b.account_id, b.logo_url]) || []
+    );
+
+    const creditBalanceMap = new Map(
+      creditBalances?.map(cb => [cb.account_id, cb]) || []
+    );
+
+    // Get review counts for all clients (total reviews)
+    const { data: reviewCounts } = clientIds.length > 0
+      ? await supabase
+          .from('widget_reviews')
+          .select('account_id')
+          .in('account_id', clientIds)
+      : { data: [] };
+
+    // Count reviews per account
+    const reviewCountMap = new Map<string, number>();
+    reviewCounts?.forEach(r => {
+      const current = reviewCountMap.get(r.account_id) || 0;
+      reviewCountMap.set(r.account_id, current + 1);
+    });
+
+    // Get reviews submitted this month
+    const startOfMonth = new Date();
+    startOfMonth.setUTCDate(1);
+    startOfMonth.setUTCHours(0, 0, 0, 0);
+
+    const { data: monthlyReviews } = clientIds.length > 0
+      ? await supabase
+          .from('review_submissions')
+          .select('account_id')
+          .in('account_id', clientIds)
+          .gte('created_at', startOfMonth.toISOString())
+      : { data: [] };
+
+    // Count monthly reviews per account
+    const monthlyReviewMap = new Map<string, number>();
+    monthlyReviews?.forEach(r => {
+      const current = monthlyReviewMap.get(r.account_id) || 0;
+      monthlyReviewMap.set(r.account_id, current + 1);
+    });
 
     if (clientsError) {
       console.error('Error fetching client accounts:', clientsError);
@@ -118,17 +179,43 @@ export async function GET(request: NextRequest) {
         status = 'active';
       }
 
+      // Get credit info for this client
+      const creditBalance = creditBalanceMap.get(client.id);
+      const totalBalance = (creditBalance?.included_credits || 0) + (creditBalance?.purchased_credits || 0);
+
+      // Get monthly credits based on plan (or custom allocation)
+      let monthlyCredits = client.monthly_credit_allocation;
+      if (monthlyCredits === null || monthlyCredits === undefined) {
+        // Default based on plan
+        switch (client.plan) {
+          case 'maven': monthlyCredits = 400; break;
+          case 'builder': monthlyCredits = 200; break;
+          case 'grower': monthlyCredits = 100; break;
+          default: monthlyCredits = 100; // Default for client accounts
+        }
+      }
+
       return {
         id: client.id,
         business_name: client.business_name,
+        logo_url: logoMap.get(client.id) || null,
         contact_name: `${client.first_name || ''} ${client.last_name || ''}`.trim() || null,
         email: client.email,
         plan: client.plan,
         status,
+        subscription_status: client.subscription_status,
         billing_owner: client.agncy_billing_owner,
         access_status: access?.status || 'active',
         access_role: access?.role || 'manager',
         connected_at: access?.accepted_at || client.created_at,
+        credits: {
+          balance: totalBalance,
+          monthly: monthlyCredits,
+        },
+        reviews: {
+          total: reviewCountMap.get(client.id) || 0,
+          this_month: monthlyReviewMap.get(client.id) || 0,
+        },
       };
     }) || [];
 

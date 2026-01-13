@@ -472,6 +472,17 @@ function SignUpContent() {
             {loading ? (invitationToken ? "Creating account..." : "Signing up...") : (invitationToken ? "Create account & join team" : "Sign up")}
           </button>
 
+          {!invitationToken && (
+            <p className="text-center text-sm text-gray-600">
+              Are you an agency?{" "}
+              <Link
+                href="/auth/agency-signup"
+                className="font-medium text-slate-blue hover:text-slate-blue/80 underline"
+              >
+                Sign up here
+              </Link>
+            </p>
+          )}
         </form>
       </div>
     </div>

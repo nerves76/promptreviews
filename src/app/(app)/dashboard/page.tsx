@@ -390,6 +390,9 @@ const Dashboard = React.memo(function Dashboard() {
       isFreeAccount: account.is_free_account,
       hasHadPaidPlan: account.has_had_paid_plan,
       isAdditionalAccount: account.is_additional_account,
+      // Agency-specific fields
+      isAgency: account.is_agncy,
+      agencyTrialEnd: account.agncy_trial_end,
     });
 
     const urlParams = typeof window !== "undefined" ?

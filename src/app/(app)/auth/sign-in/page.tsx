@@ -133,11 +133,40 @@ export default function SignIn() {
       // Wait a moment for the session to be properly established
       // This ensures cookies are set before navigation
       await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Now redirect using router for proper Next.js navigation
+
+      // Check if user has an agency account to determine redirect target
+      let redirectTarget = '/dashboard';
       const redirectParam = searchParams?.get('redirect');
       const decodedRedirect = redirectParam ? decodeURIComponent(redirectParam) : null;
-      const redirectTarget = decodedRedirect && decodedRedirect.startsWith('/') ? decodedRedirect : '/dashboard';
+
+      if (decodedRedirect && decodedRedirect.startsWith('/')) {
+        // Use explicit redirect if provided
+        redirectTarget = decodedRedirect;
+      } else {
+        // Check if user's account is an agency that has completed setup
+        try {
+          const { createClient } = require('@/auth/providers/supabase');
+          const supabaseClient = createClient();
+
+          // Get the user's account(s) to check if any is an agency
+          const { data: accountUsers } = await supabaseClient
+            .from('account_users')
+            .select('account_id, accounts:account_id(is_agncy, business_creation_complete)')
+            .eq('user_id', result.data?.user?.id)
+            .limit(1);
+
+          if (accountUsers && accountUsers.length > 0) {
+            const account = accountUsers[0].accounts;
+            // Only redirect to agency dashboard if they've completed business setup
+            if (account?.is_agncy && account?.business_creation_complete) {
+              redirectTarget = '/agency';
+            }
+            // Otherwise, go to /dashboard which will redirect to create-business if needed
+          }
+        } catch (err) {
+          console.warn('Could not check agency status, defaulting to dashboard:', err);
+        }
+      }
 
       router.push(redirectTarget);
     } catch (error: any) {

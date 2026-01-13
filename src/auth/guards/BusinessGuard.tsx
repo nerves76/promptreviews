@@ -103,7 +103,10 @@ function BusinessGuard({ children }: BusinessGuardProps) {
       "/payment-demo",
 
       // Prompt pages (dashboard page with business guard logic)
-      "/prompt-pages"
+      "/prompt-pages",
+
+      // Agency dashboard (agencies may not have businesses)
+      "/agency"
     ];
 
     // Check if current path is exempt

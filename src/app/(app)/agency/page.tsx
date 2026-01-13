@@ -9,10 +9,19 @@ import { apiClient } from "@/utils/apiClient";
 interface ClientAccount {
   id: string;
   business_name: string | null;
+  logo_url: string | null;
   plan: string | null;
   subscription_status: string | null;
-  agncy_billing_owner: 'client' | 'agency';
+  billing_owner: 'client' | 'agency';
   created_at: string;
+  credits: {
+    balance: number;
+    monthly: number;
+  };
+  reviews: {
+    total: number;
+    this_month: number;
+  };
 }
 
 interface AgencyClientsResponse {
@@ -23,9 +32,13 @@ interface AgencyClientsResponse {
 interface AgencyMetrics {
   total_clients: number;
   active_clients: number;
-  pending_invitations: number;
-  clients_agency_billing: number;
-  clients_own_billing: number;
+  total_reviews: number;
+  verified_reviews: number;
+}
+
+interface CreditBalance {
+  balance: number;
+  monthly: number;
 }
 
 function getStatusBadge(status: string | null): { label: string; color: string } {
@@ -62,6 +75,9 @@ export default function AgencyDashboardPage() {
   const { account } = useAuth();
   const [clients, setClients] = useState<ClientAccount[]>([]);
   const [metrics, setMetrics] = useState<AgencyMetrics | null>(null);
+  const [agencyCredits, setAgencyCredits] = useState<CreditBalance | null>(null);
+  const [agencyLogo, setAgencyLogo] = useState<string | null>(null);
+  const [agencyReviews, setAgencyReviews] = useState<{ total: number; this_month: number }>({ total: 0, this_month: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -73,21 +89,42 @@ export default function AgencyDashboardPage() {
         setLoading(true);
         setError(null);
 
-        // Fetch clients
-        const clientsData = await apiClient.get<AgencyClientsResponse>('/agency/clients?limit=6');
+        // Fetch clients, stats, agency credits, logo, and agency's own reviews in parallel
+        const [clientsData, statsData, creditsData, businessData, reviewsData] = await Promise.all([
+          apiClient.get<AgencyClientsResponse>('/agency/clients?limit=6'),
+          apiClient.get<{ total_reviews: number; verified_reviews: number }>('/agency/stats'),
+          apiClient.get<{ total: number; included: number; purchased: number; monthly_allocation?: number }>('/credits/balance'),
+          apiClient.get<{ business: { logo_url?: string } | null }>('/businesses/current').catch(() => ({ business: null })),
+          apiClient.get<{ total: number; this_month: number }>('/reviews/stats').catch(() => ({ total: 0, this_month: 0 })),
+        ]);
+
+        // Set agency logo and reviews
+        setAgencyLogo(businessData?.business?.logo_url || null);
+        setAgencyReviews({ total: reviewsData.total || 0, this_month: reviewsData.this_month || 0 });
+
         setClients(clientsData.clients || []);
 
-        // Calculate metrics from clients data
+        // Set agency credits
+        // Monthly is 200 base + tiered credits per paying client
+        const TIER_CREDITS: Record<string, number> = { grower: 200, builder: 300, maven: 500 };
+        const payingClients = (clientsData.clients || []).filter(c => c.subscription_status === 'active');
+        const clientCredits = payingClients.reduce((sum, client) => {
+          return sum + (TIER_CREDITS[client.plan || 'grower'] || TIER_CREDITS.grower);
+        }, 0);
+        setAgencyCredits({
+          balance: creditsData.total || 0,
+          monthly: 200 + clientCredits,
+        });
+
+        // Calculate metrics from clients data and stats
         const allClients = clientsData.clients || [];
         const activeClients = allClients.filter(c => c.subscription_status === 'active');
-        const agencyBillingClients = allClients.filter(c => c.agncy_billing_owner === 'agency');
 
         setMetrics({
           total_clients: clientsData.total || 0,
           active_clients: activeClients.length,
-          pending_invitations: 0, // Would need separate query
-          clients_agency_billing: agencyBillingClients.length,
-          clients_own_billing: allClients.length - agencyBillingClients.length,
+          total_reviews: statsData.total_reviews || 0,
+          verified_reviews: statsData.verified_reviews || 0,
         });
       } catch (err) {
         console.error('Error fetching agency data:', err);
@@ -125,9 +162,11 @@ export default function AgencyDashboardPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       {/* Page header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-white">Agency dashboard</h1>
+        <h1 className="text-2xl font-bold text-white">
+          Welcome, {account?.business_name || 'Agency'}
+        </h1>
         <p className="text-white/70 mt-1">
-          Manage your client workspaces and track performance
+          Manage your client accounts and track performance
         </p>
       </div>
 
@@ -161,11 +200,11 @@ export default function AgencyDashboardPage() {
           <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-purple-500/20 rounded-lg">
-                <Icon name="FaCreditCard" className="text-purple-400" size={20} />
+                <Icon name="FaStar" className="text-purple-400" size={20} />
               </div>
               <div>
-                <p className="text-2xl font-bold text-white">{metrics.clients_agency_billing}</p>
-                <p className="text-xs text-white/60">Agency billing</p>
+                <p className="text-2xl font-bold text-white">{metrics.total_reviews}</p>
+                <p className="text-xs text-white/60">Total reviews</p>
               </div>
             </div>
           </div>
@@ -173,21 +212,42 @@ export default function AgencyDashboardPage() {
           <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-amber-500/20 rounded-lg">
-                <Icon name="FaWallet" className="text-amber-400" size={20} />
+                <Icon name="FaCheckCircle" className="text-amber-400" size={20} />
               </div>
               <div>
-                <p className="text-2xl font-bold text-white">{metrics.clients_own_billing}</p>
-                <p className="text-xs text-white/60">Client billing</p>
+                <p className="text-2xl font-bold text-white">{metrics.verified_reviews}</p>
+                <p className="text-xs text-white/60">Verified reviews</p>
               </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Recent clients section */}
+      {/* Credit bonus message */}
+      <div className="bg-white/5 border border-white/10 rounded-lg p-4 mb-8 flex items-start gap-3">
+        <div className="p-2 bg-green-500/20 rounded-lg flex-shrink-0">
+          <Icon name="FaCoins" className="text-green-400" size={18} />
+        </div>
+        <div>
+          <p className="text-white font-medium text-sm">Earn more monthly credits with paid clients</p>
+          <p className="text-white/70 text-sm mt-1">
+            Your agency receives 200 credits per month, plus bonus monthly credits for each client with an active paid subscription:
+          </p>
+          <div className="flex gap-4 mt-2 text-sm">
+            <span className="text-green-400">Grower: +200/mo</span>
+            <span className="text-cyan-300">Builder: +300/mo</span>
+            <span className="text-yellow-400">Maven: +500/mo</span>
+          </div>
+          <p className="text-white/60 text-xs mt-2">
+            Bonus credits start after their first payment and refresh monthly.
+          </p>
+        </div>
+      </div>
+
+      {/* Accounts section */}
       <div className="bg-white/10 backdrop-blur-sm rounded-lg">
         <div className="flex items-center justify-between p-4 border-b border-white/10">
-          <h2 className="text-lg font-semibold text-white">Recent clients</h2>
+          <h2 className="text-lg font-semibold text-white">Accounts</h2>
           <Link
             href="/agency/clients"
             className="text-sm text-white/70 hover:text-white transition-colors flex items-center gap-1"
@@ -197,64 +257,159 @@ export default function AgencyDashboardPage() {
           </Link>
         </div>
 
-        {clients.length === 0 ? (
-          <div className="p-8 text-center">
-            <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Icon name="FaUsers" className="text-white/40" size={32} />
-            </div>
-            <h3 className="text-white font-medium mb-2">No clients yet</h3>
-            <p className="text-white/60 text-sm mb-4">
-              Start managing client workspaces by inviting them to your agency
-            </p>
+        <div className="divide-y divide-white/10">
+          {/* Agency's own account - always shown first with prominent design */}
+          {account && (
             <Link
-              href="/agency/clients"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-white text-slate-blue rounded-lg font-medium hover:bg-white/90 transition-colors whitespace-nowrap"
+              href="/dashboard"
+              className="block p-5 bg-gradient-to-r from-slate-blue/30 to-slate-blue/10 hover:from-slate-blue/40 hover:to-slate-blue/20 transition-all border-b border-white/10"
             >
-              <Icon name="FaPlus" size={14} />
-              Add client
-            </Link>
-          </div>
-        ) : (
-          <div className="divide-y divide-white/10">
-            {clients.map((client) => {
-              const status = getStatusBadge(client.subscription_status);
-              const plan = getPlanBadge(client.plan);
-
-              return (
-                <Link
-                  key={client.id}
-                  href={`/agency/clients/${client.id}`}
-                  className="flex items-center justify-between p-4 hover:bg-white/5 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center">
-                      <Icon name="FaBuilding" className="text-white/60" size={18} />
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center shadow-lg overflow-hidden">
+                    {agencyLogo ? (
+                      <img src={agencyLogo} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <Icon name="FaBuilding" className="text-white" size={28} />
+                    )}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <p className="text-white font-semibold text-lg">
+                        {account.business_name || 'Your agency'}
+                      </p>
+                      {!account.business_creation_complete && (
+                        <span className="bg-yellow-400 text-yellow-900 text-xs px-2 py-0.5 rounded-full font-bold animate-pulse">
+                          Set up your account
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-white/60 text-sm mt-0.5">
+                      Manage your agency account
+                    </p>
+                  </div>
+                </div>
+                {/* Stats for agency */}
+                <div className="flex items-center gap-6">
+                  {/* Review stats */}
+                  <div className="hidden sm:flex items-center gap-4 text-sm">
+                    <div>
+                      <span className="text-white/50">Reviews:</span>
+                      <span className="text-white ml-1 font-medium">{agencyReviews.total}</span>
                     </div>
                     <div>
-                      <p className="text-white font-medium">
-                        {client.business_name || 'Unnamed client'}
-                      </p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className={`px-2 py-0.5 text-xs font-medium rounded-full whitespace-nowrap ${status.color}`}>
-                          {status.label}
-                        </span>
-                        <span className={`px-2 py-0.5 text-xs font-medium rounded-full whitespace-nowrap ${plan.color}`}>
-                          {plan.label}
-                        </span>
-                        {client.agncy_billing_owner === 'agency' && (
-                          <span className="px-2 py-0.5 text-xs font-medium rounded-full whitespace-nowrap bg-purple-100 text-purple-800">
-                            Agency billing
-                          </span>
-                        )}
-                      </div>
+                      <span className="text-white/50">This month:</span>
+                      <span className="text-white ml-1 font-medium">{agencyReviews.this_month}</span>
                     </div>
                   </div>
-                  <Icon name="FaChevronRight" className="text-white/40" size={14} />
-                </Link>
-              );
-            })}
-          </div>
-        )}
+                  {/* Credit info */}
+                  {agencyCredits && (
+                    <div className="hidden md:flex items-center gap-4 text-sm border-l border-white/20 pl-4">
+                      <div>
+                        <span className="text-white/50">Monthly:</span>
+                        <span className="text-white ml-1 font-medium">{agencyCredits.monthly}</span>
+                      </div>
+                      <div>
+                        <span className="text-white/50">Balance:</span>
+                        <span className="text-white ml-1 font-medium">{agencyCredits.balance}</span>
+                      </div>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2 text-white/60">
+                    <span className="text-sm hidden lg:inline">Manage account</span>
+                    <Icon name="FaChevronRight" size={16} />
+                  </div>
+                </div>
+              </div>
+            </Link>
+          )}
+
+          {/* Client accounts */}
+          {clients.map((client) => {
+            const status = getStatusBadge(client.subscription_status);
+            const plan = getPlanBadge(client.plan);
+
+            return (
+              <Link
+                key={client.id}
+                href={`/agency/clients/${client.id}`}
+                className="flex items-center justify-between p-4 hover:bg-white/5 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center overflow-hidden">
+                    {client.logo_url ? (
+                      <img src={client.logo_url} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <Icon name="FaBuilding" className="text-white/60" size={18} />
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-white font-medium">
+                      {client.business_name || 'Unnamed client'}
+                    </p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className={`px-2 py-0.5 text-xs font-medium rounded-full whitespace-nowrap ${status.color}`}>
+                        {status.label}
+                      </span>
+                      <span className={`px-2 py-0.5 text-xs font-medium rounded-full whitespace-nowrap ${plan.color}`}>
+                        {plan.label}
+                      </span>
+                      {client.billing_owner === 'agency' && (
+                        <span className="px-2 py-0.5 text-xs font-medium rounded-full whitespace-nowrap bg-slate-blue/30 text-white">
+                          Agency billing
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-6">
+                  {/* Review stats */}
+                  <div className="hidden sm:flex items-center gap-4 text-xs">
+                    <div>
+                      <span className="text-white/50">Reviews:</span>
+                      <span className="text-white ml-1">{client.reviews.total}</span>
+                    </div>
+                    <div>
+                      <span className="text-white/50">This month:</span>
+                      <span className="text-white ml-1">{client.reviews.this_month}</span>
+                    </div>
+                  </div>
+                  {/* Credit info */}
+                  <div className="hidden md:flex items-center gap-4 text-xs border-l border-white/10 pl-4">
+                    <div>
+                      <span className="text-white/50">Monthly:</span>
+                      <span className="text-white ml-1">{client.credits.monthly}</span>
+                    </div>
+                    <div>
+                      <span className="text-white/50">Balance:</span>
+                      <span className="text-white ml-1">{client.credits.balance}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 text-white/40">
+                    <span className="text-xs hidden lg:inline">Manage</span>
+                    <Icon name="FaChevronRight" size={14} />
+                  </div>
+                </div>
+              </Link>
+            );
+          })}
+
+          {/* Empty state for clients - only shown if no clients yet */}
+          {clients.length === 0 && (
+            <div className="p-6 text-center">
+              <p className="text-white/60 text-sm mb-3">
+                No client accounts yet
+              </p>
+              <Link
+                href="/agency/clients"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-white text-slate-blue rounded-lg font-medium hover:bg-white/90 transition-colors whitespace-nowrap text-sm"
+              >
+                <Icon name="FaPlus" size={14} />
+                Add your first client
+              </Link>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Quick actions */}

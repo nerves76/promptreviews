@@ -19,6 +19,7 @@
  *    - grower: 100 credits
  *    - builder: 200 credits
  *    - maven: 400 credits
+ *    - agency: 200 base + 300 per paying client
  * 3. Client accounts (is_client_account=true): 100 credits default
  */
 
@@ -72,12 +73,13 @@ export async function GET(request: NextRequest) {
     // Get all eligible accounts:
     // 1. Paid plans (grower, builder, maven) that aren't free test accounts
     // 2. Client accounts (is_client_account=true) regardless of plan
-    // 3. Accounts with custom monthly_credit_allocation set
+    // 3. Agency accounts (is_agncy=true with plan=agency)
+    // 4. Accounts with custom monthly_credit_allocation set
     const { data: accounts, error: accountsError } = await supabase
       .from('accounts')
-      .select('id, plan, email, business_name, is_free_account, is_client_account, monthly_credit_allocation, subscription_status')
+      .select('id, plan, email, business_name, is_free_account, is_client_account, is_agncy, monthly_credit_allocation, subscription_status')
       .is('deleted_at', null)
-      .or('and(plan.in.(grower,builder,maven),is_free_account.eq.false),is_client_account.eq.true,monthly_credit_allocation.not.is.null');
+      .or('and(plan.in.(grower,builder,maven),is_free_account.eq.false),is_client_account.eq.true,is_agncy.eq.true,monthly_credit_allocation.not.is.null');
 
     if (accountsError) {
       throw new Error('Failed to fetch accounts');
@@ -102,13 +104,23 @@ export async function GET(request: NextRequest) {
     // Default credits for client accounts without custom allocation
     const DEFAULT_CLIENT_CREDITS = 100;
 
+    // Agency credit constants
+    const AGENCY_BASE_CREDITS = 200;
+    // Tiered credits per paying client based on their plan
+    const AGENCY_CREDITS_PER_TIER: Record<string, number> = {
+      grower: 200,
+      builder: 300,
+      maven: 500,
+    };
+
     // Process each account
     for (const account of accounts || []) {
       try {
         // Determine monthly credits in priority order:
         // 1. Custom allocation (if set)
-        // 2. Plan tier default
-        // 3. Client account default
+        // 2. Agency plan (200 base + 300 per paying client)
+        // 3. Plan tier default
+        // 4. Client account default
         let monthlyCredits: number;
         let creditSource: string;
 
@@ -116,6 +128,32 @@ export async function GET(request: NextRequest) {
           // Custom allocation set - use it
           monthlyCredits = account.monthly_credit_allocation;
           creditSource = 'custom';
+        } else if (account.is_agncy && account.plan === 'agency') {
+          // Agency account - 200 base + tiered credits per paying client
+          // Get paying clients with their plans
+          const { data: payingClients } = await supabase
+            .from('accounts')
+            .select('id, plan')
+            .eq('managing_agncy_id', account.id)
+            .eq('subscription_status', 'active')
+            .is('deleted_at', null);
+
+          // Calculate tiered credits
+          let clientCredits = 0;
+          const tierCounts: Record<string, number> = { grower: 0, builder: 0, maven: 0 };
+
+          for (const client of payingClients || []) {
+            const tierCredits = AGENCY_CREDITS_PER_TIER[client.plan] || AGENCY_CREDITS_PER_TIER.grower;
+            clientCredits += tierCredits;
+            if (client.plan && tierCounts[client.plan] !== undefined) {
+              tierCounts[client.plan]++;
+            }
+          }
+
+          const clientCount = payingClients?.length || 0;
+          monthlyCredits = AGENCY_BASE_CREDITS + clientCredits;
+          creditSource = `agency (${clientCount} paying: ${tierCounts.grower}g/${tierCounts.builder}b/${tierCounts.maven}m)`;
+          console.log(`🏢 [Monthly Credits] Agency ${account.id}: ${clientCount} paying clients (g:${tierCounts.grower}, b:${tierCounts.builder}, m:${tierCounts.maven}) = ${monthlyCredits} credits`);
         } else if (['grower', 'builder', 'maven'].includes(account.plan) && !account.is_free_account) {
           // Paid plan - use tier default
           monthlyCredits = await getTierCredits(supabase, account.plan);

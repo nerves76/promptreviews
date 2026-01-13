@@ -187,7 +187,7 @@ export default function CreateBusinessClient() {
         if (accountToUse) {
           const { data: accountInfo, error: accountError } = await supabase
             .from('accounts')
-            .select('id, first_name, last_name, email')
+            .select('id, first_name, last_name, email, business_name')
             .eq('id', accountToUse)
             .single();
 
@@ -260,9 +260,10 @@ export default function CreateBusinessClient() {
       sessionStorage.removeItem('pendingAccountId');
     }
 
-    // Only force pricing modal for primary accounts, not additional accounts
-    // Additional accounts should show success message on dashboard
-    if (typeof window !== 'undefined' && targetAccountId && accountData && !accountData.is_additional_account) {
+    // Only force pricing modal for primary accounts, not additional accounts or agencies
+    // Additional accounts and agencies should show success message on dashboard
+    const isAgencyAccount = account?.is_agncy === true;
+    if (typeof window !== 'undefined' && targetAccountId && accountData && !accountData.is_additional_account && !isAgencyAccount) {
       sessionStorage.setItem('forcePricingModalAccountId', targetAccountId);
     }
 
@@ -283,8 +284,15 @@ export default function CreateBusinessClient() {
 
     await new Promise(resolve => setTimeout(resolve, 300));
 
-    redirectToDashboard();
-  }, [accountId, authUser?.id, refreshAccount, redirectToDashboard, user?.id]);
+    // Agency accounts go to /agency after creating their business
+    if (isAgencyAccount) {
+      if (typeof window !== 'undefined') {
+        window.location.replace("/agency");
+      }
+    } else {
+      redirectToDashboard();
+    }
+  }, [accountId, account?.is_agncy, authUser?.id, refreshAccount, redirectToDashboard, user?.id]);
 
   // Handle top save button click
   const handleTopSaveClick = useCallback(() => {
@@ -371,10 +379,13 @@ export default function CreateBusinessClient() {
     <>
       <div className="min-h-screen flex justify-center items-start">
         <div className="w-full">
-          <PageCard icon={<Icon name="FaStore" className="w-9 h-9 text-slate-blue" size={36} />}>
+          <PageCard icon={<Icon name={account?.is_agncy ? "FaBuilding" : "FaStore"} className="w-9 h-9 text-slate-blue" size={36} />}>
             <PageCardHeader
-              title="Create your business profile"
-              description="Let's create your business profile so you can start collecting reviews and growing your reputation online."
+              title={account?.is_agncy ? "Create your agency profile" : "Create your business profile"}
+              description={account?.is_agncy
+                ? "Let's create your agency profile so you can start managing clients and growing their reputations online."
+                : "Let's create your business profile so you can start collecting reviews and growing your reputation online."
+              }
               variant="large"
               actions={
                 <button

@@ -116,13 +116,18 @@ export default function DashboardLayout({
       // Free accounts are allowed to access all dashboard pages even without a paid plan
       const isFreeAccount = account.is_free_account || false;
 
+      // Agency accounts have their own trial system - they don't need a regular plan
+      // but they still need to create a business for their agency
+      const isAgencyWithTrial = account.is_agncy === true;
+
       const isAllowedPath =
         pathname === '/dashboard' ||
         pathname.startsWith('/dashboard/create-business') ||
         pathname.startsWith('/dashboard/business-profile');
       // REMOVED: /dashboard/plan from allowed paths - we shouldn't redirect there
 
-      if (hasNoPlan && !isFreeAccount && !isAllowedPath) {
+      // Agency accounts can skip plan selection (they have agency trial) but still need business
+      if (hasNoPlan && !isFreeAccount && !isAgencyWithTrial && !isAllowedPath) {
         router.push('/dashboard/create-business');
       }
     }

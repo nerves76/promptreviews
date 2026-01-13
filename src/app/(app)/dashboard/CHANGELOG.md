@@ -1,5 +1,47 @@
 # Dashboard Changelog
 
+## [2026-01-11] - Agency Accounts Feature
+### Added
+**New UI Pages for Agency Feature:**
+
+**Agency Dashboard (`/agency/*`):**
+- `/agency/layout.tsx` - Agency-specific layout with sidebar navigation
+- `/agency/page.tsx` - Dashboard home with metrics grid and client cards
+- `/agency/clients/page.tsx` - Client list with status filters and search
+- `/agency/clients/[clientId]/page.tsx` - Client detail with billing management
+  - View client info, metrics, billing status
+  - Take over billing modal
+  - Release billing modal
+  - Disconnect client modal
+
+**Agency Settings (`/dashboard/settings/agency-access/*`):**
+- `/dashboard/settings/agency-access/page.tsx` - Client-side agency management
+  - View managing agency
+  - Accept/decline pending invitations
+  - Remove agency access with billing warning
+  - "Become an agency" promotion section
+- `/dashboard/settings/agency-access/convert/page.tsx` - 4-step conversion wizard
+  - Step 1: Agency type (freelancer, small, mid, enterprise)
+  - Step 2: Employee count
+  - Step 3: Expected client count
+  - Step 4: Multi-location percentage
+  - Progress indicator and benefits banner
+
+**Account Page Updates (`/dashboard/account/page.tsx`):**
+- Added "Agency" section showing:
+  - Link to agency dashboard (for agencies)
+  - Link to agency access settings (for managed clients)
+  - Convert to agency button (for regular accounts)
+
+**AccountSwitcher Updates:**
+- Added "Agency Dashboard" link when `account.is_agncy = true`
+
+**Auth Integration:**
+- `accountSelection.ts` - Now fetches `is_agncy` field for account list
+- Account context includes `is_agncy` and `managing_agncy_id`
+
+**Documentation:** `/docs/AGENCY_ACCOUNTS.md`
+
 ## [2025-09-02] - Account Isolation Fix Complete
 ### Fixed
 - Fixed remaining account isolation issues in final dashboard pages
