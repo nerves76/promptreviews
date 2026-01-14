@@ -1,14 +1,16 @@
 /**
  * Agency Convert API Route
  *
- * Converts an existing account to an agency account.
- * Requires agency metadata to be provided.
+ * POST: Submits a request to convert an account to an agency account.
+ *       Sends email to admin for review - does NOT auto-convert.
+ * GET: Check if current account can be converted to agency
  */
 
 import { createServerSupabaseClient, createServiceRoleClient } from '@/auth/providers/supabase';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 import { NextRequest, NextResponse } from 'next/server';
 import { AgencyMetadata } from '@/auth/types/auth.types';
+import { sendResendEmail } from '@/utils/resend';
 
 interface ConvertToAgencyRequest {
   metadata: AgencyMetadata;
@@ -66,7 +68,7 @@ export async function POST(request: NextRequest) {
 
     if (accountUser.role !== 'owner') {
       return NextResponse.json(
-        { error: 'Only account owners can convert to agency' },
+        { error: 'Only account owners can request agency conversion' },
         { status: 403 }
       );
     }
@@ -74,7 +76,7 @@ export async function POST(request: NextRequest) {
     // Get current account details
     const { data: account, error: accountError } = await supabase
       .from('accounts')
-      .select('id, is_agncy, agncy_trial_end')
+      .select('id, business_name, is_agncy, agncy_trial_end')
       .eq('id', accountId)
       .single();
 
@@ -96,109 +98,130 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Calculate 30-day agency trial end
-    const now = new Date();
-    const trialEnd = new Date(now);
-    trialEnd.setDate(trialEnd.getDate() + 30);
+    // Check if there's already a pending request
+    const { data: existingRequest } = await supabase
+      .from('account_events')
+      .select('id, created_at')
+      .eq('account_id', accountId)
+      .eq('event_type', 'agency_conversion_requested')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
 
-    // Update the account to be an agency
-    const { data: updatedAccount, error: updateError } = await supabase
-      .from('accounts')
-      .update({
-        is_agncy: true,
-        agncy_trial_start: now.toISOString(),
-        agncy_trial_end: trialEnd.toISOString(),
+    if (existingRequest) {
+      const requestDate = new Date(existingRequest.created_at);
+      const daysSinceRequest = Math.floor((Date.now() - requestDate.getTime()) / (1000 * 60 * 60 * 24));
+
+      if (daysSinceRequest < 7) {
+        return NextResponse.json({
+          message: 'Your agency conversion request is already being reviewed',
+          status: 'pending',
+          requested_at: existingRequest.created_at,
+        });
+      }
+    }
+
+    // Log the conversion request event
+    await supabase.from('account_events').insert({
+      account_id: accountId,
+      event_type: 'agency_conversion_requested',
+      event_data: {
+        user_id: user.id,
+        user_email: user.email,
+        business_name: account.business_name,
         agncy_type: body.metadata.agncy_type,
         agncy_employee_count: body.metadata.agncy_employee_count,
         agncy_expected_clients: body.metadata.agncy_expected_clients,
         agncy_multi_location_pct: body.metadata.agncy_multi_location_pct,
-        // Ensure agency accounts can access dashboard without business creation
-        business_creation_complete: true,
-      })
-      .eq('id', accountId)
-      .select()
-      .single();
-
-    if (updateError) {
-      console.error('Error converting to agency:', updateError);
-      return NextResponse.json(
-        { error: 'Failed to convert account to agency', details: updateError.message },
-        { status: 500 }
-      );
-    }
-
-    // Auto-link other accounts where this user is an owner
-    const supabaseAdmin = createServiceRoleClient();
-    let linkedAccountsCount = 0;
-
-    // Find all other accounts where the user is an owner (excluding the new agency account)
-    const { data: ownedAccounts, error: ownedAccountsError } = await supabaseAdmin
-      .from('account_users')
-      .select('account_id')
-      .eq('user_id', user.id)
-      .eq('role', 'owner')
-      .neq('account_id', accountId);
-
-    if (!ownedAccountsError && ownedAccounts && ownedAccounts.length > 0) {
-      // Create agncy_client_access records for each owned account
-      const clientAccessRecords = ownedAccounts.map(acc => ({
-        agency_account_id: accountId,
-        client_account_id: acc.account_id,
-        user_id: user.id, // Required field - the agency user who has access
-        role: 'billing_manager', // Full access since they own both accounts
-        status: 'active',
-        accepted_at: new Date().toISOString(),
-        created_at: new Date().toISOString(),
-      }));
-
-      const { error: linkError } = await supabaseAdmin
-        .from('agncy_client_access')
-        .upsert(clientAccessRecords, {
-          onConflict: 'agency_account_id,client_account_id,user_id',
-          ignoreDuplicates: true,
-        });
-
-      if (linkError) {
-        console.error('Error auto-linking owned accounts:', linkError);
-        // Don't fail the conversion, just log the error
-      } else {
-        linkedAccountsCount = ownedAccounts.length;
-      }
-    }
-
-    // Log the event
-    await supabase.from('account_events').insert({
-      account_id: accountId,
-      event_type: 'agency_converted',
-      event_data: {
-        user_id: user.id,
-        agncy_type: body.metadata.agncy_type,
-        trial_end: trialEnd.toISOString(),
-        auto_linked_accounts: linkedAccountsCount,
       },
     });
+
+    // Send email to admin for review
+    const agencyTypeLabels: Record<string, string> = {
+      'marketing': 'Marketing Agency',
+      'seo': 'SEO Agency',
+      'web_design': 'Web Design Agency',
+      'full_service': 'Full Service Agency',
+      'reputation': 'Reputation Management',
+      'other': 'Other',
+    };
+
+    const employeeCountLabels: Record<string, string> = {
+      '1': '1 (Solo)',
+      '2-5': '2-5',
+      '6-10': '6-10',
+      '11-25': '11-25',
+      '26-50': '26-50',
+      '50+': '50+',
+    };
+
+    const expectedClientsLabels: Record<string, string> = {
+      '1-5': '1-5 clients',
+      '6-10': '6-10 clients',
+      '11-25': '11-25 clients',
+      '26-50': '26-50 clients',
+      '50+': '50+ clients',
+    };
+
+    const multiLocationLabels: Record<string, string> = {
+      '0': 'None (0%)',
+      '1-25': 'Some (1-25%)',
+      '26-50': 'About half (26-50%)',
+      '51-75': 'Most (51-75%)',
+      '76-100': 'Almost all (76-100%)',
+    };
+
+    const emailHtml = `
+      <h2>New Agency Conversion Request</h2>
+
+      <h3>Account Details</h3>
+      <ul>
+        <li><strong>Account ID:</strong> ${accountId}</li>
+        <li><strong>Business Name:</strong> ${account.business_name || 'Not set'}</li>
+        <li><strong>User Email:</strong> ${user.email}</li>
+        <li><strong>User ID:</strong> ${user.id}</li>
+      </ul>
+
+      <h3>Agency Questionnaire Responses</h3>
+      <ul>
+        <li><strong>Agency Type:</strong> ${agencyTypeLabels[body.metadata.agncy_type] || body.metadata.agncy_type}</li>
+        <li><strong>Employee Count:</strong> ${employeeCountLabels[body.metadata.agncy_employee_count] || body.metadata.agncy_employee_count}</li>
+        <li><strong>Expected Clients:</strong> ${expectedClientsLabels[body.metadata.agncy_expected_clients] || body.metadata.agncy_expected_clients}</li>
+        <li><strong>Multi-location Clients:</strong> ${multiLocationLabels[body.metadata.agncy_multi_location_pct] || body.metadata.agncy_multi_location_pct}</li>
+      </ul>
+
+      <h3>To Approve</h3>
+      <p>Run this in the browser console while logged into an admin account:</p>
+      <pre style="background: #f4f4f4; padding: 10px; border-radius: 4px;">
+fetch('/api/agency/approve', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ accountId: '${accountId}' })
+}).then(r => r.json()).then(console.log)
+      </pre>
+
+      <p style="color: #666; font-size: 12px; margin-top: 20px;">
+        Requested at: ${new Date().toISOString()}
+      </p>
+    `;
+
+    try {
+      await sendResendEmail({
+        to: 'support@promptreviews.app',
+        subject: `Agency Conversion Request: ${account.business_name || user.email}`,
+        html: emailHtml,
+      });
+    } catch (emailError) {
+      console.error('Failed to send agency conversion email:', emailError);
+      // Don't fail the request if email fails - the event is logged
+    }
 
     return NextResponse.json({
-      message: 'Account converted to agency successfully',
-      account: {
-        id: updatedAccount.id,
-        business_name: updatedAccount.business_name,
-        is_agncy: updatedAccount.is_agncy,
-        agncy_trial_end: updatedAccount.agncy_trial_end,
-        agncy_type: updatedAccount.agncy_type,
-      },
-      trial: {
-        starts: now.toISOString(),
-        ends: trialEnd.toISOString(),
-        days_remaining: 30,
-      },
-      auto_linked: {
-        count: linkedAccountsCount,
-        message: linkedAccountsCount > 0
-          ? `${linkedAccountsCount} account${linkedAccountsCount !== 1 ? 's' : ''} you own have been automatically linked as clients.`
-          : 'No other accounts to link.',
-      },
+      message: 'Your agency conversion request has been submitted for review',
+      status: 'pending',
+      review_time: 'We will review your account and make the conversion within 1-3 business days.',
     });
+
   } catch (error) {
     console.error('Agency convert API error:', error);
     return NextResponse.json(
@@ -269,10 +292,25 @@ export async function GET(request: NextRequest) {
 
     const isOwner = accountUser?.role === 'owner';
 
+    // Check for pending conversion request
+    const { data: pendingRequest } = await supabase
+      .from('account_events')
+      .select('id, created_at')
+      .eq('account_id', accountId)
+      .eq('event_type', 'agency_conversion_requested')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    const hasPendingRequest = pendingRequest &&
+      (Date.now() - new Date(pendingRequest.created_at).getTime()) < 7 * 24 * 60 * 60 * 1000;
+
     return NextResponse.json({
-      can_convert: !account.is_agncy && isOwner,
+      can_convert: !account.is_agncy && isOwner && !hasPendingRequest,
       is_agncy: account.is_agncy,
       is_owner: isOwner,
+      has_pending_request: hasPendingRequest,
+      pending_request_date: hasPendingRequest ? pendingRequest.created_at : null,
       account: account.is_agncy ? {
         agncy_type: account.agncy_type,
         agncy_employee_count: account.agncy_employee_count,
