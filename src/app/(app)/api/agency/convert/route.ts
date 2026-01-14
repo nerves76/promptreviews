@@ -6,7 +6,7 @@
  * GET: Check if current account can be converted to agency
  */
 
-import { createServerSupabaseClient, createServiceRoleClient } from '@/auth/providers/supabase';
+import { createServerSupabaseClient } from '@/auth/providers/supabase';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 import { NextRequest, NextResponse } from 'next/server';
 import { AgencyMetadata } from '@/auth/types/auth.types';

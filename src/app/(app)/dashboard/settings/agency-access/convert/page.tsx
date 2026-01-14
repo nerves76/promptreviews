@@ -18,6 +18,8 @@ interface ConversionCheckResponse {
   can_convert: boolean;
   is_agncy: boolean;
   is_owner: boolean;
+  has_pending_request?: boolean;
+  pending_request_date?: string;
 }
 
 const agencyTypeOptions: { value: AgencyType; label: string }[] = [
@@ -101,7 +103,7 @@ export default function ConvertToAgencyPage() {
       setSubmitting(true);
       setSubmitError(null);
 
-      await apiClient.post('/agency/convert', {
+      const response = await apiClient.post<{ status?: string; message?: string }>('/agency/convert', {
         metadata: {
           agncy_type: agencyType,
           agncy_employee_count: planToAddClients, // repurposed field
@@ -110,12 +112,11 @@ export default function ConvertToAgencyPage() {
         },
       });
 
-      setSuccess(true);
-
-      // Redirect to agency dashboard after short delay
-      setTimeout(() => {
-        window.location.href = '/agency';
-      }, 2000);
+      // Check if this was a pending request (new flow) or already pending
+      if (response.status === 'pending') {
+        setSuccess(true);
+        // Don't redirect - show pending message
+      }
     } catch (err: any) {
       console.error('Error converting to agency:', err);
       setSubmitError(err.message || 'Failed to convert to agency');
@@ -167,6 +168,36 @@ export default function ConvertToAgencyPage() {
   }
 
   if (checkData && !checkData.can_convert) {
+    // Check if there's a pending request
+    if (checkData.has_pending_request) {
+      const requestDate = checkData.pending_request_date
+        ? new Date(checkData.pending_request_date).toLocaleDateString()
+        : 'recently';
+
+      return (
+        <PageCard>
+          <div className="text-center py-12">
+            <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Icon name="FaClock" className="text-blue-600" size={40} />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Request pending</h2>
+            <p className="text-gray-600 mb-4">
+              Your agency conversion request from {requestDate} is being reviewed.
+            </p>
+            <p className="text-gray-500 text-sm mb-6">
+              We will review your account and complete the conversion within 1-3 business days.
+            </p>
+            <Link
+              href="/dashboard"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-blue/90 transition-colors"
+            >
+              Return to dashboard
+            </Link>
+          </div>
+        </PageCard>
+      );
+    }
+
     return (
       <PageCard>
         <PageCardHeader
@@ -197,16 +228,22 @@ export default function ConvertToAgencyPage() {
     return (
       <PageCard>
         <div className="text-center py-12">
-          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Icon name="FaCheckCircle" className="text-green-600" size={40} />
+          <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Icon name="FaClock" className="text-blue-600" size={40} />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Welcome to your agency!</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Request submitted!</h2>
           <p className="text-gray-600 mb-4">
-            Your account has been converted to an agency account with a 30-day trial.
+            We will review your account and complete the conversion within 1-3 business days.
           </p>
-          <p className="text-gray-500 text-sm">
-            Redirecting to your agency dashboard...
+          <p className="text-gray-500 text-sm mb-6">
+            You'll receive an email once your agency account is ready.
           </p>
+          <Link
+            href="/dashboard"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-blue/90 transition-colors"
+          >
+            Return to dashboard
+          </Link>
         </div>
       </PageCard>
     );
