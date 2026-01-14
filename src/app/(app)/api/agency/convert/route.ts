@@ -144,14 +144,17 @@ export async function POST(request: NextRequest) {
       const clientAccessRecords = ownedAccounts.map(acc => ({
         agency_account_id: accountId,
         client_account_id: acc.account_id,
+        user_id: user.id, // Required field - the agency user who has access
+        role: 'billing_manager', // Full access since they own both accounts
         status: 'active',
+        accepted_at: new Date().toISOString(),
         created_at: new Date().toISOString(),
       }));
 
       const { error: linkError } = await supabaseAdmin
         .from('agncy_client_access')
         .upsert(clientAccessRecords, {
-          onConflict: 'agency_account_id,client_account_id',
+          onConflict: 'agency_account_id,client_account_id,user_id',
           ignoreDuplicates: true,
         });
 
