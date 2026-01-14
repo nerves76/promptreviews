@@ -298,14 +298,24 @@ export default function ConvertToAgencyPage() {
 
         {/* Benefits banner */}
         {currentStep === 1 && (
-          <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <h3 className="font-medium text-blue-900 mb-2">Agency benefits include:</h3>
-            <ul className="text-sm text-blue-800 space-y-1">
-              <li>• Manage unlimited client workspaces from one dashboard</li>
-              <li>• View rollup analytics across all clients</li>
-              <li>• Free agency account when you add 1+ paying clients</li>
-              <li>• 30-day free trial to get started</li>
-            </ul>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <h3 className="font-medium text-blue-900 mb-2">Agency benefits include:</h3>
+              <ul className="text-sm text-blue-800 space-y-1">
+                <li>• Manage unlimited client workspaces from one dashboard</li>
+                <li>• View rollup analytics across all clients</li>
+                <li>• Free agency account when you add 1+ paying clients</li>
+                <li>• 30-day free trial to get started</li>
+              </ul>
+            </div>
+            <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+              <h3 className="font-medium text-amber-900 mb-2">Account conversion:</h3>
+              <ul className="text-sm text-amber-800 space-y-1">
+                <li>• When approved, billing on this account will be stopped</li>
+                <li>• Add a paid client within 30 days to keep your agency free</li>
+                <li>• Your existing data and settings will be preserved</li>
+              </ul>
+            </div>
           </div>
         )}
 
