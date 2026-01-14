@@ -1,7 +1,46 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceRoleClient } from '@/auth/providers/supabase';
 
+// Strict rate limiter for signup: 5 attempts per 15 minutes per IP
+const signupRateLimiter = {
+  limits: new Map<string, { count: number; resetTime: number }>(),
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  maxRequests: 5,
+  isAllowed(identifier: string): boolean {
+    const now = Date.now();
+    const entry = this.limits.get(identifier);
+    if (!entry || now > entry.resetTime) {
+      this.limits.set(identifier, { count: 1, resetTime: now + this.windowMs });
+      return true;
+    }
+    if (entry.count >= this.maxRequests) return false;
+    entry.count++;
+    return true;
+  },
+  getRemainingRequests(identifier: string): number {
+    const entry = this.limits.get(identifier);
+    if (!entry) return this.maxRequests;
+    return Math.max(0, this.maxRequests - entry.count);
+  }
+};
+
 export async function POST(request: NextRequest) {
+  // Rate limit by IP address (prevent signup abuse/spam)
+  const forwarded = request.headers.get('x-forwarded-for');
+  const ip = forwarded ? forwarded.split(',')[0].trim() : 'unknown';
+
+  if (!signupRateLimiter.isAllowed(ip)) {
+    return NextResponse.json(
+      { error: 'Too many signup attempts. Please try again in 15 minutes.' },
+      {
+        status: 429,
+        headers: {
+          'Retry-After': '900'
+        }
+      }
+    );
+  }
+
   try {
     const { email, password, firstName, lastName } = await request.json();
     

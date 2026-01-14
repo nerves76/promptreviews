@@ -12,7 +12,37 @@ interface CheckEmailRequest {
   email: string;
 }
 
+// Rate limiter for email check: 20 attempts per 15 minutes per IP
+// Slightly more permissive than signup since users may check multiple emails
+const checkEmailRateLimiter = {
+  limits: new Map<string, { count: number; resetTime: number }>(),
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  maxRequests: 20,
+  isAllowed(identifier: string): boolean {
+    const now = Date.now();
+    const entry = this.limits.get(identifier);
+    if (!entry || now > entry.resetTime) {
+      this.limits.set(identifier, { count: 1, resetTime: now + this.windowMs });
+      return true;
+    }
+    if (entry.count >= this.maxRequests) return false;
+    entry.count++;
+    return true;
+  }
+};
+
 export async function POST(request: NextRequest) {
+  // Rate limit by IP address (prevent email enumeration attacks)
+  const forwarded = request.headers.get('x-forwarded-for');
+  const ip = forwarded ? forwarded.split(',')[0].trim() : 'unknown';
+
+  if (!checkEmailRateLimiter.isAllowed(ip)) {
+    return NextResponse.json(
+      { error: 'Too many requests. Please try again later.' },
+      { status: 429, headers: { 'Retry-After': '900' } }
+    );
+  }
+
   try {
     const body: CheckEmailRequest = await request.json();
     const { email } = body;
