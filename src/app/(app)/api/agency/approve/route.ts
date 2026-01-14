@@ -2,11 +2,19 @@
  * Agency Approve API Route (Admin Only)
  *
  * Approves an agency conversion request and converts the account.
- * This endpoint performs the actual conversion and auto-links owned accounts.
+ * This endpoint performs the actual conversion, cancels any existing
+ * subscription, and auto-links owned accounts.
  */
 
 import { createServerSupabaseClient, createServiceRoleClient } from '@/auth/providers/supabase';
 import { NextRequest, NextResponse } from 'next/server';
+import Stripe from 'stripe';
+
+// Initialize Stripe
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+const stripe = stripeSecretKey ? new Stripe(stripeSecretKey, {
+  apiVersion: "2025-07-30.basil"
+}) : null;
 
 interface ApproveRequest {
   accountId: string;
@@ -56,10 +64,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get the account to convert
+    // Get the account to convert (including subscription info)
     const { data: account, error: accountError } = await supabaseAdmin
       .from('accounts')
-      .select('id, business_name, is_agncy')
+      .select('id, business_name, is_agncy, stripe_subscription_id, stripe_customer_id, plan')
       .eq('id', body.accountId)
       .single();
 
@@ -96,24 +104,58 @@ export async function POST(request: NextRequest) {
       agncy_multi_location_pct: body.metadata?.agncy_multi_location_pct || eventData.agncy_multi_location_pct || '0',
     };
 
+    // Cancel existing subscription if present
+    let subscriptionCanceled = false;
+    let previousPlan = account.plan;
+
+    if (account.stripe_subscription_id && stripe) {
+      try {
+        // Cancel immediately (not at period end) since they're getting agency trial
+        await stripe.subscriptions.cancel(account.stripe_subscription_id, {
+          prorate: true,
+          invoice_now: false,
+        });
+        subscriptionCanceled = true;
+        console.log(`Canceled subscription ${account.stripe_subscription_id} for agency conversion`);
+      } catch (stripeError: any) {
+        // Log but don't fail if subscription is already canceled or not found
+        if (stripeError.code === 'resource_missing') {
+          console.log(`Subscription ${account.stripe_subscription_id} already canceled or not found`);
+          subscriptionCanceled = true; // Treat as success
+        } else {
+          console.error('Error canceling subscription:', stripeError);
+          // Continue with conversion anyway - billing will sort itself out
+        }
+      }
+    }
+
     // Calculate 30-day agency trial end
     const now = new Date();
     const trialEnd = new Date(now);
     trialEnd.setDate(trialEnd.getDate() + 30);
 
-    // Convert the account to agency
+    // Convert the account to agency (and clear subscription fields if canceled)
+    const updateFields: Record<string, any> = {
+      is_agncy: true,
+      agncy_trial_start: now.toISOString(),
+      agncy_trial_end: trialEnd.toISOString(),
+      agncy_type: metadata.agncy_type,
+      agncy_employee_count: metadata.agncy_employee_count,
+      agncy_expected_clients: metadata.agncy_expected_clients,
+      agncy_multi_location_pct: metadata.agncy_multi_location_pct,
+      business_creation_complete: true,
+    };
+
+    // If subscription was canceled, update subscription fields
+    if (subscriptionCanceled) {
+      updateFields.stripe_subscription_id = null;
+      updateFields.subscription_status = 'canceled';
+      updateFields.plan = 'agency_trial'; // New plan type for agency trial
+    }
+
     const { data: updatedAccount, error: updateError } = await supabaseAdmin
       .from('accounts')
-      .update({
-        is_agncy: true,
-        agncy_trial_start: now.toISOString(),
-        agncy_trial_end: trialEnd.toISOString(),
-        agncy_type: metadata.agncy_type,
-        agncy_employee_count: metadata.agncy_employee_count,
-        agncy_expected_clients: metadata.agncy_expected_clients,
-        agncy_multi_location_pct: metadata.agncy_multi_location_pct,
-        business_creation_complete: true,
-      })
+      .update(updateFields)
       .eq('id', body.accountId)
       .select()
       .single();
@@ -181,6 +223,8 @@ export async function POST(request: NextRequest) {
         agncy_type: metadata.agncy_type,
         trial_end: trialEnd.toISOString(),
         auto_linked_accounts: linkedAccountsCount,
+        subscription_canceled: subscriptionCanceled,
+        previous_plan: previousPlan,
       },
     });
 
@@ -197,6 +241,13 @@ export async function POST(request: NextRequest) {
         starts: now.toISOString(),
         ends: trialEnd.toISOString(),
         days_remaining: 30,
+      },
+      subscription: {
+        canceled: subscriptionCanceled,
+        previous_plan: previousPlan,
+        message: subscriptionCanceled
+          ? `Previous ${previousPlan} subscription has been canceled.`
+          : 'No active subscription to cancel.',
       },
       auto_linked: {
         count: linkedAccountsCount,
