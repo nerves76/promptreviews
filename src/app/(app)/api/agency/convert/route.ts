@@ -5,7 +5,7 @@
  * Requires agency metadata to be provided.
  */
 
-import { createServerSupabaseClient } from '@/auth/providers/supabase';
+import { createServerSupabaseClient, createServiceRoleClient } from '@/auth/providers/supabase';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 import { NextRequest, NextResponse } from 'next/server';
 import { AgencyMetadata } from '@/auth/types/auth.types';
@@ -127,6 +127,42 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Auto-link other accounts where this user is an owner
+    const supabaseAdmin = createServiceRoleClient();
+    let linkedAccountsCount = 0;
+
+    // Find all other accounts where the user is an owner (excluding the new agency account)
+    const { data: ownedAccounts, error: ownedAccountsError } = await supabaseAdmin
+      .from('account_users')
+      .select('account_id')
+      .eq('user_id', user.id)
+      .eq('role', 'owner')
+      .neq('account_id', accountId);
+
+    if (!ownedAccountsError && ownedAccounts && ownedAccounts.length > 0) {
+      // Create agncy_client_access records for each owned account
+      const clientAccessRecords = ownedAccounts.map(acc => ({
+        agency_account_id: accountId,
+        client_account_id: acc.account_id,
+        status: 'active',
+        created_at: new Date().toISOString(),
+      }));
+
+      const { error: linkError } = await supabaseAdmin
+        .from('agncy_client_access')
+        .upsert(clientAccessRecords, {
+          onConflict: 'agency_account_id,client_account_id',
+          ignoreDuplicates: true,
+        });
+
+      if (linkError) {
+        console.error('Error auto-linking owned accounts:', linkError);
+        // Don't fail the conversion, just log the error
+      } else {
+        linkedAccountsCount = ownedAccounts.length;
+      }
+    }
+
     // Log the event
     await supabase.from('account_events').insert({
       account_id: accountId,
@@ -135,6 +171,7 @@ export async function POST(request: NextRequest) {
         user_id: user.id,
         agncy_type: body.metadata.agncy_type,
         trial_end: trialEnd.toISOString(),
+        auto_linked_accounts: linkedAccountsCount,
       },
     });
 
@@ -151,6 +188,12 @@ export async function POST(request: NextRequest) {
         starts: now.toISOString(),
         ends: trialEnd.toISOString(),
         days_remaining: 30,
+      },
+      auto_linked: {
+        count: linkedAccountsCount,
+        message: linkedAccountsCount > 0
+          ? `${linkedAccountsCount} account${linkedAccountsCount !== 1 ? 's' : ''} you own have been automatically linked as clients.`
+          : 'No other accounts to link.',
       },
     });
   } catch (error) {

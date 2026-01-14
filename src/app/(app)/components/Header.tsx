@@ -98,15 +98,6 @@ const Header = React.memo(function Header() {
     setMounted(true);
   }, []);
   
-  // Debug logging for account switcher
-  useEffect(() => {
-    console.log('[Header] Account Switcher Debug:', {
-      hasMultipleAccounts,
-      availableAccountsCount: availableAccounts?.length,
-      selectedAccount: selectedAccount?.account_id
-    });
-  }, [hasMultipleAccounts, availableAccounts, selectedAccount]);
-  
   // Mobile account switcher functions
   const switchToNextAccount = () => {
     if (!hasMultipleAccounts || !availableAccounts || !selectedAccount) return;
@@ -487,6 +478,13 @@ const Header = React.memo(function Header() {
           
           {/* Desktop nav moved to Sidebar - only keeping right-side items */}
           <div className="hidden md:flex flex-1" />
+
+          {/* Agency Dashboard label - shows on agency pages */}
+          {isAgencyPage && (
+            <span className="hidden md:block text-white font-semibold text-lg mr-4">
+              Agency Dashboard
+            </span>
+          )}
 
           {/* Right Side - Desktop: Notifications and User Account | Mobile: Hamburger Menu */}
           <div className="flex items-center gap-4">

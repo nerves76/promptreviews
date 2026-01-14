@@ -204,6 +204,7 @@ export async function GET(request: NextRequest) {
         plan: client.plan,
         status,
         subscription_status: client.subscription_status,
+        trial_end: client.trial_end,
         billing_owner: client.agncy_billing_owner,
         access_status: access?.status || 'active',
         access_role: access?.role || 'manager',

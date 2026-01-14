@@ -25,7 +25,8 @@ export type NotificationType =
   | 'review_auto_verified'
   | 'credit_warning_upcoming'
   | 'credit_check_skipped'
-  | 'credit_balance_low';
+  | 'credit_balance_low'
+  | 'agency_invitation_received';
 
 export interface NotificationData {
   [key: string]: any;
@@ -266,6 +267,23 @@ export const NOTIFICATION_REGISTRY: Record<NotificationType, NotificationConfig>
       available: data.available,
       threshold: data.threshold,
       buyCreditsUrl: `${baseUrl}/dashboard/credits`,
+      year: new Date().getFullYear(),
+    }),
+  },
+
+  'agency_invitation_received': {
+    inAppPrefField: 'in_app_agency_invitations',
+    emailPrefField: 'email_agency_invitations',
+    getTitle: () => 'Agency invitation received',
+    getMessage: (data) => `${data.agencyName || 'An agency'} wants to manage your account`,
+    actionUrl: '/dashboard/settings/agency-access',
+    actionLabel: 'View Invitation',
+    getEmailVariables: (data, baseUrl) => ({
+      firstName: data.firstName || 'there',
+      agencyName: data.agencyName || 'An agency',
+      inviterName: data.inviterName || 'Someone',
+      role: data.role || 'manager',
+      viewInvitationUrl: `${baseUrl}/dashboard/settings/agency-access`,
       year: new Date().getFullYear(),
     }),
   },

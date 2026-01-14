@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/auth";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import Icon from "@/components/Icon";
+import Icon, { IconName } from "@/components/Icon";
 import { useGlobalLoader } from "@/app/(app)/components/GlobalLoaderProvider";
 import { apiClient } from "@/utils/apiClient";
 
@@ -88,14 +88,30 @@ export default function AgencyLayout({
 
   const isActive = (path: string) => {
     if (!hasMounted) return false;
-    if (path === "/agency" && pathname === "/agency") return true;
-    if (path !== "/agency" && pathname.startsWith(path)) return true;
+    // Dashboard is active for /agency and /agency/clients/[id] (client detail pages)
+    if (path === "/agency") {
+      return pathname === "/agency" || (pathname.startsWith("/agency/clients/") && pathname !== "/agency/clients");
+    }
+    // Work Manager is active only for exact /agency/clients path
+    if (path === "/agency/clients") {
+      return pathname === "/agency/clients";
+    }
+    // Team is active for /agency/team
+    if (path === "/agency/team") {
+      return pathname === "/agency/team";
+    }
+    // Notifications is active for /agency/notifications
+    if (path === "/agency/notifications") {
+      return pathname === "/agency/notifications";
+    }
     return false;
   };
 
-  const navItems = [
-    { href: '/agency', label: 'Dashboard', icon: 'FaChartLine' as const },
-    { href: '/agency/clients', label: 'Work Manager', icon: 'FaUsers' as const },
+  const navItems: { href: string; label: string; icon: IconName }[] = [
+    { href: '/agency', label: 'Dashboard', icon: 'FaChartLine' },
+    { href: '/agency/clients', label: 'Work Manager', icon: 'FaUsers' },
+    { href: '/agency/team', label: 'Team', icon: 'FaUserPlus' },
+    { href: '/agency/notifications', label: 'Notifications', icon: 'FaBell' },
   ];
 
   return (
@@ -128,7 +144,7 @@ export default function AgencyLayout({
                 <div className="flex items-center space-x-3">
                   <Link
                     href="/agency/clients"
-                    className="flex-shrink-0 bg-white/90 hover:bg-white text-slate-blue px-4 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md"
+                    className="flex-shrink-0 bg-white/20 backdrop-blur-sm border border-white/30 hover:bg-white/30 text-white px-4 py-1.5 rounded-lg text-sm font-medium transition-all duration-200"
                   >
                     Add client
                   </Link>
@@ -180,28 +196,43 @@ export default function AgencyLayout({
       )}
 
       {/* Agency navigation */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
-        <div className="flex items-center justify-between mb-6">
-          {/* Title */}
-          <h1 className="text-xl font-semibold text-white">Agency dashboard</h1>
-          {/* Agency nav tabs */}
-          <nav className="flex items-center gap-1 bg-white/10 rounded-lg p-1">
-            {navItems.map((item) => (
+      <div className="flex justify-center w-full z-20 px-4 relative isolate mt-4 mb-6">
+        <nav
+          className="flex bg-white/10 backdrop-blur-sm border border-white/30 rounded-full p-1 shadow-lg isolate"
+          role="navigation"
+          aria-label="Agency navigation"
+          style={{ WebkitBackfaceVisibility: 'hidden' }}
+        >
+          {navItems.map((item) => {
+            const active = isActive(item.href);
+            return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
-                  isActive(item.href)
-                    ? 'bg-white text-slate-blue'
-                    : 'text-white hover:bg-white/10'
-                }`}
+                className={`
+                  px-6 py-1.5
+                  font-semibold text-sm
+                  focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50
+                  transition-all duration-200
+                  rounded-full
+                  flex items-center justify-center gap-2
+                  active:scale-95
+                  cursor-pointer
+                  relative
+                  ${active
+                    ? 'bg-slate-blue text-white shadow-md z-10'
+                    : 'bg-transparent text-white hover:bg-white/10 z-0'
+                  }
+                `}
+                aria-current={active ? 'page' : undefined}
+                style={{ WebkitTapHighlightColor: 'transparent' }}
               >
-                <Icon name={item.icon} size={14} />
-                {item.label}
+                <Icon name={item.icon} className="w-[18px] h-[18px] flex-shrink-0 pointer-events-none" size={18} />
+                <span className="whitespace-nowrap pointer-events-none">{item.label}</span>
               </Link>
-            ))}
-          </nav>
-        </div>
+            );
+          })}
+        </nav>
       </div>
 
       {children}

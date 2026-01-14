@@ -5,16 +5,24 @@ import { useAuth } from "@/auth";
 import Link from "next/link";
 import Icon from "@/components/Icon";
 import { apiClient } from "@/utils/apiClient";
-import { Modal } from "@/app/(app)/components/ui/modal";
-import { Button } from "@/app/(app)/components/ui/button";
 
 interface ClientAccount {
   id: string;
   business_name: string | null;
+  logo_url: string | null;
   plan: string | null;
   subscription_status: string | null;
+  trial_end: string | null;
   agncy_billing_owner: 'client' | 'agency';
   created_at: string;
+  credits: {
+    balance: number;
+    monthly: number;
+  };
+  reviews: {
+    total: number;
+    this_month: number;
+  };
 }
 
 interface AgencyClientsResponse {
@@ -22,11 +30,17 @@ interface AgencyClientsResponse {
   total: number;
 }
 
-function getStatusBadge(status: string | null): { label: string; color: string } {
+function getStatusBadge(status: string | null, trialEnd?: string | null): { label: string; color: string } {
   switch (status) {
     case 'active':
       return { label: 'Active', color: 'bg-green-100 text-green-800' };
     case 'trialing':
+      if (trialEnd) {
+        const endDate = new Date(trialEnd);
+        const now = new Date();
+        const daysRemaining = Math.max(0, Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+        return { label: `Trial: ${daysRemaining} day${daysRemaining !== 1 ? 's' : ''} left`, color: 'bg-blue-100 text-blue-800' };
+      }
       return { label: 'Trial', color: 'bg-blue-100 text-blue-800' };
     case 'past_due':
       return { label: 'Past due', color: 'bg-amber-100 text-amber-800' };
@@ -59,13 +73,6 @@ export default function AgencyClientsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Add client modal state
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [clientEmail, setClientEmail] = useState('');
-  const [inviteLoading, setInviteLoading] = useState(false);
-  const [inviteError, setInviteError] = useState<string | null>(null);
-  const [inviteSuccess, setInviteSuccess] = useState(false);
-
   // Filter state
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [billingFilter, setBillingFilter] = useState<string>('all');
@@ -91,37 +98,6 @@ export default function AgencyClientsPage() {
   useEffect(() => {
     fetchClients();
   }, [account?.id]);
-
-  const handleInviteClient = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!clientEmail.trim()) return;
-
-    try {
-      setInviteLoading(true);
-      setInviteError(null);
-
-      await apiClient.post('/agency/clients', {
-        client_email: clientEmail.trim(),
-      });
-
-      setInviteSuccess(true);
-      setClientEmail('');
-
-      // Refresh clients list
-      await fetchClients();
-
-      // Close modal after delay
-      setTimeout(() => {
-        setShowAddModal(false);
-        setInviteSuccess(false);
-      }, 2000);
-    } catch (err: any) {
-      console.error('Error inviting client:', err);
-      setInviteError(err.message || 'Failed to send invitation');
-    } finally {
-      setInviteLoading(false);
-    }
-  };
 
   // Filter clients
   const filteredClients = clients.filter(client => {
@@ -164,51 +140,44 @@ export default function AgencyClientsPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       {/* Page header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-white">Client workspaces</h1>
-          <p className="text-white/70 mt-1">
-            {total} client{total !== 1 ? 's' : ''} managed by your agency
-          </p>
-        </div>
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-white text-slate-blue rounded-lg font-medium hover:bg-white/90 transition-colors whitespace-nowrap"
-        >
-          <Icon name="FaPlus" size={14} />
-          Add client
-        </button>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-white">Client workspaces</h1>
+        <p className="text-white/70 mt-1">
+          {total} client{total !== 1 ? 's' : ''} managed by your agency
+        </p>
       </div>
 
-      {/* Filters */}
-      <div className="flex items-center gap-4 mb-6">
-        <div className="flex items-center gap-2">
-          <label className="text-sm text-white/70">Status:</label>
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="bg-white/10 text-white text-sm rounded-lg px-3 py-1.5 border border-white/20 focus:outline-none focus:ring-2 focus:ring-white/30"
-          >
-            <option value="all">All</option>
-            <option value="active">Active</option>
-            <option value="trialing">Trial</option>
-            <option value="past_due">Past due</option>
-            <option value="canceled">Canceled</option>
-          </select>
+      {/* Filters - only show when there are clients */}
+      {clients.length > 0 && (
+        <div className="flex items-center gap-4 mb-6">
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-white/70">Status:</label>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="bg-white/10 text-white text-sm rounded-lg px-3 py-1.5 border border-white/20 focus:outline-none focus:ring-2 focus:ring-white/30"
+            >
+              <option value="all">All</option>
+              <option value="active">Active</option>
+              <option value="trialing">Trial</option>
+              <option value="past_due">Past due</option>
+              <option value="canceled">Canceled</option>
+            </select>
+          </div>
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-white/70">Billing:</label>
+            <select
+              value={billingFilter}
+              onChange={(e) => setBillingFilter(e.target.value)}
+              className="bg-white/10 text-white text-sm rounded-lg px-3 py-1.5 border border-white/20 focus:outline-none focus:ring-2 focus:ring-white/30"
+            >
+              <option value="all">All</option>
+              <option value="agency">Agency billing</option>
+              <option value="client">Client billing</option>
+            </select>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <label className="text-sm text-white/70">Billing:</label>
-          <select
-            value={billingFilter}
-            onChange={(e) => setBillingFilter(e.target.value)}
-            className="bg-white/10 text-white text-sm rounded-lg px-3 py-1.5 border border-white/20 focus:outline-none focus:ring-2 focus:ring-white/30"
-          >
-            <option value="all">All</option>
-            <option value="agency">Agency billing</option>
-            <option value="client">Client billing</option>
-          </select>
-        </div>
-      </div>
+      )}
 
       {/* Clients list */}
       <div className="bg-white/10 backdrop-blur-sm rounded-lg overflow-hidden">
@@ -219,17 +188,17 @@ export default function AgencyClientsPage() {
             </div>
             {clients.length === 0 ? (
               <>
-                <h3 className="text-white font-medium mb-2">No clients yet</h3>
+                <h3 className="text-white font-medium mb-2">No client workspaces yet</h3>
                 <p className="text-white/60 text-sm mb-4">
-                  Start by inviting client workspaces to your agency
+                  Create a new workspace for a client, or link an existing account
                 </p>
-                <button
-                  onClick={() => setShowAddModal(true)}
+                <Link
+                  href="/agency"
                   className="inline-flex items-center gap-2 px-4 py-2 bg-white text-slate-blue rounded-lg font-medium hover:bg-white/90 transition-colors whitespace-nowrap"
                 >
                   <Icon name="FaPlus" size={14} />
-                  Add your first client
-                </button>
+                  Add client
+                </Link>
               </>
             ) : (
               <>
@@ -253,7 +222,7 @@ export default function AgencyClientsPage() {
 
             {/* Table rows */}
             {filteredClients.map((client) => {
-              const status = getStatusBadge(client.subscription_status);
+              const status = getStatusBadge(client.subscription_status, client.trial_end);
               const plan = getPlanBadge(client.plan);
 
               return (
@@ -289,7 +258,7 @@ export default function AgencyClientsPage() {
 
                   <div className="col-span-2">
                     {client.agncy_billing_owner === 'agency' ? (
-                      <span className="px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap bg-purple-100 text-purple-800">
+                      <span className="px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap bg-blue-100 text-blue-800">
                         Agency
                       </span>
                     ) : (
@@ -314,83 +283,6 @@ export default function AgencyClientsPage() {
           </div>
         )}
       </div>
-
-      {/* Add client modal */}
-      <Modal
-        isOpen={showAddModal}
-        onClose={() => {
-          setShowAddModal(false);
-          setClientEmail('');
-          setInviteError(null);
-          setInviteSuccess(false);
-        }}
-        title="Add client workspace"
-        size="md"
-      >
-        {inviteSuccess ? (
-          <div className="text-center py-4">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Icon name="FaCheckCircle" className="text-green-600" size={32} />
-            </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Invitation sent!</h3>
-            <p className="text-gray-600 text-sm">
-              The client will receive an email to accept your agency invitation.
-            </p>
-          </div>
-        ) : (
-          <form onSubmit={handleInviteClient}>
-            <div className="space-y-4">
-              <p className="text-gray-600 text-sm">
-                Enter the email address of an existing Prompt Reviews account owner to invite them as a client.
-              </p>
-
-              <div>
-                <label htmlFor="client-email" className="block text-sm font-medium text-gray-700 mb-1">
-                  Client email address
-                </label>
-                <input
-                  id="client-email"
-                  type="email"
-                  value={clientEmail}
-                  onChange={(e) => setClientEmail(e.target.value)}
-                  placeholder="client@example.com"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent"
-                  required
-                />
-              </div>
-
-              {inviteError && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-red-600 text-sm">{inviteError}</p>
-                </div>
-              )}
-            </div>
-
-            <Modal.Footer>
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={() => setShowAddModal(false)}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                disabled={inviteLoading || !clientEmail.trim()}
-              >
-                {inviteLoading ? (
-                  <>
-                    <Icon name="FaSpinner" className="animate-spin mr-2" size={14} />
-                    Sending...
-                  </>
-                ) : (
-                  'Send invitation'
-                )}
-              </Button>
-            </Modal.Footer>
-          </form>
-        )}
-      </Modal>
     </div>
   );
 }

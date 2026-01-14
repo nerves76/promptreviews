@@ -88,7 +88,9 @@ export async function POST(request: NextRequest) {
           plan,
           max_users,
           max_locations,
-          email
+          email,
+          subscription_status,
+          managing_agncy_id
         )
       `)
       .eq('user_id', user.id)
@@ -178,8 +180,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Show warnings but don't block (for UX)
-    const warnings = emailValidation.warnings.length > 0 ? emailValidation.warnings : undefined;
+    // Collect warnings (don't block, just inform)
+    const warnings: string[] = [...emailValidation.warnings];
+
+    // Check if this is an agency-created account on trial - warn about billing
+    const isAgencyCreatedAccount = !!accountRecord?.managing_agncy_id;
+    const isTrialing = accountRecord?.subscription_status === 'trialing';
+
+    if (isAgencyCreatedAccount && isTrialing) {
+      warnings.push(
+        'Billing is not activated for this account. The invited user will need to add a payment method after joining. If you want to handle billing for this client, set up payment first before inviting them.'
+      );
+    }
 
     // Get business name from the businesses table
     const { data: business, error: businessError } = await supabase
@@ -375,7 +387,7 @@ export async function POST(request: NextRequest) {
         expires_at: invitation.expires_at,
         email_sent: emailResult.success
       },
-      warnings: warnings
+      warnings: warnings.length > 0 ? warnings : undefined
     });
 
     // Add rate limit headers to response

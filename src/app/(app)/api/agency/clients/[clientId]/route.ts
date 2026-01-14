@@ -116,6 +116,21 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       .eq('account_id', clientId)
       .gte('created_at', thirtyDaysAgo.toISOString());
 
+    // Get credits balance
+    const { data: creditsData } = await supabase
+      .from('credit_balances')
+      .select('balance')
+      .eq('account_id', clientId)
+      .maybeSingle();
+
+    // Get monthly credits based on plan
+    const planCredits: Record<string, number> = {
+      grower: 200,
+      builder: 300,
+      maven: 500,
+    };
+    const monthlyCredits = clientAccount.plan ? planCredits[clientAccount.plan] || 0 : 0;
+
     // Calculate status
     let status: string;
     if (clientAccount.subscription_status === 'active') {
@@ -154,6 +169,10 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       metrics: {
         total_reviews: reviewsCount || 0,
         recent_submissions: recentSubmissions || 0,
+      },
+      credits: {
+        balance: creditsData?.balance || 0,
+        monthly: monthlyCredits,
       },
     });
   } catch (error) {

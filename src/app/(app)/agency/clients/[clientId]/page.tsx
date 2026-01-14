@@ -7,6 +7,7 @@ import Icon from "@/components/Icon";
 import { apiClient } from "@/utils/apiClient";
 import { Modal } from "@/app/(app)/components/ui/modal";
 import { Button } from "@/app/(app)/components/ui/button";
+import { useAccountSelection } from "@/utils/accountSelectionHooks";
 
 interface ClientDetails {
   client: {
@@ -28,6 +29,10 @@ interface ClientDetails {
     total_reviews: number;
     recent_submissions: number;
   };
+  credits: {
+    balance: number;
+    monthly: number;
+  };
 }
 
 function getStatusBadge(status: string): { label: string; color: string; description: string } {
@@ -45,27 +50,16 @@ function getStatusBadge(status: string): { label: string; color: string; descrip
   }
 }
 
-function getPlanBadge(plan: string | null): { label: string; color: string } {
-  switch (plan) {
-    case 'maven':
-      return { label: 'Maven', color: 'bg-yellow-100 text-yellow-800' };
-    case 'builder':
-      return { label: 'Builder', color: 'bg-blue-100 text-blue-800' };
-    case 'grower':
-      return { label: 'Grower', color: 'bg-green-100 text-green-800' };
-    default:
-      return { label: 'Free', color: 'bg-gray-100 text-gray-600' };
-  }
-}
-
 export default function ClientDetailPage() {
   const params = useParams();
   const router = useRouter();
   const clientId = params.clientId as string;
+  const { switchAccount } = useAccountSelection();
 
   const [clientData, setClientData] = useState<ClientDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [switchingAccount, setSwitchingAccount] = useState(false);
 
   // Modal states
   const [showTakeoverModal, setShowTakeoverModal] = useState(false);
@@ -158,6 +152,19 @@ export default function ClientDetailPage() {
     }
   };
 
+  const handleGoToAccount = async () => {
+    if (!clientId) return;
+
+    try {
+      setSwitchingAccount(true);
+      await switchAccount(clientId);
+      router.push('/dashboard');
+    } catch (err) {
+      console.error('Error switching to client account:', err);
+      setSwitchingAccount(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -185,21 +192,23 @@ export default function ClientDetailPage() {
     );
   }
 
-  const { client, access, metrics } = clientData;
+  const { client, access, metrics, credits } = clientData;
   const status = getStatusBadge(client.status);
-  const plan = getPlanBadge(client.plan);
   const isAgencyBilling = client.billing_owner === 'agency';
+
+  // Format plan name with capital first letter
+  const planName = client.plan ? client.plan.charAt(0).toUpperCase() + client.plan.slice(1) : 'Free';
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       {/* Breadcrumb */}
       <div className="mb-6">
         <Link
-          href="/agency/clients"
+          href="/agency"
           className="flex items-center gap-2 text-white/70 hover:text-white transition-colors text-sm"
         >
           <Icon name="FaArrowLeft" size={14} />
-          Back to clients
+          Back to agency dashboard
         </Link>
       </div>
 
@@ -214,28 +223,38 @@ export default function ClientDetailPage() {
               <h1 className="text-2xl font-bold text-white">
                 {client.business_name || 'Unnamed client'}
               </h1>
-              {client.contact_name && (
-                <p className="text-white/70">{client.contact_name}</p>
-              )}
-              {client.email && (
-                <p className="text-white/60 text-sm">{client.email}</p>
-              )}
+              <div className="text-white/70 text-sm mt-1 space-y-0.5">
+                <p>Plan: {planName} · Monthly credits: {credits?.monthly || 0}</p>
+                <p>Credit balance: {credits?.balance || 0}</p>
+              </div>
             </div>
           </div>
 
-          {/* Status badges */}
-          <div className="flex flex-col items-end gap-2">
+          {/* Status and actions */}
+          <div className="flex flex-col items-end gap-3">
+            {/* Go to account button - glassmorphic */}
+            <button
+              onClick={handleGoToAccount}
+              disabled={switchingAccount}
+              className="flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm border border-white/30 text-white rounded-lg font-medium hover:bg-white/30 transition-colors whitespace-nowrap disabled:opacity-50"
+            >
+              {switchingAccount ? (
+                <>
+                  <Icon name="FaSpinner" className="animate-spin" size={14} />
+                  Switching...
+                </>
+              ) : (
+                <>
+                  <Icon name="FaArrowRight" size={14} />
+                  Go to account
+                </>
+              )}
+            </button>
+
+            {/* Status badge */}
             <span className={`px-3 py-1 text-sm font-medium rounded-full whitespace-nowrap ${status.color}`}>
               {status.label}
             </span>
-            <span className={`px-3 py-1 text-sm font-medium rounded-full whitespace-nowrap ${plan.color}`}>
-              {plan.label}
-            </span>
-            {isAgencyBilling && (
-              <span className="px-3 py-1 text-sm font-medium rounded-full whitespace-nowrap bg-purple-100 text-purple-800">
-                Agency billing
-              </span>
-            )}
           </div>
         </div>
       </div>
@@ -244,33 +263,33 @@ export default function ClientDetailPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         {/* Metrics */}
         <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
-          <div className="flex items-center gap-3 mb-3">
+          <div className="flex items-center gap-3">
             <div className="p-2 bg-blue-500/20 rounded-lg">
               <Icon name="FaStar" className="text-blue-400" size={18} />
             </div>
             <div>
-              <p className="text-2xl font-bold text-white">{metrics.total_reviews}</p>
-              <p className="text-xs text-white/60">Total reviews</p>
+              <p className="text-2xl font-bold text-white">{metrics.recent_submissions}</p>
+              <p className="text-xs text-white/60">Reviews captured</p>
             </div>
           </div>
         </div>
 
         <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
-          <div className="flex items-center gap-3 mb-3">
+          <div className="flex items-center gap-3">
             <div className="p-2 bg-green-500/20 rounded-lg">
-              <Icon name="FaEnvelope" className="text-green-400" size={18} />
+              <Icon name="FaStar" className="text-green-400" size={18} />
             </div>
             <div>
-              <p className="text-2xl font-bold text-white">{metrics.recent_submissions}</p>
-              <p className="text-xs text-white/60">Submissions (30 days)</p>
+              <p className="text-2xl font-bold text-white">{metrics.total_reviews}</p>
+              <p className="text-xs text-white/60">Reviews verified</p>
             </div>
           </div>
         </div>
 
         <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="p-2 bg-purple-500/20 rounded-lg">
-              <Icon name="FaCalendarAlt" className="text-purple-400" size={18} />
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-slate-blue/20 rounded-lg">
+              <Icon name="FaCalendarAlt" className="text-slate-blue" size={18} />
             </div>
             <div>
               <p className="text-sm font-medium text-white">
@@ -288,8 +307,8 @@ export default function ClientDetailPage() {
 
         {isAgencyBilling ? (
           <div className="space-y-4">
-            <div className="flex items-center gap-3 p-4 bg-purple-500/10 border border-purple-500/20 rounded-lg">
-              <Icon name="FaCreditCard" className="text-purple-400" size={20} />
+            <div className="flex items-center gap-3 p-4 bg-green-500/10 border border-green-500/20 rounded-lg">
+              <Icon name="FaCreditCard" className="text-green-400" size={20} />
               <div>
                 <p className="text-white font-medium">Your agency is paying for this client</p>
                 <p className="text-white/60 text-sm">
@@ -320,10 +339,10 @@ export default function ClientDetailPage() {
 
             <button
               onClick={() => setShowTakeoverModal(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-purple-500/20 text-purple-300 rounded-lg hover:bg-purple-500/30 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-slate-blue/20 text-white rounded-lg hover:bg-slate-blue/30 transition-colors"
             >
               <Icon name="FaCreditCard" size={14} />
-              Take over billing
+              Set up billing
             </button>
           </div>
         )}
@@ -352,7 +371,7 @@ export default function ClientDetailPage() {
           setShowTakeoverModal(false);
           setActionError(null);
         }}
-        title="Take over billing"
+        title="Set up billing"
         size="md"
       >
         <div className="space-y-4">
@@ -409,7 +428,7 @@ export default function ClientDetailPage() {
                 Processing...
               </>
             ) : (
-              'Take over billing'
+              'Set up billing'
             )}
           </Button>
         </Modal.Footer>

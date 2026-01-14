@@ -52,29 +52,45 @@ export default function AgencyAccessPage() {
       // Check if account has managing agency
       if (!account?.id) return;
 
-      // Get managing agency info from the account
-      const managingAgencyId = (account as any).managing_agncy_id;
-      const billingOwner = (account as any).agncy_billing_owner || 'client';
+      // Fetch pending invitations and current agency from the API
+      const response = await apiClient.get<{
+        pending_invitations: Array<{
+          id: string;
+          agency_account_id: string;
+          agency_name: string | null;
+          agency_contact: string | null;
+          agency_email: string | null;
+          role: string;
+          invited_at: string;
+        }>;
+        current_agency: {
+          id: string;
+          name: string | null;
+          billing_owner: 'client' | 'agency';
+        } | null;
+      }>('/agency/accept');
+
+      // Map the response to our interface
+      const pendingInvitations: PendingInvitation[] = response.pending_invitations.map(inv => ({
+        id: inv.id,
+        agency_account_id: inv.agency_account_id,
+        agency_name: inv.agency_name,
+        invited_at: inv.invited_at,
+        role: inv.role,
+      }));
 
       let managingAgency: AgencyInfo | null = null;
-
-      if (managingAgencyId) {
-        // Fetch agency details - we'll use a simple approach here
-        // In a real implementation, you'd have an API endpoint for this
+      if (response.current_agency) {
         managingAgency = {
-          id: managingAgencyId,
-          business_name: 'Your managing agency', // This would come from API
+          id: response.current_agency.id,
+          business_name: response.current_agency.name,
         };
       }
 
-      // For now, we'll mock the pending invitations
-      // In a real implementation, you'd fetch this from the agncy_client_access table
-      const pendingInvitations: PendingInvitation[] = [];
-
       setAccessData({
-        has_managing_agency: !!managingAgencyId,
+        has_managing_agency: !!response.current_agency,
         managing_agency: managingAgency,
-        billing_owner: billingOwner,
+        billing_owner: response.current_agency?.billing_owner || 'client',
         pending_invitations: pendingInvitations,
       });
     } catch (err: any) {
@@ -217,7 +233,7 @@ export default function AgencyAccessPage() {
                   </div>
 
                   {accessData.billing_owner === 'agency' && (
-                    <span className="px-3 py-1 text-sm font-medium rounded-full whitespace-nowrap bg-purple-100 text-purple-800">
+                    <span className="px-3 py-1 text-sm font-medium rounded-full whitespace-nowrap bg-green-100 text-green-800">
                       Pays for your plan
                     </span>
                   )}

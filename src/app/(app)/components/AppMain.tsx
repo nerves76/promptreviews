@@ -28,6 +28,7 @@ export default function AppMain({
   const noSidebarPaths = [
     "/game",
     "/dashboard/create-business",
+    "/agency",
   ];
 
   // Hide sidebar during onboarding (no plan yet) or on excluded paths
