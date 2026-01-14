@@ -326,10 +326,9 @@ export default function AgencyAccessPage() {
           {/* Become an agency section */}
           {!account?.is_agncy && !accessData?.has_managing_agency && (
             <div className="border border-gray-200 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Become an agency</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Request agency account</h3>
               <p className="text-gray-600 text-sm mb-4">
-                Manage multiple client workspaces with a single agency account.
-                Get a free workspace when you have at least one paying client.
+                Get a free agency account when you add 1 paid client. Manage multiple client workspaces with a single account. Add coworkers. Get Maven level features.
               </p>
               <div className="flex flex-wrap gap-3">
                 <Link
@@ -337,7 +336,7 @@ export default function AgencyAccessPage() {
                   className="inline-flex items-center gap-2 px-4 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-blue/90 transition-colors whitespace-nowrap"
                 >
                   <Icon name="FaBriefcase" size={14} />
-                  Convert to agency
+                  Request agency account
                 </Link>
               </div>
               <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
