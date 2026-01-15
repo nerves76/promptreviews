@@ -341,7 +341,7 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
           iconName: 'prompty' as const,
           description: 'Armed with deep info on your business the AI Generate button can create a keyword enhanced review that customers can edit, copy, and post on any platform.',
           highlight: 'Sparks curiosity',
-          learnMore: 'https://promptreviews.app/ai-assistance',
+          learnMore: null,
           position: { top: '-2%', left: '22%' } // Above beam - left (second position)
         },
         {
@@ -386,7 +386,7 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
           iconName: 'FaCheck' as const,
           description: 'Your customers won\'t have to worry about typos or misspellings.',
           highlight: 'Builds confidence',
-          learnMore: 'https://promptreviews.app/ai-assistance',
+          learnMore: null,
           position: { bottom: '-13%', left: '32%' } // Below beam - center-left - moved down 50px
         }
       ]
