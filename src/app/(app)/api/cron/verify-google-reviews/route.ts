@@ -10,8 +10,9 @@
 export const maxDuration = 55; // Leave buffer before Vercel timeout
 export const dynamic = 'force-dynamic';
 
-const MAX_ACCOUNTS_PER_RUN = 3; // Limit accounts to avoid timeout
-const MAX_SUBMISSIONS_PER_ACCOUNT = 10;
+const MAX_ACCOUNTS_PER_RUN = 1; // Process one account at a time - Google API is slow
+const MAX_SUBMISSIONS_PER_ACCOUNT = 5;
+const MAX_LOCATIONS_PER_ACCOUNT = 3;
 
 import { NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
@@ -140,9 +141,10 @@ export async function GET(request: NextRequest) {
         continue;
       }
 
-      // Fetch reviews from all locations
+      // Fetch reviews from locations (limited to avoid timeout)
       const allGoogleReviews: any[] = [];
-      for (const location of locations) {
+      const locationsToCheck = locations.slice(0, MAX_LOCATIONS_PER_ACCOUNT);
+      for (const location of locationsToCheck) {
         try {
           const reviews = await client.getReviews(location.location_id);
           if (reviews && reviews.length > 0) {
