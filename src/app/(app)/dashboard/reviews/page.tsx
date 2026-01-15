@@ -1237,8 +1237,12 @@ export default function ReviewsPage() {
                       </span>
                     )}
                     {review.verified ? (
-                      <span className="ml-2 inline-block px-2 py-1 text-xs bg-green-100 text-green-700 rounded">
-                        {review.auto_verification_status === 'verified' ? 'Auto-verified' : 'Verified'}
+                      <span className="ml-2 inline-block px-2 py-1 text-xs bg-green-100 text-green-700 rounded whitespace-nowrap">
+                        {review.auto_verification_status === 'verified'
+                          ? 'Auto-verified'
+                          : (review.imported_from_google || review.source_channel === 'gbp_import')
+                            ? 'Imported-verified'
+                            : 'Verified'}
                       </span>
                     ) : (
                       // Show import source for non-verified reviews
