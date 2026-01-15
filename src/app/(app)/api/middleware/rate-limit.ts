@@ -19,6 +19,7 @@ interface RateLimitConfig {
   skipSuccessfulRequests?: boolean;
   skipFailedRequests?: boolean;
   message?: string;
+  failClosed?: boolean; // If true, block requests when rate limiting fails (for sensitive endpoints)
 }
 
 interface RateLimitResult {
@@ -40,68 +41,49 @@ function getRateLimitClient() {
 }
 
 /**
- * Check rate limit for a given key
+ * Check rate limit for a given key using atomic database function
+ * This prevents race conditions by using row-level locking in Postgres
  */
 async function checkRateLimit(key: string, config: RateLimitConfig): Promise<RateLimitResult> {
   const supabase = getRateLimitClient();
-  const now = Date.now();
-  const resetAt = new Date(now + config.windowMs);
+  const resetAt = new Date(Date.now() + config.windowMs);
 
-  const { data: existingEntry, error } = await supabase
-    .from(RATE_LIMIT_TABLE)
-    .select('key, count, reset_time')
-    .eq('key', key)
-    .maybeSingle();
+  // Use atomic function to check and increment in a single transaction
+  const { data, error } = await supabase.rpc('check_and_increment_rate_limit', {
+    p_key: key,
+    p_max_requests: config.maxRequests,
+    p_window_ms: config.windowMs,
+  });
 
-  if (error && error.code && error.code !== 'PGRST116') {
+  if (error) {
     throw error;
   }
 
-  if (!existingEntry || new Date(existingEntry.reset_time).getTime() <= now) {
-    await supabase
-      .from(RATE_LIMIT_TABLE)
-      .upsert(
-        [{
-          key,
-          count: 1,
-          reset_time: resetAt.toISOString(),
-        }],
-        { onConflict: 'key' },
-      );
+  // The function returns an array with a single row
+  const result = Array.isArray(data) ? data[0] : data;
 
-    return {
-      success: true,
-      limit: config.maxRequests,
-      remaining: config.maxRequests - 1,
-      reset: resetAt,
-    };
+  if (!result) {
+    throw new Error('Rate limit check returned no result');
   }
 
-  if (existingEntry.count >= config.maxRequests) {
+  const resetTime = new Date(result.reset_time);
+  const currentCount = result.current_count;
+
+  if (!result.allowed) {
     return {
       success: false,
       limit: config.maxRequests,
       remaining: 0,
-      reset: new Date(existingEntry.reset_time),
+      reset: resetTime,
       error: config.message || 'Rate limit exceeded. Please try again later.'
     };
   }
 
-  const nextCount = existingEntry.count + 1;
-
-  await supabase
-    .from(RATE_LIMIT_TABLE)
-    .update({
-      count: nextCount,
-      reset_time: existingEntry.reset_time,
-    })
-    .eq('key', key);
-
   return {
     success: true,
     limit: config.maxRequests,
-    remaining: Math.max(0, config.maxRequests - nextCount),
-    reset: new Date(existingEntry.reset_time),
+    remaining: Math.max(0, config.maxRequests - currentCount),
+    reset: resetTime,
   };
 }
 
@@ -147,10 +129,11 @@ export const RateLimits = {
   
   // Auth endpoints - stricter limits to prevent brute force
   auth: {
-    windowMs: 15 * 60 * 1000, // 15 minutes  
+    windowMs: 15 * 60 * 1000, // 15 minutes
     maxRequests: 10,
     keyGenerator: KeyGenerators.byIP,
-    message: 'Too many authentication attempts. Please try again in 15 minutes.'
+    message: 'Too many authentication attempts. Please try again in 15 minutes.',
+    failClosed: true // Block requests if rate limiting fails
   },
   
   // AI endpoints - expensive operations, limit more strictly
@@ -179,7 +162,31 @@ export const RateLimits = {
   admin: {
     windowMs: 15 * 60 * 1000, // 15 minutes
     maxRequests: 200,
-    keyGenerator: KeyGenerators.byUser
+    keyGenerator: KeyGenerators.byUser,
+    failClosed: true // Block requests if rate limiting fails
+  },
+
+  // Stricter admin endpoints for sensitive operations
+  adminStrict: {
+    windowMs: 5 * 60 * 1000, // 5 minutes
+    maxRequests: 10,
+    keyGenerator: KeyGenerators.byUser,
+    message: 'Too many requests for this admin operation.',
+    failClosed: true // Block requests if rate limiting fails
+  },
+
+  // General-purpose API limit
+  api: {
+    windowMs: 1 * 60 * 1000, // 1 minute
+    maxRequests: 60,
+    keyGenerator: KeyGenerators.byIP
+  },
+
+  // Permissive limit for public-facing widgets
+  widget: {
+    windowMs: 1 * 60 * 1000, // 1 minute
+    maxRequests: 100,
+    keyGenerator: KeyGenerators.byIP
   },
 
   // Public AI endpoints - strict limits to prevent OpenAI cost abuse
@@ -195,7 +202,8 @@ export const RateLimits = {
     windowMs: 15 * 60 * 1000, // 15 minutes
     maxRequests: 5,
     keyGenerator: KeyGenerators.byIP,
-    message: 'Too many signup attempts. Please try again in 15 minutes.'
+    message: 'Too many signup attempts. Please try again in 15 minutes.',
+    failClosed: true // Block requests if rate limiting fails
   },
 
   // Email check endpoint - moderate limits to prevent enumeration
@@ -217,12 +225,12 @@ export async function applyRateLimit(
   accountId?: string
 ): Promise<RateLimitResult> {
   try {
-    const key = config.keyGenerator 
+    const key = config.keyGenerator
       ? config.keyGenerator(request, userId, accountId)
       : KeyGenerators.byIP(request);
-      
+
     const result = await checkRateLimit(key, config);
-    
+
     // Log rate limit violations
     if (!result.success) {
       console.warn('Rate limit exceeded:', {
@@ -230,30 +238,42 @@ export async function applyRateLimit(
         userId,
         accountId,
         endpoint: request.url,
-        ip: request.ip
+        ip: getClientIP(request)
       });
-      
-      // Log to database for monitoring
+
+      // Log to database for monitoring (fire and forget)
       try {
-        const supabase = createServiceRoleClient();
+        const supabase = getRateLimitClient();
         await supabase.from('rate_limit_violations').insert({
           rate_limit_key: key,
           user_id: userId || null,
           account_id: accountId || null,
-          endpoint: request.url,
-          ip_address: request.ip,
-          user_agent: request.headers.get('user-agent'),
-          created_at: new Date().toISOString()
+          endpoint: new URL(request.url).pathname,
+          ip_address: getClientIP(request),
+          user_agent: request.headers.get('user-agent')
         });
-      } catch (error) {
-        console.error('Failed to log rate limit violation:', error);
+      } catch (logError) {
+        console.error('Failed to log rate limit violation:', logError);
       }
     }
-    
+
     return result;
   } catch (error) {
     console.error('Rate limit check failed:', error);
-    // If rate limiting fails, allow the request (fail open)
+
+    // Fail-closed for sensitive endpoints (auth, admin)
+    if (config.failClosed) {
+      console.warn('Rate limit check failed, blocking request (failClosed enabled)');
+      return {
+        success: false,
+        limit: config.maxRequests,
+        remaining: 0,
+        reset: new Date(Date.now() + config.windowMs),
+        error: 'Service temporarily unavailable. Please try again later.'
+      };
+    }
+
+    // Fail-open for non-sensitive endpoints (default behavior)
     return {
       success: true,
       limit: config.maxRequests,

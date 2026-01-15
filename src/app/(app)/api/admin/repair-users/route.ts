@@ -1,61 +1,47 @@
 /**
  * Repair Users API Route
- * 
+ *
  * This route allows admins to check and repair broken user-account relationships
  * that are causing authentication issues like "Database error granting user".
- * 
+ *
  * It checks for users in the auth table who are missing corresponding rows
  * in the accounts and account_users tables, and optionally creates them.
  */
-
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-import { isAdmin } from '@/auth/utils/admin';
-import { checkRateLimit, adminRateLimiter } from '@/lib/rate-limit';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { isAdmin as checkIsAdmin } from '@/auth/utils/admin';
+import { withRateLimit, RateLimits } from '@/app/(app)/api/middleware/rate-limit';
 
-export async function POST(request: NextRequest) {
+// It's better to reuse a single Supabase client instance where possible.
+const supabaseAdmin: SupabaseClient = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  { auth: { autoRefreshToken: false, persistSession: false } }
+);
+
+async function getUserInfo(request: NextRequest): Promise<{ userId?: string }> {
+  // A simplified user info getter for admin routes that check auth within the handler.
+  // In a real scenario, you'd likely use a shared utility.
+  const authHeader = request.headers.get('authorization');
+  if (!authHeader || !authHeader.startsWith('Bearer ')) return {};
+  const token = authHeader.substring(7);
+  const { data: { user } } = await supabaseAdmin.auth.getUser(token);
+  return { userId: user?.id };
+}
+
+async function handler(request: NextRequest) {
   try {
-    // Check rate limit first (strict limits for admin operations)
-    const { allowed, remaining } = checkRateLimit(request, adminRateLimiter);
-    if (!allowed) {
-      return NextResponse.json(
-        { error: 'Too many requests. Admin operations are rate limited for security.' },
-        { status: 429 }
-      );
-    }
-
-    // Check admin privileges
-    const isAdminUser = await isAdmin();
-    if (!isAdminUser) {
-      return NextResponse.json(
-        { error: 'Admin privileges required' },
-        { status: 403 }
-      );
+    // Admin check is now inside the handler
+    const { userId } = await getUserInfo(request);
+    if (!userId || !(await checkIsAdmin(userId, supabaseAdmin))) {
+      return NextResponse.json({ error: 'Admin privileges required' }, { status: 403 });
     }
 
     const { email, repair = false, checkAll = false } = await request.json();
 
-    // Validate input
     if (!checkAll && !email) {
-      return NextResponse.json(
-        { error: 'Either email or checkAll must be provided' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Either email or checkAll must be provided' }, { status: 400 });
     }
-
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-    if (!supabaseUrl || !supabaseServiceKey) {
-      return NextResponse.json(
-        { error: 'Missing Supabase configuration' },
-        { status: 500 }
-      );
-    }
-
-    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
-      auth: { autoRefreshToken: false, persistSession: false }
-    });
 
     let results = {
       checked: 0,
@@ -66,19 +52,11 @@ export async function POST(request: NextRequest) {
     };
 
     if (checkAll) {
-      // Get all users from auth table
       const { data: users, error: usersError } = await supabaseAdmin.auth.admin.listUsers();
-      
       if (usersError) {
-        return NextResponse.json(
-          { error: `Failed to fetch users: ${usersError.message}` },
-          { status: 500 }
-        );
+        return NextResponse.json({ error: `Failed to fetch users: ${usersError.message}` }, { status: 500 });
       }
-
       results.checked = users.users.length;
-
-      // Check each user
       for (const user of users.users) {
         const userResult = await checkAndRepairUser(supabaseAdmin, user, repair);
         if (userResult.broken) results.broken++;
@@ -87,24 +65,14 @@ export async function POST(request: NextRequest) {
         results.details.push(userResult);
       }
     } else {
-      // Check specific user by email
       const { data: userData, error: userError } = await supabaseAdmin.auth.admin.listUsers();
-      
       if (userError) {
-        return NextResponse.json(
-          { error: `Failed to fetch users: ${userError.message}` },
-          { status: 500 }
-        );
+        return NextResponse.json({ error: `Failed to fetch users: ${userError.message}` }, { status: 500 });
       }
-
       const user = userData.users.find(u => u.email === email);
       if (!user) {
-        return NextResponse.json(
-          { error: `User with email ${email} not found` },
-          { status: 404 }
-        );
+        return NextResponse.json({ error: `User with email ${email} not found` }, { status: 404 });
       }
-
       results.checked = 1;
       const userResult = await checkAndRepairUser(supabaseAdmin, user, repair);
       if (userResult.broken) results.broken++;
@@ -118,15 +86,13 @@ export async function POST(request: NextRequest) {
       message: `Checked ${results.checked} users. Found ${results.broken} broken relationships${repair ? `, repaired ${results.repaired}` : ''}.`,
       results
     });
-
   } catch (error) {
     console.error('Repair users error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
+
+export const POST = withRateLimit(handler, RateLimits.adminStrict, getUserInfo);
 
 /**
  * Check and optionally repair a single user's account relationships
@@ -143,14 +109,13 @@ async function checkAndRepairUser(supabaseAdmin: any, user: any, repair: boolean
   };
 
   try {
-    // Check if user has an account
     const { data: accountData, error: accountError } = await supabaseAdmin
       .from('accounts')
-      .select('*')
+      .select('id')
       .eq('id', user.id)
-      .single();
+      .maybeSingle();
 
-    if (accountError && accountError.code !== 'PGRST116') {
+    if (accountError) {
       result.error = `Account check error: ${accountError.message}`;
       return result;
     }
@@ -158,9 +123,7 @@ async function checkAndRepairUser(supabaseAdmin: any, user: any, repair: boolean
     if (!accountData) {
       result.broken = true;
       result.issues.push('Missing account record');
-      
       if (repair) {
-        // Create account record
         const { error: createAccountError } = await supabaseAdmin
           .from('accounts')
           .insert({
@@ -170,7 +133,6 @@ async function checkAndRepairUser(supabaseAdmin: any, user: any, repair: boolean
             updated_at: new Date().toISOString(),
             created_by: user.id
           });
-
         if (createAccountError) {
           result.error = `Failed to create account: ${createAccountError.message}`;
         } else {
@@ -180,14 +142,13 @@ async function checkAndRepairUser(supabaseAdmin: any, user: any, repair: boolean
       }
     }
 
-    // Check if user has account_users record
     const { data: accountUserData, error: accountUserError } = await supabaseAdmin
       .from('account_users')
-      .select('*')
+      .select('user_id')
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
 
-    if (accountUserError && accountUserError.code !== 'PGRST116') {
+    if (accountUserError) {
       result.error = `Account user check error: ${accountUserError.message}`;
       return result;
     }
@@ -195,9 +156,7 @@ async function checkAndRepairUser(supabaseAdmin: any, user: any, repair: boolean
     if (!accountUserData) {
       result.broken = true;
       result.issues.push('Missing account_users record');
-      
       if (repair) {
-        // Create account_users record
         const { error: createAccountUserError } = await supabaseAdmin
           .from('account_users')
           .insert({
@@ -207,7 +166,6 @@ async function checkAndRepairUser(supabaseAdmin: any, user: any, repair: boolean
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           });
-
         if (createAccountUserError) {
           result.error = `Failed to create account_users record: ${createAccountUserError.message}`;
         } else {
@@ -216,10 +174,9 @@ async function checkAndRepairUser(supabaseAdmin: any, user: any, repair: boolean
         }
       }
     }
-
   } catch (error: any) {
     result.error = `Unexpected error: ${error.message}`;
   }
 
   return result;
-} 
+}

@@ -1,58 +1,48 @@
 /**
  * Admin Account Cleanup API
- * 
+ *
  * Handles 90-day retention policy for deleted accounts:
  * - GET: Returns count of accounts eligible for permanent deletion
  * - POST: Permanently deletes accounts older than 90 days
  */
-
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/auth/providers/supabase';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { deleteUserCompletely } from '@/utils/adminDelete';
-import { isAdmin } from '@/auth/utils/admin';
-import { checkRateLimit, adminRateLimiter } from '@/lib/rate-limit';
+import { isAdmin as checkIsAdmin } from '@/auth/utils/admin';
+import { withRateLimit, RateLimits } from '@/app/(app)/api/middleware/rate-limit';
 
-/**
- * GET - Get count of accounts eligible for permanent deletion
- */
-export async function GET(request: NextRequest) {
+// Use service role client for admin operations
+const supabaseAdmin: SupabaseClient = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
+async function getUserInfo(request: NextRequest): Promise<{ userId?: string }> {
+  const authHeader = request.headers.get('authorization');
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return {};
+  }
+  const token = authHeader.substring(7);
+  const { data: { user } } = await supabaseAdmin.auth.getUser(token);
+  return { userId: user?.id };
+}
+
+async function getHandler(request: NextRequest) {
   try {
-    // Check rate limit first (strict limits for admin operations)
-    const { allowed, remaining } = checkRateLimit(request, adminRateLimiter);
-    if (!allowed) {
-      return NextResponse.json(
-        { error: 'Too many requests. Admin operations are rate limited for security.' },
-        { status: 429 }
-      );
-    }
-
-    const supabase = createClient();
-
-    // Check authentication
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError || !session) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
-    }
-
-    // Check admin status
-    const adminStatus = await isAdmin(session.user.id, supabase);
-    if (!adminStatus) {
+    const { userId } = await getUserInfo(request);
+    if (!userId || !(await checkIsAdmin(userId, supabaseAdmin))) {
       return NextResponse.json({ error: 'Admin privileges required' }, { status: 403 });
     }
 
-    // Get count of accounts eligible for deletion (90 days by default)
-    const { data: countResult, error: countError } = await supabase
+    const { data: countResult, error: countError } = await supabaseAdmin
       .rpc('count_accounts_eligible_for_deletion', { retention_days: 90 });
-
     if (countError) {
       console.error('Error counting eligible accounts:', countError);
       return NextResponse.json({ error: 'Failed to count eligible accounts' }, { status: 500 });
     }
 
-    // Get detailed list of eligible accounts for display
-    const { data: accountsResult, error: accountsError } = await supabase
+    const { data: accountsResult, error: accountsError } = await supabaseAdmin
       .rpc('get_accounts_eligible_for_deletion', { retention_days: 90 });
-
     if (accountsError) {
       console.error('Error getting eligible accounts:', accountsError);
       return NextResponse.json({ error: 'Failed to get eligible accounts' }, { status: 500 });
@@ -64,120 +54,61 @@ export async function GET(request: NextRequest) {
       accounts: accountsResult || [],
       retentionDays: 90
     });
-
   } catch (error) {
     console.error('Account cleanup GET error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
-/**
- * POST - Permanently delete accounts older than 90 days
- */
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest) {
   try {
-    // Check rate limit first (strict limits for admin operations)
-    const { allowed, remaining } = checkRateLimit(request, adminRateLimiter);
-    if (!allowed) {
-      return NextResponse.json(
-        { error: 'Too many requests. Admin operations are rate limited for security.' },
-        { status: 429 }
-      );
-    }
-
-    const supabase = createClient();
-
-    // Check authentication
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError || !session) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
-    }
-
-    // Check admin status
-    const adminStatus = await isAdmin(session.user.id, supabase);
-    if (!adminStatus) {
+    const { userId } = await getUserInfo(request);
+    if (!userId || !(await checkIsAdmin(userId, supabaseAdmin))) {
       return NextResponse.json({ error: 'Admin privileges required' }, { status: 403 });
     }
 
-    // Parse request body
     const { confirm, dryRun } = await request.json();
-
     if (!confirm && !dryRun) {
       return NextResponse.json({ error: 'Confirmation required' }, { status: 400 });
     }
 
-    // Get accounts eligible for deletion
-    const { data: eligibleAccounts, error: accountsError } = await supabase
+    const { data: eligibleAccounts, error: accountsError } = await supabaseAdmin
       .rpc('get_accounts_eligible_for_deletion', { retention_days: 90 });
-
     if (accountsError) {
       console.error('Error getting eligible accounts:', accountsError);
       return NextResponse.json({ error: 'Failed to get eligible accounts' }, { status: 500 });
     }
 
     if (!eligibleAccounts || eligibleAccounts.length === 0) {
-      return NextResponse.json({
-        success: true,
-        message: 'No accounts eligible for deletion',
-        deleted: 0,
-        accounts: []
-      });
+      return NextResponse.json({ success: true, message: 'No accounts eligible for deletion', deleted: 0 });
     }
 
-    // If dry run, just return what would be deleted
     if (dryRun) {
       return NextResponse.json({
         success: true,
         message: `Dry run: ${eligibleAccounts.length} accounts would be permanently deleted`,
         count: eligibleAccounts.length,
-        accounts: eligibleAccounts.map((acc: any) => ({
-          email: acc.email,
-          deleted_at: acc.deleted_at,
-          days_since_deletion: acc.days_since_deletion,
-          business_count: acc.business_count,
-          user_count: acc.user_count
-        })),
+        accounts: eligibleAccounts.map((acc: any) => ({ email: acc.email, deleted_at: acc.deleted_at })),
         dryRun: true
       });
     }
 
-    // Perform actual deletion
     const deletionResults = [];
     let successCount = 0;
     let errorCount = 0;
-
     for (const account of eligibleAccounts) {
       try {
-        
-        // Use the existing adminDelete utility to completely remove the user
         const deleteResult = await deleteUserCompletely(account.email);
-        
         if (deleteResult.success) {
           successCount++;
-          deletionResults.push({
-            email: account.email,
-            success: true,
-            message: 'Account permanently deleted'
-          });
+          deletionResults.push({ email: account.email, success: true, message: 'Account permanently deleted' });
         } else {
           errorCount++;
-          deletionResults.push({
-            email: account.email,
-            success: false,
-            message: deleteResult.message || 'Unknown error'
-          });
+          deletionResults.push({ email: account.email, success: false, message: deleteResult.message || 'Unknown error' });
         }
       } catch (deleteError) {
-        console.error(`Error deleting account ${account.email}:`, deleteError);
         errorCount++;
-        deletionResults.push({
-          email: account.email,
-          success: false,
-          message: deleteError instanceof Error ? deleteError.message : 'Unknown error'
-        });
+        deletionResults.push({ email: account.email, success: false, message: deleteError instanceof Error ? deleteError.message : 'Unknown error' });
       }
     }
 
@@ -188,12 +119,11 @@ export async function POST(request: NextRequest) {
       errors: errorCount,
       results: deletionResults
     });
-
   } catch (error) {
     console.error('Account cleanup POST error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
-} 
+}
+
+export const GET = withRateLimit(getHandler, RateLimits.adminStrict, getUserInfo);
+export const POST = withRateLimit(postHandler, RateLimits.adminStrict, getUserInfo);

@@ -5,7 +5,7 @@
  * Usage: /api/review-shares/og-image?reviewId={id}
  */
 
-import { ImageResponse } from '@vercel/og';
+import { ImageResponse } from 'next/og';
 import { NextRequest } from 'next/server';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { authenticateApiRequest } from '@/utils/apiAuth';

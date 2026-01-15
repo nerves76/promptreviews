@@ -379,6 +379,7 @@ model users {
   media_assets                                              media_assets[]
   mentions_mentions_author_idTousers                        mentions[]                        @relation("mentions_author_idTousers")
   mentions_mentions_mentioned_user_idTousers                mentions[]                        @relation("mentions_mentioned_user_idTousers")
+  notification_dismissals                                   notification_dismissals[]
   notifications                                             notifications[]
   post_comments                                             post_comments[]
   post_reactions                                            post_reactions[]
@@ -518,6 +519,7 @@ model accounts {
   is_client_account                                                   Boolean?                          @default(false)
   monthly_credit_allocation                                           Int?
   low_balance_warning_count                                           Int?                              @default(0)
+  trial_ends_at                                                       DateTime?                         @db.Timestamptz(6)
   is_agncy                                                            Boolean?                          @default(false)
   agncy_trial_start                                                   DateTime?                         @db.Timestamptz(6)
   agncy_trial_end                                                     DateTime?                         @db.Timestamptz(6)
@@ -1832,6 +1834,8 @@ model notification_preferences {
   email_review_auto_verified  Boolean?  @default(true)
   in_app_credit_warnings      Boolean?  @default(true)
   email_credit_warnings       Boolean?  @default(true)
+  in_app_agency_invitations   Boolean?  @default(true)
+  email_agency_invitations    Boolean?  @default(true)
   accounts                    accounts  @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@schema("public")
@@ -1839,25 +1843,26 @@ model notification_preferences {
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model notifications {
-  id            String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  account_id    String            @db.Uuid
-  user_id       String?           @db.Uuid
-  type          notification_type
-  title         String
-  message       String
-  action_url    String?
-  action_label  String?
-  metadata      Json?             @default("{}")
-  read          Boolean?          @default(false)
-  read_at       DateTime?         @db.Timestamptz(6)
-  dismissed     Boolean?          @default(false)
-  dismissed_at  DateTime?         @db.Timestamptz(6)
-  email_sent    Boolean?          @default(false)
-  email_sent_at DateTime?         @db.Timestamptz(6)
-  created_at    DateTime?         @default(now()) @db.Timestamptz(6)
-  updated_at    DateTime?         @default(now()) @db.Timestamptz(6)
-  accounts      accounts          @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  users         users?            @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  id                      String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  account_id              String                    @db.Uuid
+  user_id                 String?                   @db.Uuid
+  type                    notification_type
+  title                   String
+  message                 String
+  action_url              String?
+  action_label            String?
+  metadata                Json?                     @default("{}")
+  read                    Boolean?                  @default(false)
+  read_at                 DateTime?                 @db.Timestamptz(6)
+  dismissed               Boolean?                  @default(false)
+  dismissed_at            DateTime?                 @db.Timestamptz(6)
+  email_sent              Boolean?                  @default(false)
+  email_sent_at           DateTime?                 @db.Timestamptz(6)
+  created_at              DateTime?                 @default(now()) @db.Timestamptz(6)
+  updated_at              DateTime?                 @default(now()) @db.Timestamptz(6)
+  notification_dismissals notification_dismissals[]
+  accounts                accounts                  @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users                   users?                    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([account_id], map: "idx_notifications_account_id")
   @@index([account_id, user_id, read, dismissed], map: "idx_notifications_account_user")
@@ -3865,6 +3870,22 @@ model wm_library_tasks {
   @@index([difficulty], map: "idx_wm_library_tasks_difficulty")
   @@index([is_active], map: "idx_wm_library_tasks_is_active")
   @@index([sort_order], map: "idx_wm_library_tasks_sort_order")
+  @@schema("public")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model notification_dismissals {
+  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  notification_id String        @db.Uuid
+  user_id         String        @db.Uuid
+  dismissed_at    DateTime      @default(now()) @db.Timestamptz(6)
+  notifications   notifications @relation(fields: [notification_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users           users         @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([notification_id, user_id])
+  @@index([notification_id], map: "idx_notification_dismissals_notification")
+  @@index([user_id, notification_id], map: "idx_notification_dismissals_user_notification")
   @@schema("public")
 }
 

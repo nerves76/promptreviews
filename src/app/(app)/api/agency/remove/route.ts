@@ -9,6 +9,7 @@ import { createServerSupabaseClient } from '@/auth/providers/supabase';
 import { createServiceRoleClient } from '@/auth/providers/supabase';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 import { NextRequest, NextResponse } from 'next/server';
+import { syncAgencyFreeWorkspace } from '@/lib/billing/agencyIncentive';
 
 /**
  * POST - Client removes agency access from their account
@@ -149,6 +150,13 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Sync agency free workspace status (checks if they still have paying clients)
+    // This will deactivate their free workspace if they've lost their last paying client
+    const syncResult = await syncAgencyFreeWorkspace(supabaseAdmin, agencyAccountId);
+    if (syncResult.action !== 'unchanged') {
+      console.log(`Agency free workspace ${syncResult.action} for agency ${agencyAccountId}`);
+    }
+
     // If agency was billing, handle the transition
     let billingNote = null;
     if (wasAgencyBilling) {
@@ -172,6 +180,10 @@ export async function POST(request: NextRequest) {
       },
       was_agency_billing: wasAgencyBilling,
       billing_note: billingNote,
+      agency_status: {
+        free_workspace_changed: syncResult.action !== 'unchanged',
+        action: syncResult.action,
+      },
     });
   } catch (error) {
     console.error('Agency remove POST error:', error);

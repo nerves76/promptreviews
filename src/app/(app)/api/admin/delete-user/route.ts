@@ -1,83 +1,51 @@
 /**
  * Admin Delete User API Route
- * 
+ *
  * This endpoint provides admin functionality to completely delete a user and all
  * associated data from the system. It requires admin privileges and performs
  * comprehensive cleanup across all database tables.
- * 
+ *
  * Security: This endpoint should only be accessible to authenticated admins.
  * Method: POST
  * Body: { email: string }
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { deleteUserCompletely } from '@/utils/adminDelete';
-import { isAdmin } from '@/auth/utils/admin';
-import { checkRateLimit, adminRateLimiter } from '@/lib/rate-limit';
+import { isAdmin as checkIsAdmin } from '@/auth/utils/admin';
+import { withRateLimit, RateLimits } from '@/app/(app)/api/middleware/rate-limit';
 
 // Initialize Supabase admin client
-const supabaseAdmin = createClient(
+const supabaseAdmin: SupabaseClient = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
 /**
- * Check if the requesting user has admin privileges
+ * Extracts user information from the request for rate limiting and admin checks.
  * @param request - The incoming request
- * @returns Promise resolving to admin status
+ * @returns Promise resolving to the user's ID, or undefined if auth fails.
  */
-async function checkAdminPrivileges(request: NextRequest): Promise<boolean> {
-  try {
-    // Get the authorization header
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return false;
-    }
-
-    const token = authHeader.substring(7);
-    
-    // Verify the JWT token and get user info
-    const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
-    
-    if (error || !user) {
-      console.error('Auth error:', error);
-      return false;
-    }
-
-    // Check if user has admin privileges
-    const adminStatus = await isAdmin(user.id, supabaseAdmin);
-    if (!adminStatus) {
-      console.error('Admin check failed: user does not have admin privileges');
-      return false;
-    }
-
-    return true;
-  } catch (error) {
-    console.error('Error checking admin privileges:', error);
-    return false;
+async function getUserInfo(request: NextRequest): Promise<{ userId?: string }> {
+  const authHeader = request.headers.get('authorization');
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return {};
   }
+  const token = authHeader.substring(7);
+  const { data: { user } } = await supabaseAdmin.auth.getUser(token);
+  return { userId: user?.id };
 }
 
 /**
- * POST handler for admin user deletion
- * @param request - The incoming request
- * @returns NextResponse with deletion result
+ * Main handler for the admin user deletion logic.
+ * Rate limiting is handled by the withRateLimit wrapper.
  */
-export async function POST(request: NextRequest) {
+async function handler(request: NextRequest) {
   try {
-    // Check rate limit first (strict limits for admin operations)
-    const { allowed, remaining } = checkRateLimit(request, adminRateLimiter);
-    if (!allowed) {
-      return NextResponse.json(
-        { error: 'Too many requests. Admin operations are rate limited for security.' },
-        { status: 429 }
-      );
-    }
-
     // Check admin privileges
-    const isAdmin = await checkAdminPrivileges(request);
-    if (!isAdmin) {
+    const { userId } = await getUserInfo(request);
+    if (!userId || !(await checkIsAdmin(userId, supabaseAdmin))) {
       return NextResponse.json(
         { error: 'Unauthorized: Admin privileges required' },
         { status: 403 }
@@ -96,33 +64,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      return NextResponse.json(
-        { error: 'Invalid email format' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid email format' }, { status: 400 });
     }
-
 
     // If checkOnly is true, just verify the user exists
     if (checkOnly) {
       const { getUserIdByEmail } = await import('@/utils/adminDelete');
-      const userId = await getUserIdByEmail(email);
-      
-      if (!userId) {
-        return NextResponse.json(
-          { error: 'User not found' },
-          { status: 404 }
-        );
+      const userIdFound = await getUserIdByEmail(email);
+      if (!userIdFound) {
+        return NextResponse.json({ error: 'User not found' }, { status: 404 });
       }
-      
-      return NextResponse.json({
-        success: true,
-        message: 'User found',
-        userId: userId
-      });
+      return NextResponse.json({ success: true, message: 'User found', userId: userIdFound });
     }
 
     // Perform comprehensive user deletion
@@ -141,11 +95,10 @@ export async function POST(request: NextRequest) {
         details: result.details
       }, { status: 500 });
     }
-
   } catch (error) {
     console.error('Error in admin delete user endpoint:', error);
     return NextResponse.json(
-      { 
+      {
         success: false,
         error: 'Internal server error during user deletion',
         details: error instanceof Error ? error.message : 'Unknown error'
@@ -154,6 +107,10 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+// Wrap the handler with rate limiting middleware
+export const POST = withRateLimit(handler, RateLimits.adminStrict, getUserInfo);
+
 
 /**
  * GET handler for endpoint information (optional)

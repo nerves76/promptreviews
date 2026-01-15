@@ -2,7 +2,7 @@
  * Test OG Image Route - Minimal version to debug
  */
 
-import { ImageResponse } from '@vercel/og';
+import { ImageResponse } from 'next/og';
 import { NextRequest } from 'next/server';
 
 export const runtime = 'edge';

@@ -9,6 +9,7 @@ import { createServerSupabaseClient } from '@/auth/providers/supabase';
 import { createServiceRoleClient } from '@/auth/providers/supabase';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 import { NextRequest, NextResponse } from 'next/server';
+import { syncAgencyFreeWorkspace } from '@/lib/billing/agencyIncentive';
 
 interface RouteParams {
   params: Promise<{ clientId: string }>;
@@ -312,6 +313,13 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       },
     });
 
+    // Sync agency free workspace status (checks if they still have paying clients)
+    // This will deactivate their free workspace if they've lost their last paying client
+    const syncResult = await syncAgencyFreeWorkspace(supabaseAdmin, agencyAccountId);
+    if (syncResult.action !== 'unchanged') {
+      console.log(`Agency free workspace ${syncResult.action} for agency ${agencyAccountId}`);
+    }
+
     // If agency was billing, schedule downgrade
     let billingNote = null;
     if (wasAgencyBilling) {
@@ -332,6 +340,10 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       client_id: clientId,
       was_agency_billing: wasAgencyBilling,
       billing_note: billingNote,
+      agency_status: {
+        free_workspace_changed: syncResult.action !== 'unchanged',
+        action: syncResult.action,
+      },
     });
   } catch (error) {
     console.error('Agency client DELETE error:', error);
