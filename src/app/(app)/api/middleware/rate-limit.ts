@@ -106,15 +106,30 @@ async function checkRateLimit(key: string, config: RateLimitConfig): Promise<Rat
 }
 
 /**
+ * Get client IP from request, handling proxies
+ */
+function getClientIP(request: NextRequest): string {
+  const forwarded = request.headers.get('x-forwarded-for');
+  if (forwarded) {
+    return forwarded.split(',')[0].trim();
+  }
+  return request.ip || 'unknown';
+}
+
+/**
  * Default key generators for different rate limiting strategies
  */
 export const KeyGenerators = {
-  byIP: (request: NextRequest) => `ip:${request.ip || 'unknown'}`,
+  byIP: (request: NextRequest) => `ip:${getClientIP(request)}`,
   byUser: (request: NextRequest, userId?: string) => `user:${userId || 'anonymous'}`,
   byAccount: (request: NextRequest, userId?: string, accountId?: string) => `account:${accountId || 'none'}`,
   byUserAndEndpoint: (request: NextRequest, userId?: string) => {
     const endpoint = new URL(request.url).pathname;
     return `user:${userId || 'anonymous'}:${endpoint}`;
+  },
+  byIPAndEndpoint: (request: NextRequest) => {
+    const endpoint = new URL(request.url).pathname;
+    return `ip:${getClientIP(request)}:${endpoint}`;
   },
   global: () => 'global'
 };
@@ -165,6 +180,30 @@ export const RateLimits = {
     windowMs: 15 * 60 * 1000, // 15 minutes
     maxRequests: 200,
     keyGenerator: KeyGenerators.byUser
+  },
+
+  // Public AI endpoints - strict limits to prevent OpenAI cost abuse
+  publicAi: {
+    windowMs: 1 * 60 * 1000, // 1 minute
+    maxRequests: 10,
+    keyGenerator: KeyGenerators.byIPAndEndpoint,
+    message: 'Too many requests. Please try again in a minute.'
+  },
+
+  // Signup endpoints - strict limits to prevent spam account creation
+  signup: {
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    maxRequests: 5,
+    keyGenerator: KeyGenerators.byIP,
+    message: 'Too many signup attempts. Please try again in 15 minutes.'
+  },
+
+  // Email check endpoint - moderate limits to prevent enumeration
+  emailCheck: {
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    maxRequests: 20,
+    keyGenerator: KeyGenerators.byIP,
+    message: 'Too many requests. Please try again later.'
   }
 };
 

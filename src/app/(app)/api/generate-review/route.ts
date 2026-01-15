@@ -1,49 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 import { createServerSupabaseClient, createServiceRoleClient } from "@/auth/providers/supabase";
+import { applyRateLimit, createRateLimitResponse, RateLimits } from "@/app/(app)/api/middleware/rate-limit";
 
 export const dynamic = "force-dynamic";
 
-// Stricter rate limiter for public AI endpoints: 10 requests per minute per IP
-const publicAiRateLimiter = {
-  limits: new Map<string, { count: number; resetTime: number }>(),
-  windowMs: 60000,
-  maxRequests: 10,
-  isAllowed(identifier: string): boolean {
-    const now = Date.now();
-    const entry = this.limits.get(identifier);
-    if (!entry || now > entry.resetTime) {
-      this.limits.set(identifier, { count: 1, resetTime: now + this.windowMs });
-      return true;
-    }
-    if (entry.count >= this.maxRequests) return false;
-    entry.count++;
-    return true;
-  },
-  getRemainingRequests(identifier: string): number {
-    const entry = this.limits.get(identifier);
-    if (!entry) return this.maxRequests;
-    return Math.max(0, this.maxRequests - entry.count);
-  }
-};
-
-export async function POST(request: Request) {
-  // Rate limit by IP address (public endpoint protection)
-  const forwarded = request.headers.get('x-forwarded-for');
-  const ip = forwarded ? forwarded.split(',')[0].trim() : 'unknown';
-
-  if (!publicAiRateLimiter.isAllowed(ip)) {
-    const remaining = publicAiRateLimiter.getRemainingRequests(ip);
-    return NextResponse.json(
-      { error: "Too many requests. Please try again in a minute." },
-      {
-        status: 429,
-        headers: {
-          'X-RateLimit-Remaining': remaining.toString(),
-          'Retry-After': '60'
-        }
-      }
-    );
+export async function POST(request: NextRequest) {
+  // Apply persistent rate limiting (Supabase-backed)
+  const rateLimitResult = await applyRateLimit(request, RateLimits.publicAi);
+  if (!rateLimitResult.success) {
+    return createRateLimitResponse(rateLimitResult);
   }
 
   if (!process.env.OPENAI_API_KEY) {
