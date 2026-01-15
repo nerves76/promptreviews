@@ -180,7 +180,7 @@ export default function NotificationDropdown({
         {unreadCount > 0 && onMarkAllRead && (
           <button
             onClick={onMarkAllRead}
-            className="text-xs text-gray-500 hover:text-white transition-colors"
+            className="text-xs text-white/60 hover:text-white transition-colors"
           >
             Mark all read
           </button>
