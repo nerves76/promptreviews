@@ -237,10 +237,15 @@ function PromptPagesContent() {
   };
 
   // Handle tab changes and update URL
-  const handleTabChange = (newTab: PromptPagesTab) => {
+  const handleTabChange = (newTab: PromptPagesTab | 'templates') => {
     // Settings tab navigates to a different page
     if (newTab === 'settings') {
       router.push('/dashboard/prompt-page-settings');
+      return;
+    }
+    // Templates tab navigates to outreach templates page
+    if (newTab === 'templates') {
+      router.push('/prompt-pages/outreach-templates');
       return;
     }
     // Only navigate if the tab is actually changing
@@ -827,7 +832,7 @@ function PromptPagesContent() {
 
        {/* Campaign Type Selector - Tab navigation */}
        <div className="flex justify-center w-full mt-0 mb-0 z-20 px-4">
-        <div className="grid grid-cols-2 sm:flex bg-white/10 backdrop-blur-sm border border-white/30 rounded-2xl sm:rounded-full p-1 shadow-lg w-full max-w-2xl gap-1 sm:gap-0">
+        <div className="grid grid-cols-3 sm:flex bg-white/10 backdrop-blur-sm border border-white/30 rounded-2xl sm:rounded-full p-1 shadow-lg w-full max-w-3xl gap-1 sm:gap-0">
           <button
             type="button"
             onClick={() => handleTabChange('catch-all')}
@@ -863,6 +868,14 @@ function PromptPagesContent() {
           >
             <Icon name="FaMapMarker" className="w-5 h-5" size={20} />
             <span className="whitespace-nowrap">Locations</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => handleTabChange('templates')}
+            className="px-3 sm:px-6 py-2 sm:py-1.5 font-semibold text-sm focus:outline-none transition-all duration-200 rounded-xl sm:rounded-full flex items-center justify-center gap-2 sm:flex-1 bg-transparent text-white"
+          >
+            <Icon name="FaEnvelope" className="w-5 h-5" size={20} />
+            <span className="whitespace-nowrap">Templates</span>
           </button>
           <button
             type="button"
