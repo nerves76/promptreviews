@@ -168,9 +168,11 @@ async function createDefaultTemplatesForAccount(accountId: string, supabase: any
 
 // Default template content organized by category
 // Focus: How reviews help small businesses grow
+// Note: Any template can be used for email or SMS - categories just indicate the style/tone
 function getDefaultTemplateContent() {
   return [
-    // ===== INITIAL ASK - Email =====
+    // ===== INITIAL ASK =====
+    // Longer, more detailed templates ideal for email
     {
       name: "Personal impact",
       communication_type: "email",
@@ -238,26 +240,8 @@ Sincerely,
       is_default: false,
       is_active: true,
     },
-    // ===== INITIAL ASK - SMS =====
-    {
-      name: "Small business ask",
-      communication_type: "sms",
-      template_type: "initial_ask",
-      subject_template: "Would you share your experience?",
-      message_template: "Hi {{customer_name}}! As a small business, reviews from customers like you help us grow. Would you share your experience? {{review_url}} Thank you!",
-      is_default: true,
-      is_active: true,
-    },
-    {
-      name: "Personal request",
-      communication_type: "sms",
-      template_type: "initial_ask",
-      subject_template: "A quick review would mean so much",
-      message_template: "Hi {{customer_name}}, thank you for choosing {{business_name}}! A quick review would mean so much to our small team: {{review_url}}",
-      is_default: false,
-      is_active: true,
-    },
-    // ===== FOLLOW UP - Email =====
+    // ===== FOLLOW UP =====
+    // Reminder templates for following up on initial outreach
     {
       name: "Gentle reminder",
       communication_type: "email",
@@ -298,26 +282,8 @@ Best,
       is_default: false,
       is_active: true,
     },
-    // ===== FOLLOW UP - SMS =====
-    {
-      name: "Gentle reminder",
-      communication_type: "sms",
-      template_type: "follow_up",
-      subject_template: "Just a gentle reminder",
-      message_template: "Hi {{customer_name}}! Just a gentle reminder - your review would help our small business grow: {{review_url}} Thank you!",
-      is_default: false,
-      is_active: true,
-    },
-    {
-      name: "Quick follow-up",
-      communication_type: "sms",
-      template_type: "follow_up",
-      subject_template: "Following up",
-      message_template: "Hi {{customer_name}}, following up on my earlier message. If you have a sec, we'd love your feedback: {{review_url}} Thanks! - {{business_name}}",
-      is_default: false,
-      is_active: true,
-    },
-    // ===== ON BEHALF OF - Email =====
+    // ===== ON BEHALF OF =====
+    // For agencies or partners reaching out on behalf of a business
     {
       name: "Professional outreach",
       communication_type: "email",
@@ -358,26 +324,8 @@ Best regards`,
       is_default: false,
       is_active: true,
     },
-    // ===== ON BEHALF OF - SMS =====
-    {
-      name: "Professional outreach",
-      communication_type: "sms",
-      template_type: "on_behalf_of",
-      subject_template: "Your feedback would mean so much",
-      message_template: "Hi {{customer_name}}! Reaching out on behalf of {{business_name}} - as a small business, your review would mean so much: {{review_url}} Thank you!",
-      is_default: false,
-      is_active: true,
-    },
-    {
-      name: "Partner request",
-      communication_type: "sms",
-      template_type: "on_behalf_of",
-      subject_template: "Quick request from {{business_name}}",
-      message_template: "Hi {{customer_name}}, reaching out for {{business_name}}. They'd love your feedback! {{review_url}} Thanks for supporting small business!",
-      is_default: false,
-      is_active: true,
-    },
-    // ===== THANK YOU - Email =====
+    // ===== THANK YOU =====
+    // Gratitude-focused templates
     {
       name: "Warm gratitude",
       communication_type: "email",
@@ -424,28 +372,83 @@ With gratitude,
       is_default: false,
       is_active: true,
     },
-    // ===== THANK YOU - SMS =====
+    // ===== SHORT & SIMPLE =====
+    // Brief, concise templates - great for SMS or quick emails
     {
-      name: "Warm gratitude",
+      name: "Small business ask",
       communication_type: "sms",
-      template_type: "thank_you",
-      subject_template: "Thank you for supporting small business",
+      template_type: "short_simple",
+      subject_template: "Would you share your experience?",
+      message_template: "Hi {{customer_name}}! As a small business, reviews from customers like you help us grow. Would you share your experience? {{review_url}} Thank you!",
+      is_default: false,
+      is_active: true,
+    },
+    {
+      name: "Personal request",
+      communication_type: "sms",
+      template_type: "short_simple",
+      subject_template: "A quick review would mean so much",
+      message_template: "Hi {{customer_name}}, thank you for choosing {{business_name}}! A quick review would mean so much to our small team: {{review_url}}",
+      is_default: false,
+      is_active: true,
+    },
+    {
+      name: "Gentle reminder",
+      communication_type: "sms",
+      template_type: "short_simple",
+      subject_template: "Just a gentle reminder",
+      message_template: "Hi {{customer_name}}! Just a gentle reminder - your review would help our small business grow: {{review_url}} Thank you!",
+      is_default: false,
+      is_active: true,
+    },
+    {
+      name: "Quick follow-up",
+      communication_type: "sms",
+      template_type: "short_simple",
+      subject_template: "Following up",
+      message_template: "Hi {{customer_name}}, following up on my earlier message. If you have a sec, we'd love your feedback: {{review_url}} Thanks! - {{business_name}}",
+      is_default: false,
+      is_active: true,
+    },
+    {
+      name: "Warm thanks",
+      communication_type: "sms",
+      template_type: "short_simple",
+      subject_template: "Thank you for your support",
       message_template: "Hi {{customer_name}}! Thank you for supporting {{business_name}}. A quick review would mean so much to our small business: {{review_url}}",
       is_default: false,
       is_active: true,
     },
     {
-      name: "Heartfelt thanks",
+      name: "On behalf of",
       communication_type: "sms",
-      template_type: "thank_you",
-      subject_template: "You made our day",
-      message_template: "{{customer_name}}, thank you for choosing {{business_name}}! Your support means everything. Would you share your experience? {{review_url}}",
+      template_type: "short_simple",
+      subject_template: "Feedback request",
+      message_template: "Hi {{customer_name}}! Reaching out on behalf of {{business_name}} - as a small business, your review would mean so much: {{review_url}} Thank you!",
       is_default: false,
       is_active: true,
     },
-    // ===== SHORT & SIMPLE - Email =====
     {
       name: "Quick ask",
+      communication_type: "sms",
+      template_type: "short_simple",
+      subject_template: "Quick favor?",
+      message_template: "Hi {{customer_name}}! Quick favor? Leave us a review: {{review_url}} Thanks! - {{business_name}}",
+      is_default: false,
+      is_active: true,
+    },
+    {
+      name: "Super short",
+      communication_type: "sms",
+      template_type: "short_simple",
+      subject_template: "Got a minute?",
+      message_template: "{{customer_name}}, got a minute? {{review_url}} Thanks! - {{business_name}}",
+      is_default: false,
+      is_active: true,
+    },
+    // Brief email versions for Short & Simple
+    {
+      name: "Quick email",
       communication_type: "email",
       template_type: "short_simple",
       subject_template: "Quick favor?",
@@ -472,25 +475,6 @@ Got a minute to share your experience with {{business_name}}?
 {{review_url}}
 
 Thanks!`,
-      is_default: false,
-      is_active: true,
-    },
-    // ===== SHORT & SIMPLE - SMS =====
-    {
-      name: "Quick ask",
-      communication_type: "sms",
-      template_type: "short_simple",
-      subject_template: "Quick favor?",
-      message_template: "Hi {{customer_name}}! Quick favor? Leave us a review: {{review_url}} Thanks! - {{business_name}}",
-      is_default: false,
-      is_active: true,
-    },
-    {
-      name: "Super short",
-      communication_type: "sms",
-      template_type: "short_simple",
-      subject_template: "Got a minute?",
-      message_template: "{{customer_name}}, got a minute? {{review_url}} Thanks! - {{business_name}}",
       is_default: false,
       is_active: true,
     },
