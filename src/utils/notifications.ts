@@ -421,16 +421,19 @@ export async function sendNotificationToAccount(
       .single();
     const firstName = account?.first_name || 'there';
 
-    // Collect all user emails
-    const emails: string[] = [];
+    // Collect all user emails (deduplicated)
+    const emailSet = new Set<string>();
     if (accountUsers) {
-      for (const user of accountUsers) {
-        const { data: userData } = await supabase.auth.admin.getUserById(user.user_id);
+      // Deduplicate user_ids in case of any data issues
+      const uniqueUserIds = [...new Set(accountUsers.map(u => u.user_id))];
+      for (const userId of uniqueUserIds) {
+        const { data: userData } = await supabase.auth.admin.getUserById(userId);
         if (userData?.user?.email) {
-          emails.push(userData.user.email);
+          emailSet.add(userData.user.email.toLowerCase());
         }
       }
     }
+    const emails = [...emailSet];
 
     // Create in-app notification (visible to all users)
     const config = NOTIFICATION_REGISTRY[type];
