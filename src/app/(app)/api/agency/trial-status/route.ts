@@ -13,6 +13,7 @@ export type AgencyTrialStatus = 'active' | 'expired' | 'converted' | 'not_agency
 interface TrialStatusResponse {
   status: AgencyTrialStatus;
   is_agncy: boolean;
+  is_free_account?: boolean;
   trial_start?: string;
   trial_end?: string;
   days_remaining?: number;
@@ -57,7 +58,8 @@ export async function GET(request: NextRequest): Promise<NextResponse<TrialStatu
         agncy_trial_end,
         plan,
         subscription_status,
-        has_had_paid_plan
+        has_had_paid_plan,
+        is_free_account
       `)
       .eq('id', accountId)
       .single();
@@ -103,8 +105,16 @@ export async function GET(request: NextRequest): Promise<NextResponse<TrialStatu
 
     // Has the agency already converted (has their own paid plan)?
     const hasOwnPlan = account.plan && account.plan !== 'no_plan' && account.subscription_status === 'active';
+    const isFreeAccount = account.is_free_account === true;
 
-    if (hasOwnPlan || account.has_had_paid_plan) {
+    if (isFreeAccount) {
+      // Free account - unlimited agency access, no trial limit, but can still manage client billing
+      status = 'active';
+      daysRemaining = undefined; // No countdown for free accounts
+      message = hasPayingClient
+        ? `Free agency account. You have ${payingClientsCount} paying client(s).`
+        : 'Free agency account. Add clients to manage their billing.';
+    } else if (hasOwnPlan || account.has_had_paid_plan) {
       // Agency has converted to paid
       status = 'converted';
       message = 'Agency trial completed. You have an active plan.';
@@ -137,6 +147,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<TrialStatu
     return NextResponse.json({
       status,
       is_agncy: true,
+      is_free_account: isFreeAccount,
       trial_start: account.agncy_trial_start || undefined,
       trial_end: account.agncy_trial_end || undefined,
       days_remaining: daysRemaining,

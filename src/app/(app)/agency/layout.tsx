@@ -11,6 +11,7 @@ import { apiClient } from "@/utils/apiClient";
 interface AgencyTrialStatus {
   status: 'active' | 'expired' | 'converted' | 'not_agency';
   is_agncy: boolean;
+  is_free_account?: boolean;
   days_remaining?: number;
   has_paying_client: boolean;
   paying_clients_count: number;
@@ -116,8 +117,34 @@ export default function AgencyLayout({
 
   return (
     <div className="w-full min-h-screen pb-16 md:pb-24 lg:pb-32">
+      {/* Free account indicator */}
+      {trialStatus && trialStatus.is_free_account && (
+        <div className="relative">
+          <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2">
+            <div className="bg-green-500/80 backdrop-blur-md border border-green-400/30 rounded-xl shadow-lg">
+              <div className="flex items-center justify-between py-3 px-4">
+                <div className="flex items-center">
+                  <Icon name="FaCheckCircle" className="text-white w-5 h-5 mr-3" size={20} />
+                  <p className="text-sm font-medium text-white">
+                    {trialStatus.paying_clients_count > 0
+                      ? `Free agency account — ${trialStatus.paying_clients_count} client${trialStatus.paying_clients_count !== 1 ? 's' : ''}`
+                      : 'Free agency account'}
+                  </p>
+                </div>
+                <Link
+                  href="/agency/clients"
+                  className="flex-shrink-0 bg-white/20 backdrop-blur-sm border border-white/30 hover:bg-white/30 text-white px-4 py-1.5 rounded-lg text-sm font-medium transition-all duration-200"
+                >
+                  Manage clients
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Agency trial banner - matches TrialBanner style */}
-      {trialStatus && trialStatus.status === 'active' && trialStatus.days_remaining !== undefined && (
+      {trialStatus && !trialStatus.is_free_account && trialStatus.status === 'active' && trialStatus.days_remaining !== undefined && (
         <div className="relative">
           <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2">
             <div className="bg-white/20 backdrop-blur-md border border-white/30 rounded-xl shadow-lg">
@@ -156,7 +183,7 @@ export default function AgencyLayout({
       )}
 
       {/* Trial expired warning */}
-      {trialStatus && trialStatus.status === 'expired' && trialStatus.requires_plan_selection && (
+      {trialStatus && !trialStatus.is_free_account && trialStatus.status === 'expired' && trialStatus.requires_plan_selection && (
         <div className="relative">
           <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2">
             <div className="bg-amber-500/80 backdrop-blur-md border border-amber-400/30 rounded-xl shadow-lg">
@@ -179,8 +206,8 @@ export default function AgencyLayout({
         </div>
       )}
 
-      {/* Free workspace indicator */}
-      {trialStatus && trialStatus.status === 'expired' && !trialStatus.requires_plan_selection && trialStatus.has_paying_client && (
+      {/* Free workspace indicator (for agencies with paying clients) */}
+      {trialStatus && !trialStatus.is_free_account && trialStatus.status === 'expired' && !trialStatus.requires_plan_selection && trialStatus.has_paying_client && (
         <div className="relative">
           <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2">
             <div className="bg-green-500/80 backdrop-blur-md border border-green-400/30 rounded-xl shadow-lg">
