@@ -19,6 +19,7 @@ interface Template {
   message_template: string;
   is_default: boolean;
   is_active: boolean;
+  is_system: boolean;
   created_at: string;
 }
 
@@ -437,6 +438,11 @@ function TemplateCard({
             {template.is_default && (
               <span className="px-2 py-0.5 text-xs bg-slate-blue/10 text-slate-blue rounded-full whitespace-nowrap">
                 Default
+              </span>
+            )}
+            {!template.is_system && (
+              <span className="px-2 py-0.5 text-xs bg-teal-50 text-teal-700 rounded-full whitespace-nowrap">
+                Custom
               </span>
             )}
             <span

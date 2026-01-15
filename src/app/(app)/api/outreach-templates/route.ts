@@ -14,6 +14,7 @@ interface Template {
   message_template: string;
   is_default: boolean;
   is_active: boolean;
+  is_system: boolean;
 }
 
 const VALID_CATEGORIES: TemplateCategory[] = ["initial_ask", "follow_up", "on_behalf_of", "thank_you", "short_simple"];
@@ -128,6 +129,7 @@ export async function POST(request: NextRequest) {
         message_template,
         is_default: false,
         is_active: true,
+        is_system: false, // User-created templates are not system templates
       })
       .select()
       .single();
@@ -193,6 +195,7 @@ Sincerely,
 {{business_name}}`,
       is_default: true,
       is_active: true,
+      is_system: true,
     },
     {
       name: "Mission-driven",
@@ -216,6 +219,7 @@ Gratefully,
 {{business_name}}`,
       is_default: false,
       is_active: true,
+      is_system: true,
     },
     {
       name: "Direct from owner",
@@ -239,6 +243,7 @@ Sincerely,
 {{business_name}}`,
       is_default: false,
       is_active: true,
+      is_system: true,
     },
     // ===== FOLLOW UP =====
     // Reminder templates for following up on initial outreach
@@ -260,6 +265,7 @@ Warmly,
 {{business_name}}`,
       is_default: false,
       is_active: true,
+      is_system: true,
     },
     {
       name: "Second chance",
@@ -281,6 +287,7 @@ Best,
 {{business_name}}`,
       is_default: false,
       is_active: true,
+      is_system: true,
     },
     // ===== ON BEHALF OF =====
     // For agencies or partners reaching out on behalf of a business
@@ -303,6 +310,7 @@ Your review helps {{business_name}} continue doing what they love.
 Thank you for your time!`,
       is_default: false,
       is_active: true,
+      is_system: true,
     },
     {
       name: "Partner introduction",
@@ -323,6 +331,7 @@ Thank you for supporting local business!
 Best regards`,
       is_default: false,
       is_active: true,
+      is_system: true,
     },
     // ===== THANK YOU =====
     // Gratitude-focused templates
@@ -350,6 +359,7 @@ Warmly,
 {{business_name}}`,
       is_default: false,
       is_active: true,
+      is_system: true,
     },
     {
       name: "Heartfelt thanks",
@@ -371,6 +381,7 @@ With gratitude,
 {{business_name}}`,
       is_default: false,
       is_active: true,
+      is_system: true,
     },
     // ===== SHORT & SIMPLE =====
     // Brief, concise templates - great for SMS or quick emails
@@ -382,6 +393,7 @@ With gratitude,
       message_template: "Hi {{customer_name}}! As a small business, reviews from customers like you help us grow. Would you share your experience? {{review_url}} Thank you!",
       is_default: false,
       is_active: true,
+      is_system: true,
     },
     {
       name: "Personal request",
@@ -391,6 +403,7 @@ With gratitude,
       message_template: "Hi {{customer_name}}, thank you for choosing {{business_name}}! A quick review would mean so much to our small team: {{review_url}}",
       is_default: false,
       is_active: true,
+      is_system: true,
     },
     {
       name: "Gentle reminder",
@@ -400,6 +413,7 @@ With gratitude,
       message_template: "Hi {{customer_name}}! Just a gentle reminder - your review would help our small business grow: {{review_url}} Thank you!",
       is_default: false,
       is_active: true,
+      is_system: true,
     },
     {
       name: "Quick follow-up",
@@ -409,6 +423,7 @@ With gratitude,
       message_template: "Hi {{customer_name}}, following up on my earlier message. If you have a sec, we'd love your feedback: {{review_url}} Thanks! - {{business_name}}",
       is_default: false,
       is_active: true,
+      is_system: true,
     },
     {
       name: "Warm thanks",
@@ -418,6 +433,7 @@ With gratitude,
       message_template: "Hi {{customer_name}}! Thank you for supporting {{business_name}}. A quick review would mean so much to our small business: {{review_url}}",
       is_default: false,
       is_active: true,
+      is_system: true,
     },
     {
       name: "On behalf of",
@@ -427,6 +443,7 @@ With gratitude,
       message_template: "Hi {{customer_name}}! Reaching out on behalf of {{business_name}} - as a small business, your review would mean so much: {{review_url}} Thank you!",
       is_default: false,
       is_active: true,
+      is_system: true,
     },
     {
       name: "Quick ask",
@@ -436,6 +453,7 @@ With gratitude,
       message_template: "Hi {{customer_name}}! Quick favor? Leave us a review: {{review_url}} Thanks! - {{business_name}}",
       is_default: false,
       is_active: true,
+      is_system: true,
     },
     {
       name: "Super short",
@@ -445,6 +463,7 @@ With gratitude,
       message_template: "{{customer_name}}, got a minute? {{review_url}} Thanks! - {{business_name}}",
       is_default: false,
       is_active: true,
+      is_system: true,
     },
     // Brief email versions for Short & Simple
     {
@@ -462,6 +481,7 @@ Thank you!
 {{business_name}}`,
       is_default: false,
       is_active: true,
+      is_system: true,
     },
     {
       name: "One minute request",
@@ -477,6 +497,7 @@ Got a minute to share your experience with {{business_name}}?
 Thanks!`,
       is_default: false,
       is_active: true,
+      is_system: true,
     },
   ];
 }
