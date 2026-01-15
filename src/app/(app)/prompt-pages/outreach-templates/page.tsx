@@ -8,7 +8,7 @@ import { Modal } from "@/app/(app)/components/ui/modal";
 import { Textarea } from "@/app/(app)/components/ui/textarea";
 import PageCard from "@/app/(app)/components/PageCard";
 
-type TemplateCategory = "initial_ask" | "follow_up" | "on_behalf_of" | "thank_you";
+type TemplateCategory = "initial_ask" | "follow_up" | "on_behalf_of" | "thank_you" | "short_simple";
 
 interface Template {
   id: string;
@@ -43,6 +43,7 @@ const CATEGORY_OPTIONS: { value: TemplateCategory; label: string }[] = [
   { value: "follow_up", label: "Follow up" },
   { value: "on_behalf_of", label: "On behalf of" },
   { value: "thank_you", label: "Thank you" },
+  { value: "short_simple", label: "Short & simple" },
 ];
 
 const CATEGORY_STYLES: Record<TemplateCategory, { bg: string; text: string }> = {
@@ -50,6 +51,7 @@ const CATEGORY_STYLES: Record<TemplateCategory, { bg: string; text: string }> = 
   follow_up: { bg: "bg-amber-50", text: "text-amber-700" },
   on_behalf_of: { bg: "bg-green-50", text: "text-green-700" },
   thank_you: { bg: "bg-pink-50", text: "text-pink-700" },
+  short_simple: { bg: "bg-gray-50", text: "text-gray-700" },
 };
 
 const AVAILABLE_VARIABLES = [
