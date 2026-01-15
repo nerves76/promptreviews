@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, Suspense, useCallback } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import SimpleMarketingNav from "@/app/(app)/components/SimpleMarketingNav";
 import { trackSignUp } from '@/utils/analytics';
 import { createClient } from '@/auth/providers/supabase';
+import Turnstile from "@/components/Turnstile";
 
 function SignUpContent() {
   const searchParams = useSearchParams();
@@ -22,6 +23,7 @@ function SignUpContent() {
   const [message, setMessage] = useState("");
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState("");
   const [invitationData, setInvitationData] = useState<{
     inviterName: string;
     businessName: string;
@@ -165,6 +167,13 @@ function SignUpContent() {
       return;
     }
 
+    // Turnstile validation
+    if (!turnstileToken) {
+      setError("Please complete the CAPTCHA verification");
+      setLoading(false);
+      return;
+    }
+
     try {
       
       // Use our new server-side API endpoint
@@ -178,6 +187,7 @@ function SignUpContent() {
           password,
           firstName,
           lastName,
+          turnstileToken,
         }),
       });
 
@@ -463,7 +473,15 @@ function SignUpContent() {
             </div>
           )}
 
-          
+          <div className="flex justify-center">
+            <Turnstile
+              onVerify={(token) => setTurnstileToken(token)}
+              onExpire={() => setTurnstileToken("")}
+              onError={() => setTurnstileToken("")}
+              theme="light"
+            />
+          </div>
+
           <button
             type="submit"
             className="w-full py-3 bg-slate-blue text-white rounded font-semibold hover:bg-slate-blue/90 disabled:opacity-50 disabled:cursor-not-allowed"

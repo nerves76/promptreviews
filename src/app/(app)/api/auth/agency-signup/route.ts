@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceRoleClient } from '@/auth/providers/supabase';
 import { credit, ensureBalanceExists } from '@/lib/credits';
+import { verifyTurnstileToken } from '@/lib/turnstile';
 
 interface AgencySignupRequest {
   // User fields
@@ -22,6 +23,9 @@ interface AgencySignupRequest {
   planToAddClients: 'yes' | 'no';
   expectedClientCount: '1-5' | '6-10' | '11-20' | '20+';
   multiLocationPct: '0' | '25' | '50' | '75_plus';
+
+  // Bot protection
+  turnstileToken?: string;
 }
 
 // Strict rate limiter for signup: 5 attempts per 15 minutes per IP
@@ -69,7 +73,17 @@ export async function POST(request: NextRequest) {
       planToAddClients,
       expectedClientCount,
       multiLocationPct,
+      turnstileToken,
     } = body;
+
+    // Verify Turnstile token (bot protection)
+    const turnstileResult = await verifyTurnstileToken(turnstileToken || '', ip);
+    if (!turnstileResult.success) {
+      return NextResponse.json(
+        { error: turnstileResult.error || 'CAPTCHA verification failed' },
+        { status: 400 }
+      );
+    }
 
     // Validate required user fields
     if (!email || !password || !firstName || !lastName) {

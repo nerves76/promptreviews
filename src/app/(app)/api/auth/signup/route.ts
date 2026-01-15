@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceRoleClient } from '@/auth/providers/supabase';
+import { verifyTurnstileToken } from '@/lib/turnstile';
 
 // Strict rate limiter for signup: 5 attempts per 15 minutes per IP
 const signupRateLimiter = {
@@ -42,8 +43,8 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { email, password, firstName, lastName } = await request.json();
-    
+    const { email, password, firstName, lastName, turnstileToken } = await request.json();
+
     // Validate input
     if (!email || !password || !firstName || !lastName) {
       return NextResponse.json(
@@ -51,7 +52,16 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    
+
+    // Verify Turnstile token (bot protection)
+    const turnstileResult = await verifyTurnstileToken(turnstileToken, ip);
+    if (!turnstileResult.success) {
+      return NextResponse.json(
+        { error: turnstileResult.error || 'CAPTCHA verification failed' },
+        { status: 400 }
+      );
+    }
+
     // Basic validation
     if (password.length < 6) {
       return NextResponse.json(

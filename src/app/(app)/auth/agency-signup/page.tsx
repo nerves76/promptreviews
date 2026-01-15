@@ -5,6 +5,7 @@ import Link from "next/link";
 import SimpleMarketingNav from "@/app/(app)/components/SimpleMarketingNav";
 import { trackSignUp } from '@/utils/analytics';
 import Icon from "@/components/Icon";
+import Turnstile from "@/components/Turnstile";
 
 type AgencyType = 'just_me' | '2_10' | '10_20' | '20_40' | '40_plus';
 type PlanToAddClients = 'yes' | 'no';
@@ -62,6 +63,7 @@ function AgencySignUpContent() {
   const [checkingEmail, setCheckingEmail] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState("");
 
   const canProceedToStep2 = () => {
     return (
@@ -70,7 +72,8 @@ function AgencySignUpContent() {
       email.trim() &&
       password.trim() &&
       password.length >= 6 &&
-      acceptTerms
+      acceptTerms &&
+      turnstileToken
     );
   };
 
@@ -135,6 +138,7 @@ function AgencySignUpContent() {
           planToAddClients,
           expectedClientCount,
           multiLocationPct,
+          turnstileToken,
         }),
       });
 
@@ -347,6 +351,15 @@ function AgencySignUpContent() {
                     Terms of service
                   </a>
                 </label>
+              </div>
+
+              <div className="flex justify-center">
+                <Turnstile
+                  onVerify={(token) => setTurnstileToken(token)}
+                  onExpire={() => setTurnstileToken("")}
+                  onError={() => setTurnstileToken("")}
+                  theme="light"
+                />
               </div>
             </div>
           )}
