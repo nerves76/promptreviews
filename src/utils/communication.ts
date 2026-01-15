@@ -391,3 +391,25 @@ Best regards,
     ];
   }
 }
+
+/**
+ * Apply template variables to a message template
+ * Replaces {{variable_name}} with actual values
+ */
+export function applyTemplateVariables(
+  template: string,
+  variables: {
+    business_name?: string;
+    customer_name?: string;
+    review_url?: string;
+    [key: string]: string | undefined;
+  }
+): string {
+  let result = template;
+  for (const [key, value] of Object.entries(variables)) {
+    if (value !== undefined) {
+      result = result.replace(new RegExp(`\\{\\{${key}\\}\\}`, 'g'), value);
+    }
+  }
+  return result;
+}

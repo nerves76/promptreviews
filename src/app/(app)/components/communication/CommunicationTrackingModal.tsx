@@ -9,6 +9,8 @@ import { Card } from "@/app/(app)/components/ui/card";
 import Icon from "@/components/Icon";
 import CommunicationProcessIndicator from "./CommunicationProcessIndicator";
 import { generateEmailTrackedUrl, generateSmsTrackedUrl } from "@/utils/reviewUrlTracking";
+import TemplateSelector from "./TemplateSelector";
+import { applyTemplateVariables } from "@/utils/communication";
 
 interface Contact {
   id: string;
@@ -96,10 +98,13 @@ export default function CommunicationTrackingModal({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copiedToClipboard, setCopiedToClipboard] = useState(false);
-  
-  // Generate default message based on active tab and prompt page
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | undefined>();
+
+  // Generate default message based on active tab and prompt page (only if no template selected)
   useEffect(() => {
     if (!isOpen) return;
+    // Skip if a template is already selected
+    if (selectedTemplateId) return;
 
     const businessName = promptPage?.location || promptPage?.client_name || 'Our Business';
     const customerName = contact?.first_name || 'there';
@@ -123,7 +128,44 @@ export default function CommunicationTrackingModal({
     } else {
       setMessage(baseMessage);
     }
-  }, [isOpen, activeTab, contact, promptPage]);
+  }, [isOpen, activeTab, contact, promptPage, selectedTemplateId]);
+
+  // Reset template selection when tab changes
+  useEffect(() => {
+    setSelectedTemplateId(undefined);
+  }, [activeTab]);
+
+  // Handle template selection
+  const handleTemplateSelect = (template: {
+    id: string;
+    name: string;
+    subject_template?: string;
+    message_template: string;
+  }) => {
+    setSelectedTemplateId(template.id);
+
+    const businessName = promptPage?.location || promptPage?.client_name || 'Our Business';
+    const customerName = contact?.first_name || 'there';
+    const baseUrl = window.location.origin;
+    const reviewUrl = activeTab === 'email'
+      ? generateEmailTrackedUrl(baseUrl, promptPage?.slug)
+      : generateSmsTrackedUrl(baseUrl, promptPage?.slug);
+
+    // Apply template variables
+    const variables = {
+      business_name: businessName,
+      customer_name: customerName,
+      review_url: reviewUrl,
+    };
+
+    const processedMessage = applyTemplateVariables(template.message_template, variables);
+    setMessage(processedMessage);
+
+    if (activeTab === 'email' && template.subject_template) {
+      const processedSubject = applyTemplateVariables(template.subject_template, variables);
+      setSubject(processedSubject);
+    }
+  };
 
   const handleCopyToClipboard = async () => {
     try {
@@ -298,6 +340,13 @@ export default function CommunicationTrackingModal({
                 <p className="text-sm text-red-600">{error}</p>
               </div>
             )}
+
+            {/* Template Selector */}
+            <TemplateSelector
+              communicationType={activeTab}
+              onSelect={handleTemplateSelect}
+              selectedTemplateId={selectedTemplateId}
+            />
 
             {/* Email Subject (for emails only) */}
             {activeTab === 'email' && (

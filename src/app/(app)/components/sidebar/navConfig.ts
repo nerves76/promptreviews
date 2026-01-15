@@ -40,6 +40,12 @@ export const REVIEWS_SECTION: NavSection = {
       description: "Create review collection pages",
     },
     {
+      path: "/prompt-pages/outreach-templates",
+      label: "Outreach Templates",
+      icon: "FaEnvelope",
+      description: "Manage message templates",
+    },
+    {
       path: "/dashboard/reviews",
       label: "Reviews",
       icon: "FaStar",

@@ -6,6 +6,8 @@ import { XMarkIcon } from "@heroicons/react/24/outline";
 import { Button } from "@/app/(app)/components/ui/button";
 import { Textarea } from "@/app/(app)/components/ui/textarea";
 import Icon from "@/components/Icon";
+import TemplateSelector from "./TemplateSelector";
+import { applyTemplateVariables } from "@/utils/communication";
 
 interface SharePromptPageModalProps {
   isOpen: boolean;
@@ -26,10 +28,13 @@ export default function SharePromptPageModal({
   const [subject, setSubject] = useState('');
   const [message, setMessage] = useState('');
   const [copiedToClipboard, setCopiedToClipboard] = useState(false);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | undefined>();
 
-  // Generate default message based on active tab
+  // Generate default message based on active tab (only if no template is selected)
   useEffect(() => {
     if (!isOpen) return;
+    // Skip if a template is already selected
+    if (selectedTemplateId) return;
 
     const baseMessage = activeTab === 'sms'
       ? `Hi! I'd love to get your feedback on ${businessName}. Please leave a review here: ${promptPageUrl}`
@@ -41,7 +46,37 @@ export default function SharePromptPageModal({
     } else {
       setMessage(baseMessage);
     }
-  }, [isOpen, activeTab, promptPageUrl, businessName]);
+  }, [isOpen, activeTab, promptPageUrl, businessName, selectedTemplateId]);
+
+  // Reset template selection when tab changes
+  useEffect(() => {
+    setSelectedTemplateId(undefined);
+  }, [activeTab]);
+
+  // Handle template selection
+  const handleTemplateSelect = (template: {
+    id: string;
+    name: string;
+    subject_template?: string;
+    message_template: string;
+  }) => {
+    setSelectedTemplateId(template.id);
+
+    // Apply template variables
+    const variables = {
+      business_name: businessName,
+      customer_name: "there", // Generic greeting for universal pages
+      review_url: promptPageUrl,
+    };
+
+    const processedMessage = applyTemplateVariables(template.message_template, variables);
+    setMessage(processedMessage);
+
+    if (activeTab === 'email' && template.subject_template) {
+      const processedSubject = applyTemplateVariables(template.subject_template, variables);
+      setSubject(processedSubject);
+    }
+  };
 
   const handleCopyToClipboard = async () => {
     try {
@@ -135,6 +170,13 @@ export default function SharePromptPageModal({
           </div>
 
           <div className="p-6 space-y-4">
+            {/* Template Selector */}
+            <TemplateSelector
+              communicationType={activeTab}
+              onSelect={handleTemplateSelect}
+              selectedTemplateId={selectedTemplateId}
+            />
+
             {/* Email Subject (for emails only) */}
             {activeTab === 'email' && (
               <div>
