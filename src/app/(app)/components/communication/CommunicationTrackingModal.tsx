@@ -348,6 +348,13 @@ export default function CommunicationTrackingModal({
               selectedTemplateId={selectedTemplateId}
             />
 
+            {/* SMS Tip */}
+            {activeTab === 'sms' && (
+              <p className="text-xs text-gray-500">
+                Tip: The "Short & simple" category has templates designed for SMS.
+              </p>
+            )}
+
             {/* Email Subject (for emails only) */}
             {activeTab === 'email' && (
               <div>
