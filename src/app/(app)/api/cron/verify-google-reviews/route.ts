@@ -7,8 +7,11 @@
  * Runs daily via Vercel Cron
  */
 
-export const maxDuration = 60; // Increased for API calls
+export const maxDuration = 55; // Leave buffer before Vercel timeout
 export const dynamic = 'force-dynamic';
+
+const MAX_ACCOUNTS_PER_RUN = 3; // Limit accounts to avoid timeout
+const MAX_SUBMISSIONS_PER_ACCOUNT = 10;
 
 import { NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
@@ -67,10 +70,17 @@ export async function GET(request: NextRequest) {
     let checked = 0;
     let accountsWithGbp = 0;
     let accountsWithoutGbp = 0;
+    let accountsProcessed = 0;
+    let accountsSkipped = 0;
     const errors: string[] = [];
 
-    // Process each account
+    // Process each account (limited to avoid timeout)
     for (const [accountId, submissions] of byAccount.entries()) {
+      // Limit accounts per run to avoid timeout
+      if (accountsProcessed >= MAX_ACCOUNTS_PER_RUN) {
+        accountsSkipped++;
+        continue;
+      }
       // Check if account has connected GBP
       const { data: gbpProfile } = await supabase
         .from('google_business_profiles')
@@ -94,6 +104,7 @@ export async function GET(request: NextRequest) {
       }
 
       accountsWithGbp++;
+      accountsProcessed++;
 
       // Get selected locations for this account
       const { data: locations } = await supabase
@@ -157,8 +168,9 @@ export async function GET(request: NextRequest) {
         continue;
       }
 
-      // Match submissions against Google reviews
-      for (const submission of submissions) {
+      // Match submissions against Google reviews (limited per account)
+      const submissionsToProcess = submissions.slice(0, MAX_SUBMISSIONS_PER_ACCOUNT);
+      for (const submission of submissionsToProcess) {
         checked++;
         const reviewerName = `${submission.first_name || ''} ${submission.last_name || ''}`.trim();
 
@@ -222,10 +234,12 @@ export async function GET(request: NextRequest) {
         verified,
         checked,
         accounts: byAccount.size,
+        accountsProcessed,
+        accountsSkipped,
         accountsWithGbp,
         accountsWithoutGbp,
         errors: errors.length > 0 ? errors : undefined,
-        version: 'v7-live-api',
+        version: 'v8-live-api-throttled',
       },
     };
   });
