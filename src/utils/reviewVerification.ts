@@ -187,30 +187,31 @@ export function calculateReviewMatch(input: ReviewMatchInput): ReviewMatchResult
   const dateInRange = isDateInRange(
     input.submittedDate,
     input.googlePostedDate,
-    7 // Max 7 days apart
+    14 // Max 14 days apart (increased from 7)
   );
 
-  // Weighted score: Name 30%, Text 50%, Date 20%
+  // TEXT-FOCUSED matching: Text is the primary indicator
+  // Names can differ between prompt page submission and Google account
+  // Weighted score: Text 85%, Date 10%, Name 5% (bonus only)
   const score = (
-    (nameScore * 0.3) +
-    (textScore * 0.5) +
-    (dateInRange ? 0.2 : 0)
+    (textScore * 0.85) +
+    (dateInRange ? 0.10 : 0) +
+    (nameScore * 0.05)
   );
 
-  // Determine match and confidence
+  // Determine match and confidence based primarily on text similarity
   let isMatch = false;
   let confidence: 'high' | 'medium' | 'low' = 'low';
 
-  if (score >= 0.85) {
+  // High confidence: Strong text match (70%+ similarity)
+  if (textScore >= 0.70) {
     isMatch = true;
-    confidence = 'high';
-  } else if (score >= 0.70) {
+    confidence = textScore >= 0.85 ? 'high' : 'medium';
+  }
+  // Medium confidence: Decent text match with date in range
+  else if (textScore >= 0.55 && dateInRange) {
     isMatch = true;
     confidence = 'medium';
-  } else if (score >= 0.60) {
-    // Potential match - needs manual review
-    isMatch = false;
-    confidence = 'low';
   }
 
   return {

@@ -1,14 +1,13 @@
 /**
- * Cron job for Google review verification (LIGHTWEIGHT FALLBACK)
+ * Cron job for Google review verification
  *
- * PRIMARY verification happens at import time in reviewSyncService.ts
- * This cron is a fallback that matches against already-imported reviews.
- * No Google API calls - just database queries.
+ * Fetches reviews directly from Google API for accounts with connected GBP.
+ * Does NOT require reviews to be imported first.
  *
  * Runs daily via Vercel Cron
  */
 
-export const maxDuration = 30;
+export const maxDuration = 60; // Increased for API calls
 export const dynamic = 'force-dynamic';
 
 import { NextRequest } from 'next/server';
@@ -16,6 +15,7 @@ import { createClient } from '@supabase/supabase-js';
 import { logCronExecution, verifyCronSecret } from '@/lib/cronLogger';
 import { findBestMatch } from '@/utils/reviewVerification';
 import { sendNotificationToAccount } from '@/utils/notifications';
+import { GoogleBusinessProfileClient } from '@/features/social-posting/platforms/google-business-profile/googleBusinessProfileClient';
 import * as Sentry from '@sentry/nextjs';
 
 const supabase = createClient(
@@ -39,11 +39,11 @@ export async function GET(request: NextRequest) {
       .not('review_text_copy', 'is', null)
       .lt('verification_attempts', 5)
       .order('submitted_at', { ascending: false })
-      .limit(20);
+      .limit(50);
 
     if (fetchError) {
       Sentry.captureException(fetchError);
-      throw new Error('Database error');
+      throw new Error('Database error fetching pending submissions');
     }
 
     if (!pendingSubmissions || pendingSubmissions.length === 0) {
@@ -65,19 +65,22 @@ export async function GET(request: NextRequest) {
 
     let verified = 0;
     let checked = 0;
+    let accountsWithGbp = 0;
+    let accountsWithoutGbp = 0;
+    const errors: string[] = [];
 
     // Process each account
     for (const [accountId, submissions] of byAccount.entries()) {
-      // Get imported Google reviews for this account (from database, not API)
-      const { data: importedReviews } = await supabase
-        .from('review_submissions')
-        .select('google_review_id, first_name, last_name, review_content, submitted_at, star_rating')
+      // Check if account has connected GBP
+      const { data: gbpProfile } = await supabase
+        .from('google_business_profiles')
+        .select('access_token, refresh_token, expires_at')
         .eq('account_id', accountId)
-        .eq('imported_from_google', true)
-        .not('google_review_id', 'is', null);
+        .maybeSingle();
 
-      if (!importedReviews || importedReviews.length === 0) {
-        // Increment attempts for submissions with no imported reviews to match against
+      if (!gbpProfile) {
+        // No GBP connected - increment attempts
+        accountsWithoutGbp++;
         for (const sub of submissions) {
           await supabase
             .from('review_submissions')
@@ -90,28 +93,84 @@ export async function GET(request: NextRequest) {
         continue;
       }
 
-      // Convert to format expected by findBestMatch
-      const googleReviews = importedReviews.map(r => ({
-        reviewId: r.google_review_id,
-        reviewer: { displayName: `${r.first_name || ''} ${r.last_name || ''}`.trim() },
-        comment: r.review_content,
-        createTime: r.submitted_at,
-        starRating: r.star_rating ? ['ONE', 'TWO', 'THREE', 'FOUR', 'FIVE'][r.star_rating - 1] : undefined
-      }));
+      accountsWithGbp++;
 
+      // Get selected locations for this account
+      const { data: locations } = await supabase
+        .from('google_business_locations')
+        .select('location_id, location_name')
+        .eq('account_id', accountId);
+
+      if (!locations || locations.length === 0) {
+        // No locations selected - increment attempts
+        for (const sub of submissions) {
+          await supabase
+            .from('review_submissions')
+            .update({
+              verification_attempts: (sub.verification_attempts ?? 0) + 1,
+              last_verification_attempt_at: new Date().toISOString(),
+            })
+            .eq('id', sub.id);
+        }
+        continue;
+      }
+
+      // Create GBP client
+      let client: GoogleBusinessProfileClient;
+      try {
+        client = new GoogleBusinessProfileClient({
+          accessToken: gbpProfile.access_token,
+          refreshToken: gbpProfile.refresh_token ?? '',
+          expiresAt: gbpProfile.expires_at ? new Date(gbpProfile.expires_at).getTime() : undefined,
+        });
+      } catch (clientError) {
+        console.error(`Failed to create GBP client for account ${accountId}:`, clientError);
+        errors.push(`Account ${accountId}: Failed to create GBP client`);
+        continue;
+      }
+
+      // Fetch reviews from all locations
+      const allGoogleReviews: any[] = [];
+      for (const location of locations) {
+        try {
+          const reviews = await client.getReviews(location.location_id);
+          if (reviews && reviews.length > 0) {
+            allGoogleReviews.push(...reviews);
+          }
+        } catch (reviewError) {
+          console.error(`Failed to fetch reviews for location ${location.location_id}:`, reviewError);
+          // Continue with other locations
+        }
+      }
+
+      if (allGoogleReviews.length === 0) {
+        // No reviews found in Google - increment attempts
+        for (const sub of submissions) {
+          await supabase
+            .from('review_submissions')
+            .update({
+              verification_attempts: (sub.verification_attempts ?? 0) + 1,
+              last_verification_attempt_at: new Date().toISOString(),
+            })
+            .eq('id', sub.id);
+        }
+        continue;
+      }
+
+      // Match submissions against Google reviews
       for (const submission of submissions) {
         checked++;
         const reviewerName = `${submission.first_name || ''} ${submission.last_name || ''}`.trim();
 
-        if (!reviewerName || !submission.review_text_copy) continue;
+        if (!submission.review_text_copy) continue;
 
         const match = findBestMatch(
           {
-            reviewerName,
+            reviewerName: reviewerName || 'Anonymous',
             reviewText: submission.review_text_copy,
             submittedDate: new Date(submission.submitted_at),
           },
-          googleReviews
+          allGoogleReviews
         );
 
         if (match?.isMatch) {
@@ -132,7 +191,6 @@ export async function GET(request: NextRequest) {
 
           // Send notification to all account users
           try {
-            const reviewerName = `${submission.first_name || ''} ${submission.last_name || ''}`.trim();
             await sendNotificationToAccount(accountId, 'review_auto_verified', {
               reviewerName: reviewerName || 'A customer',
               reviewContent: submission.review_text_copy || '',
@@ -164,7 +222,10 @@ export async function GET(request: NextRequest) {
         verified,
         checked,
         accounts: byAccount.size,
-        version: 'v6-database-only',
+        accountsWithGbp,
+        accountsWithoutGbp,
+        errors: errors.length > 0 ? errors : undefined,
+        version: 'v7-live-api',
       },
     };
   });

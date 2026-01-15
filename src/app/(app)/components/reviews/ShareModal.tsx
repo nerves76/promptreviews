@@ -22,7 +22,7 @@ import {
   getCharacterInfo,
   PLATFORM_LIMITS,
 } from './utils/shareTextBuilder';
-import { createClient } from '@/auth/providers/supabase';
+import { apiClient } from '@/utils/apiClient';
 
 export interface Review {
   id: string;
@@ -107,40 +107,18 @@ export default function ShareModal({
       setGeneratedImageUrl(null);
 
       try {
-        const supabase = createClient();
-        const { data: { session } } = await supabase.auth.getSession();
-        console.log('[ShareModal] Session exists:', !!session);
-        if (!session) {
-          console.error('[ShareModal] No session available');
-          setImageError(true);
-          setImageLoading(false);
-          return;
-        }
-
         console.log('[ShareModal] Calling generate-image API...');
-        const response = await fetch('/api/review-shares/generate-image', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session.access_token}`,
-          },
-          body: JSON.stringify({
-            review_id: review.id,
-            regenerate: true, // Always regenerate to get latest design
-          }),
+        const payload = await apiClient.post<{
+          success: boolean;
+          image_url?: string;
+          message?: string;
+          fallback?: boolean;
+          details?: string;
+        }>('/review-shares/generate-image', {
+          review_id: review.id,
+          regenerate: true, // Always regenerate to get latest design
         });
 
-        console.log('[ShareModal] API response status:', response.status);
-        const responseText = await response.text();
-        console.log('[ShareModal] API response text:', responseText);
-
-        let payload;
-        try {
-          payload = JSON.parse(responseText);
-        } catch (e) {
-          console.error('[ShareModal] Failed to parse response as JSON:', responseText);
-          payload = null;
-        }
         console.log('[ShareModal] API response payload:', payload);
 
         if (!cancelled) {
@@ -206,14 +184,7 @@ export default function ShareModal({
     if (!confirm('Delete this share record?')) return;
 
     try {
-      const response = await fetch(`/api/review-shares?shareId=${shareId}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete share');
-      }
-
+      await apiClient.delete(`/review-shares?shareId=${shareId}`);
       // Remove from local state
       setShareHistory((prev) => prev.filter((item) => item.id !== shareId));
     } catch (error) {
@@ -264,15 +235,19 @@ export default function ShareModal({
     const fetchHistory = async () => {
       try {
         setHistoryLoading(true);
-        const response = await fetch(`/api/review-shares?reviewId=${review.id}`);
+        const data = await apiClient.get<{
+          review_id: string;
+          total_shares: number;
+          shares_by_platform: Array<{ platform: string; count: number; last_shared_at: string }>;
+          events: ShareHistoryItem[];
+          shares?: ShareHistoryItem[];
+        }>(`/review-shares?reviewId=${review.id}`);
 
-        if (response.ok) {
-          const data = await response.json();
-          setShareHistory(data.shares || []);
-          // Auto-expand if there's history
-          if (data.shares && data.shares.length > 0) {
-            setHistoryExpanded(true);
-          }
+        const shares = data.shares || data.events || [];
+        setShareHistory(shares);
+        // Auto-expand if there's history
+        if (shares.length > 0) {
+          setHistoryExpanded(true);
         }
       } catch (error) {
         console.error('Error fetching share history:', error);

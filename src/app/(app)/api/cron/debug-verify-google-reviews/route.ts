@@ -12,6 +12,17 @@ export async function GET(request: NextRequest) {
   if (authError) return authError;
 
   return logCronExecution('debug-verify-google-reviews', async () => {
+    // First, get all unique platforms to debug potential naming issues
+    const { data: allPlatforms } = await supabase
+      .from('review_submissions')
+      .select('platform')
+      .not('platform', 'is', null);
+
+    const platformCounts: Record<string, number> = {};
+    for (const r of allPlatforms || []) {
+      platformCounts[r.platform] = (platformCounts[r.platform] || 0) + 1;
+    }
+
     // Get ALL Google Business Profile reviews with imported_from_google field
     const { data: allReviews, count: totalGoogleCount } = await supabase
       .from('review_submissions')
@@ -82,6 +93,7 @@ export async function GET(request: NextRequest) {
           promptPageSubmissions: 'Reviews submitted via Prompt Pages (candidates for auto-verify)',
           autoVerifyLogic: 'Cron matches pending Prompt Page submissions against imported Google reviews',
         },
+        allPlatformsInDb: platformCounts,
         stats,
         byAccount,
         eligibleForVerification: eligibleForVerification.length,
