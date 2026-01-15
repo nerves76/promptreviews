@@ -167,79 +167,123 @@ async function createDefaultTemplatesForAccount(accountId: string, supabase: any
 }
 
 // Default template content organized by category
+// Focus: How reviews help small businesses grow
 function getDefaultTemplateContent() {
   return [
     // ===== INITIAL ASK - Email =====
     {
-      name: "Initial review request",
+      name: "Personal impact",
       communication_type: "email",
       template_type: "initial_ask",
-      subject_template: "{{business_name}} would love your feedback!",
+      subject_template: "Your experience could help us grow",
       message_template: `Hi {{customer_name}},
 
-Thank you for choosing {{business_name}}! We hope you had a great experience.
+As a small business, we don't have huge advertising budgets or big marketing campaigns. What we have are real customers like you sharing real experiences.
 
-We'd love to hear your feedback. Would you take a moment to leave us a review?
+A quick review from you would directly help us grow and continue doing what we love.
 
+If you're willing, it only takes about 60 seconds:
 {{review_url}}
 
-Your review helps us improve and helps others find us!
+Thank you for being part of our story.
 
-Best regards,
-{{business_name}} Team`,
+Sincerely,
+{{business_name}}`,
       is_default: true,
       is_active: true,
     },
     {
-      name: "Service completion",
+      name: "Mission-driven",
       communication_type: "email",
       template_type: "initial_ask",
-      subject_template: "How did we do? - {{business_name}}",
+      subject_template: "Help a small team make a big impact",
       message_template: `Hi {{customer_name}},
 
-We hope everything went well with your recent visit to {{business_name}}.
+We started {{business_name}} with a simple goal: to take great care of people and do work we're proud of.
 
-We'd love your honest feedback: {{review_url}}
+Reviews from customers like you are what allow that mission to continue.
 
-Thanks for choosing us!
-{{business_name}} Team`,
+When you share your experience, you're not just leaving a rating—you're helping a small, hardworking team grow and serve more people.
+
+If you have a moment, we'd be honored to hear your thoughts:
+{{review_url}}
+
+Thank you for choosing small business!
+
+Gratefully,
+{{business_name}}`,
+      is_default: false,
+      is_active: true,
+    },
+    {
+      name: "Direct from owner",
+      communication_type: "email",
+      template_type: "initial_ask",
+      subject_template: "A personal request",
+      message_template: `Hi {{customer_name}},
+
+I wanted to personally thank you for choosing {{business_name}}.
+
+As a small business, we grow almost entirely through word of mouth and honest reviews from thoughtful customers like you.
+
+If you're willing to take a minute to share your experience, it would mean a great deal to me and to everyone here.
+
+You can leave a review here:
+{{review_url}}
+
+Thank you again for trusting us.
+
+Sincerely,
+{{business_name}}`,
       is_default: false,
       is_active: true,
     },
     // ===== INITIAL ASK - SMS =====
     {
-      name: "Quick review request",
+      name: "Small business ask",
       communication_type: "sms",
       template_type: "initial_ask",
-      subject_template: "{{business_name}} would love your feedback!",
-      message_template: "Hi {{customer_name}}! Thanks for choosing {{business_name}}. We'd love your feedback! {{review_url}}",
+      subject_template: "Your experience could help us grow",
+      message_template: "Hi {{customer_name}}! As a small business, reviews from customers like you help us grow. Would you share your experience? {{review_url}} Thank you!",
       is_default: true,
+      is_active: true,
+    },
+    {
+      name: "Personal request",
+      communication_type: "sms",
+      template_type: "initial_ask",
+      subject_template: "A personal request",
+      message_template: "Hi {{customer_name}}, thank you for choosing {{business_name}}! A quick review would mean so much to our small team: {{review_url}}",
+      is_default: false,
       is_active: true,
     },
     // ===== FOLLOW UP - Email =====
     {
-      name: "Friendly follow-up",
+      name: "Gentle follow-up",
       communication_type: "email",
       template_type: "follow_up",
-      subject_template: "Quick reminder from {{business_name}}",
+      subject_template: "Still hoping to hear from you",
       message_template: `Hi {{customer_name}},
 
-Just a friendly reminder - we'd still love to hear about your experience with {{business_name}}.
+I wanted to follow up on my earlier message. As a small business, every review makes a real difference in helping new customers find us.
 
-Your feedback means a lot to us: {{review_url}}
+If you have just a minute, we'd truly appreciate hearing about your experience:
+{{review_url}}
 
-Thank you!
-{{business_name}} Team`,
+Thank you for supporting small business!
+
+Warmly,
+{{business_name}}`,
       is_default: false,
       is_active: true,
     },
     // ===== FOLLOW UP - SMS =====
     {
-      name: "Friendly follow-up",
+      name: "Gentle follow-up",
       communication_type: "sms",
       template_type: "follow_up",
-      subject_template: "Quick reminder from {{business_name}}",
-      message_template: "Hi {{customer_name}}! Friendly reminder from {{business_name}} - we'd still appreciate your review: {{review_url}} Thank you!",
+      subject_template: "Still hoping to hear from you",
+      message_template: "Hi {{customer_name}}! Just a gentle reminder - your review would help our small business grow: {{review_url}} Thank you!",
       is_default: false,
       is_active: true,
     },
@@ -253,11 +297,12 @@ Thank you!
 
 I'm reaching out on behalf of {{business_name}} to thank you for your recent visit.
 
-They would greatly appreciate hearing about your experience. Would you mind sharing your feedback?
+As a small business, they rely on reviews from customers like you to grow and reach new people.
 
+Would you mind sharing your experience? It only takes about 60 seconds:
 {{review_url}}
 
-Your review helps {{business_name}} continue to provide excellent service.
+Your review helps {{business_name}} continue doing what they love.
 
 Thank you for your time!`,
       is_default: false,
@@ -269,36 +314,43 @@ Thank you for your time!`,
       communication_type: "sms",
       template_type: "on_behalf_of",
       subject_template: "Feedback request for {{business_name}}",
-      message_template: "Hi {{customer_name}}! Reaching out on behalf of {{business_name}} - they'd love to hear your feedback: {{review_url}} Thank you!",
+      message_template: "Hi {{customer_name}}! Reaching out on behalf of {{business_name}} - as a small business, your review would mean so much: {{review_url}} Thank you!",
       is_default: false,
       is_active: true,
     },
     // ===== THANK YOU - Email =====
     {
-      name: "Thank you message",
+      name: "Warm gratitude",
       communication_type: "email",
       template_type: "thank_you",
-      subject_template: "Thank you from {{business_name}}!",
+      subject_template: "A small favor that makes a big difference",
       message_template: `Hi {{customer_name}},
 
-Thank you so much for being a valued customer of {{business_name}}! We truly appreciate your business.
+Running a small business means every customer truly matters.
 
-If you have a moment, we'd be grateful if you could share your experience: {{review_url}}
+That's why I'm reaching out personally.
 
-Your feedback helps us serve you and others better.
+If you have a minute, would you consider sharing a quick review about your experience with us? Reviews help other customers find us online and learn about our services.
 
-With gratitude,
+Your honest feedback would mean more than you might realize.
+
+We use a tool that makes writing and posting reviews super quick & easy. Here's a simple link:
+{{review_url}}
+
+Thank you for supporting a small business and for being the kind of customer we're grateful to have.
+
+Warmly,
 {{business_name}}`,
       is_default: false,
       is_active: true,
     },
     // ===== THANK YOU - SMS =====
     {
-      name: "Thank you message",
+      name: "Warm gratitude",
       communication_type: "sms",
       template_type: "thank_you",
-      subject_template: "Thank you from {{business_name}}!",
-      message_template: "Thank you for choosing {{business_name}}, {{customer_name}}! We'd be grateful for your feedback: {{review_url}}",
+      subject_template: "A small favor that makes a big difference",
+      message_template: "Hi {{customer_name}}! Thank you for supporting {{business_name}}. A quick review would mean so much to our small business: {{review_url}}",
       is_default: false,
       is_active: true,
     },
