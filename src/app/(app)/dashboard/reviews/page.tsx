@@ -34,6 +34,7 @@ interface Review {
   emoji_sentiment_selection?: string;
   verified?: boolean;
   verified_at?: string | null;
+  auto_verification_status?: string | null;
   platform_url?: string;
   imported_from_google?: boolean;
   contact_id?: string;
@@ -461,7 +462,7 @@ export default function ReviewsPage() {
         let reviewsQuery = supabase
           .from("review_submissions")
           .select(
-            "id, prompt_page_id, first_name, last_name, reviewer_role, platform, review_content, created_at, status, emoji_sentiment_selection, verified, verified_at, platform_url, imported_from_google, contact_id, star_rating, location_name, business_location_id, source_channel"
+            "id, prompt_page_id, first_name, last_name, reviewer_role, platform, review_content, created_at, status, emoji_sentiment_selection, verified, verified_at, auto_verification_status, platform_url, imported_from_google, contact_id, star_rating, location_name, business_location_id, source_channel"
           );
 
         // Apply filtering based on account_id
@@ -1237,7 +1238,7 @@ export default function ReviewsPage() {
                     )}
                     {review.verified ? (
                       <span className="ml-2 inline-block px-2 py-1 text-xs bg-green-100 text-green-700 rounded">
-                        Verified
+                        {review.auto_verification_status === 'verified' ? 'Auto-verified' : 'Verified'}
                       </span>
                     ) : (
                       // Show import source for non-verified reviews
