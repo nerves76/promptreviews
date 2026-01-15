@@ -154,26 +154,51 @@ export async function POST(request: NextRequest) {
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3002';
     const ogImageUrl = `${baseUrl}${OG_IMAGE_ENDPOINT}?reviewId=${review_id}`;
 
-    // Fetch the generated OG image (pass auth header for authentication)
-    const imageResponse = await fetch(ogImageUrl, {
-      headers: {
-        'Authorization': authHeader,
-      },
-    });
+    console.log('[generate-image] Fetching OG image from:', ogImageUrl);
+
+    // Fetch the generated OG image with timeout (pass auth header for authentication)
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 25000); // 25 second timeout
+
+    let imageResponse: Response;
+    try {
+      imageResponse = await fetch(ogImageUrl, {
+        headers: {
+          'Authorization': authHeader,
+        },
+        signal: controller.signal,
+      });
+    } catch (fetchError) {
+      clearTimeout(timeoutId);
+      const errorMessage = fetchError instanceof Error ? fetchError.message : 'Unknown fetch error';
+      console.error('[generate-image] Fetch error:', errorMessage);
+      return NextResponse.json(
+        {
+          error: 'Failed to fetch quote card image',
+          fallback: true,
+          message: 'Image generation timed out or failed',
+          details: errorMessage,
+        },
+        { status: 500 }
+      );
+    }
+    clearTimeout(timeoutId);
 
     if (!imageResponse.ok) {
       const errorText = await imageResponse.text();
-      console.error('Failed to generate OG image:', imageResponse.status, imageResponse.statusText, errorText);
+      console.error('[generate-image] OG image error:', imageResponse.status, imageResponse.statusText, errorText);
       return NextResponse.json(
         {
           error: 'Failed to generate quote card image',
           fallback: true,
           message: 'Image generation failed - use text-only share',
-          details: errorText,
+          details: `Status ${imageResponse.status}: ${errorText}`,
         },
         { status: 500 }
       );
     }
+
+    console.log('[generate-image] OG image fetched successfully');
 
     // Get image buffer (use Buffer for Node.js compatibility instead of Blob)
     const imageBuffer = await imageResponse.arrayBuffer();
