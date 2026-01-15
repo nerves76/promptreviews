@@ -8,11 +8,13 @@ import { Modal } from "@/app/(app)/components/ui/modal";
 import { Textarea } from "@/app/(app)/components/ui/textarea";
 import PageCard from "@/app/(app)/components/PageCard";
 
+type TemplateCategory = "initial_ask" | "follow_up" | "on_behalf_of" | "thank_you";
+
 interface Template {
   id: string;
   name: string;
   communication_type: "email" | "sms";
-  template_type: "initial" | "follow_up";
+  template_type: TemplateCategory;
   subject_template?: string;
   message_template: string;
   is_default: boolean;
@@ -23,7 +25,7 @@ interface Template {
 interface TemplateFormData {
   name: string;
   communication_type: "email" | "sms";
-  template_type: "initial" | "follow_up";
+  template_type: TemplateCategory;
   subject_template: string;
   message_template: string;
 }
@@ -31,9 +33,23 @@ interface TemplateFormData {
 const INITIAL_FORM_DATA: TemplateFormData = {
   name: "",
   communication_type: "sms",
-  template_type: "initial",
+  template_type: "initial_ask",
   subject_template: "",
   message_template: "",
+};
+
+const CATEGORY_OPTIONS: { value: TemplateCategory; label: string }[] = [
+  { value: "initial_ask", label: "Initial ask" },
+  { value: "follow_up", label: "Follow up" },
+  { value: "on_behalf_of", label: "On behalf of" },
+  { value: "thank_you", label: "Thank you" },
+];
+
+const CATEGORY_STYLES: Record<TemplateCategory, { bg: string; text: string }> = {
+  initial_ask: { bg: "bg-blue-50", text: "text-blue-700" },
+  follow_up: { bg: "bg-amber-50", text: "text-amber-700" },
+  on_behalf_of: { bg: "bg-green-50", text: "text-green-700" },
+  thank_you: { bg: "bg-pink-50", text: "text-pink-700" },
 };
 
 const AVAILABLE_VARIABLES = [
@@ -283,7 +299,7 @@ export default function OutreachTemplatesPage() {
             </div>
             <div>
               <label htmlFor="template-type" className="block text-sm font-medium text-gray-700 mb-1">
-                Purpose
+                Category
               </label>
               <select
                 id="template-type"
@@ -291,13 +307,16 @@ export default function OutreachTemplatesPage() {
                 onChange={(e) =>
                   setFormData((prev) => ({
                     ...prev,
-                    template_type: e.target.value as "initial" | "follow_up",
+                    template_type: e.target.value as TemplateCategory,
                   }))
                 }
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-blue"
               >
-                <option value="initial">Initial request</option>
-                <option value="follow_up">Follow-up</option>
+                {CATEGORY_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
@@ -420,12 +439,10 @@ function TemplateCard({
             )}
             <span
               className={`px-2 py-0.5 text-xs rounded-full whitespace-nowrap ${
-                template.template_type === "initial"
-                  ? "bg-blue-50 text-blue-700"
-                  : "bg-amber-50 text-amber-700"
-              }`}
+                CATEGORY_STYLES[template.template_type]?.bg || "bg-gray-50"
+              } ${CATEGORY_STYLES[template.template_type]?.text || "text-gray-700"}`}
             >
-              {template.template_type === "initial" ? "Initial" : "Follow-up"}
+              {CATEGORY_OPTIONS.find((c) => c.value === template.template_type)?.label || template.template_type}
             </span>
           </div>
           {template.communication_type === "email" && template.subject_template && (
