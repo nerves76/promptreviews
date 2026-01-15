@@ -167,8 +167,9 @@ function SignUpContent() {
       return;
     }
 
-    // Turnstile validation
-    if (!turnstileToken) {
+    // Turnstile validation (skip in development)
+    const isDev = process.env.NODE_ENV === 'development';
+    if (!turnstileToken && !isDev) {
       setError("Please complete the CAPTCHA verification");
       setLoading(false);
       return;

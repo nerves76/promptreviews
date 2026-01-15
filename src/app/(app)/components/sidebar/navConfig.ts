@@ -12,7 +12,7 @@ export const TOP_NAV_ITEMS: NavItem[] = [
   },
   {
     path: "/dashboard/business-profile",
-    label: "Business profile",
+    label: "Business Profile",
     icon: "FaStore",
     description: "Edit your business details",
   },
@@ -29,7 +29,7 @@ export const TOP_NAV_ITEMS: NavItem[] = [
  */
 export const REVIEWS_SECTION: NavSection = {
   id: "reviews",
-  label: "Get reviews",
+  label: "Get Reviews",
   icon: "FaStar",
   collapsible: false,
   items: [
@@ -84,7 +84,7 @@ export const GOOGLE_BUSINESS_SECTION: NavSection = {
     },
     {
       path: "/dashboard/social-posting",
-      label: "Post scheduling",
+      label: "Post Scheduling",
       icon: "FaCalendarAlt",
       description: "Queue and schedule posts",
       requiresBusiness: true,
@@ -98,7 +98,7 @@ export const GOOGLE_BUSINESS_SECTION: NavSection = {
     },
     {
       path: "/dashboard/rss-feeds",
-      label: "RSS feeds",
+      label: "RSS Feeds",
       icon: "FaRss",
       description: "Auto post from RSS to GBP, LinkedIn, and Blue Sky.",
       requiresBusiness: true,
@@ -111,7 +111,7 @@ export const GOOGLE_BUSINESS_SECTION: NavSection = {
  */
 export const SEO_VISIBILITY_SECTION: NavSection = {
   id: "seo-visibility",
-  label: "SEO & AI visibility",
+  label: "SEO & AI Visibility",
   icon: "FaChartLine",
   collapsible: false,
   items: [
@@ -131,7 +131,7 @@ export const SEO_VISIBILITY_SECTION: NavSection = {
     },
     {
       path: "/dashboard/local-ranking-grids",
-      label: "Local ranking grids",
+      label: "Local Ranking Grids",
       icon: "FaMapMarker",
       description: "Track local search rankings",
       requiresBusiness: true,
@@ -145,7 +145,7 @@ export const SEO_VISIBILITY_SECTION: NavSection = {
     },
     {
       path: "/dashboard/keywords/rank-tracking",
-      label: "Rank tracking",
+      label: "Rank Tracking",
       icon: "FaChartLine",
       description: "Track rankings in Google",
       requiresBusiness: true,

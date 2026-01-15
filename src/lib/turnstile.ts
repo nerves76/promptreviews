@@ -31,15 +31,16 @@ export async function verifyTurnstileToken(
   token: string,
   ip?: string
 ): Promise<VerifyResult> {
+  // Skip verification entirely in development mode
+  if (process.env.NODE_ENV === "development") {
+    console.warn("Turnstile: Skipping verification in development mode");
+    return { success: true };
+  }
+
   const secretKey = process.env.TURNSTILE_SECRET_KEY;
 
   if (!secretKey) {
     console.error("Turnstile: TURNSTILE_SECRET_KEY is not configured");
-    // In development without keys, allow signup
-    if (process.env.NODE_ENV === "development") {
-      console.warn("Turnstile: Skipping verification in development mode");
-      return { success: true };
-    }
     return { success: false, error: "CAPTCHA verification is not configured" };
   }
 
