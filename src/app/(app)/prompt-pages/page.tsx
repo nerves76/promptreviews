@@ -28,6 +28,7 @@ import LocationCard from "@/app/(app)/components/LocationCard";
 import { BusinessLocation, LocationWithPromptPage } from "@/types/business";
 import { hasLocationAccess, formatLocationAddress, getLocationDisplayName } from "@/utils/locationUtils";
 import CommunicationButtons from "@/app/(app)/components/communication/CommunicationButtons";
+import SharePromptPageModal from "@/app/(app)/components/communication/SharePromptPageModal";
 import WelcomePopup from "@/app/(app)/components/WelcomePopup";
 import HelpModal from "@/app/(app)/components/help/HelpModal";
 
@@ -113,6 +114,12 @@ function PromptPagesContent() {
     open: boolean;
     slug: string;
     isUniversal: boolean;
+  } | null>(null);
+  const [shareModal, setShareModal] = useState<{
+    open: boolean;
+    url: string;
+    businessName: string;
+    initialTab: 'email' | 'sms';
   } | null>(null);
   const [selectedFrameSize, setSelectedFrameSize] = useState(QR_FRAME_SIZES[0]);
   const [selectedPages, setSelectedPages] = useState<string[]>([]);
@@ -967,10 +974,12 @@ function PromptPagesContent() {
                         <button
                           type="button"
                           onClick={() => {
-                            const businessName = business?.name || "your business";
-                            const reviewUrl = `${window.location.origin}/r/${universalPromptPage.slug}`;
-                            const message = `Hi! I'd love to get your feedback on ${businessName}. Please leave a review here: ${reviewUrl}`;
-                            window.location.href = `sms:?&body=${encodeURIComponent(message)}`;
+                            setShareModal({
+                              open: true,
+                              url: `${window.location.origin}/r/${universalPromptPage.slug}`,
+                              businessName: business?.name || "your business",
+                              initialTab: 'sms'
+                            });
                           }}
                           className="inline-flex items-center gap-1 px-3 py-1.5 bg-white/20 backdrop-blur-sm text-white rounded hover:bg-white/30 text-sm font-medium border border-white/30 h-9 align-middle whitespace-nowrap transition-colors"
                         >
@@ -980,11 +989,12 @@ function PromptPagesContent() {
                       <button
                         type="button"
                         onClick={() => {
-                          const businessName = business?.name || "your business";
-                          const reviewUrl = `${window.location.origin}/r/${universalPromptPage.slug}`;
-                          const subject = "Please leave a review";
-                          const message = `Hi,\n\nI'd love to get your feedback on ${businessName}. Please leave a review here: ${reviewUrl}\n\nThank you!`;
-                          window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}`;
+                          setShareModal({
+                            open: true,
+                            url: `${window.location.origin}/r/${universalPromptPage.slug}`,
+                            businessName: business?.name || "your business",
+                            initialTab: 'email'
+                          });
                         }}
                         className="inline-flex items-center gap-1 px-3 py-1.5 bg-white/20 backdrop-blur-sm text-white rounded hover:bg-white/30 text-sm font-medium border border-white/30 h-9 align-middle whitespace-nowrap transition-colors"
                       >
@@ -1069,6 +1079,15 @@ function PromptPagesContent() {
             slug={embedModal?.slug || ""}
             isUniversal={embedModal?.isUniversal || false}
             business={business}
+          />
+
+          {/* Share Prompt Page Modal */}
+          <SharePromptPageModal
+            isOpen={shareModal?.open || false}
+            onClose={() => setShareModal(null)}
+            promptPageUrl={shareModal?.url || ""}
+            businessName={shareModal?.businessName}
+            initialTab={shareModal?.initialTab}
           />
         </div>
       )}
