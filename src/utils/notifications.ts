@@ -413,6 +413,9 @@ export async function sendNotificationToAccount(
       .select('user_id')
       .eq('account_id', accountId);
 
+    // Debug logging to catch duplicate email issues
+    console.log(`[Notification] sendNotificationToAccount: accountId=${accountId}, type=${type}, usersFound=${accountUsers?.length || 0}`);
+
     // Get account first name (for email personalization)
     const { data: account } = await supabase
       .from('accounts')
@@ -434,6 +437,8 @@ export async function sendNotificationToAccount(
       }
     }
     const emails = [...emailSet];
+
+    console.log(`[Notification] sendNotificationToAccount: accountId=${accountId}, emailsToSend=${emails.length}, emails=${emails.join(',')}`);
 
     // Create in-app notification (visible to all users)
     const config = NOTIFICATION_REGISTRY[type];
