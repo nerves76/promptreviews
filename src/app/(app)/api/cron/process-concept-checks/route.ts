@@ -107,14 +107,12 @@ export async function GET(request: NextRequest) {
             await serviceSupabase.from('rank_checks').insert({
               account_id: run.account_id,
               keyword_id: run.keyword_id,
-              search_query: termObj.term,
+              search_query_used: termObj.term,
               location_code: locationCode,
               device,
               position: result.position,
-              found: result.found,
               found_url: result.url,
               checked_at: new Date().toISOString(),
-              triggered_by: 'manual',
             });
           }
         }
