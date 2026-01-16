@@ -510,4 +510,239 @@ ${whyText}
     fallbackHtml,
     fallbackText
   });
+}
+
+/**
+ * Send ownership transfer initiated email to target user
+ */
+export async function sendOwnershipTransferInitiatedEmail(
+  targetEmail: string,
+  targetFirstName: string,
+  fromUserName: string,
+  businessName: string,
+  expirationDate: string
+): Promise<{ success: boolean; error?: string }> {
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.promptreviews.app';
+  const teamUrl = `${baseUrl}/dashboard/team`;
+
+  const fallbackHtml = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <h2 style="color: #2E4A7D; margin-bottom: 20px;">Ownership Transfer Request</h2>
+
+      <p style="color: #475569; margin-bottom: 20px;">
+        Hi ${targetFirstName},
+      </p>
+
+      <p style="color: #475569; margin-bottom: 20px;">
+        <strong>${fromUserName}</strong> wants to transfer ownership of <strong>${businessName}</strong> to you.
+      </p>
+
+      <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #2E4A7D;">
+        <p style="margin: 0 0 10px 0; font-weight: bold; color: #1e293b;">
+          What this means:
+        </p>
+        <ul style="color: #475569; margin: 0; padding-left: 20px;">
+          <li>You will become the account owner</li>
+          <li>You will have full control over billing and team management</li>
+          <li>${fromUserName} will become a team member</li>
+        </ul>
+      </div>
+
+      <p style="color: #64748b; font-size: 14px; margin-bottom: 20px;">
+        This request expires on <strong>${expirationDate}</strong>.
+      </p>
+
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="${teamUrl}"
+           style="background: #2E4A7D; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold;">
+          Review Transfer Request
+        </a>
+      </div>
+
+      <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 30px 0;">
+
+      <p style="color: #94a3b8; font-size: 12px; text-align: center;">
+        Prompt Reviews | <a href="${teamUrl}" style="color: #94a3b8;">Team Management</a>
+      </p>
+    </div>
+  `;
+
+  const fallbackText = `
+Ownership Transfer Request
+
+Hi ${targetFirstName},
+
+${fromUserName} wants to transfer ownership of ${businessName} to you.
+
+What this means:
+- You will become the account owner
+- You will have full control over billing and team management
+- ${fromUserName} will become a team member
+
+This request expires on ${expirationDate}.
+
+Review the request: ${teamUrl}
+  `;
+
+  return sendTemplatedEmail({
+    templateName: 'ownership_transfer_initiated',
+    to: targetEmail,
+    variables: {
+      firstName: targetFirstName,
+      fromUserName,
+      businessName,
+      expirationDate,
+      teamUrl
+    },
+    fallbackSubject: `${fromUserName} wants to transfer ownership of ${businessName} to you`,
+    fallbackHtml,
+    fallbackText
+  });
+}
+
+/**
+ * Send ownership transfer accepted email to both parties
+ */
+export async function sendOwnershipTransferAcceptedEmail(
+  email: string,
+  firstName: string,
+  businessName: string,
+  isFormer: boolean
+): Promise<{ success: boolean; error?: string }> {
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.promptreviews.app';
+  const teamUrl = `${baseUrl}/dashboard/team`;
+
+  const headline = isFormer
+    ? 'Ownership Transfer Completed'
+    : 'You Are Now the Account Owner';
+
+  const mainMessage = isFormer
+    ? `The ownership transfer for <strong>${businessName}</strong> has been completed. You are now a team member on this account.`
+    : `Congratulations! You are now the owner of <strong>${businessName}</strong>. You have full control over billing and team management.`;
+
+  const fallbackHtml = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <h2 style="color: #16a34a; margin-bottom: 20px;">${headline}</h2>
+
+      <p style="color: #475569; margin-bottom: 20px;">
+        Hi ${firstName},
+      </p>
+
+      <p style="color: #475569; margin-bottom: 20px;">
+        ${mainMessage}
+      </p>
+
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="${teamUrl}"
+           style="background: #2E4A7D; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold;">
+          View Team
+        </a>
+      </div>
+
+      <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 30px 0;">
+
+      <p style="color: #94a3b8; font-size: 12px; text-align: center;">
+        Prompt Reviews | <a href="${teamUrl}" style="color: #94a3b8;">Team Management</a>
+      </p>
+    </div>
+  `;
+
+  const fallbackText = `
+${headline}
+
+Hi ${firstName},
+
+${isFormer
+  ? `The ownership transfer for ${businessName} has been completed. You are now a team member on this account.`
+  : `Congratulations! You are now the owner of ${businessName}. You have full control over billing and team management.`}
+
+View team: ${teamUrl}
+  `;
+
+  return sendTemplatedEmail({
+    templateName: isFormer ? 'ownership_transfer_completed_former' : 'ownership_transfer_completed_new',
+    to: email,
+    variables: {
+      firstName,
+      businessName,
+      teamUrl,
+      headline,
+      mainMessage
+    },
+    fallbackSubject: isFormer
+      ? `Ownership transfer completed for ${businessName}`
+      : `You are now the owner of ${businessName}`,
+    fallbackHtml,
+    fallbackText
+  });
+}
+
+/**
+ * Send ownership transfer declined email to original owner
+ */
+export async function sendOwnershipTransferDeclinedEmail(
+  ownerEmail: string,
+  ownerFirstName: string,
+  targetUserName: string,
+  businessName: string
+): Promise<{ success: boolean; error?: string }> {
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.promptreviews.app';
+  const teamUrl = `${baseUrl}/dashboard/team`;
+
+  const fallbackHtml = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <h2 style="color: #dc2626; margin-bottom: 20px;">Ownership Transfer Declined</h2>
+
+      <p style="color: #475569; margin-bottom: 20px;">
+        Hi ${ownerFirstName},
+      </p>
+
+      <p style="color: #475569; margin-bottom: 20px;">
+        <strong>${targetUserName}</strong> has declined your ownership transfer request for <strong>${businessName}</strong>.
+      </p>
+
+      <p style="color: #475569; margin-bottom: 20px;">
+        You remain the account owner. If you still want to transfer ownership, you can initiate a new transfer request from the team management page.
+      </p>
+
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="${teamUrl}"
+           style="background: #2E4A7D; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold;">
+          Team Management
+        </a>
+      </div>
+
+      <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 30px 0;">
+
+      <p style="color: #94a3b8; font-size: 12px; text-align: center;">
+        Prompt Reviews | <a href="${teamUrl}" style="color: #94a3b8;">Team Management</a>
+      </p>
+    </div>
+  `;
+
+  const fallbackText = `
+Ownership Transfer Declined
+
+Hi ${ownerFirstName},
+
+${targetUserName} has declined your ownership transfer request for ${businessName}.
+
+You remain the account owner. If you still want to transfer ownership, you can initiate a new transfer request from the team management page.
+
+Team management: ${teamUrl}
+  `;
+
+  return sendTemplatedEmail({
+    templateName: 'ownership_transfer_declined',
+    to: ownerEmail,
+    variables: {
+      firstName: ownerFirstName,
+      targetUserName,
+      businessName,
+      teamUrl
+    },
+    fallbackSubject: `${targetUserName} declined ownership of ${businessName}`,
+    fallbackHtml,
+    fallbackText
+  });
 } 

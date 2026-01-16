@@ -302,100 +302,102 @@ model sso_providers {
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 /// This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
 model users {
-  instance_id                                               String?                           @db.Uuid
-  id                                                        String                            @id @db.Uuid
-  aud                                                       String?                           @db.VarChar(255)
-  role                                                      String?                           @db.VarChar(255)
-  email                                                     String?                           @db.VarChar(255)
-  encrypted_password                                        String?                           @db.VarChar(255)
-  email_confirmed_at                                        DateTime?                         @db.Timestamptz(6)
-  invited_at                                                DateTime?                         @db.Timestamptz(6)
-  confirmation_token                                        String?                           @db.VarChar(255)
-  confirmation_sent_at                                      DateTime?                         @db.Timestamptz(6)
-  recovery_token                                            String?                           @db.VarChar(255)
-  recovery_sent_at                                          DateTime?                         @db.Timestamptz(6)
-  email_change_token_new                                    String?                           @db.VarChar(255)
-  email_change                                              String?                           @db.VarChar(255)
-  email_change_sent_at                                      DateTime?                         @db.Timestamptz(6)
-  last_sign_in_at                                           DateTime?                         @db.Timestamptz(6)
-  raw_app_meta_data                                         Json?
-  raw_user_meta_data                                        Json?
-  is_super_admin                                            Boolean?
-  created_at                                                DateTime?                         @db.Timestamptz(6)
-  updated_at                                                DateTime?                         @db.Timestamptz(6)
-  phone                                                     String?                           @unique
-  phone_confirmed_at                                        DateTime?                         @db.Timestamptz(6)
-  phone_change                                              String?                           @default("")
-  phone_change_token                                        String?                           @default("") @db.VarChar(255)
-  phone_change_sent_at                                      DateTime?                         @db.Timestamptz(6)
-  confirmed_at                                              DateTime?                         @default(dbgenerated("LEAST(email_confirmed_at, phone_confirmed_at)")) @db.Timestamptz(6)
-  email_change_token_current                                String?                           @default("") @db.VarChar(255)
-  email_change_confirm_status                               Int?                              @default(0) @db.SmallInt
-  banned_until                                              DateTime?                         @db.Timestamptz(6)
-  reauthentication_token                                    String?                           @default("") @db.VarChar(255)
-  reauthentication_sent_at                                  DateTime?                         @db.Timestamptz(6)
-  is_sso_user                                               Boolean                           @default(false)
-  deleted_at                                                DateTime?                         @db.Timestamptz(6)
-  is_anonymous                                              Boolean                           @default(false)
-  identities                                                identities[]
-  mfa_factors                                               mfa_factors[]
-  one_time_tokens                                           one_time_tokens[]
-  sessions                                                  sessions[]
-  account_invitations                                       account_invitations[]
-  account_users                                             account_users[]
-  accounts                                                  accounts[]
-  agncy_client_access_agncy_client_access_removed_byTousers agncy_client_access[]             @relation("agncy_client_access_removed_byTousers")
-  agncy_client_access_agncy_client_access_user_idTousers    agncy_client_access[]             @relation("agncy_client_access_user_idTousers")
-  ai_enrichment_usage                                       ai_enrichment_usage[]
-  ai_keyword_generation_usage                               ai_keyword_generation_usage[]
-  ai_usage                                                  ai_usage[]
-  announcements                                             announcements[]
-  article_revisions                                         article_revisions[]
-  articles_articles_created_byTousers                       articles[]                        @relation("articles_created_byTousers")
-  articles_articles_updated_byTousers                       articles[]                        @relation("articles_updated_byTousers")
-  audit_logs                                                audit_logs[]
-  billing_audit_log                                         billing_audit_log[]
-  campaign_actions                                          campaign_actions[]
-  comment_reactions                                         comment_reactions[]
-  comments                                                  comments[]
-  community_profiles                                        community_profiles?
-  comparison_tables                                         comparison_tables[]
-  competitors_competitors_created_byTousers                 competitors[]                     @relation("competitors_created_byTousers")
-  competitors_competitors_updated_byTousers                 competitors[]                     @relation("competitors_updated_byTousers")
-  concept_check_runs                                        concept_check_runs[]
-  credit_ledger                                             credit_ledger[]
-  critical_function_errors                                  critical_function_errors[]
-  critical_function_successes                               critical_function_successes[]
-  email_domain_policies                                     email_domain_policies[]
-  faqs_faqs_created_byTousers                               faqs[]                            @relation("faqs_created_byTousers")
-  faqs_faqs_updated_byTousers                               faqs[]                            @relation("faqs_updated_byTousers")
-  feedback                                                  feedback[]
-  gbp_change_alerts                                         gbp_change_alerts[]
-  google_api_rate_limits                                    google_api_rate_limits[]
-  google_business_locations                                 google_business_locations[]
-  google_business_media_uploads                             google_business_media_uploads[]
-  google_business_profiles                                  google_business_profiles[]
-  google_business_scheduled_posts                           google_business_scheduled_posts[]
-  keyword_rotation_log                                      keyword_rotation_log[]
-  media_assets                                              media_assets[]
-  mentions_mentions_author_idTousers                        mentions[]                        @relation("mentions_author_idTousers")
-  mentions_mentions_mentioned_user_idTousers                mentions[]                        @relation("mentions_mentioned_user_idTousers")
-  notification_dismissals                                   notification_dismissals[]
-  notifications                                             notifications[]
-  post_comments                                             post_comments[]
-  post_reactions                                            post_reactions[]
-  posts                                                     posts[]
-  quotes                                                    quotes[]
-  rate_limit_violations                                     rate_limit_violations[]
-  review_reminder_logs                                      review_reminder_logs[]
-  review_reminder_settings                                  review_reminder_settings[]
-  selected_gbp_locations                                    selected_gbp_locations[]
-  social_platform_connections                               social_platform_connections[]
-  user_profiles                                             user_profiles?
-  wm_boards                                                 wm_boards[]
-  wm_task_actions                                           wm_task_actions[]
-  wm_tasks_wm_tasks_assigned_toTousers                      wm_tasks[]                        @relation("wm_tasks_assigned_toTousers")
-  wm_tasks_wm_tasks_created_byTousers                       wm_tasks[]                        @relation("wm_tasks_created_byTousers")
+  instance_id                                                                 String?                           @db.Uuid
+  id                                                                          String                            @id @db.Uuid
+  aud                                                                         String?                           @db.VarChar(255)
+  role                                                                        String?                           @db.VarChar(255)
+  email                                                                       String?                           @db.VarChar(255)
+  encrypted_password                                                          String?                           @db.VarChar(255)
+  email_confirmed_at                                                          DateTime?                         @db.Timestamptz(6)
+  invited_at                                                                  DateTime?                         @db.Timestamptz(6)
+  confirmation_token                                                          String?                           @db.VarChar(255)
+  confirmation_sent_at                                                        DateTime?                         @db.Timestamptz(6)
+  recovery_token                                                              String?                           @db.VarChar(255)
+  recovery_sent_at                                                            DateTime?                         @db.Timestamptz(6)
+  email_change_token_new                                                      String?                           @db.VarChar(255)
+  email_change                                                                String?                           @db.VarChar(255)
+  email_change_sent_at                                                        DateTime?                         @db.Timestamptz(6)
+  last_sign_in_at                                                             DateTime?                         @db.Timestamptz(6)
+  raw_app_meta_data                                                           Json?
+  raw_user_meta_data                                                          Json?
+  is_super_admin                                                              Boolean?
+  created_at                                                                  DateTime?                         @db.Timestamptz(6)
+  updated_at                                                                  DateTime?                         @db.Timestamptz(6)
+  phone                                                                       String?                           @unique
+  phone_confirmed_at                                                          DateTime?                         @db.Timestamptz(6)
+  phone_change                                                                String?                           @default("")
+  phone_change_token                                                          String?                           @default("") @db.VarChar(255)
+  phone_change_sent_at                                                        DateTime?                         @db.Timestamptz(6)
+  confirmed_at                                                                DateTime?                         @default(dbgenerated("LEAST(email_confirmed_at, phone_confirmed_at)")) @db.Timestamptz(6)
+  email_change_token_current                                                  String?                           @default("") @db.VarChar(255)
+  email_change_confirm_status                                                 Int?                              @default(0) @db.SmallInt
+  banned_until                                                                DateTime?                         @db.Timestamptz(6)
+  reauthentication_token                                                      String?                           @default("") @db.VarChar(255)
+  reauthentication_sent_at                                                    DateTime?                         @db.Timestamptz(6)
+  is_sso_user                                                                 Boolean                           @default(false)
+  deleted_at                                                                  DateTime?                         @db.Timestamptz(6)
+  is_anonymous                                                                Boolean                           @default(false)
+  identities                                                                  identities[]
+  mfa_factors                                                                 mfa_factors[]
+  one_time_tokens                                                             one_time_tokens[]
+  sessions                                                                    sessions[]
+  account_invitations                                                         account_invitations[]
+  account_users                                                               account_users[]
+  accounts                                                                    accounts[]
+  agncy_client_access_agncy_client_access_removed_byTousers                   agncy_client_access[]             @relation("agncy_client_access_removed_byTousers")
+  agncy_client_access_agncy_client_access_user_idTousers                      agncy_client_access[]             @relation("agncy_client_access_user_idTousers")
+  ai_enrichment_usage                                                         ai_enrichment_usage[]
+  ai_keyword_generation_usage                                                 ai_keyword_generation_usage[]
+  ai_usage                                                                    ai_usage[]
+  announcements                                                               announcements[]
+  article_revisions                                                           article_revisions[]
+  articles_articles_created_byTousers                                         articles[]                        @relation("articles_created_byTousers")
+  articles_articles_updated_byTousers                                         articles[]                        @relation("articles_updated_byTousers")
+  audit_logs                                                                  audit_logs[]
+  billing_audit_log                                                           billing_audit_log[]
+  campaign_actions                                                            campaign_actions[]
+  comment_reactions                                                           comment_reactions[]
+  comments                                                                    comments[]
+  community_profiles                                                          community_profiles?
+  comparison_tables                                                           comparison_tables[]
+  competitors_competitors_created_byTousers                                   competitors[]                     @relation("competitors_created_byTousers")
+  competitors_competitors_updated_byTousers                                   competitors[]                     @relation("competitors_updated_byTousers")
+  concept_check_runs                                                          concept_check_runs[]
+  credit_ledger                                                               credit_ledger[]
+  critical_function_errors                                                    critical_function_errors[]
+  critical_function_successes                                                 critical_function_successes[]
+  email_domain_policies                                                       email_domain_policies[]
+  faqs_faqs_created_byTousers                                                 faqs[]                            @relation("faqs_created_byTousers")
+  faqs_faqs_updated_byTousers                                                 faqs[]                            @relation("faqs_updated_byTousers")
+  feedback                                                                    feedback[]
+  gbp_change_alerts                                                           gbp_change_alerts[]
+  google_api_rate_limits                                                      google_api_rate_limits[]
+  google_business_locations                                                   google_business_locations[]
+  google_business_media_uploads                                               google_business_media_uploads[]
+  google_business_profiles                                                    google_business_profiles[]
+  google_business_scheduled_posts                                             google_business_scheduled_posts[]
+  keyword_rotation_log                                                        keyword_rotation_log[]
+  media_assets                                                                media_assets[]
+  mentions_mentions_author_idTousers                                          mentions[]                        @relation("mentions_author_idTousers")
+  mentions_mentions_mentioned_user_idTousers                                  mentions[]                        @relation("mentions_mentioned_user_idTousers")
+  notification_dismissals                                                     notification_dismissals[]
+  notifications                                                               notifications[]
+  ownership_transfer_requests_ownership_transfer_requests_from_user_idTousers ownership_transfer_requests[]     @relation("ownership_transfer_requests_from_user_idTousers")
+  ownership_transfer_requests_ownership_transfer_requests_to_user_idTousers   ownership_transfer_requests[]     @relation("ownership_transfer_requests_to_user_idTousers")
+  post_comments                                                               post_comments[]
+  post_reactions                                                              post_reactions[]
+  posts                                                                       posts[]
+  quotes                                                                      quotes[]
+  rate_limit_violations                                                       rate_limit_violations[]
+  review_reminder_logs                                                        review_reminder_logs[]
+  review_reminder_settings                                                    review_reminder_settings[]
+  selected_gbp_locations                                                      selected_gbp_locations[]
+  social_platform_connections                                                 social_platform_connections[]
+  user_profiles                                                               user_profiles?
+  wm_boards                                                                   wm_boards[]
+  wm_task_actions                                                             wm_task_actions[]
+  wm_tasks_wm_tasks_assigned_toTousers                                        wm_tasks[]                        @relation("wm_tasks_assigned_toTousers")
+  wm_tasks_wm_tasks_created_byTousers                                         wm_tasks[]                        @relation("wm_tasks_created_byTousers")
 
   @@index([instance_id])
   @@index([is_anonymous])
@@ -583,6 +585,7 @@ model accounts {
   notification_preferences                                            notification_preferences?
   notifications                                                       notifications[]
   onboarding_tasks                                                    onboarding_tasks[]
+  ownership_transfer_requests                                         ownership_transfer_requests[]
   posts                                                               posts[]
   prompt_pages                                                        prompt_pages[]
   rank_checks                                                         rank_checks[]
@@ -2180,6 +2183,7 @@ model prompt_pages {
   keyword_active_pool_size                                                 Int?                        @default(10)
   fun_facts_enabled                                                        Boolean?                    @default(false)
   selected_fun_facts                                                       Json?
+  fun_facts_button_label                                                   String?                     @default("Fun facts")
   analytics_events                                                         analytics_events[]
   business_locations_business_locations_prompt_page_idToprompt_pages       business_locations[]        @relation("business_locations_prompt_page_idToprompt_pages")
   campaign_actions                                                         campaign_actions[]
@@ -3943,6 +3947,32 @@ model rate_limit_violations {
 
   @@index([created_at(sort: Desc)], map: "idx_rate_limit_violations_created_at")
   @@index([rate_limit_key], map: "idx_rate_limit_violations_key")
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model ownership_transfer_requests {
+  id                                                    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  account_id                                            String    @db.Uuid
+  from_user_id                                          String    @db.Uuid
+  to_user_id                                            String    @db.Uuid
+  token                                                 String    @unique
+  status                                                String    @default("pending")
+  created_at                                            DateTime? @default(now()) @db.Timestamptz(6)
+  expires_at                                            DateTime  @db.Timestamptz(6)
+  completed_at                                          DateTime? @db.Timestamptz(6)
+  accounts                                              accounts  @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users_ownership_transfer_requests_from_user_idTousers users     @relation("ownership_transfer_requests_from_user_idTousers", fields: [from_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users_ownership_transfer_requests_to_user_idTousers   users     @relation("ownership_transfer_requests_to_user_idTousers", fields: [to_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([account_id], map: "idx_ownership_transfer_account_id")
+  @@index([expires_at], map: "idx_ownership_transfer_expires_at")
+  @@index([from_user_id], map: "idx_ownership_transfer_from_user")
+  @@index([status], map: "idx_ownership_transfer_status")
+  @@index([to_user_id], map: "idx_ownership_transfer_to_user")
+  @@index([token], map: "idx_ownership_transfer_token")
   @@schema("public")
 }
 

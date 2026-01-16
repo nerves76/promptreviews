@@ -9,12 +9,13 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { PlusIcon, XMarkIcon, UserIcon, EnvelopeIcon, ClockIcon, QuestionMarkCircleIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, XMarkIcon, UserIcon, EnvelopeIcon, ClockIcon, QuestionMarkCircleIcon, ArrowPathIcon, ArrowsRightLeftIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '@/auth';
 import { useAccountData } from '@/auth/hooks/granularAuthHooks';
 // Page-level loading uses the global overlay
 import { useGlobalLoader } from "@/app/(app)/components/GlobalLoaderProvider";
 import { apiClient } from '@/utils/apiClient';
+import OwnershipTransferBanner from './components/OwnershipTransferBanner';
 
 interface TeamMember {
   user_id: string;
@@ -53,6 +54,21 @@ interface TeamData {
   invitations: Invitation[];
   account: Account;
   current_user_role: 'owner' | 'member';
+}
+
+interface PendingTransfer {
+  id: string;
+  from_user_id: string;
+  to_user_id: string;
+  from_user_email: string;
+  to_user_email: string;
+  from_user_name: string;
+  to_user_name: string;
+  status: string;
+  expires_at: string;
+  created_at: string;
+  is_initiator: boolean;
+  is_target: boolean;
 }
 
 export default function TeamPage() {
@@ -104,6 +120,12 @@ export default function TeamPage() {
   const [showRoleTooltip, setShowRoleTooltip] = useState(false);
   const [addingChris, setAddingChris] = useState(false);
   
+  // State for ownership transfer
+  const [pendingTransfer, setPendingTransfer] = useState<PendingTransfer | null>(null);
+  const [transferLoading, setTransferLoading] = useState<Record<string, boolean>>({});
+  const [showTransferConfirm, setShowTransferConfirm] = useState(false);
+  const [selectedMemberForTransfer, setSelectedMemberForTransfer] = useState<TeamMember | null>(null);
+
   // State for bulk invitations
   const [showBulkInvite, setShowBulkInvite] = useState(false);
   const [bulkEmails, setBulkEmails] = useState(() => {
@@ -212,13 +234,25 @@ export default function TeamPage() {
     }
   }, [selectedAccountId, user?.id]); // Dependencies for account selection
 
+  // Fetch pending ownership transfer
+  const fetchPendingTransfer = useCallback(async () => {
+    try {
+      const data = await apiClient.get<{ transfer: PendingTransfer | null }>('/team/ownership-transfer');
+      setPendingTransfer(data.transfer);
+    } catch (err) {
+      console.warn('Failed to fetch pending transfer:', err);
+      setPendingTransfer(null);
+    }
+  }, []);
+
   // Single useEffect for initial data loading
   useEffect(() => {
     // Fetch team data once authentication state and account selection are ready
     if (user?.id && !authLoading && !fetchingRef.current) {
       fetchTeamData();
+      fetchPendingTransfer();
     }
-  }, [user?.id, authLoading, selectedAccountId, fetchTeamData]);
+  }, [user?.id, authLoading, selectedAccountId, fetchTeamData, fetchPendingTransfer]);
 
   // Helper function to set loading state for specific actions
   const setActionLoading = (action: string, isLoading: boolean) => {
@@ -505,6 +539,89 @@ export default function TeamPage() {
     }
   };
 
+  // Initiate ownership transfer
+  const initiateTransfer = async (targetUserId: string) => {
+    try {
+      setTransferLoading(prev => ({ ...prev, initiate: true }));
+      setError(null);
+
+      await apiClient.post('/team/ownership-transfer', { to_user_id: targetUserId });
+
+      setSuccess('Ownership transfer request sent! They will receive an email to accept.');
+      setShowTransferConfirm(false);
+      setSelectedMemberForTransfer(null);
+      await fetchPendingTransfer();
+
+      setTimeout(() => setSuccess(null), 5000);
+    } catch (err: any) {
+      setError(err.message || 'Failed to initiate ownership transfer');
+      setTimeout(() => setError(null), 5000);
+    } finally {
+      setTransferLoading(prev => ({ ...prev, initiate: false }));
+    }
+  };
+
+  // Accept ownership transfer
+  const acceptTransfer = async () => {
+    try {
+      setTransferLoading(prev => ({ ...prev, accept: true }));
+      setError(null);
+
+      await apiClient.post('/team/ownership-transfer/accept', {});
+
+      setSuccess('Ownership transfer completed! You are now the account owner.');
+      setPendingTransfer(null);
+      await fetchTeamData();
+
+      setTimeout(() => setSuccess(null), 5000);
+    } catch (err: any) {
+      setError(err.message || 'Failed to accept ownership transfer');
+      setTimeout(() => setError(null), 5000);
+    } finally {
+      setTransferLoading(prev => ({ ...prev, accept: false }));
+    }
+  };
+
+  // Decline ownership transfer
+  const declineTransfer = async () => {
+    try {
+      setTransferLoading(prev => ({ ...prev, decline: true }));
+      setError(null);
+
+      await apiClient.post('/team/ownership-transfer/decline', {});
+
+      setSuccess('Ownership transfer declined.');
+      setPendingTransfer(null);
+
+      setTimeout(() => setSuccess(null), 5000);
+    } catch (err: any) {
+      setError(err.message || 'Failed to decline ownership transfer');
+      setTimeout(() => setError(null), 5000);
+    } finally {
+      setTransferLoading(prev => ({ ...prev, decline: false }));
+    }
+  };
+
+  // Cancel ownership transfer
+  const cancelTransfer = async () => {
+    try {
+      setTransferLoading(prev => ({ ...prev, cancel: true }));
+      setError(null);
+
+      await apiClient.delete('/team/ownership-transfer');
+
+      setSuccess('Ownership transfer cancelled.');
+      setPendingTransfer(null);
+
+      setTimeout(() => setSuccess(null), 5000);
+    } catch (err: any) {
+      setError(err.message || 'Failed to cancel ownership transfer');
+      setTimeout(() => setError(null), 5000);
+    } finally {
+      setTransferLoading(prev => ({ ...prev, cancel: false }));
+    }
+  };
+
   // Add safety timeout for stuck loading states
   useEffect(() => {
     if (loading) {
@@ -632,6 +749,19 @@ export default function TeamPage() {
             <XMarkIcon className="w-4 h-4" />
           </button>
         </div>
+      )}
+
+      {/* Ownership Transfer Banner */}
+      {pendingTransfer && (
+        <OwnershipTransferBanner
+          transfer={pendingTransfer}
+          onAccept={acceptTransfer}
+          onDecline={declineTransfer}
+          onCancel={cancelTransfer}
+          isAccepting={transferLoading.accept || false}
+          isDeclining={transferLoading.decline || false}
+          isCancelling={transferLoading.cancel || false}
+        />
       )}
 
       {/* Invite Form (Owners Only) */}
@@ -892,12 +1022,28 @@ export default function TeamPage() {
                     </span>
                   )}
                   
+                  {/* Transfer Ownership Button */}
+                  {isOwner && !member.is_current_user && member.role !== 'owner' && member.role !== 'support' && !pendingTransfer && (
+                    <button
+                      onClick={() => {
+                        setSelectedMemberForTransfer(member);
+                        setShowTransferConfirm(true);
+                      }}
+                      className="text-blue-600 hover:text-blue-800 p-1 rounded"
+                      title="Transfer ownership"
+                      aria-label="Transfer ownership to this member"
+                    >
+                      <ArrowsRightLeftIcon className="w-4 h-4" />
+                    </button>
+                  )}
+
                   {/* Remove Member Button */}
                   {isOwner && !member.is_current_user && member.role !== 'owner' && member.role !== 'support' && (
                     <button
                       onClick={() => removeMember(member.user_id, member.email)}
                       className="text-red-600 hover:text-red-800 p-1 rounded"
                       title="Remove team member"
+                      aria-label="Remove team member"
                     >
                       <XMarkIcon className="w-4 h-4" />
                     </button>
@@ -1179,6 +1325,75 @@ export default function TeamPage() {
             </div>
           );
         })()
+      )}
+
+      {/* Ownership Transfer Confirmation Modal */}
+      {showTransferConfirm && selectedMemberForTransfer && (
+        <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="transfer-modal-title" role="dialog" aria-modal="true">
+          <div className="flex min-h-screen items-center justify-center p-4">
+            {/* Backdrop */}
+            <div
+              className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
+              onClick={() => {
+                setShowTransferConfirm(false);
+                setSelectedMemberForTransfer(null);
+              }}
+            />
+
+            {/* Modal */}
+            <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6 z-10">
+              <h3 id="transfer-modal-title" className="text-lg font-semibold text-gray-900 mb-4">
+                Transfer account ownership
+              </h3>
+
+              <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg mb-4">
+                <p className="text-amber-800 text-sm font-medium mb-2">
+                  Warning: This action will:
+                </p>
+                <ul className="list-disc ml-5 text-amber-700 text-sm space-y-1">
+                  <li>
+                    Make <strong>{selectedMemberForTransfer.first_name || selectedMemberForTransfer.email}</strong> the new account owner
+                  </li>
+                  <li>Change your role to &quot;member&quot;</li>
+                  <li>Transfer control of billing and team management</li>
+                </ul>
+              </div>
+
+              <p className="text-gray-600 text-sm mb-6">
+                {selectedMemberForTransfer.first_name || 'The member'} will receive an email to accept the transfer.
+                The transfer expires in 7 days if not accepted.
+              </p>
+
+              <div className="flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowTransferConfirm(false);
+                    setSelectedMemberForTransfer(null);
+                  }}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => initiateTransfer(selectedMemberForTransfer.user_id)}
+                  disabled={transferLoading.initiate}
+                  className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                >
+                  {transferLoading.initiate ? (
+                    <>
+                      <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                      Sending...
+                    </>
+                  ) : (
+                    'Transfer ownership'
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
