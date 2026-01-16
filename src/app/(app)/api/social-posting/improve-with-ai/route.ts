@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
     // Get business data for context
     const { data: business, error: businessError } = await supabase
       .from('businesses')
-      .select('name, description, website_url, phone_number, city')
+      .select('name, description, business_website, phone_number, city')
       .eq('account_id', userAccountId)
       .single();
 
@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
       contextPrompt += `\nBusiness info:`;
       contextPrompt += `\n- Name: ${business.name || 'Not specified'}`;
       contextPrompt += `\n- Location: ${business.city || 'Not specified'}`;
-      contextPrompt += `\n- Website: ${business.website_url || 'Not specified'}`;
+      contextPrompt += `\n- Website: ${business.business_website || 'Not specified'}`;
       contextPrompt += `\n- Phone: ${business.phone_number || 'Not specified'}`;
       if (business.description) {
         contextPrompt += `\n- Description: ${business.description}`;
