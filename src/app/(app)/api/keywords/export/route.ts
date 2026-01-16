@@ -127,7 +127,7 @@ export async function GET(request: NextRequest) {
 
     // CSV headers - match the upload template format plus metrics and LLM visibility
     const headers = [
-      'phrase',
+      'concept_name',
       'review_phrase',
       'search_terms',
       'search_query',

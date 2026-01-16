@@ -100,7 +100,7 @@ export async function GET(request: NextRequest) {
 
     // CSV headers
     const headers = [
-      'keyword_phrase',
+      'concept_name',
       'question',
       'llm_provider',
       'domain_cited',
