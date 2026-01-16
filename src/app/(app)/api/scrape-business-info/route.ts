@@ -263,7 +263,7 @@ export async function POST(request: NextRequest) {
 Return a JSON object with these fields (only include fields where you can confidently extract information):
 
 - name: The business name (just the name, no taglines or locations)
-- about_us: A warm, authentic description of the business written in third person (2-3 sentences). This will be used to help generate personalized review requests, so capture their personality and what makes them special.
+- about_us: A warm, authentic description of the business written in first person plural (using "we" and "our"). In 2-3 sentences, focus on the benefits customers/clients receive and the purpose or mission of the brand. This will be used to help generate personalized review requests.
 - services_offered: An array of services or products offered. Keep each one concise (2-4 words each). Examples: "Kitchen Remodeling", "Emergency Plumbing", "Wedding Photography"
 - keywords: Comma-separated industry terms and phrases that customers might naturally use when writing reviews about this type of business. Focus on service-related terms, not generic words.
 - taglines: Any taglines, slogans, or mottos found on the site
