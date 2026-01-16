@@ -195,7 +195,7 @@ export default function CheckLLMModal({
                     Querying {selectedProviders.length} AI{selectedProviders.length > 1 ? 's' : ''}...
                   </p>
                   <p className="text-xs text-purple-600 mt-0.5">
-                    This typically takes 2-3 minutes. Please don&apos;t close this window.
+                    This typically takes 1-3 minutes. Please keep this window open.
                   </p>
                 </div>
               </div>
