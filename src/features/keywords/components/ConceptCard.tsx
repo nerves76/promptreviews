@@ -85,6 +85,8 @@ interface ConceptCardProps {
   businessLocationName?: string | null;
   /** Optional credit balance for scheduling cost display */
   creditBalance?: number;
+  /** Callback when a schedule is updated or check is run */
+  onScheduleUpdated?: () => void;
 }
 
 /**
@@ -107,6 +109,7 @@ export function ConceptCard({
   businessLocationCode,
   businessLocationName,
   creditBalance,
+  onScheduleUpdated,
 }: ConceptCardProps) {
   const router = useRouter();
 
@@ -705,11 +708,11 @@ export function ConceptCard({
                     {enrichedData.scheduleStatus.frequency.charAt(0).toUpperCase() + enrichedData.scheduleStatus.frequency.slice(1)}
                   </span>
                 )}
-                {/* In Progress indicator - yellow with spinner */}
+                {/* In Progress indicator - yellow text with slow spinner */}
                 {enrichedData?.scheduleStatus?.runStatus &&
                   ['pending', 'processing'].includes(enrichedData.scheduleStatus.runStatus.status) && (
                   <span
-                    className="px-1.5 py-0.5 text-[10px] font-medium rounded flex items-center gap-0.5 bg-yellow-100 text-yellow-700 whitespace-nowrap"
+                    className="px-1.5 py-0.5 text-[10px] font-medium rounded flex items-center gap-0.5 text-amber-600 whitespace-nowrap"
                     title={`Check in progress: ${
                       [
                         enrichedData.scheduleStatus.runStatus.searchRankStatus === 'processing' && 'Search Rank',
@@ -719,7 +722,7 @@ export function ConceptCard({
                       ].filter(Boolean).join(', ') || 'Queued'
                     }`}
                   >
-                    <Icon name="FaSpinner" className="w-2 h-2 animate-spin" />
+                    <Icon name="FaSpinner" className="w-2.5 h-2.5 animate-[spin_2s_linear_infinite]" />
                     In progress
                   </span>
                 )}
@@ -828,6 +831,7 @@ export function ConceptCard({
               keywordId={keyword.id}
               keywordName={keyword.name}
               creditBalance={creditBalance}
+              onScheduleUpdated={onScheduleUpdated}
             />
           </div>
 
@@ -920,15 +924,15 @@ export function ConceptCard({
               {isEditing ? editedSearchTerms.length : (displayKeyword.searchTerms?.length || 0)}
               {enrichedData?.scheduleStatus?.runStatus &&
                 ['pending', 'processing'].includes(enrichedData.scheduleStatus.runStatus.searchRankStatus || '') && (
-                <span className="ml-1 px-1 py-0.5 text-[9px] font-medium rounded bg-yellow-100 text-yellow-700 inline-flex items-center gap-0.5">
-                  <Icon name="FaSpinner" className="w-2 h-2 animate-spin" />
+                <span className="ml-1.5 text-[9px] font-medium text-amber-600 inline-flex items-center gap-0.5">
+                  <Icon name="FaSpinner" className="w-2 h-2 animate-[spin_2s_linear_infinite]" />
                   Checking
                 </span>
               )}
               {enrichedData?.scheduleStatus?.runStatus &&
                 ['pending', 'processing'].includes(enrichedData.scheduleStatus.runStatus.geoGridStatus || '') && (
-                <span className="ml-1 px-1 py-0.5 text-[9px] font-medium rounded bg-yellow-100 text-yellow-700 inline-flex items-center gap-0.5">
-                  <Icon name="FaSpinner" className="w-2 h-2 animate-spin" />
+                <span className="ml-1.5 text-[9px] font-medium text-amber-600 inline-flex items-center gap-0.5">
+                  <Icon name="FaSpinner" className="w-2 h-2 animate-[spin_2s_linear_infinite]" />
                   Grid
                 </span>
               )}
@@ -1215,8 +1219,8 @@ export function ConceptCard({
               {isEditing ? editedQuestions.length : (displayKeyword.relatedQuestions?.length || 0)}
               {enrichedData?.scheduleStatus?.runStatus &&
                 ['pending', 'processing'].includes(enrichedData.scheduleStatus.runStatus.llmVisibilityStatus || '') && (
-                <span className="ml-1 px-1 py-0.5 text-[9px] font-medium rounded bg-yellow-100 text-yellow-700 inline-flex items-center gap-0.5">
-                  <Icon name="FaSpinner" className="w-2 h-2 animate-spin" />
+                <span className="ml-1.5 text-[9px] font-medium text-amber-600 inline-flex items-center gap-0.5">
+                  <Icon name="FaSpinner" className="w-2 h-2 animate-[spin_2s_linear_infinite]" />
                   Checking
                 </span>
               )}
@@ -1349,8 +1353,8 @@ export function ConceptCard({
                 {(keyword.reviewUsageCount + keyword.aliasMatchCount > 0) && (keyword.reviewUsageCount + keyword.aliasMatchCount)}
                 {enrichedData?.scheduleStatus?.runStatus &&
                   ['pending', 'processing'].includes(enrichedData.scheduleStatus.runStatus.reviewMatchingStatus || '') && (
-                  <span className="ml-1 px-1 py-0.5 text-[9px] font-medium rounded bg-yellow-100 text-yellow-700 inline-flex items-center gap-0.5">
-                    <Icon name="FaSpinner" className="w-2 h-2 animate-spin" />
+                  <span className="ml-1.5 text-[9px] font-medium text-amber-600 inline-flex items-center gap-0.5">
+                    <Icon name="FaSpinner" className="w-2 h-2 animate-[spin_2s_linear_infinite]" />
                     Matching
                   </span>
                 )}

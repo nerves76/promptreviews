@@ -1433,6 +1433,7 @@ export default function KeywordManager({
                     isLoadingEnrichment={isLoadingEnrichment}
                     businessLocationCode={business?.location_code ?? lookedUpLocation?.locationCode}
                     businessLocationName={business?.location_name ?? lookedUpLocation?.locationName}
+                    onScheduleUpdated={handleRefreshEnrichment}
                   />
                 </div>
               </div>
