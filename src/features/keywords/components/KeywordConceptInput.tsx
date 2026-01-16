@@ -430,12 +430,6 @@ export default function KeywordConceptInput({
           <label className="block text-sm font-medium text-gray-700">
             Concept name <span className="text-red-500">*</span>
           </label>
-          {aiGenerated && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-indigo-100 text-indigo-700 text-sm rounded-full">
-              <Icon name="prompty" className="w-3.5 h-3.5" />
-              AI generated
-            </span>
-          )}
         </div>
         <p className="text-xs text-gray-500 mb-1">
           This is the root phrase. Search terms and aliases should relate to these words.

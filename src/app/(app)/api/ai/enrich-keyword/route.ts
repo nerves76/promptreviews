@@ -326,8 +326,14 @@ Generate the enriched keyword data as JSON with this exact structure:
       if ((enrichment as any).search_query) {
         enrichment.search_terms = [(enrichment as any).search_query];
       } else {
-        enrichment.search_terms = [];
+        // Default fallback: lowercase version of the original phrase
+        enrichment.search_terms = [trimmedPhrase.toLowerCase()];
       }
+    }
+
+    // Final safety check: ensure we always have at least one search term
+    if (enrichment.search_terms.length === 0) {
+      enrichment.search_terms = [trimmedPhrase.toLowerCase()];
     }
 
     // Ensure aliases is an array
