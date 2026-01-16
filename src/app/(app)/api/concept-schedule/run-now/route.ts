@@ -291,43 +291,51 @@ export async function POST(request: NextRequest) {
             creditsUsed: 0,
           });
         } else {
-          // Check if keyword is tracked for geo-grid
+          // Check if keyword is tracked for geo-grid, add it if not
           const { data: trackedKeyword } = await serviceSupabase
             .from('gg_tracked_keywords')
-            .select('id')
+            .select('id, is_enabled')
             .eq('config_id', ggConfigRow.id)
             .eq('keyword_id', keywordId)
-            .eq('is_enabled', true)
             .single();
 
           if (!trackedKeyword) {
-            results.push({
-              type: 'geo_grid',
-              success: false,
-              error: 'Keyword not tracked for geo-grid. Add it in the Local Ranking Grid section first.',
-              creditsUsed: 0,
-            });
-          } else {
-            // Transform the config row to the expected format
-            const ggConfig = transformConfigToResponse(ggConfigRow);
-
-            // Run the geo-grid checks for this specific keyword
-            const ggResult = await runRankChecks(ggConfig, serviceSupabase, {
-              keywordIds: [keywordId],
-            });
-
-            results.push({
-              type: 'geo_grid',
-              success: ggResult.success,
-              error: ggResult.errors.length > 0 ? ggResult.errors.join(', ') : undefined,
-              creditsUsed: costBreakdown.geoGrid.cost,
-              details: {
-                checksPerformed: ggResult.checksPerformed,
-                checkPoints: ggConfig.checkPoints.length,
-                resultCount: ggResult.results.length,
-              },
-            });
+            // Auto-add keyword to geo-grid tracking
+            await serviceSupabase
+              .from('gg_tracked_keywords')
+              .insert({
+                config_id: ggConfigRow.id,
+                keyword_id: keywordId,
+                account_id: accountId,
+                is_enabled: true,
+              });
+          } else if (!trackedKeyword.is_enabled) {
+            // Re-enable if it was disabled
+            await serviceSupabase
+              .from('gg_tracked_keywords')
+              .update({ is_enabled: true })
+              .eq('id', trackedKeyword.id);
           }
+
+          // Transform the config row to the expected format
+          const ggConfig = transformConfigToResponse(ggConfigRow);
+
+          // Run the geo-grid checks for this specific keyword
+          const ggResult = await runRankChecks(ggConfig, serviceSupabase, {
+            keywordIds: [keywordId],
+          });
+
+          results.push({
+            type: 'geo_grid',
+            success: ggResult.success,
+            error: ggResult.errors.length > 0 ? ggResult.errors.join(', ') : undefined,
+            creditsUsed: costBreakdown.geoGrid.cost,
+            details: {
+              checksPerformed: ggResult.checksPerformed,
+              checkPoints: ggConfig.checkPoints.length,
+              resultCount: ggResult.results.length,
+            },
+          });
         }
       } catch (err) {
         results.push({
