@@ -26,45 +26,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ locations: [] });
     }
 
-    // Search for locations using two queries to ensure countries/states appear first
-    // Query 1: Get exact or starts-with matches on location_name (prioritizes countries/states)
-    const { data: exactMatches, error: exactError } = await supabase
-      .from('rank_locations')
-      .select('location_code, canonical_name, location_type, location_name')
-      .or(`location_name.ilike.${query},location_name.ilike.${query}%`)
-      .in('location_type', ALLOWED_LOCATION_TYPES)
-      .limit(10);
-
-    // Query 2: Get matches on canonical_name for cities (fuzzy match)
-    const { data: fuzzyMatches, error: fuzzyError } = await supabase
+    // Search for locations - get more results and sort in JS to prioritize countries/states
+    const { data: locations, error } = await supabase
       .from('rank_locations')
       .select('location_code, canonical_name, location_type, location_name')
       .ilike('canonical_name', `%${query}%`)
       .in('location_type', ALLOWED_LOCATION_TYPES)
-      .order('canonical_name', { ascending: true })
-      .limit(30);
-
-    const error = exactError || fuzzyError;
-
-    // Combine and dedupe results, prioritizing exact matches
-    const seenCodes = new Set<number>();
-    const locations: typeof exactMatches = [];
-
-    // Add exact matches first
-    (exactMatches || []).forEach(loc => {
-      if (!seenCodes.has(loc.location_code)) {
-        seenCodes.add(loc.location_code);
-        locations.push(loc);
-      }
-    });
-
-    // Add fuzzy matches
-    (fuzzyMatches || []).forEach(loc => {
-      if (!seenCodes.has(loc.location_code)) {
-        seenCodes.add(loc.location_code);
-        locations.push(loc);
-      }
-    });
+      .limit(50);
 
     if (error) {
       console.error('Error searching rank_locations:', error);
