@@ -141,6 +141,7 @@ export async function runLLMChecks(
       citation_url: string | null;
       total_citations: number;
       response_snippet: string | null;
+      full_response: string | null;
       citations: object | null;
       mentioned_brands: object | null;
       api_cost_usd: number;
@@ -182,6 +183,7 @@ export async function runLLMChecks(
               citation_url: result.citationUrl,
               total_citations: result.totalCitations,
               response_snippet: result.responseSnippet,
+              full_response: result.fullResponse,
               citations: result.citations.length > 0 ? result.citations : null,
               mentioned_brands: result.mentionedBrands.length > 0 ? result.mentionedBrands : null,
               api_cost_usd: result.cost,
