@@ -429,7 +429,7 @@ export function KeywordDetailsSidebar({
       >
         {/* Content wrapper */}
         {isOpen && (
-          <div className="h-full backdrop-blur-xl shadow-2xl bg-gradient-to-b from-[#527DE7] via-[#7B6BA8] to-[#E8A87C]">
+          <div className="h-full backdrop-blur-xl shadow-2xl">
             <div className="h-full flex flex-col">
                   <div className="flex-1 overflow-y-auto p-6">
                       {/* Close button */}
