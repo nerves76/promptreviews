@@ -829,15 +829,7 @@ export default function KeywordManager({
   // Handle export
   const handleExport = async () => {
     try {
-      const response = await fetch('/api/keywords/export', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('supabase.auth.token')}`,
-          'X-Selected-Account': localStorage.getItem('selectedAccountId') || '',
-        },
-      });
-
-      if (!response.ok) throw new Error('Export failed');
-
+      const response = await apiClient.download('/keywords/export');
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -856,15 +848,7 @@ export default function KeywordManager({
   // Handle template download
   const handleDownloadTemplate = async () => {
     try {
-      const response = await fetch('/api/keywords/upload', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('supabase.auth.token')}`,
-          'X-Selected-Account': localStorage.getItem('selectedAccountId') || '',
-        },
-      });
-
-      if (!response.ok) throw new Error('Download failed');
-
+      const response = await apiClient.download('/keywords/upload');
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -932,37 +916,29 @@ export default function KeywordManager({
       const formData = new FormData();
       formData.append('file', importFile);
 
-      const response = await fetch('/api/keywords/upload', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('supabase.auth.token')}`,
-          'X-Selected-Account': localStorage.getItem('selectedAccountId') || '',
-        },
-        body: formData,
+      const result = await apiClient.upload<{
+        message?: string;
+        error?: string;
+        keywordsCreated?: number;
+        duplicatesSkipped?: number;
+        skippedPhrases?: string[];
+        errors?: string[];
+      }>('/keywords/upload', formData);
+
+      setImportResult({
+        success: true,
+        message: result.message || 'Import successful',
+        keywordsCreated: result.keywordsCreated,
+        duplicatesSkipped: result.duplicatesSkipped,
+        skippedPhrases: result.skippedPhrases,
+        errors: result.errors,
       });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        setImportResult({
-          success: true,
-          message: result.message || 'Import successful',
-          keywordsCreated: result.keywordsCreated,
-          duplicatesSkipped: result.duplicatesSkipped,
-          errors: result.errors,
-        });
-        refresh(); // Refresh the keyword list
-      } else {
-        setImportResult({
-          success: false,
-          message: result.error || 'Import failed',
-          errors: result.errors,
-        });
-      }
-    } catch (error) {
+      refresh(); // Refresh the keyword list
+    } catch (error: any) {
       setImportResult({
         success: false,
-        message: error instanceof Error ? error.message : 'Import failed',
+        message: error?.responseBody?.error || error?.message || 'Import failed',
+        errors: error?.responseBody?.errors,
       });
     } finally {
       setIsImporting(false);
