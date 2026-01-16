@@ -1,7 +1,6 @@
 'use client';
 
 import Icon from '@/components/Icon';
-import { Dialog } from '@headlessui/react';
 import { type KeywordData } from '../../keywordUtils';
 
 export interface HeaderStatsProps {
@@ -37,9 +36,9 @@ export function HeaderStats({
       <div className="flex items-start justify-between mb-3">
         <div>
           <span className="text-xs text-gray-500 uppercase tracking-wide">Keyword concept</span>
-          <Dialog.Title className="text-lg font-bold text-gray-900">
+          <h2 className="text-lg font-bold text-gray-900">
             {keyword.name}
-          </Dialog.Title>
+          </h2>
         </div>
         {isAnyEditing && (
           <button
