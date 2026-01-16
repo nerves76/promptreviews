@@ -12,9 +12,15 @@ export default function SignIn() {
   const [error, setError] = useState("");
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  // Get invitation-related params from URL
+  const invitationToken = searchParams?.get('invitation');
+  const prefillEmail = searchParams?.get('email');
+  const urlMessage = searchParams?.get('message');
+
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
-    email: "",
+    email: prefillEmail || "",
     password: "",
   });
   const [showReset, setShowReset] = useState(false);
@@ -23,6 +29,7 @@ export default function SignIn() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isClient, setIsClient] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [infoMessage, setInfoMessage] = useState(urlMessage || "");
 
   // Ensure we're on the client side before accessing browser APIs
   useEffect(() => {
@@ -136,6 +143,14 @@ export default function SignIn() {
 
       // Check if user has an agency account to determine redirect target
       let redirectTarget = '/dashboard';
+
+      // If there's an invitation token, redirect to accept the invitation
+      if (invitationToken) {
+        redirectTarget = `/team/accept?token=${encodeURIComponent(invitationToken)}`;
+        router.push(redirectTarget);
+        return;
+      }
+
       const redirectParam = searchParams?.get('redirect');
       const decodedRedirect = redirectParam ? decodeURIComponent(redirectParam) : null;
 
@@ -243,6 +258,12 @@ export default function SignIn() {
         </div>
 
         <div className="mt-8 p-8 rounded-2xl shadow-2xl w-full max-w-md space-y-6 bg-white/90 backdrop-blur-sm border-2 border-white">
+          {infoMessage && (
+            <div className="text-blue-700 bg-blue-50 p-3 rounded border border-blue-200 text-sm">
+              {infoMessage}
+            </div>
+          )}
+
           {error && (
             <div className="text-red-600 text-sm">
               {error}

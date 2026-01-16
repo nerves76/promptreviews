@@ -56,6 +56,9 @@ const REQUEST_DELAY = 200;
 // Maximum response snippet length to store
 const MAX_SNIPPET_LENGTH = 500;
 
+// Maximum cleaned full response length to store
+const MAX_FULL_RESPONSE_LENGTH = 3000;
+
 // ============================================
 // Credentials
 // ============================================
@@ -343,6 +346,9 @@ export async function checkChatGPTVisibility(params: {
     // Extract snippet - centered around brand mention if found
     const responseSnippet = extractSnippet(fullResponseText, businessName);
 
+    // Clean and store full response (with fluff removed)
+    const fullResponse = cleanLLMResponse(fullResponseText);
+
     // Extract brand entities mentioned in the response
     const mentionedBrands: LLMBrandEntity[] = [];
     if (result.brand_entities && Array.isArray(result.brand_entities)) {
@@ -377,6 +383,7 @@ export async function checkChatGPTVisibility(params: {
       citations,
       mentionedBrands,
       responseSnippet,
+      fullResponse,
       cost: task.cost || 0,
     };
   } catch (error) {
@@ -493,6 +500,9 @@ export async function checkLLMResponseVisibility(params: {
     // Extract snippet - centered around brand mention if found
     const responseSnippet = extractSnippet(fullResponseText, businessName);
 
+    // Clean and store full response (with fluff removed)
+    const fullResponse = cleanLLMResponse(fullResponseText);
+
     console.log(
       `🤖 [DataForSEO AI] ${provider}: ${citations.length} citations, ` +
       `domain cited: ${domainCited}${citationPosition ? ` (position ${citationPosition})` : ''}, ` +
@@ -512,6 +522,7 @@ export async function checkLLMResponseVisibility(params: {
       citations,
       mentionedBrands: [], // LLM Responses API doesn't provide brand_entities like ChatGPT Scraper
       responseSnippet,
+      fullResponse,
       cost: task.cost || 0,
     };
   } catch (error) {
@@ -641,6 +652,7 @@ function createErrorResult(
     citations: [],
     mentionedBrands: [],
     responseSnippet: null,
+    fullResponse: null,
     cost,
     error,
   };
@@ -723,6 +735,85 @@ function extractSnippet(
   }
 
   return snippet;
+}
+
+/**
+ * Clean LLM response text by removing common fluff patterns.
+ *
+ * Removes:
+ * - Opening pleasantries ("Great question!", "I'd be happy to help", etc.)
+ * - Closing follow-up offers ("Would you like...", "Let me know if...", etc.)
+ * - Truncates to MAX_FULL_RESPONSE_LENGTH (3000 chars)
+ */
+function cleanLLMResponse(
+  fullText: string | null,
+  maxLength: number = MAX_FULL_RESPONSE_LENGTH
+): string | null {
+  if (!fullText) return null;
+
+  let cleaned = fullText;
+
+  // Strip opening fluff patterns (case-insensitive)
+  const openingPatterns = [
+    /^(Great question!?\s*)/i,
+    /^(That's a great question!?\s*)/i,
+    /^(That's an? (excellent|good|interesting) question!?\s*)/i,
+    /^(I'd be happy to help[^.!]*[.!]?\s*)/i,
+    /^(I would be happy to help[^.!]*[.!]?\s*)/i,
+    /^(Sure!?\s*)/i,
+    /^(Absolutely!?\s*)/i,
+    /^(Of course!?\s*)/i,
+    /^(Certainly!?\s*)/i,
+    /^(Yes,?\s*)/i,
+    /^(Thanks for (asking|your question)[^.!]*[.!]?\s*)/i,
+    /^(Good question!?\s*)/i,
+  ];
+
+  for (const pattern of openingPatterns) {
+    cleaned = cleaned.replace(pattern, '');
+  }
+
+  // Strip closing fluff patterns (find and remove from end of text)
+  // These patterns typically start a new paragraph
+  const closingPatterns = [
+    /\n\n+(Would you like[^]*?)$/i,
+    /\n\n+(Is there anything else[^]*?)$/i,
+    /\n\n+(Let me know if[^]*?)$/i,
+    /\n\n+(Feel free to[^]*?)$/i,
+    /\n\n+(I hope this helps[^]*?)$/i,
+    /\n\n+(If you('d| would) like[^]*?)$/i,
+    /\n\n+(Do you have any[^]*?)$/i,
+    /\n\n+(Please let me know[^]*?)$/i,
+    /\n\n+(Should I[^]*?)$/i,
+    /\n\n+(Want me to[^]*?)$/i,
+  ];
+
+  for (const pattern of closingPatterns) {
+    cleaned = cleaned.replace(pattern, '');
+  }
+
+  // Trim whitespace
+  cleaned = cleaned.trim();
+
+  // Cap at max length, trying to break at sentence boundary
+  if (cleaned.length > maxLength) {
+    // Find last sentence boundary within limit
+    const truncated = cleaned.substring(0, maxLength);
+    const lastPeriod = truncated.lastIndexOf('. ');
+    const lastQuestion = truncated.lastIndexOf('? ');
+    const lastExclaim = truncated.lastIndexOf('! ');
+    const lastBreak = Math.max(lastPeriod, lastQuestion, lastExclaim);
+
+    if (lastBreak > maxLength * 0.7) {
+      // Break at sentence if we're at least 70% through
+      cleaned = truncated.substring(0, lastBreak + 1).trim();
+    } else {
+      // Just truncate with ellipsis
+      cleaned = truncated.trim() + '...';
+    }
+  }
+
+  return cleaned.length > 0 ? cleaned : null;
 }
 
 // ============================================

@@ -98,6 +98,7 @@ export interface LLMCheckResult {
   citations: LLMCitation[];
   mentionedBrands: LLMBrandEntity[];
   responseSnippet: string | null;
+  fullResponse: string | null;
   cost: number;
   error?: string;
 }
@@ -118,6 +119,7 @@ export interface LLMVisibilityCheckRow {
   citation_url: string | null;
   total_citations: number;
   response_snippet: string | null;
+  full_response: string | null;
   citations: LLMCitation[] | null;
   mentioned_brands: LLMBrandEntity[] | null;
   api_cost_usd: number | null;
@@ -171,6 +173,7 @@ export interface LLMVisibilityCheck {
   citationUrl: string | null;
   totalCitations: number;
   responseSnippet: string | null;
+  fullResponse: string | null;
   citations: LLMCitation[] | null;
   mentionedBrands: LLMBrandEntity[] | null;
   apiCostUsd: number | null;

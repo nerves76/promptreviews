@@ -202,6 +202,12 @@ function SignUpContent() {
         
         // Map specific error messages
         if (errorMessage.includes('already registered') || errorMessage.includes('already exists')) {
+          // If user has an invitation, redirect to sign-in so they can join the team
+          if (invitationToken) {
+            const signInUrl = `/auth/sign-in?email=${encodeURIComponent(email)}&invitation=${encodeURIComponent(invitationToken)}&message=${encodeURIComponent('Please sign in to join the team')}`;
+            window.location.href = signInUrl;
+            return;
+          }
           errorMessage = errorMessages["User already registered"];
         } else if (errorMessage.includes('Password must be at least 6 characters')) {
           errorMessage = errorMessages["Password should be at least 6 characters"];

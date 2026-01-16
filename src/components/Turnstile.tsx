@@ -115,7 +115,19 @@ export default function Turnstile({
     };
   }, [renderWidget, onError]);
 
-  return <div ref={containerRef} className={className} />;
+  // Fixed height container to prevent layout shifts during loading/verification
+  // Normal size: 65px height, Compact size: 65px height
+  const minHeight = size === "compact" ? "65px" : "65px";
+  const minWidth = size === "compact" ? "130px" : "300px";
+
+  return (
+    <div
+      style={{ minHeight, minWidth }}
+      className={`flex items-center justify-center ${className}`}
+    >
+      <div ref={containerRef} />
+    </div>
+  );
 }
 
 /**
