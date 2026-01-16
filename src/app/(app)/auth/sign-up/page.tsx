@@ -215,11 +215,7 @@ function SignUpContent() {
       }
 
       if (result.success) {
-        
-        // Show success message and redirect to sign-in
-        setEmailSent(true);
-        setMessage('Account created successfully! You can now sign in with your credentials.');
-        
+
         // Track sign up event
         try {
           trackSignUp('email');
@@ -227,6 +223,56 @@ function SignUpContent() {
           console.error('❌ Error tracking sign up:', trackError);
           // Don't fail the sign-up process if tracking fails
         }
+
+        // If this signup was from an invitation, auto-sign-in and accept the invitation
+        if (invitationToken) {
+          try {
+            // Sign in the user automatically
+            const { error: signInError } = await supabase.auth.signInWithPassword({
+              email,
+              password,
+            });
+
+            if (signInError) {
+              console.error('❌ Auto sign-in failed:', signInError);
+              // Fall back to showing success message
+              setEmailSent(true);
+              setMessage('Account created successfully! Please sign in to complete joining the team.');
+              return;
+            }
+
+            // Accept the team invitation
+            const acceptResponse = await fetch('/api/team/accept-after-signup', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ token: invitationToken }),
+            });
+
+            const acceptResult = await acceptResponse.json();
+
+            if (!acceptResponse.ok) {
+              console.error('❌ Failed to accept invitation:', acceptResult);
+              // User is signed in but invitation acceptance failed
+              // Still redirect to dashboard - they can try accepting again
+            }
+
+            // Redirect to dashboard
+            window.location.href = '/dashboard';
+            return;
+          } catch (invitationError) {
+            console.error('❌ Error during invitation acceptance:', invitationError);
+            // Fall back to showing success message
+            setEmailSent(true);
+            setMessage('Account created successfully! Please sign in to complete joining the team.');
+            return;
+          }
+        }
+
+        // For regular signups (no invitation), show success message
+        setEmailSent(true);
+        setMessage('Account created successfully! You can now sign in with your credentials.');
       } else {
         setError('Account creation completed but with unexpected response. Please try signing in.');
       }
@@ -259,39 +305,10 @@ function SignUpContent() {
         <div className="flex flex-col justify-center items-center py-8">
           <div className="p-8 rounded-2xl shadow-2xl text-center bg-white/90 backdrop-blur-sm border-2 border-white max-w-md w-full">
             <h2 className="text-2xl font-bold mb-4 text-slate-blue">
-              {invitationToken ? 'Almost there! Check your email 📧' : message}
+              Account created! ✓
             </h2>
             <div className="text-gray-600 mb-6">
-              {invitationToken ? (
-                <div>
-                  <p className="mb-3">
-                    <strong>Your account has been created!</strong> To complete the team invitation process:
-                  </p>
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                    <div className="flex items-start space-x-3">
-                      <div className="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">1</div>
-                      <p className="text-sm">Check your email for a confirmation link</p>
-                    </div>
-                  </div>
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                    <div className="flex items-start space-x-3">
-                      <div className="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">2</div>
-                      <p className="text-sm">Click the confirmation link in your email</p>
-                    </div>
-                  </div>
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                    <div className="flex items-start space-x-3">
-                      <div className="bg-green-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">3</div>
-                      <p className="text-sm">You'll be automatically added to the team and redirected to the dashboard</p>
-                    </div>
-                  </div>
-                  <p className="text-sm text-gray-500 mt-4">
-                    <strong>Important:</strong> Don't try to sign in until you've confirmed your email address.
-                  </p>
-                </div>
-              ) : (
-                <p>{message}</p>
-              )}
+              <p>{message}</p>
             </div>
             <Link href="/auth/sign-in">
               <button className="mt-4 px-6 py-2 bg-slate-blue text-white rounded font-semibold hover:bg-slate-blue/90">
