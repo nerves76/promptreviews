@@ -5,6 +5,9 @@
  * This performs the checks directly (not queued) and returns results.
  */
 
+// Extend timeout for this route since LLM and geo-grid checks can take a while
+export const maxDuration = 300; // 5 minutes (requires Vercel Pro plan)
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { createServerSupabaseClient } from '@/auth/providers/supabase';
