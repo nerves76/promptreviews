@@ -102,6 +102,8 @@ export async function POST(request: NextRequest) {
         plan: plan,
         subscription_status: 'trialing',
         is_agncy: false,
+        is_client_account: true,
+        created_by: user.id,
       })
       .select()
       .single();
