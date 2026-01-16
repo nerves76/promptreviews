@@ -111,6 +111,7 @@ export async function sendTemplatedEmail(
     if (!template) {
       // If template not found and we have fallbacks, use them
       if (fallbackSubject && fallbackHtml) {
+        console.log(`Template '${templateName}' not found, using fallback for ${emailTo}`);
 
         const result = await getResendClient().emails.send({
           from: "Prompt Reviews <team@updates.promptreviews.app>",
@@ -120,6 +121,13 @@ export async function sendTemplatedEmail(
           ...(fallbackText && { text: fallbackText })
         });
 
+        // Check for Resend errors in fallback path
+        if ('error' in result && result.error) {
+          console.error(`Resend API error (fallback) for '${templateName}':`, result.error);
+          return { success: false, error: result.error.message || 'Resend API error' };
+        }
+
+        console.log(`Email sent successfully via fallback for '${templateName}' to ${emailTo}`);
         return { success: true };
       }
       
@@ -165,6 +173,13 @@ export async function sendTemplatedEmail(
       ...(textContent && { text: textContent })
     });
 
+    // Check for Resend errors
+    if ('error' in result && result.error) {
+      console.error(`Resend API error for '${templateName}':`, result.error);
+      return { success: false, error: result.error.message || 'Resend API error' };
+    }
+
+    console.log(`Email sent successfully via template '${templateName}' to ${emailTo}`);
     return { success: true };
   } catch (error) {
     const templateNameForLog = typeof templateNameOrOptions === 'string' ? templateNameOrOptions : templateNameOrOptions.templateName;
@@ -302,11 +317,15 @@ export async function sendTeamInvitationEmail(
   token: string,
   expirationDate: string
 ): Promise<{ success: boolean; error?: string }> {
+  console.log(`[Team Invitation] Starting email send to ${email} for business: ${businessName}`);
+
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.promptreviews.app';
   const acceptUrl = `${baseUrl}/team/accept?token=${token}`;
   const trackingPixelUrl = `${baseUrl}/api/team/invitations/track?token=${token}&event=opened`;
   const trackingClickUrl = `${baseUrl}/api/team/invitations/track?token=${token}&event=clicked&redirect=${encodeURIComponent(acceptUrl)}`;
-    
+
+  console.log(`[Team Invitation] Accept URL: ${acceptUrl}`);
+
   const result = await sendTemplatedEmail('team_invitation', email, {
     inviterName,
     businessName,
@@ -315,6 +334,8 @@ export async function sendTeamInvitationEmail(
     expirationDate,
     trackingPixel: trackingPixelUrl
   });
+
+  console.log(`[Team Invitation] Email result:`, result.success ? 'SUCCESS' : `FAILED: ${result.error}`);
 
   // Log the 'sent' event if email was sent successfully
   if (result.success) {
