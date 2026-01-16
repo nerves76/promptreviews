@@ -28,6 +28,28 @@ export async function GET(request: NextRequest) {
   if (authError) return authError;
 
   return logCronExecution('process-concept-checks', async () => {
+    // First, clean up any stuck runs (processing for > 10 minutes)
+    const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+    const { data: stuckRuns } = await serviceSupabase
+      .from('concept_check_runs')
+      .select('id')
+      .eq('status', 'processing')
+      .lt('started_at', tenMinutesAgo);
+
+    if (stuckRuns && stuckRuns.length > 0) {
+      console.log(`📋 [ConceptChecks] Found ${stuckRuns.length} stuck runs, marking as failed`);
+      for (const stuckRun of stuckRuns) {
+        await serviceSupabase
+          .from('concept_check_runs')
+          .update({
+            status: 'failed',
+            error_message: 'Run timed out after 10 minutes',
+            completed_at: new Date().toISOString(),
+          })
+          .eq('id', stuckRun.id);
+      }
+    }
+
     // Find oldest pending or processing run
     const { data: run, error: runError } = await serviceSupabase
       .from('concept_check_runs')
@@ -43,32 +65,34 @@ export async function GET(request: NextRequest) {
 
     console.log(`📋 [ConceptChecks] Processing run ${run.id} for keyword ${run.keyword_id}`);
 
-    // Mark as processing
-    if (run.status === 'pending') {
-      await serviceSupabase
-        .from('concept_check_runs')
-        .update({ status: 'processing', started_at: new Date().toISOString() })
-        .eq('id', run.id);
-    }
+    // Wrap entire processing in try-catch to handle unexpected errors
+    try {
+      // Mark as processing
+      if (run.status === 'pending') {
+        await serviceSupabase
+          .from('concept_check_runs')
+          .update({ status: 'processing', started_at: new Date().toISOString() })
+          .eq('id', run.id);
+      }
 
-    // Get keyword data
-    const { data: keyword } = await serviceSupabase
-      .from('keywords')
-      .select('id, phrase, search_terms, related_questions, search_volume_location_code')
-      .eq('id', run.keyword_id)
-      .single();
+      // Get keyword data
+      const { data: keyword } = await serviceSupabase
+        .from('keywords')
+        .select('id, phrase, search_terms, related_questions, search_volume_location_code')
+        .eq('id', run.keyword_id)
+        .single();
 
-    if (!keyword) {
-      await markRunFailed(run.id, 'Keyword not found');
-      return { success: false, error: 'Keyword not found' };
-    }
+      if (!keyword) {
+        await markRunFailed(run.id, 'Keyword not found');
+        return { success: false, error: 'Keyword not found' };
+      }
 
-    // Get business data
-    const { data: business } = await serviceSupabase
-      .from('businesses')
-      .select('id, name, business_website, location_code')
-      .eq('account_id', run.account_id)
-      .single();
+      // Get business data
+      const { data: business } = await serviceSupabase
+        .from('businesses')
+        .select('id, name, business_website, location_code')
+        .eq('account_id', run.account_id)
+        .single();
 
     if (!business?.business_website) {
       await markRunFailed(run.id, 'Business website URL not configured');
@@ -267,11 +291,24 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    return {
-      success: true,
-      runId: run.id,
-      errors: errors.length > 0 ? errors : undefined,
-    };
+      return {
+        success: true,
+        runId: run.id,
+        errors: errors.length > 0 ? errors : undefined,
+      };
+    } catch (unexpectedError) {
+      // Catch any unexpected errors and mark the run as failed
+      const errorMessage = unexpectedError instanceof Error
+        ? unexpectedError.message
+        : 'Unexpected error during processing';
+      console.error(`📋 [ConceptChecks] Unexpected error for run ${run.id}:`, unexpectedError);
+      await markRunFailed(run.id, errorMessage);
+      return {
+        success: false,
+        runId: run.id,
+        error: errorMessage,
+      };
+    }
   });
 }
 
