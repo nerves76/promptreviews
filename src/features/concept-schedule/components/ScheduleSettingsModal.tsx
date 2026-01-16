@@ -148,16 +148,23 @@ export function ScheduleSettingsModal({
     fetchCostPreview();
   }, [keywordId, searchRankEnabled, geoGridEnabled, llmVisibilityEnabled, llmProviders, reviewMatchingEnabled, isLoading, isOpen]);
 
-  // Handle "Run Now" - immediate execution
+  // State for async run status
+  const [runQueued, setRunQueued] = useState(false);
+  const [queuedMessage, setQueuedMessage] = useState<string | null>(null);
+
+  // Handle "Run Now" - queues checks for async processing
   const handleRunNow = useCallback(async () => {
     setIsSaving(true);
     setError(null);
+    setRunQueued(false);
+    setQueuedMessage(null);
 
     try {
       const response = await apiClient.post<{
         success: boolean;
-        partial?: boolean;
-        results: Array<{ type: string; success: boolean; error?: string; creditsUsed: number }>;
+        queued?: boolean;
+        runId?: string;
+        message?: string;
         totalCreditsUsed: number;
         creditBalance: number;
       }>('/concept-schedule/run-now', {
@@ -169,19 +176,25 @@ export function ScheduleSettingsModal({
         reviewMatchingEnabled,
       });
 
-      if (response.success) {
+      if (response.success && response.queued) {
+        // Checks queued successfully - show message and close after delay
+        setRunQueued(true);
+        setQueuedMessage(response.message || 'Checks queued! Results will appear shortly.');
+        onScheduleUpdated?.();
+        // Auto-close after showing the message
+        setTimeout(() => {
+          onClose();
+        }, 2000);
+      } else if (response.success) {
+        // Backward compatibility for sync response
         onScheduleUpdated?.();
         onClose();
-      } else if (response.partial) {
-        // Some checks failed
-        const failedChecks = response.results.filter(r => !r.success);
-        setError(`Some checks failed: ${failedChecks.map(r => r.type).join(', ')}`);
       }
     } catch (err: any) {
       if (err.status === 402) {
         setError(err.responseBody?.error || 'Insufficient credits');
       } else {
-        setError(err instanceof Error ? err.message : 'Failed to run checks');
+        setError(err instanceof Error ? err.message : 'Failed to queue checks');
       }
     } finally {
       setIsSaving(false);
@@ -332,6 +345,14 @@ export function ScheduleSettingsModal({
                 {error && (
                   <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
                     {error}
+                  </div>
+                )}
+
+                {/* Success/queued message */}
+                {runQueued && queuedMessage && (
+                  <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700 flex items-center gap-2">
+                    <Icon name="FaCheckCircle" className="w-4 h-4 flex-shrink-0" />
+                    <span>{queuedMessage}</span>
                   </div>
                 )}
 
