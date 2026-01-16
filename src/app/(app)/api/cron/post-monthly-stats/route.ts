@@ -168,20 +168,22 @@ export async function GET(request: NextRequest) {
       return { success: false, error: 'Failed to fetch accounts' };
     }
 
-    // Get total reviews
+    // Get total reviews (excluding imported reviews - only count reviews captured through Prompt Reviews)
     const { count: totalReviewsCount, error: totalReviewsError } = await supabaseAdmin
       .from('review_submissions')
-      .select('id', { count: 'exact', head: true });
+      .select('id', { count: 'exact', head: true })
+      .or('imported_from_google.is.null,imported_from_google.eq.false');
 
     if (totalReviewsError) {
       console.error('Error fetching total reviews:', totalReviewsError);
       return { success: false, error: 'Failed to fetch total reviews' };
     }
 
-    // Get reviews from last month
+    // Get reviews from last month (excluding imported reviews)
     const { count: lastMonthReviewsCount, error: lastMonthReviewsError } = await supabaseAdmin
       .from('review_submissions')
       .select('id', { count: 'exact', head: true })
+      .or('imported_from_google.is.null,imported_from_google.eq.false')
       .gte('created_at', lastMonth.toISOString())
       .lte('created_at', lastMonthEnd.toISOString());
 
