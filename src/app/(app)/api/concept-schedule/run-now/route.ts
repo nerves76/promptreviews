@@ -291,25 +291,43 @@ export async function POST(request: NextRequest) {
             creditsUsed: 0,
           });
         } else {
-          // Transform the config row to the expected format
-          const ggConfig = transformConfigToResponse(ggConfigRow);
+          // Check if keyword is tracked for geo-grid
+          const { data: trackedKeyword } = await serviceSupabase
+            .from('gg_tracked_keywords')
+            .select('id')
+            .eq('config_id', ggConfigRow.id)
+            .eq('keyword_id', keywordId)
+            .eq('is_enabled', true)
+            .single();
 
-          // Run the geo-grid checks for this specific keyword
-          const ggResult = await runRankChecks(ggConfig, serviceSupabase, {
-            keywordIds: [keywordId],
-          });
+          if (!trackedKeyword) {
+            results.push({
+              type: 'geo_grid',
+              success: false,
+              error: 'Keyword not tracked for geo-grid. Add it in the Local Ranking Grid section first.',
+              creditsUsed: 0,
+            });
+          } else {
+            // Transform the config row to the expected format
+            const ggConfig = transformConfigToResponse(ggConfigRow);
 
-          results.push({
-            type: 'geo_grid',
-            success: ggResult.success,
-            error: ggResult.errors.length > 0 ? ggResult.errors.join(', ') : undefined,
-            creditsUsed: costBreakdown.geoGrid.cost,
-            details: {
-              checksPerformed: ggResult.checksPerformed,
-              checkPoints: ggConfig.checkPoints.length,
-              resultCount: ggResult.results.length,
-            },
-          });
+            // Run the geo-grid checks for this specific keyword
+            const ggResult = await runRankChecks(ggConfig, serviceSupabase, {
+              keywordIds: [keywordId],
+            });
+
+            results.push({
+              type: 'geo_grid',
+              success: ggResult.success,
+              error: ggResult.errors.length > 0 ? ggResult.errors.join(', ') : undefined,
+              creditsUsed: costBreakdown.geoGrid.cost,
+              details: {
+                checksPerformed: ggResult.checksPerformed,
+                checkPoints: ggConfig.checkPoints.length,
+                resultCount: ggResult.results.length,
+              },
+            });
+          }
         }
       } catch (err) {
         results.push({
