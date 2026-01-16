@@ -222,14 +222,16 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
   // Helper function to check if styling has been customized
   const checkStylingComplete = (data: BusinessData | null | undefined): boolean => {
     if (!data) return false;
-    // Check if any style settings have been changed from actual defaults
-    // Database defaults are #FFFFFF for all colors, so check for non-white values
-    // or check if a style preset has been explicitly selected
+    // Check if any style settings have been changed from actual defaults (GLASSY_DEFAULTS)
+    // Default values from styleDefaults.ts:
+    // - primary_color: '#FFFFFF', secondary_color: '#FFFFFF', background_color: '#FFFFFF'
+    // - primary_font: 'Inter', secondary_font: 'Roboto'
     const hasCustomPrimaryColor = !!(data.primary_color && data.primary_color !== '#FFFFFF');
     const hasCustomSecondaryColor = !!(data.secondary_color && data.secondary_color !== '#FFFFFF');
     const hasCustomBackgroundColor = !!(data.background_color && data.background_color !== '#FFFFFF');
     const hasCustomPrimaryFont = !!(data.primary_font && data.primary_font !== 'Inter' && data.primary_font !== '');
-    const hasCustomSecondaryFont = !!(data.secondary_font && data.secondary_font !== 'Inter' && data.secondary_font !== '');
+    // Note: Default secondary_font is 'Roboto' (not 'Inter'), so exclude both defaults
+    const hasCustomSecondaryFont = !!(data.secondary_font && data.secondary_font !== 'Inter' && data.secondary_font !== 'Roboto' && data.secondary_font !== '');
     const hasStylePreset = !!(data.style_preset && data.style_preset.trim().length > 0);
 
     return hasCustomPrimaryColor || hasCustomSecondaryColor || hasCustomBackgroundColor ||

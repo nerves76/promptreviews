@@ -162,10 +162,10 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
 }, ref) => {
   const supabase = createClient();
   const router = useRouter();
-  
-  // Storage key for form persistence
-  const formStorageKey = 'createBusinessForm';
-  
+
+  // Storage key for form persistence - ACCOUNT-SCOPED to prevent data leakage between accounts
+  const formStorageKey = accountId ? `createBusinessForm_${accountId}` : null;
+
   // Initialize form with saved data if available
   const defaults: FormState = {
     name: "",
@@ -191,8 +191,10 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
   } as FormState;
 
   const [form, setForm] = useState<FormState>(() => {
-    if (typeof window !== 'undefined') {
-      const savedData = localStorage.getItem(formStorageKey);
+    // Only load saved data if we have an accountId (to ensure account-scoped data)
+    if (typeof window !== 'undefined' && accountId) {
+      const key = `createBusinessForm_${accountId}`;
+      const savedData = localStorage.getItem(key);
       if (savedData) {
         try {
           const parsed = JSON.parse(savedData);
@@ -204,7 +206,34 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
     }
     return { ...defaults, ...(initialValues || {}) };
   });
-  
+
+  // Reload form data when accountId changes (e.g., account switch)
+  useEffect(() => {
+    if (typeof window !== 'undefined' && accountId) {
+      const key = `createBusinessForm_${accountId}`;
+      const savedData = localStorage.getItem(key);
+      if (savedData) {
+        try {
+          const parsed = JSON.parse(savedData);
+          setForm({ ...defaults, ...(initialValues || {}), ...parsed });
+        } catch (e) {
+          console.error('Failed to parse saved form data:', e);
+        }
+      } else {
+        // No saved data for this account - reset to defaults
+        setForm({ ...defaults, ...(initialValues || {}) });
+      }
+    }
+  }, [accountId]); // Re-run when accountId changes
+
+  // Clean up old non-scoped localStorage key (migration to account-scoped keys)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      // Remove the old non-scoped key to prevent data leakage between accounts
+      localStorage.removeItem('createBusinessForm');
+    }
+  }, []);
+
   const [loading, setLoading] = useState(false);
   const [loadingState, setLoadingState] = useState<'creating' | 'redirecting' | null>(null);
   const [error, setError] = useState("");
@@ -215,14 +244,17 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
   const [promotionCodeSuccess, setPromotionCodeSuccess] = useState("");
   const [showPromotionCode, setShowPromotionCode] = useState(false);
   
-  // Auto-save form data to localStorage
+  // Auto-save form data to localStorage (only if we have an account-scoped key)
   useEffect(() => {
+    // Only save if we have a valid account-scoped storage key
+    if (!formStorageKey) return;
+
     const saveTimeout = setTimeout(() => {
       if (typeof window !== 'undefined') {
         localStorage.setItem(formStorageKey, JSON.stringify(form));
       }
     }, 1000); // Debounce for 1 second
-    
+
     return () => clearTimeout(saveTimeout);
   }, [form, formStorageKey]);
 
@@ -364,7 +396,9 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
       }
       
       // Clear the saved form data since business was created successfully
-      localStorage.removeItem(formStorageKey);
+      if (formStorageKey) {
+        localStorage.removeItem(formStorageKey);
+      }
       
       // Dispatch event to trigger account data refresh
       window.dispatchEvent(new CustomEvent('businessCreated'));

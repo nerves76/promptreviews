@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { apiClient } from "@/utils/apiClient";
 import Icon from "@/components/Icon";
 import { Button } from "@/app/(app)/components/ui/button";
@@ -62,6 +63,7 @@ const AVAILABLE_VARIABLES = [
 ];
 
 export default function OutreachTemplatesPage() {
+  const router = useRouter();
   const [templates, setTemplates] = useState<Template[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -70,6 +72,20 @@ export default function OutreachTemplatesPage() {
   const [formData, setFormData] = useState<TemplateFormData>(INITIAL_FORM_DATA);
   const [isSaving, setIsSaving] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+
+  // Handle tab navigation
+  const handleTabChange = (tab: string) => {
+    if (tab === 'catch-all') {
+      router.push('/prompt-pages?tab=catch-all');
+    } else if (tab === 'campaign') {
+      router.push('/prompt-pages?tab=campaign');
+    } else if (tab === 'locations') {
+      router.push('/prompt-pages?tab=locations');
+    } else if (tab === 'settings') {
+      router.push('/dashboard/prompt-page-settings');
+    }
+    // 'templates' is current page, no navigation needed
+  };
 
   // Fetch templates
   useEffect(() => {
@@ -169,19 +185,77 @@ export default function OutreachTemplatesPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#527DE7] via-[#7B6BA8] to-[#E8A87C]">
-      <PageCard>
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Outreach templates</h1>
-            <p className="text-gray-600 mt-1">
-              Create and manage reusable message templates for SMS and email outreach.
-            </p>
+      {/* Page Title */}
+      <div className="px-4 sm:px-6 lg:px-8 pt-8 mt-8">
+        <div className="max-w-7xl mx-auto flex flex-col items-center mb-3">
+          <div className="flex items-center gap-4 mb-3">
+            <h1 className="text-3xl lg:text-4xl font-bold text-white">
+              Prompt Pages
+            </h1>
           </div>
-          <Button onClick={openCreateModal} className="flex items-center gap-2">
-            <Icon name="FaPlus" className="w-4 h-4" />
-            Add template
-          </Button>
         </div>
+      </div>
+
+      {/* Sub Navigation */}
+      <div className="flex justify-center w-full mt-0 mb-8 z-20 px-4">
+        <div className="grid grid-cols-3 sm:flex bg-white/10 backdrop-blur-sm border border-white/30 rounded-2xl sm:rounded-full p-1 shadow-lg w-full max-w-3xl gap-1 sm:gap-0">
+          <button
+            type="button"
+            onClick={() => handleTabChange('catch-all')}
+            className="px-3 sm:px-6 py-2 sm:py-1.5 font-semibold text-sm focus:outline-none transition-all duration-200 rounded-xl sm:rounded-full flex items-center justify-center gap-2 sm:flex-1 bg-transparent text-white"
+          >
+            <Icon name="FaUsers" className="w-5 h-5" size={20} />
+            <span className="whitespace-nowrap">Catch-all</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => handleTabChange('campaign')}
+            className="px-3 sm:px-6 py-2 sm:py-1.5 font-semibold text-sm focus:outline-none transition-all duration-200 rounded-xl sm:rounded-full flex items-center justify-center gap-2 sm:flex-1 bg-transparent text-white"
+          >
+            <Icon name="FaUserCircle" className="w-5 h-5" size={20} />
+            <span className="whitespace-nowrap">Campaign</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => handleTabChange('locations')}
+            className="px-3 sm:px-6 py-2 sm:py-1.5 font-semibold text-sm focus:outline-none transition-all duration-200 rounded-xl sm:rounded-full flex items-center justify-center gap-2 sm:flex-1 bg-transparent text-white"
+          >
+            <Icon name="FaMapMarker" className="w-5 h-5" size={20} />
+            <span className="whitespace-nowrap">Locations</span>
+          </button>
+          <button
+            type="button"
+            className="px-3 sm:px-6 py-2 sm:py-1.5 font-semibold text-sm focus:outline-none transition-all duration-200 rounded-xl sm:rounded-full flex items-center justify-center gap-2 sm:flex-1 bg-slate-blue text-white"
+          >
+            <Icon name="FaEnvelope" className="w-5 h-5" size={20} />
+            <span className="whitespace-nowrap">Templates</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => handleTabChange('settings')}
+            className="px-3 sm:px-6 py-2 sm:py-1.5 font-semibold text-sm focus:outline-none transition-all duration-200 rounded-xl sm:rounded-full flex items-center justify-center gap-2 sm:flex-1 bg-transparent text-white"
+          >
+            <Icon name="FaCog" className="w-5 h-5" size={20} />
+            <span className="whitespace-nowrap">Settings</span>
+          </button>
+        </div>
+      </div>
+
+      <div className="px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <PageCard>
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">Outreach templates</h2>
+                <p className="text-gray-600 mt-1">
+                  Create and manage reusable message templates for SMS and email outreach.
+                </p>
+              </div>
+              <Button onClick={openCreateModal} className="flex items-center gap-2 whitespace-nowrap">
+                <Icon name="FaPlus" className="w-4 h-4" />
+                Add template
+              </Button>
+            </div>
 
         {error && (
           <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
@@ -254,7 +328,9 @@ export default function OutreachTemplatesPage() {
             </div>
           </div>
         )}
-      </PageCard>
+          </PageCard>
+        </div>
+      </div>
 
       {/* Create/Edit Modal */}
       <Modal
