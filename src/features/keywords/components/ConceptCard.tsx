@@ -926,14 +926,14 @@ export function ConceptCard({
                 ['pending', 'processing'].includes(enrichedData.scheduleStatus.runStatus.searchRankStatus || '') && (
                 <span className="ml-1.5 text-[9px] font-medium text-amber-600 inline-flex items-center gap-0.5">
                   <Icon name="FaSpinner" className="w-2 h-2 animate-[spin_2s_linear_infinite]" />
-                  Checking
+                  Checking rank
                 </span>
               )}
               {enrichedData?.scheduleStatus?.runStatus &&
                 ['pending', 'processing'].includes(enrichedData.scheduleStatus.runStatus.geoGridStatus || '') && (
                 <span className="ml-1.5 text-[9px] font-medium text-amber-600 inline-flex items-center gap-0.5">
                   <Icon name="FaSpinner" className="w-2 h-2 animate-[spin_2s_linear_infinite]" />
-                  Grid
+                  Checking grid
                 </span>
               )}
             </>
