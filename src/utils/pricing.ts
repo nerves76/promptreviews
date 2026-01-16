@@ -10,6 +10,7 @@ export interface PricingInput {
   // Agency-specific fields
   isAgency?: boolean | null;
   agencyTrialEnd?: string | null;
+  agencyHasPayingClient?: boolean | null;
 }
 
 export interface PricingDecision {
@@ -49,42 +50,36 @@ export function evaluatePricingRequirement(input: PricingInput): PricingDecision
     };
   }
 
-  // Agency plan - agencies use their own billing system
-  if (plan === 'agency') {
-    const isAgency = input.isAgency ?? false;
-    const agencyTrialEnd = input.agencyTrialEnd ? new Date(input.agencyTrialEnd) : null;
-
-    if (isAgency && agencyTrialEnd) {
-      const now = new Date();
-      if (now <= agencyTrialEnd) {
-        return {
-          requiresPayment: false,
-          reason: 'Agency trial active',
-        };
-      }
-    }
-
-    // Agency with expired trial or no trial would need to handle agency billing
-    // For now, treat agencies as not requiring standard payment
-    if (isAgency) {
-      return {
-        requiresPayment: false,
-        reason: 'Agency account',
-      };
-    }
-  }
-
-  // Legacy check for agencies without agency plan set
+  // Agency account handling
   const isAgency = input.isAgency ?? false;
   const agencyTrialEnd = input.agencyTrialEnd ? new Date(input.agencyTrialEnd) : null;
-  if (isAgency && agencyTrialEnd) {
+  const agencyHasPayingClient = input.agencyHasPayingClient ?? false;
+
+  if (isAgency) {
     const now = new Date();
-    if (now <= agencyTrialEnd) {
+    const agencyTrialActive = agencyTrialEnd && now <= agencyTrialEnd;
+
+    // Agency trial is active - no payment required
+    if (agencyTrialActive) {
       return {
         requiresPayment: false,
         reason: 'Agency trial active',
       };
     }
+
+    // Agency trial expired but has paying clients - free workspace incentive
+    if (agencyHasPayingClient) {
+      return {
+        requiresPayment: false,
+        reason: 'Agency has paying clients',
+      };
+    }
+
+    // Agency trial expired and no paying clients - require payment
+    return {
+      requiresPayment: true,
+      reason: 'Agency trial expired',
+    };
   }
 
   // CRITICAL FIX: Additional accounts MUST have their own plan

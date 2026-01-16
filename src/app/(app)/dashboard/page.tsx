@@ -99,6 +99,8 @@ const Dashboard = React.memo(function Dashboard() {
   const [justCompletedPayment, setJustCompletedPayment] = useState(false);
   const [lastAccountUpdate, setLastAccountUpdate] = useState<Date | null>(null);
   const [isPendingPricingModal, setIsPendingPricingModal] = useState(false);
+  const [agencyHasPayingClient, setAgencyHasPayingClient] = useState<boolean | null>(null);
+  const [agencyStatusLoading, setAgencyStatusLoading] = useState(false);
 
   // State for businesses data (loaded separately from AuthContext)
   const [businessesData, setBusinessesData] = useState<any[]>([]);
@@ -374,9 +376,37 @@ const Dashboard = React.memo(function Dashboard() {
     }
   }, []);
 
+  // Fetch agency trial status for agencies (needed to check paying client status)
+  useEffect(() => {
+    const fetchAgencyStatus = async () => {
+      if (!account?.is_agncy || agencyStatusLoading) return;
+
+      try {
+        setAgencyStatusLoading(true);
+        const data = await apiClient.get<{ has_paying_client?: boolean }>('/agency/trial-status');
+        setAgencyHasPayingClient(data.has_paying_client ?? false);
+      } catch (error) {
+        console.error('Error fetching agency status:', error);
+        setAgencyHasPayingClient(false);
+      } finally {
+        setAgencyStatusLoading(false);
+      }
+    };
+
+    if (account?.is_agncy && agencyHasPayingClient === null) {
+      fetchAgencyStatus();
+    } else if (!account?.is_agncy) {
+      // Not an agency, reset the state
+      setAgencyHasPayingClient(null);
+    }
+  }, [account?.is_agncy, account?.id]);
+
   // Check payment requirement using local helper
   useEffect(() => {
     if (authLoading || accountLoading || businessesLoading || !account) return;
+
+    // For agencies, wait for the paying client status to load
+    if (account.is_agncy && agencyStatusLoading) return;
 
     const deletedRaw = account.deleted_at;
     const deletedNormalized = typeof deletedRaw === 'string' ? deletedRaw.trim() : deletedRaw;
@@ -393,6 +423,7 @@ const Dashboard = React.memo(function Dashboard() {
       // Agency-specific fields
       isAgency: account.is_agncy,
       agencyTrialEnd: account.agncy_trial_end,
+      agencyHasPayingClient: agencyHasPayingClient ?? false,
     });
 
     const urlParams = typeof window !== "undefined" ?
@@ -451,6 +482,8 @@ const Dashboard = React.memo(function Dashboard() {
     justCompletedPayment,
     lastAccountUpdate,
     showPricingModal,
+    agencyStatusLoading,
+    agencyHasPayingClient,
   ]);
 
   // Close modal automatically whenever payment is not required

@@ -187,7 +187,7 @@ export default function CreateBusinessClient() {
         if (accountToUse) {
           const { data: accountInfo, error: accountError } = await supabase
             .from('accounts')
-            .select('id, first_name, last_name, email, business_name')
+            .select('id, first_name, last_name, email, business_name, is_agncy, is_additional_account')
             .eq('id', accountToUse)
             .single();
 
@@ -262,7 +262,8 @@ export default function CreateBusinessClient() {
 
     // Only force pricing modal for primary accounts, not additional accounts or agencies
     // Additional accounts and agencies should show success message on dashboard
-    const isAgencyAccount = account?.is_agncy === true;
+    // Use accountData first (fetched directly) with fallback to auth context account
+    const isAgencyAccount = accountData?.is_agncy === true || account?.is_agncy === true;
     if (typeof window !== 'undefined' && targetAccountId && accountData && !accountData.is_additional_account && !isAgencyAccount) {
       sessionStorage.setItem('forcePricingModalAccountId', targetAccountId);
     }
