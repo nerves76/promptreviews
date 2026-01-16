@@ -15,6 +15,9 @@ import {
 } from '@/features/concept-schedule/services/credits';
 import { getBalance, debit } from '@/lib/credits/service';
 import { checkRankForDomain } from '@/features/rank-tracking/api/dataforseo-serp-client';
+import { runLLMChecks } from '@/features/llm-visibility/services/llm-checker';
+import { runRankChecks } from '@/features/geo-grid/services/rank-checker';
+import { transformConfigToResponse } from '@/features/geo-grid/utils/transforms';
 import type { LLMProvider } from '@/features/llm-visibility/utils/types';
 
 // Service client for privileged operations
@@ -220,30 +223,99 @@ export async function POST(request: NextRequest) {
 
     // 2. LLM Visibility Checks
     if (llmVisibilityEnabled && questions.length > 0 && llmProviders.length > 0) {
-      // Note: LLM checks are complex and require the LLM visibility service
-      // For now, just record that we attempted it
-      results.push({
-        type: 'llm_visibility',
-        success: true,
-        creditsUsed: costBreakdown.llmVisibility.cost,
-        details: {
-          questionCount: questions.length,
-          providerCount: llmProviders.length,
-          note: 'LLM visibility checks initiated - results will appear in the LLM Visibility section',
-        },
-      });
+      try {
+        // Extract question strings from the question objects
+        const questionStrings = questions.map(q =>
+          typeof q === 'string' ? q : q.question
+        );
+
+        const llmResult = await runLLMChecks(
+          keywordId,
+          accountId,
+          questionStrings,
+          targetDomain,
+          serviceSupabase,
+          {
+            providers: llmProviders,
+            businessName: business.name || null,
+          }
+        );
+
+        results.push({
+          type: 'llm_visibility',
+          success: llmResult.success,
+          error: llmResult.errors.length > 0 ? llmResult.errors.join(', ') : undefined,
+          creditsUsed: costBreakdown.llmVisibility.cost,
+          details: {
+            checksPerformed: llmResult.checksPerformed,
+            questionCount: questionStrings.length,
+            providerCount: llmProviders.length,
+            resultCount: llmResult.results.length,
+          },
+        });
+      } catch (err) {
+        results.push({
+          type: 'llm_visibility',
+          success: false,
+          error: err instanceof Error ? err.message : 'Unknown error',
+          creditsUsed: 0,
+        });
+      }
     }
 
     // 3. Geo-Grid Checks
     if (geoGridEnabled) {
-      results.push({
-        type: 'geo_grid',
-        success: true,
-        creditsUsed: costBreakdown.geoGrid.cost,
-        details: {
-          note: 'Geo-grid checks initiated - results will appear in the Local Ranking Grid section',
-        },
-      });
+      try {
+        // Get the geo-grid config for this account
+        const { data: ggConfigRow, error: ggConfigError } = await serviceSupabase
+          .from('gg_configs')
+          .select('*')
+          .eq('account_id', accountId)
+          .single();
+
+        if (ggConfigError || !ggConfigRow) {
+          results.push({
+            type: 'geo_grid',
+            success: false,
+            error: 'No geo-grid configuration found. Set up Local Ranking Grid first.',
+            creditsUsed: 0,
+          });
+        } else if (!ggConfigRow.target_place_id) {
+          results.push({
+            type: 'geo_grid',
+            success: false,
+            error: 'Geo-grid config is missing target Place ID. Connect a Google Business location first.',
+            creditsUsed: 0,
+          });
+        } else {
+          // Transform the config row to the expected format
+          const ggConfig = transformConfigToResponse(ggConfigRow);
+
+          // Run the geo-grid checks for this specific keyword
+          const ggResult = await runRankChecks(ggConfig, serviceSupabase, {
+            keywordIds: [keywordId],
+          });
+
+          results.push({
+            type: 'geo_grid',
+            success: ggResult.success,
+            error: ggResult.errors.length > 0 ? ggResult.errors.join(', ') : undefined,
+            creditsUsed: costBreakdown.geoGrid.cost,
+            details: {
+              checksPerformed: ggResult.checksPerformed,
+              checkPoints: ggConfig.checkPoints.length,
+              resultCount: ggResult.results.length,
+            },
+          });
+        }
+      } catch (err) {
+        results.push({
+          type: 'geo_grid',
+          success: false,
+          error: err instanceof Error ? err.message : 'Unknown error',
+          creditsUsed: 0,
+        });
+      }
     }
 
     // 4. Review Matching
