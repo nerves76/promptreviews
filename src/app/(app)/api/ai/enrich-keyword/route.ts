@@ -234,15 +234,23 @@ IMPORTANT: Do NOT add the business name to any generated phrases unless it was e
    - Example: ["barbershop portland", "portland barbershop", "best barbershop portland"]
    - Example: ["dentist seattle", "seattle dentist", "top dentist seattle"]
 
-3. **aliases**: 2-4 variant phrases that are VERY CLOSE to the review_phrase. CRITICAL RULES:
-   - MUST keep the same core business terms and location as the review_phrase
-   - You MAY: swap qualifiers (best → top), rearrange word order, omit qualifiers entirely
-   - Do NOT substitute core business terms (e.g., "autobody shop" must stay "autobody shop", not "car shop" or "auto repair")
-   - Do NOT remove or change the location
+3. **aliases**: 2-3 variant phrases that are NEARLY IDENTICAL to the review_phrase. STRICT RULES:
+   - The ONLY allowed changes are:
+     a) Swap qualifier words (best ↔ top ↔ leading ↔ trusted)
+     b) Rearrange word order (e.g., "Portland barbershop" ↔ "barbershop in Portland")
+     c) Add/remove small words like "in", "the", "a"
+     d) Remove the qualifier entirely
+   - NEVER substitute core nouns (jobs ≠ opportunities ≠ openings ≠ positions)
+   - NEVER change the location
+   - NEVER add new concepts or descriptors
+   - Example: If review_phrase is "Top Engineering Jobs in Seattle"
+     - GOOD: "Best Engineering Jobs in Seattle", "Engineering Jobs in Seattle", "Seattle Engineering Jobs"
+     - BAD: "Seattle engineering job opportunities" (changed "jobs" to "opportunities")
+     - BAD: "Engineering job openings in Seattle" (changed "jobs" to "openings")
    - Example: If review_phrase is "Best autobody shop in Arizona"
-     - GOOD aliases: "Top autobody shop in Arizona", "Arizona autobody shop", "autobody shop in Arizona"
-     - BAD aliases: "Best car shop in Arizona" (changed core term), "Top autobody services" (removed location)
-   - The purpose is to track how slight variations of the SAME phrase appear in reviews
+     - GOOD: "Top autobody shop in Arizona", "Arizona autobody shop", "autobody shop in Arizona"
+     - BAD: "Best auto repair in Arizona" (changed core term)
+   - Purpose: catch when reviewers write the exact same phrase with tiny variations
 
 4. **location_scope**: Detect the geographic scope:
    - "local" = neighborhood/area specific
