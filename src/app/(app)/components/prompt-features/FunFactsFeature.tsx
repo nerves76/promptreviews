@@ -15,7 +15,7 @@
 import React, { useState, useEffect } from "react";
 import Icon from "@/components/Icon";
 import FunFactsManagementModal from "./FunFactsManagementModal";
-import { FunFact } from "@/types/funFacts";
+import { FunFact, FunFactsButtonLabel, FUN_FACTS_BUTTON_LABELS } from "@/types/funFacts";
 import { apiClient } from "@/utils/apiClient";
 
 export interface FunFactsFeatureProps {
@@ -25,6 +25,8 @@ export interface FunFactsFeatureProps {
   selectedFactIds: string[];
   /** All fun facts in the account library */
   allFacts: FunFact[];
+  /** Custom button label */
+  buttonLabel?: FunFactsButtonLabel;
   /** Business name for context */
   businessName?: string;
   /** Whether this is inherited from business level */
@@ -41,6 +43,8 @@ export interface FunFactsFeatureProps {
   onSelectedChange: (factIds: string[]) => void;
   /** Callback when the facts library changes */
   onFactsChange: (facts: FunFact[]) => void;
+  /** Callback when the button label changes */
+  onButtonLabelChange?: (label: FunFactsButtonLabel) => void;
   /** Whether the component is disabled */
   disabled?: boolean;
   /** Whether to use edit interface styling */
@@ -53,12 +57,14 @@ export default function FunFactsFeature({
   enabled,
   selectedFactIds = [],
   allFacts = [],
+  buttonLabel = "Fun facts",
   businessName = "Business Name",
   isInherited = false,
   businessSettings,
   onEnabledChange,
   onSelectedChange,
   onFactsChange,
+  onButtonLabelChange,
   disabled = false,
   editMode = false,
   accountId,
@@ -166,6 +172,26 @@ export default function FunFactsFeature({
           <p className="text-sm text-gray-600">
             Fun facts appear as a button on your Prompt Page. Use this feature to share additional details that may help your customers with their review. Example: highlight terminology unique to your business or share things like years in business, number of employees, awards, etc.
           </p>
+
+          {/* Button Label Dropdown */}
+          <div className="space-y-2">
+            <label htmlFor="fun-facts-button-label" className="block text-sm font-medium text-gray-700">
+              Button text
+            </label>
+            <select
+              id="fun-facts-button-label"
+              value={buttonLabel}
+              onChange={(e) => onButtonLabelChange?.(e.target.value as FunFactsButtonLabel)}
+              disabled={disabled}
+              className="w-full px-3 py-2 border border-amber-300 rounded-lg text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+            >
+              {FUN_FACTS_BUTTON_LABELS.map((label) => (
+                <option key={label} value={label}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </div>
 
           {/* Manage Button */}
           <button

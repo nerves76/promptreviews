@@ -36,6 +36,7 @@ import { ConceptScheduleSettings } from '@/features/concept-schedule';
 export interface KeywordDetailsSidebarProps {
   isOpen: boolean;
   keyword: KeywordData | null;
+  isLoading?: boolean;
   onClose: () => void;
   onUpdate: (id: string, updates: Partial<KeywordData>) => Promise<KeywordData | null>;
   promptPages?: Array<{ id: string; name?: string | null; slug?: string }>;
@@ -49,6 +50,7 @@ export interface KeywordDetailsSidebarProps {
 export function KeywordDetailsSidebar({
   isOpen,
   keyword,
+  isLoading = false,
   onClose,
   onUpdate,
   promptPages = [],
@@ -427,8 +429,9 @@ export function KeywordDetailsSidebar({
         }`}
       >
         {/* Dialog wrapper for accessibility (focus trap, escape key) - only active when open */}
-        <Dialog open={isOpen} onClose={onClose} className="relative" static aria-label="Keyword details">
-          <Dialog.Panel className="h-full backdrop-blur-xl shadow-2xl">
+        {isOpen && (
+          <Dialog open={isOpen} onClose={onClose} className="relative" static aria-label="Keyword details">
+            <Dialog.Panel className="h-full backdrop-blur-xl shadow-2xl">
               <div className="h-full flex flex-col">
                     <div className="flex-1 overflow-y-auto p-6">
                       {/* Close button */}
@@ -441,6 +444,12 @@ export function KeywordDetailsSidebar({
                           <Icon name="FaTimes" className="w-5 h-5" />
                         </button>
                       </div>
+
+                      {isLoading && !keyword && (
+                        <div className="flex items-center justify-center py-12">
+                          <Icon name="FaSpinner" className="w-6 h-6 text-white animate-spin" />
+                        </div>
+                      )}
 
                       {keyword && (
                         <div className="space-y-4">
@@ -662,8 +671,9 @@ export function KeywordDetailsSidebar({
                       )}
                   </div>
                 </div>
-          </Dialog.Panel>
-        </Dialog>
+            </Dialog.Panel>
+          </Dialog>
+        )}
       </div>
     </>
   );

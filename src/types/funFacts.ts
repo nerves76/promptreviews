@@ -23,7 +23,25 @@ export interface FunFactsSettings {
   selectedFactIds: string[];
   /** All fun facts in the account library */
   allFacts: FunFact[];
+  /** Custom label for the fun facts button */
+  buttonLabel?: FunFactsButtonLabel;
 }
+
+/** Available options for the fun facts button label */
+export type FunFactsButtonLabel =
+  | 'Fast Facts'
+  | 'Did You Know'
+  | 'At a Glance'
+  | 'Fun facts'
+  | 'Business Info';
+
+export const FUN_FACTS_BUTTON_LABELS: FunFactsButtonLabel[] = [
+  'Fast Facts',
+  'Did You Know',
+  'At a Glance',
+  'Fun facts',
+  'Business Info',
+];
 
 export interface FunFactsApiResponse {
   facts: FunFact[];

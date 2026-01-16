@@ -1037,6 +1037,7 @@ export default function LLMVisibilityPage() {
       <KeywordDetailsSidebar
         isOpen={sidebarOpen}
         keyword={selectedKeyword}
+        isLoading={isLoadingKeyword}
         onClose={handleCloseSidebar}
         onUpdate={handleKeywordUpdate}
         onCheckRank={handleCheckRank}
