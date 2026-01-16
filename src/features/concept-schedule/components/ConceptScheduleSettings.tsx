@@ -100,9 +100,9 @@ export function ConceptScheduleSettings({
               ? 'text-green-600 hover:bg-green-50'
               : 'text-gray-500 hover:text-gray-600 hover:bg-gray-100'
           }`}
-          title={schedule ? `Scheduled: ${getScheduleSummary()}` : 'Set up schedule'}
+          title={schedule ? `Scheduled: ${getScheduleSummary()}` : 'Run checks'}
         >
-          <Icon name="FaCalendarAlt" className="w-4 h-4" />
+          <Icon name="FaRocket" className="w-4 h-4" />
         </button>
 
         <ScheduleSettingsModal
@@ -125,8 +125,8 @@ export function ConceptScheduleSettings({
         className="w-full flex items-center justify-between px-3 py-2 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-200 transition-colors"
       >
         <div className="flex items-center gap-2">
-          <Icon name="FaCalendarAlt" className="w-4 h-4 text-slate-blue" />
-          <span className="text-sm font-medium text-gray-900">Schedule</span>
+          <Icon name="FaRocket" className="w-4 h-4 text-slate-blue" />
+          <span className="text-sm font-medium text-gray-900">Run checks</span>
           {schedule?.scheduleFrequency && (
             <span className="text-xs text-gray-500">· {getScheduleSummary()}</span>
           )}
