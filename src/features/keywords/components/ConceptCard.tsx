@@ -900,8 +900,9 @@ export function ConceptCard({
           badge={isEditing ? editedSearchTerms.length : (displayKeyword.searchTerms?.length || 0)}
           defaultExpanded={false}
           forceExpanded={isEditing}
-          icon={<Icon name="FaSearch" className="w-3.5 h-3.5 text-slate-blue" />}
+          icon={<Icon name="FaSearch" className="w-4 h-4 text-blue-600" />}
           headerAction={undefined}
+          variant="blue"
         >
           {isEditing ? (
             /* Edit mode */
@@ -1176,9 +1177,9 @@ export function ConceptCard({
           badge={isEditing ? editedQuestions.length : (displayKeyword.relatedQuestions?.length || 0)}
           defaultExpanded={false}
           forceExpanded={isEditing}
-          icon={<Icon name="FaSparkles" className="w-3.5 h-3.5 text-slate-blue" />}
-          headerAction={undefined
-          }
+          icon={<Icon name="FaSparkles" className="w-4 h-4 text-purple-600" />}
+          headerAction={undefined}
+          variant="purple"
         >
           {isEditing ? (
             /* Edit mode */
@@ -1296,7 +1297,8 @@ export function ConceptCard({
           badge={keyword.reviewUsageCount + keyword.aliasMatchCount > 0 ? keyword.reviewUsageCount + keyword.aliasMatchCount : undefined}
           defaultExpanded={false}
           forceExpanded={isEditing}
-          icon={<Icon name="FaStar" className="w-3.5 h-3.5 text-slate-blue" />}
+          icon={<Icon name="FaStar" className="w-4 h-4 text-amber-500" />}
+          variant="amber"
           headerAction={!isEditing && (displayKeyword.reviewPhrase || (displayKeyword.aliases && displayKeyword.aliases.length > 0)) ? (
             <button
               onClick={(e) => {

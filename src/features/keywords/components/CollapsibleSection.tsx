@@ -20,6 +20,8 @@ interface CollapsibleSectionProps {
   icon?: ReactNode;
   /** Optional action button for the header */
   headerAction?: ReactNode;
+  /** Background color variant for visual separation */
+  variant?: 'default' | 'blue' | 'purple' | 'amber';
 }
 
 /**
@@ -37,7 +39,15 @@ export function CollapsibleSection({
   className = '',
   icon,
   headerAction,
+  variant = 'default',
 }: CollapsibleSectionProps) {
+  // Background color classes for different variants
+  const variantClasses = {
+    default: 'bg-white',
+    blue: 'bg-blue-50/50',
+    purple: 'bg-purple-50/50',
+    amber: 'bg-amber-50/50',
+  };
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const [contentHeight, setContentHeight] = useState<number | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -70,22 +80,22 @@ export function CollapsibleSection({
   }, [isExpanded, children]);
 
   return (
-    <div className={`border-t border-gray-100 first:border-t-0 ${className}`}>
+    <div className={`mt-3 first:mt-0 rounded-lg ${variantClasses[variant]} ${className}`}>
       {/* Header */}
       <button
         type="button"
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex items-center justify-between py-2.5 px-1 text-left hover:bg-gray-50/50 transition-colors"
+        className="w-full flex items-center justify-between py-3 px-3 text-left hover:bg-black/5 transition-colors rounded-t-lg"
       >
         <div className="flex items-center gap-2 min-w-0">
           <Icon
             name={isExpanded ? 'FaChevronDown' : 'FaChevronRight'}
-            className="w-3 h-3 text-gray-500 flex-shrink-0 transition-transform"
+            className="w-3.5 h-3.5 text-gray-500 flex-shrink-0 transition-transform"
           />
           {icon && <span className="flex-shrink-0">{icon}</span>}
-          <span className="text-sm font-medium text-gray-700 truncate">{title}</span>
-          {badge && (
-            <span className="ml-1 px-1.5 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 rounded">
+          <span className="text-base font-semibold text-gray-800 truncate">{title}</span>
+          {badge !== undefined && (
+            <span className="ml-1 px-1.5 py-0.5 text-xs font-medium bg-white/80 text-gray-600 rounded">
               {badge}
             </span>
           )}
@@ -102,7 +112,7 @@ export function CollapsibleSection({
         className="overflow-hidden transition-[height] duration-200 ease-out"
         style={{ height: contentHeight !== null ? `${contentHeight}px` : undefined }}
       >
-        <div ref={contentRef} className="pb-3 px-1">
+        <div ref={contentRef} className="pb-4 px-3">
           {isExpanded && children}
         </div>
       </div>
