@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'No valid account found or access denied' }, { status: 403 });
     }
 
-    // Fetch all keywords for this account with group names and search_terms
+    // Fetch all keywords for this account with group names, search_terms, and metrics
     const { data: keywords, error: fetchError } = await serviceSupabase
       .from('keywords')
       .select(`
@@ -43,7 +43,16 @@ export async function GET(request: NextRequest) {
         related_questions,
         status,
         review_usage_count,
+        alias_match_count,
         created_at,
+        last_used_in_review_at,
+        search_volume,
+        keyword_difficulty,
+        cpc,
+        competition_level,
+        search_intent,
+        categories,
+        search_volume_location_name,
         keyword_groups (
           name
         )
@@ -96,7 +105,7 @@ export async function GET(request: NextRequest) {
       });
     });
 
-    // CSV headers - match the upload template format
+    // CSV headers - match the upload template format plus metrics
     const headers = [
       'phrase',
       'review_phrase',
@@ -109,6 +118,15 @@ export async function GET(request: NextRequest) {
       'rank_tracking_group',
       'status',
       'review_usage_count',
+      'alias_match_count',
+      'search_volume',
+      'keyword_difficulty',
+      'cpc',
+      'competition_level',
+      'search_intent',
+      'categories',
+      'search_volume_location',
+      'last_used_in_review_at',
       'created_at',
     ];
 
@@ -157,6 +175,15 @@ export async function GET(request: NextRequest) {
         escapeCSV(rankGroupName || ''),
         escapeCSV(keyword.status),
         escapeCSV(keyword.review_usage_count),
+        escapeCSV(keyword.alias_match_count),
+        escapeCSV(keyword.search_volume),
+        escapeCSV(keyword.keyword_difficulty),
+        escapeCSV(keyword.cpc),
+        escapeCSV(keyword.competition_level),
+        escapeCSV(keyword.search_intent),
+        escapeCSV(keyword.categories?.join(', ') || ''),
+        escapeCSV(keyword.search_volume_location_name),
+        escapeCSV(keyword.last_used_in_review_at ? new Date(keyword.last_used_in_review_at).toISOString().split('T')[0] : ''),
         escapeCSV(keyword.created_at ? new Date(keyword.created_at).toISOString().split('T')[0] : ''),
       ].join(',');
     }) || [];
