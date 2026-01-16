@@ -95,11 +95,11 @@ export async function POST(request: NextRequest) {
     // Get business for domain
     const { data: business } = await serviceSupabase
       .from('businesses')
-      .select('id, name, website_url, location_code, location_name')
+      .select('id, name, business_website, location_code, location_name')
       .eq('account_id', accountId)
       .single();
 
-    if (!business?.website_url) {
+    if (!business?.business_website) {
       return NextResponse.json({ error: 'Business website URL is required for rank checks' }, { status: 400 });
     }
 
@@ -167,9 +167,9 @@ export async function POST(request: NextRequest) {
     const locationCode = keyword.search_volume_location_code || business.location_code || 2840;
 
     // Extract domain from website URL
-    let targetDomain = business.website_url;
+    let targetDomain = business.business_website;
     try {
-      const url = new URL(business.website_url.startsWith('http') ? business.website_url : `https://${business.website_url}`);
+      const url = new URL(business.business_website.startsWith('http') ? business.business_website : `https://${business.business_website}`);
       targetDomain = url.hostname.replace(/^www\./, '');
     } catch {
       // Use as-is if URL parsing fails
