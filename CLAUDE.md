@@ -717,6 +717,12 @@ When working on this codebase:
    - Consider future use cases without over-engineering
    - Place shared components in `/src/components/` or `/src/app/(app)/components/`
 
+## ⚠️ IMPORTANT: File Size Guidelines
+- Keep individual files under ~500 lines when practical
+- If a file grows beyond 500 lines, consider splitting into smaller modules
+- Extract reusable logic into separate utility files
+- Use barrel exports (index.ts) to maintain clean imports
+
 ## Changelog Convention (Token-Saving Strategy)
 
 **IMPORTANT:** We use local CHANGELOG.md files per directory to save tokens and provide breadcrumbs for AI assistants.
