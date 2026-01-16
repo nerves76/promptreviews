@@ -26,27 +26,68 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ locations: [] });
     }
 
-    // Search canonical_name with ILIKE for fuzzy matching
-    // Filter to only allowed location types (excludes universities, airports, etc.)
-    // Order by: exact matches first, then by type priority
-    const { data: locations, error } = await supabase
+    // Search for locations using two queries to ensure countries/states appear first
+    // Query 1: Get exact or starts-with matches on location_name (prioritizes countries/states)
+    const { data: exactMatches, error: exactError } = await supabase
+      .from('rank_locations')
+      .select('location_code, canonical_name, location_type, location_name')
+      .or(`location_name.ilike.${query},location_name.ilike.${query}%`)
+      .in('location_type', ALLOWED_LOCATION_TYPES)
+      .limit(10);
+
+    // Query 2: Get matches on canonical_name for cities (fuzzy match)
+    const { data: fuzzyMatches, error: fuzzyError } = await supabase
       .from('rank_locations')
       .select('location_code, canonical_name, location_type, location_name')
       .ilike('canonical_name', `%${query}%`)
       .in('location_type', ALLOWED_LOCATION_TYPES)
-      .order('location_type', { ascending: true }) // Country first, then State, City, DMA Region
       .order('canonical_name', { ascending: true })
-      .limit(20);
+      .limit(30);
+
+    const error = exactError || fuzzyError;
+
+    // Combine and dedupe results, prioritizing exact matches
+    const seenCodes = new Set<number>();
+    const locations: typeof exactMatches = [];
+
+    // Add exact matches first
+    (exactMatches || []).forEach(loc => {
+      if (!seenCodes.has(loc.location_code)) {
+        seenCodes.add(loc.location_code);
+        locations.push(loc);
+      }
+    });
+
+    // Add fuzzy matches
+    (fuzzyMatches || []).forEach(loc => {
+      if (!seenCodes.has(loc.location_code)) {
+        seenCodes.add(loc.location_code);
+        locations.push(loc);
+      }
+    });
 
     if (error) {
       console.error('Error searching rank_locations:', error);
       return NextResponse.json({ error: 'Failed to search locations' }, { status: 500 });
     }
 
+    // Type priority: Country > State/Province > DMA Region > City
+    const getTypePriority = (type: string): number => {
+      switch (type) {
+        case 'Country': return 0;
+        case 'State': return 1;
+        case 'Province': return 1;
+        case 'DMA Region': return 2;
+        case 'City': return 3;
+        default: return 4;
+      }
+    };
+
     // Sort results to prioritize:
     // 1. Exact name matches (e.g., "United States" when searching "United States")
-    // 2. Name starts with query (e.g., "Portland" when searching "Port")
-    // 3. Everything else (e.g., "..., Oregon, United States" when searching "United States")
+    // 2. Location type (Country > State > City)
+    // 3. Name starts with query (e.g., "Portland" when searching "Port")
+    // 4. Everything else alphabetically
     const sortedLocations = (locations || []).sort((a, b) => {
       const queryLower = query.toLowerCase();
       const aNameLower = a.location_name.toLowerCase();
@@ -65,6 +106,11 @@ export async function GET(request: NextRequest) {
       const bStarts = bNameLower.startsWith(queryLower);
       if (aStarts && !bStarts) return -1;
       if (bStarts && !aStarts) return 1;
+
+      // Type priority (Country > State > City)
+      const aTypePriority = getTypePriority(a.location_type);
+      const bTypePriority = getTypePriority(b.location_type);
+      if (aTypePriority !== bTypePriority) return aTypePriority - bTypePriority;
 
       // Canonical name starts with query
       const aCanonicalStarts = aCanonicalLower.startsWith(queryLower);
