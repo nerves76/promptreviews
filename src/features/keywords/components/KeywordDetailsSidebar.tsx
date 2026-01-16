@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Dialog } from '@headlessui/react';
 import Icon from '@/components/Icon';
 import {
   type KeywordData,
@@ -428,12 +427,11 @@ export function KeywordDetailsSidebar({
           isOpen ? 'translate-x-0' : 'translate-x-full pointer-events-none'
         }`}
       >
-        {/* Dialog wrapper for accessibility (focus trap, escape key) - only active when open */}
+        {/* Content wrapper */}
         {isOpen && (
-          <Dialog open={isOpen} onClose={onClose} className="relative" static aria-label="Keyword details">
-            <Dialog.Panel className="h-full backdrop-blur-xl shadow-2xl">
-              <div className="h-full flex flex-col">
-                    <div className="flex-1 overflow-y-auto p-6">
+          <div className="h-full backdrop-blur-xl shadow-2xl bg-gradient-to-b from-[#527DE7] via-[#7B6BA8] to-[#E8A87C]">
+            <div className="h-full flex flex-col">
+                  <div className="flex-1 overflow-y-auto p-6">
                       {/* Close button */}
                       <div className="flex justify-end mb-2">
                         <button
@@ -671,8 +669,7 @@ export function KeywordDetailsSidebar({
                       )}
                   </div>
                 </div>
-            </Dialog.Panel>
-          </Dialog>
+          </div>
         )}
       </div>
     </>
