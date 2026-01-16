@@ -84,6 +84,16 @@ export interface GeoGridStatusData {
   searchTerms?: GeoGridSearchTermData[];
 }
 
+export interface RunStatusData {
+  runId: string;
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  searchRankStatus: string | null;
+  geoGridStatus: string | null;
+  llmVisibilityStatus: string | null;
+  reviewMatchingStatus: string | null;
+  createdAt: string;
+}
+
 export interface ScheduleStatusData {
   isScheduled: boolean;
   frequency: 'daily' | 'weekly' | 'monthly' | null;
@@ -93,6 +103,8 @@ export interface ScheduleStatusData {
   geoGridEnabled: boolean;
   llmVisibilityEnabled: boolean;
   reviewMatchingEnabled: boolean;
+  /** Current/latest run status if any check is in progress */
+  runStatus?: RunStatusData | null;
 }
 
 export interface EnrichmentData {

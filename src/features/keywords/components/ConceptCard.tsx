@@ -705,6 +705,24 @@ export function ConceptCard({
                     {enrichedData.scheduleStatus.frequency.charAt(0).toUpperCase() + enrichedData.scheduleStatus.frequency.slice(1)}
                   </span>
                 )}
+                {/* In Progress indicator - yellow with spinner */}
+                {enrichedData?.scheduleStatus?.runStatus &&
+                  ['pending', 'processing'].includes(enrichedData.scheduleStatus.runStatus.status) && (
+                  <span
+                    className="px-1.5 py-0.5 text-[10px] font-medium rounded flex items-center gap-0.5 bg-yellow-100 text-yellow-700 whitespace-nowrap"
+                    title={`Check in progress: ${
+                      [
+                        enrichedData.scheduleStatus.runStatus.searchRankStatus === 'processing' && 'Search Rank',
+                        enrichedData.scheduleStatus.runStatus.geoGridStatus === 'processing' && 'Local Grid',
+                        enrichedData.scheduleStatus.runStatus.llmVisibilityStatus === 'processing' && 'AI Visibility',
+                        enrichedData.scheduleStatus.runStatus.reviewMatchingStatus === 'processing' && 'Review Matching',
+                      ].filter(Boolean).join(', ') || 'Queued'
+                    }`}
+                  >
+                    <Icon name="FaSpinner" className="w-2 h-2 animate-spin" />
+                    In progress
+                  </span>
+                )}
               </>
             )}
             {/* Edit button */}
@@ -897,7 +915,25 @@ export function ConceptCard({
         {/* Search Terms Section */}
         <CollapsibleSection
           title="Search terms"
-          badge={isEditing ? editedSearchTerms.length : (displayKeyword.searchTerms?.length || 0)}
+          badge={
+            <>
+              {isEditing ? editedSearchTerms.length : (displayKeyword.searchTerms?.length || 0)}
+              {enrichedData?.scheduleStatus?.runStatus &&
+                ['pending', 'processing'].includes(enrichedData.scheduleStatus.runStatus.searchRankStatus || '') && (
+                <span className="ml-1 px-1 py-0.5 text-[9px] font-medium rounded bg-yellow-100 text-yellow-700 inline-flex items-center gap-0.5">
+                  <Icon name="FaSpinner" className="w-2 h-2 animate-spin" />
+                  Checking
+                </span>
+              )}
+              {enrichedData?.scheduleStatus?.runStatus &&
+                ['pending', 'processing'].includes(enrichedData.scheduleStatus.runStatus.geoGridStatus || '') && (
+                <span className="ml-1 px-1 py-0.5 text-[9px] font-medium rounded bg-yellow-100 text-yellow-700 inline-flex items-center gap-0.5">
+                  <Icon name="FaSpinner" className="w-2 h-2 animate-spin" />
+                  Grid
+                </span>
+              )}
+            </>
+          }
           defaultExpanded={false}
           forceExpanded={isEditing}
           icon={<Icon name="FaSearch" className="w-4 h-4 text-blue-600" />}
@@ -1174,7 +1210,18 @@ export function ConceptCard({
         {/* AI Visibility Section */}
         <CollapsibleSection
           title="AI visibility"
-          badge={isEditing ? editedQuestions.length : (displayKeyword.relatedQuestions?.length || 0)}
+          badge={
+            <>
+              {isEditing ? editedQuestions.length : (displayKeyword.relatedQuestions?.length || 0)}
+              {enrichedData?.scheduleStatus?.runStatus &&
+                ['pending', 'processing'].includes(enrichedData.scheduleStatus.runStatus.llmVisibilityStatus || '') && (
+                <span className="ml-1 px-1 py-0.5 text-[9px] font-medium rounded bg-yellow-100 text-yellow-700 inline-flex items-center gap-0.5">
+                  <Icon name="FaSpinner" className="w-2 h-2 animate-spin" />
+                  Checking
+                </span>
+              )}
+            </>
+          }
           defaultExpanded={false}
           forceExpanded={isEditing}
           icon={<Icon name="FaSparkles" className="w-4 h-4 text-purple-600" />}
@@ -1294,7 +1341,22 @@ export function ConceptCard({
         {/* Reviews Section (collapsed by default) */}
         <CollapsibleSection
           title="Reviews"
-          badge={keyword.reviewUsageCount + keyword.aliasMatchCount > 0 ? keyword.reviewUsageCount + keyword.aliasMatchCount : undefined}
+          badge={
+            (keyword.reviewUsageCount + keyword.aliasMatchCount > 0 ||
+              (enrichedData?.scheduleStatus?.runStatus &&
+                ['pending', 'processing'].includes(enrichedData.scheduleStatus.runStatus.reviewMatchingStatus || ''))) ? (
+              <>
+                {(keyword.reviewUsageCount + keyword.aliasMatchCount > 0) && (keyword.reviewUsageCount + keyword.aliasMatchCount)}
+                {enrichedData?.scheduleStatus?.runStatus &&
+                  ['pending', 'processing'].includes(enrichedData.scheduleStatus.runStatus.reviewMatchingStatus || '') && (
+                  <span className="ml-1 px-1 py-0.5 text-[9px] font-medium rounded bg-yellow-100 text-yellow-700 inline-flex items-center gap-0.5">
+                    <Icon name="FaSpinner" className="w-2 h-2 animate-spin" />
+                    Matching
+                  </span>
+                )}
+              </>
+            ) : undefined
+          }
           defaultExpanded={false}
           forceExpanded={isEditing}
           icon={<Icon name="FaStar" className="w-4 h-4 text-amber-500" />}

@@ -89,6 +89,16 @@ interface GeoGridStatusData {
   searchTerms: GeoGridSearchTermData[];
 }
 
+interface RunStatusData {
+  runId: string;
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  searchRankStatus: string | null;
+  geoGridStatus: string | null;
+  llmVisibilityStatus: string | null;
+  reviewMatchingStatus: string | null;
+  createdAt: string;
+}
+
 interface ScheduleStatusData {
   isScheduled: boolean;
   frequency: 'daily' | 'weekly' | 'monthly' | null;
@@ -98,6 +108,8 @@ interface ScheduleStatusData {
   geoGridEnabled: boolean;
   llmVisibilityEnabled: boolean;
   reviewMatchingEnabled: boolean;
+  /** Current/latest run status if any check is in progress */
+  runStatus?: RunStatusData | null;
 }
 
 interface EnrichmentData {
@@ -213,7 +225,7 @@ export async function POST(request: NextRequest) {
     const allNormalizedTerms = Array.from(normalizedTermToKeywordId.keys());
 
     // Parallel fetch all enrichment data
-    const [volumeByKeywordId, volumeByTerm, rankGroupKeywords, llmResults, geoGridTracking, geoGridChecks, conceptSchedules] = await Promise.all([
+    const [volumeByKeywordId, volumeByTerm, rankGroupKeywords, llmResults, geoGridTracking, geoGridChecks, conceptSchedules, conceptCheckRuns] = await Promise.all([
       // 1a. Fetch volume data linked by keyword_id
       serviceSupabase
         .from('keyword_research_results')
@@ -292,6 +304,15 @@ export async function POST(request: NextRequest) {
         .select('keyword_id, schedule_frequency, is_enabled, next_scheduled_at, search_rank_enabled, geo_grid_enabled, llm_visibility_enabled, review_matching_enabled')
         .eq('account_id', accountId)
         .in('keyword_id', filteredKeywordIds),
+
+      // 7. Fetch pending/processing concept check runs for all keywords
+      serviceSupabase
+        .from('concept_check_runs')
+        .select('id, keyword_id, status, search_rank_status, geo_grid_status, llm_visibility_status, review_matching_status, created_at')
+        .eq('account_id', accountId)
+        .in('keyword_id', filteredKeywordIds)
+        .in('status', ['pending', 'processing'])
+        .order('created_at', { ascending: false }),
     ]);
 
     // Build enrichment map
@@ -308,6 +329,25 @@ export async function POST(request: NextRequest) {
       };
     }
 
+    // Build a map of keyword_id -> latest pending/processing run
+    const runStatusByKeyword = new Map<string, RunStatusData>();
+    if (conceptCheckRuns.data) {
+      for (const run of conceptCheckRuns.data) {
+        if (run.keyword_id && !runStatusByKeyword.has(run.keyword_id)) {
+          // Only keep the first (most recent) run for each keyword
+          runStatusByKeyword.set(run.keyword_id, {
+            runId: run.id,
+            status: run.status as 'pending' | 'processing' | 'completed' | 'failed',
+            searchRankStatus: run.search_rank_status,
+            geoGridStatus: run.geo_grid_status,
+            llmVisibilityStatus: run.llm_visibility_status,
+            reviewMatchingStatus: run.review_matching_status,
+            createdAt: run.created_at,
+          });
+        }
+      }
+    }
+
     // Populate schedule status
     if (conceptSchedules.data) {
       for (const schedule of conceptSchedules.data) {
@@ -321,8 +361,26 @@ export async function POST(request: NextRequest) {
             geoGridEnabled: schedule.geo_grid_enabled ?? false,
             llmVisibilityEnabled: schedule.llm_visibility_enabled ?? false,
             reviewMatchingEnabled: schedule.review_matching_enabled ?? false,
+            runStatus: runStatusByKeyword.get(schedule.keyword_id) || null,
           };
         }
+      }
+    }
+
+    // For keywords without a schedule but with an active run, still populate runStatus
+    for (const [keywordId, runStatus] of runStatusByKeyword) {
+      if (enrichment[keywordId] && !enrichment[keywordId].scheduleStatus) {
+        enrichment[keywordId].scheduleStatus = {
+          isScheduled: false,
+          frequency: null,
+          isEnabled: false,
+          nextScheduledAt: null,
+          searchRankEnabled: false,
+          geoGridEnabled: false,
+          llmVisibilityEnabled: false,
+          reviewMatchingEnabled: false,
+          runStatus,
+        };
       }
     }
 
