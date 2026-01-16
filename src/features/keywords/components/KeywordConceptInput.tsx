@@ -16,7 +16,7 @@ import LocationPicker from "@/components/LocationPicker";
 
 interface KeywordEnrichment {
   review_phrase: string;
-  search_query: string;
+  search_terms: string[];
   aliases: string[];
   location_scope: "local" | "city" | "region" | "state" | "national" | null;
   related_questions: RelatedQuestion[];
@@ -260,12 +260,12 @@ export default function KeywordConceptInput({
           if (!reviewPhrase.trim()) {
             setReviewPhrase(response.enrichment.review_phrase);
           }
-          if (searchTerms.length === 0 && response.enrichment.search_query) {
-            setSearchTerms([{
-              term: response.enrichment.search_query,
-              isCanonical: true,
+          if (searchTerms.length === 0 && response.enrichment.search_terms?.length > 0) {
+            setSearchTerms(response.enrichment.search_terms.map((term, index) => ({
+              term,
+              isCanonical: index === 0, // First term is canonical
               addedAt: new Date().toISOString(),
-            }]);
+            })));
           }
           if (aliases.length === 0) {
             setAliases(response.enrichment.aliases || []);
@@ -279,12 +279,12 @@ export default function KeywordConceptInput({
         } else {
           // Replace all mode
           setReviewPhrase(response.enrichment.review_phrase);
-          if (response.enrichment.search_query) {
-            setSearchTerms([{
-              term: response.enrichment.search_query,
-              isCanonical: true,
+          if (response.enrichment.search_terms?.length > 0) {
+            setSearchTerms(response.enrichment.search_terms.map((term, index) => ({
+              term,
+              isCanonical: index === 0, // First term is canonical
               addedAt: new Date().toISOString(),
-            }]);
+            })));
           }
           setAliases(response.enrichment.aliases || []);
           setLocationScope(response.enrichment.location_scope);
