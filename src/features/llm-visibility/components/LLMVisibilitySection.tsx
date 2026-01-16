@@ -232,12 +232,26 @@ export function LLMVisibilitySection({
             </div>
           )}
 
-          {/* Last Checked */}
-          {summary?.lastCheckedAt && (
-            <div className="text-xs text-gray-500 text-center">
-              Last checked: {new Date(summary.lastCheckedAt).toLocaleDateString()}
-            </div>
-          )}
+          {/* Last Checked & Export */}
+          <div className="flex items-center justify-between text-xs text-gray-500">
+            {summary?.lastCheckedAt ? (
+              <span>Last checked: {new Date(summary.lastCheckedAt).toLocaleDateString()}</span>
+            ) : (
+              <span></span>
+            )}
+            {results.length > 0 && (
+              <button
+                onClick={() => {
+                  window.location.href = `/api/llm-visibility/export?keywordId=${keywordId}`;
+                }}
+                className="flex items-center gap-1 text-purple-600 hover:text-purple-700 hover:underline"
+                title="Export LLM visibility results to CSV"
+              >
+                <Icon name="FaFileAlt" className="w-3 h-3" />
+                Export CSV
+              </button>
+            )}
+          </div>
         </div>
       )}
     </div>

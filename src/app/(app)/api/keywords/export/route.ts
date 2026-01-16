@@ -87,6 +87,26 @@ export async function GET(request: NextRequest) {
       }
     });
 
+    // Fetch LLM visibility summaries for all keywords
+    const { data: llmSummaries } = await serviceSupabase
+      .from('llm_visibility_summary')
+      .select('keyword_id, visibility_score, provider_stats, last_checked_at')
+      .eq('account_id', accountId);
+
+    // Build a map of keyword_id -> LLM visibility summary
+    const llmSummaryMap = new Map<string, {
+      visibilityScore: number | null;
+      providerStats: Record<string, { checked: number; cited: number }>;
+      lastCheckedAt: string | null;
+    }>();
+    llmSummaries?.forEach((summary: any) => {
+      llmSummaryMap.set(summary.keyword_id, {
+        visibilityScore: summary.visibility_score,
+        providerStats: summary.provider_stats || {},
+        lastCheckedAt: summary.last_checked_at,
+      });
+    });
+
     // Fetch keyword questions from the keyword_questions table
     const { data: keywordQuestions } = await serviceSupabase
       .from('keyword_questions')
@@ -105,7 +125,7 @@ export async function GET(request: NextRequest) {
       });
     });
 
-    // CSV headers - match the upload template format plus metrics
+    // CSV headers - match the upload template format plus metrics and LLM visibility
     const headers = [
       'phrase',
       'review_phrase',
@@ -126,6 +146,12 @@ export async function GET(request: NextRequest) {
       'search_intent',
       'categories',
       'search_volume_location',
+      'llm_visibility_score',
+      'llm_chatgpt_cited',
+      'llm_claude_cited',
+      'llm_gemini_cited',
+      'llm_perplexity_cited',
+      'llm_last_checked_at',
       'last_used_in_review_at',
       'created_at',
     ];
@@ -146,6 +172,7 @@ export async function GET(request: NextRequest) {
     const rows = keywords?.map((keyword: any) => {
       const keywordId = keyword.id;
       const rankGroupName = keywordId ? rankGroupMap.get(keywordId) : '';
+      const llmSummary = keywordId ? llmSummaryMap.get(keywordId) : null;
 
       // Format search_terms as pipe-delimited: term1|term2|term3
       const searchTermsStr = keyword.search_terms && Array.isArray(keyword.search_terms)
@@ -162,6 +189,13 @@ export async function GET(request: NextRequest) {
                 typeof q === 'string' ? `${q}|middle` : `${q.question}|${q.funnelStage || 'middle'}`
               ).join(',')
             : '');
+
+      // Format LLM visibility data
+      const formatCitedRatio = (provider: string): string => {
+        const stats = llmSummary?.providerStats?.[provider];
+        if (!stats || stats.checked === 0) return '';
+        return `${stats.cited}/${stats.checked}`;
+      };
 
       return [
         escapeCSV(keyword.phrase),
@@ -183,6 +217,12 @@ export async function GET(request: NextRequest) {
         escapeCSV(keyword.search_intent),
         escapeCSV(keyword.categories?.join(', ') || ''),
         escapeCSV(keyword.search_volume_location_name),
+        escapeCSV(llmSummary?.visibilityScore != null ? `${llmSummary.visibilityScore}%` : ''),
+        escapeCSV(formatCitedRatio('chatgpt')),
+        escapeCSV(formatCitedRatio('claude')),
+        escapeCSV(formatCitedRatio('gemini')),
+        escapeCSV(formatCitedRatio('perplexity')),
+        escapeCSV(llmSummary?.lastCheckedAt ? new Date(llmSummary.lastCheckedAt).toISOString().split('T')[0] : ''),
         escapeCSV(keyword.last_used_in_review_at ? new Date(keyword.last_used_in_review_at).toISOString().split('T')[0] : ''),
         escapeCSV(keyword.created_at ? new Date(keyword.created_at).toISOString().split('T')[0] : ''),
       ].join(',');

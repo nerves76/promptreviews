@@ -16,10 +16,10 @@
  * 1. monthly_credit_allocation (if set) - custom per-account override
  * 2. Plan tier default:
  *    - free: 0 credits (skipped, unless is_client_account)
- *    - grower: 100 credits
- *    - builder: 200 credits
- *    - maven: 400 credits
- *    - agency: 200 base + 300 per paying client
+ *    - grower: 500 credits
+ *    - builder: 1,000 credits
+ *    - maven: 2,000 credits
+ *    - agency: 200 base + tiered per paying client (200/300/500 for grower/builder/maven)
  * 3. Client accounts (is_client_account=true): 100 credits default
  */
 

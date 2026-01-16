@@ -565,13 +565,27 @@ export default function LLMVisibilityPage() {
           title="LLM visibility"
           description="Track whether AI assistants cite your domain or mention your brand when answering questions."
           actions={
-            <button
-              onClick={() => setShowAddModal(true)}
-              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-slate-blue hover:bg-slate-blue/90 rounded-lg transition-colors"
-            >
-              <Icon name="FaPlus" className="w-4 h-4" />
-              Add concept
-            </button>
+            <div className="flex items-center gap-2">
+              {allResults.length > 0 && (
+                <button
+                  onClick={() => {
+                    window.location.href = '/api/llm-visibility/export';
+                  }}
+                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg transition-colors"
+                  title="Export all LLM visibility results to CSV"
+                >
+                  <Icon name="FaFileAlt" className="w-4 h-4" />
+                  Export CSV
+                </button>
+              )}
+              <button
+                onClick={() => setShowAddModal(true)}
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-slate-blue hover:bg-slate-blue/90 rounded-lg transition-colors"
+              >
+                <Icon name="FaPlus" className="w-4 h-4" />
+                Add concept
+              </button>
+            </div>
           }
         />
 
