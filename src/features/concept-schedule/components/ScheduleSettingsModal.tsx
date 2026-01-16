@@ -304,10 +304,10 @@ export function ScheduleSettingsModal({
           <div className="flex items-center justify-between p-4 border-b border-gray-200">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-slate-blue/10 rounded-lg flex items-center justify-center">
-                <Icon name="FaCalendarAlt" className="w-5 h-5 text-slate-blue" />
+                <Icon name="FaRocket" className="w-5 h-5 text-slate-blue" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-gray-900">Schedule settings</h2>
+                <h2 className="text-lg font-semibold text-gray-900">Run checks</h2>
                 <p className="text-sm text-gray-500 truncate max-w-[250px]">{keywordName}</p>
               </div>
             </div>
