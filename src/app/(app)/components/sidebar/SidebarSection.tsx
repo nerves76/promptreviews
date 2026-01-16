@@ -25,34 +25,54 @@ export function SidebarSection({
     isPathActive(item.path, activePath)
   );
 
-  // Always show items if not collapsible, otherwise check collapsed state
-  const showItems = !section.collapsible || isCollapsed || !isSectionCollapsed;
+  // Always show items if sidebar is collapsed (icon-only mode), otherwise check section collapsed state
+  const showItems = isCollapsed || !isSectionCollapsed;
 
-  // Section header - simple label, not a button unless collapsible
-  const headerContent = (
-    <div
-      className={`
-        flex items-center gap-2 px-3 pt-2 pb-3
-        ${hasActiveItem ? "text-white" : "text-white/70"}
-        ${isCollapsed ? "justify-center" : ""}
-      `}
-    >
-      {/* Section label - hidden when sidebar collapsed */}
-      {!isCollapsed && (
-        <span className="text-sm font-semibold text-white uppercase tracking-wider">
-          {section.label}
-        </span>
-      )}
-    </div>
-  );
+  // Handle section toggle
+  const handleToggle = () => {
+    if (section.collapsible) {
+      onToggleSection(section.id);
+    }
+  };
 
   return (
     <div className="mb-4 pt-4 border-t border-white/10">
-      {/* Section header - only show when expanded */}
-      {!isCollapsed && headerContent}
+      {/* Section header - only show when sidebar is expanded */}
+      {!isCollapsed && (
+        <button
+          onClick={handleToggle}
+          className={`
+            w-full flex items-center justify-between px-3 pt-2 pb-3
+            ${hasActiveItem ? "text-white" : "text-white/70"}
+            ${section.collapsible ? "hover:text-white cursor-pointer" : "cursor-default"}
+            transition-colors
+          `}
+          aria-expanded={showItems}
+          aria-label={section.collapsible ? `${isSectionCollapsed ? 'Expand' : 'Collapse'} ${section.label}` : undefined}
+        >
+          <span className="text-sm font-semibold text-white uppercase tracking-wider">
+            {section.label}
+          </span>
+          {section.collapsible && (
+            <Icon
+              name="FaChevronDown"
+              size={12}
+              className={`
+                text-white/50 transition-transform duration-200
+                ${isSectionCollapsed ? "-rotate-90" : ""}
+              `}
+            />
+          )}
+        </button>
+      )}
 
-      {/* Section items */}
-      <div className={`space-y-0.5 ${isCollapsed ? "" : ""}`}>
+      {/* Section items - with smooth collapse animation */}
+      <div
+        className={`
+          space-y-0.5 overflow-hidden transition-all duration-200 ease-in-out
+          ${showItems ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"}
+        `}
+      >
         {section.items.map((item) => (
           <SidebarNavItem
             key={item.path}

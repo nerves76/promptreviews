@@ -31,7 +31,7 @@ export const REVIEWS_SECTION: NavSection = {
   id: "reviews",
   label: "Get Reviews",
   icon: "FaStar",
-  collapsible: false,
+  collapsible: true,
   items: [
     {
       path: "/prompt-pages",
@@ -73,7 +73,7 @@ export const GOOGLE_BUSINESS_SECTION: NavSection = {
   id: "google-business",
   label: "Google Business Profile",
   icon: "FaGoogle",
-  collapsible: false,
+  collapsible: true,
   items: [
     {
       path: "/dashboard/google-business",
@@ -113,7 +113,8 @@ export const SEO_VISIBILITY_SECTION: NavSection = {
   id: "seo-visibility",
   label: "SEO & AI Visibility",
   icon: "FaChartLine",
-  collapsible: false,
+  collapsible: true,
+  defaultCollapsed: true,
   items: [
     {
       path: "/dashboard/research",
