@@ -41,6 +41,7 @@ interface BusinessInfoCardProps {
   onOpenRecentReviews?: () => void; // Callback to open recent reviews modal
   funFacts?: FunFact[]; // Fun facts to display
   funFactsEnabled?: boolean; // Whether fun facts are enabled
+  funFactsButtonLabel?: string; // Custom button label for fun facts
   onOpenFunFacts?: () => void; // Callback to open fun facts modal
 }
 
@@ -51,6 +52,7 @@ export default function BusinessInfoCard({
   onOpenRecentReviews,
   funFacts = [],
   funFactsEnabled = false,
+  funFactsButtonLabel,
   onOpenFunFacts
 }: BusinessInfoCardProps) {
   // For service pages, only show City, State. For location pages, show full address
@@ -196,6 +198,7 @@ export default function BusinessInfoCard({
           <FunFactsButton
             facts={funFacts}
             enabled={funFactsEnabled}
+            buttonLabel={funFactsButtonLabel}
             businessProfile={businessProfile}
             onOpenModal={onOpenFunFacts}
           />

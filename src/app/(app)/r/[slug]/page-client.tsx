@@ -2219,6 +2219,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                 onOpenRecentReviews={() => setShowRecentReviewsModal(true)}
                 funFacts={getFunFactsToDisplay()}
                 funFactsEnabled={promptPage?.fun_facts_enabled || false}
+                funFactsButtonLabel={promptPage?.fun_facts_button_label || 'Fun facts'}
                 onOpenFunFacts={() => setShowFunFactsModal(true)}
               />
               {/* Product Module for Product Pages */}

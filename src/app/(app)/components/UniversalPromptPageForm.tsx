@@ -119,6 +119,7 @@ export default function UniversalPromptPageForm({
     selected_fun_facts: Array.isArray(initialData?.selected_fun_facts)
       ? initialData.selected_fun_facts
       : [],
+    fun_facts_button_label: initialData?.fun_facts_button_label || 'Fun facts',
 
     recent_reviews_enabled: initialData?.recent_reviews_enabled ?? businessProfile?.default_recent_reviews_enabled ?? false,
     recent_reviews_scope: initialData?.recent_reviews_scope || businessProfile?.default_recent_reviews_scope || 'current_page',
@@ -556,12 +557,16 @@ export default function UniversalPromptPageForm({
         enabled={formData.fun_facts_enabled}
         selectedFactIds={formData.selected_fun_facts}
         allFacts={businessProfile?.fun_facts || []}
+        buttonLabel={formData.fun_facts_button_label}
         businessName={businessProfile?.name || businessProfile?.business_name || "Business Name"}
         onEnabledChange={(enabled) => {
           setFormData((prev: any) => ({ ...prev, fun_facts_enabled: enabled }));
         }}
         onSelectedChange={(factIds) => {
           setFormData((prev: any) => ({ ...prev, selected_fun_facts: factIds }));
+        }}
+        onButtonLabelChange={(label) => {
+          setFormData((prev: any) => ({ ...prev, fun_facts_button_label: label }));
         }}
         onFactsChange={() => { /* Handled by API */ }}
         accountId={businessProfile?.account_id}

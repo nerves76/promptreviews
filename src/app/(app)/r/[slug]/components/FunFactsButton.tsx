@@ -17,6 +17,8 @@ interface FunFactsButtonProps {
   facts: FunFact[];
   /** Whether the fun facts feature is enabled */
   enabled: boolean;
+  /** Custom button label */
+  buttonLabel?: string;
   /** Business profile for styling */
   businessProfile?: {
     primary_color?: string;
@@ -30,6 +32,7 @@ interface FunFactsButtonProps {
 export default function FunFactsButton({
   facts,
   enabled,
+  buttonLabel = "Fun facts",
   businessProfile,
   onOpenModal,
 }: FunFactsButtonProps) {
@@ -60,10 +63,10 @@ export default function FunFactsButton({
           e.currentTarget.style.backgroundColor = "transparent";
           e.currentTarget.style.color = secondaryColor;
         }}
-        aria-label="View fun facts"
+        aria-label={`View ${buttonLabel.toLowerCase()}`}
       >
         <Icon name="FaLightbulb" size={12} />
-        <span>Fun facts</span>
+        <span className="whitespace-nowrap">{buttonLabel}</span>
       </button>
     </div>
   );

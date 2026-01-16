@@ -912,9 +912,10 @@ const builderQuestions = useMemo(() => {
               <button
                 onClick={() => setShowFunFactsModal(true)}
                 className="mt-4 px-4 py-1.5 border border-white/40 rounded-full text-sm font-medium text-white/90 hover:bg-white/10 transition-colors flex items-center gap-2"
+                aria-label={`View ${(promptPage?.fun_facts_button_label || 'Fun facts').toLowerCase()}`}
               >
                 <Icon name="FaLightbulb" size={14} />
-                <span>Fun facts</span>
+                <span className="whitespace-nowrap">{promptPage?.fun_facts_button_label || 'Fun facts'}</span>
               </button>
             )}
           </div>
