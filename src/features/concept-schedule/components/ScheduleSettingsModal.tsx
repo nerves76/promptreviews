@@ -180,15 +180,20 @@ export function ScheduleSettingsModal({
         // Checks queued successfully - show message and close after delay
         setRunQueued(true);
         setQueuedMessage(response.message || 'Checks queued! Results will appear shortly.');
-        onScheduleUpdated?.();
-        // Auto-close after showing the message
+        // Auto-close after showing the message, then refresh data
         setTimeout(() => {
           onClose();
+          // Refresh after modal closes so user sees the updated status
+          setTimeout(() => {
+            onScheduleUpdated?.();
+          }, 100);
         }, 2000);
       } else if (response.success) {
         // Backward compatibility for sync response
-        onScheduleUpdated?.();
         onClose();
+        setTimeout(() => {
+          onScheduleUpdated?.();
+        }, 100);
       }
     } catch (err: any) {
       if (err.status === 402) {
