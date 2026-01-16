@@ -1317,7 +1317,7 @@ export function ConceptCard({
               ) : (
                 <>
                   <Icon name="FaSearch" className="w-2.5 h-2.5" />
-                  <span>Check</span>
+                  <span>Check reviews</span>
                 </>
               )}
             </button>
