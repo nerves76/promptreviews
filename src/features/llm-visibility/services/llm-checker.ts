@@ -40,6 +40,7 @@ function transformCheckRowToResponse(row: LLMVisibilityCheckRow): LLMVisibilityC
     citationUrl: row.citation_url,
     totalCitations: row.total_citations,
     responseSnippet: row.response_snippet,
+    fullResponse: row.full_response,
     citations: row.citations,
     mentionedBrands: row.mentioned_brands,
     apiCostUsd: row.api_cost_usd,
