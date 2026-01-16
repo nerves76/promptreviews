@@ -362,6 +362,7 @@ model users {
   comparison_tables                                         comparison_tables[]
   competitors_competitors_created_byTousers                 competitors[]                     @relation("competitors_created_byTousers")
   competitors_competitors_updated_byTousers                 competitors[]                     @relation("competitors_updated_byTousers")
+  concept_check_runs                                        concept_check_runs[]
   credit_ledger                                             credit_ledger[]
   critical_function_errors                                  critical_function_errors[]
   critical_function_successes                               critical_function_successes[]
@@ -385,6 +386,7 @@ model users {
   post_reactions                                            post_reactions[]
   posts                                                     posts[]
   quotes                                                    quotes[]
+  rate_limit_violations                                     rate_limit_violations[]
   review_reminder_logs                                      review_reminder_logs[]
   review_reminder_settings                                  review_reminder_settings[]
   selected_gbp_locations                                    selected_gbp_locations[]
@@ -554,6 +556,7 @@ model accounts {
   comments                                                            comments[]
   communication_records                                               communication_records[]
   communication_templates                                             communication_templates[]
+  concept_check_runs                                                  concept_check_runs[]
   concept_schedules                                                   concept_schedules[]
   contacts                                                            contacts[]
   credit_balances                                                     credit_balances?
@@ -586,6 +589,7 @@ model accounts {
   rank_discovery_usage                                                rank_discovery_usage[]
   rank_group_keywords                                                 rank_group_keywords[]
   rank_keyword_groups                                                 rank_keyword_groups[]
+  rate_limit_violations                                               rate_limit_violations[]
   review_keyword_matches                                              review_keyword_matches[]
   review_reminder_logs                                                review_reminder_logs[]
   review_share_events                                                 review_share_events[]
@@ -1129,9 +1133,9 @@ model communication_templates {
   message_template   String
   is_default         Boolean? @default(false)
   is_active          Boolean? @default(true)
-  is_system          Boolean? @default(false)
   created_at         DateTime @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
   updated_at         DateTime @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
+  is_system          Boolean? @default(false)
   accounts           accounts @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([account_id], map: "idx_communication_templates_account_id")
@@ -2973,6 +2977,7 @@ model keywords {
   search_terms                                                               Json?                       @default("[]")
   search_volume_location_code                                                Int?
   search_volume_location_name                                                String?
+  concept_check_runs                                                         concept_check_runs[]
   concept_schedules                                                          concept_schedules[]
   gg_checks                                                                  gg_checks[]
   gg_tracked_keywords                                                        gg_tracked_keywords[]
@@ -3886,6 +3891,58 @@ model notification_dismissals {
   @@unique([notification_id, user_id])
   @@index([notification_id], map: "idx_notification_dismissals_notification")
   @@index([user_id, notification_id], map: "idx_notification_dismissals_user_notification")
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model concept_check_runs {
+  id                      String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  account_id              String    @db.Uuid
+  keyword_id              String    @db.Uuid
+  search_rank_enabled     Boolean   @default(false)
+  geo_grid_enabled        Boolean   @default(false)
+  llm_visibility_enabled  Boolean   @default(false)
+  llm_providers           String[]  @default(["chatgpt"])
+  review_matching_enabled Boolean   @default(false)
+  status                  String    @default("pending")
+  search_rank_status      String?
+  geo_grid_status         String?
+  llm_visibility_status   String?
+  review_matching_status  String?
+  total_credits_used      Int?      @default(0)
+  error_message           String?
+  triggered_by            String?   @db.Uuid
+  created_at              DateTime  @default(now()) @db.Timestamptz(6)
+  started_at              DateTime? @db.Timestamptz(6)
+  completed_at            DateTime? @db.Timestamptz(6)
+  updated_at              DateTime  @default(now()) @db.Timestamptz(6)
+  accounts                accounts  @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  keywords                keywords  @relation(fields: [keyword_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users                   users?    @relation(fields: [triggered_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([account_id], map: "idx_concept_check_runs_account")
+  @@index([created_at(sort: Desc)], map: "idx_concept_check_runs_created")
+  @@index([keyword_id], map: "idx_concept_check_runs_keyword")
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model rate_limit_violations {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  rate_limit_key String
+  user_id        String?   @db.Uuid
+  account_id     String?   @db.Uuid
+  endpoint       String
+  ip_address     String?
+  user_agent     String?
+  created_at     DateTime  @default(now()) @db.Timestamptz(6)
+  accounts       accounts? @relation(fields: [account_id], references: [id], onUpdate: NoAction)
+  users          users?    @relation(fields: [user_id], references: [id], onUpdate: NoAction)
+
+  @@index([created_at(sort: Desc)], map: "idx_rate_limit_violations_created_at")
+  @@index([rate_limit_key], map: "idx_rate_limit_violations_key")
   @@schema("public")
 }
 
