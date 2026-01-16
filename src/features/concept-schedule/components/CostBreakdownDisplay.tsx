@@ -13,12 +13,15 @@ interface CostBreakdownDisplayProps {
   costBreakdown: ConceptCostBreakdown;
   creditBalance?: number;
   compact?: boolean;
+  /** When true, shows "Cost per run" instead of "Cost per scheduled run" */
+  isManualRun?: boolean;
 }
 
 export function CostBreakdownDisplay({
   costBreakdown,
   creditBalance,
   compact = false,
+  isManualRun = false,
 }: CostBreakdownDisplayProps) {
   const hasInsufficientCredits = creditBalance !== undefined && creditBalance < costBreakdown.total;
 
@@ -38,7 +41,9 @@ export function CostBreakdownDisplay({
     <div className={`rounded-lg p-4 ${hasInsufficientCredits ? 'bg-red-50 border border-red-200' : 'bg-gray-50 border border-gray-200'}`}>
       <div className="flex items-center gap-2 mb-3">
         <Icon name="FaCoins" className="w-4 h-4 text-gray-600" />
-        <h4 className="text-sm font-semibold text-gray-700">Cost per scheduled run</h4>
+        <h4 className="text-sm font-semibold text-gray-700">
+          {isManualRun ? 'Cost for this run' : 'Cost per scheduled run'}
+        </h4>
       </div>
 
       <div className="space-y-2 text-sm">

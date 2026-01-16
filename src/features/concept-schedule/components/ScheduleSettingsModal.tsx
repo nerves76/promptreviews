@@ -148,6 +148,46 @@ export function ScheduleSettingsModal({
     fetchCostPreview();
   }, [keywordId, searchRankEnabled, geoGridEnabled, llmVisibilityEnabled, llmProviders, reviewMatchingEnabled, isLoading, isOpen]);
 
+  // Handle "Run Now" - immediate execution
+  const handleRunNow = useCallback(async () => {
+    setIsSaving(true);
+    setError(null);
+
+    try {
+      const response = await apiClient.post<{
+        success: boolean;
+        partial?: boolean;
+        results: Array<{ type: string; success: boolean; error?: string; creditsUsed: number }>;
+        totalCreditsUsed: number;
+        creditBalance: number;
+      }>('/concept-schedule/run-now', {
+        keywordId,
+        searchRankEnabled,
+        geoGridEnabled,
+        llmVisibilityEnabled,
+        llmProviders,
+        reviewMatchingEnabled,
+      });
+
+      if (response.success) {
+        onScheduleUpdated?.();
+        onClose();
+      } else if (response.partial) {
+        // Some checks failed
+        const failedChecks = response.results.filter(r => !r.success);
+        setError(`Some checks failed: ${failedChecks.map(r => r.type).join(', ')}`);
+      }
+    } catch (err: any) {
+      if (err.status === 402) {
+        setError(err.responseBody?.error || 'Insufficient credits');
+      } else {
+        setError(err instanceof Error ? err.message : 'Failed to run checks');
+      }
+    } finally {
+      setIsSaving(false);
+    }
+  }, [keywordId, searchRankEnabled, geoGridEnabled, llmVisibilityEnabled, llmProviders, reviewMatchingEnabled, onScheduleUpdated, onClose]);
+
   // Handle save
   const handleSave = useCallback(async (skipWarning = false) => {
     // Check for existing schedules to pause (only for new schedules)
@@ -448,6 +488,7 @@ export function ScheduleSettingsModal({
                   <CostBreakdownDisplay
                     costBreakdown={costBreakdown}
                     creditBalance={creditBalance}
+                    isManualRun={!frequency}
                   />
                 )}
 
@@ -485,13 +526,18 @@ export function ScheduleSettingsModal({
                 Cancel
               </Button>
               <Button
-                onClick={() => handleSave(false)}
+                onClick={() => frequency ? handleSave(false) : handleRunNow()}
                 disabled={isSaving || (!searchRankEnabled && !geoGridEnabled && !llmVisibilityEnabled && !reviewMatchingEnabled)}
               >
                 {isSaving ? (
                   <>
                     <Icon name="FaSpinner" className="w-4 h-4 mr-2 animate-spin" />
-                    Saving...
+                    {frequency ? 'Saving...' : 'Running...'}
+                  </>
+                ) : !frequency ? (
+                  <>
+                    <Icon name="FaRocket" className="w-4 h-4 mr-2" />
+                    Run now
                   </>
                 ) : schedule ? (
                   'Update schedule'
