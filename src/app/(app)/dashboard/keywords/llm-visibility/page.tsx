@@ -837,7 +837,7 @@ export default function LLMVisibilityPage() {
                                   {/* Brand mention status */}
                                   {result.brandMentioned && (
                                     <span className="text-blue-600 text-xs font-medium flex items-center gap-0.5" title="Brand mentioned in response">
-                                      <Icon name="FaUser" className="w-2.5 h-2.5" />
+                                      <Icon name="FaCommentAlt" className="w-2.5 h-2.5" />
                                     </span>
                                   )}
                                 </div>
@@ -906,7 +906,7 @@ export default function LLMVisibilityPage() {
                                               )}
                                               {result.brandMentioned && (
                                                 <span className="text-blue-600 font-medium flex items-center gap-1">
-                                                  <Icon name="FaUser" className="w-3 h-3" />
+                                                  <Icon name="FaCommentAlt" className="w-3 h-3" />
                                                   Brand mentioned
                                                 </span>
                                               )}
@@ -1000,7 +1000,7 @@ export default function LLMVisibilityPage() {
                 <span>Domain cited as source</span>
               </div>
               <div className="flex items-center gap-1">
-                <Icon name="FaUser" className="w-3 h-3 text-blue-600" />
+                <Icon name="FaCommentAlt" className="w-3 h-3 text-blue-600" />
                 <span>Brand mentioned in response</span>
               </div>
               <div className="flex items-center gap-1">
