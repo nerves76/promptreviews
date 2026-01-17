@@ -86,6 +86,17 @@ export interface LLMBrandEntity {
   urls: Array<{ url: string; domain: string }> | null;
 }
 
+/**
+ * Search result from the AI's web search (includes unused results)
+ */
+export interface LLMSearchResult {
+  url: string;
+  domain: string;
+  title: string | null;
+  description: string | null;
+  isOurs: boolean;
+}
+
 export interface LLMCheckResult {
   success: boolean;
   provider: LLMProvider;
@@ -99,6 +110,8 @@ export interface LLMCheckResult {
   mentionedBrands: LLMBrandEntity[];
   responseSnippet: string | null;
   fullResponse: string | null;
+  searchResults: LLMSearchResult[];
+  fanOutQueries: string[];
   cost: number;
   error?: string;
 }
@@ -122,6 +135,8 @@ export interface LLMVisibilityCheckRow {
   full_response: string | null;
   citations: LLMCitation[] | null;
   mentioned_brands: LLMBrandEntity[] | null;
+  search_results: LLMSearchResult[] | null;
+  fan_out_queries: string[] | null;
   api_cost_usd: number | null;
   checked_at: string;
   created_at: string;
@@ -176,6 +191,8 @@ export interface LLMVisibilityCheck {
   fullResponse: string | null;
   citations: LLMCitation[] | null;
   mentionedBrands: LLMBrandEntity[] | null;
+  searchResults: LLMSearchResult[] | null;
+  fanOutQueries: string[] | null;
   apiCostUsd: number | null;
   checkedAt: string;
   createdAt: string;

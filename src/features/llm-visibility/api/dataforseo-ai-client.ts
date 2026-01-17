@@ -14,6 +14,7 @@ import {
   LLMCheckResult,
   LLMCitation,
   LLMBrandEntity,
+  LLMSearchResult,
 } from '../utils/types';
 
 // ============================================
@@ -162,7 +163,12 @@ interface ChatGPTScraperResult {
   check_url: string;
   datetime: string;
   markdown?: string;
-  search_results?: any[];
+  search_results?: Array<{
+    url?: string;
+    domain?: string;
+    title?: string;
+    description?: string;
+  }>;
   sources?: Array<{
     domain: string;
     url?: string;
@@ -170,6 +176,7 @@ interface ChatGPTScraperResult {
   }>;
   brand_entities?: any[];
   items?: any[];
+  fan_out_queries?: string[];
 }
 
 // LLM Responses specific result
@@ -363,8 +370,29 @@ export async function checkChatGPTVisibility(params: {
       }
     }
 
+    // Extract search results (all websites the AI retrieved, including unused)
+    const searchResults: LLMSearchResult[] = [];
+    if (result.search_results && Array.isArray(result.search_results)) {
+      for (const sr of result.search_results) {
+        if (sr.url || sr.domain) {
+          const domain = sr.domain || extractDomain(sr.url || '');
+          searchResults.push({
+            url: sr.url || '',
+            domain,
+            title: sr.title || null,
+            description: sr.description || null,
+            isOurs: isDomainMatch(domain, targetDomain),
+          });
+        }
+      }
+    }
+
+    // Extract fan-out queries (related searches the AI performed)
+    const fanOutQueries: string[] = result.fan_out_queries || [];
+
     console.log(
       `🤖 [DataForSEO AI] ChatGPT: ${citations.length} citations, ` +
+      `${searchResults.length} search results, ${fanOutQueries.length} fan-out queries, ` +
       `${mentionedBrands.length} brands mentioned, ` +
       `domain cited: ${domainCited}${citationPosition ? ` (position ${citationPosition})` : ''}, ` +
       `brand mentioned: ${brandMentioned}, ` +
@@ -384,6 +412,8 @@ export async function checkChatGPTVisibility(params: {
       mentionedBrands,
       responseSnippet,
       fullResponse,
+      searchResults,
+      fanOutQueries,
       cost: task.cost || 0,
     };
   } catch (error) {
@@ -523,6 +553,8 @@ export async function checkLLMResponseVisibility(params: {
       mentionedBrands: [], // LLM Responses API doesn't provide brand_entities like ChatGPT Scraper
       responseSnippet,
       fullResponse,
+      searchResults: [], // LLM Responses API doesn't provide search_results like ChatGPT Scraper
+      fanOutQueries: [], // LLM Responses API doesn't provide fan_out_queries like ChatGPT Scraper
       cost: task.cost || 0,
     };
   } catch (error) {
@@ -653,6 +685,8 @@ function createErrorResult(
     mentionedBrands: [],
     responseSnippet: null,
     fullResponse: null,
+    searchResults: [],
+    fanOutQueries: [],
     cost,
     error,
   };

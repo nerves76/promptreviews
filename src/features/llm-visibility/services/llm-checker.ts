@@ -43,6 +43,8 @@ function transformCheckRowToResponse(row: LLMVisibilityCheckRow): LLMVisibilityC
     fullResponse: row.full_response,
     citations: row.citations,
     mentionedBrands: row.mentioned_brands,
+    searchResults: row.search_results,
+    fanOutQueries: row.fan_out_queries,
     apiCostUsd: row.api_cost_usd,
     checkedAt: row.checked_at,
     createdAt: row.created_at,
@@ -144,6 +146,8 @@ export async function runLLMChecks(
       full_response: string | null;
       citations: object | null;
       mentioned_brands: object | null;
+      search_results: object | null;
+      fan_out_queries: string[] | null;
       api_cost_usd: number;
       checked_at: string;
     }> = [];
@@ -186,6 +190,8 @@ export async function runLLMChecks(
               full_response: result.fullResponse,
               citations: result.citations.length > 0 ? result.citations : null,
               mentioned_brands: result.mentionedBrands.length > 0 ? result.mentionedBrands : null,
+              search_results: result.searchResults.length > 0 ? result.searchResults : null,
+              fan_out_queries: result.fanOutQueries.length > 0 ? result.fanOutQueries : null,
               api_cost_usd: result.cost,
               checked_at: checkedAt,
             });

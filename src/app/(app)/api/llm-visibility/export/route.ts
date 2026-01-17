@@ -58,6 +58,8 @@ export async function GET(request: NextRequest) {
         response_snippet,
         full_response,
         citations,
+        search_results,
+        fan_out_queries,
         api_cost_usd,
         checked_at
       `)
@@ -109,6 +111,9 @@ export async function GET(request: NextRequest) {
       'citation_url',
       'total_citations',
       'citations_summary',
+      'search_results_count',
+      'search_results_summary',
+      'fan_out_queries',
       'response_snippet',
       'full_response',
       'api_cost_usd',
@@ -140,6 +145,21 @@ export async function GET(request: NextRequest) {
           .join('; ');
       }
 
+      // Format search results as a summary: domain1, domain2, domain3 [OURS], ...
+      let searchResultsSummary = '';
+      let searchResultsCount = 0;
+      if (check.search_results && Array.isArray(check.search_results)) {
+        searchResultsCount = check.search_results.length;
+        searchResultsSummary = check.search_results
+          .map((sr: any) => `${sr.domain}${sr.isOurs ? ' [OURS]' : ''}`)
+          .join('; ');
+      }
+
+      // Format fan-out queries as semicolon-separated
+      const fanOutQueriesStr = check.fan_out_queries && Array.isArray(check.fan_out_queries)
+        ? check.fan_out_queries.join('; ')
+        : '';
+
       return [
         escapeCSV(keywordPhrase),
         escapeCSV(check.question),
@@ -150,6 +170,9 @@ export async function GET(request: NextRequest) {
         escapeCSV(check.citation_url),
         escapeCSV(check.total_citations),
         escapeCSV(citationsSummary),
+        escapeCSV(searchResultsCount),
+        escapeCSV(searchResultsSummary),
+        escapeCSV(fanOutQueriesStr),
         escapeCSV(check.response_snippet),
         escapeCSV(check.full_response),
         escapeCSV(check.api_cost_usd),

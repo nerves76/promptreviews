@@ -985,6 +985,55 @@ export default function LLMVisibilityPage() {
                                               </div>
                                             </div>
                                           )}
+
+                                          {/* Fan-out queries - related searches the AI performed */}
+                                          {result.fanOutQueries && result.fanOutQueries.length > 0 && (
+                                            <div className="mt-2">
+                                              <div className="text-xs text-gray-500 mb-1">
+                                                Related searches performed ({result.fanOutQueries.length}):
+                                              </div>
+                                              <div className="flex flex-wrap gap-2">
+                                                {result.fanOutQueries.map((query, qidx) => (
+                                                  <span
+                                                    key={qidx}
+                                                    className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs bg-amber-50 text-amber-700 border border-amber-200"
+                                                  >
+                                                    <Icon name="FaSearch" className="w-2.5 h-2.5" />
+                                                    <span className="truncate max-w-[200px]">{query}</span>
+                                                  </span>
+                                                ))}
+                                              </div>
+                                            </div>
+                                          )}
+
+                                          {/* Search results - all websites the AI retrieved */}
+                                          {result.searchResults && result.searchResults.length > 0 && (
+                                            <div className="mt-2">
+                                              <div className="text-xs text-gray-500 mb-1">
+                                                Websites retrieved ({result.searchResults.length}):
+                                              </div>
+                                              <div className="flex flex-wrap gap-2">
+                                                {result.searchResults.map((sr, sridx) => (
+                                                  <a
+                                                    key={sridx}
+                                                    href={sr.url || '#'}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs ${
+                                                      sr.isOurs
+                                                        ? 'bg-green-50 text-green-700 border border-green-200'
+                                                        : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200'
+                                                    }`}
+                                                    title={sr.title || sr.url || undefined}
+                                                  >
+                                                    <Icon name="FaGlobe" className="w-2.5 h-2.5" />
+                                                    <span className="truncate max-w-[150px]">{sr.domain}</span>
+                                                    {sr.isOurs && <span className="text-green-600 font-bold">(You)</span>}
+                                                  </a>
+                                                ))}
+                                              </div>
+                                            </div>
+                                          )}
                                         </div>
                                       );
                                     })}
