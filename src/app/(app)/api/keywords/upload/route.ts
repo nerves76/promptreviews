@@ -338,9 +338,15 @@ export async function POST(request: NextRequest) {
     const insertErrors: string[] = [];
 
     for (const keywordInsert of keywordInserts) {
+      // Add 'name' field (required) - same as phrase
+      const insertData = {
+        ...keywordInsert,
+        name: keywordInsert.phrase,
+      };
+
       const { data: inserted, error: insertError } = await serviceSupabase
         .from('keywords')
-        .insert(keywordInsert)
+        .insert(insertData)
         .select('id, phrase')
         .single();
 
