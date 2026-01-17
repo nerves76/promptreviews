@@ -468,8 +468,8 @@ export async function GET(request: NextRequest) {
       'plumbing services',
       'plumber|plumbing',
       'plumber portland oregon|best plumber portland',
-      'How much does a plumber cost?|What are the best plumbers near me?',
-      'top|middle',
+      'What does a plumber do?|Who is the best plumber in Portland?',
+      'top|bottom',
       rankGroups[0] || '',
     ],
     [
@@ -478,8 +478,8 @@ export async function GET(request: NextRequest) {
       'emergency plumbing help',
       '24 hour plumber|urgent plumbing',
       'emergency plumber near me|24/7 plumber',
-      'Who to call for plumbing emergency?',
-      'top',
+      'How do I handle a plumbing emergency?',
+      'middle',
       '',
     ],
     [
