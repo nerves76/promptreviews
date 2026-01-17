@@ -269,12 +269,14 @@ class ApiClient {
 
         if (!retryResponse.ok) {
           let errorDetails = retryResponse.statusText;
+          let errorBody: any = null;
           try {
-            const errorBody = await retryResponse.json();
+            errorBody = await retryResponse.json();
             errorDetails = errorBody.details || errorBody.error || errorBody.message || retryResponse.statusText;
           } catch (e) {}
           const error = new Error(`Upload failed: ${errorDetails}`);
           (error as any).status = retryResponse.status;
+          (error as any).responseBody = errorBody;
           throw error;
         }
         return retryResponse.json();
@@ -283,12 +285,14 @@ class ApiClient {
 
     if (!response.ok) {
       let errorDetails = response.statusText;
+      let errorBody: any = null;
       try {
-        const errorBody = await response.json();
+        errorBody = await response.json();
         errorDetails = errorBody.details || errorBody.error || errorBody.message || response.statusText;
       } catch (e) {}
       const error = new Error(`Upload failed: ${errorDetails}`);
       (error as any).status = response.status;
+      (error as any).responseBody = errorBody;
       throw error;
     }
 

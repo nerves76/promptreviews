@@ -42,7 +42,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Read and parse the CSV file
-    const text = await file.text();
+    // Remove BOM (Byte Order Mark) if present - common in Excel-exported CSVs
+    const rawText = await file.text();
+    const text = rawText.replace(/^\uFEFF/, '');
 
     // Split into lines and clean them
     const lines = text
@@ -65,18 +67,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'CSV file must have a header row and at least one data row' }, { status: 400 });
     }
 
-    // Define expected columns and their aliases
+    // Define expected columns and their aliases (all normalized - lowercase, no spaces/underscores)
     const expectedColumns: Record<string, string[]> = {
-      phrase: ['phrase', 'keyword', 'keywordphrase', 'keyword phrase', 'conceptname', 'concept name', 'concept_name'],
-      review_phrase: ['reviewphrase', 'review phrase', 'review_phrase', 'customerphrase', 'customer phrase'],
-      search_terms: ['searchterms', 'search terms', 'search_terms'],
-      search_query: ['searchquery', 'search query', 'search_query', 'searchphrase', 'search phrase'],
-      aliases: ['aliases', 'alias', 'alternativeterms', 'alternative terms'],
-      location_scope: ['locationscope', 'location scope', 'location_scope', 'scope'],
-      ai_questions: ['aiquestions', 'ai questions', 'ai_questions', 'relatedquestions', 'related questions', 'related_questions', 'questions'],
-      funnel_stages: ['funnelstages', 'funnel stages', 'funnel_stages', 'stages'],
-      keyword_group: ['conceptgroup', 'concept group', 'concept_group', 'keywordgroup', 'keyword group', 'keyword_group', 'group'],
-      rank_tracking_group: ['ranktrackinggroup', 'rank tracking group', 'rank_tracking_group', 'rankgroup', 'rank group'],
+      phrase: ['phrase', 'keyword', 'keywordphrase', 'conceptname'],
+      review_phrase: ['reviewphrase', 'customerphrase'],
+      search_terms: ['searchterms'],
+      search_query: ['searchquery', 'searchphrase'],
+      aliases: ['aliases', 'alias', 'alternativeterms'],
+      location_scope: ['locationscope', 'scope'],
+      ai_questions: ['aiquestions', 'relatedquestions', 'questions'],
+      funnel_stages: ['funnelstages', 'stages'],
+      keyword_group: ['conceptgroup', 'keywordgroup', 'group'],
+      rank_tracking_group: ['ranktrackinggroup', 'rankgroup'],
     };
 
     // Parse the CSV with flexible header matching
