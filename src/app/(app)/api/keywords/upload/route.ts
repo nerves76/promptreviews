@@ -333,42 +333,59 @@ export async function POST(request: NextRequest) {
       ai_generated: false,
     }));
 
-    const { data: insertedKeywords, error: insertError } = await serviceSupabase
-      .from('keywords')
-      .insert(keywordInserts)
-      .select('id, phrase');
+    // Insert keywords one by one to handle individual failures gracefully
+    const insertedKeywords: { id: string; phrase: string }[] = [];
+    const insertErrors: string[] = [];
 
-    if (insertError) {
-      console.error('Error inserting keywords:', insertError);
-      return NextResponse.json({
-        error: `Failed to save keywords: ${insertError.message}`,
-        details: insertError.details,
-      }, { status: 500 });
+    for (const keywordInsert of keywordInserts) {
+      const { data: inserted, error: insertError } = await serviceSupabase
+        .from('keywords')
+        .insert(keywordInsert)
+        .select('id, phrase')
+        .single();
+
+      if (insertError) {
+        console.error('[Keywords Upload] Insert error for phrase:', keywordInsert.phrase, insertError.message);
+        // Check if it's a duplicate error
+        if (insertError.message.includes('duplicate') || insertError.code === '23505') {
+          insertErrors.push(`"${keywordInsert.phrase}" already exists (skipped)`);
+        } else {
+          insertErrors.push(`Failed to insert "${keywordInsert.phrase}": ${insertError.message}`);
+        }
+      } else if (inserted) {
+        insertedKeywords.push(inserted);
+      }
+    }
+
+    // Add insert errors to the errors array
+    errors.push(...insertErrors);
+
+    // Build a map of phrase -> inserted keyword for linking
+    const insertedKeywordMap = new Map<string, { id: string; phrase: string }>();
+    for (const ik of insertedKeywords) {
+      insertedKeywordMap.set(ik.phrase.toLowerCase(), ik);
     }
 
     // Insert keyword questions into the keyword_questions table
     let questionsCreated = 0;
-    if (insertedKeywords) {
-      for (let i = 0; i < uniqueKeywords.length; i++) {
-        const keyword = uniqueKeywords[i];
-        const insertedKeyword = insertedKeywords[i];
+    for (const keyword of uniqueKeywords) {
+      const insertedKeyword = insertedKeywordMap.get(keyword.phrase.toLowerCase());
 
-        if (keyword.related_questions && keyword.related_questions.length > 0 && insertedKeyword) {
-          const questionInserts = keyword.related_questions.map((q: any) => ({
-            account_id: accountId,
-            keyword_id: insertedKeyword.id,
-            question: q.question,
-            funnel_stage: q.funnel_stage,
-            added_at: new Date().toISOString(),
-          }));
+      if (keyword.related_questions && keyword.related_questions.length > 0 && insertedKeyword) {
+        const questionInserts = keyword.related_questions.map((q: any) => ({
+          account_id: accountId,
+          keyword_id: insertedKeyword.id,
+          question: q.question,
+          funnel_stage: q.funnel_stage,
+          added_at: new Date().toISOString(),
+        }));
 
-          const { error: questionsError } = await serviceSupabase
-            .from('keyword_questions')
-            .insert(questionInserts);
+        const { error: questionsError } = await serviceSupabase
+          .from('keyword_questions')
+          .insert(questionInserts);
 
-          if (!questionsError) {
-            questionsCreated += questionInserts.length;
-          }
+        if (!questionsError) {
+          questionsCreated += questionInserts.length;
         }
       }
     }
@@ -377,39 +394,36 @@ export async function POST(request: NextRequest) {
     let rankGroupsLinked = 0;
 
     // Add keywords to rank tracking groups if specified
-    if (insertedKeywords) {
-      for (let i = 0; i < uniqueKeywords.length; i++) {
-        const keyword = uniqueKeywords[i];
-        const insertedKeyword = insertedKeywords[i];
+    for (const keyword of uniqueKeywords) {
+      const insertedKeyword = insertedKeywordMap.get(keyword.phrase.toLowerCase());
 
-        if (keyword.rank_tracking_group && insertedKeyword) {
-          const rankGroupId = rankGroupMap.get(keyword.rank_tracking_group.toLowerCase());
-          if (rankGroupId) {
-            // Check if already linked
-            const { data: existing } = await serviceSupabase
+      if (keyword.rank_tracking_group && insertedKeyword) {
+        const rankGroupId = rankGroupMap.get(keyword.rank_tracking_group.toLowerCase());
+        if (rankGroupId) {
+          // Check if already linked
+          const { data: existing } = await serviceSupabase
+            .from('rank_group_keywords')
+            .select('id')
+            .eq('group_id', rankGroupId)
+            .eq('keyword_id', insertedKeyword.id)
+            .maybeSingle();
+
+          if (!existing) {
+            const { error: linkError } = await serviceSupabase
               .from('rank_group_keywords')
-              .select('id')
-              .eq('group_id', rankGroupId)
-              .eq('keyword_id', insertedKeyword.id)
-              .maybeSingle();
+              .insert({
+                account_id: accountId,
+                group_id: rankGroupId,
+                keyword_id: insertedKeyword.id,
+                is_enabled: true,
+              });
 
-            if (!existing) {
-              const { error: linkError } = await serviceSupabase
-                .from('rank_group_keywords')
-                .insert({
-                  account_id: accountId,
-                  group_id: rankGroupId,
-                  keyword_id: insertedKeyword.id,
-                  is_enabled: true,
-                });
-
-              if (!linkError) {
-                rankGroupsLinked++;
-              }
+            if (!linkError) {
+              rankGroupsLinked++;
             }
-          } else {
-            errors.push(`Row ${keyword.rowNumber}: Rank tracking group "${keyword.rank_tracking_group}" not found`);
           }
+        } else {
+          errors.push(`Row ${keyword.rowNumber}: Rank tracking group "${keyword.rank_tracking_group}" not found`);
         }
       }
     }
