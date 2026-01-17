@@ -986,44 +986,48 @@ export default function KeywordManager({
     <div>
       {/* Header */}
       {!compact && (
-        <div className="mb-6 flex items-start justify-between">
-          <div>
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+          <div className="flex-1 min-w-0">
             <h2 className="text-xl font-bold text-slate-blue">Keyword Concepts Library</h2>
             <p className="text-sm text-gray-500 mt-1">
               Organize concepts for SEO rank tracking, review keyword matching, and AI visibility monitoring.
             </p>
           </div>
-          {/* Action buttons - top right */}
-          <div className="flex items-center gap-2">
+          {/* Action buttons */}
+          <div className="flex items-center gap-2 flex-wrap">
             <button
               onClick={handleRefreshEnrichment}
               disabled={isLoadingEnrichment}
-              className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 flex items-center gap-2 disabled:opacity-50"
+              className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 flex items-center gap-2 disabled:opacity-50 whitespace-nowrap"
               title="Refresh volume and ranking data"
+              aria-label="Refresh volume and ranking data"
             >
               <ArrowPathIcon className={`w-4 h-4 ${isLoadingEnrichment ? 'animate-spin' : ''}`} />
               <span className="hidden sm:inline">Refresh</span>
             </button>
             <button
               onClick={() => setShowImportModal(true)}
-              className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 flex items-center gap-2"
+              className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 flex items-center gap-2 whitespace-nowrap"
+              aria-label="Import concepts"
             >
               <ArrowUpTrayIcon className="w-4 h-4" />
-              <span>Import</span>
+              <span className="hidden sm:inline">Import</span>
             </button>
             <button
               onClick={handleExport}
-              className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 flex items-center gap-2"
+              className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 flex items-center gap-2 whitespace-nowrap"
+              aria-label="Export concepts"
             >
               <ArrowDownTrayIcon className="w-4 h-4" />
-              <span>Export</span>
+              <span className="hidden sm:inline">Export</span>
             </button>
             <button
               onClick={() => setShowNewGroupModal(true)}
-              className="px-4 py-2 text-sm font-medium text-white bg-slate-blue rounded-md hover:bg-slate-blue/90 flex items-center gap-2"
+              className="px-3 py-2 sm:px-4 text-sm font-medium text-white bg-slate-blue rounded-md hover:bg-slate-blue/90 flex items-center gap-2 whitespace-nowrap"
+              aria-label="Add new group"
             >
               <Icon name="FaPlus" className="w-4 h-4" />
-              <span>Group</span>
+              <span className="hidden sm:inline">Group</span>
             </button>
           </div>
         </div>
