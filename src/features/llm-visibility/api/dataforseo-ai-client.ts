@@ -226,7 +226,16 @@ async function makeDataForSEORequest(
     if (!response.ok) {
       const errorText = await response.text();
       console.error(`❌ [DataForSEO AI] API error: ${response.status}`, errorText);
-      throw new Error(`API returned ${response.status}: ${errorText}`);
+      // Provide user-friendly HTTP error messages
+      if (response.status === 401 || response.status === 403) {
+        throw new Error('Authentication failed. Please contact support.');
+      } else if (response.status === 429) {
+        throw new Error('Rate limit exceeded. Please wait a moment and try again.');
+      } else if (response.status >= 500) {
+        throw new Error('AI service temporarily unavailable. Please try again in a few minutes.');
+      } else {
+        throw new Error('Request failed. Please try again.');
+      }
     }
 
     const data: DataForSEOResponse = await response.json();
@@ -300,7 +309,8 @@ export async function checkChatGPTVisibility(params: {
     }
 
     if (task.status_code !== 20000) {
-      return createErrorResult('chatgpt', question, `Task failed: ${task.status_message}`, task.cost);
+      const friendlyError = getDataForSEOErrorMessage(task.status_code, task.status_message, 'chatgpt');
+      return createErrorResult('chatgpt', question, friendlyError, task.cost);
     }
 
     const result = task.result?.[0] as ChatGPTScraperResult | undefined;
@@ -474,7 +484,8 @@ export async function checkLLMResponseVisibility(params: {
     }
 
     if (task.status_code !== 20000) {
-      return createErrorResult(provider, question, `Task failed: ${task.status_message}`, task.cost);
+      const friendlyError = getDataForSEOErrorMessage(task.status_code, task.status_message, provider);
+      return createErrorResult(provider, question, friendlyError, task.cost);
     }
 
     const result = task.result?.[0] as LLMResponsesResult | undefined;
@@ -665,6 +676,42 @@ export async function checkMultipleQuestions(params: {
 // ============================================
 // Helper: Create Error Result
 // ============================================
+
+/**
+ * Map DataForSEO error codes to user-friendly messages.
+ * See: https://docs.dataforseo.com/v3/appendix/errors/
+ */
+function getDataForSEOErrorMessage(statusCode: number, statusMessage: string, provider: LLMProvider): string {
+  const providerLabel = provider === 'chatgpt' ? 'ChatGPT' :
+    provider === 'claude' ? 'Claude' :
+    provider === 'gemini' ? 'Gemini' : 'Perplexity';
+
+  // Map common error codes to friendly messages
+  switch (statusCode) {
+    case 50000:
+      return `${providerLabel} check failed (service temporarily unavailable). Try again in a few minutes.`;
+    case 40000:
+      return `${providerLabel} check failed (invalid request). Please try a different question.`;
+    case 40100:
+      return `${providerLabel} check failed (authentication error). Please contact support.`;
+    case 40200:
+      return `${providerLabel} check failed (insufficient balance). Please contact support.`;
+    case 40400:
+      return `${providerLabel} check failed (resource not found). Please try again.`;
+    case 40500:
+      return `${providerLabel} check failed (rate limit exceeded). Please wait and try again.`;
+    case 50100:
+      return `${providerLabel} check failed (timeout). The AI took too long to respond. Try again.`;
+    default:
+      // For unknown errors, provide a clean message without raw details
+      if (statusCode >= 50000) {
+        return `${providerLabel} check failed (service error). Try again later.`;
+      } else if (statusCode >= 40000) {
+        return `${providerLabel} check failed. Please try again or contact support.`;
+      }
+      return `${providerLabel} check failed: ${statusMessage}`;
+  }
+}
 
 function createErrorResult(
   provider: LLMProvider,

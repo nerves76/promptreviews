@@ -83,15 +83,7 @@
       "schedule": "0 2 * * *"
     },
     {
-      "path": "/api/cron/process-concept-checks",
-      "schedule": "* * * * *"
-    },
-    {
-      "path": "/api/cron/process-llm-batch",
-      "schedule": "* * * * *"
-    },
-    {
-      "path": "/api/cron/process-rank-batch",
+      "path": "/api/cron/process-all-batches",
       "schedule": "* * * * *"
     }
   ],

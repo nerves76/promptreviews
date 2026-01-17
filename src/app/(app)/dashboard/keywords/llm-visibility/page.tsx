@@ -581,8 +581,22 @@ export default function LLMVisibilityPage() {
               )}
               {allResults.length > 0 && (
                 <button
-                  onClick={() => {
-                    window.location.href = '/api/llm-visibility/export';
+                  onClick={async () => {
+                    try {
+                      const response = await apiClient.download('/llm-visibility/export');
+                      const blob = await response.blob();
+                      const url = window.URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = `llm-visibility-export-${new Date().toISOString().split('T')[0]}.csv`;
+                      document.body.appendChild(a);
+                      a.click();
+                      window.URL.revokeObjectURL(url);
+                      document.body.removeChild(a);
+                    } catch (error) {
+                      console.error('Export failed:', error);
+                      alert('Failed to export LLM visibility data. Please try again.');
+                    }
                   }}
                   className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg transition-colors whitespace-nowrap"
                   title="Export all LLM visibility results to CSV"
