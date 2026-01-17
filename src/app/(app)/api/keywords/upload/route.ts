@@ -82,29 +82,38 @@ export async function POST(request: NextRequest) {
     };
 
     // Parse the CSV with flexible header matching
-    const records = parse(lines.join('\n'), {
-      columns: (headers: string[]) => {
-        const normalize = (h: string) => h.toLowerCase().replace(/\s|_/g, '');
-        const mappedColumns = headers.map((header: string, index: number) => {
-          const norm = normalize(header);
-          for (const [key, aliases] of Object.entries(expectedColumns)) {
-            if (aliases.includes(norm)) return key;
-          }
-          return `_extra_${index}`;
-        });
-        console.log('[Keywords Upload] Original headers:', headers);
-        console.log('[Keywords Upload] Mapped columns:', mappedColumns);
-        return mappedColumns;
-      },
-      skip_empty_lines: true,
-      trim: true,
-      relax_column_count: true,
-      relax_quotes: true,
-      quote: '"',
-      escape: '"',
-      delimiter: ',',
-      skip_records_with_empty_values: false, // Don't skip - we'll validate ourselves
-    });
+    let records: any[];
+    try {
+      records = parse(lines.join('\n'), {
+        columns: (headers: string[]) => {
+          const normalize = (h: string) => h.toLowerCase().replace(/\s|_/g, '');
+          const mappedColumns = headers.map((header: string, index: number) => {
+            const norm = normalize(header);
+            for (const [key, aliases] of Object.entries(expectedColumns)) {
+              if (aliases.includes(norm)) return key;
+            }
+            return `_extra_${index}`;
+          });
+          console.log('[Keywords Upload] Original headers:', headers);
+          console.log('[Keywords Upload] Mapped columns:', mappedColumns);
+          return mappedColumns;
+        },
+        skip_empty_lines: true,
+        trim: true,
+        relax_column_count: true,
+        relax_quotes: true,
+        quote: '"',
+        escape: '"',
+        delimiter: ',',
+        skip_records_with_empty_values: false, // Don't skip - we'll validate ourselves
+      });
+    } catch (parseError) {
+      console.error('[Keywords Upload] CSV Parse Error:', parseError);
+      return NextResponse.json({
+        error: 'Failed to parse CSV file',
+        details: parseError instanceof Error ? parseError.message : String(parseError),
+      }, { status: 400 });
+    }
 
     console.log('[Keywords Upload] Parsed records count:', records.length);
     if (records.length > 0) {
@@ -415,7 +424,10 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error processing keyword upload:', error);
+    console.error('[Keywords Upload] Error:', error);
+    if (error instanceof Error) {
+      console.error('[Keywords Upload] Stack:', error.stack);
+    }
     return NextResponse.json(
       {
         error: 'Internal server error',
