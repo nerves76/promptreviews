@@ -12,3 +12,4 @@ export { default as CheckVolumeModal } from './CheckVolumeModal';
 export { default as RankHistoryChart } from './RankHistoryChart';
 export { default as RankHistoryModal } from './RankHistoryModal';
 export { AddKeywordConceptModal } from './AddKeywordConceptModal';
+export { default as RunAllRankModal } from './RunAllRankModal';

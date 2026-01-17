@@ -53,7 +53,7 @@ const PROVIDER_CHART_COLORS: Record<LLMProvider, string> = {
   chatgpt: '#10b981', // emerald-500
   claude: '#f97316', // orange-500
   gemini: '#3b82f6', // blue-500
-  perplexity: '#2E4A7D', // slate-blue
+  perplexity: '#e11d48', // rose-600
 };
 
 function getWeekStart(date: Date): Date {

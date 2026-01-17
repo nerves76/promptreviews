@@ -17,7 +17,7 @@ import {
   LLMVisibilitySummary,
   LLMVisibilityCheck,
 } from '@/features/llm-visibility/utils/types';
-import { CheckLLMModal, LLMVisibilityTrendChart, AddLLMConceptModal } from '@/features/llm-visibility/components';
+import { CheckLLMModal, LLMVisibilityTrendChart, AddLLMConceptModal, RunAllLLMModal } from '@/features/llm-visibility/components';
 import { useKeywords } from '@/features/keywords/hooks/useKeywords';
 import { KeywordDetailsSidebar } from '@/features/keywords/components/KeywordDetailsSidebar';
 import { CheckRankModal } from '@/features/rank-tracking/components';
@@ -94,6 +94,9 @@ export default function LLMVisibilityPage() {
 
   // Modal state for adding new concept
   const [showAddModal, setShowAddModal] = useState(false);
+
+  // Modal state for run all batch
+  const [showRunAllModal, setShowRunAllModal] = useState(false);
 
   // Use keywords hook to create new concepts
   const { createKeyword, refresh: refreshKeywords } = useKeywords({ autoFetch: false });
@@ -566,12 +569,22 @@ export default function LLMVisibilityPage() {
           description="Track whether AI assistants cite your domain or mention your brand when answering questions."
           actions={
             <div className="flex items-center gap-2">
+              {keywords.length > 0 && (
+                <button
+                  onClick={() => setShowRunAllModal(true)}
+                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors whitespace-nowrap"
+                  title="Run LLM visibility checks on all questions"
+                >
+                  <Icon name="FaRocket" className="w-4 h-4" />
+                  Run all checks
+                </button>
+              )}
               {allResults.length > 0 && (
                 <button
                   onClick={() => {
                     window.location.href = '/api/llm-visibility/export';
                   }}
-                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg transition-colors"
+                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg transition-colors whitespace-nowrap"
                   title="Export all LLM visibility results to CSV"
                 >
                   <Icon name="FaFileAlt" className="w-4 h-4" />
@@ -580,7 +593,7 @@ export default function LLMVisibilityPage() {
               )}
               <button
                 onClick={() => setShowAddModal(true)}
-                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-slate-blue hover:bg-slate-blue/90 rounded-lg transition-colors"
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-slate-blue hover:bg-slate-blue/90 rounded-lg transition-colors whitespace-nowrap"
               >
                 <Icon name="FaPlus" className="w-4 h-4" />
                 Add concept
@@ -1121,6 +1134,15 @@ export default function LLMVisibilityPage() {
         defaultLocationCode={checkingRank?.locationCode}
         defaultLocationName={checkingRank?.locationName}
         locationLocked={!!checkingRank?.locationCode}
+      />
+
+      {/* Run All LLM Modal */}
+      <RunAllLLMModal
+        isOpen={showRunAllModal}
+        onClose={() => setShowRunAllModal(false)}
+        onStarted={() => {
+          // Could trigger a refresh when batch completes
+        }}
       />
     </div>
   );
