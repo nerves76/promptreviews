@@ -67,7 +67,8 @@ export async function POST(request: NextRequest) {
       search_query: ['searchquery', 'search query', 'search_query', 'searchphrase', 'search phrase'],
       aliases: ['aliases', 'alias', 'alternativeterms', 'alternative terms'],
       location_scope: ['locationscope', 'location scope', 'location_scope', 'scope'],
-      related_questions: ['relatedquestions', 'related questions', 'related_questions', 'questions'],
+      ai_questions: ['aiquestions', 'ai questions', 'ai_questions', 'relatedquestions', 'related questions', 'related_questions', 'questions'],
+      funnel_stages: ['funnelstages', 'funnel stages', 'funnel_stages', 'stages'],
       keyword_group: ['keywordgroup', 'keyword group', 'keyword_group', 'group'],
       rank_tracking_group: ['ranktrackinggroup', 'rank tracking group', 'rank_tracking_group', 'rankgroup', 'rank group'],
     };
@@ -129,49 +130,25 @@ export async function POST(request: NextRequest) {
           })).filter((st: any) => st.term.length > 0)
         : [];
 
-      // Parse related_questions with funnel stage
-      // New format: question|stage|question2|stage2 (all pipe-separated)
-      // Old format: question|stage,question2|stage2 (comma-separated pairs)
+      // Parse ai_questions and funnel_stages as separate columns (pipe-separated)
+      // New format: ai_questions = "Q1|Q2|Q3", funnel_stages = "top|middle|bottom"
+      // Also supports old combined format for backwards compatibility
       const relatedQuestionsWithStage: Array<{ question: string; funnel_stage: string }> = [];
-      if (record.related_questions) {
-        const rawValue = record.related_questions.trim();
 
-        // Check if it uses the new pipe-only format (no commas, alternating question|stage|question|stage)
-        if (!rawValue.includes(',')) {
-          const parts = rawValue.split('|').map((p: string) => p.trim()).filter(Boolean);
-          // Process in pairs: question, stage, question, stage...
-          for (let i = 0; i < parts.length; i += 2) {
-            const question = parts[i];
-            const funnelStage = parts[i + 1];
-            if (question) {
-              if (funnelStage && ['top', 'middle', 'bottom'].includes(funnelStage)) {
-                relatedQuestionsWithStage.push({ question, funnel_stage: funnelStage });
-              } else if (funnelStage && !['top', 'middle', 'bottom'].includes(funnelStage)) {
-                // The "stage" is actually another question - treat both as questions with default stage
-                relatedQuestionsWithStage.push({ question, funnel_stage: 'middle' });
-                relatedQuestionsWithStage.push({ question: funnelStage, funnel_stage: 'middle' });
-                i--; // Adjust since we consumed what we thought was a stage
-              } else {
-                relatedQuestionsWithStage.push({ question, funnel_stage: 'middle' });
-              }
-            }
+      if (record.ai_questions) {
+        const questions = record.ai_questions.split('|').map((q: string) => q.trim()).filter(Boolean);
+        const stages = record.funnel_stages
+          ? record.funnel_stages.split('|').map((s: string) => s.trim())
+          : [];
+
+        for (let i = 0; i < questions.length; i++) {
+          const question = questions[i];
+          let funnelStage = stages[i] || 'middle';
+          // Validate funnel stage
+          if (!['top', 'middle', 'bottom'].includes(funnelStage)) {
+            funnelStage = 'middle';
           }
-        } else {
-          // Old format: comma-separated pairs like "question|stage,question2|stage2"
-          const questionPairs = rawValue.split(',').map((q: string) => q.trim()).filter(Boolean);
-          for (const pair of questionPairs) {
-            const parts = pair.split('|').map((p: string) => p.trim());
-            if (parts.length === 2) {
-              const [question, funnelStage] = parts;
-              if (question && ['top', 'middle', 'bottom'].includes(funnelStage)) {
-                relatedQuestionsWithStage.push({ question, funnel_stage: funnelStage });
-              } else {
-                relatedQuestionsWithStage.push({ question, funnel_stage: 'middle' });
-              }
-            } else if (parts.length === 1 && parts[0]) {
-              relatedQuestionsWithStage.push({ question: parts[0], funnel_stage: 'middle' });
-            }
-          }
+          relatedQuestionsWithStage.push({ question, funnel_stage: funnelStage });
         }
       }
 
@@ -478,7 +455,8 @@ export async function GET(request: NextRequest) {
     'search_terms',
     'aliases',
     'location_scope',
-    'related_questions',
+    'ai_questions',
+    'funnel_stages',
     'keyword_group',
     'rank_tracking_group',
   ];
@@ -491,7 +469,8 @@ export async function GET(request: NextRequest) {
       'plumber portland oregon|best plumber portland',
       'plumber|plumbing',
       'local',
-      'How much does a plumber cost?|top|What are the best plumbers near me?|middle',
+      'How much does a plumber cost?|What are the best plumbers near me?',
+      'top|middle',
       keywordGroups[0] || 'Services',
       rankGroups[0] || '',
     ],
@@ -501,7 +480,8 @@ export async function GET(request: NextRequest) {
       'emergency plumber near me|24/7 plumber',
       '24 hour plumber|urgent plumbing',
       'local',
-      'Who to call for plumbing emergency?|top',
+      'Who to call for plumbing emergency?',
+      'top',
       keywordGroups[0] || 'Services',
       '',
     ],
@@ -511,6 +491,7 @@ export async function GET(request: NextRequest) {
       'drain cleaning service portland',
       'clogged drain|drain unclogging',
       'local',
+      '',
       '',
       '',
       '',

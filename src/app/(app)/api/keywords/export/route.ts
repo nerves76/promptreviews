@@ -133,7 +133,8 @@ export async function GET(request: NextRequest) {
       'search_query',
       'aliases',
       'location_scope',
-      'related_questions',
+      'ai_questions',
+      'funnel_stages',
       'keyword_group',
       'rank_tracking_group',
       'status',
@@ -179,16 +180,23 @@ export async function GET(request: NextRequest) {
         ? keyword.search_terms.map((st: any) => st.term).join('|')
         : '';
 
-      // Format questions with funnel stage: question|funnel_stage,question2|funnel_stage2
+      // Format questions and funnel stages as separate columns (pipe-separated)
       // Prefer keyword_questions table data over related_questions JSONB
       const questions = questionsMap.get(keywordId) || [];
-      const questionsStr = questions.length > 0
-        ? questions.map((q) => `${q.question}|${q.funnelStage}`).join(',')
-        : (keyword.related_questions && Array.isArray(keyword.related_questions)
-            ? keyword.related_questions.map((q: any) =>
-                typeof q === 'string' ? `${q}|middle` : `${q.question}|${q.funnelStage || 'middle'}`
-              ).join(',')
-            : '');
+      let aiQuestionsStr = '';
+      let funnelStagesStr = '';
+
+      if (questions.length > 0) {
+        aiQuestionsStr = questions.map((q) => q.question).join('|');
+        funnelStagesStr = questions.map((q) => q.funnelStage || 'middle').join('|');
+      } else if (keyword.related_questions && Array.isArray(keyword.related_questions)) {
+        aiQuestionsStr = keyword.related_questions.map((q: any) =>
+          typeof q === 'string' ? q : q.question
+        ).join('|');
+        funnelStagesStr = keyword.related_questions.map((q: any) =>
+          typeof q === 'string' ? 'middle' : (q.funnelStage || q.funnel_stage || 'middle')
+        ).join('|');
+      }
 
       // Format LLM visibility data
       const formatCitedRatio = (provider: string): string => {
@@ -202,9 +210,10 @@ export async function GET(request: NextRequest) {
         escapeCSV(keyword.review_phrase),
         escapeCSV(searchTermsStr),
         escapeCSV(keyword.search_query),
-        escapeCSV(keyword.aliases?.join(', ') || ''),
+        escapeCSV(keyword.aliases?.join('|') || ''),
         escapeCSV(keyword.location_scope),
-        escapeCSV(questionsStr),
+        escapeCSV(aiQuestionsStr),
+        escapeCSV(funnelStagesStr),
         escapeCSV(keyword.keyword_groups?.name || ''),
         escapeCSV(rankGroupName || ''),
         escapeCSV(keyword.status),
@@ -215,7 +224,7 @@ export async function GET(request: NextRequest) {
         escapeCSV(keyword.cpc),
         escapeCSV(keyword.competition_level),
         escapeCSV(keyword.search_intent),
-        escapeCSV(keyword.categories?.join(', ') || ''),
+        escapeCSV(keyword.categories?.join('|') || ''),
         escapeCSV(keyword.search_volume_location_name),
         escapeCSV(llmSummary?.visibilityScore != null ? `${llmSummary.visibilityScore}%` : ''),
         escapeCSV(formatCitedRatio('chatgpt')),
