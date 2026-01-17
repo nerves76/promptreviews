@@ -55,6 +55,12 @@ export async function POST(request: NextRequest) {
           line.split(',').some((cell) => cell.trim().length > 0)
       );
 
+    console.log('[Keywords Upload] Lines count:', lines.length);
+    console.log('[Keywords Upload] First line (headers):', lines[0]);
+    if (lines.length > 1) {
+      console.log('[Keywords Upload] Second line (first data):', lines[1]);
+    }
+
     if (lines.length < 2) {
       return NextResponse.json({ error: 'CSV file must have a header row and at least one data row' }, { status: 400 });
     }
@@ -77,13 +83,16 @@ export async function POST(request: NextRequest) {
     const records = parse(lines.join('\n'), {
       columns: (headers: string[]) => {
         const normalize = (h: string) => h.toLowerCase().replace(/\s|_/g, '');
-        return headers.map((header: string, index: number) => {
+        const mappedColumns = headers.map((header: string, index: number) => {
           const norm = normalize(header);
           for (const [key, aliases] of Object.entries(expectedColumns)) {
             if (aliases.includes(norm)) return key;
           }
           return `_extra_${index}`;
         });
+        console.log('[Keywords Upload] Original headers:', headers);
+        console.log('[Keywords Upload] Mapped columns:', mappedColumns);
+        return mappedColumns;
       },
       skip_empty_lines: true,
       trim: true,
@@ -94,6 +103,11 @@ export async function POST(request: NextRequest) {
       delimiter: ',',
       skip_records_with_empty_values: false, // Don't skip - we'll validate ourselves
     });
+
+    console.log('[Keywords Upload] Parsed records count:', records.length);
+    if (records.length > 0) {
+      console.log('[Keywords Upload] First record:', JSON.stringify(records[0]));
+    }
 
     // Validation and processing
     const errors: string[] = [];
