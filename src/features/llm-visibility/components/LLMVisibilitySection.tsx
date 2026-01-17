@@ -105,27 +105,27 @@ export function LLMVisibilitySection({
   }
 
   return (
-    <div className="p-4 bg-gradient-to-br from-purple-50/80 to-pink-50/80 backdrop-blur-sm border border-purple-100/50 rounded-xl">
+    <div className="p-4 bg-gradient-to-br from-blue-50/80 to-pink-50/80 backdrop-blur-sm border border-blue-100/50 rounded-xl">
       {/* Header */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
         className="w-full flex items-center justify-between"
       >
         <div className="flex items-center gap-2">
-          <Icon name="FaSparkles" className="w-4 h-4 text-purple-600" />
-          <span className="text-xs font-medium uppercase tracking-wider text-purple-600">
+          <Icon name="FaSparkles" className="w-4 h-4 text-slate-blue" />
+          <span className="text-xs font-medium uppercase tracking-wider text-slate-blue">
             LLM visibility
           </span>
         </div>
         <div className="flex items-center gap-2">
           {summary && (
-            <span className="text-sm font-semibold text-purple-700">
+            <span className="text-sm font-semibold text-slate-blue">
               {summary.visibilityScore?.toFixed(0) ?? '--'}%
             </span>
           )}
           <Icon
             name={isExpanded ? 'FaChevronUp' : 'FaChevronDown'}
-            className="w-3 h-3 text-purple-400"
+            className="w-3 h-3 text-slate-blue"
           />
         </div>
       </button>
@@ -137,7 +137,7 @@ export function LLMVisibilitySection({
           {summary && (
             <div className="grid grid-cols-2 gap-2">
               <div className="bg-white/60 p-2 rounded-lg text-center">
-                <div className="text-lg font-bold text-purple-600">
+                <div className="text-lg font-bold text-slate-blue">
                   {summary.visibilityScore?.toFixed(0) ?? '--'}%
                 </div>
                 <div className="text-xs text-gray-500">Visibility score</div>
@@ -182,8 +182,8 @@ export function LLMVisibilitySection({
             disabled={isChecking || selectedProviders.length === 0}
             className={`w-full py-2 px-4 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 ${
               isChecking
-                ? 'bg-purple-200 text-purple-400 cursor-not-allowed'
-                : 'bg-purple-600 text-white hover:bg-purple-700'
+                ? 'bg-blue-200 text-slate-blue cursor-not-allowed'
+                : 'bg-slate-blue text-white hover:bg-slate-blue/90'
             }`}
           >
             {isChecking ? (
@@ -244,7 +244,7 @@ export function LLMVisibilitySection({
                 onClick={() => {
                   window.location.href = `/api/llm-visibility/export?keywordId=${keywordId}`;
                 }}
-                className="flex items-center gap-1 text-purple-600 hover:text-purple-700 hover:underline"
+                className="flex items-center gap-1 text-slate-blue hover:text-slate-blue/80 hover:underline"
                 title="Export LLM visibility results to CSV"
               >
                 <Icon name="FaFileAlt" className="w-3 h-3" />

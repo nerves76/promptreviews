@@ -611,8 +611,8 @@ export default function LLMVisibilityPage() {
             {/* Account Summary */}
             {accountSummary && (
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-4 rounded-xl border border-purple-100">
-                  <div className="text-2xl font-bold text-purple-700">
+                <div className="bg-gradient-to-br from-blue-50 to-pink-50 p-4 rounded-xl border border-blue-100">
+                  <div className="text-2xl font-bold text-slate-blue">
                     {accountSummary.averageVisibility !== null
                       ? `${accountSummary.averageVisibility.toFixed(0)}%`
                       : '--'}
@@ -663,7 +663,7 @@ export default function LLMVisibilityPage() {
                 <select
                   value={filterConcept || ''}
                   onChange={(e) => setFilterConcept(e.target.value || null)}
-                  className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-100 focus:border-purple-300"
+                  className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-300"
                 >
                   <option value="">All concepts</option>
                   {conceptOptions.map(concept => (
@@ -678,7 +678,7 @@ export default function LLMVisibilityPage() {
                 <select
                   value={filterFunnel || ''}
                   onChange={(e) => setFilterFunnel(e.target.value || null)}
-                  className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-100 focus:border-purple-300"
+                  className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-300"
                 >
                   <option value="">All stages</option>
                   <option value="top">Top of funnel</option>
@@ -694,7 +694,7 @@ export default function LLMVisibilityPage() {
                     setFilterConcept(null);
                     setFilterFunnel(null);
                   }}
-                  className="text-sm text-purple-600 hover:text-purple-700"
+                  className="text-sm text-slate-blue hover:text-slate-blue/80"
                 >
                   Clear filters
                 </button>
@@ -784,7 +784,7 @@ export default function LLMVisibilityPage() {
                                 e.stopPropagation();
                                 setExpandedRow(isExpanded ? null : rowKey);
                               }}
-                              className="text-left text-sm text-gray-900 hover:text-purple-600 transition-colors flex items-start gap-2 w-full"
+                              className="text-left text-sm text-gray-900 hover:text-slate-blue transition-colors flex items-start gap-2 w-full"
                             >
                               <Icon
                                 name={isExpanded ? 'FaChevronDown' : 'FaChevronRight'}
@@ -812,7 +812,7 @@ export default function LLMVisibilityPage() {
                                   e.stopPropagation();
                                   handleOpenConceptSidebar(row.conceptId);
                                 }}
-                                className="p-1 text-gray-500 hover:text-purple-600 hover:bg-purple-50 rounded transition-colors"
+                                className="p-1 text-gray-500 hover:text-slate-blue hover:bg-blue-50 rounded transition-colors"
                                 title={`Edit ${row.conceptName}`}
                               >
                                 <Icon name="FaEdit" className="w-3 h-3" />
@@ -870,7 +870,7 @@ export default function LLMVisibilityPage() {
                           <td className="py-3 px-3 text-center">
                             <button
                               onClick={() => setCheckingModal({ question: row.question, conceptId: row.conceptId })}
-                              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 transition-colors"
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-white bg-slate-blue rounded-lg hover:bg-slate-blue/90 transition-colors"
                               title="Check if AI assistants cite your business for this question"
                             >
                               <Icon name="FaSearch" className="w-3 h-3" />
@@ -972,13 +972,13 @@ export default function LLMVisibilityPage() {
                                                 {result.mentionedBrands.map((brand, bidx) => (
                                                   <span
                                                     key={bidx}
-                                                    className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs bg-purple-100 text-purple-700 border border-purple-200"
+                                                    className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs bg-blue-100 text-slate-blue border border-blue-200"
                                                     title={brand.category || undefined}
                                                   >
                                                     <Icon name="FaBuilding" className="w-2.5 h-2.5" />
                                                     <span>{brand.title}</span>
                                                     {brand.category && (
-                                                      <span className="text-purple-500 text-[10px]">({brand.category})</span>
+                                                      <span className="text-slate-blue text-[10px]">({brand.category})</span>
                                                     )}
                                                   </span>
                                                 ))}
@@ -1133,8 +1133,8 @@ export default function LLMVisibilityPage() {
 function EmptyState() {
   return (
     <div className="text-center py-16 px-4">
-      <div className="inline-flex items-center justify-center w-16 h-16 bg-purple-100 rounded-full mb-4">
-        <Icon name="FaSparkles" className="w-8 h-8 text-purple-600" size={32} />
+      <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
+        <Icon name="FaSparkles" className="w-8 h-8 text-slate-blue" size={32} />
       </div>
       <h3 className="text-xl font-semibold text-gray-900 mb-2">No keywords with questions yet</h3>
       <p className="text-gray-600 mb-6 max-w-md mx-auto">
@@ -1152,8 +1152,8 @@ function EmptyState() {
       {/* Feature highlights */}
       <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl mx-auto text-left">
         <div className="bg-gray-50 rounded-lg p-4">
-          <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mb-3">
-            <Icon name="FaSparkles" className="w-6 h-6 text-purple-600" />
+          <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mb-3">
+            <Icon name="FaSparkles" className="w-6 h-6 text-slate-blue" />
           </div>
           <h4 className="font-semibold text-gray-900 mb-1">AI visibility</h4>
           <p className="text-sm text-gray-600">

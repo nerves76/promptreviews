@@ -45,9 +45,9 @@ export const LLM_PROVIDER_COLORS: Record<
     border: 'border-blue-200',
   },
   perplexity: {
-    bg: 'bg-purple-100',
-    text: 'text-purple-700',
-    border: 'border-purple-200',
+    bg: 'bg-blue-100',
+    text: 'text-slate-blue',
+    border: 'border-blue-200',
   },
 };
 

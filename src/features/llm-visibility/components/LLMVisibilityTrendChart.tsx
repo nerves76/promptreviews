@@ -53,7 +53,7 @@ const PROVIDER_CHART_COLORS: Record<LLMProvider, string> = {
   chatgpt: '#10b981', // emerald-500
   claude: '#f97316', // orange-500
   gemini: '#3b82f6', // blue-500
-  perplexity: '#8b5cf6', // purple-500
+  perplexity: '#2E4A7D', // slate-blue
 };
 
 function getWeekStart(date: Date): Date {
@@ -294,7 +294,7 @@ export default function LLMVisibilityTrendChart({
             onClick={() => setShowProviders(!showProviders)}
             className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
               showProviders
-                ? 'bg-purple-100 text-purple-700'
+                ? 'bg-blue-100 text-slate-blue'
                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
           >
