@@ -125,12 +125,12 @@ export async function GET(request: NextRequest) {
     // CSV headers - match the upload template format plus metrics and LLM visibility
     const headers = [
       'concept_name',
+      'concept_group',
       'review_phrase',
       'aliases',
       'search_terms',
       'ai_questions',
       'funnel_stages',
-      'keyword_group',
       'rank_tracking_group',
       'status',
       'review_usage_count',
@@ -201,12 +201,12 @@ export async function GET(request: NextRequest) {
 
       return [
         escapeCSV(keyword.phrase),
+        escapeCSV(keyword.keyword_groups?.name || ''),
         escapeCSV(keyword.review_phrase),
         escapeCSV(keyword.aliases?.join('|') || ''),
         escapeCSV(searchTermsStr),
         escapeCSV(aiQuestionsStr),
         escapeCSV(funnelStagesStr),
-        escapeCSV(keyword.keyword_groups?.name || ''),
         escapeCSV(rankGroupName || ''),
         escapeCSV(keyword.status),
         escapeCSV(keyword.review_usage_count),
