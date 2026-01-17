@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
 
     // Define expected columns and their aliases
     const expectedColumns: Record<string, string[]> = {
-      phrase: ['phrase', 'keyword', 'keywordphrase', 'keyword phrase'],
+      phrase: ['phrase', 'keyword', 'keywordphrase', 'keyword phrase', 'conceptname', 'concept name', 'concept_name'],
       review_phrase: ['reviewphrase', 'review phrase', 'review_phrase', 'customerphrase', 'customer phrase'],
       search_terms: ['searchterms', 'search terms', 'search_terms'],
       search_query: ['searchquery', 'search query', 'search_query', 'searchphrase', 'search phrase'],
@@ -115,9 +115,9 @@ export async function POST(request: NextRequest) {
         continue;
       }
 
-      // Parse comma-separated fields
+      // Parse aliases (supports pipe or comma separated)
       const aliases = record.aliases
-        ? record.aliases.split(',').map((a: string) => a.trim()).filter(Boolean)
+        ? record.aliases.split(/[|,]/).map((a: string) => a.trim()).filter(Boolean)
         : [];
 
       // Parse search_terms (pipe-delimited: term1|term2|term3)
@@ -129,24 +129,48 @@ export async function POST(request: NextRequest) {
           })).filter((st: any) => st.term.length > 0)
         : [];
 
-      // Parse related_questions with funnel stage (format: question|funnel_stage,question2|funnel_stage2)
+      // Parse related_questions with funnel stage
+      // New format: question|stage|question2|stage2 (all pipe-separated)
+      // Old format: question|stage,question2|stage2 (comma-separated pairs)
       const relatedQuestionsWithStage: Array<{ question: string; funnel_stage: string }> = [];
       if (record.related_questions) {
-        const questionPairs = record.related_questions.split(',').map((q: string) => q.trim()).filter(Boolean);
-        for (const pair of questionPairs) {
-          const parts = pair.split('|').map((p: string) => p.trim());
-          if (parts.length === 2) {
-            // Format: question|funnel_stage
-            const [question, funnelStage] = parts;
-            if (question && ['top', 'middle', 'bottom'].includes(funnelStage)) {
-              relatedQuestionsWithStage.push({ question, funnel_stage: funnelStage });
-            } else {
-              // Invalid funnel stage, default to middle
-              relatedQuestionsWithStage.push({ question, funnel_stage: 'middle' });
+        const rawValue = record.related_questions.trim();
+
+        // Check if it uses the new pipe-only format (no commas, alternating question|stage|question|stage)
+        if (!rawValue.includes(',')) {
+          const parts = rawValue.split('|').map((p: string) => p.trim()).filter(Boolean);
+          // Process in pairs: question, stage, question, stage...
+          for (let i = 0; i < parts.length; i += 2) {
+            const question = parts[i];
+            const funnelStage = parts[i + 1];
+            if (question) {
+              if (funnelStage && ['top', 'middle', 'bottom'].includes(funnelStage)) {
+                relatedQuestionsWithStage.push({ question, funnel_stage: funnelStage });
+              } else if (funnelStage && !['top', 'middle', 'bottom'].includes(funnelStage)) {
+                // The "stage" is actually another question - treat both as questions with default stage
+                relatedQuestionsWithStage.push({ question, funnel_stage: 'middle' });
+                relatedQuestionsWithStage.push({ question: funnelStage, funnel_stage: 'middle' });
+                i--; // Adjust since we consumed what we thought was a stage
+              } else {
+                relatedQuestionsWithStage.push({ question, funnel_stage: 'middle' });
+              }
             }
-          } else if (parts.length === 1 && parts[0]) {
-            // Old format: just question without funnel stage
-            relatedQuestionsWithStage.push({ question: parts[0], funnel_stage: 'middle' });
+          }
+        } else {
+          // Old format: comma-separated pairs like "question|stage,question2|stage2"
+          const questionPairs = rawValue.split(',').map((q: string) => q.trim()).filter(Boolean);
+          for (const pair of questionPairs) {
+            const parts = pair.split('|').map((p: string) => p.trim());
+            if (parts.length === 2) {
+              const [question, funnelStage] = parts;
+              if (question && ['top', 'middle', 'bottom'].includes(funnelStage)) {
+                relatedQuestionsWithStage.push({ question, funnel_stage: funnelStage });
+              } else {
+                relatedQuestionsWithStage.push({ question, funnel_stage: 'middle' });
+              }
+            } else if (parts.length === 1 && parts[0]) {
+              relatedQuestionsWithStage.push({ question: parts[0], funnel_stage: 'middle' });
+            }
           }
         }
       }
@@ -449,10 +473,9 @@ export async function GET(request: NextRequest) {
   }
 
   const headers = [
-    'phrase',
+    'concept_name',
     'review_phrase',
     'search_terms',
-    'search_query',
     'aliases',
     'location_scope',
     'related_questions',
@@ -460,61 +483,33 @@ export async function GET(request: NextRequest) {
     'rank_tracking_group',
   ];
 
-  // Build instructions
-  const instructions = [
-    '# Keyword Concepts Upload Template',
-    '# Required columns: phrase',
-    '# Optional columns: review_phrase, search_terms, search_query, aliases, location_scope, related_questions, keyword_group, rank_tracking_group',
-    '#',
-    '# Column descriptions:',
-    '#   phrase - The main keyword (required)',
-    '#   review_phrase - Customer-friendly version for prompt pages',
-    '#   search_terms - Search term variations for rank tracking (pipe-separated: term1|term2|term3)',
-    '#   search_query - Legacy exact phrase for rank tracking (use search_terms instead)',
-    '#   aliases - Alternative terms (comma-separated)',
-    '#   location_scope - Geographic scope: local, regional, national, or global',
-    '#   related_questions - Questions for PAA/LLM tracking with funnel stage (format: question|funnel_stage, separate with commas)',
-    '#     Funnel stages: top, middle, bottom (e.g., "How does X work?|top,What is the best X?|middle")',
-    '#   keyword_group - Name of keyword group to assign to (created if needed)',
-    '#   rank_tracking_group - Name of existing rank tracking group to add to',
-  ];
-
-  if (keywordGroups.length > 0) {
-    instructions.push(`# Your keyword groups: ${keywordGroups.join(', ')}`);
-  }
-  if (rankGroups.length > 0) {
-    instructions.push(`# Your rank tracking groups: ${rankGroups.join(', ')}`);
-  }
-
+  // Build example rows (no comments - they cause issues in spreadsheets)
   const exampleRows = [
     [
       'portland plumber',
       'plumbing services',
-      'plumber portland oregon|best plumber portland|portland plumbing company',
-      'plumber portland oregon',
-      'plumber,plumbing,pipe repair',
+      'plumber portland oregon|best plumber portland',
+      'plumber|plumbing',
       'local',
-      'How much does a plumber cost in Portland?|top,What are the best plumbers near me?|middle',
+      'How much does a plumber cost?|top|What are the best plumbers near me?|middle',
       keywordGroups[0] || 'Services',
       rankGroups[0] || '',
     ],
     [
       'emergency plumbing',
       'emergency plumbing help',
-      'emergency plumber near me|24/7 emergency plumber|urgent plumbing repair',
-      'emergency plumber near me',
-      '24 hour plumber,urgent plumbing',
+      'emergency plumber near me|24/7 plumber',
+      '24 hour plumber|urgent plumbing',
       'local',
-      'Who to call for plumbing emergency?|top,How fast can emergency plumber arrive?|bottom',
+      'Who to call for plumbing emergency?|top',
       keywordGroups[0] || 'Services',
       '',
     ],
     [
       'drain cleaning',
       'professional drain cleaning',
-      'drain cleaning service portland|unclog drain portland',
       'drain cleaning service portland',
-      'clogged drain,drain unclogging',
+      'clogged drain|drain unclogging',
       'local',
       '',
       '',
@@ -523,7 +518,6 @@ export async function GET(request: NextRequest) {
   ];
 
   const csvContent = [
-    ...instructions,
     headers.join(','),
     ...exampleRows.map((row) => row.map(escapeCSVField).join(',')),
   ].join('\n');
