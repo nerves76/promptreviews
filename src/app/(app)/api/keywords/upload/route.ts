@@ -452,9 +452,8 @@ export async function GET(request: NextRequest) {
   const headers = [
     'concept_name',
     'review_phrase',
-    'search_terms',
     'aliases',
-    'location_scope',
+    'search_terms',
     'ai_questions',
     'funnel_stages',
     'keyword_group',
@@ -466,9 +465,8 @@ export async function GET(request: NextRequest) {
     [
       'portland plumber',
       'plumbing services',
-      'plumber portland oregon|best plumber portland',
       'plumber|plumbing',
-      'local',
+      'plumber portland oregon|best plumber portland',
       'How much does a plumber cost?|What are the best plumbers near me?',
       'top|middle',
       keywordGroups[0] || 'Services',
@@ -477,9 +475,8 @@ export async function GET(request: NextRequest) {
     [
       'emergency plumbing',
       'emergency plumbing help',
-      'emergency plumber near me|24/7 plumber',
       '24 hour plumber|urgent plumbing',
-      'local',
+      'emergency plumber near me|24/7 plumber',
       'Who to call for plumbing emergency?',
       'top',
       keywordGroups[0] || 'Services',
@@ -488,9 +485,8 @@ export async function GET(request: NextRequest) {
     [
       'drain cleaning',
       'professional drain cleaning',
-      'drain cleaning service portland',
       'clogged drain|drain unclogging',
-      'local',
+      'drain cleaning service portland',
       '',
       '',
       '',

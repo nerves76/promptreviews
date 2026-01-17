@@ -36,10 +36,8 @@ export async function GET(request: NextRequest) {
         id,
         phrase,
         review_phrase,
-        search_query,
         search_terms,
         aliases,
-        location_scope,
         related_questions,
         status,
         review_usage_count,
@@ -52,7 +50,6 @@ export async function GET(request: NextRequest) {
         competition_level,
         search_intent,
         categories,
-        search_volume_location_name,
         keyword_groups (
           name
         )
@@ -129,10 +126,8 @@ export async function GET(request: NextRequest) {
     const headers = [
       'concept_name',
       'review_phrase',
-      'search_terms',
-      'search_query',
       'aliases',
-      'location_scope',
+      'search_terms',
       'ai_questions',
       'funnel_stages',
       'keyword_group',
@@ -146,7 +141,6 @@ export async function GET(request: NextRequest) {
       'competition_level',
       'search_intent',
       'categories',
-      'search_volume_location',
       'llm_visibility_score',
       'llm_chatgpt_cited',
       'llm_claude_cited',
@@ -208,10 +202,8 @@ export async function GET(request: NextRequest) {
       return [
         escapeCSV(keyword.phrase),
         escapeCSV(keyword.review_phrase),
-        escapeCSV(searchTermsStr),
-        escapeCSV(keyword.search_query),
         escapeCSV(keyword.aliases?.join('|') || ''),
-        escapeCSV(keyword.location_scope),
+        escapeCSV(searchTermsStr),
         escapeCSV(aiQuestionsStr),
         escapeCSV(funnelStagesStr),
         escapeCSV(keyword.keyword_groups?.name || ''),
@@ -225,7 +217,6 @@ export async function GET(request: NextRequest) {
         escapeCSV(keyword.competition_level),
         escapeCSV(keyword.search_intent),
         escapeCSV(keyword.categories?.join('|') || ''),
-        escapeCSV(keyword.search_volume_location_name),
         escapeCSV(llmSummary?.visibilityScore != null ? `${llmSummary.visibilityScore}%` : ''),
         escapeCSV(formatCitedRatio('chatgpt')),
         escapeCSV(formatCitedRatio('claude')),
