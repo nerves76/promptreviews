@@ -159,8 +159,9 @@ export async function POST(request: NextRequest) {
 
     try {
       await debit(serviceSupabase, accountId, totalCredits, {
-        featureType: 'rank_batch_run',
+        featureType: 'rank_tracking',
         featureMetadata: {
+          batchRun: true,
           keywordCount: allKeywords.length,
           batchId,
         },

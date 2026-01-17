@@ -377,6 +377,7 @@ model users {
   google_business_profiles                                                    google_business_profiles[]
   google_business_scheduled_posts                                             google_business_scheduled_posts[]
   keyword_rotation_log                                                        keyword_rotation_log[]
+  llm_batch_runs                                                              llm_batch_runs[]
   media_assets                                                                media_assets[]
   mentions_mentions_author_idTousers                                          mentions[]                        @relation("mentions_author_idTousers")
   mentions_mentions_mentioned_user_idTousers                                  mentions[]                        @relation("mentions_mentioned_user_idTousers")
@@ -388,6 +389,7 @@ model users {
   post_reactions                                                              post_reactions[]
   posts                                                                       posts[]
   quotes                                                                      quotes[]
+  rank_batch_runs                                                             rank_batch_runs[]
   rate_limit_violations                                                       rate_limit_violations[]
   review_reminder_logs                                                        review_reminder_logs[]
   review_reminder_settings                                                    review_reminder_settings[]
@@ -579,6 +581,7 @@ model accounts {
   keyword_review_matches_v2                                           keyword_review_matches_v2[]
   keyword_rotation_log                                                keyword_rotation_log[]
   keywords                                                            keywords[]
+  llm_batch_runs                                                      llm_batch_runs[]
   llm_visibility_checks                                               llm_visibility_checks[]
   llm_visibility_schedules                                            llm_visibility_schedules[]
   llm_visibility_summary                                              llm_visibility_summary[]
@@ -588,6 +591,7 @@ model accounts {
   ownership_transfer_requests                                         ownership_transfer_requests[]
   posts                                                               posts[]
   prompt_pages                                                        prompt_pages[]
+  rank_batch_runs                                                     rank_batch_runs[]
   rank_checks                                                         rank_checks[]
   rank_discovery_usage                                                rank_discovery_usage[]
   rank_group_keywords                                                 rank_group_keywords[]
@@ -2993,9 +2997,11 @@ model keywords {
   keyword_rotation_log_keyword_rotation_log_rotated_out_keyword_idTokeywords keyword_rotation_log[]      @relation("keyword_rotation_log_rotated_out_keyword_idTokeywords")
   accounts                                                                   accounts                    @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   keyword_groups                                                             keyword_groups?             @relation(fields: [group_id], references: [id], onUpdate: NoAction)
+  llm_batch_run_items                                                        llm_batch_run_items[]
   llm_visibility_checks                                                      llm_visibility_checks[]
   llm_visibility_schedules                                                   llm_visibility_schedules[]
   llm_visibility_summary                                                     llm_visibility_summary[]
+  rank_batch_run_items                                                       rank_batch_run_items[]
   rank_checks                                                                rank_checks[]
   rank_group_keywords                                                        rank_group_keywords[]
 
@@ -3029,6 +3035,9 @@ model llm_visibility_checks {
   created_at        DateTime @default(now()) @db.Timestamptz(6)
   brand_mentioned   Boolean  @default(false)
   mentioned_brands  Json?
+  full_response     String?
+  search_results    Json?
+  fan_out_queries   Json?
   accounts          accounts @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   keywords          keywords @relation(fields: [keyword_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
@@ -3973,6 +3982,103 @@ model ownership_transfer_requests {
   @@index([status], map: "idx_ownership_transfer_status")
   @@index([to_user_id], map: "idx_ownership_transfer_to_user")
   @@index([token], map: "idx_ownership_transfer_token")
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model llm_batch_run_items {
+  id             String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  batch_run_id   String         @db.Uuid
+  keyword_id     String         @db.Uuid
+  question       String
+  question_index Int
+  status         String         @default("pending")
+  error_message  String?
+  created_at     DateTime       @default(now()) @db.Timestamptz(6)
+  updated_at     DateTime       @default(now()) @db.Timestamptz(6)
+  llm_batch_runs llm_batch_runs @relation(fields: [batch_run_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  keywords       keywords       @relation(fields: [keyword_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([batch_run_id, status], map: "idx_llm_batch_run_items_batch_status")
+  @@index([keyword_id], map: "idx_llm_batch_run_items_keyword")
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model llm_batch_runs {
+  id                  String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  account_id          String                @db.Uuid
+  status              String                @default("pending")
+  providers           String[]
+  total_questions     Int                   @default(0)
+  processed_questions Int                   @default(0)
+  successful_checks   Int                   @default(0)
+  failed_checks       Int                   @default(0)
+  estimated_credits   Int                   @default(0)
+  total_credits_used  Int                   @default(0)
+  error_message       String?
+  triggered_by        String?               @db.Uuid
+  created_at          DateTime              @default(now()) @db.Timestamptz(6)
+  started_at          DateTime?             @db.Timestamptz(6)
+  completed_at        DateTime?             @db.Timestamptz(6)
+  updated_at          DateTime              @default(now()) @db.Timestamptz(6)
+  llm_batch_run_items llm_batch_run_items[]
+  accounts            accounts              @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users               users?                @relation(fields: [triggered_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([account_id, created_at(sort: Desc)], map: "idx_llm_batch_runs_account")
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model rank_batch_run_items {
+  id              String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  batch_run_id    String          @db.Uuid
+  keyword_id      String          @db.Uuid
+  search_term     String
+  location_code   Int?
+  desktop_status  String?         @default("pending")
+  mobile_status   String?         @default("pending")
+  error_message   String?
+  created_at      DateTime        @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime        @default(now()) @db.Timestamptz(6)
+  rank_batch_runs rank_batch_runs @relation(fields: [batch_run_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  keywords        keywords        @relation(fields: [keyword_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([batch_run_id], map: "idx_rank_batch_run_items_batch")
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model rank_batch_runs {
+  id                   String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  account_id           String                 @db.Uuid
+  status               String                 @default("pending")
+  total_keywords       Int                    @default(0)
+  processed_keywords   Int                    @default(0)
+  successful_checks    Int                    @default(0)
+  failed_checks        Int                    @default(0)
+  estimated_credits    Int                    @default(0)
+  total_credits_used   Int                    @default(0)
+  error_message        String?
+  triggered_by         String?                @db.Uuid
+  created_at           DateTime               @default(now()) @db.Timestamptz(6)
+  started_at           DateTime?              @db.Timestamptz(6)
+  completed_at         DateTime?              @db.Timestamptz(6)
+  updated_at           DateTime               @default(now()) @db.Timestamptz(6)
+  rank_batch_run_items rank_batch_run_items[]
+  accounts             accounts               @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users                users?                 @relation(fields: [triggered_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([account_id, created_at(sort: Desc)], map: "idx_rank_batch_runs_account")
   @@schema("public")
 }
 

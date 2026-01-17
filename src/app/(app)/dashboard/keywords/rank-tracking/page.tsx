@@ -11,7 +11,7 @@ import { useSearchParams } from 'next/navigation';
 import PageCard, { PageCardHeader } from '@/app/(app)/components/PageCard';
 import { SubNav } from '@/app/(app)/components/SubNav';
 import Icon from '@/components/Icon';
-import { CheckRankModal, CheckVolumeModal, ConceptsTable, AddKeywordConceptModal } from '@/features/rank-tracking/components';
+import { CheckRankModal, CheckVolumeModal, ConceptsTable, AddKeywordConceptModal, RunAllRankModal } from '@/features/rank-tracking/components';
 import { useKeywords, useKeywordDetails } from '@/features/keywords/hooks/useKeywords';
 import { KeywordDetailsSidebar } from '@/features/keywords/components/KeywordDetailsSidebar';
 import { useAccountData, useBusinessData } from '@/auth/hooks/granularAuthHooks';
@@ -205,6 +205,7 @@ export default function RankTrackingPage() {
 
   // Modal state for adding new keyword concept
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showRunAllModal, setShowRunAllModal] = useState(false);
 
   // State for concept sidebar
   const [selectedKeywordId, setSelectedKeywordId] = useState<string | null>(null);
@@ -694,6 +695,13 @@ export default function RankTrackingPage() {
           actions={
             <>
               <button
+                onClick={() => setShowRunAllModal(true)}
+                className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 flex items-center gap-2 transition-colors whitespace-nowrap"
+              >
+                <Icon name="FaRocket" className="w-4 h-4" />
+                Run all checks
+              </button>
+              <button
                 onClick={() => setShowAddModal(true)}
                 className="px-4 py-2 text-sm font-medium text-white bg-slate-blue rounded-lg hover:bg-slate-blue/90 flex items-center gap-2 transition-colors"
               >
@@ -754,6 +762,16 @@ export default function RankTrackingPage() {
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
         onAdd={handleAddKeywordConcept}
+      />
+
+      {/* Run All Rank Checks Modal */}
+      <RunAllRankModal
+        isOpen={showRunAllModal}
+        onClose={() => setShowRunAllModal(false)}
+        onStarted={() => {
+          // Refresh data after batch started
+          fetchRankChecks();
+        }}
       />
 
       {/* Keyword Details Sidebar */}

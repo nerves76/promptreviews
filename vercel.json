@@ -85,6 +85,14 @@
     {
       "path": "/api/cron/process-concept-checks",
       "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/cron/process-llm-batch",
+      "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/cron/process-rank-batch",
+      "schedule": "* * * * *"
     }
   ],
   "buildCommand": "npm run build",

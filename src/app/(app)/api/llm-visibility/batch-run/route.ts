@@ -158,8 +158,9 @@ export async function POST(request: NextRequest) {
 
     try {
       await debit(serviceSupabase, accountId, totalCredits, {
-        featureType: 'llm_batch_run',
+        featureType: 'llm_visibility',
         featureMetadata: {
+          batchRun: true,
           questionCount: allQuestions.length,
           providers: validProviders,
           batchId,
