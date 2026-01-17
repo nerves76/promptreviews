@@ -495,6 +495,7 @@ export async function GET(request: NextRequest) {
   ];
 
   const csvContent = [
+    '# Only concept_name is required. All other columns are optional.',
     headers.join(','),
     ...exampleRows.map((row) => row.map(escapeCSVField).join(',')),
   ].join('\n');
