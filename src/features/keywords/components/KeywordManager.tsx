@@ -1573,7 +1573,7 @@ export default function KeywordManager({
                   </p>
                   {importResult.success && (
                     <div className="mt-2 text-sm text-green-700">
-                      <p>{importResult.keywordsCreated} keywords created</p>
+                      <p>{importResult.keywordsCreated} concepts created</p>
                       {importResult.duplicatesSkipped ? (
                         <p>{importResult.duplicatesSkipped} duplicates skipped</p>
                       ) : null}

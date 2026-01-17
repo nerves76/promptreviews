@@ -435,7 +435,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({
-      message: 'Successfully uploaded keywords',
+      message: 'Successfully uploaded concepts',
       keywordsCreated: insertedKeywords?.length || 0,
       duplicatesSkipped,
       skippedPhrases,
