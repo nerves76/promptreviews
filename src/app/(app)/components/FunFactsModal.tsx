@@ -48,7 +48,7 @@ export default function FunFactsModal({
       onClose={onClose}
       title={
         <div className="flex items-center space-x-2">
-          <Icon name="FaLightbulb" size={24} className="text-white" />
+          <Icon name="FaInfoCircle" size={24} className="text-white" />
           <span className="text-white">Fun facts</span>
         </div>
       }
@@ -71,7 +71,7 @@ export default function FunFactsModal({
         {facts.length === 0 ? (
           <div className="text-center py-8">
             <Icon
-              name="FaLightbulb"
+              name="FaInfoCircle"
               size={32}
               className="text-gray-300 mx-auto mb-3"
             />

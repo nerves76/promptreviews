@@ -170,13 +170,20 @@ export async function generateAIReview(
       throw new Error(data.error || "Failed to generate review");
     }
 
+    // Remove any bracketed placeholders that the AI might have included (e.g., [service], [product])
+    // despite being told not to - GPT-3.5 doesn't always follow "don't do X" instructions
+    let cleanedText = data.text.replace(/\s*\[[^\]]+\]/g, "");
+
+    // Clean up any double spaces left behind
+    cleanedText = cleanedText.replace(/\s{2,}/g, " ").trim();
+
     // Ensure the review is within the word count limit
-    const words = data.text.split(/\s+/);
+    const words = cleanedText.split(/\s+/);
     if (words.length > wordCountLimit) {
       return words.slice(0, wordCountLimit).join(" ") + "...";
     }
 
-    return data.text;
+    return cleanedText;
   } catch (error) {
     console.error("Error generating AI review:", error);
     throw new Error(

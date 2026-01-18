@@ -695,7 +695,7 @@ export async function POST(request: NextRequest) {
         product_photo: "",
         product_subcopy: "",
         features_or_benefits: [],
-        show_friendly_note: true,
+        show_friendly_note: false,
         friendly_note: "",
         first_name: "",
         last_name: "",

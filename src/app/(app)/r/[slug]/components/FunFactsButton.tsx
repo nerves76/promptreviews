@@ -65,7 +65,7 @@ export default function FunFactsButton({
         }}
         aria-label={`View ${buttonLabel.toLowerCase()}`}
       >
-        <Icon name="FaLightbulb" size={12} />
+        <Icon name="FaInfoCircle" size={12} />
         <span className="whitespace-nowrap">{buttonLabel}</span>
       </button>
     </div>

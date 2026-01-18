@@ -269,7 +269,7 @@ export default function FunFactsManagementModal({
             {/* Facts List */}
             {localFacts.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
-                <Icon name="FaLightbulb" size={32} className="mx-auto mb-2 opacity-50" />
+                <Icon name="FaInfoCircle" size={32} className="mx-auto mb-2 opacity-50" />
                 <p>No fun facts yet.</p>
                 <p className="text-sm">Add your first fun fact above.</p>
               </div>
@@ -328,7 +328,7 @@ export default function FunFactsManagementModal({
           <>
             {selected.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
-                <Icon name="FaLightbulb" size={32} className="mx-auto mb-2 opacity-50" />
+                <Icon name="FaInfoCircle" size={32} className="mx-auto mb-2 opacity-50" />
                 <p>No fun facts selected.</p>
                 <p className="text-sm">
                   Go to the Library tab to select facts to display.

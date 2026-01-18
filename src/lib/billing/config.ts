@@ -122,8 +122,8 @@ export const PLAN_LIMITS = {
 export const PLAN_DISPLAY = {
   grower: {
     name: 'Grower',
-    monthlyPrice: 20,
-    annualPrice: 204, // $17/month (15% discount)
+    monthlyPrice: 24,
+    annualPrice: 245, // ~$20/month (15% discount)
     order: 1,
   },
   builder: {

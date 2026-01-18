@@ -121,7 +121,7 @@ const ReviewWriteSection: React.FC<ReviewWriteSectionProps> = ({
           {value.map((platform, idx) => (
             <div
               key={idx}
-              className="relative flex flex-col gap-1 mb-12 px-6 py-3 pt-4 border border-blue-100 rounded-2xl bg-blue-50 shadow-sm"
+              className="relative flex flex-col gap-1 mb-4 px-6 py-3 pt-4 border border-blue-100 rounded-2xl bg-blue-50 shadow-sm"
             >
               {/* Card title: platform name */}
               <div className="flex items-center justify-between pt-1 pb-2 pr-2">

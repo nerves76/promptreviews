@@ -128,7 +128,7 @@ export default function FunFactsFeature({
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
-            <Icon name="FaLightbulb" className="text-amber-600" size={20} />
+            <Icon name="FaInfoCircle" className="text-amber-600" size={20} />
           </div>
           <div>
             <h3 className="text-lg font-semibold text-gray-900">Fun facts</h3>

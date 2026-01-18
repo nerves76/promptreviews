@@ -17,6 +17,7 @@ import {
   getFunnelStageColor,
   getFunnelStageShortLabel,
 } from '@/features/keywords/keywordUtils';
+import { apiClient } from '@/utils/apiClient';
 
 interface LLMVisibilitySectionProps {
   keywordId: string;
@@ -241,8 +242,22 @@ export function LLMVisibilitySection({
             )}
             {results.length > 0 && (
               <button
-                onClick={() => {
-                  window.location.href = `/api/llm-visibility/export?keywordId=${keywordId}`;
+                onClick={async () => {
+                  try {
+                    const response = await apiClient.download(`/llm-visibility/export?keywordId=${keywordId}`);
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `llm-visibility-export-${new Date().toISOString().split('T')[0]}.csv`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                  } catch (error) {
+                    console.error('Export failed:', error);
+                    alert('Failed to export LLM visibility data. Please try again.');
+                  }
                 }}
                 className="flex items-center gap-1 text-slate-blue hover:text-slate-blue/80 hover:underline"
                 title="Export LLM visibility results to CSV"
