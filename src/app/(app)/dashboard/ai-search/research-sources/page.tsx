@@ -133,19 +133,35 @@ export default function ResearchSourcesPage() {
     }
   }, [selectedAccountId]);
 
+  // Fetch all cached analyses on load
+  const fetchCachedAnalyses = useCallback(async () => {
+    if (!selectedAccountId) return;
+    try {
+      const response = await apiClient.get<{ analyses: Record<string, DomainAnalysis> }>(
+        '/llm-visibility/domain-analyses'
+      );
+      if (response.analyses) {
+        setAnalyses(response.analyses);
+      }
+    } catch (err) {
+      console.error('[ResearchSourcesPage] Error fetching cached analyses:', err);
+    }
+  }, [selectedAccountId]);
+
   // Fetch data on mount
   useEffect(() => {
     fetchData();
     fetchUnanalyzedCount();
-  }, [fetchData, fetchUnanalyzedCount]);
+    fetchCachedAnalyses();
+  }, [fetchData, fetchUnanalyzedCount, fetchCachedAnalyses]);
 
   // Handle batch analysis complete - refresh data and count
   const handleAnalysisComplete = useCallback(() => {
-    // Clear local analyses so fresh cached data loads
-    setAnalyses({});
+    // Refresh cached analyses
+    fetchCachedAnalyses();
     // Refresh the unanalyzed count
     fetchUnanalyzedCount();
-  }, [fetchUnanalyzedCount]);
+  }, [fetchUnanalyzedCount, fetchCachedAnalyses]);
 
   // Export to CSV
   const handleExport = useCallback(async () => {
