@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
   if (authError) return authError;
 
   return logCronExecution('process-all-batches', async () => {
-    const cronSecret = process.env.CRON_SECRET_TOKEN || '';
+    const cronSecret = process.env.CRON_SECRET || '';
     const results: Record<string, { success: boolean; message: string }> = {};
 
     // Process LLM batch runs
