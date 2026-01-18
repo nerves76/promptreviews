@@ -26,10 +26,10 @@ interface CompetitorsData {
   yourBrandMentions: number;
 }
 
-interface DomainAnalysis {
-  difficulty: 'easy' | 'medium' | 'hard';
-  siteType: string;
-  strategy: string;
+interface CompetitorAnalysis {
+  whoTheyAre: string;
+  whyMentioned: string;
+  howToDifferentiate: string;
 }
 
 type SortField = 'name' | 'frequency' | 'lastSeen' | 'concepts';
@@ -52,22 +52,6 @@ function formatRelativeTime(dateString: string): string {
   return `${Math.floor(diffDays / 365)} years ago`;
 }
 
-/**
- * Difficulty badge component
- */
-function DifficultyBadge({ difficulty }: { difficulty: 'easy' | 'medium' | 'hard' }) {
-  const config = {
-    easy: { bg: 'bg-green-100', text: 'text-green-700', label: 'Easy' },
-    medium: { bg: 'bg-amber-100', text: 'text-amber-700', label: 'Medium' },
-    hard: { bg: 'bg-red-100', text: 'text-red-700', label: 'Hard' },
-  };
-  const { bg, text, label } = config[difficulty];
-  return (
-    <span className={`px-2 py-0.5 rounded text-xs font-medium ${bg} ${text}`}>
-      {label}
-    </span>
-  );
-}
 
 /**
  * Competitors Page
@@ -82,10 +66,10 @@ export default function CompetitorsPage() {
   const [error, setError] = useState<string | null>(null);
   const [expandedCompetitor, setExpandedCompetitor] = useState<string | null>(null);
 
-  // Domain analysis state
-  const [analyses, setAnalyses] = useState<Record<string, DomainAnalysis>>({});
-  const [analyzingDomains, setAnalyzingDomains] = useState<Set<string>>(new Set());
-  const [strategyExpanded, setStrategyExpanded] = useState<Set<string>>(new Set());
+  // Competitor analysis state
+  const [analyses, setAnalyses] = useState<Record<string, CompetitorAnalysis>>({});
+  const [analyzingCompetitors, setAnalyzingCompetitors] = useState<Set<string>>(new Set());
+  const [analysisExpanded, setAnalysisExpanded] = useState<Set<string>>(new Set());
 
   // Sorting
   const [sortField, setSortField] = useState<SortField>('frequency');
@@ -115,16 +99,18 @@ export default function CompetitorsPage() {
     fetchData();
   }, [selectedAccountId]);
 
-  // Analyze a domain
-  const analyzeDomain = useCallback(async (domain: string) => {
-    if (analyzingDomains.has(domain) || analyses[domain]) {
+  // Analyze a competitor
+  const analyzeCompetitor = useCallback(async (competitor: CompetitorMention) => {
+    const key = competitor.name.toLowerCase();
+
+    if (analyzingCompetitors.has(key) || analyses[key]) {
       // Already analyzing or already have analysis - just toggle expansion
-      setStrategyExpanded(prev => {
+      setAnalysisExpanded(prev => {
         const next = new Set(prev);
-        if (next.has(domain)) {
-          next.delete(domain);
+        if (next.has(key)) {
+          next.delete(key);
         } else {
-          next.add(domain);
+          next.add(key);
         }
         return next;
       });
@@ -132,36 +118,39 @@ export default function CompetitorsPage() {
     }
 
     // Start analyzing
-    setAnalyzingDomains(prev => new Set(prev).add(domain));
-    setStrategyExpanded(prev => new Set(prev).add(domain));
+    setAnalyzingCompetitors(prev => new Set(prev).add(key));
+    setAnalysisExpanded(prev => new Set(prev).add(key));
 
     try {
-      const result = await apiClient.post<DomainAnalysis>('/llm-visibility/analyze-domain', {
-        domain,
+      const result = await apiClient.post<CompetitorAnalysis>('/llm-visibility/analyze-competitor', {
+        competitorName: competitor.name,
+        domain: competitor.domains[0] || null,
+        categories: competitor.categories,
+        concepts: competitor.concepts,
       });
       setAnalyses(prev => ({
         ...prev,
-        [domain]: result,
+        [key]: result,
       }));
     } catch (err) {
-      console.error('[CompetitorsPage] Error analyzing domain:', err);
+      console.error('[CompetitorsPage] Error analyzing competitor:', err);
       // Set a fallback analysis
       setAnalyses(prev => ({
         ...prev,
-        [domain]: {
-          difficulty: 'medium',
-          siteType: 'Unknown',
-          strategy: 'Unable to analyze this domain. Please try again later.',
+        [key]: {
+          whoTheyAre: 'Unable to analyze this competitor.',
+          whyMentioned: 'Unable to determine.',
+          howToDifferentiate: 'Unable to determine.',
         },
       }));
     } finally {
-      setAnalyzingDomains(prev => {
+      setAnalyzingCompetitors(prev => {
         const next = new Set(prev);
-        next.delete(domain);
+        next.delete(key);
         return next;
       });
     }
-  }, [analyzingDomains, analyses]);
+  }, [analyzingCompetitors, analyses]);
 
   // Handle sort
   const handleSort = (field: SortField) => {
@@ -383,10 +372,11 @@ export default function CompetitorsPage() {
                 <tbody>
                   {sortedCompetitors.map((competitor) => {
                     const isExpanded = expandedCompetitor === competitor.name;
+                    const competitorKey = competitor.name.toLowerCase();
+                    const analysis = analyses[competitorKey];
+                    const isAnalyzing = analyzingCompetitors.has(competitorKey);
+                    const isAnalysisExpanded = analysisExpanded.has(competitorKey);
                     const primaryDomain = competitor.domains[0] || null;
-                    const analysis = primaryDomain ? analyses[primaryDomain] : null;
-                    const isAnalyzing = primaryDomain ? analyzingDomains.has(primaryDomain) : false;
-                    const isStrategyExpanded = primaryDomain ? strategyExpanded.has(primaryDomain) : false;
 
                     return (
                       <React.Fragment key={competitor.name}>
@@ -419,7 +409,9 @@ export default function CompetitorsPage() {
                                 </span>
                               )}
                               {analysis && (
-                                <DifficultyBadge difficulty={analysis.difficulty} />
+                                <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 text-xs rounded">
+                                  Analyzed
+                                </span>
                               )}
                             </div>
                           </td>
@@ -467,67 +459,85 @@ export default function CompetitorsPage() {
                           {/* Actions */}
                           <td className="py-3 px-3 text-center">
                             <div className="flex items-center justify-center gap-1">
+                              <button
+                                onClick={() => analyzeCompetitor(competitor)}
+                                disabled={isAnalyzing}
+                                className={`inline-flex items-center gap-1 px-2 py-1 text-xs rounded transition-colors whitespace-nowrap ${
+                                  isAnalyzing
+                                    ? 'bg-gray-100 text-gray-400 cursor-wait'
+                                    : analysis
+                                    ? 'text-slate-blue hover:text-slate-blue/80 hover:bg-blue-50'
+                                    : 'bg-slate-blue text-white hover:bg-slate-blue/90'
+                                }`}
+                              >
+                                {isAnalyzing ? (
+                                  <>
+                                    <Icon name="FaSpinner" className="w-3 h-3 animate-spin" />
+                                    Analyzing...
+                                  </>
+                                ) : (
+                                  <>
+                                    <Icon name="FaSearch" className="w-3 h-3" />
+                                    Analyze
+                                  </>
+                                )}
+                              </button>
                               {primaryDomain && (
-                                <>
-                                  <button
-                                    onClick={() => analyzeDomain(primaryDomain)}
-                                    disabled={isAnalyzing}
-                                    className={`inline-flex items-center gap-1 px-2 py-1 text-xs rounded transition-colors whitespace-nowrap ${
-                                      isAnalyzing
-                                        ? 'bg-gray-100 text-gray-400 cursor-wait'
-                                        : analysis
-                                        ? 'text-slate-blue hover:text-slate-blue/80 hover:bg-blue-50'
-                                        : 'bg-slate-blue text-white hover:bg-slate-blue/90'
-                                    }`}
-                                  >
-                                    {isAnalyzing ? (
-                                      <>
-                                        <Icon name="FaSpinner" className="w-3 h-3 animate-spin" />
-                                        Analyzing...
-                                      </>
-                                    ) : (
-                                      <>
-                                        <Icon name="FaLightbulb" className="w-3 h-3" />
-                                        Strategy
-                                      </>
-                                    )}
-                                  </button>
-                                  <a
-                                    href={`https://${primaryDomain}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-1 px-2 py-1 text-xs text-gray-500 hover:text-slate-blue hover:bg-blue-50 rounded transition-colors"
-                                    aria-label={`Visit ${primaryDomain}`}
-                                  >
-                                    <Icon name="FaGlobe" className="w-3 h-3" />
-                                  </a>
-                                </>
+                                <a
+                                  href={`https://${primaryDomain}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1 px-2 py-1 text-xs text-gray-500 hover:text-slate-blue hover:bg-blue-50 rounded transition-colors"
+                                  aria-label={`Visit ${primaryDomain}`}
+                                >
+                                  <Icon name="FaGlobe" className="w-3 h-3" />
+                                </a>
                               )}
                             </div>
                           </td>
                         </tr>
 
-                        {/* Strategy Accordion Row */}
-                        {isStrategyExpanded && primaryDomain && (analysis || isAnalyzing) && (
+                        {/* Analysis Accordion Row */}
+                        {isAnalysisExpanded && (analysis || isAnalyzing) && (
                           <tr className="bg-blue-50/50">
                             <td colSpan={5} className="py-3 px-4 pl-12">
                               {isAnalyzing ? (
                                 <div className="flex items-center gap-2 text-gray-500">
                                   <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
-                                  <span>Analyzing {primaryDomain}...</span>
+                                  <span>Analyzing {competitor.name}...</span>
                                 </div>
                               ) : analysis ? (
-                                <div className="space-y-2">
-                                  <div className="flex items-center gap-3">
-                                    <DifficultyBadge difficulty={analysis.difficulty} />
-                                    <span className="text-sm text-gray-600">
-                                      {analysis.siteType}
-                                    </span>
-                                  </div>
-                                  <div className="text-sm text-gray-700 bg-white p-3 rounded-lg border border-gray-200">
+                                <div className="space-y-3">
+                                  {/* Who they are */}
+                                  <div className="bg-white p-3 rounded-lg border border-gray-200">
                                     <div className="flex items-start gap-2">
-                                      <Icon name="FaLightbulb" className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
-                                      <p>{analysis.strategy}</p>
+                                      <Icon name="FaBuilding" className="w-4 h-4 text-slate-blue mt-0.5 flex-shrink-0" />
+                                      <div>
+                                        <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Who they are</div>
+                                        <p className="text-sm text-gray-700">{analysis.whoTheyAre}</p>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* Why mentioned */}
+                                  <div className="bg-white p-3 rounded-lg border border-gray-200">
+                                    <div className="flex items-start gap-2">
+                                      <Icon name="FaCommentAlt" className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                                      <div>
+                                        <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Why AI mentions them</div>
+                                        <p className="text-sm text-gray-700">{analysis.whyMentioned}</p>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* How to differentiate */}
+                                  <div className="bg-white p-3 rounded-lg border border-green-200">
+                                    <div className="flex items-start gap-2">
+                                      <Icon name="FaLightbulb" className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                                      <div>
+                                        <div className="text-xs font-semibold text-green-700 uppercase tracking-wider mb-1">How to differentiate</div>
+                                        <p className="text-sm text-gray-700">{analysis.howToDifferentiate}</p>
+                                      </div>
                                     </div>
                                   </div>
                                 </div>
