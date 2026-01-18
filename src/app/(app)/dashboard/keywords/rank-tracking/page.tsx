@@ -674,12 +674,13 @@ export default function RankTrackingPage() {
         </div>
       </div>
 
-      {/* Main Tab Navigation (Library | Rank Tracking | LLM Visibility) */}
+      {/* Main Tab Navigation */}
       <SubNav
         items={[
           { label: 'Library', icon: 'FaKey', href: '/dashboard/keywords', matchType: 'exact' },
           { label: 'Rank Tracking', icon: 'FaChartLine', href: '/dashboard/keywords/rank-tracking', matchType: 'startsWith' },
-          { label: 'AI Search', icon: 'FaSparkles', href: '/dashboard/keywords/llm-visibility', matchType: 'startsWith' },
+          { label: 'AI Search', icon: 'FaSparkles', href: '/dashboard/keywords/llm-visibility', matchType: 'exact' },
+          { label: 'Research Sources', icon: 'FaGlobe', href: '/dashboard/keywords/llm-visibility/research-sources', matchType: 'exact' },
         ]}
       />
 
