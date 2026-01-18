@@ -52,13 +52,14 @@ export async function GET(request: NextRequest) {
   if (authError) return authError;
 
   return logCronExecution('process-analysis-batch', async () => {
-    // First, clean up any stuck runs (processing for > 15 minutes)
+    // First, clean up any stuck runs (no progress for > 15 minutes)
+    // Use updated_at instead of started_at so long-running batches with progress don't timeout
     const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString();
     const { data: stuckRuns } = await serviceSupabase
       .from('analysis_batch_runs')
       .select('id')
       .eq('status', 'processing')
-      .lt('started_at', fifteenMinutesAgo);
+      .lt('updated_at', fifteenMinutesAgo);
 
     if (stuckRuns && stuckRuns.length > 0) {
       console.log(`📋 [AnalysisBatch] Found ${stuckRuns.length} stuck runs, marking as failed`);
@@ -67,7 +68,7 @@ export async function GET(request: NextRequest) {
           .from('analysis_batch_runs')
           .update({
             status: 'failed',
-            error_message: 'Run timed out after 15 minutes',
+            error_message: 'Run timed out - no progress for 15 minutes',
             completed_at: new Date().toISOString(),
           })
           .eq('id', stuckRun.id);
@@ -93,9 +94,10 @@ export async function GET(request: NextRequest) {
     try {
       // Mark as processing if pending
       if (run.status === 'pending') {
+        const now = new Date().toISOString();
         await serviceSupabase
           .from('analysis_batch_runs')
-          .update({ status: 'processing', started_at: new Date().toISOString() })
+          .update({ status: 'processing', started_at: now, updated_at: now })
           .eq('id', run.id);
       }
 
