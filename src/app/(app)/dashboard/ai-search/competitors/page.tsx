@@ -70,7 +70,6 @@ export default function CompetitorsPage() {
   // Competitor analysis state
   const [analyses, setAnalyses] = useState<Record<string, CompetitorAnalysis>>({});
   const [analyzingCompetitors, setAnalyzingCompetitors] = useState<Set<string>>(new Set());
-  const [analysisExpanded, setAnalysisExpanded] = useState<Set<string>>(new Set());
 
   // Run all modal state
   const [showRunAllModal, setShowRunAllModal] = useState(false);
@@ -144,22 +143,14 @@ export default function CompetitorsPage() {
     const key = competitor.name.toLowerCase();
 
     if (analyzingCompetitors.has(key) || analyses[key]) {
-      // Already analyzing or already have analysis - just toggle expansion
-      setAnalysisExpanded(prev => {
-        const next = new Set(prev);
-        if (next.has(key)) {
-          next.delete(key);
-        } else {
-          next.add(key);
-        }
-        return next;
-      });
+      // Already analyzing or already have analysis - just expand the main accordion
+      setExpandedCompetitor(prev => prev === competitor.name ? null : competitor.name);
       return;
     }
 
-    // Start analyzing
+    // Start analyzing - expand the main accordion to show progress
     setAnalyzingCompetitors(prev => new Set(prev).add(key));
-    setAnalysisExpanded(prev => new Set(prev).add(key));
+    setExpandedCompetitor(competitor.name);
 
     try {
       const result = await apiClient.post<CompetitorAnalysis>('/llm-visibility/analyze-competitor', {
@@ -439,7 +430,6 @@ export default function CompetitorsPage() {
                     const competitorKey = competitor.name.toLowerCase();
                     const analysis = analyses[competitorKey];
                     const isAnalyzing = analyzingCompetitors.has(competitorKey);
-                    const isAnalysisExpanded = analysisExpanded.has(competitorKey);
                     const primaryDomain = competitor.domains[0] || null;
 
                     return (
@@ -561,60 +551,57 @@ export default function CompetitorsPage() {
                           </td>
                         </tr>
 
-                        {/* Analysis Accordion Row */}
-                        {isAnalysisExpanded && (analysis || isAnalyzing) && (
-                          <tr className="bg-blue-50/50">
-                            <td colSpan={5} className="py-3 px-4 pl-12">
-                              {isAnalyzing ? (
-                                <div className="flex items-center gap-2 text-gray-500">
-                                  <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
-                                  <span>Analyzing {competitor.name}...</span>
-                                </div>
-                              ) : analysis ? (
-                                <div className="space-y-3">
-                                  {/* Who they are */}
-                                  <div className="bg-white p-3 rounded-lg border border-gray-200">
-                                    <div className="flex items-start gap-2">
-                                      <Icon name="FaBuilding" className="w-4 h-4 text-slate-blue mt-0.5 flex-shrink-0" />
-                                      <div>
-                                        <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Who they are</div>
-                                        <p className="text-sm text-gray-700">{analysis.whoTheyAre}</p>
-                                      </div>
-                                    </div>
-                                  </div>
-
-                                  {/* Why mentioned */}
-                                  <div className="bg-white p-3 rounded-lg border border-gray-200">
-                                    <div className="flex items-start gap-2">
-                                      <Icon name="FaCommentAlt" className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
-                                      <div>
-                                        <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Why AI mentions them</div>
-                                        <p className="text-sm text-gray-700">{analysis.whyMentioned}</p>
-                                      </div>
-                                    </div>
-                                  </div>
-
-                                  {/* How to differentiate */}
-                                  <div className="bg-white p-3 rounded-lg border border-green-200">
-                                    <div className="flex items-start gap-2">
-                                      <Icon name="FaLightbulb" className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                                      <div>
-                                        <div className="text-xs font-semibold text-green-700 uppercase tracking-wider mb-1">How to differentiate</div>
-                                        <p className="text-sm text-gray-700">{analysis.howToDifferentiate}</p>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              ) : null}
-                            </td>
-                          </tr>
-                        )}
-
-                        {/* Expanded Row - Details */}
+                        {/* Expanded Row - Details & Analysis */}
                         {isExpanded && (
                           <tr className="bg-gray-50">
                             <td colSpan={5} className="py-3 px-4 pl-12">
                               <div className="space-y-3">
+                                {/* Analysis Section */}
+                                {(analysis || isAnalyzing) && (
+                                  <div className="space-y-3 mb-4">
+                                    {isAnalyzing ? (
+                                      <div className="flex items-center gap-2 text-gray-500">
+                                        <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
+                                        <span>Analyzing {competitor.name}...</span>
+                                      </div>
+                                    ) : analysis ? (
+                                      <>
+                                        {/* Who they are */}
+                                        <div className="bg-white p-3 rounded-lg border border-gray-200">
+                                          <div className="flex items-start gap-2">
+                                            <Icon name="FaBuilding" className="w-4 h-4 text-slate-blue mt-0.5 flex-shrink-0" />
+                                            <div>
+                                              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Who they are</div>
+                                              <p className="text-sm text-gray-700">{analysis.whoTheyAre}</p>
+                                            </div>
+                                          </div>
+                                        </div>
+
+                                        {/* Why mentioned */}
+                                        <div className="bg-white p-3 rounded-lg border border-gray-200">
+                                          <div className="flex items-start gap-2">
+                                            <Icon name="FaCommentAlt" className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                                            <div>
+                                              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Why AI mentions them</div>
+                                              <p className="text-sm text-gray-700">{analysis.whyMentioned}</p>
+                                            </div>
+                                          </div>
+                                        </div>
+
+                                        {/* How to differentiate */}
+                                        <div className="bg-white p-3 rounded-lg border border-green-200">
+                                          <div className="flex items-start gap-2">
+                                            <Icon name="FaLightbulb" className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                                            <div>
+                                              <div className="text-xs font-semibold text-green-700 uppercase tracking-wider mb-1">How to differentiate</div>
+                                              <p className="text-sm text-gray-700">{analysis.howToDifferentiate}</p>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </>
+                                    ) : null}
+                                  </div>
+                                )}
                                 {/* Categories */}
                                 {competitor.categories.length > 0 && (
                                   <div>
