@@ -138,7 +138,7 @@ export const SEO_VISIBILITY_SECTION: NavSection = {
       requiresBusiness: true,
     },
     {
-      path: "/dashboard/keywords/llm-visibility",
+      path: "/dashboard/ai-search",
       label: "AI Search",
       icon: "FaSparkles",
       description: "Track LLM visibility",
