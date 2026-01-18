@@ -69,12 +69,12 @@ const FUNNEL_COLORS: Record<string, { bg: string; text: string }> = {
 };
 
 /**
- * LLM Visibility Dashboard Page
+ * AI Search Dashboard Page
  *
  * Shows account-wide LLM visibility tracking for keywords with related questions.
  * Displays all questions in a flat table with concept column.
  */
-export default function LLMVisibilityPage() {
+export default function AISearchPage() {
   // Read query params for deep linking
   const searchParams = useSearchParams();
   const conceptFromUrl = searchParams.get('concept');
@@ -224,7 +224,7 @@ export default function LLMVisibilityPage() {
         providerStats,
       });
     } catch (err) {
-      console.error('[LLMVisibility] Error fetching data:', err);
+      console.error('[AISearch] Error fetching data:', err);
       setError('Failed to load keywords');
     } finally {
       setIsLoading(false);
@@ -413,15 +413,12 @@ export default function LLMVisibilityPage() {
     setSidebarOpen(true);
     try {
       const response = await apiClient.get<{ keyword: any }>(`/keywords/${conceptId}`);
-      console.log('[LLMVisibility] API response:', response);
-      console.log('[LLMVisibility] keyword.relatedQuestions:', response.keyword?.relatedQuestions);
       if (response.keyword) {
         // The API already returns transformed data, no need to transform again
         setSelectedKeyword(response.keyword);
-        console.log('[LLMVisibility] Set selectedKeyword:', response.keyword);
       }
     } catch (err) {
-      console.error('[LLMVisibility] Error loading keyword:', err);
+      console.error('[AISearch] Error loading keyword:', err);
       setSelectedKeyword(null);
     } finally {
       setIsLoadingKeyword(false);
@@ -441,7 +438,7 @@ export default function LLMVisibilityPage() {
       }
       return null;
     } catch (err) {
-      console.error('[LLMVisibility] Error updating keyword:', err);
+      console.error('[AISearch] Error updating keyword:', err);
       return null;
     }
   }, [fetchData]);
@@ -545,17 +542,15 @@ export default function LLMVisibilityPage() {
       {/* Page Title */}
       <div className="px-4 sm:px-6 lg:px-8 pt-8 mt-8">
         <div className="max-w-7xl mx-auto flex flex-col items-center mb-3">
-          <h1 className="text-3xl lg:text-4xl font-bold text-white mb-6">Keyword Concepts</h1>
+          <h1 className="text-3xl lg:text-4xl font-bold text-white mb-6">AI Search</h1>
         </div>
       </div>
 
       {/* Tab Navigation */}
       <SubNav
         items={[
-          { label: 'Library', icon: 'FaKey', href: '/dashboard/keywords', matchType: 'exact' },
-          { label: 'Rank Tracking', icon: 'FaChartLine', href: '/dashboard/keywords/rank-tracking', matchType: 'startsWith' },
-          { label: 'AI Search', icon: 'FaSparkles', href: '/dashboard/keywords/llm-visibility', matchType: 'exact' },
-          { label: 'Research Sources', icon: 'FaGlobe', href: '/dashboard/keywords/llm-visibility/research-sources', matchType: 'exact' },
+          { label: 'AI Visibility', icon: 'FaSparkles', href: '/dashboard/ai-search', matchType: 'exact' },
+          { label: 'Research Sources', icon: 'FaGlobe', href: '/dashboard/ai-search/research-sources', matchType: 'exact' },
         ]}
       />
 
@@ -664,8 +659,6 @@ export default function LLMVisibilityPage() {
                     {LLM_PROVIDERS.map((provider) => {
                       const stats = accountSummary.providerStats[provider];
                       const colors = LLM_PROVIDER_COLORS[provider];
-                      const citedOrMentioned = (stats?.cited || 0) + (stats?.mentioned || 0) -
-                        Math.min(stats?.cited || 0, stats?.mentioned || 0); // Avoid double counting
                       return (
                         <span
                           key={provider}
@@ -792,11 +785,10 @@ export default function LLMVisibilityPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredAndSortedRows.map((row, idx) => {
+                  {filteredAndSortedRows.map((row) => {
                     const rowKey = `${row.conceptId}-${row.question}`;
                     const isExpanded = expandedRow === rowKey;
                     const funnelColor = FUNNEL_COLORS[row.funnelStage] || FUNNEL_COLORS.top;
-                    const hasAnyResults = Array.from(row.results.values()).some(r => r !== null);
 
                     return (
                       <React.Fragment key={rowKey}>
@@ -919,7 +911,7 @@ export default function LLMVisibilityPage() {
                                 if (resultsWithData.length === 0) {
                                   return (
                                     <div className="text-center text-gray-500 text-sm py-4">
-                                      No checks performed yet. Click "Check" to query AI assistants.
+                                      No checks performed yet. Click &quot;Check&quot; to query AI assistants.
                                     </div>
                                   );
                                 }
