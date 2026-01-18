@@ -880,17 +880,25 @@ export default function QRCodeGenerator({
         });
       }
 
-      // Draw Prompt Reviews logo (smaller, towards bottom)
-      const logoImg = new window.Image();
-      logoImg.crossOrigin = 'anonymous';
-      logoImg.src = 'https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/prompt-reviews-get-more-reviews-logo.png';
-      await new Promise<void>((resolve, reject) => {
-        logoImg.onload = () => resolve();
-        logoImg.onerror = () => reject(new Error('Failed to load Prompt Reviews logo'));
-      });
-      
-      // Use pre-calculated logo dimensions
-      ctx.drawImage(logoImg, logoX, logoY, logoWidth, logoHeight);
+      // Draw Prompt Reviews logo as text (matches QR code color)
+      // Draw "[PROMPT]" text
+      const promptFontSize = Math.floor(logoHeight * 0.35);
+      const reviewsFontSize = Math.floor(logoHeight * 0.55);
+
+      ctx.fillStyle = mainColor;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      // Draw "[PROMPT]" - lighter weight, smaller
+      ctx.font = `300 ${promptFontSize}px "Arial", sans-serif`;
+      ctx.letterSpacing = `${promptFontSize * 0.15}px`;
+      const promptY = logoY + logoHeight * 0.3;
+      ctx.fillText('[ P R O M P T ]', frameSize.width / 2, promptY);
+
+      // Draw "REVIEWS" - bold, larger
+      ctx.font = `900 ${reviewsFontSize}px "Arial Black", "Arial", sans-serif`;
+      const reviewsY = logoY + logoHeight * 0.72;
+      ctx.fillText('REVIEWS', frameSize.width / 2, reviewsY);
 
       // Draw NFC text if enabled (below QR code)
       if (showNfcText) {

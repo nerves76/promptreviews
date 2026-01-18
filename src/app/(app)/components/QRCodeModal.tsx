@@ -221,7 +221,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl,
         )}
         
         {/* Left side: Controls */}
-        <div className="flex-1 space-y-4 py-6 px-8 min-h-0 bg-white/90 backdrop-blur-sm rounded-l-2xl">
+        <div className="flex-1 space-y-4 py-6 px-8 min-h-0 bg-white/90 backdrop-blur-sm rounded-l-2xl overflow-y-auto max-h-[90vh]">
           <div>
             {/* Marketing Copy - Show when preview is not generated */}
             {!showPreview && (
@@ -793,7 +793,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl,
           <div className="absolute bottom-4 left-8 right-8 flex justify-between items-center">
             <button
               onClick={() => setShowBrandingPopup(true)}
-              className="text-blue-600 hover:text-blue-800 text-xs underline"
+              className="text-white/80 hover:text-white text-xs underline"
             >
               Remove Prompt Reviews logo?
             </button>

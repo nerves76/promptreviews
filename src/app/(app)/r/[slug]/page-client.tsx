@@ -59,6 +59,9 @@ const FunFactsModal = dynamic(() => import("@/app/(app)/components/FunFactsModal
 const StyleModalPage = dynamic(() => import("../../dashboard/style/StyleModalPage"), {
   ssr: false
 });
+const EditPromptPageModal = dynamic(() => import("./components/EditPromptPageModal"), {
+  ssr: false
+});
 
 // ⚡ PERFORMANCE: Convert heavy components to dynamic imports
 const KickstartersCarousel = dynamic(() => import("./components/KickstartersCarousel"), {
@@ -259,6 +262,8 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
   const [platformReviewTexts, setPlatformReviewTexts] = useState<string[]>([]);
   const [aiRewriteCounts, setAiRewriteCounts] = useState<number[]>(Array(promptPage?.review_platforms?.length || 0).fill(0));
   const [aiLoading, setAiLoading] = useState<number | null>(null);
+  const [aiEnhanceCounts, setAiEnhanceCounts] = useState<number[]>(Array(promptPage?.review_platforms?.length || 0).fill(0));
+  const [aiEnhanceLoading, setAiEnhanceLoading] = useState<number | null>(null);
   const [fixGrammarCounts, setFixGrammarCounts] = useState<number[]>(Array(promptPage?.review_platforms?.length || 0).fill(0));
   const [fixGrammarLoading, setFixGrammarLoading] = useState<number | null>(null);
   const [showAiToast, setShowAiToast] = useState<number | null>(null);
@@ -349,6 +354,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
   // Style button state variables
   const [isOwner, setIsOwner] = useState(false);
   const [showStyleModal, setShowStyleModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [userLoading, setUserLoading] = useState(true);
   const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(null);
   // Add state for tracking font loading status
@@ -455,6 +461,11 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
     const savedCounts = sessionStorage.getItem('aiRewriteCounts');
     if (savedCounts) {
       setAiRewriteCounts(JSON.parse(savedCounts));
+    }
+
+    const savedEnhanceCounts = sessionStorage.getItem('aiEnhanceCounts');
+    if (savedEnhanceCounts) {
+      setAiEnhanceCounts(JSON.parse(savedEnhanceCounts));
     }
 
     const savedGrammarCounts = sessionStorage.getItem('fixGrammarCounts');
@@ -974,11 +985,6 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
       setIsSubmitting(null);
       return;
     }
-    if (currentUser) {
-      setSubmitError("Sorry, you can't do that while you are logged in.");
-      setIsSubmitting(null);
-      return;
-    }
     const first_name = reviewerFirstNames[idx];
     const last_name = reviewerLastNames[idx];
     setIsSubmitting(idx);
@@ -1175,6 +1181,91 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
       );
     } finally {
       setAiLoading(null);
+    }
+  };
+
+  const handleEnhanceWithAI = async (idx: number) => {
+    if (!promptPage || !businessProfile) return;
+
+    // Check if there's text to enhance
+    if (!platformReviewTexts[idx] || platformReviewTexts[idx].trim() === "") {
+      setSubmitError("Please write a review first before enhancing.");
+      return;
+    }
+
+    const platform = getPlatformForIndex(idx);
+    if (!platform) {
+      setSubmitError("Unable to find platform details for this review.");
+      return;
+    }
+    const wordLimit = getWordLimitOrDefault(platform.wordCount);
+
+    setAiEnhanceLoading(idx);
+    try {
+      const currentText = platformReviewTexts[idx];
+      // Get up to 2 keywords from the page for natural incorporation
+      const keywords = (promptPage?.keywords || []).slice(0, 2);
+
+      const response = await fetch("/api/enhance-review", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          text: currentText,
+          keywords: keywords.length > 0 ? keywords : undefined
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to enhance review");
+      }
+
+      const data = await response.json();
+      const enhanced = data.text?.trim() || "";
+      const enhancedCount = countWords(enhanced);
+      const boundedText = enhancedCount > wordLimit
+        ? enhanced.split(/\s+/).slice(0, wordLimit).join(" ")
+        : enhanced;
+
+      setPlatformReviewTexts((prev) =>
+        prev.map((t, i) => (i === idx ? boundedText : t)),
+      );
+      setAiEnhanceCounts((prev) => {
+        const newCounts = prev.map((c, i) => (i === idx ? c + 1 : c));
+        sessionStorage.setItem('aiEnhanceCounts', JSON.stringify(newCounts));
+        return newCounts;
+      });
+
+      // Show toast notification
+      setShowAiToast(idx);
+      setTimeout(() => {
+        setShowAiToast(null);
+      }, 4000);
+
+      // Track enhance event for non-authenticated users
+      if (
+        !currentUser &&
+        promptPage?.id &&
+        promptPage.review_platforms?.[idx]
+      ) {
+        sendAnalyticsEvent({
+          promptPageId: promptPage.id,
+          eventType: "ai_enhance",
+          platform:
+            promptPage.review_platforms[idx].platform ||
+            promptPage.review_platforms[idx].name ||
+            "",
+        });
+      }
+    } catch (err) {
+      console.error("AI enhance error:", err);
+      setSubmitError(
+        err instanceof Error
+          ? `AI enhancement failed: ${err.message}`
+          : "AI enhancement failed. Please try again."
+      );
+    } finally {
+      setAiEnhanceLoading(null);
     }
   };
 
@@ -2054,21 +2145,38 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
           >
             <div className="bg-black bg-opacity-20 backdrop-blur-sm rounded-xl p-3 space-y-2">
               {isOwner && (
-                <button
-                  onClick={() => setShowStyleModal(true)}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg shadow-md hover:bg-gray-50 transition-colors group w-full"
-                  style={{
-                    background: isOffWhiteOrCream(businessProfile?.card_bg || "#FFFFFF")
-                      ? businessProfile?.card_bg || "#FFFFFF"
-                      : "#FFFFFF",
-                    color: getAccessibleColor(businessProfile?.primary_color || "#2E4A7D"),
-                    border: "1px solid #E5E7EB"
-                  }}
-                  title="Style your prompt pages"
-                >
-                  <Icon name="FaPalette" className="w-5 h-5 transition-colors group-hover:text-slate-blue" size={20} />
-                  <span className="hidden sm:inline">Style</span>
-                </button>
+                <>
+                  <button
+                    onClick={() => setShowEditModal(true)}
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg shadow-md hover:bg-gray-50 transition-colors group w-full"
+                    style={{
+                      background: isOffWhiteOrCream(businessProfile?.card_bg || "#FFFFFF")
+                        ? businessProfile?.card_bg || "#FFFFFF"
+                        : "#FFFFFF",
+                      color: getAccessibleColor(businessProfile?.primary_color || "#2E4A7D"),
+                      border: "1px solid #E5E7EB"
+                    }}
+                    title="Edit this prompt page"
+                  >
+                    <Icon name="FaEdit" className="w-5 h-5 transition-colors group-hover:text-slate-blue" size={20} />
+                    <span className="hidden sm:inline">Edit</span>
+                  </button>
+                  <button
+                    onClick={() => setShowStyleModal(true)}
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg shadow-md hover:bg-gray-50 transition-colors group w-full"
+                    style={{
+                      background: isOffWhiteOrCream(businessProfile?.card_bg || "#FFFFFF")
+                        ? businessProfile?.card_bg || "#FFFFFF"
+                        : "#FFFFFF",
+                      color: getAccessibleColor(businessProfile?.primary_color || "#2E4A7D"),
+                      border: "1px solid #E5E7EB"
+                    }}
+                    title="Style your prompt pages"
+                  >
+                    <Icon name="FaPalette" className="w-5 h-5 transition-colors group-hover:text-slate-blue" size={20} />
+                    <span className="hidden sm:inline">Style</span>
+                  </button>
+                </>
               )}
               <button
                 onClick={() => window.location.href = '/prompt-pages'}
@@ -2824,12 +2932,14 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                   reviewerRoles={reviewerRoles}
                   platformReviewTexts={platformReviewTexts}
                   aiLoading={aiLoading}
+                  aiEnhanceLoading={aiEnhanceLoading}
                   fixGrammarLoading={fixGrammarLoading}
                   isSubmitting={isSubmitting}
                   isCopied={isCopied}
                   isRedirecting={isRedirecting}
                   hasSubmitted={hasSubmitted.has(idx)}
                   aiRewriteCounts={aiRewriteCounts}
+                  aiEnhanceCounts={aiEnhanceCounts}
                   fixGrammarCounts={fixGrammarCounts}
                   openInstructionsIdx={openInstructionsIdx}
                   submitError={submitError}
@@ -2859,6 +2969,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                   }}
                   onReviewTextChange={handleReviewTextChange}
                   onRewriteWithAI={handleRewriteWithAI}
+                  onEnhanceWithAI={handleEnhanceWithAI}
                   onFixGrammar={handleFixGrammar}
                   onCopyAndSubmit={handleCopyAndSubmit}
                   onCopyReview={async (idx) => {
@@ -3451,10 +3562,20 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
 
       {/* Style Modal */}
       {showStyleModal && promptPage?.account_id && (
-        <StyleModalPage 
-          onClose={() => setShowStyleModal(false)} 
+        <StyleModalPage
+          onClose={() => setShowStyleModal(false)}
           onStyleUpdate={handleStyleUpdate}
           accountId={promptPage.account_id}
+        />
+      )}
+
+      {/* Edit Prompt Page Modal */}
+      {showEditModal && promptPage && (
+        <EditPromptPageModal
+          isOpen={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          promptPageSlug={promptPage.slug}
+          isUniversal={promptPage.is_universal}
         />
       )}
 

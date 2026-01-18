@@ -36,6 +36,25 @@ type SortField = 'domain' | 'frequency' | 'lastSeen' | 'concepts' | 'difficulty'
 type SortDirection = 'asc' | 'desc';
 
 /**
+ * Strip UTM and other tracking parameters from a URL for cleaner display
+ */
+function stripTrackingParams(url: string): string {
+  try {
+    const urlObj = new URL(url);
+    const paramsToRemove = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'];
+    paramsToRemove.forEach(param => urlObj.searchParams.delete(param));
+    // Return clean URL, removing trailing ? if no params left
+    let cleanUrl = urlObj.toString();
+    if (cleanUrl.endsWith('?')) {
+      cleanUrl = cleanUrl.slice(0, -1);
+    }
+    return cleanUrl;
+  } catch {
+    return url; // Return original if parsing fails
+  }
+}
+
+/**
  * Format relative time (e.g., "2 days ago")
  */
 function formatRelativeTime(dateString: string): string {
@@ -702,7 +721,7 @@ export default function ResearchSourcesPage() {
                                           rel="noopener noreferrer"
                                           className="text-sm text-slate-blue hover:underline break-all"
                                         >
-                                          {url}
+                                          {stripTrackingParams(url)}
                                         </a>
                                       </li>
                                     ))}
