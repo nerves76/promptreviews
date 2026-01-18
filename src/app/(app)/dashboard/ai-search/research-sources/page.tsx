@@ -565,7 +565,7 @@ export default function ResearchSourcesPage() {
                                 className="inline-flex items-center gap-1 px-2 py-1 text-xs text-gray-500 hover:text-slate-blue hover:bg-blue-50 rounded transition-colors"
                                 aria-label={`Visit ${source.domain}`}
                               >
-                                <Icon name="FaGlobe" className="w-3 h-3" />
+                                <Icon name="FaLink" className="w-3 h-3" />
                               </a>
                             </div>
                           </td>
