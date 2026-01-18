@@ -611,40 +611,39 @@ export default function ResearchSourcesPage() {
                           </td>
                         </tr>
 
-                        {/* Strategy Accordion Row */}
-                        {isStrategyExpanded && (analysis || isAnalyzing) && (
-                          <tr className="bg-blue-50/50">
-                            <td colSpan={5} className="py-3 px-4 pl-12">
-                              {isAnalyzing ? (
-                                <div className="flex items-center gap-2 text-gray-500">
-                                  <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
-                                  <span>Analyzing {source.domain}...</span>
-                                </div>
-                              ) : analysis ? (
-                                <div className="space-y-2">
-                                  <div className="flex items-center gap-3">
-                                    <DifficultyBadge difficulty={analysis.difficulty} />
-                                    <span className="text-sm text-gray-600">
-                                      {analysis.siteType}
-                                    </span>
-                                  </div>
-                                  <div className="text-sm text-gray-700 bg-white p-3 rounded-lg border border-gray-200">
-                                    <div className="flex items-start gap-2">
-                                      <Icon name="FaLightbulb" className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
-                                      <p>{analysis.strategy}</p>
-                                    </div>
-                                  </div>
-                                </div>
-                              ) : null}
-                            </td>
-                          </tr>
-                        )}
-
-                        {/* Expanded Row - Sample URLs */}
+                        {/* Expanded Row - Analysis & Sample URLs */}
                         {isExpanded && (
                           <tr className="bg-gray-50">
                             <td colSpan={5} className="py-3 px-4 pl-12">
-                              <div className="space-y-2">
+                              <div className="space-y-4">
+                                {/* Analysis Section */}
+                                {(analysis || isAnalyzing) && (
+                                  <div className="space-y-2">
+                                    {isAnalyzing ? (
+                                      <div className="flex items-center gap-2 text-gray-500">
+                                        <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
+                                        <span>Analyzing {source.domain}...</span>
+                                      </div>
+                                    ) : analysis ? (
+                                      <>
+                                        <div className="flex items-center gap-3">
+                                          <DifficultyBadge difficulty={analysis.difficulty} />
+                                          <span className="text-sm text-gray-600">
+                                            {analysis.siteType}
+                                          </span>
+                                        </div>
+                                        <div className="text-sm text-gray-700 bg-white p-3 rounded-lg border border-gray-200">
+                                          <div className="flex items-start gap-2">
+                                            <Icon name="FaLightbulb" className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                                            <p>{analysis.strategy}</p>
+                                          </div>
+                                        </div>
+                                      </>
+                                    ) : null}
+                                  </div>
+                                )}
+
+                                {/* Sample URLs Section */}
                                 <div className="text-xs font-medium text-gray-500 uppercase">
                                   Sample pages used ({source.sampleUrls.length})
                                 </div>
