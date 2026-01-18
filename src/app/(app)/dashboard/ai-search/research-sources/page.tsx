@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import PageCard, { PageCardHeader } from '@/app/(app)/components/PageCard';
 import { SubNav } from '@/app/(app)/components/SubNav';
@@ -25,6 +25,12 @@ interface ResearchSourcesData {
   yourDomainAppearances: number;
 }
 
+interface DomainAnalysis {
+  difficulty: 'easy' | 'medium' | 'hard';
+  siteType: string;
+  strategy: string;
+}
+
 type SortField = 'domain' | 'frequency' | 'lastSeen' | 'concepts';
 type SortDirection = 'asc' | 'desc';
 
@@ -46,6 +52,23 @@ function formatRelativeTime(dateString: string): string {
 }
 
 /**
+ * Difficulty badge component
+ */
+function DifficultyBadge({ difficulty }: { difficulty: 'easy' | 'medium' | 'hard' }) {
+  const config = {
+    easy: { bg: 'bg-green-100', text: 'text-green-700', label: 'Easy' },
+    medium: { bg: 'bg-amber-100', text: 'text-amber-700', label: 'Medium' },
+    hard: { bg: 'bg-red-100', text: 'text-red-700', label: 'Hard' },
+  };
+  const { bg, text, label } = config[difficulty];
+  return (
+    <span className={`px-2 py-0.5 rounded text-xs font-medium ${bg} ${text}`}>
+      {label}
+    </span>
+  );
+}
+
+/**
  * AI Research Sources Page
  *
  * Shows aggregated and ranked websites that AI assistants use when researching answers.
@@ -57,6 +80,11 @@ export default function ResearchSourcesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expandedDomain, setExpandedDomain] = useState<string | null>(null);
+
+  // Domain analysis state
+  const [analyses, setAnalyses] = useState<Record<string, DomainAnalysis>>({});
+  const [analyzingDomains, setAnalyzingDomains] = useState<Set<string>>(new Set());
+  const [strategyExpanded, setStrategyExpanded] = useState<Set<string>>(new Set());
 
   // Sorting
   const [sortField, setSortField] = useState<SortField>('frequency');
@@ -85,6 +113,54 @@ export default function ResearchSourcesPage() {
 
     fetchData();
   }, [selectedAccountId]);
+
+  // Analyze a domain
+  const analyzeDomain = useCallback(async (domain: string) => {
+    if (analyzingDomains.has(domain) || analyses[domain]) {
+      // Already analyzing or already have analysis - just toggle expansion
+      setStrategyExpanded(prev => {
+        const next = new Set(prev);
+        if (next.has(domain)) {
+          next.delete(domain);
+        } else {
+          next.add(domain);
+        }
+        return next;
+      });
+      return;
+    }
+
+    // Start analyzing
+    setAnalyzingDomains(prev => new Set(prev).add(domain));
+    setStrategyExpanded(prev => new Set(prev).add(domain));
+
+    try {
+      const result = await apiClient.post<DomainAnalysis>('/llm-visibility/analyze-domain', {
+        domain,
+      });
+      setAnalyses(prev => ({
+        ...prev,
+        [domain]: result,
+      }));
+    } catch (err) {
+      console.error('[ResearchSourcesPage] Error analyzing domain:', err);
+      // Set a fallback analysis
+      setAnalyses(prev => ({
+        ...prev,
+        [domain]: {
+          difficulty: 'medium',
+          siteType: 'Unknown',
+          strategy: 'Unable to analyze this domain. Please try again later.',
+        },
+      }));
+    } finally {
+      setAnalyzingDomains(prev => {
+        const next = new Set(prev);
+        next.delete(domain);
+        return next;
+      });
+    }
+  }, [analyzingDomains, analyses]);
 
   // Handle sort
   const handleSort = (field: SortField) => {
@@ -306,6 +382,10 @@ export default function ResearchSourcesPage() {
                 <tbody>
                   {sortedSources.map((source) => {
                     const isExpanded = expandedDomain === source.domain;
+                    const analysis = analyses[source.domain];
+                    const isAnalyzing = analyzingDomains.has(source.domain);
+                    const isStrategyExpanded = strategyExpanded.has(source.domain);
+
                     return (
                       <React.Fragment key={source.domain}>
                         <tr
@@ -319,6 +399,7 @@ export default function ResearchSourcesPage() {
                               <button
                                 onClick={() => setExpandedDomain(isExpanded ? null : source.domain)}
                                 className="p-1 hover:bg-gray-100 rounded"
+                                aria-label={isExpanded ? 'Collapse details' : 'Expand details'}
                               >
                                 <Icon
                                   name={isExpanded ? 'FaChevronDown' : 'FaChevronRight'}
@@ -339,6 +420,9 @@ export default function ResearchSourcesPage() {
                                 <span className="px-1.5 py-0.5 bg-green-100 text-green-700 text-xs rounded">
                                   You
                                 </span>
+                              )}
+                              {analysis && (
+                                <DifficultyBadge difficulty={analysis.difficulty} />
                               )}
                             </div>
                           </td>
@@ -385,17 +469,71 @@ export default function ResearchSourcesPage() {
 
                           {/* Actions */}
                           <td className="py-3 px-3 text-center">
-                            <a
-                              href={`https://${source.domain}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1 px-2 py-1 text-xs text-slate-blue hover:text-slate-blue/80 hover:bg-blue-50 rounded transition-colors"
-                            >
-                              <Icon name="FaGlobe" className="w-3 h-3" />
-                              Visit
-                            </a>
+                            <div className="flex items-center justify-center gap-1">
+                              <button
+                                onClick={() => analyzeDomain(source.domain)}
+                                disabled={isAnalyzing}
+                                className={`inline-flex items-center gap-1 px-2 py-1 text-xs rounded transition-colors whitespace-nowrap ${
+                                  isAnalyzing
+                                    ? 'bg-gray-100 text-gray-400 cursor-wait'
+                                    : analysis
+                                    ? 'text-slate-blue hover:text-slate-blue/80 hover:bg-blue-50'
+                                    : 'bg-slate-blue text-white hover:bg-slate-blue/90'
+                                }`}
+                              >
+                                {isAnalyzing ? (
+                                  <>
+                                    <Icon name="FaSpinner" className="w-3 h-3 animate-spin" />
+                                    Analyzing...
+                                  </>
+                                ) : (
+                                  <>
+                                    <Icon name="FaLightbulb" className="w-3 h-3" />
+                                    Strategy
+                                  </>
+                                )}
+                              </button>
+                              <a
+                                href={`https://${source.domain}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 px-2 py-1 text-xs text-gray-500 hover:text-slate-blue hover:bg-blue-50 rounded transition-colors"
+                                aria-label={`Visit ${source.domain}`}
+                              >
+                                <Icon name="FaGlobe" className="w-3 h-3" />
+                              </a>
+                            </div>
                           </td>
                         </tr>
+
+                        {/* Strategy Accordion Row */}
+                        {isStrategyExpanded && (analysis || isAnalyzing) && (
+                          <tr className="bg-blue-50/50">
+                            <td colSpan={5} className="py-3 px-4 pl-12">
+                              {isAnalyzing ? (
+                                <div className="flex items-center gap-2 text-gray-500">
+                                  <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
+                                  <span>Analyzing {source.domain}...</span>
+                                </div>
+                              ) : analysis ? (
+                                <div className="space-y-2">
+                                  <div className="flex items-center gap-3">
+                                    <DifficultyBadge difficulty={analysis.difficulty} />
+                                    <span className="text-sm text-gray-600">
+                                      {analysis.siteType}
+                                    </span>
+                                  </div>
+                                  <div className="text-sm text-gray-700 bg-white p-3 rounded-lg border border-gray-200">
+                                    <div className="flex items-start gap-2">
+                                      <Icon name="FaLightbulb" className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                                      <p>{analysis.strategy}</p>
+                                    </div>
+                                  </div>
+                                </div>
+                              ) : null}
+                            </td>
+                          </tr>
+                        )}
 
                         {/* Expanded Row - Sample URLs */}
                         {isExpanded && (
