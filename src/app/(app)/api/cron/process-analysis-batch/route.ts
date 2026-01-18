@@ -441,8 +441,8 @@ Provide analysis in this exact JSON format:
 - Keep each response to ONE concise sentence
 - Be specific and actionable, not generic
 - For "howToDifferentiate", consider the user's business strengths, services, values, and differentiators when suggesting how to compete
-- If you don't know the competitor, make reasonable inferences from the name and context provided
-- Focus on practical actions the user can take`;
+- Focus on practical actions the user can take
+- IMPORTANT: If you are not familiar with this competitor/brand, be honest about it. Start your response with "I'm not familiar with this brand, but..." and then provide helpful general advice based on the context (industry, categories, concepts mentioned). Do NOT make up information about unknown brands.`;
 
   const completion = await openai.chat.completions.create({
     model: 'gpt-4o-mini',
