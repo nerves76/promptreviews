@@ -565,9 +565,6 @@ export default function ResearchSourcesPage() {
                                   You
                                 </span>
                               )}
-                              {analysis && (
-                                <DifficultyBadge difficulty={analysis.difficulty} />
-                              )}
                             </div>
                           </td>
 
@@ -676,11 +673,8 @@ export default function ResearchSourcesPage() {
                                       </div>
                                     ) : analysis ? (
                                       <>
-                                        <div className="flex items-center gap-3">
-                                          <DifficultyBadge difficulty={analysis.difficulty} />
-                                          <span className="text-sm text-gray-600">
-                                            {analysis.siteType}
-                                          </span>
+                                        <div className="text-sm text-gray-600 mb-2">
+                                          <span className="font-medium">Site type:</span> {analysis.siteType}
                                         </div>
                                         <div className="text-sm text-gray-700 bg-white p-3 rounded-lg border border-gray-200">
                                           <div className="flex items-start gap-2">
