@@ -554,8 +554,7 @@ export default function LLMVisibilityPage() {
         items={[
           { label: 'Library', icon: 'FaKey', href: '/dashboard/keywords', matchType: 'exact' },
           { label: 'Rank Tracking', icon: 'FaChartLine', href: '/dashboard/keywords/rank-tracking', matchType: 'startsWith' },
-          { label: 'AI Search', icon: 'FaSparkles', href: '/dashboard/keywords/llm-visibility', matchType: 'exact' },
-          { label: 'Research Sources', icon: 'FaGlobe', href: '/dashboard/keywords/llm-visibility/research-sources' },
+          { label: 'AI Search', icon: 'FaSparkles', href: '/dashboard/keywords/llm-visibility', matchType: 'startsWith' },
         ]}
       />
 
@@ -616,6 +615,22 @@ export default function LLMVisibilityPage() {
             </div>
           }
         />
+
+        {/* Secondary Tab Navigation */}
+        <div className="flex items-center gap-1 mb-6 p-1 bg-gray-100 rounded-lg w-fit">
+          <Link
+            href="/dashboard/keywords/llm-visibility"
+            className="px-4 py-2 text-sm font-medium rounded-md bg-white text-gray-900 shadow-sm"
+          >
+            AI search
+          </Link>
+          <Link
+            href="/dashboard/keywords/llm-visibility/research-sources"
+            className="px-4 py-2 text-sm font-medium rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+          >
+            Research sources
+          </Link>
+        </div>
 
         {/* Error Message */}
         {error && (

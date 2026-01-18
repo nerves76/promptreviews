@@ -129,8 +129,7 @@ export default function ResearchSourcesPage() {
   const subNavItems = [
     { label: 'Library', icon: 'FaKey' as const, href: '/dashboard/keywords', matchType: 'exact' as const },
     { label: 'Rank Tracking', icon: 'FaChartLine' as const, href: '/dashboard/keywords/rank-tracking', matchType: 'startsWith' as const },
-    { label: 'AI Search', icon: 'FaSparkles' as const, href: '/dashboard/keywords/llm-visibility', matchType: 'exact' as const },
-    { label: 'Research Sources', icon: 'FaGlobe' as const, href: '/dashboard/keywords/llm-visibility/research-sources' },
+    { label: 'AI Search', icon: 'FaSparkles' as const, href: '/dashboard/keywords/llm-visibility', matchType: 'startsWith' as const },
   ];
 
   // Sort icon helper
@@ -167,7 +166,23 @@ export default function ResearchSourcesPage() {
           description="Websites that AI assistants use when researching answers. High-frequency sources are valuable link building targets."
         />
 
-      {/* Loading State */}
+        {/* Secondary Tab Navigation */}
+        <div className="flex items-center gap-1 mb-6 p-1 bg-gray-100 rounded-lg w-fit">
+          <Link
+            href="/dashboard/keywords/llm-visibility"
+            className="px-4 py-2 text-sm font-medium rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+          >
+            AI search
+          </Link>
+          <Link
+            href="/dashboard/keywords/llm-visibility/research-sources"
+            className="px-4 py-2 text-sm font-medium rounded-md bg-white text-gray-900 shadow-sm"
+          >
+            Research sources
+          </Link>
+        </div>
+
+        {/* Loading State */}
       {isLoading && (
         <div className="text-center py-12">
           <div className="inline-block w-8 h-8 border-4 border-gray-300 border-t-slate-blue rounded-full animate-spin" />
