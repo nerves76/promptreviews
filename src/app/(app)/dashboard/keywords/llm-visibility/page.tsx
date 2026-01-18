@@ -616,6 +616,15 @@ export default function LLMVisibilityPage() {
           }
         />
 
+        {/* Secondary Navigation */}
+        <SubNav
+          items={[
+            { label: 'AI search', href: '/dashboard/keywords/llm-visibility', matchType: 'exact' },
+            { label: 'Research sources', href: '/dashboard/keywords/llm-visibility/research-sources' },
+          ]}
+          className="mb-6"
+        />
+
         {/* Error Message */}
         {error && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700">

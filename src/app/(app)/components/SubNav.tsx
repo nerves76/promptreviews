@@ -7,8 +7,8 @@ import Icon, { IconName } from '@/components/Icon';
 export interface SubNavItem {
   /** Display label for the tab */
   label: string;
-  /** Icon name from the Icon component */
-  icon: IconName;
+  /** Icon name from the Icon component (optional for text-only tabs) */
+  icon?: IconName;
   /** URL to navigate to */
   href: string;
   /**
@@ -107,7 +107,9 @@ export function SubNav({ items, maxWidth, className = '' }: SubNavProps) {
               aria-current={active ? 'page' : undefined}
               style={{ WebkitTapHighlightColor: 'transparent' }}
             >
-              <Icon name={item.icon} className="w-[18px] h-[18px] flex-shrink-0 pointer-events-none" size={18} />
+              {item.icon && (
+                <Icon name={item.icon} className="w-[18px] h-[18px] flex-shrink-0 pointer-events-none" size={18} />
+              )}
               <span className="whitespace-nowrap pointer-events-none">{item.label}</span>
             </Link>
           );
