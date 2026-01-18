@@ -82,6 +82,9 @@ export async function GET(request: NextRequest) {
 
     const { data: checks, error: fetchError } = await query;
 
+    console.log('[LLM Export] Account ID:', accountId);
+    console.log('[LLM Export] Checks found:', checks?.length || 0);
+
     if (fetchError) {
       console.error('Error fetching LLM visibility checks for export:', fetchError);
       return NextResponse.json({ error: 'Failed to fetch LLM visibility data' }, { status: 500 });
