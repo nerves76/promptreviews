@@ -8,21 +8,22 @@ import Icon from '@/components/Icon';
 import { apiClient } from '@/utils/apiClient';
 import { useAccountData } from '@/auth/hooks/granularAuthHooks';
 
-interface ResearchSource {
-  domain: string;
+interface CompetitorMention {
+  name: string;
   frequency: number;
   lastSeen: string;
+  categories: string[];
+  domains: string[];
   sampleUrls: string[];
-  sampleTitles: string[];
   concepts: string[];
   isOurs: boolean;
 }
 
-interface ResearchSourcesData {
-  sources: ResearchSource[];
+interface CompetitorsData {
+  competitors: CompetitorMention[];
   totalChecks: number;
-  uniqueDomains: number;
-  yourDomainAppearances: number;
+  uniqueCompetitors: number;
+  yourBrandMentions: number;
 }
 
 interface DomainAnalysis {
@@ -31,7 +32,7 @@ interface DomainAnalysis {
   strategy: string;
 }
 
-type SortField = 'domain' | 'frequency' | 'lastSeen' | 'concepts';
+type SortField = 'name' | 'frequency' | 'lastSeen' | 'concepts';
 type SortDirection = 'asc' | 'desc';
 
 /**
@@ -69,17 +70,17 @@ function DifficultyBadge({ difficulty }: { difficulty: 'easy' | 'medium' | 'hard
 }
 
 /**
- * AI Research Sources Page
+ * Competitors Page
  *
- * Shows aggregated and ranked websites that AI assistants use when researching answers.
- * Helps users identify high-value link building targets.
+ * Shows aggregated and ranked competitor/brand mentions from AI visibility checks.
+ * Helps users understand which competitors are being mentioned by AI assistants.
  */
-export default function ResearchSourcesPage() {
+export default function CompetitorsPage() {
   const { selectedAccountId } = useAccountData();
-  const [data, setData] = useState<ResearchSourcesData | null>(null);
+  const [data, setData] = useState<CompetitorsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [expandedDomain, setExpandedDomain] = useState<string | null>(null);
+  const [expandedCompetitor, setExpandedCompetitor] = useState<string | null>(null);
 
   // Domain analysis state
   const [analyses, setAnalyses] = useState<Record<string, DomainAnalysis>>({});
@@ -99,13 +100,13 @@ export default function ResearchSourcesPage() {
       setError(null);
 
       try {
-        const response = await apiClient.get<ResearchSourcesData>(
-          '/llm-visibility/research-sources'
+        const response = await apiClient.get<CompetitorsData>(
+          '/llm-visibility/competitors'
         );
         setData(response);
       } catch (err: any) {
-        console.error('[ResearchSourcesPage] Error fetching data:', err);
-        setError(err?.message || 'Failed to load research sources');
+        console.error('[CompetitorsPage] Error fetching data:', err);
+        setError(err?.message || 'Failed to load competitors');
       } finally {
         setIsLoading(false);
       }
@@ -143,7 +144,7 @@ export default function ResearchSourcesPage() {
         [domain]: result,
       }));
     } catch (err) {
-      console.error('[ResearchSourcesPage] Error analyzing domain:', err);
+      console.error('[CompetitorsPage] Error analyzing domain:', err);
       // Set a fallback analysis
       setAnalyses(prev => ({
         ...prev,
@@ -168,20 +169,20 @@ export default function ResearchSourcesPage() {
       setSortDirection(prev => (prev === 'asc' ? 'desc' : 'asc'));
     } else {
       setSortField(field);
-      setSortDirection(field === 'domain' ? 'asc' : 'desc');
+      setSortDirection(field === 'name' ? 'asc' : 'desc');
     }
   };
 
   // Sorted data
-  const sortedSources = useMemo(() => {
-    if (!data?.sources) return [];
+  const sortedCompetitors = useMemo(() => {
+    if (!data?.competitors) return [];
 
-    return [...data.sources].sort((a, b) => {
+    return [...data.competitors].sort((a, b) => {
       let comparison = 0;
 
       switch (sortField) {
-        case 'domain':
-          comparison = a.domain.localeCompare(b.domain);
+        case 'name':
+          comparison = a.name.localeCompare(b.name);
           break;
         case 'frequency':
           comparison = a.frequency - b.frequency;
@@ -196,10 +197,10 @@ export default function ResearchSourcesPage() {
 
       return sortDirection === 'asc' ? comparison : -comparison;
     });
-  }, [data?.sources, sortField, sortDirection]);
+  }, [data?.competitors, sortField, sortDirection]);
 
-  // Get top domain for summary
-  const topDomain = sortedSources.length > 0 ? sortedSources[0] : null;
+  // Get top competitor for summary
+  const topCompetitor = sortedCompetitors.length > 0 ? sortedCompetitors[0] : null;
 
   // Sort icon helper
   const SortIcon = ({ field }: { field: SortField }) => {
@@ -233,19 +234,19 @@ export default function ResearchSourcesPage() {
 
       {/* Content in PageCard */}
       <PageCard
-        icon={<Icon name="FaGlobe" className="w-8 h-8 text-slate-blue" size={32} />}
+        icon={<Icon name="FaUsers" className="w-8 h-8 text-slate-blue" size={32} />}
         topMargin="mt-16"
       >
         <PageCardHeader
-          title="AI research sources"
-          description="When you run queries through ChatGPT we save the websites used to determine what brands should be mentioned. Getting your brand on these websites will increase your chances of being mentioned in AI results and improve your SEO."
+          title="Competitor mentions"
+          description="Brands and competitors that AI assistants mention when answering questions related to your keywords. Understanding who AI recommends helps you identify your competitive landscape."
         />
 
         {/* Loading State */}
         {isLoading && (
           <div className="text-center py-12">
             <div className="inline-block w-8 h-8 border-4 border-gray-300 border-t-slate-blue rounded-full animate-spin" />
-            <p className="mt-4 text-gray-500">Loading research sources...</p>
+            <p className="mt-4 text-gray-500">Loading competitor mentions...</p>
           </div>
         )}
 
@@ -260,15 +261,15 @@ export default function ResearchSourcesPage() {
         )}
 
         {/* Empty State */}
-        {!isLoading && !error && data && data.sources.length === 0 && (
+        {!isLoading && !error && data && data.competitors.length === 0 && (
           <div className="text-center py-16 px-4">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
-              <Icon name="FaGlobe" className="w-8 h-8 text-slate-blue" />
+              <Icon name="FaUsers" className="w-8 h-8 text-slate-blue" />
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No research sources yet</h3>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">No competitor mentions yet</h3>
             <p className="text-gray-600 mb-6 max-w-md mx-auto">
-              Run AI visibility checks with ChatGPT to see which websites are used for research.
-              Other AI providers don&apos;t expose this data.
+              Run AI visibility checks with ChatGPT to see which brands are being mentioned.
+              Brand mentions are extracted from ChatGPT responses.
             </p>
             <Link
               href="/dashboard/ai-search"
@@ -281,41 +282,41 @@ export default function ResearchSourcesPage() {
         )}
 
         {/* Data Display */}
-        {!isLoading && !error && data && data.sources.length > 0 && (
+        {!isLoading && !error && data && data.competitors.length > 0 && (
           <>
             {/* Summary Cards */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
               <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
                 <div className="text-2xl font-bold text-gray-800">
-                  {data.uniqueDomains}
+                  {data.uniqueCompetitors}
                 </div>
-                <div className="text-sm text-gray-600">Unique domains</div>
+                <div className="text-sm text-gray-600">Unique brands</div>
               </div>
               <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
                 <div className="text-2xl font-bold text-gray-800">
                   {data.totalChecks}
                 </div>
-                <div className="text-sm text-gray-600">Checks analyzed</div>
+                <div className="text-sm text-gray-600">Checks with brands</div>
               </div>
               <div className={`p-4 rounded-xl border ${
-                data.yourDomainAppearances > 0
+                data.yourBrandMentions > 0
                   ? 'bg-green-50 border-green-200'
                   : 'bg-gray-50 border-gray-200'
               }`}>
                 <div className={`text-2xl font-bold ${
-                  data.yourDomainAppearances > 0 ? 'text-green-700' : 'text-gray-800'
+                  data.yourBrandMentions > 0 ? 'text-green-700' : 'text-gray-800'
                 }`}>
-                  {data.yourDomainAppearances}
+                  {data.yourBrandMentions}
                 </div>
-                <div className="text-sm text-gray-600">Your domain appearances</div>
+                <div className="text-sm text-gray-600">Your brand mentions</div>
               </div>
-              {topDomain && (
+              {topCompetitor && (
                 <div className="bg-gradient-to-br from-blue-50 to-pink-50 p-4 rounded-xl border border-blue-100">
-                  <div className="text-lg font-bold text-slate-blue truncate" title={topDomain.domain}>
-                    {topDomain.domain}
+                  <div className="text-lg font-bold text-slate-blue truncate" title={topCompetitor.name}>
+                    {topCompetitor.name}
                   </div>
                   <div className="text-sm text-gray-600">
-                    Most frequent ({topDomain.frequency}x)
+                    Most mentioned ({topCompetitor.frequency}x)
                   </div>
                 </div>
               )}
@@ -338,11 +339,11 @@ export default function ResearchSourcesPage() {
                   <tr className="border-b border-gray-200">
                     <th className="py-3 px-4 text-left">
                       <button
-                        onClick={() => handleSort('domain')}
+                        onClick={() => handleSort('name')}
                         className="flex items-center gap-1 text-xs font-semibold text-gray-500 uppercase tracking-wider hover:text-gray-700"
                       >
-                        Domain
-                        <SortIcon field="domain" />
+                        Brand
+                        <SortIcon field="name" />
                       </button>
                     </th>
                     <th className="py-3 px-3 text-center">
@@ -350,7 +351,7 @@ export default function ResearchSourcesPage() {
                         onClick={() => handleSort('frequency')}
                         className="flex items-center gap-1 text-xs font-semibold text-gray-500 uppercase tracking-wider hover:text-gray-700 mx-auto"
                       >
-                        Frequency
+                        Mentions
                         <SortIcon field="frequency" />
                       </button>
                     </th>
@@ -380,24 +381,25 @@ export default function ResearchSourcesPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {sortedSources.map((source) => {
-                    const isExpanded = expandedDomain === source.domain;
-                    const analysis = analyses[source.domain];
-                    const isAnalyzing = analyzingDomains.has(source.domain);
-                    const isStrategyExpanded = strategyExpanded.has(source.domain);
+                  {sortedCompetitors.map((competitor) => {
+                    const isExpanded = expandedCompetitor === competitor.name;
+                    const primaryDomain = competitor.domains[0] || null;
+                    const analysis = primaryDomain ? analyses[primaryDomain] : null;
+                    const isAnalyzing = primaryDomain ? analyzingDomains.has(primaryDomain) : false;
+                    const isStrategyExpanded = primaryDomain ? strategyExpanded.has(primaryDomain) : false;
 
                     return (
-                      <React.Fragment key={source.domain}>
+                      <React.Fragment key={competitor.name}>
                         <tr
                           className={`border-b border-gray-100 hover:bg-gray-50 transition-colors ${
-                            source.isOurs ? 'bg-green-50/50' : ''
+                            competitor.isOurs ? 'bg-green-50/50' : ''
                           }`}
                         >
-                          {/* Domain */}
+                          {/* Brand Name */}
                           <td className="py-3 px-4">
                             <div className="flex items-center gap-2">
                               <button
-                                onClick={() => setExpandedDomain(isExpanded ? null : source.domain)}
+                                onClick={() => setExpandedCompetitor(isExpanded ? null : competitor.name)}
                                 className="p-1 hover:bg-gray-100 rounded"
                                 aria-label={isExpanded ? 'Collapse details' : 'Expand details'}
                               >
@@ -406,17 +408,12 @@ export default function ResearchSourcesPage() {
                                   className="w-3 h-3 text-gray-500"
                                 />
                               </button>
-                              <a
-                                href={`https://${source.domain}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className={`text-sm font-medium hover:underline ${
-                                  source.isOurs ? 'text-green-700' : 'text-gray-900 hover:text-slate-blue'
-                                }`}
-                              >
-                                {source.domain}
-                              </a>
-                              {source.isOurs && (
+                              <span className={`text-sm font-medium ${
+                                competitor.isOurs ? 'text-green-700' : 'text-gray-900'
+                              }`}>
+                                {competitor.name}
+                              </span>
+                              {competitor.isOurs && (
                                 <span className="px-1.5 py-0.5 bg-green-100 text-green-700 text-xs rounded">
                                   You
                                 </span>
@@ -427,30 +424,30 @@ export default function ResearchSourcesPage() {
                             </div>
                           </td>
 
-                          {/* Frequency */}
+                          {/* Mentions */}
                           <td className="py-3 px-3 text-center">
                             <span className={`px-2 py-1 rounded text-sm font-medium ${
-                              source.frequency >= 10
+                              competitor.frequency >= 10
                                 ? 'bg-slate-blue text-white'
-                                : source.frequency >= 5
+                                : competitor.frequency >= 5
                                 ? 'bg-blue-100 text-blue-700'
                                 : 'bg-gray-100 text-gray-700'
                             }`}>
-                              {source.frequency}x
+                              {competitor.frequency}x
                             </span>
                           </td>
 
                           {/* Last Seen */}
                           <td className="py-3 px-3 text-center">
                             <span className="text-sm text-gray-500">
-                              {formatRelativeTime(source.lastSeen)}
+                              {formatRelativeTime(competitor.lastSeen)}
                             </span>
                           </td>
 
                           {/* Concepts */}
                           <td className="py-3 px-3">
                             <div className="flex flex-wrap gap-1 max-w-[200px]">
-                              {source.concepts.slice(0, 2).map((concept, idx) => (
+                              {competitor.concepts.slice(0, 2).map((concept, idx) => (
                                 <span
                                   key={idx}
                                   className="px-1.5 py-0.5 bg-gray-100 text-gray-600 text-xs rounded truncate max-w-[100px]"
@@ -459,9 +456,9 @@ export default function ResearchSourcesPage() {
                                   {concept}
                                 </span>
                               ))}
-                              {source.concepts.length > 2 && (
+                              {competitor.concepts.length > 2 && (
                                 <span className="text-xs text-gray-500">
-                                  +{source.concepts.length - 2}
+                                  +{competitor.concepts.length - 2}
                                 </span>
                               )}
                             </div>
@@ -470,50 +467,54 @@ export default function ResearchSourcesPage() {
                           {/* Actions */}
                           <td className="py-3 px-3 text-center">
                             <div className="flex items-center justify-center gap-1">
-                              <button
-                                onClick={() => analyzeDomain(source.domain)}
-                                disabled={isAnalyzing}
-                                className={`inline-flex items-center gap-1 px-2 py-1 text-xs rounded transition-colors whitespace-nowrap ${
-                                  isAnalyzing
-                                    ? 'bg-gray-100 text-gray-400 cursor-wait'
-                                    : analysis
-                                    ? 'text-slate-blue hover:text-slate-blue/80 hover:bg-blue-50'
-                                    : 'bg-slate-blue text-white hover:bg-slate-blue/90'
-                                }`}
-                              >
-                                {isAnalyzing ? (
-                                  <>
-                                    <Icon name="FaSpinner" className="w-3 h-3 animate-spin" />
-                                    Analyzing...
-                                  </>
-                                ) : (
-                                  <>
-                                    <Icon name="FaLightbulb" className="w-3 h-3" />
-                                    Strategy
-                                  </>
-                                )}
-                              </button>
-                              <a
-                                href={`https://${source.domain}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1 px-2 py-1 text-xs text-gray-500 hover:text-slate-blue hover:bg-blue-50 rounded transition-colors"
-                                aria-label={`Visit ${source.domain}`}
-                              >
-                                <Icon name="FaGlobe" className="w-3 h-3" />
-                              </a>
+                              {primaryDomain && (
+                                <>
+                                  <button
+                                    onClick={() => analyzeDomain(primaryDomain)}
+                                    disabled={isAnalyzing}
+                                    className={`inline-flex items-center gap-1 px-2 py-1 text-xs rounded transition-colors whitespace-nowrap ${
+                                      isAnalyzing
+                                        ? 'bg-gray-100 text-gray-400 cursor-wait'
+                                        : analysis
+                                        ? 'text-slate-blue hover:text-slate-blue/80 hover:bg-blue-50'
+                                        : 'bg-slate-blue text-white hover:bg-slate-blue/90'
+                                    }`}
+                                  >
+                                    {isAnalyzing ? (
+                                      <>
+                                        <Icon name="FaSpinner" className="w-3 h-3 animate-spin" />
+                                        Analyzing...
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Icon name="FaLightbulb" className="w-3 h-3" />
+                                        Strategy
+                                      </>
+                                    )}
+                                  </button>
+                                  <a
+                                    href={`https://${primaryDomain}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1 px-2 py-1 text-xs text-gray-500 hover:text-slate-blue hover:bg-blue-50 rounded transition-colors"
+                                    aria-label={`Visit ${primaryDomain}`}
+                                  >
+                                    <Icon name="FaGlobe" className="w-3 h-3" />
+                                  </a>
+                                </>
+                              )}
                             </div>
                           </td>
                         </tr>
 
                         {/* Strategy Accordion Row */}
-                        {isStrategyExpanded && (analysis || isAnalyzing) && (
+                        {isStrategyExpanded && primaryDomain && (analysis || isAnalyzing) && (
                           <tr className="bg-blue-50/50">
                             <td colSpan={5} className="py-3 px-4 pl-12">
                               {isAnalyzing ? (
                                 <div className="flex items-center gap-2 text-gray-500">
                                   <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
-                                  <span>Analyzing {source.domain}...</span>
+                                  <span>Analyzing {primaryDomain}...</span>
                                 </div>
                               ) : analysis ? (
                                 <div className="space-y-2">
@@ -535,41 +536,84 @@ export default function ResearchSourcesPage() {
                           </tr>
                         )}
 
-                        {/* Expanded Row - Sample URLs */}
+                        {/* Expanded Row - Details */}
                         {isExpanded && (
                           <tr className="bg-gray-50">
                             <td colSpan={5} className="py-3 px-4 pl-12">
-                              <div className="space-y-2">
-                                <div className="text-xs font-medium text-gray-500 uppercase">
-                                  Sample pages used ({source.sampleUrls.length})
-                                </div>
-                                {source.sampleUrls.length > 0 ? (
-                                  <ul className="space-y-1">
-                                    {source.sampleUrls.map((url, idx) => (
-                                      <li key={idx} className="flex items-start gap-2">
-                                        <Icon name="FaLink" className="w-3 h-3 text-gray-400 mt-1 flex-shrink-0" />
-                                        <a
-                                          href={url}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="text-sm text-slate-blue hover:underline break-all"
-                                        >
-                                          {url}
-                                        </a>
-                                      </li>
-                                    ))}
-                                  </ul>
-                                ) : (
-                                  <p className="text-sm text-gray-500">No URLs available</p>
-                                )}
-
-                                {source.concepts.length > 2 && (
-                                  <div className="mt-3">
+                              <div className="space-y-3">
+                                {/* Categories */}
+                                {competitor.categories.length > 0 && (
+                                  <div>
                                     <div className="text-xs font-medium text-gray-500 uppercase mb-1">
-                                      All concepts ({source.concepts.length})
+                                      Categories
                                     </div>
                                     <div className="flex flex-wrap gap-1">
-                                      {source.concepts.map((concept, idx) => (
+                                      {competitor.categories.map((category, idx) => (
+                                        <span
+                                          key={idx}
+                                          className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded"
+                                        >
+                                          {category}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* Domains */}
+                                {competitor.domains.length > 0 && (
+                                  <div>
+                                    <div className="text-xs font-medium text-gray-500 uppercase mb-1">
+                                      Associated domains ({competitor.domains.length})
+                                    </div>
+                                    <div className="flex flex-wrap gap-2">
+                                      {competitor.domains.map((domain, idx) => (
+                                        <a
+                                          key={idx}
+                                          href={`https://${domain}`}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="text-sm text-slate-blue hover:underline"
+                                        >
+                                          {domain}
+                                        </a>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* Sample URLs */}
+                                {competitor.sampleUrls.length > 0 && (
+                                  <div>
+                                    <div className="text-xs font-medium text-gray-500 uppercase mb-1">
+                                      Sample URLs
+                                    </div>
+                                    <ul className="space-y-1">
+                                      {competitor.sampleUrls.slice(0, 3).map((url, idx) => (
+                                        <li key={idx} className="flex items-start gap-2">
+                                          <Icon name="FaLink" className="w-3 h-3 text-gray-400 mt-1 flex-shrink-0" />
+                                          <a
+                                            href={url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-sm text-slate-blue hover:underline break-all"
+                                          >
+                                            {url}
+                                          </a>
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                )}
+
+                                {/* All Concepts */}
+                                {competitor.concepts.length > 2 && (
+                                  <div>
+                                    <div className="text-xs font-medium text-gray-500 uppercase mb-1">
+                                      All concepts ({competitor.concepts.length})
+                                    </div>
+                                    <div className="flex flex-wrap gap-1">
+                                      {competitor.concepts.map((concept, idx) => (
                                         <span
                                           key={idx}
                                           className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded"
