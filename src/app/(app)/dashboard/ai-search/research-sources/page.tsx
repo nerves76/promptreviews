@@ -32,7 +32,7 @@ interface DomainAnalysis {
   strategy: string;
 }
 
-type SortField = 'domain' | 'frequency' | 'lastSeen' | 'concepts';
+type SortField = 'domain' | 'frequency' | 'lastSeen' | 'concepts' | 'difficulty';
 type SortDirection = 'asc' | 'desc';
 
 /**
@@ -249,6 +249,18 @@ export default function ResearchSourcesPage() {
     }
   };
 
+  // Helper to get difficulty sort value (easy=1, medium=2, hard=3, unknown=4)
+  const getDifficultySortValue = useCallback((domain: string) => {
+    const analysis = analyses[domain];
+    if (!analysis) return 4; // Unanalyzed at end
+    switch (analysis.difficulty) {
+      case 'easy': return 1;
+      case 'medium': return 2;
+      case 'hard': return 3;
+      default: return 4;
+    }
+  }, [analyses]);
+
   // Sorted data
   const sortedSources = useMemo(() => {
     if (!data?.sources) return [];
@@ -269,11 +281,14 @@ export default function ResearchSourcesPage() {
         case 'concepts':
           comparison = a.concepts.length - b.concepts.length;
           break;
+        case 'difficulty':
+          comparison = getDifficultySortValue(a.domain) - getDifficultySortValue(b.domain);
+          break;
       }
 
       return sortDirection === 'asc' ? comparison : -comparison;
     });
-  }, [data?.sources, sortField, sortDirection]);
+  }, [data?.sources, sortField, sortDirection, getDifficultySortValue]);
 
   // Get top domain for summary
   const topDomain = sortedSources.length > 0 ? sortedSources[0] : null;
@@ -461,6 +476,15 @@ export default function ResearchSourcesPage() {
                     </th>
                     <th className="py-3 px-3 text-center">
                       <button
+                        onClick={() => handleSort('difficulty')}
+                        className="flex items-center gap-1 text-xs font-semibold text-gray-500 uppercase tracking-wider hover:text-gray-700 mx-auto"
+                      >
+                        Difficulty
+                        <SortIcon field="difficulty" />
+                      </button>
+                    </th>
+                    <th className="py-3 px-3 text-center">
+                      <button
                         onClick={() => handleSort('lastSeen')}
                         className="flex items-center gap-1 text-xs font-semibold text-gray-500 uppercase tracking-wider hover:text-gray-700 mx-auto"
                       >
@@ -545,6 +569,17 @@ export default function ResearchSourcesPage() {
                             </span>
                           </td>
 
+                          {/* Difficulty */}
+                          <td className="py-3 px-3 text-center">
+                            {isAnalyzing ? (
+                              <Icon name="FaSpinner" className="w-4 h-4 text-gray-400 animate-spin mx-auto" />
+                            ) : analysis ? (
+                              <DifficultyBadge difficulty={analysis.difficulty} />
+                            ) : (
+                              <span className="text-xs text-gray-400">—</span>
+                            )}
+                          </td>
+
                           {/* Last Seen */}
                           <td className="py-3 px-3 text-center">
                             <span className="text-sm text-gray-500">
@@ -614,7 +649,7 @@ export default function ResearchSourcesPage() {
                         {/* Expanded Row - Analysis & Sample URLs */}
                         {isExpanded && (
                           <tr className="bg-gray-50">
-                            <td colSpan={5} className="py-3 px-4 pl-12">
+                            <td colSpan={6} className="py-3 px-4 pl-12">
                               <div className="space-y-4">
                                 {/* Analysis Section */}
                                 {(analysis || isAnalyzing) && (
