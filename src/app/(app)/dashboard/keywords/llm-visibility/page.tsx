@@ -1037,7 +1037,7 @@ export default function LLMVisibilityPage() {
                                           {result.searchResults && result.searchResults.length > 0 && (
                                             <div className="mt-2">
                                               <div className="text-xs text-gray-500 mb-1">
-                                                Websites retrieved ({result.searchResults.length}):
+                                                Websites used for research ({result.searchResults.length}):
                                               </div>
                                               <div className="flex flex-wrap gap-2">
                                                 {result.searchResults.map((sr, sridx) => (
