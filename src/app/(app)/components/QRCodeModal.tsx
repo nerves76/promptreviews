@@ -153,8 +153,12 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl,
   }, [showNfcTextLocal, nfcTextSize]);
 
   const handleGenerateQRCode = () => {
+    // Show loading state immediately for better INP
     setShowPreview(true);
-    setIsGenerating(true);
+    // Defer the heavy QR generation to next frame to let UI update first
+    requestAnimationFrame(() => {
+      setIsGenerating(true);
+    });
   };
 
   const handlePreviewGenerated = (previewUrl: string) => {
