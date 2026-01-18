@@ -168,7 +168,8 @@ interface BusinessProfile {
   kickstarters_background_design?: boolean;
   kickstarters_primary_color?: string;
   // Additional fields for AI generation
-  services_offered?: string;
+  about_us?: string;
+  services_offered?: string | string[];
   company_values?: string;
   differentiators?: string;
   years_in_business?: number;
@@ -1199,6 +1200,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
     setAiEnhanceLoading(idx);
     try {
       const currentText = platformReviewTexts[idx];
+      const currentWordCount = countWords(currentText);
       // Get up to 2 keywords from the page for natural incorporation
       const keywords = (promptPage?.keywords || []).slice(0, 2);
 
@@ -1207,7 +1209,13 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           text: currentText,
-          keywords: keywords.length > 0 ? keywords : undefined
+          keywords: keywords.length > 0 ? keywords : undefined,
+          // Pass business context for depth expansion when word count is low
+          businessName: businessProfile?.name,
+          aboutBusiness: businessProfile?.about_us,
+          servicesOffered: businessProfile?.services_offered,
+          targetWordCount: wordLimit,
+          currentWordCount: currentWordCount
         }),
       });
 

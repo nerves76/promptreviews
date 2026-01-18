@@ -30,7 +30,16 @@ export async function POST(request: NextRequest) {
       apiKey: process.env.OPENAI_API_KEY,
     });
 
-    const { text, keywords, user_id } = await request.json();
+    const {
+      text,
+      keywords,
+      user_id,
+      businessName,
+      aboutBusiness,
+      servicesOffered,
+      targetWordCount,
+      currentWordCount
+    } = await request.json();
 
     // Security: If user_id is provided, verify it matches authenticated session
     if (user_id && user && user_id !== user.id) {
@@ -47,6 +56,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Determine if the review needs more depth (less than 50% of target)
+    const needsMoreDepth = targetWordCount && currentWordCount &&
+      currentWordCount < (targetWordCount * 0.5);
+
     // Build the system prompt
     let systemPrompt = `You are a helpful assistant that enhances customer reviews while preserving the reviewer's authentic voice and original meaning.
 
@@ -57,6 +70,38 @@ Your task is to make small improvements to grammar, readability, and flow. The e
 - Keep the same level of formality
 - Preserve all specific details and experiences mentioned
 - Sound natural and conversational, not overly polished or marketing-like`;
+
+    // Add business context for depth expansion
+    if (needsMoreDepth && (businessName || aboutBusiness || servicesOffered)) {
+      systemPrompt += `
+
+The review is currently brief (${currentWordCount} words) and the platform allows up to ${targetWordCount} words. You may thoughtfully expand the review by adding 1-2 sentences of relevant detail that feel authentic to the customer's experience.`;
+
+      if (businessName) {
+        systemPrompt += ` The business is "${businessName}".`;
+      }
+      if (aboutBusiness) {
+        systemPrompt += ` About the business: ${aboutBusiness}`;
+      }
+      if (servicesOffered) {
+        // Handle both string and array formats
+        let services: string;
+        if (Array.isArray(servicesOffered) && servicesOffered.length > 0) {
+          services = servicesOffered.slice(0, 5).join(", ");
+        } else if (typeof servicesOffered === "string" && servicesOffered.trim()) {
+          services = servicesOffered.trim();
+        } else {
+          services = "";
+        }
+        if (services) {
+          systemPrompt += ` Services offered: ${services}.`;
+        }
+      }
+
+      systemPrompt += `
+
+Use this context to add depth that feels like a natural extension of what the customer wrote. For example, if they mentioned great service, you might add a detail about professionalism or responsiveness. Keep additions believable and in the customer's voice - never add specific claims they didn't make.`;
+    }
 
     // Add keyword instructions if keywords are provided
     if (keywords && Array.isArray(keywords) && keywords.length > 0) {
