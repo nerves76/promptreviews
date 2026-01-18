@@ -468,10 +468,9 @@ export default function ResearchSourcesPage() {
                     <th className="py-3 px-3 text-center">
                       <button
                         onClick={() => handleSort('frequency')}
-                        className="flex items-center gap-1 text-xs font-semibold text-gray-500 uppercase tracking-wider hover:text-gray-700 mx-auto"
+                        className="text-xs font-semibold text-gray-500 uppercase tracking-wider hover:text-gray-700"
                       >
                         Frequency
-                        <SortIcon field="frequency" />
                       </button>
                     </th>
                     <th className="py-3 px-3 text-center">
