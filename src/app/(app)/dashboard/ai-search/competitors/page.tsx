@@ -173,19 +173,17 @@ export default function CompetitorsPage() {
     }
   }, [selectedAccountId]);
 
-  // Analyze a competitor
-  const analyzeCompetitor = useCallback(async (competitor: CompetitorMention) => {
+  // Fetch analysis for a competitor (from cache or generate new)
+  const fetchAnalysis = useCallback(async (competitor: CompetitorMention) => {
     const key = competitor.name.toLowerCase();
 
+    // Already analyzing or already have analysis locally
     if (analyzingCompetitors.has(key) || analyses[key]) {
-      // Already analyzing or already have analysis - just expand the main accordion
-      setExpandedCompetitor(prev => prev === competitor.name ? null : competitor.name);
       return;
     }
 
-    // Start analyzing - expand the main accordion to show progress
+    // Start fetching
     setAnalyzingCompetitors(prev => new Set(prev).add(key));
-    setExpandedCompetitor(competitor.name);
 
     try {
       const result = await apiClient.post<CompetitorAnalysis>('/llm-visibility/analyze-competitor', {
@@ -201,7 +199,7 @@ export default function CompetitorsPage() {
       // Refresh unanalyzed count
       fetchUnanalyzedCount();
     } catch (err) {
-      console.error('[CompetitorsPage] Error analyzing competitor:', err);
+      console.error('[CompetitorsPage] Error fetching competitor analysis:', err);
       // Set a fallback analysis
       setAnalyses(prev => ({
         ...prev,
@@ -219,6 +217,23 @@ export default function CompetitorsPage() {
       });
     }
   }, [analyzingCompetitors, analyses, fetchUnanalyzedCount]);
+
+  // Toggle expand and fetch analysis if needed
+  const toggleExpand = useCallback((competitor: CompetitorMention) => {
+    const isCurrentlyExpanded = expandedCompetitor === competitor.name;
+    setExpandedCompetitor(isCurrentlyExpanded ? null : competitor.name);
+
+    // If expanding and we don't have analysis locally, fetch it
+    if (!isCurrentlyExpanded) {
+      fetchAnalysis(competitor);
+    }
+  }, [expandedCompetitor, fetchAnalysis]);
+
+  // Analyze button click - same as toggle but always expands
+  const analyzeCompetitor = useCallback((competitor: CompetitorMention) => {
+    setExpandedCompetitor(competitor.name);
+    fetchAnalysis(competitor);
+  }, [fetchAnalysis]);
 
   // Handle sort
   const handleSort = (field: SortField) => {
@@ -484,7 +499,7 @@ export default function CompetitorsPage() {
                           <td className="py-3 px-4">
                             <div className="flex items-center gap-2">
                               <button
-                                onClick={() => setExpandedCompetitor(isExpanded ? null : competitor.name)}
+                                onClick={() => toggleExpand(competitor)}
                                 className="p-1 hover:bg-gray-100 rounded"
                                 aria-label={isExpanded ? 'Collapse details' : 'Expand details'}
                               >
