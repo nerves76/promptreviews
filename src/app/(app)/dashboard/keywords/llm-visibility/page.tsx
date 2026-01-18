@@ -554,7 +554,8 @@ export default function LLMVisibilityPage() {
         items={[
           { label: 'Library', icon: 'FaKey', href: '/dashboard/keywords', matchType: 'exact' },
           { label: 'Rank Tracking', icon: 'FaChartLine', href: '/dashboard/keywords/rank-tracking', matchType: 'startsWith' },
-          { label: 'LLM Visibility', icon: 'FaSparkles', href: '/dashboard/keywords/llm-visibility', matchType: 'startsWith' },
+          { label: 'AI Search', icon: 'FaSparkles', href: '/dashboard/keywords/llm-visibility', matchType: 'exact' },
+          { label: 'Research Sources', icon: 'FaGlobe', href: '/dashboard/keywords/llm-visibility/research-sources' },
         ]}
       />
 
@@ -614,15 +615,6 @@ export default function LLMVisibilityPage() {
               </button>
             </div>
           }
-        />
-
-        {/* Secondary Navigation */}
-        <SubNav
-          items={[
-            { label: 'AI search', href: '/dashboard/keywords/llm-visibility', matchType: 'exact' },
-            { label: 'Research sources', href: '/dashboard/keywords/llm-visibility/research-sources' },
-          ]}
-          className="mb-6"
         />
 
         {/* Error Message */}

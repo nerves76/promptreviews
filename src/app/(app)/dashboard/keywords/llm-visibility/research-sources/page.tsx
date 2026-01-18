@@ -125,10 +125,12 @@ export default function ResearchSourcesPage() {
   // Get top domain for summary
   const topDomain = sortedSources.length > 0 ? sortedSources[0] : null;
 
-  // SubNav items
+  // Main SubNav items (same as LLM visibility page)
   const subNavItems = [
-    { label: 'AI search', href: '/dashboard/keywords/llm-visibility', matchType: 'exact' as const },
-    { label: 'Research sources', href: '/dashboard/keywords/llm-visibility/research-sources' },
+    { label: 'Library', icon: 'FaKey' as const, href: '/dashboard/keywords', matchType: 'exact' as const },
+    { label: 'Rank Tracking', icon: 'FaChartLine' as const, href: '/dashboard/keywords/rank-tracking', matchType: 'startsWith' as const },
+    { label: 'AI Search', icon: 'FaSparkles' as const, href: '/dashboard/keywords/llm-visibility', matchType: 'exact' as const },
+    { label: 'Research Sources', icon: 'FaGlobe' as const, href: '/dashboard/keywords/llm-visibility/research-sources' },
   ];
 
   // Sort icon helper
@@ -144,13 +146,26 @@ export default function ResearchSourcesPage() {
   };
 
   return (
-    <PageCard>
-      <PageCardHeader
-        title="AI research sources"
-        description="Websites that AI assistants use when researching answers to your questions. High-frequency sources are valuable link building targets."
-      />
+    <div>
+      {/* Page Title */}
+      <div className="px-4 sm:px-6 lg:px-8 pt-8 mt-8">
+        <div className="max-w-7xl mx-auto flex flex-col items-center mb-3">
+          <h1 className="text-3xl lg:text-4xl font-bold text-white mb-6">Keyword Concepts</h1>
+        </div>
+      </div>
 
-      <SubNav items={subNavItems} className="mb-6" />
+      {/* Tab Navigation */}
+      <SubNav items={subNavItems} />
+
+      {/* Content in PageCard */}
+      <PageCard
+        icon={<Icon name="FaGlobe" className="w-8 h-8 text-slate-blue" size={32} />}
+        topMargin="mt-16"
+      >
+        <PageCardHeader
+          title="Research sources"
+          description="Websites that AI assistants use when researching answers. High-frequency sources are valuable link building targets."
+        />
 
       {/* Loading State */}
       {isLoading && (
@@ -442,6 +457,7 @@ export default function ResearchSourcesPage() {
           </div>
         </>
       )}
-    </PageCard>
+      </PageCard>
+    </div>
   );
 }
