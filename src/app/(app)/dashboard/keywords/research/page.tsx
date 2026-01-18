@@ -327,7 +327,8 @@ export default function KeywordResearchPage() {
           { label: 'Library', icon: 'FaKey', href: '/dashboard/keywords', matchType: 'exact' },
           { label: 'Research', icon: 'FaSearch', href: '/dashboard/keywords/research', matchType: 'exact' },
           { label: 'Rank Tracking', icon: 'FaChartLine', href: '/dashboard/keywords/rank-tracking', matchType: 'startsWith' },
-          { label: 'LLM Visibility', icon: 'FaSparkles', href: '/dashboard/keywords/llm-visibility', matchType: 'startsWith' },
+          { label: 'AI Search', icon: 'FaSparkles', href: '/dashboard/keywords/llm-visibility', matchType: 'exact' },
+          { label: 'Research Sources', icon: 'FaGlobe', href: '/dashboard/keywords/llm-visibility/research-sources' },
         ]}
       />
 
