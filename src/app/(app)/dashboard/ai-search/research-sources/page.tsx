@@ -325,8 +325,7 @@ export default function ResearchSourcesPage() {
               <div className="flex items-start gap-2">
                 <Icon name="FaInfoCircle" className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
                 <p className="text-sm text-amber-800">
-                  This data comes from ChatGPT checks only. Other AI providers (Claude, Gemini, Perplexity)
-                  don&apos;t expose which websites they use for research.
+                  This data comes from ChatGPT checks only.
                 </p>
               </div>
             </div>
