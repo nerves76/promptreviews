@@ -90,6 +90,9 @@ export default function ResearchSourcesPage() {
   // Run all modal state
   const [showRunAllModal, setShowRunAllModal] = useState(false);
 
+  // Export state
+  const [isExporting, setIsExporting] = useState(false);
+
   // Sorting
   const [sortField, setSortField] = useState<SortField>('frequency');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
@@ -124,6 +127,33 @@ export default function ResearchSourcesPage() {
     // Clear local analyses so fresh cached data loads
     setAnalyses({});
   }, []);
+
+  // Export to CSV
+  const handleExport = useCallback(async () => {
+    setIsExporting(true);
+    try {
+      const response = await fetch('/api/llm-visibility/export-research-sources', {
+        headers: {
+          'X-Selected-Account': selectedAccountId || '',
+        },
+      });
+      if (!response.ok) throw new Error('Export failed');
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `visibility-opportunities-${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('[ResearchSourcesPage] Export error:', err);
+    } finally {
+      setIsExporting(false);
+    }
+  }, [selectedAccountId]);
 
   // Analyze a domain
   const analyzeDomain = useCallback(async (domain: string) => {
@@ -343,13 +373,27 @@ export default function ResearchSourcesPage() {
                   </div>
                 </div>
               </div>
-              <button
-                onClick={() => setShowRunAllModal(true)}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-blue/90 font-medium text-sm transition-colors whitespace-nowrap"
-              >
-                <Icon name="FaRocket" className="w-4 h-4" />
-                Analyze all domains
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleExport}
+                  disabled={isExporting}
+                  className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium text-sm transition-colors whitespace-nowrap disabled:opacity-50"
+                >
+                  {isExporting ? (
+                    <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Icon name="FaFileAlt" className="w-4 h-4" />
+                  )}
+                  Export CSV
+                </button>
+                <button
+                  onClick={() => setShowRunAllModal(true)}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-blue/90 font-medium text-sm transition-colors whitespace-nowrap"
+                >
+                  <Icon name="FaRocket" className="w-4 h-4" />
+                  Analyze all domains
+                </button>
+              </div>
             </div>
 
             {/* Table */}
