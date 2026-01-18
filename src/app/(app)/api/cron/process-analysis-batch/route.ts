@@ -102,7 +102,21 @@ export async function GET(request: NextRequest) {
       // Get business data for context (competitor analysis)
       const { data: business } = await serviceSupabase
         .from('businesses')
-        .select('name, description, business_website')
+        .select(`
+          name,
+          business_description,
+          unique_aspects,
+          about_us,
+          business_website,
+          industry,
+          services_offered,
+          company_values,
+          differentiators,
+          tagline,
+          keywords,
+          address_city,
+          address_state
+        `)
         .eq('account_id', run.account_id)
         .single();
 
@@ -332,18 +346,73 @@ Respond in JSON format:
   };
 }
 
+interface BusinessInfo {
+  name?: string;
+  business_description?: string;
+  unique_aspects?: string;
+  about_us?: string;
+  business_website?: string;
+  industry?: string[];
+  services_offered?: string[];
+  company_values?: string;
+  differentiators?: string;
+  tagline?: string;
+  keywords?: string[];
+  address_city?: string;
+  address_state?: string;
+}
+
 async function analyzeCompetitor(
   competitorName: string,
   metadata: Record<string, any> | null,
-  business: { name?: string; description?: string } | null
+  business: BusinessInfo | null
 ): Promise<{
   whoTheyAre: string;
   whyMentioned: string;
   howToDifferentiate: string;
 }> {
-  const businessContext = business?.name
-    ? `The user's business is "${business.name}"${business.description ? ` which ${business.description}` : ''}.`
-    : '';
+  // Build comprehensive business context
+  const businessContextParts: string[] = [];
+  if (business) {
+    if (business.name) {
+      businessContextParts.push(`The user's business is "${business.name}".`);
+    }
+    if (business.tagline) {
+      businessContextParts.push(`Tagline: "${business.tagline}".`);
+    }
+    if (business.business_description) {
+      businessContextParts.push(`Description: ${business.business_description}`);
+    }
+    if (business.about_us) {
+      businessContextParts.push(`About: ${business.about_us}`);
+    }
+    if (business.industry && Array.isArray(business.industry) && business.industry.length > 0) {
+      businessContextParts.push(`Industry: ${business.industry.join(', ')}.`);
+    }
+    if (business.services_offered && Array.isArray(business.services_offered) && business.services_offered.length > 0) {
+      businessContextParts.push(`Services offered: ${business.services_offered.join(', ')}.`);
+    }
+    if (business.unique_aspects) {
+      businessContextParts.push(`Unique aspects: ${business.unique_aspects}`);
+    }
+    if (business.differentiators) {
+      businessContextParts.push(`Key differentiators: ${business.differentiators}`);
+    }
+    if (business.company_values) {
+      businessContextParts.push(`Company values: ${business.company_values}`);
+    }
+    if (business.keywords && Array.isArray(business.keywords) && business.keywords.length > 0) {
+      businessContextParts.push(`Keywords: ${business.keywords.join(', ')}.`);
+    }
+    if (business.address_city || business.address_state) {
+      const location = [business.address_city, business.address_state].filter(Boolean).join(', ');
+      businessContextParts.push(`Location: ${location}.`);
+    }
+    if (business.business_website) {
+      businessContextParts.push(`Website: ${business.business_website}`);
+    }
+  }
+  const businessContext = businessContextParts.join('\n');
 
   const competitorContext = [
     metadata?.domains?.length ? `Their website is ${metadata.domains[0]}.` : '',
@@ -351,23 +420,29 @@ async function analyzeCompetitor(
     metadata?.concepts?.length ? `They appear when people ask about: ${metadata.concepts.join(', ')}.` : '',
   ].filter(Boolean).join(' ');
 
-  const prompt = `Analyze this competitor and provide strategic insights. Be concise - each section should be 1-2 sentences max.
+  const prompt = `Analyze this competitor and provide strategic insights for the user's business. Be concise - each section should be 1-2 sentences max.
 
-Competitor: ${competitorName}
+## Competitor Information
+Name: ${competitorName}
 ${competitorContext}
-${businessContext}
 
+## User's Business Information
+${businessContext || 'No business information provided.'}
+
+## Required Output
 Provide analysis in this exact JSON format:
 {
-  "whoTheyAre": "Brief description of what this company/brand does and who they serve. One sentence.",
-  "whyMentioned": "Why AI assistants recommend them - what makes them authoritative or notable. One sentence.",
-  "howToDifferentiate": "Actionable advice on how to stand out from this competitor. One sentence with a specific suggestion."
+  "whoTheyAre": "Brief description of what this competitor does and who they serve. One sentence.",
+  "whyMentioned": "Why AI assistants recommend this competitor - what makes them authoritative or notable. One sentence.",
+  "howToDifferentiate": "Specific, actionable advice on how the user's business can stand out from this competitor. Reference the user's unique strengths if known. One sentence."
 }
 
-Guidelines:
+## Guidelines
 - Keep each response to ONE concise sentence
 - Be specific and actionable, not generic
-- For "howToDifferentiate", give a concrete suggestion`;
+- For "howToDifferentiate", consider the user's business strengths, services, values, and differentiators when suggesting how to compete
+- If you don't know the competitor, make reasonable inferences from the name and context provided
+- Focus on practical actions the user can take`;
 
   const completion = await openai.chat.completions.create({
     model: 'gpt-4o-mini',
