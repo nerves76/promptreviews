@@ -51,6 +51,8 @@ interface ReviewPlatformCardProps {
   onOpenKeywordInspiration?: () => void;
   getPlatformIcon: (url: string, platform: string) => { icon: IconName; label: string };
   getFontClass: (fontName: string) => string;
+  /** Whether the current user owns this prompt page (test mode) */
+  isOwner?: boolean;
 }
 
 export default function ReviewPlatformCard({
@@ -94,6 +96,7 @@ export default function ReviewPlatformCard({
   onOpenKeywordInspiration,
   getPlatformIcon,
   getFontClass,
+  isOwner = false,
 }: ReviewPlatformCardProps) {
   const { icon: iconName, label: platformLabel } = getPlatformIcon(
     platform.url,
@@ -622,32 +625,38 @@ export default function ReviewPlatformCard({
             )}
           </div>
 
-          {/* Compliance text */}
+          {/* Compliance text or test mode message */}
           <p
             className="mt-6 -mb-2 text-xs text-center"
             style={{ color: businessProfile?.card_text || "#1A1A1A", opacity: 0.7 }}
           >
-            By submitting, you agree to our{" "}
-            <a
-              href="https://promptreviews.app/terms/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline hover:opacity-100"
-              style={{ opacity: 0.9 }}
-            >
-              Terms
-            </a>{" "}
-            and{" "}
-            <a
-              href="https://promptreviews.app/privacy"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline hover:opacity-100"
-              style={{ opacity: 0.9 }}
-            >
-              Privacy Policy
-            </a>
-            , and confirm the review reflects your experience.
+            {isOwner ? (
+              <>You are in test mode. Reviews will not be saved to your account.</>
+            ) : (
+              <>
+                By submitting, you agree to our{" "}
+                <a
+                  href="https://promptreviews.app/terms/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline hover:opacity-100"
+                  style={{ opacity: 0.9 }}
+                >
+                  Terms
+                </a>{" "}
+                and{" "}
+                <a
+                  href="https://promptreviews.app/privacy"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline hover:opacity-100"
+                  style={{ opacity: 0.9 }}
+                >
+                  Privacy Policy
+                </a>
+                , and confirm the review reflects your experience.
+              </>
+            )}
           </p>
 
           {/* Error message display */}

@@ -986,33 +986,38 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
     const last_name = reviewerLastNames[idx];
     setIsSubmitting(idx);
     try {
-      const response = await fetch("/api/track-review", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          promptPageId: promptPage.id,
-          platform:
-            promptPage.review_platforms[idx].platform ||
-            promptPage.review_platforms[idx].name,
-          status: "submitted",
-          first_name,
-          last_name,
-          reviewContent: platformReviewTexts[idx] || "",
-          promptPageType: promptPage.is_universal ? "universal" : "custom",
-          review_type: "review",
-          // Include attribution tracking data
-          ...(attributionData ? flattenAttributionForApi(attributionData) : {}),
-        }),
-      });
-      if (!response.ok) {
-        setSubmitError("Failed to submit review. Please try again.");
-        setIsSubmitting(null);
-        return;
-      }
+      let submissionId: string | undefined;
 
-      // Get submission ID from response for return state tracking
-      const responseData = await response.json();
-      const submissionId = responseData?.data?.id;
+      // Skip saving to database if owner is testing their own page
+      if (!isOwner) {
+        const response = await fetch("/api/track-review", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            promptPageId: promptPage.id,
+            platform:
+              promptPage.review_platforms[idx].platform ||
+              promptPage.review_platforms[idx].name,
+            status: "submitted",
+            first_name,
+            last_name,
+            reviewContent: platformReviewTexts[idx] || "",
+            promptPageType: promptPage.is_universal ? "universal" : "custom",
+            review_type: "review",
+            // Include attribution tracking data
+            ...(attributionData ? flattenAttributionForApi(attributionData) : {}),
+          }),
+        });
+        if (!response.ok) {
+          setSubmitError("Failed to submit review. Please try again.");
+          setIsSubmitting(null);
+          return;
+        }
+
+        // Get submission ID from response for return state tracking
+        const responseData = await response.json();
+        submissionId = responseData?.data?.id;
+      }
 
       // Try to copy with monitoring
       let copied = false;
@@ -1584,50 +1589,53 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
       // Get the public URL
       const photoUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/photos/${path}`;
 
-      // Submit review via API
-      const reviewGroupId = (() => {
-        const id = Math.random().toString(36).substring(2, 15);
-        return id;
-      })();
-      const first_name = photoReviewerFirstName.trim();
-      const last_name = photoReviewerLastName.trim();
-      const reviewer_name = `${first_name} ${last_name}`;
-      
-      const reviewResponse = await fetch("/api/review-submissions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          prompt_page_id: promptPage.id,
-          platform: "photo",
-          status: "submitted",
-          first_name,
-          last_name,
-          reviewer_name,
-          reviewer_role: photoReviewerRole ? photoReviewerRole.trim() : null,
-          review_content: testimonial,
-          emoji_sentiment_selection: sentiment,
-          review_group_id: reviewGroupId,
-          user_agent: navigator.userAgent,
-          ip_address: null,
-          photo_url: photoUrl,
-          review_type: "testimonial",
-        }),
-      });
+      // Skip saving to database if owner is testing their own page
+      if (!isOwner) {
+        // Submit review via API
+        const reviewGroupId = (() => {
+          const id = Math.random().toString(36).substring(2, 15);
+          return id;
+        })();
+        const first_name = photoReviewerFirstName.trim();
+        const last_name = photoReviewerLastName.trim();
+        const reviewer_name = `${first_name} ${last_name}`;
 
-      if (!reviewResponse.ok) {
-        const errorData = await reviewResponse.json();
-        throw new Error(errorData.error || "Failed to submit review");
-      }
+        const reviewResponse = await fetch("/api/review-submissions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            prompt_page_id: promptPage.id,
+            platform: "photo",
+            status: "submitted",
+            first_name,
+            last_name,
+            reviewer_name,
+            reviewer_role: photoReviewerRole ? photoReviewerRole.trim() : null,
+            review_content: testimonial,
+            emoji_sentiment_selection: sentiment,
+            review_group_id: reviewGroupId,
+            user_agent: navigator.userAgent,
+            ip_address: null,
+            photo_url: photoUrl,
+            review_type: "testimonial",
+          }),
+        });
 
-      // Update the prompt page status to 'complete' via API
-      const updateResponse = await fetch(`/api/prompt-pages/${promptPage.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "complete" }),
-      });
+        if (!reviewResponse.ok) {
+          const errorData = await reviewResponse.json();
+          throw new Error(errorData.error || "Failed to submit review");
+        }
 
-      if (!updateResponse.ok) {
-        console.warn("Failed to update prompt page status");
+        // Update the prompt page status to 'complete' via API
+        const updateResponse = await fetch(`/api/prompt-pages/${promptPage.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: "complete" }),
+        });
+
+        if (!updateResponse.ok) {
+          console.warn("Failed to update prompt page status");
+        }
       }
 
       setPhotoSuccess(true);
@@ -2997,9 +3005,10 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                   }}
                   getPlatformIcon={getPlatformIcon}
                   getFontClass={getFontClass}
+                  isOwner={isOwner}
                 />
                 ))}
-              
+
               {/* Limit Modal */}
               {showLimitModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
@@ -3397,17 +3406,23 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                 Continue to {fallbackModalPlatform || "review site"}
               </button>
 
-              {/* Compliance text */}
+              {/* Compliance text or test mode message */}
               <p className="mt-4 text-xs text-gray-500 text-center">
-                By submitting, you agree to our{" "}
-                <a href="https://promptreviews.app/terms/" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-700">
-                  Terms
-                </a>{" "}
-                and{" "}
-                <a href="https://promptreviews.app/privacy" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-700">
-                  Privacy Policy
-                </a>
-                , and confirm the review reflects your experience.
+                {isOwner ? (
+                  <>You are in test mode. Reviews will not be saved to your account.</>
+                ) : (
+                  <>
+                    By submitting, you agree to our{" "}
+                    <a href="https://promptreviews.app/terms/" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-700">
+                      Terms
+                    </a>{" "}
+                    and{" "}
+                    <a href="https://promptreviews.app/privacy" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-700">
+                      Privacy Policy
+                    </a>
+                    , and confirm the review reflects your experience.
+                  </>
+                )}
               </p>
             </div>
           </div>
