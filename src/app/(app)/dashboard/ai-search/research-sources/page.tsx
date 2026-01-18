@@ -174,25 +174,15 @@ export default function ResearchSourcesPage() {
     }
   }, [selectedAccountId]);
 
-  // Analyze a domain
-  const analyzeDomain = useCallback(async (domain: string) => {
+  // Fetch analysis for a domain (from cache or generate new)
+  const fetchAnalysis = useCallback(async (domain: string) => {
+    // Already analyzing or already have analysis locally
     if (analyzingDomains.has(domain) || analyses[domain]) {
-      // Already analyzing or already have analysis - just toggle expansion
-      setStrategyExpanded(prev => {
-        const next = new Set(prev);
-        if (next.has(domain)) {
-          next.delete(domain);
-        } else {
-          next.add(domain);
-        }
-        return next;
-      });
       return;
     }
 
-    // Start analyzing
+    // Start fetching
     setAnalyzingDomains(prev => new Set(prev).add(domain));
-    setStrategyExpanded(prev => new Set(prev).add(domain));
 
     try {
       const result = await apiClient.post<DomainAnalysis>('/llm-visibility/analyze-domain', {
@@ -203,7 +193,7 @@ export default function ResearchSourcesPage() {
         [domain]: result,
       }));
     } catch (err) {
-      console.error('[ResearchSourcesPage] Error analyzing domain:', err);
+      console.error('[ResearchSourcesPage] Error fetching domain analysis:', err);
       // Set a fallback analysis
       setAnalyses(prev => ({
         ...prev,
@@ -221,6 +211,33 @@ export default function ResearchSourcesPage() {
       });
     }
   }, [analyzingDomains, analyses]);
+
+  // Toggle row expand and fetch analysis if needed
+  const toggleRowExpand = useCallback((domain: string) => {
+    const isCurrentlyExpanded = expandedDomain === domain;
+    setExpandedDomain(isCurrentlyExpanded ? null : domain);
+
+    // If expanding and we don't have analysis locally, fetch it
+    if (!isCurrentlyExpanded) {
+      fetchAnalysis(domain);
+    }
+  }, [expandedDomain, fetchAnalysis]);
+
+  // Analyze button click - expands strategy and fetches if needed
+  const analyzeDomain = useCallback((domain: string) => {
+    // Toggle strategy expanded
+    setStrategyExpanded(prev => {
+      const next = new Set(prev);
+      if (next.has(domain)) {
+        next.delete(domain);
+      } else {
+        next.add(domain);
+      }
+      return next;
+    });
+    // Fetch analysis if not already have it
+    fetchAnalysis(domain);
+  }, [fetchAnalysis]);
 
   // Handle sort
   const handleSort = (field: SortField) => {
@@ -485,7 +502,7 @@ export default function ResearchSourcesPage() {
                           <td className="py-3 px-4">
                             <div className="flex items-center gap-2">
                               <button
-                                onClick={() => setExpandedDomain(isExpanded ? null : source.domain)}
+                                onClick={() => toggleRowExpand(source.domain)}
                                 className="p-1 hover:bg-gray-100 rounded"
                                 aria-label={isExpanded ? 'Collapse details' : 'Expand details'}
                               >
