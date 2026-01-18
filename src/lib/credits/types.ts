@@ -23,6 +23,7 @@ export type FeatureType =
   | 'rank_tracking'
   | 'rank_batch_run'
   | 'domain_analysis'
+  | 'competitor_analysis'
   | 'llm_visibility'
   | 'llm_batch_run'
   | 'keyword_enrichment'

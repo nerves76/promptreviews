@@ -1,14 +1,14 @@
 /**
  * Cron Job: Process All Batch Runs
  *
- * Combined batch processor that handles LLM, Rank, and Concept batch runs.
- * This consolidates three separate cron jobs into one to stay within Vercel's
+ * Combined batch processor that handles LLM, Rank, Concept, and Analysis batch runs.
+ * This consolidates multiple cron jobs into one to stay within Vercel's
  * 20 cron job limit.
  *
  * Runs every minute and processes each batch type sequentially.
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { logCronExecution, verifyCronSecret } from '@/lib/cronLogger';
 
 // Extend timeout for this route
@@ -62,12 +62,19 @@ export async function GET(request: NextRequest) {
     results.conceptChecks = await callInternalEndpoint('/api/cron/process-concept-checks', cronSecret);
     console.log(`📋 [AllBatches] Concept checks: ${results.conceptChecks.success ? 'success' : 'failed'} - ${results.conceptChecks.message}`);
 
+    // Process Analysis batch runs (domain and competitor analysis)
+    console.log('📋 [AllBatches] Processing Analysis batch runs...');
+    results.analysisBatch = await callInternalEndpoint('/api/cron/process-analysis-batch', cronSecret);
+    console.log(`📋 [AllBatches] Analysis batch: ${results.analysisBatch.success ? 'success' : 'failed'} - ${results.analysisBatch.message}`);
+
     const allSuccessful = Object.values(results).every(r => r.success);
 
-    return NextResponse.json({
+    return {
       success: true,
-      message: allSuccessful ? 'All batch processors completed successfully' : 'Some batch processors had issues',
-      results,
-    });
+      summary: {
+        message: allSuccessful ? 'All batch processors completed successfully' : 'Some batch processors had issues',
+        results,
+      },
+    };
   });
 }

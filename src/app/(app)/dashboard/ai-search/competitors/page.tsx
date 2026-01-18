@@ -7,6 +7,7 @@ import { SubNav } from '@/app/(app)/components/SubNav';
 import Icon from '@/components/Icon';
 import { apiClient } from '@/utils/apiClient';
 import { useAccountData } from '@/auth/hooks/granularAuthHooks';
+import RunAllAnalysisModal from '../components/RunAllAnalysisModal';
 
 interface CompetitorMention {
   name: string;
@@ -71,33 +72,42 @@ export default function CompetitorsPage() {
   const [analyzingCompetitors, setAnalyzingCompetitors] = useState<Set<string>>(new Set());
   const [analysisExpanded, setAnalysisExpanded] = useState<Set<string>>(new Set());
 
+  // Run all modal state
+  const [showRunAllModal, setShowRunAllModal] = useState(false);
+
   // Sorting
   const [sortField, setSortField] = useState<SortField>('frequency');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
 
-  // Fetch data
-  useEffect(() => {
-    async function fetchData() {
-      if (!selectedAccountId) return;
+  // Fetch data function
+  const fetchData = useCallback(async () => {
+    if (!selectedAccountId) return;
 
-      setIsLoading(true);
-      setError(null);
+    setIsLoading(true);
+    setError(null);
 
-      try {
-        const response = await apiClient.get<CompetitorsData>(
-          '/llm-visibility/competitors'
-        );
-        setData(response);
-      } catch (err: any) {
-        console.error('[CompetitorsPage] Error fetching data:', err);
-        setError(err?.message || 'Failed to load competitors');
-      } finally {
-        setIsLoading(false);
-      }
+    try {
+      const response = await apiClient.get<CompetitorsData>(
+        '/llm-visibility/competitors'
+      );
+      setData(response);
+    } catch (err: any) {
+      console.error('[CompetitorsPage] Error fetching data:', err);
+      setError(err?.message || 'Failed to load competitors');
+    } finally {
+      setIsLoading(false);
     }
-
-    fetchData();
   }, [selectedAccountId]);
+
+  // Fetch data on mount
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  // Handle batch analysis complete - clear local analyses so fresh cached data loads
+  const handleAnalysisComplete = useCallback(() => {
+    setAnalyses({});
+  }, []);
 
   // Analyze a competitor
   const analyzeCompetitor = useCallback(async (competitor: CompetitorMention) => {
@@ -311,14 +321,23 @@ export default function CompetitorsPage() {
               )}
             </div>
 
-            {/* Info Banner */}
-            <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-              <div className="flex items-start gap-2">
-                <Icon name="FaInfoCircle" className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
-                <p className="text-sm text-amber-800">
-                  This data comes from ChatGPT checks only.
-                </p>
+            {/* Action Bar */}
+            <div className="mb-4 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+              <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg flex-1">
+                <div className="flex items-start gap-2">
+                  <Icon name="FaInfoCircle" className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                  <p className="text-sm text-amber-800">
+                    This data comes from ChatGPT checks only.
+                  </p>
+                </div>
               </div>
+              <button
+                onClick={() => setShowRunAllModal(true)}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-blue/90 font-medium text-sm transition-colors whitespace-nowrap"
+              >
+                <Icon name="FaRocket" className="w-4 h-4" />
+                Analyze all competitors
+              </button>
             </div>
 
             {/* Table */}
@@ -647,6 +666,14 @@ export default function CompetitorsPage() {
           </>
         )}
       </PageCard>
+
+      {/* Run All Analysis Modal */}
+      <RunAllAnalysisModal
+        isOpen={showRunAllModal}
+        onClose={() => setShowRunAllModal(false)}
+        analysisType="competitor"
+        onComplete={handleAnalysisComplete}
+      />
     </div>
   );
 }
