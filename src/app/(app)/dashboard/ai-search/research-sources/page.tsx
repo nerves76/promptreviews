@@ -161,7 +161,7 @@ export default function ResearchSourcesPage() {
       >
         <PageCardHeader
           title="AI research sources"
-          description="Websites that AI assistants use when researching answers. High-frequency sources are valuable link building targets."
+          description="Websites that AI assistants use when researching answers. Getting your brand on these websites will increase your chances of being mentioned in AI results and improve your SEO."
         />
 
         {/* Loading State */}
