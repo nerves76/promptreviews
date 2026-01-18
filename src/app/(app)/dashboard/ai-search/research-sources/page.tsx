@@ -161,7 +161,7 @@ export default function ResearchSourcesPage() {
       >
         <PageCardHeader
           title="AI research sources"
-          description="Websites that AI assistants use when researching answers. Getting your brand on these websites will increase your chances of being mentioned in AI results and improve your SEO."
+          description="When you run queries through ChatGPT we save the websites used to determine what brands should be mentioned. Getting your brand on these websites will increase your chances of being mentioned in AI results and improve your SEO."
         />
 
         {/* Loading State */}
