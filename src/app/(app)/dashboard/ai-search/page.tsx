@@ -550,7 +550,7 @@ export default function AISearchPage() {
       <SubNav
         items={[
           { label: 'AI Visibility', icon: 'FaSparkles', href: '/dashboard/ai-search', matchType: 'exact' },
-          { label: 'Research Sources', icon: 'FaGlobe', href: '/dashboard/ai-search/research-sources', matchType: 'exact' },
+          { label: 'Visibility Opportunities', icon: 'FaGlobe', href: '/dashboard/ai-search/research-sources', matchType: 'exact' },
         ]}
       />
 
