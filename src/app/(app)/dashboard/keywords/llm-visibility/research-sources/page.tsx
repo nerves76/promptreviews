@@ -163,7 +163,7 @@ export default function ResearchSourcesPage() {
         topMargin="mt-16"
       >
         <PageCardHeader
-          title="Research sources"
+          title="AI research sources"
           description="Websites that AI assistants use when researching answers. High-frequency sources are valuable link building targets."
         />
 
