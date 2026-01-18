@@ -57,7 +57,7 @@ export function PageCardHeader({
           {title}
         </HeadingTag>
         {description && (
-          <p className="text-gray-600 text-base">
+          <p className="text-gray-600 text-base max-w-[750px]">
             {description}
           </p>
         )}
