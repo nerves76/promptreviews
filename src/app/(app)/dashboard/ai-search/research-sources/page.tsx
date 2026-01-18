@@ -89,6 +89,7 @@ export default function ResearchSourcesPage() {
 
   // Run all modal state
   const [showRunAllModal, setShowRunAllModal] = useState(false);
+  const [unanalyzedCount, setUnanalyzedCount] = useState<number | null>(null);
 
   // Export state
   const [isExporting, setIsExporting] = useState(false);
@@ -117,16 +118,34 @@ export default function ResearchSourcesPage() {
     }
   }, [selectedAccountId]);
 
+  // Fetch unanalyzed count
+  const fetchUnanalyzedCount = useCallback(async () => {
+    if (!selectedAccountId) return;
+    try {
+      const response = await apiClient.get<{ totalItems: number; hasActiveRun: boolean }>(
+        '/llm-visibility/batch-analyze?type=domain'
+      );
+      if (!response.hasActiveRun) {
+        setUnanalyzedCount(response.totalItems);
+      }
+    } catch (err) {
+      console.error('[ResearchSourcesPage] Error fetching unanalyzed count:', err);
+    }
+  }, [selectedAccountId]);
+
   // Fetch data on mount
   useEffect(() => {
     fetchData();
-  }, [fetchData]);
+    fetchUnanalyzedCount();
+  }, [fetchData, fetchUnanalyzedCount]);
 
-  // Handle batch analysis complete - refresh data to show cached analyses
+  // Handle batch analysis complete - refresh data and count
   const handleAnalysisComplete = useCallback(() => {
     // Clear local analyses so fresh cached data loads
     setAnalyses({});
-  }, []);
+    // Refresh the unanalyzed count
+    fetchUnanalyzedCount();
+  }, [fetchUnanalyzedCount]);
 
   // Export to CSV
   const handleExport = useCallback(async () => {
@@ -391,7 +410,11 @@ export default function ResearchSourcesPage() {
                   className="inline-flex items-center gap-2 px-4 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-blue/90 font-medium text-sm transition-colors whitespace-nowrap"
                 >
                   <Icon name="FaRocket" className="w-4 h-4" />
-                  Analyze all domains
+                  {unanalyzedCount === null
+                    ? 'Analyze all domains'
+                    : unanalyzedCount === 0
+                    ? 'Analyze again'
+                    : `Analyze all (${unanalyzedCount})`}
                 </button>
               </div>
             </div>

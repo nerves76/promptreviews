@@ -77,6 +77,9 @@ export default function CompetitorsPage() {
   // Export state
   const [isExporting, setIsExporting] = useState(false);
 
+  // Unanalyzed count for button text
+  const [unanalyzedCount, setUnanalyzedCount] = useState<number | null>(null);
+
   // Sorting
   const [sortField, setSortField] = useState<SortField>('frequency');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
@@ -101,15 +104,47 @@ export default function CompetitorsPage() {
     }
   }, [selectedAccountId]);
 
+  // Fetch unanalyzed count
+  const fetchUnanalyzedCount = useCallback(async () => {
+    if (!selectedAccountId || !data?.competitors) return;
+
+    try {
+      // Get cached analyses for this account
+      const response = await apiClient.get<{ cachedNames: string[] }>(
+        '/llm-visibility/competitors/cached-names'
+      );
+      const cachedNames = new Set(response.cachedNames.map(n => n.toLowerCase()));
+
+      // Count competitors without cached analysis
+      const unanalyzed = data.competitors.filter(
+        c => !cachedNames.has(c.name.toLowerCase())
+      ).length;
+      setUnanalyzedCount(unanalyzed);
+    } catch (err) {
+      console.error('[CompetitorsPage] Error fetching unanalyzed count:', err);
+      // Fallback: assume all need analysis
+      setUnanalyzedCount(data.competitors.length);
+    }
+  }, [selectedAccountId, data?.competitors]);
+
   // Fetch data on mount
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
+  // Fetch unanalyzed count when data loads
+  useEffect(() => {
+    if (data?.competitors) {
+      fetchUnanalyzedCount();
+    }
+  }, [data?.competitors, fetchUnanalyzedCount]);
+
   // Handle batch analysis complete - clear local analyses so fresh cached data loads
   const handleAnalysisComplete = useCallback(() => {
     setAnalyses({});
-  }, []);
+    // Refresh unanalyzed count
+    fetchUnanalyzedCount();
+  }, [fetchUnanalyzedCount]);
 
   // Export to CSV
   const handleExport = useCallback(async () => {
@@ -163,6 +198,8 @@ export default function CompetitorsPage() {
         ...prev,
         [key]: result,
       }));
+      // Refresh unanalyzed count
+      fetchUnanalyzedCount();
     } catch (err) {
       console.error('[CompetitorsPage] Error analyzing competitor:', err);
       // Set a fallback analysis
@@ -181,7 +218,7 @@ export default function CompetitorsPage() {
         return next;
       });
     }
-  }, [analyzingCompetitors, analyses]);
+  }, [analyzingCompetitors, analyses, fetchUnanalyzedCount]);
 
   // Handle sort
   const handleSort = (field: SortField) => {
@@ -371,7 +408,11 @@ export default function CompetitorsPage() {
                   className="inline-flex items-center gap-2 px-4 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-blue/90 font-medium text-sm transition-colors whitespace-nowrap"
                 >
                   <Icon name="FaRocket" className="w-4 h-4" />
-                  Analyze all competitors
+                  {unanalyzedCount === null
+                    ? 'Analyze all competitors'
+                    : unanalyzedCount === 0
+                    ? 'Analyze again'
+                    : `Analyze all (${unanalyzedCount})`}
                 </button>
               </div>
             </div>
