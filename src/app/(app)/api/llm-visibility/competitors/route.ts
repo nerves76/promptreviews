@@ -162,8 +162,9 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Convert map to sorted array
+    // Convert map to sorted array, excluding user's own brand
     const competitors: CompetitorMention[] = Array.from(brandMap.entries())
+      .filter(([, data]) => !data.isOurs) // Exclude user's own brand
       .map(([key, data]) => {
         // Use the original casing from the first occurrence
         const originalName = Array.from(brandMap.keys()).find(k => k.toLowerCase() === key) || key;
@@ -181,10 +182,13 @@ export async function GET(request: NextRequest) {
       .sort((a, b) => b.frequency - a.frequency)
       .slice(0, 100); // Limit to top 100 competitors
 
+    // Count unique competitors (excluding user's brand)
+    const uniqueCompetitorCount = Array.from(brandMap.values()).filter(data => !data.isOurs).length;
+
     const response: CompetitorsResponse = {
       competitors,
       totalChecks: totalChecksWithBrands,
-      uniqueCompetitors: brandMap.size,
+      uniqueCompetitors: uniqueCompetitorCount,
       yourBrandMentions,
     };
 
