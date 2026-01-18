@@ -30,6 +30,7 @@ export interface ServicePromptFormState {
   fallingIcon: string;
   fallingIconColor: string;
   aiButtonEnabled: boolean;
+  aiEnhanceEnabled: boolean;
   fixGrammarEnabled: boolean;
   notePopupEnabled: boolean;
   friendlyNote: string;
@@ -100,6 +101,9 @@ const ServicePromptPageForm = forwardRef<any, ServicePromptPageFormProps>(
     const [aiButtonEnabled, setAiButtonEnabled] = useState(
       initialData?.aiButtonEnabled ?? (initialData as any)?.ai_button_enabled ?? true,
     );
+    const [aiEnhanceEnabled, setAiEnhanceEnabled] = useState(
+      initialData?.aiEnhanceEnabled ?? (initialData as any)?.ai_enhance_enabled ?? true,
+    );
     const [fixGrammarEnabled, setFixGrammarEnabled] = useState(
       initialData?.fixGrammarEnabled ?? (initialData as any)?.fix_grammar_enabled ?? true,
     );
@@ -150,6 +154,7 @@ const ServicePromptPageForm = forwardRef<any, ServicePromptPageFormProps>(
             fallingIcon,
             fallingIconColor,
             aiButtonEnabled,
+            aiEnhanceEnabled,
             fixGrammarEnabled,
             notePopupEnabled,
             friendlyNote,
@@ -172,6 +177,7 @@ const ServicePromptPageForm = forwardRef<any, ServicePromptPageFormProps>(
         fallingIcon,
         fallingIconColor,
         aiButtonEnabled,
+        aiEnhanceEnabled,
         fixGrammarEnabled,
         notePopupEnabled,
         friendlyNote,
@@ -235,6 +241,7 @@ const ServicePromptPageForm = forwardRef<any, ServicePromptPageFormProps>(
               fallingIcon,
               fallingIconColor,
               aiButtonEnabled,
+              aiEnhanceEnabled,
               notePopupEnabled,
               friendlyNote,
               motivationalNudgeEnabled,
@@ -283,8 +290,10 @@ const ServicePromptPageForm = forwardRef<any, ServicePromptPageFormProps>(
           {/* AI Review Generation Toggle */}
           <AISettingsFeature
             aiGenerationEnabled={aiButtonEnabled}
+            aiEnhanceEnabled={aiEnhanceEnabled}
             fixGrammarEnabled={fixGrammarEnabled}
             onAIEnabledChange={(enabled) => setAiButtonEnabled(enabled)}
+            onAIEnhanceEnabledChange={(enabled) => setAiEnhanceEnabled(enabled)}
             onGrammarEnabledChange={(enabled) => setFixGrammarEnabled(enabled)}
           />
           {/* Motivational Nudge Section */}

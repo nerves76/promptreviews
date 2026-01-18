@@ -36,6 +36,7 @@ interface UniversalPromptFormState {
   falling_icon: string;
   falling_icon_color: string;
   ai_button_enabled: boolean;
+  ai_enhance_enabled: boolean;
   fix_grammar_enabled: boolean;
   note_popup_enabled: boolean;
   show_friendly_note: boolean;
@@ -221,6 +222,7 @@ export default function UniversalEditPromptPage() {
           falling_icon: universalPage?.falling_icon || "star",
           falling_icon_color: universalPage?.falling_icon_color || "#fbbf24",
           ai_button_enabled: universalPage?.ai_button_enabled !== false,
+          ai_enhance_enabled: universalPage?.ai_enhance_enabled !== false,
           fix_grammar_enabled: universalPage?.fix_grammar_enabled !== false,
           note_popup_enabled: universalPage?.note_popup_enabled ?? false,
 
@@ -372,6 +374,7 @@ export default function UniversalEditPromptPage() {
         falling_icon: formState.falling_icon,
         falling_icon_color: formState.falling_icon_color,
         ai_button_enabled: formState.ai_button_enabled,
+        ai_enhance_enabled: formState.ai_enhance_enabled,
         fix_grammar_enabled: formState.fix_grammar_enabled,
         note_popup_enabled: formState.note_popup_enabled,
         show_friendly_note: formState.show_friendly_note,
@@ -416,6 +419,7 @@ export default function UniversalEditPromptPage() {
         falling_icon: formState.falling_enabled ? formState.falling_icon : null,
         falling_icon_color: formState.falling_enabled ? formState.falling_icon_color : null,
         ai_button_enabled: formState.ai_button_enabled,
+        ai_enhance_enabled: formState.ai_enhance_enabled,
         fix_grammar_enabled: formState.fix_grammar_enabled,
         note_popup_enabled: formState.note_popup_enabled,
         show_friendly_note: formState.show_friendly_note,

@@ -349,6 +349,7 @@ model users {
   ai_enrichment_usage                                                         ai_enrichment_usage[]
   ai_keyword_generation_usage                                                 ai_keyword_generation_usage[]
   ai_usage                                                                    ai_usage[]
+  analysis_batch_runs                                                         analysis_batch_runs[]
   announcements                                                               announcements[]
   article_revisions                                                           article_revisions[]
   articles_articles_created_byTousers                                         articles[]                        @relation("articles_created_byTousers")
@@ -546,6 +547,7 @@ model accounts {
   ai_enrichment_usage                                                 ai_enrichment_usage[]
   ai_keyword_generation_usage                                         ai_keyword_generation_usage[]
   ai_usage                                                            ai_usage[]
+  analysis_batch_runs                                                 analysis_batch_runs[]
   audit_logs                                                          audit_logs[]
   backlink_anchors                                                    backlink_anchors[]
   backlink_checks                                                     backlink_checks[]
@@ -560,6 +562,7 @@ model accounts {
   comments                                                            comments[]
   communication_records                                               communication_records[]
   communication_templates                                             communication_templates[]
+  competitor_analysis_cache                                           competitor_analysis_cache[]
   concept_check_runs                                                  concept_check_runs[]
   concept_schedules                                                   concept_schedules[]
   contacts                                                            contacts[]
@@ -1002,6 +1005,7 @@ model businesses {
   fun_facts                             Json?                @default("[]")
   is_location_based                     Boolean?             @default(true)
   location_aliases                      String[]             @default([])
+  default_ai_enhance_enabled            Boolean?             @default(true)
   accounts                              accounts             @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_businesses_account_id")
   review_submissions                    review_submissions[]
 
@@ -2188,6 +2192,7 @@ model prompt_pages {
   fun_facts_enabled                                                        Boolean?                    @default(false)
   selected_fun_facts                                                       Json?
   fun_facts_button_label                                                   String?                     @default("Fun facts")
+  ai_enhance_enabled                                                       Boolean?                    @default(true)
   analytics_events                                                         analytics_events[]
   business_locations_business_locations_prompt_page_idToprompt_pages       business_locations[]        @relation("business_locations_prompt_page_idToprompt_pages")
   campaign_actions                                                         campaign_actions[]
@@ -4079,6 +4084,89 @@ model rank_batch_runs {
   users                users?                 @relation(fields: [triggered_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@index([account_id, created_at(sort: Desc)], map: "idx_rank_batch_runs_account")
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model analysis_batch_run_items {
+  id                  String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  batch_run_id        String              @db.Uuid
+  item_type           String
+  item_key            String
+  item_display_name   String
+  item_metadata       Json?
+  status              String              @default("pending")
+  error_message       String?
+  created_at          DateTime            @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime            @default(now()) @db.Timestamptz(6)
+  analysis_batch_runs analysis_batch_runs @relation(fields: [batch_run_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([batch_run_id], map: "idx_analysis_batch_run_items_batch")
+  @@index([batch_run_id, status], map: "idx_analysis_batch_run_items_status")
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model analysis_batch_runs {
+  id                       String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  account_id               String                     @db.Uuid
+  batch_type               String
+  status                   String                     @default("pending")
+  total_items              Int                        @default(0)
+  processed_items          Int                        @default(0)
+  successful_items         Int                        @default(0)
+  failed_items             Int                        @default(0)
+  estimated_credits        Int                        @default(0)
+  total_credits_used       Int                        @default(0)
+  error_message            String?
+  triggered_by             String?                    @db.Uuid
+  created_at               DateTime                   @default(now()) @db.Timestamptz(6)
+  started_at               DateTime?                  @db.Timestamptz(6)
+  completed_at             DateTime?                  @db.Timestamptz(6)
+  updated_at               DateTime                   @default(now()) @db.Timestamptz(6)
+  analysis_batch_run_items analysis_batch_run_items[]
+  accounts                 accounts                   @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users                    users?                     @relation(fields: [triggered_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([account_id], map: "idx_analysis_batch_runs_account")
+  @@index([status], map: "idx_analysis_batch_runs_status")
+  @@index([batch_type, status], map: "idx_analysis_batch_runs_type_status")
+  @@schema("public")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model competitor_analysis_cache {
+  id                   String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  account_id           String   @db.Uuid
+  competitor_name      String
+  domain               String?
+  who_they_are         String
+  why_mentioned        String
+  how_to_differentiate String
+  analyzed_at          DateTime @default(now()) @db.Timestamptz(6)
+  created_at           DateTime @default(now()) @db.Timestamptz(6)
+  accounts             accounts @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([account_id, competitor_name])
+  @@index([account_id], map: "idx_competitor_analysis_cache_account")
+  @@index([account_id, competitor_name], map: "idx_competitor_analysis_cache_lookup")
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model domain_analysis_cache {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  domain      String   @unique
+  difficulty  String
+  site_type   String
+  strategy    String
+  analyzed_at DateTime @default(now()) @db.Timestamptz(6)
+  created_at  DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([domain], map: "idx_domain_analysis_cache_domain")
   @@schema("public")
 }
 

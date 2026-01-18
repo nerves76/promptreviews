@@ -3,6 +3,7 @@ import Icon, { IconName } from '@/components/Icon';
 import { applyCardTransparency, getContrastTextColor } from '@/utils/colorUtils';
 import ProcessIndicator from './ProcessIndicator';
 import ButtonSpinner from '@/components/ButtonSpinner';
+import AIReviewButtons from './AIReviewButtons';
 import {
   countWords,
   getWordLimitOrDefault,
@@ -21,12 +22,14 @@ interface ReviewPlatformCardProps {
   reviewerRoles: string[];
   platformReviewTexts: string[];
   aiLoading: number | null;
+  aiEnhanceLoading: number | null;
   fixGrammarLoading: number | null;
   isSubmitting: number | null;
   isCopied: number | null;
   isRedirecting: number | null;
   hasSubmitted?: boolean;
   aiRewriteCounts: number[];
+  aiEnhanceCounts: number[];
   fixGrammarCounts: number[];
   openInstructionsIdx: number | null;
   submitError: string | null;
@@ -40,11 +43,12 @@ interface ReviewPlatformCardProps {
   onRoleChange: (idx: number, value: string) => void;
   onReviewTextChange: (idx: number, value: string) => void;
   onRewriteWithAI: (idx: number) => void;
+  onEnhanceWithAI: (idx: number) => void;
   onFixGrammar: (idx: number) => void;
   onCopyAndSubmit: (idx: number, url: string) => void;
-  onCopyReview?: (idx: number) => void; // Callback for secondary copy button
+  onCopyReview?: (idx: number) => void;
   onToggleInstructions: (idx: number | null) => void;
-  onOpenKeywordInspiration?: () => void; // Callback to open keyword inspiration modal
+  onOpenKeywordInspiration?: () => void;
   getPlatformIcon: (url: string, platform: string) => { icon: IconName; label: string };
   getFontClass: (fontName: string) => string;
 }
@@ -61,12 +65,14 @@ export default function ReviewPlatformCard({
   reviewerRoles,
   platformReviewTexts,
   aiLoading,
+  aiEnhanceLoading,
   fixGrammarLoading,
   isSubmitting,
   isCopied,
   isRedirecting,
   hasSubmitted,
   aiRewriteCounts,
+  aiEnhanceCounts,
   fixGrammarCounts,
   openInstructionsIdx,
   submitError,
@@ -80,6 +86,7 @@ export default function ReviewPlatformCard({
   onRoleChange,
   onReviewTextChange,
   onRewriteWithAI,
+  onEnhanceWithAI,
   onFixGrammar,
   onCopyAndSubmit,
   onCopyReview,
@@ -99,6 +106,7 @@ export default function ReviewPlatformCard({
     : platformLabel;
   const isUniversal = !!promptPage.is_universal;
   const aiButtonEnabled = promptPage?.ai_button_enabled !== false;
+  const aiEnhanceEnabled = promptPage?.ai_enhance_enabled !== false;
   const fixGrammarEnabled = promptPage?.fix_grammar_enabled !== false;
   // Power-Ups: use selected_keyword_inspirations if set, otherwise fall back to first 10 keywords
   const powerUpKeywords = (promptPage?.selected_keyword_inspirations?.length > 0
@@ -380,60 +388,18 @@ export default function ReviewPlatformCard({
                 >
                   Your review <span className="text-red-500">*</span>
                 </label>
-                {aiButtonEnabled && (
-                  <button
-                    type="button"
-                    onClick={() => onRewriteWithAI(idx)}
-                    disabled={aiLoading === idx || aiRewriteCounts[idx] >= 3}
-                    className="px-3 py-1 rounded text-xs font-medium focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 transition-all duration-200 border"
-                    title="Use AI to generate a review you can modify and make your own"
-                    style={{
-                      backgroundColor: "transparent",
-                      borderColor: businessProfile?.primary_color || "#2563EB",
-                      color: businessProfile?.primary_color || "#2563EB",
-                    }}
-                    onMouseEnter={(e) => {
-                      if (aiLoading !== idx && aiRewriteCounts[idx] < 3) {
-                        e.currentTarget.style.backgroundColor = businessProfile?.primary_color || "#2563EB";
-                        e.currentTarget.style.color = getContrastTextColor(businessProfile?.primary_color || "#2563EB");
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (aiLoading !== idx && aiRewriteCounts[idx] < 3) {
-                        e.currentTarget.style.backgroundColor = "transparent";
-                        e.currentTarget.style.color = businessProfile?.primary_color || "#2563EB";
-                      }
-                    }}
-                  >
-                    {aiLoading === idx ? (
-                      <>
-                        <ButtonSpinner size={12} />
-                        <span className="hidden sm:inline">Generating...</span>
-                      </>
-                    ) : (
-                      <>
-                        <svg
-                          width="12"
-                          height="12"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          className="w-3 h-3"
-                        >
-                          <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .962 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.582a.5.5 0 0 1 0 .962L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.962 0L9.937 15.5Z"/>
-                          <path d="M20 3v4"/>
-                          <path d="M22 5h-4"/>
-                          <path d="M4 17v2"/>
-                          <path d="M5 18H3"/>
-                        </svg>
-                        <span className="hidden sm:inline">Generate with AI</span>
-                        <span className="sm:hidden">Generate</span>
-                        {aiRewriteCounts[idx] > 0 && <span className="hidden sm:inline">({aiRewriteCounts[idx]}/3)</span>}
-                      </>
-                    )}
-                  </button>
-                )}
+                <AIReviewButtons
+                  aiGenerateEnabled={aiButtonEnabled}
+                  aiEnhanceEnabled={aiEnhanceEnabled}
+                  reviewText={reviewText}
+                  aiGenerateLoading={aiLoading === idx}
+                  aiEnhanceLoading={aiEnhanceLoading === idx}
+                  aiGenerateCount={aiRewriteCounts[idx] || 0}
+                  aiEnhanceCount={aiEnhanceCounts[idx] || 0}
+                  onGenerateWithAI={() => onRewriteWithAI(idx)}
+                  onEnhanceReview={() => onEnhanceWithAI(idx)}
+                  primaryColor={businessProfile?.primary_color || "#2563EB"}
+                />
               </div>
               <div className="flex items-center gap-2">
                 {keywordInspirationEnabled && onOpenKeywordInspiration && (

@@ -121,6 +121,7 @@ function mapToDbColumns(formData: any): any {
   insertData["emoji_feedback_message"] = formData.emojiFeedbackMessage;
   insertData["emoji_thank_you_message"] = formData.emojiThankYouMessage || "";
   insertData["ai_button_enabled"] = formData.aiButtonEnabled ?? true;
+  insertData["ai_enhance_enabled"] = formData.aiEnhanceEnabled ?? true;
   insertData["offer_enabled"] = formData.offerEnabled;
   insertData["offer_title"] = formData.offerTitle;
   insertData["offer_body"] = formData.offerBody;
@@ -763,6 +764,7 @@ export default function EditPromptPage() {
         "category",
         "no_platform_review_template",
         "ai_button_enabled",
+        "ai_enhance_enabled",
         "fix_grammar_enabled",
         "show_friendly_note",
         "recent_reviews_enabled",
@@ -896,6 +898,7 @@ export default function EditPromptPage() {
         "falling_icon_color",
         "falling_enabled",
         "ai_button_enabled",
+        "ai_enhance_enabled",
         "fix_grammar_enabled",
         "show_friendly_note",
         "product_name",
@@ -1051,6 +1054,7 @@ export default function EditPromptPage() {
         
         // Other features
         ai_button_enabled: formState.ai_button_enabled ?? formState.aiButtonEnabled ?? true,
+        ai_enhance_enabled: formState.ai_enhance_enabled ?? formState.aiEnhanceEnabled ?? true,
         fix_grammar_enabled: formState.fix_grammar_enabled ?? formState.fixGrammarEnabled ?? false,
         nfc_text_enabled: formState.nfc_text_enabled ?? formState.nfcTextEnabled ?? false,
         note_popup_enabled: formState.note_popup_enabled ?? formState.notePopupEnabled ?? false,
@@ -1107,6 +1111,7 @@ export default function EditPromptPage() {
         "falling_icon_color",
         "review_platforms",
         "ai_button_enabled",
+        "ai_enhance_enabled",
         "fix_grammar_enabled",
         "nfc_text_enabled",
         "note_popup_enabled",

@@ -59,9 +59,6 @@ const FunFactsModal = dynamic(() => import("@/app/(app)/components/FunFactsModal
 const StyleModalPage = dynamic(() => import("../../dashboard/style/StyleModalPage"), {
   ssr: false
 });
-const EditPromptPageModal = dynamic(() => import("./components/EditPromptPageModal"), {
-  ssr: false
-});
 
 // ⚡ PERFORMANCE: Convert heavy components to dynamic imports
 const KickstartersCarousel = dynamic(() => import("./components/KickstartersCarousel"), {
@@ -354,7 +351,6 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
   // Style button state variables
   const [isOwner, setIsOwner] = useState(false);
   const [showStyleModal, setShowStyleModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
   const [userLoading, setUserLoading] = useState(true);
   const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(null);
   // Add state for tracking font loading status
@@ -2144,10 +2140,12 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
             className={`fixed left-4 z-[60] transition-all duration-300 ${showBanner ? "top-28 sm:top-24" : "top-4"}`}
           >
             <div className="bg-black bg-opacity-20 backdrop-blur-sm rounded-xl p-3 space-y-2">
-              {isOwner && (
+              {isOwner && promptPage && (
                 <>
-                  <button
-                    onClick={() => setShowEditModal(true)}
+                  <a
+                    href={promptPage.is_universal ? "/dashboard/edit-prompt-page/universal" : `/dashboard/edit-prompt-page/${promptPage.slug}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="flex items-center gap-2 px-4 py-2 rounded-lg shadow-md hover:bg-gray-50 transition-colors group w-full"
                     style={{
                       background: isOffWhiteOrCream(businessProfile?.card_bg || "#FFFFFF")
@@ -2156,11 +2154,11 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                       color: getAccessibleColor(businessProfile?.primary_color || "#2E4A7D"),
                       border: "1px solid #E5E7EB"
                     }}
-                    title="Edit this prompt page"
+                    title="Edit this prompt page (opens in new tab)"
                   >
                     <Icon name="FaEdit" className="w-5 h-5 transition-colors group-hover:text-slate-blue" size={20} />
                     <span className="hidden sm:inline">Edit</span>
-                  </button>
+                  </a>
                   <button
                     onClick={() => setShowStyleModal(true)}
                     className="flex items-center gap-2 px-4 py-2 rounded-lg shadow-md hover:bg-gray-50 transition-colors group w-full"
@@ -3569,15 +3567,6 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
         />
       )}
 
-      {/* Edit Prompt Page Modal */}
-      {showEditModal && promptPage && (
-        <EditPromptPageModal
-          isOpen={showEditModal}
-          onClose={() => setShowEditModal(false)}
-          promptPageSlug={promptPage.slug}
-          isUniversal={promptPage.is_universal}
-        />
-      )}
 
       {/* Recent Reviews Modal */}
       {showRecentReviewsModal && promptPage?.id && (

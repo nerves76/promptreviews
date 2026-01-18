@@ -1,11 +1,12 @@
 /**
  * AISettingsFeature Component
- * 
+ *
  * A reusable component for AI generation settings that appears across all prompt page types.
- * This component handles the configuration of AI review generation and grammar fixing features.
- * 
+ * This component handles the configuration of AI review generation, enhancement, and grammar fixing.
+ *
  * Features:
  * - Toggle to enable/disable AI review generation
+ * - Toggle to enable/disable AI review enhancement
  * - Toggle to enable/disable grammar fixing
  * - Proper state management and callbacks
  */
@@ -17,15 +18,20 @@ import Icon from "@/components/Icon";
 export interface AISettingsFeatureProps {
   /** Whether AI generation is enabled */
   aiGenerationEnabled: boolean;
+  /** Whether AI enhancement is enabled */
+  aiEnhanceEnabled?: boolean;
   /** Whether grammar fixing is enabled */
   fixGrammarEnabled: boolean;
   /** Callback when AI generation enabled state changes */
   onAIEnabledChange: (enabled: boolean) => void;
+  /** Callback when AI enhancement enabled state changes */
+  onAIEnhanceEnabledChange?: (enabled: boolean) => void;
   /** Callback when grammar fixing enabled state changes */
   onGrammarEnabledChange: (enabled: boolean) => void;
   /** Initial values for the component */
   initialData?: {
     ai_button_enabled?: boolean;
+    ai_enhance_enabled?: boolean;
     fix_grammar_enabled?: boolean;
   };
   /** Whether the component is disabled */
@@ -34,20 +40,27 @@ export interface AISettingsFeatureProps {
 
 export default function AISettingsFeature({
   aiGenerationEnabled,
+  aiEnhanceEnabled = true,
   fixGrammarEnabled,
   onAIEnabledChange,
+  onAIEnhanceEnabledChange,
   onGrammarEnabledChange,
   initialData,
   disabled = false,
 }: AISettingsFeatureProps) {
   // Initialize state from props and initialData
   const [isAIEnabled, setIsAIEnabled] = useState(aiGenerationEnabled);
+  const [isEnhanceEnabled, setIsEnhanceEnabled] = useState(aiEnhanceEnabled);
   const [isGrammarEnabled, setIsGrammarEnabled] = useState(fixGrammarEnabled);
 
   // Update state when props change
   useEffect(() => {
     setIsAIEnabled(aiGenerationEnabled);
   }, [aiGenerationEnabled]);
+
+  useEffect(() => {
+    setIsEnhanceEnabled(aiEnhanceEnabled);
+  }, [aiEnhanceEnabled]);
 
   useEffect(() => {
     setIsGrammarEnabled(fixGrammarEnabled);
@@ -59,6 +72,9 @@ export default function AISettingsFeature({
       if (initialData.ai_button_enabled !== undefined) {
         setIsAIEnabled(initialData.ai_button_enabled);
       }
+      if (initialData.ai_enhance_enabled !== undefined) {
+        setIsEnhanceEnabled(initialData.ai_enhance_enabled);
+      }
       if (initialData.fix_grammar_enabled !== undefined) {
         setIsGrammarEnabled(initialData.fix_grammar_enabled);
       }
@@ -69,6 +85,12 @@ export default function AISettingsFeature({
     const newEnabled = !isAIEnabled;
     setIsAIEnabled(newEnabled);
     onAIEnabledChange(newEnabled);
+  };
+
+  const handleEnhanceToggle = () => {
+    const newEnabled = !isEnhanceEnabled;
+    setIsEnhanceEnabled(newEnabled);
+    onAIEnhanceEnabledChange?.(newEnabled);
   };
 
   const handleGrammarToggle = () => {
@@ -103,11 +125,48 @@ export default function AISettingsFeature({
               isAIEnabled ? "bg-slate-blue" : "bg-gray-200"
             } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
             aria-pressed={isAIEnabled}
+            aria-label="Toggle Generate with AI"
             style={{ verticalAlign: "middle" }}
           >
             <span
               className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
                 isAIEnabled ? "translate-x-5" : "translate-x-1"
+              }`}
+            />
+          </button>
+        </div>
+      </div>
+
+      {/* Enhance with AI Toggle */}
+      <div className="flex flex-row justify-between items-start px-2 py-2 border-t border-blue-200 pt-4">
+        <div className="flex flex-col">
+          <div className="flex items-center gap-3">
+            <Icon name="FaSparkles" className="w-7 h-7 text-slate-blue" size={28} />
+            <span className="text-2xl font-bold text-slate-blue">
+              Enhance review
+            </span>
+          </div>
+          <div className="text-sm text-gray-700 mt-[3px] ml-10">
+            {isEnhanceEnabled
+              ? 'Customers will see the "Enhance review" button to polish their existing review with AI.'
+              : "The AI enhancement button will be hidden from customers on this prompt page."}
+          </div>
+        </div>
+        <div className="flex flex-col justify-start pt-1">
+          <button
+            type="button"
+            onClick={handleEnhanceToggle}
+            disabled={disabled}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+              isEnhanceEnabled ? "bg-slate-blue" : "bg-gray-200"
+            } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
+            aria-pressed={isEnhanceEnabled}
+            aria-label="Toggle Enhance review"
+            style={{ verticalAlign: "middle" }}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                isEnhanceEnabled ? "translate-x-5" : "translate-x-1"
               }`}
             />
           </button>
@@ -120,12 +179,12 @@ export default function AISettingsFeature({
           <div className="flex items-center gap-3">
             <Icon name="FaCheck" className="w-7 h-7 text-slate-blue" size={28} />
             <span className="text-2xl font-bold text-slate-blue">
-              Fix My Grammar
+              Fix my grammar
             </span>
           </div>
           <div className="text-sm text-gray-700 mt-[3px] ml-10">
             {isGrammarEnabled
-              ? 'Customers will see the "Fix My Grammar" button to improve their review writing.'
+              ? 'Customers will see the "Fix my grammar" button to improve their review writing.'
               : "The grammar fixing button will be hidden from customers on this prompt page."}
           </div>
         </div>
@@ -138,6 +197,7 @@ export default function AISettingsFeature({
               isGrammarEnabled ? "bg-slate-blue" : "bg-gray-200"
             } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
             aria-pressed={isGrammarEnabled}
+            aria-label="Toggle Fix my grammar"
             style={{ verticalAlign: "middle" }}
           >
             <span
@@ -150,4 +210,4 @@ export default function AISettingsFeature({
       </div>
     </div>
   );
-} 
+}

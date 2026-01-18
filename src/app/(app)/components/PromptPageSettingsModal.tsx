@@ -86,6 +86,7 @@ export default function PromptPageSettingsModal({
     
     // AI Settings
     ai_button_enabled: false,
+    ai_enhance_enabled: true,
     fix_grammar_enabled: false,
     
     // Emoji Sentiment
@@ -441,11 +442,14 @@ export default function PromptPageSettingsModal({
                 <div className="mb-6">
                   <AISettingsFeature
                   aiGenerationEnabled={formData.ai_button_enabled}
+                  aiEnhanceEnabled={formData.ai_enhance_enabled}
                   fixGrammarEnabled={formData.fix_grammar_enabled}
                   onAIEnabledChange={(enabled) => handleInputChange('ai_button_enabled', enabled)}
+                  onAIEnhanceEnabledChange={(enabled) => handleInputChange('ai_enhance_enabled', enabled)}
                   onGrammarEnabledChange={(enabled) => handleInputChange('fix_grammar_enabled', enabled)}
                   initialData={{
                     ai_button_enabled: formData.ai_button_enabled,
+                    ai_enhance_enabled: formData.ai_enhance_enabled,
                     fix_grammar_enabled: formData.fix_grammar_enabled
                   }}
                 />

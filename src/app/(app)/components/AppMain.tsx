@@ -39,6 +39,7 @@ export default function AppMain({
   if (isPublic) {
     return <main>{children}</main>;
   }
+
   return (
     <div className="h-screen flex bg-transparent overflow-hidden">
       {/* Sidebar - full height, desktop only, independent scroll */}
