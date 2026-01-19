@@ -256,10 +256,20 @@ const ReviewWriteSection: React.FC<ReviewWriteSectionProps> = ({
                   />
                 </div>
                 {!hideAdvancedFields && (
-                  <div className="flex flex-col w-40">
-                    <label className="text-xs font-semibold text-gray-500 mb-1">
-                      Word count limit for AI
-                    </label>
+                  <div className="flex flex-col w-32">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <img
+                        src="/images/prompty-icon-prompt-reviews.png"
+                        alt="Prompty"
+                        className="w-4 h-4 flex-shrink-0 object-contain"
+                      />
+                      <label className="text-xs font-semibold text-gray-500">
+                        Word count
+                      </label>
+                      <HoverTooltip text="This tells Prompty AI how many words to write. Common platform limits: Google (4,000 chars), Yelp (5,000 chars), Facebook (8,000 chars), TripAdvisor (300 chars), Amazon (5,000 chars), Trustpilot (3,000 chars).">
+                        <Icon name="FaInfoCircle" className="w-3 h-3 text-gray-400 cursor-pointer" size={12} />
+                      </HoverTooltip>
+                    </div>
                     <Input
                       type="number"
                       className="w-full border px-3 py-2 rounded-lg bg-white"
