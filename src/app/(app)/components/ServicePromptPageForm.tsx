@@ -11,7 +11,7 @@
  */
 
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, startTransition } from "react";
 import { useRouter } from "next/navigation";
 import CustomerDetailsSection from "./sections/CustomerDetailsSection";
 import ReviewWriteSection from "../dashboard/edit-prompt-page/components/ReviewWriteSection";
@@ -258,11 +258,14 @@ export default function ServicePromptPageForm({
   };
 
   // Update form data helper (no auto-save)
+  // Uses startTransition to mark updates as non-urgent for better INP
   const updateFormData = (field: string, value: any) => {
-    setFormData((prev: any) => ({
-      ...prev,
-      [field]: value,
-    }));
+    startTransition(() => {
+      setFormData((prev: any) => ({
+        ...prev,
+        [field]: value,
+      }));
+    });
   };
 
   // Synchronize emoji sentiment state with form data

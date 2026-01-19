@@ -10,7 +10,7 @@
  */
 
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, startTransition } from "react";
 import { useRouter } from "next/navigation";
 import CustomerDetailsSection from "./sections/CustomerDetailsSection";
 import ReviewWriteSection from "../dashboard/edit-prompt-page/components/ReviewWriteSection";
@@ -261,9 +261,11 @@ export default function EmployeePromptPageForm({
     }
   }, [initialData?.aiButtonEnabled, initialData?.ai_button_enabled, initialData?.fixGrammarEnabled, initialData?.fix_grammar_enabled]);
 
-  // Form data update helper
+  // Form data update helper - uses startTransition for better INP
   const updateFormData = (field: string, value: any) => {
-    setFormData((prev: any) => ({ ...prev, [field]: value }));
+    startTransition(() => {
+      setFormData((prev: any) => ({ ...prev, [field]: value }));
+    });
   };
 
   // Handle headshot upload

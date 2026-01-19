@@ -154,9 +154,12 @@ export default function CommunicationTrackingModal({
     const businessName = promptPage?.location || promptPage?.client_name || 'Our Business';
     const customerName = contact?.first_name || 'there';
     const baseUrl = window.location.origin;
-    const reviewUrl = activeTab === 'email'
-      ? generateEmailTrackedUrl(baseUrl, promptPage?.slug)
-      : generateSmsTrackedUrl(baseUrl, promptPage?.slug);
+    const slug = promptPage?.slug;
+    const reviewUrl = slug
+      ? (activeTab === 'email'
+          ? generateEmailTrackedUrl(baseUrl, slug)
+          : generateSmsTrackedUrl(baseUrl, slug))
+      : `${baseUrl}/r/`;
 
     // Apply template variables
     const variables = {
