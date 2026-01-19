@@ -266,7 +266,7 @@ const ReviewWriteSection: React.FC<ReviewWriteSectionProps> = ({
                       <label className="text-xs font-semibold text-gray-500">
                         Word count
                       </label>
-                      <HoverTooltip text="This tells Prompty AI how many words to write. Common platform limits: Google (4,000 chars), Yelp (5,000 chars), Facebook (8,000 chars), TripAdvisor (300 chars), Amazon (5,000 chars), Trustpilot (3,000 chars).">
+                      <HoverTooltip text="This tells Prompty AI how many words to write. Common platform limits: Google (~650 words), Yelp (~800 words), Facebook (~1,300 words), TripAdvisor (~50 words), Amazon (~800 words), Trustpilot (~500 words).">
                         <Icon name="FaInfoCircle" className="w-3 h-3 text-gray-400 cursor-pointer" size={12} />
                       </HoverTooltip>
                     </div>
