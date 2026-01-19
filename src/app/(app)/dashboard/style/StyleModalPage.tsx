@@ -1117,13 +1117,12 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
           </div>
         </div>
 
-        {/* Kickstarters Section (conditional) */}
-        {kickstartersEnabled && (
-          <div className="mt-8 p-6 bg-white/95 backdrop-blur-sm rounded-xl border border-white/30">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Kickstarters</h3>
-            <p className="text-sm text-gray-600 mb-4">
-              Style the Kickstarter prompts shown on your Prompt Pages.
-            </p>
+        {/* Kickstarters Section */}
+        <div className="mt-8 p-6 bg-white/95 backdrop-blur-sm rounded-xl border border-white/30">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">Kickstarters</h3>
+          <p className="text-sm text-gray-600 mb-4">
+            Style the Kickstarter prompts shown on your Prompt Pages.
+          </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-3">Kickstarters design style</label>
@@ -1162,8 +1161,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
                 </p>
               </div>
             </div>
-          </div>
-        )}
+        </div>
 
         {/* Border Settings */}
         <div className="mt-8 p-6 bg-white/95 backdrop-blur-sm rounded-xl border border-white/30">
