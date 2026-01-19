@@ -28,6 +28,7 @@ export default function ResearchSubnav() {
       label: 'Backlinks',
       icon: 'FaLink',
       isActive: pathname === '/dashboard/research/backlinks',
+      comingSoon: true,
     },
   ];
 
@@ -46,6 +47,11 @@ export default function ResearchSubnav() {
           >
             <Icon name={tab.icon as any} className="w-[18px] h-[18px]" size={18} />
             {tab.label}
+            {tab.comingSoon && (
+              <span className="ml-1 px-1.5 py-0.5 text-[10px] font-medium bg-amber-500 text-white rounded-full whitespace-nowrap">
+                Soon
+              </span>
+            )}
           </Link>
         ))}
       </div>

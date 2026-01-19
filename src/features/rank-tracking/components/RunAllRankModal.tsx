@@ -4,6 +4,9 @@ import { useState, useEffect } from 'react';
 import Icon from '@/components/Icon';
 import { apiClient } from '@/utils/apiClient';
 
+type RunMode = 'now' | 'schedule';
+type ScheduleOption = 'in1hour' | 'tomorrow8am' | 'custom';
+
 interface RunAllRankModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -33,6 +36,31 @@ interface BatchStatus {
   failedChecks: number;
   progress: number;
   errorMessage: string | null;
+  scheduled?: boolean;
+  scheduledFor?: string | null;
+}
+
+// Helper to calculate scheduled time
+function getScheduledTime(option: ScheduleOption, customDate?: string, customTime?: string): Date | null {
+  const now = new Date();
+
+  switch (option) {
+    case 'in1hour':
+      return new Date(now.getTime() + 60 * 60 * 1000);
+    case 'tomorrow8am': {
+      const tomorrow = new Date(now);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(8, 0, 0, 0);
+      return tomorrow;
+    }
+    case 'custom':
+      if (customDate && customTime) {
+        return new Date(`${customDate}T${customTime}`);
+      }
+      return null;
+    default:
+      return null;
+  }
 }
 
 export default function RunAllRankModal({
@@ -46,6 +74,14 @@ export default function RunAllRankModal({
   const [batchStatus, setBatchStatus] = useState<BatchStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // Schedule state
+  const [runMode, setRunMode] = useState<RunMode>('now');
+  const [scheduleOption, setScheduleOption] = useState<ScheduleOption>('in1hour');
+  const [customDate, setCustomDate] = useState('');
+  const [customTime, setCustomTime] = useState('08:00');
+  const [isScheduled, setIsScheduled] = useState(false);
+  const [scheduledFor, setScheduledFor] = useState<string | null>(null);
+
   // Load preview when modal opens
   useEffect(() => {
     if (isOpen) {
@@ -56,6 +92,12 @@ export default function RunAllRankModal({
       setBatchStatus(null);
       setError(null);
       setIsStarting(false);
+      setRunMode('now');
+      setScheduleOption('in1hour');
+      setCustomDate('');
+      setCustomTime('08:00');
+      setIsScheduled(false);
+      setScheduledFor(null);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
@@ -108,6 +150,20 @@ export default function RunAllRankModal({
   const handleStartBatch = async () => {
     if (!preview || !preview.hasCredits) return;
 
+    // Validate schedule if in schedule mode
+    let scheduleTime: Date | null = null;
+    if (runMode === 'schedule') {
+      scheduleTime = getScheduledTime(scheduleOption, customDate, customTime);
+      if (!scheduleTime) {
+        setError('Please select a valid schedule time');
+        return;
+      }
+      if (scheduleTime <= new Date()) {
+        setError('Scheduled time must be in the future');
+        return;
+      }
+    }
+
     setIsStarting(true);
     setError(null);
 
@@ -117,21 +173,31 @@ export default function RunAllRankModal({
         runId: string;
         totalKeywords: number;
         estimatedCredits: number;
+        scheduled?: boolean;
+        scheduledFor?: string | null;
         error?: string;
-      }>('/rank-tracking/batch-run', {});
+      }>('/rank-tracking/batch-run', {
+        scheduledFor: scheduleTime?.toISOString() || undefined,
+      });
 
       if (response.success) {
-        // Set initial batch status
-        setBatchStatus({
-          runId: response.runId,
-          status: 'pending',
-          totalKeywords: response.totalKeywords,
-          processedKeywords: 0,
-          successfulChecks: 0,
-          failedChecks: 0,
-          progress: 0,
-          errorMessage: null,
-        });
+        if (response.scheduled && response.scheduledFor) {
+          // Show scheduled confirmation
+          setIsScheduled(true);
+          setScheduledFor(response.scheduledFor);
+        } else {
+          // Set initial batch status for immediate run
+          setBatchStatus({
+            runId: response.runId,
+            status: 'pending',
+            totalKeywords: response.totalKeywords,
+            processedKeywords: 0,
+            successfulChecks: 0,
+            failedChecks: 0,
+            progress: 0,
+            errorMessage: null,
+          });
+        }
         onStarted?.();
       } else {
         setError(response.error || 'Failed to start batch run');
@@ -177,9 +243,9 @@ export default function RunAllRankModal({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Icon name="FaChartLine" className="w-5 h-5 text-slate-blue" />
-              <h3 className="text-lg font-semibold text-gray-900">Run all rank checks</h3>
+              <h3 className="text-lg font-semibold text-gray-900">Check all rankings</h3>
             </div>
-            {!isRunning && (
+            {!isRunning && !isScheduled && (
               <button
                 onClick={onClose}
                 aria-label="Close modal"
@@ -199,6 +265,24 @@ export default function RunAllRankModal({
           {isLoadingPreview ? (
             <div className="flex items-center justify-center py-8">
               <Icon name="FaSpinner" className="w-6 h-6 text-slate-blue animate-spin" />
+            </div>
+          ) : isScheduled ? (
+            /* Scheduled confirmation state */
+            <div className="space-y-4">
+              <div className="p-4 rounded-lg bg-green-50 border border-green-200">
+                <div className="flex items-center gap-3">
+                  <Icon name="FaCalendarAlt" className="w-5 h-5 text-green-600" />
+                  <div>
+                    <p className="text-sm font-medium text-green-800">Checks scheduled</p>
+                    <p className="text-xs text-green-700">
+                      Will run {scheduledFor ? new Date(scheduledFor).toLocaleString() : 'at scheduled time'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <p className="text-xs text-gray-500 text-center">
+                Credits have been reserved. You can close this modal.
+              </p>
             </div>
           ) : isRunning ? (
             /* Running state */
@@ -263,6 +347,87 @@ export default function RunAllRankModal({
           ) : (
             /* Configuration state */
             <>
+              {/* Run mode toggle */}
+              <div className="flex rounded-lg bg-gray-100 p-1">
+                <button
+                  onClick={() => setRunMode('now')}
+                  className={`flex-1 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                    runMode === 'now'
+                      ? 'bg-white text-gray-900 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  Check now
+                </button>
+                <button
+                  onClick={() => setRunMode('schedule')}
+                  className={`flex-1 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                    runMode === 'schedule'
+                      ? 'bg-white text-gray-900 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  Schedule
+                </button>
+              </div>
+
+              {/* Schedule options (only shown in schedule mode) */}
+              {runMode === 'schedule' && (
+                <div className="space-y-3">
+                  <div className="flex flex-col gap-2">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="scheduleOption"
+                        checked={scheduleOption === 'in1hour'}
+                        onChange={() => setScheduleOption('in1hour')}
+                        className="text-slate-blue focus:ring-slate-blue"
+                      />
+                      <span className="text-sm text-gray-700">In 1 hour</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="scheduleOption"
+                        checked={scheduleOption === 'tomorrow8am'}
+                        onChange={() => setScheduleOption('tomorrow8am')}
+                        className="text-slate-blue focus:ring-slate-blue"
+                      />
+                      <span className="text-sm text-gray-700">Tomorrow at 8 AM</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="scheduleOption"
+                        checked={scheduleOption === 'custom'}
+                        onChange={() => setScheduleOption('custom')}
+                        className="text-slate-blue focus:ring-slate-blue"
+                      />
+                      <span className="text-sm text-gray-700">Custom time</span>
+                    </label>
+                  </div>
+
+                  {/* Custom date/time inputs */}
+                  {scheduleOption === 'custom' && (
+                    <div className="flex gap-2 pl-6">
+                      <input
+                        type="date"
+                        value={customDate}
+                        onChange={(e) => setCustomDate(e.target.value)}
+                        min={new Date().toISOString().split('T')[0]}
+                        className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-slate-blue focus:border-slate-blue"
+                      />
+                      <input
+                        type="time"
+                        value={customTime}
+                        onChange={(e) => setCustomTime(e.target.value)}
+                        className="px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-slate-blue focus:border-slate-blue"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Summary */}
               {preview && (
                 <div className="p-3 rounded-lg bg-gray-50 border border-gray-200">
@@ -331,9 +496,9 @@ export default function RunAllRankModal({
             onClick={onClose}
             className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"
           >
-            {isRunning ? 'Close' : isComplete || isFailed ? 'Done' : 'Cancel'}
+            {isRunning ? 'Close' : isComplete || isFailed || isScheduled ? 'Done' : 'Cancel'}
           </button>
-          {!isRunning && !isComplete && !isFailed && (
+          {!isRunning && !isComplete && !isFailed && !isScheduled && (
             <button
               onClick={handleStartBatch}
               disabled={
@@ -347,12 +512,17 @@ export default function RunAllRankModal({
               {isStarting ? (
                 <>
                   <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
-                  Starting...
+                  {runMode === 'schedule' ? 'Scheduling...' : 'Starting...'}
+                </>
+              ) : runMode === 'schedule' ? (
+                <>
+                  <Icon name="FaCalendarAlt" className="w-4 h-4" />
+                  Schedule checks
                 </>
               ) : (
                 <>
                   <Icon name="FaChartLine" className="w-4 h-4" />
-                  Run all checks
+                  Check all
                 </>
               )}
             </button>

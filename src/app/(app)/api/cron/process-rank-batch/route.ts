@@ -70,10 +70,13 @@ export async function GET(request: NextRequest) {
     }
 
     // Find oldest pending or processing batch run
+    // Only process runs where scheduled_for is NULL (immediate) or in the past
+    const now = new Date().toISOString();
     const { data: batchRun, error: runError } = await serviceSupabase
       .from('rank_batch_runs')
       .select('*')
       .in('status', ['pending', 'processing'])
+      .or(`scheduled_for.is.null,scheduled_for.lte.${now}`)
       .order('created_at', { ascending: true })
       .limit(1)
       .single();

@@ -698,7 +698,7 @@ export default function RankTrackingPage() {
                 className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 flex items-center gap-2 transition-colors whitespace-nowrap"
               >
                 <Icon name="FaRocket" className="w-4 h-4" />
-                Run all checks
+                Check all
               </button>
               <button
                 onClick={() => setShowAddModal(true)}

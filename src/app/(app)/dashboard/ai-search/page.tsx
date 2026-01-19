@@ -447,6 +447,119 @@ export default function AISearchPage() {
     await fetchData();
   }, [createKeyword, refreshKeywords, fetchData]);
 
+  // Handle template download for import
+  const handleDownloadTemplate = async () => {
+    try {
+      const response = await apiClient.download('/keywords/upload');
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'concepts-template.csv';
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Template download failed:', error);
+      alert('Failed to download template. Please try again.');
+    }
+  };
+
+  // Handle file selection for import
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setImportFile(file);
+    setImportResult(null);
+
+    // Parse preview
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target?.result as string;
+      const lines = text
+        .split('\n')
+        .filter(line => line.trim() && !line.startsWith('#'))
+        .slice(0, 6); // Header + 5 rows
+
+      const rows = lines.map(line => {
+        const result: string[] = [];
+        let inQuotes = false;
+        let current = '';
+
+        for (const char of line) {
+          if (char === '"') {
+            inQuotes = !inQuotes;
+          } else if (char === ',' && !inQuotes) {
+            result.push(current.trim());
+            current = '';
+          } else {
+            current += char;
+          }
+        }
+        result.push(current.trim());
+        return result;
+      });
+
+      setImportPreview(rows);
+    };
+    reader.readAsText(file);
+  };
+
+  // Handle import submit
+  const handleImportSubmit = async () => {
+    if (!importFile) return;
+
+    setIsImporting(true);
+    setImportResult(null);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', importFile);
+
+      const result = await apiClient.upload<{
+        message?: string;
+        error?: string;
+        keywordsCreated?: number;
+        duplicatesSkipped?: number;
+        skippedPhrases?: string[];
+        errors?: string[];
+      }>('/keywords/upload', formData);
+
+      setImportResult({
+        success: true,
+        message: result.message || 'Import successful',
+        keywordsCreated: result.keywordsCreated,
+        duplicatesSkipped: result.duplicatesSkipped,
+        skippedPhrases: result.skippedPhrases,
+        errors: result.errors,
+      });
+      // Refresh the data after successful import
+      await refreshKeywords();
+      await fetchData();
+    } catch (error: any) {
+      setImportResult({
+        success: false,
+        message: error?.responseBody?.error || error?.message || 'Import failed',
+        errors: error?.responseBody?.errors,
+      });
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
+  // Reset import modal
+  const resetImportModal = () => {
+    setShowImportModal(false);
+    setImportFile(null);
+    setImportPreview([]);
+    setImportResult(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   // Open sidebar to edit a concept
   const handleOpenConceptSidebar = useCallback(async (conceptId: string) => {
     setIsLoadingKeyword(true);
@@ -642,6 +755,15 @@ export default function AISearchPage() {
                   Export CSV
                 </button>
               )}
+              <button
+                onClick={() => setShowImportModal(true)}
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg transition-colors whitespace-nowrap"
+                title="Import concepts from CSV"
+                aria-label="Import concepts"
+              >
+                <ArrowUpTrayIcon className="w-4 h-4" />
+                Import
+              </button>
               <button
                 onClick={() => setShowAddModal(true)}
                 className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-slate-blue hover:bg-slate-blue/90 rounded-lg transition-colors whitespace-nowrap"
@@ -1200,6 +1322,153 @@ export default function AISearchPage() {
           // Could trigger a refresh when batch completes
         }}
       />
+
+      {/* Import Modal */}
+      {showImportModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-hidden flex flex-col">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b">
+              <h3 className="text-lg font-semibold text-gray-800">Import concepts</h3>
+              <button onClick={resetImportModal} className="text-gray-500 hover:text-gray-600" aria-label="Close modal">
+                <XMarkIcon className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="flex-1 overflow-y-auto p-6">
+              {/* Template download */}
+              <div className="mb-6 p-4 bg-blue-50 border border-blue-100 rounded-lg">
+                <h4 className="text-sm font-medium text-blue-800 mb-2">Download template</h4>
+                <p className="text-sm text-blue-700 mb-3">
+                  Download our CSV template with all available fields and example data.
+                </p>
+                <button
+                  onClick={handleDownloadTemplate}
+                  className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-blue-700 bg-white border border-blue-300 rounded-md hover:bg-blue-50"
+                >
+                  <DocumentArrowDownIcon className="w-4 h-4" />
+                  Download template
+                </button>
+              </div>
+
+              {/* File upload */}
+              <div className="mb-6">
+                <h4 className="text-sm font-medium text-gray-700 mb-2">Upload CSV file</h4>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".csv"
+                  onChange={handleFileSelect}
+                  className="block w-full text-sm text-gray-500
+                    file:mr-4 file:py-2 file:px-4
+                    file:rounded-md file:border-0
+                    file:text-sm file:font-medium
+                    file:bg-slate-blue file:text-white
+                    hover:file:bg-slate-blue/90
+                    file:cursor-pointer cursor-pointer"
+                />
+              </div>
+
+              {/* Preview */}
+              {importPreview.length > 0 && (
+                <div className="mb-6">
+                  <h4 className="text-sm font-medium text-gray-700 mb-2">Preview (first 5 rows)</h4>
+                  <div className="overflow-x-auto border rounded-lg">
+                    <table className="min-w-full divide-y divide-gray-200 text-sm">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          {importPreview[0]?.map((header, i) => (
+                            <th key={i} className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                              {header || `Col ${i + 1}`}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200">
+                        {importPreview.slice(1).map((row, rowIdx) => (
+                          <tr key={rowIdx} className={rowIdx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                            {row.map((cell, cellIdx) => (
+                              <td key={cellIdx} className="px-3 py-2 text-gray-700 max-w-[200px] truncate">
+                                {cell}
+                              </td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Import result */}
+              {importResult && (
+                <div className={`p-4 rounded-lg ${importResult.success ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
+                  <h4 className={`text-sm font-medium ${importResult.success ? 'text-green-800' : 'text-red-800'}`}>
+                    {importResult.success ? 'Import complete' : 'Import failed'}
+                  </h4>
+                  <p className={`text-sm mt-1 ${importResult.success ? 'text-green-700' : 'text-red-700'}`}>
+                    {importResult.message}
+                  </p>
+                  {importResult.success && (
+                    <div className="mt-2 text-sm text-green-700">
+                      <p>{importResult.keywordsCreated} concepts created</p>
+                      {importResult.duplicatesSkipped ? (
+                        <p>{importResult.duplicatesSkipped} duplicates skipped</p>
+                      ) : null}
+                      {importResult.skippedPhrases && importResult.skippedPhrases.length > 0 && (
+                        <details className="mt-2">
+                          <summary className="cursor-pointer text-sm text-amber-600 hover:text-amber-700">
+                            View {importResult.duplicatesSkipped} skipped duplicates
+                          </summary>
+                          <ul className="mt-1 text-xs text-gray-600 max-h-32 overflow-y-auto pl-4">
+                            {importResult.skippedPhrases.map((phrase, i) => (
+                              <li key={i} className="list-disc">{phrase}</li>
+                            ))}
+                          </ul>
+                        </details>
+                      )}
+                    </div>
+                  )}
+                  {importResult.errors && importResult.errors.length > 0 && (
+                    <div className="mt-2">
+                      <p className="text-xs font-medium text-gray-600 mb-1">Warnings/Errors:</p>
+                      <ul className="text-xs text-gray-600 max-h-32 overflow-y-auto">
+                        {importResult.errors.slice(0, 10).map((err, i) => (
+                          <li key={i}>{err}</li>
+                        ))}
+                        {importResult.errors.length > 10 && (
+                          <li>...and {importResult.errors.length - 10} more</li>
+                        )}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="px-6 py-4 border-t bg-gray-50 flex justify-end gap-3">
+              <button
+                onClick={resetImportModal}
+                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                {importResult?.success ? 'Close' : 'Cancel'}
+              </button>
+              {!importResult?.success && (
+                <button
+                  onClick={handleImportSubmit}
+                  disabled={!importFile || isImporting}
+                  className="px-4 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-blue/90 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                >
+                  {isImporting && <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />}
+                  {isImporting ? 'Importing...' : 'Import concepts'}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

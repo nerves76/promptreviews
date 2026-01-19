@@ -242,7 +242,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       allCompetitors: formattedAllCompetitors, // All competitors for swap dropdown
       promptReviews: {
         features: promptReviewsFeatures,
-        pricing_description: promptReviewsData?.pricing_description || 'Pricing tiers start at $17/month. $85/month for multi-location businesses.',
+        pricing_description: promptReviewsData?.pricing_description || 'Pricing tiers start at $20/month. $85/month for multi-location businesses.',
       },
       pricingNotes: table.pricing_notes || {},
     };

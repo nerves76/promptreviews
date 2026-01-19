@@ -9,11 +9,11 @@ const tiers = [
     key: "grower",
     name: "Grower",
     description: "Great for solo operators getting started",
-    price: "20",
-    priceMonthly: "20",
-    priceAnnual: "17", // $204/year ÷ 12 months (15% discount)
-    annualTotal: "204",
-    savings: "36",
+    price: "24",
+    priceMonthly: "24",
+    priceAnnual: "20", // $245/year ÷ 12 months (~15% discount)
+    annualTotal: "245",
+    savings: "43",
     period: "month",
     order: 1,
     bg: "bg-blue-100",

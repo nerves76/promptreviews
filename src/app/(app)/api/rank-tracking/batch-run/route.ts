@@ -26,6 +26,10 @@ const serviceSupabase = createClient(
 // 2 credits per keyword (desktop + mobile)
 const CREDITS_PER_KEYWORD = 2;
 
+interface BatchRunRequest {
+  scheduledFor?: string; // ISO timestamp for when to start the run
+}
+
 interface KeywordItem {
   keywordId: string;
   searchTerm: string;
@@ -48,6 +52,21 @@ export async function POST(request: NextRequest) {
     const accountId = await getRequestAccountId(request, user.id, supabase);
     if (!accountId) {
       return NextResponse.json({ error: 'Account not found' }, { status: 404 });
+    }
+
+    const body: BatchRunRequest = await request.json().catch(() => ({}));
+    const { scheduledFor } = body;
+
+    // Parse scheduled time if provided
+    let scheduledForDate: Date | null = null;
+    if (scheduledFor) {
+      scheduledForDate = new Date(scheduledFor);
+      if (isNaN(scheduledForDate.getTime())) {
+        return NextResponse.json(
+          { error: 'Invalid scheduledFor timestamp' },
+          { status: 400 }
+        );
+      }
     }
 
     // Check if there's already a pending/processing batch run
@@ -195,6 +214,7 @@ export async function POST(request: NextRequest) {
         estimated_credits: totalCredits,
         total_credits_used: totalCredits,
         triggered_by: user.id,
+        scheduled_for: scheduledForDate?.toISOString() || null,
       })
       .select()
       .single();
@@ -244,11 +264,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       queued: true,
+      scheduled: !!scheduledForDate,
+      scheduledFor: scheduledForDate?.toISOString() || null,
       runId: batchRun.id,
       totalKeywords: allKeywords.length,
       estimatedCredits: totalCredits,
       creditBalance: updatedBalance.totalCredits,
-      message: 'Batch run queued successfully. Results will be available shortly.',
+      message: scheduledForDate
+        ? `Batch run scheduled for ${scheduledForDate.toLocaleString()}`
+        : 'Batch run queued successfully. Results will be available shortly.',
     });
 
   } catch (error) {

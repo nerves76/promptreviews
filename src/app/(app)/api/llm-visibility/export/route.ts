@@ -60,7 +60,6 @@ export async function GET(request: NextRequest) {
         citations,
         search_results,
         fan_out_queries,
-        api_cost_usd,
         checked_at
       `)
       .eq('account_id', accountId)
@@ -119,7 +118,6 @@ export async function GET(request: NextRequest) {
       'fan_out_queries',
       'response_snippet',
       'full_response',
-      'api_cost_usd',
       'checked_at',
     ];
 
@@ -178,7 +176,6 @@ export async function GET(request: NextRequest) {
         escapeCSV(fanOutQueriesStr),
         escapeCSV(check.response_snippet),
         escapeCSV(check.full_response),
-        escapeCSV(check.api_cost_usd),
         escapeCSV(check.checked_at ? new Date(check.checked_at).toISOString() : ''),
       ].join(',');
     }) || [];

@@ -561,7 +561,7 @@
       html += '<tr>';
       html += '<td class="pr-comparison-feature-name">Plans & pricing</td>';
       html += '<td class="pr-comparison-highlight">';
-      var prPricing = (data.promptReviews && data.promptReviews.pricing_description) || 'Pricing tiers start at $17/month. $85/month for multi-location businesses.';
+      var prPricing = (data.promptReviews && data.promptReviews.pricing_description) || 'Pricing tiers start at $20/month. $85/month for multi-location businesses.';
       html += '<span class="pr-comparison-text-value">' + escapeHtml(prPricing) + '</span>';
       html += '</td>';
 

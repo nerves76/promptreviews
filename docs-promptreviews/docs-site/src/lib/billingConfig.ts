@@ -8,8 +8,8 @@
 export const PLAN_DISPLAY = {
   grower: {
     name: 'Grower',
-    monthlyPrice: 20,
-    annualPrice: 204,
+    monthlyPrice: 24,
+    annualPrice: 245,
     order: 1,
   },
   builder: {

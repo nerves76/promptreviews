@@ -824,7 +824,7 @@ export default function IndividualOutreach() {
                     setCopySuccess("Copied!");
                     setTimeout(() => setCopySuccess(""), 2000);
                   }}
-                  className="w-full flex items-center justify-between p-3 bg-slate-blue/30 hover:bg-slate-blue/50 backdrop-blur-sm rounded-lg border border-slate-blue/30 transition-colors cursor-pointer"
+                  className="w-full flex items-center justify-between p-3 bg-emerald-500/30 hover:bg-emerald-500/50 backdrop-blur-sm rounded-lg border border-emerald-300/30 transition-colors cursor-pointer"
                 >
                   <span className="text-sm font-medium text-white">Get link</span>
                   <span className="text-white text-sm font-medium">
