@@ -269,13 +269,13 @@ export default function CommunicationTrackingModal({
       <div className="fixed inset-0 flex items-center justify-center p-4">
         <Dialog.Panel className="mx-auto max-w-2xl w-full bg-white rounded-xl shadow-lg">
           <div className="relative p-6 border-b">
-            {/* Close button - site convention */}
+            {/* Close button - site convention: white circle, red X */}
             <button
               onClick={onClose}
-              className="absolute -top-3 -right-3 p-1.5 bg-red-500 hover:bg-red-600 text-white rounded-full shadow-lg transition-colors z-10"
+              className="absolute -top-3 -right-3 w-12 h-12 bg-white border border-gray-200 hover:bg-gray-100 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 z-10"
               aria-label="Close modal"
             >
-              <XMarkIcon className="w-5 h-5" />
+              <XMarkIcon className="w-4 h-4 text-red-600" />
             </button>
             <div>
               <Dialog.Title className="text-lg font-semibold text-gray-900">

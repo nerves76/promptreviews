@@ -892,6 +892,7 @@ export default function EmployeePromptPageForm({
           onGenerateReview={handleGenerateAIReview}
           hideReviewTemplateFields={campaignType === 'public'}
           aiGeneratingIndex={aiGeneratingIndex}
+          showSettingsTip={true}
         />
 
         {/* Suggested Phrases Section */}

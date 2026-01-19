@@ -265,16 +265,16 @@ export default function PromptPageSettingsPage() {
         </div>
       </div>
 
-      {/* Page Title Section - Glassmorphic */}
-      <div className="bg-white/20 backdrop-blur-md border-b border-white/30 -mt-px">
+      {/* Page Title Section */}
+      <div className="-mt-px">
         <div className="max-w-6xl mx-auto px-6 py-8">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
-                <Icon name="FaCog" className="w-8 h-8 text-slate-blue" size={32} />
+              <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+                <Icon name="FaCog" className="w-8 h-8 text-white/80" size={32} />
                 Prompt page settings
               </h2>
-              <p className="text-gray-600 mt-1">
+              <p className="text-white/80 mt-1">
                 Set global defaults for keywords, AI, review platforms, and more.
               </p>
             </div>
@@ -314,28 +314,6 @@ export default function PromptPageSettingsPage() {
             <h2 className="text-xl font-bold text-slate-blue mb-1">Global Settings</h2>
             <p className="text-sm text-gray-600 mb-6">These settings apply immediately to all prompt pages.</p>
 
-            {/* Keyword Concepts Link */}
-            <section className="mb-6">
-              <div className="flex items-center justify-between p-4 bg-indigo-50 border border-indigo-200 rounded-lg">
-                <div>
-                  <h3 className="text-lg font-semibold text-slate-blue flex items-center gap-2">
-                    <Icon name="FaKey" className="w-5 h-5" />
-                    Keyword Concepts
-                  </h3>
-                  <p className="text-sm text-gray-600 mt-1">
-                    Manage your suggested phrases and keywords in &quot;Keyword Concepts.&quot; Note: You can also add and manage keyword phrases on individual Prompt Pages.
-                  </p>
-                </div>
-                <Link
-                  href="/dashboard/keywords"
-                  className="px-4 py-2 bg-slate-blue text-white rounded-lg font-medium hover:bg-slate-blue/90 transition flex items-center gap-2"
-                >
-                  Go
-                  <Icon name="FaArrowRight" className="w-4 h-4" />
-                </Link>
-              </div>
-            </section>
-
             {/* AI Dos and Don'ts Section */}
             <section className="mb-6">
               <h3 className="text-lg font-semibold text-slate-blue mb-4 flex items-center">
@@ -373,6 +351,25 @@ export default function PromptPageSettingsPage() {
                     placeholder="e.g., Never mention pricing or costs..."
                   />
                 </div>
+              </div>
+            </section>
+
+            {/* Keyword Concepts Link */}
+            <section>
+              <div className="flex items-center justify-between p-3 bg-indigo-50/70 border border-indigo-100 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <Icon name="FaKey" className="w-4 h-4 text-slate-blue" />
+                  <span className="text-sm text-gray-600">
+                    Manage suggested phrases in <Link href="/dashboard/keywords" className="text-slate-blue font-medium hover:underline">Keyword Concepts</Link>
+                  </span>
+                </div>
+                <Link
+                  href="/dashboard/keywords"
+                  className="px-3 py-1.5 bg-slate-blue text-white rounded-md text-sm font-medium hover:bg-slate-blue/90 transition flex items-center gap-1.5 whitespace-nowrap"
+                >
+                  Go
+                  <Icon name="FaArrowRight" className="w-3 h-3" />
+                </Link>
               </div>
             </section>
           </div>

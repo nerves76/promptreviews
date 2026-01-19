@@ -3,6 +3,7 @@ import Icon from "@/components/Icon";
 import { Input } from "@/app/(app)/components/ui/input";
 import { Textarea } from "@/app/(app)/components/ui/textarea";
 import { clampWordLimit, PROMPT_PAGE_WORD_LIMITS } from "@/constants/promptPageWordLimits";
+import Link from "next/link";
 
 export interface ReviewWritePlatform {
   name: string;
@@ -23,6 +24,8 @@ interface ReviewWriteSectionProps {
   hideReviewTemplateFields?: boolean;
   hideAdvancedFields?: boolean;
   aiGeneratingIndex?: number | null;
+  /** Show a tip about configuring platforms in Prompt Page settings */
+  showSettingsTip?: boolean;
 }
 
 const platformOptions = [
@@ -84,6 +87,7 @@ const ReviewWriteSection: React.FC<ReviewWriteSectionProps> = ({
   errors = [],
   hideReviewTemplateFields = false,
   aiGeneratingIndex = null,
+  showSettingsTip = false,
 }) => {
   const handlePlatformChange = (
     idx: number,
@@ -317,6 +321,25 @@ const ReviewWriteSection: React.FC<ReviewWriteSectionProps> = ({
           <Icon name="FaPlus" className="mr-2 h-4 w-4" size={16} />
           Add Platform
         </button>
+
+        {/* Settings tip - only show when no platforms and tip is enabled */}
+        {showSettingsTip && value.length === 0 && (
+          <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+            <div className="flex items-start gap-2">
+              <Icon name="FaLightbulb" className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" size={16} />
+              <p className="text-sm text-amber-800">
+                <span className="font-semibold">Hot tip:</span> Add your review platforms in{" "}
+                <Link
+                  href="/dashboard/prompt-page-settings"
+                  className="text-slate-blue hover:underline font-medium"
+                >
+                  Prompt Page settings
+                </Link>
+                {" "}and it will be automatically populated here.
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

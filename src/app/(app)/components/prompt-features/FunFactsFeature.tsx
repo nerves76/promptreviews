@@ -123,38 +123,38 @@ export default function FunFactsFeature({
   }, [localFacts, localSelected]);
 
   return (
-    <div className="bg-amber-50 rounded-xl p-5 border border-amber-200">
+    <div className="bg-amber-50 rounded-lg p-2 sm:p-4 border border-amber-200 shadow relative">
       {/* Header with Toggle */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
-            <Icon name="FaInfoCircle" className="text-amber-600" size={20} />
+      <div className="flex flex-row justify-between items-start mb-2 px-2 sm:px-4 py-2">
+        <div className="flex flex-col">
+          <div className="flex items-center gap-3">
+            <Icon name="FaLightbulb" className="w-7 h-7 text-amber-600" size={28} />
+            <span className="text-2xl font-bold text-amber-600">Fun facts</span>
           </div>
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900">Fun facts</h3>
-            <p className="text-sm text-gray-600">
-              Help customers connect with your story
-            </p>
+          <div className="text-sm text-gray-700 mt-[3px] ml-10">
+            Help customers connect with your story
           </div>
         </div>
 
         {/* Toggle Switch */}
-        <button
-          type="button"
-          role="switch"
-          aria-checked={enabled}
-          disabled={disabled}
-          onClick={() => onEnabledChange(!enabled)}
-          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2 ${
-            enabled ? "bg-slate-blue" : "bg-gray-200"
-          } ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
-        >
-          <span
-            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-              enabled ? "translate-x-6" : "translate-x-1"
-            }`}
-          />
-        </button>
+        <div className="flex flex-col justify-start pt-1">
+          <button
+            type="button"
+            role="switch"
+            aria-checked={enabled}
+            disabled={disabled}
+            onClick={() => onEnabledChange(!enabled)}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+              enabled ? "bg-slate-blue" : "bg-gray-200"
+            } ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                enabled ? "translate-x-5" : "translate-x-1"
+              }`}
+            />
+          </button>
+        </div>
       </div>
 
       {/* Inheritance Badge */}

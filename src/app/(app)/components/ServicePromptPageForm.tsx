@@ -744,6 +744,7 @@ export default function ServicePromptPageForm({
           onGenerateReview={handleGenerateAIReview}
           hideReviewTemplateFields={campaignType === 'public'}
           aiGeneratingIndex={aiGeneratingIndex}
+          showSettingsTip={true}
         />
 
         {/* Suggested Phrases Section */}

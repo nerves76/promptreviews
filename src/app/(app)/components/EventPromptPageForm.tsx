@@ -758,6 +758,7 @@ export default function EventPromptPageForm({
           onGenerateReview={handleGenerateAIReview}
           hideReviewTemplateFields={campaignType === 'public'}
           aiGeneratingIndex={aiGeneratingIndex}
+          showSettingsTip={true}
         />
 
         {/* Suggested Phrases Section */}

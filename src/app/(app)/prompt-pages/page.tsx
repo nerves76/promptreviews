@@ -1118,7 +1118,8 @@ function PromptPagesContent() {
                   </p>
                 </div>
 
-                {(!account || !hasIndividualAccess(account.plan)) ? (
+                {/* Only show upgrade message after loading completes - prevents flash */}
+                {!primaryAccountLoading && (!account || !hasIndividualAccess(account.plan)) ? (
                   <div className="py-12">
                     {/* Preview Kanban Board with Fake Data */}
                     <div className="mb-8 relative">

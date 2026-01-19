@@ -530,6 +530,7 @@ export default function PhotoPromptPageForm({
           onGenerateReview={handleGenerateAIReview}
           hideReviewTemplateFields={campaignType === 'public'}
           aiGeneratingIndex={aiGeneratingIndex}
+          showSettingsTip={true}
         />
 
         {/* Suggested Phrases Section */}
