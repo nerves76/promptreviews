@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import Icon from '@/components/Icon';
 import { apiClient } from '@/utils/apiClient';
 import {
@@ -10,6 +10,35 @@ import {
   LLM_PROVIDER_COLORS,
   LLM_CREDIT_COSTS,
 } from '../utils/types';
+
+type RunMode = 'now' | 'schedule';
+type ScheduleOption = 'in1hour' | 'tomorrow8am' | 'custom';
+
+/**
+ * Calculate schedule time based on selected option
+ */
+function getScheduledTime(option: ScheduleOption, customTime: string): Date | null {
+  const now = new Date();
+
+  switch (option) {
+    case 'in1hour':
+      return new Date(now.getTime() + 60 * 60 * 1000);
+    case 'tomorrow8am': {
+      const tomorrow = new Date(now);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(8, 0, 0, 0);
+      return tomorrow;
+    }
+    case 'custom':
+      if (customTime) {
+        const date = new Date(customTime);
+        return isNaN(date.getTime()) ? null : date;
+      }
+      return null;
+    default:
+      return null;
+  }
+}
 
 interface RunAllLLMModalProps {
   isOpen: boolean;
@@ -35,7 +64,7 @@ interface BatchPreview {
 
 interface BatchStatus {
   runId: string;
-  status: 'pending' | 'processing' | 'completed' | 'failed';
+  status: 'pending' | 'processing' | 'completed' | 'failed' | 'scheduled';
   providers: LLMProvider[];
   totalQuestions: number;
   processedQuestions: number;
@@ -43,6 +72,7 @@ interface BatchStatus {
   failedChecks: number;
   progress: number;
   errorMessage: string | null;
+  scheduledFor?: string | null;
 }
 
 export default function RunAllLLMModal({
@@ -56,6 +86,23 @@ export default function RunAllLLMModal({
   const [isStarting, setIsStarting] = useState(false);
   const [batchStatus, setBatchStatus] = useState<BatchStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Schedule options
+  const [runMode, setRunMode] = useState<RunMode>('now');
+  const [scheduleOption, setScheduleOption] = useState<ScheduleOption>('in1hour');
+  const [customTime, setCustomTime] = useState('');
+
+  // Calculate minimum datetime for the custom input (now + 5 minutes)
+  const minDateTime = useMemo(() => {
+    const min = new Date(Date.now() + 5 * 60 * 1000);
+    return min.toISOString().slice(0, 16); // Format: YYYY-MM-DDTHH:MM
+  }, []);
+
+  // Get the scheduled time based on current selection
+  const scheduledTime = useMemo(() => {
+    if (runMode !== 'schedule') return null;
+    return getScheduledTime(scheduleOption, customTime);
+  }, [runMode, scheduleOption, customTime]);
 
   // Calculate cost based on selected providers
   const calculateCost = useCallback((questionCount: number, providers: LLMProvider[]) => {
@@ -72,6 +119,9 @@ export default function RunAllLLMModal({
       setBatchStatus(null);
       setError(null);
       setIsStarting(false);
+      setRunMode('now');
+      setScheduleOption('in1hour');
+      setCustomTime('');
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
@@ -144,6 +194,12 @@ export default function RunAllLLMModal({
   const handleStartBatch = async () => {
     if (!preview || selectedProviders.length === 0 || !hasCredits) return;
 
+    // Validate schedule time if scheduling
+    if (runMode === 'schedule' && !scheduledTime) {
+      setError('Please select a valid schedule time');
+      return;
+    }
+
     setIsStarting(true);
     setError(null);
 
@@ -154,16 +210,19 @@ export default function RunAllLLMModal({
         totalQuestions: number;
         providers: LLMProvider[];
         estimatedCredits: number;
+        scheduled?: boolean;
+        scheduledFor?: string;
         error?: string;
       }>('/llm-visibility/batch-run', {
         providers: selectedProviders,
+        scheduledFor: scheduledTime?.toISOString() || undefined,
       });
 
       if (response.success) {
         // Set initial batch status
         setBatchStatus({
           runId: response.runId,
-          status: 'pending',
+          status: response.scheduled ? 'scheduled' : 'pending',
           providers: response.providers,
           totalQuestions: response.totalQuestions,
           processedQuestions: 0,
@@ -171,6 +230,7 @@ export default function RunAllLLMModal({
           failedChecks: 0,
           progress: 0,
           errorMessage: null,
+          scheduledFor: response.scheduledFor || null,
         });
         onStarted?.();
       } else {
@@ -199,6 +259,7 @@ export default function RunAllLLMModal({
   if (!isOpen) return null;
 
   const isRunning = batchStatus && ['pending', 'processing'].includes(batchStatus.status);
+  const isScheduled = batchStatus?.status === 'scheduled';
   const isComplete = batchStatus?.status === 'completed';
   const isFailed = batchStatus?.status === 'failed';
 
@@ -268,6 +329,26 @@ export default function RunAllLLMModal({
               </div>
               <p className="text-xs text-gray-500 text-center">
                 You can close this modal. Checks will continue in the background.
+              </p>
+            </div>
+          ) : isScheduled ? (
+            /* Scheduled state */
+            <div className="space-y-4">
+              <div className="p-4 rounded-lg bg-blue-50 border border-blue-200">
+                <div className="flex items-center gap-3">
+                  <Icon name="FaClock" className="w-5 h-5 text-slate-blue" />
+                  <div>
+                    <p className="text-sm font-medium text-slate-blue">Checks scheduled</p>
+                    <p className="text-xs text-slate-blue/70">
+                      Will run at {batchStatus?.scheduledFor
+                        ? new Date(batchStatus.scheduledFor).toLocaleString()
+                        : 'scheduled time'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <p className="text-xs text-gray-500 text-center">
+                Credits have been reserved. Checks will run automatically at the scheduled time.
               </p>
             </div>
           ) : isComplete ? (
@@ -348,6 +429,91 @@ export default function RunAllLLMModal({
                 </div>
               </div>
 
+              {/* Run mode toggle */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  When to run
+                </label>
+                <div className="flex rounded-lg border border-gray-200 overflow-hidden">
+                  <button
+                    onClick={() => setRunMode('now')}
+                    disabled={isStarting}
+                    className={`flex-1 px-4 py-2 text-sm font-medium transition-colors ${
+                      runMode === 'now'
+                        ? 'bg-slate-blue text-white'
+                        : 'bg-white text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    <Icon name="FaRocket" className="w-3.5 h-3.5 inline mr-1.5" />
+                    Run now
+                  </button>
+                  <button
+                    onClick={() => setRunMode('schedule')}
+                    disabled={isStarting}
+                    className={`flex-1 px-4 py-2 text-sm font-medium transition-colors border-l border-gray-200 ${
+                      runMode === 'schedule'
+                        ? 'bg-slate-blue text-white'
+                        : 'bg-white text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    <Icon name="FaClock" className="w-3.5 h-3.5 inline mr-1.5" />
+                    Schedule
+                  </button>
+                </div>
+              </div>
+
+              {/* Schedule options */}
+              {runMode === 'schedule' && (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => setScheduleOption('in1hour')}
+                      className={`px-3 py-2 text-sm rounded-lg border transition-colors ${
+                        scheduleOption === 'in1hour'
+                          ? 'bg-blue-50 border-blue-300 text-slate-blue'
+                          : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
+                      }`}
+                    >
+                      In 1 hour
+                    </button>
+                    <button
+                      onClick={() => setScheduleOption('tomorrow8am')}
+                      className={`px-3 py-2 text-sm rounded-lg border transition-colors ${
+                        scheduleOption === 'tomorrow8am'
+                          ? 'bg-blue-50 border-blue-300 text-slate-blue'
+                          : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
+                      }`}
+                    >
+                      Tomorrow 8 AM
+                    </button>
+                  </div>
+                  <button
+                    onClick={() => setScheduleOption('custom')}
+                    className={`w-full px-3 py-2 text-sm rounded-lg border transition-colors ${
+                      scheduleOption === 'custom'
+                        ? 'bg-blue-50 border-blue-300 text-slate-blue'
+                        : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
+                    }`}
+                  >
+                    Custom time
+                  </button>
+                  {scheduleOption === 'custom' && (
+                    <input
+                      type="datetime-local"
+                      value={customTime}
+                      onChange={(e) => setCustomTime(e.target.value)}
+                      min={minDateTime}
+                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-300"
+                    />
+                  )}
+                  {scheduledTime && (
+                    <p className="text-xs text-gray-500 text-center">
+                      Scheduled for: {scheduledTime.toLocaleString()}
+                    </p>
+                  )}
+                </div>
+              )}
+
               {/* Cost summary */}
               {preview && (
                 <div className={`p-3 rounded-lg border ${
@@ -398,9 +564,9 @@ export default function RunAllLLMModal({
             onClick={onClose}
             className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"
           >
-            {isRunning ? 'Close' : isComplete || isFailed ? 'Done' : 'Cancel'}
+            {isRunning ? 'Close' : isComplete || isFailed || isScheduled ? 'Done' : 'Cancel'}
           </button>
-          {!isRunning && !isComplete && !isFailed && (
+          {!isRunning && !isComplete && !isFailed && !isScheduled && (
             <button
               onClick={handleStartBatch}
               disabled={
@@ -408,14 +574,20 @@ export default function RunAllLLMModal({
                 isLoadingPreview ||
                 !hasCredits ||
                 selectedProviders.length === 0 ||
-                (preview?.totalQuestions || 0) === 0
+                (preview?.totalQuestions || 0) === 0 ||
+                (runMode === 'schedule' && !scheduledTime)
               }
               className="px-4 py-2 text-sm font-medium text-white bg-slate-blue rounded-lg hover:bg-slate-blue/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2 whitespace-nowrap"
             >
               {isStarting ? (
                 <>
                   <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
-                  Starting...
+                  {runMode === 'schedule' ? 'Scheduling...' : 'Starting...'}
+                </>
+              ) : runMode === 'schedule' ? (
+                <>
+                  <Icon name="FaClock" className="w-4 h-4" />
+                  Schedule checks
                 </>
               ) : (
                 <>

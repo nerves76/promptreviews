@@ -880,25 +880,57 @@ export default function QRCodeGenerator({
         });
       }
 
-      // Draw Prompt Reviews logo as text (matches QR code color)
-      // Draw "[PROMPT]" text
-      const promptFontSize = Math.floor(logoHeight * 0.35);
-      const reviewsFontSize = Math.floor(logoHeight * 0.55);
+      // Draw Prompt Reviews SVG logo (colored to match QR code)
+      try {
+        // Load the SVG logo and colorize it
+        const svgResponse = await fetch('/images/prompt-reviews-logo.svg');
+        const svgText = await svgResponse.text();
 
-      ctx.fillStyle = mainColor;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
+        // Replace the fill color in the SVG with mainColor
+        const colorizedSvg = svgText.replace(/fill="#000000"/g, `fill="${mainColor}"`);
 
-      // Draw "[PROMPT]" - lighter weight, smaller
-      ctx.font = `300 ${promptFontSize}px "Arial", sans-serif`;
-      ctx.letterSpacing = `${promptFontSize * 0.15}px`;
-      const promptY = logoY + logoHeight * 0.3;
-      ctx.fillText('[ P R O M P T ]', frameSize.width / 2, promptY);
+        // Convert to data URL
+        const svgBlob = new Blob([colorizedSvg], { type: 'image/svg+xml' });
+        const svgUrl = URL.createObjectURL(svgBlob);
 
-      // Draw "REVIEWS" - bold, larger
-      ctx.font = `900 ${reviewsFontSize}px "Arial Black", "Arial", sans-serif`;
-      const reviewsY = logoY + logoHeight * 0.72;
-      ctx.fillText('REVIEWS', frameSize.width / 2, reviewsY);
+        // Load as image
+        const logoImg = new window.Image();
+        logoImg.src = svgUrl;
+
+        await new Promise<void>((resolve, reject) => {
+          logoImg.onload = () => resolve();
+          logoImg.onerror = () => reject(new Error('Failed to load logo'));
+          setTimeout(() => reject(new Error('Logo loading timeout')), 3000);
+        });
+
+        // Calculate logo dimensions (maintain aspect ratio)
+        const logoAspectRatio = logoImg.width / logoImg.height;
+        const actualLogoWidth = logoHeight * logoAspectRatio;
+        const actualLogoX = (frameSize.width - actualLogoWidth) / 2;
+
+        // Draw the logo
+        ctx.drawImage(logoImg, actualLogoX, logoY, actualLogoWidth, logoHeight);
+
+        // Clean up blob URL
+        URL.revokeObjectURL(svgUrl);
+      } catch (logoError) {
+        console.error('Error loading SVG logo, falling back to text:', logoError);
+        // Fallback to text rendering if SVG fails
+        const promptFontSize = Math.floor(logoHeight * 0.35);
+        const reviewsFontSize = Math.floor(logoHeight * 0.55);
+
+        ctx.fillStyle = mainColor;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        ctx.font = `300 ${promptFontSize}px "Arial", sans-serif`;
+        const promptY = logoY + logoHeight * 0.3;
+        ctx.fillText('[ P R O M P T ]', frameSize.width / 2, promptY);
+
+        ctx.font = `900 ${reviewsFontSize}px "Arial Black", "Arial", sans-serif`;
+        const reviewsY = logoY + logoHeight * 0.72;
+        ctx.fillText('REVIEWS', frameSize.width / 2, reviewsY);
+      }
 
       // Draw NFC text if enabled (below QR code)
       if (showNfcText) {

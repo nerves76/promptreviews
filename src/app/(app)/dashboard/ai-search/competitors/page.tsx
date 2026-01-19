@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useTransition } from 'react';
 import Link from 'next/link';
 import PageCard, { PageCardHeader } from '@/app/(app)/components/PageCard';
 import { SubNav } from '@/app/(app)/components/SubNav';
@@ -8,6 +8,7 @@ import Icon from '@/components/Icon';
 import { apiClient } from '@/utils/apiClient';
 import { useAccountData } from '@/auth/hooks/granularAuthHooks';
 import RunAllAnalysisModal from '../components/RunAllAnalysisModal';
+import { Pagination } from '@/components/Pagination';
 
 interface CompetitorMention {
   name: string;
@@ -35,6 +36,9 @@ interface CompetitorAnalysis {
 
 type SortField = 'name' | 'frequency' | 'lastSeen' | 'concepts';
 type SortDirection = 'asc' | 'desc';
+
+// Pagination
+const PAGE_SIZE = 100;
 
 /**
  * Format relative time (e.g., "2 days ago")
@@ -83,6 +87,10 @@ export default function CompetitorsPage() {
   // Sorting
   const [sortField, setSortField] = useState<SortField>('frequency');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isPending, startTransition] = useTransition();
 
   // Fetch data function
   const fetchData = useCallback(async () => {
@@ -270,6 +278,18 @@ export default function CompetitorsPage() {
       return sortDirection === 'asc' ? comparison : -comparison;
     });
   }, [data?.competitors, sortField, sortDirection]);
+
+  // Pagination calculations
+  const totalPages = Math.ceil(sortedCompetitors.length / PAGE_SIZE);
+  const paginatedCompetitors = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return sortedCompetitors.slice(start, start + PAGE_SIZE);
+  }, [sortedCompetitors, currentPage]);
+
+  // Reset to page 1 when sort changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [sortField, sortDirection]);
 
   // Get top competitor for summary
   const topCompetitor = sortedCompetitors.length > 0 ? sortedCompetitors[0] : null;
@@ -480,7 +500,7 @@ export default function CompetitorsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {sortedCompetitors.map((competitor) => {
+                  {paginatedCompetitors.map((competitor) => {
                     const isExpanded = expandedCompetitor === competitor.name;
                     const competitorKey = competitor.name.toLowerCase();
                     const analysis = analyses[competitorKey];
@@ -749,6 +769,17 @@ export default function CompetitorsPage() {
                   })}
                 </tbody>
               </table>
+
+              {/* Pagination */}
+              {sortedCompetitors.length > PAGE_SIZE && (
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  totalItems={sortedCompetitors.length}
+                  pageSize={PAGE_SIZE}
+                  onPageChange={(page) => startTransition(() => setCurrentPage(page))}
+                />
+              )}
             </div>
           </>
         )}

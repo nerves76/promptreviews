@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useTransition } from 'react';
 import Link from 'next/link';
 import PageCard, { PageCardHeader } from '@/app/(app)/components/PageCard';
 import { SubNav } from '@/app/(app)/components/SubNav';
@@ -8,6 +8,7 @@ import Icon from '@/components/Icon';
 import { apiClient } from '@/utils/apiClient';
 import { useAccountData } from '@/auth/hooks/granularAuthHooks';
 import RunAllAnalysisModal from '../components/RunAllAnalysisModal';
+import { Pagination } from '@/components/Pagination';
 
 interface ResearchSource {
   domain: string;
@@ -34,6 +35,9 @@ interface DomainAnalysis {
 
 type SortField = 'domain' | 'frequency' | 'lastSeen' | 'concepts' | 'difficulty';
 type SortDirection = 'asc' | 'desc';
+
+// Pagination
+const PAGE_SIZE = 100;
 
 /**
  * Strip UTM and other tracking parameters from a URL for cleaner display
@@ -116,6 +120,10 @@ export default function ResearchSourcesPage() {
   // Sorting
   const [sortField, setSortField] = useState<SortField>('frequency');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isPending, startTransition] = useTransition();
 
   // Fetch data function
   const fetchData = useCallback(async () => {
@@ -324,6 +332,18 @@ export default function ResearchSourcesPage() {
       return sortDirection === 'asc' ? comparison : -comparison;
     });
   }, [data?.sources, sortField, sortDirection, getDifficultySortValue]);
+
+  // Pagination calculations
+  const totalPages = Math.ceil(sortedSources.length / PAGE_SIZE);
+  const paginatedSources = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return sortedSources.slice(start, start + PAGE_SIZE);
+  }, [sortedSources, currentPage]);
+
+  // Reset to page 1 when sort changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [sortField, sortDirection]);
 
   // Get top domain for summary
   const topDomain = sortedSources.length > 0 ? sortedSources[0] : null;
@@ -543,7 +563,7 @@ export default function ResearchSourcesPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {sortedSources.map((source) => {
+                  {paginatedSources.map((source) => {
                     const isExpanded = expandedDomain === source.domain;
                     const analysis = analyses[source.domain];
                     const isAnalyzing = analyzingDomains.has(source.domain);
@@ -756,6 +776,17 @@ export default function ResearchSourcesPage() {
                   })}
                 </tbody>
               </table>
+
+              {/* Pagination */}
+              {sortedSources.length > PAGE_SIZE && (
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  totalItems={sortedSources.length}
+                  pageSize={PAGE_SIZE}
+                  onPageChange={(page) => startTransition(() => setCurrentPage(page))}
+                />
+              )}
             </div>
           </>
         )}

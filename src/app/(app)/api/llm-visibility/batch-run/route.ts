@@ -30,6 +30,7 @@ const serviceSupabase = createClient(
 
 interface BatchRunRequest {
   providers: LLMProvider[];
+  scheduledFor?: string; // ISO timestamp for when to start the run
 }
 
 interface QuestionItem {
@@ -57,7 +58,19 @@ export async function POST(request: NextRequest) {
     }
 
     const body: BatchRunRequest = await request.json();
-    const { providers } = body;
+    const { providers, scheduledFor } = body;
+
+    // Parse scheduled time if provided
+    let scheduledForDate: Date | null = null;
+    if (scheduledFor) {
+      scheduledForDate = new Date(scheduledFor);
+      if (isNaN(scheduledForDate.getTime())) {
+        return NextResponse.json(
+          { error: 'Invalid scheduledFor timestamp' },
+          { status: 400 }
+        );
+      }
+    }
 
     // Validate providers
     const validProviders = (providers || []).filter(p => LLM_PROVIDERS.includes(p));
@@ -196,6 +209,7 @@ export async function POST(request: NextRequest) {
         estimated_credits: totalCredits,
         total_credits_used: totalCredits,
         triggered_by: user.id,
+        scheduled_for: scheduledForDate?.toISOString() || null,
       })
       .select()
       .single();
@@ -244,12 +258,16 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       queued: true,
+      scheduled: !!scheduledForDate,
+      scheduledFor: scheduledForDate?.toISOString() || null,
       runId: batchRun.id,
       totalQuestions: allQuestions.length,
       providers: validProviders,
       estimatedCredits: totalCredits,
       creditBalance: updatedBalance.totalCredits,
-      message: 'Batch run queued successfully. Results will be available shortly.',
+      message: scheduledForDate
+        ? `Batch run scheduled for ${scheduledForDate.toLocaleString()}`
+        : 'Batch run queued successfully. Results will be available shortly.',
     });
 
   } catch (error) {

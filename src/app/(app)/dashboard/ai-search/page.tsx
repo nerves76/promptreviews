@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useTransition, useRef } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import PageCard, { PageCardHeader } from '@/app/(app)/components/PageCard';
 import { SubNav } from '@/app/(app)/components/SubNav';
 import Icon from '@/components/Icon';
 import { apiClient } from '@/utils/apiClient';
+import { ArrowUpTrayIcon, XMarkIcon, DocumentArrowDownIcon } from '@heroicons/react/24/outline';
 import { useAccountData } from '@/auth/hooks/granularAuthHooks';
 import {
   LLMProvider,
@@ -23,6 +24,7 @@ import { KeywordDetailsSidebar } from '@/features/keywords/components/KeywordDet
 import { CheckRankModal } from '@/features/rank-tracking/components';
 import { type KeywordData, transformKeywordToResponse } from '@/features/keywords/keywordUtils';
 import { useBusinessData } from '@/auth/hooks/granularAuthHooks';
+import { Pagination } from '@/components/Pagination';
 
 interface KeywordWithQuestions {
   id: string;
@@ -67,6 +69,9 @@ const FUNNEL_COLORS: Record<string, { bg: string; text: string }> = {
   middle: { bg: 'bg-amber-100', text: 'text-amber-700' },
   bottom: { bg: 'bg-green-100', text: 'text-green-700' },
 };
+
+// Pagination
+const PAGE_SIZE = 100;
 
 /**
  * AI Search Dashboard Page
@@ -122,6 +127,12 @@ export default function AISearchPage() {
   const [filterConcept, setFilterConcept] = useState<string | null>(conceptFromUrl);
   const [filterFunnel, setFilterFunnel] = useState<string | null>(null);
 
+  // Use transition for non-blocking sort/filter updates (INP optimization)
+  const [isPending, startTransition] = useTransition();
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+
   // Update filter when URL param changes
   useEffect(() => {
     if (conceptFromUrl) {
@@ -131,6 +142,21 @@ export default function AISearchPage() {
 
   // Expanded row state (for showing details)
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
+
+  // Import state
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const [importPreview, setImportPreview] = useState<string[][]>([]);
+  const [isImporting, setIsImporting] = useState(false);
+  const [importResult, setImportResult] = useState<{
+    success: boolean;
+    message: string;
+    keywordsCreated?: number;
+    duplicatesSkipped?: number;
+    skippedPhrases?: string[];
+    errors?: string[];
+  } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch keywords with related questions and all results
   const fetchData = useCallback(async () => {
@@ -347,14 +373,28 @@ export default function AISearchPage() {
     return rows;
   }, [questionRows, filterConcept, filterFunnel, sortField, sortDirection]);
 
-  // Handle sort header click
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredAndSortedRows.length / PAGE_SIZE);
+  const paginatedRows = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return filteredAndSortedRows.slice(start, start + PAGE_SIZE);
+  }, [filteredAndSortedRows, currentPage]);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filterConcept, filterFunnel, sortField, sortDirection]);
+
+  // Handle sort header click (wrapped in transition to avoid INP issues)
   const handleSort = (field: SortField) => {
-    if (sortField === field) {
-      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortField(field);
-      setSortDirection('asc');
-    }
+    startTransition(() => {
+      if (sortField === field) {
+        setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+      } else {
+        setSortField(field);
+        setSortDirection('asc');
+      }
+    });
   };
 
   // Format relative time
@@ -656,17 +696,17 @@ export default function AISearchPage() {
                   <div className="text-sm text-gray-600">Concepts</div>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
-                  <div className="flex gap-1.5 flex-wrap">
+                  <div className="flex gap-2 flex-wrap">
                     {LLM_PROVIDERS.map((provider) => {
                       const stats = accountSummary.providerStats[provider];
                       const colors = LLM_PROVIDER_COLORS[provider];
                       return (
                         <span
                           key={provider}
-                          className={`px-2 py-1 rounded text-xs font-medium ${colors.bg} ${colors.text}`}
+                          className={`px-2 py-1 rounded text-xs font-medium ${colors.bg} ${colors.text} whitespace-nowrap`}
                           title={`${stats?.cited || 0} cited, ${stats?.mentioned || 0} mentioned / ${stats?.checked || 0} checked`}
                         >
-                          {LLM_PROVIDER_LABELS[provider].charAt(0)}
+                          {LLM_PROVIDER_LABELS[provider]}
                           {stats ? ` ${stats.cited}/${stats.checked}` : ''}
                         </span>
                       );
@@ -684,7 +724,7 @@ export default function AISearchPage() {
                 <label className="text-sm text-gray-600">Concept:</label>
                 <select
                   value={filterConcept || ''}
-                  onChange={(e) => setFilterConcept(e.target.value || null)}
+                  onChange={(e) => startTransition(() => setFilterConcept(e.target.value || null))}
                   className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-300"
                 >
                   <option value="">All concepts</option>
@@ -699,7 +739,7 @@ export default function AISearchPage() {
                 <label className="text-sm text-gray-600">Funnel:</label>
                 <select
                   value={filterFunnel || ''}
-                  onChange={(e) => setFilterFunnel(e.target.value || null)}
+                  onChange={(e) => startTransition(() => setFilterFunnel(e.target.value || null))}
                   className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-300"
                 >
                   <option value="">All stages</option>
@@ -712,10 +752,10 @@ export default function AISearchPage() {
               {/* Clear filters */}
               {(filterConcept || filterFunnel) && (
                 <button
-                  onClick={() => {
+                  onClick={() => startTransition(() => {
                     setFilterConcept(null);
                     setFilterFunnel(null);
-                  }}
+                  })}
                   className="text-sm text-slate-blue hover:text-slate-blue/80"
                 >
                   Clear filters
@@ -729,7 +769,7 @@ export default function AISearchPage() {
             </div>
 
             {/* Questions Table */}
-            <div className="overflow-x-auto border border-gray-200 rounded-xl">
+            <div className={`overflow-x-auto border border-gray-200 rounded-xl transition-opacity duration-150 ${isPending ? 'opacity-70' : ''}`}>
               <table className="w-full">
                 <thead>
                   <tr className="bg-gray-50 border-b border-gray-200">
@@ -786,7 +826,7 @@ export default function AISearchPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredAndSortedRows.map((row) => {
+                  {paginatedRows.map((row) => {
                     const rowKey = `${row.conceptId}-${row.question}`;
                     const isExpanded = expandedRow === rowKey;
                     const funnelColor = FUNNEL_COLORS[row.funnelStage] || FUNNEL_COLORS.top;
@@ -803,7 +843,7 @@ export default function AISearchPage() {
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setExpandedRow(isExpanded ? null : rowKey);
+                                startTransition(() => setExpandedRow(isExpanded ? null : rowKey));
                               }}
                               className="text-left text-sm text-gray-900 hover:text-slate-blue transition-colors flex items-start gap-2 w-full"
                             >
@@ -987,8 +1027,8 @@ export default function AISearchPage() {
 
                                           {/* Brand entities mentioned in response */}
                                           {result.mentionedBrands && result.mentionedBrands.length > 0 && (
-                                            <div className="mt-2">
-                                              <div className="text-xs text-gray-500 mb-1">Brands mentioned:</div>
+                                            <div className="mt-4">
+                                              <div className="text-sm font-medium text-gray-600 mb-2">Brands mentioned:</div>
                                               <div className="flex flex-wrap gap-2">
                                                 {result.mentionedBrands.map((brand, bidx) => (
                                                   <span
@@ -996,7 +1036,6 @@ export default function AISearchPage() {
                                                     className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs bg-blue-100 text-slate-blue border border-blue-200"
                                                     title={brand.category || undefined}
                                                   >
-                                                    <Icon name="FaBuilding" className="w-2.5 h-2.5" />
                                                     <span>{brand.title}</span>
                                                     {brand.category && (
                                                       <span className="text-slate-blue text-[10px]">({brand.category})</span>
@@ -1009,17 +1048,16 @@ export default function AISearchPage() {
 
                                           {/* Fan-out queries - related searches the AI performed */}
                                           {result.fanOutQueries && result.fanOutQueries.length > 0 && (
-                                            <div className="mt-2">
-                                              <div className="text-xs text-gray-500 mb-1">
-                                                Related searches performed ({result.fanOutQueries.length}):
+                                            <div className="mt-4">
+                                              <div className="text-sm font-medium text-gray-600 mb-2">
+                                                Searches performed ({result.fanOutQueries.length}):
                                               </div>
                                               <div className="flex flex-wrap gap-2">
                                                 {result.fanOutQueries.map((query, qidx) => (
                                                   <span
                                                     key={qidx}
-                                                    className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs bg-amber-50 text-amber-700 border border-amber-200"
+                                                    className="inline-flex items-center px-2 py-1 rounded text-xs bg-amber-50 text-amber-700 border border-amber-200"
                                                   >
-                                                    <Icon name="FaSearch" className="w-2.5 h-2.5" />
                                                     <span className="truncate max-w-[200px]">{query}</span>
                                                   </span>
                                                 ))}
@@ -1029,8 +1067,8 @@ export default function AISearchPage() {
 
                                           {/* Search results - all websites the AI retrieved */}
                                           {result.searchResults && result.searchResults.length > 0 && (
-                                            <div className="mt-2">
-                                              <div className="text-xs text-gray-500 mb-1">
+                                            <div className="mt-4">
+                                              <div className="text-sm font-medium text-gray-600 mb-2">
                                                 Websites used for research ({result.searchResults.length}):
                                               </div>
                                               <div className="flex flex-wrap gap-2">
@@ -1040,16 +1078,15 @@ export default function AISearchPage() {
                                                     href={sr.url || '#'}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs ${
+                                                    className={`inline-flex items-center px-2 py-1 rounded text-xs ${
                                                       sr.isOurs
                                                         ? 'bg-green-50 text-green-700 border border-green-200'
                                                         : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200'
                                                     }`}
                                                     title={sr.title || sr.url || undefined}
                                                   >
-                                                    <Icon name="FaGlobe" className="w-2.5 h-2.5" />
                                                     <span className="truncate max-w-[150px]">{sr.domain}</span>
-                                                    {sr.isOurs && <span className="text-green-600 font-bold">(You)</span>}
+                                                    {sr.isOurs && <span className="text-green-600 font-bold ml-1">(You)</span>}
                                                   </a>
                                                 ))}
                                               </div>
@@ -1074,6 +1111,17 @@ export default function AISearchPage() {
                 <div className="text-center py-8 text-gray-500">
                   No questions match your filters
                 </div>
+              )}
+
+              {/* Pagination */}
+              {filteredAndSortedRows.length > PAGE_SIZE && (
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  totalItems={filteredAndSortedRows.length}
+                  pageSize={PAGE_SIZE}
+                  onPageChange={(page) => startTransition(() => setCurrentPage(page))}
+                />
               )}
             </div>
 
