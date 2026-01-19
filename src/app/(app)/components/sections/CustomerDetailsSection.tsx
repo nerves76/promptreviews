@@ -6,7 +6,7 @@
  */
 
 "use client";
-import React from "react";
+import React, { startTransition } from "react";
 import Icon from "@/components/Icon";
 import RobotTooltip from "../RobotTooltip";
 
@@ -40,8 +40,11 @@ function Tooltip(props: { text: string }) {
 }
 
 export default function CustomerDetailsSection({ formData, onFormDataChange, campaignType }: CustomerDetailsSectionProps) {
+  // Uses startTransition for better INP
   const updateFormData = (field: string, value: any) => {
-    onFormDataChange((prev: any) => ({ ...prev, [field]: value }));
+    startTransition(() => {
+      onFormDataChange((prev: any) => ({ ...prev, [field]: value }));
+    });
   };
 
   // Don't render anything for public campaigns

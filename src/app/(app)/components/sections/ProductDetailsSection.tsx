@@ -6,7 +6,7 @@
  */
 
 "use client";
-import React from "react";
+import React, { startTransition } from "react";
 import Icon from "@/components/Icon";
 import RobotTooltip from "../RobotTooltip";
 
@@ -40,15 +40,18 @@ function Tooltip(props: { text: string }) {
   );
 }
 
-export default function ProductDetailsSection({ 
-  productName, 
-  onProductNameChange, 
-  formData, 
-  onFormDataChange 
+export default function ProductDetailsSection({
+  productName,
+  onProductNameChange,
+  formData,
+  onFormDataChange
 }: ProductDetailsSectionProps) {
-  
+
+  // Uses startTransition for better INP
   const updateFormData = (field: string, value: any) => {
-    onFormDataChange({ [field]: value });
+    startTransition(() => {
+      onFormDataChange({ [field]: value });
+    });
   };
 
   return (

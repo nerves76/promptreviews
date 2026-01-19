@@ -254,9 +254,11 @@ export default function EventPromptPageForm({
     }
   }, [initialData?.aiButtonEnabled, initialData?.ai_button_enabled, initialData?.fixGrammarEnabled, initialData?.fix_grammar_enabled]);
 
-  // Form data update helper
+  // Form data update helper - uses startTransition for better INP
   const updateFormData = (field: string, value: any) => {
-    setFormData((prev: any) => ({ ...prev, [field]: value }));
+    startTransition(() => {
+      setFormData((prev: any) => ({ ...prev, [field]: value }));
+    });
   };
 
   // Handle array field updates (event highlights)

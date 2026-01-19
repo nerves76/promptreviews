@@ -6,7 +6,7 @@
  */
 
 "use client";
-import React from "react";
+import React, { startTransition } from "react";
 import Icon from "@/components/Icon";
 import RobotTooltip from "../RobotTooltip";
 
@@ -15,13 +15,16 @@ interface FeaturesBenefitsSectionProps {
   onFormDataChange: (data: any) => void;
 }
 
-export default function FeaturesBenefitsSection({ 
-  formData, 
-  onFormDataChange 
+export default function FeaturesBenefitsSection({
+  formData,
+  onFormDataChange
 }: FeaturesBenefitsSectionProps) {
-  
+
+  // Uses startTransition for better INP
   const updateFormData = (field: string, value: any) => {
-    onFormDataChange({ [field]: value });
+    startTransition(() => {
+      onFormDataChange({ [field]: value });
+    });
   };
 
   const updateFeature = (index: number, value: string) => {
