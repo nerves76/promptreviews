@@ -58,7 +58,7 @@ const platformOptions = [
   "Other",
 ];
 
-const REVIEW_CHAR_LIMIT = 600;
+const REVIEW_CHAR_LIMIT = 2000;
 
 const getPlatformIcon = (name: string, url: string) => {
   const lowerName = (name || "").toLowerCase();
@@ -256,9 +256,9 @@ const ReviewWriteSection: React.FC<ReviewWriteSectionProps> = ({
                   />
                 </div>
                 {!hideAdvancedFields && (
-                  <div className="flex flex-col w-32">
+                  <div className="flex flex-col w-40">
                     <label className="text-xs font-semibold text-gray-500 mb-1">
-                      Word Count
+                      Word count limit for AI
                     </label>
                     <Input
                       type="number"
