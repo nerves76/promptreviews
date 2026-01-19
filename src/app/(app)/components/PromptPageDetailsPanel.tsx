@@ -20,8 +20,11 @@ export default function PromptPageDetailsPanel({
 }: PromptPageDetailsPanelProps) {
   const [copySuccess, setCopySuccess] = useState(false);
 
+  // Only use contact info if we have a valid contact_id - otherwise communication records will fail
+  const hasValidContact = Boolean(page.contact_id);
+
   const contactForShare = {
-    id: page.contact_id || page.id,
+    id: page.contact_id || '',
     first_name: page.first_name || page.contacts?.first_name || "",
     last_name: page.last_name || page.contacts?.last_name || "",
     email: page.email || page.contacts?.email,
@@ -37,7 +40,8 @@ export default function PromptPageDetailsPanel({
     location: page.location || business?.name,
   };
 
-  const hasContactInfo = Boolean(contactForShare.email || contactForShare.phone);
+  // Only show communication buttons if we have both contact info AND a valid contact_id
+  const hasContactInfo = hasValidContact && Boolean(contactForShare.email || contactForShare.phone);
 
   const reviewTypeDisplay =
     page.review_type === "service"
@@ -65,8 +69,8 @@ export default function PromptPageDetailsPanel({
   };
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex items-start justify-between border-b border-gray-200 px-6 py-4">
+    <div className="flex flex-col h-full bg-white/70 backdrop-blur-xl">
+      <div className="flex items-start justify-between border-b border-white/30 px-6 py-4">
         <div>
           <p className="text-xs uppercase text-gray-500">Prompt Page</p>
           <h2 className="text-xl font-semibold text-gray-900">
@@ -92,7 +96,7 @@ export default function PromptPageDetailsPanel({
         )}
       </div>
 
-      <div className="flex items-center gap-2 px-6 py-3 border-b border-gray-200 text-xs text-gray-600">
+      <div className="flex items-center gap-2 px-6 py-3 border-b border-white/30 text-xs text-gray-600">
         <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
           <Icon name="FaFileAlt" size={12} />
           {reviewTypeDisplay}
@@ -107,9 +111,9 @@ export default function PromptPageDetailsPanel({
         </span>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6">
+      <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
         {(page.phone || page.email || page.contacts || page.contact_id) && (
-          <section className="space-y-3">
+          <section className="p-4 bg-white/60 backdrop-blur-sm border border-gray-100/50 rounded-xl space-y-3">
             <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Contact</h3>
             <div className="space-y-2 text-sm text-gray-700">
               {(page.contacts?.business_name || page.business_name) && (
@@ -143,7 +147,7 @@ export default function PromptPageDetailsPanel({
           </section>
         )}
 
-        <section className="space-y-3">
+        <section className="p-4 bg-white/60 backdrop-blur-sm border border-gray-100/50 rounded-xl space-y-3">
           <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
             Prompt Page
           </h3>
@@ -183,8 +187,8 @@ export default function PromptPageDetailsPanel({
                 contact={contactForShare}
                 promptPage={promptPageShareContext}
                 singleButton={true}
-                buttonText="Share"
-                className="inline-flex items-center gap-2 px-3 py-1.5 bg-teal-100 text-teal-800 rounded hover:bg-teal-200 text-sm font-medium shadow"
+                buttonText="Send email or text"
+                className="inline-flex items-center gap-2 px-3 py-1.5 bg-teal-100 text-teal-800 rounded hover:bg-teal-200 text-sm font-medium shadow whitespace-nowrap"
                 onStatusUpdated={(newStatus) => {
                   onLocalStatusUpdate?.(page.id, newStatus as PromptPage["status"]);
                 }}
@@ -196,7 +200,7 @@ export default function PromptPageDetailsPanel({
           )}
         </section>
 
-        <section className="space-y-3">
+        <section className="p-4 bg-white/60 backdrop-blur-sm border border-gray-100/50 rounded-xl space-y-3">
           <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Activity</h3>
           {page.account_id && (
             <ActivityTimeline

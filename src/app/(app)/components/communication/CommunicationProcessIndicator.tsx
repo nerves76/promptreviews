@@ -23,7 +23,7 @@ export default function CommunicationProcessIndicator({
   const steps = communicationType === 'sms'
     ? [
         "Edit message",
-        "Click \"Copy & Send\"",
+        "Click \"Copy and open SMS\"",
         "Finish in your SMS app"
       ]
     : [

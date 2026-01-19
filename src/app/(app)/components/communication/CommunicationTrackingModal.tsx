@@ -267,7 +267,15 @@ export default function CommunicationTrackingModal({
       
       <div className="fixed inset-0 flex items-center justify-center p-4">
         <Dialog.Panel className="mx-auto max-w-2xl w-full bg-white rounded-xl shadow-lg">
-          <div className="flex items-center justify-between p-6 border-b">
+          <div className="relative p-6 border-b">
+            {/* Close button - site convention */}
+            <button
+              onClick={onClose}
+              className="absolute -top-3 -right-3 p-1.5 bg-red-500 hover:bg-red-600 text-white rounded-full shadow-lg transition-colors z-10"
+              aria-label="Close modal"
+            >
+              <XMarkIcon className="w-5 h-5" />
+            </button>
             <div>
               <Dialog.Title className="text-lg font-semibold text-gray-900">
                 Share Prompt Page with {contact.first_name} {contact.last_name}
@@ -276,12 +284,6 @@ export default function CommunicationTrackingModal({
                 Send a review request via SMS or email
               </p>
             </div>
-            <button
-              onClick={onClose}
-              className="text-gray-500 hover:text-gray-500"
-            >
-              <XMarkIcon className="w-6 h-6" />
-            </button>
           </div>
           
           {/* Tabs */}
@@ -467,9 +469,9 @@ export default function CommunicationTrackingModal({
                   type="button"
                   onClick={() => handleSend(true)}
                   disabled={isLoading}
-                  className={`flex items-center gap-2 ${
-                    activeTab === 'sms' 
-                      ? 'bg-green-600 hover:bg-green-700' 
+                  className={`flex items-center gap-2 whitespace-nowrap ${
+                    activeTab === 'sms'
+                      ? 'bg-green-600 hover:bg-green-700'
                       : 'bg-blue-600 hover:bg-blue-700'
                   } text-white`}
                 >
@@ -481,7 +483,7 @@ export default function CommunicationTrackingModal({
                   ) : (
                     <>
                       <Icon name={activeTab === 'sms' ? 'FaComments' : 'FaEnvelope'} className="w-4 h-4" />
-                      {activeTab === 'email' ? 'Open in email' : 'Copy and send'}
+                      {activeTab === 'email' ? 'Open in email' : 'Copy and open SMS'}
                     </>
                   )}
                 </Button>
