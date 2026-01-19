@@ -15,7 +15,8 @@ import { BulkActionBar } from './BulkActionBar';
 import { BulkDeleteModal } from './BulkDeleteModal';
 import { useBusinessData } from '@/auth/hooks/granularAuthHooks';
 import { validateBusinessForKeywordGeneration } from '@/utils/businessValidation';
-import { ArrowDownTrayIcon, ArrowUpTrayIcon, XMarkIcon, DocumentArrowDownIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
+import { ArrowDownTrayIcon, ArrowUpTrayIcon, XMarkIcon, DocumentArrowDownIcon, ArrowPathIcon, QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
+import HelpModal from '@/app/(app)/components/help/HelpModal';
 
 // Types for enrichment data from batch-enrich API
 interface RankingData {
@@ -270,6 +271,7 @@ export default function KeywordManager({
   } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const addKeywordFormRef = useRef<HTMLDivElement>(null);
+  const [showImportHelpModal, setShowImportHelpModal] = useState(false);
 
   // Fetch details for selected keyword
   const { keyword: selectedKeyword, promptPages, recentReviews, refresh: refreshKeywordDetails } = useKeywordDetails(selectedKeywordId);
@@ -1500,17 +1502,27 @@ export default function KeywordManager({
             <div className="flex-1 overflow-y-auto p-6">
               {/* Template download */}
               <div className="mb-6 p-4 bg-blue-50 border border-blue-100 rounded-lg">
-                <h4 className="text-sm font-medium text-blue-800 mb-2">Download Template</h4>
+                <h4 className="text-sm font-medium text-blue-800 mb-2">Download template</h4>
                 <p className="text-sm text-blue-700 mb-3">
                   Download our CSV template with all available fields and example data.
                 </p>
-                <button
-                  onClick={handleDownloadTemplate}
-                  className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-blue-700 bg-white border border-blue-300 rounded-md hover:bg-blue-50"
-                >
-                  <DocumentArrowDownIcon className="w-4 h-4" />
-                  Download Template
-                </button>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={handleDownloadTemplate}
+                    className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-blue-700 bg-white border border-blue-300 rounded-md hover:bg-blue-50"
+                  >
+                    <DocumentArrowDownIcon className="w-4 h-4" />
+                    Download template
+                  </button>
+                  <button
+                    onClick={() => setShowImportHelpModal(true)}
+                    className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-blue-700 hover:text-blue-800 hover:underline"
+                    aria-label="View import help guide"
+                  >
+                    <QuestionMarkCircleIcon className="w-4 h-4" />
+                    View column guide
+                  </button>
+                </div>
               </div>
 
               {/* File upload */}
@@ -1668,6 +1680,13 @@ export default function KeywordManager({
         onConfirm={handleBulkDelete}
         onClose={() => setShowBulkDeleteModal(false)}
         isDeleting={isBulkDeleting}
+      />
+
+      {/* Import Help Modal */}
+      <HelpModal
+        isOpen={showImportHelpModal}
+        onClose={() => setShowImportHelpModal(false)}
+        initialArticleId="keywords/import-concepts"
       />
     </div>
   );
