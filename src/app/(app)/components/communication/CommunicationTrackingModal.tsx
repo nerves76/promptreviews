@@ -114,9 +114,15 @@ export default function CommunicationTrackingModal({
     // Generate tracked URL based on communication type
     // Note: communicationRecordId will be available after the record is created
     // For now we use the basic tracking params; the full tracking happens server-side
-    const reviewUrl = activeTab === 'email'
-      ? generateEmailTrackedUrl(baseUrl, promptPage?.slug)
-      : generateSmsTrackedUrl(baseUrl, promptPage?.slug);
+    const slug = promptPage?.slug;
+    if (!slug) {
+      console.warn('[CommunicationTrackingModal] Missing promptPage slug - URL will not be generated correctly', { promptPage });
+    }
+    const reviewUrl = slug
+      ? (activeTab === 'email'
+          ? generateEmailTrackedUrl(baseUrl, slug)
+          : generateSmsTrackedUrl(baseUrl, slug))
+      : `${baseUrl}/r/`; // Fallback if no slug
 
     const baseMessage =
       `Hi ${customerName}, could you take 1–3 minutes to leave a review for ${businessName}? ` +

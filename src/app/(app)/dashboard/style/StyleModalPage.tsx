@@ -1239,22 +1239,14 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
           )}
         </div>
 
-        {/* Bottom action buttons row */}
-        <div className="flex justify-end gap-4 mt-10">
+        {/* Bottom save button */}
+        <div className="flex justify-end mt-10">
           <button
-            className="px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg font-semibold hover:bg-white/30 transition text-sm border border-white/30"
-            onClick={handleReset}
-            disabled={saving}
-          >
-            Reset
-          </button>
-          <button
-            className="px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg font-semibold hover:bg-white/30 transition text-sm border border-white/30"
-            style={{ minWidth: 90 }}
+            className="px-5 py-2 bg-slate-blue text-white rounded-lg font-semibold hover:bg-slate-blue/80 transition text-sm"
             onClick={handleSave}
             disabled={saving}
           >
-            {saving ? "Saving..." : "Save"}
+            {saving ? "Saving..." : "Save all changes"}
           </button>
         </div>
         </div>
