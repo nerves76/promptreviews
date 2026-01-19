@@ -1089,6 +1089,7 @@ export default function ReviewBuilderPromptPageForm({
             hideReviewTemplateFields
             hideAdvancedFields
             aiGeneratingIndex={null}
+            showSettingsTip={true}
           />
         </section>
 
