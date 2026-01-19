@@ -638,11 +638,11 @@ export default function UploadContactsPage() {
 
 
   // Unified handler for both individual and bulk prompt creation
-  async function handleUnifiedPromptTypeSelect(promptType: string, includeReviews: boolean) {
+  async function handleUnifiedPromptTypeSelect(promptType: string) {
     if (promptModalMode === 'individual') {
       // Handle individual creation
       if (!selectedContactForPrompt) return;
-      
+
       // Pass contact info as query params for prefill
       const params = new URLSearchParams({
         type: promptType,
@@ -654,13 +654,12 @@ export default function UploadContactsPage() {
         role: selectedContactForPrompt.role || "",
         contact_id: selectedContactForPrompt.id || "",
         campaign_type: "individual", // Always force individual campaign type for contacts
-        include_reviews: includeReviews.toString(), // Add include reviews parameter
       });
       router.push(`/create-prompt-page?${params.toString()}`);
       return;
     }
 
-    // Handle bulk creation  
+    // Handle bulk creation
     setBulkCreating(true);
     setBulkProgress({ created: 0, failed: 0, total: selectedContactIds.length });
 
@@ -668,7 +667,6 @@ export default function UploadContactsPage() {
       const result = await apiClient.post<{ created: number; failed: number }>('/contacts/bulk-create-prompt-pages', {
         contactIds: selectedContactIds,
         promptType: promptType,
-        includeReviews: includeReviews
       });
 
       setBulkProgress({

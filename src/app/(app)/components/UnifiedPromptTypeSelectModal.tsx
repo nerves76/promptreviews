@@ -6,7 +6,7 @@ import Icon from '@/components/Icon';
 interface UnifiedPromptTypeSelectModalProps {
   open: boolean;
   onClose: () => void;
-  onSelectType: (type: string, includeReviews: boolean) => void;
+  onSelectType: (type: string) => void;
   selectedCount: number;
   mode: 'individual' | 'bulk';
   contactName?: string;
@@ -54,7 +54,6 @@ export default function UnifiedPromptTypeSelectModal({
   contactName
 }: UnifiedPromptTypeSelectModalProps) {
   const [selectedType, setSelectedType] = useState<string | null>(null);
-  const [includeReviews, setIncludeReviews] = useState(false);
 
   const handleTypeSelect = (type: string) => {
     setSelectedType(type);
@@ -62,16 +61,14 @@ export default function UnifiedPromptTypeSelectModal({
 
   const handleProceed = () => {
     if (!selectedType) return;
-    onSelectType(selectedType, includeReviews);
+    onSelectType(selectedType);
     onClose();
     setSelectedType(null);
-    setIncludeReviews(false);
   };
 
   const handleClose = () => {
     onClose();
     setSelectedType(null);
-    setIncludeReviews(false);
   };
 
   return (
@@ -129,25 +126,6 @@ export default function UnifiedPromptTypeSelectModal({
               </div>
             </button>
           ))}
-        </div>
-
-        {/* Include Reviews Checkbox */}
-        <div className="border-t pt-4">
-          <label className="flex items-start space-x-3 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={includeReviews}
-              onChange={(e) => setIncludeReviews(e.target.checked)}
-              className="mt-1 h-4 w-4 text-slate-blue focus:ring-slate-blue border-gray-300 rounded"
-            />
-            <div className="flex-1">
-              <span className="text-sm font-medium text-gray-900">Include existing reviews</span>
-              <p className="text-xs text-gray-500 mt-1">
-                Import existing reviews from {mode === 'bulk' ? 'these contacts' : 'this contact'} into the review platforms section.
-                This allows you to ask customers to repost or modify their reviews on other platforms.
-              </p>
-            </div>
-          </label>
         </div>
       </div>
 
