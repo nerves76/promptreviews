@@ -1090,6 +1090,7 @@ export default function ReviewBuilderPromptPageForm({
             hideAdvancedFields
             aiGeneratingIndex={null}
             showSettingsTip={true}
+            settingsPlatforms={businessProfile?.review_platforms || []}
           />
         </section>
 

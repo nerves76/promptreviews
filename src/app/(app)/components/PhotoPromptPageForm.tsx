@@ -531,6 +531,7 @@ export default function PhotoPromptPageForm({
           hideReviewTemplateFields={campaignType === 'public'}
           aiGeneratingIndex={aiGeneratingIndex}
           showSettingsTip={true}
+          settingsPlatforms={businessProfile?.review_platforms || []}
         />
 
         {/* Suggested Phrases Section */}

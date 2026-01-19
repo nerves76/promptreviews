@@ -16,6 +16,15 @@ export interface ReviewWritePlatform {
   verified_at: string;
 }
 
+/** Platform structure from Prompt Page settings */
+export interface SettingsPlatform {
+  name: string;
+  url: string;
+  wordCount?: number;
+  customPlatform?: string;
+  customInstructions?: string;
+}
+
 interface ReviewWriteSectionProps {
   value: ReviewWritePlatform[];
   onChange: (platforms: ReviewWritePlatform[]) => void;
@@ -26,6 +35,8 @@ interface ReviewWriteSectionProps {
   aiGeneratingIndex?: number | null;
   /** Show a tip about configuring platforms in Prompt Page settings */
   showSettingsTip?: boolean;
+  /** Platforms available from Prompt Page settings for import */
+  settingsPlatforms?: SettingsPlatform[];
 }
 
 const platformOptions = [
@@ -88,7 +99,10 @@ const ReviewWriteSection: React.FC<ReviewWriteSectionProps> = ({
   hideReviewTemplateFields = false,
   aiGeneratingIndex = null,
   showSettingsTip = false,
+  settingsPlatforms = [],
 }) => {
+  const [showImportDropdown, setShowImportDropdown] = useState(false);
+
   const handlePlatformChange = (
     idx: number,
     field: keyof ReviewWritePlatform,
@@ -113,6 +127,36 @@ const ReviewWriteSection: React.FC<ReviewWriteSectionProps> = ({
     ]);
   const removePlatform = (idx: number) =>
     onChange(value.filter((_, i) => i !== idx));
+
+  // Check if a settings platform is already added (by URL match)
+  const isPlatformAlreadyAdded = (settingsPlatform: SettingsPlatform) => {
+    return value.some(p => p.url === settingsPlatform.url);
+  };
+
+  // Import a platform from settings
+  const importPlatform = (settingsPlatform: SettingsPlatform) => {
+    if (isPlatformAlreadyAdded(settingsPlatform)) return;
+
+    onChange([
+      ...value,
+      {
+        name: settingsPlatform.name,
+        url: settingsPlatform.url,
+        wordCount: settingsPlatform.wordCount || PROMPT_PAGE_WORD_LIMITS.DEFAULT,
+        customPlatform: settingsPlatform.customPlatform,
+        customInstructions: settingsPlatform.customInstructions,
+        reviewText: "",
+        verified: false,
+        verified_at: "",
+      },
+    ]);
+    setShowImportDropdown(false);
+  };
+
+  // Get platforms that haven't been added yet
+  const availablePlatformsToImport = settingsPlatforms.filter(
+    sp => !isPlatformAlreadyAdded(sp)
+  );
 
   return (
     <div className="mb-16">
@@ -313,33 +357,88 @@ const ReviewWriteSection: React.FC<ReviewWriteSectionProps> = ({
             </div>
           ))}
         </div>
-        <button
-          type="button"
-          onClick={addPlatform}
-          className="inline-flex items-center px-4 py-2 border border-slate-blue text-sm font-medium rounded-md text-slate-blue bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue mt-2"
-        >
-          <Icon name="FaPlus" className="mr-2 h-4 w-4" size={16} />
-          Add Platform
-        </button>
+        <div className="flex items-center gap-3 mt-2 flex-wrap">
+          <button
+            type="button"
+            onClick={addPlatform}
+            className="inline-flex items-center px-4 py-2 border border-slate-blue text-sm font-medium rounded-md text-slate-blue bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue whitespace-nowrap"
+          >
+            <Icon name="FaPlus" className="mr-2 h-4 w-4" size={16} />
+            Add platform
+          </button>
 
-        {/* Settings tip - only show when no platforms and tip is enabled */}
-        {showSettingsTip && value.length === 0 && (
-          <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-            <div className="flex items-start gap-2">
-              <Icon name="FaLightbulb" className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" size={16} />
-              <p className="text-sm text-amber-800">
-                <span className="font-semibold">Hot tip:</span> Add your review platforms in{" "}
-                <Link
-                  href="/dashboard/prompt-page-settings"
-                  className="text-slate-blue hover:underline font-medium"
-                >
-                  Prompt Page settings
-                </Link>
-                {" "}and it will be automatically populated here.
-              </p>
+          {/* Import from settings button */}
+          {showSettingsTip && (
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setShowImportDropdown(!showImportDropdown)}
+                className="inline-flex items-center px-4 py-2 border border-amber-500 text-sm font-medium rounded-md text-amber-700 bg-amber-50 hover:bg-amber-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 whitespace-nowrap"
+              >
+                <Icon name="MdDownload" className="mr-2 h-4 w-4" size={16} />
+                Import from settings
+              </button>
+
+              {/* Import dropdown */}
+              {showImportDropdown && (
+                <>
+                  {/* Backdrop to close dropdown */}
+                  <div
+                    className="fixed inset-0 z-10"
+                    onClick={() => setShowImportDropdown(false)}
+                  />
+                  <div className="absolute left-0 mt-2 w-72 bg-white border border-gray-200 rounded-lg shadow-lg z-20">
+                    <div className="p-3 border-b border-gray-100">
+                      <p className="text-sm font-medium text-gray-700">Import from Prompt Page settings</p>
+                    </div>
+
+                    {settingsPlatforms.length === 0 ? (
+                      <div className="p-4">
+                        <p className="text-sm text-gray-500 mb-3">No platforms available in settings.</p>
+                        <Link
+                          href="/dashboard/prompt-page-settings"
+                          className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-slate-blue hover:underline"
+                          onClick={() => setShowImportDropdown(false)}
+                        >
+                          <Icon name="FaCog" className="mr-1.5 h-3 w-3" size={12} />
+                          Go to Prompt Page settings
+                        </Link>
+                      </div>
+                    ) : availablePlatformsToImport.length === 0 ? (
+                      <div className="p-4">
+                        <p className="text-sm text-gray-500">All platforms from settings have been added.</p>
+                      </div>
+                    ) : (
+                      <div className="max-h-64 overflow-y-auto">
+                        {availablePlatformsToImport.map((platform, idx) => {
+                          const { icon: iconName, color } = getPlatformIcon(platform.name, platform.url);
+                          return (
+                            <button
+                              key={idx}
+                              type="button"
+                              onClick={() => importPlatform(platform)}
+                              className="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-50 text-left border-b border-gray-50 last:border-0"
+                            >
+                              <Icon name={iconName as any} className={`w-5 h-5 ${color}`} size={20} />
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-gray-900 truncate">
+                                  {platform.name}
+                                  {platform.customPlatform && platform.name === "Other" && `: ${platform.customPlatform}`}
+                                </p>
+                                <p className="text-xs text-gray-500 truncate">{platform.url}</p>
+                              </div>
+                              <Icon name="FaPlus" className="w-4 h-4 text-green-600" size={16} />
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
