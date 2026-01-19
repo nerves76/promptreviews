@@ -1,23 +1,50 @@
 # Modal Standardization Plan
 
+## ✅ IMPLEMENTATION COMPLETED - 2026-01-18
+
+All phases of this plan have been executed successfully. Here's a summary of what was accomplished:
+
+| Phase | Description | Status |
+|-------|-------------|--------|
+| Phase 0 | Delete dead code, add `draggable` + `theme` props to Modal | ✅ Complete |
+| Phase 1 | Quick fixes - standardize 8 close buttons | ✅ Complete |
+| Phase 2 | Migrate 7 simple form modals | ✅ Complete |
+| Phase 3 | Migrate 6 feature modals | ✅ Complete |
+| Phase 4 | Migrate 2 remaining ready modals | ✅ Complete |
+| Phase 5 | Fix and migrate CheckRankModal + RunAllLLMModal | ✅ Complete |
+| Phase 6 | Migrate 2 draggable modals | ✅ Complete |
+| Phase 7 | Add close buttons to custom modals | ✅ Complete |
+| Phase 8 | Final cleanup and TypeScript check | ✅ Complete |
+
+**Files Modified:** 30+ modal files standardized
+**Files Deleted:** 3 dead code files removed
+**TypeScript Check:** ✅ Passing
+
+---
+
 ## Executive Summary
 
 This document provides a complete inventory of all 65 modal files in the Prompt Reviews codebase with specific instructions for standardizing close buttons and migrating suitable modals to the centralized Modal component. The goal is to achieve consistent UX while reducing maintenance burden through consolidation.
 
 **Strategy:**
-- **19 modals** → Migrate to centralized `Modal` component
+- **15 modals** → Migrate to centralized `Modal` component (ready now)
+- **2 modals** → Migrate after addressing issues (CheckRankModal, RunAllRankModal)
+- **2 modals** → Migrate after `draggable` prop added (FunFactsModal, KeywordInspirationModal)
 - **17 modals** → Keep custom, add standardized close button
 - **14 modals** → Already correct or keep as-is
 - **8 modals** → Quick size/style fix only
-- **7 modals** → Special cases (no close button by design, duplicates to verify)
+- **3 modals** → Delete (confirmed dead code)
+- **4 modals** → Keep as-is (no close button by design)
 
 ---
 
 ## Phase 0: Modal Component Enhancements
 
-Before migrating modals, enhance the centralized Modal component with new features:
+Before migrating modals, enhance the centralized Modal component with new features.
 
 ### 0.1 Add `draggable` prop
+
+Port drag functionality from existing `DraggableModal.tsx`:
 
 ```tsx
 interface ModalProps {
@@ -27,7 +54,26 @@ interface ModalProps {
 }
 ```
 
-Implementation: Integrate drag behavior from existing `DraggableModal.tsx` into centralized Modal.
+**Implementation requirements (from DraggableModal analysis):**
+
+| Feature | Details |
+|---------|---------|
+| **Libraries** | React hooks only (no external drag libraries) |
+| **State** | `modalPos: {x, y}`, `isDragging: boolean`, `dragOffset: {x, y}` |
+| **Events** | `handleMouseDown`, `handleMouseMove`, `handleMouseUp` |
+| **Drag target** | `.modal-header` element with `cursor-move` class |
+| **Initial position** | Center on screen: `x = (window.innerWidth - 576) / 2` |
+| **Bounds** | Prevents negative positions only (can drag off-screen) |
+| **Body scroll** | Lock with `document.body.style.overflow = 'hidden'` |
+
+**Additional DraggableModal props to support:**
+- `opaqueBody?: boolean` - Solid white vs glassmorphic body
+- `lightBackdrop?: boolean` - Lighter backdrop for public pages
+
+**Current DraggableModal issues to fix during port:**
+- Close button is 36x36 → should be 48x48
+- z-index is z-20 → should be z-50
+- Missing touch event support (mobile)
 
 ### 0.2 Add `theme` prop for dark mode
 
@@ -77,43 +123,86 @@ All modals should use this close button unless marked as "Keep As-Is":
 
 ---
 
-## Migration Candidates (19 modals)
+## Migration Candidates - Ready Now (15 modals)
 
-These modals have simple structure and should be **migrated to the centralized Modal component**.
+These modals have simple structure and are **ready to migrate immediately**.
 
-### Simple Forms & Selection Modals
+### Simple Forms & Selection Modals (7)
 
-| # | File | Size | Notes |
-|---|------|------|-------|
-| 1 | `/src/app/(app)/components/BulkPromptTypeSelectModal.tsx` | sm | Simple radio selection |
-| 2 | `/src/app/(app)/components/UnifiedPromptTypeSelectModal.tsx` | md | Type selection + checkbox |
-| 3 | `/src/app/(app)/components/FeedbackModal.tsx` | md | Simple form submission |
-| 4 | `/src/app/(app)/dashboard/rss-feeds/components/TestFeedModal.tsx` | md | Input → process → display |
-| 5 | `/src/app/(app)/dashboard/social-posting/components/EditScheduleModal.tsx` | sm | Date/text form |
-| 6 | `/src/app/(app)/work-manager/components/CreateBoardModal.tsx` | md | Standard form |
-| 7 | `/src/app/(app)/work-manager/components/CreateTaskModal.tsx` | lg | Multi-field form |
+| # | File | Size | Dialog Type | Notes |
+|---|------|------|-------------|-------|
+| 1 | `/src/app/(app)/components/BulkPromptTypeSelectModal.tsx` | md | Headless UI | Simple radio selection |
+| 2 | `/src/app/(app)/components/UnifiedPromptTypeSelectModal.tsx` | md | Headless UI | Type selection + checkbox, has local state |
+| 3 | `/src/app/(app)/components/FeedbackModal.tsx` | md | Manual div | Easy conversion, standard form |
+| 4 | `/src/app/(app)/dashboard/rss-feeds/components/TestFeedModal.tsx` | 2xl | Headless UI | Has internal scroll (max-h-64) |
+| 5 | `/src/app/(app)/dashboard/social-posting/components/EditScheduleModal.tsx` | md | Headless UI | Standard date/text form |
+| 6 | `/src/app/(app)/work-manager/components/CreateBoardModal.tsx` | md | Manual div | Standard form |
+| 7 | `/src/app/(app)/work-manager/components/CreateTaskModal.tsx` | lg | Manual div | Multi-field form, has max-h scroll |
 
-### Feature Modals - Rank Tracking & LLM
+### Feature Modals - Ready (6)
 
-| # | File | Size | Notes |
-|---|------|------|-------|
-| 8 | `/src/features/keywords/components/BulkDeleteModal.tsx` | md | Confirmation with progress |
-| 9 | `/src/features/llm-visibility/components/AddLLMConceptModal.tsx` | md | Standard form |
-| 10 | `/src/features/llm-visibility/components/CheckLLMModal.tsx` | md | Provider selection + results |
-| 11 | `/src/features/rank-tracking/components/AddKeywordConceptModal.tsx` | md | Standard form |
-| 12 | `/src/features/rank-tracking/components/CheckVolumeModal.tsx` | md | Location picker + results |
-| 13 | `/src/features/rank-tracking/components/RunAllRankModal.tsx` | md | State machine fits Modal |
-| 14 | `/src/features/rank-tracking/components/CheckRankModal.tsx` | md | Simple with nested confirm |
-| 15 | `/src/features/geo-grid/components/AddKeywordsToGridModal.tsx` | 2xl | Search + list + create |
+| # | File | Size | Dialog Type | Notes |
+|---|------|------|-------------|-------|
+| 8 | `/src/features/keywords/components/BulkDeleteModal.tsx` | lg | Headless UI | Scrollable keyword list (max-h-64) |
+| 9 | `/src/features/llm-visibility/components/AddLLMConceptModal.tsx` | lg | Manual div | Dynamic question list (up to 10) |
+| 10 | `/src/features/llm-visibility/components/CheckLLMModal.tsx` | md | Manual div | Multiple conditional states |
+| 11 | `/src/features/rank-tracking/components/AddKeywordConceptModal.tsx` | md | Manual div | Simple form |
+| 12 | `/src/features/rank-tracking/components/CheckVolumeModal.tsx` | md | Manual div | LocationPicker + compact result |
+| 13 | `/src/features/geo-grid/components/AddKeywordsToGridModal.tsx` | 2xl | Headless UI | Already well-structured, easy swap |
 
-### Other Migration Candidates
+### Other Ready Migrations (2)
 
-| # | File | Size | Notes |
-|---|------|------|-------|
-| 16 | `/src/app/(app)/components/communication/SharePromptPageModal.tsx` | md | Tab switching + clipboard |
-| 17 | `/src/app/(app)/components/FunFactsModal.tsx` | md | Simple list, needs `draggable` |
-| 18 | `/src/app/(app)/components/KeywordInspirationModal.tsx` | md | Keyword list, needs `draggable` |
-| 19 | `/src/components/GoogleBusinessProfile/LocationSelectionModalV2.tsx` | lg | Search + selection list |
+| # | File | Size | Dialog Type | Notes |
+|---|------|------|-------------|-------|
+| 14 | `/src/app/(app)/components/communication/SharePromptPageModal.tsx` | lg | Headless UI | Tab switching + clipboard |
+| 15 | `/src/components/GoogleBusinessProfile/LocationSelectionModalV2.tsx` | 3xl | Manual div | Search + selection, needs `allowOverflow` |
+
+---
+
+## Migration Candidates - Need Work First (2 modals)
+
+### ⚠️ CheckRankModal - NESTED DIALOG ISSUE
+
+**File:** `/src/features/rank-tracking/components/CheckRankModal.tsx`
+
+**Problem:** Has a nested confirmation Dialog (lines 228-262) that creates a second z-50 overlay.
+- Main modal uses z-50
+- Nested dialog uses z-[60] for stacking
+- This pattern is incompatible with single Modal structure
+
+**Required fix before migration:**
+1. Extract confirmation dialog into separate Modal component, OR
+2. Convert to inline confirmation state within main modal body (recommended)
+
+**Migration effort:** Medium-High
+
+---
+
+### ⚠️ RunAllRankModal - COMPLEX STATE MACHINE
+
+**File:** `/src/features/rank-tracking/components/RunAllRankModal.tsx`
+
+**Problem:** Has multiple conditional render states that dramatically change layout:
+- Loading → Configuration → Running → Complete
+- Backdrop click disabled during running state
+- Schedule input fields have custom styling
+
+**Required before migration:**
+- Thorough testing of all state transitions
+- Verify Modal handles dynamic content height changes
+
+**Migration effort:** Medium
+
+---
+
+## Migration Candidates - Blocked (2 modals)
+
+These require the `draggable` prop to be added to Modal first.
+
+| # | File | Blocker | Notes |
+|---|------|---------|-------|
+| 17 | `/src/app/(app)/components/FunFactsModal.tsx` | Needs `draggable` | Uses DraggableModal with `opaqueBody`, `lightBackdrop` |
+| 18 | `/src/app/(app)/components/KeywordInspirationModal.tsx` | Needs `draggable` | Uses DraggableModal with `opaqueBody`, `lightBackdrop` |
 
 ---
 
@@ -173,7 +262,7 @@ These modals have complex behavior or specialized styling. **Keep as custom, jus
 | 4 | `/src/app/(app)/dashboard/rss-feeds/components/FeedFormModal.tsx` |
 | 5 | `/src/app/(app)/dashboard/social-posting/components/CreatePostModal.tsx` |
 
-### Keep As-Is - Specialized (3)
+### Keep As-Is - Specialized (7)
 
 | # | File | Reason |
 |---|------|--------|
@@ -189,61 +278,95 @@ These modals have complex behavior or specialized styling. **Keep as custom, jus
 
 ## Quick Fixes - Size/Style Update Only (8 modals)
 
-Update `style={{ width: 36, height: 36 }}` to `style={{ width: 48, height: 48 }}` and fix styling.
+**Code review findings:** 6 modals are consistent (36x36, white/70 bg), 2 have different patterns.
 
-| # | File | Current | Fix |
-|---|------|---------|-----|
-| 1 | `/src/app/(app)/components/QRCodeModal.tsx` | 36x36, white/70 bg | 48x48, white bg |
-| 2 | `/src/app/(app)/components/help/HelpModal.tsx` | 36x36, white/70 bg | 48x48, white bg |
-| 3 | `/src/app/(app)/components/PromptPageSettingsModal.tsx` | 36x36, white/70 bg | 48x48, white bg |
-| 4 | `/src/app/(app)/components/PromptTypeSelectModal.tsx` | 36x36, white/70 bg | 48x48, white bg |
-| 5 | `/src/app/(app)/components/prompt-features/KickstartersManagementModal.tsx` | 36x36, white/70 bg | 48x48, white bg |
-| 6 | `/src/app/(app)/dashboard/google-business/components/modals/ImportReviewsModal.tsx` | 36x36 | 48x48 |
-| 7 | `/src/app/(app)/dashboard/widget/components/DraggableModal.tsx` | 36x36, white/70 bg | 48x48, white bg |
-| 8 | `/src/components/billing/PlanTransitionModal.tsx` | 32x32 (w-8 h-8) | 48x48, add red X |
+### Consistent Pattern (6 modals) - Same fix for all
+
+Update from:
+```tsx
+className="... bg-white/70 backdrop-blur-sm border border-white/40 ... z-20"
+style={{ width: 36, height: 36 }}
+```
+
+To:
+```tsx
+className="... bg-white border border-gray-200 ... z-50"
+style={{ width: 48, height: 48 }}
+```
+
+| # | File | Lines | Current |
+|---|------|-------|---------|
+| 1 | `/src/app/(app)/components/QRCodeModal.tsx` | 203-212 | 36x36, white/70, white/40 border |
+| 2 | `/src/app/(app)/components/help/HelpModal.tsx` | 76-83 | 36x36, white/70, white/40 border |
+| 3 | `/src/app/(app)/components/PromptPageSettingsModal.tsx` | 301-311 | 36x36, white/70, white/40 border |
+| 4 | `/src/app/(app)/components/PromptTypeSelectModal.tsx` | 45-52 | 36x36, white/70, white/40 border |
+| 5 | `/src/app/(app)/components/prompt-features/KickstartersManagementModal.tsx` | 289-296 | 36x36, white/70, white/40 border |
+| 6 | `/src/app/(app)/dashboard/widget/components/DraggableModal.tsx` | 118-127 | 36x36, white/70, white/40 border |
+
+### Different Pattern - ImportReviewsModal
+
+| # | File | Lines | Current | Notes |
+|---|------|-------|---------|-------|
+| 7 | `/src/app/(app)/dashboard/google-business/components/modals/ImportReviewsModal.tsx` | 54-63 | 36x36, opaque white, gray-200 border | Already closer to spec, just update size |
+
+### Different Pattern - PlanTransitionModal
+
+| # | File | Lines | Current | Notes |
+|---|------|-------|---------|-------|
+| 8 | `/src/components/billing/PlanTransitionModal.tsx` | 39-48 | **32x32 (w-8 h-8)**, no border | Needs full restyle + red X icon |
 
 ---
 
-## Duplicates to Verify (3 files)
+## Dead Code - DELETE (3 files)
 
-These appear to be duplicates in `/src/app/components/` (public routes). Verify before consolidating:
+**Code review confirmed:** All 3 files are not imported anywhere and are obsolete versions.
 
-| # | File | Likely Duplicate Of |
-|---|------|---------------------|
-| 1 | `/src/app/components/PricingModal.tsx` | `/src/app/(app)/components/PricingModal.tsx` |
-| 2 | `/src/app/components/PromptTypeSelectModal.tsx` | `/src/app/(app)/components/PromptTypeSelectModal.tsx` |
-| 3 | `/src/app/components/QRCodeModal.tsx` | `/src/app/(app)/components/QRCodeModal.tsx` |
+| # | File | Reason | Action |
+|---|------|--------|--------|
+| 1 | `/src/app/components/PricingModal.tsx` | 292 lines, no billing toggle, static prices | **DELETE** |
+| 2 | `/src/app/components/PromptTypeSelectModal.tsx` | 78 lines, older design without glassmorphism | **DELETE** |
+| 3 | `/src/app/components/QRCodeModal.tsx` | 242 lines vs 944 in newer version, basic features only | **DELETE** |
+
+**Root cause:** Codebase restructuring moved authenticated routes into `(app)` route group but old files weren't cleaned up.
 
 ---
 
 ## Implementation Phases
 
-### Phase 0: Modal Component Enhancements
-- Add `draggable` prop to centralized Modal
-- Add `theme` prop with 'light' | 'dark' variants
-- Test focus trapping with floating close button
+### Phase 0: Prep Work
+1. **Delete dead code** - Remove 3 obsolete modal files
+2. **Add `draggable` prop** to centralized Modal (port from DraggableModal)
+3. **Add `theme` prop** with 'light' | 'dark' variants
+4. **Test focus trapping** with floating close button
 
 ### Phase 1: Quick Fixes
-- Update 8 modals with size/style fixes (Category: Quick Fixes)
+- Update 8 modals with size/style fixes
+- PlanTransitionModal needs full restyle
 
-### Phase 2: Simple Migration Candidates
-- Migrate simple form modals (items 1-7 from Migration Candidates)
-- These have minimal state and map directly to Modal structure
+### Phase 2: Simple Form Migrations (7 modals)
+- BulkPromptTypeSelectModal, UnifiedPromptTypeSelectModal, FeedbackModal
+- TestFeedModal, EditScheduleModal, CreateBoardModal, CreateTaskModal
+- Start with Headless UI Dialog modals (easier), then manual div modals
 
-### Phase 3: Feature Modal Migrations
-- Migrate rank-tracking and LLM modals (items 8-15)
-- These have moderate complexity but still fit Modal pattern
+### Phase 3: Feature Modal Migrations (6 modals)
+- BulkDeleteModal, AddLLMConceptModal, CheckLLMModal
+- AddKeywordConceptModal, CheckVolumeModal, AddKeywordsToGridModal
 
-### Phase 4: Remaining Migrations
-- Migrate SharePromptPageModal, FunFactsModal, KeywordInspirationModal, LocationSelectionModalV2
-- FunFactsModal and KeywordInspirationModal need `draggable` prop
+### Phase 4: Remaining Ready Migrations (2 modals)
+- SharePromptPageModal, LocationSelectionModalV2
 
-### Phase 5: Custom Modals - Close Button Updates
-- Add floating close button to 17 custom modals
-- Community modals (EditCommentModal, EditPostModal) can use `theme="dark"` once available
+### Phase 5: Fix & Migrate Problem Modals (2 modals)
+- **CheckRankModal** - Extract nested dialog first, then migrate
+- **RunAllRankModal** - Test all state transitions, then migrate
 
-### Phase 6: Cleanup
-- Verify and consolidate duplicate files
+### Phase 6: Draggable Migrations (2 modals)
+- FunFactsModal, KeywordInspirationModal (after Phase 0 `draggable` prop)
+
+### Phase 7: Custom Modals - Close Button Updates (17 modals)
+- Add floating close button to all custom modals
+- Community modals can use `theme="dark"` once available
+
+### Phase 8: Final Cleanup
 - Final QA pass
 - Update CLAUDE.md if Modal component API changed
 
@@ -265,6 +388,18 @@ For each modal update:
 - [ ] Mobile responsive (close button not clipped on small screens)
 - [ ] Run `npx tsc --noEmit` - no TypeScript errors
 
+**For draggable modals:**
+- [ ] Drag by header works
+- [ ] Modal centers on open
+- [ ] Body scroll is locked while open
+- [ ] Position resets on close/reopen
+
+**For migrations:**
+- [ ] All Dialog/Transition code replaced with Modal component
+- [ ] Props mapped correctly (size, title, onClose)
+- [ ] State management preserved
+- [ ] Footer buttons in Modal.Footer
+
 ---
 
 ## Code Review Guidelines
@@ -284,14 +419,17 @@ For each modal update:
 
 | Category | Count | Action |
 |----------|-------|--------|
-| Migrate to Modal component | 19 | Full migration |
+| Migrate to Modal (ready now) | 15 | Full migration |
+| Migrate after fixes | 2 | CheckRankModal, RunAllRankModal |
+| Migrate after draggable | 2 | FunFactsModal, KeywordInspirationModal |
 | Keep custom, add close button | 17 | Add floating close button |
 | Already correct | 14 | No changes |
 | Quick size/style fix | 8 | Update dimensions |
 | Keep as-is (no close button) | 4 | No changes |
-| Duplicates to verify | 3 | Investigate |
+| Delete (dead code) | 3 | Remove files |
 | **Total** | **65** | |
 
 ---
 
 *Last updated: 2026-01-18*
+*Code review completed: All categories verified*

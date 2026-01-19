@@ -74,12 +74,14 @@ export default function HelpModal({
       <div className="relative bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] md:max-h-[85vh] flex flex-col overflow-visible border border-white/40">
         {/* Close button */}
         <button
-          className="absolute -top-3 -right-3 md:-top-4 md:-right-4 bg-white/70 backdrop-blur-sm border border-white/40 rounded-full shadow-lg flex items-center justify-center hover:bg-white/90 focus:outline-none z-10 transition-colors"
-          style={{ width: 36, height: 36 }}
+          className="absolute -top-3 -right-3 bg-white border border-gray-200 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 flex items-center justify-center hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 z-50"
+          style={{ width: 48, height: 48 }}
           onClick={handleClose}
-          aria-label="Close"
+          aria-label="Close modal"
         >
-          <Icon name="FaTimes" className="w-5 h-5 text-red-600" size={20} />
+          <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
         </button>
 
         {/* Header with Tabs */}

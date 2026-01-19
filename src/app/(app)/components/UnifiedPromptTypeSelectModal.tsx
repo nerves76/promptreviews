@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Dialog } from '@headlessui/react';
+import { Modal } from '@/app/(app)/components/ui/modal';
+import { Button } from '@/app/(app)/components/ui/button';
 import Icon from '@/components/Icon';
 
 interface UnifiedPromptTypeSelectModalProps {
@@ -74,117 +75,97 @@ export default function UnifiedPromptTypeSelectModal({
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} className="fixed z-50 inset-0 overflow-y-auto" aria-label="Create prompt page">
-      <div className="flex items-center justify-center min-h-screen px-4">
-        <div className="fixed inset-0 bg-black opacity-30" />
-        
-        <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-6">
-            <Dialog.Title className="text-xl font-semibold text-gray-900">
-              Create prompt page{mode === 'bulk' ? 's' : ''}
-            </Dialog.Title>
+    <Modal
+      isOpen={open}
+      onClose={handleClose}
+      title={`Create prompt page${mode === 'bulk' ? 's' : ''}`}
+      size="md"
+    >
+      {/* Content */}
+      <div className="mb-6">
+        <p className="text-gray-600 mb-4">
+          {mode === 'bulk' ? (
+            <>You've selected <span className="font-semibold">{selectedCount}</span> contact{selectedCount !== 1 ? 's' : ''}.
+            Choose the type of prompt page to create for all selected contacts:</>
+          ) : (
+            <>Create a prompt page for <span className="font-semibold">{contactName}</span>.
+            Choose the type of prompt page to create:</>
+          )}
+        </p>
+
+        {/* Prompt Type Selection */}
+        <div className="space-y-3 mb-6">
+          {promptTypes.map((type) => (
             <button
-              onClick={handleClose}
-              className="text-gray-500 hover:text-gray-600 transition-colors"
-              aria-label="Close"
-            >
-              <Icon name="FaTimes" className="w-5 h-5" size={20} />
-            </button>
-          </div>
-
-          {/* Content */}
-          <div className="mb-6">
-            <p className="text-gray-600 mb-4">
-              {mode === 'bulk' ? (
-                <>You've selected <span className="font-semibold">{selectedCount}</span> contact{selectedCount !== 1 ? 's' : ''}. 
-                Choose the type of prompt page to create for all selected contacts:</>
-              ) : (
-                <>Create a prompt page for <span className="font-semibold">{contactName}</span>. 
-                Choose the type of prompt page to create:</>
-              )}
-            </p>
-
-            {/* Prompt Type Selection */}
-            <div className="space-y-3 mb-6">
-              {promptTypes.map((type) => (
-                <button
-                  key={type.key}
-                  onClick={() => handleTypeSelect(type.key)}
-                  className={`w-full p-4 border rounded-lg transition-colors text-left group ${
-                    selectedType === type.key
-                      ? 'border-indigo-500 bg-indigo-50'
-                      : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                  }`}
-                >
-                  <div className="flex items-center space-x-3">
-                    <div className={`${selectedType === type.key ? 'text-indigo-600' : 'text-slate-blue'}`}>
-                      <Icon name={type.icon as any} className="w-6 h-6" size={24} />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className={`font-medium ${
-                        selectedType === type.key ? 'text-indigo-900' : 'text-gray-900 group-hover:text-gray-700'
-                      }`}>
-                        {type.name}
-                      </h3>
-                      <p className={`text-sm ${
-                        selectedType === type.key ? 'text-indigo-700' : 'text-gray-500 group-hover:text-gray-600'
-                      }`}>
-                        {type.description}
-                      </p>
-                    </div>
-                    {selectedType === type.key && (
-                      <div className="text-indigo-600">
-                        <Icon name="FaCheckCircle" className="w-5 h-5" size={20} />
-                      </div>
-                    )}
-                  </div>
-                </button>
-              ))}
-            </div>
-
-            {/* Include Reviews Checkbox */}
-            <div className="border-t pt-4">
-              <label className="flex items-start space-x-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={includeReviews}
-                  onChange={(e) => setIncludeReviews(e.target.checked)}
-                  className="mt-1 h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                />
-                <div className="flex-1">
-                  <span className="text-sm font-medium text-gray-900">Include existing reviews</span>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Import existing reviews from {mode === 'bulk' ? 'these contacts' : 'this contact'} into the review platforms section. 
-                    This allows you to ask customers to repost or modify their reviews on other platforms.
-                  </p>
-                </div>
-              </label>
-            </div>
-          </div>
-
-          {/* Footer */}
-          <div className="flex justify-end space-x-3">
-            <button
-              onClick={handleClose}
-              className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleProceed}
-              disabled={!selectedType}
-              className={`px-6 py-2 rounded-lg font-medium transition-colors ${
-                selectedType
-                  ? 'bg-slate-blue text-white hover:bg-slate-blue/90'
-                  : 'bg-gray-100 text-gray-500 cursor-not-allowed'
+              key={type.key}
+              onClick={() => handleTypeSelect(type.key)}
+              className={`w-full p-4 border rounded-lg transition-colors text-left group ${
+                selectedType === type.key
+                  ? 'border-slate-blue bg-slate-blue/10'
+                  : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
               }`}
             >
-              {mode === 'bulk' ? `Create ${selectedCount} pages` : 'Create page'}
+              <div className="flex items-center space-x-3">
+                <div className={`${selectedType === type.key ? 'text-slate-blue' : 'text-slate-blue'}`}>
+                  <Icon name={type.icon as any} className="w-6 h-6" size={24} />
+                </div>
+                <div className="flex-1">
+                  <h3 className={`font-medium ${
+                    selectedType === type.key ? 'text-slate-blue' : 'text-gray-900 group-hover:text-gray-700'
+                  }`}>
+                    {type.name}
+                  </h3>
+                  <p className={`text-sm ${
+                    selectedType === type.key ? 'text-slate-blue/80' : 'text-gray-500 group-hover:text-gray-600'
+                  }`}>
+                    {type.description}
+                  </p>
+                </div>
+                {selectedType === type.key && (
+                  <div className="text-slate-blue">
+                    <Icon name="FaCheckCircle" className="w-5 h-5" size={20} />
+                  </div>
+                )}
+              </div>
             </button>
-          </div>
+          ))}
+        </div>
+
+        {/* Include Reviews Checkbox */}
+        <div className="border-t pt-4">
+          <label className="flex items-start space-x-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={includeReviews}
+              onChange={(e) => setIncludeReviews(e.target.checked)}
+              className="mt-1 h-4 w-4 text-slate-blue focus:ring-slate-blue border-gray-300 rounded"
+            />
+            <div className="flex-1">
+              <span className="text-sm font-medium text-gray-900">Include existing reviews</span>
+              <p className="text-xs text-gray-500 mt-1">
+                Import existing reviews from {mode === 'bulk' ? 'these contacts' : 'this contact'} into the review platforms section.
+                This allows you to ask customers to repost or modify their reviews on other platforms.
+              </p>
+            </div>
+          </label>
         </div>
       </div>
-    </Dialog>
+
+      {/* Footer */}
+      <Modal.Footer>
+        <Button
+          variant="secondary"
+          onClick={handleClose}
+        >
+          Cancel
+        </Button>
+        <Button
+          onClick={handleProceed}
+          disabled={!selectedType}
+        >
+          {mode === 'bulk' ? `Create ${selectedCount} pages` : 'Create page'}
+        </Button>
+      </Modal.Footer>
+    </Modal>
   );
 }

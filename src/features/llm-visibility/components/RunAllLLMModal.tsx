@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect, useMemo } from 'react';
+import { Modal } from '@/app/(app)/components/ui/modal';
 import Icon from '@/components/Icon';
 import { apiClient } from '@/utils/apiClient';
 import {
@@ -256,47 +257,32 @@ export default function RunAllLLMModal({
     }
   };
 
-  if (!isOpen) return null;
-
   const isRunning = batchStatus && ['pending', 'processing'].includes(batchStatus.status);
   const isScheduled = batchStatus?.status === 'scheduled';
   const isComplete = batchStatus?.status === 'completed';
   const isFailed = batchStatus?.status === 'failed';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/50"
-        onClick={isRunning ? undefined : onClose}
-      />
-
-      {/* Modal */}
-      <div className="relative bg-white rounded-xl shadow-xl max-w-md w-full mx-4 overflow-hidden">
-        {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-100">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Icon name="FaRocket" className="w-5 h-5 text-slate-blue" />
-              <h3 className="text-lg font-semibold text-gray-900">Run all LLM checks</h3>
-            </div>
-            {!isRunning && (
-              <button
-                onClick={onClose}
-                aria-label="Close modal"
-                className="p-1 text-gray-500 hover:text-gray-600 rounded transition-colors"
-              >
-                <Icon name="FaTimes" className="w-5 h-5" />
-              </button>
-            )}
-          </div>
-          <p className="text-sm text-gray-600 mt-2">
-            Check all your keyword questions across selected AI platforms
-          </p>
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      size="md"
+      showCloseButton={!isRunning}
+      className="!p-0"
+    >
+      {/* Header */}
+      <div className="px-6 py-4 border-b border-gray-100 pr-14">
+        <div className="flex items-center gap-2">
+          <Icon name="FaRocket" className="w-5 h-5 text-slate-blue" />
+          <h3 className="text-lg font-semibold text-gray-900">Run all LLM checks</h3>
         </div>
+        <p className="text-sm text-gray-600 mt-2">
+          Check all your keyword questions across selected AI platforms
+        </p>
+      </div>
 
-        {/* Content */}
-        <div className="px-6 py-4 space-y-4">
+      {/* Content */}
+      <div className="px-6 py-4 space-y-4">
           {isLoadingPreview ? (
             <div className="flex items-center justify-center py-8">
               <Icon name="FaSpinner" className="w-6 h-6 text-slate-blue animate-spin" />
@@ -558,47 +544,46 @@ export default function RunAllLLMModal({
           )}
         </div>
 
-        {/* Footer */}
-        <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
+      {/* Footer */}
+      <Modal.Footer className="bg-gray-50">
+        <button
+          onClick={onClose}
+          className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"
+        >
+          {isRunning ? 'Close' : isComplete || isFailed || isScheduled ? 'Done' : 'Cancel'}
+        </button>
+        {!isRunning && !isComplete && !isFailed && !isScheduled && (
           <button
-            onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"
+            onClick={handleStartBatch}
+            disabled={
+              isStarting ||
+              isLoadingPreview ||
+              !hasCredits ||
+              selectedProviders.length === 0 ||
+              (preview?.totalQuestions || 0) === 0 ||
+              (runMode === 'schedule' && !scheduledTime)
+            }
+            className="px-4 py-2 text-sm font-medium text-white bg-slate-blue rounded-lg hover:bg-slate-blue/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2 whitespace-nowrap"
           >
-            {isRunning ? 'Close' : isComplete || isFailed || isScheduled ? 'Done' : 'Cancel'}
+            {isStarting ? (
+              <>
+                <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
+                {runMode === 'schedule' ? 'Scheduling...' : 'Starting...'}
+              </>
+            ) : runMode === 'schedule' ? (
+              <>
+                <Icon name="FaClock" className="w-4 h-4" />
+                Schedule checks
+              </>
+            ) : (
+              <>
+                <Icon name="FaRocket" className="w-4 h-4" />
+                Run all checks
+              </>
+            )}
           </button>
-          {!isRunning && !isComplete && !isFailed && !isScheduled && (
-            <button
-              onClick={handleStartBatch}
-              disabled={
-                isStarting ||
-                isLoadingPreview ||
-                !hasCredits ||
-                selectedProviders.length === 0 ||
-                (preview?.totalQuestions || 0) === 0 ||
-                (runMode === 'schedule' && !scheduledTime)
-              }
-              className="px-4 py-2 text-sm font-medium text-white bg-slate-blue rounded-lg hover:bg-slate-blue/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2 whitespace-nowrap"
-            >
-              {isStarting ? (
-                <>
-                  <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
-                  {runMode === 'schedule' ? 'Scheduling...' : 'Starting...'}
-                </>
-              ) : runMode === 'schedule' ? (
-                <>
-                  <Icon name="FaClock" className="w-4 h-4" />
-                  Schedule checks
-                </>
-              ) : (
-                <>
-                  <Icon name="FaRocket" className="w-4 h-4" />
-                  Run all checks
-                </>
-              )}
-            </button>
-          )}
-        </div>
-      </div>
-    </div>
+        )}
+      </Modal.Footer>
+    </Modal>
   );
 }

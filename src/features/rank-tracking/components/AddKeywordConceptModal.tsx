@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Icon from '@/components/Icon';
+import { Modal } from '@/app/(app)/components/ui/modal';
 
 interface AddKeywordConceptModalProps {
   isOpen: boolean;
@@ -22,8 +23,6 @@ export function AddKeywordConceptModal({
   const [keywords, setKeywords] = useState<string[]>(['']);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  if (!isOpen) return null;
 
   const handleKeywordChange = (index: number, value: string) => {
     const newKeywords = [...keywords];
@@ -81,135 +80,115 @@ export function AddKeywordConceptModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/50"
-        onClick={handleClose}
-      />
-
-      {/* Modal */}
-      <div className="relative bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">Add keyword concept</h3>
-          <button
-            onClick={handleClose}
-            className="text-gray-500 hover:text-gray-600 transition-colors"
-          >
-            <Icon name="FaTimes" className="w-5 h-5" />
-          </button>
+    <Modal isOpen={isOpen} onClose={handleClose} title="Add keyword concept" size="md">
+      {/* Form */}
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Concept name */}
+        <div>
+          <label htmlFor="concept-name" className="block text-sm font-medium text-gray-700 mb-1">
+            Concept name
+          </label>
+          <input
+            id="concept-name"
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value.slice(0, 50))}
+            placeholder="e.g., Portland marketing services"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-blue/50 focus:border-slate-blue/50 transition-all"
+            maxLength={50}
+            autoFocus
+          />
+          <div className="flex justify-between mt-1">
+            <p className="text-xs text-gray-500">
+              A short name to identify this keyword concept
+            </p>
+            <span className={`text-xs ${name.length >= 45 ? 'text-amber-600' : 'text-gray-400'}`}>
+              {name.length}/50
+            </span>
+          </div>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Concept name */}
-          <div>
-            <label htmlFor="concept-name" className="block text-sm font-medium text-gray-700 mb-1">
-              Concept name
-            </label>
-            <input
-              id="concept-name"
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value.slice(0, 50))}
-              placeholder="e.g., Portland marketing services"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-blue/50 focus:border-slate-blue/50 transition-all"
-              maxLength={50}
-              autoFocus
-            />
-            <div className="flex justify-between mt-1">
-              <p className="text-xs text-gray-500">
-                A short name to identify this keyword concept
-              </p>
-              <span className={`text-xs ${name.length >= 45 ? 'text-amber-600' : 'text-gray-400'}`}>
-                {name.length}/50
-              </span>
-            </div>
+        {/* Keywords to track */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Keywords to track
+          </label>
+          <div className="space-y-2">
+            {keywords.map((keyword, index) => (
+              <div key={index} className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={keyword}
+                  onChange={(e) => handleKeywordChange(index, e.target.value)}
+                  placeholder={index === 0 ? "e.g., marketing consultant portland" : "Add another keyword..."}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-blue/50 focus:border-slate-blue/50 transition-all"
+                />
+                {keywords.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveKeyword(index)}
+                    className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                    aria-label="Remove keyword"
+                  >
+                    <Icon name="FaTimes" className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            ))}
           </div>
-
-          {/* Keywords to track */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Keywords to track
-            </label>
-            <div className="space-y-2">
-              {keywords.map((keyword, index) => (
-                <div key={index} className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={keyword}
-                    onChange={(e) => handleKeywordChange(index, e.target.value)}
-                    placeholder={index === 0 ? "e.g., marketing consultant portland" : "Add another keyword..."}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-blue/50 focus:border-slate-blue/50 transition-all"
-                  />
-                  {keywords.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveKeyword(index)}
-                      className="p-2 text-gray-400 hover:text-red-500 transition-colors"
-                      aria-label="Remove keyword"
-                    >
-                      <Icon name="FaTimes" className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-            <div className="flex items-center justify-between mt-2">
-              <p className="text-xs text-gray-500">
-                Search terms you want to track rankings for
-              </p>
-              {keywords.length < 10 && (
-                <button
-                  type="button"
-                  onClick={handleAddKeyword}
-                  className="text-xs text-slate-blue hover:text-slate-blue/80 flex items-center gap-1 transition-colors"
-                >
-                  <Icon name="FaPlus" className="w-3 h-3" />
-                  Add another
-                </button>
-              )}
-            </div>
+          <div className="flex items-center justify-between mt-2">
+            <p className="text-xs text-gray-500">
+              Search terms you want to track rankings for
+            </p>
+            {keywords.length < 10 && (
+              <button
+                type="button"
+                onClick={handleAddKeyword}
+                className="text-xs text-slate-blue hover:text-slate-blue/80 flex items-center gap-1 transition-colors"
+              >
+                <Icon name="FaPlus" className="w-3 h-3" />
+                Add another
+              </button>
+            )}
           </div>
+        </div>
 
-          {/* Error */}
-          {error && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
-              {error}
-            </div>
-          )}
-
-          {/* Actions */}
-          <div className="flex justify-end gap-3 pt-2">
-            <button
-              type="button"
-              onClick={handleClose}
-              className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="px-4 py-2 text-sm font-medium text-white bg-slate-blue rounded-lg hover:bg-slate-blue/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
-            >
-              {isSubmitting ? (
-                <>
-                  <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
-                  Adding...
-                </>
-              ) : (
-                <>
-                  <Icon name="FaPlus" className="w-4 h-4" />
-                  Add concept
-                </>
-              )}
-            </button>
+        {/* Error */}
+        {error && (
+          <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+            {error}
           </div>
-        </form>
-      </div>
-    </div>
+        )}
+
+        {/* Actions */}
+        <Modal.Footer>
+          <button
+            type="button"
+            onClick={handleClose}
+            className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="px-4 py-2 text-sm font-medium text-white bg-slate-blue rounded-lg hover:bg-slate-blue/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors whitespace-nowrap"
+          >
+            {isSubmitting ? (
+              <>
+                <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
+                Adding...
+              </>
+            ) : (
+              <>
+                <Icon name="FaPlus" className="w-4 h-4" />
+                Add concept
+              </>
+            )}
+          </button>
+        </Modal.Footer>
+      </form>
+    </Modal>
   );
 }
 

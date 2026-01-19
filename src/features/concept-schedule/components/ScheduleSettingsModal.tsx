@@ -318,8 +318,20 @@ export function ScheduleSettingsModal({
           className="bg-white rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto"
           onClick={(e) => e.stopPropagation()}
         >
+          {/* Standardized close button */}
+          <button
+            onClick={onClose}
+            className="absolute -top-3 -right-3 bg-white border border-gray-200 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 flex items-center justify-center hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 z-50"
+            style={{ width: 48, height: 48 }}
+            aria-label="Close modal"
+          >
+            <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-gray-200">
+          <div className="flex items-center justify-between p-4 border-b border-gray-200 pr-12">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-slate-blue/10 rounded-lg flex items-center justify-center">
                 <Icon name="FaRocket" className="w-5 h-5 text-slate-blue" />
@@ -329,12 +341,6 @@ export function ScheduleSettingsModal({
                 <p className="text-sm text-gray-500 truncate max-w-[250px]">{keywordName}</p>
               </div>
             </div>
-            <button
-              onClick={onClose}
-              className="p-2 text-gray-500 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <Icon name="FaTimes" className="w-5 h-5" />
-            </button>
           </div>
 
           {/* Content */}

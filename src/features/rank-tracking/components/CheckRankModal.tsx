@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { Modal } from '@/app/(app)/components/ui/modal';
 import Icon from '@/components/Icon';
 import LocationPicker from './LocationPicker';
 
@@ -102,29 +103,12 @@ export default function CheckRankModal({
     return 'text-gray-600';
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/50"
-        onClick={handleClose}
-      />
-
-      {/* Modal */}
-      <div className="relative bg-white rounded-xl shadow-xl max-w-md w-full mx-4 overflow-hidden">
+    <>
+      <Modal isOpen={isOpen} onClose={handleClose} size="md" allowOverflow className="!p-0">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-100">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-900">Check ranking</h3>
-            <button
-              onClick={handleClose}
-              className="p-1 text-gray-500 hover:text-gray-600 rounded transition-colors"
-            >
-              <Icon name="FaTimes" className="w-5 h-5" />
-            </button>
-          </div>
+        <div className="px-6 py-4 border-b border-gray-100 pr-14">
+          <h3 className="text-lg font-semibold text-gray-900">Check ranking</h3>
           <p className="text-sm text-gray-600 mt-1">
             &quot;{keyword}&quot;
           </p>
@@ -195,7 +179,7 @@ export default function CheckRankModal({
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
+        <Modal.Footer className="bg-gray-50">
           <button
             onClick={handleClose}
             className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"
@@ -221,10 +205,10 @@ export default function CheckRankModal({
               )}
             </button>
           )}
-        </div>
-      </div>
+        </Modal.Footer>
+      </Modal>
 
-      {/* Credit Confirmation Dialog */}
+      {/* Credit Confirmation Dialog - kept as separate modal at higher z-index */}
       {showConfirm && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center">
           <div
@@ -260,6 +244,6 @@ export default function CheckRankModal({
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }

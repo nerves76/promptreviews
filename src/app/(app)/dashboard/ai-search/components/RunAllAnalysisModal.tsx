@@ -199,22 +199,25 @@ export default function RunAllAnalysisModal({
 
       {/* Modal */}
       <div className="relative bg-white rounded-xl shadow-xl max-w-md w-full mx-4 overflow-hidden">
+        {/* Standardized close button */}
+        {!isRunning && (
+          <button
+            onClick={onClose}
+            className="absolute -top-3 -right-3 bg-white border border-gray-200 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 flex items-center justify-center hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 z-50"
+            style={{ width: 48, height: 48 }}
+            aria-label="Close modal"
+          >
+            <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        )}
+
         {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-100">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Icon name={TYPE_ICONS[analysisType]} className="w-5 h-5 text-slate-blue" />
-              <h3 className="text-lg font-semibold text-gray-900">Run all {TYPE_LABELS[analysisType].toLowerCase()}</h3>
-            </div>
-            {!isRunning && (
-              <button
-                onClick={onClose}
-                aria-label="Close modal"
-                className="p-1 text-gray-500 hover:text-gray-600 rounded transition-colors"
-              >
-                <Icon name="FaTimes" className="w-5 h-5" />
-              </button>
-            )}
+        <div className="px-6 py-4 border-b border-gray-100 pr-12">
+          <div className="flex items-center gap-2">
+            <Icon name={TYPE_ICONS[analysisType]} className="w-5 h-5 text-slate-blue" />
+            <h3 className="text-lg font-semibold text-gray-900">Run all {TYPE_LABELS[analysisType].toLowerCase()}</h3>
           </div>
           <p className="text-sm text-gray-600 mt-2">
             {TYPE_DESCRIPTIONS[analysisType]}

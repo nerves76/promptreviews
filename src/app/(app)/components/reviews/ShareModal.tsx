@@ -282,18 +282,23 @@ export default function ShareModal({
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/25 via-white/5 to-transparent rounded-2xl" />
             <div className="pointer-events-none absolute -top-24 -right-20 h-56 w-56 rounded-full bg-purple-300/20 blur-3xl" />
 
+            {/* Standardized close button */}
+            <button
+              onClick={onClose}
+              className="absolute -top-3 -right-3 bg-white border border-gray-200 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 flex items-center justify-center hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 z-50"
+              style={{ width: 48, height: 48 }}
+              aria-label="Close modal"
+            >
+              <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
             {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-white/20 relative z-10">
+            <div className="flex items-center justify-between p-6 border-b border-white/20 relative z-10 pr-12">
               <Dialog.Title className="text-xl font-semibold text-white drop-shadow-md">
                 {selectedPlatform ? 'Share review' : 'Share on social media'}
               </Dialog.Title>
-              <button
-                onClick={onClose}
-                className="text-white/80 hover:text-white focus:outline-none"
-                aria-label="Close modal"
-              >
-                <XMarkIcon className="h-6 w-6" />
-              </button>
             </div>
 
           {/* Content */}
