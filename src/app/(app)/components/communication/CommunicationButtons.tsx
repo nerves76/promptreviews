@@ -32,6 +32,7 @@ interface CommunicationButtonsProps {
   className?: string;
   singleButton?: boolean; // Show single "Share" button instead of separate Email/Text
   buttonText?: string; // Custom button text for single button mode
+  hideIcon?: boolean; // Hide the icon in single button mode
 }
 
 interface CommunicationData {
@@ -52,7 +53,8 @@ export default function CommunicationButtons({
   onContactLogged,
   className = "",
   singleButton = false,
-  buttonText = "Share"
+  buttonText = "Share",
+  hideIcon = false
 }: CommunicationButtonsProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCommunicationType, setSelectedCommunicationType] = useState<'email' | 'sms'>('email');
@@ -164,7 +166,7 @@ export default function CommunicationButtons({
           disabled={isLoading}
           className={className || "flex items-center gap-2 bg-teal-100 text-teal-800 rounded hover:bg-teal-200 text-sm font-medium shadow"}
         >
-          <Icon name="FaShare" className="w-4 h-4" />
+          {!hideIcon && <Icon name="FaShare" className="w-4 h-4" />}
           <span>{buttonText}</span>
         </button>
       ) : (

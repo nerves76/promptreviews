@@ -1,6 +1,6 @@
 "use client";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useEffect, useRef, Suspense } from "react";
+import { useState, useEffect, useRef, Suspense, useMemo, startTransition } from "react";
 import { generateContextualReview, generateContextualTestimonial } from "@/utils/aiReviewGeneration";
 import Icon from "@/components/Icon";
 import { checkAccountLimits } from "@/utils/accountLimits";
@@ -220,6 +220,10 @@ export default function CreatePromptPageClient({
   const { account } = useAuth();
   const { selectedAccountId } = useAccountData();
   const accountId = selectedAccountId || account?.id;
+
+  // Shared Supabase client instance - avoid creating new instances on every render
+  const supabase = useMemo(() => createClient(), []);
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loadingReviews, setLoadingReviews] = useState(false);
@@ -948,12 +952,17 @@ export default function CreatePromptPageClient({
 
   // Handler for selecting a prompt type
   function handlePromptTypeSelect(typeKey: string) {
+    // Close modal immediately for responsive UI
     setShowTypeModal(false);
-    setFormData((prev) => ({ ...prev, review_type: typeKey }));
-    // Optionally update the URL query param for type
-    const params = new URLSearchParams(Array.from(searchParams.entries()));
-    params.set("type", typeKey);
-    router.replace(`/create-prompt-page?${params.toString()}`);
+
+    // Use startTransition for non-urgent updates to avoid blocking the UI
+    startTransition(() => {
+      setFormData((prev) => ({ ...prev, review_type: typeKey }));
+      // Update the URL query param for type
+      const params = new URLSearchParams(Array.from(searchParams.entries()));
+      params.set("type", typeKey);
+      router.replace(`/create-prompt-page?${params.toString()}`);
+    });
   }
 
   // Add platform handlers
@@ -2015,7 +2024,7 @@ export default function CreatePromptPageClient({
           initialData={serviceInitialData}
           onSave={handleServicePageSubmit}
           pageTitle="Create service prompt page"
-          supabase={createClient()}
+          supabase={supabase}
           businessProfile={businessProfile}
           onGenerateReview={handleGenerateAIReview}
         />
@@ -2029,7 +2038,7 @@ export default function CreatePromptPageClient({
           initialData={formData}
           onSave={handleServicePageSubmit}
           pageTitle="Create product prompt page"
-          supabase={createClient()}
+          supabase={supabase}
           businessProfile={businessProfile}
           accountId={accountId || ""}
           isLoading={isSaving}
@@ -2048,7 +2057,7 @@ export default function CreatePromptPageClient({
           initialData={formData}
           onSave={handleServicePageSubmit}
           pageTitle="Photo + Testimonial"
-          supabase={createClient()}
+          supabase={supabase}
           businessProfile={businessProfile}
           isLoading={isSaving}
           onPublishSuccess={(slug) => {
@@ -2088,7 +2097,7 @@ export default function CreatePromptPageClient({
           initialData={formData}
           onSave={handleServicePageSubmit}
           pageTitle="Employee Spotlight"
-          supabase={createClient()}
+          supabase={supabase}
           businessProfile={businessProfile}
           onPublishSuccess={(slug) => {
             setSavedPromptPageUrl(`${window.location.origin}/r/${slug}`);
@@ -2127,7 +2136,7 @@ export default function CreatePromptPageClient({
           initialData={formData}
           onSave={handleServicePageSubmit}
           pageTitle="Event Review Page"
-          supabase={createClient()}
+          supabase={supabase}
           businessProfile={businessProfile}
           onPublishSuccess={(slug) => {
             setSavedPromptPageUrl(`${window.location.origin}/r/${slug}`);
@@ -2166,7 +2175,7 @@ export default function CreatePromptPageClient({
           initialData={formData}
           onSave={handleServicePageSubmit}
           pageTitle="Review Builder"
-          supabase={createClient()}
+          supabase={supabase}
           businessProfile={businessProfile}
           campaignType={formData.campaign_type || 'public'}
           onGenerateReview={handleGenerateAIReview}
@@ -2182,7 +2191,7 @@ export default function CreatePromptPageClient({
         onSave={handleStep1Submit}
         onPublish={handleStep2Submit}
         pageTitle="Create Your Prompt Page"
-        supabase={createClient()}
+        supabase={supabase}
         businessProfile={businessProfile}
         step={step}
         onStepChange={setStep}

@@ -1597,9 +1597,14 @@ function PromptPagesContent() {
 
                 {/* For Campaign prompt pages with contact info, show CommunicationButtons */}
                 {(postSaveData.first_name || postSaveData.email || postSaveData.phone) && !postSaveData.isLocationCreation && (
-                  <div className="space-y-2 p-3 bg-teal-500/30 backdrop-blur-sm rounded-lg border border-teal-300/30">
+                  <div className="space-y-1 p-3 bg-teal-500/30 backdrop-blur-sm rounded-lg border border-teal-300/30">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-white">SMS or Email</span>
+                      <div>
+                        <span className="text-sm font-medium text-white">SMS or Email</span>
+                        <p className="text-xs text-white/80">
+                          CRM tracking, alerts, and reminders are enabled for Campaign pages.
+                        </p>
+                      </div>
                       <CommunicationButtons
                         contact={{
                           id: postSaveData.contact_id || 'temp-contact',
@@ -1617,12 +1622,10 @@ function PromptPagesContent() {
                         }}
                         singleButton={true}
                         buttonText="Send"
-                        className="px-3 py-1.5 text-sm"
+                        hideIcon={true}
+                        className="px-3 py-1.5 text-sm text-white font-medium"
                       />
                     </div>
-                    <p className="text-xs text-white/80">
-                      CRM tracking, alerts, and reminders are enabled for Campaign pages.
-                    </p>
                   </div>
                 )}
 
