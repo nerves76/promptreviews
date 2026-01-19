@@ -15,9 +15,11 @@ export default function AppMain({
   const pathname = usePathname();
   const { account } = useAuth();
 
+  // Routes that should be treated as public (no header/sidebar)
+  // Note: /prompt-pages/outreach-templates is an authenticated dashboard page, not public
   const isPublic =
     pathname.startsWith("/r/") ||
-    pathname.startsWith("/prompt-pages/") ||
+    (pathname.startsWith("/prompt-pages/") && !pathname.startsWith("/prompt-pages/outreach-templates")) ||
     pathname.startsWith("/demo/") ||
     pathname.startsWith("/embed/") ||
     pathname === "/infographic-embed" ||

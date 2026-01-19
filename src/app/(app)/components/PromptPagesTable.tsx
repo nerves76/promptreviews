@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, startTransition } from "react";
 import Link from "next/link";
 import Icon from "@/components/Icon";
 import QRCodeModal from "./QRCodeModal";
@@ -166,10 +166,16 @@ export default function PromptPagesTable({
   };
   const handleBatchDelete = () => {
     if (deleteConfirmation !== "DELETE") return;
-    onDeletePages(selectedPages);
-    setSelectedPages([]);
+
+    // Close modal immediately for responsive UI
     setShowDeleteModal(false);
     setDeleteConfirmation("");
+
+    // Use startTransition for non-urgent updates to avoid blocking the UI
+    startTransition(() => {
+      onDeletePages(selectedPages);
+      setSelectedPages([]);
+    });
   };
 
   // Plan lock logic

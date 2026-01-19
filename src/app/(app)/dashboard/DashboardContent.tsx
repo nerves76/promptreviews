@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { RefObject, useState, useEffect, useMemo } from "react";
 import { createClient, getUserOrMock } from "@/auth/providers/supabase";
-import React from "react";
+import React, { startTransition } from "react";
 
 const supabase = createClient();
 // Removed useAuthGuard - authentication is handled by dashboard layout with AuthContext
@@ -420,6 +420,10 @@ const DashboardContent = React.memo(function DashboardContent({
   const handleBatchDelete = async () => {
     if (deleteConfirmation !== "DELETE") return;
 
+    // Close modal immediately for responsive UI
+    setShowDeleteModal(false);
+    setDeleteConfirmation("");
+
     try {
       const { error } = await supabase
         .from("prompt_pages")
@@ -428,12 +432,13 @@ const DashboardContent = React.memo(function DashboardContent({
 
       if (error) throw error;
 
-      setPromptPages((pages) =>
-        pages.filter((page) => !selectedPages.includes(page.id)),
-      );
-      setSelectedPages([]);
-      setShowDeleteModal(false);
-      setDeleteConfirmation("");
+      // Use startTransition for non-urgent state updates
+      startTransition(() => {
+        setPromptPages((pages) =>
+          pages.filter((page) => !selectedPages.includes(page.id)),
+        );
+        setSelectedPages([]);
+      });
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Failed to delete pages";
