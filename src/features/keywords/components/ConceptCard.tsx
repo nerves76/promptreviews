@@ -58,6 +58,11 @@ interface RankStatusData {
   rankings: RankingData[];
 }
 
+interface KeywordGroup {
+  id: string;
+  name: string;
+}
+
 interface ConceptCardProps {
   /** The keyword data to display */
   keyword: KeywordData;
@@ -87,6 +92,10 @@ interface ConceptCardProps {
   creditBalance?: number;
   /** Callback when a schedule is updated or check is run */
   onScheduleUpdated?: () => void;
+  /** Available groups for moving keywords */
+  groups?: KeywordGroup[];
+  /** Callback to move keyword to a different group */
+  onMoveToGroup?: (keywordId: string, groupId: string | null) => Promise<void>;
 }
 
 /**
@@ -110,6 +119,8 @@ export function ConceptCard({
   businessLocationName,
   creditBalance,
   onScheduleUpdated,
+  groups = [],
+  onMoveToGroup,
 }: ConceptCardProps) {
   const router = useRouter();
 
@@ -176,6 +187,10 @@ export function ConceptCard({
   // Delete confirmation state
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Group dropdown state
+  const [showGroupDropdown, setShowGroupDropdown] = useState(false);
+  const [isMovingGroup, setIsMovingGroup] = useState(false);
 
   // Check reviews state
   const [isCheckingReviews, setIsCheckingReviews] = useState(false);
@@ -549,6 +564,19 @@ export function ConceptCard({
     }
   };
 
+  const handleMoveToGroup = async (groupId: string | null) => {
+    if (!onMoveToGroup) return;
+    setIsMovingGroup(true);
+    try {
+      await onMoveToGroup(keyword.id, groupId);
+      setShowGroupDropdown(false);
+    } catch (err) {
+      console.error('Failed to move concept to group:', err);
+    } finally {
+      setIsMovingGroup(false);
+    }
+  };
+
   // Merge keyword data with optimistic updates
   const displayKeyword = useMemo(() => {
     if (!optimisticData) return keyword;
@@ -628,6 +656,78 @@ export function ConceptCard({
             {/* Quick stats badges */}
             {!isEditing && (
               <>
+                {/* Group badge with dropdown */}
+                {groups.length > 0 && onMoveToGroup && (
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowGroupDropdown(!showGroupDropdown);
+                      }}
+                      className={`px-1.5 py-0.5 text-[10px] font-medium rounded flex items-center gap-0.5 transition-colors whitespace-nowrap ${
+                        keyword.groupId
+                          ? 'bg-purple-100 text-purple-700 hover:bg-purple-200'
+                          : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                      }`}
+                      title={keyword.groupName ? `Group: ${keyword.groupName}. Click to change.` : 'No group. Click to assign.'}
+                      disabled={isMovingGroup}
+                      aria-label={keyword.groupName ? `Change group from ${keyword.groupName}` : 'Assign to group'}
+                    >
+                      {isMovingGroup ? (
+                        <Icon name="FaSpinner" className="w-2 h-2 animate-spin" />
+                      ) : (
+                        <Icon name="FaTags" className="w-2 h-2" />
+                      )}
+                      {keyword.groupName || 'No group'}
+                      <Icon name="FaChevronDown" className="w-1.5 h-1.5 ml-0.5" />
+                    </button>
+                    {showGroupDropdown && (
+                      <>
+                        {/* Backdrop */}
+                        <div
+                          className="fixed inset-0 z-10"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowGroupDropdown(false);
+                          }}
+                        />
+                        {/* Dropdown menu */}
+                        <div className="absolute top-full right-0 mt-1 w-48 bg-white rounded-lg shadow-xl border border-gray-200 py-1 z-20">
+                          <div className="px-3 py-1.5 text-xs font-semibold text-gray-500 uppercase border-b border-gray-100">
+                            Move to group
+                          </div>
+                          <div className="max-h-48 overflow-y-auto">
+                            {/* Sort groups: General first, then alphabetically */}
+                            {[...groups]
+                              .sort((a, b) => {
+                                if (a.name === 'General') return -1;
+                                if (b.name === 'General') return 1;
+                                return a.name.localeCompare(b.name);
+                              })
+                              .map((group) => (
+                              <button
+                                key={group.id}
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleMoveToGroup(group.id);
+                                }}
+                                className={`w-full px-3 py-1.5 text-left text-xs hover:bg-gray-100 transition-colors flex items-center gap-2 ${
+                                  keyword.groupId === group.id ? 'bg-gray-50 text-gray-900 font-medium' : 'text-gray-600'
+                                }`}
+                              >
+                                <Icon name="FaTags" className={`w-2.5 h-2.5 ${group.name === 'General' ? 'text-gray-400' : 'text-purple-500'}`} />
+                                <span className="truncate">{group.name}</span>
+                                {keyword.groupId === group.id && <Icon name="FaCheck" className="w-2.5 h-2.5 text-green-500 ml-auto" />}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
                 {promptPageNames.length > 0 && (
                   <span
                     className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-green-100 text-green-700"

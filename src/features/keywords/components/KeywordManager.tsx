@@ -557,6 +557,12 @@ export default function KeywordManager({
     await refresh();
   }, [selectedIds, updateKeyword, refresh]);
 
+  // Handle single keyword move to group
+  const handleMoveToGroup = useCallback(async (keywordId: string, groupId: string | null) => {
+    await updateKeyword(keywordId, { groupId: groupId || undefined });
+    await refresh();
+  }, [updateKeyword, refresh]);
+
   // Handle bulk delete
   const handleBulkDelete = useCallback(async () => {
     setIsBulkDeleting(true);
@@ -1416,6 +1422,8 @@ export default function KeywordManager({
                     businessLocationCode={business?.location_code ?? lookedUpLocation?.locationCode}
                     businessLocationName={business?.location_name ?? lookedUpLocation?.locationName}
                     onScheduleUpdated={handleRefreshEnrichment}
+                    groups={groups}
+                    onMoveToGroup={handleMoveToGroup}
                   />
                 </div>
               </div>
