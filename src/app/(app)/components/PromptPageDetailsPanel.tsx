@@ -20,11 +20,8 @@ export default function PromptPageDetailsPanel({
 }: PromptPageDetailsPanelProps) {
   const [copySuccess, setCopySuccess] = useState(false);
 
-  // Only use contact info if we have a valid contact_id - otherwise communication records will fail
-  const hasValidContact = Boolean(page.contact_id);
-
   const contactForShare = {
-    id: page.contact_id || '',
+    id: page.contact_id || '', // Empty string if no contact_id - CommunicationButtons will handle this
     first_name: page.first_name || page.contacts?.first_name || "",
     last_name: page.last_name || page.contacts?.last_name || "",
     email: page.email || page.contacts?.email,
@@ -40,8 +37,8 @@ export default function PromptPageDetailsPanel({
     location: page.location || business?.name,
   };
 
-  // Only show communication buttons if we have both contact info AND a valid contact_id
-  const hasContactInfo = hasValidContact && Boolean(contactForShare.email || contactForShare.phone);
+  // Show communication buttons if there's contact info (email or phone)
+  const hasContactInfo = Boolean(contactForShare.email || contactForShare.phone);
 
   const reviewTypeDisplay =
     page.review_type === "service"

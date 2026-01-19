@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import { Dialog } from "@headlessui/react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { Button } from "@/app/(app)/components/ui/button";
@@ -286,210 +287,242 @@ export default function CommunicationTrackingModal({
             </div>
           </div>
           
-          {/* Tabs */}
+          {/* Tabs - Always show both */}
           <div className="border-b">
             <nav className="flex -mb-px" aria-label="Tabs">
-              {hasSMS && (
-                <button
-                  onClick={() => setActiveTab('sms')}
-                  className={`py-3 px-6 text-sm font-medium border-b-2 transition-colors ${
-                    activeTab === 'sms'
-                      ? 'border-green-500 text-green-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <Icon name="FaComments" className="w-4 h-4" />
-                    <span>SMS</span>
-                    {contact.phone && (
-                      <span className="text-xs text-gray-500">({contact.phone})</span>
-                    )}
-                  </div>
-                </button>
-              )}
-              {hasEmail && (
-                <button
-                  onClick={() => setActiveTab('email')}
-                  className={`py-3 px-6 text-sm font-medium border-b-2 transition-colors ${
-                    activeTab === 'email'
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <Icon name="FaEnvelope" className="w-4 h-4" />
-                    <span>Email</span>
-                    {contact.email && (
-                      <span className="text-xs text-gray-500">({contact.email})</span>
-                    )}
-                  </div>
-                </button>
-              )}
+              <button
+                onClick={() => setActiveTab('sms')}
+                className={`py-3 px-6 text-sm font-medium border-b-2 transition-colors ${
+                  activeTab === 'sms'
+                    ? 'border-green-500 text-green-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <Icon name="FaComments" className="w-4 h-4" />
+                  <span>SMS</span>
+                  {contact.phone && (
+                    <span className="text-xs text-gray-500">({contact.phone})</span>
+                  )}
+                </div>
+              </button>
+              <button
+                onClick={() => setActiveTab('email')}
+                className={`py-3 px-6 text-sm font-medium border-b-2 transition-colors ${
+                  activeTab === 'email'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <Icon name="FaEnvelope" className="w-4 h-4" />
+                  <span>Email</span>
+                  {contact.email && (
+                    <span className="text-xs text-gray-500">({contact.email})</span>
+                  )}
+                </div>
+              </button>
             </nav>
           </div>
           
-          {/* Process Indicator */}
-          <div className="px-6 pt-4">
-            <CommunicationProcessIndicator 
-              communicationType={activeTab}
-              primaryColor={activeTab === 'sms' ? '#10B981' : '#3B82F6'}
-            />
-          </div>
-
-          <div className="p-6 space-y-6">
-            {error && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-md">
-                <p className="text-sm text-red-600">{error}</p>
-              </div>
-            )}
-
-            {/* Template Selector */}
-            <TemplateSelector
-              communicationType={activeTab}
-              onSelect={handleTemplateSelect}
-              selectedTemplateId={selectedTemplateId}
-            />
-
-            {/* SMS Tip */}
-            {activeTab === 'sms' && (
-              <p className="text-xs text-gray-500">
-                Tip: The "Short & simple" category has templates designed for SMS.
-              </p>
-            )}
-
-            {/* Email Subject (for emails only) */}
-            {activeTab === 'email' && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Subject
-                </label>
-                <input
-                  type="text"
-                  value={subject}
-                  onChange={(e) => setSubject(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Enter email subject..."
+          {/* Check if contact has the required info for the active tab */}
+          {((activeTab === 'sms' && !hasSMS) || (activeTab === 'email' && !hasEmail)) ? (
+            /* Missing Contact Info Message */
+            <div className="p-8 flex flex-col items-center justify-center text-center">
+              <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${
+                activeTab === 'sms' ? 'bg-green-100' : 'bg-blue-100'
+              }`}>
+                <Icon
+                  name={activeTab === 'sms' ? 'FaMobile' : 'FaEnvelope'}
+                  className={`w-8 h-8 ${activeTab === 'sms' ? 'text-green-600' : 'text-blue-600'}`}
                 />
               </div>
-            )}
-
-            {/* Message */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Message
-              </label>
-              <Textarea
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                rows={8}
-                className="w-full resize-none"
-                placeholder={`Enter your ${activeTab} message...`}
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                {message.length} characters
-                {activeTab === 'sms' && message.length > 160 && 
-                  ` (${Math.ceil(message.length / 160)} SMS messages)`}
+              <p className="text-gray-700 font-medium mb-2">
+                {activeTab === 'sms'
+                  ? 'This contact does not have a phone number added.'
+                  : 'This contact does not have an email address added.'}
               </p>
-            </div>
-
-            {/* Follow-up Reminder */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Set follow-up reminder
-              </label>
-              <select
-                value={followUpReminder}
-                onChange={(e) => setFollowUpReminder(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              <p className="text-gray-500 text-sm mb-4">
+                Add {activeTab === 'sms' ? 'a phone number' : 'an email address'} to send {activeTab === 'sms' ? 'SMS messages' : 'emails'} to this contact.
+              </p>
+              <Link
+                href="/dashboard/contacts"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-blue/90 transition-colors"
+                onClick={onClose}
               >
-                {FOLLOW_UP_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-              <p className="text-xs text-gray-500 mt-1">
-                We'll remind you to follow up if no review is received
-              </p>
+                <Icon name="FaUsers" className="w-4 h-4" />
+                Go to contacts
+              </Link>
             </div>
-            
-          </div>
-
-          {/* Status Update and Actions - At the bottom */}
-          <div className="p-6 border-t bg-gray-50 rounded-b-xl">
-            <div className="flex items-center justify-between">
-              {/* Status Dropdown - Left side */}
-              <div className="flex items-center gap-3">
-                <label className="text-sm font-medium text-gray-700">
-                  Status:
-                </label>
-                <select
-                  value={newStatus}
-                  onChange={(e) => setNewStatus(e.target.value)}
-                  className="text-sm px-3 py-1.5 border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-                >
-                  {STATUS_OPTIONS.map(status => (
-                    <option key={status.value} value={status.value}>
-                      {status.label}
-                    </option>
-                  ))}
-                </select>
+          ) : (
+            /* Form Content */
+            <>
+              {/* Process Indicator */}
+              <div className="px-6 pt-4">
+                <CommunicationProcessIndicator
+                  communicationType={activeTab}
+                  primaryColor={activeTab === 'sms' ? '#10B981' : '#3B82F6'}
+                />
               </div>
-              
-              {/* Action Buttons - Right side */}
-              <div className="flex gap-3">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={onClose}
-                  disabled={isLoading}
-                >
-                  Cancel
-                </Button>
-                
-                {/* Copy to Clipboard Button (for email only) */}
+
+              <div className="p-6 space-y-6">
+                {error && (
+                  <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+                    <p className="text-sm text-red-600">{error}</p>
+                  </div>
+                )}
+
+                {/* Template Selector */}
+                <TemplateSelector
+                  communicationType={activeTab}
+                  onSelect={handleTemplateSelect}
+                  selectedTemplateId={selectedTemplateId}
+                />
+
+                {/* SMS Tip */}
+                {activeTab === 'sms' && (
+                  <p className="text-xs text-gray-500">
+                    Tip: The "Short & simple" category has templates designed for SMS.
+                  </p>
+                )}
+
+                {/* Email Subject (for emails only) */}
                 {activeTab === 'email' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Subject
+                    </label>
+                    <input
+                      type="text"
+                      value={subject}
+                      onChange={(e) => setSubject(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Enter email subject..."
+                    />
+                  </div>
+                )}
+
+                {/* Message */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Message
+                  </label>
+                  <Textarea
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    rows={8}
+                    className="w-full resize-none"
+                    placeholder={`Enter your ${activeTab} message...`}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    {message.length} characters
+                    {activeTab === 'sms' && message.length > 160 &&
+                      ` (${Math.ceil(message.length / 160)} SMS messages)`}
+                  </p>
+                </div>
+
+                {/* Follow-up Reminder */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Set follow-up reminder
+                  </label>
+                  <select
+                    value={followUpReminder}
+                    onChange={(e) => setFollowUpReminder(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    {FOLLOW_UP_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-gray-500 mt-1">
+                    We'll remind you to follow up if no review is received
+                  </p>
+                </div>
+
+              </div>
+            </>
+          )}
+
+          {/* Status Update and Actions - Only show when contact has required info */}
+          {((activeTab === 'sms' && hasSMS) || (activeTab === 'email' && hasEmail)) && (
+            <div className="p-6 border-t bg-gray-50 rounded-b-xl">
+              <div className="flex items-center justify-between">
+                {/* Status Dropdown - Left side */}
+                <div className="flex items-center gap-3">
+                  <label className="text-sm font-medium text-gray-700">
+                    Status:
+                  </label>
+                  <select
+                    value={newStatus}
+                    onChange={(e) => setNewStatus(e.target.value)}
+                    className="text-sm px-3 py-1.5 border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                  >
+                    {STATUS_OPTIONS.map(status => (
+                      <option key={status.value} value={status.value}>
+                        {status.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Action Buttons - Right side */}
+                <div className="flex gap-3">
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={handleCopyOnly}
+                    onClick={onClose}
                     disabled={isLoading}
-                    className={`flex items-center gap-2 ${
-                      copiedToClipboard 
-                        ? 'bg-green-50 border-green-500 text-green-700' 
-                        : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                    }`}
                   >
-                    <Icon name={copiedToClipboard ? 'FaCheck' : 'FaCopy'} className="w-4 h-4" />
-                    {copiedToClipboard ? 'Copied!' : 'Copy only'}
+                    Cancel
                   </Button>
-                )}
-                
-                <Button
-                  type="button"
-                  onClick={() => handleSend(true)}
-                  disabled={isLoading}
-                  className={`flex items-center gap-2 whitespace-nowrap ${
-                    activeTab === 'sms'
-                      ? 'bg-green-600 hover:bg-green-700'
-                      : 'bg-blue-600 hover:bg-blue-700'
-                  } text-white`}
-                >
-                  {isLoading ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      Processing...
-                    </>
-                  ) : (
-                    <>
-                      <Icon name={activeTab === 'sms' ? 'FaComments' : 'FaEnvelope'} className="w-4 h-4" />
-                      {activeTab === 'email' ? 'Open in email' : 'Copy and open SMS'}
-                    </>
+
+                  {/* Copy to Clipboard Button (for email only) */}
+                  {activeTab === 'email' && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleCopyOnly}
+                      disabled={isLoading}
+                      className={`flex items-center gap-2 ${
+                        copiedToClipboard
+                          ? 'bg-green-50 border-green-500 text-green-700'
+                          : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      <Icon name={copiedToClipboard ? 'FaCheck' : 'FaCopy'} className="w-4 h-4" />
+                      {copiedToClipboard ? 'Copied!' : 'Copy only'}
+                    </Button>
                   )}
-                </Button>
+
+                  <Button
+                    type="button"
+                    onClick={() => handleSend(true)}
+                    disabled={isLoading}
+                    className={`flex items-center gap-2 whitespace-nowrap ${
+                      activeTab === 'sms'
+                        ? 'bg-green-600 hover:bg-green-700'
+                        : 'bg-blue-600 hover:bg-blue-700'
+                    } text-white`}
+                  >
+                    {isLoading ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        <Icon name={activeTab === 'sms' ? 'FaComments' : 'FaEnvelope'} className="w-4 h-4" />
+                        {activeTab === 'email' ? 'Open in email' : 'Copy and open SMS'}
+                      </>
+                    )}
+                  </Button>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </Dialog.Panel>
       </div>
     </Dialog>

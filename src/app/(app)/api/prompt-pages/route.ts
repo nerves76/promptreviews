@@ -89,16 +89,74 @@ export async function POST(request: NextRequest) {
     const validation = validatePromptPageData(insertData);
     if (!validation.isValid) {
       return NextResponse.json(
-        { 
-          error: "Validation failed", 
-          details: validation.errors 
+        {
+          error: "Validation failed",
+          details: validation.errors
         },
         { status: 400 }
       );
     }
+
+    // For individual campaigns with contact info, create a contact record first
+    let contactId: string | null = null;
+    if (insertData.campaign_type === 'individual' && (insertData.first_name || insertData.email || insertData.phone)) {
+      // Check if contact already exists with same email or phone
+      let existingContact = null;
+
+      if (insertData.email) {
+        const { data: emailMatch } = await supabase
+          .from('contacts')
+          .select('id')
+          .eq('account_id', accountId)
+          .eq('email', insertData.email)
+          .maybeSingle();
+        existingContact = emailMatch;
+      }
+
+      if (!existingContact && insertData.phone) {
+        const { data: phoneMatch } = await supabase
+          .from('contacts')
+          .select('id')
+          .eq('account_id', accountId)
+          .eq('phone', insertData.phone)
+          .maybeSingle();
+        existingContact = phoneMatch;
+      }
+
+      if (existingContact) {
+        // Use existing contact
+        contactId = existingContact.id;
+      } else {
+        // Create new contact
+        const { data: newContact, error: contactError } = await supabase
+          .from('contacts')
+          .insert({
+            account_id: accountId,
+            first_name: insertData.first_name || '',
+            last_name: insertData.last_name || '',
+            email: insertData.email || null,
+            phone: insertData.phone || null,
+          })
+          .select('id')
+          .single();
+
+        if (contactError) {
+          console.error('Error creating contact:', contactError);
+          // Continue without contact - don't block prompt page creation
+        } else {
+          contactId = newContact.id;
+        }
+      }
+    }
+
+    // Add contact_id to insert data if we have one
+    const finalInsertData = contactId
+      ? { ...insertData, contact_id: contactId }
+      : insertData;
+
     const { data, error } = await supabase
       .from("prompt_pages")
-      .insert([insertData])
+      .insert([finalInsertData])
       .select()
       .single();
 

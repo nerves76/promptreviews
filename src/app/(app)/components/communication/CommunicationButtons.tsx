@@ -85,43 +85,46 @@ export default function CommunicationButtons({
     setIsLoading(true);
 
     try {
-      // Create communication record
-      await apiClient.post('/communication/records', {
-        contactId: data.contactId,
-        promptPageId: data.promptPageId,
-        communicationType: data.communicationType,
-        subject: data.subject,
-        message: data.message,
-        followUpReminder: data.followUpReminder
-      });
-
-      const timestamp = new Date().toISOString();
-      onContactLogged?.(timestamp, data.newStatus);
-
-      // Log campaign action for the communication
-      try {
-        await fetch('/api/campaign-actions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            promptPageId: data.promptPageId,
-            contactId: data.contactId,
-            accountId: promptPage.account_id,
-            activityType: data.communicationType,
-            content: data.communicationType === 'email'
-              ? `Email sent: ${data.subject || 'No subject'}`
-              : `SMS sent: ${data.message.substring(0, 50)}${data.message.length > 50 ? '...' : ''}`,
-            metadata: {
-              subject: data.subject,
-              message: data.message,
-            },
-          }),
+      // Only create communication record if we have a valid contactId
+      // (Some prompt pages have inline contact info without a linked contact record)
+      if (data.contactId) {
+        await apiClient.post('/communication/records', {
+          contactId: data.contactId,
+          promptPageId: data.promptPageId,
+          communicationType: data.communicationType,
+          subject: data.subject,
+          message: data.message,
+          followUpReminder: data.followUpReminder
         });
-      } catch (activityError) {
-        // Don't fail the whole operation if campaign action logging fails
-        console.error('Failed to log campaign action:', activityError);
+
+        const timestamp = new Date().toISOString();
+        onContactLogged?.(timestamp, data.newStatus);
+
+        // Log campaign action for the communication
+        try {
+          await fetch('/api/campaign-actions', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              promptPageId: data.promptPageId,
+              contactId: data.contactId,
+              accountId: promptPage.account_id,
+              activityType: data.communicationType,
+              content: data.communicationType === 'email'
+                ? `Email sent: ${data.subject || 'No subject'}`
+                : `SMS sent: ${data.message.substring(0, 50)}${data.message.length > 50 ? '...' : ''}`,
+              metadata: {
+                subject: data.subject,
+                message: data.message,
+              },
+            }),
+          });
+        } catch (activityError) {
+          // Don't fail the whole operation if campaign action logging fails
+          console.error('Failed to log campaign action:', activityError);
+        }
       }
 
       // Update prompt page status if changed
