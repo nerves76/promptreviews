@@ -49,6 +49,7 @@ interface AccountSummary {
   totalKeywords: number;
   keywordsWithQuestions: number;
   totalQuestions: number;
+  questionsChecked: number;
   averageVisibility: number | null;
   providerStats: Record<string, { checked: number; cited: number; mentioned: number }>;
 }
@@ -242,10 +243,16 @@ export default function AISearchPage() {
         ? (citedCount / uniqueChecks.size) * 100
         : null;
 
+      // Count unique questions that have been checked (have at least one result)
+      const uniqueQuestionsChecked = new Set(
+        Array.from(uniqueChecks.values()).map(r => r.question)
+      ).size;
+
       setAccountSummary({
         totalKeywords,
         keywordsWithQuestions: totalKeywords,
         totalQuestions,
+        questionsChecked: uniqueQuestionsChecked,
         averageVisibility,
         providerStats,
       });
@@ -807,7 +814,7 @@ export default function AISearchPage() {
                 </div>
                 <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
                   <div className="text-2xl font-bold text-gray-800">
-                    {accountSummary.totalQuestions}
+                    {accountSummary.questionsChecked}/{accountSummary.totalQuestions}
                   </div>
                   <div className="text-sm text-gray-600">Questions tracked</div>
                 </div>
