@@ -813,10 +813,12 @@ export default function ServicePromptPageForm({
           enabled={formData.fun_facts_enabled}
           selectedFactIds={formData.selected_fun_facts}
           allFacts={businessProfile?.fun_facts || []}
+          buttonLabel={formData.fun_facts_button_label}
           businessName={businessProfile?.name || businessProfile?.business_name || "Business Name"}
           onEnabledChange={(enabled) => updateFormData('fun_facts_enabled', enabled)}
           onSelectedChange={(factIds) => updateFormData('selected_fun_facts', factIds)}
           onFactsChange={() => { /* Handled by API */ }}
+          onButtonLabelChange={(label) => updateFormData('fun_facts_button_label', label)}
           accountId={businessProfile?.account_id}
         />
 

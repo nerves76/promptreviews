@@ -40,7 +40,7 @@ import {
   KickstartersFeature,
   FunFactsFeature
 } from '@/app/(app)/components/prompt-features';
-import { FunFact } from '@/types/funFacts';
+import { FunFact, FunFactsButtonLabel } from '@/types/funFacts';
 
 export default function PromptPageSettingsPage() {
   const router = useRouter();
@@ -113,6 +113,7 @@ export default function PromptPageSettingsPage() {
     fun_facts: [] as FunFact[],
     fun_facts_enabled: false,
     selected_fun_facts: [] as string[],
+    fun_facts_button_label: 'Fun facts' as FunFactsButtonLabel,
   });
 
   // Load business data into form
@@ -149,6 +150,7 @@ export default function PromptPageSettingsPage() {
         fun_facts: business.fun_facts || [],
         fun_facts_enabled: business.fun_facts_enabled || false,
         selected_fun_facts: business.selected_fun_facts || [],
+        fun_facts_button_label: business.fun_facts_button_label || 'Fun facts',
       });
       setIsLoaded(true);
     }
@@ -538,11 +540,13 @@ export default function PromptPageSettingsPage() {
               enabled={formData.fun_facts_enabled}
               selectedFactIds={formData.selected_fun_facts}
               allFacts={formData.fun_facts}
+              buttonLabel={formData.fun_facts_button_label}
               businessName={business?.name || businessName}
               editMode={true}
               onEnabledChange={(enabled) => handleInputChange('fun_facts_enabled', enabled)}
               onSelectedChange={(factIds) => handleInputChange('selected_fun_facts', factIds)}
               onFactsChange={(facts) => handleInputChange('fun_facts', facts)}
+              onButtonLabelChange={(label) => handleInputChange('fun_facts_button_label', label)}
               accountId={accountId || ''}
             />
           </div>
