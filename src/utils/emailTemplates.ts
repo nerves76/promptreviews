@@ -209,10 +209,12 @@ export async function sendAdminNewUserNotification(
   userFirstName: string,
   userLastName: string
 ): Promise<{ success: boolean; error?: string }> {
-  // Get admin emails from environment
-  const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
-  
+  // Get admin emails from environment - check ADMIN_EMAILS first, then fall back to ALERT_EMAIL
+  const adminEmailsEnv = process.env.ADMIN_EMAILS || process.env.ALERT_EMAIL || '';
+  const adminEmails = adminEmailsEnv.split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+
   if (adminEmails.length === 0) {
+    console.warn('[Admin Notification] Neither ADMIN_EMAILS nor ALERT_EMAIL environment variable is set - skipping admin notification');
     return { success: true }; // Don't treat this as an error
   }
 
