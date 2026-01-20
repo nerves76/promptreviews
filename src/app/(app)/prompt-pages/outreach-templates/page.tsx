@@ -59,7 +59,6 @@ const CATEGORY_STYLES: Record<TemplateCategory, { bg: string; text: string }> = 
 const AVAILABLE_VARIABLES = [
   { name: "{{business_name}}", description: "Your business name" },
   { name: "{{customer_name}}", description: "Customer's first name" },
-  { name: "{{review_url}}", description: "Link to the review page" },
 ];
 
 export default function OutreachTemplatesPage() {

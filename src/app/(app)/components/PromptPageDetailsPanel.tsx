@@ -66,51 +66,57 @@ export default function PromptPageDetailsPanel({
   };
 
   return (
-    <div className="flex flex-col h-full bg-white/70 backdrop-blur-xl">
-      <div className="flex items-start justify-between border-b border-white/30 px-6 py-4">
+    <div className="flex flex-col h-full backdrop-blur-xl shadow-2xl">
+      {/* Close button */}
+      {onClose && (
+        <div className="flex justify-end px-4 pt-4 pb-2">
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1.5 text-white hover:text-white/80 hover:bg-white/10 rounded-lg transition-colors"
+            aria-label="Close details"
+          >
+            <Icon name="FaTimes" size={18} />
+          </button>
+        </div>
+      )}
+
+      {/* Header section on glass card */}
+      <div className="mx-4 p-4 bg-white/60 backdrop-blur-sm border border-gray-100/50 rounded-xl">
         <div>
-          <p className="text-xs uppercase text-gray-500">Prompt Page</p>
+          <p className="text-xs uppercase text-gray-500 mb-1">Prompt Page</p>
           <h2 className="text-xl font-semibold text-gray-900">
             {page.first_name || page.last_name
               ? `${page.first_name || ""} ${page.last_name || ""}`.trim()
               : "Unnamed Contact"}
           </h2>
           {(page.contacts?.business_name || page.business_name) && (
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-600 mt-0.5">
               {page.contacts?.business_name || page.business_name}
             </p>
           )}
         </div>
-        {onClose && (
-          <button
-            type="button"
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-800 transition"
-            aria-label="Close details"
-          >
-            <Icon name="FaTimes" size={18} />
-          </button>
-        )}
+
+        {/* Badges row */}
+        <div className="flex flex-wrap items-center gap-2 mt-3 text-xs">
+          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200 whitespace-nowrap">
+            <Icon name="FaFileAlt" size={12} />
+            {reviewTypeDisplay}
+          </span>
+          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-gray-100 text-gray-700 border border-gray-200 capitalize whitespace-nowrap">
+            <Icon name="FaClock" size={12} />
+            {page.status.replace("_", " ")}
+          </span>
+          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-white text-gray-700 border border-gray-200 whitespace-nowrap">
+            <Icon name="FaCalendarAlt" size={12} />
+            Created {new Date(page.created_at).toLocaleDateString()}
+          </span>
+        </div>
       </div>
 
-      <div className="flex items-center gap-2 px-6 py-3 border-b border-white/30 text-xs text-gray-600">
-        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
-          <Icon name="FaFileAlt" size={12} />
-          {reviewTypeDisplay}
-        </span>
-        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-gray-100 text-gray-700 border border-gray-200 capitalize">
-          <Icon name="FaClock" size={12} />
-          {page.status.replace("_", " ")}
-        </span>
-        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-white text-gray-700 border border-gray-200">
-          <Icon name="FaCalendarAlt" size={12} />
-          Created {new Date(page.created_at).toLocaleDateString()}
-        </span>
-      </div>
-
-      <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
         {(page.phone || page.email || page.contacts || page.contact_id) && (
-          <section className="p-4 bg-white/60 backdrop-blur-sm border border-gray-100/50 rounded-xl space-y-3">
+          <section className="p-5 bg-white/60 backdrop-blur-sm border border-gray-100/50 rounded-xl space-y-3">
             <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Contact</h3>
             <div className="space-y-2 text-sm text-gray-700">
               {(page.contacts?.business_name || page.business_name) && (
@@ -144,7 +150,7 @@ export default function PromptPageDetailsPanel({
           </section>
         )}
 
-        <section className="p-4 bg-white/60 backdrop-blur-sm border border-gray-100/50 rounded-xl space-y-3">
+        <section className="p-5 bg-white/60 backdrop-blur-sm border border-gray-100/50 rounded-xl space-y-3">
           <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
             Prompt Page
           </h3>
@@ -172,9 +178,9 @@ export default function PromptPageDetailsPanel({
             <button
               type="button"
               onClick={handleCopyLink}
-              className="inline-flex items-center gap-1 text-purple-700 hover:text-purple-900 font-medium"
+              className="inline-flex items-center gap-1 text-slate-blue hover:text-slate-blue/80 font-medium"
             >
-              <Icon name={copySuccess ? "FaCheck" : "FaLink"} size={12} />
+              <Icon name={copySuccess ? "FaCheck" : "FaCopy"} size={12} />
               {copySuccess ? "Link copied" : "Copy link"}
             </button>
           </div>
@@ -197,7 +203,7 @@ export default function PromptPageDetailsPanel({
           )}
         </section>
 
-        <section className="p-4 bg-white/60 backdrop-blur-sm border border-gray-100/50 rounded-xl space-y-3">
+        <section className="p-5 bg-white/60 backdrop-blur-sm border border-gray-100/50 rounded-xl space-y-3">
           <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Activity</h3>
           {page.account_id && (
             <ActivityTimeline
