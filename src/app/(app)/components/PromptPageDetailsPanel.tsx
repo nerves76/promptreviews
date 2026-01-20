@@ -83,17 +83,28 @@ export default function PromptPageDetailsPanel({
 
       {/* Header section on glass card */}
       <div className="mx-4 p-4 bg-white/60 backdrop-blur-sm border border-gray-100/50 rounded-xl">
-        <div>
-          <p className="text-xs uppercase text-gray-500 mb-1">Prompt Page</p>
-          <h2 className="text-xl font-semibold text-gray-900">
-            {page.first_name || page.last_name
-              ? `${page.first_name || ""} ${page.last_name || ""}`.trim()
-              : "Unnamed Contact"}
-          </h2>
-          {(page.contacts?.business_name || page.business_name) && (
-            <p className="text-sm text-gray-600 mt-0.5">
-              {page.contacts?.business_name || page.business_name}
-            </p>
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-xs uppercase text-gray-500 mb-1">Prompt Page</p>
+            <h2 className="text-xl font-semibold text-gray-900">
+              {page.first_name || page.last_name
+                ? `${page.first_name || ""} ${page.last_name || ""}`.trim()
+                : "Unnamed Contact"}
+            </h2>
+            {(page.contacts?.business_name || page.business_name) && (
+              <p className="text-sm text-gray-600 mt-0.5">
+                {page.contacts?.business_name || page.business_name}
+              </p>
+            )}
+          </div>
+          {page.contact_id && (
+            <Link
+              href={`/dashboard/contacts?contactId=${page.contact_id}`}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-blue bg-white/80 hover:bg-white border border-gray-200 rounded-lg transition-colors whitespace-nowrap"
+            >
+              <Icon name="FaUser" size={12} />
+              Go to contact
+            </Link>
           )}
         </div>
 
@@ -138,15 +149,6 @@ export default function PromptPageDetailsPanel({
                 </div>
               )}
             </div>
-            {(page.contacts || page.contact_id) && (
-              <Link
-                href="/dashboard/contacts"
-                className="inline-flex items-center gap-1 text-xs text-slate-blue hover:text-slate-blue/80 underline"
-              >
-                <Icon name="FaLink" size={10} />
-                View in Contacts
-              </Link>
-            )}
           </section>
         )}
 

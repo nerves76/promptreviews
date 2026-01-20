@@ -8,7 +8,7 @@ import Icon from "@/components/Icon";
 import AppLoader from "@/app/(app)/components/AppLoader";
 import PageCard from "@/app/(app)/components/PageCard";
 import { Dialog } from "@headlessui/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import UnifiedPromptTypeSelectModal from "@/app/(app)/components/UnifiedPromptTypeSelectModal";
 import ManualContactForm from "@/app/(app)/components/ManualContactForm";
@@ -52,6 +52,8 @@ export default function UploadContactsPage() {
     contacts.length > 0 && selectedContactIds.length === contacts.length;
   const anySelected = selectedContactIds.length > 0;
   const router = useRouter();
+  const searchParams = useSearchParams();
+
   // Unified prompt creation state
   const [showUnifiedTypeModal, setShowUnifiedTypeModal] = useState(false);
   const [promptModalMode, setPromptModalMode] = useState<'individual' | 'bulk'>('individual');
@@ -402,6 +404,22 @@ export default function UploadContactsPage() {
     };
     fetchContacts();
   }, [supabase, currentPage, selectedAccountId]);
+
+  // Handle deep-linking to a specific contact via ?contactId=xxx
+  useEffect(() => {
+    const contactId = searchParams.get('contactId');
+    if (contactId && contacts.length > 0 && !editContact) {
+      const contact = contacts.find(c => c.id === contactId);
+      if (contact) {
+        setEditContact(contact);
+        setShowEditModal(true);
+        loadContactReviews(contact.id);
+        loadContactPromptPages(contact.id);
+        // Clear the URL param after opening
+        router.replace('/dashboard/contacts', { scroll: false });
+      }
+    }
+  }, [searchParams, contacts, editContact, router]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

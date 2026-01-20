@@ -89,6 +89,20 @@ export async function createCommunicationRecord(
     throw new Error(`Failed to create communication record: ${error.message}`);
   }
 
+  // Update the prompt page's last_contact_at timestamp
+  if (data.promptPageId) {
+    const { error: updateError } = await client
+      .from('prompt_pages')
+      .update({ last_contact_at: new Date().toISOString() })
+      .eq('id', data.promptPageId)
+      .eq('account_id', accountId);
+
+    if (updateError) {
+      console.error('Failed to update prompt page last_contact_at:', updateError);
+      // Don't throw - the communication record was created successfully
+    }
+  }
+
   // Create follow-up reminder if requested
   if (data.followUpReminder) {
     await createFollowUpReminder(record.id, data.followUpReminder, accountId, data.contactId, client);
