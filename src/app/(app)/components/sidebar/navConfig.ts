@@ -17,6 +17,13 @@ export const TOP_NAV_ITEMS: NavItem[] = [
     description: "Edit your business details",
   },
   {
+    path: "/work-manager",
+    label: "Work Manager",
+    icon: "FaBriefcase",
+    description: "Manage tasks and workflows",
+    conditional: "workManager",
+  },
+  {
     path: "/community",
     label: "Community",
     icon: "FaUsers",
@@ -62,6 +69,13 @@ export const REVIEWS_SECTION: NavSection = {
       label: "Sentiment Analyzer",
       icon: "FaSentimentAnalyzer",
       description: "AI insights and discovery",
+    },
+    {
+      path: "/dashboard/analytics",
+      label: "Analytics",
+      icon: "FaChartBar",
+      description: "View performance metrics",
+      requiresBusiness: true,
     },
   ],
 };
@@ -157,22 +171,7 @@ export const SEO_VISIBILITY_SECTION: NavSection = {
 /**
  * Bottom navigation items (conditional)
  */
-export const BOTTOM_NAV_ITEMS: NavItem[] = [
-  {
-    path: "/dashboard/analytics",
-    label: "Analytics",
-    icon: "FaChartBar",
-    description: "View performance metrics",
-    requiresBusiness: true,
-  },
-  {
-    path: "/work-manager",
-    label: "Work Manager",
-    icon: "FaBriefcase",
-    description: "Manage tasks and workflows",
-    conditional: "workManager",
-  },
-];
+export const BOTTOM_NAV_ITEMS: NavItem[] = [];
 
 /**
  * All navigation sections for the sidebar
