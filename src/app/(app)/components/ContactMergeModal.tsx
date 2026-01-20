@@ -146,26 +146,29 @@ const ContactMergeModal: React.FC<ContactMergeModalProps> = ({
         <div className="fixed inset-0 bg-black opacity-30" />
         
         <div className="relative bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl max-w-4xl w-full p-6 max-h-[90vh] overflow-y-auto border-2 border-white">
+          {/* Standardized close button */}
+          <button
+            onClick={onClose}
+            className="absolute -top-3 -right-3 bg-white border border-gray-200 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 flex items-center justify-center hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 z-50"
+            style={{ width: 48, height: 48 }}
+            aria-label="Close modal"
+          >
+            <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+
           {/* Header */}
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <Dialog.Title className="text-xl font-semibold text-gray-900">
-                Merge duplicate contacts
-              </Dialog.Title>
-              <div className="flex items-center gap-2 mt-2">
-                <Icon name={reasonDisplay.icon as any} className={`w-4 h-4 ${reasonDisplay.color}`} />
-                <span className={`text-sm ${reasonDisplay.color}`}>
-                  {reasonDisplay.label}
-                </span>
-              </div>
+          <div className="mb-6">
+            <Dialog.Title className="text-xl font-semibold text-gray-900">
+              Merge duplicate contacts
+            </Dialog.Title>
+            <div className="flex items-center gap-2 mt-2">
+              <Icon name={reasonDisplay.icon as any} className={`w-4 h-4 ${reasonDisplay.color}`} />
+              <span className={`text-sm ${reasonDisplay.color}`}>
+                {reasonDisplay.label}
+              </span>
             </div>
-            <button
-              onClick={onClose}
-              className="text-gray-500 hover:text-gray-600 transition-colors"
-              aria-label="Close merge modal"
-            >
-              <Icon name="FaTimes" className="w-5 h-5" />
-            </button>
           </div>
 
           {/* Primary Contact Selection */}

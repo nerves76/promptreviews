@@ -178,10 +178,10 @@ export default function KeywordGeneratorModal({
 
       {/* Modal panel */}
       <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-4xl max-h-[90vh] flex flex-col">
-        {/* Circular close button */}
+        {/* Standardized close button */}
         <button
-          className="absolute -top-3 -right-3 bg-white/70 backdrop-blur-sm border border-white/40 rounded-full shadow-lg flex items-center justify-center hover:bg-white/90 focus:outline-none z-20 transition-colors p-2"
-          style={{ width: 36, height: 36 }}
+          className="absolute -top-3 -right-3 bg-white border border-gray-200 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 flex items-center justify-center hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 z-50"
+          style={{ width: 48, height: 48 }}
           onClick={handleClose}
           aria-label="Close modal"
         >
