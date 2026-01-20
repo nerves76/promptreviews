@@ -241,6 +241,38 @@ export default function PromptPagesKanban({
   const accessiblePages = promptPages.slice(0, maxPages);
   const accessiblePageIds = new Set(accessiblePages.map((p) => p.id));
 
+  // Render a draggable card (shared between renderClone and regular rendering)
+  const renderDraggableCard = (
+    page: PromptPage,
+    provided: any,
+    snapshot: any,
+    isAccessible: boolean
+  ) => (
+    <div
+      ref={provided.innerRef}
+      {...provided.draggableProps}
+      {...provided.dragHandleProps}
+      className={`
+        ${isAccessible ? "" : "opacity-50 cursor-not-allowed"}
+      `}
+      style={{
+        ...provided.draggableProps.style,
+      }}
+      title={
+        !isAccessible
+          ? `Upgrade to access more than ${maxPages} prompt pages`
+          : undefined
+      }
+    >
+      <PromptPageCard
+        page={page}
+        business={business}
+        isDragging={snapshot.isDragging || draggedCardId === page.id}
+        onOpen={(selected) => setActivePage(selected)}
+      />
+    </div>
+  );
+
   // Render a single column (shared between mobile and desktop)
   // columnType: 'mobile' = 85vw with snap, 'desktop' = fixed 280px width
   const renderColumn = (column: typeof columnData[0], columnType: 'mobile' | 'desktop' = 'desktop') => (
@@ -272,7 +304,15 @@ export default function PromptPagesKanban({
       </div>
 
       {/* Droppable Column */}
-      <Droppable droppableId={column.id}>
+      <Droppable
+        droppableId={column.id}
+        renderClone={(provided, snapshot, rubric) => {
+          const page = column.pages.find(p => p.id === rubric.draggableId);
+          if (!page) return <div ref={provided.innerRef} />;
+          const isAccessible = accessiblePageIds.has(page.id);
+          return renderDraggableCard(page, provided, snapshot, isAccessible);
+        }}
+      >
         {(provided, snapshot) => (
           <div
             ref={provided.innerRef}
@@ -301,34 +341,7 @@ export default function PromptPagesKanban({
                     index={index}
                     isDragDisabled={!isAccessible}
                   >
-                    {(provided, snapshot) => (
-                      <div
-                        ref={provided.innerRef}
-                        {...provided.draggableProps}
-                        {...provided.dragHandleProps}
-                        className={`
-                          ${isAccessible ? "" : "opacity-50 cursor-not-allowed"}
-                          ${snapshot.isDragging ? "z-50" : ""}
-                        `}
-                        style={{
-                          ...provided.draggableProps.style,
-                          // Ensure the dragged element remains visible
-                          opacity: snapshot.isDragging ? 1 : undefined,
-                        }}
-                        title={
-                          !isAccessible
-                            ? `Upgrade to access more than ${maxPages} prompt pages`
-                            : undefined
-                        }
-                      >
-                        <PromptPageCard
-                          page={page}
-                          business={business}
-                          isDragging={snapshot.isDragging || draggedCardId === page.id}
-                          onOpen={(selected) => setActivePage(selected)}
-                        />
-                      </div>
-                    )}
+                    {(provided, snapshot) => renderDraggableCard(page, provided, snapshot, isAccessible)}
                   </Draggable>
                 );
               })

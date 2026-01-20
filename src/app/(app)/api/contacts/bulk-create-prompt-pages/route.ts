@@ -115,10 +115,12 @@ export async function POST(request: NextRequest) {
         // Prepare form data using the same structure as individual creation
         const formData = {
           account_id: accountId,
+          contact_id: contact.id, // Link prompt page to the contact
           first_name: contact.first_name || '',
           last_name: contact.last_name || '',
           email: contact.email || '',
           phone: contact.phone || '',
+          business_name: contact.business_name || '',
           name: contactName,
           review_type: promptType, // Use review_type instead of category
           campaign_type: 'individual', // Always individual for contacts

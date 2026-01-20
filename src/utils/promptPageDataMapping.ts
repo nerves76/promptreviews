@@ -13,10 +13,12 @@ export interface FormData {
   last_name?: string;
   email?: string;
   phone?: string;
+  business_name?: string;
   role?: string;
   review_type?: string;
   campaign_type?: string;
   status?: string;
+  contact_id?: string;
   
   // Feature toggles (camelCase from forms)
   emojiSentimentEnabled?: boolean;
@@ -72,6 +74,7 @@ export interface FormData {
 
 export interface DatabaseRow {
   account_id?: string;
+  contact_id?: string;
   status?: string;
   review_type?: string;
   campaign_type?: string;
@@ -80,6 +83,7 @@ export interface DatabaseRow {
   last_name?: string;
   email?: string;
   phone?: string;
+  business_name?: string;
   role?: string;
   slug?: string;
   review_platforms?: any[];
@@ -136,8 +140,8 @@ export function mapFormDataToDatabase(formData: FormData): DatabaseRow {
   
   // Direct field mappings (already in correct format)
   const directFields = [
-    'account_id', 'status', 'review_type', 'campaign_type', 'name', 
-    'first_name', 'last_name', 'email', 'phone', 'role', 'slug',
+    'account_id', 'contact_id', 'status', 'review_type', 'campaign_type', 'name',
+    'first_name', 'last_name', 'email', 'phone', 'business_name', 'role', 'slug',
     'review_platforms', 'product_name', 'product_description', 'product_photo',
     'features_or_benefits', 'falling_icon', 'falling_icon_color',
     'offer_title', 'offer_body', 'offer_url', 'offer_timelock', 'friendly_note', 'emoji_labels',
@@ -254,8 +258,8 @@ export function mapFormDataToDatabase(formData: FormData): DatabaseRow {
  */
 export function filterToAllowedColumns(data: DatabaseRow): DatabaseRow {
   const allowedColumns = [
-    "account_id", "status", "review_type", "campaign_type", "name",
-    "first_name", "last_name", "email", "phone", "role", "slug",
+    "account_id", "contact_id", "status", "review_type", "campaign_type", "name",
+    "first_name", "last_name", "email", "phone", "business_name", "role", "slug",
     "review_platforms", "services_offered", "product_name", "product_description",
     "product_photo", "features_or_benefits", "ai_button_enabled", "fix_grammar_enabled",
     "emoji_sentiment_enabled", "emoji_sentiment_question", "emoji_feedback_message",

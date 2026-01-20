@@ -37,13 +37,13 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const communicationType = searchParams.get("communication_type");
 
-    // Build query
+    // Build query - custom templates first, then system templates
     let query = supabase
       .from("communication_templates")
       .select("*")
       .eq("account_id", accountId)
       .eq("is_active", true)
-      .order("is_default", { ascending: false })
+      .order("is_system", { ascending: true }) // Custom (non-system) first
       .order("name", { ascending: true });
 
     if (communicationType && (communicationType === "email" || communicationType === "sms")) {

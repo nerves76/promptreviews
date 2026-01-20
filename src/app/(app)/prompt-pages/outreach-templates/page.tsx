@@ -179,10 +179,16 @@ export default function OutreachTemplatesPage() {
     }));
   };
 
+  // Sort templates: custom first, then system templates
+  const sortedTemplates = [...templates].sort((a, b) => {
+    if (a.is_system === b.is_system) return 0;
+    return a.is_system ? 1 : -1; // Custom (non-system) first
+  });
+
   // Filter templates by selected category
   const filteredTemplates = selectedCategory === 'all'
-    ? templates
-    : templates.filter(t => t.template_type === selectedCategory);
+    ? sortedTemplates
+    : sortedTemplates.filter(t => t.template_type === selectedCategory);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#527DE7] via-[#7B6BA8] to-[#E8A87C]">

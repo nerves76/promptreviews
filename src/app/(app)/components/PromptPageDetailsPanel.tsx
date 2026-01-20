@@ -103,7 +103,7 @@ export default function PromptPageDetailsPanel({
               className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-blue bg-white/80 hover:bg-white border border-gray-200 rounded-lg transition-colors whitespace-nowrap"
             >
               <Icon name="FaUser" size={12} />
-              Go to contact
+              View contact
             </Link>
           )}
         </div>

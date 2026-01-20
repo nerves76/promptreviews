@@ -13,6 +13,7 @@ interface Template {
   subject_template?: string;
   message_template: string;
   is_default: boolean;
+  is_system: boolean;
 }
 
 interface TemplateSelectorProps {
@@ -105,7 +106,7 @@ export default function TemplateSelector({
           {templates.map((template) => (
             <option key={template.id} value={template.id}>
               {template.name}
-              {template.is_default ? " (Default)" : ""}
+              {!template.is_system ? " ★" : ""}
             </option>
           ))}
         </select>
