@@ -199,17 +199,29 @@ export default function WorkManagerDetailsPanel({
   };
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Header */}
-      <div className="flex items-start justify-between border-b border-gray-200 px-6 py-4">
+    <div className="flex flex-col h-full backdrop-blur-xl shadow-2xl">
+      {/* Close button */}
+      <div className="flex justify-end px-4 pt-4 pb-2">
+        <button
+          type="button"
+          onClick={onClose}
+          className="p-1.5 text-white hover:text-white/80 hover:bg-white/10 rounded-lg transition-colors"
+          aria-label="Close details"
+        >
+          <Icon name="FaTimes" size={18} />
+        </button>
+      </div>
+
+      {/* Header section on glass card */}
+      <div className="mx-4 p-4 bg-white/60 backdrop-blur-sm border border-gray-100/50 rounded-xl">
         <div className="flex-1 min-w-0">
-          <p className="text-xs uppercase text-gray-500">Task</p>
+          <p className="text-xs uppercase text-gray-500 mb-1">Task</p>
           {isEditing ? (
             <input
               type="text"
               value={editedTitle}
               onChange={(e) => setEditedTitle(e.target.value)}
-              className="w-full text-xl font-semibold text-gray-900 border-b border-gray-300 focus:border-slate-blue focus:outline-none py-1"
+              className="w-full text-xl font-semibold text-gray-900 border-b border-gray-300 focus:border-slate-blue focus:outline-none py-1 bg-transparent"
               autoFocus
             />
           ) : (
@@ -218,18 +230,9 @@ export default function WorkManagerDetailsPanel({
             </h2>
           )}
         </div>
-        <button
-          type="button"
-          onClick={onClose}
-          className="ml-4 text-gray-500 hover:text-gray-800 transition"
-          aria-label="Close details"
-        >
-          <Icon name="FaTimes" size={18} />
-        </button>
-      </div>
 
-      {/* Metadata badges */}
-      <div className="flex flex-wrap items-center gap-2 px-6 py-3 border-b border-gray-200 text-xs">
+        {/* Metadata badges */}
+        <div className="flex flex-wrap items-center gap-2 mt-3 text-xs">
         {isEditing ? (
           <>
             <select
@@ -253,27 +256,28 @@ export default function WorkManagerDetailsPanel({
           </>
         ) : (
           <>
-            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-gray-100 text-gray-700 border border-gray-200">
+            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-gray-100 text-gray-700 border border-gray-200 whitespace-nowrap">
               <Icon name="FaColumns" size={10} />
               {statusLabels[task.status]}
             </span>
-            <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full border ${priorityColors.bg} ${priorityColors.text} ${priorityColors.border}`}>
+            <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full border whitespace-nowrap ${priorityColors.bg} ${priorityColors.text} ${priorityColors.border}`}>
               {task.priority === "high" && <Icon name="FaCaretUp" size={10} />}
               {task.priority === "low" && <Icon name="FaCaretDown" size={10} />}
               {WM_PRIORITY_LABELS[task.priority]}
             </span>
           </>
         )}
-        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-white text-gray-700 border border-gray-200">
+        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-white text-gray-700 border border-gray-200 whitespace-nowrap">
           <Icon name="FaCalendarAlt" size={10} />
           Created {formatDistanceToNow(new Date(task.created_at), { addSuffix: true })}
         </span>
+        </div>
       </div>
 
       {/* Scrollable content */}
-      <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6">
+      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
         {/* Due Date */}
-        <section className="space-y-2">
+        <section className="p-5 bg-white/60 backdrop-blur-sm border border-gray-100/50 rounded-xl space-y-2">
           <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Due Date</h3>
           {isEditing ? (
             <input
@@ -300,7 +304,7 @@ export default function WorkManagerDetailsPanel({
         </section>
 
         {/* Assignee */}
-        <section className="space-y-2">
+        <section className="p-5 bg-white/60 backdrop-blur-sm border border-gray-100/50 rounded-xl space-y-2">
           <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Assigned To</h3>
           {isEditing ? (
             <select
@@ -332,7 +336,7 @@ export default function WorkManagerDetailsPanel({
         </section>
 
         {/* Description */}
-        <section className="space-y-2">
+        <section className="p-5 bg-white/60 backdrop-blur-sm border border-gray-100/50 rounded-xl space-y-2">
           <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Description</h3>
           {isEditing ? (
             <textarea
@@ -358,10 +362,8 @@ export default function WorkManagerDetailsPanel({
         )}
 
         {/* Actions */}
-        <section className="space-y-2">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Actions</h3>
-          </div>
+        <section className="p-5 bg-white/60 backdrop-blur-sm border border-gray-100/50 rounded-xl space-y-2">
+          <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Actions</h3>
           <div className="flex flex-wrap gap-2">
             {isEditing ? (
               <>
@@ -415,7 +417,7 @@ export default function WorkManagerDetailsPanel({
         </section>
 
         {/* Activity Timeline */}
-        <section className="space-y-3">
+        <section className="p-5 bg-white/60 backdrop-blur-sm border border-gray-100/50 rounded-xl space-y-3">
           <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Activity</h3>
 
           {/* Add Note with @mention support */}

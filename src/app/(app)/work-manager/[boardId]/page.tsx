@@ -364,7 +364,7 @@ function TaskDetailsDrawer({
         onClick={onClose}
         aria-label="Close details overlay"
       />
-      <div className="relative h-full w-full max-w-full sm:max-w-md md:max-w-lg lg:max-w-2xl bg-white shadow-2xl transform transition-transform duration-300 translate-x-0">
+      <div className="relative h-full w-full max-w-full sm:max-w-md md:max-w-lg lg:max-w-2xl transform transition-transform duration-300 translate-x-0">
         <WorkManagerDetailsPanel
           task={task}
           statusLabels={statusLabels}
