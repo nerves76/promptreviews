@@ -125,6 +125,7 @@ export default function ServicePromptPageForm({
       selected_kickstarters: Array.isArray(initialData?.selected_kickstarters) ? initialData.selected_kickstarters : [],
       fun_facts_enabled: initialData?.fun_facts_enabled ?? false,
       selected_fun_facts: Array.isArray(initialData?.selected_fun_facts) ? initialData.selected_fun_facts : [],
+      fun_facts_button_label: initialData?.fun_facts_button_label || "Fun facts",
       recent_reviews_enabled: initialData?.recent_reviews_enabled ?? false,
       // Handle both snake_case and camelCase for recent_reviews_scope
       recent_reviews_scope: initialData?.recent_reviews_scope || initialData?.recentReviewsScope || "current_page",
@@ -436,6 +437,7 @@ export default function ServicePromptPageForm({
           // Fun Facts fields
           fun_facts_enabled: formData.fun_facts_enabled,
           selected_fun_facts: formData.selected_fun_facts,
+          fun_facts_button_label: formData.fun_facts_button_label,
           // Explicitly include keyword inspiration fields
           keyword_inspiration_enabled: formData.keyword_inspiration_enabled,
           selected_keyword_inspirations: formData.selected_keyword_inspirations,
