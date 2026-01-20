@@ -307,7 +307,8 @@ export default function PromptPagesKanban({
       <Droppable
         droppableId={column.id}
         renderClone={(provided, snapshot, rubric) => {
-          const page = column.pages.find(p => p.id === rubric.draggableId);
+          // Search all promptPages, not just column.pages, to handle cross-column drags
+          const page = promptPages.find(p => p.id === rubric.draggableId);
           if (!page) return <div ref={provided.innerRef} />;
           const isAccessible = accessiblePageIds.has(page.id);
           return renderDraggableCard(page, provided, snapshot, isAccessible);
