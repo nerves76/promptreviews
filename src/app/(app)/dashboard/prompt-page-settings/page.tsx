@@ -213,21 +213,21 @@ export default function PromptPageSettingsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
       {/* Header with Navigation Tabs */}
-      <div className="bg-white/20 backdrop-blur-md border-b border-white/30 pb-6">
+      <div className="pb-6">
         {/* Page Title */}
         <div className="px-4 sm:px-6 lg:px-8 pt-8">
           <div className="max-w-7xl mx-auto flex flex-col items-center mb-3">
             <div className="flex items-center gap-4 mb-3">
-              <h1 className="text-3xl lg:text-4xl font-bold text-gray-900">
-                Prompt pages
+              <h1 className="text-3xl lg:text-4xl font-bold text-white">
+                Prompt Pages
               </h1>
               {/* Style Icon */}
               <Link
                 href="/prompt-pages?tab=catch-all"
-                className="w-10 h-10 rounded-full bg-slate-blue/10 border border-slate-blue/30 flex items-center justify-center hover:bg-slate-blue/20 transition"
+                className="w-10 h-10 rounded-full bg-white/10 border border-white/30 flex items-center justify-center hover:bg-white/20 transition"
                 title="Style settings"
               >
-                <Icon name="FaPalette" className="w-5 h-5 text-slate-blue" size={20} />
+                <Icon name="FaPalette" className="w-5 h-5 text-white" size={20} />
               </Link>
             </div>
           </div>
@@ -274,7 +274,7 @@ export default function PromptPageSettingsPage() {
             <div>
               <h2 className="text-2xl font-bold text-white flex items-center gap-3">
                 <Icon name="FaCog" className="w-8 h-8 text-white/80" size={32} />
-                Prompt page settings
+                Prompt Page settings
               </h2>
               <p className="text-white/80 mt-1">
                 Set global defaults for keywords, AI, review platforms, and more.
