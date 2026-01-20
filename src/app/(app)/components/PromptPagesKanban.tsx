@@ -306,7 +306,15 @@ export default function PromptPagesKanban({
                         ref={provided.innerRef}
                         {...provided.draggableProps}
                         {...provided.dragHandleProps}
-                        className={isAccessible ? "" : "opacity-50 cursor-not-allowed"}
+                        className={`
+                          ${isAccessible ? "" : "opacity-50 cursor-not-allowed"}
+                          ${snapshot.isDragging ? "z-50" : ""}
+                        `}
+                        style={{
+                          ...provided.draggableProps.style,
+                          // Ensure the dragged element remains visible
+                          opacity: snapshot.isDragging ? 1 : undefined,
+                        }}
                         title={
                           !isAccessible
                             ? `Upgrade to access more than ${maxPages} prompt pages`

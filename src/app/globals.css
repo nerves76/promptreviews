@@ -606,3 +606,23 @@ body:has(.fixed.inset-0) {
     display: none;  /* Chrome, Safari, Opera */
   }
 }
+
+/* Drag and drop styles for @hello-pangea/dnd */
+/* Ensure dragged elements remain visible during drag operations */
+[data-rbd-draggable-context-id] {
+  /* Prevent clipping issues during drag */
+  will-change: transform;
+}
+
+/* Style for the element being dragged (the clone in the portal) */
+[data-rbd-drag-handle-draggable-id][data-rbd-draggable-id] {
+  /* Ensure full visibility */
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Placeholder styling - the space left behind by the dragged item */
+[data-rbd-placeholder-context-id] {
+  /* Make placeholder visible */
+  opacity: 0.5;
+}
