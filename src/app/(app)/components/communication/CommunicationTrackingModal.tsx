@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, startTransition } from "react";
 import Link from "next/link";
 import { Dialog } from "@headlessui/react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
@@ -404,7 +404,10 @@ export default function CommunicationTrackingModal({
                     <input
                       type="text"
                       value={subject}
-                      onChange={(e) => setSubject(e.target.value)}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        startTransition(() => setSubject(value));
+                      }}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       placeholder="Enter email subject..."
                     />
@@ -418,7 +421,10 @@ export default function CommunicationTrackingModal({
                   </label>
                   <Textarea
                     value={message}
-                    onChange={(e) => setMessage(e.target.value)}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      startTransition(() => setMessage(value));
+                    }}
                     rows={8}
                     className="w-full resize-none"
                     placeholder={`Enter your ${activeTab} message...`}
