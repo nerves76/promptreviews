@@ -72,6 +72,7 @@ export default function OutreachTemplatesPage() {
   const [formData, setFormData] = useState<TemplateFormData>(INITIAL_FORM_DATA);
   const [isSaving, setIsSaving] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<TemplateCategory | 'all'>('all');
 
   // Handle tab navigation
   const handleTabChange = (tab: string) => {
@@ -179,9 +180,10 @@ export default function OutreachTemplatesPage() {
     }));
   };
 
-  // Group templates by type
-  const emailTemplates = templates.filter((t) => t.communication_type === "email");
-  const smsTemplates = templates.filter((t) => t.communication_type === "sms");
+  // Filter templates by selected category
+  const filteredTemplates = selectedCategory === 'all'
+    ? templates
+    : templates.filter(t => t.template_type === selectedCategory);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#527DE7] via-[#7B6BA8] to-[#E8A87C]">
@@ -263,6 +265,39 @@ export default function OutreachTemplatesPage() {
           </div>
         )}
 
+        {/* Category filter tabs */}
+        {!isLoading && templates.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-6">
+            <button
+              onClick={() => setSelectedCategory('all')}
+              className={`px-3 py-1.5 text-sm font-medium rounded-full transition-colors ${
+                selectedCategory === 'all'
+                  ? 'bg-slate-blue text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              All ({templates.length})
+            </button>
+            {CATEGORY_OPTIONS.map(category => {
+              const count = templates.filter(t => t.template_type === category.value).length;
+              if (count === 0) return null;
+              return (
+                <button
+                  key={category.value}
+                  onClick={() => setSelectedCategory(category.value)}
+                  className={`px-3 py-1.5 text-sm font-medium rounded-full transition-colors ${
+                    selectedCategory === category.value
+                      ? `${CATEGORY_STYLES[category.value].bg} ${CATEGORY_STYLES[category.value].text} ring-2 ring-offset-1 ring-current`
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  {category.label} ({count})
+                </button>
+              );
+            })}
+          </div>
+        )}
+
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
             <Icon name="FaSpinner" className="w-6 h-6 animate-spin text-slate-blue" />
@@ -276,56 +311,18 @@ export default function OutreachTemplatesPage() {
             <Button onClick={openCreateModal}>Create template</Button>
           </div>
         ) : (
-          <div className="space-y-8">
-            {/* SMS Templates */}
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <Icon name="FaMobile" className="w-5 h-5 text-green-600" />
-                SMS templates ({smsTemplates.length})
-              </h2>
-              {smsTemplates.length === 0 ? (
-                <p className="text-gray-500 text-sm">No SMS templates yet.</p>
-              ) : (
-                <div className="grid gap-4">
-                  {smsTemplates.map((template) => (
-                    <TemplateCard
-                      key={template.id}
-                      template={template}
-                      onEdit={() => openEditModal(template)}
-                      onDelete={() => setDeleteConfirmId(template.id)}
-                      isDeleting={deleteConfirmId === template.id}
-                      onConfirmDelete={() => handleDelete(template.id)}
-                      onCancelDelete={() => setDeleteConfirmId(null)}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Email Templates */}
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <Icon name="FaEnvelope" className="w-5 h-5 text-blue-600" />
-                Email templates ({emailTemplates.length})
-              </h2>
-              {emailTemplates.length === 0 ? (
-                <p className="text-gray-500 text-sm">No email templates yet.</p>
-              ) : (
-                <div className="grid gap-4">
-                  {emailTemplates.map((template) => (
-                    <TemplateCard
-                      key={template.id}
-                      template={template}
-                      onEdit={() => openEditModal(template)}
-                      onDelete={() => setDeleteConfirmId(template.id)}
-                      isDeleting={deleteConfirmId === template.id}
-                      onConfirmDelete={() => handleDelete(template.id)}
-                      onCancelDelete={() => setDeleteConfirmId(null)}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
+          <div className="grid gap-4">
+            {filteredTemplates.map((template) => (
+              <TemplateCard
+                key={template.id}
+                template={template}
+                onEdit={() => openEditModal(template)}
+                onDelete={() => setDeleteConfirmId(template.id)}
+                isDeleting={deleteConfirmId === template.id}
+                onConfirmDelete={() => handleDelete(template.id)}
+                onCancelDelete={() => setDeleteConfirmId(null)}
+              />
+            ))}
           </div>
         )}
           </PageCard>
@@ -516,13 +513,6 @@ function TemplateCard({
                 Custom
               </span>
             )}
-            <span
-              className={`px-2 py-0.5 text-xs rounded-full whitespace-nowrap ${
-                CATEGORY_STYLES[template.template_type]?.bg || "bg-gray-50"
-              } ${CATEGORY_STYLES[template.template_type]?.text || "text-gray-700"}`}
-            >
-              {CATEGORY_OPTIONS.find((c) => c.value === template.template_type)?.label || template.template_type}
-            </span>
           </div>
           {template.communication_type === "email" && template.subject_template && (
             <p className="text-sm text-gray-500 mb-1">
