@@ -101,7 +101,21 @@ export default function CommunicationTrackingModal({
   const [copiedToClipboard, setCopiedToClipboard] = useState(false);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | undefined>();
 
+  // Helper to generate the review URL (called when copying/sending)
+  const getReviewUrl = () => {
+    const baseUrl = window.location.origin;
+    const slug = promptPage?.slug;
+    if (!slug) {
+      console.warn('[CommunicationTrackingModal] Missing promptPage slug', { promptPage });
+      return `${baseUrl}/r/`;
+    }
+    return activeTab === 'email'
+      ? generateEmailTrackedUrl(baseUrl, slug)
+      : generateSmsTrackedUrl(baseUrl, slug);
+  };
+
   // Generate default message based on active tab and prompt page (only if no template selected)
+  // Note: URL is NOT included here - it's automatically appended when copying/sending
   useEffect(() => {
     if (!isOpen) return;
     // Skip if a template is already selected
@@ -109,25 +123,11 @@ export default function CommunicationTrackingModal({
 
     const businessName = promptPage?.location || promptPage?.client_name || 'Our Business';
     const customerName = contact?.first_name || 'there';
-    const baseUrl = window.location.origin;
-
-    // Generate tracked URL based on communication type
-    // Note: communicationRecordId will be available after the record is created
-    // For now we use the basic tracking params; the full tracking happens server-side
-    const slug = promptPage?.slug;
-    if (!slug) {
-      console.warn('[CommunicationTrackingModal] Missing promptPage slug - URL will not be generated correctly', { promptPage });
-    }
-    const reviewUrl = slug
-      ? (activeTab === 'email'
-          ? generateEmailTrackedUrl(baseUrl, slug)
-          : generateSmsTrackedUrl(baseUrl, slug))
-      : `${baseUrl}/r/`; // Fallback if no slug
 
     const baseMessage =
       `Hi ${customerName}, could you take 1–3 minutes to leave a review for ${businessName}? ` +
       `I've prewritten a draft to make it easy, and you can edit it however you'd like, or use the AI feature to kickstart your own review. ` +
-      `Reviews make a huge difference for small businesses trying to get found online. Really appreciate your help! ${reviewUrl}`;
+      `Reviews make a huge difference for small businesses trying to get found online. Really appreciate your help!`;
 
     if (activeTab === 'email') {
       setSubject(`Quick Review Request from ${businessName}`);
@@ -177,16 +177,28 @@ export default function CommunicationTrackingModal({
     }
   };
 
+  // Helper to get message with URL appended (if not already present)
+  const getMessageWithUrl = (msg: string) => {
+    const reviewUrl = getReviewUrl();
+    // Check if message already contains the URL or a review URL pattern
+    if (msg.includes(reviewUrl) || msg.includes('/r/') || msg.includes('{{review_url}}')) {
+      return msg;
+    }
+    // Append URL with appropriate spacing
+    return `${msg.trim()} ${reviewUrl}`;
+  };
+
   const handleCopyToClipboard = async () => {
     try {
+      const messageWithUrl = getMessageWithUrl(message);
       let clipboardContent = '';
-      
+
       if (activeTab === 'email') {
-        clipboardContent = `Subject: ${subject}\n\n${message}`;
+        clipboardContent = `Subject: ${subject}\n\n${messageWithUrl}`;
       } else {
-        clipboardContent = message;
+        clipboardContent = messageWithUrl;
       }
-      
+
       await navigator.clipboard.writeText(clipboardContent);
       setCopiedToClipboard(true);
       setTimeout(() => setCopiedToClipboard(false), 2000);
@@ -233,14 +245,16 @@ export default function CommunicationTrackingModal({
       }
 
       // Open the communication app with pre-filled message if requested
+      // URL is automatically appended if not already in the message
       if (openApp) {
+        const messageWithUrl = getMessageWithUrl(message);
         if (activeTab === 'email' && contact.email) {
-          const mailtoLink = `mailto:${contact.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}`;
+          const mailtoLink = `mailto:${contact.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(messageWithUrl)}`;
           window.location.href = mailtoLink;
         } else if (activeTab === 'sms' && contact.phone) {
           // Format phone number for SMS
           const phoneNumber = contact.phone.replace(/\D/g, '');
-          const smsLink = `sms:${phoneNumber}?body=${encodeURIComponent(message)}`;
+          const smsLink = `sms:${phoneNumber}?body=${encodeURIComponent(messageWithUrl)}`;
           window.location.href = smsLink;
         }
       }
