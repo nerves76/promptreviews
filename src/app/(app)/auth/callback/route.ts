@@ -4,6 +4,7 @@ import { sendWelcomeEmail } from "@/utils/resend-welcome";
 import { sendAdminNewUserNotification } from "@/utils/emailTemplates";
 import { ensureAdminForEmail } from '@/auth/utils/admin';
 import { createServiceRoleClient } from '@/auth/providers/supabase';
+import { logUserLogin } from '@/utils/loginTracking';
 
 export const dynamic = "force-dynamic";
 
@@ -390,7 +391,24 @@ export async function GET(request: NextRequest) {
 
 
             hasAcceptedInvitation = true;
-            
+
+            // Log the login event for team member
+            try {
+              const loginType = user.app_metadata?.provider === 'google' ? 'google'
+                : type === 'magiclink' ? 'magic_link'
+                : 'email';
+              await logUserLogin({
+                userId: userId,
+                email: email || '',
+                firstName: user.user_metadata?.first_name,
+                lastName: user.user_metadata?.last_name,
+                isNewUser: true,
+                loginType: loginType as "email" | "google" | "magic_link" | "password",
+                ipAddress: request.headers.get('x-forwarded-for')?.split(',')[0] || request.headers.get('x-real-ip') || undefined,
+                userAgent: request.headers.get('user-agent') || undefined,
+              });
+            } catch (e) { /* Don't fail auth for tracking errors */ }
+
             // Skip individual account creation - team members use team account
             // Redirect directly to dashboard
             return NextResponse.redirect(`${requestUrl.origin}/dashboard`);
@@ -424,7 +442,24 @@ export async function GET(request: NextRequest) {
                 .eq('token', invitation.token);
 
               hasAcceptedInvitation = true;
-              
+
+              // Log the login event for team member
+              try {
+                const loginType = user.app_metadata?.provider === 'google' ? 'google'
+                  : type === 'magiclink' ? 'magic_link'
+                  : 'email';
+                await logUserLogin({
+                  userId: userId,
+                  email: email || '',
+                  firstName: user.user_metadata?.first_name,
+                  lastName: user.user_metadata?.last_name,
+                  isNewUser: true,
+                  loginType: loginType as "email" | "google" | "magic_link" | "password",
+                  ipAddress: request.headers.get('x-forwarded-for')?.split(',')[0] || request.headers.get('x-real-ip') || undefined,
+                  userAgent: request.headers.get('user-agent') || undefined,
+                });
+              } catch (e) { /* Don't fail auth for tracking errors */ }
+
               // Redirect to dashboard
               return NextResponse.redirect(`${requestUrl.origin}/dashboard`);
             } else {
@@ -614,13 +649,34 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // Log the login event
+    try {
+      const loginType = user.app_metadata?.provider === 'google' ? 'google'
+        : type === 'magiclink' ? 'magic_link'
+        : 'email';
+
+      await logUserLogin({
+        userId: userId,
+        email: email || '',
+        firstName: user.user_metadata?.first_name,
+        lastName: user.user_metadata?.last_name,
+        isNewUser: isNewUser,
+        loginType: loginType as "email" | "google" | "magic_link" | "password",
+        ipAddress: request.headers.get('x-forwarded-for')?.split(',')[0] || request.headers.get('x-real-ip') || undefined,
+        userAgent: request.headers.get('user-agent') || undefined,
+      });
+    } catch (loginTrackingError) {
+      console.error("❌ Error logging login event:", loginTrackingError);
+      // Don't fail the auth flow for login tracking errors
+    }
+
     // Redirect new users to create-business page, existing users to dashboard
     // If user accepted an invitation, redirect to dashboard instead of create-business
     const redirectUrl = (isNewUser && !hasAcceptedInvitation)
       ? `${requestUrl.origin}/dashboard/create-business`
       : `${requestUrl.origin}/dashboard`;
-    
-    
+
+
     // The cookies are automatically set by the createServerClient
     // Just redirect - the session will be available on the next request
     return NextResponse.redirect(redirectUrl);
