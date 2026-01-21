@@ -8,7 +8,7 @@ const tiers = [
   {
     key: "grower",
     name: "Grower",
-    description: "Great for solo operators getting started",
+    description: "Great for getting started with reviews and local SEO",
     price: "24",
     priceMonthly: "24",
     priceAnnual: "20", // $245/year ÷ 12 months (~15% discount)
@@ -26,14 +26,13 @@ const tiers = [
       "3 custom Prompt Pages",
       "Review widgets",
       "Local & AI visibility tracking (Geo grids, Search, LLMs)",
-      "Analytics",
       "1 managed Google Business Profile",
     ],
   },
   {
     key: "builder",
     name: "Builder",
-    description: "For teams scaling review & visibility",
+    description: "Great for teams and review outreach",
     price: "40",
     priceMonthly: "40",
     priceAnnual: "34", // $408/year ÷ 12 months (15% discount)
@@ -53,7 +52,6 @@ const tiers = [
       "Contact management (up to 1000)",
       "Review widgets",
       "Local & AI visibility tracking (Geo grids, Search, LLMs)",
-      "Analytics",
       "3 managed Google Business Profiles",
     ],
   },
@@ -80,7 +78,6 @@ const tiers = [
       "Contact management (up to 10,000)",
       "Review widgets",
       "Local & AI visibility tracking (Geo grids, Search, LLMs)",
-      "Analytics",
       "10 managed Google Business Profiles",
     ],
   },
@@ -108,7 +105,6 @@ const featureTooltips: Record<string, string> = {
   "Campaign management":
     "Automate and organize your review collection process.",
   "Review widgets": "Embed review collection widgets on your website.",
-  Analytics: "Track review performance and engagement.",
   "Universal Prompt Page":
     "A single page to collect reviews from any platform, including a QR code for easy sharing.",
   "custom prompt pages":

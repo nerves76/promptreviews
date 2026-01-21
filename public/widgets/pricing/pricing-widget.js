@@ -9,7 +9,7 @@
     {
       key: 'grower',
       name: 'Grower',
-      description: 'Great for solo operators getting started',
+      description: 'Great for getting started with reviews and local SEO',
       priceMonthly: 24,
       priceAnnual: 20, // per month when billed annually
       annualTotal: 245,
@@ -20,14 +20,13 @@
         '3 custom Prompt Pages',
         'Review widgets',
         'Local & AI visibility tracking',
-        'Analytics',
         '1 managed Google Business Profile'
       ]
     },
     {
       key: 'builder',
       name: 'Builder',
-      description: 'For teams scaling review & visibility',
+      description: 'Great for teams and review outreach',
       priceMonthly: 40,
       priceAnnual: 34,
       annualTotal: 408,
@@ -42,7 +41,6 @@
         'Contact management (up to 1000)',
         'Review widgets',
         'Local & AI visibility tracking',
-        'Analytics',
         '3 managed Google Business Profiles'
       ]
     },
@@ -63,7 +61,6 @@
         'Contact management (up to 10,000)',
         'Review widgets',
         'Local & AI visibility tracking',
-        'Analytics',
         '10 managed Google Business Profiles'
       ]
     }
