@@ -285,22 +285,6 @@
         min-height: 1.25rem;
       }
 
-      .pr-pricing-legal {
-        text-align: center;
-        font-size: 0.75rem;
-        color: #6b7280;
-        margin-top: 2rem;
-      }
-
-      .pr-pricing-legal a {
-        color: #6b7280;
-        text-decoration: underline;
-      }
-
-      .pr-pricing-legal a:hover {
-        color: #374151;
-      }
-
       @media (max-width: 1024px) {
         .pr-pricing-grid {
           grid-template-columns: 1fr;
@@ -389,12 +373,6 @@
         </div>
         <div class="pr-pricing-grid">
           ${cardsHTML}
-        </div>
-        <div class="pr-pricing-legal">
-          By signing up, you agree to our
-          <a href="https://app.promptreviews.app/terms" target="_blank" rel="noopener noreferrer">Terms & Conditions</a>
-          and
-          <a href="https://app.promptreviews.app/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a>.
         </div>
       </div>
     `;

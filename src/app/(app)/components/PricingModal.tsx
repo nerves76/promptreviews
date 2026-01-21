@@ -243,7 +243,7 @@ export default function PricingModal({
           </div>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 w-full">
           {tiers.map((tier) => {
             const isGrower = tier.key === "grower";
             const isBuilder = tier.key === "builder";
@@ -251,7 +251,7 @@ export default function PricingModal({
               <div
                 key={tier.key}
                 className={
-                  `${tier.bg} rounded-2xl shadow-lg p-8 md:p-10 flex flex-col items-center w-full max-w-xs md:max-w-sm lg:max-w-md xl:max-w-lg relative ` +
+                  `${tier.bg} rounded-2xl shadow-lg p-8 lg:p-10 flex flex-col items-center w-full max-w-xs lg:max-w-sm xl:max-w-md 2xl:max-w-lg relative ` +
                   (tier.key === currentPlan
                     ? " border border-4 border-solid border-indigo-700"
                     : "") +

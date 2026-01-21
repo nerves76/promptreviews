@@ -219,23 +219,6 @@
   min-height: 1.25rem;
 }
 
-/* Legal Footer */
-.pr-pricing-legal {
-  text-align: center;
-  font-size: 0.75rem;
-  color: #6b7280;
-  margin-top: 2rem;
-}
-
-.pr-pricing-legal a {
-  color: #6b7280;
-  text-decoration: underline;
-}
-
-.pr-pricing-legal a:hover {
-  color: #374151;
-}
-
 /* Responsive Design */
 @media (max-width: 1024px) {
   .pr-pricing-grid {
