@@ -1,0 +1,264 @@
+/*
+  Prompt Reviews Embeddable Pricing Widget
+  This CSS matches the in-app PricingModal design exactly.
+  All classes are prefixed with .pr-pricing- for namespace isolation.
+*/
+
+/* Container - matches #promptreviews-widget pattern */
+#promptreviews-pricing {
+  position: relative;
+  width: 100%;
+  max-width: 80rem; /* 1280px for 3 cards */
+  margin-left: auto;
+  margin-right: auto;
+  font-size: 16px;
+  padding: 2rem 1rem;
+}
+
+/* Base widget reset */
+.pr-pricing-widget {
+  all: revert;
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 16px !important;
+}
+
+.pr-pricing-widget *,
+.pr-pricing-widget *::before,
+.pr-pricing-widget *::after {
+  box-sizing: border-box;
+}
+
+/* Billing Toggle - matches PricingModal exactly */
+.pr-pricing-toggle-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.pr-pricing-toggle {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 1rem;
+  padding: 0.25rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  display: flex;
+  align-items: center;
+  border: 2px solid white;
+}
+
+.pr-pricing-toggle-btn {
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  background: transparent;
+  color: #374151;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pr-pricing-toggle-btn:hover {
+  background: #f3f4f6;
+}
+
+.pr-pricing-toggle-btn.active {
+  background: #2E4A7D;
+  color: white;
+}
+
+.pr-pricing-toggle-btn.active:hover {
+  background: #2E4A7D;
+}
+
+.pr-pricing-save-badge {
+  font-size: 0.75rem;
+  background: #22c55e;
+  color: white;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  white-space: nowrap;
+}
+
+/* Card Grid */
+.pr-pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+  width: 100%;
+}
+
+/* Individual Card */
+.pr-pricing-card {
+  border-radius: 1rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  padding: 2rem 2.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 420px;
+  position: relative;
+}
+
+/* Card color variants - exact match to PricingModal */
+.pr-pricing-card--grower {
+  background: #dbeafe; /* bg-blue-100 */
+}
+
+.pr-pricing-card--builder {
+  background: #e9d5ff; /* bg-purple-200 */
+  box-shadow: 0 0 0 4px #facc15; /* ring-4 ring-yellow-400 */
+}
+
+.pr-pricing-card--maven {
+  background: #fef08a; /* bg-yellow-200 */
+}
+
+/* Card Content */
+.pr-pricing-card-name {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #2E4A7D;
+  margin: 0 0 0.25rem 0;
+}
+
+.pr-pricing-card-description {
+  font-size: 0.875rem;
+  color: #2E4A7D;
+  opacity: 0.8;
+  margin: 0 0 0.75rem 0;
+  text-align: center;
+}
+
+/* Pricing Display */
+.pr-pricing-price-container {
+  color: #2E4A7D;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.pr-pricing-price {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.pr-pricing-period {
+  font-size: 1.125rem;
+}
+
+.pr-pricing-annual-note {
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+/* Features List */
+.pr-pricing-features {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 2rem 0;
+  flex-grow: 1;
+  width: 100%;
+}
+
+.pr-pricing-feature {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 1rem;
+  color: #1f2937;
+  padding: 0.375rem 0;
+}
+
+.pr-pricing-feature-check {
+  color: #22c55e;
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.pr-pricing-feature-text {
+  text-align: left;
+}
+
+.pr-pricing-feature--bold {
+  font-weight: 700;
+}
+
+/* CTA Button */
+.pr-pricing-cta {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  border: none;
+  font-size: 1.125rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: #2E4A7D;
+  color: white;
+  transition: background 0.2s ease;
+  text-decoration: none;
+  display: block;
+  text-align: center;
+  margin-top: auto;
+}
+
+.pr-pricing-cta:hover {
+  background: rgba(46, 74, 125, 0.9);
+}
+
+/* Footer Note */
+.pr-pricing-footer-note {
+  font-size: 0.75rem;
+  color: #6b7280;
+  text-align: center;
+  margin-top: 0.5rem;
+  min-height: 1.25rem;
+}
+
+/* Legal Footer */
+.pr-pricing-legal {
+  text-align: center;
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 2rem;
+}
+
+.pr-pricing-legal a {
+  color: #6b7280;
+  text-decoration: underline;
+}
+
+.pr-pricing-legal a:hover {
+  color: #374151;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .pr-pricing-grid {
+    gap: 1.5rem;
+  }
+
+  .pr-pricing-card {
+    padding: 1.5rem 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .pr-pricing-grid {
+    grid-template-columns: 1fr;
+    max-width: 400px;
+    margin: 0 auto;
+  }
+
+  .pr-pricing-card {
+    min-height: auto;
+  }
+
+  .pr-pricing-card--builder {
+    order: -1; /* Show Builder (popular) first on mobile */
+  }
+}
