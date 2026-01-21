@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Features Widget - Embed Test</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(to bottom, #527DE7, #7B6BA8, #E8A87C);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    h1 {
+      color: white;
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 24px;
+    }
+    .info {
+      background: rgba(255,255,255,0.2);
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      color: white;
+      font-size: 14px;
+    }
+    .info code {
+      background: rgba(0,0,0,0.2);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Features Widget - Embed Test</h1>
+    <div class="info">
+      <p><strong>Test instructions:</strong></p>
+      <ul style="margin-left: 20px; margin-top: 8px;">
+        <li>Resize your browser window to test responsive behavior</li>
+        <li>On mobile widths (&lt;768px), the widget should be taller</li>
+        <li>The iframe height should automatically adjust</li>
+      </ul>
+    </div>
+
+    <!-- Widget embed code -->
+    <div id="promptreviews-features"></div>
+    <script src="features-widget.js" async></script>
+  </div>
+
+  <script>
+    // Debug: Log height changes
+    window.addEventListener('message', function(event) {
+      if (event.data && event.data.type === 'features-widget-resize') {
+        console.log('Height update received:', event.data.height + 'px');
+      }
+    });
+  </script>
+</body>
+</html>

@@ -28,11 +28,12 @@ export default function FeaturesWidgetEmbed() {
       const container = containerRef.current;
       if (!container) return;
 
-      // Get the container's full height including padding
-      const rect = container.getBoundingClientRect();
-      const height = Math.ceil(rect.height);
+      // Get the full document height to handle all content
+      const bodyHeight = document.body.scrollHeight;
+      const containerHeight = container.scrollHeight;
+      const height = Math.ceil(Math.max(bodyHeight, containerHeight));
 
-      // Only send if height actually changed
+      // Only send if height actually changed (threshold of 5px)
       if (Math.abs(height - lastHeight) > 5) {
         lastHeight = height;
         window.parent.postMessage(
@@ -46,16 +47,25 @@ export default function FeaturesWidgetEmbed() {
     let resizeTimeout: NodeJS.Timeout;
     const debouncedSendHeight = () => {
       clearTimeout(resizeTimeout);
-      resizeTimeout = setTimeout(sendHeight, 250);
+      resizeTimeout = setTimeout(sendHeight, 100);
     };
 
     // Send height multiple times to catch all rendering stages
     setTimeout(sendHeight, 100);
+    setTimeout(sendHeight, 300);
     setTimeout(sendHeight, 500);
     setTimeout(sendHeight, 1000);
-    setTimeout(sendHeight, 2000);
 
-    // Send height on window resize with debounce
+    // Use ResizeObserver for reliable height detection on content changes
+    let resizeObserver: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== 'undefined' && containerRef.current) {
+      resizeObserver = new ResizeObserver(debouncedSendHeight);
+      resizeObserver.observe(containerRef.current);
+      // Also observe body for any layout shifts
+      resizeObserver.observe(document.body);
+    }
+
+    // Send height on window resize
     window.addEventListener('resize', debouncedSendHeight);
     window.addEventListener('load', sendHeight);
 
@@ -63,6 +73,9 @@ export default function FeaturesWidgetEmbed() {
       window.removeEventListener('resize', debouncedSendHeight);
       window.removeEventListener('load', sendHeight);
       clearTimeout(resizeTimeout);
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
     };
   }, [isClient]);
 
