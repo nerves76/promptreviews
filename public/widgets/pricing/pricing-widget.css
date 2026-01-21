@@ -112,7 +112,6 @@
 
 .pr-pricing-card--builder {
   background: #e9d5ff; /* bg-purple-200 */
-  box-shadow: 0 0 0 4px #facc15; /* ring-4 ring-yellow-400 */
 }
 
 .pr-pricing-card--maven {

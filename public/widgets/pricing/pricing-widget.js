@@ -187,7 +187,6 @@
 
       .pr-pricing-card--builder {
         background: #e9d5ff;
-        box-shadow: 0 0 0 4px #facc15;
       }
 
       .pr-pricing-card--maven {
