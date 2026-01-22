@@ -87,159 +87,157 @@ export default function AdminLayout({
   return (
     <div className="min-h-screen bg-gray-50">
       {!isEmbed && (
-        <div className="bg-white border-b border-gray-200">
-          <div className="max-w-7xl mx-auto px-4 py-6">
-            {/* Admin Header */}
-            <div className="mb-6">
-              <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-              <p className="text-gray-600 mt-2">Welcome, {user?.email}</p>
-            </div>
+        <div className="max-w-7xl mx-auto px-4 py-6">
+          {/* Admin Header */}
+          <div className="mb-6">
+            <h1 className="text-3xl font-bold text-white">Admin Dashboard</h1>
+            <p className="text-white/80 mt-2">Welcome, {user?.email}</p>
+          </div>
 
-            {/* Admin Subnav */}
-            <div className="border-b border-gray-200 -mb-px">
-              <nav className="flex space-x-8 overflow-x-auto">
+          {/* Admin Subnav */}
+          <div className="border-b border-white/20 -mb-px">
+            <nav className="flex space-x-8 overflow-x-auto">
               <Link
                 href="/admin"
-                className={`py-2 px-1 text-sm font-medium transition-colors ${
+                className={`py-2 px-1 text-sm font-medium transition-colors whitespace-nowrap ${
                   isActive('/admin') && pathname === '/admin'
-                    ? 'border-b-2 border-slate-blue text-slate-blue'
-                    : 'border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-b-2 border-white text-white'
+                    : 'border-b-2 border-transparent text-white/70 hover:text-white hover:border-white/50'
                 }`}
               >
                 Overview
               </Link>
               <Link
                 href="/admin/announcements"
-                className={`py-2 px-1 text-sm font-medium transition-colors ${
+                className={`py-2 px-1 text-sm font-medium transition-colors whitespace-nowrap ${
                   isActive('/admin/announcements')
-                    ? 'border-b-2 border-slate-blue text-slate-blue'
-                    : 'border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-b-2 border-white text-white'
+                    : 'border-b-2 border-transparent text-white/70 hover:text-white hover:border-white/50'
                 }`}
               >
                 Announcements
               </Link>
               <Link
                 href="/admin/quotes"
-                className={`py-2 px-1 text-sm font-medium transition-colors ${
+                className={`py-2 px-1 text-sm font-medium transition-colors whitespace-nowrap ${
                   isActive('/admin/quotes')
-                    ? 'border-b-2 border-slate-blue text-slate-blue'
-                    : 'border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-b-2 border-white text-white'
+                    : 'border-b-2 border-transparent text-white/70 hover:text-white hover:border-white/50'
                 }`}
               >
                 Quotes
               </Link>
               <Link
                 href="/admin/feedback"
-                className={`py-2 px-1 text-sm font-medium transition-colors ${
+                className={`py-2 px-1 text-sm font-medium transition-colors whitespace-nowrap ${
                   isActive('/admin/feedback')
-                    ? 'border-b-2 border-slate-blue text-slate-blue'
-                    : 'border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-b-2 border-white text-white'
+                    : 'border-b-2 border-transparent text-white/70 hover:text-white hover:border-white/50'
                 }`}
               >
                 Feedback
               </Link>
               <Link
                 href="/admin/analytics"
-                className={`py-2 px-1 text-sm font-medium transition-colors ${
+                className={`py-2 px-1 text-sm font-medium transition-colors whitespace-nowrap ${
                   isActive('/admin/analytics')
-                    ? 'border-b-2 border-slate-blue text-slate-blue'
-                    : 'border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-b-2 border-white text-white'
+                    : 'border-b-2 border-transparent text-white/70 hover:text-white hover:border-white/50'
                 }`}
               >
                 Analytics
               </Link>
               <Link
                 href="/admin/trial-reminders"
-                className={`py-2 px-1 text-sm font-medium transition-colors ${
+                className={`py-2 px-1 text-sm font-medium transition-colors whitespace-nowrap ${
                   isActive('/admin/trial-reminders')
-                    ? 'border-b-2 border-slate-blue text-slate-blue'
-                    : 'border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-b-2 border-white text-white'
+                    : 'border-b-2 border-transparent text-white/70 hover:text-white hover:border-white/50'
                 }`}
               >
                 Trial Reminders
               </Link>
               <Link
                 href="/admin/email-templates"
-                className={`py-2 px-1 text-sm font-medium transition-colors ${
+                className={`py-2 px-1 text-sm font-medium transition-colors whitespace-nowrap ${
                   isActive('/admin/email-templates')
-                    ? 'border-b-2 border-slate-blue text-slate-blue'
-                    : 'border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-b-2 border-white text-white'
+                    : 'border-b-2 border-transparent text-white/70 hover:text-white hover:border-white/50'
                 }`}
               >
                 Email Templates
               </Link>
               <Link
                 href="/admin/metadata-templates"
-                className={`py-2 px-1 text-sm font-medium transition-colors ${
+                className={`py-2 px-1 text-sm font-medium transition-colors whitespace-nowrap ${
                   isActive('/admin/metadata-templates')
-                    ? 'border-b-2 border-slate-blue text-slate-blue'
-                    : 'border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-b-2 border-white text-white'
+                    : 'border-b-2 border-transparent text-white/70 hover:text-white hover:border-white/50'
                 }`}
               >
                 Metadata Templates
               </Link>
               <Link
                 href="/admin/free-accounts"
-                className={`py-2 px-1 text-sm font-medium transition-colors ${
+                className={`py-2 px-1 text-sm font-medium transition-colors whitespace-nowrap ${
                   isActive('/admin/free-accounts')
-                    ? 'border-b-2 border-slate-blue text-slate-blue'
-                    : 'border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-b-2 border-white text-white'
+                    : 'border-b-2 border-transparent text-white/70 hover:text-white hover:border-white/50'
                 }`}
               >
                 Free Accounts
               </Link>
               <Link
                 href="/admin/credits"
-                className={`py-2 px-1 text-sm font-medium transition-colors ${
+                className={`py-2 px-1 text-sm font-medium transition-colors whitespace-nowrap ${
                   isActive('/admin/credits')
-                    ? 'border-b-2 border-slate-blue text-slate-blue'
-                    : 'border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-b-2 border-white text-white'
+                    : 'border-b-2 border-transparent text-white/70 hover:text-white hover:border-white/50'
                 }`}
               >
                 Credits
               </Link>
               <Link
                 href="/admin/usage"
-                className={`py-2 px-1 text-sm font-medium transition-colors ${
+                className={`py-2 px-1 text-sm font-medium transition-colors whitespace-nowrap ${
                   isActive('/admin/usage')
-                    ? 'border-b-2 border-slate-blue text-slate-blue'
-                    : 'border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-b-2 border-white text-white'
+                    : 'border-b-2 border-transparent text-white/70 hover:text-white hover:border-white/50'
                 }`}
               >
                 API Usage
               </Link>
               <Link
                 href="/admin/cron-jobs"
-                className={`py-2 px-1 text-sm font-medium transition-colors ${
+                className={`py-2 px-1 text-sm font-medium transition-colors whitespace-nowrap ${
                   isActive('/admin/cron-jobs')
-                    ? 'border-b-2 border-slate-blue text-slate-blue'
-                    : 'border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-b-2 border-white text-white'
+                    : 'border-b-2 border-transparent text-white/70 hover:text-white hover:border-white/50'
                 }`}
               >
                 Cron Jobs
               </Link>
               <Link
                 href="/dashboard/comparisons"
-                className={`py-2 px-1 text-sm font-medium transition-colors ${
+                className={`py-2 px-1 text-sm font-medium transition-colors whitespace-nowrap ${
                   isActive('/dashboard/comparisons')
-                    ? 'border-b-2 border-slate-blue text-slate-blue'
-                    : 'border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-b-2 border-white text-white'
+                    : 'border-b-2 border-transparent text-white/70 hover:text-white hover:border-white/50'
                 }`}
               >
                 Comparisons
               </Link>
               <Link
                 href="/admin/brand-guidelines"
-                className={`py-2 px-1 text-sm font-medium transition-colors ${
+                className={`py-2 px-1 text-sm font-medium transition-colors whitespace-nowrap ${
                   isActive('/admin/brand-guidelines')
-                    ? 'border-b-2 border-slate-blue text-slate-blue'
-                    : 'border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-b-2 border-white text-white'
+                    : 'border-b-2 border-transparent text-white/70 hover:text-white hover:border-white/50'
                 }`}
               >
                 Brand
               </Link>
             </nav>
-          </div>
           </div>
         </div>
       )}
