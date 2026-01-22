@@ -39,7 +39,7 @@ export default function SocialPostingPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [loadingPlatforms, setLoadingPlatforms] = useState(false);
   const [platformData, setPlatformData] = useState<PlatformData | null>(null);
-  const [editingDraft, setEditingDraft] = useState<GoogleBusinessScheduledPost | null>(null);
+  const [editingPost, setEditingPost] = useState<GoogleBusinessScheduledPost | null>(null);
 
   // Fetch all scheduled data
   const fetchData = useCallback(async () => {
@@ -98,10 +98,10 @@ export default function SocialPostingPage() {
     setError(message);
   };
 
-  // Handle edit draft - fetch platforms and open modal with draft data
-  const handleEditDraft = async (draft: GoogleBusinessScheduledPost) => {
+  // Handle edit post (draft or scheduled) - fetch platforms and open modal with post data
+  const handleEditPost = async (post: GoogleBusinessScheduledPost) => {
     setLoadingPlatforms(true);
-    setEditingDraft(draft);
+    setEditingPost(post);
     try {
       const gbpLocations: PlatformData["gbpLocations"] = [];
       let blueskyConnection: PlatformData["blueskyConnection"] = null;
@@ -179,7 +179,7 @@ export default function SocialPostingPage() {
     } catch (err) {
       console.error("Failed to load platforms:", err);
       setError("Failed to load platforms");
-      setEditingDraft(null);
+      setEditingPost(null);
     } finally {
       setLoadingPlatforms(false);
     }
@@ -370,6 +370,7 @@ export default function SocialPostingPage() {
               fetchData();
             }}
             onError={handleError}
+            onEditPost={handleEditPost}
           />
         )}
 
@@ -379,7 +380,7 @@ export default function SocialPostingPage() {
             onScheduleComplete={handleScheduleComplete}
             onReorderComplete={handleReorderComplete}
             onError={handleError}
-            onEditDraft={handleEditDraft}
+            onEditDraft={handleEditPost}
           />
         )}
 
@@ -423,23 +424,26 @@ export default function SocialPostingPage() {
         <CreatePostModal
           accountId={selectedAccountId}
           platformData={platformData}
-          editingDraft={editingDraft}
+          editingPost={editingPost}
           onClose={() => {
             setShowCreateModal(false);
-            setEditingDraft(null);
+            setEditingPost(null);
           }}
           onCreated={(result) => {
             setShowCreateModal(false);
-            setEditingDraft(null);
+            const wasEditing = editingPost;
+            setEditingPost(null);
 
             // Set appropriate success message based on mode and result
             let message = "Post created successfully";
             if (result?.mode === "immediate") {
               message = result.published ? "Post published successfully" : "Post queued for publishing";
             } else if (result?.mode === "scheduled") {
-              message = "Post scheduled successfully";
+              message = wasEditing?.status === "pending"
+                ? "Scheduled post updated successfully"
+                : "Post scheduled successfully";
             } else if (result?.mode === "draft") {
-              message = editingDraft ? "Draft updated successfully" : "Draft saved successfully";
+              message = wasEditing ? "Draft updated successfully" : "Draft saved successfully";
             }
             setSuccess(message);
             fetchData();

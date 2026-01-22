@@ -41,7 +41,7 @@ interface CreatePostModalProps {
   onCreated: (result?: { mode: "immediate" | "scheduled" | "draft"; published?: boolean }) => void;
   accountId: string;
   platformData: PlatformData;
-  editingDraft?: GoogleBusinessScheduledPost | null;
+  editingPost?: GoogleBusinessScheduledPost | null;
 }
 
 interface SchedulerMedia extends GoogleBusinessScheduledMediaDescriptor {
@@ -95,46 +95,46 @@ export default function CreatePostModal({
   onCreated,
   accountId,
   platformData,
-  editingDraft,
+  editingPost,
 }: CreatePostModalProps) {
   // Platform data from props
   const { gbpLocations, blueskyConnection, linkedinConnection } = platformData;
 
-  // Initialize form state from editingDraft if provided
-  const [mode, setMode] = useState<"post" | "photo">(editingDraft?.postKind || "post");
-  const [postContent, setPostContent] = useState(editingDraft?.content?.summary || "");
-  const [caption, setCaption] = useState(editingDraft?.caption || "");
-  const [ctaEnabled, setCtaEnabled] = useState(!!editingDraft?.content?.callToAction);
-  const [ctaType, setCtaType] = useState(editingDraft?.content?.callToAction?.actionType || "LEARN_MORE");
-  const [ctaUrl, setCtaUrl] = useState(editingDraft?.content?.callToAction?.url || "");
+  // Initialize form state from editingPost if provided
+  const [mode, setMode] = useState<"post" | "photo">(editingPost?.postKind || "post");
+  const [postContent, setPostContent] = useState(editingPost?.content?.summary || "");
+  const [caption, setCaption] = useState(editingPost?.caption || "");
+  const [ctaEnabled, setCtaEnabled] = useState(!!editingPost?.content?.callToAction);
+  const [ctaType, setCtaType] = useState(editingPost?.content?.callToAction?.actionType || "LEARN_MORE");
+  const [ctaUrl, setCtaUrl] = useState(editingPost?.content?.callToAction?.url || "");
   const [selectedLocationIds, setSelectedLocationIds] = useState<string[]>(() => {
-    if (editingDraft?.selectedLocations?.length) {
-      return editingDraft.selectedLocations.map(loc => loc.id);
+    if (editingPost?.selectedLocations?.length) {
+      return editingPost.selectedLocations.map(loc => loc.id);
     }
     // Auto-select if only one location
     return gbpLocations.length === 1 ? [gbpLocations[0].id] : [];
   });
-  const [scheduledDate, setScheduledDate] = useState(editingDraft?.scheduledDate || "");
-  const [timezone, setTimezone] = useState(editingDraft?.timezone || DEFAULT_TIMEZONE);
+  const [scheduledDate, setScheduledDate] = useState(editingPost?.scheduledDate || "");
+  const [timezone, setTimezone] = useState(editingPost?.timezone || DEFAULT_TIMEZONE);
   const [mediaItems, setMediaItems] = useState<SchedulerMedia[]>(() => {
-    if (editingDraft?.mediaPaths?.length) {
-      return editingDraft.mediaPaths.map(m => ({
+    if (editingPost?.mediaPaths?.length) {
+      return editingPost.mediaPaths.map(m => ({
         ...m,
         previewUrl: m.publicUrl,
       }));
     }
     return [];
   });
-  const [postToBluesky, setPostToBluesky] = useState(!!editingDraft?.additionalPlatforms?.bluesky?.enabled);
+  const [postToBluesky, setPostToBluesky] = useState(!!editingPost?.additionalPlatforms?.bluesky?.enabled);
 
   // LinkedIn target selection - can include personal profile and/or organizations
   // Each target is { type: 'personal' | 'organization', id: string, name: string }
   const [linkedInTargets, setLinkedInTargets] = useState<Array<{ type: 'personal' | 'organization'; id: string; name: string }>>(() => {
-    if (editingDraft?.additionalPlatforms?.linkedin?.targets) {
-      return editingDraft.additionalPlatforms.linkedin.targets;
+    if (editingPost?.additionalPlatforms?.linkedin?.targets) {
+      return editingPost.additionalPlatforms.linkedin.targets;
     }
     // Legacy: if linkedin was enabled but no targets, default to personal profile
-    if (editingDraft?.additionalPlatforms?.linkedin?.enabled && linkedinConnection) {
+    if (editingPost?.additionalPlatforms?.linkedin?.enabled && linkedinConnection) {
       return [{ type: 'personal' as const, id: linkedinConnection.id, name: linkedinConnection.handle || 'My Profile' }];
     }
     return [];
@@ -144,7 +144,13 @@ export default function CreatePostModal({
   const postToLinkedIn = linkedInTargets.length > 0;
 
   // Schedule mode: 'immediate' posts now, 'draft' adds to queue, 'scheduled' schedules for later
-  const [scheduleMode, setScheduleMode] = useState<"immediate" | "draft" | "scheduled">("immediate");
+  const [scheduleMode, setScheduleMode] = useState<"immediate" | "draft" | "scheduled">(() => {
+    // If editing a scheduled post, default to scheduled mode
+    if (editingPost?.status === "pending" && editingPost?.scheduledDate) {
+      return "scheduled";
+    }
+    return "immediate";
+  });
 
   // Loading states
   const [isUploading, setIsUploading] = useState(false);
@@ -396,17 +402,17 @@ export default function CreatePostModal({
 
       let postId: string | undefined;
 
-      if (editingDraft) {
+      if (editingPost) {
         // Update existing draft
         const response = await apiClient.patch<{ success: boolean; error?: string; data?: { id: string } }>(
-          `/social-posting/scheduled/${editingDraft.id}`,
+          `/social-posting/scheduled/${editingPost.id}`,
           body
         );
 
         if (!response.success) {
           throw new Error(response.error || "Failed to update draft");
         }
-        postId = editingDraft.id;
+        postId = editingPost.id;
       } else {
         // Create new post
         const response = await apiClient.post<{ success: boolean; error?: string; data?: { id: string } }>(
@@ -483,7 +489,11 @@ export default function CreatePostModal({
           <Dialog.Panel className="bg-white rounded-xl shadow-xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <Dialog.Title className="text-xl font-bold text-gray-900 mb-4">
-                {editingDraft ? "Edit draft" : "Create post"}
+                {editingPost
+                  ? editingPost.status === "pending"
+                    ? "Edit scheduled post"
+                    : "Edit draft"
+                  : "Create post"}
               </Dialog.Title>
 
               {error && (

@@ -4,12 +4,12 @@ import { useState } from "react";
 import Icon from "@/components/Icon";
 import { apiClient } from "@/utils/apiClient";
 import type { GoogleBusinessScheduledPost } from "@/features/social-posting";
-import EditScheduleModal from "./EditScheduleModal";
 
 interface ScheduledListProps {
   posts: GoogleBusinessScheduledPost[];
   onCancelComplete: () => void;
   onError: (message: string) => void;
+  onEditPost: (post: GoogleBusinessScheduledPost) => void;
 }
 
 function formatDate(dateStr: string | null): string {
@@ -27,9 +27,9 @@ export default function ScheduledList({
   posts,
   onCancelComplete,
   onError,
+  onEditPost,
 }: ScheduledListProps) {
   const [cancellingId, setCancellingId] = useState<string | null>(null);
-  const [editingPost, setEditingPost] = useState<GoogleBusinessScheduledPost | null>(null);
 
   const handleCancel = async (postId: string) => {
     if (!confirm("Are you sure you want to cancel this scheduled post?")) {
@@ -189,9 +189,10 @@ export default function ScheduledList({
               {/* Edit button - only for pending posts */}
               {post.status === "pending" && (
                 <button
-                  onClick={() => setEditingPost(post)}
+                  onClick={() => onEditPost(post)}
                   className="p-2 text-gray-500 hover:text-slate-blue transition-colors"
                   title="Edit post"
+                  aria-label="Edit scheduled post"
                 >
                   <Icon name="FaEdit" size={16} />
                 </button>
@@ -214,18 +215,6 @@ export default function ScheduledList({
         </div>
       ))}
 
-      {/* Edit modal */}
-      {editingPost && (
-        <EditScheduleModal
-          post={editingPost}
-          isOpen={!!editingPost}
-          onClose={() => setEditingPost(null)}
-          onSave={() => {
-            setEditingPost(null);
-            onCancelComplete(); // Reuse this to refresh the list
-          }}
-        />
-      )}
     </div>
   );
 }
