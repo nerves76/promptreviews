@@ -27,6 +27,7 @@ interface AdminAnalytics {
   totalAccounts: number;
   totalBusinesses: number;
   totalReviews: number;
+  reviewsCaptured?: number;
   totalPromptPages: number;
   totalWidgets?: number;
   totalGbpLocations?: number;
@@ -413,7 +414,7 @@ export default function AdminPage() {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
           <div className="flex items-center gap-2 mb-2">
             <Icon name="FaUsers" className="w-5 h-5 text-slate-blue" />
@@ -448,18 +449,29 @@ export default function AdminPage() {
 
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
           <div className="flex items-center gap-2 mb-2">
-            <Icon name="FaSentimentAnalyzer" className="w-5 h-5 text-slate-blue" />
+            <Icon name="FaStar" className="w-5 h-5 text-slate-blue" />
             <h3 className="text-lg font-semibold text-gray-900">Reviews</h3>
           </div>
           <p className="text-3xl font-bold text-slate-blue">
             {analyticsLoading ? '...' : analytics?.totalReviews || 0}
           </p>
-          <p className="text-sm text-gray-600">Total reviews submitted</p>
+          <p className="text-sm text-gray-600">Total reviews (all sources)</p>
           {analytics && !analyticsLoading && (
             <p className="text-sm text-green-600 mt-1">
               +{analytics.reviewsThisMonth} this month
             </p>
           )}
+        </div>
+
+        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+          <div className="flex items-center gap-2 mb-2">
+            <Icon name="FaCheckCircle" className="w-5 h-5 text-green-600" />
+            <h3 className="text-lg font-semibold text-gray-900">Captured</h3>
+          </div>
+          <p className="text-3xl font-bold text-green-600">
+            {analyticsLoading ? '...' : analytics?.reviewsCaptured || 0}
+          </p>
+          <p className="text-sm text-gray-600">Reviews via Prompt Pages</p>
         </div>
 
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">

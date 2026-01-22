@@ -909,6 +909,18 @@ export default function CreatePostModal({
                 </div>
               )}
 
+              {/* Error display at bottom (duplicate for visibility when scrolled) */}
+              {error && !hasNoPlatforms && (
+                <div className="mt-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm flex items-start gap-2">
+                  <Icon
+                    name="FaExclamationTriangle"
+                    size={16}
+                    className="mt-0.5 flex-shrink-0"
+                  />
+                  <span>{error}</span>
+                </div>
+              )}
+
               {/* Actions */}
               {!hasNoPlatforms && (
                 <div className="flex justify-between mt-6 pt-4 border-t border-gray-200">

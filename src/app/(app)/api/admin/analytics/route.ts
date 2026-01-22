@@ -43,9 +43,15 @@ export async function GET(request: NextRequest) {
 
     try {
       // Get platform metrics for lifetime totals
-      const { data: metrics } = await supabaseAdmin
-        .from('platform_metrics')
-        .select('metric_name, metric_value');
+      const [{ data: metrics }, { count: reviewsCapturedFast }] = await Promise.all([
+        supabaseAdmin
+          .from('platform_metrics')
+          .select('metric_name, metric_value'),
+        supabaseAdmin
+          .from('review_submissions')
+          .select('id', { count: 'exact', head: true })
+          .not('prompt_page_id', 'is', null)
+      ]);
 
       // Get last 30 days from daily_stats for monthly totals
       const thirtyDaysAgo = new Date();
@@ -77,6 +83,7 @@ export async function GET(request: NextRequest) {
           totalAccounts: getMetric('total_accounts_created'),
           totalBusinesses: latest.accounts_total || 0,
           totalReviews: getMetric('total_reviews_captured'),
+          reviewsCaptured: reviewsCapturedFast || 0,
           totalPromptPages: getMetric('total_prompt_pages_created'),
           totalWidgets: getMetric('total_widgets_created'),
           totalGbpLocations: getMetric('total_gbp_locations_connected'),
@@ -115,14 +122,16 @@ export async function GET(request: NextRequest) {
         { data: reviews },
         { data: promptPages },
         { data: widgets },
-        { data: gbpLocations }
+        { data: gbpLocations },
+        { count: reviewsCapturedCount }
       ] = await Promise.all([
         supabaseAdmin.from('accounts').select('id, created_at, subscription_status, plan, is_free_account, trial_end').not('email', 'is', null),
         supabaseAdmin.from('businesses').select('id, created_at'),
         supabaseAdmin.from('review_submissions').select('id, created_at, platform, verified'),
         supabaseAdmin.from('prompt_pages').select('id, created_at'),
         supabaseAdmin.from('widgets').select('id, created_at'),
-        supabaseAdmin.from('google_business_locations').select('location_id').not('location_id', 'is', null)
+        supabaseAdmin.from('google_business_locations').select('location_id').not('location_id', 'is', null),
+        supabaseAdmin.from('review_submissions').select('id', { count: 'exact', head: true }).not('prompt_page_id', 'is', null)
       ]);
 
       // Count GBP posts
@@ -222,6 +231,7 @@ export async function GET(request: NextRequest) {
         totalAccounts: accounts?.length || 0,
         totalBusinesses: businesses?.length || 0,
         totalReviews: reviews?.length || 0,
+        reviewsCaptured: reviewsCapturedCount || 0,
         totalPromptPages: promptPages?.length || 0,
         totalWidgets: widgets?.length || 0,
         totalGbpLocations: new Set(gbpLocations?.map(l => l.location_id)).size || 0,

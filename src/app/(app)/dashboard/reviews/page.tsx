@@ -20,6 +20,7 @@ import { platformOptions } from "@/app/(app)/components/prompt-features/ReviewPl
 import ShareButton from "@/app/(app)/components/reviews/ShareButton";
 import { ToastContainer, useToast } from "@/app/(app)/components/reviews/Toast";
 import { SharePlatform } from "@/app/(app)/components/reviews/utils/shareHandlers";
+import { Tooltip } from "@/app/(app)/components/ui/Tooltip";
 
 interface Review {
   id: string;
@@ -301,7 +302,7 @@ export default function ReviewsPage() {
   const { loading: authLoading, shouldRedirect } = useAuthGuard();
   const supabase = createClient();
   const router = useRouter();
-  const { selectedAccountId, accountLoading } = useAccountData();
+  const { selectedAccountId, accountLoading, accountPlan } = useAccountData();
   const { toasts, closeToast, success, error: showError } = useToast();
 
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -1062,8 +1063,8 @@ export default function ReviewsPage() {
               <option value="not_verified">Not verified</option>
             </select>
           </div>
-          {/* Location Filter - only show if there are locations or reviews have location data */}
-          {(businessLocations.length > 0 || reviews.some(r => r.location_name || r.business_location_id)) && (
+          {/* Location Filter - only show for Maven accounts with multiple locations */}
+          {accountPlan === 'maven' && (businessLocations.length > 0 || reviews.some(r => r.location_name || r.business_location_id)) && (
             <div>
               <label className="block text-xs font-semibold text-gray-500 mb-1">
                 Location
@@ -1262,7 +1263,7 @@ export default function ReviewsPage() {
                         </span>
                       )
                     )}
-                    {(review.location_name || review.business_location_id) && (() => {
+                    {accountPlan === 'maven' && (review.location_name || review.business_location_id) && (() => {
                       const locationName = review.business_location_id
                         ? businessLocations.find(l => l.id === review.business_location_id)?.name || review.location_name
                         : review.location_name;
@@ -1270,13 +1271,12 @@ export default function ReviewsPage() {
                         ? locationName.substring(0, 15) + '...'
                         : locationName;
                       return (
-                        <span
-                          className="ml-2 inline-flex items-center gap-1 px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded"
-                          title={locationName || undefined}
-                        >
-                          <Icon name="FaMapMarker" className="w-3 h-3" size={12} />
-                          {truncated}
-                        </span>
+                        <Tooltip content={locationName || ''} position="top">
+                          <span className="ml-2 inline-flex items-center gap-1 px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded cursor-default">
+                            <Icon name="FaMapMarker" className="w-3 h-3" size={12} />
+                            {truncated}
+                          </span>
+                        </Tooltip>
                       );
                     })()}
                   </div>
