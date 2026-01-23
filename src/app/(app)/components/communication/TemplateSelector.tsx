@@ -94,7 +94,7 @@ export default function TemplateSelector({
     <div className={`flex items-center gap-3 ${className}`}>
       <div className="flex-1">
         <label htmlFor="template-selector" className="block text-sm font-medium text-gray-700 mb-1">
-          Template
+          Templates
         </label>
         <select
           id="template-selector"
