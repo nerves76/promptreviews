@@ -90,6 +90,7 @@ export async function GET(request: NextRequest) {
           id,
           question,
           funnel_stage,
+          group_id,
           added_at,
           created_at,
           updated_at

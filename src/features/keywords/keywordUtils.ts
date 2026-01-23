@@ -202,9 +202,11 @@ export type FunnelStage = 'top' | 'middle' | 'bottom';
  * Related question entry with funnel stage categorization.
  */
 export interface RelatedQuestion {
+  id?: string;  // Question ID from keyword_questions table
   question: string;
   funnelStage: FunnelStage;
   addedAt: string;  // ISO date string
+  groupId?: string | null;  // AI Search query group ID
 }
 
 /**
@@ -394,6 +396,7 @@ export interface KeywordQuestionRow {
   keyword_id: string;
   question: string;
   funnel_stage: FunnelStage;
+  group_id?: string | null;
   added_at: string;
   created_at: string;
   updated_at: string;
@@ -410,9 +413,11 @@ export function transformKeywordQuestionRows(
   }
 
   return rows.map((row) => ({
+    id: row.id,
     question: row.question,
     funnelStage: row.funnel_stage || 'middle',
     addedAt: row.added_at || row.created_at || new Date().toISOString(),
+    groupId: row.group_id || null,
   }));
 }
 
