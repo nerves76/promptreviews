@@ -145,7 +145,7 @@ export async function POST(request: NextRequest) {
 /**
  * Helper function to ensure the General group exists for an account
  */
-export async function ensureGeneralGroupExists(accountId: string): Promise<string | null> {
+async function ensureGeneralGroupExists(accountId: string): Promise<string | null> {
   const { data: generalGroup } = await serviceSupabase
     .from('rank_tracking_term_groups')
     .select('id')
