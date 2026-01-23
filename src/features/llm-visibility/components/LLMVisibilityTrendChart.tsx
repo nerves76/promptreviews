@@ -56,12 +56,12 @@ interface TrendDataPoint {
   mentionedChecks: number;
 }
 
-// Provider colors matching the LLM_PROVIDER_COLORS theme
+// Provider colors matching brand colors
 const PROVIDER_CHART_COLORS: Record<LLMProvider, string> = {
-  chatgpt: '#10b981', // emerald-500
-  claude: '#f97316', // orange-500
-  gemini: '#3b82f6', // blue-500
-  perplexity: '#e11d48', // rose-600
+  chatgpt: '#0fa47f', // ChatGPT green
+  claude: '#d97757', // Claude coral
+  gemini: '#5885f3', // Gemini blue
+  perplexity: '#22808d', // Perplexity teal
 };
 
 function getWeekStart(date: Date): Date {

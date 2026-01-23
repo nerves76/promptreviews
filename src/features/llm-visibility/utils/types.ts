@@ -34,29 +34,31 @@ export const LLM_PROVIDER_MODELS: Record<LLMProvider, string> = {
   perplexity: 'Sonar', // sonar model
 };
 
+// Brand-aligned colors for each LLM provider
+// ChatGPT: #0fa47f (green), Claude: #d97757 (coral), Gemini: #5885f3 (blue), Perplexity: #22808d (teal)
 export const LLM_PROVIDER_COLORS: Record<
   LLMProvider,
   { bg: string; text: string; border: string }
 > = {
   chatgpt: {
-    bg: 'bg-emerald-100',
-    text: 'text-emerald-700',
-    border: 'border-emerald-200',
+    bg: 'bg-[#e6f7f2]',
+    text: 'text-[#0a8a6a]', // Slightly darker for readability
+    border: 'border-[#0fa47f]/30',
   },
   claude: {
-    bg: 'bg-orange-100',
-    text: 'text-orange-700',
-    border: 'border-orange-200',
+    bg: 'bg-[#fdf0eb]',
+    text: 'text-[#c4603f]', // Slightly darker for readability
+    border: 'border-[#d97757]/30',
   },
   gemini: {
-    bg: 'bg-blue-100',
-    text: 'text-blue-700',
-    border: 'border-blue-200',
+    bg: 'bg-[#eef3fe]',
+    text: 'text-[#4a71d4]', // Slightly darker for readability
+    border: 'border-[#5885f3]/30',
   },
   perplexity: {
-    bg: 'bg-rose-100',
-    text: 'text-rose-700',
-    border: 'border-rose-200',
+    bg: 'bg-[#e5f3f4]',
+    text: 'text-[#1d6b76]', // Slightly darker for readability
+    border: 'border-[#22808d]/30',
   },
 };
 
