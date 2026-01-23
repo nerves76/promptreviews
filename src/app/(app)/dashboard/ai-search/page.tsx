@@ -1275,23 +1275,26 @@ export default function AISearchPage() {
                                               </button>
                                               {expandedAccordions.has(`${result.id}-websites`) && (
                                                 <div className="p-3 bg-white">
-                                                  <div className="flex flex-wrap gap-2">
+                                                  <div className="space-y-1.5">
                                                     {result.searchResults.map((sr, sridx) => (
-                                                      <a
-                                                        key={sridx}
-                                                        href={sr.url || '#'}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className={`inline-flex items-center px-2 py-1 rounded text-xs ${
-                                                          sr.isOurs
-                                                            ? 'bg-green-50 text-green-700 border border-green-200'
-                                                            : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200'
-                                                        }`}
-                                                        title={sr.title || sr.url || undefined}
-                                                      >
-                                                        {sr.domain}
-                                                        {sr.isOurs && <span className="text-green-600 font-bold ml-1">(You)</span>}
-                                                      </a>
+                                                      <div key={sridx} className="flex items-start gap-2">
+                                                        <a
+                                                          href={sr.url || '#'}
+                                                          target="_blank"
+                                                          rel="noopener noreferrer"
+                                                          className={`text-xs break-all hover:underline ${
+                                                            sr.isOurs
+                                                              ? 'text-green-700 font-medium'
+                                                              : 'text-slate-600'
+                                                          }`}
+                                                          title={sr.title || undefined}
+                                                        >
+                                                          {sr.url || sr.domain}
+                                                        </a>
+                                                        {sr.isOurs && (
+                                                          <span className="text-[10px] text-green-600 font-bold bg-green-100 px-1.5 py-0.5 rounded whitespace-nowrap">You</span>
+                                                        )}
+                                                      </div>
                                                     ))}
                                                   </div>
                                                 </div>
