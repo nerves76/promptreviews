@@ -503,6 +503,24 @@ export async function checkLLMResponseVisibility(params: {
     // Find the assistant message
     const assistantMessage = result.message?.find(m => m.role === 'assistant');
 
+    // Debug logging for non-ChatGPT providers
+    console.log(`🔍 [DataForSEO AI] ${provider} response structure:`, {
+      hasMessage: !!result.message,
+      messageCount: result.message?.length || 0,
+      messageRoles: result.message?.map(m => m.role) || [],
+      hasAssistantMessage: !!assistantMessage,
+      hasContent: !!assistantMessage?.content,
+      contentLength: assistantMessage?.content?.length || 0,
+      hasAnnotations: !!assistantMessage?.annotations,
+      annotationCount: assistantMessage?.annotations?.length || 0,
+    });
+
+    if (!assistantMessage) {
+      // Log raw result for debugging
+      console.log(`⚠️ [DataForSEO AI] ${provider} - No assistant message found. Raw result keys:`, Object.keys(result));
+      console.log(`⚠️ [DataForSEO AI] ${provider} - Full result:`, JSON.stringify(result).substring(0, 1000));
+    }
+
     if (assistantMessage) {
       // Get full response for brand checking
       if (assistantMessage.content) {
