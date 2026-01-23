@@ -1190,7 +1190,7 @@ export default function AISearchPage() {
                 )}
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {/* Citation Rate with Trend */}
+                  {/* Citation Rate with Trend and Per-Model Rates */}
                   <div className={`p-4 rounded-xl border ${filteredStats ? 'bg-gradient-to-br from-slate-blue/10 to-blue-50 border-slate-blue/20' : 'bg-gradient-to-br from-blue-50 to-pink-50 border-blue-100'}`}>
                     <div className="flex items-baseline gap-2">
                       <span className="text-2xl font-bold text-slate-blue">
@@ -1213,11 +1213,27 @@ export default function AISearchPage() {
                         </span>
                       )}
                     </div>
-                    <div className="text-sm text-gray-600">
-                      Citation rate
-                      {trendStats?.overall.hasPreviousData && (
-                        <span className="text-xs text-gray-400 ml-1">({trendStats.periodLabel})</span>
-                      )}
+                    <div className="text-sm text-gray-600">Citation rate</div>
+                    {/* Per-model citation rates */}
+                    <div className="mt-2 flex gap-1.5 flex-wrap">
+                      {LLM_PROVIDERS.map((provider) => {
+                        const stats = filteredStats
+                          ? filteredStats.providerStats[provider]
+                          : accountSummary?.providerStats[provider];
+                        const colors = LLM_PROVIDER_COLORS[provider];
+                        const rate = stats && stats.checked > 0
+                          ? Math.round((stats.cited / stats.checked) * 100)
+                          : null;
+                        return (
+                          <span
+                            key={provider}
+                            className={`px-1.5 py-0.5 rounded text-xs ${colors.bg} ${colors.text}`}
+                            title={`${LLM_PROVIDER_LABELS[provider]}: ${stats?.cited || 0} cited / ${stats?.checked || 0} checked`}
+                          >
+                            {rate !== null ? `${rate}%` : '--'}
+                          </span>
+                        );
+                      })}
                     </div>
                   </div>
 
@@ -1283,7 +1299,7 @@ export default function AISearchPage() {
                     </div>
                   </div>
 
-                  {/* By Provider with Trends */}
+                  {/* By Provider */}
                   <div className={`p-4 rounded-xl border ${filteredStats ? 'bg-slate-50 border-slate-200' : 'bg-gray-50 border-gray-200'}`}>
                     <div className="flex gap-2 flex-wrap">
                       {LLM_PROVIDERS.map((provider) => {
@@ -1291,30 +1307,20 @@ export default function AISearchPage() {
                           ? filteredStats.providerStats[provider]
                           : accountSummary?.providerStats[provider];
                         const colors = LLM_PROVIDER_COLORS[provider];
-                        const trend = trendStats?.providers[provider];
-                        const rate = stats && stats.checked > 0
-                          ? Math.round((stats.cited / stats.checked) * 100)
-                          : null;
 
                         return (
                           <span
                             key={provider}
                             className={`px-2 py-1 rounded text-xs font-medium ${colors.bg} ${colors.text} whitespace-nowrap flex items-center gap-1`}
-                            title={`Model: ${LLM_PROVIDER_MODELS[provider]} • ${stats?.cited || 0} cited / ${stats?.checked || 0} checked${trend?.change ? ` (${trend.change > 0 ? '+' : ''}${trend.change}% vs last month)` : ''}`}
+                            title={`${stats?.cited || 0} cited / ${stats?.checked || 0} checked`}
                           >
                             <span className="font-semibold">{LLM_PROVIDER_LABELS[provider]}</span>
                             <span className="opacity-70">({LLM_PROVIDER_MODELS[provider]})</span>
-                            {rate !== null ? ` ${rate}%` : ''}
-                            {trend && trend.direction !== 'stable' && (
-                              <span className={trend.direction === 'up' ? 'text-green-700' : 'text-red-700'}>
-                                {trend.direction === 'up' ? '↑' : '↓'}
-                              </span>
-                            )}
                           </span>
                         );
                       })}
                     </div>
-                    <div className="text-sm text-gray-600 mt-2">By provider &amp; model (30-day trend)</div>
+                    <div className="text-sm text-gray-600 mt-2">Providers &amp; models</div>
                   </div>
                 </div>
               </div>
