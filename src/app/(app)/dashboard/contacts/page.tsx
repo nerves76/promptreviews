@@ -1580,9 +1580,21 @@ export default function UploadContactsPage() {
               >
                 <Icon name="FaTimes" className="w-5 h-5 text-red-600" />
               </button>
-              <Dialog.Title className="text-lg font-bold mb-2">
-                Edit contact
-              </Dialog.Title>
+              <div className="flex items-center justify-between mb-2">
+                <Dialog.Title className="text-lg font-bold">
+                  Edit contact
+                </Dialog.Title>
+                {activeTab === 'details' && (
+                  <button
+                    type="submit"
+                    form="edit-contact-form"
+                    className="px-4 py-2 bg-slate-blue text-white rounded-md hover:bg-slate-blue/90 font-semibold text-sm whitespace-nowrap"
+                    disabled={editLoading}
+                  >
+                    {editLoading ? "Saving..." : "Save"}
+                  </button>
+                )}
+              </div>
               
               {/* Tab Navigation */}
               <div className="border-b border-gray-200 mb-4">
@@ -1620,6 +1632,7 @@ export default function UploadContactsPage() {
               
               {editContact && activeTab === 'details' && (
                 <form
+                  id="edit-contact-form"
                   onSubmit={async (e) => {
                     e.preventDefault();
                     const form = e.target as HTMLFormElement;
