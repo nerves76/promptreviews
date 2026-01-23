@@ -437,7 +437,73 @@ export default function AISearchPage() {
     });
 
     return rows;
-  }, [questionRows, filterConcept, filterFunnel, sortField, sortDirection]);
+  }, [questionRows, filterConcept, filterFunnel, filterGroup, sortField, sortDirection]);
+
+  // Calculate filtered stats when group filter is active
+  const filteredStats = useMemo(() => {
+    // Only calculate when a group filter is applied
+    if (!filterGroup) return null;
+
+    const rows = filteredAndSortedRows;
+    if (rows.length === 0) return null;
+
+    // Get unique questions in the filtered set
+    const filteredQuestions = new Set(rows.map(r => r.question));
+
+    // Get results only for filtered questions
+    const filteredResults = allResults.filter(r => filteredQuestions.has(r.question));
+
+    // Group results by question+provider to get unique checks
+    const uniqueChecks = new Map<string, LLMVisibilityCheck>();
+    for (const result of filteredResults) {
+      const key = `${result.question}:${result.llmProvider}`;
+      const existing = uniqueChecks.get(key);
+      if (!existing || new Date(result.checkedAt) > new Date(existing.checkedAt)) {
+        uniqueChecks.set(key, result);
+      }
+    }
+
+    // Calculate provider stats
+    const providerStats: Record<string, { checked: number; cited: number; mentioned: number }> = {};
+    for (const result of uniqueChecks.values()) {
+      if (!providerStats[result.llmProvider]) {
+        providerStats[result.llmProvider] = { checked: 0, cited: 0, mentioned: 0 };
+      }
+      providerStats[result.llmProvider].checked++;
+      if (result.domainCited) providerStats[result.llmProvider].cited++;
+      if (result.brandMentioned) providerStats[result.llmProvider].mentioned++;
+    }
+
+    // Calculate citation rate
+    const citedCount = Array.from(uniqueChecks.values()).filter(r => r.domainCited).length;
+    const averageVisibility = uniqueChecks.size > 0
+      ? (citedCount / uniqueChecks.size) * 100
+      : null;
+
+    // Count unique questions that have been checked
+    const questionsChecked = new Set(
+      Array.from(uniqueChecks.values()).map(r => r.question)
+    ).size;
+
+    // Count unique concepts
+    const uniqueConcepts = new Set(rows.map(r => r.conceptId)).size;
+
+    return {
+      totalQuestions: rows.length,
+      questionsChecked,
+      averageVisibility,
+      providerStats,
+      uniqueConcepts,
+    };
+  }, [filterGroup, filteredAndSortedRows, allResults]);
+
+  // Get group name for display
+  const activeGroupName = useMemo(() => {
+    if (!filterGroup) return null;
+    if (filterGroup === 'ungrouped') return 'Ungrouped';
+    const group = queryGroups.find(g => g.id === filterGroup);
+    return group?.name || 'Unknown group';
+  }, [filterGroup, queryGroups]);
 
   // Pagination calculations
   const totalPages = Math.ceil(filteredAndSortedRows.length / PAGE_SIZE);
@@ -896,47 +962,79 @@ export default function AISearchPage() {
             {/* Trend Chart */}
             <LLMVisibilityTrendChart results={allResults} isLoading={isLoading} />
 
-            {/* Account Summary */}
-            {accountSummary && (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                <div className="bg-gradient-to-br from-blue-50 to-pink-50 p-4 rounded-xl border border-blue-100">
-                  <div className="text-2xl font-bold text-slate-blue">
-                    {accountSummary.averageVisibility !== null
-                      ? `${accountSummary.averageVisibility.toFixed(0)}%`
-                      : '--'}
+            {/* Summary Stats - Show filtered when group selected, otherwise account-wide */}
+            {(filteredStats || accountSummary) && (
+              <div className="mb-6">
+                {/* Group filter indicator */}
+                {filteredStats && activeGroupName && (
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-blue/10 border border-slate-blue/20 rounded-lg text-sm font-medium text-slate-blue">
+                      <Icon name="FaTags" className="w-3.5 h-3.5" />
+                      Showing stats for: {activeGroupName}
+                    </span>
+                    <button
+                      onClick={() => startTransition(() => setFilterGroup(null))}
+                      className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1"
+                    >
+                      <Icon name="FaTimes" className="w-3 h-3" />
+                      Clear
+                    </button>
                   </div>
-                  <div className="text-sm text-gray-600">Citation rate</div>
-                </div>
-                <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
-                  <div className="text-2xl font-bold text-gray-800">
-                    {accountSummary.questionsChecked}/{accountSummary.totalQuestions}
+                )}
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {/* Citation Rate */}
+                  <div className={`p-4 rounded-xl border ${filteredStats ? 'bg-gradient-to-br from-slate-blue/10 to-blue-50 border-slate-blue/20' : 'bg-gradient-to-br from-blue-50 to-pink-50 border-blue-100'}`}>
+                    <div className="text-2xl font-bold text-slate-blue">
+                      {filteredStats
+                        ? (filteredStats.averageVisibility !== null ? `${filteredStats.averageVisibility.toFixed(0)}%` : '--')
+                        : (accountSummary?.averageVisibility !== null ? `${accountSummary!.averageVisibility!.toFixed(0)}%` : '--')}
+                    </div>
+                    <div className="text-sm text-gray-600">Citation rate</div>
                   </div>
-                  <div className="text-sm text-gray-600">Questions tracked</div>
-                </div>
-                <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
-                  <div className="text-2xl font-bold text-gray-800">
-                    {accountSummary.keywordsWithQuestions}
+
+                  {/* Questions Tracked */}
+                  <div className={`p-4 rounded-xl border ${filteredStats ? 'bg-slate-50 border-slate-200' : 'bg-gray-50 border-gray-200'}`}>
+                    <div className="text-2xl font-bold text-gray-800">
+                      {filteredStats
+                        ? `${filteredStats.questionsChecked}/${filteredStats.totalQuestions}`
+                        : `${accountSummary?.questionsChecked}/${accountSummary?.totalQuestions}`}
+                    </div>
+                    <div className="text-sm text-gray-600">Questions tracked</div>
                   </div>
-                  <div className="text-sm text-gray-600">Concepts</div>
-                </div>
-                <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
-                  <div className="flex gap-2 flex-wrap">
-                    {LLM_PROVIDERS.map((provider) => {
-                      const stats = accountSummary.providerStats[provider];
-                      const colors = LLM_PROVIDER_COLORS[provider];
-                      return (
-                        <span
-                          key={provider}
-                          className={`px-2 py-1 rounded text-xs font-medium ${colors.bg} ${colors.text} whitespace-nowrap`}
-                          title={`${stats?.cited || 0} cited, ${stats?.mentioned || 0} mentioned / ${stats?.checked || 0} checked`}
-                        >
-                          {LLM_PROVIDER_LABELS[provider]}
-                          {stats ? ` ${stats.cited}/${stats.checked}` : ''}
-                        </span>
-                      );
-                    })}
+
+                  {/* Concepts */}
+                  <div className={`p-4 rounded-xl border ${filteredStats ? 'bg-slate-50 border-slate-200' : 'bg-gray-50 border-gray-200'}`}>
+                    <div className="text-2xl font-bold text-gray-800">
+                      {filteredStats
+                        ? filteredStats.uniqueConcepts
+                        : accountSummary?.keywordsWithQuestions}
+                    </div>
+                    <div className="text-sm text-gray-600">Concepts</div>
                   </div>
-                  <div className="text-sm text-gray-600 mt-2">By provider</div>
+
+                  {/* By Provider */}
+                  <div className={`p-4 rounded-xl border ${filteredStats ? 'bg-slate-50 border-slate-200' : 'bg-gray-50 border-gray-200'}`}>
+                    <div className="flex gap-2 flex-wrap">
+                      {LLM_PROVIDERS.map((provider) => {
+                        const stats = filteredStats
+                          ? filteredStats.providerStats[provider]
+                          : accountSummary?.providerStats[provider];
+                        const colors = LLM_PROVIDER_COLORS[provider];
+                        return (
+                          <span
+                            key={provider}
+                            className={`px-2 py-1 rounded text-xs font-medium ${colors.bg} ${colors.text} whitespace-nowrap`}
+                            title={`${stats?.cited || 0} cited, ${stats?.mentioned || 0} mentioned / ${stats?.checked || 0} checked`}
+                          >
+                            {LLM_PROVIDER_LABELS[provider]}
+                            {stats ? ` ${stats.cited}/${stats.checked}` : ''}
+                          </span>
+                        );
+                      })}
+                    </div>
+                    <div className="text-sm text-gray-600 mt-2">By provider</div>
+                  </div>
                 </div>
               </div>
             )}
