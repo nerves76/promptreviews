@@ -509,6 +509,90 @@ export default function AISearchPage() {
     return group?.name || 'Unknown group';
   }, [filterGroup, queryGroups]);
 
+  // Calculate trend data (comparing last 7 days vs previous 7 days)
+  const trendStats = useMemo(() => {
+    // Get relevant results (filtered by group if active)
+    let relevantResults = allResults;
+    if (filterGroup && filteredAndSortedRows.length > 0) {
+      const filteredQuestions = new Set(filteredAndSortedRows.map(r => r.question));
+      relevantResults = allResults.filter(r => filteredQuestions.has(r.question));
+    }
+
+    if (relevantResults.length === 0) {
+      return null;
+    }
+
+    const now = new Date();
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+
+    // Split results into current period (last 7 days) and previous period (7-14 days ago)
+    const currentPeriod = relevantResults.filter(r => new Date(r.checkedAt) >= sevenDaysAgo);
+    const previousPeriod = relevantResults.filter(r => {
+      const date = new Date(r.checkedAt);
+      return date >= fourteenDaysAgo && date < sevenDaysAgo;
+    });
+
+    // Helper to calculate citation rate
+    const calcRate = (results: typeof relevantResults) => {
+      if (results.length === 0) return null;
+      const cited = results.filter(r => r.domainCited).length;
+      return (cited / results.length) * 100;
+    };
+
+    // Helper to calculate trend
+    const calcTrend = (current: number | null, previous: number | null) => {
+      if (current === null) return { direction: 'stable' as const, change: 0 };
+      if (previous === null || previous === 0) {
+        return current > 0
+          ? { direction: 'up' as const, change: current }
+          : { direction: 'stable' as const, change: 0 };
+      }
+      const change = current - previous;
+      const threshold = 2; // Need at least 2% change to show trend
+      if (Math.abs(change) < threshold) {
+        return { direction: 'stable' as const, change: 0 };
+      }
+      return {
+        direction: change > 0 ? 'up' as const : 'down' as const,
+        change: Math.round(change),
+      };
+    };
+
+    // Overall trend
+    const overallCurrent = calcRate(currentPeriod);
+    const overallPrevious = calcRate(previousPeriod);
+    const overallTrend = calcTrend(overallCurrent, overallPrevious);
+
+    // Per-provider trends
+    const providerTrends: Record<string, { direction: 'up' | 'down' | 'stable'; change: number; currentRate: number | null }> = {};
+
+    LLM_PROVIDERS.forEach(provider => {
+      const providerCurrent = currentPeriod.filter(r => r.llmProvider === provider);
+      const providerPrevious = previousPeriod.filter(r => r.llmProvider === provider);
+
+      const currentRate = calcRate(providerCurrent);
+      const previousRate = calcRate(providerPrevious);
+      const trend = calcTrend(currentRate, previousRate);
+
+      providerTrends[provider] = {
+        ...trend,
+        currentRate,
+      };
+    });
+
+    return {
+      overall: {
+        ...overallTrend,
+        currentRate: overallCurrent,
+        hasData: currentPeriod.length > 0,
+        hasPreviousData: previousPeriod.length > 0,
+      },
+      providers: providerTrends,
+      periodLabel: previousPeriod.length > 0 ? 'vs last week' : 'last 7 days',
+    };
+  }, [allResults, filterGroup, filteredAndSortedRows]);
+
   // Pagination calculations
   const totalPages = Math.ceil(filteredAndSortedRows.length / PAGE_SIZE);
   const paginatedRows = useMemo(() => {
@@ -996,14 +1080,35 @@ export default function AISearchPage() {
                 )}
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {/* Citation Rate */}
+                  {/* Citation Rate with Trend */}
                   <div className={`p-4 rounded-xl border ${filteredStats ? 'bg-gradient-to-br from-slate-blue/10 to-blue-50 border-slate-blue/20' : 'bg-gradient-to-br from-blue-50 to-pink-50 border-blue-100'}`}>
-                    <div className="text-2xl font-bold text-slate-blue">
-                      {filteredStats
-                        ? (filteredStats.averageVisibility !== null ? `${filteredStats.averageVisibility.toFixed(0)}%` : '--')
-                        : (accountSummary?.averageVisibility !== null ? `${accountSummary!.averageVisibility!.toFixed(0)}%` : '--')}
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-2xl font-bold text-slate-blue">
+                        {filteredStats
+                          ? (filteredStats.averageVisibility !== null ? `${filteredStats.averageVisibility.toFixed(0)}%` : '--')
+                          : (accountSummary?.averageVisibility !== null ? `${accountSummary!.averageVisibility!.toFixed(0)}%` : '--')}
+                      </span>
+                      {trendStats?.overall.hasData && (
+                        <span className={`text-sm font-medium flex items-center gap-0.5 ${
+                          trendStats.overall.direction === 'up' ? 'text-green-600' :
+                          trendStats.overall.direction === 'down' ? 'text-red-600' :
+                          'text-gray-500'
+                        }`}>
+                          {trendStats.overall.direction === 'up' && '↑'}
+                          {trendStats.overall.direction === 'down' && '↓'}
+                          {trendStats.overall.direction === 'stable' && '→'}
+                          {trendStats.overall.change !== 0 && (
+                            <span>{trendStats.overall.change > 0 ? '+' : ''}{trendStats.overall.change}%</span>
+                          )}
+                        </span>
+                      )}
                     </div>
-                    <div className="text-sm text-gray-600">Citation rate</div>
+                    <div className="text-sm text-gray-600">
+                      Citation rate
+                      {trendStats?.overall.hasPreviousData && (
+                        <span className="text-xs text-gray-400 ml-1">({trendStats.periodLabel})</span>
+                      )}
+                    </div>
                   </div>
 
                   {/* Questions Tracked */}
@@ -1026,7 +1131,7 @@ export default function AISearchPage() {
                     <div className="text-sm text-gray-600">Concepts</div>
                   </div>
 
-                  {/* By Provider */}
+                  {/* By Provider with Trends */}
                   <div className={`p-4 rounded-xl border ${filteredStats ? 'bg-slate-50 border-slate-200' : 'bg-gray-50 border-gray-200'}`}>
                     <div className="flex gap-2 flex-wrap">
                       {LLM_PROVIDERS.map((provider) => {
@@ -1034,19 +1139,29 @@ export default function AISearchPage() {
                           ? filteredStats.providerStats[provider]
                           : accountSummary?.providerStats[provider];
                         const colors = LLM_PROVIDER_COLORS[provider];
+                        const trend = trendStats?.providers[provider];
+                        const rate = stats && stats.checked > 0
+                          ? Math.round((stats.cited / stats.checked) * 100)
+                          : null;
+
                         return (
                           <span
                             key={provider}
-                            className={`px-2 py-1 rounded text-xs font-medium ${colors.bg} ${colors.text} whitespace-nowrap`}
-                            title={`${stats?.cited || 0} cited, ${stats?.mentioned || 0} mentioned / ${stats?.checked || 0} checked`}
+                            className={`px-2 py-1 rounded text-xs font-medium ${colors.bg} ${colors.text} whitespace-nowrap flex items-center gap-1`}
+                            title={`${stats?.cited || 0} cited / ${stats?.checked || 0} checked${trend?.change ? ` (${trend.change > 0 ? '+' : ''}${trend.change}% vs last week)` : ''}`}
                           >
                             {LLM_PROVIDER_LABELS[provider]}
-                            {stats ? ` ${stats.cited}/${stats.checked}` : ''}
+                            {rate !== null ? ` ${rate}%` : ''}
+                            {trend && trend.direction !== 'stable' && (
+                              <span className={trend.direction === 'up' ? 'text-green-700' : 'text-red-700'}>
+                                {trend.direction === 'up' ? '↑' : '↓'}
+                              </span>
+                            )}
                           </span>
                         );
                       })}
                     </div>
-                    <div className="text-sm text-gray-600 mt-2">By provider</div>
+                    <div className="text-sm text-gray-600 mt-2">By provider (7-day trend)</div>
                   </div>
                 </div>
               </div>
