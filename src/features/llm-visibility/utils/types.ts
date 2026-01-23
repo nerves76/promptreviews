@@ -36,29 +36,30 @@ export const LLM_PROVIDER_MODELS: Record<LLMProvider, string> = {
 
 // Brand-aligned colors for each LLM provider
 // ChatGPT: #0fa47f (green), Claude: #d97757 (coral), Gemini: #5885f3 (blue), Perplexity: #22808d (teal)
+// Colors defined in tailwind.config.js under theme.extend.colors
 export const LLM_PROVIDER_COLORS: Record<
   LLMProvider,
   { bg: string; text: string; border: string }
 > = {
   chatgpt: {
-    bg: 'bg-[#e6f7f2]',
-    text: 'text-[#0a8a6a]', // Slightly darker for readability
-    border: 'border-[#0fa47f]/30',
+    bg: 'bg-llm-chatgpt-bg',
+    text: 'text-llm-chatgpt-text',
+    border: 'border-llm-chatgpt-border/30',
   },
   claude: {
-    bg: 'bg-[#fdf0eb]',
-    text: 'text-[#c4603f]', // Slightly darker for readability
-    border: 'border-[#d97757]/30',
+    bg: 'bg-llm-claude-bg',
+    text: 'text-llm-claude-text',
+    border: 'border-llm-claude-border/30',
   },
   gemini: {
-    bg: 'bg-[#eef3fe]',
-    text: 'text-[#4a71d4]', // Slightly darker for readability
-    border: 'border-[#5885f3]/30',
+    bg: 'bg-llm-gemini-bg',
+    text: 'text-llm-gemini-text',
+    border: 'border-llm-gemini-border/30',
   },
   perplexity: {
-    bg: 'bg-[#e5f3f4]',
-    text: 'text-[#1d6b76]', // Slightly darker for readability
-    border: 'border-[#22808d]/30',
+    bg: 'bg-llm-perplexity-bg',
+    text: 'text-llm-perplexity-text',
+    border: 'border-llm-perplexity-border/30',
   },
 };
 

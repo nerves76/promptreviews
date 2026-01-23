@@ -119,6 +119,32 @@ module.exports = {
         // Neutrals - use Tailwind's gray scale (gray-900, 600, 400, 200, 50, white)
 
         // Glassmorphic - use white with opacity (white/20, white/90, etc.)
+
+        // === LLM PROVIDER BRAND COLORS ===
+        // ChatGPT - Green (#0fa47f)
+        "llm-chatgpt": {
+          bg: "#e6f7f2",
+          text: "#0a8a6a",
+          border: "#0fa47f",
+        },
+        // Claude - Coral (#d97757)
+        "llm-claude": {
+          bg: "#fdf0eb",
+          text: "#c4603f",
+          border: "#d97757",
+        },
+        // Gemini - Blue (#5885f3)
+        "llm-gemini": {
+          bg: "#eef3fe",
+          text: "#4a71d4",
+          border: "#5885f3",
+        },
+        // Perplexity - Teal (#22808d)
+        "llm-perplexity": {
+          bg: "#e5f3f4",
+          text: "#1d6b76",
+          border: "#22808d",
+        },
       },
       gap: {
         15: '3.75rem', // 60px
