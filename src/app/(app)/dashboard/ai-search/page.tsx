@@ -584,33 +584,63 @@ export default function AISearchPage() {
     );
     const questionsMentioned = mentionedQuestions.size;
 
-    // Calculate consistency (standard deviation of citation rates)
+    // Calculate CITATION consistency (standard deviation of citation rates)
     // Group by question to get per-question citation rates
-    const questionRates = new Map<string, { cited: number; total: number }>();
+    const questionCitationRates = new Map<string, { cited: number; total: number }>();
     for (const result of uniqueChecks.values()) {
-      const existing = questionRates.get(result.question) || { cited: 0, total: 0 };
+      const existing = questionCitationRates.get(result.question) || { cited: 0, total: 0 };
       existing.total++;
       if (result.domainCited) existing.cited++;
-      questionRates.set(result.question, existing);
+      questionCitationRates.set(result.question, existing);
     }
 
-    // Calculate overall consistency (std dev of per-question citation rates)
-    const rates = Array.from(questionRates.values()).map(q => (q.cited / q.total) * 100);
-    const overallConsistency = rates.length > 1 ? calculateStdDev(rates) : null;
+    // Calculate overall citation consistency (std dev of per-question citation rates)
+    const citationRates = Array.from(questionCitationRates.values()).map(q => (q.cited / q.total) * 100);
+    const overallCitationConsistency = citationRates.length > 1 ? calculateStdDev(citationRates) : null;
 
-    // Calculate per-provider consistency (only for selected providers)
-    const providerConsistency: Record<string, number | null> = {};
+    // Calculate per-provider citation consistency (only for selected providers)
+    const providerCitationConsistency: Record<string, number | null> = {};
     for (const provider of LLM_PROVIDERS) {
       if (!selectedProviders.has(provider)) {
-        providerConsistency[provider] = null;
+        providerCitationConsistency[provider] = null;
         continue;
       }
       const providerResults = Array.from(uniqueChecks.values()).filter(r => r.llmProvider === provider);
       if (providerResults.length > 1) {
         const providerRates = providerResults.map(r => r.domainCited ? 100 : 0);
-        providerConsistency[provider] = calculateStdDev(providerRates);
+        providerCitationConsistency[provider] = calculateStdDev(providerRates);
       } else {
-        providerConsistency[provider] = null;
+        providerCitationConsistency[provider] = null;
+      }
+    }
+
+    // Calculate MENTION consistency (standard deviation of mention rates)
+    // Group by question to get per-question mention rates
+    const questionMentionRates = new Map<string, { mentioned: number; total: number }>();
+    for (const result of uniqueChecks.values()) {
+      const existing = questionMentionRates.get(result.question) || { mentioned: 0, total: 0 };
+      existing.total++;
+      if (result.brandMentioned) existing.mentioned++;
+      questionMentionRates.set(result.question, existing);
+    }
+
+    // Calculate overall mention consistency (std dev of per-question mention rates)
+    const mentionRates = Array.from(questionMentionRates.values()).map(q => (q.mentioned / q.total) * 100);
+    const overallMentionConsistency = mentionRates.length > 1 ? calculateStdDev(mentionRates) : null;
+
+    // Calculate per-provider mention consistency (only for selected providers)
+    const providerMentionConsistency: Record<string, number | null> = {};
+    for (const provider of LLM_PROVIDERS) {
+      if (!selectedProviders.has(provider)) {
+        providerMentionConsistency[provider] = null;
+        continue;
+      }
+      const providerResults = Array.from(uniqueChecks.values()).filter(r => r.llmProvider === provider);
+      if (providerResults.length > 1) {
+        const providerRates = providerResults.map(r => r.brandMentioned ? 100 : 0);
+        providerMentionConsistency[provider] = calculateStdDev(providerRates);
+      } else {
+        providerMentionConsistency[provider] = null;
       }
     }
 
@@ -622,8 +652,10 @@ export default function AISearchPage() {
       averageVisibility,
       averageMentionRate,
       providerStats,
-      overallConsistency,
-      providerConsistency,
+      overallCitationConsistency,
+      providerCitationConsistency,
+      overallMentionConsistency,
+      providerMentionConsistency,
       isFiltered: !!filterGroup,
     };
   }, [filterGroup, filteredAndSortedRows, questionRows, allResults, selectedProviders]);
@@ -1338,34 +1370,72 @@ export default function AISearchPage() {
                     </div>
                   </div>
 
-                  {/* Consistency (inverted std dev: higher = more consistent) */}
+                  {/* Consistency - Citations & Mentions (inverted std dev: higher = more consistent) */}
                   <div className={`p-4 rounded-xl border ${displayStats.isFiltered ? 'bg-slate-50 border-slate-200' : 'bg-gray-50 border-gray-200'}`}>
-                    <div className="text-2xl font-bold text-gray-800">
-                      {(() => {
-                        const stdDev = displayStats.overallConsistency;
-                        if (stdDev === null || stdDev === undefined) return '--';
-                        const consistencyScore = Math.max(0, Math.round(100 - stdDev * 2));
-                        return `${consistencyScore}%`;
-                      })()}
+                    <div className="text-sm text-gray-600 mb-2">Consistency</div>
+
+                    {/* Citation Consistency */}
+                    <div className="mb-2">
+                      <div className="flex items-baseline gap-2 mb-1">
+                        <span className="text-lg font-bold text-gray-800">
+                          {(() => {
+                            const stdDev = displayStats.overallCitationConsistency;
+                            if (stdDev === null || stdDev === undefined) return '--';
+                            return `${Math.max(0, Math.round(100 - stdDev * 2))}%`;
+                          })()}
+                        </span>
+                        <span className="text-xs text-gray-500">citations</span>
+                      </div>
+                      <div className="flex gap-1 flex-wrap">
+                        {LLM_PROVIDERS.filter(p => selectedProviders.has(p)).map((provider) => {
+                          const stdDev = displayStats.providerCitationConsistency[provider];
+                          const colors = LLM_PROVIDER_COLORS[provider];
+                          const consistencyScore = stdDev !== null && stdDev !== undefined
+                            ? Math.max(0, Math.round(100 - stdDev * 2))
+                            : null;
+                          return (
+                            <span
+                              key={provider}
+                              className={`px-1 py-0.5 rounded text-[10px] ${colors.bg} ${colors.text}`}
+                              title={`${LLM_PROVIDER_LABELS[provider]}: ${consistencyScore !== null ? `${consistencyScore}% citation consistent` : 'no data'}`}
+                            >
+                              {consistencyScore !== null ? `${consistencyScore}%` : '--'}
+                            </span>
+                          );
+                        })}
+                      </div>
                     </div>
-                    <div className="text-sm text-gray-600">Consistency</div>
-                    <div className="mt-1 flex gap-1.5 flex-wrap">
-                      {LLM_PROVIDERS.filter(p => selectedProviders.has(p)).map((provider) => {
-                        const stdDev = displayStats.providerConsistency[provider];
-                        const colors = LLM_PROVIDER_COLORS[provider];
-                        const consistencyScore = stdDev !== null && stdDev !== undefined
-                          ? Math.max(0, Math.round(100 - stdDev * 2))
-                          : null;
-                        return (
-                          <span
-                            key={provider}
-                            className={`px-1.5 py-0.5 rounded text-xs ${colors.bg} ${colors.text}`}
-                            title={`${LLM_PROVIDER_LABELS[provider]}: ${consistencyScore !== null ? `${consistencyScore}% consistent` : 'no data'}`}
-                          >
-                            {consistencyScore !== null ? `${consistencyScore}%` : '--'}
-                          </span>
-                        );
-                      })}
+
+                    {/* Mention Consistency */}
+                    <div>
+                      <div className="flex items-baseline gap-2 mb-1">
+                        <span className="text-lg font-bold text-gray-800">
+                          {(() => {
+                            const stdDev = displayStats.overallMentionConsistency;
+                            if (stdDev === null || stdDev === undefined) return '--';
+                            return `${Math.max(0, Math.round(100 - stdDev * 2))}%`;
+                          })()}
+                        </span>
+                        <span className="text-xs text-gray-500">mentions</span>
+                      </div>
+                      <div className="flex gap-1 flex-wrap">
+                        {LLM_PROVIDERS.filter(p => selectedProviders.has(p)).map((provider) => {
+                          const stdDev = displayStats.providerMentionConsistency[provider];
+                          const colors = LLM_PROVIDER_COLORS[provider];
+                          const consistencyScore = stdDev !== null && stdDev !== undefined
+                            ? Math.max(0, Math.round(100 - stdDev * 2))
+                            : null;
+                          return (
+                            <span
+                              key={provider}
+                              className={`px-1 py-0.5 rounded text-[10px] ${colors.bg} ${colors.text}`}
+                              title={`${LLM_PROVIDER_LABELS[provider]}: ${consistencyScore !== null ? `${consistencyScore}% mention consistent` : 'no data'}`}
+                            >
+                              {consistencyScore !== null ? `${consistencyScore}%` : '--'}
+                            </span>
+                          );
+                        })}
+                      </div>
                     </div>
                   </div>
                 </div>
