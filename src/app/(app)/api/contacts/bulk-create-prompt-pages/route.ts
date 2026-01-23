@@ -131,7 +131,15 @@ export async function POST(request: NextRequest) {
 
         // Use the same data mapping as individual creation
         const insertData = preparePromptPageData(formData);
-        
+
+        // Verify contact_id is in the insert data
+        console.log('📝 Bulk create - Insert data for contact:', {
+          contactId: contact.id,
+          contactName: `${contact.first_name || ''} ${contact.last_name || ''}`.trim(),
+          insertDataContactId: insertData.contact_id,
+          hasContactId: !!insertData.contact_id
+        });
+
         const { data: promptPage, error: promptError } = await supabaseAdmin
           .from("prompt_pages")
           .insert(insertData)
