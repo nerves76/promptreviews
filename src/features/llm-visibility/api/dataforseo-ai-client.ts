@@ -181,11 +181,28 @@ interface ChatGPTScraperResult {
 
 // LLM Responses specific result
 interface LLMResponsesResult {
-  model: string;
+  model_name: string;
   input_tokens: number;
   output_tokens: number;
+  web_search: boolean;
   money_spent: number;
-  message: Array<{
+  datetime: string;
+  // The actual response structure from the API
+  items?: Array<{
+    type: string;
+    sections?: Array<{
+      type: string;
+      text?: string;
+      links?: Array<{
+        url?: string;
+        title?: string;
+        text?: string;
+      }>;
+    }>;
+  }>;
+  fan_out_queries?: string[];
+  // Legacy structure (kept for backwards compatibility, may not be present)
+  message?: Array<{
     role: string;
     content?: string;
     annotations?: Array<{
@@ -493,65 +510,68 @@ export async function checkLLMResponseVisibility(params: {
       return createErrorResult(provider, question, 'No result in task', task.cost);
     }
 
-    // Extract citations from annotations in assistant message
+    // Extract response text and citations
     const citations: LLMCitation[] = [];
     let domainCited = false;
     let citationPosition: number | null = null;
     let citationUrl: string | null = null;
     let fullResponseText: string | null = null;
 
-    // Find the assistant message
-    const assistantMessage = result.message?.find(m => m.role === 'assistant');
+    // The LLM Responses API returns data in result.items[].sections[].text format
+    // NOT in result.message[].content format as previously assumed
+    if (result.items && Array.isArray(result.items)) {
+      const textParts: string[] = [];
+      let citationIndex = 0;
 
-    // Debug logging for non-ChatGPT providers
-    console.log(`🔍 [DataForSEO AI] ${provider} response structure:`, {
-      hasMessage: !!result.message,
-      messageCount: result.message?.length || 0,
-      messageRoles: result.message?.map(m => m.role) || [],
-      hasAssistantMessage: !!assistantMessage,
-      hasContent: !!assistantMessage?.content,
-      contentLength: assistantMessage?.content?.length || 0,
-      hasAnnotations: !!assistantMessage?.annotations,
-      annotationCount: assistantMessage?.annotations?.length || 0,
-    });
+      for (const item of result.items) {
+        if (item.sections && Array.isArray(item.sections)) {
+          for (const section of item.sections) {
+            // Extract text content
+            if (section.text) {
+              textParts.push(section.text);
+            }
 
-    if (!assistantMessage) {
-      // Log raw result for debugging
-      console.log(`⚠️ [DataForSEO AI] ${provider} - No assistant message found. Raw result keys:`, Object.keys(result));
-      console.log(`⚠️ [DataForSEO AI] ${provider} - Full result:`, JSON.stringify(result).substring(0, 1000));
-    }
+            // Extract citations from links if present
+            if (section.links && Array.isArray(section.links)) {
+              for (const link of section.links) {
+                if (link.url) {
+                  citationIndex++;
+                  const domain = extractDomain(link.url);
+                  const isOurs = isDomainMatch(domain, targetDomain);
 
-    if (assistantMessage) {
-      // Get full response for brand checking
-      if (assistantMessage.content) {
-        fullResponseText = assistantMessage.content;
-      }
+                  citations.push({
+                    domain,
+                    url: link.url,
+                    title: link.title || link.text || null,
+                    position: citationIndex,
+                    isOurs,
+                  });
 
-      // Extract citations from annotations
-      if (assistantMessage.annotations && Array.isArray(assistantMessage.annotations)) {
-        for (let i = 0; i < assistantMessage.annotations.length; i++) {
-          const annotation = assistantMessage.annotations[i];
-          if (annotation.url) {
-            const domain = extractDomain(annotation.url);
-            const isOurs = isDomainMatch(domain, targetDomain);
-
-            citations.push({
-              domain,
-              url: annotation.url,
-              title: annotation.title || null,
-              position: i + 1,
-              isOurs,
-            });
-
-            if (isOurs && !domainCited) {
-              domainCited = true;
-              citationPosition = i + 1;
-              citationUrl = annotation.url;
+                  if (isOurs && !domainCited) {
+                    domainCited = true;
+                    citationPosition = citationIndex;
+                    citationUrl = link.url;
+                  }
+                }
+              }
             }
           }
         }
       }
+
+      fullResponseText = textParts.join('');
     }
+
+    // Extract fan-out queries (searches the AI performed)
+    const fanOutQueries: string[] = result.fan_out_queries || [];
+
+    console.log(`🔍 [DataForSEO AI] ${provider} parsed:`, {
+      hasItems: !!result.items,
+      itemCount: result.items?.length || 0,
+      responseLength: fullResponseText?.length || 0,
+      citationCount: citations.length,
+      fanOutQueryCount: fanOutQueries.length,
+    });
 
     // Check for brand mention in FULL response text
     const brandMentioned = checkBrandMentioned(fullResponseText, businessName);
@@ -583,7 +603,7 @@ export async function checkLLMResponseVisibility(params: {
       responseSnippet,
       fullResponse,
       searchResults: [], // LLM Responses API doesn't provide search_results like ChatGPT Scraper
-      fanOutQueries: [], // LLM Responses API doesn't provide fan_out_queries like ChatGPT Scraper
+      fanOutQueries, // Fan-out queries ARE provided by the LLM Responses API
       cost: task.cost || 0,
     };
   } catch (error) {
