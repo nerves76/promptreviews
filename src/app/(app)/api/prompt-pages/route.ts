@@ -97,9 +97,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // For individual campaigns with contact info, create a contact record first
+    // For individual campaigns, ensure contact_id is properly linked
     let contactId: string | null = null;
-    if (insertData.campaign_type === 'individual' && (insertData.first_name || insertData.email || insertData.phone)) {
+
+    // First, check if contact_id was already provided and is valid (not empty string)
+    if (insertData.contact_id && typeof insertData.contact_id === 'string' && insertData.contact_id.trim()) {
+      // Verify the contact exists and belongs to this account
+      const { data: existingContact } = await supabase
+        .from('contacts')
+        .select('id')
+        .eq('id', insertData.contact_id)
+        .eq('account_id', accountId)
+        .maybeSingle();
+
+      if (existingContact) {
+        contactId = existingContact.id;
+      }
+    }
+
+    // If no valid contact_id yet, try to find/create contact from contact info
+    if (!contactId && insertData.campaign_type === 'individual' && (insertData.first_name || insertData.email || insertData.phone)) {
       // Check if contact already exists with same email or phone
       let existingContact = null;
 
@@ -149,10 +166,12 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Add contact_id to insert data if we have one
-    const finalInsertData = contactId
-      ? { ...insertData, contact_id: contactId }
-      : insertData;
+    // Prepare final insert data - always set contact_id (null if no contact, valid ID if found/created)
+    // This ensures empty strings don't get inserted
+    const finalInsertData = {
+      ...insertData,
+      contact_id: contactId || null // Explicitly set to null if no valid contact
+    };
 
     const { data, error } = await supabase
       .from("prompt_pages")

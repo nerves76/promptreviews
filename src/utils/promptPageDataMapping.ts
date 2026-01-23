@@ -180,7 +180,12 @@ export function mapFormDataToDatabase(formData: FormData): DatabaseRow {
   });
   
   // Handle special cases
-  
+
+  // contact_id validation - convert empty strings to undefined (will be null in DB)
+  if (mappedData.contact_id === '' || (typeof mappedData.contact_id === 'string' && !mappedData.contact_id.trim())) {
+    delete mappedData.contact_id;
+  }
+
   // Campaign type validation
   if (formData.campaign_type && !['public', 'individual'].includes(formData.campaign_type)) {
     mappedData.campaign_type = 'individual'; // Default to individual if invalid
