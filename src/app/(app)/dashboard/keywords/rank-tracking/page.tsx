@@ -20,6 +20,7 @@ import { type KeywordData, normalizePhrase } from '@/features/keywords/keywordUt
 import { useRankTrackingTermGroups } from '@/features/rank-tracking/hooks/useRankTrackingTermGroups';
 import { BulkMoveBar, GroupOption } from '@/components/BulkMoveBar';
 import { ManageGroupsModal, GroupData } from '@/components/ManageGroupsModal';
+import { useToast, ToastContainer } from '@/app/(app)/components/reviews/Toast';
 
 /** Volume data for a search term */
 interface VolumeData {
@@ -232,6 +233,9 @@ export default function RankTrackingPage() {
 
   // Term selection state - using composite key "keywordId::term"
   const [selectedTermKeys, setSelectedTermKeys] = useState<Set<string>>(new Set());
+
+  // Toast notifications
+  const { toasts, success: showSuccess, error: showError, closeToast } = useToast();
 
   // Handle clicking on a concept to open the sidebar
   const handleConceptClick = useCallback((concept: KeywordData) => {
@@ -730,6 +734,8 @@ export default function RankTrackingPage() {
   const handleBulkMoveToGroup = useCallback(async (groupId: string | null) => {
     if (selectedTermKeys.size === 0) return;
 
+    const count = selectedTermKeys.size;
+
     // Convert selected keys to termIdentifiers
     const termIdentifiers = Array.from(selectedTermKeys).map((key) => {
       const [keywordId, ...termParts] = key.split('::');
@@ -741,8 +747,16 @@ export default function RankTrackingPage() {
     if (success) {
       setSelectedTermKeys(new Set()); // Clear selection
       await refreshGroups();
+
+      // Show success notification
+      const groupName = groupId === null
+        ? 'Ungrouped'
+        : groups.find(g => g.id === groupId)?.name || 'group';
+      showSuccess(`Moved ${count} ${count === 1 ? 'term' : 'terms'} to ${groupName}`);
+    } else {
+      showError('Failed to move terms. Please try again.');
     }
-  }, [selectedTermKeys, bulkMoveTerms, refreshGroups]);
+  }, [selectedTermKeys, bulkMoveTerms, refreshGroups, groups, showSuccess, showError]);
 
   // Convert groups for modal
   const groupsForModal: GroupData[] = groups.map((g) => ({
@@ -967,6 +981,8 @@ export default function RankTrackingPage() {
         onReorderGroups={handleReorderGroups}
       />
 
+      {/* Toast notifications */}
+      <ToastContainer toasts={toasts} onClose={closeToast} />
     </div>
   );
 }
