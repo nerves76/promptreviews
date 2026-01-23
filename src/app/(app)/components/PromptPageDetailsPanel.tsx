@@ -21,7 +21,7 @@ export default function PromptPageDetailsPanel({
   const [copySuccess, setCopySuccess] = useState(false);
 
   const contactForShare = {
-    id: page.contact_id || '', // Empty string if no contact_id - CommunicationButtons will handle this
+    id: page.contact_id || page.contacts?.id || '', // Use contact_id or joined contacts.id
     first_name: page.first_name || page.contacts?.first_name || "",
     last_name: page.last_name || page.contacts?.last_name || "",
     email: page.email || page.contacts?.email,
