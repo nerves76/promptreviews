@@ -943,17 +943,18 @@ export default function AISearchPage() {
 
             {/* Filters */}
             <div className="mb-4 flex flex-wrap items-center gap-3">
-              {/* Concept filter */}
+              {/* Group filter */}
               <div className="flex items-center gap-2">
-                <label className="text-sm text-gray-600">Concept:</label>
+                <label className="text-sm text-gray-600">Group:</label>
                 <select
-                  value={filterConcept || ''}
-                  onChange={(e) => startTransition(() => setFilterConcept(e.target.value || null))}
-                  className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-300 max-w-[200px]"
+                  value={filterGroup || ''}
+                  onChange={(e) => startTransition(() => setFilterGroup(e.target.value || null))}
+                  className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-300"
                 >
-                  <option value="">All concepts</option>
-                  {conceptOptions.map(concept => (
-                    <option key={concept} value={concept}>{concept}</option>
+                  <option value="">All groups</option>
+                  <option value="ungrouped">Ungrouped ({queryUngroupedCount})</option>
+                  {queryGroups.map(group => (
+                    <option key={group.id} value={group.id}>{group.name} ({group.queryCount})</option>
                   ))}
                 </select>
               </div>
@@ -973,18 +974,17 @@ export default function AISearchPage() {
                 </select>
               </div>
 
-              {/* Group filter */}
+              {/* Concept filter */}
               <div className="flex items-center gap-2">
-                <label className="text-sm text-gray-600">Group:</label>
+                <label className="text-sm text-gray-600">Concept:</label>
                 <select
-                  value={filterGroup || ''}
-                  onChange={(e) => startTransition(() => setFilterGroup(e.target.value || null))}
-                  className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-300"
+                  value={filterConcept || ''}
+                  onChange={(e) => startTransition(() => setFilterConcept(e.target.value || null))}
+                  className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-300 max-w-[200px]"
                 >
-                  <option value="">All groups</option>
-                  <option value="ungrouped">Ungrouped ({queryUngroupedCount})</option>
-                  {queryGroups.map(group => (
-                    <option key={group.id} value={group.id}>{group.name} ({group.queryCount})</option>
+                  <option value="">All concepts</option>
+                  {conceptOptions.map(concept => (
+                    <option key={concept} value={concept}>{concept}</option>
                   ))}
                 </select>
               </div>
