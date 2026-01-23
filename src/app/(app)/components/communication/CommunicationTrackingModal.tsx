@@ -99,6 +99,7 @@ export default function CommunicationTrackingModal({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copiedToClipboard, setCopiedToClipboard] = useState(false);
+  const [copiedUrl, setCopiedUrl] = useState(false);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | undefined>();
 
   // Helper to generate the review URL (called when copying/sending)
@@ -401,6 +402,43 @@ export default function CommunicationTrackingModal({
                   onSelect={handleTemplateSelect}
                   selectedTemplateId={selectedTemplateId}
                 />
+
+                {/* Prompt Page URL */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Prompt page URL
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-sm text-gray-600 truncate">
+                      {typeof window !== 'undefined' ? `${window.location.origin}/r/${promptPage?.slug || ''}` : `/r/${promptPage?.slug || ''}`}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        try {
+                          const url = `${window.location.origin}/r/${promptPage?.slug || ''}`;
+                          await navigator.clipboard.writeText(url);
+                          setCopiedUrl(true);
+                          setTimeout(() => setCopiedUrl(false), 2000);
+                        } catch (err) {
+                          setError('Failed to copy URL');
+                        }
+                      }}
+                      className={`px-3 py-2 border rounded-md text-sm font-medium transition-colors flex items-center gap-1.5 whitespace-nowrap ${
+                        copiedUrl
+                          ? 'bg-green-50 border-green-500 text-green-700'
+                          : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                      }`}
+                      aria-label="Copy prompt page URL"
+                    >
+                      <Icon name={copiedUrl ? 'FaCheck' : 'FaCopy'} size={14} />
+                      {copiedUrl ? 'Copied!' : 'Copy'}
+                    </button>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    This URL will be automatically added to your message when you send.
+                  </p>
+                </div>
 
                 {/* SMS Tip */}
                 {activeTab === 'sms' && (
