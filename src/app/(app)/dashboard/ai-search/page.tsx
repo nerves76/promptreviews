@@ -18,7 +18,7 @@ import {
   LLMVisibilitySummary,
   LLMVisibilityCheck,
 } from '@/features/llm-visibility/utils/types';
-import { CheckLLMModal, LLMVisibilityTrendChart, AddLLMConceptModal, RunAllLLMModal } from '@/features/llm-visibility/components';
+import { CheckLLMModal, LLMVisibilityTrendChart, AddLLMConceptModal, RunAllLLMModal, CitationTimeline } from '@/features/llm-visibility/components';
 import { useKeywords } from '@/features/keywords/hooks/useKeywords';
 import { KeywordDetailsSidebar } from '@/features/keywords/components/KeywordDetailsSidebar';
 import { CheckRankModal } from '@/features/rank-tracking/components';
@@ -1221,6 +1221,13 @@ export default function AISearchPage() {
                         {isExpanded && (
                           <tr className="bg-blue-50">
                             <td colSpan={8 + LLM_PROVIDERS.length} className="p-4">
+                              {/* Citation Timeline */}
+                              <CitationTimeline
+                                question={row.question}
+                                keywordId={row.conceptId}
+                                className="mb-4 pb-4 border-b border-gray-200"
+                              />
+
                               {(() => {
                                 const resultsWithData = LLM_PROVIDERS
                                   .map(provider => ({ provider, result: row.results.get(provider) }))
