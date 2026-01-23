@@ -16,5 +16,6 @@ export type {
   TrendPercentage,
 } from './useKeywordDiscovery';
 
-export { useRankTrackingTermGroups } from './useRankTrackingTermGroups';
-export type { RankTrackingTermGroupData } from './useRankTrackingTermGroups';
+// Note: useRankTrackingTermGroups is intentionally NOT exported here
+// to avoid pulling client-side code into server-side cron routes.
+// Import directly from './useRankTrackingTermGroups' when needed.

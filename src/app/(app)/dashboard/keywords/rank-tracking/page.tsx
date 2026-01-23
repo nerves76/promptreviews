@@ -17,7 +17,7 @@ import { KeywordDetailsSidebar } from '@/features/keywords/components/KeywordDet
 import { useAccountData, useBusinessData } from '@/auth/hooks/granularAuthHooks';
 import { apiClient } from '@/utils/apiClient';
 import { type KeywordData, normalizePhrase } from '@/features/keywords/keywordUtils';
-import { useRankTrackingTermGroups } from '@/features/rank-tracking/hooks';
+import { useRankTrackingTermGroups } from '@/features/rank-tracking/hooks/useRankTrackingTermGroups';
 import { BulkMoveBar, GroupOption } from '@/components/BulkMoveBar';
 import { ManageGroupsModal, GroupData } from '@/components/ManageGroupsModal';
 
