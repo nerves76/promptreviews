@@ -32,20 +32,28 @@ interface LLMVisibilityTrendChartProps {
 }
 
 type TimeGranularity = 'weekly' | 'monthly';
+type MetricType = 'citations' | 'mentions';
 
 interface TrendDataPoint {
   label: string;
   date: Date;
-  // Per-provider citation rates (0-100)
+  // Per-provider rates (0-100) - for citations
   chatgpt?: number;
   claude?: number;
   gemini?: number;
   perplexity?: number;
-  // Overall citation rate
+  // Per-provider rates (0-100) - for mentions
+  chatgpt_mentions?: number;
+  claude_mentions?: number;
+  gemini_mentions?: number;
+  perplexity_mentions?: number;
+  // Overall rates
   overall: number;
+  overallMentions: number;
   // Counts for tooltip
   totalChecks: number;
   citedChecks: number;
+  mentionedChecks: number;
 }
 
 // Provider colors matching the LLM_PROVIDER_COLORS theme
@@ -92,7 +100,7 @@ function processResultsData(
   const dataMap = new Map<string, {
     date: Date;
     label: string;
-    checks: Map<LLMProvider, { total: number; cited: number }>;
+    checks: Map<LLMProvider, { total: number; cited: number; mentioned: number }>;
   }>();
 
   // Generate time periods
@@ -115,7 +123,7 @@ function processResultsData(
     dataMap.set(key, {
       date: periodStart,
       label,
-      checks: new Map(LLM_PROVIDERS.map(p => [p, { total: 0, cited: 0 }])),
+      checks: new Map(LLM_PROVIDERS.map(p => [p, { total: 0, cited: 0, mentioned: 0 }])),
     });
   }
 
@@ -140,6 +148,9 @@ function processResultsData(
         if (result.domainCited) {
           providerStats.cited++;
         }
+        if (result.brandMentioned) {
+          providerStats.mentioned++;
+        }
       }
     }
   }
@@ -152,26 +163,38 @@ function processResultsData(
       label: period.label,
       date: period.date,
       overall: 0,
+      overallMentions: 0,
       totalChecks: 0,
       citedChecks: 0,
+      mentionedChecks: 0,
     };
 
     let totalAll = 0;
     let citedAll = 0;
+    let mentionedAll = 0;
 
     for (const provider of LLM_PROVIDERS) {
       const stats = period.checks.get(provider);
       if (stats && stats.total > 0) {
-        const rate = Math.round((stats.cited / stats.total) * 100);
-        point[provider] = rate;
+        // Citation rate
+        const citedRate = Math.round((stats.cited / stats.total) * 100);
+        point[provider] = citedRate;
+        // Mention rate
+        const mentionRate = Math.round((stats.mentioned / stats.total) * 100);
+        // Use type assertion for dynamic key
+        (point as any)[`${provider}_mentions`] = mentionRate;
+
         totalAll += stats.total;
         citedAll += stats.cited;
+        mentionedAll += stats.mentioned;
       }
     }
 
     point.totalChecks = totalAll;
     point.citedChecks = citedAll;
+    point.mentionedChecks = mentionedAll;
     point.overall = totalAll > 0 ? Math.round((citedAll / totalAll) * 100) : 0;
+    point.overallMentions = totalAll > 0 ? Math.round((mentionedAll / totalAll) * 100) : 0;
 
     chartData.push(point);
   }
@@ -200,45 +223,53 @@ function generateEmptyData(granularity: TimeGranularity): TrendDataPoint[] {
       label,
       date: periodStart,
       overall: 0,
+      overallMentions: 0,
       totalChecks: 0,
       citedChecks: 0,
+      mentionedChecks: 0,
     });
   }
 
   return data;
 }
 
-// Custom tooltip component
-function CustomTooltip({ active, payload, label }: any) {
-  if (!active || !payload || payload.length === 0) return null;
+// Custom tooltip component factory
+function createCustomTooltip(metricType: MetricType) {
+  return function CustomTooltip({ active, payload, label }: any) {
+    if (!active || !payload || payload.length === 0) return null;
 
-  const data = payload[0]?.payload as TrendDataPoint;
+    const data = payload[0]?.payload as TrendDataPoint;
+    const isMentions = metricType === 'mentions';
 
-  return (
-    <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3 text-sm">
-      <div className="font-semibold text-gray-900 mb-2">{label}</div>
-      <div className="space-y-1">
-        {payload.map((entry: any) => {
-          if (entry.value === undefined || entry.value === null) return null;
-          return (
-            <div key={entry.dataKey} className="flex items-center justify-between gap-4">
-              <span className="flex items-center gap-1.5">
-                <span
-                  className="w-2 h-2 rounded-full"
-                  style={{ backgroundColor: entry.color }}
-                />
-                <span className="text-gray-600">{entry.name}</span>
-              </span>
-              <span className="font-medium text-gray-900">{entry.value}%</span>
-            </div>
-          );
-        })}
+    return (
+      <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3 text-sm">
+        <div className="font-semibold text-gray-900 mb-2">{label}</div>
+        <div className="space-y-1">
+          {payload.map((entry: any) => {
+            if (entry.value === undefined || entry.value === null) return null;
+            return (
+              <div key={entry.dataKey} className="flex items-center justify-between gap-4">
+                <span className="flex items-center gap-1.5">
+                  <span
+                    className="w-2 h-2 rounded-full"
+                    style={{ backgroundColor: entry.color }}
+                  />
+                  <span className="text-gray-600">{entry.name}</span>
+                </span>
+                <span className="font-medium text-gray-900">{entry.value}%</span>
+              </div>
+            );
+          })}
+        </div>
+        <div className="mt-2 pt-2 border-t border-gray-100 text-xs text-gray-500">
+          {isMentions
+            ? `${data.mentionedChecks} mentioned / ${data.totalChecks} checks`
+            : `${data.citedChecks} cited / ${data.totalChecks} checks`
+          }
+        </div>
       </div>
-      <div className="mt-2 pt-2 border-t border-gray-100 text-xs text-gray-500">
-        {data.citedChecks} cited / {data.totalChecks} checks
-      </div>
-    </div>
-  );
+    );
+  };
 }
 
 export default function LLMVisibilityTrendChart({
@@ -247,6 +278,7 @@ export default function LLMVisibilityTrendChart({
 }: LLMVisibilityTrendChartProps) {
   const [granularity, setGranularity] = useState<TimeGranularity>('weekly');
   const [showProviders, setShowProviders] = useState(true);
+  const [metricType, setMetricType] = useState<MetricType>('citations');
 
   const chartData = useMemo(() => {
     return processResultsData(results, granularity);
@@ -286,11 +318,35 @@ export default function LLMVisibilityTrendChart({
         <div>
           <h3 className="text-lg font-semibold text-gray-900">Visibility trend</h3>
           <p className="text-sm text-gray-500">
-            Citation rate over {granularity === 'monthly' ? 'the last 6 months' : 'the last 8 weeks'}
+            {metricType === 'citations' ? 'Citation' : 'Mention'} rate over {granularity === 'monthly' ? 'the last 6 months' : 'the last 8 weeks'}
           </p>
         </div>
 
         <div className="flex items-center gap-3">
+          {/* Metric type toggle */}
+          <div className="flex items-center bg-gray-100 rounded-lg p-0.5">
+            <button
+              onClick={() => setMetricType('citations')}
+              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                metricType === 'citations'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Citations
+            </button>
+            <button
+              onClick={() => setMetricType('mentions')}
+              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                metricType === 'mentions'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Mentions
+            </button>
+          </div>
+
           {/* Provider toggle */}
           <button
             onClick={() => setShowProviders(!showProviders)}
@@ -359,7 +415,7 @@ export default function LLMVisibilityTrendChart({
                 tickFormatter={(value) => `${value}%`}
                 width={40}
               />
-              <Tooltip content={<CustomTooltip />} />
+              <Tooltip content={createCustomTooltip(metricType)} />
               <Legend
                 verticalAlign="bottom"
                 height={24}
@@ -371,7 +427,7 @@ export default function LLMVisibilityTrendChart({
               {/* Overall line (always shown) */}
               <Line
                 type="monotone"
-                dataKey="overall"
+                dataKey={metricType === 'mentions' ? 'overallMentions' : 'overall'}
                 name="Overall"
                 stroke="#6366f1"
                 strokeWidth={2}
@@ -386,7 +442,7 @@ export default function LLMVisibilityTrendChart({
                   <Line
                     key={provider}
                     type="monotone"
-                    dataKey={provider}
+                    dataKey={metricType === 'mentions' ? `${provider}_mentions` : provider}
                     name={LLM_PROVIDER_LABELS[provider]}
                     stroke={PROVIDER_CHART_COLORS[provider]}
                     strokeWidth={1.5}

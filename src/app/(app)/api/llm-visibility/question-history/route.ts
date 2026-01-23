@@ -14,6 +14,7 @@ interface CheckRecord {
   id: string;
   llm_provider: string;
   domain_cited: boolean;
+  brand_mentioned: boolean;
   checked_at: string;
 }
 
@@ -55,7 +56,7 @@ export async function GET(request: NextRequest) {
     // Fetch all checks for this question, ordered by date
     const { data: checks, error: checksError } = await serviceSupabase
       .from('llm_visibility_checks')
-      .select('id, llm_provider, domain_cited, checked_at')
+      .select('id, llm_provider, domain_cited, brand_mentioned, checked_at')
       .eq('account_id', accountId)
       .eq('keyword_id', keywordId)
       .eq('question', question)
@@ -83,9 +84,11 @@ export async function GET(request: NextRequest) {
     const timeline: Record<string, {
       provider: string;
       citationRate: number;
+      mentionRate: number;
       totalChecks: number;
       citedCount: number;
-      checks: Array<{ date: string; cited: boolean | null }>;
+      mentionedCount: number;
+      checks: Array<{ date: string; cited: boolean | null; mentioned: boolean | null }>;
     }> = {};
 
     providers.forEach(provider => {
@@ -93,27 +96,37 @@ export async function GET(request: NextRequest) {
         (c: CheckRecord) => c.llm_provider === provider
       );
 
-      // Map checks to dates
-      const checksByDate = new Map<string, boolean>();
+      // Map checks to dates (store both cited and mentioned)
+      const checksByDate = new Map<string, { cited: boolean; mentioned: boolean }>();
       providerChecks.forEach((check: CheckRecord) => {
         const date = new Date(check.checked_at).toISOString().split('T')[0];
-        checksByDate.set(date, check.domain_cited);
+        checksByDate.set(date, {
+          cited: check.domain_cited,
+          mentioned: check.brand_mentioned,
+        });
       });
 
       // Build check array for all dates (null = not checked that day)
-      const checksArray = allDates.map(date => ({
-        date,
-        cited: checksByDate.has(date) ? checksByDate.get(date)! : null,
-      }));
+      const checksArray = allDates.map(date => {
+        const checkData = checksByDate.get(date);
+        return {
+          date,
+          cited: checkData ? checkData.cited : null,
+          mentioned: checkData ? checkData.mentioned : null,
+        };
+      });
 
       const citedCount = providerChecks.filter((c: CheckRecord) => c.domain_cited).length;
+      const mentionedCount = providerChecks.filter((c: CheckRecord) => c.brand_mentioned).length;
       const totalChecks = providerChecks.length;
 
       timeline[provider] = {
         provider,
         citationRate: totalChecks > 0 ? Math.round((citedCount / totalChecks) * 100) : 0,
+        mentionRate: totalChecks > 0 ? Math.round((mentionedCount / totalChecks) * 100) : 0,
         totalChecks,
         citedCount,
+        mentionedCount,
         checks: checksArray,
       };
     });

@@ -7,15 +7,20 @@ import { LLM_PROVIDER_LABELS, LLM_PROVIDER_COLORS, LLMProvider } from '../utils/
 interface TimelineCheck {
   date: string;
   cited: boolean | null; // null = not checked that day
+  mentioned: boolean | null;
 }
 
 interface ProviderTimeline {
   provider: string;
   citationRate: number;
+  mentionRate: number;
   totalChecks: number;
   citedCount: number;
+  mentionedCount: number;
   checks: TimelineCheck[];
 }
+
+type MetricType = 'citations' | 'mentions';
 
 interface QuestionHistoryResponse {
   dates: string[];
@@ -49,6 +54,7 @@ export function CitationTimeline({ question, keywordId, className = '' }: Citati
   const [data, setData] = useState<QuestionHistoryResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [metricType, setMetricType] = useState<MetricType>('citations');
 
   useEffect(() => {
     const fetchHistory = async () => {
@@ -113,10 +119,36 @@ export function CitationTimeline({ question, keywordId, className = '' }: Citati
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
+  const isMentions = metricType === 'mentions';
+
   return (
     <div className={`${className}`}>
-      {/* Timeline header */}
-      <div className="text-xs font-medium text-gray-600 mb-2">Check history</div>
+      {/* Timeline header with toggle */}
+      <div className="flex items-center justify-between mb-2">
+        <div className="text-xs font-medium text-gray-600">Check history</div>
+        <div className="flex items-center bg-gray-100 rounded p-0.5">
+          <button
+            onClick={() => setMetricType('citations')}
+            className={`px-2 py-0.5 text-[10px] font-medium rounded transition-colors ${
+              metricType === 'citations'
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            Citations
+          </button>
+          <button
+            onClick={() => setMetricType('mentions')}
+            className={`px-2 py-0.5 text-[10px] font-medium rounded transition-colors ${
+              metricType === 'mentions'
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            Mentions
+          </button>
+        </div>
+      </div>
 
       {/* Scrollable timeline container */}
       <div className="overflow-x-auto pb-2 -mx-2 px-2">
@@ -154,14 +186,18 @@ export function CitationTimeline({ question, keywordId, className = '' }: Citati
                 );
               }
 
+              const rate = isMentions ? providerData.mentionRate : providerData.citationRate;
+              const positiveLabel = isMentions ? 'Mentioned' : 'Cited';
+              const negativeLabel = isMentions ? 'Not mentioned' : 'Not cited';
+
               return (
                 <div key={provider} className="flex items-center gap-2">
-                  {/* Provider label with citation rate */}
+                  {/* Provider label with rate */}
                   <div className="flex-shrink-0 w-28">
                     <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium ${colors.bg} ${colors.text}`}>
                       {LLM_PROVIDER_LABELS[provider]}
-                      <span className={providerData.citationRate > 0 ? 'text-green-700' : 'text-gray-500'}>
-                        {providerData.citationRate}%
+                      <span className={rate > 0 ? 'text-green-700' : 'text-gray-500'}>
+                        {rate}%
                       </span>
                     </span>
                   </div>
@@ -170,8 +206,9 @@ export function CitationTimeline({ question, keywordId, className = '' }: Citati
                   <div className="flex items-center gap-1">
                     {providerData.checks.map((check, idx) => {
                       const dateStr = dates[idx];
+                      const value = isMentions ? check.mentioned : check.cited;
 
-                      if (check.cited === null) {
+                      if (value === null) {
                         // Not checked on this date
                         return (
                           <div
@@ -184,25 +221,25 @@ export function CitationTimeline({ question, keywordId, className = '' }: Citati
                         );
                       }
 
-                      if (check.cited) {
-                        // Cited - green filled circle
+                      if (value) {
+                        // Positive - green filled circle
                         return (
                           <div
                             key={dateStr}
                             className="w-5 h-5 flex items-center justify-center"
-                            title={`${formatDate(dateStr)}: Cited`}
+                            title={`${formatDate(dateStr)}: ${positiveLabel}`}
                           >
                             <span className="w-2.5 h-2.5 rounded-full bg-green-500" />
                           </div>
                         );
                       }
 
-                      // Not cited - red X
+                      // Negative - red X
                       return (
                         <div
                           key={dateStr}
                           className="w-5 h-5 flex items-center justify-center"
-                          title={`${formatDate(dateStr)}: Not cited`}
+                          title={`${formatDate(dateStr)}: ${negativeLabel}`}
                         >
                           <span className="text-red-500 text-xs font-bold">✗</span>
                         </div>
@@ -247,11 +284,11 @@ export function CitationTimeline({ question, keywordId, className = '' }: Citati
       <div className="flex items-center gap-4 mt-3 text-[10px] text-gray-500">
         <div className="flex items-center gap-1">
           <span className="w-2 h-2 rounded-full bg-green-500" />
-          <span>Cited</span>
+          <span>{isMentions ? 'Mentioned' : 'Cited'}</span>
         </div>
         <div className="flex items-center gap-1">
           <span className="text-red-500 font-bold">✗</span>
-          <span>Not cited</span>
+          <span>{isMentions ? 'Not mentioned' : 'Not cited'}</span>
         </div>
         <div className="flex items-center gap-1">
           <span className="w-2 h-2 rounded-full border border-gray-300 bg-white" />

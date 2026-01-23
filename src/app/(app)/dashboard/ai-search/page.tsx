@@ -61,6 +61,7 @@ interface AccountSummary {
   totalQuestions: number;
   questionsChecked: number;
   questionsCited: number;
+  questionsMentioned: number;
   averageVisibility: number | null;
   providerStats: Record<string, { checked: number; cited: number; mentioned: number }>;
   overallConsistency: number | null;
@@ -323,6 +324,14 @@ export default function AISearchPage() {
       );
       const questionsCited = citedQuestions.size;
 
+      // Count unique questions that have at least one brand mention from any provider
+      const mentionedQuestions = new Set(
+        Array.from(uniqueChecks.values())
+          .filter(r => r.brandMentioned)
+          .map(r => r.question)
+      );
+      const questionsMentioned = mentionedQuestions.size;
+
       // Calculate consistency (standard deviation of citation rates)
       const questionRates = new Map<string, { cited: number; total: number }>();
       for (const result of uniqueChecks.values()) {
@@ -354,6 +363,7 @@ export default function AISearchPage() {
         totalQuestions,
         questionsChecked: uniqueQuestionsChecked,
         questionsCited,
+        questionsMentioned,
         averageVisibility,
         providerStats,
         overallConsistency,
@@ -546,6 +556,14 @@ export default function AISearchPage() {
     );
     const questionsCited = citedQuestions.size;
 
+    // Count unique questions that have at least one brand mention from any provider
+    const mentionedQuestions = new Set(
+      Array.from(uniqueChecks.values())
+        .filter(r => r.brandMentioned)
+        .map(r => r.question)
+    );
+    const questionsMentioned = mentionedQuestions.size;
+
     // Calculate consistency (standard deviation of citation rates)
     // Group by question to get per-question citation rates
     const questionRates = new Map<string, { cited: number; total: number }>();
@@ -576,6 +594,7 @@ export default function AISearchPage() {
       totalQuestions: rows.length,
       questionsChecked,
       questionsCited,
+      questionsMentioned,
       averageVisibility,
       providerStats,
       overallConsistency,
@@ -1210,13 +1229,23 @@ export default function AISearchPage() {
                         : `${accountSummary?.questionsChecked}/${accountSummary?.totalQuestions}`}
                     </div>
                     <div className="text-sm text-gray-600">Questions tracked</div>
-                    <div className="mt-1 text-sm">
-                      <span className="font-semibold text-green-600">
-                        {filteredStats
-                          ? filteredStats.questionsCited
-                          : accountSummary?.questionsCited || 0}
+                    <div className="mt-1 text-sm flex flex-wrap gap-x-3 gap-y-1">
+                      <span>
+                        <span className="font-semibold text-green-600">
+                          {filteredStats
+                            ? filteredStats.questionsCited
+                            : accountSummary?.questionsCited || 0}
+                        </span>
+                        <span className="text-gray-500"> cited</span>
                       </span>
-                      <span className="text-gray-500"> cited by at least one model</span>
+                      <span>
+                        <span className="font-semibold text-blue-600">
+                          {filteredStats
+                            ? filteredStats.questionsMentioned
+                            : accountSummary?.questionsMentioned || 0}
+                        </span>
+                        <span className="text-gray-500"> mentioned</span>
+                      </span>
                     </div>
                   </div>
 
