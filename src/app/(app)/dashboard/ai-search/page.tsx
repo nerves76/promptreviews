@@ -25,6 +25,7 @@ import { CheckRankModal } from '@/features/rank-tracking/components';
 import { type KeywordData, transformKeywordToResponse } from '@/features/keywords/keywordUtils';
 import { useBusinessData } from '@/auth/hooks/granularAuthHooks';
 import { Pagination } from '@/components/Pagination';
+import { Modal } from '@/app/(app)/components/ui/modal';
 
 interface KeywordWithQuestions {
   id: string;
@@ -103,6 +104,28 @@ export default function AISearchPage() {
 
   // Modal state for run all batch
   const [showRunAllModal, setShowRunAllModal] = useState(false);
+
+  // Modal state for viewing full LLM response
+  const [responseModal, setResponseModal] = useState<{
+    provider: LLMProvider;
+    question: string;
+    response: string;
+  } | null>(null);
+
+  // Track expanded accordions per provider result (key = "providerId-section")
+  const [expandedAccordions, setExpandedAccordions] = useState<Set<string>>(new Set());
+
+  const toggleAccordion = (key: string) => {
+    setExpandedAccordions(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+      return next;
+    });
+  };
 
   // Use keywords hook to create new concepts
   const { createKeyword, refresh: refreshKeywords } = useKeywords({ autoFetch: false });
@@ -1120,10 +1143,31 @@ export default function AISearchPage() {
                                             </div>
                                           </div>
 
-                                          {/* Response snippet */}
-                                          {result.responseSnippet && (
-                                            <div className="text-sm text-gray-700 mb-3 pl-4 border-l-2 border-gray-200">
-                                              {result.responseSnippet}
+                                          {/* Response excerpt with view button */}
+                                          {(result.responseSnippet || result.fullResponse) && (
+                                            <div className="mb-3">
+                                              <div className="text-sm text-gray-700 pl-4 border-l-2 border-gray-200">
+                                                {(() => {
+                                                  const fullText = result.fullResponse || result.responseSnippet || '';
+                                                  const excerpt = fullText.length > 200
+                                                    ? fullText.slice(0, 200).trim() + '...'
+                                                    : fullText;
+                                                  return excerpt;
+                                                })()}
+                                              </div>
+                                              {(result.fullResponse || result.responseSnippet || '').length > 200 && (
+                                                <button
+                                                  onClick={() => setResponseModal({
+                                                    provider,
+                                                    question: row.question,
+                                                    response: result.fullResponse || result.responseSnippet || '',
+                                                  })}
+                                                  className="mt-2 ml-4 text-xs text-slate-blue hover:text-slate-blue/80 font-medium flex items-center gap-1"
+                                                >
+                                                  <Icon name="FaEye" className="w-3 h-3" />
+                                                  View full response
+                                                </button>
+                                              )}
                                             </div>
                                           )}
 
@@ -1175,50 +1219,83 @@ export default function AISearchPage() {
                                             </div>
                                           )}
 
-                                          {/* Fan-out queries - related searches the AI performed */}
+                                          {/* Fan-out queries - collapsible accordion */}
                                           {result.fanOutQueries && result.fanOutQueries.length > 0 && (
-                                            <div className="mt-4">
-                                              <div className="text-sm font-medium text-gray-600 mb-2">
-                                                Searches performed ({result.fanOutQueries.length}):
-                                              </div>
-                                              <div className="flex flex-wrap gap-2">
-                                                {result.fanOutQueries.map((query, qidx) => (
-                                                  <span
-                                                    key={qidx}
-                                                    className="inline-flex items-center px-2 py-1 rounded text-xs bg-amber-50 text-amber-700 border border-amber-200"
-                                                  >
-                                                    <span className="truncate max-w-[200px]">{query}</span>
-                                                  </span>
-                                                ))}
-                                              </div>
+                                            <div className="mt-4 border border-gray-200 rounded-lg overflow-hidden">
+                                              <button
+                                                onClick={() => toggleAccordion(`${result.id}-searches`)}
+                                                className="w-full flex items-center justify-between px-3 py-2 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
+                                                aria-expanded={expandedAccordions.has(`${result.id}-searches`)}
+                                                aria-label={`Toggle searches performed section`}
+                                              >
+                                                <span className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                                                  <Icon name="FaSearch" className="w-3.5 h-3.5 text-amber-600" />
+                                                  Searches performed ({result.fanOutQueries.length})
+                                                </span>
+                                                <Icon
+                                                  name={expandedAccordions.has(`${result.id}-searches`) ? 'FaChevronUp' : 'FaChevronDown'}
+                                                  className="w-3 h-3 text-gray-400"
+                                                />
+                                              </button>
+                                              {expandedAccordions.has(`${result.id}-searches`) && (
+                                                <div className="p-3 bg-white">
+                                                  <div className="flex flex-wrap gap-2">
+                                                    {result.fanOutQueries.map((query, qidx) => (
+                                                      <span
+                                                        key={qidx}
+                                                        className="inline-flex items-center px-2 py-1 rounded text-xs bg-amber-50 text-amber-700 border border-amber-200"
+                                                        title={query}
+                                                      >
+                                                        {query}
+                                                      </span>
+                                                    ))}
+                                                  </div>
+                                                </div>
+                                              )}
                                             </div>
                                           )}
 
-                                          {/* Search results - all websites the AI retrieved */}
+                                          {/* Search results - collapsible accordion */}
                                           {result.searchResults && result.searchResults.length > 0 && (
-                                            <div className="mt-4">
-                                              <div className="text-sm font-medium text-gray-600 mb-2">
-                                                Websites used for research ({result.searchResults.length}):
-                                              </div>
-                                              <div className="flex flex-wrap gap-2">
-                                                {result.searchResults.map((sr, sridx) => (
-                                                  <a
-                                                    key={sridx}
-                                                    href={sr.url || '#'}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className={`inline-flex items-center px-2 py-1 rounded text-xs ${
-                                                      sr.isOurs
-                                                        ? 'bg-green-50 text-green-700 border border-green-200'
-                                                        : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200'
-                                                    }`}
-                                                    title={sr.title || sr.url || undefined}
-                                                  >
-                                                    <span className="truncate max-w-[150px]">{sr.domain}</span>
-                                                    {sr.isOurs && <span className="text-green-600 font-bold ml-1">(You)</span>}
-                                                  </a>
-                                                ))}
-                                              </div>
+                                            <div className="mt-3 border border-gray-200 rounded-lg overflow-hidden">
+                                              <button
+                                                onClick={() => toggleAccordion(`${result.id}-websites`)}
+                                                className="w-full flex items-center justify-between px-3 py-2 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
+                                                aria-expanded={expandedAccordions.has(`${result.id}-websites`)}
+                                                aria-label={`Toggle websites used for research section`}
+                                              >
+                                                <span className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                                                  <Icon name="FaGlobe" className="w-3.5 h-3.5 text-slate-blue" />
+                                                  Websites used for research ({result.searchResults.length})
+                                                </span>
+                                                <Icon
+                                                  name={expandedAccordions.has(`${result.id}-websites`) ? 'FaChevronUp' : 'FaChevronDown'}
+                                                  className="w-3 h-3 text-gray-400"
+                                                />
+                                              </button>
+                                              {expandedAccordions.has(`${result.id}-websites`) && (
+                                                <div className="p-3 bg-white">
+                                                  <div className="flex flex-wrap gap-2">
+                                                    {result.searchResults.map((sr, sridx) => (
+                                                      <a
+                                                        key={sridx}
+                                                        href={sr.url || '#'}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className={`inline-flex items-center px-2 py-1 rounded text-xs ${
+                                                          sr.isOurs
+                                                            ? 'bg-green-50 text-green-700 border border-green-200'
+                                                            : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200'
+                                                        }`}
+                                                        title={sr.title || sr.url || undefined}
+                                                      >
+                                                        {sr.domain}
+                                                        {sr.isOurs && <span className="text-green-600 font-bold ml-1">(You)</span>}
+                                                      </a>
+                                                    ))}
+                                                  </div>
+                                                </div>
+                                              )}
                                             </div>
                                           )}
                                         </div>
@@ -1329,6 +1406,26 @@ export default function AISearchPage() {
           // Could trigger a refresh when batch completes
         }}
       />
+
+      {/* Full Response Modal */}
+      <Modal
+        isOpen={!!responseModal}
+        onClose={() => setResponseModal(null)}
+        title={`${responseModal ? LLM_PROVIDER_LABELS[responseModal.provider] : ''} response`}
+        size="2xl"
+      >
+        {responseModal && (
+          <div>
+            <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+              <div className="text-xs text-gray-500 mb-1">Question:</div>
+              <div className="text-sm font-medium text-gray-700">{responseModal.question}</div>
+            </div>
+            <div className="text-sm text-gray-700 whitespace-pre-wrap max-h-[60vh] overflow-y-auto">
+              {responseModal.response}
+            </div>
+          </div>
+        )}
+      </Modal>
 
       {/* Import Modal */}
       {showImportModal && (
