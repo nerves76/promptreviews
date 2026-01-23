@@ -29,6 +29,7 @@ import { Modal } from '@/app/(app)/components/ui/modal';
 import { useAISearchQueryGroups, type AISearchQueryGroupData } from '@/features/ai-search/hooks/useAISearchQueryGroups';
 import { BulkMoveBar } from '@/components/BulkMoveBar';
 import { ManageGroupsModal } from '@/components/ManageGroupsModal';
+import { useToast, ToastContainer } from '@/app/(app)/components/reviews/Toast';
 
 interface KeywordWithQuestions {
   id: string;
@@ -154,6 +155,9 @@ export default function AISearchPage() {
   const [selectedQuestionIds, setSelectedQuestionIds] = useState<Set<string>>(new Set());
   const [showManageGroupsModal, setShowManageGroupsModal] = useState(false);
   const [filterGroup, setFilterGroup] = useState<string | null>(null);
+
+  // Toast notifications
+  const { toasts, success: showSuccess, error: showError, closeToast } = useToast();
 
   // Sidebar state for editing concepts
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -546,12 +550,21 @@ export default function AISearchPage() {
   // Handle bulk move
   const handleBulkMoveToGroup = useCallback(async (groupId: string | null) => {
     const questionIds = Array.from(selectedQuestionIds);
+    const count = questionIds.length;
     const success = await bulkMoveQueries(questionIds, groupId);
     if (success) {
       setSelectedQuestionIds(new Set());
       await fetchData(); // Refresh to show updated group assignments
+
+      // Show success notification
+      const groupName = groupId === null
+        ? 'Ungrouped'
+        : queryGroups.find(g => g.id === groupId)?.name || 'group';
+      showSuccess(`Moved ${count} ${count === 1 ? 'query' : 'queries'} to ${groupName}`);
+    } else {
+      showError('Failed to move queries. Please try again.');
     }
-  }, [selectedQuestionIds, bulkMoveQueries, fetchData]);
+  }, [selectedQuestionIds, bulkMoveQueries, fetchData, queryGroups, showSuccess, showError]);
 
   // Handle sort header click (wrapped in transition to avoid INP issues)
   const handleSort = (field: SortField) => {
@@ -1875,6 +1888,9 @@ export default function AISearchPage() {
           </div>
         </div>
       )}
+
+      {/* Toast notifications */}
+      <ToastContainer toasts={toasts} onClose={closeToast} />
     </div>
   );
 }
