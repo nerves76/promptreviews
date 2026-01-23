@@ -37,6 +37,7 @@ interface CommunicationTrackingModalProps {
   communicationType?: 'email' | 'sms'; // Optional - will determine initial tab
   onSend: (data: CommunicationData) => Promise<void>;
   onStatusUpdate: (newStatus: string) => Promise<void>;
+  isLoadingContact?: boolean; // Loading state while fetching fresh contact data
 }
 
 interface CommunicationData {
@@ -77,7 +78,8 @@ export default function CommunicationTrackingModal({
   promptPage,
   communicationType: initialCommunicationType,
   onSend,
-  onStatusUpdate
+  onStatusUpdate,
+  isLoadingContact = false
 }: CommunicationTrackingModalProps) {
   // Determine available tabs based on contact info
   const hasSMS = !!contact.phone;
@@ -349,8 +351,15 @@ export default function CommunicationTrackingModal({
             </nav>
           </div>
           
-          {/* Check if contact has the required info for the active tab */}
-          {((activeTab === 'sms' && !hasSMS) || (activeTab === 'email' && !hasEmail)) ? (
+          {/* Loading state while fetching fresh contact data */}
+          {isLoadingContact ? (
+            <div className="p-8 flex flex-col items-center justify-center text-center">
+              <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4 bg-gray-100">
+                <Icon name="FaSpinner" className="w-8 h-8 text-gray-400 animate-spin" />
+              </div>
+              <p className="text-gray-500">Loading contact information...</p>
+            </div>
+          ) : ((activeTab === 'sms' && !hasSMS) || (activeTab === 'email' && !hasEmail)) ? (
             /* Missing Contact Info Message */
             <div className="p-8 flex flex-col items-center justify-center text-center">
               <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${

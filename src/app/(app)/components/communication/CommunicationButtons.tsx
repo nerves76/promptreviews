@@ -247,6 +247,7 @@ export default function CommunicationButtons({
           communicationType={singleButton ? undefined : selectedCommunicationType}
           onSend={handleSendCommunication}
           onStatusUpdate={handleStatusUpdate}
+          isLoadingContact={isFetchingContact}
         />
       )}
     </>
