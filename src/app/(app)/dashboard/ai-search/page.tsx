@@ -949,7 +949,7 @@ export default function AISearchPage() {
                 <select
                   value={filterConcept || ''}
                   onChange={(e) => startTransition(() => setFilterConcept(e.target.value || null))}
-                  className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-300"
+                  className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-300 max-w-[200px]"
                 >
                   <option value="">All concepts</option>
                   {conceptOptions.map(concept => (
