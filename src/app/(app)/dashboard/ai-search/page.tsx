@@ -1220,27 +1220,34 @@ export default function AISearchPage() {
                     </div>
                   </div>
 
-                  {/* Consistency (Standard Deviation) */}
+                  {/* Consistency (inverted std dev: higher = more consistent) */}
                   <div className={`p-4 rounded-xl border ${filteredStats ? 'bg-slate-50 border-slate-200' : 'bg-gray-50 border-gray-200'}`}>
                     <div className="text-2xl font-bold text-gray-800">
                       {(() => {
-                        const consistency = filteredStats?.overallConsistency ?? accountSummary?.overallConsistency;
-                        if (consistency === null || consistency === undefined) return '--';
-                        return `±${Math.round(consistency)}%`;
+                        const stdDev = filteredStats?.overallConsistency ?? accountSummary?.overallConsistency;
+                        if (stdDev === null || stdDev === undefined) return '--';
+                        // Convert std dev to consistency score (0-100, higher = more consistent)
+                        // Max std dev for rates is ~50, so: consistency = 100 - (stdDev * 2)
+                        const consistencyScore = Math.max(0, Math.round(100 - stdDev * 2));
+                        return `${consistencyScore}%`;
                       })()}
                     </div>
-                    <div className="text-sm text-gray-600">Consistency (std dev)</div>
+                    <div className="text-sm text-gray-600">Consistency</div>
                     <div className="mt-1 flex gap-1.5 flex-wrap">
                       {LLM_PROVIDERS.map((provider) => {
-                        const consistency = filteredStats?.providerConsistency?.[provider] ?? accountSummary?.providerConsistency?.[provider];
+                        const stdDev = filteredStats?.providerConsistency?.[provider] ?? accountSummary?.providerConsistency?.[provider];
                         const colors = LLM_PROVIDER_COLORS[provider];
+                        // For binary outcomes (cited/not), max std dev is 50
+                        const consistencyScore = stdDev !== null && stdDev !== undefined
+                          ? Math.max(0, Math.round(100 - stdDev * 2))
+                          : null;
                         return (
                           <span
                             key={provider}
                             className={`px-1.5 py-0.5 rounded text-xs ${colors.bg} ${colors.text}`}
-                            title={`${LLM_PROVIDER_LABELS[provider]} consistency`}
+                            title={`${LLM_PROVIDER_LABELS[provider]}: ${consistencyScore !== null ? `${consistencyScore}% consistent` : 'no data'}`}
                           >
-                            {consistency !== null && consistency !== undefined ? `±${Math.round(consistency)}%` : '--'}
+                            {consistencyScore !== null ? `${consistencyScore}%` : '--'}
                           </span>
                         );
                       })}
