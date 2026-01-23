@@ -96,6 +96,7 @@ function processResultsData(
   }>();
 
   // Generate time periods
+  // Use ISO date strings as keys for consistency (avoids week number calculation issues)
   for (let i = periods - 1; i >= 0; i--) {
     let periodStart: Date;
     let label: string;
@@ -104,11 +105,11 @@ function processResultsData(
     if (granularity === 'monthly') {
       periodStart = new Date(now.getFullYear(), now.getMonth() - i, 1);
       label = formatMonthLabel(periodStart);
-      key = `${periodStart.getFullYear()}-${periodStart.getMonth()}`;
+      key = periodStart.toISOString().split('T')[0]; // e.g., "2026-01-01"
     } else {
       periodStart = getWeekStart(new Date(now.getTime() - i * 7 * 24 * 60 * 60 * 1000));
       label = formatWeekLabel(periodStart);
-      key = `${periodStart.getFullYear()}-W${Math.ceil((periodStart.getTime() - new Date(periodStart.getFullYear(), 0, 1).getTime()) / (7 * 24 * 60 * 60 * 1000))}`;
+      key = periodStart.toISOString().split('T')[0]; // e.g., "2026-01-19"
     }
 
     dataMap.set(key, {
@@ -124,10 +125,11 @@ function processResultsData(
     let key: string;
 
     if (granularity === 'monthly') {
-      key = `${checkDate.getFullYear()}-${checkDate.getMonth()}`;
+      const monthStart = getMonthStart(checkDate);
+      key = monthStart.toISOString().split('T')[0];
     } else {
       const weekStart = getWeekStart(checkDate);
-      key = `${weekStart.getFullYear()}-W${Math.ceil((weekStart.getTime() - new Date(weekStart.getFullYear(), 0, 1).getTime()) / (7 * 24 * 60 * 60 * 1000))}`;
+      key = weekStart.toISOString().split('T')[0];
     }
 
     const period = dataMap.get(key);

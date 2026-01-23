@@ -25,6 +25,15 @@ export const LLM_PROVIDER_LABELS: Record<LLMProvider, string> = {
   perplexity: 'Perplexity',
 };
 
+// Model names used by DataForSEO API
+// ChatGPT uses scraper (web UI), others use specific model versions
+export const LLM_PROVIDER_MODELS: Record<LLMProvider, string> = {
+  chatgpt: 'Web UI', // Uses ChatGPT web interface scraper
+  claude: 'Sonnet 4', // claude-sonnet-4-0
+  gemini: 'Flash 2.0', // gemini-2.0-flash
+  perplexity: 'Sonar', // sonar model
+};
+
 export const LLM_PROVIDER_COLORS: Record<
   LLMProvider,
   { bg: string; text: string; border: string }

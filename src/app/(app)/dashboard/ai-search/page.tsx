@@ -13,6 +13,7 @@ import {
   LLMProvider,
   LLM_PROVIDERS,
   LLM_PROVIDER_LABELS,
+  LLM_PROVIDER_MODELS,
   LLM_PROVIDER_COLORS,
   LLM_CREDIT_COSTS,
   LLMVisibilitySummary,
@@ -545,7 +546,7 @@ export default function AISearchPage() {
       if (current === null) return { direction: 'stable' as const, change: 0 };
       if (previous === null || previous === 0) {
         return current > 0
-          ? { direction: 'up' as const, change: current }
+          ? { direction: 'up' as const, change: Math.round(current) }
           : { direction: 'stable' as const, change: 0 };
       }
       const change = current - previous;
@@ -591,6 +592,15 @@ export default function AISearchPage() {
       providers: providerTrends,
       periodLabel: previousPeriod.length > 0 ? 'vs last month' : 'last 30 days',
     };
+  }, [allResults, filterGroup, filteredAndSortedRows]);
+
+  // Filter results for chart when group filter is active
+  const chartResults = useMemo(() => {
+    if (!filterGroup || filteredAndSortedRows.length === 0) {
+      return allResults;
+    }
+    const filteredQuestions = new Set(filteredAndSortedRows.map(r => r.question));
+    return allResults.filter(r => filteredQuestions.has(r.question));
   }, [allResults, filterGroup, filteredAndSortedRows]);
 
   // Pagination calculations
@@ -1056,8 +1066,8 @@ export default function AISearchPage() {
           <EmptyState />
         ) : (
           <>
-            {/* Trend Chart */}
-            <LLMVisibilityTrendChart results={allResults} isLoading={isLoading} />
+            {/* Trend Chart - filtered by group when filter active */}
+            <LLMVisibilityTrendChart results={chartResults} isLoading={isLoading} />
 
             {/* Summary Stats - Show filtered when group selected, otherwise account-wide */}
             {(filteredStats || accountSummary) && (
@@ -1148,9 +1158,10 @@ export default function AISearchPage() {
                           <span
                             key={provider}
                             className={`px-2 py-1 rounded text-xs font-medium ${colors.bg} ${colors.text} whitespace-nowrap flex items-center gap-1`}
-                            title={`${stats?.cited || 0} cited / ${stats?.checked || 0} checked${trend?.change ? ` (${trend.change > 0 ? '+' : ''}${trend.change}% vs last month)` : ''}`}
+                            title={`Model: ${LLM_PROVIDER_MODELS[provider]} • ${stats?.cited || 0} cited / ${stats?.checked || 0} checked${trend?.change ? ` (${trend.change > 0 ? '+' : ''}${trend.change}% vs last month)` : ''}`}
                           >
-                            {LLM_PROVIDER_LABELS[provider]}
+                            <span className="font-semibold">{LLM_PROVIDER_LABELS[provider]}</span>
+                            <span className="opacity-70">({LLM_PROVIDER_MODELS[provider]})</span>
                             {rate !== null ? ` ${rate}%` : ''}
                             {trend && trend.direction !== 'stable' && (
                               <span className={trend.direction === 'up' ? 'text-green-700' : 'text-red-700'}>
@@ -1161,7 +1172,7 @@ export default function AISearchPage() {
                         );
                       })}
                     </div>
-                    <div className="text-sm text-gray-600 mt-2">By provider (30-day trend)</div>
+                    <div className="text-sm text-gray-600 mt-2">By provider &amp; model (30-day trend)</div>
                   </div>
                 </div>
               </div>
