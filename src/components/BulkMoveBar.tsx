@@ -94,11 +94,11 @@ export function BulkMoveBar({
                 <>
                   {/* Backdrop */}
                   <div
-                    className="fixed inset-0 z-10"
+                    className="fixed inset-0 z-[100]"
                     onClick={() => setShowGroupDropdown(false)}
                   />
                   {/* Dropdown menu */}
-                  <div className="absolute bottom-full right-0 mb-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-20">
+                  <div className="absolute bottom-full right-0 mb-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-[101]">
                     <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase">
                       Select group
                     </div>
