@@ -67,23 +67,47 @@ export default function CommunicationButtons({
 
   // Fetch fresh contact data when modal opens
   useEffect(() => {
-    if (isModalOpen && initialContact.id && !freshContact) {
+    if (isModalOpen && !freshContact) {
       setIsFetchingContact(true);
-      apiClient.get<{ contact: Contact }>(`/contacts/${initialContact.id}`)
-        .then((data) => {
-          if (data.contact) {
-            setFreshContact(data.contact);
-          }
-        })
-        .catch((err) => {
-          console.error('Failed to fetch fresh contact data:', err);
-          // Fall back to initial contact data
-        })
-        .finally(() => {
-          setIsFetchingContact(false);
-        });
+
+      // If we have a contact ID, fetch by ID
+      if (initialContact.id) {
+        apiClient.get<{ contact: Contact }>(`/contacts/${initialContact.id}`)
+          .then((data) => {
+            if (data.contact) {
+              setFreshContact(data.contact);
+            }
+          })
+          .catch((err) => {
+            console.error('Failed to fetch fresh contact data:', err);
+          })
+          .finally(() => {
+            setIsFetchingContact(false);
+          });
+      } else if (initialContact.first_name || initialContact.last_name || initialContact.phone) {
+        // No contact ID - try to find a matching contact by name/phone
+        const params = new URLSearchParams();
+        if (initialContact.first_name) params.set('firstName', initialContact.first_name);
+        if (initialContact.last_name) params.set('lastName', initialContact.last_name);
+        if (initialContact.phone) params.set('phone', initialContact.phone);
+
+        apiClient.get<{ contact: Contact | null }>(`/contacts/search?${params.toString()}`)
+          .then((data) => {
+            if (data.contact) {
+              setFreshContact(data.contact);
+            }
+          })
+          .catch((err) => {
+            console.error('Failed to search for contact:', err);
+          })
+          .finally(() => {
+            setIsFetchingContact(false);
+          });
+      } else {
+        setIsFetchingContact(false);
+      }
     }
-  }, [isModalOpen, initialContact.id, freshContact]);
+  }, [isModalOpen, initialContact.id, initialContact.first_name, initialContact.last_name, initialContact.phone, freshContact]);
 
   // Reset fresh contact when modal closes
   useEffect(() => {
