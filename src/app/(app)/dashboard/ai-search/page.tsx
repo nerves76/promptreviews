@@ -1252,7 +1252,7 @@ export default function AISearchPage() {
                   <div className={`p-4 rounded-xl border ${displayStats.isFiltered ? 'bg-gradient-to-br from-slate-blue/10 to-blue-50 border-slate-blue/20' : 'bg-gradient-to-br from-blue-50 to-pink-50 border-blue-100'}`}>
                     <div className="flex items-baseline gap-2">
                       <span className="text-2xl font-bold text-slate-blue">
-                        {displayStats.averageVisibility !== null ? `${displayStats.averageVisibility.toFixed(0)}%` : '--'}
+                        {displayStats.averageVisibility !== null ? `${displayStats.averageVisibility.toFixed(2)}%` : '--'}
                       </span>
                       {trendStats?.overall.hasData && (
                         <span className={`text-sm font-medium flex items-center gap-0.5 ${
@@ -1295,7 +1295,7 @@ export default function AISearchPage() {
                   <div className={`p-4 rounded-xl border ${displayStats.isFiltered ? 'bg-gradient-to-br from-blue-50/80 to-cyan-50 border-blue-100' : 'bg-gradient-to-br from-cyan-50 to-blue-50 border-cyan-100'}`}>
                     <div className="flex items-baseline gap-2">
                       <span className="text-2xl font-bold text-blue-600">
-                        {displayStats.averageMentionRate !== null ? `${displayStats.averageMentionRate.toFixed(0)}%` : '--'}
+                        {displayStats.averageMentionRate !== null ? `${displayStats.averageMentionRate.toFixed(2)}%` : '--'}
                       </span>
                     </div>
                     <div className="text-sm text-gray-600">Mention rate</div>
