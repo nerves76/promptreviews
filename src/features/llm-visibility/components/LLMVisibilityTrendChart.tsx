@@ -58,7 +58,7 @@ interface TrendDataPoint {
 
 // Provider colors matching brand colors
 const PROVIDER_CHART_COLORS: Record<LLMProvider, string> = {
-  chatgpt: '#0fa47f', // ChatGPT green
+  chatgpt: '#374151', // ChatGPT charcoal (gray-700)
   claude: '#d97757', // Claude coral
   gemini: '#5885f3', // Gemini blue
   perplexity: '#22808d', // Perplexity teal

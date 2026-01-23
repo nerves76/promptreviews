@@ -70,7 +70,12 @@ module.exports = {
     'focus-visible:outline',
     'focus-visible:outline-2',
     'focus-visible:outline-[var(--pr-accent-color)]',
-    'focus-visible:outline-offset-2'
+    'focus-visible:outline-offset-2',
+    // LLM Provider brand colors (dynamically used)
+    'bg-llm-chatgpt-bg', 'text-llm-chatgpt-text', 'border-llm-chatgpt-border/30',
+    'bg-llm-claude-bg', 'text-llm-claude-text', 'border-llm-claude-border/30',
+    'bg-llm-gemini-bg', 'text-llm-gemini-text', 'border-llm-gemini-border/30',
+    'bg-llm-perplexity-bg', 'text-llm-perplexity-text', 'border-llm-perplexity-border/30',
   ],
   theme: {
     extend: {
@@ -121,11 +126,11 @@ module.exports = {
         // Glassmorphic - use white with opacity (white/20, white/90, etc.)
 
         // === LLM PROVIDER BRAND COLORS ===
-        // ChatGPT - Green (#0fa47f)
+        // ChatGPT - Black/Charcoal (to differentiate from Perplexity teal)
         "llm-chatgpt": {
-          bg: "#e6f7f2",
-          text: "#0a8a6a",
-          border: "#0fa47f",
+          bg: "#f3f4f6",
+          text: "#1f2937",
+          border: "#374151",
         },
         // Claude - Coral (#d97757)
         "llm-claude": {
