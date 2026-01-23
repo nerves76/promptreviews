@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/app/(app)/components/ui/button";
 import Icon from "@/components/Icon";
 import CommunicationTrackingModal from "./CommunicationTrackingModal";
@@ -46,7 +46,7 @@ interface CommunicationData {
 }
 
 export default function CommunicationButtons({
-  contact,
+  contact: initialContact,
   promptPage,
   onCommunicationSent,
   onStatusUpdated,
@@ -59,9 +59,41 @@ export default function CommunicationButtons({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCommunicationType, setSelectedCommunicationType] = useState<'email' | 'sms'>('email');
   const [isLoading, setIsLoading] = useState(false);
+  const [freshContact, setFreshContact] = useState<Contact | null>(null);
+  const [isFetchingContact, setIsFetchingContact] = useState(false);
+
+  // Use fresh contact data if available, otherwise fall back to initial contact
+  const contact = freshContact || initialContact;
+
+  // Fetch fresh contact data when modal opens
+  useEffect(() => {
+    if (isModalOpen && initialContact.id && !freshContact) {
+      setIsFetchingContact(true);
+      apiClient.get<{ contact: Contact }>(`/contacts/${initialContact.id}`)
+        .then((data) => {
+          if (data.contact) {
+            setFreshContact(data.contact);
+          }
+        })
+        .catch((err) => {
+          console.error('Failed to fetch fresh contact data:', err);
+          // Fall back to initial contact data
+        })
+        .finally(() => {
+          setIsFetchingContact(false);
+        });
+    }
+  }, [isModalOpen, initialContact.id, freshContact]);
+
+  // Reset fresh contact when modal closes
+  useEffect(() => {
+    if (!isModalOpen) {
+      setFreshContact(null);
+    }
+  }, [isModalOpen]);
 
   // Don't render anything if contact has no email or phone
-  if (!contact.email && !contact.phone) {
+  if (!initialContact.email && !initialContact.phone) {
     return null;
   }
 
@@ -70,9 +102,9 @@ export default function CommunicationButtons({
     // Otherwise, set the available type
     if (type) {
       setSelectedCommunicationType(type);
-    } else if (contact.email && !contact.phone) {
+    } else if (initialContact.email && !initialContact.phone) {
       setSelectedCommunicationType('email');
-    } else if (!contact.email && contact.phone) {
+    } else if (!initialContact.email && initialContact.phone) {
       setSelectedCommunicationType('sms');
     } else {
       // Both available, default to email
