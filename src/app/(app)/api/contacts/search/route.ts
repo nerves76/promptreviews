@@ -3,18 +3,21 @@ import { createServerSupabaseClient, createServiceRoleClient } from '@/auth/prov
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 
 /**
- * Search for a contact by name and/or phone
+ * Search for a contact by phone or email (unique identifiers only)
  * Used as a fallback when a prompt page doesn't have a linked contact_id
+ *
+ * NOTE: We intentionally don't match by name alone to avoid matching
+ * the wrong contact when multiple people have the same name.
  */
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const firstName = searchParams.get('firstName');
-    const lastName = searchParams.get('lastName');
     const phone = searchParams.get('phone');
+    const email = searchParams.get('email');
 
-    if (!firstName && !lastName && !phone) {
-      return NextResponse.json({ error: 'At least one search parameter is required' }, { status: 400 });
+    // Require at least phone or email - don't match by name alone
+    if (!phone && !email) {
+      return NextResponse.json({ error: 'Phone or email is required for contact search' }, { status: 400 });
     }
 
     const supabase = await createServerSupabaseClient();
@@ -33,28 +36,33 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'No valid account found' }, { status: 403 });
     }
 
-    // Build query to find matching contact
+    // Build query to find matching contact by unique identifiers
     let query = supabaseAdmin
       .from('contacts')
       .select('id, first_name, last_name, email, phone')
       .eq('account_id', accountId);
 
-    // Add filters - try to match by name first, then phone
-    if (firstName && lastName) {
-      query = query.ilike('first_name', firstName).ilike('last_name', lastName);
-    } else if (firstName) {
-      query = query.ilike('first_name', firstName);
-    } else if (lastName) {
-      query = query.ilike('last_name', lastName);
+    // Build OR conditions for phone and email
+    const conditions: string[] = [];
+
+    if (phone) {
+      // Normalize phone for comparison - remove non-digits, use last 10 digits
+      const normalizedPhone = phone.replace(/\D/g, '').slice(-10);
+      if (normalizedPhone.length >= 7) {
+        conditions.push(`phone.ilike.%${normalizedPhone}%`);
+      }
     }
 
-    // If we have phone, try exact match (after normalizing)
-    if (phone) {
-      // Normalize phone for comparison - remove non-digits
-      const normalizedPhone = phone.replace(/\D/g, '');
-      // Use a raw filter to compare normalized phone numbers
-      query = query.or(`phone.ilike.%${normalizedPhone.slice(-10)}%`);
+    if (email) {
+      conditions.push(`email.ilike.${email}`);
     }
+
+    if (conditions.length === 0) {
+      return NextResponse.json({ contact: null });
+    }
+
+    // Use OR to match either phone or email
+    query = query.or(conditions.join(','));
 
     const { data: contacts, error: fetchError } = await query.limit(1);
 

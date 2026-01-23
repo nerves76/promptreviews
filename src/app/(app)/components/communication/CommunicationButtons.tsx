@@ -84,12 +84,12 @@ export default function CommunicationButtons({
           .finally(() => {
             setIsFetchingContact(false);
           });
-      } else if (initialContact.first_name || initialContact.last_name || initialContact.phone) {
-        // No contact ID - try to find a matching contact by name/phone
+      } else if (initialContact.phone || initialContact.email) {
+        // No contact ID - only search by unique identifiers (phone/email) to avoid wrong matches
+        // Don't search by name alone as multiple contacts could have the same name
         const params = new URLSearchParams();
-        if (initialContact.first_name) params.set('firstName', initialContact.first_name);
-        if (initialContact.last_name) params.set('lastName', initialContact.last_name);
         if (initialContact.phone) params.set('phone', initialContact.phone);
+        if (initialContact.email) params.set('email', initialContact.email);
 
         apiClient.get<{ contact: Contact | null }>(`/contacts/search?${params.toString()}`)
           .then((data) => {
