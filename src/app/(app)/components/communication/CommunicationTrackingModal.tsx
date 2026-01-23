@@ -403,6 +403,13 @@ export default function CommunicationTrackingModal({
                   selectedTemplateId={selectedTemplateId}
                 />
 
+                {/* SMS Tip */}
+                {activeTab === 'sms' && (
+                  <p className="text-xs text-gray-500 -mt-4">
+                    Tip: The &quot;Short &amp; simple&quot; category has templates designed for SMS.
+                  </p>
+                )}
+
                 {/* Prompt Page URL */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -439,13 +446,6 @@ export default function CommunicationTrackingModal({
                     This URL will be automatically added to your message when you send.
                   </p>
                 </div>
-
-                {/* SMS Tip */}
-                {activeTab === 'sms' && (
-                  <p className="text-xs text-gray-500">
-                    Tip: The "Short & simple" category has templates designed for SMS.
-                  </p>
-                )}
 
                 {/* Email Subject (for emails only) */}
                 {activeTab === 'email' && (
