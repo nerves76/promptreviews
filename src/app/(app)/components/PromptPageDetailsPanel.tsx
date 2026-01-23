@@ -150,6 +150,15 @@ export default function PromptPageDetailsPanel({
                   <span>{page.phone}</span>
                 </div>
               )}
+              {page.contact_id && (
+                <Link
+                  href={`/dashboard/contacts?contactId=${page.contact_id}`}
+                  className="inline-flex items-center gap-1 text-sm text-slate-blue hover:text-slate-blue/80 underline mt-1"
+                >
+                  <Icon name="FaUser" size={12} />
+                  Go to contact
+                </Link>
+              )}
             </div>
           </section>
         )}
