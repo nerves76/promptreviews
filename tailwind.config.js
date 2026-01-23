@@ -128,26 +128,26 @@ module.exports = {
         // === LLM PROVIDER BRAND COLORS ===
         // ChatGPT - Black/Charcoal (to differentiate from Perplexity teal)
         "llm-chatgpt": {
-          bg: "#f3f4f6",
-          text: "#1f2937",
+          bg: "#e5e7eb",
+          text: "#111827",
           border: "#374151",
         },
-        // Claude - Coral (#d97757)
+        // Claude - Coral (#d97757) - more saturated
         "llm-claude": {
-          bg: "#fdf0eb",
-          text: "#c4603f",
+          bg: "#fed7c7",
+          text: "#9a3412",
           border: "#d97757",
         },
-        // Gemini - Blue (#5885f3)
+        // Gemini - Blue (#5885f3) - more saturated
         "llm-gemini": {
-          bg: "#eef3fe",
-          text: "#4a71d4",
+          bg: "#dbeafe",
+          text: "#1e40af",
           border: "#5885f3",
         },
-        // Perplexity - Teal (#22808d)
+        // Perplexity - Teal (#22808d) - more saturated
         "llm-perplexity": {
-          bg: "#e5f3f4",
-          text: "#1d6b76",
+          bg: "#ccfbf1",
+          text: "#115e59",
           border: "#22808d",
         },
       },
