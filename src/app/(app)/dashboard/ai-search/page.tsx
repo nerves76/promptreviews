@@ -115,7 +115,7 @@ export default function AISearchPage() {
   const [allResults, setAllResults] = useState<LLMVisibilityCheck[]>([]);
   const [accountSummary, setAccountSummary] = useState<AccountSummary | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedProviders, setSelectedProviders] = useState<LLMProvider[]>(['chatgpt', 'claude']);
+  const [selectedProviders, setSelectedProviders] = useState<Set<LLMProvider>>(() => new Set(LLM_PROVIDERS));
   const [error, setError] = useState<string | null>(null);
 
   // Modal state for checking a single question
@@ -144,6 +144,22 @@ export default function AISearchPage() {
         next.delete(key);
       } else {
         next.add(key);
+      }
+      return next;
+    });
+  };
+
+  // Toggle provider selection for stats filtering
+  const toggleProvider = (provider: LLMProvider) => {
+    setSelectedProviders(prev => {
+      const next = new Set(prev);
+      if (next.has(provider)) {
+        // Don't allow deselecting all providers
+        if (next.size > 1) {
+          next.delete(provider);
+        }
+      } else {
+        next.add(provider);
       }
       return next;
     });
@@ -398,17 +414,6 @@ export default function AISearchPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Toggle provider selection
-  const toggleProvider = (provider: LLMProvider) => {
-    setSelectedProviders((prev) => {
-      if (prev.includes(provider)) {
-        if (prev.length === 1) return prev;
-        return prev.filter((p) => p !== provider);
-      }
-      return [...prev, provider];
-    });
-  };
-
   // Build flattened question rows with results
   const questionRows = useMemo((): QuestionRow[] => {
     const rows: QuestionRow[] = [];
@@ -502,21 +507,32 @@ export default function AISearchPage() {
     return rows;
   }, [questionRows, filterConcept, filterFunnel, filterGroup, sortField, sortDirection]);
 
-  // Calculate filtered stats when group filter is active
-  const filteredStats = useMemo(() => {
-    // Only calculate when a group filter is applied
-    if (!filterGroup) return null;
+  // Calculate display stats based on selected providers and optional group filter
+  const displayStats = useMemo(() => {
+    // Determine which questions to include
+    let relevantQuestions: Set<string>;
+    let totalQuestions: number;
 
-    const rows = filteredAndSortedRows;
-    if (rows.length === 0) return null;
+    if (filterGroup) {
+      // When group filter is active, use filtered rows
+      const rows = filteredAndSortedRows;
+      if (rows.length === 0) return null;
+      relevantQuestions = new Set(rows.map(r => r.question));
+      totalQuestions = rows.length;
+    } else {
+      // No group filter - use all questions
+      relevantQuestions = new Set(questionRows.map(r => r.question));
+      totalQuestions = questionRows.length;
+    }
 
-    // Get unique questions in the filtered set
-    const filteredQuestions = new Set(rows.map(r => r.question));
+    if (relevantQuestions.size === 0) return null;
 
-    // Get results only for filtered questions
-    const filteredResults = allResults.filter(r => filteredQuestions.has(r.question));
+    // Get results only for relevant questions AND selected providers
+    const filteredResults = allResults.filter(r =>
+      relevantQuestions.has(r.question) && selectedProviders.has(r.llmProvider)
+    );
 
-    // Group results by question+provider to get unique checks
+    // Group results by question+provider to get unique checks (most recent per combo)
     const uniqueChecks = new Map<string, LLMVisibilityCheck>();
     for (const result of filteredResults) {
       const key = `${result.question}:${result.llmProvider}`;
@@ -526,7 +542,7 @@ export default function AISearchPage() {
       }
     }
 
-    // Calculate provider stats
+    // Calculate provider stats (only for selected providers)
     const providerStats: Record<string, { checked: number; cited: number; mentioned: number }> = {};
     for (const result of uniqueChecks.values()) {
       if (!providerStats[result.llmProvider]) {
@@ -537,18 +553,22 @@ export default function AISearchPage() {
       if (result.brandMentioned) providerStats[result.llmProvider].mentioned++;
     }
 
-    // Calculate citation rate
+    // Calculate citation rate (across selected providers)
     const citedCount = Array.from(uniqueChecks.values()).filter(r => r.domainCited).length;
+    const mentionedCount = Array.from(uniqueChecks.values()).filter(r => r.brandMentioned).length;
     const averageVisibility = uniqueChecks.size > 0
       ? (citedCount / uniqueChecks.size) * 100
       : null;
+    const averageMentionRate = uniqueChecks.size > 0
+      ? (mentionedCount / uniqueChecks.size) * 100
+      : null;
 
-    // Count unique questions that have been checked
+    // Count unique questions that have been checked (by selected providers)
     const questionsChecked = new Set(
       Array.from(uniqueChecks.values()).map(r => r.question)
     ).size;
 
-    // Count unique questions that have at least one citation from any provider
+    // Count unique questions that have at least one citation from selected providers
     const citedQuestions = new Set(
       Array.from(uniqueChecks.values())
         .filter(r => r.domainCited)
@@ -556,7 +576,7 @@ export default function AISearchPage() {
     );
     const questionsCited = citedQuestions.size;
 
-    // Count unique questions that have at least one brand mention from any provider
+    // Count unique questions that have at least one brand mention from selected providers
     const mentionedQuestions = new Set(
       Array.from(uniqueChecks.values())
         .filter(r => r.brandMentioned)
@@ -578,9 +598,13 @@ export default function AISearchPage() {
     const rates = Array.from(questionRates.values()).map(q => (q.cited / q.total) * 100);
     const overallConsistency = rates.length > 1 ? calculateStdDev(rates) : null;
 
-    // Calculate per-provider consistency
+    // Calculate per-provider consistency (only for selected providers)
     const providerConsistency: Record<string, number | null> = {};
     for (const provider of LLM_PROVIDERS) {
+      if (!selectedProviders.has(provider)) {
+        providerConsistency[provider] = null;
+        continue;
+      }
       const providerResults = Array.from(uniqueChecks.values()).filter(r => r.llmProvider === provider);
       if (providerResults.length > 1) {
         const providerRates = providerResults.map(r => r.domainCited ? 100 : 0);
@@ -591,16 +615,18 @@ export default function AISearchPage() {
     }
 
     return {
-      totalQuestions: rows.length,
+      totalQuestions,
       questionsChecked,
       questionsCited,
       questionsMentioned,
       averageVisibility,
+      averageMentionRate,
       providerStats,
       overallConsistency,
       providerConsistency,
+      isFiltered: !!filterGroup,
     };
-  }, [filterGroup, filteredAndSortedRows, allResults]);
+  }, [filterGroup, filteredAndSortedRows, questionRows, allResults, selectedProviders]);
 
   // Get group name for display
   const activeGroupName = useMemo(() => {
@@ -612,11 +638,11 @@ export default function AISearchPage() {
 
   // Calculate trend data (comparing last 30 days vs previous 30 days)
   const trendStats = useMemo(() => {
-    // Get relevant results (filtered by group if active)
-    let relevantResults = allResults;
+    // Get relevant results (filtered by group if active AND selected providers)
+    let relevantResults = allResults.filter(r => selectedProviders.has(r.llmProvider));
     if (filterGroup && filteredAndSortedRows.length > 0) {
       const filteredQuestions = new Set(filteredAndSortedRows.map(r => r.question));
-      relevantResults = allResults.filter(r => filteredQuestions.has(r.question));
+      relevantResults = relevantResults.filter(r => filteredQuestions.has(r.question));
     }
 
     if (relevantResults.length === 0) {
@@ -692,16 +718,17 @@ export default function AISearchPage() {
       providers: providerTrends,
       periodLabel: previousPeriod.length > 0 ? 'vs last month' : 'last 30 days',
     };
-  }, [allResults, filterGroup, filteredAndSortedRows]);
+  }, [allResults, filterGroup, filteredAndSortedRows, selectedProviders]);
 
-  // Filter results for chart when group filter is active
+  // Filter results for chart when group filter and/or provider filter is active
   const chartResults = useMemo(() => {
-    if (!filterGroup || filteredAndSortedRows.length === 0) {
-      return allResults;
+    let results = allResults.filter(r => selectedProviders.has(r.llmProvider));
+    if (filterGroup && filteredAndSortedRows.length > 0) {
+      const filteredQuestions = new Set(filteredAndSortedRows.map(r => r.question));
+      results = results.filter(r => filteredQuestions.has(r.question));
     }
-    const filteredQuestions = new Set(filteredAndSortedRows.map(r => r.question));
-    return allResults.filter(r => filteredQuestions.has(r.question));
-  }, [allResults, filterGroup, filteredAndSortedRows]);
+    return results;
+  }, [allResults, filterGroup, filteredAndSortedRows, selectedProviders]);
 
   // Pagination calculations
   const totalPages = Math.ceil(filteredAndSortedRows.length / PAGE_SIZE);
@@ -1169,11 +1196,42 @@ export default function AISearchPage() {
             {/* Trend Chart - filtered by group when filter active */}
             <LLMVisibilityTrendChart results={chartResults} isLoading={isLoading} />
 
-            {/* Summary Stats - Show filtered when group selected, otherwise account-wide */}
-            {(filteredStats || accountSummary) && (
+            {/* Provider Filter Row */}
+            <div className="mb-4 flex flex-wrap items-center gap-4">
+              <span className="text-sm font-medium text-gray-700">Include providers:</span>
+              <div className="flex flex-wrap gap-2">
+                {LLM_PROVIDERS.map((provider) => {
+                  const isSelected = selectedProviders.has(provider);
+                  const colors = LLM_PROVIDER_COLORS[provider];
+                  return (
+                    <button
+                      key={provider}
+                      onClick={() => toggleProvider(provider)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 transition-all whitespace-nowrap ${
+                        isSelected
+                          ? `${colors.bg} ${colors.text} ${colors.border} border`
+                          : 'bg-gray-100 text-gray-400 border border-gray-200 line-through'
+                      }`}
+                      title={isSelected ? `Click to exclude ${LLM_PROVIDER_LABELS[provider]}` : `Click to include ${LLM_PROVIDER_LABELS[provider]}`}
+                    >
+                      <span className={`w-3.5 h-3.5 rounded border flex items-center justify-center ${
+                        isSelected ? `${colors.border} ${colors.text}` : 'border-gray-300'
+                      }`}>
+                        {isSelected && <Icon name="FaCheck" className="w-2 h-2" />}
+                      </span>
+                      {LLM_PROVIDER_LABELS[provider]}
+                      <span className="opacity-70">({LLM_PROVIDER_MODELS[provider]})</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Summary Stats */}
+            {displayStats && (
               <div className="mb-6">
                 {/* Group filter indicator */}
-                {filteredStats && activeGroupName && (
+                {displayStats.isFiltered && activeGroupName && (
                   <div className="flex items-center gap-2 mb-3">
                     <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-blue/10 border border-slate-blue/20 rounded-lg text-sm font-medium text-slate-blue">
                       <Icon name="FaTags" className="w-3.5 h-3.5" />
@@ -1191,12 +1249,10 @@ export default function AISearchPage() {
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {/* Citation Rate with Trend and Per-Model Rates */}
-                  <div className={`p-4 rounded-xl border ${filteredStats ? 'bg-gradient-to-br from-slate-blue/10 to-blue-50 border-slate-blue/20' : 'bg-gradient-to-br from-blue-50 to-pink-50 border-blue-100'}`}>
+                  <div className={`p-4 rounded-xl border ${displayStats.isFiltered ? 'bg-gradient-to-br from-slate-blue/10 to-blue-50 border-slate-blue/20' : 'bg-gradient-to-br from-blue-50 to-pink-50 border-blue-100'}`}>
                     <div className="flex items-baseline gap-2">
                       <span className="text-2xl font-bold text-slate-blue">
-                        {filteredStats
-                          ? (filteredStats.averageVisibility !== null ? `${filteredStats.averageVisibility.toFixed(0)}%` : '--')
-                          : (accountSummary?.averageVisibility !== null ? `${accountSummary!.averageVisibility!.toFixed(0)}%` : '--')}
+                        {displayStats.averageVisibility !== null ? `${displayStats.averageVisibility.toFixed(0)}%` : '--'}
                       </span>
                       {trendStats?.overall.hasData && (
                         <span className={`text-sm font-medium flex items-center gap-0.5 ${
@@ -1214,12 +1270,10 @@ export default function AISearchPage() {
                       )}
                     </div>
                     <div className="text-sm text-gray-600">Citation rate</div>
-                    {/* Per-model citation rates */}
+                    {/* Per-model citation rates - only show selected providers */}
                     <div className="mt-2 flex gap-1.5 flex-wrap">
-                      {LLM_PROVIDERS.map((provider) => {
-                        const stats = filteredStats
-                          ? filteredStats.providerStats[provider]
-                          : accountSummary?.providerStats[provider];
+                      {LLM_PROVIDERS.filter(p => selectedProviders.has(p)).map((provider) => {
+                        const stats = displayStats.providerStats[provider];
                         const colors = LLM_PROVIDER_COLORS[provider];
                         const rate = stats && stats.checked > 0
                           ? Math.round((stats.cited / stats.checked) * 100)
@@ -1237,52 +1291,68 @@ export default function AISearchPage() {
                     </div>
                   </div>
 
+                  {/* Mention Rate with Per-Model Rates */}
+                  <div className={`p-4 rounded-xl border ${displayStats.isFiltered ? 'bg-gradient-to-br from-blue-50/80 to-cyan-50 border-blue-100' : 'bg-gradient-to-br from-cyan-50 to-blue-50 border-cyan-100'}`}>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-2xl font-bold text-blue-600">
+                        {displayStats.averageMentionRate !== null ? `${displayStats.averageMentionRate.toFixed(0)}%` : '--'}
+                      </span>
+                    </div>
+                    <div className="text-sm text-gray-600">Mention rate</div>
+                    {/* Per-model mention rates - only show selected providers */}
+                    <div className="mt-2 flex gap-1.5 flex-wrap">
+                      {LLM_PROVIDERS.filter(p => selectedProviders.has(p)).map((provider) => {
+                        const stats = displayStats.providerStats[provider];
+                        const colors = LLM_PROVIDER_COLORS[provider];
+                        const rate = stats && stats.checked > 0
+                          ? Math.round((stats.mentioned / stats.checked) * 100)
+                          : null;
+                        return (
+                          <span
+                            key={provider}
+                            className={`px-1.5 py-0.5 rounded text-xs ${colors.bg} ${colors.text}`}
+                            title={`${LLM_PROVIDER_LABELS[provider]}: ${stats?.mentioned || 0} mentioned / ${stats?.checked || 0} checked`}
+                          >
+                            {rate !== null ? `${rate}%` : '--'}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  </div>
+
                   {/* Questions Tracked & Cited */}
-                  <div className={`p-4 rounded-xl border ${filteredStats ? 'bg-slate-50 border-slate-200' : 'bg-gray-50 border-gray-200'}`}>
+                  <div className={`p-4 rounded-xl border ${displayStats.isFiltered ? 'bg-slate-50 border-slate-200' : 'bg-gray-50 border-gray-200'}`}>
                     <div className="text-2xl font-bold text-gray-800">
-                      {filteredStats
-                        ? `${filteredStats.questionsChecked}/${filteredStats.totalQuestions}`
-                        : `${accountSummary?.questionsChecked}/${accountSummary?.totalQuestions}`}
+                      {displayStats.questionsChecked}/{displayStats.totalQuestions}
                     </div>
                     <div className="text-sm text-gray-600">Questions tracked</div>
                     <div className="mt-1 text-sm flex flex-wrap gap-x-3 gap-y-1">
                       <span>
-                        <span className="font-semibold text-green-600">
-                          {filteredStats
-                            ? filteredStats.questionsCited
-                            : accountSummary?.questionsCited || 0}
-                        </span>
+                        <span className="font-semibold text-green-600">{displayStats.questionsCited}</span>
                         <span className="text-gray-500"> cited</span>
                       </span>
                       <span>
-                        <span className="font-semibold text-blue-600">
-                          {filteredStats
-                            ? filteredStats.questionsMentioned
-                            : accountSummary?.questionsMentioned || 0}
-                        </span>
+                        <span className="font-semibold text-blue-600">{displayStats.questionsMentioned}</span>
                         <span className="text-gray-500"> mentioned</span>
                       </span>
                     </div>
                   </div>
 
                   {/* Consistency (inverted std dev: higher = more consistent) */}
-                  <div className={`p-4 rounded-xl border ${filteredStats ? 'bg-slate-50 border-slate-200' : 'bg-gray-50 border-gray-200'}`}>
+                  <div className={`p-4 rounded-xl border ${displayStats.isFiltered ? 'bg-slate-50 border-slate-200' : 'bg-gray-50 border-gray-200'}`}>
                     <div className="text-2xl font-bold text-gray-800">
                       {(() => {
-                        const stdDev = filteredStats?.overallConsistency ?? accountSummary?.overallConsistency;
+                        const stdDev = displayStats.overallConsistency;
                         if (stdDev === null || stdDev === undefined) return '--';
-                        // Convert std dev to consistency score (0-100, higher = more consistent)
-                        // Max std dev for rates is ~50, so: consistency = 100 - (stdDev * 2)
                         const consistencyScore = Math.max(0, Math.round(100 - stdDev * 2));
                         return `${consistencyScore}%`;
                       })()}
                     </div>
                     <div className="text-sm text-gray-600">Consistency</div>
                     <div className="mt-1 flex gap-1.5 flex-wrap">
-                      {LLM_PROVIDERS.map((provider) => {
-                        const stdDev = filteredStats?.providerConsistency?.[provider] ?? accountSummary?.providerConsistency?.[provider];
+                      {LLM_PROVIDERS.filter(p => selectedProviders.has(p)).map((provider) => {
+                        const stdDev = displayStats.providerConsistency[provider];
                         const colors = LLM_PROVIDER_COLORS[provider];
-                        // For binary outcomes (cited/not), max std dev is 50
                         const consistencyScore = stdDev !== null && stdDev !== undefined
                           ? Math.max(0, Math.round(100 - stdDev * 2))
                           : null;
@@ -1297,30 +1367,6 @@ export default function AISearchPage() {
                         );
                       })}
                     </div>
-                  </div>
-
-                  {/* By Provider */}
-                  <div className={`p-4 rounded-xl border ${filteredStats ? 'bg-slate-50 border-slate-200' : 'bg-gray-50 border-gray-200'}`}>
-                    <div className="flex gap-2 flex-wrap">
-                      {LLM_PROVIDERS.map((provider) => {
-                        const stats = filteredStats
-                          ? filteredStats.providerStats[provider]
-                          : accountSummary?.providerStats[provider];
-                        const colors = LLM_PROVIDER_COLORS[provider];
-
-                        return (
-                          <span
-                            key={provider}
-                            className={`px-2 py-1 rounded text-xs font-medium ${colors.bg} ${colors.text} whitespace-nowrap flex items-center gap-1`}
-                            title={`${stats?.cited || 0} cited / ${stats?.checked || 0} checked`}
-                          >
-                            <span className="font-semibold">{LLM_PROVIDER_LABELS[provider]}</span>
-                            <span className="opacity-70">({LLM_PROVIDER_MODELS[provider]})</span>
-                          </span>
-                        );
-                      })}
-                    </div>
-                    <div className="text-sm text-gray-600 mt-2">Providers &amp; models</div>
                   </div>
                 </div>
               </div>
