@@ -509,7 +509,7 @@ export default function AISearchPage() {
     return group?.name || 'Unknown group';
   }, [filterGroup, queryGroups]);
 
-  // Calculate trend data (comparing last 7 days vs previous 7 days)
+  // Calculate trend data (comparing last 30 days vs previous 30 days)
   const trendStats = useMemo(() => {
     // Get relevant results (filtered by group if active)
     let relevantResults = allResults;
@@ -523,14 +523,14 @@ export default function AISearchPage() {
     }
 
     const now = new Date();
-    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const sixtyDaysAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
 
-    // Split results into current period (last 7 days) and previous period (7-14 days ago)
-    const currentPeriod = relevantResults.filter(r => new Date(r.checkedAt) >= sevenDaysAgo);
+    // Split results into current period (last 30 days) and previous period (30-60 days ago)
+    const currentPeriod = relevantResults.filter(r => new Date(r.checkedAt) >= thirtyDaysAgo);
     const previousPeriod = relevantResults.filter(r => {
       const date = new Date(r.checkedAt);
-      return date >= fourteenDaysAgo && date < sevenDaysAgo;
+      return date >= sixtyDaysAgo && date < thirtyDaysAgo;
     });
 
     // Helper to calculate citation rate
@@ -589,7 +589,7 @@ export default function AISearchPage() {
         hasPreviousData: previousPeriod.length > 0,
       },
       providers: providerTrends,
-      periodLabel: previousPeriod.length > 0 ? 'vs last week' : 'last 7 days',
+      periodLabel: previousPeriod.length > 0 ? 'vs last month' : 'last 30 days',
     };
   }, [allResults, filterGroup, filteredAndSortedRows]);
 
@@ -1148,7 +1148,7 @@ export default function AISearchPage() {
                           <span
                             key={provider}
                             className={`px-2 py-1 rounded text-xs font-medium ${colors.bg} ${colors.text} whitespace-nowrap flex items-center gap-1`}
-                            title={`${stats?.cited || 0} cited / ${stats?.checked || 0} checked${trend?.change ? ` (${trend.change > 0 ? '+' : ''}${trend.change}% vs last week)` : ''}`}
+                            title={`${stats?.cited || 0} cited / ${stats?.checked || 0} checked${trend?.change ? ` (${trend.change > 0 ? '+' : ''}${trend.change}% vs last month)` : ''}`}
                           >
                             {LLM_PROVIDER_LABELS[provider]}
                             {rate !== null ? ` ${rate}%` : ''}
@@ -1161,7 +1161,7 @@ export default function AISearchPage() {
                         );
                       })}
                     </div>
-                    <div className="text-sm text-gray-600 mt-2">By provider (7-day trend)</div>
+                    <div className="text-sm text-gray-600 mt-2">By provider (30-day trend)</div>
                   </div>
                 </div>
               </div>
