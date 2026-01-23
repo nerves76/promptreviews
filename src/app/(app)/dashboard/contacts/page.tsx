@@ -9,6 +9,7 @@ import AppLoader from "@/app/(app)/components/AppLoader";
 import PageCard from "@/app/(app)/components/PageCard";
 import { Dialog } from "@headlessui/react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 
 import UnifiedPromptTypeSelectModal from "@/app/(app)/components/UnifiedPromptTypeSelectModal";
 import ManualContactForm from "@/app/(app)/components/ManualContactForm";
@@ -290,6 +291,65 @@ export default function UploadContactsPage() {
     );
   };
 
+  // Helper function to get campaign status styling
+  const getCampaignStatusStyle = (status: string) => {
+    switch (status) {
+      case 'draft':
+        return { bg: 'bg-gray-100', text: 'text-gray-700', label: 'Draft' };
+      case 'in_queue':
+        return { bg: 'bg-blue-100', text: 'text-blue-700', label: 'In Queue' };
+      case 'sent':
+        return { bg: 'bg-indigo-100', text: 'text-indigo-700', label: 'Sent' };
+      case 'responded':
+        return { bg: 'bg-purple-100', text: 'text-purple-700', label: 'Responded' };
+      case 'received':
+        return { bg: 'bg-teal-100', text: 'text-teal-700', label: 'Received' };
+      case 'completed':
+        return { bg: 'bg-green-100', text: 'text-green-700', label: 'Completed' };
+      default:
+        return { bg: 'bg-gray-100', text: 'text-gray-600', label: status.replace('_', ' ') };
+    }
+  };
+
+  // Helper function to render campaign status
+  const renderCampaignStatus = (contact: any) => {
+    const campaigns = contact.campaigns || [];
+
+    if (campaigns.length === 0) {
+      return <span className="text-gray-400">—</span>;
+    }
+
+    // Get the most recent campaign (already sorted by created_at desc)
+    const mostRecent = campaigns[0];
+    const style = getCampaignStatusStyle(mostRecent.status);
+
+    if (campaigns.length === 1) {
+      return (
+        <Link
+          href={`/prompt-pages?tab=campaign&highlight=${mostRecent.slug}`}
+          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${style.bg} ${style.text} hover:opacity-80 transition-opacity whitespace-nowrap`}
+        >
+          {style.label}
+        </Link>
+      );
+    }
+
+    // Multiple campaigns - show most recent with count
+    return (
+      <div className="flex items-center gap-1">
+        <Link
+          href={`/prompt-pages?tab=campaign&highlight=${mostRecent.slug}`}
+          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${style.bg} ${style.text} hover:opacity-80 transition-opacity whitespace-nowrap`}
+        >
+          {style.label}
+        </Link>
+        <span className="text-xs text-gray-500" title={`${campaigns.length} total campaigns`}>
+          +{campaigns.length - 1}
+        </span>
+      </div>
+    );
+  };
+
   // Function to refresh contacts data
   const refreshContacts = async () => {
     setContactsLoading(true);
@@ -317,27 +377,46 @@ export default function UploadContactsPage() {
       .order("created_at", { ascending: false })
       .range(startIndex, endIndex);
       
-    // Get review counts for each contact separately
+    // Get review counts and campaign statuses for each contact separately
     if (data && data.length > 0) {
       const contactIds = data.map(contact => contact.id);
+
+      // Fetch review counts
       const { data: reviewCounts } = await supabase
         .from("review_submissions")
         .select("contact_id")
         .in("contact_id", contactIds)
         .eq("verified", true);
-        
+
       // Count reviews per contact
       const reviewCountMap = (reviewCounts || []).reduce((acc: {[key: string]: number}, review) => {
         acc[review.contact_id] = (acc[review.contact_id] || 0) + 1;
         return acc;
       }, {});
-      
-      // Add review counts to contacts
+
+      // Fetch campaign (prompt page) statuses
+      const { data: promptPages } = await supabase
+        .from("prompt_pages")
+        .select("contact_id, status, created_at, slug")
+        .in("contact_id", contactIds)
+        .eq("is_universal", false)
+        .order("created_at", { ascending: false });
+
+      // Group prompt pages by contact
+      const campaignMap = (promptPages || []).reduce((acc: {[key: string]: Array<{status: string, created_at: string, slug: string}>}, page) => {
+        if (!page.contact_id) return acc;
+        if (!acc[page.contact_id]) acc[page.contact_id] = [];
+        acc[page.contact_id].push({ status: page.status, created_at: page.created_at, slug: page.slug });
+        return acc;
+      }, {});
+
+      // Add review counts and campaigns to contacts
       data.forEach(contact => {
         contact.review_count = reviewCountMap[contact.id] || 0;
+        contact.campaigns = campaignMap[contact.id] || [];
       });
     }
-      
+
     if (!error && data) {
       setContacts(data);
       // Clear selections when refreshing
@@ -374,24 +453,43 @@ export default function UploadContactsPage() {
         .order("created_at", { ascending: false })
         .range(startIndex, endIndex);
         
-      // Get review counts for each contact separately
+      // Get review counts and campaign statuses for each contact separately
       if (data && data.length > 0) {
         const contactIds = data.map(contact => contact.id);
+
+        // Fetch review counts
         const { data: reviewCounts } = await supabase
           .from("review_submissions")
           .select("contact_id")
           .in("contact_id", contactIds)
           .eq("verified", true);
-          
+
         // Count reviews per contact
         const reviewCountMap = (reviewCounts || []).reduce((acc: {[key: string]: number}, review) => {
           acc[review.contact_id] = (acc[review.contact_id] || 0) + 1;
           return acc;
         }, {});
-        
-        // Add review counts to contacts
+
+        // Fetch campaign (prompt page) statuses
+        const { data: promptPages } = await supabase
+          .from("prompt_pages")
+          .select("contact_id, status, created_at, slug")
+          .in("contact_id", contactIds)
+          .eq("is_universal", false)
+          .order("created_at", { ascending: false });
+
+        // Group prompt pages by contact
+        const campaignMap = (promptPages || []).reduce((acc: {[key: string]: Array<{status: string, created_at: string, slug: string}>}, page) => {
+          if (!page.contact_id) return acc;
+          if (!acc[page.contact_id]) acc[page.contact_id] = [];
+          acc[page.contact_id].push({ status: page.status, created_at: page.created_at, slug: page.slug });
+          return acc;
+        }, {});
+
+        // Add review counts and campaigns to contacts
         data.forEach(contact => {
           contact.review_count = reviewCountMap[contact.id] || 0;
+          contact.campaigns = campaignMap[contact.id] || [];
         });
       }
         
@@ -1123,6 +1221,9 @@ export default function UploadContactsPage() {
                       <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Reviews
                       </th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Campaign
+                      </th>
                       <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                         Actions
                       </th>
@@ -1170,6 +1271,9 @@ export default function UploadContactsPage() {
                       </td>
                       <td className="px-3 py-2 text-sm">
                         {renderReviewCount(contact)}
+                      </td>
+                      <td className="px-3 py-2 text-sm">
+                        {renderCampaignStatus(contact)}
                       </td>
                       <td className="px-3 py-2 text-sm whitespace-nowrap">
                         <button

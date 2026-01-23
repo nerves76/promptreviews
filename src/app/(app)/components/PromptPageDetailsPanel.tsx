@@ -86,26 +86,28 @@ export default function PromptPageDetailsPanel({
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="text-xs uppercase text-gray-500 mb-1">Prompt Page</p>
-            <h2 className="text-xl font-semibold text-gray-900">
-              {page.first_name || page.last_name
-                ? `${page.first_name || ""} ${page.last_name || ""}`.trim()
-                : "Unnamed Contact"}
-            </h2>
+            <div className="flex items-center gap-3">
+              <h2 className="text-xl font-semibold text-gray-900">
+                {page.first_name || page.last_name
+                  ? `${page.first_name || ""} ${page.last_name || ""}`.trim()
+                  : "Unnamed Contact"}
+              </h2>
+              {page.contact_id && (
+                <Link
+                  href={`/dashboard/contacts?contactId=${page.contact_id}`}
+                  className="inline-flex items-center gap-1 text-sm text-slate-blue hover:text-slate-blue/80 underline whitespace-nowrap"
+                >
+                  <Icon name="FaUser" size={10} />
+                  Go to contact
+                </Link>
+              )}
+            </div>
             {(page.contacts?.business_name || page.business_name) && (
               <p className="text-sm text-gray-600 mt-0.5">
                 {page.contacts?.business_name || page.business_name}
               </p>
             )}
           </div>
-          {page.contact_id && (
-            <Link
-              href={`/dashboard/contacts?contactId=${page.contact_id}`}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-blue bg-white/80 hover:bg-white border border-gray-200 rounded-lg transition-colors whitespace-nowrap"
-            >
-              <Icon name="FaUser" size={12} />
-              View contact
-            </Link>
-          )}
         </div>
 
         {/* Badges row */}
@@ -180,9 +182,9 @@ export default function PromptPageDetailsPanel({
             <button
               type="button"
               onClick={handleCopyLink}
-              className="inline-flex items-center gap-1 text-slate-blue hover:text-slate-blue/80 font-medium"
+              className="inline-flex items-center gap-1.5 text-slate-blue hover:text-slate-blue/80 underline"
             >
-              <Icon name={copySuccess ? "FaCheck" : "FaCopy"} size={12} />
+              <Icon name={copySuccess ? "FaCheck" : "FaCopy"} size={12} className="flex-shrink-0" />
               {copySuccess ? "Link copied" : "Copy link"}
             </button>
           </div>
