@@ -86,28 +86,26 @@ export default function PromptPageDetailsPanel({
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="text-xs uppercase text-gray-500 mb-1">Prompt Page</p>
-            <div className="flex items-center gap-3">
-              <h2 className="text-xl font-semibold text-gray-900">
-                {page.first_name || page.last_name
-                  ? `${page.first_name || ""} ${page.last_name || ""}`.trim()
-                  : "Unnamed Contact"}
-              </h2>
-              {page.contact_id && (
-                <Link
-                  href={`/dashboard/contacts?contactId=${page.contact_id}`}
-                  className="inline-flex items-center gap-1 text-sm text-slate-blue hover:text-slate-blue/80 underline whitespace-nowrap"
-                >
-                  <Icon name="FaUser" size={10} />
-                  Go to contact
-                </Link>
-              )}
-            </div>
+            <h2 className="text-xl font-semibold text-gray-900">
+              {page.first_name || page.last_name
+                ? `${page.first_name || ""} ${page.last_name || ""}`.trim()
+                : "Unnamed Contact"}
+            </h2>
             {(page.contacts?.business_name || page.business_name) && (
               <p className="text-sm text-gray-600 mt-0.5">
                 {page.contacts?.business_name || page.business_name}
               </p>
             )}
           </div>
+          {page.contact_id && (
+            <Link
+              href={`/dashboard/contacts?contactId=${page.contact_id}`}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-slate-blue bg-slate-blue/10 hover:bg-slate-blue/20 rounded-lg transition-colors whitespace-nowrap"
+            >
+              <Icon name="FaUser" size={12} />
+              Go to contact
+            </Link>
+          )}
         </div>
 
         {/* Badges row */}
@@ -149,15 +147,6 @@ export default function PromptPageDetailsPanel({
                   <Icon name="FaPhone" size={12} className="text-gray-500" />
                   <span>{page.phone}</span>
                 </div>
-              )}
-              {page.contact_id && (
-                <Link
-                  href={`/dashboard/contacts?contactId=${page.contact_id}`}
-                  className="inline-flex items-center gap-1 text-sm text-slate-blue hover:text-slate-blue/80 underline mt-1"
-                >
-                  <Icon name="FaUser" size={12} />
-                  Go to contact
-                </Link>
               )}
             </div>
           </section>
