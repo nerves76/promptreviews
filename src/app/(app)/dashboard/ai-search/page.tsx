@@ -60,8 +60,20 @@ interface AccountSummary {
   keywordsWithQuestions: number;
   totalQuestions: number;
   questionsChecked: number;
+  questionsCited: number;
   averageVisibility: number | null;
   providerStats: Record<string, { checked: number; cited: number; mentioned: number }>;
+  overallConsistency: number | null;
+  providerConsistency: Record<string, number | null>;
+}
+
+// Helper to calculate standard deviation
+function calculateStdDev(values: number[]): number {
+  if (values.length < 2) return 0;
+  const mean = values.reduce((sum, v) => sum + v, 0) / values.length;
+  const squaredDiffs = values.map(v => Math.pow(v - mean, 2));
+  const variance = squaredDiffs.reduce((sum, v) => sum + v, 0) / values.length;
+  return Math.sqrt(variance);
 }
 
 // Sort options
@@ -303,13 +315,49 @@ export default function AISearchPage() {
         Array.from(uniqueChecks.values()).map(r => r.question)
       ).size;
 
+      // Count unique questions that have at least one citation from any provider
+      const citedQuestions = new Set(
+        Array.from(uniqueChecks.values())
+          .filter(r => r.domainCited)
+          .map(r => r.question)
+      );
+      const questionsCited = citedQuestions.size;
+
+      // Calculate consistency (standard deviation of citation rates)
+      const questionRates = new Map<string, { cited: number; total: number }>();
+      for (const result of uniqueChecks.values()) {
+        const existing = questionRates.get(result.question) || { cited: 0, total: 0 };
+        existing.total++;
+        if (result.domainCited) existing.cited++;
+        questionRates.set(result.question, existing);
+      }
+
+      // Overall consistency (std dev of per-question citation rates)
+      const rates = Array.from(questionRates.values()).map(q => (q.cited / q.total) * 100);
+      const overallConsistency = rates.length > 1 ? calculateStdDev(rates) : null;
+
+      // Per-provider consistency
+      const providerConsistency: Record<string, number | null> = {};
+      for (const provider of LLM_PROVIDERS) {
+        const providerResults = Array.from(uniqueChecks.values()).filter(r => r.llmProvider === provider);
+        if (providerResults.length > 1) {
+          const providerRates = providerResults.map(r => r.domainCited ? 100 : 0);
+          providerConsistency[provider] = calculateStdDev(providerRates);
+        } else {
+          providerConsistency[provider] = null;
+        }
+      }
+
       setAccountSummary({
         totalKeywords,
         keywordsWithQuestions: totalKeywords,
         totalQuestions,
         questionsChecked: uniqueQuestionsChecked,
+        questionsCited,
         averageVisibility,
         providerStats,
+        overallConsistency,
+        providerConsistency,
       });
     } catch (err) {
       console.error('[AISearch] Error fetching data:', err);
@@ -490,15 +538,48 @@ export default function AISearchPage() {
       Array.from(uniqueChecks.values()).map(r => r.question)
     ).size;
 
-    // Count unique concepts
-    const uniqueConcepts = new Set(rows.map(r => r.conceptId)).size;
+    // Count unique questions that have at least one citation from any provider
+    const citedQuestions = new Set(
+      Array.from(uniqueChecks.values())
+        .filter(r => r.domainCited)
+        .map(r => r.question)
+    );
+    const questionsCited = citedQuestions.size;
+
+    // Calculate consistency (standard deviation of citation rates)
+    // Group by question to get per-question citation rates
+    const questionRates = new Map<string, { cited: number; total: number }>();
+    for (const result of uniqueChecks.values()) {
+      const existing = questionRates.get(result.question) || { cited: 0, total: 0 };
+      existing.total++;
+      if (result.domainCited) existing.cited++;
+      questionRates.set(result.question, existing);
+    }
+
+    // Calculate overall consistency (std dev of per-question citation rates)
+    const rates = Array.from(questionRates.values()).map(q => (q.cited / q.total) * 100);
+    const overallConsistency = rates.length > 1 ? calculateStdDev(rates) : null;
+
+    // Calculate per-provider consistency
+    const providerConsistency: Record<string, number | null> = {};
+    for (const provider of LLM_PROVIDERS) {
+      const providerResults = Array.from(uniqueChecks.values()).filter(r => r.llmProvider === provider);
+      if (providerResults.length > 1) {
+        const providerRates = providerResults.map(r => r.domainCited ? 100 : 0);
+        providerConsistency[provider] = calculateStdDev(providerRates);
+      } else {
+        providerConsistency[provider] = null;
+      }
+    }
 
     return {
       totalQuestions: rows.length,
       questionsChecked,
+      questionsCited,
       averageVisibility,
       providerStats,
-      uniqueConcepts,
+      overallConsistency,
+      providerConsistency,
     };
   }, [filterGroup, filteredAndSortedRows, allResults]);
 
@@ -1121,7 +1202,7 @@ export default function AISearchPage() {
                     </div>
                   </div>
 
-                  {/* Questions Tracked */}
+                  {/* Questions Tracked & Cited */}
                   <div className={`p-4 rounded-xl border ${filteredStats ? 'bg-slate-50 border-slate-200' : 'bg-gray-50 border-gray-200'}`}>
                     <div className="text-2xl font-bold text-gray-800">
                       {filteredStats
@@ -1129,16 +1210,41 @@ export default function AISearchPage() {
                         : `${accountSummary?.questionsChecked}/${accountSummary?.totalQuestions}`}
                     </div>
                     <div className="text-sm text-gray-600">Questions tracked</div>
+                    <div className="mt-1 text-sm">
+                      <span className="font-semibold text-green-600">
+                        {filteredStats
+                          ? filteredStats.questionsCited
+                          : accountSummary?.questionsCited || 0}
+                      </span>
+                      <span className="text-gray-500"> cited by at least one model</span>
+                    </div>
                   </div>
 
-                  {/* Concepts */}
+                  {/* Consistency (Standard Deviation) */}
                   <div className={`p-4 rounded-xl border ${filteredStats ? 'bg-slate-50 border-slate-200' : 'bg-gray-50 border-gray-200'}`}>
                     <div className="text-2xl font-bold text-gray-800">
-                      {filteredStats
-                        ? filteredStats.uniqueConcepts
-                        : accountSummary?.keywordsWithQuestions}
+                      {(() => {
+                        const consistency = filteredStats?.overallConsistency ?? accountSummary?.overallConsistency;
+                        if (consistency === null || consistency === undefined) return '--';
+                        return `±${Math.round(consistency)}%`;
+                      })()}
                     </div>
-                    <div className="text-sm text-gray-600">Concepts</div>
+                    <div className="text-sm text-gray-600">Consistency (std dev)</div>
+                    <div className="mt-1 flex gap-1.5 flex-wrap">
+                      {LLM_PROVIDERS.map((provider) => {
+                        const consistency = filteredStats?.providerConsistency?.[provider] ?? accountSummary?.providerConsistency?.[provider];
+                        const colors = LLM_PROVIDER_COLORS[provider];
+                        return (
+                          <span
+                            key={provider}
+                            className={`px-1.5 py-0.5 rounded text-xs ${colors.bg} ${colors.text}`}
+                            title={`${LLM_PROVIDER_LABELS[provider]} consistency`}
+                          >
+                            {consistency !== null && consistency !== undefined ? `±${Math.round(consistency)}%` : '--'}
+                          </span>
+                        );
+                      })}
+                    </div>
                   </div>
 
                   {/* By Provider with Trends */}
