@@ -15,3 +15,6 @@ export type {
   SearchIntent,
   TrendPercentage,
 } from './useKeywordDiscovery';
+
+export { useRankTrackingTermGroups } from './useRankTrackingTermGroups';
+export type { RankTrackingTermGroupData } from './useRankTrackingTermGroups';

@@ -17,6 +17,9 @@ import { KeywordDetailsSidebar } from '@/features/keywords/components/KeywordDet
 import { useAccountData, useBusinessData } from '@/auth/hooks/granularAuthHooks';
 import { apiClient } from '@/utils/apiClient';
 import { type KeywordData, normalizePhrase } from '@/features/keywords/keywordUtils';
+import { useRankTrackingTermGroups } from '@/features/rank-tracking/hooks';
+import { BulkMoveBar, GroupOption } from '@/components/BulkMoveBar';
+import { ManageGroupsModal, GroupData } from '@/components/ManageGroupsModal';
 
 /** Volume data for a search term */
 interface VolumeData {
@@ -210,6 +213,25 @@ export default function RankTrackingPage() {
   // State for concept sidebar
   const [selectedKeywordId, setSelectedKeywordId] = useState<string | null>(null);
   const { keyword: selectedKeyword, promptPages, recentReviews, refresh: refreshKeywordDetails } = useKeywordDetails(selectedKeywordId);
+
+  // Group management state
+  const {
+    groups,
+    ungroupedCount,
+    isLoading: groupsLoading,
+    refresh: refreshGroups,
+    createGroup,
+    updateGroup,
+    deleteGroup,
+    reorderGroups,
+    bulkMoveTerms,
+  } = useRankTrackingTermGroups();
+
+  const [showManageGroupsModal, setShowManageGroupsModal] = useState(false);
+  const [filterGroup, setFilterGroup] = useState<string | null>(null);
+
+  // Term selection state - using composite key "keywordId::term"
+  const [selectedTermKeys, setSelectedTermKeys] = useState<Set<string>>(new Set());
 
   // Handle clicking on a concept to open the sidebar
   const handleConceptClick = useCallback((concept: KeywordData) => {
@@ -663,6 +685,114 @@ export default function RankTrackingPage() {
     await refreshKeywords();
   }, [createKeyword, refreshKeywords]);
 
+  // Get all term keys from current concepts for selection purposes
+  const allTermKeys = useMemo(() => {
+    const keys: string[] = [];
+    concepts.forEach((concept) => {
+      if (concept.searchTerms && concept.searchTerms.length > 0) {
+        concept.searchTerms.forEach((term) => {
+          keys.push(`${concept.id}::${term.term}`);
+        });
+      } else {
+        // Concept with no search terms - use the concept name
+        const conceptName = concept.searchQuery || concept.phrase;
+        keys.push(`${concept.id}::${conceptName}`);
+      }
+    });
+    return keys;
+  }, [concepts]);
+
+  // Toggle selection of a single term
+  const toggleTermSelection = useCallback((keywordId: string, term: string) => {
+    const key = `${keywordId}::${term}`;
+    setSelectedTermKeys((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+      return next;
+    });
+  }, []);
+
+  // Select all terms
+  const selectAllTerms = useCallback(() => {
+    setSelectedTermKeys(new Set(allTermKeys));
+  }, [allTermKeys]);
+
+  // Deselect all terms
+  const deselectAllTerms = useCallback(() => {
+    setSelectedTermKeys(new Set());
+  }, []);
+
+  // Handle bulk move to group
+  const handleBulkMoveToGroup = useCallback(async (groupId: string | null) => {
+    if (selectedTermKeys.size === 0) return;
+
+    // Convert selected keys to termIdentifiers
+    const termIdentifiers = Array.from(selectedTermKeys).map((key) => {
+      const [keywordId, ...termParts] = key.split('::');
+      const term = termParts.join('::'); // In case term contains '::'
+      return { keywordId, term };
+    });
+
+    const success = await bulkMoveTerms(termIdentifiers, groupId);
+    if (success) {
+      setSelectedTermKeys(new Set()); // Clear selection
+      await refreshGroups();
+    }
+  }, [selectedTermKeys, bulkMoveTerms, refreshGroups]);
+
+  // Convert groups for modal
+  const groupsForModal: GroupData[] = groups.map((g) => ({
+    id: g.id,
+    name: g.name,
+    displayOrder: g.displayOrder,
+    itemCount: g.termCount,
+  }));
+
+  // Convert groups for bulk move bar
+  const groupsForBar: GroupOption[] = groups.map((g) => ({
+    id: g.id,
+    name: g.name,
+  }));
+
+  // Group management handlers
+  const handleCreateGroup = useCallback(async (name: string): Promise<GroupData | null> => {
+    const result = await createGroup(name);
+    if (result) {
+      return {
+        id: result.id,
+        name: result.name,
+        displayOrder: result.displayOrder,
+        itemCount: result.termCount,
+      };
+    }
+    return null;
+  }, [createGroup]);
+
+  const handleUpdateGroup = useCallback(async (id: string, name: string): Promise<GroupData | null> => {
+    const result = await updateGroup(id, { name });
+    if (result) {
+      return {
+        id: result.id,
+        name: result.name,
+        displayOrder: result.displayOrder,
+        itemCount: result.termCount,
+      };
+    }
+    return null;
+  }, [updateGroup]);
+
+  const handleDeleteGroup = useCallback(async (id: string): Promise<boolean> => {
+    return deleteGroup(id);
+  }, [deleteGroup]);
+
+  const handleReorderGroups = useCallback(async (updates: { id: string; displayOrder: number }[]): Promise<boolean> => {
+    return reorderGroups(updates);
+  }, [reorderGroups]);
+
   return (
     <div>
       {/* Page Title */}
@@ -693,6 +823,29 @@ export default function RankTrackingPage() {
           description="Monitor your Google search rankings across desktop and mobile devices."
           actions={
             <>
+              {/* Group filter dropdown */}
+              <select
+                value={filterGroup || ''}
+                onChange={(e) => setFilterGroup(e.target.value || null)}
+                className="px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-slate-blue/50 focus:border-slate-blue/30"
+              >
+                <option value="">All groups</option>
+                {groups.map((group) => (
+                  <option key={group.id} value={group.id}>
+                    {group.name} ({group.termCount})
+                  </option>
+                ))}
+                {ungroupedCount > 0 && (
+                  <option value="ungrouped">Ungrouped ({ungroupedCount})</option>
+                )}
+              </select>
+              <button
+                onClick={() => setShowManageGroupsModal(true)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 flex items-center gap-2 transition-colors whitespace-nowrap"
+              >
+                <Icon name="FaTags" className="w-4 h-4" />
+                Manage groups
+              </button>
               <button
                 onClick={() => setShowRunAllModal(true)}
                 className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 flex items-center gap-2 transition-colors whitespace-nowrap"
@@ -734,6 +887,8 @@ export default function RankTrackingPage() {
           isLoading={conceptsLoading}
           checkingRankKeyword={checkingRankKeyword}
           checkingVolumeKeyword={checkingVolumeKeyword}
+          selectedTermKeys={selectedTermKeys}
+          onToggleTermSelection={toggleTermSelection}
         />
       </PageCard>
 
@@ -783,6 +938,33 @@ export default function RankTrackingPage() {
         onUpdate={handleUpdateKeyword}
         onRefresh={refreshKeywords}
         onCheckRank={handleCheckRank}
+      />
+
+      {/* Bulk Move Bar */}
+      <BulkMoveBar
+        selectedCount={selectedTermKeys.size}
+        totalCount={allTermKeys.length}
+        groups={groupsForBar}
+        itemLabel="terms"
+        onSelectAll={selectAllTerms}
+        onDeselectAll={deselectAllTerms}
+        onMoveToGroup={handleBulkMoveToGroup}
+        allowUngrouped
+        ungroupedCount={ungroupedCount}
+      />
+
+      {/* Manage Groups Modal */}
+      <ManageGroupsModal
+        isOpen={showManageGroupsModal}
+        onClose={() => setShowManageGroupsModal(false)}
+        title="Manage term groups"
+        itemLabel="terms"
+        groups={groupsForModal}
+        isLoading={groupsLoading}
+        onCreateGroup={handleCreateGroup}
+        onUpdateGroup={handleUpdateGroup}
+        onDeleteGroup={handleDeleteGroup}
+        onReorderGroups={handleReorderGroups}
       />
 
     </div>

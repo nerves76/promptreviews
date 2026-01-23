@@ -110,6 +110,10 @@ interface ConceptsTableProps {
   checkingRankKeyword?: string | null;
   /** Keyword currently being checked for volume (shows spinner on that row's Volume button) */
   checkingVolumeKeyword?: string | null;
+  /** Set of selected term keys in format "keywordId::term" */
+  selectedTermKeys?: Set<string>;
+  /** Callback when a term's selection is toggled */
+  onToggleTermSelection?: (keywordId: string, term: string) => void;
 }
 
 /** Each row represents a single keyword (search term) */
@@ -279,6 +283,8 @@ export default function ConceptsTable({
   isLoading = false,
   checkingRankKeyword,
   checkingVolumeKeyword,
+  selectedTermKeys,
+  onToggleTermSelection,
 }: ConceptsTableProps) {
   const router = useRouter();
   const [sortField, setSortField] = useState<SortField>('keyword');
@@ -560,10 +566,11 @@ export default function ConceptsTable({
 
   return (
     <div className="overflow-x-auto border border-gray-200 rounded-xl">
-      <table className="w-full" style={{ tableLayout: 'fixed', minWidth: '1200px' }}>
-        {/* Column widths: Keyword, Concept, Volume, Rank, Change, URL, Checked, SERP, Grid, Actions */}
+      <table className="w-full" style={{ tableLayout: 'fixed', minWidth: '1240px' }}>
+        {/* Column widths: Checkbox, Keyword, Concept, Volume, Rank, Change, URL, Checked, SERP, Grid, Actions */}
         <colgroup>
-          <col style={{ width: '280px' }} />
+          <col style={{ width: '40px' }} />
+          <col style={{ width: '270px' }} />
           <col style={{ width: '100px' }} />
           <col style={{ width: '70px' }} />
           <col style={{ width: '145px' }} />
@@ -576,7 +583,11 @@ export default function ConceptsTable({
         </colgroup>
         <thead>
           <tr className="bg-gray-50 border-b border-gray-200">
-            <th className="text-left py-3 pl-4 pr-4">
+            <th className="py-3 pl-4 pr-2">
+              {/* Checkbox header - no select all here, done via BulkMoveBar */}
+              <span className="sr-only">Select</span>
+            </th>
+            <th className="text-left py-3 pl-2 pr-4">
               <button
                 onClick={() => handleSort('keyword')}
                 className="flex items-center gap-1.5 text-xs font-semibold text-gray-600 uppercase tracking-wider hover:text-gray-900 ml-5"
@@ -646,7 +657,21 @@ export default function ConceptsTable({
                 expandedRowKey === `${row.concept.id}::${row.keyword}` ? 'bg-blue-50' : ''
               }`}
             >
-              <td className="py-3 pl-4 pr-4">
+              {/* Checkbox */}
+              <td className="py-3 pl-4 pr-2">
+                <input
+                  type="checkbox"
+                  checked={selectedTermKeys?.has(`${row.concept.id}::${row.keyword}`) ?? false}
+                  onChange={(e) => {
+                    e.stopPropagation();
+                    onToggleTermSelection?.(row.concept.id, row.keyword);
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                  className="w-4 h-4 rounded border-gray-300 text-slate-blue focus:ring-slate-blue cursor-pointer"
+                  aria-label={`Select ${row.keyword}`}
+                />
+              </td>
+              <td className="py-3 pl-2 pr-4">
                 <div className="flex items-center gap-2">
                   {(row.desktopChecked || row.mobileChecked) ? (
                     <button
@@ -920,7 +945,7 @@ export default function ConceptsTable({
             {/* Expanded history row */}
             {expandedRowKey === `${row.concept.id}::${row.keyword}` && (
               <tr className="bg-blue-50">
-                <td colSpan={10} className="py-2 px-6">
+                <td colSpan={11} className="py-2 px-6">
                   <div className="max-w-[900px]">
                     {/* Chart */}
                     <RankHistoryChart

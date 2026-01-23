@@ -26,22 +26,29 @@ import { type KeywordData, transformKeywordToResponse } from '@/features/keyword
 import { useBusinessData } from '@/auth/hooks/granularAuthHooks';
 import { Pagination } from '@/components/Pagination';
 import { Modal } from '@/app/(app)/components/ui/modal';
+import { useAISearchQueryGroups, type AISearchQueryGroupData } from '@/features/ai-search/hooks/useAISearchQueryGroups';
+import { BulkMoveBar } from '@/components/BulkMoveBar';
+import { ManageGroupsModal } from '@/components/ManageGroupsModal';
 
 interface KeywordWithQuestions {
   id: string;
   phrase: string;
   relatedQuestions: Array<{
+    id?: string; // keyword_questions.id
     question: string;
     funnelStage?: 'top' | 'middle' | 'bottom';
+    groupId?: string | null;
   }>;
   summary?: LLMVisibilitySummary | null;
 }
 
 interface QuestionRow {
+  id: string; // keyword_questions.id for selection
   question: string;
   funnelStage: 'top' | 'middle' | 'bottom';
   conceptId: string;
   conceptName: string;
+  groupId: string | null;
   results: Map<LLMProvider, LLMVisibilityCheck | null>;
   lastCheckedAt: string | null;
 }
@@ -130,6 +137,24 @@ export default function AISearchPage() {
   // Use keywords hook to create new concepts
   const { createKeyword, refresh: refreshKeywords } = useKeywords({ autoFetch: false });
 
+  // Group management
+  const {
+    groups: queryGroups,
+    ungroupedCount: queryUngroupedCount,
+    isLoading: isLoadingGroups,
+    createGroup: createQueryGroup,
+    updateGroup: updateQueryGroup,
+    deleteGroup: deleteQueryGroup,
+    reorderGroups: reorderQueryGroups,
+    bulkMoveQueries,
+    refresh: refreshGroups,
+  } = useAISearchQueryGroups();
+
+  // Selection state for bulk operations
+  const [selectedQuestionIds, setSelectedQuestionIds] = useState<Set<string>>(new Set());
+  const [showManageGroupsModal, setShowManageGroupsModal] = useState(false);
+  const [filterGroup, setFilterGroup] = useState<string | null>(null);
+
   // Sidebar state for editing concepts
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedKeyword, setSelectedKeyword] = useState<KeywordData | null>(null);
@@ -192,7 +217,7 @@ export default function AISearchPage() {
         keywords?: Array<{
           id: string;
           phrase: string;
-          relatedQuestions?: Array<string | { question: string; funnelStage?: string; addedAt?: string }>;
+          relatedQuestions?: Array<string | { id?: string; question: string; funnelStage?: string; groupId?: string | null; addedAt?: string }>;
         }>
       };
 
@@ -201,13 +226,15 @@ export default function AISearchPage() {
         .map((k) => ({
           id: k.id,
           phrase: k.phrase,
-          relatedQuestions: (k.relatedQuestions || []).map(q => {
+          relatedQuestions: (k.relatedQuestions || []).map((q, idx) => {
             if (typeof q === 'string') {
-              return { question: q, funnelStage: 'top' as const };
+              return { id: `${k.id}-${idx}`, question: q, funnelStage: 'top' as const, groupId: null };
             }
             return {
+              id: q.id || `${k.id}-${idx}`,
               question: q.question,
-              funnelStage: (q.funnelStage as 'top' | 'middle' | 'bottom') || 'top'
+              funnelStage: (q.funnelStage as 'top' | 'middle' | 'bottom') || 'top',
+              groupId: q.groupId || null,
             };
           }),
           summary: null,
@@ -344,10 +371,12 @@ export default function AISearchPage() {
         }
 
         rows.push({
+          id: q.id || `${kw.id}-${q.question}`,
           question: q.question,
           funnelStage: q.funnelStage || 'top',
           conceptId: kw.id,
           conceptName: kw.phrase,
+          groupId: q.groupId || null,
           results: questionResults,
           lastCheckedAt,
         });
@@ -372,6 +401,13 @@ export default function AISearchPage() {
     }
     if (filterFunnel) {
       rows = rows.filter(r => r.funnelStage === filterFunnel);
+    }
+    if (filterGroup) {
+      if (filterGroup === 'ungrouped') {
+        rows = rows.filter(r => !r.groupId);
+      } else {
+        rows = rows.filter(r => r.groupId === filterGroup);
+      }
     }
 
     // Apply sorting
@@ -413,7 +449,43 @@ export default function AISearchPage() {
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [filterConcept, filterFunnel, sortField, sortDirection]);
+  }, [filterConcept, filterFunnel, filterGroup, sortField, sortDirection]);
+
+  // Clear selection when filters change
+  useEffect(() => {
+    setSelectedQuestionIds(new Set());
+  }, [filterConcept, filterFunnel, filterGroup]);
+
+  // Selection handlers
+  const toggleQuestionSelection = useCallback((id: string) => {
+    setSelectedQuestionIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  }, []);
+
+  const selectAllQuestions = useCallback(() => {
+    setSelectedQuestionIds(new Set(filteredAndSortedRows.map(r => r.id)));
+  }, [filteredAndSortedRows]);
+
+  const deselectAllQuestions = useCallback(() => {
+    setSelectedQuestionIds(new Set());
+  }, []);
+
+  // Handle bulk move
+  const handleBulkMoveToGroup = useCallback(async (groupId: string | null) => {
+    const questionIds = Array.from(selectedQuestionIds);
+    const success = await bulkMoveQueries(questionIds, groupId);
+    if (success) {
+      setSelectedQuestionIds(new Set());
+      await fetchData(); // Refresh to show updated group assignments
+    }
+  }, [selectedQuestionIds, bulkMoveQueries, fetchData]);
 
   // Handle sort header click (wrapped in transition to avoid INP issues)
   const handleSort = (field: SortField) => {
@@ -901,12 +973,38 @@ export default function AISearchPage() {
                 </select>
               </div>
 
+              {/* Group filter */}
+              <div className="flex items-center gap-2">
+                <label className="text-sm text-gray-600">Group:</label>
+                <select
+                  value={filterGroup || ''}
+                  onChange={(e) => startTransition(() => setFilterGroup(e.target.value || null))}
+                  className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-300"
+                >
+                  <option value="">All groups</option>
+                  <option value="ungrouped">Ungrouped ({queryUngroupedCount})</option>
+                  {queryGroups.map(group => (
+                    <option key={group.id} value={group.id}>{group.name} ({group.queryCount})</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Manage groups button */}
+              <button
+                onClick={() => setShowManageGroupsModal(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <Icon name="FaCog" className="w-3.5 h-3.5" />
+                Manage groups
+              </button>
+
               {/* Clear filters */}
-              {(filterConcept || filterFunnel) && (
+              {(filterConcept || filterFunnel || filterGroup) && (
                 <button
                   onClick={() => startTransition(() => {
                     setFilterConcept(null);
                     setFilterFunnel(null);
+                    setFilterGroup(null);
                   })}
                   className="text-sm text-slate-blue hover:text-slate-blue/80"
                 >
@@ -925,6 +1023,22 @@ export default function AISearchPage() {
               <table className="w-full">
                 <thead>
                   <tr className="bg-gray-50 border-b border-gray-200">
+                    {/* Checkbox column */}
+                    <th className="py-3 px-3 w-10">
+                      <input
+                        type="checkbox"
+                        checked={selectedQuestionIds.size > 0 && selectedQuestionIds.size === filteredAndSortedRows.length}
+                        onChange={() => {
+                          if (selectedQuestionIds.size === filteredAndSortedRows.length) {
+                            deselectAllQuestions();
+                          } else {
+                            selectAllQuestions();
+                          }
+                        }}
+                        className="w-4 h-4 rounded border-gray-300 text-slate-blue focus:ring-slate-blue"
+                        aria-label={selectedQuestionIds.size === filteredAndSortedRows.length ? 'Deselect all' : 'Select all'}
+                      />
+                    </th>
                     <th
                       className="text-left py-3 px-4 cursor-pointer hover:bg-gray-100 transition-colors min-w-[400px]"
                       onClick={() => handleSort('question')}
@@ -988,8 +1102,19 @@ export default function AISearchPage() {
                         <tr
                           className={`border-b border-gray-100 hover:bg-gray-50 transition-colors ${
                             isExpanded ? 'bg-blue-50' : ''
-                          }`}
+                          } ${selectedQuestionIds.has(row.id) ? 'bg-blue-50' : ''}`}
                         >
+                          {/* Checkbox */}
+                          <td className="py-3 px-3">
+                            <input
+                              type="checkbox"
+                              checked={selectedQuestionIds.has(row.id)}
+                              onChange={() => toggleQuestionSelection(row.id)}
+                              className="w-4 h-4 rounded border-gray-300 text-slate-blue focus:ring-slate-blue"
+                              aria-label={`Select question: ${row.question.slice(0, 50)}`}
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                          </td>
                           {/* Question */}
                           <td className="py-3 px-4">
                             <button
@@ -1095,7 +1220,7 @@ export default function AISearchPage() {
                         {/* Expanded Details Row */}
                         {isExpanded && (
                           <tr className="bg-blue-50">
-                            <td colSpan={7 + LLM_PROVIDERS.length} className="p-4">
+                            <td colSpan={8 + LLM_PROVIDERS.length} className="p-4">
                               {(() => {
                                 const resultsWithData = LLM_PROVIDERS
                                   .map(provider => ({ provider, result: row.results.get(provider) }))
@@ -1450,6 +1575,54 @@ export default function AISearchPage() {
           </div>
         )}
       </Modal>
+
+      {/* Bulk Move Bar */}
+      <BulkMoveBar
+        selectedCount={selectedQuestionIds.size}
+        totalCount={filteredAndSortedRows.length}
+        groups={queryGroups.map(g => ({ id: g.id, name: g.name }))}
+        itemLabel={selectedQuestionIds.size === 1 ? 'query' : 'queries'}
+        onSelectAll={selectAllQuestions}
+        onDeselectAll={deselectAllQuestions}
+        onMoveToGroup={handleBulkMoveToGroup}
+        allowUngrouped={true}
+        ungroupedCount={queryUngroupedCount}
+      />
+
+      {/* Manage Groups Modal */}
+      <ManageGroupsModal
+        isOpen={showManageGroupsModal}
+        onClose={() => setShowManageGroupsModal(false)}
+        title="Manage query groups"
+        itemLabel="queries"
+        groups={queryGroups.map(g => ({
+          id: g.id,
+          name: g.name,
+          displayOrder: g.displayOrder,
+          itemCount: g.queryCount,
+        }))}
+        isLoading={isLoadingGroups}
+        onCreateGroup={async (name) => {
+          const result = await createQueryGroup(name);
+          return result ? {
+            id: result.id,
+            name: result.name,
+            displayOrder: result.displayOrder,
+            itemCount: result.queryCount,
+          } : null;
+        }}
+        onUpdateGroup={async (id, name) => {
+          const result = await updateQueryGroup(id, { name });
+          return result ? {
+            id: result.id,
+            name: result.name,
+            displayOrder: result.displayOrder,
+            itemCount: result.queryCount,
+          } : null;
+        }}
+        onDeleteGroup={deleteQueryGroup}
+        onReorderGroups={reorderQueryGroups}
+      />
 
       {/* Import Modal */}
       {showImportModal && (
