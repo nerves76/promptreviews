@@ -907,7 +907,7 @@ export default function AISearchPage() {
                   title="Run LLM visibility checks on all questions"
                 >
                   <Icon name="FaRocket" className="w-4 h-4" />
-                  Run all checks
+                  Check all
                 </button>
               )}
               {allResults.length > 0 && (

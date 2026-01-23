@@ -267,7 +267,7 @@ export default function RunAllLLMModal({
       isOpen={isOpen}
       onClose={onClose}
       size="md"
-      showCloseButton={!isRunning}
+      showCloseButton={true}
       className="!p-0"
     >
       {/* Header */}
