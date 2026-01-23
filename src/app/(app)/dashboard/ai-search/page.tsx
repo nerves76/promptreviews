@@ -1171,33 +1171,6 @@ export default function AISearchPage() {
                                             </div>
                                           )}
 
-                                          {/* Citations list */}
-                                          {result.citations && result.citations.length > 0 && (
-                                            <div className="mt-2">
-                                              <div className="text-xs text-gray-500 mb-1">Sources cited:</div>
-                                              <div className="flex flex-wrap gap-2">
-                                                {result.citations.map((citation, cidx) => (
-                                                  <a
-                                                    key={cidx}
-                                                    href={citation.url || '#'}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs ${
-                                                      citation.isOurs
-                                                        ? 'bg-green-100 text-green-700 border border-green-200'
-                                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                                    }`}
-                                                    title={citation.title || citation.url || undefined}
-                                                  >
-                                                    <span className="font-medium">#{citation.position}</span>
-                                                    <span className="truncate max-w-[150px]">{citation.domain}</span>
-                                                    {citation.isOurs && <span className="text-green-600 font-bold">(You)</span>}
-                                                  </a>
-                                                ))}
-                                              </div>
-                                            </div>
-                                          )}
-
                                           {/* Brand entities mentioned in response */}
                                           {result.mentionedBrands && result.mentionedBrands.length > 0 && (
                                             <div className="mt-4">
@@ -1292,6 +1265,54 @@ export default function AISearchPage() {
                                                           {sr.url || sr.domain}
                                                         </a>
                                                         {sr.isOurs && (
+                                                          <span className="text-[10px] text-green-600 font-bold bg-green-100 px-1.5 py-0.5 rounded whitespace-nowrap">You</span>
+                                                        )}
+                                                      </div>
+                                                    ))}
+                                                  </div>
+                                                </div>
+                                              )}
+                                            </div>
+                                          )}
+
+                                          {/* Sources cited - collapsible accordion */}
+                                          {result.citations && result.citations.length > 0 && (
+                                            <div className="mt-3 border border-gray-200 rounded-lg overflow-hidden">
+                                              <button
+                                                onClick={() => toggleAccordion(`${result.id}-citations`)}
+                                                className="w-full flex items-center justify-between px-3 py-2 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
+                                                aria-expanded={expandedAccordions.has(`${result.id}-citations`)}
+                                                aria-label={`Toggle sources cited section`}
+                                              >
+                                                <span className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                                                  <Icon name="FaLink" className="w-3.5 h-3.5 text-green-600" />
+                                                  Sources cited ({result.citations.length})
+                                                </span>
+                                                <Icon
+                                                  name={expandedAccordions.has(`${result.id}-citations`) ? 'FaChevronUp' : 'FaChevronDown'}
+                                                  className="w-3 h-3 text-gray-400"
+                                                />
+                                              </button>
+                                              {expandedAccordions.has(`${result.id}-citations`) && (
+                                                <div className="p-3 bg-white">
+                                                  <div className="space-y-1.5">
+                                                    {result.citations.map((citation, cidx) => (
+                                                      <div key={cidx} className="flex items-start gap-2">
+                                                        <span className="text-xs font-medium text-gray-500 whitespace-nowrap">#{citation.position}</span>
+                                                        <a
+                                                          href={citation.url || '#'}
+                                                          target="_blank"
+                                                          rel="noopener noreferrer"
+                                                          className={`text-xs break-all hover:underline ${
+                                                            citation.isOurs
+                                                              ? 'text-green-700 font-medium'
+                                                              : 'text-slate-600'
+                                                          }`}
+                                                          title={citation.title || undefined}
+                                                        >
+                                                          {citation.url || citation.domain}
+                                                        </a>
+                                                        {citation.isOurs && (
                                                           <span className="text-[10px] text-green-600 font-bold bg-green-100 px-1.5 py-0.5 rounded whitespace-nowrap">You</span>
                                                         )}
                                                       </div>
