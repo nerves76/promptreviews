@@ -52,18 +52,18 @@ export function PageCardHeader({
 
   return (
     <div className={`flex flex-col md:flex-row md:items-start md:justify-between ${marginBottom} w-full gap-4 ${className}`}>
-      <div className="flex flex-col min-w-0">
+      <div className="flex flex-col flex-1 min-w-0 md:min-w-[400px]">
         <HeadingTag className={`${headingSize} font-bold text-slate-blue mb-2 ${iconClearance ? 'mt-4' : ''}`}>
           {title}
         </HeadingTag>
         {description && (
-          <p className="text-gray-600 text-base max-w-[750px]">
+          <p className="text-gray-600 text-base">
             {description}
           </p>
         )}
       </div>
       {actions && (
-        <div className="flex items-center gap-3 flex-shrink-0">
+        <div className="flex items-center gap-3 flex-shrink-0 flex-wrap justify-end">
           {actions}
         </div>
       )}
