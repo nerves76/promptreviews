@@ -489,10 +489,10 @@ export default function LocalRankingGridsPage() {
             <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">
               Local Ranking Grids
             </h1>
-            <p className="text-gray-600 text-base max-w-md mt-0 mb-4 flex items-center gap-1.5">
-              Track your Google Maps visibility across geographic points.
+            <p className="text-gray-600 text-base max-w-md mt-0 mb-4">
+              Track your Google Maps visibility across geographic points.{' '}
               <span
-                className="inline-flex items-center"
+                className="inline-flex items-center align-middle"
                 title="This feature tracks where your Google Business Profile appears in local search results across different locations in your city. It helps you understand your visibility from various geographic points."
               >
                 <Icon name="FaInfoCircle" className="w-4 h-4 text-gray-400 hover:text-gray-600 cursor-help" size={16} />

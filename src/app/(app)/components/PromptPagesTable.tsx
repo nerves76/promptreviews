@@ -261,15 +261,15 @@ export default function PromptPagesTable({
       </div>
       {/* Batch Actions */}
       {selectedPages.length > 0 && (
-        <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
             <span className="text-sm text-gray-600">
               {selectedPages.length} page{selectedPages.length !== 1 ? "s" : ""} selected
             </span>
             <select
               value={batchStatus}
               onChange={(e) => setBatchStatus(e.target.value as PromptPage["status"])}
-              className="rounded-md border-gray-300 text-sm"
+              className="rounded-md border-gray-300 text-sm px-3 py-2 min-h-[44px]"
             >
               <option value="draft">{statusLabels.draft}</option>
               <option value="in_queue">{statusLabels.in_queue}</option>
@@ -279,14 +279,14 @@ export default function PromptPagesTable({
             </select>
             <button
               onClick={handleBatchStatusUpdate}
-                                className="px-3 py-1.5 bg-slate-blue text-white rounded hover:bg-slate-blue/90 text-sm font-medium"
+              className="px-4 py-2 min-h-[44px] bg-slate-blue text-white rounded hover:bg-slate-blue/90 text-sm font-medium whitespace-nowrap"
             >
               Update Status
             </button>
           </div>
           <button
             onClick={() => setShowDeleteModal(true)}
-            className="px-3 py-1.5 bg-red-600 text-white rounded hover:bg-red-700 text-sm font-medium"
+            className="px-4 py-2 min-h-[44px] bg-red-600 text-white rounded hover:bg-red-700 text-sm font-medium w-full sm:w-auto whitespace-nowrap"
           >
             Delete Selected
           </button>
@@ -381,7 +381,7 @@ export default function PromptPagesTable({
                 </td>
                 <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{new Date(page.created_at).toLocaleDateString()}</td>
                 <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                  <div className="flex flex-row gap-2 items-center justify-end">
+                  <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center justify-end">
                     {!page.is_universal && (page.phone || page.email) && (
                       <CommunicationButtons
                         contact={{
@@ -401,7 +401,7 @@ export default function PromptPagesTable({
                         }}
                         singleButton={true}
                         buttonText="Send"
-                        className="inline-flex items-center px-3 py-1.5 bg-teal-100 text-teal-800 rounded hover:bg-teal-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap w-full sm:w-auto"
+                        className="inline-flex items-center justify-center px-3 py-2 min-h-[44px] bg-teal-100 text-teal-800 rounded hover:bg-teal-200 text-sm font-medium shadow whitespace-nowrap"
                         onStatusUpdated={(newStatus) => {
                           onLocalStatusUpdate?.(page.id, newStatus as PromptPage["status"]);
                         }}
@@ -413,8 +413,9 @@ export default function PromptPagesTable({
                     {!page.is_universal && (
                       <button
                         type="button"
-                        className="inline-flex items-center px-2 py-1.5 bg-purple-500/20 backdrop-blur-sm text-purple-800 rounded hover:bg-purple-500/30 text-sm font-medium shadow border border-white/30 h-9 align-middle whitespace-nowrap w-full sm:w-auto"
+                        className="inline-flex items-center justify-center px-3 py-2 min-h-[44px] min-w-[44px] bg-purple-500/20 backdrop-blur-sm text-purple-800 rounded hover:bg-purple-500/30 text-sm font-medium shadow border border-white/30 whitespace-nowrap"
                         title="Copy link"
+                        aria-label="Copy link"
                         onClick={async () => {
                           try {
                             await navigator.clipboard.writeText(`${window.location.origin}/r/${page.slug}`);
@@ -439,7 +440,7 @@ export default function PromptPagesTable({
                           showNfcText: page?.nfc_text_enabled ?? false,
                         });
                       }}
-                      className="inline-flex items-center gap-1 px-3 py-1.5 bg-amber-500/20 backdrop-blur-sm text-amber-800 rounded hover:bg-amber-500/30 text-sm font-medium shadow border border-white/30 h-9 align-middle whitespace-nowrap"
+                      className="inline-flex items-center justify-center gap-1 px-3 py-2 min-h-[44px] bg-amber-500/20 backdrop-blur-sm text-amber-800 rounded hover:bg-amber-500/30 text-sm font-medium shadow border border-white/30 whitespace-nowrap"
                     >
                       <Icon name="MdDownload" size={22} style={{ color: "#b45309" }} />
                       QR code
