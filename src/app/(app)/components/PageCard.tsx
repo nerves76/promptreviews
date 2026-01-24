@@ -52,7 +52,7 @@ export function PageCardHeader({
 
   return (
     <div className={`flex flex-col md:flex-row md:items-start md:justify-between ${marginBottom} w-full gap-4 ${className}`}>
-      <div className="flex flex-col flex-1 min-w-0 md:min-w-[400px]">
+      <div className="flex flex-col flex-1 min-w-0 md:min-w-[300px] lg:min-w-[400px]">
         <HeadingTag className={`${headingSize} font-bold text-slate-blue mb-2 ${iconClearance ? 'mt-4' : ''}`}>
           {title}
         </HeadingTag>
@@ -63,7 +63,7 @@ export function PageCardHeader({
         )}
       </div>
       {actions && (
-        <div className="flex items-center gap-3 flex-shrink-0 flex-wrap justify-end">
+        <div className="flex items-center gap-2 md:gap-3 flex-wrap justify-start md:justify-end max-w-full">
           {actions}
         </div>
       )}
@@ -183,7 +183,7 @@ const PageCard = React.memo(function PageCard({
           </>
         )}
         <div
-          className="content w-full pt-2 sm:pt-0"
+          className="content w-full pt-2 sm:pt-0 overflow-x-hidden"
           style={{
             paddingBottom: imageToShow && hasImage ? "400px" : undefined
           }}
