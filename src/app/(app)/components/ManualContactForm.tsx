@@ -263,14 +263,15 @@ export default function ManualContactForm({
           {/* Close button positioned outside the scrollable area */}
           <button
             onClick={onClose}
-            className="absolute -top-3 -right-3 w-8 h-8 bg-white border border-gray-300 rounded-full flex items-center justify-center hover:bg-gray-50 shadow-md z-10"
+            className="absolute top-2 right-2 sm:-top-3 sm:-right-3 min-w-[44px] min-h-[44px] w-10 h-10 sm:w-8 sm:h-8 bg-white border border-gray-300 rounded-full flex items-center justify-center hover:bg-gray-50 shadow-md z-10"
+            aria-label="Close"
           >
             <Icon name="FaTimes" className="w-4 h-4 text-red-500" />
           </button>
           
-          <div className="p-6 max-h-[90vh] overflow-y-auto">
-          
-          <div className="mb-6 flex justify-between items-start">
+          <div className="p-4 sm:p-6 max-h-[90vh] overflow-y-auto">
+
+          <div className="mb-6 flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
             <Dialog.Title className="text-2xl font-bold text-slate-blue">
               Add New Contact
             </Dialog.Title>
@@ -280,7 +281,7 @@ export default function ManualContactForm({
               type="submit"
               form="contact-form"
               disabled={isSubmitting || !formData.first_name.trim()}
-              className="px-6 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-blue/90 font-semibold shadow flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-2 min-h-[44px] bg-slate-blue text-white rounded-lg hover:bg-slate-blue/90 font-semibold shadow flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
             >
               {isSubmitting && <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />}
               {isSubmitting ? "Creating..." : "Save Contact"}
@@ -516,13 +517,13 @@ export default function ManualContactForm({
 
             {/* Reviews Section */}
             <div className="space-y-4 pt-6 border-t">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <h3 className="text-lg font-semibold text-gray-900">Reviews</h3>
                 <button
                   type="button"
                   onClick={addReview}
                   disabled={reviews.length >= 15}
-                  className="px-3 py-1 bg-slate-blue text-white rounded-md hover:bg-slate-blue/90 font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  className="px-3 py-2 min-h-[44px] bg-slate-blue text-white rounded-md hover:bg-slate-blue/90 font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap"
                 >
                   <Icon name="FaPlus" className="w-4 h-4" />
                   Add Review {reviews.length > 0 && `(${reviews.length}/15)`}
@@ -587,7 +588,7 @@ export default function ManualContactForm({
               <button
                 type="submit"
                 disabled={isSubmitting || !formData.first_name.trim()}
-                className="px-6 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-blue/90 font-semibold shadow flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-6 py-2 min-h-[44px] bg-slate-blue text-white rounded-lg hover:bg-slate-blue/90 font-semibold shadow flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
               >
                 {isSubmitting && <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />}
                 {isSubmitting ? "Creating..." : "Save Contact"}
@@ -644,7 +645,7 @@ export default function ManualContactForm({
                           key={star}
                           type="button"
                           onClick={() => setReviewFormData(prev => ({ ...prev, star_rating: star }))}
-                          className={`p-1 rounded ${reviewFormData.star_rating === star ? 'bg-yellow-100' : 'hover:bg-gray-100'}`}
+                          className={`p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded ${reviewFormData.star_rating === star ? 'bg-yellow-100' : 'hover:bg-gray-100'}`}
                         >
                           <Icon
                             name="FaStar"

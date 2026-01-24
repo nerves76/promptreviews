@@ -1027,7 +1027,7 @@ export default function ReviewsPage() {
               <input
                 type="text"
                 placeholder="Search by reviewer, platform, or text..."
-                className="pl-8 pr-3 w-52 rounded border border-gray-200 px-2 py-1 shadow-sm focus:ring-2 focus:ring-slate-blue focus:outline-none text-sm"
+                className="pl-8 pr-3 w-full sm:w-52 rounded border border-gray-200 px-2 py-1 shadow-sm focus:ring-2 focus:ring-slate-blue focus:outline-none text-sm"
               />
             </div>
           </div>

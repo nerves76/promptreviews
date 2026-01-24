@@ -25,7 +25,7 @@ const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange, onSave, o
       <div className="space-y-4">
         <h3 className="text-sm font-semibold text-white border-b border-white/30 pb-2">Card Appearance</h3>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-white mb-2">Background Color</label>
             <input
@@ -88,7 +88,7 @@ const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange, onSave, o
         </div>
 
         {design.border && (
-          <div className="grid grid-cols-2 gap-4 pl-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pl-0 sm:pl-6">
             <div>
               <label className="block text-sm font-medium text-white mb-2">Border Color</label>
               <input
@@ -154,7 +154,7 @@ const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange, onSave, o
           </select>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-white mb-2">Review Text Color</label>
             <input
@@ -205,7 +205,7 @@ const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange, onSave, o
         </div>
 
         {design.shadow && (
-          <div className="grid grid-cols-2 gap-4 pl-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pl-0 sm:pl-6">
             <div>
               <label className="block text-sm font-medium text-white mb-2">Shadow Color</label>
               <input
