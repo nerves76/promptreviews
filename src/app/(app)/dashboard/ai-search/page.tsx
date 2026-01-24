@@ -235,6 +235,9 @@ export default function AISearchPage() {
   // Expanded row state (for showing details)
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
 
+  // Show consistency columns toggle (default hidden to reduce visual clutter)
+  const [showConsistency, setShowConsistency] = useState(false);
+
   // Import state
   const [showImportModal, setShowImportModal] = useState(false);
   const [importFile, setImportFile] = useState<File | null>(null);
@@ -1575,6 +1578,20 @@ export default function AISearchPage() {
                 </button>
               )}
 
+              {/* Show consistency toggle */}
+              <button
+                onClick={() => setShowConsistency(!showConsistency)}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+                  showConsistency
+                    ? 'bg-blue-100 text-slate-blue'
+                    : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
+                }`}
+                title={showConsistency ? 'Hide consistency columns' : 'Show consistency columns'}
+              >
+                <Icon name="FaChartLine" className="w-3.5 h-3.5" />
+                Consistency
+              </button>
+
               {/* Results count */}
               <div className="text-sm text-gray-500 ml-auto">
                 {filteredAndSortedRows.length} question{filteredAndSortedRows.length !== 1 ? 's' : ''}
@@ -1639,22 +1656,26 @@ export default function AISearchPage() {
                               {LLM_PROVIDER_LABELS[provider]}
                             </span>
                           </th>
-                          <th className="text-center py-3 px-1 w-9 align-middle">
-                            <span
-                              className={`cursor-help ${colors.text}`}
-                              title={`${LLM_PROVIDER_LABELS[provider]} citation consistency: How often this provider gives the same citation answer when re-checking`}
-                            >
-                              <Icon name="FaLink" className="w-3 h-3" />
-                            </span>
-                          </th>
-                          <th className="text-center py-3 px-1 w-9 align-middle">
-                            <span
-                              className={`cursor-help ${colors.text}`}
-                              title={`${LLM_PROVIDER_LABELS[provider]} mention consistency: How often this provider gives the same mention answer when re-checking`}
-                            >
-                              <Icon name="FaCommentAlt" className="w-3 h-3" />
-                            </span>
-                          </th>
+                          {showConsistency && (
+                            <>
+                              <th className="text-center py-3 px-1 w-9 align-middle">
+                                <span
+                                  className={`cursor-help ${colors.text}`}
+                                  title={`${LLM_PROVIDER_LABELS[provider]} citation consistency: How often this provider gives the same citation answer when re-checking`}
+                                >
+                                  <Icon name="FaLink" className="w-3 h-3" />
+                                </span>
+                              </th>
+                              <th className="text-center py-3 px-1 w-9 align-middle">
+                                <span
+                                  className={`cursor-help ${colors.text}`}
+                                  title={`${LLM_PROVIDER_LABELS[provider]} mention consistency: How often this provider gives the same mention answer when re-checking`}
+                                >
+                                  <Icon name="FaCommentAlt" className="w-3 h-3" />
+                                </span>
+                              </th>
+                            </>
+                          )}
                         </React.Fragment>
                       );
                     })}
@@ -1752,12 +1773,16 @@ export default function AISearchPage() {
                                   <td className="py-3 px-2 text-center">
                                     <span className="text-gray-300" title="Not checked">—</span>
                                   </td>
-                                  <td className="py-3 px-1 text-center">
-                                    <span className="text-gray-300 text-[10px]">—</span>
-                                  </td>
-                                  <td className="py-3 px-1 text-center">
-                                    <span className="text-gray-300 text-[10px]">—</span>
-                                  </td>
+                                  {showConsistency && (
+                                    <>
+                                      <td className="py-3 px-1 text-center">
+                                        <span className="text-gray-300 text-[10px]">—</span>
+                                      </td>
+                                      <td className="py-3 px-1 text-center">
+                                        <span className="text-gray-300 text-[10px]">—</span>
+                                      </td>
+                                    </>
+                                  )}
                                 </React.Fragment>
                               );
                             }
@@ -1786,32 +1811,36 @@ export default function AISearchPage() {
                                     )}
                                   </div>
                                 </td>
-                                {/* Citation consistency */}
-                                <td className="py-3 px-1 text-center">
-                                  {consistencyData && consistencyData.totalChecks > 1 ? (
-                                    <span
-                                      className={`px-1 py-0.5 rounded text-[10px] font-medium ${colors.bg} ${colors.text}`}
-                                      title={`${consistencyData.citationConsistency}% citation consistent (${consistencyData.citedCount}/${consistencyData.totalChecks} cited)`}
-                                    >
-                                      {consistencyData.citationConsistency}%
-                                    </span>
-                                  ) : (
-                                    <span className="text-gray-300 text-[10px]">—</span>
-                                  )}
-                                </td>
-                                {/* Mention consistency */}
-                                <td className="py-3 px-1 text-center">
-                                  {consistencyData && consistencyData.totalChecks > 1 ? (
-                                    <span
-                                      className={`px-1 py-0.5 rounded text-[10px] font-medium ${colors.bg} ${colors.text}`}
-                                      title={`${consistencyData.mentionConsistency}% mention consistent (${consistencyData.mentionedCount}/${consistencyData.totalChecks} mentioned)`}
-                                    >
-                                      {consistencyData.mentionConsistency}%
-                                    </span>
-                                  ) : (
-                                    <span className="text-gray-300 text-[10px]">—</span>
-                                  )}
-                                </td>
+                                {showConsistency && (
+                                  <>
+                                    {/* Citation consistency */}
+                                    <td className="py-3 px-1 text-center">
+                                      {consistencyData && consistencyData.totalChecks > 1 ? (
+                                        <span
+                                          className={`px-1 py-0.5 rounded text-[10px] font-medium ${colors.bg} ${colors.text}`}
+                                          title={`${consistencyData.citationConsistency}% citation consistent (${consistencyData.citedCount}/${consistencyData.totalChecks} cited)`}
+                                        >
+                                          {consistencyData.citationConsistency}%
+                                        </span>
+                                      ) : (
+                                        <span className="text-gray-300 text-[10px]">—</span>
+                                      )}
+                                    </td>
+                                    {/* Mention consistency */}
+                                    <td className="py-3 px-1 text-center">
+                                      {consistencyData && consistencyData.totalChecks > 1 ? (
+                                        <span
+                                          className={`px-1 py-0.5 rounded text-[10px] font-medium ${colors.bg} ${colors.text}`}
+                                          title={`${consistencyData.mentionConsistency}% mention consistent (${consistencyData.mentionedCount}/${consistencyData.totalChecks} mentioned)`}
+                                        >
+                                          {consistencyData.mentionConsistency}%
+                                        </span>
+                                      ) : (
+                                        <span className="text-gray-300 text-[10px]">—</span>
+                                      )}
+                                    </td>
+                                  </>
+                                )}
                               </React.Fragment>
                             );
                           })}
@@ -1839,7 +1868,7 @@ export default function AISearchPage() {
                         {/* Expanded Details Row */}
                         {isExpanded && (
                           <tr className="bg-blue-50">
-                            <td colSpan={8 + LLM_PROVIDERS.length * 3} className="p-4">
+                            <td colSpan={8 + LLM_PROVIDERS.length * (showConsistency ? 3 : 1)} className="p-4">
                               {/* Citation Timeline */}
                               <CitationTimeline
                                 question={row.question}
