@@ -92,13 +92,14 @@ export async function POST(req: NextRequest) {
     // Use service key for database operations to bypass RLS
     const supabaseService = createServiceRoleClient(); // use service role
 
-    // Insert event
+    // Insert event with metadata for extra fields
     const { error } = await supabaseService.from("analytics_events").insert({
       prompt_page_id: promptPageId,
       event_type: eventType,
       platform: platform || "web",
       user_agent: userAgent,
       ip_address: ip,
+      metadata: Object.keys(metadata).length > 0 ? metadata : undefined,
     });
     
     if (error) {

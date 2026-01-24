@@ -258,6 +258,7 @@ export default function AnalyticsPage() {
           clicksByPlatform: {},
           clicksByDate: {},
           aiGenerations: 0,
+          aiEnhances: 0,
           grammarFixes: 0,
           totalAIUsage: 0,
           copySubmits: 0,
@@ -268,6 +269,7 @@ export default function AnalyticsPage() {
           websiteClicks: 0,
           socialClicks: {},
           aiEvents: [],
+          aiEnhanceEvents: [],
           grammarFixEvents: [],
           copySubmitEvents: [],
           reviewSubmitsAll: 0,
@@ -327,6 +329,15 @@ export default function AnalyticsPage() {
               analyticsData.aiGenerations++;
               analyticsData.totalAIUsage++;
               analyticsData.aiEvents.push({
+                date: event.created_at,
+                promptPageId: event.prompt_page_id,
+                platform: event.platform || "",
+              });
+              break;
+            case "ai_enhance":
+              analyticsData.aiEnhances++;
+              analyticsData.totalAIUsage++;
+              analyticsData.aiEnhanceEvents.push({
                 date: event.created_at,
                 promptPageId: event.prompt_page_id,
                 platform: event.platform || "",
@@ -811,7 +822,7 @@ export default function AnalyticsPage() {
       {analytics && (
         <div className="mt-8 mb-8">
           <h2 className="text-xl font-bold text-gray-900 mb-4">AI Features Usage</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="bg-purple-50 rounded-lg p-6 border border-purple-200">
               <div className="flex items-center mb-2">
                 <Icon name="FaRobot" className="w-5 h-5 text-purple-600 mr-2" size={20} />
@@ -821,6 +832,17 @@ export default function AnalyticsPage() {
                 {analytics.aiGenerations}
               </p>
               <p className="text-xs text-purple-600 mt-1">Review generations</p>
+            </div>
+
+            <div className="bg-purple-50 rounded-lg p-6 border border-purple-200">
+              <div className="flex items-center mb-2">
+                <Icon name="FaMagic" className="w-5 h-5 text-purple-600 mr-2" size={20} />
+                <p className="text-sm font-medium text-purple-600">AI Enhance</p>
+              </div>
+              <p className="text-3xl font-bold text-purple-900">
+                {analytics.aiEnhances}
+              </p>
+              <p className="text-xs text-purple-600 mt-1">Review enhancements</p>
             </div>
 
             <div className="bg-purple-50 rounded-lg p-6 border border-purple-200">

@@ -41,6 +41,7 @@ interface KeywordGroup {
   avgPosition: number | null;
   pointsInTop3: number;
   pointsInTop10: number;
+  lastCheckedAt: string | null;
   topCompetitors: Array<{
     name: string;
     avgPosition: number;
@@ -92,6 +93,23 @@ const POINT_LABELS: Record<CheckPoint, string> = {
   sw: 'Southwest',
 };
 
+/**
+ * Format a date string relative to now (e.g., "2d ago", "Today")
+ */
+function formatRelativeDate(dateStr: string | null): string {
+  if (!dateStr) return '—';
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 0) return 'Today';
+  if (diffDays === 1) return 'Yesterday';
+  if (diffDays < 7) return `${diffDays}d ago`;
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`;
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
 // ============================================
 // Helper Functions
 // ============================================
@@ -126,6 +144,13 @@ function groupByKeyword(results: GGCheckResult[]): KeywordGroup[] {
     const pointsInTop10 = keywordResults.filter(
       (r) => r.positionBucket === 'top3' || r.positionBucket === 'top10'
     ).length;
+
+    // Get most recent check time for this keyword
+    const lastCheckedAt = keywordResults.reduce((latest, r) => {
+      if (!r.checkedAt) return latest;
+      if (!latest) return r.checkedAt;
+      return new Date(r.checkedAt) > new Date(latest) ? r.checkedAt : latest;
+    }, null as string | null);
 
     // Aggregate competitors across all check points
     const competitorMap = new Map<string, {
@@ -183,6 +208,7 @@ function groupByKeyword(results: GGCheckResult[]): KeywordGroup[] {
       avgPosition,
       pointsInTop3,
       pointsInTop10,
+      lastCheckedAt,
       topCompetitors,
     };
   });
@@ -347,6 +373,9 @@ export function GeoGridResultsTable({
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Visibility
               </th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Checked
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
@@ -420,12 +449,17 @@ export function GeoGridResultsTable({
                       );
                     })()}
                   </td>
+                  <td className="px-4 py-3">
+                    <span className="text-sm text-gray-500" title={group.lastCheckedAt || undefined}>
+                      {formatRelativeDate(group.lastCheckedAt)}
+                    </span>
+                  </td>
                 </tr>
 
                 {/* Expanded Point Details */}
                 {expandedKeywords.has(group.keywordId) && (
                   <tr>
-                    <td colSpan={5} className="bg-gray-50 px-8 py-4">
+                    <td colSpan={6} className="bg-gray-50 px-8 py-4">
                       {/* Your Average Ranking & Top Competitors */}
                       <div className="flex gap-6 mb-4">
                         {/* Your Business Average */}
