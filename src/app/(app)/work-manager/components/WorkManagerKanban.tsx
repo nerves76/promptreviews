@@ -182,7 +182,13 @@ export default function WorkManagerKanban({
       ref={provided.innerRef}
       {...provided.draggableProps}
       {...provided.dragHandleProps}
-      style={provided.draggableProps.style}
+      style={{
+        ...provided.draggableProps.style,
+        // Ensure dragged clone is visible above all other elements
+        ...(snapshot.isDragging && {
+          zIndex: 9999,
+        }),
+      }}
     >
       <WorkManagerCard
         task={task}
