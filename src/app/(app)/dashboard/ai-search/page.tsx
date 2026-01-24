@@ -1561,9 +1561,12 @@ export default function AISearchPage() {
                               {LLM_PROVIDER_LABELS[provider]}
                             </span>
                           </th>
-                          <th className="text-center py-3 px-1 w-14">
-                            <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${colors.bg} ${colors.text} opacity-80`}>
-                              Cons.
+                          <th className="text-center py-3 px-1 w-10">
+                            <span
+                              className={`inline-flex items-center justify-center w-6 h-6 rounded ${colors.bg} ${colors.text} opacity-80 cursor-help`}
+                              title={`${LLM_PROVIDER_LABELS[provider]} consistency: How often this provider gives the same answer when re-checking the same question`}
+                            >
+                              <Icon name="FaRedo" className="w-3 h-3" />
                             </span>
                           </th>
                         </React.Fragment>
