@@ -1334,7 +1334,7 @@ export default function AISearchPage() {
                   </div>
                 )}
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   {/* Citation Rate with Trend and Per-Model Rates */}
                   <div className={`p-4 rounded-xl border ${displayStats.isFiltered ? 'bg-gradient-to-br from-slate-blue/10 to-blue-50 border-slate-blue/20' : 'bg-gradient-to-br from-blue-50 to-pink-50 border-blue-100'}`}>
                     <div className="flex items-baseline gap-2">
