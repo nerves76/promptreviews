@@ -1207,7 +1207,7 @@ export default function AISearchPage() {
           title="LLM visibility"
           description="Track whether AI assistants cite your domain or mention your brand when answering questions."
           actions={
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap justify-end">
               {keywords.length > 0 && (
                 <button
                   onClick={() => setShowRunAllModal(true)}
