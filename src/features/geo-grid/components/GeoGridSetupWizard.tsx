@@ -66,6 +66,9 @@ export function GeoGridSetupWizard({
   // OAuth connection state
   const [isConnecting, setIsConnecting] = useState(false);
 
+  // Track if we've done the initial auto-search (to avoid re-running after user interaction)
+  const hasAutoSearchedRef = React.useRef(false);
+
   // GBP connection and location fetching state
   const [isGBPConnected, setIsGBPConnected] = useState<boolean | null>(null); // null = checking
   const [isFetchingLocations, setIsFetchingLocations] = useState(false);
@@ -438,13 +441,16 @@ export function GeoGridSetupWizard({
 
   // Auto-search for business when component mounts with a GBP location
   // But only if we don't already have a valid Place ID from the database
+  // Only runs ONCE on initial load - user's manual searches won't be overwritten
   useEffect(() => {
     console.log('GeoGridSetupWizard useEffect - effectiveGBPLocation:', effectiveGBPLocation);
     if (effectiveGBPLocation && effectiveGBPLocation.name) {
       // Update selectedLocation when effective location changes
       setSelectedLocation(effectiveGBPLocation);
       // Update search name (user can edit this if their business name changed)
-      setSearchBusinessName(effectiveGBPLocation.name);
+      if (!hasAutoSearchedRef.current) {
+        setSearchBusinessName(effectiveGBPLocation.name);
+      }
 
       // If we already have a valid Place ID from the database, don't search
       if (effectiveGBPLocation.placeId?.startsWith('ChIJ')) {
@@ -463,11 +469,16 @@ export function GeoGridSetupWizard({
           console.log('Calling fetchCoordsFromPlaceId...');
           fetchCoordsFromPlaceId(effectiveGBPLocation.placeId);
         }
+        hasAutoSearchedRef.current = true;
         return;
       }
-      // Otherwise, search for the business using the GBP name
-      console.log('No valid Place ID, searching for business:', effectiveGBPLocation.name);
-      searchForBusiness(effectiveGBPLocation.name);
+
+      // Only auto-search once on initial mount
+      if (!hasAutoSearchedRef.current) {
+        console.log('Auto-searching for business:', effectiveGBPLocation.name);
+        hasAutoSearchedRef.current = true;
+        searchForBusiness(effectiveGBPLocation.name);
+      }
     }
   }, [effectiveGBPLocation, searchForBusiness, fetchCoordsFromPlaceId]);
 
