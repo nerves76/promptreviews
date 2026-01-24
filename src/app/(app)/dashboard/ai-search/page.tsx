@@ -1581,15 +1581,13 @@ export default function AISearchPage() {
               {/* Show consistency toggle */}
               <button
                 onClick={() => setShowConsistency(!showConsistency)}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
-                  showConsistency
-                    ? 'bg-blue-100 text-slate-blue'
-                    : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
-                }`}
+                className="inline-flex items-center gap-2 text-sm text-gray-600"
                 title={showConsistency ? 'Hide consistency columns' : 'Show consistency columns'}
               >
-                <Icon name="FaChartLine" className="w-3.5 h-3.5" />
-                Consistency
+                <span>Consistency</span>
+                <div className={`relative w-9 h-5 rounded-full transition-colors ${showConsistency ? 'bg-slate-blue' : 'bg-gray-300'}`}>
+                  <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${showConsistency ? 'translate-x-4' : 'translate-x-0.5'}`} />
+                </div>
               </button>
 
               {/* Results count */}
