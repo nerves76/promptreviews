@@ -247,6 +247,9 @@ function SignUpContent() {
               return;
             }
 
+            // Get the user's session to retrieve their ID
+            const { data: { user: signedInUser } } = await supabase.auth.getUser();
+
             // Accept the team invitation
             const acceptResponse = await fetch('/api/team/accept-after-signup', {
               method: 'POST',
@@ -262,6 +265,14 @@ function SignUpContent() {
               console.error('❌ Failed to accept invitation:', acceptResult);
               // User is signed in but invitation acceptance failed
               // Still redirect to dashboard - they can try accepting again
+            } else if (signedInUser && acceptResult.account_id) {
+              // Store the account ID so dashboard recognizes this user has an account
+              // This prevents the race condition where dashboard redirects to create-business
+              // before the account context has loaded the newly-joined account
+              localStorage.setItem(
+                `promptreviews_selected_account_${signedInUser.id}`,
+                acceptResult.account_id
+              );
             }
 
             // Redirect to dashboard

@@ -410,8 +410,9 @@ export async function GET(request: NextRequest) {
             } catch (e) { /* Don't fail auth for tracking errors */ }
 
             // Skip individual account creation - team members use team account
-            // Redirect directly to dashboard
-            return NextResponse.redirect(`${requestUrl.origin}/dashboard`);
+            // Redirect to dashboard with account ID so client can store it
+            // This prevents the race condition where dashboard redirects to create-business
+            return NextResponse.redirect(`${requestUrl.origin}/dashboard?inviteAccepted=1&accountId=${invitation.account_id}`);
           } else {
             console.error('❌ Error accepting invitation:', {
               error: addUserError,
@@ -460,8 +461,8 @@ export async function GET(request: NextRequest) {
                 });
               } catch (e) { /* Don't fail auth for tracking errors */ }
 
-              // Redirect to dashboard
-              return NextResponse.redirect(`${requestUrl.origin}/dashboard`);
+              // Redirect to dashboard with account ID so client can store it
+              return NextResponse.redirect(`${requestUrl.origin}/dashboard?inviteAccepted=1&accountId=${invitation.account_id}`);
             } else {
               console.error('❌ Fallback also failed in callback:', {
                 error: fallbackError,

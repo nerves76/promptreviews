@@ -35,11 +35,29 @@ export default function DashboardLayout({
 
   const businessCreatedFlag = searchParams?.get('businessCreated') ?? null;
   const successFlag = searchParams?.get('success') ?? null;
+  const inviteAcceptedFlag = searchParams?.get('inviteAccepted') ?? null;
+  const accountIdParam = searchParams?.get('accountId') ?? null;
 
   // Ensure we're on the client side before accessing browser APIs
   useEffect(() => {
     setHasMounted(true);
   }, []);
+
+  // Handle team invitation acceptance - store account ID to prevent create-business redirect
+  useEffect(() => {
+    if (hasMounted && user && inviteAcceptedFlag === '1' && accountIdParam) {
+      // Store the account ID so the account context can load it
+      localStorage.setItem(
+        `promptreviews_selected_account_${user.id}`,
+        accountIdParam
+      );
+      // Clean up URL params after storing
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.delete('inviteAccepted');
+      newUrl.searchParams.delete('accountId');
+      router.replace(newUrl.pathname + newUrl.search);
+    }
+  }, [hasMounted, user, inviteAcceptedFlag, accountIdParam, router]);
 
 
   // 🔧 SIMPLIFIED AUTH: Use AuthContext instead of independent auth checking
@@ -82,6 +100,11 @@ export default function DashboardLayout({
     if (justCreatedBusiness) {
       return; // Skip the account check
     }
+
+    // Skip if user just accepted a team invitation - the account ID is being stored
+    if (inviteAcceptedFlag === '1') {
+      return; // Skip the account check while invitation is being processed
+    }
     
     // Wait before checking - give the account context time to load
     const checkTimeout = setTimeout(() => {
@@ -101,7 +124,7 @@ export default function DashboardLayout({
     }, 2000); // Wait 2 seconds before checking
     
     return () => clearTimeout(checkTimeout);
-  }, [hasMounted, isInitialized, user, account, accountLoading, pathname, businessCreatedFlag, router]);
+  }, [hasMounted, isInitialized, user, account, accountLoading, pathname, businessCreatedFlag, inviteAcceptedFlag, router]);
 
   // Check for accounts without plans and redirect to plan selection
   useEffect(() => {
