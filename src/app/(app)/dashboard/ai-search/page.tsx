@@ -47,7 +47,9 @@ interface KeywordWithQuestions {
 interface ProviderConsistency {
   totalChecks: number;
   citedCount: number;
-  consistency: number; // 0-100, how often the majority answer appears
+  mentionedCount: number;
+  citationConsistency: number; // 0-100, how often the majority citation answer appears
+  mentionConsistency: number; // 0-100, how often the majority mention answer appears
 }
 
 interface QuestionRow {
@@ -432,8 +434,8 @@ export default function AISearchPage() {
         LLM_PROVIDERS.forEach(p => questionResults.set(p, null));
 
         // Track ALL results per provider for consistency calculation
-        const providerChecks = new Map<LLMProvider, { total: number; cited: number }>();
-        LLM_PROVIDERS.forEach(p => providerChecks.set(p, { total: 0, cited: 0 }));
+        const providerChecks = new Map<LLMProvider, { total: number; cited: number; mentioned: number }>();
+        LLM_PROVIDERS.forEach(p => providerChecks.set(p, { total: 0, cited: 0, mentioned: 0 }));
 
         let lastCheckedAt: string | null = null;
 
@@ -454,10 +456,13 @@ export default function AISearchPage() {
             if (result.domainCited) {
               checks.cited++;
             }
+            if (result.brandMentioned) {
+              checks.mentioned++;
+            }
           }
         }
 
-        // Calculate per-provider consistency
+        // Calculate per-provider consistency (for both citations and mentions)
         const consistencyMap = new Map<LLMProvider, ProviderConsistency | null>();
         LLM_PROVIDERS.forEach(provider => {
           const checks = providerChecks.get(provider)!;
@@ -466,12 +471,18 @@ export default function AISearchPage() {
           } else {
             // Consistency = how often the majority answer appears
             // If 8/10 cited, consistency = 80%. If 5/10 cited, consistency = 50%.
-            const majorityCount = Math.max(checks.cited, checks.total - checks.cited);
-            const consistency = Math.round((majorityCount / checks.total) * 100);
+            const citationMajority = Math.max(checks.cited, checks.total - checks.cited);
+            const citationConsistency = Math.round((citationMajority / checks.total) * 100);
+
+            const mentionMajority = Math.max(checks.mentioned, checks.total - checks.mentioned);
+            const mentionConsistency = Math.round((mentionMajority / checks.total) * 100);
+
             consistencyMap.set(provider, {
               totalChecks: checks.total,
               citedCount: checks.cited,
-              consistency,
+              mentionedCount: checks.mentioned,
+              citationConsistency,
+              mentionConsistency,
             });
           }
         });
@@ -631,7 +642,7 @@ export default function AISearchPage() {
       ? filteredAndSortedRows
       : questionRows;
 
-    // Calculate per-provider repeatability (average of per-question consistency scores)
+    // Calculate per-provider citation consistency (average of per-question consistency scores)
     const providerCitationConsistency: Record<string, number | null> = {};
     for (const provider of LLM_PROVIDERS) {
       if (!selectedProviders.has(provider)) {
@@ -639,12 +650,11 @@ export default function AISearchPage() {
         continue;
       }
 
-      // Get all consistency scores for this provider (only where 2+ checks exist)
       const scores: number[] = [];
       for (const row of relevantRows) {
         const consistency = row.consistency.get(provider as LLMProvider);
         if (consistency && consistency.totalChecks >= 2) {
-          scores.push(consistency.consistency);
+          scores.push(consistency.citationConsistency);
         }
       }
 
@@ -653,19 +663,38 @@ export default function AISearchPage() {
         : null;
     }
 
-    // Calculate overall repeatability (average across all providers)
-    const allProviderScores = Object.values(providerCitationConsistency).filter((v): v is number => v !== null);
-    const overallCitationConsistency = allProviderScores.length > 0
-      ? Math.round(allProviderScores.reduce((sum, s) => sum + s, 0) / allProviderScores.length)
+    // Calculate overall citation consistency (average across all providers)
+    const allCitationScores = Object.values(providerCitationConsistency).filter((v): v is number => v !== null);
+    const overallCitationConsistency = allCitationScores.length > 0
+      ? Math.round(allCitationScores.reduce((sum, s) => sum + s, 0) / allCitationScores.length)
       : null;
 
-    // For mentions, we'd need to track mention consistency separately in questionRows
-    // For now, set to null (can be implemented if needed)
+    // Calculate per-provider mention consistency
     const providerMentionConsistency: Record<string, number | null> = {};
     for (const provider of LLM_PROVIDERS) {
-      providerMentionConsistency[provider] = null;
+      if (!selectedProviders.has(provider)) {
+        providerMentionConsistency[provider] = null;
+        continue;
+      }
+
+      const scores: number[] = [];
+      for (const row of relevantRows) {
+        const consistency = row.consistency.get(provider as LLMProvider);
+        if (consistency && consistency.totalChecks >= 2) {
+          scores.push(consistency.mentionConsistency);
+        }
+      }
+
+      providerMentionConsistency[provider] = scores.length > 0
+        ? Math.round(scores.reduce((sum, s) => sum + s, 0) / scores.length)
+        : null;
     }
-    const overallMentionConsistency: number | null = null;
+
+    // Calculate overall mention consistency (average across all providers)
+    const allMentionScores = Object.values(providerMentionConsistency).filter((v): v is number => v !== null);
+    const overallMentionConsistency = allMentionScores.length > 0
+      ? Math.round(allMentionScores.reduce((sum, s) => sum + s, 0) / allMentionScores.length)
+      : null;
 
     return {
       totalQuestions,
@@ -1395,32 +1424,63 @@ export default function AISearchPage() {
 
                   {/* Consistency - how consistent is each provider across multiple checks of the same question */}
                   <div className={`p-4 rounded-xl border ${displayStats.isFiltered ? 'bg-slate-50 border-slate-200' : 'bg-gray-50 border-gray-200'}`}>
-                    <div className="text-sm text-gray-600 mb-2">Consistency</div>
+                    <div className="text-sm text-gray-600 mb-3">Consistency</div>
 
-                    <div className="flex items-baseline gap-2 mb-1">
-                      <span className="text-lg font-bold text-gray-800">
-                        {displayStats.overallCitationConsistency !== null
-                          ? `${displayStats.overallCitationConsistency}%`
-                          : '--'}
-                      </span>
-                      <span className="text-xs text-gray-500">avg across providers</span>
+                    {/* Citation consistency */}
+                    <div className="mb-3">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Icon name="FaLink" className="w-3 h-3 text-green-600" />
+                        <span className="text-base font-bold text-gray-800">
+                          {displayStats.overallCitationConsistency !== null
+                            ? `${displayStats.overallCitationConsistency}%`
+                            : '--'}
+                        </span>
+                        <span className="text-xs text-gray-500">citations</span>
+                      </div>
+                      <div className="flex gap-1 flex-wrap">
+                        {LLM_PROVIDERS.filter(p => selectedProviders.has(p)).map((provider) => {
+                          const score = displayStats.providerCitationConsistency[provider];
+                          const colors = LLM_PROVIDER_COLORS[provider];
+                          return (
+                            <span
+                              key={provider}
+                              className={`px-1 py-0.5 rounded text-[10px] ${colors.bg} ${colors.text}`}
+                              title={`${LLM_PROVIDER_LABELS[provider]}: ${score !== null ? `${score}% citation consistent` : 'needs 2+ checks'}`}
+                            >
+                              {score !== null ? `${score}%` : '--'}
+                            </span>
+                          );
+                        })}
+                      </div>
                     </div>
-                    <div className="flex gap-1 flex-wrap">
-                      {LLM_PROVIDERS.filter(p => selectedProviders.has(p)).map((provider) => {
-                        const score = displayStats.providerCitationConsistency[provider];
-                        const colors = LLM_PROVIDER_COLORS[provider];
-                        return (
-                          <span
-                            key={provider}
-                            className={`px-1 py-0.5 rounded text-[10px] ${colors.bg} ${colors.text}`}
-                            title={`${LLM_PROVIDER_LABELS[provider]}: ${score !== null ? `${score}% consistent (same answer on re-checks)` : 'needs 2+ checks'}`}
-                          >
-                            {score !== null ? `${score}%` : '--'}
-                          </span>
-                        );
-                      })}
+
+                    {/* Mention consistency */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <Icon name="FaCommentAlt" className="w-3 h-3 text-blue-600" />
+                        <span className="text-base font-bold text-gray-800">
+                          {displayStats.overallMentionConsistency !== null
+                            ? `${displayStats.overallMentionConsistency}%`
+                            : '--'}
+                        </span>
+                        <span className="text-xs text-gray-500">mentions</span>
+                      </div>
+                      <div className="flex gap-1 flex-wrap">
+                        {LLM_PROVIDERS.filter(p => selectedProviders.has(p)).map((provider) => {
+                          const score = displayStats.providerMentionConsistency[provider];
+                          const colors = LLM_PROVIDER_COLORS[provider];
+                          return (
+                            <span
+                              key={provider}
+                              className={`px-1 py-0.5 rounded text-[10px] ${colors.bg} ${colors.text}`}
+                              title={`${LLM_PROVIDER_LABELS[provider]}: ${score !== null ? `${score}% mention consistent` : 'needs 2+ checks'}`}
+                            >
+                              {score !== null ? `${score}%` : '--'}
+                            </span>
+                          );
+                        })}
+                      </div>
                     </div>
-                    <p className="text-[10px] text-gray-400 mt-1">Same answer when re-checking</p>
                   </div>
                 </div>
               </div>
@@ -1551,7 +1611,7 @@ export default function AISearchPage() {
                         <SortIndicator field="concept" />
                       </div>
                     </th>
-                    {/* Provider columns - results and consistency */}
+                    {/* Provider columns - results and consistency (citations + mentions) */}
                     {LLM_PROVIDERS.map(provider => {
                       const colors = LLM_PROVIDER_COLORS[provider];
                       return (
@@ -1561,12 +1621,20 @@ export default function AISearchPage() {
                               {LLM_PROVIDER_LABELS[provider]}
                             </span>
                           </th>
-                          <th className="text-center py-3 px-1 w-10">
+                          <th className="text-center py-3 px-1 w-9">
                             <span
-                              className={`inline-flex items-center justify-center w-6 h-6 rounded ${colors.bg} ${colors.text} opacity-80 cursor-help`}
-                              title={`${LLM_PROVIDER_LABELS[provider]} consistency: How often this provider gives the same answer when re-checking the same question`}
+                              className={`inline-flex items-center justify-center w-5 h-5 rounded ${colors.bg} ${colors.text} opacity-80 cursor-help`}
+                              title={`${LLM_PROVIDER_LABELS[provider]} citation consistency: How often this provider gives the same citation answer when re-checking`}
                             >
-                              <Icon name="FaRedo" className="w-3 h-3" />
+                              <Icon name="FaLink" className="w-2.5 h-2.5" />
+                            </span>
+                          </th>
+                          <th className="text-center py-3 px-1 w-9">
+                            <span
+                              className={`inline-flex items-center justify-center w-5 h-5 rounded ${colors.bg} ${colors.text} opacity-80 cursor-help`}
+                              title={`${LLM_PROVIDER_LABELS[provider]} mention consistency: How often this provider gives the same mention answer when re-checking`}
+                            >
+                              <Icon name="FaCommentAlt" className="w-2.5 h-2.5" />
                             </span>
                           </th>
                         </React.Fragment>
@@ -1669,6 +1737,9 @@ export default function AISearchPage() {
                                   <td className="py-3 px-1 text-center">
                                     <span className="text-gray-300 text-[10px]">—</span>
                                   </td>
+                                  <td className="py-3 px-1 text-center">
+                                    <span className="text-gray-300 text-[10px]">—</span>
+                                  </td>
                                 </React.Fragment>
                               );
                             }
@@ -1697,13 +1768,27 @@ export default function AISearchPage() {
                                     )}
                                   </div>
                                 </td>
+                                {/* Citation consistency */}
                                 <td className="py-3 px-1 text-center">
-                                  {consistencyData ? (
+                                  {consistencyData && consistencyData.totalChecks > 1 ? (
                                     <span
                                       className={`px-1 py-0.5 rounded text-[10px] font-medium ${colors.bg} ${colors.text}`}
-                                      title={`${consistencyData.consistency}% consistent (${consistencyData.citedCount}/${consistencyData.totalChecks} cited)`}
+                                      title={`${consistencyData.citationConsistency}% citation consistent (${consistencyData.citedCount}/${consistencyData.totalChecks} cited)`}
                                     >
-                                      {consistencyData.totalChecks > 1 ? `${consistencyData.consistency}%` : '—'}
+                                      {consistencyData.citationConsistency}%
+                                    </span>
+                                  ) : (
+                                    <span className="text-gray-300 text-[10px]">—</span>
+                                  )}
+                                </td>
+                                {/* Mention consistency */}
+                                <td className="py-3 px-1 text-center">
+                                  {consistencyData && consistencyData.totalChecks > 1 ? (
+                                    <span
+                                      className={`px-1 py-0.5 rounded text-[10px] font-medium ${colors.bg} ${colors.text}`}
+                                      title={`${consistencyData.mentionConsistency}% mention consistent (${consistencyData.mentionedCount}/${consistencyData.totalChecks} mentioned)`}
+                                    >
+                                      {consistencyData.mentionConsistency}%
                                     </span>
                                   ) : (
                                     <span className="text-gray-300 text-[10px]">—</span>
@@ -1736,7 +1821,7 @@ export default function AISearchPage() {
                         {/* Expanded Details Row */}
                         {isExpanded && (
                           <tr className="bg-blue-50">
-                            <td colSpan={8 + LLM_PROVIDERS.length * 2} className="p-4">
+                            <td colSpan={8 + LLM_PROVIDERS.length * 3} className="p-4">
                               {/* Citation Timeline */}
                               <CitationTimeline
                                 question={row.question}
