@@ -22,7 +22,7 @@ export function TabNavigation({
     const isDisabled = requiresConnection && isTabDisabled;
     const activeWhenConnected = isActive && (!requiresConnection || (isConnected && hasLocations));
 
-    return `py-2 px-3 border-b-2 font-medium text-sm rounded-t-md transition-colors whitespace-nowrap ${
+    return `py-2 px-3 border-b-2 font-medium text-sm rounded-t-md transition-colors whitespace-nowrap snap-start flex-shrink-0 min-h-[44px] flex items-center ${
       activeWhenConnected
         ? 'border-slate-blue text-slate-blue bg-white shadow-sm'
         : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-100'
@@ -30,7 +30,7 @@ export function TabNavigation({
   };
 
   return (
-    <nav className="hidden md:flex -mb-px flex-wrap gap-2">
+    <nav className="flex -mb-px gap-2 overflow-x-auto scrollbar-hide pb-2 md:pb-0 md:flex-wrap snap-x snap-mandatory md:snap-none">
       <button
         onClick={() => onTabChange('connect')}
         className={getTabClasses('connect', false)}

@@ -5,6 +5,7 @@ import type { GoogleBusinessTab } from '../types/google-business';
 interface MobileTabMenuProps {
   activeTab: GoogleBusinessTab;
   isConnected: boolean;
+  hasLocations: boolean;
   isOpen: boolean;
   onTabChange: (tab: GoogleBusinessTab) => void;
 }
@@ -12,14 +13,17 @@ interface MobileTabMenuProps {
 export function MobileTabMenu({
   activeTab,
   isConnected,
+  hasLocations,
   isOpen,
   onTabChange,
 }: MobileTabMenuProps) {
   if (!isOpen) return null;
 
+  const isTabDisabled = !isConnected || !hasLocations;
+
   const getMobileTabClasses = (tab: GoogleBusinessTab, requiresConnection: boolean = true) => {
     const isActive = activeTab === tab;
-    const isDisabled = requiresConnection && !isConnected;
+    const isDisabled = requiresConnection && isTabDisabled;
     const activeWhenConnected = isActive && (!requiresConnection || isConnected);
 
     if (activeWhenConnected) {

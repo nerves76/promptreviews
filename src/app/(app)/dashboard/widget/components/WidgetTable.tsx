@@ -93,14 +93,14 @@ export function WidgetTable({
                         e.stopPropagation();
                         onCopyEmbed(widget.id);
                       }}
-                      className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                      className="p-2.5 min-h-[44px] min-w-[44px] flex items-center justify-center text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                       title={isCopied ? "Copied!" : "Copy embed code"}
                       aria-label={isCopied ? "Copied!" : "Copy embed code"}
                     >
                       {isCopied ? (
-                        <CheckIcon className="w-4 h-4 text-green-600" />
+                        <CheckIcon className="w-5 h-5 text-green-600" />
                       ) : (
-                        <Icon name="FaCode" className="w-4 h-4" size={16} />
+                        <Icon name="FaCode" className="w-5 h-5" size={20} />
                       )}
                     </button>
 
@@ -109,11 +109,11 @@ export function WidgetTable({
                         e.stopPropagation();
                         onEditStyle(widget);
                       }}
-                      className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                      className="p-2.5 min-h-[44px] min-w-[44px] flex items-center justify-center text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                       title="Edit style"
                       aria-label="Edit style"
                     >
-                      <Icon name="FaPalette" className="w-4 h-4" size={16} />
+                      <Icon name="FaPalette" className="w-5 h-5" size={20} />
                     </button>
 
                     <button
@@ -121,11 +121,11 @@ export function WidgetTable({
                         e.stopPropagation();
                         onManageReviews(widget.id);
                       }}
-                      className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                      className="p-2.5 min-h-[44px] min-w-[44px] flex items-center justify-center text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                       title="Manage reviews"
                       aria-label="Manage reviews"
                     >
-                      <ChatBubbleLeftIcon className="w-4 h-4" />
+                      <ChatBubbleLeftIcon className="w-5 h-5" />
                     </button>
 
                     <button
@@ -133,11 +133,11 @@ export function WidgetTable({
                         e.stopPropagation();
                         onDelete(widget.id);
                       }}
-                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      className="p-2.5 min-h-[44px] min-w-[44px] flex items-center justify-center text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                       title="Delete widget"
                       aria-label="Delete widget"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                       </svg>
                     </button>

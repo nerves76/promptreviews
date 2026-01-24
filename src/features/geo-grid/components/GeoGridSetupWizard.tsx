@@ -366,20 +366,23 @@ export function GeoGridSetupWizard({
         if (response.debugInfo) {
           const { textSearchStatus, findPlaceStatus, placesNewStatus } = response.debugInfo as any;
           console.log('API status codes:', { placesNewStatus, textSearchStatus, findPlaceStatus });
-          // Check for API access issues - show user-friendly message
-          const hasAccessDenied = [placesNewStatus, textSearchStatus, findPlaceStatus].some(
-            s => s === 'REQUEST_DENIED' || s === 'PERMISSION_DENIED'
+
+          // Check for "not found" (ZERO_RESULTS) - this is the most common case
+          const hasZeroResults = [placesNewStatus, textSearchStatus, findPlaceStatus].some(
+            s => s === 'ZERO_RESULTS'
           );
-          if (hasAccessDenied) {
-            setGeocodeError('API_CONNECTION_ERROR');
+          if (hasZeroResults) {
+            // At least one API worked but found nothing - business not in database
+            setGeocodeError('BUSINESS_NOT_FOUND');
             return false;
           }
-          // Check for "not found" (ZERO_RESULTS)
-          const allZeroResults = [placesNewStatus, textSearchStatus, findPlaceStatus].every(
-            s => s === 'ZERO_RESULTS' || s === 'NOT_TRIED'
+
+          // Only show API error if ALL APIs failed with permission issues
+          const allAccessDenied = [textSearchStatus, findPlaceStatus].every(
+            s => s === 'REQUEST_DENIED' || s === 'PERMISSION_DENIED'
           );
-          if (allZeroResults) {
-            setGeocodeError('BUSINESS_NOT_FOUND');
+          if (allAccessDenied) {
+            setGeocodeError('API_CONNECTION_ERROR');
             return false;
           }
         }
@@ -635,7 +638,7 @@ export function GeoGridSetupWizard({
                     {effectiveGBPLocation.address && (
                       <p className="text-sm text-gray-500">{effectiveGBPLocation.address}</p>
                     )}
-                    <p className="text-xs text-gray-500">Connected via Google Business Profile</p>
+                    <p className="text-xs text-gray-500">GBP connected — need Place ID for rank tracking</p>
                     {/* Warning if no valid Place ID from GBP */}
                     {!effectiveGBPLocation.placeId && (
                       <div className="mt-2 flex items-center gap-2">

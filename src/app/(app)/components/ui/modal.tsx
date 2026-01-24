@@ -103,10 +103,10 @@ function ModalBody({ children, className }: ModalBodyProps) {
   );
 }
 
-/** Footer section for actions */
+/** Footer section for actions - stacks on mobile, inline on larger screens */
 function ModalFooter({ children, className }: ModalFooterProps) {
   return (
-    <div className={cn('mt-6 flex justify-end gap-3', className)}>
+    <div className={cn('mt-6 flex flex-col-reverse sm:flex-row sm:justify-end gap-3', className)}>
       {children}
     </div>
   );
@@ -159,7 +159,7 @@ function StandardModal({
             >
               <Dialog.Panel
                 className={cn(
-                  'relative w-full transform rounded-2xl p-6 shadow-xl transition-all',
+                  'relative w-full transform rounded-2xl p-4 sm:p-6 shadow-xl transition-all',
                   sizeClasses[size],
                   (allowOverflow || showCloseButton) ? 'overflow-visible' : 'overflow-hidden',
                   isDark
@@ -168,11 +168,11 @@ function StandardModal({
                   className
                 )}
               >
-                {/* Standardized close button */}
+                {/* Standardized close button - inside on mobile, outside on larger screens */}
                 {showCloseButton && (
                   <button
                     className={cn(
-                      "absolute -top-3 -right-3 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 z-50",
+                      "absolute top-2 right-2 sm:-top-3 sm:-right-3 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 z-50",
                       isDark
                         ? "bg-white/20 border border-white/30 hover:bg-white/30"
                         : "bg-white border border-gray-200 hover:bg-gray-100"
@@ -334,10 +334,10 @@ function DraggableModalInner({
         onMouseDown={handleMouseDown}
         onTouchStart={handleTouchStart}
       >
-        {/* Close button */}
+        {/* Close button - inside on mobile, outside on larger screens */}
         {showCloseButton && (
           <button
-            className="absolute -top-3 -right-3 bg-white border border-gray-200 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 flex items-center justify-center hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 z-50"
+            className="absolute top-2 right-2 sm:-top-3 sm:-right-3 bg-white border border-gray-200 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 flex items-center justify-center hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 z-50"
             style={{ width: 48, height: 48 }}
             onClick={onClose}
             aria-label="Close modal"

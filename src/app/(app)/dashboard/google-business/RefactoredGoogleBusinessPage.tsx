@@ -2005,7 +2005,9 @@ export function RefactoredGoogleBusinessPage() {
               </h3>
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="p-2 rounded-md text-gray-500 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-slate-blue"
+                className="p-3 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-md text-gray-500 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-slate-blue md:hidden"
+                aria-label={isMobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+                aria-expanded={isMobileMenuOpen}
               >
                 <Icon name={isMobileMenuOpen ? "FaTimes" : "FaBars"} className="w-5 h-5" size={20} />
               </button>
@@ -2023,6 +2025,7 @@ export function RefactoredGoogleBusinessPage() {
             <MobileTabMenu
               activeTab={activeTab}
               isConnected={isConnected}
+              hasLocations={locations.length > 0}
               isOpen={isMobileMenuOpen}
               onTabChange={changeTab}
             />

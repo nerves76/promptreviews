@@ -839,7 +839,7 @@ export default function AnalyticsPage() {
 
             <div className="bg-purple-50 rounded-lg p-6 border border-purple-200">
               <div className="flex items-center mb-2">
-                <Icon name="FaMagic" className="w-5 h-5 text-purple-600 mr-2" size={20} />
+                <Icon name="FaLightbulb" className="w-5 h-5 text-purple-600 mr-2" size={20} />
                 <p className="text-sm font-medium text-purple-600">AI Enhance</p>
               </div>
               <p className="text-3xl font-bold text-purple-900">
@@ -901,7 +901,36 @@ export default function AnalyticsPage() {
           </table>
         </div>
       )}
-      
+
+      {analytics && analytics.aiEnhanceEvents.length > 0 && (
+        <div className="mb-8">
+          <h3 className="text-lg font-bold mb-2">AI Enhance Events</h3>
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Prompt Page</th>
+                <th>Page Type</th>
+                <th>Review Platform</th>
+              </tr>
+            </thead>
+            <tbody>
+              {analytics.aiEnhanceEvents.map((ev) => {
+                const page = promptPages.find((p) => p.id === ev.promptPageId);
+                return (
+                  <tr key={ev.date + ev.promptPageId + ev.platform}>
+                    <td>{new Date(ev.date).toLocaleString()}</td>
+                    <td>{page?.slug || page?.first_name || ev.promptPageId}</td>
+                    <td>{page?.is_universal ? "Universal" : "Custom"}</td>
+                    <td>{ev.platform}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
       {analytics && analytics.grammarFixEvents.length > 0 && (
         <div className="mb-8">
           <h3 className="text-lg font-bold mb-2">Grammar Fix Events</h3>

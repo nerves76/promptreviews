@@ -646,8 +646,8 @@ export default function BusinessProfileForm({
             onChange={handleChange}
             placeholder="Street address (optional)"
           />
-          <div className="flex gap-2 mb-2">
-            <div className="flex flex-col w-32">
+          <div className="flex flex-col sm:flex-row gap-2 mb-2">
+            <div className="flex flex-col flex-1 min-w-0">
               <label
                 className="block text-xs font-medium text-gray-500 mb-1 flex items-center gap-1"
                 htmlFor="address_city"
@@ -659,14 +659,14 @@ export default function BusinessProfileForm({
                 type="text"
                 id="address_city"
                 name="address_city"
-                className="w-full border px-3 py-2 rounded mb-4"
+                className="w-full border px-3 py-2 rounded mb-2 sm:mb-4"
                 value={form.address_city || ""}
                 onChange={handleChange}
                 required
                 placeholder="City"
               />
             </div>
-            <div className="flex flex-col w-20">
+            <div className="flex flex-col w-full sm:w-20">
               <label
                 className="block text-xs font-medium text-gray-500 mb-1 flex items-center gap-1"
                 htmlFor="address_state"
@@ -678,14 +678,14 @@ export default function BusinessProfileForm({
                 type="text"
                 id="address_state"
                 name="address_state"
-                className="w-full border px-3 py-2 rounded mb-4"
+                className="w-full border px-3 py-2 rounded mb-2 sm:mb-4"
                 value={form.address_state || ""}
                 onChange={handleChange}
                 required
                 placeholder="State"
               />
             </div>
-            <div className="flex flex-col w-24">
+            <div className="flex flex-col w-full sm:w-28">
               <label
                 className="block text-xs font-medium text-gray-500 mb-1 flex items-center gap-1"
                 htmlFor="address_zip"
@@ -697,7 +697,7 @@ export default function BusinessProfileForm({
                 type="text"
                 id="address_zip"
                 name="address_zip"
-                className="w-full border px-3 py-2 rounded mb-4"
+                className="w-full border px-3 py-2 rounded mb-2 sm:mb-4"
                 value={form.address_zip || ""}
                 onChange={handleChange}
                 required
