@@ -1950,19 +1950,21 @@ export function RefactoredGoogleBusinessPage() {
               </p>
               {/* Connection Status Indicator */}
               {isConnected && (
-                <div className="mt-2 flex flex-col sm:flex-row sm:items-center space-y-1 sm:space-y-0 sm:space-x-2 text-sm">
+                <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
                   <div className="flex items-center space-x-1 text-green-600">
                     <Icon name="FaCheck" className="w-3 h-3" />
                     <span className="font-medium">Connected</span>
                   </div>
                   {connectedEmail && (
-                    <span className="text-gray-600">
-                      • {connectedEmail}
+                    <span className="text-gray-600 flex items-center">
+                      <span className="hidden sm:inline mr-1">•</span>
+                      {connectedEmail}
                     </span>
                   )}
                   {locations.length > 0 && (
-                    <span className="text-gray-500">
-                      • {selectedLocations.length > 0
+                    <span className="text-gray-500 flex items-center">
+                      <span className="hidden sm:inline mr-1">•</span>
+                      {selectedLocations.length > 0
                         ? `${selectedLocations.length} selected of ${locations.length} location${locations.length !== 1 ? 's' : ''}`
                         : `${locations.length} location${locations.length !== 1 ? 's' : ''} available`
                       }

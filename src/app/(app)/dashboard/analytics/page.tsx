@@ -36,6 +36,7 @@ interface AnalyticsData {
   clicksByPlatform: Record<string, number>;
   clicksByDate: Record<string, number>;
   aiGenerations: number;
+  aiEnhances: number;
   grammarFixes: number;
   totalAIUsage: number;
   copySubmits: number;
@@ -46,6 +47,7 @@ interface AnalyticsData {
   websiteClicks: number;
   socialClicks: Record<string, number>;
   aiEvents: { date: string; promptPageId: string; platform: string }[];
+  aiEnhanceEvents: { date: string; promptPageId: string; platform: string }[];
   grammarFixEvents: { date: string; promptPageId: string; platform: string }[];
   copySubmitEvents: { date: string; promptPageId: string; platform: string }[];
   reviewSubmitsAll: number;

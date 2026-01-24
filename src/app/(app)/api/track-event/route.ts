@@ -51,6 +51,8 @@ export async function POST(req: NextRequest) {
       "view",
       "review_submitted",
       "ai_generate",
+      "ai_enhance",
+      "grammar_fix",
       "copy_submit",
       "emoji_sentiment",
       "emoji_sentiment_choice",
