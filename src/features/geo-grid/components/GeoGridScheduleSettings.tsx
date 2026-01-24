@@ -211,12 +211,33 @@ export function GeoGridScheduleSettings({
         </div>
       )}
 
-      {/* Next Scheduled Run */}
-      {frequency && config.nextScheduledAt && (
-        <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+      {/* Schedule Status */}
+      {frequency && (
+        <div className="mb-4 p-3 bg-gray-50 rounded-lg space-y-1">
           <p className="text-sm text-gray-600">
-            <span className="font-medium">Next run:</span> {formatNextRun(config.nextScheduledAt)}
+            <span className="font-medium">Next run:</span>{' '}
+            {config.nextScheduledAt ? formatNextRun(config.nextScheduledAt) : 'Not calculated'}
           </p>
+          {config.lastScheduledRunAt && (
+            <p className="text-sm text-gray-600">
+              <span className="font-medium">Last run:</span> {formatNextRun(config.lastScheduledRunAt)}
+            </p>
+          )}
+          {config.lastCheckedAt && (
+            <p className="text-sm text-gray-600">
+              <span className="font-medium">Last checked:</span> {formatNextRun(config.lastCheckedAt)}
+            </p>
+          )}
+          {!config.isEnabled && (
+            <p className="text-sm text-amber-600 font-medium">
+              ⚠️ Config is disabled - scheduled checks won't run
+            </p>
+          )}
+          {!config.targetPlaceId && (
+            <p className="text-sm text-amber-600 font-medium">
+              ⚠️ No target Place ID set - scheduled checks will be skipped
+            </p>
+          )}
         </div>
       )}
 
