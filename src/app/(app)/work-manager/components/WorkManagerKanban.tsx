@@ -172,6 +172,26 @@ export default function WorkManagerKanban({
     }
   };
 
+  // Render a draggable card (shared between renderClone and regular rendering)
+  const renderDraggableCard = (
+    task: WMTask,
+    provided: any,
+    snapshot: any
+  ) => (
+    <div
+      ref={provided.innerRef}
+      {...provided.draggableProps}
+      {...provided.dragHandleProps}
+      style={provided.draggableProps.style}
+    >
+      <WorkManagerCard
+        task={task}
+        isDragging={snapshot.isDragging || draggedCardId === task.id}
+        onOpen={onTaskClick}
+      />
+    </div>
+  );
+
   // Render a single column (shared between mobile and desktop)
   // columnType: 'mobile' = 85vw with snap, 'desktop' = fixed 280px width
   const renderColumn = (column: typeof columnData[0], columnType: 'mobile' | 'desktop' = 'desktop') => (
@@ -216,7 +236,15 @@ export default function WorkManagerKanban({
       </div>
 
       {/* Droppable Column */}
-      <Droppable droppableId={column.id}>
+      <Droppable
+        droppableId={column.id}
+        renderClone={(provided, snapshot, rubric) => {
+          // Search all localTasks to handle cross-column drags
+          const task = localTasks.find(t => t.id === rubric.draggableId);
+          if (!task) return <div ref={provided.innerRef} />;
+          return renderDraggableCard(task, provided, snapshot);
+        }}
+      >
         {(provided, snapshot) => (
           <div
             ref={provided.innerRef}
@@ -236,19 +264,7 @@ export default function WorkManagerKanban({
             ) : (
               column.tasks.map((task, index) => (
                 <Draggable key={task.id} draggableId={task.id} index={index}>
-                  {(provided, snapshot) => (
-                    <div
-                      ref={provided.innerRef}
-                      {...provided.draggableProps}
-                      {...provided.dragHandleProps}
-                    >
-                      <WorkManagerCard
-                        task={task}
-                        isDragging={snapshot.isDragging || draggedCardId === task.id}
-                        onOpen={onTaskClick}
-                      />
-                    </div>
-                  )}
+                  {(provided, snapshot) => renderDraggableCard(task, provided, snapshot)}
                 </Draggable>
               ))
             )}
