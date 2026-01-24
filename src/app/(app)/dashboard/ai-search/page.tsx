@@ -1623,18 +1623,18 @@ export default function AISearchPage() {
                           </th>
                           <th className="text-center py-3 px-1 w-9">
                             <span
-                              className={`inline-flex items-center justify-center w-5 h-5 rounded ${colors.bg} ${colors.text} opacity-80 cursor-help`}
+                              className={`inline-flex items-center justify-center cursor-help ${colors.text}`}
                               title={`${LLM_PROVIDER_LABELS[provider]} citation consistency: How often this provider gives the same citation answer when re-checking`}
                             >
-                              <Icon name="FaLink" className="w-2.5 h-2.5" />
+                              <Icon name="FaLink" className="w-3 h-3" />
                             </span>
                           </th>
                           <th className="text-center py-3 px-1 w-9">
                             <span
-                              className={`inline-flex items-center justify-center w-5 h-5 rounded ${colors.bg} ${colors.text} opacity-80 cursor-help`}
+                              className={`inline-flex items-center justify-center cursor-help ${colors.text}`}
                               title={`${LLM_PROVIDER_LABELS[provider]} mention consistency: How often this provider gives the same mention answer when re-checking`}
                             >
-                              <Icon name="FaCommentAlt" className="w-2.5 h-2.5" />
+                              <Icon name="FaCommentAlt" className="w-3 h-3" />
                             </span>
                           </th>
                         </React.Fragment>
