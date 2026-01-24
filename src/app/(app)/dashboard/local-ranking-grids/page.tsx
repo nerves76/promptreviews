@@ -548,6 +548,7 @@ export default function LocalRankingGridsPage() {
             lastCheckedAt={lastCheckedAt}
             onRunCheck={handleRunCheck}
             isCheckRunning={isCheckRunning}
+            hasTargetBusiness={!!config?.targetPlaceId}
           />
 
           {/* Google Maps Grid View */}
@@ -622,9 +623,9 @@ export default function LocalRankingGridsPage() {
                   {/* Run Grid Check Button */}
                   <button
                     onClick={handleRunCheck}
-                    disabled={isCheckRunning}
-                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors flex items-center gap-2 text-sm"
-                    title="Run checks for all tracked keywords"
+                    disabled={isCheckRunning || !config?.targetPlaceId}
+                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors flex items-center gap-2 text-sm"
+                    title={!config?.targetPlaceId ? 'Connect your business first' : 'Run checks for all tracked keywords'}
                   >
                     {isCheckRunning ? (
                       <>

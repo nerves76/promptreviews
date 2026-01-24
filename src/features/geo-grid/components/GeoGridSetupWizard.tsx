@@ -87,14 +87,19 @@ export function GeoGridSetupWizard({
 
         // If connected and has locations, load them
         if (isConnected && gbpPlatform?.locations && gbpPlatform.locations.length > 0) {
-          const locations = gbpPlatform.locations.map((loc: any) => ({
-            id: loc.id || loc.location_id,
-            name: loc.location_name || loc.name,
-            lat: loc.lat || 0,
-            lng: loc.lng || 0,
-            placeId: loc.google_place_id || loc.location_id,
-            address: loc.address,
-          }));
+          const locations = gbpPlatform.locations.map((loc: any) => {
+            // Only use google_place_id if it's a valid Place ID (starts with ChIJ)
+            const validPlaceId = loc.google_place_id?.startsWith('ChIJ') ? loc.google_place_id : null;
+            console.log('🔍 [GeoGrid] Location:', loc.location_name, 'google_place_id:', loc.google_place_id, 'valid:', !!validPlaceId);
+            return {
+              id: loc.id || loc.location_id,
+              name: loc.location_name || loc.name,
+              lat: loc.lat || 0,
+              lng: loc.lng || 0,
+              placeId: validPlaceId, // Only use valid Place IDs, null otherwise
+              address: loc.address,
+            };
+          });
           setFetchedLocations(locations);
           console.log('✅ [GeoGrid] Loaded', locations.length, 'locations from platforms API');
 
@@ -270,6 +275,8 @@ export function GeoGridSetupWizard({
   );
   const [isGeocoding, setIsGeocoding] = useState(false);
   const [geocodeError, setGeocodeError] = useState<string | null>(null);
+  // Editable search name - allows users to update if their business name changed on Google
+  const [searchBusinessName, setSearchBusinessName] = useState(effectiveGBPLocation?.name || '');
 
   // Auto-geocode on mount if we have location but no coordinates
   const geocodeAddress = useCallback(async (address: string, businessName?: string) => {
@@ -329,6 +336,7 @@ export function GeoGridSetupWizard({
         reviewCount?: number;
         error?: string;
         hint?: string;
+        debugInfo?: { textSearchStatus?: string; findPlaceStatus?: string };
         otherResults?: Array<{
           name: string;
           placeId: string;
@@ -343,6 +351,8 @@ export function GeoGridSetupWizard({
         lng,
       });
 
+      console.log('Business search response:', response);
+
       if (response.success && response.placeId) {
         setGooglePlaceId(response.placeId);
         if (response.coordinates) {
@@ -352,9 +362,32 @@ export function GeoGridSetupWizard({
         setGeocodeError(null);
         return true;
       } else {
-        const errorMsg = response.hint
-          ? `${response.error} ${response.hint}`
-          : response.error || 'Could not find business listing';
+        // Show API status codes for debugging (console only)
+        if (response.debugInfo) {
+          const { textSearchStatus, findPlaceStatus, placesNewStatus } = response.debugInfo as any;
+          console.log('API status codes:', { placesNewStatus, textSearchStatus, findPlaceStatus });
+          // Check for API access issues - show user-friendly message
+          const hasAccessDenied = [placesNewStatus, textSearchStatus, findPlaceStatus].some(
+            s => s === 'REQUEST_DENIED' || s === 'PERMISSION_DENIED'
+          );
+          if (hasAccessDenied) {
+            setGeocodeError('API_CONNECTION_ERROR');
+            return false;
+          }
+          // Check for "not found" (ZERO_RESULTS)
+          const allZeroResults = [placesNewStatus, textSearchStatus, findPlaceStatus].every(
+            s => s === 'ZERO_RESULTS' || s === 'NOT_TRIED'
+          );
+          if (allZeroResults) {
+            setGeocodeError('BUSINESS_NOT_FOUND');
+            return false;
+          }
+        }
+        // Default error message
+        let errorMsg = response.error || 'Could not find business listing';
+        if (response.hint) {
+          errorMsg += ` ${response.hint}`;
+        }
         setGeocodeError(errorMsg);
         return false;
       }
@@ -407,6 +440,8 @@ export function GeoGridSetupWizard({
     if (effectiveGBPLocation && effectiveGBPLocation.name) {
       // Update selectedLocation when effective location changes
       setSelectedLocation(effectiveGBPLocation);
+      // Update search name (user can edit this if their business name changed)
+      setSearchBusinessName(effectiveGBPLocation.name);
 
       // If we already have a valid Place ID from the database, don't search
       if (effectiveGBPLocation.placeId?.startsWith('ChIJ')) {
@@ -601,6 +636,22 @@ export function GeoGridSetupWizard({
                       <p className="text-sm text-gray-500">{effectiveGBPLocation.address}</p>
                     )}
                     <p className="text-xs text-gray-500">Connected via Google Business Profile</p>
+                    {/* Warning if no valid Place ID from GBP */}
+                    {!effectiveGBPLocation.placeId && (
+                      <div className="mt-2 flex items-center gap-2">
+                        <p className="text-xs text-amber-600">
+                          ⚠️ No Place ID stored — use search below or{' '}
+                          <button
+                            type="button"
+                            onClick={handleFetchLocations}
+                            disabled={isFetchingLocations}
+                            className="underline hover:text-amber-800"
+                          >
+                            {isFetchingLocations ? 'refreshing...' : 'refresh from Google'}
+                          </button>
+                        </p>
+                      </div>
+                    )}
                   </div>
                   {hasMultipleLocations && (
                     <button
@@ -746,7 +797,33 @@ export function GeoGridSetupWizard({
             {geocodeError && (
               <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                 <p className="text-sm text-yellow-800">
-                  {geocodeError.includes('Service-area') ? (
+                  {geocodeError === 'API_CONNECTION_ERROR' ? (
+                    <>
+                      <strong>Contact support</strong> — there is an issue with the API connection.
+                      <br />
+                      <a
+                        href="mailto:support@promptreviews.app"
+                        className="text-blue-600 underline hover:text-blue-800"
+                      >
+                        support@promptreviews.app
+                      </a>
+                    </>
+                  ) : geocodeError === 'BUSINESS_NOT_FOUND' ? (
+                    <>
+                      <strong>Business not found</strong> in Google's public database. This is common for service-area businesses.
+                      <br /><br />
+                      Find your Place ID manually using{' '}
+                      <a
+                        href="https://developers.google.com/maps/documentation/javascript/examples/places-placeid-finder"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 underline hover:text-blue-800"
+                      >
+                        Google's Place ID Finder
+                      </a>
+                      {' '}and enter it below.
+                    </>
+                  ) : geocodeError.includes('Service-area') ? (
                     <>
                       Service-area businesses don't have a public location. Please enter the center of your service area manually.
                       {' '}Go to{' '}
@@ -767,16 +844,34 @@ export function GeoGridSetupWizard({
               </div>
             )}
 
-            {/* Find Business Button */}
+            {/* Find Business Section */}
             {effectiveGBPLocation && !googlePlaceId && !isGeocoding && (
-              <button
-                type="button"
-                onClick={() => searchForBusiness(effectiveGBPLocation.name)}
-                className="w-full px-4 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2"
-              >
-                <MagnifyingGlassIcon className="w-5 h-5" />
-                Find My Business on Google
-              </button>
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Business name to search
+                  </label>
+                  <input
+                    type="text"
+                    value={searchBusinessName}
+                    onChange={(e) => setSearchBusinessName(e.target.value)}
+                    placeholder="Enter your business name as it appears on Google"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Changed your business name on Google? Update it here.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => searchForBusiness(searchBusinessName)}
+                  disabled={!searchBusinessName.trim()}
+                  className="w-full px-4 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  <MagnifyingGlassIcon className="w-5 h-5" />
+                  Find My Business on Google
+                </button>
+              </div>
             )}
 
             {/* Manual Place ID Input - for service-area businesses */}
@@ -837,10 +932,10 @@ export function GeoGridSetupWizard({
                 <p className="text-sm font-medium text-gray-700">
                   Search center coordinates:
                 </p>
-                {effectiveGBPLocation && (
+                {searchBusinessName && (
                   <button
                     type="button"
-                    onClick={() => searchForBusiness(effectiveGBPLocation.name)}
+                    onClick={() => searchForBusiness(searchBusinessName)}
                     disabled={isGeocoding}
                     className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1 disabled:opacity-50"
                   >

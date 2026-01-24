@@ -369,16 +369,19 @@ export default function AnalyticsPage() {
               }
               break;
             case "emoji_sentiment_choice":
-              if (event.emoji_sentiment && event.choice) {
+              // Handle both direct event fields and metadata
+              const choiceSentiment = event.emoji_sentiment || event.metadata?.emoji_sentiment;
+              const choiceValue = event.choice || event.metadata?.choice;
+              if (choiceSentiment && choiceValue) {
                 // Initialize sentiment choice tracking if not exists
-                if (!analyticsData.emojiSentimentChoices[event.emoji_sentiment]) {
-                  analyticsData.emojiSentimentChoices[event.emoji_sentiment] = { public: 0, private: 0 };
+                if (!analyticsData.emojiSentimentChoices[choiceSentiment]) {
+                  analyticsData.emojiSentimentChoices[choiceSentiment] = { public: 0, private: 0 };
                 }
                 // Increment the appropriate choice counter
-                if (event.choice === 'public') {
-                  analyticsData.emojiSentimentChoices[event.emoji_sentiment].public += 1;
-                } else if (event.choice === 'private') {
-                  analyticsData.emojiSentimentChoices[event.emoji_sentiment].private += 1;
+                if (choiceValue === 'public') {
+                  analyticsData.emojiSentimentChoices[choiceSentiment].public += 1;
+                } else if (choiceValue === 'private') {
+                  analyticsData.emojiSentimentChoices[choiceSentiment].private += 1;
                 }
               }
               break;

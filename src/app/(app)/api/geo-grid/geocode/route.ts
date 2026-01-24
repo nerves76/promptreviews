@@ -35,6 +35,8 @@ export async function POST(request: NextRequest) {
     // Business search: Find the actual GBP listing using Places API
     // This is the best way to get the correct Place ID for rank tracking
     if (searchBusiness && businessName && GOOGLE_MAPS_API_KEY) {
+      let placesNewStatus = 'NOT_TRIED';
+
       // Try Places API (New) first - it's more reliable
       try {
         const placesNewResponse = await fetch('https://places.googleapis.com/v1/places:searchText', {
@@ -58,8 +60,13 @@ export async function POST(request: NextRequest) {
         });
 
         const placesNewData = await placesNewResponse.json();
+        console.log('Places API (New) response:', JSON.stringify(placesNewData).substring(0, 500));
 
-        if (placesNewData.places?.length > 0) {
+        // Check for error response
+        if (placesNewData.error) {
+          placesNewStatus = placesNewData.error.status || 'ERROR';
+          console.log('Places API (New) error:', placesNewData.error);
+        } else if (placesNewData.places?.length > 0) {
           const place = placesNewData.places[0];
           return NextResponse.json({
             success: true,
@@ -81,9 +88,12 @@ export async function POST(request: NextRequest) {
               reviewCount: p.userRatingCount,
             })),
           });
+        } else {
+          placesNewStatus = 'ZERO_RESULTS';
         }
       } catch (err) {
-        console.log('Places API (New) not available, trying legacy API...');
+        console.log('Places API (New) exception:', err);
+        placesNewStatus = 'EXCEPTION';
       }
 
       // Fallback to legacy Text Search API
@@ -162,14 +172,20 @@ export async function POST(request: NextRequest) {
       }
 
       // All APIs failed - provide helpful error
-      const apiErrors = [data.status, findPlaceData.status].filter(s => s && s !== 'ZERO_RESULTS');
+      const apiStatuses = { placesNewStatus, textSearchStatus: data.status, findPlaceStatus: findPlaceData.status };
+      console.log('All Places APIs failed:', apiStatuses);
+
+      const hasRequestDenied = [placesNewStatus, data.status, findPlaceData.status].some(
+        s => s === 'REQUEST_DENIED' || s === 'PERMISSION_DENIED'
+      );
+
       return NextResponse.json({
         success: false,
         error: 'Could not find your business listing.',
-        hint: apiErrors.includes('REQUEST_DENIED')
-          ? 'Please enable the Places API in your Google Cloud Console: https://console.cloud.google.com/apis/library/places-backend.googleapis.com'
+        hint: hasRequestDenied
+          ? 'Please enable both "Places API" AND "Places API (New)" in your Google Cloud Console. Also check that your API key has these APIs enabled in its restrictions.'
           : 'Make sure your Google Business Profile is set up and visible. Try searching for your exact business name as it appears on Google.',
-        debugInfo: { textSearchStatus: data.status, findPlaceStatus: findPlaceData.status },
+        debugInfo: apiStatuses,
       });
     }
 

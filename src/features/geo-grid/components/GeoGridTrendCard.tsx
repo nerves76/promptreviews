@@ -47,6 +47,8 @@ interface GeoGridTrendCardProps {
   creditInfo?: CreditInfo;
   /** Callback when user wants to buy credits */
   onBuyCredits?: () => void;
+  /** Whether a target business is connected (has Place ID) */
+  hasTargetBusiness?: boolean;
 }
 
 // ============================================
@@ -123,6 +125,7 @@ export function GeoGridTrendCard({
   isCheckRunning,
   creditInfo,
   onBuyCredits,
+  hasTargetBusiness = true,
 }: GeoGridTrendCardProps) {
   if (isLoading) {
     return (
@@ -154,11 +157,17 @@ export function GeoGridTrendCard({
               {' '}• Available: <span className={creditInfo.hasSufficient ? 'text-green-600' : 'text-red-600'}>{creditInfo.available}</span>
             </p>
           )}
+          {!hasTargetBusiness && (
+            <p className="text-sm text-amber-600 mb-3">
+              ⚠️ Connect your business first to run checks
+            </p>
+          )}
           {onRunCheck && creditInfo?.hasSufficient && (
             <button
               onClick={onRunCheck}
-              disabled={isCheckRunning}
-              className="px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2 mx-auto"
+              disabled={isCheckRunning || !hasTargetBusiness}
+              title={!hasTargetBusiness ? 'Connect your business first' : undefined}
+              className="px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 mx-auto"
             >
               {isCheckRunning && (
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -214,8 +223,9 @@ export function GeoGridTrendCard({
             {creditInfo?.hasSufficient !== false && onRunCheck && (
               <button
                 onClick={onRunCheck}
-                disabled={isCheckRunning}
-                className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
+                disabled={isCheckRunning || !hasTargetBusiness}
+                title={!hasTargetBusiness ? 'Connect your business first' : undefined}
+                className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               >
                 {isCheckRunning && (
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
