@@ -13,33 +13,22 @@ import {
 } from '../utils/types';
 
 type RunMode = 'now' | 'schedule';
-type ScheduleOption = 'in1hour' | 'tomorrow8am' | 'custom';
+type ScheduleFrequency = 'daily' | 'weekly' | 'monthly';
 
-/**
- * Calculate schedule time based on selected option
- */
-function getScheduledTime(option: ScheduleOption, customTime: string): Date | null {
-  const now = new Date();
+const DAYS_OF_WEEK = [
+  { value: 0, label: 'Sunday' },
+  { value: 1, label: 'Monday' },
+  { value: 2, label: 'Tuesday' },
+  { value: 3, label: 'Wednesday' },
+  { value: 4, label: 'Thursday' },
+  { value: 5, label: 'Friday' },
+  { value: 6, label: 'Saturday' },
+];
 
-  switch (option) {
-    case 'in1hour':
-      return new Date(now.getTime() + 60 * 60 * 1000);
-    case 'tomorrow8am': {
-      const tomorrow = new Date(now);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      tomorrow.setHours(8, 0, 0, 0);
-      return tomorrow;
-    }
-    case 'custom':
-      if (customTime) {
-        const date = new Date(customTime);
-        return isNaN(date.getTime()) ? null : date;
-      }
-      return null;
-    default:
-      return null;
-  }
-}
+const HOURS = Array.from({ length: 24 }, (_, i) => ({
+  value: i,
+  label: `${i.toString().padStart(2, '0')}:00`,
+}));
 
 interface RunAllLLMModalProps {
   isOpen: boolean;
@@ -90,20 +79,10 @@ export default function RunAllLLMModal({
 
   // Schedule options
   const [runMode, setRunMode] = useState<RunMode>('now');
-  const [scheduleOption, setScheduleOption] = useState<ScheduleOption>('in1hour');
-  const [customTime, setCustomTime] = useState('');
-
-  // Calculate minimum datetime for the custom input (now + 5 minutes)
-  const minDateTime = useMemo(() => {
-    const min = new Date(Date.now() + 5 * 60 * 1000);
-    return min.toISOString().slice(0, 16); // Format: YYYY-MM-DDTHH:MM
-  }, []);
-
-  // Get the scheduled time based on current selection
-  const scheduledTime = useMemo(() => {
-    if (runMode !== 'schedule') return null;
-    return getScheduledTime(scheduleOption, customTime);
-  }, [runMode, scheduleOption, customTime]);
+  const [frequency, setFrequency] = useState<ScheduleFrequency>('weekly');
+  const [dayOfWeek, setDayOfWeek] = useState(1); // Monday
+  const [dayOfMonth, setDayOfMonth] = useState(1);
+  const [hour, setHour] = useState(9); // 9 AM
 
   // Calculate cost based on selected providers
   const calculateCost = useCallback((questionCount: number, providers: LLMProvider[]) => {
@@ -121,8 +100,10 @@ export default function RunAllLLMModal({
       setError(null);
       setIsStarting(false);
       setRunMode('now');
-      setScheduleOption('in1hour');
-      setCustomTime('');
+      setFrequency('weekly');
+      setDayOfWeek(1);
+      setDayOfMonth(1);
+      setHour(9);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
@@ -192,17 +173,43 @@ export default function RunAllLLMModal({
 
   const hasCredits = preview ? preview.creditBalance >= totalCredits : false;
 
+  // Calculate the next scheduled time based on frequency
+  const getNextScheduledTime = useCallback((): Date => {
+    const now = new Date();
+
+    switch (frequency) {
+      case 'daily': {
+        const next = new Date(now);
+        next.setDate(next.getDate() + 1);
+        next.setHours(hour, 0, 0, 0);
+        return next;
+      }
+      case 'weekly': {
+        const next = new Date(now);
+        const currentDay = next.getDay();
+        const daysUntil = (dayOfWeek - currentDay + 7) % 7 || 7;
+        next.setDate(next.getDate() + daysUntil);
+        next.setHours(hour, 0, 0, 0);
+        return next;
+      }
+      case 'monthly': {
+        const next = new Date(now);
+        next.setMonth(next.getMonth() + 1);
+        next.setDate(dayOfMonth);
+        next.setHours(hour, 0, 0, 0);
+        return next;
+      }
+    }
+  }, [frequency, dayOfWeek, dayOfMonth, hour]);
+
   const handleStartBatch = async () => {
     if (!preview || selectedProviders.length === 0 || !hasCredits) return;
 
-    // Validate schedule time if scheduling
-    if (runMode === 'schedule' && !scheduledTime) {
-      setError('Please select a valid schedule time');
-      return;
-    }
-
     setIsStarting(true);
     setError(null);
+
+    // Calculate scheduled time if scheduling
+    const scheduledTime = runMode === 'schedule' ? getNextScheduledTime() : null;
 
     try {
       const response = await apiClient.post<{
@@ -451,52 +458,78 @@ export default function RunAllLLMModal({
               {/* Schedule options */}
               {runMode === 'schedule' && (
                 <div className="space-y-3">
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      onClick={() => setScheduleOption('in1hour')}
-                      className={`px-3 py-2 text-sm rounded-lg border transition-colors ${
-                        scheduleOption === 'in1hour'
-                          ? 'bg-blue-50 border-blue-300 text-slate-blue'
-                          : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
-                      }`}
-                    >
-                      In 1 hour
-                    </button>
-                    <button
-                      onClick={() => setScheduleOption('tomorrow8am')}
-                      className={`px-3 py-2 text-sm rounded-lg border transition-colors ${
-                        scheduleOption === 'tomorrow8am'
-                          ? 'bg-blue-50 border-blue-300 text-slate-blue'
-                          : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
-                      }`}
-                    >
-                      Tomorrow 8 AM
-                    </button>
+                  {/* Frequency */}
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">Frequency</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {(['daily', 'weekly', 'monthly'] as ScheduleFrequency[]).map((freq) => (
+                        <button
+                          key={freq}
+                          onClick={() => setFrequency(freq)}
+                          className={`px-3 py-2 text-sm rounded-lg border transition-colors capitalize ${
+                            frequency === freq
+                              ? 'bg-blue-50 border-blue-300 text-slate-blue'
+                              : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
+                          }`}
+                        >
+                          {freq}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                  <button
-                    onClick={() => setScheduleOption('custom')}
-                    className={`w-full px-3 py-2 text-sm rounded-lg border transition-colors ${
-                      scheduleOption === 'custom'
-                        ? 'bg-blue-50 border-blue-300 text-slate-blue'
-                        : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
-                    }`}
-                  >
-                    Custom time
-                  </button>
-                  {scheduleOption === 'custom' && (
-                    <input
-                      type="datetime-local"
-                      value={customTime}
-                      onChange={(e) => setCustomTime(e.target.value)}
-                      min={minDateTime}
+
+                  {/* Day of week (for weekly) */}
+                  {frequency === 'weekly' && (
+                    <div>
+                      <label className="block text-xs font-medium text-gray-500 mb-1">Day</label>
+                      <select
+                        value={dayOfWeek}
+                        onChange={(e) => setDayOfWeek(Number(e.target.value))}
+                        className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-300"
+                      >
+                        {DAYS_OF_WEEK.map((day) => (
+                          <option key={day.value} value={day.value}>{day.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  {/* Day of month (for monthly) */}
+                  {frequency === 'monthly' && (
+                    <div>
+                      <label className="block text-xs font-medium text-gray-500 mb-1">Day of month</label>
+                      <select
+                        value={dayOfMonth}
+                        onChange={(e) => setDayOfMonth(Number(e.target.value))}
+                        className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-300"
+                      >
+                        {Array.from({ length: 28 }, (_, i) => (
+                          <option key={i + 1} value={i + 1}>{i + 1}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  {/* Hour */}
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">Time</label>
+                    <select
+                      value={hour}
+                      onChange={(e) => setHour(Number(e.target.value))}
                       className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-300"
-                    />
-                  )}
-                  {scheduledTime && (
+                    >
+                      {HOURS.map((h) => (
+                        <option key={h.value} value={h.value}>{h.label}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Next run preview */}
+                  <div className="p-2 rounded-lg bg-gray-50 border border-gray-100">
                     <p className="text-xs text-gray-500 text-center">
-                      Scheduled for: {scheduledTime.toLocaleString()}
+                      Next run: {getNextScheduledTime().toLocaleString()}
                     </p>
-                  )}
+                  </div>
                 </div>
               )}
 
@@ -560,8 +593,7 @@ export default function RunAllLLMModal({
               isLoadingPreview ||
               !hasCredits ||
               selectedProviders.length === 0 ||
-              (preview?.totalQuestions || 0) === 0 ||
-              (runMode === 'schedule' && !scheduledTime)
+              (preview?.totalQuestions || 0) === 0
             }
             className="px-4 py-2 text-sm font-medium text-white bg-slate-blue rounded-lg hover:bg-slate-blue/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2 whitespace-nowrap"
           >
