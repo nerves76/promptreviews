@@ -1803,7 +1803,7 @@ export default function AISearchPage() {
                                     )}
                                     {/* Brand mention status */}
                                     {result.brandMentioned && (
-                                      <span className="text-blue-600 text-xs font-medium flex items-center gap-0.5" title="Brand mentioned in response">
+                                      <span className="text-slate-blue text-xs font-medium flex items-center gap-0.5" title="Brand mentioned in response">
                                         <Icon name="FaCommentAlt" className="w-2.5 h-2.5" />
                                       </span>
                                     )}
@@ -1910,7 +1910,7 @@ export default function AISearchPage() {
                                                 <span className="text-gray-500">Not cited ({result.totalCitations} total citations)</span>
                                               )}
                                               {result.brandMentioned && (
-                                                <span className="text-blue-600 font-medium flex items-center gap-1">
+                                                <span className="text-slate-blue font-medium flex items-center gap-1">
                                                   <Icon name="FaCommentAlt" className="w-3 h-3" />
                                                   Brand mentioned
                                                 </span>
@@ -2140,7 +2140,7 @@ export default function AISearchPage() {
                 <span>Domain cited as source</span>
               </div>
               <div className="flex items-center gap-1">
-                <Icon name="FaCommentAlt" className="w-3 h-3 text-blue-600" />
+                <Icon name="FaCommentAlt" className="w-3 h-3 text-slate-blue" />
                 <span>Brand mentioned in response</span>
               </div>
               <div className="flex items-center gap-1">
