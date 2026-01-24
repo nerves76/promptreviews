@@ -1435,7 +1435,7 @@ export default function AISearchPage() {
                         </span>
                       </div>
                       <div className="text-sm text-gray-600 mb-2">Citation consistency</div>
-                      <div className="flex gap-1 flex-wrap">
+                      <div className="flex gap-1.5 flex-wrap">
                         {LLM_PROVIDERS.filter(p => selectedProviders.has(p)).map((provider) => {
                           const score = displayStats.providerCitationConsistency[provider];
                           const colors = LLM_PROVIDER_COLORS[provider];
@@ -1463,7 +1463,7 @@ export default function AISearchPage() {
                         </span>
                       </div>
                       <div className="text-sm text-gray-600 mb-2">Mention consistency</div>
-                      <div className="flex gap-1 flex-wrap">
+                      <div className="flex gap-1.5 flex-wrap">
                         {LLM_PROVIDERS.filter(p => selectedProviders.has(p)).map((provider) => {
                           const score = displayStats.providerMentionConsistency[provider];
                           const colors = LLM_PROVIDER_COLORS[provider];
