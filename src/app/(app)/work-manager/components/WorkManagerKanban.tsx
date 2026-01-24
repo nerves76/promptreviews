@@ -176,7 +176,8 @@ export default function WorkManagerKanban({
   const renderDraggableCard = (
     task: WMTask,
     provided: any,
-    snapshot: any
+    snapshot: any,
+    isDragClone: boolean = false
   ) => (
     <div
       ref={provided.innerRef}
@@ -184,8 +185,9 @@ export default function WorkManagerKanban({
       {...provided.dragHandleProps}
       style={{
         ...provided.draggableProps.style,
-        // Ensure dragged clone is visible above all other elements
-        ...(snapshot.isDragging && {
+        // When rendering as clone in portal, preserve card width
+        ...(isDragClone && {
+          width: 256, // Match column width (280px - padding)
           zIndex: 9999,
         }),
       }}
@@ -248,7 +250,7 @@ export default function WorkManagerKanban({
           // Search all localTasks to handle cross-column drags
           const task = localTasks.find(t => t.id === rubric.draggableId);
           if (!task) return <div ref={provided.innerRef} />;
-          return renderDraggableCard(task, provided, snapshot);
+          return renderDraggableCard(task, provided, snapshot, true);
         }}
       >
         {(provided, snapshot) => (

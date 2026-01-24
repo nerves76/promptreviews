@@ -246,7 +246,8 @@ export default function PromptPagesKanban({
     page: PromptPage,
     provided: any,
     snapshot: any,
-    isAccessible: boolean
+    isAccessible: boolean,
+    isDragClone: boolean = false
   ) => (
     <div
       ref={provided.innerRef}
@@ -257,8 +258,9 @@ export default function PromptPagesKanban({
       `}
       style={{
         ...provided.draggableProps.style,
-        // Ensure dragged clone is visible above all other elements
-        ...(snapshot.isDragging && {
+        // When rendering as clone in portal, preserve card width
+        ...(isDragClone && {
+          width: 256, // Match column width (280px - padding)
           zIndex: 9999,
         }),
       }}
@@ -315,7 +317,7 @@ export default function PromptPagesKanban({
           const page = promptPages.find(p => p.id === rubric.draggableId);
           if (!page) return <div ref={provided.innerRef} />;
           const isAccessible = accessiblePageIds.has(page.id);
-          return renderDraggableCard(page, provided, snapshot, isAccessible);
+          return renderDraggableCard(page, provided, snapshot, isAccessible, true);
         }}
       >
         {(provided, snapshot) => (
