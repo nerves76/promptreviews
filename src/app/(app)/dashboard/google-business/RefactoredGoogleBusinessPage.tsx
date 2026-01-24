@@ -665,7 +665,8 @@ export function RefactoredGoogleBusinessPage() {
   }, [rateLimitedUntil]);
 
   // Auto-select first location when locations load
-  const initialFetchDone = useRef(false);
+  // Track if we've successfully fetched data this session (not just attempted)
+  const sessionFetchCompleted = useRef(false);
 
   useEffect(() => {
     let locationToUse: string | null = null;
@@ -685,25 +686,9 @@ export function RefactoredGoogleBusinessPage() {
         locationToUse = selectedLocationId; // Already selected
       }
     }
+  }, [selectedLocations, selectedLocationId, scopedLocations]);
 
-    // Trigger initial overview fetch on overview tab
-    if (locationToUse && activeTab === 'overview' && isConnected && !initialFetchDone.current) {
-      // Check if we need to fetch (no data or outdated cache)
-      const needsFetch = !overviewData ||
-        overviewData.locationId !== locationToUse ||
-        !('postsData' in overviewData) ||
-        overviewData._cacheVersion !== OVERVIEW_CACHE_VERSION;
-
-      if (needsFetch) {
-        initialFetchDone.current = true;
-        fetchOverviewData(locationToUse);
-      } else {
-        initialFetchDone.current = true;
-      }
-    }
-  }, [selectedLocations, selectedLocationId, scopedLocations, activeTab, isConnected, overviewData]);
-
-  // Fetch overview data when tab becomes active (only if not already cached)
+  // Fetch overview data when tab becomes active
   // Track whether we have a valid account ID to trigger refetch
   const hasValidAccountId = !!(selectedAccountId || account?.id);
 
@@ -714,10 +699,12 @@ export function RefactoredGoogleBusinessPage() {
     // Check all conditions
     if (activeTab !== 'overview' || !selectedLocationId || !isConnected) return;
 
-    // Only fetch if we don't have data, if the selected location changed, or if postsData is missing
+    // Fetch if: no data, location changed, missing postsData, cache outdated, OR no successful fetch this session
     const needsFetch = !overviewData ||
       overviewData.locationId !== selectedLocationId ||
-      !('postsData' in overviewData);
+      !('postsData' in overviewData) ||
+      overviewData._cacheVersion !== OVERVIEW_CACHE_VERSION ||
+      !sessionFetchCompleted.current;
 
     if (needsFetch) {
       fetchOverviewData(selectedLocationId);
@@ -1793,6 +1780,8 @@ export function RefactoredGoogleBusinessPage() {
           monthlyData: data.data?.reviewTrends?.monthlyReviewData
         });
         setOverviewData({ ...data.data, locationId });
+        // Mark that we've successfully fetched data this session
+        sessionFetchCompleted.current = true;
       } else {
         setOverviewError(data.error || 'Failed to fetch overview data');
       }
