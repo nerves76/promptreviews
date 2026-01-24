@@ -1353,7 +1353,12 @@ export default function AISearchPage() {
                         </span>
                       )}
                     </div>
-                    <div className="text-sm text-gray-600">Citation rate</div>
+                    <div className="text-sm text-gray-600 flex items-center gap-1">
+                      Citation rate
+                      <span title="Percentage of checks where your site was cited as a source in the AI response">
+                        <Icon name="FaInfoCircle" className="w-3 h-3 text-gray-400 cursor-help" />
+                      </span>
+                    </div>
                     {/* Per-model citation rates - only show selected providers */}
                     <div className="mt-2 flex gap-1.5 flex-wrap">
                       {LLM_PROVIDERS.filter(p => selectedProviders.has(p)).map((provider) => {
@@ -1382,7 +1387,12 @@ export default function AISearchPage() {
                         {displayStats.averageMentionRate !== null ? `${displayStats.averageMentionRate.toFixed(2)}%` : '--'}
                       </span>
                     </div>
-                    <div className="text-sm text-gray-600">Mention rate</div>
+                    <div className="text-sm text-gray-600 flex items-center gap-1">
+                      Mention rate
+                      <span title="Percentage of checks where your brand was mentioned in the AI response text">
+                        <Icon name="FaInfoCircle" className="w-3 h-3 text-gray-400 cursor-help" />
+                      </span>
+                    </div>
                     {/* Per-model mention rates - only show selected providers */}
                     <div className="mt-2 flex gap-1.5 flex-wrap">
                       {LLM_PROVIDERS.filter(p => selectedProviders.has(p)).map((provider) => {
@@ -1434,7 +1444,12 @@ export default function AISearchPage() {
                             : '--'}
                         </span>
                       </div>
-                      <div className="text-sm text-gray-600 mb-2">Citation consistency</div>
+                      <div className="text-sm text-gray-600 mb-2 flex items-center gap-1">
+                        Citation consistency
+                        <span title="How often each provider gives the same citation answer when re-checking the same question">
+                          <Icon name="FaInfoCircle" className="w-3 h-3 text-gray-400 cursor-help" />
+                        </span>
+                      </div>
                       <div className="flex gap-1.5 flex-wrap">
                         {LLM_PROVIDERS.filter(p => selectedProviders.has(p)).map((provider) => {
                           const score = displayStats.providerCitationConsistency[provider];
@@ -1462,7 +1477,12 @@ export default function AISearchPage() {
                             : '--'}
                         </span>
                       </div>
-                      <div className="text-sm text-gray-600 mb-2">Mention consistency</div>
+                      <div className="text-sm text-gray-600 mb-2 flex items-center gap-1">
+                        Mention consistency
+                        <span title="How often each provider gives the same mention answer when re-checking the same question">
+                          <Icon name="FaInfoCircle" className="w-3 h-3 text-gray-400 cursor-help" />
+                        </span>
+                      </div>
                       <div className="flex gap-1.5 flex-wrap">
                         {LLM_PROVIDERS.filter(p => selectedProviders.has(p)).map((provider) => {
                           const score = displayStats.providerMentionConsistency[provider];
