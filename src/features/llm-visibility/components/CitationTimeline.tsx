@@ -251,30 +251,17 @@ export function CitationTimeline({ question, keywordId, className = '' }: Citati
             })}
           </div>
 
-          {/* Date axis */}
+          {/* Date axis - show only first and last dates to avoid overlap */}
           <div className="flex items-center gap-2 mt-2 border-t border-gray-200 pt-2">
             {/* Spacer for provider label column */}
             <div className="flex-shrink-0 w-28" />
 
-            {/* Date labels */}
-            <div className="flex items-center gap-1">
-              {dates.map((date, idx) => {
-                // Show every other date label if we have many dates
-                const showLabel = dates.length <= 10 || idx % 2 === 0 || idx === dates.length - 1;
-
-                return (
-                  <div
-                    key={date}
-                    className="w-5 flex items-center justify-center"
-                  >
-                    {showLabel && (
-                      <span className="text-[9px] text-gray-400 transform -rotate-45 origin-center whitespace-nowrap">
-                        {formatDate(date).replace(' ', '/')}
-                      </span>
-                    )}
-                  </div>
-                );
-              })}
+            {/* Date range display */}
+            <div className="flex items-center justify-between flex-1 text-[9px] text-gray-400">
+              <span>{formatDate(dates[0])}</span>
+              {dates.length > 1 && (
+                <span>{formatDate(dates[dates.length - 1])}</span>
+              )}
             </div>
           </div>
         </div>
