@@ -289,7 +289,7 @@ export default function RunAllLLMModal({
       </div>
 
       {/* Content */}
-      <div className="px-6 py-4 space-y-4">
+      <div className="px-6 py-4 space-y-4 max-h-[60vh] overflow-y-auto">
           {isLoadingPreview ? (
             <div className="flex items-center justify-center py-8">
               <Icon name="FaSpinner" className="w-6 h-6 text-slate-blue animate-spin" />

@@ -20,11 +20,11 @@ export const LLM_PROVIDER_LABELS: Record<LLMProvider, string> = {
   claude: 'Claude',
 };
 
-export const LLM_PROVIDER_COLORS: Record<LLMProvider, { bg: string; text: string }> = {
-  chatgpt: { bg: 'bg-green-100', text: 'text-green-700' },
-  perplexity: { bg: 'bg-blue-100', text: 'text-blue-700' },
-  gemini: { bg: 'bg-purple-100', text: 'text-purple-700' },
-  claude: { bg: 'bg-orange-100', text: 'text-orange-700' },
+export const LLM_PROVIDER_COLORS: Record<LLMProvider, { bg: string; text: string; border: string }> = {
+  chatgpt: { bg: 'bg-llm-chatgpt-bg', text: 'text-llm-chatgpt-text', border: 'border-llm-chatgpt-border/30' },
+  claude: { bg: 'bg-llm-claude-bg', text: 'text-llm-claude-text', border: 'border-llm-claude-border/30' },
+  gemini: { bg: 'bg-llm-gemini-bg', text: 'text-llm-gemini-text', border: 'border-llm-gemini-border/30' },
+  perplexity: { bg: 'bg-llm-perplexity-bg', text: 'text-llm-perplexity-text', border: 'border-llm-perplexity-border/30' },
 };
 
 const MAX_SEARCH_TERMS = 10;
