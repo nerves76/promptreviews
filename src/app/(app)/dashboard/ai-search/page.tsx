@@ -1616,22 +1616,22 @@ export default function AISearchPage() {
                       const colors = LLM_PROVIDER_COLORS[provider];
                       return (
                         <React.Fragment key={provider}>
-                          <th className="text-center py-3 px-2 w-16">
+                          <th className="text-center py-3 px-2 w-16 align-middle">
                             <span className={`px-2 py-1 rounded text-xs font-semibold ${colors.bg} ${colors.text}`}>
                               {LLM_PROVIDER_LABELS[provider]}
                             </span>
                           </th>
-                          <th className="text-center py-3 px-1 w-9">
+                          <th className="text-center py-3 px-1 w-9 align-middle">
                             <span
-                              className={`inline-flex items-center justify-center cursor-help ${colors.text}`}
+                              className={`cursor-help ${colors.text}`}
                               title={`${LLM_PROVIDER_LABELS[provider]} citation consistency: How often this provider gives the same citation answer when re-checking`}
                             >
                               <Icon name="FaLink" className="w-3 h-3" />
                             </span>
                           </th>
-                          <th className="text-center py-3 px-1 w-9">
+                          <th className="text-center py-3 px-1 w-9 align-middle">
                             <span
-                              className={`inline-flex items-center justify-center cursor-help ${colors.text}`}
+                              className={`cursor-help ${colors.text}`}
                               title={`${LLM_PROVIDER_LABELS[provider]} mention consistency: How often this provider gives the same mention answer when re-checking`}
                             >
                               <Icon name="FaCommentAlt" className="w-3 h-3" />
