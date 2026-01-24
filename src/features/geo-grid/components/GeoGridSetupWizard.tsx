@@ -339,7 +339,7 @@ export function GeoGridSetupWizard({
         reviewCount?: number;
         error?: string;
         hint?: string;
-        debugInfo?: { textSearchStatus?: string; findPlaceStatus?: string };
+        debugInfo?: { textSearchStatus?: string; findPlaceStatus?: string; placesNewStatus?: string };
         otherResults?: Array<{
           name: string;
           placeId: string;
@@ -370,31 +370,30 @@ export function GeoGridSetupWizard({
           const { textSearchStatus, findPlaceStatus, placesNewStatus } = response.debugInfo as any;
           console.log('API status codes:', { placesNewStatus, textSearchStatus, findPlaceStatus });
 
-          // Check for "not found" (ZERO_RESULTS) - this is the most common case
-          const hasZeroResults = [placesNewStatus, textSearchStatus, findPlaceStatus].some(
-            s => s === 'ZERO_RESULTS'
-          );
-          if (hasZeroResults) {
-            // At least one API worked but found nothing - business not in database
-            setGeocodeError('BUSINESS_NOT_FOUND');
-            return false;
-          }
-
-          // Only show API error if ALL APIs failed with permission issues
-          const allAccessDenied = [textSearchStatus, findPlaceStatus].every(
+          // Check if ALL legacy APIs failed with permission issues (API not enabled)
+          const allLegacyAccessDenied = [textSearchStatus, findPlaceStatus].every(
             s => s === 'REQUEST_DENIED' || s === 'PERMISSION_DENIED'
           );
-          if (allAccessDenied) {
+
+          // Check if Places API (New) also has permission issues
+          const placesNewAccessDenied = placesNewStatus === 'PERMISSION_DENIED' || placesNewStatus === 'REQUEST_DENIED';
+
+          // Only show API connection error if ALL APIs have permission issues
+          if (allLegacyAccessDenied && (placesNewAccessDenied || placesNewStatus === 'NOT_TRIED')) {
+            console.log('All APIs have permission issues - showing API error');
             setGeocodeError('API_CONNECTION_ERROR');
             return false;
           }
+
+          // Otherwise, the APIs worked but business wasn't found
+          console.log('APIs worked but business not found');
+          setGeocodeError('BUSINESS_NOT_FOUND');
+          return false;
         }
-        // Default error message
-        let errorMsg = response.error || 'Could not find business listing';
-        if (response.hint) {
-          errorMsg += ` ${response.hint}`;
-        }
-        setGeocodeError(errorMsg);
+
+        // No debugInfo - assume business not found (most common case)
+        console.log('No debugInfo in response, assuming business not found');
+        setGeocodeError('BUSINESS_NOT_FOUND');
         return false;
       }
     } catch (err) {
