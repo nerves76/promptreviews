@@ -75,7 +75,7 @@ export function AIEnrichButton({
         <button
           onClick={handleButtonClick}
           disabled={isEnriching}
-          className="text-xs text-purple-600 hover:text-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
+          className="text-xs text-slate-blue hover:text-slate-blue/80 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
         >
           {isEnriching ? (
             <>
@@ -109,7 +109,7 @@ export function AIEnrichButton({
             <button
               onClick={handleFillEmptyOnly}
               disabled={isEnriching}
-              className="px-2.5 py-1 text-xs font-medium text-white bg-purple-600 rounded hover:bg-purple-700 disabled:opacity-50 flex items-center gap-1"
+              className="px-2.5 py-1 text-xs font-medium text-white bg-slate-blue rounded hover:bg-slate-blue/90 disabled:opacity-50 flex items-center gap-1"
             >
               {isEnriching ? (
                 <Icon name="FaSpinner" className="w-3 h-3 animate-spin" />
@@ -136,7 +136,7 @@ export function AIEnrichButton({
 
       {/* Success message */}
       {enrichSuccess && (
-        <div className="mt-2 p-2 bg-purple-50 border border-purple-100 rounded-lg text-xs text-purple-700 flex items-center gap-2">
+        <div className="mt-2 p-2 bg-blue-50 border border-blue-100 rounded-lg text-xs text-slate-blue flex items-center gap-2">
           <Icon name="FaRocket" className="w-3 h-3" />
           Fields populated by AI - review and save
         </div>
