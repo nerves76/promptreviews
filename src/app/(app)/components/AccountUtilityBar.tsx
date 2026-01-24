@@ -151,11 +151,14 @@ export function AccountUtilityBar() {
           {/* Dropdown */}
           <div
             ref={dropdownRef}
-            className="fixed w-72 backdrop-blur-xl rounded-lg shadow-2xl border border-white/20 py-1 overflow-hidden"
+            className="fixed w-72 max-w-[calc(100vw-16px)] backdrop-blur-xl rounded-lg shadow-2xl border border-white/20 py-1 overflow-hidden"
             style={{
               zIndex: 2147483648,
               top: buttonRef.current ? buttonRef.current.getBoundingClientRect().bottom + 4 : 0,
-              left: buttonRef.current ? buttonRef.current.getBoundingClientRect().left : 0,
+              left: buttonRef.current ? Math.min(
+                buttonRef.current.getBoundingClientRect().left,
+                typeof window !== 'undefined' ? window.innerWidth - 296 : 0 // 288px width + 8px padding
+              ) : 8,
               backgroundColor: 'rgba(46, 74, 125, 0.7)', // slate-blue brand color at 70% opacity
             }}
           >

@@ -148,7 +148,7 @@ export default function PricingModal({
         {asModal && onClose && !isPlanSelectionRequired && (
           <button
             onClick={onClose}
-            className="absolute -top-3 -right-3 z-50 bg-white rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow duration-200 border border-gray-200 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
+            className="absolute top-2 right-2 sm:-top-3 sm:-right-3 z-50 bg-white rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow duration-200 border border-gray-200 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 min-w-[44px] min-h-[44px]"
             style={{ width: 48, height: 48 }}
             aria-label="Close modal"
           >
@@ -162,7 +162,7 @@ export default function PricingModal({
         {asModal && isPlanSelectionRequired && onSignOut && (
           <button
             onClick={onSignOut}
-            className="absolute bottom-4 left-4 z-10 px-3 py-1.5 rounded-md flex items-center gap-2 transition-all duration-200 border border-gray-300 text-gray-500 hover:text-gray-600 hover:border-gray-400 text-sm"
+            className="absolute bottom-4 left-4 z-10 px-3 py-2 min-h-[44px] rounded-md flex items-center gap-2 transition-all duration-200 border border-gray-300 text-gray-500 hover:text-gray-600 hover:border-gray-400 text-sm"
             aria-label="Sign out"
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -215,9 +215,9 @@ export default function PricingModal({
           <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-1 shadow-2xl flex items-center border-2 border-white">
             <button
               onClick={() => setBillingPeriod('monthly')}
-              className={`px-4 py-2 rounded-md transition-all ${
-                billingPeriod === 'monthly' 
-                  ? 'bg-slate-blue text-white' 
+              className={`px-4 py-2 min-h-[44px] rounded-md transition-all ${
+                billingPeriod === 'monthly'
+                  ? 'bg-slate-blue text-white'
                   : 'text-gray-700 hover:bg-gray-100'
               }`}
             >
@@ -225,9 +225,9 @@ export default function PricingModal({
             </button>
             <button
               onClick={() => setBillingPeriod('annual')}
-              className={`px-4 py-2 rounded-md transition-all flex items-center ${
-                billingPeriod === 'annual' 
-                  ? 'bg-slate-blue text-white' 
+              className={`px-4 py-2 min-h-[44px] rounded-md transition-all flex items-center ${
+                billingPeriod === 'annual'
+                  ? 'bg-slate-blue text-white'
                   : 'text-gray-700 hover:bg-gray-100'
               }`}
             >
@@ -239,7 +239,7 @@ export default function PricingModal({
           </div>
         </div>
         
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-8 w-full">
           {tiers.map((tier) => {
             const isGrower = tier.key === "grower";
             const isBuilder = tier.key === "builder";
@@ -392,7 +392,7 @@ export default function PricingModal({
                   })}
                 </ul>
                 <button
-                  className={`w-full mt-auto py-3 rounded-lg font-semibold text-lg ${tier.button}`}
+                  className={`w-full mt-auto py-4 min-h-[44px] rounded-lg font-semibold text-lg ${tier.button}`}
                   onClick={() => onSelectTier(tier.key, billingPeriod)}
                   disabled={false}
                 >
