@@ -36,13 +36,22 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { promptPageId, eventType, platform } = body;
-    
+    const { promptPageId, eventType, platform, ...extraFields } = body;
+
     if (!promptPageId || !eventType) {
       return NextResponse.json(
         { error: "Missing required fields: promptPageId and eventType are required" },
         { status: 400 },
       );
+    }
+
+    // Build metadata from extra fields (emoji_sentiment, choice, source, feedback, etc.)
+    const metadata: Record<string, unknown> = {};
+    const metadataFields = ['emoji_sentiment', 'choice', 'source', 'feedback', 'sentiment', 'feature', 'action'];
+    for (const field of metadataFields) {
+      if (extraFields[field] !== undefined) {
+        metadata[field] = extraFields[field];
+      }
     }
 
     // Track all events for anonymous users, including views

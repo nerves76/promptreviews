@@ -38,7 +38,7 @@ type SortField = 'name' | 'frequency' | 'lastSeen' | 'concepts';
 type SortDirection = 'asc' | 'desc';
 
 // Pagination
-const PAGE_SIZE = 100;
+const PAGE_SIZE = 50;
 
 /**
  * Format relative time (e.g., "2 days ago")

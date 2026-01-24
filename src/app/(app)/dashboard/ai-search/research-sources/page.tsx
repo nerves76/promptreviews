@@ -37,7 +37,7 @@ type SortField = 'domain' | 'frequency' | 'lastSeen' | 'concepts' | 'difficulty'
 type SortDirection = 'asc' | 'desc';
 
 // Pagination
-const PAGE_SIZE = 100;
+const PAGE_SIZE = 50;
 
 /**
  * Strip UTM and other tracking parameters from a URL for cleaner display

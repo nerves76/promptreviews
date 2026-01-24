@@ -104,7 +104,7 @@ const FUNNEL_COLORS: Record<string, { bg: string; text: string }> = {
 };
 
 // Pagination
-const PAGE_SIZE = 100;
+const PAGE_SIZE = 50;
 
 /**
  * AI Search Dashboard Page

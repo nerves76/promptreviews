@@ -515,7 +515,7 @@ export default function ConceptsTable({
   }, [rows, sortField, sortDirection]);
 
   // Pagination - paginate the sorted rows
-  const PAGE_SIZE = 25;
+  const PAGE_SIZE = 50;
   const {
     currentPage,
     totalPages,
