@@ -514,8 +514,8 @@ export default function LocalRankingGridsPage() {
                 <LocationSelector
                   locations={configs.map(c => ({
                     id: c.id,
-                    name: c.locationName || c.googleBusinessLocation?.location_name || 'Unnamed Location',
-                    address: c.googleBusinessLocation?.address || null,
+                    name: c.locationName || c.googleBusinessLocation?.location_name || (c.targetPlaceId ? 'Location' : '⚠️ Setup incomplete'),
+                    address: c.googleBusinessLocation?.address || (!c.targetPlaceId ? 'Click Settings to complete' : null),
                   }))}
                   selectedId={selectedConfigId}
                   onSelect={selectConfig}
@@ -534,6 +534,29 @@ export default function LocalRankingGridsPage() {
                   Tracking {configs.length} of {maxConfigs} locations
                 </span>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* Warning: No Place ID set */}
+        {config && !config.targetPlaceId && (
+          <div className="mb-6 p-4 bg-amber-50 border-2 border-amber-200 rounded-xl">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
+                <Icon name="FaExclamationTriangle" className="w-5 h-5 text-amber-600" size={20} />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-amber-800">Setup incomplete</h3>
+                <p className="text-sm text-amber-700 mt-1">
+                  Your business Place ID is not set. Rank tracking won't work until you complete setup.
+                </p>
+                <button
+                  onClick={() => setShowSettings(true)}
+                  className="mt-3 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-sm font-medium rounded-lg transition-colors"
+                >
+                  Complete setup
+                </button>
+              </div>
             </div>
           </div>
         )}

@@ -293,14 +293,15 @@ export default function PromptPagesTable({
         </div>
       )}
       {/* Table */}
-      <div className="overflow-x-auto shadow sm:rounded-lg">
+      <p className="text-xs text-gray-500 mb-2 sm:hidden">← Scroll horizontally to see more →</p>
+      <div className="overflow-x-auto shadow sm:rounded-lg relative">
         <table className="min-w-full divide-y divide-gray-300">
           <thead className={getHeaderBgColor()}>
             <tr>
               <th className="relative w-12 px-3 py-3.5">
                 <input
                   type="checkbox"
-                  className="absolute left-4 top-1/2 -mt-2 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
+                  className="absolute left-4 top-1/2 -mt-2 h-5 w-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
                   checked={selectedPages.length === filteredPromptPages.length && filteredPromptPages.length > 0}
                   onChange={(e) => handleSelectAll(e.target.checked)}
                 />
@@ -321,7 +322,7 @@ export default function PromptPagesTable({
                 <td className="relative w-12 px-3 py-4">
                   <input
                     type="checkbox"
-                    className="absolute left-4 top-1/2 -mt-2 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
+                    className="absolute left-4 top-1/2 -mt-2 h-5 w-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
                     checked={selectedPages.includes(page.id)}
                     onChange={(e) => handleSelectPage(page.id, e.target.checked)}
                   />
