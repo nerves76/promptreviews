@@ -339,6 +339,8 @@ function calculateReminderDate(reminderType: string): Date {
 
 /**
  * Get default template content
+ * Note: Do NOT include {{review_url}} - the URL is automatically appended when sending
+ * Variables: {{customer_name}} = recipient, {{business_name}} = business being reviewed, {{sender_name}} = person sending
  */
 function getDefaultTemplateContent(communicationType: 'email' | 'sms') {
   if (communicationType === 'email') {
@@ -354,12 +356,10 @@ Thank you for choosing {{business_name}}! We hope you had a great experience wit
 
 We would greatly appreciate it if you could take a moment to share your feedback by leaving us a review. Your review helps us improve our services and helps other customers find us.
 
-You can leave your review here: {{review_url}}
-
 Thank you for your time and support!
 
 Best regards,
-{{business_name}} Team`,
+{{sender_name}}`,
         is_default: true,
         is_active: true
       },
@@ -374,12 +374,10 @@ We hope you're doing well! This is just a friendly reminder about leaving us a r
 
 We'd still love to hear about your experience with {{business_name}}. Your feedback means the world to us and helps other customers discover our services.
 
-You can leave your review here: {{review_url}}
-
 Thank you so much!
 
 Best regards,
-{{business_name}} Team`,
+{{sender_name}}`,
         is_default: false,
         is_active: true
       }
@@ -390,7 +388,7 @@ Best regards,
         name: 'Initial Review Request',
         communication_type: 'sms',
         template_type: 'initial',
-        message_template: 'Hi {{customer_name}}! Thanks for choosing {{business_name}}. We\'d love your feedback! Please leave us a review: {{review_url}} Your review helps us serve you better. Thank you!',
+        message_template: 'Hi {{customer_name}}! Thanks for choosing {{business_name}}. We\'d love your feedback! Your review helps us serve you better. Thank you! - {{sender_name}}',
         is_default: true,
         is_active: true
       },
@@ -398,7 +396,7 @@ Best regards,
         name: 'Follow-up Reminder',
         communication_type: 'sms',
         template_type: 'follow_up',
-        message_template: 'Hi {{customer_name}}! Friendly reminder from {{business_name}} - we\'d still appreciate your review: {{review_url}} Thank you!',
+        message_template: 'Hi {{customer_name}}! Friendly reminder from {{business_name}} - we\'d still appreciate your review. Thank you! - {{sender_name}}',
         is_default: false,
         is_active: true
       }

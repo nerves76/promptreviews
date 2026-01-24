@@ -12,6 +12,7 @@ import CommunicationProcessIndicator from "./CommunicationProcessIndicator";
 import { generateEmailTrackedUrl, generateSmsTrackedUrl } from "@/utils/reviewUrlTracking";
 import TemplateSelector from "./TemplateSelector";
 import { applyTemplateVariables } from "@/utils/communication";
+import { useAuthUser } from "@/auth/hooks/granularAuthHooks";
 
 interface Contact {
   id: string;
@@ -81,6 +82,12 @@ export default function CommunicationTrackingModal({
   onStatusUpdate,
   isLoadingContact = false
 }: CommunicationTrackingModalProps) {
+  // Get current user for sender name
+  const { user } = useAuthUser();
+  const senderFirstName = user?.user_metadata?.first_name || '';
+  const senderLastName = user?.user_metadata?.last_name || '';
+  const senderName = `${senderFirstName} ${senderLastName}`.trim() || 'Our Team';
+
   // Determine available tabs based on contact info
   const hasSMS = !!contact.phone;
   const hasEmail = !!contact.email;
@@ -124,7 +131,8 @@ export default function CommunicationTrackingModal({
     // Skip if a template is already selected
     if (selectedTemplateId) return;
 
-    const businessName = promptPage?.location || promptPage?.client_name || 'Our Business';
+    // IMPORTANT: Use location (business name) but never fall back to client_name (that's the contact's name)
+    const businessName = promptPage?.location || 'Our Business';
     const customerName = contact?.first_name || 'there';
 
     const baseMessage =
@@ -154,7 +162,8 @@ export default function CommunicationTrackingModal({
   }) => {
     setSelectedTemplateId(template.id);
 
-    const businessName = promptPage?.location || promptPage?.client_name || 'Our Business';
+    // IMPORTANT: Use location (business name) but never fall back to client_name (that's the contact's name)
+    const businessName = promptPage?.location || 'Our Business';
     const customerName = contact?.first_name || 'there';
     const baseUrl = window.location.origin;
     const slug = promptPage?.slug;
@@ -165,9 +174,11 @@ export default function CommunicationTrackingModal({
       : `${baseUrl}/r/`;
 
     // Apply template variables
+    // Note: sender_name is for signatures, business_name is for mentioning the business
     const variables = {
       business_name: businessName,
       customer_name: customerName,
+      sender_name: senderName,
       review_url: reviewUrl,
     };
 
@@ -183,8 +194,8 @@ export default function CommunicationTrackingModal({
   // Helper to get message with URL appended (if not already present)
   const getMessageWithUrl = (msg: string) => {
     const reviewUrl = getReviewUrl();
-    // Check if message already contains the URL or a review URL pattern
-    if (msg.includes(reviewUrl) || msg.includes('/r/') || msg.includes('{{review_url}}')) {
+    // Check if message already contains the full review URL (avoid duplicate URLs)
+    if (msg.includes(reviewUrl)) {
       return msg;
     }
     // Append URL with appropriate spacing

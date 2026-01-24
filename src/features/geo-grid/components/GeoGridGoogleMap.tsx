@@ -427,15 +427,68 @@ export function GeoGridGoogleMap({
     };
   }, []);
 
+  // Fallback grid view when Google Maps API isn't available
   if (loadError) {
+    // Create a simple 3x3 grid layout for the results
+    const gridLayout: (CheckPoint | null)[][] = [
+      ['nw', 'n', 'ne'],
+      ['w', 'center', 'e'],
+      ['sw', 's', 'se'],
+    ];
+
     return (
-      <div
-        className="bg-gray-100 rounded-xl border-2 border-gray-200 flex items-center justify-center"
-        style={{ height }}
-      >
-        <div className="text-center text-gray-500">
-          <p className="font-medium">{loadError}</p>
-          <p className="text-sm mt-1">Please check your configuration</p>
+      <div className="bg-white rounded-xl border-2 border-gray-200 overflow-hidden">
+        <div className="p-4" style={{ minHeight: height }}>
+          {/* Simple grid visualization */}
+          <div className="max-w-md mx-auto">
+            <div className="grid grid-cols-3 gap-2">
+              {gridLayout.flat().map((point) => {
+                if (!point) return <div key="empty" />;
+                const data = pointData.find(p => p.point === point);
+                const hasData = data?.result !== null;
+                const color = hasData ? BUCKET_COLORS[data?.bucket || 'none'] : '#d1d5db';
+                const position = data?.position;
+
+                return (
+                  <div
+                    key={point}
+                    className="aspect-square rounded-lg flex items-center justify-center text-white font-bold text-lg shadow-md cursor-pointer hover:scale-105 transition-transform"
+                    style={{ backgroundColor: color }}
+                    onClick={() => {
+                      if (data?.result && onMarkerClick) {
+                        onMarkerClick(point, data.result);
+                      }
+                    }}
+                    title={`${point.toUpperCase()}: ${position !== null ? `#${position}` : 'No data'}`}
+                  >
+                    {position !== null && position !== undefined ? (position > 10 ? '>10' : position) : '—'}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* Legend */}
+        <div className="px-4 py-3 border-t border-gray-200 bg-gray-50">
+          {viewAs && !viewAs.isOwnBusiness && (
+            <div className="text-center mb-2">
+              <p className="text-sm font-medium text-blue-600">
+                Viewing as: {viewAs.name}
+              </p>
+            </div>
+          )}
+          <div className="flex flex-wrap justify-center gap-4">
+            {(Object.entries(BUCKET_COLORS) as [PositionBucket, string][]).map(([bucket, color]) => (
+              <div key={bucket} className="flex items-center gap-2">
+                <div
+                  className="w-4 h-4 rounded-full border-2 border-white shadow"
+                  style={{ backgroundColor: color }}
+                />
+                <span className="text-xs text-gray-600">{BUCKET_LABELS[bucket]}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     );

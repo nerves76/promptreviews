@@ -90,9 +90,10 @@ import CommunicationHistory from '@/app/components/communication/CommunicationHi
 
 ### Template System
 - Support for variable substitution:
-  - `{{business_name}}` - Business name
-  - `{{customer_name}}` - Customer full name
-  - `{{review_url}}` - Prompt page URL
+  - `{{customer_name}}` - Recipient's first name
+  - `{{business_name}}` - Business being reviewed
+  - `{{sender_name}}` - Name of the person sending the message (for signatures)
+- Note: The prompt page URL is automatically appended when sending - do NOT include `{{review_url}}` in templates
 
 ## 📡 API Endpoints
 

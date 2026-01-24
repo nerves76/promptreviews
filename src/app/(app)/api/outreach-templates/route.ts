@@ -171,6 +171,8 @@ async function createDefaultTemplatesForAccount(accountId: string, supabase: any
 // Default template content organized by category
 // Focus: How reviews help small businesses grow
 // Note: Any template can be used for email or SMS - categories just indicate the style/tone
+// IMPORTANT: Do NOT include {{review_url}} in templates - the URL is automatically appended when sending
+// Variables: {{customer_name}} = recipient, {{business_name}} = business being reviewed, {{sender_name}} = person sending
 function getDefaultTemplateContent() {
   return [
     // ===== INITIAL ASK =====
@@ -184,15 +186,12 @@ function getDefaultTemplateContent() {
 
 As a small business, we don't have huge advertising budgets or big marketing campaigns. What we have are real customers like you sharing real experiences.
 
-A quick review from you would directly help us grow and continue doing what we love.
-
-If you're willing, it only takes about 60 seconds:
-{{review_url}}
+A quick review from you would directly help us grow and continue doing what we love. If you're willing, it only takes about 60 seconds.
 
 Thank you for being part of our story.
 
 Sincerely,
-{{business_name}}`,
+{{sender_name}}`,
       is_default: true,
       is_active: true,
       is_system: true,
@@ -208,15 +207,12 @@ We started {{business_name}} with a simple goal: to take great care of people an
 
 Reviews from customers like you are what allow that mission to continue.
 
-When you share your experience, you're not just leaving a rating—you're helping a small, hardworking team grow and serve more people.
-
-If you have a moment, we'd be honored to hear your thoughts:
-{{review_url}}
+When you share your experience, you're not just leaving a rating—you're helping a small, hardworking team grow and serve more people. If you have a moment, we'd be honored to hear your thoughts.
 
 Thank you for choosing small business!
 
 Gratefully,
-{{business_name}}`,
+{{sender_name}}`,
       is_default: false,
       is_active: true,
       is_system: true,
@@ -234,13 +230,10 @@ As a small business, we grow almost entirely through word of mouth and honest re
 
 If you're willing to take a minute to share your experience, it would mean a great deal to me and to everyone here.
 
-You can leave a review here:
-{{review_url}}
-
 Thank you again for trusting us.
 
 Sincerely,
-{{business_name}}`,
+{{sender_name}}`,
       is_default: false,
       is_active: true,
       is_system: true,
@@ -256,13 +249,12 @@ Sincerely,
 
 I wanted to follow up on my earlier message. As a small business, every review makes a real difference in helping new customers find us.
 
-If you have just a minute, we'd truly appreciate hearing about your experience:
-{{review_url}}
+If you have just a minute, we'd truly appreciate hearing about your experience.
 
 Thank you for supporting small business!
 
 Warmly,
-{{business_name}}`,
+{{sender_name}}`,
       is_default: false,
       is_active: true,
       is_system: true,
@@ -278,13 +270,10 @@ I know life gets busy, so I wanted to send one more note.
 
 If you had a good experience with {{business_name}}, a quick review would mean the world to us. It's one of the best ways to help a small business grow.
 
-Here's the link whenever you have a moment:
-{{review_url}}
-
 Either way, thank you for being a customer!
 
 Best,
-{{business_name}}`,
+{{sender_name}}`,
       is_default: false,
       is_active: true,
       is_system: true,
@@ -302,12 +291,11 @@ I'm reaching out on behalf of {{business_name}} to thank you for your recent vis
 
 As a small business, they rely on reviews from customers like you to grow and reach new people.
 
-Would you mind sharing your experience? It only takes about 60 seconds:
-{{review_url}}
+Would you mind sharing your experience? It only takes about 60 seconds. Your review helps {{business_name}} continue doing what they love.
 
-Your review helps {{business_name}} continue doing what they love.
+Thank you for your time!
 
-Thank you for your time!`,
+{{sender_name}}`,
       is_default: false,
       is_active: true,
       is_system: true,
@@ -324,11 +312,11 @@ I work with {{business_name}} to help them connect with customers like you.
 They mentioned you recently used their services, and I wanted to reach out personally. Small businesses like {{business_name}} grow through word of mouth and honest reviews.
 
 If you have a moment, would you share your experience?
-{{review_url}}
 
 Thank you for supporting local business!
 
-Best regards`,
+Best regards,
+{{sender_name}}`,
       is_default: false,
       is_active: true,
       is_system: true,
@@ -348,15 +336,12 @@ That's why I'm reaching out personally.
 
 If you have a minute, would you consider sharing a quick review about your experience with us? Reviews help other customers find us online and learn about our services.
 
-Your honest feedback would mean more than you might realize.
-
-We use a tool that makes writing and posting reviews super quick & easy. Here's a simple link:
-{{review_url}}
+Your honest feedback would mean more than you might realize. We use a tool that makes writing and posting reviews super quick & easy.
 
 Thank you for supporting a small business and for being the kind of customer we're grateful to have.
 
 Warmly,
-{{business_name}}`,
+{{sender_name}}`,
       is_default: false,
       is_active: true,
       is_system: true,
@@ -372,13 +357,10 @@ I just wanted to say thank you.
 
 Customers like you are the reason we do what we do. Your support means everything to our small team.
 
-If you have a moment, we'd be so grateful if you'd share your experience:
-{{review_url}}
-
-It's one of the most meaningful ways to help a small business like ours.
+If you have a moment, we'd be so grateful if you'd share your experience. It's one of the most meaningful ways to help a small business like ours.
 
 With gratitude,
-{{business_name}}`,
+{{sender_name}}`,
       is_default: false,
       is_active: true,
       is_system: true,
@@ -390,7 +372,7 @@ With gratitude,
       communication_type: "sms",
       template_type: "short_simple",
       subject_template: "Would you share your experience?",
-      message_template: "Hi {{customer_name}}! As a small business, reviews from customers like you help us grow. Would you share your experience? {{review_url}} Thank you!",
+      message_template: "Hi {{customer_name}}! As a small business, reviews from customers like you help us grow. Would you share your experience? Thank you! - {{sender_name}}",
       is_default: false,
       is_active: true,
       is_system: true,
@@ -400,7 +382,7 @@ With gratitude,
       communication_type: "sms",
       template_type: "short_simple",
       subject_template: "A quick review would mean so much",
-      message_template: "Hi {{customer_name}}, thank you for choosing {{business_name}}! A quick review would mean so much to our small team: {{review_url}}",
+      message_template: "Hi {{customer_name}}, thank you for choosing {{business_name}}! A quick review would mean so much to our small team. - {{sender_name}}",
       is_default: false,
       is_active: true,
       is_system: true,
@@ -410,7 +392,7 @@ With gratitude,
       communication_type: "sms",
       template_type: "short_simple",
       subject_template: "Just a gentle reminder",
-      message_template: "Hi {{customer_name}}! Just a gentle reminder - your review would help our small business grow: {{review_url}} Thank you!",
+      message_template: "Hi {{customer_name}}! Just a gentle reminder - your review would help our small business grow. Thank you! - {{sender_name}}",
       is_default: false,
       is_active: true,
       is_system: true,
@@ -420,7 +402,7 @@ With gratitude,
       communication_type: "sms",
       template_type: "short_simple",
       subject_template: "Following up",
-      message_template: "Hi {{customer_name}}, following up on my earlier message. If you have a sec, we'd love your feedback: {{review_url}} Thanks! - {{business_name}}",
+      message_template: "Hi {{customer_name}}, following up on my earlier message. If you have a sec, we'd love your feedback. Thanks! - {{sender_name}}",
       is_default: false,
       is_active: true,
       is_system: true,
@@ -430,7 +412,7 @@ With gratitude,
       communication_type: "sms",
       template_type: "short_simple",
       subject_template: "Thank you for your support",
-      message_template: "Hi {{customer_name}}! Thank you for supporting {{business_name}}. A quick review would mean so much to our small business: {{review_url}}",
+      message_template: "Hi {{customer_name}}! Thank you for supporting {{business_name}}. A quick review would mean so much to our small business. - {{sender_name}}",
       is_default: false,
       is_active: true,
       is_system: true,
@@ -440,7 +422,7 @@ With gratitude,
       communication_type: "sms",
       template_type: "short_simple",
       subject_template: "Feedback request",
-      message_template: "Hi {{customer_name}}! Reaching out on behalf of {{business_name}} - as a small business, your review would mean so much: {{review_url}} Thank you!",
+      message_template: "Hi {{customer_name}}! Reaching out on behalf of {{business_name}} - as a small business, your review would mean so much. Thank you! - {{sender_name}}",
       is_default: false,
       is_active: true,
       is_system: true,
@@ -450,7 +432,7 @@ With gratitude,
       communication_type: "sms",
       template_type: "short_simple",
       subject_template: "Quick favor?",
-      message_template: "Hi {{customer_name}}! Quick favor? Leave us a review: {{review_url}} Thanks! - {{business_name}}",
+      message_template: "Hi {{customer_name}}! Quick favor? We'd love a review if you have a moment. Thanks! - {{sender_name}}",
       is_default: false,
       is_active: true,
       is_system: true,
@@ -460,7 +442,7 @@ With gratitude,
       communication_type: "sms",
       template_type: "short_simple",
       subject_template: "Got a minute?",
-      message_template: "{{customer_name}}, got a minute? {{review_url}} Thanks! - {{business_name}}",
+      message_template: "{{customer_name}}, got a minute to leave us a review? Thanks! - {{sender_name}}",
       is_default: false,
       is_active: true,
       is_system: true,
@@ -475,10 +457,8 @@ With gratitude,
 
 Would you leave us a quick review? It only takes a minute and helps our small business grow.
 
-{{review_url}}
-
 Thank you!
-{{business_name}}`,
+{{sender_name}}`,
       is_default: false,
       is_active: true,
       is_system: true,
@@ -492,9 +472,8 @@ Thank you!
 
 Got a minute to share your experience with {{business_name}}?
 
-{{review_url}}
-
-Thanks!`,
+Thanks!
+{{sender_name}}`,
       is_default: false,
       is_active: true,
       is_system: true,
