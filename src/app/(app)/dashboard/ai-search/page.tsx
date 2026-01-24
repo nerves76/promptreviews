@@ -1424,19 +1424,17 @@ export default function AISearchPage() {
 
                   {/* Consistency - how consistent is each provider across multiple checks of the same question */}
                   <div className={`p-4 rounded-xl border ${displayStats.isFiltered ? 'bg-slate-50 border-slate-200' : 'bg-gray-50 border-gray-200'}`}>
-                    <div className="text-sm text-gray-600 mb-3">Consistency</div>
-
                     {/* Citation consistency */}
-                    <div className="mb-3">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Icon name="FaLink" className="w-3 h-3 text-green-600" />
-                        <span className="text-base font-bold text-gray-800">
+                    <div className="mb-4">
+                      <div className="flex items-center gap-2">
+                        <Icon name="FaLink" className="w-4 h-4 text-green-600" />
+                        <span className="text-2xl font-bold text-gray-800">
                           {displayStats.overallCitationConsistency !== null
                             ? `${displayStats.overallCitationConsistency}%`
                             : '--'}
                         </span>
-                        <span className="text-xs text-gray-500">citations</span>
                       </div>
+                      <div className="text-sm text-gray-600 mb-2">Citation consistency</div>
                       <div className="flex gap-1 flex-wrap">
                         {LLM_PROVIDERS.filter(p => selectedProviders.has(p)).map((provider) => {
                           const score = displayStats.providerCitationConsistency[provider];
@@ -1456,15 +1454,15 @@ export default function AISearchPage() {
 
                     {/* Mention consistency */}
                     <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <Icon name="FaCommentAlt" className="w-3 h-3 text-blue-600" />
-                        <span className="text-base font-bold text-gray-800">
+                      <div className="flex items-center gap-2">
+                        <Icon name="FaCommentAlt" className="w-4 h-4 text-blue-600" />
+                        <span className="text-2xl font-bold text-gray-800">
                           {displayStats.overallMentionConsistency !== null
                             ? `${displayStats.overallMentionConsistency}%`
                             : '--'}
                         </span>
-                        <span className="text-xs text-gray-500">mentions</span>
                       </div>
+                      <div className="text-sm text-gray-600 mb-2">Mention consistency</div>
                       <div className="flex gap-1 flex-wrap">
                         {LLM_PROVIDERS.filter(p => selectedProviders.has(p)).map((provider) => {
                           const score = displayStats.providerMentionConsistency[provider];
