@@ -626,3 +626,20 @@ body:has(.fixed.inset-0) {
   /* Make placeholder visible */
   opacity: 0.5;
 }
+
+/* Portal container for dragged elements - ensure it's above everything */
+[data-rbd-portal] {
+  position: fixed !important;
+  z-index: 99999 !important;
+  pointer-events: none;
+}
+
+/* The actual dragging element inside the portal */
+[data-rbd-portal] > * {
+  pointer-events: auto;
+}
+
+/* When body has drag portal active, ensure it's visible */
+body > [data-rbd-draggable-context-id] {
+  z-index: 99999 !important;
+}
