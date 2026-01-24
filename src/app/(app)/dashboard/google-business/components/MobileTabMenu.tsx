@@ -26,7 +26,7 @@ export function MobileTabMenu({
       return 'w-full text-left px-3 py-2 rounded-md text-sm font-medium bg-slate-blue text-white';
     }
     if (isDisabled) {
-      return 'w-full text-left px-3 py-2 rounded-md text-sm font-medium text-gray-500 cursor-not-allowed';
+      return 'w-full text-left px-3 py-2 rounded-md text-sm font-medium text-gray-400 bg-gray-100 cursor-not-allowed';
     }
     return 'w-full text-left px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100';
   };

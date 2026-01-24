@@ -38,6 +38,7 @@ export default function PromptPagesKanban({
   onLocalStatusUpdate,
 }: PromptPagesKanbanProps) {
   const [draggedCardId, setDraggedCardId] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
   const [activePage, setActivePage] = useState<PromptPage | null>(null);
   const [activeColumnIndex, setActiveColumnIndex] = useState(0);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -99,10 +100,12 @@ export default function PromptPagesKanban({
 
   const handleDragStart = (result: any) => {
     setDraggedCardId(result.draggableId);
+    setIsDragging(true);
   };
 
   const handleDragEnd = async (result: DropResult) => {
     setDraggedCardId(null);
+    setIsDragging(false);
 
     // Dropped outside the list
     if (!result.destination) {
@@ -326,10 +329,15 @@ export default function PromptPagesKanban({
             {...provided.droppableProps}
             className={`
               bg-white/30 backdrop-blur-md border-l border-r border-b rounded-b-lg p-3
-              ${columnType === 'mobile' ? "min-h-[60vh]" : "min-h-[400px] max-h-[calc(100vh-300px)]"} overflow-y-auto
+              ${columnType === 'mobile' ? "min-h-[60vh]" : "min-h-[400px] max-h-[calc(100vh-300px)]"}
               transition-colors
               ${snapshot.isDraggingOver ? "bg-blue-100/40 border-blue-300" : "border-white/40"}
             `}
+            style={{
+              // Disable overflow clipping during drag to prevent card from disappearing
+              overflow: isDragging ? 'visible' : 'auto',
+              overflowY: isDragging ? 'visible' : 'auto',
+            }}
           >
             {column.pages.length === 0 ? (
               <div className="text-center py-12 text-white">
