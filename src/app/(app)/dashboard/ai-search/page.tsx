@@ -1393,9 +1393,9 @@ export default function AISearchPage() {
                     </div>
                   </div>
 
-                  {/* Repeatability - how consistent is each provider across multiple checks of the same question */}
+                  {/* Consistency - how consistent is each provider across multiple checks of the same question */}
                   <div className={`p-4 rounded-xl border ${displayStats.isFiltered ? 'bg-slate-50 border-slate-200' : 'bg-gray-50 border-gray-200'}`}>
-                    <div className="text-sm text-gray-600 mb-2">Repeatability</div>
+                    <div className="text-sm text-gray-600 mb-2">Consistency</div>
 
                     <div className="flex items-baseline gap-2 mb-1">
                       <span className="text-lg font-bold text-gray-800">
@@ -1413,7 +1413,7 @@ export default function AISearchPage() {
                           <span
                             key={provider}
                             className={`px-1 py-0.5 rounded text-[10px] ${colors.bg} ${colors.text}`}
-                            title={`${LLM_PROVIDER_LABELS[provider]}: ${score !== null ? `${score}% repeatable (same answer on re-checks)` : 'needs 2+ checks'}`}
+                            title={`${LLM_PROVIDER_LABELS[provider]}: ${score !== null ? `${score}% consistent (same answer on re-checks)` : 'needs 2+ checks'}`}
                           >
                             {score !== null ? `${score}%` : '--'}
                           </span>
