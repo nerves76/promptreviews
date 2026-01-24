@@ -1204,9 +1204,10 @@ export default function UploadContactsPage() {
                 <table className="min-w-full divide-y divide-gray-200 table-auto">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         <input
                           type="checkbox"
+                          className="h-5 w-5 rounded border-gray-300 text-slate-blue focus:ring-slate-blue"
                           checked={allSelected}
                           onChange={handleSelectAll}
                           aria-label="Select all contacts"
@@ -1232,9 +1233,10 @@ export default function UploadContactsPage() {
                   <tbody className="bg-white divide-y divide-gray-200">
                     {sortedContacts.map((contact) => (
                     <tr key={contact.id}>
-                      <td className="px-3 py-2 text-sm">
+                      <td className="px-3 py-3 text-sm">
                         <input
                           type="checkbox"
+                          className="h-5 w-5 rounded border-gray-300 text-slate-blue focus:ring-slate-blue"
                           checked={selectedContactIds.includes(contact.id)}
                           onChange={() => handleSelectOne(contact.id)}
                           aria-label={`Select contact ${contact.google_reviewer_name || `${contact.first_name} ${contact.last_name}`}`}
@@ -1276,23 +1278,23 @@ export default function UploadContactsPage() {
                         {renderCampaignStatus(contact)}
                       </td>
                       <td className="px-3 py-2 text-sm whitespace-nowrap">
-                        <button
-                          className="text-slate-blue underline hover:text-slate-800 text-xs mr-4 bg-transparent border-none p-0 shadow-none"
-                          style={{ background: "none", border: "none" }}
-                          onClick={() => {
-                            setEditContact(contact);
-                            setShowEditModal(true);
-                            setEditError("");
-                            setEditSuccess("");
-                            setActiveTab('details'); // Reset to details tab when opening
-                            loadContactReviews(contact.id);
-                            loadContactPromptPages(contact.id);
-                          }}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          className="px-3 py-1 bg-slate-blue text-white rounded hover:bg-slate-blue/90 text-xs shadow"
+                        <div className="flex items-center gap-2">
+                          <button
+                            className="text-slate-blue underline hover:text-slate-800 text-xs px-2 py-2 min-h-[44px] inline-flex items-center"
+                            onClick={() => {
+                              setEditContact(contact);
+                              setShowEditModal(true);
+                              setEditError("");
+                              setEditSuccess("");
+                              setActiveTab('details'); // Reset to details tab when opening
+                              loadContactReviews(contact.id);
+                              loadContactPromptPages(contact.id);
+                            }}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className="px-3 py-2 min-h-[44px] bg-slate-blue text-white rounded hover:bg-slate-blue/90 text-xs shadow whitespace-nowrap"
                           onClick={async () => {
                             // Validate business profile before allowing prompt page creation
                             try {
@@ -1331,9 +1333,10 @@ export default function UploadContactsPage() {
                               alert('There was an error checking your business profile. Please try again.');
                             }
                           }}
-                        >
-                          + Prompt Page
-                        </button>
+                          >
+                            + Prompt Page
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}

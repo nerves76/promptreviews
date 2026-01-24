@@ -548,14 +548,14 @@ const DashboardContent = React.memo(function DashboardContent({
                   Total reviews
                   <span className="relative group">
                     <Icon name="FaQuestionCircle" className="w-4 h-4 text-slate-blue cursor-pointer" size={16} />
-                    <span className="absolute left-1/2 -translate-x-1/2 mt-2 w-80 p-3 bg-white border border-gray-200 rounded shadow text-xs text-gray-700 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-20">
+                    <span className="absolute left-1/2 -translate-x-1/2 mt-2 w-64 sm:w-80 max-w-[calc(100vw-2rem)] p-3 bg-white border border-gray-200 rounded shadow text-xs text-gray-700 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-20">
                       These numbers reflect how many users clicked "copy & submit" on your prompt pages and, presumably, submitted a review.
                       <br /><br />
                       Note: It may take anywhere from a few hours to a week or more for a review site to approve and publish a review. Google usually publishes within 48 hours if the review is not flagged. Some reviews may get denied. Users with low review histories are usually more susceptible to this.
                     </span>
                   </span>
                 </p>
-                <div className="flex gap-6 text-4xl font-extrabold text-slate-blue">
+                <div className="flex gap-4 sm:gap-6 text-3xl sm:text-4xl font-extrabold text-slate-blue">
                   <div className="flex flex-col items-center">
                     <span>{reviewStats.total.week}</span>
                     <span className="text-xs text-gray-500 mt-1">This week</span>
@@ -582,12 +582,12 @@ const DashboardContent = React.memo(function DashboardContent({
                   Reviews verified
                   <span className="relative group">
                     <Icon name="FaQuestionCircle" className="w-4 h-4 text-green-700 cursor-pointer" size={16} />
-                    <span className="absolute left-1/2 -translate-x-1/2 mt-2 w-48 p-2 bg-white border border-gray-200 rounded shadow text-xs text-gray-700 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-20">
+                    <span className="absolute left-1/2 -translate-x-1/2 mt-2 w-48 max-w-[calc(100vw-2rem)] p-2 bg-white border border-gray-200 rounded shadow text-xs text-gray-700 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-20">
                       Number of reviews you have marked as verified. Week/month/year are based on the review verification date.
                     </span>
                   </span>
                 </p>
-                <div className="flex gap-6 text-4xl font-extrabold text-green-700">
+                <div className="flex gap-4 sm:gap-6 text-3xl sm:text-4xl font-extrabold text-green-700">
                   <div className="flex flex-col items-center">
                     <span>{reviewStats.verified.week}</span>
                     <span className="text-xs text-gray-500 mt-1">This week</span>
@@ -1103,7 +1103,7 @@ function UniversalTooltip() {
         />
       </button>
       {show && (
-        <div className="absolute z-20 left-1/2 -translate-x-1/2 mt-2 w-80 p-3 bg-white border border-gray-200 rounded shadow text-sm text-gray-700">
+        <div className="absolute z-20 left-1/2 -translate-x-1/2 mt-2 w-64 sm:w-80 max-w-[calc(100vw-2rem)] p-3 bg-white border border-gray-200 rounded shadow text-sm text-gray-700">
           Your Universal Prompt Page is a great choice for a QR code featured at your front desk or on tables at your restaurant or even a business card or lanyard. You could also feature it in a newsletter or an auto-reply (For best results, we highly recommend reaching out personally for reviews.) To avoid duplicate or similar reviews, Universal Prompt Pages don't allow pre-written reviews, but users can use Prompty AI to get an optimized review template.
         </div>
       )}

@@ -34,12 +34,36 @@ const DropdownPortal = forwardRef<HTMLDivElement, DropdownPortalProps>(
     const buttonRect = buttonRef.current?.getBoundingClientRect();
     const { backgroundColor: providedBackground, ...positionalOverrides } = style;
 
+    // Parse width for boundary calculations
+    const widthNum = parseInt(width) || 256;
+    const viewportPadding = 8;
+    const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
+    const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : 768;
+
+    // Calculate safe width that fits viewport
+    const safeWidth = Math.min(widthNum, viewportWidth - (viewportPadding * 2));
+
+    // Calculate left position with viewport bounds checking
+    let leftPos = buttonRect?.left || 0;
+    if (align === 'right' && buttonRect) {
+      leftPos = buttonRect.right - safeWidth;
+    }
+    // Ensure dropdown doesn't overflow right edge
+    leftPos = Math.min(leftPos, viewportWidth - safeWidth - viewportPadding);
+    // Ensure dropdown doesn't overflow left edge
+    leftPos = Math.max(leftPos, viewportPadding);
+
+    // Calculate top position with viewport bounds checking
+    let topPos = buttonRect ? buttonRect.bottom + 8 : 0;
+    // If dropdown would overflow bottom, position above button instead
+    const estimatedHeight = 300; // Reasonable estimate for dropdown height
+    if (topPos + estimatedHeight > viewportHeight && buttonRect) {
+      topPos = Math.max(viewportPadding, buttonRect.top - estimatedHeight - 8);
+    }
+
     const basePosition: React.CSSProperties = {
-      top: buttonRect ? buttonRect.bottom + 8 : 0,
-      ...(align === 'right'
-        ? { right: window.innerWidth - (buttonRect?.right || 0) }
-        : { left: buttonRect?.left || 0 }
-      )
+      top: topPos,
+      left: leftPos
     };
 
     const customStyle: React.CSSProperties = { ...positionalOverrides };
@@ -50,11 +74,13 @@ const DropdownPortal = forwardRef<HTMLDivElement, DropdownPortalProps>(
 
     if (positionalOverrides.left === undefined && positionalOverrides.right === undefined) {
       customStyle.left = basePosition.left;
-      customStyle.right = basePosition.right;
     }
 
     const defaultStyle: React.CSSProperties = {
-      width,
+      width: `${safeWidth}px`,
+      maxWidth: `calc(100vw - ${viewportPadding * 2}px)`,
+      maxHeight: `calc(100vh - ${topPos + viewportPadding}px)`,
+      overflowY: 'auto' as const,
       zIndex: 2147483647,
       ...customStyle
     };

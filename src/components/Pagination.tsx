@@ -79,7 +79,7 @@ export function Pagination({
   const pageNumbers = getPageNumbers();
 
   return (
-    <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 bg-gray-50 rounded-b-xl">
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t border-gray-200 bg-gray-50 rounded-b-xl">
       {/* Item count */}
       <div className="text-sm text-gray-500">
         Showing <span className="font-medium text-gray-700">{startItem}</span>
@@ -95,14 +95,14 @@ export function Pagination({
         <button
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
-          className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+          className="p-2.5 min-h-[44px] min-w-[44px] flex items-center justify-center text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
           aria-label="Previous page"
         >
-          <Icon name="FaChevronLeft" className="w-3 h-3" />
+          <Icon name="FaChevronLeft" className="w-4 h-4" />
         </button>
 
-        {/* Page numbers */}
-        <div className="flex items-center gap-1">
+        {/* Page numbers - hidden on small mobile, shown on sm+ */}
+        <div className="hidden sm:flex items-center gap-1">
           {pageNumbers.map((page, index) =>
             page === 'ellipsis' ? (
               <span key={`ellipsis-${index}`} className="px-2 text-gray-500">
@@ -112,7 +112,7 @@ export function Pagination({
               <button
                 key={page}
                 onClick={() => onPageChange(page)}
-                className={`min-w-[32px] h-8 px-2 text-sm font-medium rounded-lg transition-colors ${
+                className={`min-w-[40px] h-10 px-2 text-sm font-medium rounded-lg transition-colors ${
                   page === currentPage
                     ? 'bg-slate-blue text-white'
                     : 'text-gray-600 hover:bg-gray-200'
@@ -124,14 +124,19 @@ export function Pagination({
           )}
         </div>
 
+        {/* Mobile page indicator - shown only on small screens */}
+        <span className="sm:hidden px-3 text-sm text-gray-700 font-medium">
+          {currentPage} / {totalPages}
+        </span>
+
         {/* Next button */}
         <button
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+          className="p-2.5 min-h-[44px] min-w-[44px] flex items-center justify-center text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
           aria-label="Next page"
         >
-          <Icon name="FaChevronRight" className="w-3 h-3" />
+          <Icon name="FaChevronRight" className="w-4 h-4" />
         </button>
       </div>
     </div>
