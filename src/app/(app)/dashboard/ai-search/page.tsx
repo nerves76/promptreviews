@@ -44,6 +44,12 @@ interface KeywordWithQuestions {
   summary?: LLMVisibilitySummary | null;
 }
 
+interface ProviderConsistency {
+  totalChecks: number;
+  citedCount: number;
+  consistency: number; // 0-100, how often the majority answer appears
+}
+
 interface QuestionRow {
   id: string; // keyword_questions.id for selection
   question: string;
@@ -53,6 +59,7 @@ interface QuestionRow {
   groupId: string | null;
   results: Map<LLMProvider, LLMVisibilityCheck | null>;
   lastCheckedAt: string | null;
+  consistency: Map<LLMProvider, ProviderConsistency | null>; // Per-provider consistency
 }
 
 interface AccountSummary {
@@ -424,10 +431,15 @@ export default function AISearchPage() {
         const questionResults = new Map<LLMProvider, LLMVisibilityCheck | null>();
         LLM_PROVIDERS.forEach(p => questionResults.set(p, null));
 
+        // Track ALL results per provider for consistency calculation
+        const providerChecks = new Map<LLMProvider, { total: number; cited: number }>();
+        LLM_PROVIDERS.forEach(p => providerChecks.set(p, { total: 0, cited: 0 }));
+
         let lastCheckedAt: string | null = null;
 
         for (const result of allResults) {
           if (result.question === q.question) {
+            // Update most recent result
             const existing = questionResults.get(result.llmProvider);
             if (!existing || new Date(result.checkedAt) > new Date(existing.checkedAt)) {
               questionResults.set(result.llmProvider, result);
@@ -435,8 +447,34 @@ export default function AISearchPage() {
                 lastCheckedAt = result.checkedAt;
               }
             }
+
+            // Track for consistency calculation
+            const checks = providerChecks.get(result.llmProvider)!;
+            checks.total++;
+            if (result.domainCited) {
+              checks.cited++;
+            }
           }
         }
+
+        // Calculate per-provider consistency
+        const consistencyMap = new Map<LLMProvider, ProviderConsistency | null>();
+        LLM_PROVIDERS.forEach(provider => {
+          const checks = providerChecks.get(provider)!;
+          if (checks.total === 0) {
+            consistencyMap.set(provider, null);
+          } else {
+            // Consistency = how often the majority answer appears
+            // If 8/10 cited, consistency = 80%. If 5/10 cited, consistency = 50%.
+            const majorityCount = Math.max(checks.cited, checks.total - checks.cited);
+            const consistency = Math.round((majorityCount / checks.total) * 100);
+            consistencyMap.set(provider, {
+              totalChecks: checks.total,
+              citedCount: checks.cited,
+              consistency,
+            });
+          }
+        });
 
         rows.push({
           id: q.id || `${kw.id}-${q.question}`,
@@ -447,6 +485,7 @@ export default function AISearchPage() {
           groupId: q.groupId || null,
           results: questionResults,
           lastCheckedAt,
+          consistency: consistencyMap,
         });
       }
     }
@@ -1567,15 +1606,22 @@ export default function AISearchPage() {
                         <SortIndicator field="concept" />
                       </div>
                     </th>
-                    {/* Provider columns */}
+                    {/* Provider columns - results and consistency */}
                     {LLM_PROVIDERS.map(provider => {
                       const colors = LLM_PROVIDER_COLORS[provider];
                       return (
-                        <th key={provider} className="text-center py-3 px-2 w-20">
-                          <span className={`px-2 py-1 rounded text-xs font-semibold ${colors.bg} ${colors.text}`}>
-                            {LLM_PROVIDER_LABELS[provider]}
-                          </span>
-                        </th>
+                        <React.Fragment key={provider}>
+                          <th className="text-center py-3 px-2 w-16">
+                            <span className={`px-2 py-1 rounded text-xs font-semibold ${colors.bg} ${colors.text}`}>
+                              {LLM_PROVIDER_LABELS[provider]}
+                            </span>
+                          </th>
+                          <th className="text-center py-3 px-1 w-14">
+                            <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${colors.bg} ${colors.text} opacity-80`}>
+                              Cons.
+                            </span>
+                          </th>
+                        </React.Fragment>
                       );
                     })}
                     <th
@@ -1659,42 +1705,63 @@ export default function AISearchPage() {
                             </div>
                           </td>
 
-                          {/* Provider Status Columns */}
+                          {/* Provider Status Columns + Consistency */}
                           {LLM_PROVIDERS.map(provider => {
                             const result = row.results.get(provider);
+                            const consistencyData = row.consistency.get(provider);
+                            const colors = LLM_PROVIDER_COLORS[provider];
 
                             if (!result) {
                               // Not checked yet
                               return (
-                                <td key={provider} className="py-3 px-2 text-center">
-                                  <span className="text-gray-300" title="Not checked">—</span>
-                                </td>
+                                <React.Fragment key={provider}>
+                                  <td className="py-3 px-2 text-center">
+                                    <span className="text-gray-300" title="Not checked">—</span>
+                                  </td>
+                                  <td className="py-3 px-1 text-center">
+                                    <span className="text-gray-300 text-[10px]">—</span>
+                                  </td>
+                                </React.Fragment>
                               );
                             }
 
                             // Checked - show results
                             return (
-                              <td key={provider} className="py-3 px-2 text-center">
-                                <div className="flex flex-col items-center gap-0.5">
-                                  {/* Citation status */}
-                                  {result.domainCited ? (
-                                    <span className="text-green-600 text-xs font-medium flex items-center gap-0.5" title={`Cited at position ${result.citationPosition}`}>
-                                      <Icon name="FaLink" className="w-3 h-3" />
-                                      #{result.citationPosition || '?'}
+                              <React.Fragment key={provider}>
+                                <td className="py-3 px-2 text-center">
+                                  <div className="flex flex-col items-center gap-0.5">
+                                    {/* Citation status */}
+                                    {result.domainCited ? (
+                                      <span className="text-green-600 text-xs font-medium flex items-center gap-0.5" title={`Cited at position ${result.citationPosition}`}>
+                                        <Icon name="FaLink" className="w-3 h-3" />
+                                        #{result.citationPosition || '?'}
+                                      </span>
+                                    ) : (
+                                      <span className="text-amber-500 text-xs flex items-center gap-0.5" title="Checked - not cited">
+                                        <Icon name="FaTimes" className="w-3 h-3" />
+                                      </span>
+                                    )}
+                                    {/* Brand mention status */}
+                                    {result.brandMentioned && (
+                                      <span className="text-blue-600 text-xs font-medium flex items-center gap-0.5" title="Brand mentioned in response">
+                                        <Icon name="FaCommentAlt" className="w-2.5 h-2.5" />
+                                      </span>
+                                    )}
+                                  </div>
+                                </td>
+                                <td className="py-3 px-1 text-center">
+                                  {consistencyData ? (
+                                    <span
+                                      className={`px-1 py-0.5 rounded text-[10px] font-medium ${colors.bg} ${colors.text}`}
+                                      title={`${consistencyData.consistency}% consistent (${consistencyData.citedCount}/${consistencyData.totalChecks} cited)`}
+                                    >
+                                      {consistencyData.totalChecks > 1 ? `${consistencyData.consistency}%` : '—'}
                                     </span>
                                   ) : (
-                                    <span className="text-amber-500 text-xs flex items-center gap-0.5" title="Checked - not cited">
-                                      <Icon name="FaTimes" className="w-3 h-3" />
-                                    </span>
+                                    <span className="text-gray-300 text-[10px]">—</span>
                                   )}
-                                  {/* Brand mention status */}
-                                  {result.brandMentioned && (
-                                    <span className="text-blue-600 text-xs font-medium flex items-center gap-0.5" title="Brand mentioned in response">
-                                      <Icon name="FaCommentAlt" className="w-2.5 h-2.5" />
-                                    </span>
-                                  )}
-                                </div>
-                              </td>
+                                </td>
+                              </React.Fragment>
                             );
                           })}
 
@@ -1721,7 +1788,7 @@ export default function AISearchPage() {
                         {/* Expanded Details Row */}
                         {isExpanded && (
                           <tr className="bg-blue-50">
-                            <td colSpan={8 + LLM_PROVIDERS.length} className="p-4">
+                            <td colSpan={8 + LLM_PROVIDERS.length * 2} className="p-4">
                               {/* Citation Timeline */}
                               <CitationTimeline
                                 question={row.question}
