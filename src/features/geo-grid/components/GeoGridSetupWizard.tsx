@@ -871,23 +871,36 @@ export function GeoGridSetupWizard({
             )}
 
             {/* Success - Found Business */}
-            {googlePlaceId && !isGeocoding && (
-              <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-green-800 font-medium">Business listing found!</p>
-                    <p className="text-xs text-green-700 mt-1 font-mono truncate" title={googlePlaceId}>Place ID: {googlePlaceId}</p>
+            {googlePlaceId && !isGeocoding && (() => {
+              const hasCoords = manualLat && manualLng &&
+                               parseFloat(manualLat) !== 0 && parseFloat(manualLng) !== 0;
+              return (
+                <div className={`p-3 rounded-lg ${hasCoords ? 'bg-green-50 border border-green-200' : 'bg-amber-50 border border-amber-200'}`}>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className={`text-sm font-medium ${hasCoords ? 'text-green-800' : 'text-amber-800'}`}>
+                        {hasCoords ? '✓ Business listing found!' : '⚠️ Place ID found, but coordinates needed'}
+                      </p>
+                      <p className="text-xs text-gray-600 mt-1 font-mono truncate" title={googlePlaceId}>
+                        Place ID: {googlePlaceId}
+                      </p>
+                      {!hasCoords && (
+                        <p className="text-xs text-amber-700 mt-2">
+                          Service-area businesses don&apos;t have public coordinates. Enter the center of your service area below.
+                        </p>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setGooglePlaceId(null)}
+                      className="text-xs text-gray-500 hover:text-gray-700 underline"
+                    >
+                      Change
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setGooglePlaceId(null)}
-                    className="text-xs text-gray-500 hover:text-gray-700 underline"
-                  >
-                    Change
-                  </button>
                 </div>
-              </div>
-            )}
+              );
+            })()}
 
             {geocodeError && (
               <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
