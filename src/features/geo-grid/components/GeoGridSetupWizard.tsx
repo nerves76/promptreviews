@@ -1324,15 +1324,26 @@ export function GeoGridSetupWizard({
           >
             {isSubmitting ? 'Saving...' : 'Complete Setup'}
           </button>
-        ) : (
-          <button
-            type="button"
-            onClick={handleNext}
-            className="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700"
-          >
-            Next
-          </button>
-        )}
+        ) : (() => {
+          // Validate before allowing Next on location step
+          const lat = parseFloat(manualLat);
+          const lng = parseFloat(manualLng);
+          const hasValidCoords = !isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0;
+          const hasValidPlaceId = googlePlaceId?.startsWith('ChIJ');
+          const canProceed = currentStep !== 'location' || (hasValidCoords && hasValidPlaceId);
+
+          return (
+            <button
+              type="button"
+              onClick={handleNext}
+              disabled={!canProceed}
+              className="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              title={!canProceed ? 'Please enter valid coordinates and Place ID' : undefined}
+            >
+              Next
+            </button>
+          );
+        })()}
       </div>
     </div>
   );
