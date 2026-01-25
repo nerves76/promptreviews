@@ -372,7 +372,7 @@ export default function ResearchSourcesPage() {
       {/* Tab Navigation */}
       <SubNav
         items={[
-          { label: 'AI Visibility', icon: 'FaSparkles', href: '/dashboard/ai-search', matchType: 'exact' },
+          { label: 'LLM Tracking', icon: 'FaSparkles', href: '/dashboard/ai-search', matchType: 'exact' },
           { label: 'Visibility Opportunities', icon: 'FaGlobe', href: '/dashboard/ai-search/research-sources', matchType: 'exact' },
           { label: 'Competitors', icon: 'FaUsers', href: '/dashboard/ai-search/competitors', matchType: 'exact' },
         ]}
