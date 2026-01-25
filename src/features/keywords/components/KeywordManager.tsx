@@ -11,8 +11,7 @@ import { useKeywords, useKeywordDetails } from '../hooks/useKeywords';
 
 import { type KeywordData, type KeywordGroupData, type ResearchResultData, type RelatedQuestion, DEFAULT_GROUP_NAME } from '../keywordUtils';
 import { apiClient } from '@/utils/apiClient';
-import { BulkActionBar } from './BulkActionBar';
-import { BulkDeleteModal } from './BulkDeleteModal';
+import { BulkMoveBar, GroupOption } from '@/components/BulkMoveBar';
 import { useBusinessData } from '@/auth/hooks/granularAuthHooks';
 import { validateBusinessForKeywordGeneration } from '@/utils/businessValidation';
 import { ArrowDownTrayIcon, ArrowUpTrayIcon, XMarkIcon, DocumentArrowDownIcon, ArrowPathIcon, QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
@@ -189,10 +188,7 @@ export default function KeywordManager({
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null); // null = All groups
 
   // Multi-select state for bulk operations
-  const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
-  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 
   // AI Generation state
   const [showGeneratorPanel, setShowGeneratorPanel] = useState(false);
@@ -548,10 +544,10 @@ export default function KeywordManager({
   }, []);
 
   // Handle bulk move to group
-  const handleBulkMoveToGroup = useCallback(async (groupId: string) => {
+  const handleBulkMoveToGroup = useCallback(async (groupId: string | null) => {
     const selectedKeywords = Array.from(selectedIds);
     for (const keywordId of selectedKeywords) {
-      await updateKeyword(keywordId, { groupId });
+      await updateKeyword(keywordId, { groupId: groupId || undefined });
     }
     setSelectedIds(new Set());
     await refresh();
@@ -562,70 +558,6 @@ export default function KeywordManager({
     await updateKeyword(keywordId, { groupId: groupId || undefined });
     await refresh();
   }, [updateKeyword, refresh]);
-
-  // Handle bulk delete
-  const handleBulkDelete = useCallback(async () => {
-    setIsBulkDeleting(true);
-    const selectedKeywords = Array.from(selectedIds);
-    for (const keywordId of selectedKeywords) {
-      await deleteKeyword(keywordId);
-    }
-    setIsBulkDeleting(false);
-    setShowBulkDeleteModal(false);
-    setSelectedIds(new Set());
-    setIsSelectionMode(false);
-    await refresh();
-  }, [selectedIds, deleteKeyword, refresh]);
-
-  // Handle bulk export (selected keywords only)
-  const handleBulkExport = useCallback(async () => {
-    try {
-      const selectedKeywords = keywords.filter((kw) => selectedIds.has(kw.id));
-
-      // Create CSV content
-      const headers = ['phrase', 'review_phrase', 'search_terms', 'group', 'aliases', 'location_scope'];
-      const rows = selectedKeywords.map((kw) => [
-        kw.phrase,
-        kw.reviewPhrase || '',
-        kw.searchTerms?.map((st) => st.term).join('|') || '',
-        kw.groupName || '',
-        kw.aliases?.join(', ') || '',
-        kw.locationScope || '',
-      ]);
-
-      const escapeCSV = (value: string): string => {
-        if (value.includes(',') || value.includes('"') || value.includes('\n') || value.includes('|')) {
-          return `"${value.replace(/"/g, '""')}"`;
-        }
-        return value;
-      };
-
-      const csvContent = [
-        headers.join(','),
-        ...rows.map((row) => row.map(escapeCSV).join(',')),
-      ].join('\n');
-
-      // Download CSV
-      const blob = new Blob([csvContent], { type: 'text/csv' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `keywords-export-${new Date().toISOString().split('T')[0]}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-    } catch (error) {
-      console.error('Export failed:', error);
-      alert('Failed to export keywords. Please try again.');
-    }
-  }, [keywords, selectedIds]);
-
-  // Get selected keywords for delete modal
-  const selectedKeywordsForDelete = useMemo(
-    () => keywords.filter((kw) => selectedIds.has(kw.id)),
-    [keywords, selectedIds]
-  );
 
   // AI Generation handlers
   const normalizeBusinessInfo = () => {
@@ -1397,17 +1329,16 @@ export default function KeywordManager({
           {groupFilteredKeywords.length > 0 ? (
             groupFilteredKeywords.map((keyword) => (
               <div key={keyword.id} className="relative flex items-start gap-3">
-                {/* Selection checkbox (only in selection mode) */}
-                {isSelectionMode && (
-                  <div className="flex-shrink-0 pt-4">
-                    <input
-                      type="checkbox"
-                      checked={selectedIds.has(keyword.id)}
-                      onChange={() => handleToggleSelection(keyword.id)}
-                      className="w-5 h-5 text-slate-blue rounded border-gray-300 focus:ring-slate-blue cursor-pointer"
-                    />
-                  </div>
-                )}
+                {/* Selection checkbox */}
+                <div className="flex-shrink-0 pt-4">
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.has(keyword.id)}
+                    onChange={() => handleToggleSelection(keyword.id)}
+                    className="w-5 h-5 text-slate-blue rounded border-gray-300 focus:ring-slate-blue cursor-pointer"
+                    aria-label={`Select ${keyword.phrase}`}
+                  />
+                </div>
                 <div className="flex-1 min-w-0">
                   <ConceptCard
                     keyword={keyword}
@@ -1667,27 +1598,16 @@ export default function KeywordManager({
         />
       )}
 
-      {/* Bulk Action Bar (fixed bottom) */}
-      {isSelectionMode && (
-        <BulkActionBar
-          selectedCount={selectedIds.size}
-          totalCount={groupFilteredKeywords.length}
-          groups={groups}
-          onSelectAll={handleSelectAll}
-          onDeselectAll={handleDeselectAll}
-          onMoveToGroup={handleBulkMoveToGroup}
-          onDelete={() => setShowBulkDeleteModal(true)}
-          onExport={handleBulkExport}
-        />
-      )}
-
-      {/* Bulk Delete Confirmation Modal */}
-      <BulkDeleteModal
-        isOpen={showBulkDeleteModal}
-        keywords={selectedKeywordsForDelete}
-        onConfirm={handleBulkDelete}
-        onClose={() => setShowBulkDeleteModal(false)}
-        isDeleting={isBulkDeleting}
+      {/* Bulk Move Bar (fixed bottom) */}
+      <BulkMoveBar
+        selectedCount={selectedIds.size}
+        totalCount={groupFilteredKeywords.length}
+        groups={groups.map((g): GroupOption => ({ id: g.id, name: g.name }))}
+        itemLabel="concepts"
+        onSelectAll={handleSelectAll}
+        onDeselectAll={handleDeselectAll}
+        onMoveToGroup={handleBulkMoveToGroup}
+        allowUngrouped={false}
       />
 
       {/* Import Help Modal */}
