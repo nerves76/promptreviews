@@ -318,7 +318,7 @@ export default function CompetitorsPage() {
       {/* Tab Navigation */}
       <SubNav
         items={[
-          { label: 'LLM Tracking', icon: 'FaSparkles', href: '/dashboard/ai-search', matchType: 'exact' },
+          { label: 'LLM tracking', icon: 'FaSparkles', href: '/dashboard/ai-search', matchType: 'exact' },
           { label: 'Visibility opportunities', icon: 'FaGlobe', href: '/dashboard/ai-search/research-sources', matchType: 'exact' },
           { label: 'Competitors', icon: 'FaUsers', href: '/dashboard/ai-search/competitors', matchType: 'exact' },
         ]}
