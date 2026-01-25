@@ -27,6 +27,8 @@ interface BulkMoveBarProps {
   allowUngrouped?: boolean;
   /** Ungrouped count for display */
   ungroupedCount?: number;
+  /** Optional callback to delete selected items */
+  onDelete?: () => void;
 }
 
 /**
@@ -45,6 +47,7 @@ export function BulkMoveBar({
   onMoveToGroup,
   allowUngrouped = false,
   ungroupedCount,
+  onDelete,
 }: BulkMoveBarProps) {
   const [showGroupDropdown, setShowGroupDropdown] = useState(false);
   const [selectedGroupId, setSelectedGroupId] = useState<string | null | undefined>(undefined);
@@ -181,6 +184,18 @@ export function BulkMoveBar({
               <Icon name="FaArrowRight" className="w-4 h-4" />
               <span>Move</span>
             </button>
+
+            {/* Delete button (optional) */}
+            {onDelete && (
+              <button
+                onClick={onDelete}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg transition-colors flex items-center gap-2 whitespace-nowrap"
+                aria-label={`Delete selected ${itemLabel}`}
+              >
+                <Icon name="FaTrash" className="w-4 h-4" />
+                <span className="hidden sm:inline">Delete</span>
+              </button>
+            )}
 
             {/* Clear selection button */}
             <button

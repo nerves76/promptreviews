@@ -189,6 +189,9 @@ export default function KeywordManager({
 
   // Multi-select state for bulk operations
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
 
   // AI Generation state
   const [showGeneratorPanel, setShowGeneratorPanel] = useState(false);
@@ -558,6 +561,34 @@ export default function KeywordManager({
     await updateKeyword(keywordId, { groupId: groupId || undefined });
     await refresh();
   }, [updateKeyword, refresh]);
+
+  // Calculate stats for selected keywords (for delete confirmation)
+  const selectedKeywordsStats = useMemo(() => {
+    const selectedKeywords = keywords.filter((kw) => selectedIds.has(kw.id));
+    return {
+      conceptCount: selectedKeywords.length,
+      searchTermCount: selectedKeywords.reduce((sum, kw) => sum + (kw.searchTerms?.length || 0), 0),
+      questionCount: selectedKeywords.reduce((sum, kw) => sum + (kw.relatedQuestions?.length || 0), 0),
+      reviewPhraseCount: selectedKeywords.filter((kw) => kw.reviewPhrase).length,
+      keywords: selectedKeywords,
+    };
+  }, [keywords, selectedIds]);
+
+  // Handle bulk delete
+  const handleBulkDelete = useCallback(async () => {
+    if (deleteConfirmText.toLowerCase() !== 'delete') return;
+
+    setIsBulkDeleting(true);
+    const selectedKeywordIds = Array.from(selectedIds);
+    for (const keywordId of selectedKeywordIds) {
+      await deleteKeyword(keywordId);
+    }
+    setIsBulkDeleting(false);
+    setShowBulkDeleteModal(false);
+    setSelectedIds(new Set());
+    setDeleteConfirmText('');
+    await refresh();
+  }, [selectedIds, deleteKeyword, refresh, deleteConfirmText]);
 
   // AI Generation handlers
   const normalizeBusinessInfo = () => {
@@ -1608,7 +1639,96 @@ export default function KeywordManager({
         onDeselectAll={handleDeselectAll}
         onMoveToGroup={handleBulkMoveToGroup}
         allowUngrouped={false}
+        onDelete={() => setShowBulkDeleteModal(true)}
       />
+
+      {/* Bulk Delete Confirmation Modal */}
+      {showBulkDeleteModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-md mx-4">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                <Icon name="FaExclamationTriangle" className="w-5 h-5 text-red-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900">Delete {selectedKeywordsStats.conceptCount} concept{selectedKeywordsStats.conceptCount !== 1 ? 's' : ''}?</h3>
+            </div>
+
+            <p className="text-sm text-gray-600 mb-4">
+              This action cannot be undone. The following will be permanently deleted:
+            </p>
+
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+              <ul className="space-y-2 text-sm">
+                <li className="flex items-center gap-2 text-gray-700">
+                  <Icon name="FaKey" className="w-4 h-4 text-red-500" />
+                  <span><strong>{selectedKeywordsStats.conceptCount}</strong> concept{selectedKeywordsStats.conceptCount !== 1 ? 's' : ''}</span>
+                </li>
+                {selectedKeywordsStats.searchTermCount > 0 && (
+                  <li className="flex items-center gap-2 text-gray-700">
+                    <Icon name="FaSearch" className="w-4 h-4 text-red-500" />
+                    <span><strong>{selectedKeywordsStats.searchTermCount}</strong> search term{selectedKeywordsStats.searchTermCount !== 1 ? 's' : ''}</span>
+                  </li>
+                )}
+                {selectedKeywordsStats.questionCount > 0 && (
+                  <li className="flex items-center gap-2 text-gray-700">
+                    <Icon name="FaQuestionCircle" className="w-4 h-4 text-red-500" />
+                    <span><strong>{selectedKeywordsStats.questionCount}</strong> LLM quer{selectedKeywordsStats.questionCount !== 1 ? 'ies' : 'y'}</span>
+                  </li>
+                )}
+                {selectedKeywordsStats.reviewPhraseCount > 0 && (
+                  <li className="flex items-center gap-2 text-gray-700">
+                    <Icon name="FaStar" className="w-4 h-4 text-red-500" />
+                    <span><strong>{selectedKeywordsStats.reviewPhraseCount}</strong> review phrase{selectedKeywordsStats.reviewPhraseCount !== 1 ? 's' : ''}</span>
+                  </li>
+                )}
+              </ul>
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Type <span className="font-mono bg-gray-100 px-1.5 py-0.5 rounded text-red-600">delete</span> to confirm
+              </label>
+              <input
+                type="text"
+                value={deleteConfirmText}
+                onChange={(e) => setDeleteConfirmText(e.target.value)}
+                placeholder="delete"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                autoFocus
+              />
+            </div>
+
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowBulkDeleteModal(false);
+                  setDeleteConfirmText('');
+                }}
+                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleBulkDelete}
+                disabled={deleteConfirmText.toLowerCase() !== 'delete' || isBulkDeleting}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+              >
+                {isBulkDeleting ? (
+                  <>
+                    <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Icon name="FaTrash" className="w-4 h-4" />
+                    Delete permanently
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Import Help Modal */}
       <HelpModal
