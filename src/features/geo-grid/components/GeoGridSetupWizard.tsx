@@ -524,12 +524,10 @@ export function GeoGridSetupWizard({
         return;
       }
 
-      // Only auto-search once on initial mount
-      if (!hasAutoSearchedRef.current) {
-        console.log('Auto-searching for business:', effectiveGBPLocation.name);
-        hasAutoSearchedRef.current = true;
-        searchForBusiness(effectiveGBPLocation.name);
-      }
+      // Don't auto-search - let user click "Find My Business on Google" button
+      // Auto-search was confusing because it showed "Business not found" error
+      // before the user did anything
+      hasAutoSearchedRef.current = true;
     }
   }, [effectiveGBPLocation, searchForBusiness, fetchCoordsFromPlaceId]);
 
