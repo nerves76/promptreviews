@@ -716,7 +716,7 @@ export default function CompetitorsPage() {
                                           <a
                                             href={`/dashboard/domain-analysis?domain=${encodeURIComponent(domainName)}`}
                                             className="p-1 text-gray-400 hover:text-slate-blue hover:bg-gray-100 rounded transition-colors"
-                                            title={`Analyze ${domainName}`}
+                                            title="Analyze this domain"
                                             aria-label={`Analyze ${domainName}`}
                                           >
                                             <Icon name="FaSearch" size={12} />

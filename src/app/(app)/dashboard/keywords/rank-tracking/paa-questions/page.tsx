@@ -8,6 +8,7 @@ import Icon from '@/components/Icon';
 import { apiClient } from '@/utils/apiClient';
 import { useAccountData } from '@/auth/hooks/granularAuthHooks';
 import { Pagination } from '@/components/Pagination';
+import { AddPAAToConceptModal } from '@/features/keywords/components';
 
 interface AnsweringDomain {
   domain: string;
@@ -80,6 +81,14 @@ export default function PAAQuestionsPage() {
 
   // Export state
   const [isExporting, setIsExporting] = useState(false);
+
+  // Selection state for bulk actions
+  const [selectedQuestions, setSelectedQuestions] = useState<Set<string>>(new Set());
+
+  // Modal state
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState<'bulk' | 'individual'>('individual');
+  const [questionsForModal, setQuestionsForModal] = useState<string[]>([]);
 
   // Filtering
   const [ownershipFilter, setOwnershipFilter] = useState<OwnershipFilter>('all');
@@ -239,6 +248,47 @@ export default function PAAQuestionsPage() {
     setExpandedQuestion(prev => prev === question ? null : question);
   }, []);
 
+  // Selection handlers
+  const handleToggleSelect = useCallback((question: string) => {
+    setSelectedQuestions(prev => {
+      const next = new Set(prev);
+      if (next.has(question)) {
+        next.delete(question);
+      } else {
+        next.add(question);
+      }
+      return next;
+    });
+  }, []);
+
+  const handleSelectAll = useCallback(() => {
+    setSelectedQuestions(new Set(paginatedQuestions.map(q => q.question)));
+  }, [paginatedQuestions]);
+
+  const handleDeselectAll = useCallback(() => {
+    setSelectedQuestions(new Set());
+  }, []);
+
+  // Open modal for individual add
+  const handleIndividualAdd = useCallback((question: string) => {
+    setQuestionsForModal([question]);
+    setModalMode('individual');
+    setModalOpen(true);
+  }, []);
+
+  // Open modal for bulk add
+  const handleBulkAdd = useCallback(() => {
+    setQuestionsForModal(Array.from(selectedQuestions));
+    setModalMode('bulk');
+    setModalOpen(true);
+  }, [selectedQuestions]);
+
+  // Handle modal success
+  const handleModalSuccess = useCallback(() => {
+    setSelectedQuestions(new Set());
+    fetchData();
+  }, [fetchData]);
+
   return (
     <div>
       {/* Page Title */}
@@ -395,6 +445,15 @@ export default function PAAQuestionsPage() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-200">
+                    <th className="py-3 px-2 w-10">
+                      <input
+                        type="checkbox"
+                        checked={paginatedQuestions.length > 0 && selectedQuestions.size === paginatedQuestions.length}
+                        onChange={(e) => e.target.checked ? handleSelectAll() : handleDeselectAll()}
+                        className="w-4 h-4 text-slate-blue rounded focus:ring-slate-blue"
+                        aria-label="Select all questions"
+                      />
+                    </th>
                     <th className="py-3 px-4 text-left">
                       <button
                         onClick={() => handleSort('question')}
@@ -432,8 +491,8 @@ export default function PAAQuestionsPage() {
                         <SortIcon field="lastSeen" />
                       </button>
                     </th>
-                    <th className="py-3 px-2 text-center w-10">
-                      <span className="sr-only">Expand</span>
+                    <th className="py-3 px-2 text-center w-20">
+                      <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</span>
                     </th>
                   </tr>
                 </thead>
@@ -449,6 +508,17 @@ export default function PAAQuestionsPage() {
                             hasOurAnswer ? 'bg-green-50/50' : ''
                           }`}
                         >
+                          {/* Checkbox */}
+                          <td className="py-3 px-2">
+                            <input
+                              type="checkbox"
+                              checked={selectedQuestions.has(question.question)}
+                              onChange={() => handleToggleSelect(question.question)}
+                              className="w-4 h-4 text-slate-blue rounded focus:ring-slate-blue"
+                              aria-label={`Select "${question.question}"`}
+                            />
+                          </td>
+
                           {/* Question */}
                           <td className="py-3 px-4">
                             <div className="flex items-start gap-2">
@@ -531,25 +601,35 @@ export default function PAAQuestionsPage() {
                             </span>
                           </td>
 
-                          {/* Expand */}
+                          {/* Actions */}
                           <td className="py-3 px-2 text-center">
-                            <button
-                              onClick={() => toggleRowExpand(question.question)}
-                              className="p-1 hover:bg-gray-100 rounded"
-                              aria-label={isExpanded ? 'Collapse details' : 'Expand details'}
-                            >
-                              <Icon
-                                name={isExpanded ? 'FaChevronDown' : 'FaChevronRight'}
-                                className="w-3 h-3 text-gray-500"
-                              />
-                            </button>
+                            <div className="flex items-center justify-center gap-1">
+                              <button
+                                onClick={() => handleIndividualAdd(question.question)}
+                                className="p-1.5 hover:bg-slate-blue/10 rounded text-slate-blue"
+                                aria-label="Add to LLM tracking"
+                                title="Add to LLM tracking"
+                              >
+                                <Icon name="FaPlus" className="w-3 h-3" />
+                              </button>
+                              <button
+                                onClick={() => toggleRowExpand(question.question)}
+                                className="p-1.5 hover:bg-gray-100 rounded"
+                                aria-label={isExpanded ? 'Collapse details' : 'Expand details'}
+                              >
+                                <Icon
+                                  name={isExpanded ? 'FaChevronDown' : 'FaChevronRight'}
+                                  className="w-3 h-3 text-gray-500"
+                                />
+                              </button>
+                            </div>
                           </td>
                         </tr>
 
                         {/* Expanded Details */}
                         {isExpanded && (
                           <tr className="bg-gray-50">
-                            <td colSpan={6} className="py-4 px-6">
+                            <td colSpan={7} className="py-4 px-6">
                               <div className="grid md:grid-cols-2 gap-6">
                                 {/* Answer Sources */}
                                 <div>
@@ -655,6 +735,47 @@ export default function PAAQuestionsPage() {
           </>
         )}
       </PageCard>
+
+      {/* Bulk Action Bar */}
+      {selectedQuestions.size > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 bg-slate-blue text-white py-3 px-4 shadow-lg z-40">
+          <div className="max-w-7xl mx-auto flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <span className="font-medium">
+                {selectedQuestions.size} question{selectedQuestions.size !== 1 ? 's' : ''} selected
+              </span>
+              <button
+                onClick={handleSelectAll}
+                className="text-sm text-white/80 hover:text-white underline"
+              >
+                Select all on page
+              </button>
+              <button
+                onClick={handleDeselectAll}
+                className="text-sm text-white/80 hover:text-white underline"
+              >
+                Clear
+              </button>
+            </div>
+            <button
+              onClick={handleBulkAdd}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-white text-slate-blue rounded-lg font-medium text-sm hover:bg-white/90 transition-colors whitespace-nowrap"
+            >
+              <Icon name="FaPlus" className="w-4 h-4" />
+              Add to LLM tracking
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Add to Concept Modal */}
+      <AddPAAToConceptModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        questions={questionsForModal}
+        mode={modalMode}
+        onSuccess={handleModalSuccess}
+      />
     </div>
   );
 }

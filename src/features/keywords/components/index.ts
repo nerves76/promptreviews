@@ -22,3 +22,7 @@ export { default as CollapsibleSection } from './CollapsibleSection';
 
 // Legacy adapter - provides same interface as old KeywordsInput but uses unified system
 export { default as KeywordsInputLegacyAdapter } from './KeywordsInputLegacyAdapter';
+
+// PAA to LLM tracking components
+export { ConceptPicker } from './ConceptPicker';
+export { AddPAAToConceptModal } from './AddPAAToConceptModal';
