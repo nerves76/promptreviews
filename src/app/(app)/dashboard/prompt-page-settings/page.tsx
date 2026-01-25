@@ -4,11 +4,10 @@
  * Prompt Page Settings Page
  *
  * Full page for managing default settings applied to NEW prompt pages.
- * Converted from modal to page to allow keyword details sidebar.
+ * Full-page settings for default prompt page configurations.
  *
  * Features:
  * - Review platforms configuration
- * - Keywords for SEO and AI with details sidebar
  * - AI dos and don'ts
  * - Special offer settings
  * - AI generation and grammar fixing
@@ -277,7 +276,7 @@ export default function PromptPageSettingsPage() {
                 Prompt Page settings
               </h2>
               <p className="text-white/80 mt-1">
-                Set global defaults for keywords, AI, review platforms, and more.
+                Set global defaults for AI, review platforms, and more.
               </p>
             </div>
             <button

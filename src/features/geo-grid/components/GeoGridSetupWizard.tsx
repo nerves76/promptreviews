@@ -63,6 +63,7 @@ export function GeoGridSetupWizard({
     console.log('🔍 [GeoGridSetupWizard] accountId prop:', accountId);
   }, [accountId]);
 
+
   // OAuth connection state
   const [isConnecting, setIsConnecting] = useState(false);
 
@@ -280,6 +281,57 @@ export function GeoGridSetupWizard({
   const [geocodeError, setGeocodeError] = useState<string | null>(null);
   // Editable search name - allows users to update if their business name changed on Google
   const [searchBusinessName, setSearchBusinessName] = useState(effectiveGBPLocation?.name || '');
+
+  // Track if we've loaded existing config data
+  const hasLoadedConfigRef = React.useRef(false);
+
+  // Load existing config data when editing (configId is provided)
+  useEffect(() => {
+    if (!configId || hasLoadedConfigRef.current) return;
+
+    const loadExistingConfig = async () => {
+      try {
+        console.log('🔍 [GeoGridSetupWizard] Loading existing config:', configId);
+        const response = await apiClient.get<{
+          config: {
+            id: string;
+            centerLat: number;
+            centerLng: number;
+            radiusMiles: number;
+            targetPlaceId: string | null;
+            locationName: string | null;
+            checkPoints: string[];
+          } | null;
+        }>(`/geo-grid/config?configId=${configId}`);
+
+        if (response.config) {
+          const cfg = response.config;
+          console.log('✅ [GeoGridSetupWizard] Loaded config:', cfg);
+
+          // Pre-populate form with existing values
+          if (cfg.centerLat && cfg.centerLng && cfg.centerLat !== 0 && cfg.centerLng !== 0) {
+            setManualLat(cfg.centerLat.toString());
+            setManualLng(cfg.centerLng.toString());
+          }
+          if (cfg.targetPlaceId) {
+            setGooglePlaceId(cfg.targetPlaceId);
+          }
+          if (cfg.radiusMiles) {
+            setRadiusMiles(cfg.radiusMiles);
+          }
+          if (cfg.checkPoints?.length === 9) {
+            setGridSize(9);
+          }
+
+          hasLoadedConfigRef.current = true;
+        }
+      } catch (err) {
+        console.error('Failed to load existing config:', err);
+      }
+    };
+
+    loadExistingConfig();
+  }, [configId]);
 
   // Auto-geocode on mount if we have location but no coordinates
   const geocodeAddress = useCallback(async (address: string, businessName?: string) => {
@@ -562,9 +614,18 @@ export function GeoGridSetupWizard({
       return;
     }
 
+    // Require valid coordinates for the map to work
+    const hasValidCoords = selectedLocation.lat !== 0 && selectedLocation.lng !== 0 &&
+                           selectedLocation.lat != null && selectedLocation.lng != null &&
+                           !isNaN(selectedLocation.lat) && !isNaN(selectedLocation.lng);
+    if (!hasValidCoords) {
+      setError('Missing coordinates. Please use "Search for your business" below to find your business and get valid coordinates.');
+      return;
+    }
+
     // Require a Google Place ID for rank tracking to work
     if (!googlePlaceId) {
-      setError('No Google Place ID found. Please use "Look up from address" to get the Place ID, or try a different address.');
+      setError('No Google Place ID found. Please use "Search for your business" to get the Place ID, or try a different address.');
       return;
     }
 
@@ -639,44 +700,59 @@ export function GeoGridSetupWizard({
 
             {/* GBP Connection Flow */}
             {effectiveGBPLocation ? (
-              // Location selected - show connected state
-              <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                <div className="flex items-center gap-3">
-                  <MapPinIcon className="w-6 h-6 text-green-600" />
-                  <div className="flex-1">
-                    <p className="font-semibold text-gray-900">{effectiveGBPLocation.name}</p>
-                    {effectiveGBPLocation.address && (
-                      <p className="text-sm text-gray-500">{effectiveGBPLocation.address}</p>
-                    )}
-                    <p className="text-xs text-gray-500">GBP connected — need Place ID for rank tracking</p>
-                    {/* Warning if no valid Place ID from GBP */}
-                    {!effectiveGBPLocation.placeId && (
-                      <div className="mt-2 flex items-center gap-2">
-                        <p className="text-xs text-amber-600">
-                          ⚠️ No Place ID stored — use search below or{' '}
-                          <button
-                            type="button"
-                            onClick={handleFetchLocations}
-                            disabled={isFetchingLocations}
-                            className="underline hover:text-amber-800"
-                          >
-                            {isFetchingLocations ? 'refreshing...' : 'refresh from Google'}
-                          </button>
-                        </p>
+              // Location selected - check if data is complete
+              (() => {
+                const hasValidCoords = effectiveGBPLocation.lat !== 0 && effectiveGBPLocation.lng !== 0 &&
+                                       effectiveGBPLocation.lat != null && effectiveGBPLocation.lng != null;
+                const hasValidPlaceId = effectiveGBPLocation.placeId?.startsWith('ChIJ');
+                const isComplete = hasValidCoords && hasValidPlaceId;
+                const needsSetup = !hasValidCoords || !hasValidPlaceId;
+
+                return (
+                  <div className={`p-4 rounded-lg ${needsSetup ? 'bg-amber-50 border border-amber-200' : 'bg-green-50 border border-green-200'}`}>
+                    <div className="flex items-start gap-3">
+                      <MapPinIcon className={`w-6 h-6 ${needsSetup ? 'text-amber-600' : 'text-green-600'}`} />
+                      <div className="flex-1">
+                        <p className="font-semibold text-gray-900">{effectiveGBPLocation.name}</p>
+                        {effectiveGBPLocation.address && (
+                          <p className="text-sm text-gray-500">{effectiveGBPLocation.address}</p>
+                        )}
+
+                        {/* Show status based on data completeness */}
+                        {isComplete ? (
+                          <p className="text-xs text-green-600 mt-1">✓ Location data complete</p>
+                        ) : (
+                          <div className="mt-2 p-2 bg-amber-100 rounded border border-amber-200">
+                            <p className="text-sm font-medium text-amber-800 mb-1">
+                              ⚠️ Location data incomplete
+                            </p>
+                            <ul className="text-xs text-amber-700 space-y-1">
+                              {!hasValidCoords && (
+                                <li>• Missing coordinates (required for map display)</li>
+                              )}
+                              {!hasValidPlaceId && (
+                                <li>• Missing Google Place ID (required for rank tracking)</li>
+                              )}
+                            </ul>
+                            <p className="text-xs text-amber-800 mt-2">
+                              <strong>Fix:</strong> Use &quot;Search for your business&quot; below to find your business and get the required data.
+                            </p>
+                          </div>
+                        )}
                       </div>
-                    )}
+                      {hasMultipleLocations && (
+                        <button
+                          type="button"
+                          onClick={() => setPickedLocationId(null)}
+                          className="text-xs text-blue-600 hover:text-blue-800 underline"
+                        >
+                          Change
+                        </button>
+                      )}
+                    </div>
                   </div>
-                  {hasMultipleLocations && (
-                    <button
-                      type="button"
-                      onClick={() => setPickedLocationId(null)}
-                      className="text-xs text-blue-600 hover:text-blue-800 underline"
-                    >
-                      Change
-                    </button>
-                  )}
-                </div>
-              </div>
+                );
+              })()
             ) : hasMultipleLocations && !pickedLocationId ? (
               // Multiple locations - need to pick one
               <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
@@ -903,13 +979,34 @@ export function GeoGridSetupWizard({
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Google Place ID
                   </label>
-                  <input
-                    type="text"
-                    value={googlePlaceId || ''}
-                    onChange={(e) => setGooglePlaceId(e.target.value || null)}
-                    placeholder="e.g., ChIJVWeoCbOhlVQR_R5sLxdsrfw"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-sm"
-                  />
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={googlePlaceId || ''}
+                      onChange={(e) => setGooglePlaceId(e.target.value || null)}
+                      placeholder="e.g., ChIJVWeoCbOhlVQR_R5sLxdsrfw"
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-sm"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (googlePlaceId?.startsWith('ChIJ')) {
+                          fetchCoordsFromPlaceId(googlePlaceId);
+                        } else {
+                          setGeocodeError('Please enter a valid Place ID (starts with "ChIJ")');
+                        }
+                      }}
+                      disabled={!googlePlaceId?.startsWith('ChIJ') || isGeocoding}
+                      className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                    >
+                      {isGeocoding ? 'Fetching...' : 'Get coordinates'}
+                    </button>
+                  </div>
+                  {googlePlaceId?.startsWith('ChIJ') && !manualLat && !manualLng && (
+                    <p className="text-xs text-amber-600 mt-1">
+                      Click &quot;Get coordinates&quot; to fetch the location for this Place ID
+                    </p>
+                  )}
                 </div>
 
                 <details className="text-xs text-gray-600">

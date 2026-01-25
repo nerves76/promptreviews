@@ -335,7 +335,8 @@ export class GoogleBusinessProfileClient {
       
       // Add required readMask parameter for Business Information API
       // Include all category fields to ensure we get the complete category data
-      const readMask = 'name,title,storefrontAddress,phoneNumbers,categories.primaryCategory,categories.additionalCategories,websiteUri,regularHours,serviceItems,profile,latlng,metadata';
+      // Include locationKey to get the placeId for rank tracking
+      const readMask = 'name,title,storefrontAddress,phoneNumbers,categories.primaryCategory,categories.additionalCategories,websiteUri,regularHours,serviceItems,profile,latlng,metadata,locationKey';
       const endpointWithParams = `${endpoint}?readMask=${encodeURIComponent(readMask)}`;
       
       // Use Business Information API for listing locations - explicit baseUrl to avoid URL construction issues
@@ -470,8 +471,8 @@ export class GoogleBusinessProfileClient {
       const endpoint = `/v1/accounts/${accountId}/locations/${cleanLocationId}`;
       
       // Add required readMask parameter for detailed information
-      // Include all category fields to ensure we get the complete category data
-      const readMask = 'name,title,storefrontAddress,phoneNumbers,categories.primaryCategory,categories.additionalCategories,websiteUri,regularHours,profile,latlng,metadata,serviceItems';
+      // Include all category fields and locationKey for placeId
+      const readMask = 'name,title,storefrontAddress,phoneNumbers,categories.primaryCategory,categories.additionalCategories,websiteUri,regularHours,profile,latlng,metadata,serviceItems,locationKey';
       const endpointWithParams = `${endpoint}?readMask=${encodeURIComponent(readMask)}`;
 
 

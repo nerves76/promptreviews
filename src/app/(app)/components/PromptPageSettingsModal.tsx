@@ -274,7 +274,7 @@ export default function PromptPageSettingsModal({
                   Prompt page settings
                 </h2>
                 <p className="text-xs text-gray-600 mt-1">
-                  Set global defaults for keywords, AI, review platforms, and more.
+                  Set global defaults for AI, review platforms, and more.
                 </p>
               </div>
             </div>

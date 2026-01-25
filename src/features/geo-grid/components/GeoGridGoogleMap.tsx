@@ -230,6 +230,23 @@ function calculatePointData(
 // Component
 // ============================================
 
+// Helper to check if coordinates are valid (not 0,0 or NaN)
+function isValidCoordinates(lat: number, lng: number): boolean {
+  // Check for NaN, undefined, or null
+  if (typeof lat !== 'number' || typeof lng !== 'number' || isNaN(lat) || isNaN(lng)) {
+    return false;
+  }
+  // Check for default/invalid (0, 0) - this is in the ocean
+  if (lat === 0 && lng === 0) {
+    return false;
+  }
+  // Check for valid lat/lng ranges
+  if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+    return false;
+  }
+  return true;
+}
+
 export function GeoGridGoogleMap({
   results,
   center,
@@ -246,6 +263,9 @@ export function GeoGridGoogleMap({
   const [isLoaded, setIsLoaded] = useState(false);
   const [isMapReady, setIsMapReady] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+
+  // Validate coordinates early
+  const hasValidCoordinates = isValidCoordinates(center.lat, center.lng);
 
   const pointData = useMemo(
     () => calculatePointData(results, center, radiusMiles, selectedKeywordId, viewAs),
@@ -426,6 +446,38 @@ export function GeoGridGoogleMap({
       }
     };
   }, []);
+
+  // Error state for invalid coordinates
+  if (!hasValidCoordinates) {
+    return (
+      <div className="bg-white rounded-xl border-2 border-red-200 overflow-hidden">
+        <div className="p-6 text-center" style={{ minHeight: height }}>
+          <div className="flex flex-col items-center justify-center h-full min-h-[300px]">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+              <svg className="w-8 h-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Location coordinates missing
+            </h3>
+            <p className="text-gray-600 mb-4 max-w-md">
+              Your business location doesn&apos;t have valid coordinates. This usually happens when the Google Business Profile connection didn&apos;t include location data.
+            </p>
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 max-w-md">
+              <p className="text-sm text-amber-800">
+                <strong>To fix this:</strong> Go to Settings and use the &quot;Search for business&quot; feature to find your business and set up proper coordinates.
+              </p>
+            </div>
+            <p className="text-xs text-gray-400 mt-4">
+              Current coordinates: ({center.lat}, {center.lng})
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Fallback grid view when Google Maps API isn't available
   if (loadError) {

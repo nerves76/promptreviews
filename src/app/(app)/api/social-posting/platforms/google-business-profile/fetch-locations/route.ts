@@ -233,6 +233,18 @@ export async function POST(request: NextRequest) {
             const lat = location.latlng?.latitude || null;
             const lng = location.latlng?.longitude || null;
 
+            // Debug logging for location data issues
+            if (!googlePlaceId || !lat || !lng) {
+              console.warn('[fetch-locations] ⚠️ Incomplete location data:', {
+                locationName: location.title || location.name,
+                hasPlaceId: !!googlePlaceId,
+                hasLat: !!lat,
+                hasLng: !!lng,
+                locationKeyExists: !!location.locationKey,
+                latlngExists: !!location.latlng,
+              });
+            }
+
             const locationData = {
               user_id: user.id,
               account_id: accountId,
