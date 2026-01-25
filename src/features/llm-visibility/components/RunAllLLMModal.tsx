@@ -275,10 +275,10 @@ export default function RunAllLLMModal({
       onClose={onClose}
       size="md"
       showCloseButton={true}
-      className="!p-0"
+      className="!p-0 flex flex-col max-h-[85vh]"
     >
       {/* Header */}
-      <div className="px-6 py-4 border-b border-gray-100 pr-14">
+      <div className="px-6 py-4 border-b border-gray-100 pr-14 flex-shrink-0">
         <div className="flex items-center gap-2">
           <Icon name="FaRocket" className="w-5 h-5 text-slate-blue" />
           <h3 className="text-lg font-semibold text-gray-900">Run all LLM checks</h3>
@@ -289,7 +289,7 @@ export default function RunAllLLMModal({
       </div>
 
       {/* Content */}
-      <div className="px-6 py-4 space-y-4 max-h-[60vh] overflow-y-auto">
+      <div className="px-6 py-4 space-y-4 flex-1 overflow-y-auto min-h-0">
           {isLoadingPreview ? (
             <div className="flex items-center justify-center py-8">
               <Icon name="FaSpinner" className="w-6 h-6 text-slate-blue animate-spin" />
@@ -578,7 +578,7 @@ export default function RunAllLLMModal({
         </div>
 
       {/* Footer */}
-      <Modal.Footer className="bg-gray-50">
+      <Modal.Footer className="bg-gray-50 flex-shrink-0">
         <button
           onClick={onClose}
           className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"
