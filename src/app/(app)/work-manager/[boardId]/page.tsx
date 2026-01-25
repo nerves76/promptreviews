@@ -253,7 +253,7 @@ export default function WorkManagerBoardPage() {
             <div>
               <h1 className="text-2xl font-bold text-white">{businessName} Work Manager</h1>
               <p className="text-sm text-white/70 mt-1">
-                Manage SEO and AI Search tasks. Use our library of optimization tasks or create your own.
+                Manage SEO and LLM visibility tasks. Use our library of optimization tasks or create your own.
               </p>
             </div>
           </div>

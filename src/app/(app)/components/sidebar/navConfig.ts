@@ -153,9 +153,9 @@ export const SEO_VISIBILITY_SECTION: NavSection = {
     },
     {
       path: "/dashboard/ai-search",
-      label: "AI Search",
+      label: "LLM Visibility",
       icon: "FaSparkles",
-      description: "Track LLM visibility",
+      description: "Track visibility in ChatGPT and more!",
       requiresBusiness: true,
     },
     {
