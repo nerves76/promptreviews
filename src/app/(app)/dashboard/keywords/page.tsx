@@ -175,7 +175,8 @@ export default function KeywordsPage() {
       <SubNav
         items={[
           { label: 'Library', icon: 'FaKey', href: '/dashboard/keywords', matchType: 'exact' },
-          { label: 'Rank Tracking', icon: 'FaChartLine', href: '/dashboard/keywords/rank-tracking', matchType: 'startsWith' },
+          { label: 'Rank tracking', icon: 'FaChartLine', href: '/dashboard/keywords/rank-tracking', matchType: 'exact' },
+          { label: 'PAA questions', icon: 'FaQuestionCircle', href: '/dashboard/keywords/rank-tracking/paa-questions', matchType: 'exact' },
         ]}
       />
 
