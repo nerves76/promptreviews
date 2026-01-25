@@ -416,7 +416,7 @@ export function AddPAAToConceptModal({
       onClose={handleClose}
       title={
         mode === 'bulk'
-          ? `Add ${questions.length} question${questions.length !== 1 ? 's' : ''} to LLM tracking`
+          ? `Create ${questions.length} new concept${questions.length !== 1 ? 's' : ''}`
           : 'Add question to LLM tracking'
       }
       size="md"

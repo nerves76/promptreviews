@@ -5,6 +5,7 @@ import Link from 'next/link';
 import PageCard, { PageCardHeader } from '@/app/(app)/components/PageCard';
 import { SubNav } from '@/app/(app)/components/SubNav';
 import Icon from '@/components/Icon';
+import PromptyIcon from '@/app/(app)/components/prompt-modules/PromptyIcon';
 import { apiClient } from '@/utils/apiClient';
 import { useAccountData } from '@/auth/hooks/granularAuthHooks';
 import RunAllAnalysisModal from '../components/RunAllAnalysisModal';
@@ -496,7 +497,7 @@ export default function ResearchSourcesPage() {
                   onClick={() => setShowRunAllModal(true)}
                   className="inline-flex items-center gap-2 px-4 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-blue/90 font-medium text-sm transition-colors whitespace-nowrap"
                 >
-                  <Icon name="FaRocket" className="w-4 h-4" />
+                  <PromptyIcon className="w-4 h-4" />
                   {unanalyzedCount === null
                     ? 'Analyze all domains'
                     : unanalyzedCount === 0
