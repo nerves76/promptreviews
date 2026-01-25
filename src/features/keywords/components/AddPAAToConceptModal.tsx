@@ -309,7 +309,7 @@ export function AddPAAToConceptModal({
         <div className="flex gap-2">
           <Icon name="FaInfoCircle" className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
           <p className="text-sm text-blue-800">
-            Each question will become a new keyword concept with the question tracked for LLM visibility.
+            This will create a new keyword concept for each question. The concepts will appear in your Library and be tracked for LLM visibility.
           </p>
         </div>
       </div>
@@ -317,7 +317,7 @@ export function AddPAAToConceptModal({
       {/* Questions preview */}
       <div className="mb-4">
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Questions to add ({questions.length})
+          New concepts will be created from ({questions.length}):
         </label>
         <div className="max-h-40 overflow-y-auto border border-gray-200 rounded-lg">
           <ul className="divide-y divide-gray-100">

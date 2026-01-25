@@ -607,8 +607,8 @@ export default function PAAQuestionsPage() {
                               <button
                                 onClick={() => handleIndividualAdd(question.question)}
                                 className="p-1.5 hover:bg-slate-blue/10 rounded text-slate-blue"
-                                aria-label="Add to LLM tracking"
-                                title="Add to LLM tracking"
+                                aria-label="Create or add to concept"
+                                title="Create or add to concept"
                               >
                                 <Icon name="FaPlus" className="w-3 h-3" />
                               </button>
@@ -762,7 +762,7 @@ export default function PAAQuestionsPage() {
               className="inline-flex items-center gap-2 px-4 py-2 bg-white text-slate-blue rounded-lg font-medium text-sm hover:bg-white/90 transition-colors whitespace-nowrap"
             >
               <Icon name="FaPlus" className="w-4 h-4" />
-              Add to LLM tracking
+              Create concepts
             </button>
           </div>
         </div>
