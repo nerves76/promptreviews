@@ -413,6 +413,11 @@ export function GeoGridSetupWizard({
         if (response.coordinates) {
           setManualLat(response.coordinates.lat.toString());
           setManualLng(response.coordinates.lng.toString());
+        } else {
+          // No coordinates in response (common for service-area businesses)
+          // Try to fetch them using the Place ID
+          console.log('No coordinates in search response, fetching from Place ID...');
+          fetchCoordsFromPlaceId(response.placeId);
         }
         setGeocodeError(null);
         return true;
@@ -698,11 +703,14 @@ export function GeoGridSetupWizard({
 
             {/* GBP Connection Flow */}
             {effectiveGBPLocation ? (
-              // Location selected - check if data is complete
+              // Location selected - check if data is complete using CURRENT form state
               (() => {
-                const hasValidCoords = effectiveGBPLocation.lat !== 0 && effectiveGBPLocation.lng !== 0 &&
-                                       effectiveGBPLocation.lat != null && effectiveGBPLocation.lng != null;
-                const hasValidPlaceId = effectiveGBPLocation.placeId?.startsWith('ChIJ');
+                // Check current form state, not just original location data
+                const currentLat = parseFloat(manualLat);
+                const currentLng = parseFloat(manualLng);
+                const hasValidCoords = !isNaN(currentLat) && !isNaN(currentLng) &&
+                                       currentLat !== 0 && currentLng !== 0;
+                const hasValidPlaceId = googlePlaceId?.startsWith('ChIJ');
                 const isComplete = hasValidCoords && hasValidPlaceId;
                 const needsSetup = !hasValidCoords || !hasValidPlaceId;
 
