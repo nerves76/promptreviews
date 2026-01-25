@@ -272,12 +272,14 @@ export default function AISearchPage() {
         .map((k) => ({
           id: k.id,
           phrase: k.phrase,
-          relatedQuestions: (k.relatedQuestions || []).map((q, idx) => {
+          relatedQuestions: (k.relatedQuestions || []).map((q) => {
             if (typeof q === 'string') {
-              return { id: `${k.id}-${idx}`, question: q, funnelStage: 'top' as const, groupId: null };
+              // Use question text in composite ID so bulk-move API can extract it
+              return { id: `${k.id}-${q}`, question: q, funnelStage: 'top' as const, groupId: null };
             }
             return {
-              id: q.id || `${k.id}-${idx}`,
+              // Use question text in composite ID so bulk-move API can extract it
+              id: q.id || `${k.id}-${q.question}`,
               question: q.question,
               funnelStage: (q.funnelStage as 'top' | 'middle' | 'bottom') || 'top',
               groupId: q.groupId || null,
