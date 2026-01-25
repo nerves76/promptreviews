@@ -1207,7 +1207,7 @@ export default function AISearchPage() {
         {/* Header */}
         <PageCardHeader
           title="LLM visibility"
-          description="Track whether AI assistants cite your domain or mention your brand when answering questions."
+          description="Track whether LLM chatbots cite your domain or mention your brand when answering questions."
           actions={
             <div className="flex items-center gap-2 flex-wrap justify-end">
               {keywords.length > 0 && (
