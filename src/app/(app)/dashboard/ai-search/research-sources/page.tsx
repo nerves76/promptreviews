@@ -471,12 +471,12 @@ export default function ResearchSourcesPage() {
 
             {/* Action Bar */}
             <div className="mb-4 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
-              <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg flex-1">
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg flex-1">
                 <div className="flex items-start gap-2">
-                  <Icon name="FaInfoCircle" className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
-                  <div className="text-sm text-amber-800">
+                  <Icon name="FaInfoCircle" className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <div className="text-sm text-blue-800">
                     <p>This data comes from ChatGPT checks only.</p>
-                    <p className="text-amber-700 mt-1">AI analysis may contain errors. We recommend verifying with trusted sources.</p>
+                    <p className="text-blue-700 mt-1">AI analysis may contain errors. We recommend verifying with trusted sources.</p>
                   </div>
                 </div>
               </div>
