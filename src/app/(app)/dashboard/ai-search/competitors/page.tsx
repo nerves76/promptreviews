@@ -702,17 +702,26 @@ export default function CompetitorsPage() {
                                     <div className="text-xs font-medium text-gray-500 uppercase mb-1">
                                       Associated domains ({competitor.domains.length})
                                     </div>
-                                    <div className="flex flex-wrap gap-2">
-                                      {competitor.domains.map((domain, idx) => (
-                                        <a
-                                          key={idx}
-                                          href={`https://${domain}`}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="text-sm text-slate-blue hover:underline"
-                                        >
-                                          {domain}
-                                        </a>
+                                    <div className="flex flex-wrap gap-2 items-center">
+                                      {competitor.domains.map((domainName, idx) => (
+                                        <div key={idx} className="flex items-center gap-1">
+                                          <a
+                                            href={`https://${domainName}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-sm text-slate-blue hover:underline"
+                                          >
+                                            {domainName}
+                                          </a>
+                                          <a
+                                            href={`/dashboard/domain-analysis?domain=${encodeURIComponent(domainName)}`}
+                                            className="p-1 text-gray-400 hover:text-slate-blue hover:bg-gray-100 rounded transition-colors"
+                                            title={`Analyze ${domainName}`}
+                                            aria-label={`Analyze ${domainName}`}
+                                          >
+                                            <Icon name="FaSearch" size={12} />
+                                          </a>
+                                        </div>
                                       ))}
                                     </div>
                                   </div>

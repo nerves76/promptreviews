@@ -8,7 +8,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { apiClient } from '@/utils/apiClient';
 import { useAuth } from '@/auth';
 import PageCard, { PageCardHeader } from '@/app/(app)/components/PageCard';
@@ -35,12 +35,16 @@ interface CreditBalance {
 
 export default function DomainAnalysisPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { accountId, hasBusiness } = useAuth();
+
+  // Get domain from URL parameter if provided
+  const urlDomain = searchParams.get('domain');
 
   // State
   const [loading, setLoading] = useState(true);
   const [analyzing, setAnalyzing] = useState(false);
-  const [domain, setDomain] = useState('');
+  const [domain, setDomain] = useState(urlDomain || '');
   const [result, setResult] = useState<DomainAnalysisResult | null>(null);
   const [credits, setCredits] = useState<CreditBalance | null>(null);
   const [error, setError] = useState<string | null>(null);
