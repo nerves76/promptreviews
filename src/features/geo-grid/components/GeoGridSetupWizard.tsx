@@ -496,6 +496,8 @@ export function GeoGridSetupWizard({
   const [coordsNote, setCoordsNote] = useState<string | null>(null);
   const fetchCoordsFromPlaceId = useCallback(async (placeId: string) => {
     console.log('Fetching coordinates for Place ID:', placeId);
+    // Mark as manually updated BEFORE API call to prevent useEffect from overwriting
+    hasManuallyUpdatedLocationRef.current = true;
     setIsGeocoding(true);
     setCoordsNote(null);
     try {
@@ -528,8 +530,6 @@ export function GeoGridSetupWizard({
             lng: response.coordinates!.lng,
             placeId: placeId,
           });
-          // Mark that user has manually updated location to prevent effect from overwriting
-          hasManuallyUpdatedLocationRef.current = true;
         }
         // Show note if coordinates came from fallback geocoding
         if (response.note) {
@@ -980,7 +980,10 @@ export function GeoGridSetupWizard({
                       <p className={`text-sm font-medium ${hasCoords ? 'text-green-800' : 'text-amber-800'}`}>
                         {hasCoords ? '✓ Business listing found!' : '⚠️ Place ID found, but coordinates needed'}
                       </p>
-                      <p className="text-xs text-gray-600 mt-1 font-mono truncate" title={googlePlaceId}>
+                      {searchBusinessName && (
+                        <p className="text-sm text-gray-900 font-medium mt-1">{searchBusinessName}</p>
+                      )}
+                      <p className="text-xs text-gray-500 mt-0.5 font-mono truncate" title={googlePlaceId}>
                         Place ID: {googlePlaceId}
                       </p>
                       {!hasCoords && (
