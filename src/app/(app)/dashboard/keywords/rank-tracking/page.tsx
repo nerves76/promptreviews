@@ -438,8 +438,11 @@ export default function RankTrackingPage() {
 
   // Handle clicking "Check ranking" - auto-run if location available, otherwise show modal
   const handleCheckRank = useCallback(async (keyword: string, conceptId: string) => {
+    console.log('🔍 [RankTracking] handleCheckRank called:', { keyword, conceptId });
+
     // If still looking up location, wait a bit
     if (isLookingUpLocation) {
+      console.log('🔍 [RankTracking] Waiting for location lookup...');
       setCheckingRankKeyword(keyword);
       await new Promise(resolve => setTimeout(resolve, 500));
     }
@@ -452,6 +455,8 @@ export default function RankTrackingPage() {
     // Use concept location, or fallback to business location, or looked-up location from address
     const locationCode = conceptLocationCode || business?.location_code || lookedUpLocation?.locationCode;
     const locationName = conceptLocationName || business?.location_name || lookedUpLocation?.locationName;
+
+    console.log('🔍 [RankTracking] Opening modal with:', { keyword, conceptId, locationCode, locationName });
 
     // Always show modal with credit info and confirmation (pre-populate location if available)
     setCheckingKeyword({

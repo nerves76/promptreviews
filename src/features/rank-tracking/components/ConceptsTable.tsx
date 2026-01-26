@@ -344,6 +344,7 @@ export default function ConceptsTable({
 
   const handleCheckRank = (keyword: string, conceptId: string, e: React.MouseEvent) => {
     e.stopPropagation(); // Don't trigger row click
+    console.log('🔍 [ConceptsTable] Rank button clicked:', { keyword, conceptId, hasHandler: !!onCheckRank });
     onCheckRank?.(keyword, conceptId);
   };
 
