@@ -6,9 +6,9 @@ import { createServiceRoleClient } from '@/auth/providers/supabase';
 import { notFound } from 'next/navigation';
 
 interface Props {
-  params: {
+  params: Promise<{
     leadId: string;
-  };
+  }>;
 }
 
 async function updateUnsubscribeStatus(leadId: string): Promise<boolean> {
@@ -39,7 +39,7 @@ async function updateUnsubscribeStatus(leadId: string): Promise<boolean> {
 }
 
 export default async function UnsubscribePage({ params }: Props) {
-  const { leadId } = params;
+  const { leadId } = await params;
 
   if (!leadId) {
     notFound();
