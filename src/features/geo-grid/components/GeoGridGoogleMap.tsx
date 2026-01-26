@@ -39,6 +39,8 @@ interface GeoGridGoogleMapProps {
   onMarkerClick?: (point: CheckPoint, result: GGCheckResult) => void;
   /** View the grid from a specific business's perspective */
   viewAs?: ViewAsBusiness | null;
+  /** Show as preview (neutral blue markers, no rank data) */
+  isPreview?: boolean;
 }
 
 interface PointData {
@@ -150,7 +152,17 @@ function calculatePointData(
     grouped.set(result.checkPoint, existing);
   }
 
-  const allPoints: CheckPoint[] = ['center', 'n', 's', 'e', 'w'];
+  // Determine which points to show based on results
+  // Get unique checkPoints from results, fall back to 5-point grid if no results
+  const uniquePoints = new Set<CheckPoint>();
+  for (const result of results) {
+    uniquePoints.add(result.checkPoint);
+  }
+
+  // If we have results, use points from results; otherwise default to 5-point
+  const allPoints: CheckPoint[] = uniquePoints.size > 0
+    ? Array.from(uniquePoints)
+    : ['center', 'n', 's', 'e', 'w'];
 
   return allPoints.map((point) => {
     const pointResults = grouped.get(point) || [];
@@ -255,6 +267,7 @@ export function GeoGridGoogleMap({
   height = '400px',
   onMarkerClick,
   viewAs,
+  isPreview = false,
 }: GeoGridGoogleMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
@@ -374,11 +387,22 @@ export function GeoGridGoogleMap({
     // Add markers for each point
     pointData.forEach((data) => {
       const hasData = data.result !== null;
-      const color = hasData ? BUCKET_COLORS[data.bucket] : '#9ca3af';
+
+      // For preview mode, use blue neutral color; otherwise use bucket colors
+      let color: string;
+      if (isPreview) {
+        color = '#3b82f6'; // blue-500 - neutral preview color
+      } else if (hasData) {
+        color = BUCKET_COLORS[data.bucket];
+      } else {
+        color = '#9ca3af'; // gray
+      }
 
       // Build title/tooltip
-      let markerTitle = `${data.point.toUpperCase()}: No data`;
-      if (hasData) {
+      let markerTitle: string;
+      if (isPreview) {
+        markerTitle = `${data.point.toUpperCase()}: Check point`;
+      } else if (hasData) {
         if (data.position !== null) {
           markerTitle = `${data.point.toUpperCase()}: ${BUCKET_LABELS[data.bucket]} (#${data.position})`;
         } else if (viewAs && !viewAs.isOwnBusiness) {
@@ -386,20 +410,28 @@ export function GeoGridGoogleMap({
         } else {
           markerTitle = `${data.point.toUpperCase()}: ${BUCKET_LABELS[data.bucket]}`;
         }
+      } else {
+        markerTitle = `${data.point.toUpperCase()}: No data`;
       }
 
       // Build label text
-      let labelText = '?';
-      if (data.position !== null) {
+      let labelText: string;
+      if (isPreview) {
+        // For preview, show the point label (N, S, E, W, NE, etc.)
+        labelText = data.point === 'center' ? '●' : data.point.toUpperCase();
+      } else if (data.position !== null) {
         labelText = String(data.position);
       } else if (hasData && viewAs && !viewAs.isOwnBusiness) {
         labelText = '>10';
+      } else {
+        labelText = '?';
       }
 
       if (useAdvancedMarkers) {
         // Use AdvancedMarkerElement when Map ID is available
         const markerContent = document.createElement('div');
         markerContent.className = 'geo-grid-marker';
+        const showOpacity = !hasData && !isPreview; // Don't dim preview markers
         markerContent.style.cssText = `
           width: 36px;
           height: 36px;
@@ -410,12 +442,12 @@ export function GeoGridGoogleMap({
           display: flex;
           align-items: center;
           justify-content: center;
-          cursor: ${hasData ? 'pointer' : 'default'};
+          cursor: ${hasData && !isPreview ? 'pointer' : 'default'};
           font-weight: bold;
-          font-size: ${labelText === '>10' ? '10px' : '12px'};
+          font-size: ${labelText === '>10' ? '10px' : (labelText.length > 1 ? '10px' : '12px')};
           color: white;
           transition: transform 0.2s;
-          ${!hasData ? 'opacity: 0.5;' : ''}
+          ${showOpacity ? 'opacity: 0.5;' : ''}
         `;
         markerContent.textContent = labelText;
 
@@ -445,28 +477,30 @@ export function GeoGridGoogleMap({
       } else {
         // Use basic Marker when no Map ID available
         // Create an SVG icon for the marker
+        const fontSize = labelText === '>10' ? '10' : (labelText.length > 1 ? '10' : '14');
         const svgIcon = {
           url: `data:image/svg+xml,${encodeURIComponent(`
             <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40">
               <circle cx="20" cy="20" r="18" fill="${color}" stroke="white" stroke-width="3"/>
-              <text x="20" y="25" text-anchor="middle" fill="white" font-size="${labelText === '>10' ? '10' : '14'}" font-weight="bold" font-family="Arial, sans-serif">${labelText}</text>
+              <text x="20" y="25" text-anchor="middle" fill="white" font-size="${fontSize}" font-weight="bold" font-family="Arial, sans-serif">${labelText}</text>
             </svg>
           `)}`,
           scaledSize: new google.maps.Size(40, 40),
           anchor: new google.maps.Point(20, 20),
         };
 
+        const showOpacity = !hasData && !isPreview;
         const marker = new google.maps.Marker({
           map,
           position: { lat: data.lat, lng: data.lng },
           icon: svgIcon,
           title: markerTitle,
-          cursor: hasData ? 'pointer' : 'default',
-          opacity: hasData ? 1 : 0.5,
+          cursor: hasData && !isPreview ? 'pointer' : 'default',
+          opacity: showOpacity ? 0.5 : 1,
         });
 
-        // Add click handler
-        if (hasData && data.result && onMarkerClick) {
+        // Add click handler (not for preview mode)
+        if (hasData && data.result && onMarkerClick && !isPreview) {
           marker.addListener('click', () => {
             onMarkerClick(data.point, data.result!);
           });
@@ -483,7 +517,7 @@ export function GeoGridGoogleMap({
     });
     map.fitBounds(bounds, { top: 50, right: 50, bottom: 50, left: 50 });
 
-  }, [isLoaded, center, radiusMiles, pointData, onMarkerClick, useAdvancedMarkers, viewAs]);
+  }, [isLoaded, center, radiusMiles, pointData, onMarkerClick, useAdvancedMarkers, viewAs, isPreview]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -625,27 +659,35 @@ export function GeoGridGoogleMap({
 
       {/* Legend */}
       <div className="px-4 py-3 border-t border-gray-200 bg-gray-50">
-        {viewAs && !viewAs.isOwnBusiness && (
-          <div className="text-center mb-2">
-            <p className="text-sm font-medium text-blue-600">
-              Viewing as: {viewAs.name}
-            </p>
-            <p className="text-xs text-gray-500">
-              &quot;&gt;10&quot; = not in top 10 stored competitors at that point
-            </p>
-          </div>
-        )}
-        <div className="flex flex-wrap justify-center gap-4">
-          {(Object.entries(BUCKET_COLORS) as [PositionBucket, string][]).map(([bucket, color]) => (
-            <div key={bucket} className="flex items-center gap-2">
-              <div
-                className="w-4 h-4 rounded-full border-2 border-white shadow"
-                style={{ backgroundColor: color }}
-              />
-              <span className="text-xs text-gray-600">{BUCKET_LABELS[bucket]}</span>
+        {isPreview ? (
+          <p className="text-center text-xs text-gray-500">
+            Blue markers show where rank checks will be performed
+          </p>
+        ) : (
+          <>
+            {viewAs && !viewAs.isOwnBusiness && (
+              <div className="text-center mb-2">
+                <p className="text-sm font-medium text-blue-600">
+                  Viewing as: {viewAs.name}
+                </p>
+                <p className="text-xs text-gray-500">
+                  &quot;&gt;10&quot; = not in top 10 stored competitors at that point
+                </p>
+              </div>
+            )}
+            <div className="flex flex-wrap justify-center gap-4">
+              {(Object.entries(BUCKET_COLORS) as [PositionBucket, string][]).map(([bucket, color]) => (
+                <div key={bucket} className="flex items-center gap-2">
+                  <div
+                    className="w-4 h-4 rounded-full border-2 border-white shadow"
+                    style={{ backgroundColor: color }}
+                  />
+                  <span className="text-xs text-gray-600">{BUCKET_LABELS[bucket]}</span>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          </>
+        )}
         <p className="text-center text-xs text-gray-500 mt-2">
           {radiusMiles} mile radius from business location
         </p>

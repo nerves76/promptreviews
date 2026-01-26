@@ -1302,6 +1302,7 @@ export function GeoGridSetupWizard({
                       center={{ lat, lng }}
                       radiusMiles={radiusMiles}
                       height="300px"
+                      isPreview={true}
                     />
                     <p className="text-center text-sm text-gray-500 mt-3">
                       {gridSize} check points within {radiusMiles} mile radius
