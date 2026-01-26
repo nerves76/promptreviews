@@ -56,7 +56,9 @@ export default function CheckRankModal({
   const [showConfirm, setShowConfirm] = useState(false);
 
   const handleCheckClick = () => {
+    console.log('🔍 [CheckRankModal] Check now clicked, location:', location);
     if (!location) return;
+    console.log('🔍 [CheckRankModal] Setting showConfirm to true');
     setShowConfirm(true);
   };
 
@@ -242,7 +244,10 @@ export default function CheckRankModal({
                   Cancel
                 </button>
                 <button
-                  onClick={handleConfirmedCheck}
+                  onClick={() => {
+                    console.log('🔍 [CheckRankModal] Use 2 credits button clicked!');
+                    handleConfirmedCheck();
+                  }}
                   className="flex-1 px-4 py-2 text-sm font-medium text-white bg-slate-blue rounded-lg hover:bg-slate-blue/90 transition-colors"
                 >
                   Use 2 credits
