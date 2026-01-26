@@ -679,7 +679,7 @@ export default function LocalRankingGridsPage() {
                         }}
                         className="w-56 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                       >
-                        <option value="">Your Business</option>
+                        <option value="">{config.locationName || config.googleBusinessLocation?.location_name || googleBusinessLocation?.name || 'Your Business'}</option>
                         {uniqueCompetitors.map((competitor) => (
                           <option key={competitor.placeId} value={competitor.placeId}>
                             {competitor.name}
