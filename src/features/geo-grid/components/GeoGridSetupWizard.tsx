@@ -885,9 +885,18 @@ export function GeoGridSetupWizard({
                         Place ID: {googlePlaceId}
                       </p>
                       {!hasCoords && (
-                        <p className="text-xs text-amber-700 mt-2">
-                          Service-area businesses don&apos;t have public coordinates. Enter the center of your service area below.
-                        </p>
+                        <div className="mt-3 p-3 bg-white rounded border border-amber-200">
+                          <p className="text-sm font-medium text-gray-800 mb-2">
+                            How to get your coordinates:
+                          </p>
+                          <ol className="text-xs text-gray-700 space-y-1.5 pl-4 list-decimal">
+                            <li>Go to <a href="https://www.google.com/maps" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline font-medium">Google Maps</a></li>
+                            <li>Navigate to the center of your service area</li>
+                            <li>Right-click on that location</li>
+                            <li>Click the coordinates at the top of the menu (e.g., &quot;45.5231, -122.6765&quot;) to copy them</li>
+                            <li>Paste the first number into <strong>Latitude</strong> and the second into <strong>Longitude</strong> below</li>
+                          </ol>
+                        </div>
                       )}
                     </div>
                     <button

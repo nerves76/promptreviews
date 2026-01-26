@@ -566,16 +566,17 @@ export default function ConceptsTable({
   return (
     <div className="overflow-x-auto border border-gray-200 rounded-xl">
       <table className="w-full" style={{ tableLayout: 'fixed', minWidth: '1240px' }}>
-        {/* Column widths: Checkbox, Keyword, Concept, Volume, Rank, Change, URL, Checked, SERP, Grid, Actions */}
+        {/* Column widths: Checkbox, Keyword, Concept, Volume, Rank, Change, URL, Checked, Location, SERP, Grid, Actions */}
         <colgroup>
           <col style={{ width: '40px' }} />
-          <col style={{ width: '270px' }} />
+          <col style={{ width: '250px' }} />
           <col style={{ width: '100px' }} />
           <col style={{ width: '70px' }} />
-          <col style={{ width: '145px' }} />
+          <col style={{ width: '110px' }} />
           <col style={{ width: '70px' }} />
           <col style={{ width: '100px' }} />
           <col style={{ width: '65px' }} />
+          <col style={{ width: '110px' }} />
           <col style={{ width: '80px' }} />
           <col style={{ width: '50px' }} />
           <col style={{ width: 'auto' }} />
@@ -636,6 +637,9 @@ export default function ConceptsTable({
             </th>
             <th className="text-center py-3 px-4">
               <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider">Checked</span>
+            </th>
+            <th className="text-center py-3 px-4">
+              <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider">Location</span>
             </th>
             <th className="text-center py-3 px-4">
               <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider">SERP</span>
@@ -727,22 +731,9 @@ export default function ConceptsTable({
               </td>
               <td className="py-3 px-4 text-center">
                 {row.volume !== null ? (
-                  <div className="flex flex-col items-center">
-                    <span className="font-medium text-blue-600">
-                      {formatVolume(row.volume)}
-                    </span>
-                    {row.volumeLocation && (() => {
-                      const parts = row.volumeLocation.split(', ');
-                      const country = parts.pop();
-                      const cityState = abbreviateState(parts.join(', '));
-                      return (
-                        <div className="text-[10px] text-gray-500 text-center" title={row.volumeLocation}>
-                          <div>{cityState}</div>
-                          {country && <div>{country}</div>}
-                        </div>
-                      );
-                    })()}
-                  </div>
+                  <span className="font-medium text-blue-600">
+                    {formatVolume(row.volume)}
+                  </span>
                 ) : (
                   <button
                     onClick={(e) => handleCheckVolume(row.keyword, row.concept.id, e)}
@@ -755,42 +746,29 @@ export default function ConceptsTable({
               </td>
               <td className="py-3 px-3 text-center">
                 {row.desktopChecked || row.mobileChecked ? (
-                  <div className="flex flex-col items-center gap-1.5">
-                    <div className="flex items-center gap-2 text-xs">
-                      {/* Desktop rank */}
-                      {row.desktopChecked && (
-                        <span className="flex items-center gap-1" title="Desktop">
-                          <svg className="w-3 h-3 text-gray-500" viewBox="0 0 16 14" fill="currentColor">
-                            <rect x="0" y="0" width="16" height="10" rx="1" />
-                            <rect x="5" y="11" width="6" height="1" />
-                            <rect x="4" y="12" width="8" height="1" />
-                          </svg>
-                          <span className={`font-medium ${row.desktopRank !== null ? getPositionColor(row.desktopRank) : 'text-gray-500'}`}>
-                            {row.desktopRank !== null ? row.desktopRank : '>100'}
-                          </span>
+                  <div className="flex items-center justify-center gap-2 text-xs">
+                    {/* Desktop rank */}
+                    {row.desktopChecked && (
+                      <span className="flex items-center gap-1" title="Desktop">
+                        <svg className="w-3 h-3 text-gray-500" viewBox="0 0 16 14" fill="currentColor">
+                          <rect x="0" y="0" width="16" height="10" rx="1" />
+                          <rect x="5" y="11" width="6" height="1" />
+                          <rect x="4" y="12" width="8" height="1" />
+                        </svg>
+                        <span className={`font-medium ${row.desktopRank !== null ? getPositionColor(row.desktopRank) : 'text-gray-500'}`}>
+                          {row.desktopRank !== null ? row.desktopRank : '>100'}
                         </span>
-                      )}
-                      {/* Mobile rank */}
-                      {row.mobileChecked && (
-                        <span className="flex items-center gap-1" title="Mobile">
-                          <Icon name="FaMobile" className="w-2.5 h-2.5 text-gray-500" />
-                          <span className={`font-medium ${row.mobileRank !== null ? getPositionColor(row.mobileRank) : 'text-gray-500'}`}>
-                            {row.mobileRank !== null ? row.mobileRank : '>100'}
-                          </span>
+                      </span>
+                    )}
+                    {/* Mobile rank */}
+                    {row.mobileChecked && (
+                      <span className="flex items-center gap-1" title="Mobile">
+                        <Icon name="FaMobile" className="w-2.5 h-2.5 text-gray-500" />
+                        <span className={`font-medium ${row.mobileRank !== null ? getPositionColor(row.mobileRank) : 'text-gray-500'}`}>
+                          {row.mobileRank !== null ? row.mobileRank : '>100'}
                         </span>
-                      )}
-                    </div>
-                    {row.rankLocation && (() => {
-                      const parts = row.rankLocation.split(', ');
-                      const country = parts.pop();
-                      const cityState = abbreviateState(parts.join(', '));
-                      return (
-                        <div className="text-[9px] text-gray-500 text-center leading-tight" title={row.rankLocation}>
-                          <div>{cityState}</div>
-                          {country && <div>{country}</div>}
-                        </div>
-                      );
-                    })()}
+                      </span>
+                    )}
                   </div>
                 ) : (
                   <span className="text-gray-500 text-xs">—</span>
@@ -819,6 +797,22 @@ export default function ConceptsTable({
                 <span className="text-xs text-gray-500" title={row.lastChecked || undefined}>
                   {formatRelativeDate(row.lastChecked)}
                 </span>
+              </td>
+              <td className="py-3 px-4 text-center">
+                {(row.rankLocation || row.volumeLocation) ? (() => {
+                  const location = row.rankLocation || row.volumeLocation || '';
+                  const parts = location.split(', ');
+                  const country = parts.pop();
+                  const cityState = abbreviateState(parts.join(', '));
+                  return (
+                    <div className="text-xs text-gray-600 text-center" title={location}>
+                      <div className="font-medium">{cityState}</div>
+                      {country && <div className="text-gray-500">{country}</div>}
+                    </div>
+                  );
+                })() : (
+                  <span className="text-gray-400">—</span>
+                )}
               </td>
               <td className="py-3 px-4 text-center">
                 {row.serpFeatures ? (
@@ -944,7 +938,7 @@ export default function ConceptsTable({
             {/* Expanded history row */}
             {expandedRowKey === `${row.concept.id}::${row.keyword}` && (
               <tr className="bg-blue-50">
-                <td colSpan={11} className="py-2 px-6">
+                <td colSpan={12} className="py-2 px-6">
                   <div className="max-w-[900px]">
                     {/* Chart */}
                     <RankHistoryChart
