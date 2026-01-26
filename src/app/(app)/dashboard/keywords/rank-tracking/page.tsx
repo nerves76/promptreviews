@@ -268,12 +268,7 @@ export default function RankTrackingPage() {
   // Fetch rank checks
   const fetchRankChecks = useCallback(async () => {
     try {
-      console.log('🔍 [RankTracking] Fetching rank checks...');
       const response = await apiClient.get<{ checks: RankCheck[] }>('/rank-tracking/checks?limit=500');
-      console.log('🔍 [RankTracking] Fetched', response.checks?.length || 0, 'checks');
-      if (response.checks?.length) {
-        console.log('🔍 [RankTracking] Sample check:', response.checks[0]);
-      }
       setRankChecks(response.checks || []);
     } catch (err) {
       console.error('Failed to fetch rank checks:', err);
@@ -376,14 +371,12 @@ export default function RankTrackingPage() {
   // Build term rank data map (most recent + previous check per term, combining desktop & mobile)
   const rankData = useMemo(() => {
     const map = new Map<string, RankData>();
-    console.log('🔍 [RankTracking] Building rankData map from', rankChecks.length, 'checks');
     // Sort by checked_at descending to get most recent first
     const sortedChecks = [...rankChecks].sort(
       (a, b) => new Date(b.checked_at).getTime() - new Date(a.checked_at).getTime()
     );
     sortedChecks.forEach((check) => {
       const normalizedTerm = normalizePhrase(check.search_query_used);
-      console.log('🔍 [RankTracking] Check:', check.search_query_used, '→ normalized:', normalizedTerm, 'position:', check.position);
 
       if (!map.has(normalizedTerm)) {
         map.set(normalizedTerm, {
@@ -445,11 +438,8 @@ export default function RankTrackingPage() {
 
   // Handle clicking "Check ranking" - auto-run if location available, otherwise show modal
   const handleCheckRank = useCallback(async (keyword: string, conceptId: string) => {
-    console.log('🔍 [RankTracking] handleCheckRank called:', { keyword, conceptId });
-
     // If still looking up location, wait a bit
     if (isLookingUpLocation) {
-      console.log('🔍 [RankTracking] Waiting for location lookup...');
       setCheckingRankKeyword(keyword);
       await new Promise(resolve => setTimeout(resolve, 500));
     }
@@ -462,8 +452,6 @@ export default function RankTrackingPage() {
     // Use concept location, or fallback to business location, or looked-up location from address
     const locationCode = conceptLocationCode || business?.location_code || lookedUpLocation?.locationCode;
     const locationName = conceptLocationName || business?.location_name || lookedUpLocation?.locationName;
-
-    console.log('🔍 [RankTracking] Opening modal with:', { keyword, conceptId, locationCode, locationName });
 
     // Always show modal with credit info and confirmation (pre-populate location if available)
     setCheckingKeyword({
@@ -589,13 +577,7 @@ export default function RankTrackingPage() {
     desktop: { position: number | null; found: boolean };
     mobile: { position: number | null; found: boolean };
   }> => {
-    console.log('🔍 [RankTracking] performRankCheck called:', { locationCode, locationName, checkingKeyword });
-    if (!checkingKeyword) {
-      console.error('🔍 [RankTracking] No checkingKeyword!');
-      throw new Error('No keyword selected');
-    }
-
-    console.log('🔍 [RankTracking] Making API calls for:', checkingKeyword.keyword);
+    if (!checkingKeyword) throw new Error('No keyword selected');
 
     // Check both desktop and mobile in parallel
     const [desktopResponse, mobileResponse] = await Promise.all([
@@ -629,9 +611,6 @@ export default function RankTrackingPage() {
       }),
     ]);
 
-    console.log('🔍 [RankTracking] Desktop response:', desktopResponse);
-    console.log('🔍 [RankTracking] Mobile response:', mobileResponse);
-
     if (!desktopResponse.success) {
       throw new Error(desktopResponse.error || 'Failed to check desktop rank');
     }
@@ -640,9 +619,7 @@ export default function RankTrackingPage() {
     }
 
     // Refresh rank checks to update the table
-    console.log('🔍 [RankTracking] Refreshing rank checks...');
     await fetchRankChecks();
-    console.log('🔍 [RankTracking] Rank checks refreshed');
 
     return {
       desktop: { position: desktopResponse.position, found: desktopResponse.found },

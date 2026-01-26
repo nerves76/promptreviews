@@ -56,18 +56,12 @@ export default function CheckRankModal({
   const [showConfirm, setShowConfirm] = useState(false);
 
   const handleCheckClick = () => {
-    console.log('🔍 [CheckRankModal] Check now clicked, location:', location);
     if (!location) return;
-    console.log('🔍 [CheckRankModal] Setting showConfirm to true');
     setShowConfirm(true);
   };
 
   const handleConfirmedCheck = async () => {
-    console.log('🔍 [CheckRankModal] handleConfirmedCheck called', { location, keyword });
-    if (!location) {
-      console.log('🔍 [CheckRankModal] No location, returning early');
-      return;
-    }
+    if (!location) return;
 
     setShowConfirm(false);
     setIsChecking(true);
@@ -75,15 +69,10 @@ export default function CheckRankModal({
     setResult(null);
 
     try {
-      console.log('🔍 [CheckRankModal] Calling onCheck with:', { locationCode: location.code, locationName: location.name });
       const res = await onCheck(location.code, location.name);
-      console.log('🔍 [CheckRankModal] onCheck returned:', res);
       setResult(res);
-      // Trigger refresh and pass the location used (so it can be saved to concept)
-      console.log('🔍 [CheckRankModal] Calling onCheckComplete');
       onCheckComplete?.(location.code, location.name);
     } catch (err: any) {
-      console.error('🔍 [CheckRankModal] Error:', err);
       setError(err?.message || 'Failed to check rank');
     } finally {
       setIsChecking(false);
@@ -143,10 +132,7 @@ export default function CheckRankModal({
               Back
             </button>
             <button
-              onClick={() => {
-                console.log('🔍 [CheckRankModal] Use 2 credits button clicked!');
-                handleConfirmedCheck();
-              }}
+              onClick={handleConfirmedCheck}
               className="px-4 py-2 text-sm font-medium text-white bg-slate-blue rounded-lg hover:bg-slate-blue/90 transition-colors flex items-center gap-2"
             >
               <Icon name="FaCoins" className="w-4 h-4" />
