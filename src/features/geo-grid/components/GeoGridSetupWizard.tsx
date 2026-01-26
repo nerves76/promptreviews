@@ -7,12 +7,14 @@
 
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { MapPinIcon, Cog6ToothIcon, CheckCircleIcon, ArrowPathIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { useGeoGridConfig, SaveConfigData } from '../hooks/useGeoGridConfig';
-import { CheckPoint } from '../utils/types';
+import { CheckPoint, GGCheckResult } from '../utils/types';
+import { calculateGridPoints } from '../services/point-calculator';
 import { apiClient } from '@/utils/apiClient';
 import Icon from '@/components/Icon';
+import { GeoGridGoogleMap } from './GeoGridGoogleMap';
 
 // ============================================
 // Types
@@ -1251,40 +1253,103 @@ export function GeoGridSetupWizard({
               </div>
             </div>
 
-            {/* Grid Preview */}
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <h4 className="text-sm font-medium text-gray-700 mb-3">Grid preview</h4>
-              <div className="relative w-48 h-48 mx-auto">
-                {/* Circle outline */}
-                <div className="absolute inset-0 border-2 border-dashed border-gray-300 rounded-full" />
-                {/* Center point */}
-                <div className="absolute top-1/2 left-1/2 w-4 h-4 -mt-2 -ml-2 bg-blue-600 rounded-full" />
-                {/* North */}
-                <div className="absolute top-0 left-1/2 w-3 h-3 -ml-1.5 bg-blue-400 rounded-full" />
-                {/* South */}
-                <div className="absolute bottom-0 left-1/2 w-3 h-3 -ml-1.5 bg-blue-400 rounded-full" />
-                {/* East */}
-                <div className="absolute top-1/2 right-0 w-3 h-3 -mt-1.5 bg-blue-400 rounded-full" />
-                {/* West */}
-                <div className="absolute top-1/2 left-0 w-3 h-3 -mt-1.5 bg-blue-400 rounded-full" />
-                {/* Diagonal points - only show when gridSize is 9 */}
-                {gridSize === 9 && (
-                  <>
-                    {/* Northeast */}
-                    <div className="absolute top-[14.6%] right-[14.6%] w-3 h-3 -mt-1.5 -mr-1.5 bg-blue-400 rounded-full" />
-                    {/* Southeast */}
-                    <div className="absolute bottom-[14.6%] right-[14.6%] w-3 h-3 -mb-1.5 -mr-1.5 bg-blue-400 rounded-full" />
-                    {/* Southwest */}
-                    <div className="absolute bottom-[14.6%] left-[14.6%] w-3 h-3 -mb-1.5 -ml-1.5 bg-blue-400 rounded-full" />
-                    {/* Northwest */}
-                    <div className="absolute top-[14.6%] left-[14.6%] w-3 h-3 -mt-1.5 -ml-1.5 bg-blue-400 rounded-full" />
-                  </>
-                )}
-              </div>
-              <p className="text-center text-sm text-gray-500 mt-3">
-                {gridSize} check points within {radiusMiles} mile radius
-              </p>
-            </div>
+            {/* Grid Preview - Show map if we have coordinates */}
+            {(() => {
+              const lat = parseFloat(manualLat);
+              const lng = parseFloat(manualLng);
+              const hasValidCoords = !isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0;
+
+              if (hasValidCoords) {
+                // Generate preview grid points
+                const checkPoints: CheckPoint[] = gridSize === 9
+                  ? ['center', 'n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw']
+                  : ['center', 'n', 's', 'e', 'w'];
+
+                const gridPoints = calculateGridPoints({
+                  centerLat: lat,
+                  centerLng: lng,
+                  radiusMiles,
+                  points: checkPoints,
+                });
+
+                // Create mock results for preview (no actual rank data)
+                const previewResults: GGCheckResult[] = gridPoints.map((geoPoint) => ({
+                  id: `preview-${geoPoint.label}`,
+                  accountId: 'preview',
+                  configId: 'preview',
+                  keywordId: 'preview',
+                  keywordPhrase: 'Preview',
+                  checkPoint: geoPoint.label,
+                  pointLat: geoPoint.lat,
+                  pointLng: geoPoint.lng,
+                  position: null,
+                  positionBucket: 'none' as const,
+                  businessFound: false,
+                  topCompetitors: [],
+                  ourRating: null,
+                  ourReviewCount: null,
+                  ourPlaceId: null,
+                  checkedAt: new Date().toISOString(),
+                  apiCostUsd: null,
+                  createdAt: new Date().toISOString(),
+                }));
+
+                return (
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-700 mb-3">Grid preview</h4>
+                    <GeoGridGoogleMap
+                      results={previewResults}
+                      center={{ lat, lng }}
+                      radiusMiles={radiusMiles}
+                      height="300px"
+                    />
+                    <p className="text-center text-sm text-gray-500 mt-3">
+                      {gridSize} check points within {radiusMiles} mile radius
+                    </p>
+                  </div>
+                );
+              }
+
+              // Fallback diagram when no coordinates
+              return (
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <h4 className="text-sm font-medium text-gray-700 mb-3">Grid preview</h4>
+                  <div className="relative w-48 h-48 mx-auto">
+                    {/* Circle outline */}
+                    <div className="absolute inset-0 border-2 border-dashed border-gray-300 rounded-full" />
+                    {/* Center point */}
+                    <div className="absolute top-1/2 left-1/2 w-4 h-4 -mt-2 -ml-2 bg-blue-600 rounded-full" />
+                    {/* North */}
+                    <div className="absolute top-0 left-1/2 w-3 h-3 -ml-1.5 bg-blue-400 rounded-full" />
+                    {/* South */}
+                    <div className="absolute bottom-0 left-1/2 w-3 h-3 -ml-1.5 bg-blue-400 rounded-full" />
+                    {/* East */}
+                    <div className="absolute top-1/2 right-0 w-3 h-3 -mt-1.5 bg-blue-400 rounded-full" />
+                    {/* West */}
+                    <div className="absolute top-1/2 left-0 w-3 h-3 -mt-1.5 bg-blue-400 rounded-full" />
+                    {/* Diagonal points - only show when gridSize is 9 */}
+                    {gridSize === 9 && (
+                      <>
+                        {/* Northeast */}
+                        <div className="absolute top-[14.6%] right-[14.6%] w-3 h-3 -mt-1.5 -mr-1.5 bg-blue-400 rounded-full" />
+                        {/* Southeast */}
+                        <div className="absolute bottom-[14.6%] right-[14.6%] w-3 h-3 -mb-1.5 -mr-1.5 bg-blue-400 rounded-full" />
+                        {/* Southwest */}
+                        <div className="absolute bottom-[14.6%] left-[14.6%] w-3 h-3 -mb-1.5 -ml-1.5 bg-blue-400 rounded-full" />
+                        {/* Northwest */}
+                        <div className="absolute top-[14.6%] left-[14.6%] w-3 h-3 -mt-1.5 -ml-1.5 bg-blue-400 rounded-full" />
+                      </>
+                    )}
+                  </div>
+                  <p className="text-center text-sm text-gray-500 mt-3">
+                    {gridSize} check points within {radiusMiles} mile radius
+                  </p>
+                  <p className="text-center text-xs text-amber-600 mt-2">
+                    Enter coordinates in the Location step to see map preview
+                  </p>
+                </div>
+              );
+            })()}
           </div>
         );
 
