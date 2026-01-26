@@ -426,8 +426,8 @@ export default function LocalRankingGridsPage() {
     setSelectedPointResult(null);
   }, []);
 
-  // Loading state
-  if (loading) {
+  // Loading state (auth or config loading)
+  if (loading || configLoading) {
     return (
       <PageCard
         icon={<Icon name="FaMapMarker" className="w-8 h-8 text-slate-blue" size={32} />}
@@ -442,7 +442,7 @@ export default function LocalRankingGridsPage() {
     return null;
   }
 
-  // Show setup wizard if no config or settings mode
+  // Show setup wizard if no config or settings mode (only after loading complete)
   if (!hasConfig || showSettings) {
     return (
       <PageCard
