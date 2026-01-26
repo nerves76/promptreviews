@@ -438,11 +438,8 @@ export default function RankTrackingPage() {
 
   // Handle clicking "Check ranking" - auto-run if location available, otherwise show modal
   const handleCheckRank = useCallback(async (keyword: string, conceptId: string) => {
-    console.log('[handleCheckRank] Called with:', { keyword, conceptId });
-
     // If still looking up location, wait a bit
     if (isLookingUpLocation) {
-      console.log('[handleCheckRank] Waiting for location lookup...');
       setCheckingRankKeyword(keyword);
       await new Promise(resolve => setTimeout(resolve, 500));
     }
@@ -456,10 +453,8 @@ export default function RankTrackingPage() {
     const locationCode = conceptLocationCode || business?.location_code || lookedUpLocation?.locationCode;
     const locationName = conceptLocationName || business?.location_name || lookedUpLocation?.locationName;
 
-    console.log('[handleCheckRank] Location resolved:', { locationCode, locationName, conceptFound: !!concept });
-
     if (locationCode && locationName) {
-      // Auto-run the check without modal - show loading on button
+      // Location available - auto-run the check without modal
       setCheckingRankKeyword(keyword);
       try {
         const [desktopResponse, mobileResponse] = await Promise.all([
@@ -499,8 +494,7 @@ export default function RankTrackingPage() {
         setCheckingRankKeyword(null);
       }
     } else {
-      // No location available, show modal
-      console.log('[handleCheckRank] No location - opening modal');
+      // No location available - show modal for user to pick location
       setCheckingKeyword({ keyword, conceptId });
     }
   }, [concepts, business, lookedUpLocation, isLookingUpLocation, fetchRankChecks]);
@@ -919,6 +913,23 @@ export default function RankTrackingPage() {
         isOpen={!!checkingKeyword}
         onClose={() => setCheckingKeyword(null)}
         onCheck={performRankCheck}
+        onCheckComplete={async (locationCode, locationName) => {
+          // Save the location to the concept if it wasn't already set
+          if (checkingKeyword?.conceptId && !checkingKeyword.locationCode) {
+            try {
+              await apiClient.put(`/keywords/${checkingKeyword.conceptId}`, {
+                searchVolumeLocationCode: locationCode,
+                searchVolumeLocationName: locationName,
+              });
+              // Refresh keywords to update concept data
+              await refreshKeywords();
+            } catch (err) {
+              console.error('Failed to save location to concept:', err);
+            }
+          }
+          // Refresh rank checks to update the table
+          await fetchRankChecks();
+        }}
         defaultLocationCode={checkingKeyword?.locationCode}
         defaultLocationName={checkingKeyword?.locationName}
         locationLocked={!!checkingKeyword?.locationCode}

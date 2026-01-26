@@ -344,12 +344,7 @@ export default function ConceptsTable({
 
   const handleCheckRank = (keyword: string, conceptId: string, e: React.MouseEvent) => {
     e.stopPropagation(); // Don't trigger row click
-    console.log('[ConceptsTable] handleCheckRank called:', { keyword, conceptId, hasOnCheckRank: !!onCheckRank });
-    if (!onCheckRank) {
-      console.warn('[ConceptsTable] onCheckRank prop is not defined!');
-      return;
-    }
-    onCheckRank(keyword, conceptId);
+    onCheckRank?.(keyword, conceptId);
   };
 
   const handleCheckVolume = (keyword: string, conceptId: string, e: React.MouseEvent) => {

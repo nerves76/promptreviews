@@ -18,8 +18,8 @@ interface CheckRankModalProps {
     desktop: RankResult;
     mobile: RankResult;
   }>;
-  /** Called when a check completes successfully, to trigger data refresh */
-  onCheckComplete?: () => void;
+  /** Called when a check completes successfully, with the location used */
+  onCheckComplete?: (locationCode: number, locationName: string) => void;
   /** Pre-selected location code (from concept) */
   defaultLocationCode?: number;
   /** Pre-selected location name (from concept) */
@@ -71,8 +71,8 @@ export default function CheckRankModal({
     try {
       const res = await onCheck(location.code, location.name);
       setResult(res);
-      // Trigger refresh of enrichment data
-      onCheckComplete?.();
+      // Trigger refresh and pass the location used (so it can be saved to concept)
+      onCheckComplete?.(location.code, location.name);
     } catch (err: any) {
       setError(err?.message || 'Failed to check rank');
     } finally {
