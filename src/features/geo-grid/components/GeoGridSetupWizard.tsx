@@ -1267,71 +1267,101 @@ export function GeoGridSetupWizard({
               </div>
             )}
 
-            {/* Coordinate Inputs */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-gray-700">
-                  Search center coordinates:
+            {/* Search for Different Business - Always show when Place ID is set */}
+            {googlePlaceId && (
+              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg space-y-3">
+                <p className="text-sm font-medium text-blue-800">
+                  Wrong business? Search for a different one:
                 </p>
-                {searchBusinessName && (
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={searchBusinessName}
+                    onChange={(e) => setSearchBusinessName(e.target.value)}
+                    placeholder="Enter business name to search..."
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  />
                   <button
                     type="button"
-                    onClick={() => searchForBusiness(searchBusinessName)}
-                    disabled={isGeocoding}
-                    className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1 disabled:opacity-50"
+                    onClick={() => searchForBusiness(searchBusinessName, parseFloat(manualLat) || undefined, parseFloat(manualLng) || undefined)}
+                    disabled={isGeocoding || !searchBusinessName.trim()}
+                    className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap flex items-center gap-1"
                   >
-                    <ArrowPathIcon className={`w-3 h-3 ${isGeocoding ? 'animate-spin' : ''}`} />
-                    Search again
+                    {isGeocoding ? (
+                      <ArrowPathIcon className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <MagnifyingGlassIcon className="w-4 h-4" />
+                    )}
+                    Search
                   </button>
+                </div>
+                <p className="text-xs text-blue-700">
+                  Enter your business name exactly as it appears on Google Maps.
+                </p>
+
+                {/* Search Results */}
+                {businessSearchResults.length > 0 && (
+                  <div className="border border-blue-200 rounded-lg overflow-hidden bg-white">
+                    <div className="bg-gray-50 px-3 py-2 border-b border-gray-200">
+                      <p className="text-sm font-medium text-gray-700">
+                        Select your business ({businessSearchResults.length} found)
+                      </p>
+                    </div>
+                    <div className="max-h-64 overflow-y-auto">
+                      {businessSearchResults.map((result, index) => (
+                        <button
+                          key={result.placeId || index}
+                          type="button"
+                          onClick={() => selectBusinessResult(result)}
+                          className={`w-full px-3 py-3 text-left hover:bg-blue-50 border-b border-gray-100 last:border-b-0 transition-colors ${
+                            result.placeId === googlePlaceId ? 'bg-green-50' : ''
+                          }`}
+                        >
+                          <div className="flex justify-between items-start gap-2">
+                            <div className="min-w-0 flex-1">
+                              <p className="font-medium text-gray-900 text-sm">{result.name}</p>
+                              <p className="text-xs text-gray-500 truncate">{result.address}</p>
+                              {result.rating && (
+                                <p className="text-xs text-gray-400 mt-0.5">
+                                  ★ {result.rating.toFixed(1)}
+                                  {result.reviewCount && ` (${result.reviewCount} reviews)`}
+                                </p>
+                              )}
+                            </div>
+                            {result.placeId === googlePlaceId ? (
+                              <span className="text-xs text-green-600 font-medium whitespace-nowrap bg-green-100 px-2 py-0.5 rounded">Current</span>
+                            ) : (
+                              <span className="text-xs text-blue-600 font-medium whitespace-nowrap">Select →</span>
+                            )}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                    <div className="bg-gray-50 px-3 py-2 border-t border-gray-200 flex justify-between items-center">
+                      <p className="text-xs text-gray-500">
+                        Not listed? Try a different search term.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setBusinessSearchResults([])}
+                        className="text-xs text-gray-500 hover:text-gray-700"
+                      >
+                        Clear
+                      </button>
+                    </div>
+                  </div>
                 )}
               </div>
+            )}
+
+            {/* Coordinate Inputs */}
+            <div className="space-y-4">
+              <p className="text-sm font-medium text-gray-700">
+                Search center coordinates:
+              </p>
               <p className="text-xs text-gray-500">
                 This is the center point for rank tracking. For service-area businesses, use the center of your service area.
               </p>
-
-              {/* Search Results List (when searching again after already having a Place ID) */}
-              {businessSearchResults.length > 0 && googlePlaceId && (
-                <div className="border border-gray-200 rounded-lg overflow-hidden">
-                  <div className="bg-gray-50 px-3 py-2 border-b border-gray-200">
-                    <p className="text-sm font-medium text-gray-700">
-                      Select your business ({businessSearchResults.length} found)
-                    </p>
-                  </div>
-                  <div className="max-h-48 overflow-y-auto">
-                    {businessSearchResults.map((result, index) => (
-                      <button
-                        key={result.placeId || index}
-                        type="button"
-                        onClick={() => selectBusinessResult(result)}
-                        className={`w-full px-3 py-2 text-left hover:bg-blue-50 border-b border-gray-100 last:border-b-0 transition-colors ${
-                          result.placeId === googlePlaceId ? 'bg-green-50' : ''
-                        }`}
-                      >
-                        <div className="flex justify-between items-start gap-2">
-                          <div className="min-w-0 flex-1">
-                            <p className="font-medium text-gray-900 text-sm truncate">{result.name}</p>
-                            <p className="text-xs text-gray-500 truncate">{result.address}</p>
-                          </div>
-                          {result.placeId === googlePlaceId ? (
-                            <span className="text-xs text-green-600 font-medium whitespace-nowrap">Current</span>
-                          ) : (
-                            <span className="text-xs text-blue-600 font-medium whitespace-nowrap">Select</span>
-                          )}
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                  <div className="bg-gray-50 px-3 py-2 border-t border-gray-200">
-                    <button
-                      type="button"
-                      onClick={() => setBusinessSearchResults([])}
-                      className="text-xs text-gray-500 hover:text-gray-700"
-                    >
-                      Close
-                    </button>
-                  </div>
-                </div>
-              )}
 
               {/* How to get coordinates - helpful for service-area businesses */}
               <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
