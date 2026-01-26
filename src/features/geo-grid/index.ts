@@ -105,5 +105,6 @@ export {
   GeoGridKeywordsTable,
   GeoGridScheduleSettings,
   GeoGridConfigSettings,
+  GeoGridBusinessConnection,
 } from './components';
 export type { ViewAsBusiness } from './components';

@@ -24,6 +24,7 @@ import {
   GeoGridKeywordsTable,
   GeoGridScheduleSettings,
   GeoGridConfigSettings,
+  GeoGridBusinessConnection,
   useGeoGridConfig,
   useGeoGridResults,
   useGeoGridSummary,
@@ -711,9 +712,13 @@ export default function LocalRankingGridsPage() {
             keywordUsageCounts={keywordUsageCounts}
           />
 
-          {/* Settings - Grid Config & Schedule */}
+          {/* Settings - Business Connection, Grid Config & Schedule */}
           {config && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <GeoGridBusinessConnection
+                config={config}
+                onUpdated={refreshConfig}
+              />
               <GeoGridConfigSettings
                 config={config}
                 keywordCount={trackedKeywords.length}

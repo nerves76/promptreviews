@@ -14,3 +14,4 @@ export { GeoGridKeywordsTable } from './GeoGridKeywordsTable';
 export { AddKeywordsToGridModal } from './AddKeywordsToGridModal';
 export { GeoGridScheduleSettings } from './GeoGridScheduleSettings';
 export { GeoGridConfigSettings } from './GeoGridConfigSettings';
+export { GeoGridBusinessConnection } from './GeoGridBusinessConnection';
