@@ -676,26 +676,6 @@ export default function LocalRankingGridsPage() {
                     </div>
                   )}
                 </div>
-
-                {/* Run Grid Check Button */}
-                <button
-                  onClick={handleRunCheck}
-                  disabled={isCheckRunning || !config?.targetPlaceId}
-                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors flex items-center gap-2 text-sm whitespace-nowrap"
-                  title={!config?.targetPlaceId ? 'Connect your business first' : 'Run checks for all tracked keywords'}
-                >
-                  {isCheckRunning ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      Running...
-                    </>
-                  ) : (
-                    <>
-                      <Icon name="FaRedo" className="w-3.5 h-3.5" />
-                      Run grid check
-                    </>
-                  )}
-                </button>
               </div>
 
               {/* Row 2: Grid settings (radius, grid size) */}
