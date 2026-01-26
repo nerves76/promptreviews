@@ -43,88 +43,26 @@ export default function CreditsAdminPage() {
     setResults([]);
 
     try {
-      // First, search accounts directly by business_name or email
-      const { data: directMatches, error: searchError } = await supabase
-        .from('accounts')
-        .select(`
-          id,
-          email,
-          business_name,
-          plan,
-          is_client_account,
-          monthly_credit_allocation,
-          credit_balances (
-            included_credits,
-            purchased_credits
-          )
-        `)
-        .or(`business_name.ilike.%${searchQuery}%,email.ilike.%${searchQuery}%`)
-        .is('deleted_at', null)
-        .limit(10);
+      // Use admin API endpoint which uses service role to bypass RLS
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('No active session');
 
-      if (searchError) throw searchError;
+      const response = await fetch(`/api/admin/credits?search=${encodeURIComponent(searchQuery)}`, {
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+      });
 
-      // Also search in the businesses table (business names are often stored there)
-      const { data: businessMatches, error: businessError } = await supabase
-        .from('businesses')
-        .select(`
-          account_id,
-          name
-        `)
-        .ilike('name', `%${searchQuery}%`)
-        .limit(10);
+      const result = await response.json();
 
-      if (businessError) throw businessError;
-
-      // Get account IDs from business matches that aren't already in direct matches
-      const directIds = new Set((directMatches || []).map((a: any) => a.id));
-      const additionalAccountIds = (businessMatches || [])
-        .map((b: any) => b.account_id)
-        .filter((id: string) => !directIds.has(id));
-
-      let additionalAccounts: any[] = [];
-      if (additionalAccountIds.length > 0) {
-        const { data: moreAccounts, error: moreError } = await supabase
-          .from('accounts')
-          .select(`
-            id,
-            email,
-            business_name,
-            plan,
-            is_client_account,
-            monthly_credit_allocation,
-            credit_balances (
-              included_credits,
-              purchased_credits
-            )
-          `)
-          .in('id', additionalAccountIds)
-          .is('deleted_at', null);
-
-        if (moreError) throw moreError;
-
-        // Attach the matching business name for display
-        additionalAccounts = (moreAccounts || []).map((account: any) => {
-          const matchingBusiness = businessMatches?.find((b: any) => b.account_id === account.id);
-          return {
-            ...account,
-            business_name: account.business_name || matchingBusiness?.name || null,
-          };
-        });
+      if (!response.ok) {
+        throw new Error(result.error || 'Search failed');
       }
 
-      // Combine and transform results
-      const allResults = [...(directMatches || []), ...additionalAccounts];
-      const transformed = allResults.map((account: any) => ({
-        ...account,
-        credit_balance: account.credit_balances?.[0] || null,
-        credit_balances: undefined,
-      }));
-
-      setResults(transformed);
+      setResults(result.accounts || []);
     } catch (err: any) {
       console.error('Search error:', err);
-      setError('Failed to search accounts');
+      setError(err.message || 'Failed to search accounts');
     } finally {
       setSearching(false);
     }

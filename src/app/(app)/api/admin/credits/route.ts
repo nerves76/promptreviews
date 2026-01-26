@@ -1,6 +1,7 @@
 /**
  * Admin Credits API
  *
+ * GET: Search accounts by business name or email (uses service role for full access)
  * POST: Add credits to an account
  */
 
@@ -8,6 +9,126 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { createServerSupabaseClient } from '@/auth/providers/supabase';
 import { isAdmin } from '@/utils/admin';
+
+/**
+ * GET /api/admin/credits?search=<query>
+ * Search accounts by business name or email
+ */
+export async function GET(request: NextRequest) {
+  try {
+    // Auth check
+    const supabase = await createServerSupabaseClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Admin check
+    const adminStatus = await isAdmin(user.id, supabase);
+    if (!adminStatus) {
+      return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+    }
+
+    const searchQuery = request.nextUrl.searchParams.get('search');
+    if (!searchQuery?.trim()) {
+      return NextResponse.json({ error: 'Search query required' }, { status: 400 });
+    }
+
+    // Use service role for database operations (bypasses RLS)
+    const serviceSupabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
+    // Search accounts directly by business_name or email
+    const { data: directMatches, error: searchError } = await serviceSupabase
+      .from('accounts')
+      .select(`
+        id,
+        email,
+        business_name,
+        plan,
+        is_client_account,
+        monthly_credit_allocation,
+        credit_balances (
+          included_credits,
+          purchased_credits
+        )
+      `)
+      .or(`business_name.ilike.%${searchQuery}%,email.ilike.%${searchQuery}%`)
+      .is('deleted_at', null)
+      .limit(10);
+
+    if (searchError) throw searchError;
+
+    // Also search in the businesses table
+    const { data: businessMatches, error: businessError } = await serviceSupabase
+      .from('businesses')
+      .select('account_id, name')
+      .ilike('name', `%${searchQuery}%`)
+      .limit(10);
+
+    if (businessError) throw businessError;
+
+    // Get account IDs from business matches that aren't already in direct matches
+    const directIds = new Set((directMatches || []).map((a: any) => a.id));
+    const additionalAccountIds = (businessMatches || [])
+      .map((b: any) => b.account_id)
+      .filter((id: string) => id && !directIds.has(id));
+
+    let additionalAccounts: any[] = [];
+    if (additionalAccountIds.length > 0) {
+      const { data: moreAccounts, error: moreError } = await serviceSupabase
+        .from('accounts')
+        .select(`
+          id,
+          email,
+          business_name,
+          plan,
+          is_client_account,
+          monthly_credit_allocation,
+          credit_balances (
+            included_credits,
+            purchased_credits
+          )
+        `)
+        .in('id', additionalAccountIds)
+        .is('deleted_at', null);
+
+      if (moreError) throw moreError;
+
+      // Attach the matching business name for display
+      additionalAccounts = (moreAccounts || []).map((account: any) => {
+        const matchingBusiness = businessMatches?.find((b: any) => b.account_id === account.id);
+        return {
+          ...account,
+          business_name: account.business_name || matchingBusiness?.name || null,
+        };
+      });
+    }
+
+    // Combine and transform results
+    const allResults = [...(directMatches || []), ...additionalAccounts];
+    const transformed = allResults.map((account: any) => ({
+      id: account.id,
+      email: account.email,
+      business_name: account.business_name,
+      plan: account.plan,
+      is_client_account: account.is_client_account,
+      monthly_credit_allocation: account.monthly_credit_allocation,
+      credit_balance: account.credit_balances?.[0] || null,
+    }));
+
+    return NextResponse.json({ accounts: transformed });
+  } catch (error: any) {
+    console.error('Admin credits search error:', error);
+    return NextResponse.json(
+      { error: error.message || 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
