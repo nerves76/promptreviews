@@ -341,6 +341,23 @@ export function GeoGridSetupWizard({
             }
           }
 
+          // IMPORTANT: Load the saved location name so it persists on re-save
+          // This ensures users don't lose their custom business name when editing
+          if (cfg.locationName) {
+            setSearchBusinessName(cfg.locationName);
+            setSelectedLocation(prev => prev ? {
+              ...prev,
+              name: cfg.locationName!,
+            } : {
+              id: '',
+              name: cfg.locationName!,
+              lat: cfg.centerLat || 0,
+              lng: cfg.centerLng || 0,
+              placeId: cfg.targetPlaceId || '',
+            });
+            hasManuallyUpdatedLocationRef.current = true; // Prevent useEffect from overwriting
+          }
+
           hasLoadedConfigRef.current = true;
         }
       } catch (err) {
