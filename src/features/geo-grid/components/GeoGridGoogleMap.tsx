@@ -58,7 +58,7 @@ interface PointData {
 
 const BUCKET_COLORS: Record<PositionBucket, string> = {
   top3: '#22c55e',    // green-500
-  top10: '#eab308',   // yellow-500
+  top10: '#2E4A7D',   // slate-blue (brand primary)
   top20: '#f97316',   // orange-500
   none: '#ef4444',    // red-500
 };
