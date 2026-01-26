@@ -361,6 +361,14 @@ export default function ConceptsTable({
   const rows: KeywordRow[] = useMemo(() => {
     const allRows: KeywordRow[] = [];
 
+    // Debug: Log the rankData map keys
+    if (rankData && rankData.size > 0) {
+      console.log('🔍 [ConceptsTable] rankData map has', rankData.size, 'entries:');
+      rankData.forEach((value, key) => {
+        console.log('  - Key:', JSON.stringify(key), 'Desktop:', value.desktop?.position, 'Mobile:', value.mobile?.position);
+      });
+    }
+
     concepts.forEach((concept) => {
       // Get the concept name (for grouping)
       const conceptName = concept.searchTerms?.find(t => t.isCanonical)?.term ||
@@ -378,6 +386,16 @@ export default function ConceptsTable({
           const normalizedTerm = normalizeTermForLookup(term.term);
           const termVolume = volumeData?.get(normalizedTerm);
           const termRank = rankData?.get(normalizedTerm);
+
+          // Debug: Log lookup attempt for this specific term
+          if (term.term.toLowerCase().includes('portland') || term.term.toLowerCase().includes('seo')) {
+            console.log('🔍 [ConceptsTable] Looking up:', {
+              originalTerm: term.term,
+              normalizedTerm,
+              found: !!termRank,
+              rankData: termRank
+            });
+          }
           // Calculate change: use desktop change if available, otherwise mobile change
           const desktopChange = calculatePositionChange(
             termRank?.desktop?.position ?? null,

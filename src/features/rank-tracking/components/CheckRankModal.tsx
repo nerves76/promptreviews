@@ -105,9 +105,9 @@ export default function CheckRankModal({
 
   return (
     <>
-      <Modal isOpen={isOpen} onClose={handleClose} size="md" allowOverflow className="!p-0">
+      <Modal isOpen={isOpen} onClose={handleClose} size="md">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-100 pr-14">
+        <div className="-mx-4 sm:-mx-6 -mt-4 sm:-mt-6 px-6 py-4 border-b border-gray-100 pr-14 mb-4">
           <h3 className="text-lg font-semibold text-gray-900">Check ranking</h3>
           <p className="text-sm text-gray-600 mt-1">
             &quot;{keyword}&quot;
@@ -115,7 +115,7 @@ export default function CheckRankModal({
         </div>
 
         {/* Content */}
-        <div className="px-6 py-4 space-y-4">
+        <div className="space-y-4">
           {/* Location */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">
@@ -179,7 +179,7 @@ export default function CheckRankModal({
         </div>
 
         {/* Footer */}
-        <Modal.Footer className="bg-gray-50">
+        <Modal.Footer>
           <button
             onClick={handleClose}
             className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"
