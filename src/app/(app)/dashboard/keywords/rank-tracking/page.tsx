@@ -438,8 +438,11 @@ export default function RankTrackingPage() {
 
   // Handle clicking "Check ranking" - auto-run if location available, otherwise show modal
   const handleCheckRank = useCallback(async (keyword: string, conceptId: string) => {
+    console.log('[handleCheckRank] Called with:', { keyword, conceptId });
+
     // If still looking up location, wait a bit
     if (isLookingUpLocation) {
+      console.log('[handleCheckRank] Waiting for location lookup...');
       setCheckingRankKeyword(keyword);
       await new Promise(resolve => setTimeout(resolve, 500));
     }
@@ -452,6 +455,8 @@ export default function RankTrackingPage() {
     // Use concept location, or fallback to business location, or looked-up location from address
     const locationCode = conceptLocationCode || business?.location_code || lookedUpLocation?.locationCode;
     const locationName = conceptLocationName || business?.location_name || lookedUpLocation?.locationName;
+
+    console.log('[handleCheckRank] Location resolved:', { locationCode, locationName, conceptFound: !!concept });
 
     if (locationCode && locationName) {
       // Auto-run the check without modal - show loading on button
@@ -495,6 +500,7 @@ export default function RankTrackingPage() {
       }
     } else {
       // No location available, show modal
+      console.log('[handleCheckRank] No location - opening modal');
       setCheckingKeyword({ keyword, conceptId });
     }
   }, [concepts, business, lookedUpLocation, isLookingUpLocation, fetchRankChecks]);
