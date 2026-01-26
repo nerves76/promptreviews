@@ -268,7 +268,12 @@ export default function RankTrackingPage() {
   // Fetch rank checks
   const fetchRankChecks = useCallback(async () => {
     try {
+      console.log('🔍 [RankTracking] Fetching rank checks...');
       const response = await apiClient.get<{ checks: RankCheck[] }>('/rank-tracking/checks?limit=500');
+      console.log('🔍 [RankTracking] Fetched', response.checks?.length || 0, 'checks');
+      if (response.checks?.length) {
+        console.log('🔍 [RankTracking] Sample check:', response.checks[0]);
+      }
       setRankChecks(response.checks || []);
     } catch (err) {
       console.error('Failed to fetch rank checks:', err);
@@ -371,12 +376,14 @@ export default function RankTrackingPage() {
   // Build term rank data map (most recent + previous check per term, combining desktop & mobile)
   const rankData = useMemo(() => {
     const map = new Map<string, RankData>();
+    console.log('🔍 [RankTracking] Building rankData map from', rankChecks.length, 'checks');
     // Sort by checked_at descending to get most recent first
     const sortedChecks = [...rankChecks].sort(
       (a, b) => new Date(b.checked_at).getTime() - new Date(a.checked_at).getTime()
     );
     sortedChecks.forEach((check) => {
       const normalizedTerm = normalizePhrase(check.search_query_used);
+      console.log('🔍 [RankTracking] Check:', check.search_query_used, '→ normalized:', normalizedTerm, 'position:', check.position);
 
       if (!map.has(normalizedTerm)) {
         map.set(normalizedTerm, {
