@@ -257,7 +257,7 @@ export function GeoGridTrendCard({
         <StatBox
           label="Ranking in Top 10"
           value={summary.keywordsInTop10}
-          color="text-yellow-600"
+          color="text-slate-blue"
           subLabel="keywords"
           change={trend?.top10Change}
         />

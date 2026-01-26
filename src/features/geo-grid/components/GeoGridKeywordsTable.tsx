@@ -103,7 +103,7 @@ const BUCKET_ORDER: Record<PositionBucket, number> = {
 
 const BUCKET_COLORS: Record<PositionBucket, string> = {
   top3: 'bg-green-100 text-green-800',
-  top10: 'bg-yellow-100 text-yellow-800',
+  top10: 'bg-blue-100 text-slate-blue',
   top20: 'bg-orange-100 text-orange-800',
   none: 'bg-red-100 text-red-800',
 };
@@ -652,7 +652,7 @@ export function GeoGridKeywordsTable({
                                     visibilityPct >= 80
                                       ? 'bg-green-500'
                                       : visibilityPct >= 40
-                                        ? 'bg-yellow-500'
+                                        ? 'bg-slate-blue'
                                         : visibilityPct > 0
                                           ? 'bg-orange-500'
                                           : 'bg-red-400'
@@ -665,7 +665,7 @@ export function GeoGridKeywordsTable({
                                   visibilityPct >= 80
                                     ? 'text-green-600'
                                     : visibilityPct >= 40
-                                      ? 'text-yellow-600'
+                                      ? 'text-slate-blue'
                                       : visibilityPct > 0
                                         ? 'text-orange-600'
                                         : 'text-red-500'
@@ -719,7 +719,7 @@ export function GeoGridKeywordsTable({
                                     group.avgPosition !== null && group.avgPosition <= 3
                                       ? 'text-green-600'
                                       : group.avgPosition !== null && group.avgPosition <= 10
-                                        ? 'text-yellow-600'
+                                        ? 'text-slate-blue'
                                         : group.avgPosition !== null && group.avgPosition <= 20
                                           ? 'text-orange-600'
                                           : 'text-red-500'
