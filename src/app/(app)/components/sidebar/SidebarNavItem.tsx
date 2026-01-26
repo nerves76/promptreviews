@@ -69,12 +69,12 @@ export function SidebarNavItem({
     </div>
   );
 
-  // Wrap in tooltip when collapsed (shows label) or when has description (shows description on hover)
+  // Wrap in tooltip when collapsed (shows label + description) or when has description (shows description on hover)
   const shouldShowTooltip = isCollapsed || !!item.description;
   const wrappedContent = shouldShowTooltip ? (
     <SidebarTooltip
       content={item.label}
-      description={!isCollapsed ? item.description : undefined}
+      description={item.description}
       disabled={!shouldShowTooltip}
     >
       {content}

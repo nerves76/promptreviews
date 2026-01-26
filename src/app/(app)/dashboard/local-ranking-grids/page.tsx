@@ -33,11 +33,11 @@ import {
   CheckPoint,
   GGPointSummary,
   ViewAsBusiness,
-  GRID_SIZE_OPTIONS,
-  GridSize,
 } from '@/features/geo-grid';
 import { ArrowLeftIcon, Cog6ToothIcon } from '@heroicons/react/24/outline';
 import LocationSelector from '@/components/LocationSelector';
+import { Modal } from '@/app/(app)/components/ui/modal';
+import { Button } from '@/app/(app)/components/ui/button';
 
 // ============================================
 // Types
@@ -93,8 +93,8 @@ export default function LocalRankingGridsPage() {
   const [selectedPoint, setSelectedPoint] = useState<CheckPoint | null>(null);
   const [isPointModalOpen, setIsPointModalOpen] = useState(false);
 
-  // Grid settings state (for inline controls)
-  const [isSavingGrid, setIsSavingGrid] = useState(false);
+  // Run check confirmation modal
+  const [showRunCheckModal, setShowRunCheckModal] = useState(false);
 
   // Toast notifications
   const { toasts, closeToast, error: showError, success: showSuccess } = useToast();
@@ -339,8 +339,23 @@ export default function LocalRankingGridsPage() {
     }
   }, [loading, isAuthenticated, gbpJustConnected]); // Re-fetch when OAuth connection completes
 
-  // Handle running a check
-  const handleRunCheck = useCallback(async () => {
+  // Calculate credit cost for a check
+  const calculateCheckCost = useMemo(() => {
+    if (!config) return 0;
+    const gridPoints = config.checkPoints?.length || 5;
+    const keywordCount = trackedKeywords.length;
+    // Cost formula: 10 base + grid points + (2 × keywords)
+    return 10 + gridPoints + (keywordCount * 2);
+  }, [config, trackedKeywords]);
+
+  // Handle run check button - show confirmation modal
+  const handleRunCheck = useCallback(() => {
+    setShowRunCheckModal(true);
+  }, []);
+
+  // Confirm and execute the check
+  const confirmRunCheck = useCallback(async () => {
+    setShowRunCheckModal(false);
     setIsCheckRunning(true);
     try {
       const result = await runCheck();
@@ -411,42 +426,6 @@ export default function LocalRankingGridsPage() {
     setSelectedPoint(null);
     setSelectedPointResult(null);
   }, []);
-
-  // Handle grid settings update (radius or grid size)
-  const handleUpdateGridSettings = useCallback(async (updates: { radiusMiles?: number; gridSize?: GridSize }) => {
-    if (!config) return;
-
-    setIsSavingGrid(true);
-    try {
-      const saveData: any = {
-        configId: config.id,
-        centerLat: config.centerLat,
-        centerLng: config.centerLng,
-      };
-
-      if (updates.radiusMiles !== undefined) {
-        saveData.radiusMiles = updates.radiusMiles;
-      }
-
-      if (updates.gridSize !== undefined) {
-        const gridOption = GRID_SIZE_OPTIONS.find(opt => opt.value === updates.gridSize);
-        if (gridOption) {
-          saveData.checkPoints = gridOption.checkPoints;
-        }
-      }
-
-      const result = await saveConfig(saveData);
-      if (result.success) {
-        await refreshConfig();
-      } else {
-        showError(result.error || 'Failed to update settings');
-      }
-    } catch (err) {
-      showError('Failed to update settings');
-    } finally {
-      setIsSavingGrid(false);
-    }
-  }, [config, saveConfig, refreshConfig, showError]);
 
   // Loading state
   if (loading) {
@@ -697,66 +676,25 @@ export default function LocalRankingGridsPage() {
                 </div>
               </div>
 
-              {/* Row 2: Grid settings (radius, grid size) */}
-              <div className="flex flex-wrap items-center gap-6 mt-4 pt-4 border-t border-gray-200">
-                {/* Radius Slider */}
-                <div className="flex items-center gap-3">
-                  <label className="text-sm font-medium text-gray-700 whitespace-nowrap">
-                    Radius
-                  </label>
-                  <input
-                    type="range"
-                    min="1"
-                    max="10"
-                    step="0.5"
-                    value={config.radiusMiles}
-                    onChange={(e) => handleUpdateGridSettings({ radiusMiles: parseFloat(e.target.value) })}
-                    disabled={isSavingGrid}
-                    className="w-24 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
-                  />
-                  <span className="text-sm font-medium text-gray-900 w-12">
-                    {config.radiusMiles} mi
-                  </span>
-                </div>
-
-                {/* Grid Size Selector */}
-                <div className="flex items-center gap-3">
-                  <label className="text-sm font-medium text-gray-700 whitespace-nowrap">
-                    Grid
-                  </label>
-                  <div className="flex gap-1">
-                    {GRID_SIZE_OPTIONS.map((option) => {
-                      const isSelected = config.checkPoints.length === option.value;
-                      return (
-                        <button
-                          key={option.value}
-                          onClick={() => handleUpdateGridSettings({ gridSize: option.value })}
-                          disabled={isSavingGrid}
-                          className={`px-2 py-1 text-xs font-medium rounded transition-colors ${
-                            isSelected
-                              ? 'bg-blue-600 text-white'
-                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                          } disabled:opacity-50`}
-                          title={option.description}
-                        >
-                          {option.value}pt
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Grid Info */}
-                <span className="text-xs text-gray-500">
-                  {config.checkPoints.length} points × {trackedKeywords.length} keywords
+              {/* Row 2: Grid info (read-only display) */}
+              <div className="flex flex-wrap items-center gap-4 mt-4 pt-4 border-t border-gray-200 text-sm text-gray-600">
+                <span>
+                  <span className="font-medium text-gray-700">Radius:</span> {config.radiusMiles} mi
                 </span>
-
-                {isSavingGrid && (
-                  <div className="flex items-center gap-1 text-xs text-gray-500">
-                    <div className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
-                    Saving...
-                  </div>
-                )}
+                <span className="text-gray-300">|</span>
+                <span>
+                  <span className="font-medium text-gray-700">Grid:</span> {config.checkPoints.length} points
+                </span>
+                <span className="text-gray-300">|</span>
+                <span>
+                  <span className="font-medium text-gray-700">Keywords:</span> {trackedKeywords.length}
+                </span>
+                <button
+                  onClick={() => setShowSettings(true)}
+                  className="text-blue-600 hover:text-blue-800 text-xs font-medium ml-2"
+                >
+                  Edit in settings
+                </button>
               </div>
             </div>
 
@@ -821,6 +759,82 @@ export default function LocalRankingGridsPage() {
         result={selectedPointResult}
         point={selectedPoint}
       />
+
+      {/* Run Check Confirmation Modal */}
+      <Modal
+        isOpen={showRunCheckModal}
+        onClose={() => setShowRunCheckModal(false)}
+        title="Run grid check"
+        size="md"
+      >
+        <div className="space-y-4">
+          {/* What will be checked */}
+          <div>
+            <h4 className="text-sm font-medium text-gray-700 mb-2">Keywords to check</h4>
+            {trackedKeywords.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {trackedKeywords.map((tk) => (
+                  <span
+                    key={tk.keywordId}
+                    className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                  >
+                    {tk.phrase}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-amber-600">No keywords tracked. Add keywords first.</p>
+            )}
+          </div>
+
+          {/* Grid info */}
+          <div className="bg-gray-50 rounded-lg p-3">
+            <div className="grid grid-cols-3 gap-4 text-sm">
+              <div>
+                <span className="text-gray-500">Grid points</span>
+                <p className="font-medium text-gray-900">{config?.checkPoints?.length || 0}</p>
+              </div>
+              <div>
+                <span className="text-gray-500">Keywords</span>
+                <p className="font-medium text-gray-900">{trackedKeywords.length}</p>
+              </div>
+              <div>
+                <span className="text-gray-500">Radius</span>
+                <p className="font-medium text-gray-900">{config?.radiusMiles || 0} mi</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Cost */}
+          <div className="flex items-center justify-between p-3 bg-amber-50 border border-amber-200 rounded-lg">
+            <div>
+              <p className="text-sm font-medium text-amber-800">Credit cost</p>
+              <p className="text-xs text-amber-600">10 base + {config?.checkPoints?.length || 0} points + ({trackedKeywords.length} × 2)</p>
+            </div>
+            <span className="text-2xl font-bold text-amber-800">{calculateCheckCost}</span>
+          </div>
+
+          {trackedKeywords.length === 0 && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-sm text-red-700">
+                You need to add at least one keyword before running a check.
+              </p>
+            </div>
+          )}
+        </div>
+
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowRunCheckModal(false)}>
+            Cancel
+          </Button>
+          <Button
+            onClick={confirmRunCheck}
+            disabled={trackedKeywords.length === 0 || !config?.targetPlaceId}
+          >
+            Run check ({calculateCheckCost} credits)
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </>
   );
 }
