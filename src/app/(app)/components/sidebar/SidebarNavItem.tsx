@@ -38,7 +38,7 @@ export function SidebarNavItem({
         <Icon name={item.icon} size={18} className="text-white" />
       </div>
 
-      {/* Label and description - hidden when collapsed */}
+      {/* Label - hidden when collapsed, description now shown in tooltip */}
       {!isCollapsed && (
         <>
           <div className="flex-1 min-w-0">
@@ -50,9 +50,6 @@ export function SidebarNavItem({
                 </span>
               )}
             </div>
-            {item.description && (
-              <span className="text-xs text-white/50 block">{item.description}</span>
-            )}
           </div>
 
           {/* Favorite button - only visible on hover when expanded */}
@@ -72,9 +69,14 @@ export function SidebarNavItem({
     </div>
   );
 
-  // Wrap in tooltip when collapsed
-  const wrappedContent = isCollapsed ? (
-    <SidebarTooltip content={item.label} disabled={!isCollapsed}>
+  // Wrap in tooltip when collapsed (shows label) or when has description (shows description on hover)
+  const shouldShowTooltip = isCollapsed || !!item.description;
+  const wrappedContent = shouldShowTooltip ? (
+    <SidebarTooltip
+      content={item.label}
+      description={!isCollapsed ? item.description : undefined}
+      disabled={!shouldShowTooltip}
+    >
       {content}
     </SidebarTooltip>
   ) : (

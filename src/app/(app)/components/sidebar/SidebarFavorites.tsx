@@ -88,9 +88,9 @@ export function SidebarFavorites({
                 ${isActive ? "bg-white/20 text-white" : "text-white/90 hover:bg-white/10 hover:text-white"}
               `}
             >
-              {/* Icon */}
+              {/* Icon - gold for favorited items */}
               <div className="flex-shrink-0 w-5 h-5 flex items-center justify-center">
-                <Icon name={navItem.icon} size={18} className="text-white" />
+                <Icon name={navItem.icon} size={18} className="text-brand-gold" />
               </div>
 
               {/* Label - always shown for favorites */}

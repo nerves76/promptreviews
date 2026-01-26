@@ -5,11 +5,13 @@ import { createPortal } from "react-dom";
 import { SidebarTooltipProps } from "./types";
 
 /**
- * Tooltip component for sidebar nav items when collapsed
+ * Tooltip component for sidebar nav items
  * Uses portal to render outside sidebar stacking context
+ * Supports optional description for expanded sidebar hover
  */
 export function SidebarTooltip({
   content,
+  description,
   children,
   position = "right",
   disabled = false,
@@ -62,7 +64,7 @@ export function SidebarTooltip({
 
   const tooltipContent = isVisible && (
     <div
-      className="fixed z-[9999] px-3 py-2 text-sm font-medium text-white rounded-lg shadow-lg whitespace-nowrap pointer-events-none"
+      className={`fixed z-[9999] px-3 py-2 text-white rounded-lg shadow-lg pointer-events-none ${description ? 'max-w-xs' : 'whitespace-nowrap'}`}
       style={{
         top: coords.top,
         left: coords.left,
@@ -76,7 +78,10 @@ export function SidebarTooltip({
         backdropFilter: "blur(8px)",
       }}
     >
-      {content}
+      <div className="text-sm font-medium">{content}</div>
+      {description && (
+        <div className="text-xs text-white/70 mt-1">{description}</div>
+      )}
       {/* Arrow */}
       {position === "right" && (
         <div

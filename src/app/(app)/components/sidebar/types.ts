@@ -120,6 +120,8 @@ export interface SidebarFavoritesProps {
  */
 export interface SidebarTooltipProps {
   content: string;
+  /** Optional description shown below the content */
+  description?: string;
   children: React.ReactNode;
   position?: "right" | "top" | "bottom";
   disabled?: boolean;
