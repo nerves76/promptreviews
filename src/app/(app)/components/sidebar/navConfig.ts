@@ -47,6 +47,12 @@ export const REVIEWS_SECTION: NavSection = {
       description: "Create review collection pages",
     },
     {
+      path: "/prompt-pages?tab=campaign",
+      label: "Campaigns",
+      icon: "FaEnvelope",
+      description: "Run personalized review campaigns",
+    },
+    {
       path: "/dashboard/reviews",
       label: "Reviews",
       icon: "FaStar",
