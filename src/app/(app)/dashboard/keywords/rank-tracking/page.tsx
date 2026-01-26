@@ -589,7 +589,13 @@ export default function RankTrackingPage() {
     desktop: { position: number | null; found: boolean };
     mobile: { position: number | null; found: boolean };
   }> => {
-    if (!checkingKeyword) throw new Error('No keyword selected');
+    console.log('🔍 [RankTracking] performRankCheck called:', { locationCode, locationName, checkingKeyword });
+    if (!checkingKeyword) {
+      console.error('🔍 [RankTracking] No checkingKeyword!');
+      throw new Error('No keyword selected');
+    }
+
+    console.log('🔍 [RankTracking] Making API calls for:', checkingKeyword.keyword);
 
     // Check both desktop and mobile in parallel
     const [desktopResponse, mobileResponse] = await Promise.all([
@@ -623,6 +629,9 @@ export default function RankTrackingPage() {
       }),
     ]);
 
+    console.log('🔍 [RankTracking] Desktop response:', desktopResponse);
+    console.log('🔍 [RankTracking] Mobile response:', mobileResponse);
+
     if (!desktopResponse.success) {
       throw new Error(desktopResponse.error || 'Failed to check desktop rank');
     }
@@ -631,7 +640,9 @@ export default function RankTrackingPage() {
     }
 
     // Refresh rank checks to update the table
+    console.log('🔍 [RankTracking] Refreshing rank checks...');
     await fetchRankChecks();
+    console.log('🔍 [RankTracking] Rank checks refreshed');
 
     return {
       desktop: { position: desktopResponse.position, found: desktopResponse.found },

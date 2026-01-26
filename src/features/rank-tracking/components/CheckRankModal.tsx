@@ -61,7 +61,11 @@ export default function CheckRankModal({
   };
 
   const handleConfirmedCheck = async () => {
-    if (!location) return;
+    console.log('🔍 [CheckRankModal] handleConfirmedCheck called', { location, keyword });
+    if (!location) {
+      console.log('🔍 [CheckRankModal] No location, returning early');
+      return;
+    }
 
     setShowConfirm(false);
     setIsChecking(true);
@@ -69,11 +73,15 @@ export default function CheckRankModal({
     setResult(null);
 
     try {
+      console.log('🔍 [CheckRankModal] Calling onCheck with:', { locationCode: location.code, locationName: location.name });
       const res = await onCheck(location.code, location.name);
+      console.log('🔍 [CheckRankModal] onCheck returned:', res);
       setResult(res);
       // Trigger refresh and pass the location used (so it can be saved to concept)
+      console.log('🔍 [CheckRankModal] Calling onCheckComplete');
       onCheckComplete?.(location.code, location.name);
     } catch (err: any) {
+      console.error('🔍 [CheckRankModal] Error:', err);
       setError(err?.message || 'Failed to check rank');
     } finally {
       setIsChecking(false);
