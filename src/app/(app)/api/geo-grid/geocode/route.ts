@@ -227,25 +227,27 @@ export async function POST(request: NextRequest) {
       if (placeId) {
         console.log('Fetching coordinates for Place ID:', placeId);
 
-        // Try Places API (New) first - request location AND address info for fallback
+        // Try Places API (New) first - request location, name, AND address info for fallback
         let formattedAddress: string | null = null;
         let adrAddress: string | null = null;
+        let businessName: string | null = null;
 
         try {
           const placesNewResponse = await fetch(`https://places.googleapis.com/v1/places/${placeId}`, {
             method: 'GET',
             headers: {
               'X-Goog-Api-Key': GOOGLE_MAPS_API_KEY,
-              'X-Goog-FieldMask': 'location,formattedAddress,adrFormatAddress,addressComponents',
+              'X-Goog-FieldMask': 'displayName,location,formattedAddress,adrFormatAddress,addressComponents',
             },
           });
 
           const placesNewData = await placesNewResponse.json();
           console.log('Places API (New) full response:', JSON.stringify(placesNewData));
 
-          // Store address info for potential fallback geocoding
+          // Store address and name info for potential fallback geocoding
           formattedAddress = placesNewData.formattedAddress || null;
           adrAddress = placesNewData.adrFormatAddress || null;
+          businessName = placesNewData.displayName?.text || null;
 
           if (placesNewData.location) {
             return NextResponse.json({
@@ -254,6 +256,8 @@ export async function POST(request: NextRequest) {
                 lat: placesNewData.location.latitude,
                 lng: placesNewData.location.longitude,
               },
+              businessName,
+              formattedAddress,
               source: 'google_places_new',
             });
           }
@@ -266,12 +270,17 @@ export async function POST(request: NextRequest) {
           console.log('Places API (New) failed, trying legacy API...', err);
         }
 
-        // Fallback to legacy Place Details API - request geometry AND address
-        url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${encodeURIComponent(placeId)}&fields=geometry,formatted_address,address_components&key=${GOOGLE_MAPS_API_KEY}`;
+        // Fallback to legacy Place Details API - request geometry, name, AND address
+        url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${encodeURIComponent(placeId)}&fields=geometry,name,formatted_address,address_components&key=${GOOGLE_MAPS_API_KEY}`;
 
         const response = await fetch(url);
         const data = await response.json();
-        console.log('Place Details API (Legacy) response:', { status: data.status, hasLocation: !!data.result?.geometry?.location, hasAddress: !!data.result?.formatted_address });
+        console.log('Place Details API (Legacy) response:', { status: data.status, hasLocation: !!data.result?.geometry?.location, hasAddress: !!data.result?.formatted_address, hasName: !!data.result?.name });
+
+        // Get business name from legacy API if we didn't get it from Places API (New)
+        if (data.result?.name && !businessName) {
+          businessName = data.result.name;
+        }
 
         if (data.status === 'OK' && data.result?.geometry?.location) {
           return NextResponse.json({
@@ -280,6 +289,8 @@ export async function POST(request: NextRequest) {
               lat: data.result.geometry.location.lat,
               lng: data.result.geometry.location.lng,
             },
+            businessName: businessName || data.result.name,
+            formattedAddress: data.result.formatted_address,
             source: 'google_places_legacy',
           });
         }
@@ -305,6 +316,8 @@ export async function POST(request: NextRequest) {
                 lat: location.lat,
                 lng: location.lng,
               },
+              businessName,
+              formattedAddress,
               source: 'google_geocode_fallback',
               note: 'Coordinates derived from service area address. You may want to adjust to the center of your actual service area.',
             });

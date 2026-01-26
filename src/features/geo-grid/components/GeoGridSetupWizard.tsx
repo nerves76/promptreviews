@@ -478,6 +478,8 @@ export function GeoGridSetupWizard({
       const response = await apiClient.post<{
         success: boolean;
         coordinates?: { lat: number; lng: number };
+        businessName?: string;
+        formattedAddress?: string;
         error?: string;
         hint?: string;
         note?: string;
@@ -488,6 +490,21 @@ export function GeoGridSetupWizard({
       if (response.success && response.coordinates) {
         setManualLat(response.coordinates.lat.toString());
         setManualLng(response.coordinates.lng.toString());
+        // Update business name if returned from Google (reflects current name)
+        if (response.businessName) {
+          setSearchBusinessName(response.businessName);
+          // Also update the selected location name for display
+          setSelectedLocation(prev => prev ? {
+            ...prev,
+            name: response.businessName!,
+          } : {
+            id: '',
+            name: response.businessName!,
+            lat: response.coordinates!.lat,
+            lng: response.coordinates!.lng,
+            placeId: placeId,
+          });
+        }
         // Show note if coordinates came from fallback geocoding
         if (response.note) {
           setCoordsNote(response.note);
@@ -1114,20 +1131,6 @@ export function GeoGridSetupWizard({
                     </div>
                   </div>
                 </details>
-
-                {/* Direct coordinates method - more prominent for service-area businesses */}
-                <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                  <p className="text-sm font-medium text-green-800 mb-2">
-                    Easiest method for service-area businesses:
-                  </p>
-                  <ol className="text-xs text-green-700 space-y-1 pl-4 list-decimal">
-                    <li>Go to <a href="https://www.google.com/maps" target="_blank" rel="noopener noreferrer" className="underline font-medium">Google Maps</a></li>
-                    <li>Navigate to the center of your service area</li>
-                    <li>Right-click on that spot</li>
-                    <li>Click the coordinates (e.g., &quot;45.5231, -122.6765&quot;) to copy them</li>
-                    <li>Paste into the latitude and longitude fields below</li>
-                  </ol>
-                </div>
               </div>
             )}
 
@@ -1152,6 +1155,20 @@ export function GeoGridSetupWizard({
               <p className="text-xs text-gray-500">
                 This is the center point for rank tracking. For service-area businesses, use the center of your service area.
               </p>
+
+              {/* How to get coordinates - helpful for service-area businesses */}
+              <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                <p className="text-sm font-medium text-green-800 mb-2">
+                  How to get coordinates:
+                </p>
+                <ol className="text-xs text-green-700 space-y-1 pl-4 list-decimal">
+                  <li>Go to <a href="https://www.google.com/maps" target="_blank" rel="noopener noreferrer" className="underline font-medium">Google Maps</a></li>
+                  <li>Navigate to the center of your service area</li>
+                  <li>Right-click on that spot</li>
+                  <li>Click the coordinates (e.g., &quot;45.5231, -122.6765&quot;) to copy them</li>
+                  <li>Paste the first number into Latitude, second into Longitude</li>
+                </ol>
+              </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1185,9 +1202,6 @@ export function GeoGridSetupWizard({
                   </p>
                 </div>
               )}
-              <p className="text-xs text-gray-500">
-                <strong>Tip:</strong> Right-click on Google Maps and click the coordinates to copy them.
-              </p>
             </div>
           </div>
         );
