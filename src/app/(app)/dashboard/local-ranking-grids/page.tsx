@@ -764,7 +764,7 @@ export default function LocalRankingGridsPage() {
       <Modal
         isOpen={showRunCheckModal}
         onClose={() => setShowRunCheckModal(false)}
-        title="Run grid check"
+        title="Grid check"
         size="md"
       >
         <div className="space-y-4">
@@ -805,10 +805,10 @@ export default function LocalRankingGridsPage() {
             </div>
           </div>
 
-          {/* Cost */}
+          {/* Cost per check */}
           <div className="flex items-center justify-between p-3 bg-amber-50 border border-amber-200 rounded-lg">
             <div>
-              <p className="text-sm font-medium text-amber-800">Credit cost</p>
+              <p className="text-sm font-medium text-amber-800">Cost per check</p>
               <p className="text-xs text-amber-600">10 base + {config?.checkPoints?.length || 0} points + ({trackedKeywords.length} × 2)</p>
             </div>
             <span className="text-2xl font-bold text-amber-800">{calculateCheckCost}</span>
@@ -821,6 +821,39 @@ export default function LocalRankingGridsPage() {
               </p>
             </div>
           )}
+
+          {/* Schedule info */}
+          {config && (
+            <div className="border-t border-gray-200 pt-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-700">Automated checks</p>
+                  <p className="text-xs text-gray-500">
+                    {config.isEnabled ? (
+                      <>
+                        {config.scheduleFrequency === 'daily' && 'Running daily'}
+                        {config.scheduleFrequency === 'weekly' && `Running weekly on ${['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][config.scheduleDayOfWeek || 0]}`}
+                        {config.scheduleFrequency === 'monthly' && `Running monthly on day ${config.scheduleDayOfMonth || 1}`}
+                        {' at '}
+                        {config.scheduleHour > 12 ? `${config.scheduleHour - 12}:00 PM` : config.scheduleHour === 0 ? '12:00 AM' : `${config.scheduleHour}:00 AM`}
+                      </>
+                    ) : (
+                      'Not scheduled'
+                    )}
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowRunCheckModal(false);
+                    setShowSettings(true);
+                  }}
+                  className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                >
+                  {config.isEnabled ? 'Edit schedule' : 'Set up schedule'}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         <Modal.Footer>
@@ -831,7 +864,7 @@ export default function LocalRankingGridsPage() {
             onClick={confirmRunCheck}
             disabled={trackedKeywords.length === 0 || !config?.targetPlaceId}
           >
-            Run check ({calculateCheckCost} credits)
+            Run now ({calculateCheckCost} credits)
           </Button>
         </Modal.Footer>
       </Modal>
