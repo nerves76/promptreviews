@@ -281,12 +281,6 @@ export function GeoGridBusinessConnection({
         </div>
       )}
 
-      {/* Help Text */}
-      {hasPlaceId && !showSearch && (
-        <p className="mt-3 text-xs text-gray-500">
-          If your business name changed in Google, click "Reconnect business" to search for and update your Google Place ID.
-        </p>
-      )}
     </div>
   );
 }

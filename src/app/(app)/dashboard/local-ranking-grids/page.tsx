@@ -585,26 +585,13 @@ export default function LocalRankingGridsPage() {
           </div>
         )}
 
-        {/* Warning: No Place ID set */}
-        {config && !config.targetPlaceId && (
-          <div className="mb-6 p-4 bg-amber-50 border-2 border-amber-200 rounded-xl">
-            <div className="flex items-start gap-3">
-              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
-                <Icon name="FaExclamationTriangle" className="w-5 h-5 text-amber-600" size={20} />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-amber-800">Setup incomplete</h3>
-                <p className="text-sm text-amber-700 mt-1">
-                  Your business Place ID is not set. Rank tracking won't work until you complete setup.
-                </p>
-                <button
-                  onClick={() => setShowSettings(true)}
-                  className="mt-3 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-sm font-medium rounded-lg transition-colors"
-                >
-                  Complete setup
-                </button>
-              </div>
-            </div>
+        {/* Target Business Connection - Show at top for visibility */}
+        {config && (
+          <div className="mb-6">
+            <GeoGridBusinessConnection
+              config={config}
+              onUpdated={refreshConfig}
+            />
           </div>
         )}
 
@@ -814,19 +801,13 @@ export default function LocalRankingGridsPage() {
             keywordUsageCounts={keywordUsageCounts}
           />
 
-          {/* Settings - Business Connection & Schedule */}
+          {/* Schedule Settings */}
           {config && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <GeoGridBusinessConnection
-                config={config}
-                onUpdated={refreshConfig}
-              />
-              <GeoGridScheduleSettings
-                config={config}
-                keywordCount={trackedKeywords.length}
-                onScheduleUpdated={refreshConfig}
-              />
-            </div>
+            <GeoGridScheduleSettings
+              config={config}
+              keywordCount={trackedKeywords.length}
+              onScheduleUpdated={refreshConfig}
+            />
           )}
         </div>
 
