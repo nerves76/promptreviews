@@ -147,7 +147,7 @@ function StandardModal({
 
         {/* Panel container */}
         <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4">
+          <div className="flex min-h-full items-center justify-center p-4 py-8">
             <Transition.Child
               as={Fragment}
               enter="ease-out duration-300"
@@ -159,7 +159,7 @@ function StandardModal({
             >
               <Dialog.Panel
                 className={cn(
-                  'relative w-full transform rounded-2xl p-4 sm:p-6 shadow-xl transition-all',
+                  'relative w-full transform rounded-2xl p-4 sm:p-6 shadow-xl transition-all my-auto',
                   sizeClasses[size],
                   (allowOverflow || showCloseButton) ? 'overflow-visible' : 'overflow-hidden',
                   isDark
