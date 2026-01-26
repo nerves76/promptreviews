@@ -920,16 +920,27 @@ export function GeoGridSetupWizard({
                     <>
                       <strong>Business not found</strong> in Google's public database. This is common for service-area businesses.
                       <br /><br />
-                      Find your Place ID manually using{' '}
+                      <strong>Option 1:</strong> Find your Place ID using{' '}
                       <a
                         href="https://developers.google.com/maps/documentation/javascript/examples/places-placeid-finder"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-blue-600 underline hover:text-blue-800"
                       >
-                        Google's Place ID Finder
+                        Google&apos;s Place ID Finder
                       </a>
-                      {' '}and enter it below.
+                      , paste it below, then click &quot;Get coordinates&quot;.
+                      <br /><br />
+                      <strong>Option 2:</strong> Go to{' '}
+                      <a
+                        href="https://www.google.com/maps"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 underline hover:text-blue-800"
+                      >
+                        Google Maps
+                      </a>
+                      , right-click on your service area center, click the coordinates to copy them, then paste into the latitude/longitude fields below.
                     </>
                   ) : geocodeError.includes('Service-area') ? (
                     <>
@@ -1034,24 +1045,31 @@ export function GeoGridSetupWizard({
                   </summary>
                   <div className="mt-2 space-y-3">
                     <div className="p-2 bg-blue-50 rounded">
-                      <p className="font-medium text-blue-800 mb-1">Easiest method:</p>
+                      <p className="font-medium text-blue-800 mb-1">Using Place ID Finder:</p>
                       <ol className="space-y-1 pl-4 list-decimal text-blue-700">
                         <li>Go to <a href="https://developers.google.com/maps/documentation/javascript/examples/places-placeid-finder" target="_blank" rel="noopener noreferrer" className="underline font-medium">Google Place ID Finder</a></li>
                         <li>Search for your business name</li>
                         <li>Click on your listing in the map</li>
-                        <li>Copy the Place ID shown (starts with "ChIJ...")</li>
-                      </ol>
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-700 mb-1">Alternative method:</p>
-                      <ol className="space-y-1 pl-4 list-decimal">
-                        <li>Search for your business on <a href="https://www.google.com/maps" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Google Maps</a></li>
-                        <li>Click on your business listing</li>
-                        <li>The URL will contain <code className="bg-gray-100 px-1 rounded">!1s0x...</code> - the Place ID is the part after "!1s"</li>
+                        <li>Copy the Place ID shown (starts with &quot;ChIJ...&quot;)</li>
+                        <li><strong>Paste it above and click &quot;Get coordinates&quot;</strong></li>
                       </ol>
                     </div>
                   </div>
                 </details>
+
+                {/* Direct coordinates method - more prominent for service-area businesses */}
+                <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                  <p className="text-sm font-medium text-green-800 mb-2">
+                    Easiest method for service-area businesses:
+                  </p>
+                  <ol className="text-xs text-green-700 space-y-1 pl-4 list-decimal">
+                    <li>Go to <a href="https://www.google.com/maps" target="_blank" rel="noopener noreferrer" className="underline font-medium">Google Maps</a></li>
+                    <li>Navigate to the center of your service area</li>
+                    <li>Right-click on that spot</li>
+                    <li>Click the coordinates (e.g., &quot;45.5231, -122.6765&quot;) to copy them</li>
+                    <li>Paste into the latitude and longitude fields below</li>
+                  </ol>
+                </div>
               </div>
             )}
 
