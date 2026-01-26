@@ -334,12 +334,6 @@ async function updateConfig(
   accountId: string,
   body: GGConfigUpdateInput
 ) {
-  console.log('updateConfig called with body:', {
-    configId,
-    locationName: (body as any).locationName,
-    targetPlaceId: body.targetPlaceId,
-  });
-
   const updates: Record<string, any> = {
     updated_at: new Date().toISOString(),
   };
@@ -381,8 +375,6 @@ async function updateConfig(
   if ((body as any).locationName !== undefined) {
     updates.location_name = (body as any).locationName;
   }
-
-  console.log('updateConfig - updates object:', updates);
 
   // Update config
   const { data: config, error: updateError } = await serviceSupabase

@@ -578,32 +578,20 @@ export function GeoGridSetupWizard({
     reviewCount?: number;
     coordinates?: { lat: number; lng: number };
   }) => {
-    console.log('selectBusinessResult called with:', {
-      name: result.name,
-      placeId: result.placeId,
-      hasCoordinates: !!result.coordinates,
-    });
-
     setGooglePlaceId(result.placeId);
     setSearchBusinessName(result.name);
     setBusinessSearchResults([]); // Clear results after selection
 
     // Update selected location with the business name
-    setSelectedLocation(prev => {
-      console.log('selectBusinessResult - updating selectedLocation:', {
-        prevName: prev?.name,
-        newName: result.name,
-      });
-      return prev ? {
-        ...prev,
-        name: result.name,
-      } : {
-        id: '',
-        name: result.name,
-        lat: result.coordinates?.lat || 0,
-        lng: result.coordinates?.lng || 0,
-        placeId: result.placeId,
-      };
+    setSelectedLocation(prev => prev ? {
+      ...prev,
+      name: result.name,
+    } : {
+      id: '',
+      name: result.name,
+      lat: result.coordinates?.lat || 0,
+      lng: result.coordinates?.lng || 0,
+      placeId: result.placeId,
     });
     hasManuallyUpdatedLocationRef.current = true;
 
@@ -762,15 +750,6 @@ export function GeoGridSetupWizard({
     const selectedOption = GRID_SIZE_OPTIONS.find(opt => opt.value === gridSize);
     const checkPoints: CheckPoint[] = selectedOption?.checkPoints || ['center', 'n', 's', 'e', 'w'];
 
-    const locationNameToSave = selectedLocation.name || effectiveGBPLocation?.name || undefined;
-    console.log('GeoGridSetupWizard handleSubmit - locationName debug:', {
-      'selectedLocation.name': selectedLocation.name,
-      'effectiveGBPLocation?.name': effectiveGBPLocation?.name,
-      locationNameToSave,
-      configId,
-      googlePlaceId,
-    });
-
     const configData: SaveConfigData = {
       configId, // Pass configId for editing existing configs
       googleBusinessLocationId: selectedLocation.id,
@@ -780,7 +759,7 @@ export function GeoGridSetupWizard({
       checkPoints,
       targetPlaceId: googlePlaceId, // Use the Google Place ID from geocoding, not GBP location ID
       isEnabled: true,
-      locationName: locationNameToSave,
+      locationName: selectedLocation.name || effectiveGBPLocation?.name || undefined,
     };
 
     const result = await saveConfig(configData);
