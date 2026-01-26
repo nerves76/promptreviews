@@ -744,12 +744,15 @@ export function GeoGridSetupWizard({
                 const isComplete = hasValidCoords && hasValidPlaceId;
                 const needsSetup = !hasValidCoords || !hasValidPlaceId;
 
+                // Use the updated name from selectedLocation if available (from Place ID lookup)
+                const displayName = selectedLocation?.name || effectiveGBPLocation.name;
+
                 return (
                   <div className={`p-4 rounded-lg ${needsSetup ? 'bg-amber-50 border border-amber-200' : 'bg-green-50 border border-green-200'}`}>
                     <div className="flex items-start gap-3">
                       <MapPinIcon className={`w-6 h-6 ${needsSetup ? 'text-amber-600' : 'text-green-600'}`} />
                       <div className="flex-1">
-                        <p className="font-semibold text-gray-900">{effectiveGBPLocation.name}</p>
+                        <p className="font-semibold text-gray-900">{displayName}</p>
                         {effectiveGBPLocation.address && (
                           <p className="text-sm text-gray-500">{effectiveGBPLocation.address}</p>
                         )}
