@@ -23,7 +23,6 @@ import {
   GeoGridTrendCard,
   GeoGridKeywordsTable,
   GeoGridScheduleSettings,
-  GeoGridBusinessConnection,
   useGeoGridConfig,
   useGeoGridResults,
   useGeoGridSummary,
@@ -552,46 +551,66 @@ export default function LocalRankingGridsPage() {
           </div>
         </div>
 
-        {/* Location Selector - Maven only, when multiple configs exist */}
-        {plan === 'maven' && configs.length > 0 && (
-          <div className="bg-gray-50 rounded-lg p-4 mb-6 border border-gray-200">
-            <div className="flex flex-wrap items-center gap-4">
-              <span className="text-sm font-medium text-gray-700">Location:</span>
-              <div className="w-72">
-                <LocationSelector
-                  locations={configs.map(c => ({
-                    id: c.id,
-                    name: c.locationName || c.googleBusinessLocation?.location_name || (c.targetPlaceId ? 'Location' : '⚠️ Setup incomplete'),
-                    address: c.googleBusinessLocation?.address || (!c.targetPlaceId ? 'Click Settings to complete' : null),
-                  }))}
-                  selectedId={selectedConfigId}
-                  onSelect={selectConfig}
-                  showAddButton={canAddMore}
-                  onAdd={() => {
-                    setIsAddingNewLocation(true);
-                    setShowSettings(true);
-                  }}
-                  addButtonLabel={`Add Location (${configs.length}/${maxConfigs})`}
-                  placeholder="Select a location"
-                  className=""
-                />
-              </div>
-              {configs.length > 1 && (
-                <span className="text-xs text-gray-500">
-                  Tracking {configs.length} of {maxConfigs} locations
-                </span>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Target Business Connection - Show at top for visibility */}
+        {/* Location & Connection Status - Combined header */}
         {config && (
-          <div className="mb-6">
-            <GeoGridBusinessConnection
-              config={config}
-              onUpdated={refreshConfig}
-            />
+          <div className="bg-white rounded-xl border-2 border-gray-200 p-4 mb-6">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              {/* Left side: Location selector or business name */}
+              <div className="flex flex-wrap items-center gap-4">
+                {plan === 'maven' && configs.length > 0 ? (
+                  <>
+                    <span className="text-sm font-medium text-gray-700">Location:</span>
+                    <div className="w-72">
+                      <LocationSelector
+                        locations={configs.map(c => ({
+                          id: c.id,
+                          name: c.locationName || c.googleBusinessLocation?.location_name || (c.targetPlaceId ? 'Location' : '⚠️ Setup incomplete'),
+                          address: c.googleBusinessLocation?.address || (!c.targetPlaceId ? 'Click Settings to complete' : null),
+                        }))}
+                        selectedId={selectedConfigId}
+                        onSelect={selectConfig}
+                        showAddButton={canAddMore}
+                        onAdd={() => {
+                          setIsAddingNewLocation(true);
+                          setShowSettings(true);
+                        }}
+                        addButtonLabel={`Add Location (${configs.length}/${maxConfigs})`}
+                        placeholder="Select a location"
+                        className=""
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <Icon name="FaMapMarker" className="w-4 h-4 text-slate-blue" size={16} />
+                    <span className="font-medium text-gray-900">
+                      {config.locationName || config.googleBusinessLocation?.location_name || 'Your Business'}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Right side: Connection status */}
+              <div className="flex items-center gap-3">
+                {config.targetPlaceId ? (
+                  <span className="flex items-center gap-1.5 text-sm text-green-700 bg-green-50 px-3 py-1.5 rounded-full border border-green-200">
+                    <Icon name="FaCheckCircle" className="w-4 h-4" size={16} />
+                    Connected
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1.5 text-sm text-amber-700 bg-amber-50 px-3 py-1.5 rounded-full border border-amber-200">
+                    <Icon name="FaExclamationTriangle" className="w-4 h-4" size={16} />
+                    Not connected
+                  </span>
+                )}
+                <button
+                  onClick={() => setShowSettings(true)}
+                  className="text-sm text-blue-600 hover:text-blue-800 font-medium whitespace-nowrap"
+                >
+                  {config.targetPlaceId ? 'Reconnect' : 'Connect business'}
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
