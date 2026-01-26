@@ -463,26 +463,34 @@ export function GeoGridSetupWizard({
   }, []);
 
   // Fetch coordinates from a Place ID
+  const [coordsNote, setCoordsNote] = useState<string | null>(null);
   const fetchCoordsFromPlaceId = useCallback(async (placeId: string) => {
     console.log('Fetching coordinates for Place ID:', placeId);
     setIsGeocoding(true);
+    setCoordsNote(null);
     try {
       const response = await apiClient.post<{
         success: boolean;
         coordinates?: { lat: number; lng: number };
         error?: string;
         hint?: string;
+        note?: string;
+        source?: string;
       }>('/geo-grid/geocode', { placeId });
 
       console.log('Geocode response for Place ID:', response);
       if (response.success && response.coordinates) {
         setManualLat(response.coordinates.lat.toString());
         setManualLng(response.coordinates.lng.toString());
+        // Show note if coordinates came from fallback geocoding
+        if (response.note) {
+          setCoordsNote(response.note);
+        }
       } else {
         // Service-area businesses don't expose coordinates via the API
         // Show a helpful message with link to Google Maps
         setGeocodeError(
-          'Service-area businesses don\'t have a public location. Please enter the center of your service area manually. Go to [Google Maps](https://www.google.com/maps), right-click on your service area center, and click the coordinates to copy them.'
+          response.hint || 'Service-area businesses don\'t have a public location. Please enter the center of your service area manually.'
         );
       }
     } catch (err) {
@@ -1129,6 +1137,13 @@ export function GeoGridSetupWizard({
                   />
                 </div>
               </div>
+              {coordsNote && (
+                <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-sm text-blue-800">
+                    <strong>Note:</strong> {coordsNote}
+                  </p>
+                </div>
+              )}
               <p className="text-xs text-gray-500">
                 <strong>Tip:</strong> Right-click on Google Maps and click the coordinates to copy them.
               </p>

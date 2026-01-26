@@ -227,18 +227,25 @@ export async function POST(request: NextRequest) {
       if (placeId) {
         console.log('Fetching coordinates for Place ID:', placeId);
 
-        // Try Places API (New) first - it's more reliable and modern
+        // Try Places API (New) first - request location AND address info for fallback
+        let formattedAddress: string | null = null;
+        let adrAddress: string | null = null;
+
         try {
           const placesNewResponse = await fetch(`https://places.googleapis.com/v1/places/${placeId}`, {
             method: 'GET',
             headers: {
               'X-Goog-Api-Key': GOOGLE_MAPS_API_KEY,
-              'X-Goog-FieldMask': 'location',
+              'X-Goog-FieldMask': 'location,formattedAddress,adrFormatAddress,addressComponents',
             },
           });
 
           const placesNewData = await placesNewResponse.json();
           console.log('Places API (New) full response:', JSON.stringify(placesNewData));
+
+          // Store address info for potential fallback geocoding
+          formattedAddress = placesNewData.formattedAddress || null;
+          adrAddress = placesNewData.adrFormatAddress || null;
 
           if (placesNewData.location) {
             return NextResponse.json({
@@ -259,12 +266,12 @@ export async function POST(request: NextRequest) {
           console.log('Places API (New) failed, trying legacy API...', err);
         }
 
-        // Fallback to legacy Place Details API
-        url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${encodeURIComponent(placeId)}&fields=geometry&key=${GOOGLE_MAPS_API_KEY}`;
+        // Fallback to legacy Place Details API - request geometry AND address
+        url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${encodeURIComponent(placeId)}&fields=geometry,formatted_address,address_components&key=${GOOGLE_MAPS_API_KEY}`;
 
         const response = await fetch(url);
         const data = await response.json();
-        console.log('Place Details API (Legacy) response:', { status: data.status, hasLocation: !!data.result?.geometry?.location });
+        console.log('Place Details API (Legacy) response:', { status: data.status, hasLocation: !!data.result?.geometry?.location, hasAddress: !!data.result?.formatted_address });
 
         if (data.status === 'OK' && data.result?.geometry?.location) {
           return NextResponse.json({
@@ -277,12 +284,39 @@ export async function POST(request: NextRequest) {
           });
         }
 
-        // Both APIs failed - return error with status
+        // Store legacy address if we got it
+        if (data.result?.formatted_address) {
+          formattedAddress = data.result.formatted_address;
+        }
+
+        // No direct coordinates - try geocoding the address as fallback
+        // This helps service-area businesses that hide their address but have city info
+        if (formattedAddress) {
+          console.log('No coordinates from Place ID, trying to geocode address:', formattedAddress);
+          const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(formattedAddress)}&key=${GOOGLE_MAPS_API_KEY}`;
+          const geocodeResponse = await fetch(geocodeUrl);
+          const geocodeData = await geocodeResponse.json();
+
+          if (geocodeData.status === 'OK' && geocodeData.results?.[0]?.geometry?.location) {
+            const location = geocodeData.results[0].geometry.location;
+            return NextResponse.json({
+              success: true,
+              coordinates: {
+                lat: location.lat,
+                lng: location.lng,
+              },
+              source: 'google_geocode_fallback',
+              note: 'Coordinates derived from service area address. You may want to adjust to the center of your actual service area.',
+            });
+          }
+        }
+
+        // All methods failed - return error with status
         console.error('Place Details API error:', data.status, data.error_message);
         return NextResponse.json({
           success: false,
           error: `Could not fetch coordinates for Place ID: ${data.status}`,
-          hint: data.error_message || 'The Place ID may be invalid or the Places API may not be enabled in your Google Cloud project.',
+          hint: data.error_message || 'This appears to be a service-area business without public coordinates. Please enter the center of your service area manually.',
         });
       }
 
