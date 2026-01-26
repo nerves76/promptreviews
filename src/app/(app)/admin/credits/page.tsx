@@ -43,8 +43,8 @@ export default function CreditsAdminPage() {
     setResults([]);
 
     try {
-      // Search by business name or email
-      const { data, error: searchError } = await supabase
+      // First, search accounts directly by business_name or email
+      const { data: directMatches, error: searchError } = await supabase
         .from('accounts')
         .select(`
           id,
@@ -64,8 +64,58 @@ export default function CreditsAdminPage() {
 
       if (searchError) throw searchError;
 
-      // Transform results to flatten credit_balances
-      const transformed = (data || []).map((account: any) => ({
+      // Also search in the businesses table (business names are often stored there)
+      const { data: businessMatches, error: businessError } = await supabase
+        .from('businesses')
+        .select(`
+          account_id,
+          name
+        `)
+        .ilike('name', `%${searchQuery}%`)
+        .limit(10);
+
+      if (businessError) throw businessError;
+
+      // Get account IDs from business matches that aren't already in direct matches
+      const directIds = new Set((directMatches || []).map((a: any) => a.id));
+      const additionalAccountIds = (businessMatches || [])
+        .map((b: any) => b.account_id)
+        .filter((id: string) => !directIds.has(id));
+
+      let additionalAccounts: any[] = [];
+      if (additionalAccountIds.length > 0) {
+        const { data: moreAccounts, error: moreError } = await supabase
+          .from('accounts')
+          .select(`
+            id,
+            email,
+            business_name,
+            plan,
+            is_client_account,
+            monthly_credit_allocation,
+            credit_balances (
+              included_credits,
+              purchased_credits
+            )
+          `)
+          .in('id', additionalAccountIds)
+          .is('deleted_at', null);
+
+        if (moreError) throw moreError;
+
+        // Attach the matching business name for display
+        additionalAccounts = (moreAccounts || []).map((account: any) => {
+          const matchingBusiness = businessMatches?.find((b: any) => b.account_id === account.id);
+          return {
+            ...account,
+            business_name: account.business_name || matchingBusiness?.name || null,
+          };
+        });
+      }
+
+      // Combine and transform results
+      const allResults = [...(directMatches || []), ...additionalAccounts];
+      const transformed = allResults.map((account: any) => ({
         ...account,
         credit_balance: account.credit_balances?.[0] || null,
         credit_balances: undefined,
