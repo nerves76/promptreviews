@@ -406,12 +406,12 @@ export function GeoGridGoogleMap({
 
     // Clear existing markers
     markersRef.current.forEach((marker) => {
-      if ('map' in marker && typeof marker.map !== 'undefined') {
-        // AdvancedMarkerElement
-        (marker as google.maps.marker.AdvancedMarkerElement).map = null;
-      } else if ('setMap' in marker) {
-        // Basic Marker
+      // Check for setMap first - basic Marker has this method
+      if ('setMap' in marker && typeof (marker as google.maps.Marker).setMap === 'function') {
         (marker as google.maps.Marker).setMap(null);
+      } else if ('map' in marker) {
+        // AdvancedMarkerElement uses .map = null
+        (marker as google.maps.marker.AdvancedMarkerElement).map = null;
       }
     });
     markersRef.current = [];
@@ -572,12 +572,10 @@ export function GeoGridGoogleMap({
   useEffect(() => {
     return () => {
       markersRef.current.forEach((marker) => {
-        if ('map' in marker && typeof marker.map !== 'undefined') {
-          // AdvancedMarkerElement
-          (marker as google.maps.marker.AdvancedMarkerElement).map = null;
-        } else if ('setMap' in marker) {
-          // Basic Marker
+        if ('setMap' in marker && typeof (marker as google.maps.Marker).setMap === 'function') {
           (marker as google.maps.Marker).setMap(null);
+        } else if ('map' in marker) {
+          (marker as google.maps.marker.AdvancedMarkerElement).map = null;
         }
       });
       if (circleRef.current) {
