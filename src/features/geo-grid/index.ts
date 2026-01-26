@@ -101,9 +101,8 @@ export {
   GeoGridMap,
   GeoGridGoogleMap,
   GeoGridPointModal,
-  GeoGridResultsTable,
   GeoGridTrendCard,
-  GeoGridKeywordPicker,
+  GeoGridKeywordsTable,
   GeoGridScheduleSettings,
   GeoGridConfigSettings,
 } from './components';

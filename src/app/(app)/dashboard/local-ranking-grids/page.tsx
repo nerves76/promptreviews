@@ -20,9 +20,8 @@ import {
   GeoGridSetupWizard,
   GeoGridGoogleMap,
   GeoGridPointModal,
-  GeoGridResultsTable,
   GeoGridTrendCard,
-  GeoGridKeywordPicker,
+  GeoGridKeywordsTable,
   GeoGridScheduleSettings,
   GeoGridConfigSettings,
   useGeoGridConfig,
@@ -697,22 +696,18 @@ export default function LocalRankingGridsPage() {
           </div>
         )}
 
-          {/* Keyword Picker */}
-          <GeoGridKeywordPicker
+          {/* Keywords Table - Unified view of tracked keywords and their results */}
+          <GeoGridKeywordsTable
             trackedKeywords={trackedKeywords}
             availableKeywords={availableKeywords}
-            isLoading={keywordsLoading}
+            results={results}
+            isLoadingKeywords={keywordsLoading}
+            isLoadingResults={resultsLoading}
+            lastCheckedAt={lastCheckedAt}
             onAddKeywords={handleAddKeywords}
             onRemoveKeyword={handleRemoveKeyword}
             maxKeywords={20}
             onKeywordsCreated={handleKeywordsCreated}
-          />
-
-          {/* Results Table */}
-          <GeoGridResultsTable
-            results={results}
-            isLoading={resultsLoading}
-            lastCheckedAt={lastCheckedAt}
             keywordUsageCounts={keywordUsageCounts}
           />
 
