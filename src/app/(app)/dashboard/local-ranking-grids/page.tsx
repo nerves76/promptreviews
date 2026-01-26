@@ -23,7 +23,6 @@ import {
   GeoGridTrendCard,
   GeoGridKeywordsTable,
   GeoGridScheduleSettings,
-  GeoGridConfigSettings,
   GeoGridBusinessConnection,
   useGeoGridConfig,
   useGeoGridResults,
@@ -35,6 +34,8 @@ import {
   CheckPoint,
   GGPointSummary,
   ViewAsBusiness,
+  GRID_SIZE_OPTIONS,
+  GridSize,
 } from '@/features/geo-grid';
 import { ArrowLeftIcon, Cog6ToothIcon } from '@heroicons/react/24/outline';
 import LocationSelector from '@/components/LocationSelector';
@@ -93,6 +94,9 @@ export default function LocalRankingGridsPage() {
   const [selectedPoint, setSelectedPoint] = useState<CheckPoint | null>(null);
   const [isPointModalOpen, setIsPointModalOpen] = useState(false);
 
+  // Grid settings state (for inline controls)
+  const [isSavingGrid, setIsSavingGrid] = useState(false);
+
   // Toast notifications
   const { toasts, closeToast, error: showError, success: showSuccess } = useToast();
 
@@ -108,6 +112,7 @@ export default function LocalRankingGridsPage() {
     maxConfigs,
     isLoading: configLoading,
     refresh: refreshConfig,
+    saveConfig,
   } = useGeoGridConfig();
   const {
     results,
@@ -408,6 +413,42 @@ export default function LocalRankingGridsPage() {
     setSelectedPointResult(null);
   }, []);
 
+  // Handle grid settings update (radius or grid size)
+  const handleUpdateGridSettings = useCallback(async (updates: { radiusMiles?: number; gridSize?: GridSize }) => {
+    if (!config) return;
+
+    setIsSavingGrid(true);
+    try {
+      const saveData: any = {
+        configId: config.id,
+        centerLat: config.centerLat,
+        centerLng: config.centerLng,
+      };
+
+      if (updates.radiusMiles !== undefined) {
+        saveData.radiusMiles = updates.radiusMiles;
+      }
+
+      if (updates.gridSize !== undefined) {
+        const gridOption = GRID_SIZE_OPTIONS.find(opt => opt.value === updates.gridSize);
+        if (gridOption) {
+          saveData.checkPoints = gridOption.checkPoints;
+        }
+      }
+
+      const result = await saveConfig(saveData);
+      if (result.success) {
+        await refreshConfig();
+      } else {
+        showError(result.error || 'Failed to update settings');
+      }
+    } catch (err) {
+      showError('Failed to update settings');
+    } finally {
+      setIsSavingGrid(false);
+    }
+  }, [config, saveConfig, refreshConfig, showError]);
+
   // Loading state
   if (loading) {
     return (
@@ -583,94 +624,155 @@ export default function LocalRankingGridsPage() {
           {/* Google Maps Grid View */}
           {config && (
             <div>
-            {/* Keyword & View As Selectors for Map */}
-            {trackedKeywords.length > 0 && (
-              <div className="bg-white rounded-xl border-2 border-gray-200 p-4 mb-4">
-                <div className="flex flex-wrap items-center justify-between gap-4">
-                  <div className="flex flex-wrap items-center gap-4">
-                    {/* Keyword Selector */}
+            {/* Map Controls */}
+            <div className="bg-white rounded-xl border-2 border-gray-200 p-4 mb-4">
+              {/* Row 1: Keyword selector and run button */}
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div className="flex flex-wrap items-center gap-4">
+                  {/* Keyword Selector */}
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm font-medium text-gray-700">
+                      Keyword
+                    </label>
+                    <select
+                      value={selectedMapKeywordId || ''}
+                      onChange={(e) => setSelectedMapKeywordId(e.target.value || null)}
+                      className="w-52 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                    >
+                      <option value="">Select a keyword...</option>
+                      {trackedKeywords.map((tk) => (
+                        <option key={tk.keywordId} value={tk.keywordId}>
+                          {tk.phrase || tk.keywordId}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* View As Selector */}
+                  {uniqueCompetitors.length > 0 && (
                     <div className="flex items-center gap-2">
                       <label className="text-sm font-medium text-gray-700">
-                        Keyword
+                        View As
                       </label>
                       <select
-                        value={selectedMapKeywordId || ''}
-                        onChange={(e) => setSelectedMapKeywordId(e.target.value || null)}
-                        className="w-52 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                        value={viewAs?.placeId || ''}
+                        onChange={(e) => {
+                          const placeId = e.target.value;
+                          if (!placeId) {
+                            setViewAs(null);
+                          } else if (placeId === config.targetPlaceId) {
+                            setViewAs({
+                              placeId,
+                              name: googleBusinessLocation?.name || 'Your Business',
+                              isOwnBusiness: true,
+                            });
+                          } else {
+                            const competitor = uniqueCompetitors.find((c) => c.placeId === placeId);
+                            if (competitor) {
+                              setViewAs({
+                                placeId: competitor.placeId,
+                                name: competitor.name,
+                                isOwnBusiness: false,
+                              });
+                            }
+                          }
+                        }}
+                        className="w-56 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                       >
-                        <option value="">Select a keyword...</option>
-                        {trackedKeywords.map((tk) => (
-                          <option key={tk.keywordId} value={tk.keywordId}>
-                            {tk.phrase || tk.keywordId}
+                        <option value="">Your Business</option>
+                        {uniqueCompetitors.map((competitor) => (
+                          <option key={competitor.placeId} value={competitor.placeId}>
+                            {competitor.name}
                           </option>
                         ))}
                       </select>
                     </div>
-
-                    {/* View As Selector */}
-                    {uniqueCompetitors.length > 0 && (
-                      <div className="flex items-center gap-2">
-                        <label className="text-sm font-medium text-gray-700">
-                          View As
-                        </label>
-                        <select
-                          value={viewAs?.placeId || ''}
-                          onChange={(e) => {
-                            const placeId = e.target.value;
-                            if (!placeId) {
-                              setViewAs(null);
-                            } else if (placeId === config.targetPlaceId) {
-                              setViewAs({
-                                placeId,
-                                name: googleBusinessLocation?.name || 'Your Business',
-                                isOwnBusiness: true,
-                              });
-                            } else {
-                              const competitor = uniqueCompetitors.find((c) => c.placeId === placeId);
-                              if (competitor) {
-                                setViewAs({
-                                  placeId: competitor.placeId,
-                                  name: competitor.name,
-                                  isOwnBusiness: false,
-                                });
-                              }
-                            }
-                          }}
-                          className="w-56 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                        >
-                          <option value="">Your Business</option>
-                          {uniqueCompetitors.map((competitor) => (
-                            <option key={competitor.placeId} value={competitor.placeId}>
-                              {competitor.name}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Run Grid Check Button */}
-                  <button
-                    onClick={handleRunCheck}
-                    disabled={isCheckRunning || !config?.targetPlaceId}
-                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors flex items-center gap-2 text-sm"
-                    title={!config?.targetPlaceId ? 'Connect your business first' : 'Run checks for all tracked keywords'}
-                  >
-                    {isCheckRunning ? (
-                      <>
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        Running...
-                      </>
-                    ) : (
-                      <>
-                        <Icon name="FaRedo" className="w-3.5 h-3.5" />
-                        Run grid check
-                      </>
-                    )}
-                  </button>
+                  )}
                 </div>
+
+                {/* Run Grid Check Button */}
+                <button
+                  onClick={handleRunCheck}
+                  disabled={isCheckRunning || !config?.targetPlaceId}
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors flex items-center gap-2 text-sm whitespace-nowrap"
+                  title={!config?.targetPlaceId ? 'Connect your business first' : 'Run checks for all tracked keywords'}
+                >
+                  {isCheckRunning ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Running...
+                    </>
+                  ) : (
+                    <>
+                      <Icon name="FaRedo" className="w-3.5 h-3.5" />
+                      Run grid check
+                    </>
+                  )}
+                </button>
               </div>
-            )}
+
+              {/* Row 2: Grid settings (radius, grid size) */}
+              <div className="flex flex-wrap items-center gap-6 mt-4 pt-4 border-t border-gray-200">
+                {/* Radius Slider */}
+                <div className="flex items-center gap-3">
+                  <label className="text-sm font-medium text-gray-700 whitespace-nowrap">
+                    Radius
+                  </label>
+                  <input
+                    type="range"
+                    min="1"
+                    max="10"
+                    step="0.5"
+                    value={config.radiusMiles}
+                    onChange={(e) => handleUpdateGridSettings({ radiusMiles: parseFloat(e.target.value) })}
+                    disabled={isSavingGrid}
+                    className="w-24 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                  />
+                  <span className="text-sm font-medium text-gray-900 w-12">
+                    {config.radiusMiles} mi
+                  </span>
+                </div>
+
+                {/* Grid Size Selector */}
+                <div className="flex items-center gap-3">
+                  <label className="text-sm font-medium text-gray-700 whitespace-nowrap">
+                    Grid
+                  </label>
+                  <div className="flex gap-1">
+                    {GRID_SIZE_OPTIONS.map((option) => {
+                      const isSelected = config.checkPoints.length === option.value;
+                      return (
+                        <button
+                          key={option.value}
+                          onClick={() => handleUpdateGridSettings({ gridSize: option.value })}
+                          disabled={isSavingGrid}
+                          className={`px-2 py-1 text-xs font-medium rounded transition-colors ${
+                            isSelected
+                              ? 'bg-blue-600 text-white'
+                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          } disabled:opacity-50`}
+                          title={option.description}
+                        >
+                          {option.value}pt
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Grid Info */}
+                <span className="text-xs text-gray-500">
+                  {config.checkPoints.length} points × {trackedKeywords.length} keywords
+                </span>
+
+                {isSavingGrid && (
+                  <div className="flex items-center gap-1 text-xs text-gray-500">
+                    <div className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+                    Saving...
+                  </div>
+                )}
+              </div>
+            </div>
 
             {/* Google Maps */}
             {selectedMapKeywordId ? (
@@ -712,17 +814,12 @@ export default function LocalRankingGridsPage() {
             keywordUsageCounts={keywordUsageCounts}
           />
 
-          {/* Settings - Business Connection, Grid Config & Schedule */}
+          {/* Settings - Business Connection & Schedule */}
           {config && (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <GeoGridBusinessConnection
                 config={config}
                 onUpdated={refreshConfig}
-              />
-              <GeoGridConfigSettings
-                config={config}
-                keywordCount={trackedKeywords.length}
-                onConfigUpdated={refreshConfig}
               />
               <GeoGridScheduleSettings
                 config={config}
