@@ -21,6 +21,13 @@ import { transformCheckToResponse } from '../utils/transforms';
 type ServiceSupabase = SupabaseClient<any, any, any>;
 
 // ============================================
+// Constants
+// ============================================
+
+// Maximum concurrent API requests to avoid rate limits while still being fast
+const MAX_CONCURRENT_REQUESTS = 8;
+
+// ============================================
 // Types
 // ============================================
 
@@ -40,6 +47,67 @@ export interface RankCheckBatchResult {
 }
 
 // ============================================
+// Helper Functions
+// ============================================
+
+interface CheckTask {
+  keywordId: string;
+  searchQuery: string;
+  point: GeoPoint;
+}
+
+interface CheckTaskResult {
+  task: CheckTask;
+  result?: RankCheckResult;
+  error?: string;
+}
+
+/**
+ * Process items in parallel with a concurrency limit
+ * This dramatically speeds up checks while avoiding API rate limits
+ */
+async function processInParallel<T, R>(
+  items: T[],
+  processor: (item: T, index: number) => Promise<R>,
+  concurrency: number = MAX_CONCURRENT_REQUESTS
+): Promise<R[]> {
+  const results: R[] = [];
+  const executing: Promise<void>[] = [];
+
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+
+    // Create a promise that processes the item and stores the result
+    const promise = processor(item, i).then((result) => {
+      results[i] = result;
+    });
+
+    executing.push(promise);
+
+    // If we've hit the concurrency limit, wait for one to finish
+    if (executing.length >= concurrency) {
+      await Promise.race(executing);
+      // Remove completed promises
+      for (let j = executing.length - 1; j >= 0; j--) {
+        // Check if promise is settled by racing with an immediate resolve
+        const settled = await Promise.race([
+          executing[j].then(() => true).catch(() => true),
+          Promise.resolve(false),
+        ]);
+        if (settled) {
+          executing.splice(j, 1);
+        }
+      }
+    }
+  }
+
+  // Wait for remaining promises
+  await Promise.all(executing);
+
+  return results;
+}
+
+// ============================================
 // Service Functions
 // ============================================
 
@@ -48,7 +116,7 @@ export interface RankCheckBatchResult {
  *
  * This is the main entry point for running geo grid rank checks.
  * It fetches all tracked keywords, calculates grid points, and
- * checks each keyword at each point.
+ * checks each keyword at each point using parallel processing.
  */
 export async function runRankChecks(
   config: GGConfig,
@@ -70,6 +138,9 @@ export async function runRankChecks(
       errors: ['Config is missing target Place ID. Connect a Google Business location first.'],
     };
   }
+
+  // Store validated placeId for type safety in async callbacks
+  const targetPlaceId = config.targetPlaceId;
 
   // 1. Get tracked keywords with their search terms
   let keywordsQuery = serviceSupabase
@@ -186,52 +257,77 @@ export async function runRankChecks(
     }
   }
 
-  // Recalculate total checks
-  const actualTotalChecks = searchTermsToCheck.length * gridPoints.length;
-  console.log(`📊 [GeoGrid] Checking ${searchTermsToCheck.length} search terms × ${gridPoints.length} points = ${actualTotalChecks} total checks`);
-
+  // Build list of all check tasks
+  const checkTasks: CheckTask[] = [];
   for (const searchTermInfo of searchTermsToCheck) {
     for (const point of gridPoints) {
-      checkCount++;
+      checkTasks.push({
+        keywordId: searchTermInfo.keywordId,
+        searchQuery: searchTermInfo.searchQuery,
+        point,
+      });
+    }
+  }
+
+  const actualTotalChecks = checkTasks.length;
+  console.log(`📊 [GeoGrid] Checking ${searchTermsToCheck.length} search terms × ${gridPoints.length} points = ${actualTotalChecks} total checks (${MAX_CONCURRENT_REQUESTS} concurrent)`);
+
+  // Process all checks in parallel with concurrency limit
+  let completedCount = 0;
+  const taskResults = await processInParallel<CheckTask, CheckTaskResult>(
+    checkTasks,
+    async (task, index) => {
       try {
-        console.log(`   [${checkCount}/${actualTotalChecks}] Checking "${searchTermInfo.searchQuery}" at ${point.label}...`);
         const result = await checkRankForBusiness({
-          keyword: searchTermInfo.searchQuery,
-          lat: point.lat,
-          lng: point.lng,
-          targetPlaceId: config.targetPlaceId,
+          keyword: task.searchQuery,
+          lat: task.point.lat,
+          lng: task.point.lng,
+          targetPlaceId: targetPlaceId,
           languageCode,
         });
 
-        console.log(`   [${checkCount}/${actualTotalChecks}] ✓ Position: ${result.position ?? 'not found'}`);
-        totalCost += result.cost;
+        completedCount++;
+        console.log(`   [${completedCount}/${actualTotalChecks}] ✓ "${task.searchQuery}" at ${task.point.label}: ${result.position ?? 'not found'}`);
 
-        checksToInsert.push({
-          account_id: config.accountId,
-          config_id: config.id,
-          keyword_id: searchTermInfo.keywordId,
-          search_query: searchTermInfo.searchQuery,
-          check_point: point.label,
-          point_lat: point.lat,
-          point_lng: point.lng,
-          position: result.position,
-          position_bucket: result.positionBucket,
-          business_found: result.businessFound,
-          top_competitors: result.topCompetitors.length > 0 ? result.topCompetitors : null,
-          our_rating: result.ourRating,
-          our_review_count: result.ourReviewCount,
-          our_place_id: config.targetPlaceId,
-          checked_at: checkedAt,
-          api_cost_usd: result.cost,
-        });
+        return { task, result };
       } catch (error) {
-        console.error(`   [${checkCount}/${actualTotalChecks}] ✗ Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
-        errors.push(
-          `Failed to check "${searchTermInfo.searchQuery}" at ${point.label}: ${
-            error instanceof Error ? error.message : 'Unknown error'
-          }`
-        );
+        completedCount++;
+        const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+        console.error(`   [${completedCount}/${actualTotalChecks}] ✗ "${task.searchQuery}" at ${task.point.label}: ${errorMsg}`);
+        return { task, error: errorMsg };
       }
+    },
+    MAX_CONCURRENT_REQUESTS
+  );
+
+  // Process results
+  for (const taskResult of taskResults) {
+    if (taskResult.result) {
+      const { task, result } = taskResult;
+      totalCost += result.cost;
+
+      checksToInsert.push({
+        account_id: config.accountId,
+        config_id: config.id,
+        keyword_id: task.keywordId,
+        search_query: task.searchQuery,
+        check_point: task.point.label,
+        point_lat: task.point.lat,
+        point_lng: task.point.lng,
+        position: result.position,
+        position_bucket: result.positionBucket,
+        business_found: result.businessFound,
+        top_competitors: result.topCompetitors.length > 0 ? result.topCompetitors : null,
+        our_rating: result.ourRating,
+        our_review_count: result.ourReviewCount,
+        our_place_id: targetPlaceId,
+        checked_at: checkedAt,
+        api_cost_usd: result.cost,
+      });
+    } else if (taskResult.error) {
+      errors.push(
+        `Failed to check "${taskResult.task.searchQuery}" at ${taskResult.task.point.label}: ${taskResult.error}`
+      );
     }
   }
 
