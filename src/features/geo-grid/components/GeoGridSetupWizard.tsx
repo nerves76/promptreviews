@@ -733,8 +733,11 @@ export function GeoGridSetupWizard({
                         )}
 
                         {/* Show status based on data completeness */}
+                        {/* Only show detailed warnings if we don't have a Place ID - otherwise the Place ID box below handles it */}
                         {isComplete ? (
                           <p className="text-xs text-green-600 mt-1">✓ Location data complete</p>
+                        ) : hasValidPlaceId ? (
+                          <p className="text-xs text-amber-600 mt-1">⚠️ Coordinates needed - see below</p>
                         ) : (
                           <div className="mt-2 p-2 bg-amber-100 rounded border border-amber-200">
                             <p className="text-sm font-medium text-amber-800 mb-1">
@@ -919,7 +922,8 @@ export function GeoGridSetupWizard({
               );
             })()}
 
-            {geocodeError && (
+            {/* Only show geocodeError if we don't have a Place ID - otherwise the Place ID box handles it */}
+            {geocodeError && !googlePlaceId && (
               <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                 <p className="text-sm text-yellow-800">
                   {geocodeError === 'API_CONNECTION_ERROR' ? (
