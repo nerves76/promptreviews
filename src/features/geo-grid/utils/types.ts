@@ -28,7 +28,12 @@ export function positionToBucket(position: number | null): PositionBucket {
 // Check Points
 // ============================================
 
-export type CheckPoint = 'center' | 'n' | 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw';
+// CheckPoint can be legacy compass directions or Cartesian r{row}c{col} notation
+export type CheckPoint = string;
+
+// Legacy compass-based check points (for backward compatibility)
+export const LEGACY_CHECK_POINTS = ['center', 'n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'] as const;
+export type LegacyCheckPoint = typeof LEGACY_CHECK_POINTS[number];
 
 export const DEFAULT_CHECK_POINTS: CheckPoint[] = ['center', 'n', 's', 'e', 'w'];
 
@@ -36,6 +41,86 @@ export interface GeoPoint {
   lat: number;
   lng: number;
   label: CheckPoint;
+}
+
+// ============================================
+// Grid Size Options
+// ============================================
+
+export type GridSize = 5 | 9 | 25 | 49;
+
+/**
+ * Generate Cartesian check point labels for a given grid dimension
+ * e.g., 5x5 grid generates r0c0, r0c1, ... r4c4
+ */
+export function generateCartesianPoints(gridDimension: number): CheckPoint[] {
+  const points: CheckPoint[] = [];
+  for (let row = 0; row < gridDimension; row++) {
+    for (let col = 0; col < gridDimension; col++) {
+      points.push(`r${row}c${col}`);
+    }
+  }
+  return points;
+}
+
+export interface GridSizeOption {
+  value: GridSize;
+  gridDimension: number; // 3 for 9 points, 5 for 25 points, 7 for 49 points
+  label: string;
+  description: string;
+  checkPoints: CheckPoint[];
+}
+
+export const GRID_SIZE_OPTIONS: GridSizeOption[] = [
+  {
+    value: 5,
+    gridDimension: 3,
+    label: '5 points',
+    description: 'Center + N/S/E/W',
+    checkPoints: ['center', 'n', 's', 'e', 'w'],
+  },
+  {
+    value: 9,
+    gridDimension: 3,
+    label: '9 points',
+    description: '3×3 grid',
+    checkPoints: ['nw', 'n', 'ne', 'w', 'center', 'e', 'sw', 's', 'se'],
+  },
+  {
+    value: 25,
+    gridDimension: 5,
+    label: '25 points',
+    description: '5×5 grid',
+    checkPoints: generateCartesianPoints(5),
+  },
+  {
+    value: 49,
+    gridDimension: 7,
+    label: '49 points',
+    description: '7×7 grid',
+    checkPoints: generateCartesianPoints(7),
+  },
+];
+
+/**
+ * Get the grid size option for a given number of check points
+ */
+export function getGridSizeOption(pointCount: number): GridSizeOption | undefined {
+  return GRID_SIZE_OPTIONS.find(opt => opt.value === pointCount);
+}
+
+/**
+ * Check if a check point uses Cartesian notation (r{row}c{col})
+ */
+export function isCartesianPoint(point: CheckPoint): boolean {
+  return /^r\d+c\d+$/.test(point);
+}
+
+/**
+ * Check if a list of check points uses Cartesian notation
+ */
+export function usesCartesianNotation(points: CheckPoint[]): boolean {
+  return points.some(isCartesianPoint);
 }
 
 // ============================================

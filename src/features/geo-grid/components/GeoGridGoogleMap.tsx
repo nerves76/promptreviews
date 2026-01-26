@@ -70,9 +70,9 @@ const BUCKET_LABELS: Record<PositionBucket, string> = {
   none: 'Not Found',
 };
 
-// Map check points to their position relative to center
-// Offset in miles for each direction
-const POINT_OFFSETS: Record<CheckPoint, { latOffset: number; lngOffset: number }> = {
+// Map legacy check points to their position relative to center
+// Offset in miles for each direction (as multiplier of radius)
+const LEGACY_POINT_OFFSETS: Record<string, { latOffset: number; lngOffset: number }> = {
   center: { latOffset: 0, lngOffset: 0 },
   n: { latOffset: 1, lngOffset: 0 },
   s: { latOffset: -1, lngOffset: 0 },
@@ -83,6 +83,29 @@ const POINT_OFFSETS: Record<CheckPoint, { latOffset: number; lngOffset: number }
   se: { latOffset: -0.707, lngOffset: 0.707 },
   sw: { latOffset: -0.707, lngOffset: -0.707 },
 };
+
+/**
+ * Get offsets for a Cartesian point (r{row}c{col})
+ * Returns offsets normalized to -1 to 1 range
+ */
+function getCartesianOffsets(
+  point: CheckPoint,
+  gridDimension: number
+): { latOffset: number; lngOffset: number } | null {
+  const match = point.match(/^r(\d+)c(\d+)$/);
+  if (!match) return null;
+
+  const row = parseInt(match[1], 10);
+  const col = parseInt(match[2], 10);
+  const halfGrid = (gridDimension - 1) / 2;
+
+  // Row 0 is north (positive lat), increases going south
+  // Col 0 is west (negative lng), increases going east
+  return {
+    latOffset: (halfGrid - row) / halfGrid, // Normalized to -1 to 1
+    lngOffset: (col - halfGrid) / halfGrid, // Normalized to -1 to 1
+  };
+}
 
 // Approximate conversion: 1 degree latitude ≈ 69 miles
 const MILES_PER_LAT_DEGREE = 69;
@@ -108,15 +131,31 @@ function getPointCoordinates(
   centerLat: number,
   centerLng: number,
   radiusMiles: number,
-  point: CheckPoint
+  point: CheckPoint,
+  gridDimension: number = 3
 ): { lat: number; lng: number } {
-  const offsets = POINT_OFFSETS[point];
-  const degrees = milesToDegrees(radiusMiles, centerLat);
+  // Try legacy offsets first
+  const legacyOffsets = LEGACY_POINT_OFFSETS[point];
+  if (legacyOffsets) {
+    const degrees = milesToDegrees(radiusMiles, centerLat);
+    return {
+      lat: centerLat + (legacyOffsets.latOffset * degrees.lat),
+      lng: centerLng + (legacyOffsets.lngOffset * degrees.lng),
+    };
+  }
 
-  return {
-    lat: centerLat + (offsets.latOffset * degrees.lat),
-    lng: centerLng + (offsets.lngOffset * degrees.lng),
-  };
+  // Try Cartesian offsets
+  const cartesianOffsets = getCartesianOffsets(point, gridDimension);
+  if (cartesianOffsets) {
+    const degrees = milesToDegrees(radiusMiles, centerLat);
+    return {
+      lat: centerLat + (cartesianOffsets.latOffset * degrees.lat),
+      lng: centerLng + (cartesianOffsets.lngOffset * degrees.lng),
+    };
+  }
+
+  // Fallback to center if point type not recognized
+  return { lat: centerLat, lng: centerLng };
 }
 
 /**
@@ -164,9 +203,19 @@ function calculatePointData(
     ? Array.from(uniquePoints)
     : ['center', 'n', 's', 'e', 'w'];
 
+  // Determine grid dimension for Cartesian calculations
+  const gridDimension = Math.sqrt(allPoints.length);
+
   return allPoints.map((point) => {
     const pointResults = grouped.get(point) || [];
-    const coords = getPointCoordinates(center.lat, center.lng, radiusMiles, point);
+
+    // Use coordinates from results if available, otherwise calculate
+    let coords: { lat: number; lng: number };
+    if (pointResults.length > 0 && pointResults[0].pointLat && pointResults[0].pointLng) {
+      coords = { lat: pointResults[0].pointLat, lng: pointResults[0].pointLng };
+    } else {
+      coords = getPointCoordinates(center.lat, center.lng, radiusMiles, point, gridDimension);
+    }
 
     // If viewing as a competitor (not own business), find their position in topCompetitors
     if (viewAs && !viewAs.isOwnBusiness) {

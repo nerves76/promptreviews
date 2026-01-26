@@ -10,7 +10,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { MapPinIcon, Cog6ToothIcon, CheckCircleIcon, ArrowPathIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { useGeoGridConfig, SaveConfigData } from '../hooks/useGeoGridConfig';
-import { CheckPoint, GGCheckResult } from '../utils/types';
+import { CheckPoint, GGCheckResult, GRID_SIZE_OPTIONS, GridSize } from '../utils/types';
 import { calculateGridPoints } from '../services/point-calculator';
 import { apiClient } from '@/utils/apiClient';
 import Icon from '@/components/Icon';
@@ -271,7 +271,7 @@ export function GeoGridSetupWizard({
 
   // Form state
   const [radiusMiles, setRadiusMiles] = useState(3);
-  const [gridSize, setGridSize] = useState<5 | 9>(5); // 5 = center + N/S/E/W, 9 = center + all 8 directions
+  const [gridSize, setGridSize] = useState<GridSize>(5); // Grid size: 5, 9, 25, or 49 points
   const [selectedLocation, setSelectedLocation] = useState(effectiveGBPLocation);
   const [manualLat, setManualLat] = useState(effectiveGBPLocation?.lat?.toString() || '');
   const [manualLng, setManualLng] = useState(effectiveGBPLocation?.lng?.toString() || '');
@@ -321,8 +321,12 @@ export function GeoGridSetupWizard({
           if (cfg.radiusMiles) {
             setRadiusMiles(cfg.radiusMiles);
           }
-          if (cfg.checkPoints?.length === 9) {
-            setGridSize(9);
+          // Detect grid size from existing checkPoints
+          if (cfg.checkPoints?.length) {
+            const matchingOption = GRID_SIZE_OPTIONS.find(opt => opt.value === cfg.checkPoints.length);
+            if (matchingOption) {
+              setGridSize(matchingOption.value);
+            }
           }
 
           hasLoadedConfigRef.current = true;
@@ -645,10 +649,9 @@ export function GeoGridSetupWizard({
     setIsSubmitting(true);
     setError(null);
 
-    // Convert gridSize to checkPoints array
-    const checkPoints: CheckPoint[] = gridSize === 9
-      ? ['center', 'n', 'ne', 'e', 'se', 's', 'sw', 'w', 'nw']
-      : ['center', 'n', 's', 'e', 'w'];
+    // Get checkPoints from the selected grid size option
+    const selectedOption = GRID_SIZE_OPTIONS.find(opt => opt.value === gridSize);
+    const checkPoints: CheckPoint[] = selectedOption?.checkPoints || ['center', 'n', 's', 'e', 'w'];
 
     const configData: SaveConfigData = {
       configId, // Pass configId for editing existing configs
@@ -1202,33 +1205,32 @@ export function GeoGridSetupWizard({
                 Grid size
               </label>
               <div className="grid grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={() => setGridSize(5)}
-                  className={`p-3 rounded-lg border-2 text-left transition-colors ${
-                    gridSize === 5
-                      ? 'border-blue-600 bg-blue-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  <span className="block font-semibold text-gray-900">5 points</span>
-                  <span className="text-sm text-gray-500">Center + N/S/E/W</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setGridSize(9)}
-                  className={`p-3 rounded-lg border-2 text-left transition-colors ${
-                    gridSize === 9
-                      ? 'border-blue-600 bg-blue-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  <span className="block font-semibold text-gray-900">9 points</span>
-                  <span className="text-sm text-gray-500">+ diagonals (NE/SE/SW/NW)</span>
-                </button>
+                {GRID_SIZE_OPTIONS.map((option) => {
+                  const baseCost = 10 + option.value;
+                  return (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => setGridSize(option.value)}
+                      className={`p-3 rounded-lg border-2 text-left transition-colors ${
+                        gridSize === option.value
+                          ? 'border-blue-600 bg-blue-50'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="flex justify-between items-start">
+                        <span className="block font-semibold text-gray-900">{option.label}</span>
+                        <span className="text-xs font-medium text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded whitespace-nowrap">
+                          {baseCost}+ credits
+                        </span>
+                      </div>
+                      <span className="text-sm text-gray-500">{option.description}</span>
+                    </button>
+                  );
+                })}
               </div>
-              <p className="mt-2 text-sm text-gray-500">
-                More points = more comprehensive coverage but higher credit cost per check.
+              <p className="mt-2 text-xs text-gray-500">
+                Cost per check: 10 base + grid points + (2 × keywords). More points = better coverage.
               </p>
             </div>
 
@@ -1260,10 +1262,9 @@ export function GeoGridSetupWizard({
               const hasValidCoords = !isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0;
 
               if (hasValidCoords) {
-                // Generate preview grid points
-                const checkPoints: CheckPoint[] = gridSize === 9
-                  ? ['center', 'n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw']
-                  : ['center', 'n', 's', 'e', 'w'];
+                // Get the selected grid option's check points
+                const selectedOption = GRID_SIZE_OPTIONS.find(opt => opt.value === gridSize);
+                const checkPoints: CheckPoint[] = selectedOption?.checkPoints || ['center', 'n', 's', 'e', 'w'];
 
                 const gridPoints = calculateGridPoints({
                   centerLat: lat,

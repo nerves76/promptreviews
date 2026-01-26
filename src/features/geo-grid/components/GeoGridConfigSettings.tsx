@@ -9,7 +9,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { apiClient } from '@/utils/apiClient';
-import { GGConfig, CheckPoint } from '../utils/types';
+import { GGConfig, GRID_SIZE_OPTIONS, GridSize } from '../utils/types';
 import { calculateGeogridCost } from '@/lib/credits';
 import { Cog6ToothIcon } from '@heroicons/react/24/outline';
 
@@ -19,45 +19,33 @@ interface GeoGridConfigSettingsProps {
   onConfigUpdated?: () => void;
 }
 
-// Grid size options
-const GRID_SIZE_OPTIONS = [
-  {
-    value: 5,
-    label: '5 points',
-    description: 'Center + N/S/E/W',
-    checkPoints: ['center', 'n', 's', 'e', 'w'] as CheckPoint[],
-  },
-  {
-    value: 9,
-    label: '9 points',
-    description: '+ diagonals (NE/SE/SW/NW)',
-    checkPoints: ['center', 'n', 'ne', 'e', 'se', 's', 'sw', 'w', 'nw'] as CheckPoint[],
-  },
-];
-
 export function GeoGridConfigSettings({
   config,
   keywordCount,
   onConfigUpdated,
 }: GeoGridConfigSettingsProps) {
   const currentGridSize = config.checkPoints.length;
-  const [gridSize, setGridSize] = useState<5 | 9>(currentGridSize === 9 ? 9 : 5);
+  // Find matching grid size option, or default to closest
+  const matchingOption = GRID_SIZE_OPTIONS.find(opt => opt.value === currentGridSize);
+  const initialGridSize: GridSize = matchingOption?.value || 5;
+
+  const [gridSize, setGridSize] = useState<GridSize>(initialGridSize);
   const [radiusMiles, setRadiusMiles] = useState(config.radiusMiles);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
 
-  // Calculate cost estimates
-  const currentCost = calculateGeogridCost(Math.sqrt(currentGridSize), keywordCount);
-  const newCost = calculateGeogridCost(Math.sqrt(gridSize), keywordCount);
+  // Calculate cost estimates (cost = 10 + gridSize + keywordCount * 2)
+  const currentCost = 10 + currentGridSize + (keywordCount * 2);
+  const newCost = 10 + gridSize + (keywordCount * 2);
   const costDifference = newCost - currentCost;
 
   // Track changes
   useEffect(() => {
-    const sizeChanged = gridSize !== (currentGridSize === 9 ? 9 : 5);
+    const sizeChanged = gridSize !== initialGridSize;
     const radiusChanged = radiusMiles !== config.radiusMiles;
     setHasChanges(sizeChanged || radiusChanged);
-  }, [gridSize, radiusMiles, currentGridSize, config.radiusMiles]);
+  }, [gridSize, radiusMiles, initialGridSize, config.radiusMiles]);
 
   const handleSave = useCallback(async () => {
     setIsSaving(true);
@@ -94,22 +82,33 @@ export function GeoGridConfigSettings({
           Grid size
         </label>
         <div className="grid grid-cols-2 gap-3">
-          {GRID_SIZE_OPTIONS.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              onClick={() => setGridSize(option.value as 5 | 9)}
-              className={`p-3 rounded-lg border-2 text-left transition-colors ${
-                gridSize === option.value
-                  ? 'border-blue-600 bg-blue-50'
-                  : 'border-gray-200 hover:border-gray-300'
-              }`}
-            >
-              <span className="block font-semibold text-gray-900">{option.label}</span>
-              <span className="text-sm text-gray-500">{option.description}</span>
-            </button>
-          ))}
+          {GRID_SIZE_OPTIONS.map((option) => {
+            const optionCost = 10 + option.value + (keywordCount * 2);
+            return (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => setGridSize(option.value)}
+                className={`p-3 rounded-lg border-2 text-left transition-colors ${
+                  gridSize === option.value
+                    ? 'border-blue-600 bg-blue-50'
+                    : 'border-gray-200 hover:border-gray-300'
+                }`}
+              >
+                <div className="flex justify-between items-start">
+                  <span className="block font-semibold text-gray-900">{option.label}</span>
+                  <span className="text-xs font-medium text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded whitespace-nowrap">
+                    {optionCost} cr
+                  </span>
+                </div>
+                <span className="text-sm text-gray-500">{option.description}</span>
+              </button>
+            );
+          })}
         </div>
+        <p className="mt-2 text-xs text-gray-500">
+          Cost per check: 10 base + points + (2 × {keywordCount} keywords)
+        </p>
       </div>
 
       {/* Radius Slider */}
@@ -136,26 +135,54 @@ export function GeoGridConfigSettings({
       {/* Grid Preview */}
       <div className="mb-5 p-4 bg-gray-50 rounded-lg">
         <h4 className="text-sm font-medium text-gray-700 mb-3">Grid preview</h4>
-        <div className="relative w-32 h-32 mx-auto">
-          {/* Circle outline */}
-          <div className="absolute inset-0 border-2 border-dashed border-gray-300 rounded-full" />
-          {/* Center point */}
-          <div className="absolute top-1/2 left-1/2 w-3 h-3 -mt-1.5 -ml-1.5 bg-blue-600 rounded-full" />
-          {/* Cardinal points */}
-          <div className="absolute top-0 left-1/2 w-2.5 h-2.5 -ml-1.25 bg-blue-400 rounded-full" />
-          <div className="absolute bottom-0 left-1/2 w-2.5 h-2.5 -ml-1.25 bg-blue-400 rounded-full" />
-          <div className="absolute top-1/2 right-0 w-2.5 h-2.5 -mt-1.25 bg-blue-400 rounded-full" />
-          <div className="absolute top-1/2 left-0 w-2.5 h-2.5 -mt-1.25 bg-blue-400 rounded-full" />
-          {/* Diagonal points - only show when gridSize is 9 */}
-          {gridSize === 9 && (
-            <>
-              <div className="absolute top-[14.6%] right-[14.6%] w-2.5 h-2.5 -mt-1.25 -mr-1.25 bg-blue-400 rounded-full" />
-              <div className="absolute bottom-[14.6%] right-[14.6%] w-2.5 h-2.5 -mb-1.25 -mr-1.25 bg-blue-400 rounded-full" />
-              <div className="absolute bottom-[14.6%] left-[14.6%] w-2.5 h-2.5 -mb-1.25 -ml-1.25 bg-blue-400 rounded-full" />
-              <div className="absolute top-[14.6%] left-[14.6%] w-2.5 h-2.5 -mt-1.25 -ml-1.25 bg-blue-400 rounded-full" />
-            </>
-          )}
-        </div>
+        {/* Dynamic grid based on size */}
+        {(() => {
+          const selectedOption = GRID_SIZE_OPTIONS.find(opt => opt.value === gridSize);
+          const gridDimension = selectedOption?.gridDimension || 3;
+
+          // For 5 points (cross pattern), use the legacy view
+          if (gridSize === 5) {
+            return (
+              <div className="relative w-32 h-32 mx-auto">
+                <div className="absolute inset-0 border-2 border-dashed border-gray-300 rounded-full" />
+                <div className="absolute top-1/2 left-1/2 w-3 h-3 -mt-1.5 -ml-1.5 bg-blue-600 rounded-full" />
+                <div className="absolute top-0 left-1/2 w-2.5 h-2.5 -ml-1.25 bg-blue-400 rounded-full" />
+                <div className="absolute bottom-0 left-1/2 w-2.5 h-2.5 -ml-1.25 bg-blue-400 rounded-full" />
+                <div className="absolute top-1/2 right-0 w-2.5 h-2.5 -mt-1.25 bg-blue-400 rounded-full" />
+                <div className="absolute top-1/2 left-0 w-2.5 h-2.5 -mt-1.25 bg-blue-400 rounded-full" />
+              </div>
+            );
+          }
+
+          // For square grids (9, 25, 49), use CSS grid
+          return (
+            <div
+              className="mx-auto border-2 border-dashed border-gray-300 rounded-lg p-2"
+              style={{
+                display: 'grid',
+                gridTemplateColumns: `repeat(${gridDimension}, 1fr)`,
+                gap: '4px',
+                width: `${Math.min(gridDimension * 24 + 16, 160)}px`,
+                height: `${Math.min(gridDimension * 24 + 16, 160)}px`,
+              }}
+            >
+              {Array.from({ length: gridSize }).map((_, i) => {
+                const isCenter = Math.floor(gridDimension / 2) * gridDimension + Math.floor(gridDimension / 2) === i;
+                return (
+                  <div
+                    key={i}
+                    className={`rounded-full ${isCenter ? 'bg-blue-600' : 'bg-blue-400'}`}
+                    style={{
+                      width: gridDimension <= 5 ? '12px' : '8px',
+                      height: gridDimension <= 5 ? '12px' : '8px',
+                      margin: 'auto',
+                    }}
+                  />
+                );
+              })}
+            </div>
+          );
+        })()}
         <p className="text-center text-sm text-gray-500 mt-2">
           {gridSize} points within {radiusMiles} mi
         </p>
