@@ -453,51 +453,14 @@ export default function RankTrackingPage() {
     const locationCode = conceptLocationCode || business?.location_code || lookedUpLocation?.locationCode;
     const locationName = conceptLocationName || business?.location_name || lookedUpLocation?.locationName;
 
-    if (locationCode && locationName) {
-      // Location available - auto-run the check without modal
-      setCheckingRankKeyword(keyword);
-      try {
-        const [desktopResponse, mobileResponse] = await Promise.all([
-          apiClient.post<{
-            success: boolean;
-            position: number | null;
-            found: boolean;
-            error?: string;
-          }>('/rank-tracking/check-keyword', {
-            keyword,
-            keywordId: conceptId,
-            locationCode,
-            device: 'desktop',
-          }),
-          apiClient.post<{
-            success: boolean;
-            position: number | null;
-            found: boolean;
-            error?: string;
-          }>('/rank-tracking/check-keyword', {
-            keyword,
-            keywordId: conceptId,
-            locationCode,
-            device: 'mobile',
-          }),
-        ]);
-
-        if (desktopResponse.success && mobileResponse.success) {
-          // Refresh rank checks to update the table
-          await fetchRankChecks();
-        }
-      } catch (error) {
-        console.error('Auto rank check failed:', error);
-        // Fall back to showing modal on error
-        setCheckingKeyword({ keyword, conceptId, locationCode, locationName });
-      } finally {
-        setCheckingRankKeyword(null);
-      }
-    } else {
-      // No location available - show modal for user to pick location
-      setCheckingKeyword({ keyword, conceptId });
-    }
-  }, [concepts, business, lookedUpLocation, isLookingUpLocation, fetchRankChecks]);
+    // Always show modal with credit info and confirmation (pre-populate location if available)
+    setCheckingKeyword({
+      keyword,
+      conceptId,
+      locationCode,
+      locationName,
+    });
+  }, [concepts, business, lookedUpLocation, isLookingUpLocation]);
 
   // Handle clicking "Check volume" - auto-run if location available, otherwise show modal
   const handleCheckVolume = useCallback(async (keyword: string, conceptId: string) => {
