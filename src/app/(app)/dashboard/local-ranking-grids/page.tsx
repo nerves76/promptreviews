@@ -22,7 +22,6 @@ import {
   GeoGridPointModal,
   GeoGridTrendCard,
   GeoGridKeywordsTable,
-  GeoGridScheduleSettings,
   useGeoGridConfig,
   useGeoGridResults,
   useGeoGridSummary,
@@ -590,6 +589,39 @@ export default function LocalRankingGridsPage() {
                 </button>
               </div>
             </div>
+
+            {/* Schedule info row - only show if scheduling is enabled */}
+            {config.isEnabled && (
+              <div className="flex flex-wrap items-center justify-between gap-3 mt-3 pt-3 border-t border-gray-200 text-sm">
+                <div className="flex items-center gap-2 text-gray-600">
+                  <Icon name="FaClock" className="w-4 h-4 text-blue-500" size={16} />
+                  <span>
+                    <span className="font-medium text-gray-700">Scheduled:</span>
+                    {' '}
+                    {config.scheduleFrequency === 'daily' && 'Daily'}
+                    {config.scheduleFrequency === 'weekly' && `Weekly (${['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][config.scheduleDayOfWeek || 0]})`}
+                    {config.scheduleFrequency === 'monthly' && `Monthly (day ${config.scheduleDayOfMonth || 1})`}
+                    {' at '}
+                    {config.scheduleHour > 12 ? `${config.scheduleHour - 12}:00 PM` : config.scheduleHour === 0 ? '12:00 AM' : `${config.scheduleHour}:00 AM`}
+                    {' UTC'}
+                  </span>
+                  <span className="text-gray-300">|</span>
+                  <span>
+                    <span className="font-medium text-amber-700">{calculateCheckCost} credits</span>
+                    <span className="text-gray-500"> per check</span>
+                  </span>
+                  <span className="text-xs text-gray-400">
+                    ({config.checkPoints?.length || 0} points × {trackedKeywords.length} keywords)
+                  </span>
+                </div>
+                <button
+                  onClick={() => setShowSettings(true)}
+                  className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                >
+                  Edit schedule
+                </button>
+              </div>
+            )}
           </div>
         )}
 
@@ -738,14 +770,6 @@ export default function LocalRankingGridsPage() {
             keywordUsageCounts={keywordUsageCounts}
           />
 
-          {/* Schedule Settings */}
-          {config && (
-            <GeoGridScheduleSettings
-              config={config}
-              keywordCount={trackedKeywords.length}
-              onScheduleUpdated={refreshConfig}
-            />
-          )}
         </div>
 
         {/* Add responsive bottom padding */}
