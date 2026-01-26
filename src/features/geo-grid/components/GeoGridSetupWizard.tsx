@@ -896,17 +896,49 @@ export function GeoGridSetupWizard({
                         Place ID: {googlePlaceId}
                       </p>
                       {!hasCoords && (
-                        <div className="mt-3 p-3 bg-white rounded border border-amber-200">
-                          <p className="text-sm font-medium text-gray-800 mb-2">
-                            How to get your coordinates:
-                          </p>
-                          <ol className="text-xs text-gray-700 space-y-1.5 pl-4 list-decimal">
-                            <li>Go to <a href="https://www.google.com/maps" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline font-medium">Google Maps</a></li>
-                            <li>Navigate to the center of your service area</li>
-                            <li>Right-click on that location</li>
-                            <li>Click the coordinates at the top of the menu (e.g., &quot;45.5231, -122.6765&quot;) to copy them</li>
-                            <li>Paste the first number into <strong>Latitude</strong> and the second into <strong>Longitude</strong> below</li>
-                          </ol>
+                        <div className="mt-3 space-y-3">
+                          {/* Try auto-fetch button */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setGeocodeError(null);
+                              fetchCoordsFromPlaceId(googlePlaceId);
+                            }}
+                            disabled={isGeocoding}
+                            className="w-full px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                          >
+                            {isGeocoding ? (
+                              <>
+                                <ArrowPathIcon className="w-4 h-4 animate-spin" />
+                                Fetching coordinates...
+                              </>
+                            ) : (
+                              <>
+                                <MapPinIcon className="w-4 h-4" />
+                                Try to fetch coordinates automatically
+                              </>
+                            )}
+                          </button>
+
+                          {/* Show error if auto-fetch failed */}
+                          {geocodeError && (
+                            <div className="p-2 bg-red-50 border border-red-200 rounded text-sm text-red-700">
+                              {geocodeError}
+                            </div>
+                          )}
+
+                          <div className="p-3 bg-white rounded border border-amber-200">
+                            <p className="text-sm font-medium text-gray-800 mb-2">
+                              Or get coordinates manually:
+                            </p>
+                            <ol className="text-xs text-gray-700 space-y-1.5 pl-4 list-decimal">
+                              <li>Go to <a href="https://www.google.com/maps" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline font-medium">Google Maps</a></li>
+                              <li>Navigate to the center of your service area</li>
+                              <li>Right-click on that location</li>
+                              <li>Click the coordinates at the top of the menu (e.g., &quot;45.5231, -122.6765&quot;) to copy them</li>
+                              <li>Paste the first number into <strong>Latitude</strong> and the second into <strong>Longitude</strong> below</li>
+                            </ol>
+                          </div>
                         </div>
                       )}
                     </div>
