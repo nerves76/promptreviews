@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
             rating: place.rating,
             reviewCount: place.userRatingCount,
             source: 'google_places_new',
-            otherResults: placesNewData.places.slice(1, 5).map((p: any) => ({
+            otherResults: placesNewData.places.slice(1, 15).map((p: any) => ({
               name: p.displayName?.text,
               placeId: p.id,
               address: p.formattedAddress,
@@ -123,7 +123,7 @@ export async function POST(request: NextRequest) {
           rating: result.rating,
           reviewCount: result.user_ratings_total,
           source: 'google_places_text_search',
-          otherResults: data.results.slice(1, 5).map((r: any) => ({
+          otherResults: data.results.slice(1, 15).map((r: any) => ({
             name: r.name,
             placeId: r.place_id,
             address: r.formatted_address,
@@ -161,7 +161,7 @@ export async function POST(request: NextRequest) {
           rating: candidate.rating,
           reviewCount: candidate.user_ratings_total,
           source: 'google_find_place',
-          otherResults: findPlaceData.candidates.slice(1, 5).map((c: any) => ({
+          otherResults: findPlaceData.candidates.slice(1, 15).map((c: any) => ({
             name: c.name,
             placeId: c.place_id,
             address: c.formatted_address,

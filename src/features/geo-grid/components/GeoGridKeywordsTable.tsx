@@ -295,18 +295,29 @@ export function GeoGridKeywordsTable({
           }
         }
 
-        // Get top 5 competitors by average position
+        // Get top 5 competitors by weighted score (considers both position and frequency)
+        // A competitor appearing once at #1 shouldn't rank above one appearing 24/25 times at #2
+        const totalGridPoints = keywordResults.length;
         const sortedCompetitors = Array.from(competitorMap.values())
-          .map((c) => ({
-            name: c.name,
-            avgPosition: c.positions.reduce((a, b) => a + b, 0) / c.positions.length,
-            rating: c.rating,
-            reviewCount: c.reviewCount,
-            appearances: c.positions.length,
-            address: c.address,
-            category: c.category,
-          }))
-          .sort((a, b) => a.avgPosition - b.avgPosition)
+          .map((c) => {
+            const avgPos = c.positions.reduce((a, b) => a + b, 0) / c.positions.length;
+            const coverageRatio = c.positions.length / totalGridPoints;
+            // Weighted score: lower is better
+            // Penalize low coverage heavily - a competitor appearing once should rank below
+            // a competitor appearing consistently even if their single appearance was better
+            const weightedScore = avgPos / Math.pow(coverageRatio, 0.5);
+            return {
+              name: c.name,
+              avgPosition: avgPos,
+              rating: c.rating,
+              reviewCount: c.reviewCount,
+              appearances: c.positions.length,
+              address: c.address,
+              category: c.category,
+              weightedScore,
+            };
+          })
+          .sort((a, b) => a.weightedScore - b.weightedScore)
           .slice(0, 5);
 
         topCompetitors.push(...sortedCompetitors);
@@ -734,11 +745,11 @@ export function GeoGridKeywordsTable({
                                 </div>
                               </div>
 
-                              {/* Top 3 Competitors */}
+                              {/* Top 5 Competitors */}
                               {group.topCompetitors.length > 0 && (
                                 <div className="bg-white rounded-lg p-4 border border-gray-200 flex-1">
                                   <div className="text-xs font-medium text-gray-500 mb-3">
-                                    Top competitors (by avg ranking)
+                                    Top competitors (by visibility)
                                   </div>
                                   <div className="space-y-3">
                                     {group.topCompetitors.map((competitor, idx) => (
@@ -778,6 +789,9 @@ export function GeoGridKeywordsTable({
                                           <div className="flex items-center gap-2 text-gray-500 flex-shrink-0 ml-2">
                                             <span className="font-medium text-gray-700 text-sm">
                                               #{competitor.avgPosition.toFixed(1)}
+                                            </span>
+                                            <span className="text-xs text-blue-600" title={`Appears on ${competitor.appearances} of ${group.results.length} grid points`}>
+                                              {competitor.appearances}/{group.results.length} pts
                                             </span>
                                             {competitor.rating !== null && (
                                               <span className="text-xs">

@@ -72,6 +72,9 @@ export function GeoGridSetupWizard({
   // Track if we've done the initial auto-search (to avoid re-running after user interaction)
   const hasAutoSearchedRef = React.useRef(false);
 
+  // Track if user has manually updated location (via Place ID lookup) to prevent overwriting
+  const hasManuallyUpdatedLocationRef = React.useRef(false);
+
   // GBP connection and location fetching state
   const [isGBPConnected, setIsGBPConnected] = useState<boolean | null>(null); // null = checking
   const [isFetchingLocations, setIsFetchingLocations] = useState(false);
@@ -283,6 +286,15 @@ export function GeoGridSetupWizard({
   const [geocodeError, setGeocodeError] = useState<string | null>(null);
   // Editable search name - allows users to update if their business name changed on Google
   const [searchBusinessName, setSearchBusinessName] = useState(effectiveGBPLocation?.name || '');
+  // Business search results for user to pick from
+  const [businessSearchResults, setBusinessSearchResults] = useState<Array<{
+    name: string;
+    placeId: string;
+    address: string;
+    rating?: number;
+    reviewCount?: number;
+    coordinates?: { lat: number; lng: number };
+  }>>([]);
 
   // Track if we've loaded existing config data
   const hasLoadedConfigRef = React.useRef(false);
@@ -415,17 +427,29 @@ export function GeoGridSetupWizard({
       console.log('Business search response:', response);
 
       if (response.success && response.placeId) {
-        setGooglePlaceId(response.placeId);
-        if (response.coordinates) {
-          setManualLat(response.coordinates.lat.toString());
-          setManualLng(response.coordinates.lng.toString());
-        } else {
-          // No coordinates in response (common for service-area businesses)
-          // Try to fetch them using the Place ID
-          console.log('No coordinates in search response, fetching from Place ID...');
-          fetchCoordsFromPlaceId(response.placeId);
-        }
+        // Build list of all results for user to choose from
+        const allResults = [
+          {
+            name: response.businessName || businessName,
+            placeId: response.placeId,
+            address: response.formattedAddress || '',
+            rating: response.rating,
+            reviewCount: response.reviewCount,
+            coordinates: response.coordinates,
+          },
+          ...(response.otherResults || []).map(r => ({
+            ...r,
+            coordinates: undefined, // Other results don't include coordinates
+          })),
+        ];
+
+        setBusinessSearchResults(allResults);
         setGeocodeError(null);
+
+        // If only one result, auto-select it
+        if (allResults.length === 1) {
+          selectBusinessResult(allResults[0]);
+        }
         return true;
       } else {
         // Show API status codes for debugging (console only)
@@ -504,6 +528,8 @@ export function GeoGridSetupWizard({
             lng: response.coordinates!.lng,
             placeId: placeId,
           });
+          // Mark that user has manually updated location to prevent effect from overwriting
+          hasManuallyUpdatedLocationRef.current = true;
         }
         // Show note if coordinates came from fallback geocoding
         if (response.note) {
@@ -526,14 +552,51 @@ export function GeoGridSetupWizard({
     }
   }, []);
 
+  // Handle user selecting a business from search results
+  const selectBusinessResult = useCallback((result: {
+    name: string;
+    placeId: string;
+    address: string;
+    rating?: number;
+    reviewCount?: number;
+    coordinates?: { lat: number; lng: number };
+  }) => {
+    setGooglePlaceId(result.placeId);
+    setSearchBusinessName(result.name);
+    setBusinessSearchResults([]); // Clear results after selection
+
+    // Update selected location with the business name
+    setSelectedLocation(prev => prev ? {
+      ...prev,
+      name: result.name,
+    } : {
+      id: '',
+      name: result.name,
+      lat: result.coordinates?.lat || 0,
+      lng: result.coordinates?.lng || 0,
+      placeId: result.placeId,
+    });
+    hasManuallyUpdatedLocationRef.current = true;
+
+    if (result.coordinates) {
+      setManualLat(result.coordinates.lat.toString());
+      setManualLng(result.coordinates.lng.toString());
+    } else {
+      // Need to fetch coordinates from the Place ID
+      fetchCoordsFromPlaceId(result.placeId);
+    }
+  }, [fetchCoordsFromPlaceId]);
+
   // Auto-search for business when component mounts with a GBP location
   // But only if we don't already have a valid Place ID from the database
   // Only runs ONCE on initial load - user's manual searches won't be overwritten
   useEffect(() => {
     console.log('GeoGridSetupWizard useEffect - effectiveGBPLocation:', effectiveGBPLocation);
     if (effectiveGBPLocation && effectiveGBPLocation.name) {
-      // Update selectedLocation when effective location changes
-      setSelectedLocation(effectiveGBPLocation);
+      // Only update selectedLocation if user hasn't manually updated it via Place ID lookup
+      if (!hasManuallyUpdatedLocationRef.current) {
+        setSelectedLocation(effectiveGBPLocation);
+      }
       // Update search name (user can edit this if their business name changed)
       if (!hasAutoSearchedRef.current) {
         setSearchBusinessName(effectiveGBPLocation.name);
@@ -1062,12 +1125,76 @@ export function GeoGridSetupWizard({
                 <button
                   type="button"
                   onClick={() => searchForBusiness(searchBusinessName)}
-                  disabled={!searchBusinessName.trim()}
+                  disabled={!searchBusinessName.trim() || isGeocoding}
                   className="w-full px-4 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
-                  <MagnifyingGlassIcon className="w-5 h-5" />
-                  Find My Business on Google
+                  {isGeocoding ? (
+                    <>
+                      <ArrowPathIcon className="w-5 h-5 animate-spin" />
+                      Searching...
+                    </>
+                  ) : (
+                    <>
+                      <MagnifyingGlassIcon className="w-5 h-5" />
+                      Find My Business on Google
+                    </>
+                  )}
                 </button>
+
+                {/* Search Results List */}
+                {businessSearchResults.length > 0 && (
+                  <div className="mt-4 border border-gray-200 rounded-lg overflow-hidden">
+                    <div className="bg-gray-50 px-3 py-2 border-b border-gray-200">
+                      <p className="text-sm font-medium text-gray-700">
+                        Select your business ({businessSearchResults.length} found)
+                      </p>
+                    </div>
+                    <div className="max-h-64 overflow-y-auto">
+                      {businessSearchResults.map((result, index) => (
+                        <button
+                          key={result.placeId || index}
+                          type="button"
+                          onClick={() => selectBusinessResult(result)}
+                          className="w-full px-3 py-3 text-left hover:bg-blue-50 border-b border-gray-100 last:border-b-0 transition-colors"
+                        >
+                          <div className="flex justify-between items-start gap-2">
+                            <div className="min-w-0 flex-1">
+                              <p className="font-medium text-gray-900 truncate">{result.name}</p>
+                              <p className="text-sm text-gray-500 truncate">{result.address}</p>
+                              {result.rating && (
+                                <p className="text-xs text-gray-500 mt-0.5">
+                                  ★ {result.rating.toFixed(1)}
+                                  {result.reviewCount && ` (${result.reviewCount} reviews)`}
+                                </p>
+                              )}
+                            </div>
+                            <span className="text-xs text-blue-600 font-medium whitespace-nowrap">Select</span>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                    <div className="bg-gray-50 px-3 py-2 border-t border-gray-200 flex items-center justify-between">
+                      <p className="text-xs text-gray-500">
+                        Not listed? Use the{' '}
+                        <button
+                          type="button"
+                          onClick={() => setBusinessSearchResults([])}
+                          className="text-blue-600 hover:text-blue-800 underline"
+                        >
+                          manual Place ID option
+                        </button>
+                        {' '}below.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setBusinessSearchResults([])}
+                        className="text-xs text-gray-500 hover:text-gray-700"
+                      >
+                        Clear
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -1158,6 +1285,50 @@ export function GeoGridSetupWizard({
               <p className="text-xs text-gray-500">
                 This is the center point for rank tracking. For service-area businesses, use the center of your service area.
               </p>
+
+              {/* Search Results List (when searching again after already having a Place ID) */}
+              {businessSearchResults.length > 0 && googlePlaceId && (
+                <div className="border border-gray-200 rounded-lg overflow-hidden">
+                  <div className="bg-gray-50 px-3 py-2 border-b border-gray-200">
+                    <p className="text-sm font-medium text-gray-700">
+                      Select your business ({businessSearchResults.length} found)
+                    </p>
+                  </div>
+                  <div className="max-h-48 overflow-y-auto">
+                    {businessSearchResults.map((result, index) => (
+                      <button
+                        key={result.placeId || index}
+                        type="button"
+                        onClick={() => selectBusinessResult(result)}
+                        className={`w-full px-3 py-2 text-left hover:bg-blue-50 border-b border-gray-100 last:border-b-0 transition-colors ${
+                          result.placeId === googlePlaceId ? 'bg-green-50' : ''
+                        }`}
+                      >
+                        <div className="flex justify-between items-start gap-2">
+                          <div className="min-w-0 flex-1">
+                            <p className="font-medium text-gray-900 text-sm truncate">{result.name}</p>
+                            <p className="text-xs text-gray-500 truncate">{result.address}</p>
+                          </div>
+                          {result.placeId === googlePlaceId ? (
+                            <span className="text-xs text-green-600 font-medium whitespace-nowrap">Current</span>
+                          ) : (
+                            <span className="text-xs text-blue-600 font-medium whitespace-nowrap">Select</span>
+                          )}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                  <div className="bg-gray-50 px-3 py-2 border-t border-gray-200">
+                    <button
+                      type="button"
+                      onClick={() => setBusinessSearchResults([])}
+                      className="text-xs text-gray-500 hover:text-gray-700"
+                    >
+                      Close
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {/* How to get coordinates - helpful for service-area businesses */}
               <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
