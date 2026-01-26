@@ -382,6 +382,8 @@ async function updateConfig(
     updates.location_name = (body as any).locationName;
   }
 
+  console.log('updateConfig - updates object:', updates);
+
   // Update config
   const { data: config, error: updateError } = await serviceSupabase
     .from('gg_configs')
