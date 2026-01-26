@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import PageCard, { PageCardHeader } from '@/app/(app)/components/PageCard';
 import { SubNav } from '@/app/(app)/components/SubNav';
 import Icon from '@/components/Icon';
+import PromptyIcon from '@/app/(app)/components/prompt-modules/PromptyIcon';
 import { apiClient } from '@/utils/apiClient';
 import { ArrowUpTrayIcon, XMarkIcon, DocumentArrowDownIcon } from '@heroicons/react/24/outline';
 import { useAccountData } from '@/auth/hooks/granularAuthHooks';
@@ -1216,7 +1217,7 @@ export default function AISearchPage() {
                   className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors whitespace-nowrap"
                   title="Run LLM visibility checks on all questions"
                 >
-                  <Icon name="FaRocket" className="w-4 h-4" />
+                  <PromptyIcon className="w-4 h-4" />
                   Check all
                 </button>
               )}

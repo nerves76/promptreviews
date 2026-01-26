@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Icon from '@/components/Icon';
+import PromptyIcon from '@/app/(app)/components/prompt-modules/PromptyIcon';
 import { apiClient } from '@/utils/apiClient';
 
 type AnalysisType = 'domain' | 'competitor';
@@ -381,7 +382,7 @@ export default function RunAllAnalysisModal({
                 </>
               ) : (
                 <>
-                  <Icon name="FaRocket" className="w-4 h-4" />
+                  <PromptyIcon className="w-4 h-4" />
                   Analyze all
                 </>
               )}
