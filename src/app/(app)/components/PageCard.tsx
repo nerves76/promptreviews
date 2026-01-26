@@ -15,7 +15,7 @@ import Image from "next/image";
  *   </PageCard>
  *
  * Features:
- * - Responsive: stacks vertically on mobile, horizontal row on md+ (768px)
+ * - Responsive: stacks vertically on mobile, horizontal row on sm+ (640px)
  * - Actions stay on one line and don't shrink
  * - Consistent typography and spacing
  * - Supports both h1 (standalone pages) and h2 (sub-pages) variants
@@ -51,8 +51,8 @@ export function PageCardHeader({
   const headingSize = isLarge ? "text-4xl" : "text-2xl";
 
   return (
-    <div className={`flex flex-col md:flex-row md:items-start md:justify-between ${marginBottom} w-full gap-4 ${className}`}>
-      <div className="flex flex-col flex-1 min-w-0 md:min-w-[300px] lg:min-w-[400px]">
+    <div className={`flex flex-col sm:flex-row sm:items-start sm:justify-between ${marginBottom} w-full gap-4 ${className}`}>
+      <div className="flex flex-col flex-1 min-w-0 sm:min-w-[200px] md:min-w-[280px]">
         <HeadingTag className={`${headingSize} font-bold text-slate-blue mb-2 ${iconClearance ? 'mt-4' : ''}`}>
           {title}
         </HeadingTag>
@@ -63,7 +63,7 @@ export function PageCardHeader({
         )}
       </div>
       {actions && (
-        <div className="flex items-center gap-2 md:gap-3 flex-wrap justify-start md:justify-end max-w-full">
+        <div className="flex items-center gap-2 flex-wrap justify-start sm:justify-end">
           {actions}
         </div>
       )}
