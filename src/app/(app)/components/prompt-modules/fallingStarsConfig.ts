@@ -194,8 +194,7 @@ export const loadAllFallingIcons = async (): Promise<{
     
     // Diversity, Equity & Inclusion
     { key: "rainbow", label: "Rainbow (Pride)", icon: FaRainbow, color: "text-pink-500", category: "Diversity & Inclusion" },
-    { key: "users", label: "Users", icon: FaUsers, color: "text-blue-500", category: "Diversity & Inclusion" },
-    { key: "userfriends", label: "Friends", icon: FaUserFriends, color: "text-green-500", category: "Diversity & Inclusion" },
+    { key: "fistraised", label: "Fist Raised", icon: FaFistRaised, color: "text-red-500", category: "Diversity & Inclusion" },
     { key: "balancescale", label: "Balance Scale", icon: FaBalanceScale, color: "text-purple-600", category: "Diversity & Inclusion" },
     { key: "child", label: "Child", icon: FaChild, color: "text-blue-400", category: "Diversity & Inclusion" },
     { key: "wheelchair", label: "Wheelchair", icon: FaWheelchair, color: "text-blue-600", category: "Diversity & Inclusion" },
@@ -310,6 +309,8 @@ export const loadAllFallingIcons = async (): Promise<{
     { key: "questioncircle", label: "Question", icon: FaQuestionCircle, color: "text-blue-500", category: "Time & Communication" },
     
     // Community & Support
+    { key: "users", label: "Users", icon: FaUsers, color: "text-blue-500", category: "Community & Support" },
+    { key: "userfriends", label: "Friends", icon: FaUserFriends, color: "text-green-500", category: "Community & Support" },
     { key: "heartbeat", label: "Heartbeat", icon: FaHeartbeat, color: "text-red-500", category: "Community & Support" },
     { key: "handshelping", label: "Helping Hands", icon: FaHandsHelping, color: "text-green-600", category: "Community & Support" },
     { key: "handpeace", label: "Peace Hand", icon: FaHandPeace, color: "text-blue-500", category: "Community & Support" },
@@ -317,7 +318,6 @@ export const loadAllFallingIcons = async (): Promise<{
     { key: "handrock", label: "Rock Hand", icon: FaHandRock, color: "text-gray-600", category: "Community & Support" },
     { key: "handpaper", label: "Paper Hand", icon: FaHandPaper, color: "text-gray-500", category: "Community & Support" },
     { key: "handscissors", label: "Scissors Hand", icon: FaHandScissors, color: "text-gray-600", category: "Community & Support" },
-    { key: "fistraised", label: "Fist Raised", icon: FaFistRaised, color: "text-red-500", category: "Community & Support" },
   ];
 };
 
