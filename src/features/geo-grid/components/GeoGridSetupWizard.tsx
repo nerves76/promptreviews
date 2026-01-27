@@ -1118,7 +1118,7 @@ export function GeoGridSetupWizard({
                       >
                         Google Maps
                       </a>
-                      {' '}and search for your business to see the exact name Google uses, then copy that name into the search field above.
+                      {' '}and search for your business to see the exact name Google uses, then copy that name into the search field below.
                     </>
                   ) : geocodeError.includes('Service-area') ? (
                     <>
