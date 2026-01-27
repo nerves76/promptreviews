@@ -282,18 +282,24 @@ export class GoogleBusinessProfileClient {
    */
   async listAccounts(): Promise<BusinessAccount[]> {
     try {
-  
-      
+      console.log('[GBP Client] 🔍 Calling listAccounts API...');
+      console.log('[GBP Client] 🔍 Endpoint:', GOOGLE_BUSINESS_PROFILE.ENDPOINTS.ACCOUNTS);
+      console.log('[GBP Client] 🔍 Base URL:', GOOGLE_BUSINESS_PROFILE.ACCOUNT_MGMT_BASE_URL);
+
       const response = await this.makeRequest(
         GOOGLE_BUSINESS_PROFILE.ENDPOINTS.ACCOUNTS,
         {},
         0,
         GOOGLE_BUSINESS_PROFILE.ACCOUNT_MGMT_BASE_URL
       ) as ListAccountsResponse;
-      
+
+      console.log('[GBP Client] 📊 Raw listAccounts response:', JSON.stringify(response, null, 2));
+
       if (!response.accounts) {
+        console.log('[GBP Client] ⚠️ No accounts in response - response.accounts is undefined/null');
         return [];
       }
+      console.log('[GBP Client] ✅ Found', response.accounts.length, 'accounts');
       return response.accounts;
 
     } catch (error) {
@@ -340,17 +346,24 @@ export class GoogleBusinessProfileClient {
       const endpointWithParams = `${endpoint}?readMask=${encodeURIComponent(readMask)}`;
       
       // Use Business Information API for listing locations - explicit baseUrl to avoid URL construction issues
+      console.log('[GBP Client] 🔍 Calling listLocations for account:', accountId);
+      console.log('[GBP Client] 🔍 Endpoint:', endpointWithParams);
+
       const response = await this.makeRequest(
         endpointWithParams,
         {},
         0,
         'https://mybusinessbusinessinformation.googleapis.com'
       ) as ListLocationsResponse;
-      
+
+      console.log('[GBP Client] 📊 Raw listLocations response:', JSON.stringify(response, null, 2));
+
       if (!response.locations) {
+        console.log('[GBP Client] ⚠️ No locations in response for account', accountId);
         return [];
       }
 
+      console.log('[GBP Client] ✅ Found', response.locations.length, 'locations for account', accountId);
       return response.locations;
 
     } catch (error) {

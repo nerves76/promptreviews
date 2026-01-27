@@ -159,7 +159,7 @@ export async function POST(request: NextRequest) {
 
     try {
       // Fetch accounts from Google Business Profile API
-      
+
       // Update rate limit timestamp right before making the API call
       await serviceSupabase
         .from('google_api_rate_limits')
@@ -169,8 +169,25 @@ export async function POST(request: NextRequest) {
           last_api_call_at: new Date().toISOString(),
           user_id: user.id
         }, { onConflict: 'project_id,account_id' });
-      
+
+      console.log('[fetch-locations] 🔍 Fetching accounts from Google API...');
       const accounts = await client.listAccounts();
+      console.log('[fetch-locations] 📊 Google returned accounts:', JSON.stringify(accounts, null, 2));
+      console.log('[fetch-locations] 📊 Number of accounts:', accounts.length);
+
+      // If no accounts found, return helpful error
+      if (!accounts || accounts.length === 0) {
+        console.log('[fetch-locations] ⚠️ No GBP accounts found for this Google account');
+        return NextResponse.json({
+          success: false,
+          error: 'NO_GBP_ACCOUNTS',
+          message: 'Your Google account has no Google Business Profile accounts. Please verify you connected with the correct Google account that manages your businesses at business.google.com',
+          debug: {
+            accountsReturned: 0,
+            hint: 'Make sure you are logged into the Google account that owns or manages your business locations'
+          }
+        });
+      }
 
       // CRITICAL: Delete ALL existing locations for this account before fetching fresh data
       // This prevents stale location_ids from persisting after reconnection
@@ -193,8 +210,12 @@ export async function POST(request: NextRequest) {
       // Process each account to fetch locations
       for (const account of accounts) {
         try {
-          
+          console.log(`[fetch-locations] 🏢 Fetching locations for account: ${account.name} (${account.accountName || 'no name'})`);
           const locations = await client.listLocations(account.name);
+          console.log(`[fetch-locations] 📍 Account ${account.name} returned ${locations.length} locations`);
+          if (locations.length > 0) {
+            console.log('[fetch-locations] 📍 First location sample:', JSON.stringify(locations[0], null, 2));
+          }
           
           // Store locations in database
           for (const location of locations) {
@@ -306,10 +327,15 @@ export async function POST(request: NextRequest) {
       } else {
         return NextResponse.json({
           success: true,
-          message: allLocations.length > 0 
+          message: allLocations.length > 0
             ? `Successfully fetched ${allLocations.length} business locations`
             : 'No business locations found in your Google Business Profile account',
-          locations: allLocations
+          locations: allLocations,
+          debug: {
+            accountsFound: accounts.length,
+            accountNames: accounts.map(a => ({ name: a.name, displayName: a.accountName })),
+            totalLocationsFound: allLocations.length
+          }
         });
       }
       
