@@ -1504,13 +1504,17 @@ export function GeoGridSetupWizard({
                       alt="How to get coordinates from Google Maps"
                       className="max-w-full max-h-[90vh] rounded-lg shadow-2xl"
                     />
+                    {/* Standard close button - breaches top right corner on desktop */}
                     <button
                       type="button"
-                      onClick={() => setShowCoordsHelpImage(false)}
-                      className="absolute top-2 right-2 bg-white/90 hover:bg-white text-gray-800 rounded-full p-2 shadow-lg"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowCoordsHelpImage(false);
+                      }}
+                      className="absolute top-2 right-2 sm:-top-3 sm:-right-3 w-12 h-12 bg-white border border-gray-200 rounded-full shadow-lg hover:shadow-xl hover:bg-gray-100 transition-shadow duration-200 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
                       aria-label="Close"
                     >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                       </svg>
                     </button>
