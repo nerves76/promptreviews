@@ -817,12 +817,15 @@ export function GeoGridKeywordsTable({
                             return (
                               <button
                                 onClick={(e) => handleScheduleClick(e, group.trackedKeyword)}
-                                className={`inline-flex flex-col items-start px-2 py-1 rounded text-xs font-medium hover:ring-2 hover:ring-blue-300 transition-all ${scheduleInfo.color}`}
+                                className={`inline-flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium cursor-pointer hover:ring-2 hover:ring-blue-300 hover:shadow-sm transition-all ${scheduleInfo.color}`}
                                 title="Click to edit schedule"
                                 aria-label={`Edit schedule for ${group.phrase}`}
                               >
-                                <span className="whitespace-nowrap">{scheduleInfo.label}</span>
-                                <span className="text-[10px] opacity-75 whitespace-nowrap">{scheduleInfo.subtitle}</span>
+                                <div className="flex flex-col items-start">
+                                  <span className="whitespace-nowrap">{scheduleInfo.label}</span>
+                                  <span className="text-[10px] opacity-75 whitespace-nowrap">{scheduleInfo.subtitle}</span>
+                                </div>
+                                <Icon name="FaEdit" className="w-3 h-3 opacity-50" size={12} />
                               </button>
                             );
                           })()}
