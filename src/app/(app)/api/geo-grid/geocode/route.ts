@@ -308,11 +308,19 @@ export async function POST(request: NextRequest) {
         // This helps service-area businesses that hide their address but have city info
         // Try formattedAddress from Google first, then fallbackAddress from our database
         const addressToGeocode = formattedAddress || fallbackAddress;
+        console.log('Attempting address fallback geocoding:', {
+          formattedAddress,
+          fallbackAddress,
+          addressToGeocode,
+          placeIdError: data.status
+        });
+
         if (addressToGeocode) {
           console.log('No coordinates from Place ID, trying to geocode address:', addressToGeocode);
           const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(addressToGeocode)}&key=${GOOGLE_MAPS_API_KEY}`;
           const geocodeResponse = await fetch(geocodeUrl);
           const geocodeData = await geocodeResponse.json();
+          console.log('Address geocode result:', { status: geocodeData.status, hasResults: !!geocodeData.results?.length });
 
           if (geocodeData.status === 'OK' && geocodeData.results?.[0]?.geometry?.location) {
             const location = geocodeData.results[0].geometry.location;
@@ -328,10 +336,18 @@ export async function POST(request: NextRequest) {
               note: 'Coordinates derived from address. You may want to adjust to the exact center of your business or service area.',
             });
           }
+
+          // Address geocoding also failed
+          console.error('Address geocoding failed:', geocodeData.status, 'for address:', addressToGeocode);
+          return NextResponse.json({
+            success: false,
+            error: 'Could not find coordinates for this location.',
+            hint: `The address "${addressToGeocode}" could not be geocoded. This may be because it's incomplete (missing city/state). Please enter coordinates manually using Google Maps.`,
+          });
         }
 
-        // All methods failed - return error with status
-        console.error('Place Details API error:', data.status, data.error_message);
+        // All methods failed and no address to try - return error with Place ID status
+        console.error('Place Details API error and no fallback address:', data.status, data.error_message);
         return NextResponse.json({
           success: false,
           error: `Could not fetch coordinates for Place ID: ${data.status}`,
