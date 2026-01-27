@@ -1483,7 +1483,7 @@ export function GeoGridSetupWizard({
                         alt="How to get coordinates from Google Maps"
                         className="w-40 rounded border border-green-300 shadow-sm group-hover:shadow-md transition-shadow"
                       />
-                      <span className="absolute bottom-1 right-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                      <span className="absolute inset-0 flex items-center justify-center bg-black/40 text-white text-xs font-medium rounded opacity-0 group-hover:opacity-100 transition-opacity">
                         Click to expand
                       </span>
                     </button>
