@@ -36,6 +36,12 @@ interface Keyword {
   searchTerms?: SearchTerm[];
 }
 
+/** Info about a keyword tracked in another config */
+interface OtherConfigTracking {
+  keywordId: string;
+  locationName: string;
+}
+
 interface GeoGridKeywordsTableProps {
   /** Currently tracked keywords */
   trackedKeywords: GGTrackedKeyword[];
@@ -71,6 +77,8 @@ interface GeoGridKeywordsTableProps {
   onResultClick?: (result: GGCheckResult) => void;
   /** Map of keyword ID to review usage count */
   keywordUsageCounts?: Record<string, number>;
+  /** Keywords tracked in OTHER configs (for duplicate prevention) */
+  keywordsInOtherConfigs?: OtherConfigTracking[];
 }
 
 interface KeywordGroup {
@@ -251,6 +259,7 @@ export function GeoGridKeywordsTable({
   onKeywordsCreated,
   onResultClick,
   keywordUsageCounts = {},
+  keywordsInOtherConfigs = [],
 }: GeoGridKeywordsTableProps) {
   const [removingId, setRemovingId] = useState<string | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -1032,6 +1041,7 @@ export function GeoGridKeywordsTable({
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
         trackedKeywordIds={trackedKeywordIds}
+        keywordsInOtherConfigs={keywordsInOtherConfigs}
         onAdd={handleAddFromModal}
         maxKeywords={maxKeywords}
         currentCount={trackedKeywords.length}

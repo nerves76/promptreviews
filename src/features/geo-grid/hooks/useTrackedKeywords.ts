@@ -18,6 +18,8 @@ import { GGTrackedKeyword } from '../utils/types';
 export interface UseTrackedKeywordsOptions {
   /** Config ID to fetch keywords for (optional, defaults to first config) */
   configId?: string | null;
+  /** If true, fetch from ALL configs for the account */
+  allConfigs?: boolean;
   /** Auto-fetch on mount (default: true) */
   autoFetch?: boolean;
 }
@@ -57,7 +59,7 @@ export interface AddKeywordsResult {
 export function useTrackedKeywords(
   options: UseTrackedKeywordsOptions = {}
 ): UseTrackedKeywordsReturn {
-  const { configId, autoFetch = true } = options;
+  const { configId, allConfigs = false, autoFetch = true } = options;
 
   // Track selected account to refetch when it changes
   const { selectedAccountId } = useAccountData();
@@ -73,7 +75,11 @@ export function useTrackedKeywords(
     try {
       // Build query params
       const params = new URLSearchParams();
-      if (configId) params.set('configId', configId);
+      if (allConfigs) {
+        params.set('allConfigs', 'true');
+      } else if (configId) {
+        params.set('configId', configId);
+      }
       const queryString = params.toString();
       const url = queryString ? `/geo-grid/tracked-keywords?${queryString}` : '/geo-grid/tracked-keywords';
 
@@ -90,7 +96,7 @@ export function useTrackedKeywords(
     } finally {
       setIsLoading(false);
     }
-  }, [configId]);
+  }, [configId, allConfigs]);
 
   const addKeywords = useCallback(
     async (keywordIds: string[]): Promise<AddKeywordsResult> => {

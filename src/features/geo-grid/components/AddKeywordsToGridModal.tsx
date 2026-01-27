@@ -15,11 +15,19 @@ import { useKeywords } from '@/features/keywords/hooks/useKeywords';
 import { apiClient } from '@/utils/apiClient';
 import type { KeywordData, RelatedQuestion, FunnelStage } from '@/features/keywords/keywordUtils';
 
+/** Info about a keyword tracked in another config */
+interface OtherConfigTracking {
+  keywordId: string;
+  locationName: string;
+}
+
 interface AddKeywordsToGridModalProps {
   isOpen: boolean;
   onClose: () => void;
-  /** IDs of keywords already tracked in the grid */
+  /** IDs of keywords already tracked in THIS config */
   trackedKeywordIds: Set<string>;
+  /** Keywords tracked in OTHER configs (for duplicate prevention) */
+  keywordsInOtherConfigs?: OtherConfigTracking[];
   /** Callback to add keywords to grid */
   onAdd: (keywordIds: string[]) => Promise<void>;
   /** Max keywords allowed */
@@ -32,6 +40,7 @@ export function AddKeywordsToGridModal({
   isOpen,
   onClose,
   trackedKeywordIds,
+  keywordsInOtherConfigs = [],
   onAdd,
   maxKeywords = 20,
   currentCount,
@@ -48,6 +57,12 @@ export function AddKeywordsToGridModal({
   } = useKeywords();
 
   const remainingSlots = maxKeywords - currentCount;
+
+  // Build a map of keyword ID -> location name for keywords tracked in other configs
+  const otherConfigsMap = new Map<string, string>();
+  for (const item of keywordsInOtherConfigs) {
+    otherConfigsMap.set(item.keywordId, item.locationName);
+  }
 
   // Reset state when modal opens
   useEffect(() => {
@@ -273,16 +288,25 @@ export function AddKeywordsToGridModal({
                 const hasSearch = hasSearchTerm(kw);
                 const isAdding = addingKeywordId === kw.id;
                 const isAtLimit = remainingSlots <= 0;
+                const trackedInLocation = otherConfigsMap.get(kw.id);
+                const isTrackedElsewhere = !!trackedInLocation;
 
                 return (
                   <div
                     key={kw.id}
-                    className="flex items-center justify-between px-4 py-3 hover:bg-gray-50"
+                    className={`flex items-center justify-between px-4 py-3 ${isTrackedElsewhere ? 'bg-gray-50' : 'hover:bg-gray-50'}`}
                   >
                     <div className="flex-1 min-w-0">
-                      <div className="font-medium text-gray-900">{kw.phrase}</div>
+                      <div className={`font-medium ${isTrackedElsewhere ? 'text-gray-500' : 'text-gray-900'}`}>
+                        {kw.phrase}
+                      </div>
                       <div className="text-sm mt-0.5">
-                        {hasSearch ? (
+                        {isTrackedElsewhere ? (
+                          <span className="text-blue-600 flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 bg-blue-500 rounded-full" />
+                            Tracked in {trackedInLocation}
+                          </span>
+                        ) : hasSearch ? (
                           <span className="text-gray-500">
                             {searchTermCount} search term{searchTermCount !== 1 ? 's' : ''}
                           </span>
@@ -294,23 +318,29 @@ export function AddKeywordsToGridModal({
                         )}
                       </div>
                     </div>
-                    <button
-                      onClick={() => handleAddSingle(kw.id)}
-                      disabled={isAdding || isAtLimit}
-                      className="ml-3 px-3 py-1.5 text-sm font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 disabled:bg-gray-100 disabled:text-gray-500 rounded-lg transition-colors flex items-center gap-1"
-                    >
-                      {isAdding ? (
-                        <>
-                          <div className="w-3 h-3 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin" />
-                          Adding...
-                        </>
-                      ) : (
-                        <>
-                          <PlusIcon className="w-4 h-4" />
-                          Add
-                        </>
-                      )}
-                    </button>
+                    {isTrackedElsewhere ? (
+                      <span className="ml-3 px-3 py-1.5 text-sm text-gray-400">
+                        Already tracked
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => handleAddSingle(kw.id)}
+                        disabled={isAdding || isAtLimit}
+                        className="ml-3 px-3 py-1.5 text-sm font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 disabled:bg-gray-100 disabled:text-gray-500 rounded-lg transition-colors flex items-center gap-1"
+                      >
+                        {isAdding ? (
+                          <>
+                            <div className="w-3 h-3 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin" />
+                            Adding...
+                          </>
+                        ) : (
+                          <>
+                            <PlusIcon className="w-4 h-4" />
+                            Add
+                          </>
+                        )}
+                      </button>
+                    )}
                   </div>
                 );
               })}

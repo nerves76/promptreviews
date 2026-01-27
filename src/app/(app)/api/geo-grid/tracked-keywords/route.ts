@@ -17,6 +17,7 @@ const serviceSupabase = createClient(
  *
  * Query params:
  * - configId: string (optional) - Config ID to fetch keywords for (defaults to first config)
+ * - allConfigs: boolean (optional) - If true, fetch from ALL configs for the account
  */
 export async function GET(request: NextRequest) {
   try {
@@ -35,6 +36,57 @@ export async function GET(request: NextRequest) {
     // Parse query params
     const { searchParams } = new URL(request.url);
     const configId = searchParams.get('configId') || undefined;
+    const allConfigs = searchParams.get('allConfigs') === 'true';
+
+    // If allConfigs is true, fetch from all configs for the account
+    if (allConfigs) {
+      const { data: trackedKeywords, error: keywordsError } = await serviceSupabase
+        .from('gg_tracked_keywords')
+        .select(`
+          id,
+          config_id,
+          keyword_id,
+          account_id,
+          is_enabled,
+          created_at,
+          schedule_mode,
+          schedule_frequency,
+          schedule_day_of_week,
+          schedule_day_of_month,
+          schedule_hour,
+          next_scheduled_at,
+          last_scheduled_run_at,
+          keywords (
+            id,
+            phrase,
+            normalized_phrase,
+            review_usage_count,
+            status
+          ),
+          gg_configs (
+            location_name,
+            google_business_locations (
+              location_name
+            )
+          )
+        `)
+        .eq('account_id', accountId)
+        .order('created_at', { ascending: false });
+
+      if (keywordsError) {
+        console.error('❌ [GeoGrid] Failed to fetch all tracked keywords:', keywordsError);
+        return NextResponse.json(
+          { error: 'Failed to fetch tracked keywords' },
+          { status: 500 }
+        );
+      }
+
+      const transformed = (trackedKeywords || []).map((row) =>
+        transformTrackedKeywordToResponse(row as any)
+      );
+
+      return NextResponse.json({ trackedKeywords: transformed });
+    }
 
     // Get config - by ID if provided, otherwise first config for account
     let config: { id: string } | null = null;
@@ -205,6 +257,51 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: `Invalid keyword IDs: ${invalidIds.join(', ')}` },
         { status: 400 }
+      );
+    }
+
+    // Check if any keywords are already tracked in OTHER configs for this account
+    // (A keyword can only be tracked in one config at a time)
+    const { data: alreadyTracked, error: trackedError } = await serviceSupabase
+      .from('gg_tracked_keywords')
+      .select(`
+        keyword_id,
+        gg_configs (
+          id,
+          location_name,
+          google_business_locations (
+            location_name
+          )
+        )
+      `)
+      .eq('account_id', accountId)
+      .neq('config_id', config.id)
+      .in('keyword_id', keywordIds);
+
+    if (trackedError) {
+      console.error('❌ [GeoGrid] Failed to check existing tracking:', trackedError);
+      return NextResponse.json(
+        { error: 'Failed to check existing tracking' },
+        { status: 500 }
+      );
+    }
+
+    if (alreadyTracked && alreadyTracked.length > 0) {
+      // Build a helpful error message showing which keywords are tracked where
+      const conflicts = alreadyTracked.map((tk: any) => {
+        const locationName = tk.gg_configs?.location_name
+          || tk.gg_configs?.google_business_locations?.location_name
+          || 'another location';
+        return { keywordId: tk.keyword_id, locationName };
+      });
+
+      return NextResponse.json(
+        {
+          error: 'Keywords already tracked in another location',
+          message: 'Each keyword can only be tracked in one location at a time.',
+          conflicts,
+        },
+        { status: 409 } // Conflict
       );
     }
 

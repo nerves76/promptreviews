@@ -155,6 +155,23 @@ export default function LocalRankingGridsPage() {
     refresh: refreshKeywords,
   } = useTrackedKeywords({ configId: selectedConfigId });
 
+  // Also fetch ALL tracked keywords across all configs (for duplicate prevention)
+  const {
+    keywords: allTrackedKeywords,
+    refresh: refreshAllKeywords,
+  } = useTrackedKeywords({ allConfigs: true });
+
+  // Build list of keywords tracked in OTHER configs (not the current one)
+  const keywordsInOtherConfigs = useMemo(() => {
+    if (!selectedConfigId) return [];
+    return allTrackedKeywords
+      .filter(tk => tk.configId !== selectedConfigId)
+      .map(tk => ({
+        keywordId: tk.keywordId,
+        locationName: tk.locationName || 'another location',
+      }));
+  }, [allTrackedKeywords, selectedConfigId]);
+
   // Build keyword usage counts map for results table
   const keywordUsageCounts = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -397,7 +414,8 @@ export default function LocalRankingGridsPage() {
   const handleAddKeywords = useCallback(async (keywordIds: string[]) => {
     await addKeywords(keywordIds);
     refreshKeywords();
-  }, [addKeywords, refreshKeywords]);
+    refreshAllKeywords(); // Also refresh the all-configs list
+  }, [addKeywords, refreshKeywords, refreshAllKeywords]);
 
   // Handle removing keyword
   const handleRemoveKeyword = useCallback(async (trackedKeywordId: string) => {
@@ -800,6 +818,7 @@ export default function LocalRankingGridsPage() {
             maxKeywords={20}
             onKeywordsCreated={handleKeywordsCreated}
             keywordUsageCounts={keywordUsageCounts}
+            keywordsInOtherConfigs={keywordsInOtherConfigs}
           />
 
         </div>
