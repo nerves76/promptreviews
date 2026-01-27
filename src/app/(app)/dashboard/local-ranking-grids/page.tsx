@@ -26,6 +26,7 @@ import {
   useGeoGridResults,
   useGeoGridSummary,
   useTrackedKeywords,
+  GeoGridScheduleSettings,
   GGConfig,
   GGDailySummary,
   GGCheckResult,
@@ -94,6 +95,9 @@ export default function LocalRankingGridsPage() {
 
   // Run check confirmation modal
   const [showRunCheckModal, setShowRunCheckModal] = useState(false);
+
+  // Schedule editor modal
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
 
   // Toast notifications
   const { toasts, closeToast, error: showError, success: showSuccess } = useToast();
@@ -618,7 +622,7 @@ export default function LocalRankingGridsPage() {
                   </span>
                 </div>
                 <button
-                  onClick={() => setShowSettings(true)}
+                  onClick={() => setShowScheduleModal(true)}
                   className="text-xs text-slate-blue hover:text-slate-blue/80 font-medium"
                 >
                   Edit schedule
@@ -872,7 +876,7 @@ export default function LocalRankingGridsPage() {
                 <button
                   onClick={() => {
                     setShowRunCheckModal(false);
-                    setShowSettings(true);
+                    setShowScheduleModal(true);
                   }}
                   className="text-sm text-slate-blue hover:text-slate-blue/80 font-medium"
                 >
@@ -894,6 +898,26 @@ export default function LocalRankingGridsPage() {
             Run now ({calculateCheckCost} credits)
           </Button>
         </Modal.Footer>
+      </Modal>
+
+      {/* Schedule Editor Modal */}
+      <Modal
+        isOpen={showScheduleModal}
+        onClose={() => setShowScheduleModal(false)}
+        title="Edit schedule"
+        size="md"
+      >
+        {config && (
+          <GeoGridScheduleSettings
+            config={config}
+            keywordCount={trackedKeywords.length}
+            onScheduleUpdated={() => {
+              setShowScheduleModal(false);
+              refreshConfig();
+              showSuccess('Schedule updated');
+            }}
+          />
+        )}
       </Modal>
     </>
   );
