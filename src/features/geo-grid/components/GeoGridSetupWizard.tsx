@@ -296,6 +296,8 @@ export function GeoGridSetupWizard({
   const [searchBusinessName, setSearchBusinessName] = useState(effectiveGBPLocation?.name || '');
   // Google-verified business name (only set when we get a name from Google's API)
   const [verifiedBusinessName, setVerifiedBusinessName] = useState<string | null>(null);
+  // Show expanded coordinates help image
+  const [showCoordsHelpImage, setShowCoordsHelpImage] = useState(false);
   // Business search results for user to pick from
   const [businessSearchResults, setBusinessSearchResults] = useState<Array<{
     name: string;
@@ -1462,7 +1464,51 @@ export function GeoGridSetupWizard({
                   <li>Click the coordinates (e.g., &quot;45.5231, -122.6765&quot;) to copy them</li>
                   <li>Paste the first number into Latitude, second into Longitude</li>
                 </ol>
+                {/* Help image - click to expand */}
+                <div className="mt-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowCoordsHelpImage(true)}
+                    className="group relative cursor-pointer"
+                    title="Click to expand"
+                  >
+                    <img
+                      src="/images/how-to-get-lat-long.png"
+                      alt="How to get coordinates from Google Maps"
+                      className="w-full max-w-xs rounded border border-green-300 shadow-sm group-hover:shadow-md transition-shadow"
+                    />
+                    <span className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                      Click to expand
+                    </span>
+                  </button>
+                </div>
               </div>
+
+              {/* Expanded image modal */}
+              {showCoordsHelpImage && (
+                <div
+                  className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+                  onClick={() => setShowCoordsHelpImage(false)}
+                >
+                  <div className="relative max-w-4xl max-h-[90vh]">
+                    <img
+                      src="/images/how-to-get-lat-long.png"
+                      alt="How to get coordinates from Google Maps"
+                      className="max-w-full max-h-[90vh] rounded-lg shadow-2xl"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowCoordsHelpImage(false)}
+                      className="absolute top-2 right-2 bg-white/90 hover:bg-white text-gray-800 rounded-full p-2 shadow-lg"
+                      aria-label="Close"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              )}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
