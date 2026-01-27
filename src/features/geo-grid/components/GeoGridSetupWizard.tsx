@@ -1092,20 +1092,9 @@ export function GeoGridSetupWizard({
                     </>
                   ) : geocodeError === 'BUSINESS_NOT_FOUND' ? (
                     <>
-                      <strong>Business not found</strong> in Google's public database. This is common for service-area businesses.
+                      <strong>Business not found</strong> — try searching with your exact business name as it appears on Google Maps.
                       <br /><br />
-                      <strong>Option 1:</strong> Find your Place ID using{' '}
-                      <a
-                        href="https://developers.google.com/maps/documentation/javascript/examples/places-placeid-finder"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-slate-blue underline hover:text-blue-800"
-                      >
-                        Google&apos;s Place ID Finder
-                      </a>
-                      , paste it below, then click &quot;Get coordinates&quot;.
-                      <br /><br />
-                      <strong>Option 2:</strong> Go to{' '}
+                      <strong>Tip:</strong> Go to{' '}
                       <a
                         href="https://www.google.com/maps"
                         target="_blank"
@@ -1114,7 +1103,7 @@ export function GeoGridSetupWizard({
                       >
                         Google Maps
                       </a>
-                      , right-click on your service area center, click the coordinates to copy them, then paste into the latitude/longitude fields below.
+                      {' '}and search for your business to see the exact name Google uses, then copy that name into the search field above.
                     </>
                   ) : geocodeError.includes('Service-area') ? (
                     <>
@@ -1286,11 +1275,14 @@ export function GeoGridSetupWizard({
                       <p className="font-medium text-blue-800 mb-1">Using Place ID Finder:</p>
                       <ol className="space-y-1 pl-4 list-decimal text-blue-700">
                         <li>Go to <a href="https://developers.google.com/maps/documentation/javascript/examples/places-placeid-finder" target="_blank" rel="noopener noreferrer" className="underline font-medium">Google Place ID Finder</a></li>
-                        <li>Search for your business address</li>
-                        <li>Click on your listing in the map</li>
+                        <li>Search for your <strong>business name</strong> (not your address)</li>
+                        <li>Click on your business listing in the results</li>
                         <li>Copy the Place ID shown (starts with &quot;ChIJ...&quot;)</li>
                         <li><strong>Paste it above and click &quot;Get coordinates&quot;</strong></li>
                       </ol>
+                      <p className="mt-2 text-xs text-amber-700 bg-amber-50 p-1.5 rounded">
+                        ⚠️ Important: Search for your business name, not your address. Using an address will store the wrong name.
+                      </p>
                     </div>
                   </div>
                 </details>
