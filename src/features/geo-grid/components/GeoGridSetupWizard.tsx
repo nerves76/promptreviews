@@ -1107,7 +1107,12 @@ export function GeoGridSetupWizard({
                     </>
                   ) : geocodeError === 'BUSINESS_NOT_FOUND' ? (
                     <>
-                      <strong>Business not found</strong> — try searching with your exact business name as it appears on Google Maps.
+                      <strong>Business not found</strong>
+                      {searchBusinessName && (
+                        <> — searched for &quot;{searchBusinessName}&quot;</>
+                      )}
+                      <br /><br />
+                      Try typing your exact business name as it appears on Google Maps in the search field below.
                       <br /><br />
                       <strong>Tip:</strong> Go to{' '}
                       <a
@@ -1118,7 +1123,7 @@ export function GeoGridSetupWizard({
                       >
                         Google Maps
                       </a>
-                      {' '}and search for your business to see the exact name Google uses, then copy that name into the search field below.
+                      {' '}and search for your business to see the exact name Google uses.
                     </>
                   ) : geocodeError.includes('Service-area') ? (
                     <>
@@ -1262,7 +1267,8 @@ export function GeoGridSetupWizard({
                     <button
                       type="button"
                       onClick={async () => {
-                        const url = mapsUrlInput;
+                        const url = mapsUrlInput.trim();
+                        console.log('Processing Google Maps URL:', url);
 
                         // Try to extract ChIJ format Place ID first
                         const chijMatch = url.match(/!1s(ChIJ[A-Za-z0-9_-]+)/) ||
@@ -1270,28 +1276,42 @@ export function GeoGridSetupWizard({
                                           url.match(/^(ChIJ[A-Za-z0-9_-]+)$/);
 
                         if (chijMatch?.[1]) {
+                          console.log('Found ChIJ Place ID:', chijMatch[1]);
                           setGooglePlaceId(chijMatch[1]);
                           fetchCoordsFromPlaceId(chijMatch[1]);
                           setMapsUrlInput('');
                           return;
                         }
 
-                        // No ChIJ found - extract business name and coords from URL and search
-                        // URL format: /place/Business+Name/@lat,lng,zoom/...
-                        const nameMatch = url.match(/\/place\/([^/@]+)/);
-                        const coordsMatch = url.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+                        // Extract coordinates from URL (multiple formats)
+                        const coordsMatch = url.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*)/) ||
+                                           url.match(/ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+                        const lat = coordsMatch?.[1] ? parseFloat(coordsMatch[1]) : undefined;
+                        const lng = coordsMatch?.[2] ? parseFloat(coordsMatch[2]) : undefined;
+                        console.log('Extracted coordinates:', { lat, lng });
+
+                        // Try multiple URL patterns for business name
+                        // Format 1: /place/Business+Name/@...
+                        // Format 2: /search/Business+Name/@...
+                        // Format 3: ?q=Business+Name&...
+                        const nameMatch = url.match(/\/place\/([^/@]+)/) ||
+                                          url.match(/\/search\/([^/@]+)/) ||
+                                          url.match(/[?&]q=([^&]+)/);
 
                         if (nameMatch?.[1]) {
                           const businessName = decodeURIComponent(nameMatch[1].replace(/\+/g, ' '));
-                          const lat = coordsMatch?.[1] ? parseFloat(coordsMatch[1]) : undefined;
-                          const lng = coordsMatch?.[2] ? parseFloat(coordsMatch[2]) : undefined;
+                          console.log('Extracted business name:', businessName);
 
                           // Search for business using extracted name and coordinates
                           setSearchBusinessName(businessName);
-                          searchForBusiness(businessName, lat, lng);
+                          await searchForBusiness(businessName, lat, lng);
+                          setMapsUrlInput('');
+                        } else if (lat && lng) {
+                          // Have coordinates but no business name - tell user to search manually
+                          setGeocodeError(`Found location coordinates but couldn't extract business name from URL. Please type your business name in the search field above.`);
                           setMapsUrlInput('');
                         } else {
-                          setGeocodeError('Could not find business info in that URL. Make sure you copied the full URL from Google Maps.');
+                          setGeocodeError('Could not find business info in that URL. Make sure you copied the full URL from Google Maps (should include the business name or location).');
                         }
                       }}
                       disabled={!mapsUrlInput.trim() || isGeocoding}
