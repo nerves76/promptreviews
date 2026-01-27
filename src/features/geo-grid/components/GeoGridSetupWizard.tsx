@@ -1248,25 +1248,37 @@ export function GeoGridSetupWizard({
                     />
                     <button
                       type="button"
-                      onClick={() => {
+                      onClick={async () => {
                         const url = mapsUrlInput;
-                        // Extract Place ID from various Google Maps URL formats
-                        // Format 1: ...!1sChIJ... (ChIJ format)
-                        const match1 = url.match(/!1s(ChIJ[A-Za-z0-9_-]+)/);
-                        // Format 2: ...!1s0x...:0x... (hex format)
-                        const match2 = url.match(/!1s(0x[a-f0-9]+:0x[a-f0-9]+)/i);
-                        // Format 3: place_id:ChIJ... or place_id=ChIJ...
-                        const match3 = url.match(/place_id[=:](ChIJ[A-Za-z0-9_-]+)/);
-                        // Format 4: Just a Place ID pasted directly
-                        const match4 = url.match(/^(ChIJ[A-Za-z0-9_-]+)$/);
 
-                        const placeId = match1?.[1] || match2?.[1] || match3?.[1] || match4?.[1];
-                        if (placeId) {
-                          setGooglePlaceId(placeId);
-                          fetchCoordsFromPlaceId(placeId);
+                        // Try to extract ChIJ format Place ID first
+                        const chijMatch = url.match(/!1s(ChIJ[A-Za-z0-9_-]+)/) ||
+                                          url.match(/place_id[=:](ChIJ[A-Za-z0-9_-]+)/) ||
+                                          url.match(/^(ChIJ[A-Za-z0-9_-]+)$/);
+
+                        if (chijMatch?.[1]) {
+                          setGooglePlaceId(chijMatch[1]);
+                          fetchCoordsFromPlaceId(chijMatch[1]);
+                          setMapsUrlInput('');
+                          return;
+                        }
+
+                        // No ChIJ found - extract business name and coords from URL and search
+                        // URL format: /place/Business+Name/@lat,lng,zoom/...
+                        const nameMatch = url.match(/\/place\/([^/@]+)/);
+                        const coordsMatch = url.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+
+                        if (nameMatch?.[1]) {
+                          const businessName = decodeURIComponent(nameMatch[1].replace(/\+/g, ' '));
+                          const lat = coordsMatch?.[1] ? parseFloat(coordsMatch[1]) : undefined;
+                          const lng = coordsMatch?.[2] ? parseFloat(coordsMatch[2]) : undefined;
+
+                          // Search for business using extracted name and coordinates
+                          setSearchBusinessName(businessName);
+                          searchForBusiness(businessName, lat, lng);
                           setMapsUrlInput('');
                         } else {
-                          setGeocodeError('Could not find Place ID in that URL. Make sure you copied the full URL from Google Maps.');
+                          setGeocodeError('Could not find business info in that URL. Make sure you copied the full URL from Google Maps.');
                         }
                       }}
                       disabled={!mapsUrlInput.trim() || isGeocoding}
