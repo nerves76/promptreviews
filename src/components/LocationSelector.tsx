@@ -95,8 +95,8 @@ export function LocationSelector({
     setIsOpen(false);
   };
 
-  // Don't render if only one location and no add button
-  if (locations.length <= 1 && !showAddButton) {
+  // Don't render if no locations at all
+  if (locations.length === 0) {
     return null;
   }
 
