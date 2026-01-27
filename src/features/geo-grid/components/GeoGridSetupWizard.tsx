@@ -1447,7 +1447,7 @@ export function GeoGridSetupWizard({
                 Search center coordinates
               </p>
               <p className="text-sm text-gray-500 mt-1">
-                This is the center point for rank tracking. For service-area businesses, use the center of your service area.
+                This is the center point for rank tracking. For service-area businesses, you should choose the center of your service area rather than your business location.
               </p>
 
               {/* How to get coordinates - helpful for service-area businesses */}
