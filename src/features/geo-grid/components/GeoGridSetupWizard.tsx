@@ -410,7 +410,7 @@ export function GeoGridSetupWizard({
   }, [configId]);
 
   // Search for business Place ID using Places API
-  const searchForBusiness = useCallback(async (businessName: string, lat?: number, lng?: number) => {
+  const searchForBusiness = useCallback(async (businessName: string, lat?: number, lng?: number, preciseCoords?: boolean) => {
     setIsGeocoding(true);
     setGeocodeError(null);
 
@@ -438,6 +438,7 @@ export function GeoGridSetupWizard({
         businessName,
         lat,
         lng,
+        preciseCoords,
       });
 
       console.log('Business search response:', response);
@@ -1323,10 +1324,12 @@ export function GeoGridSetupWizard({
                           if (nameMatch?.[1]) {
                             const businessName = decodeURIComponent(nameMatch[1].replace(/\+/g, ' '));
                             console.log('Extracted business name:', businessName);
+                            console.log('Has precise coordinates:', !!preciseMatch);
 
                             // Search for business using extracted name and coordinates
+                            // Pass preciseCoords=true when we have exact coordinates from URL data params
                             setSearchBusinessName(businessName);
-                            const found = await searchForBusiness(businessName, lat, lng);
+                            const found = await searchForBusiness(businessName, lat, lng, !!preciseMatch);
 
                             // If search failed but we have coords and name, offer to use them directly
                             if (!found && lat && lng) {

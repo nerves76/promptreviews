@@ -30,12 +30,16 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { address, placeId, lat, lng, businessName, searchBusiness } = body;
+    const { address, placeId, lat, lng, businessName, searchBusiness, preciseCoords } = body;
 
     // Business search: Find the actual GBP listing using Places API
     // This is the best way to get the correct Place ID for rank tracking
     if (searchBusiness && businessName && GOOGLE_MAPS_API_KEY) {
       let placesNewStatus = 'NOT_TRIED';
+
+      // Use smaller radius when we have precise coordinates from a URL
+      const searchRadius = preciseCoords ? 500.0 : 50000.0;
+      console.log(`Business search: "${businessName}" at ${lat},${lng} with radius ${searchRadius}m (precise: ${!!preciseCoords})`);
 
       // Try Places API (New) first - it's more reliable
       try {
@@ -52,7 +56,7 @@ export async function POST(request: NextRequest) {
               locationBias: {
                 circle: {
                   center: { latitude: lat, longitude: lng },
-                  radius: 50000.0,
+                  radius: searchRadius,
                 },
               },
             } : {}),
@@ -103,7 +107,7 @@ export async function POST(request: NextRequest) {
 
       if (lat && lng) {
         textSearchUrl.searchParams.set('location', `${lat},${lng}`);
-        textSearchUrl.searchParams.set('radius', '50000');
+        textSearchUrl.searchParams.set('radius', preciseCoords ? '500' : '50000');
       }
 
       const response = await fetch(textSearchUrl.toString());
@@ -141,7 +145,7 @@ export async function POST(request: NextRequest) {
       findPlaceUrl.searchParams.set('key', GOOGLE_MAPS_API_KEY);
 
       if (lat && lng) {
-        findPlaceUrl.searchParams.set('locationbias', `circle:50000@${lat},${lng}`);
+        findPlaceUrl.searchParams.set('locationbias', `circle:${preciseCoords ? '500' : '50000'}@${lat},${lng}`);
       }
 
       const findPlaceResponse = await fetch(findPlaceUrl.toString());
