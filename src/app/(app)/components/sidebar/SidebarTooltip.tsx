@@ -29,7 +29,7 @@ export function SidebarTooltip({
         const rect = triggerRef.current.getBoundingClientRect();
 
         let top = rect.top + rect.height / 2;
-        let left = rect.right + 8;
+        let left = rect.right + 16;
 
         if (position === "top") {
           top = rect.top - 8;

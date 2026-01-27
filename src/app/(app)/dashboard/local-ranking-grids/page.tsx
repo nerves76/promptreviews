@@ -158,6 +158,49 @@ export default function LocalRankingGridsPage() {
     return counts;
   }, [trackedKeywords]);
 
+  // Track which configs have been checked for business name refresh
+  const checkedConfigsRef = useRef<Set<string>>(new Set());
+
+  // Refresh business names from Google for configs that might have addresses stored
+  useEffect(() => {
+    const refreshBusinessNames = async () => {
+      for (const cfg of configs) {
+        // Skip if already checked or no Place ID
+        if (checkedConfigsRef.current.has(cfg.id) || !cfg.targetPlaceId) continue;
+        checkedConfigsRef.current.add(cfg.id);
+
+        // Check if locationName looks like an address (contains numbers or common address words)
+        const name = cfg.locationName || '';
+        const looksLikeAddress = /\d/.test(name) || /\b(ave|st|rd|blvd|dr|ln|ct|way|street|avenue|road|drive)\b/i.test(name);
+
+        if (!looksLikeAddress) continue;
+
+        try {
+          const response = await apiClient.post<{
+            success: boolean;
+            businessName?: string;
+          }>('/geo-grid/geocode', { placeId: cfg.targetPlaceId });
+
+          if (response.success && response.businessName && response.businessName !== cfg.locationName) {
+            console.log('📝 [LocalRankingGrids] Updating business name:', cfg.locationName, '->', response.businessName);
+            await apiClient.post('/geo-grid/config', {
+              configId: cfg.id,
+              locationName: response.businessName,
+            });
+            // Refresh configs to show updated name
+            refreshConfig();
+          }
+        } catch (err) {
+          console.warn('Could not refresh business name for config:', cfg.id, err);
+        }
+      }
+    };
+
+    if (configs.length > 0) {
+      refreshBusinessNames();
+    }
+  }, [configs, refreshConfig]);
+
   // Pre-select keyword from URL parameter (e.g., when navigating from keyword concepts page)
   useEffect(() => {
     const keywordIdParam = searchParams?.get('keywordId');
