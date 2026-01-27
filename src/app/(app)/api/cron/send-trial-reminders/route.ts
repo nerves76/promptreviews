@@ -31,10 +31,12 @@ export async function GET(request: NextRequest) {
 
     // Find users whose trial expires in 3 days
     // Note: accounts table has first_name and email directly on it
+    // Only send to 'grower' plan accounts (not free, not paid plans, not client accounts)
     const { data: accounts, error } = await supabase
       .from('accounts')
-      .select('id, trial_end, first_name, email')
+      .select('id, trial_end, first_name, email, plan, is_client_account')
       .eq('plan', 'grower')
+      .neq('is_client_account', true)
       .not('trial_end', 'is', null)
       .not('email', 'is', null)
       .gte('trial_end', threeDaysFromNowISO)
@@ -54,6 +56,13 @@ export async function GET(request: NextRequest) {
       try {
         // Skip if no email
         if (!account.email) {
+          continue;
+        }
+
+        // Double-check: skip free plans and client accounts (defensive)
+        if (account.plan === 'free' || account.is_client_account) {
+          console.log(`[Trial Reminders] Skipping ${account.email}: plan=${account.plan}, is_client=${account.is_client_account}`);
+          skippedCount++;
           continue;
         }
 
