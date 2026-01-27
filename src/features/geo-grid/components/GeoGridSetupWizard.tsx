@@ -286,6 +286,8 @@ export function GeoGridSetupWizard({
   const [geocodeError, setGeocodeError] = useState<string | null>(null);
   // Editable search name - allows users to update if their business name changed on Google
   const [searchBusinessName, setSearchBusinessName] = useState(effectiveGBPLocation?.name || '');
+  // Google-verified business name (only set when we get a name from Google's API)
+  const [verifiedBusinessName, setVerifiedBusinessName] = useState<string | null>(null);
   // Business search results for user to pick from
   const [businessSearchResults, setBusinessSearchResults] = useState<Array<{
     name: string;
@@ -359,8 +361,8 @@ export function GeoGridSetupWizard({
 
           hasLoadedConfigRef.current = true;
 
-          // Refresh business name from Google if we have a Place ID
-          // This ensures we show the current name if it changed in Google
+          // Get verified business name from Google if we have a Place ID
+          // This ensures we have a Google-verified name for saving
           if (cfg.targetPlaceId) {
             try {
               const refreshResponse = await apiClient.post<{
@@ -369,8 +371,9 @@ export function GeoGridSetupWizard({
               }>('/geo-grid/geocode', { placeId: cfg.targetPlaceId });
 
               if (refreshResponse.success && refreshResponse.businessName) {
-                console.log('✅ [GeoGridSetupWizard] Refreshed business name from Google:', refreshResponse.businessName);
+                console.log('✅ [GeoGridSetupWizard] Got verified business name from Google:', refreshResponse.businessName);
                 setSearchBusinessName(refreshResponse.businessName);
+                setVerifiedBusinessName(refreshResponse.businessName);
                 setSelectedLocation(prev => prev ? {
                   ...prev,
                   name: refreshResponse.businessName!,
@@ -381,23 +384,10 @@ export function GeoGridSetupWizard({
                   lng: cfg.centerLng || 0,
                   placeId: cfg.targetPlaceId || '',
                 });
-
-                // If the stored name is different (e.g., was address), update it in the database
-                if (cfg.locationName !== refreshResponse.businessName) {
-                  console.log('📝 [GeoGridSetupWizard] Updating stored location name:', cfg.locationName, '->', refreshResponse.businessName);
-                  try {
-                    await apiClient.post('/geo-grid/config', {
-                      configId: configId,
-                      locationName: refreshResponse.businessName,
-                    });
-                  } catch (updateErr) {
-                    console.warn('Could not update location name in database:', updateErr);
-                  }
-                }
               }
             } catch (refreshErr) {
-              console.warn('Could not refresh business name from Google:', refreshErr);
-              // Keep using stored name if refresh fails
+              console.warn('Could not get business name from Google:', refreshErr);
+              // User will need to search for their business to get a verified name
             }
           }
         }
@@ -408,48 +398,6 @@ export function GeoGridSetupWizard({
 
     loadExistingConfig();
   }, [configId]);
-
-  // Auto-geocode on mount if we have location but no coordinates
-  const geocodeAddress = useCallback(async (address: string, businessName?: string) => {
-    setIsGeocoding(true);
-    setGeocodeError(null);
-
-    try {
-      // Try with full address first, then business name
-      const searchQuery = address || businessName;
-      if (!searchQuery) {
-        setGeocodeError('No address available to geocode');
-        return;
-      }
-
-      const response = await apiClient.post<{
-        success: boolean;
-        coordinates?: { lat: number; lng: number };
-        placeId?: string;
-        error?: string;
-        hint?: string;
-      }>('/geo-grid/geocode', { address: searchQuery });
-
-      if (response.success && response.coordinates) {
-        setManualLat(response.coordinates.lat.toString());
-        setManualLng(response.coordinates.lng.toString());
-        if (response.placeId) {
-          setGooglePlaceId(response.placeId);
-        }
-        setGeocodeError(null);
-      } else {
-        const errorMsg = response.hint
-          ? `${response.error} ${response.hint}`
-          : response.error || 'Failed to geocode address';
-        setGeocodeError(errorMsg);
-      }
-    } catch (err) {
-      console.error('Geocode error:', err);
-      setGeocodeError('Failed to look up coordinates. Please enter manually.');
-    } finally {
-      setIsGeocoding(false);
-    }
-  }, []);
 
   // Search for business Place ID using Places API
   const searchForBusiness = useCallback(async (businessName: string, lat?: number, lng?: number) => {
@@ -577,6 +525,7 @@ export function GeoGridSetupWizard({
         // Update business name if returned from Google (reflects current name)
         if (response.businessName) {
           setSearchBusinessName(response.businessName);
+          setVerifiedBusinessName(response.businessName); // Store Google-verified name
           // Also update the selected location name for display
           setSelectedLocation(prev => prev ? {
             ...prev,
@@ -621,6 +570,7 @@ export function GeoGridSetupWizard({
   }) => {
     setGooglePlaceId(result.placeId);
     setSearchBusinessName(result.name);
+    setVerifiedBusinessName(result.name); // Store Google-verified name
     setBusinessSearchResults([]); // Clear results after selection
 
     // Update selected location with the business name
@@ -784,6 +734,12 @@ export function GeoGridSetupWizard({
       return;
     }
 
+    // Require a verified business name from Google (prevents storing addresses as names)
+    if (!verifiedBusinessName) {
+      setError('Business name not verified. Please search for your business to get the correct name from Google.');
+      return;
+    }
+
     setIsSubmitting(true);
     setError(null);
 
@@ -800,7 +756,7 @@ export function GeoGridSetupWizard({
       checkPoints,
       targetPlaceId: googlePlaceId, // Use the Google Place ID from geocoding, not GBP location ID
       isEnabled: true,
-      locationName: selectedLocation.name || effectiveGBPLocation?.name || undefined,
+      locationName: verifiedBusinessName, // Only use Google-verified business name
     };
 
     const result = await saveConfig(configData);
@@ -862,11 +818,12 @@ export function GeoGridSetupWizard({
                 const hasValidCoords = !isNaN(currentLat) && !isNaN(currentLng) &&
                                        currentLat !== 0 && currentLng !== 0;
                 const hasValidPlaceId = googlePlaceId?.startsWith('ChIJ');
-                const isComplete = hasValidCoords && hasValidPlaceId;
-                const needsSetup = !hasValidCoords || !hasValidPlaceId;
+                const hasVerifiedName = !!verifiedBusinessName;
+                const isComplete = hasValidCoords && hasValidPlaceId && hasVerifiedName;
+                const needsSetup = !hasValidCoords || !hasValidPlaceId || !hasVerifiedName;
 
-                // Use the updated name from selectedLocation if available (from Place ID lookup)
-                const displayName = selectedLocation?.name || effectiveGBPLocation.name;
+                // Use verified name if available, otherwise fall back to selected/GBP location
+                const displayName = verifiedBusinessName || selectedLocation?.name || effectiveGBPLocation.name;
 
                 return (
                   <div className={`p-4 rounded-lg ${needsSetup ? 'bg-amber-50 border border-amber-200' : 'bg-green-50 border border-green-200'}`}>
@@ -879,10 +836,11 @@ export function GeoGridSetupWizard({
                         )}
 
                         {/* Show status based on data completeness */}
-                        {/* Only show detailed warnings if we don't have a Place ID - otherwise the Place ID box below handles it */}
                         {isComplete ? (
                           <p className="text-xs text-green-600 mt-1">✓ Location data complete</p>
-                        ) : hasValidPlaceId ? (
+                        ) : hasValidPlaceId && hasValidCoords && !hasVerifiedName ? (
+                          <p className="text-xs text-amber-600 mt-1">⚠️ Business name not verified - click &quot;Get coordinates&quot; below</p>
+                        ) : hasValidPlaceId && !hasValidCoords ? (
                           <p className="text-xs text-amber-600 mt-1">⚠️ Coordinates needed - see below</p>
                         ) : (
                           <div className="mt-2 p-2 bg-amber-100 rounded border border-amber-200">
@@ -890,11 +848,14 @@ export function GeoGridSetupWizard({
                               ⚠️ Location data incomplete
                             </p>
                             <ul className="text-xs text-amber-700 space-y-1">
+                              {!hasValidPlaceId && (
+                                <li>• Missing Google Place ID (required for rank tracking)</li>
+                              )}
                               {!hasValidCoords && (
                                 <li>• Missing coordinates (required for map display)</li>
                               )}
-                              {!hasValidPlaceId && (
-                                <li>• Missing Google Place ID (required for rank tracking)</li>
+                              {!hasVerifiedName && hasValidPlaceId && (
+                                <li>• Business name not verified from Google</li>
                               )}
                             </ul>
                             <p className="text-xs text-amber-800 mt-2">
@@ -1031,20 +992,26 @@ export function GeoGridSetupWizard({
             {googlePlaceId && !isGeocoding && (() => {
               const hasCoords = manualLat && manualLng &&
                                parseFloat(manualLat) !== 0 && parseFloat(manualLng) !== 0;
+              const hasVerifiedName = !!verifiedBusinessName;
+              const isComplete = hasCoords && hasVerifiedName;
+              const needsData = !hasCoords || !hasVerifiedName;
               return (
-                <div className={`p-3 rounded-lg ${hasCoords ? 'bg-green-50 border border-green-200' : 'bg-amber-50 border border-amber-200'}`}>
+                <div className={`p-3 rounded-lg ${isComplete ? 'bg-green-50 border border-green-200' : 'bg-amber-50 border border-amber-200'}`}>
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className={`text-sm font-medium ${hasCoords ? 'text-green-800' : 'text-amber-800'}`}>
-                        {hasCoords ? '✓ Business listing found!' : '⚠️ Place ID found, but coordinates needed'}
+                      <p className={`text-sm font-medium ${isComplete ? 'text-green-800' : 'text-amber-800'}`}>
+                        {isComplete ? '✓ Business verified!' : !hasCoords ? '⚠️ Place ID found, but coordinates needed' : '⚠️ Click below to verify business name'}
                       </p>
-                      {searchBusinessName && (
-                        <p className="text-sm text-gray-900 font-medium mt-1">{searchBusinessName}</p>
+                      {(verifiedBusinessName || searchBusinessName) && (
+                        <p className="text-sm text-gray-900 font-medium mt-1">
+                          {verifiedBusinessName || searchBusinessName}
+                          {hasVerifiedName && <span className="ml-2 text-xs text-green-600">✓ verified</span>}
+                        </p>
                       )}
                       <p className="text-xs text-gray-500 mt-0.5 font-mono truncate" title={googlePlaceId}>
                         Place ID: {googlePlaceId}
                       </p>
-                      {!hasCoords && (
+                      {needsData && (
                         <div className="mt-3 space-y-3">
                           {/* Try auto-fetch button */}
                           <button
@@ -1059,12 +1026,12 @@ export function GeoGridSetupWizard({
                             {isGeocoding ? (
                               <>
                                 <ArrowPathIcon className="w-4 h-4 animate-spin" />
-                                Fetching coordinates...
+                                Fetching from Google...
                               </>
                             ) : (
                               <>
                                 <MapPinIcon className="w-4 h-4" />
-                                Try to fetch coordinates automatically
+                                Get coordinates & verify name from Google
                               </>
                             )}
                           </button>
@@ -1076,24 +1043,29 @@ export function GeoGridSetupWizard({
                             </div>
                           )}
 
-                          <div className="p-3 bg-white rounded border border-amber-200">
-                            <p className="text-sm font-medium text-gray-800 mb-2">
-                              Or get coordinates manually:
-                            </p>
-                            <ol className="text-xs text-gray-700 space-y-1.5 pl-4 list-decimal">
-                              <li>Go to <a href="https://www.google.com/maps" target="_blank" rel="noopener noreferrer" className="text-slate-blue underline font-medium">Google Maps</a></li>
-                              <li>Navigate to the center of your service area</li>
-                              <li>Right-click on that location</li>
-                              <li>Click the coordinates at the top of the menu (e.g., &quot;45.5231, -122.6765&quot;) to copy them</li>
-                              <li>Paste the first number into <strong>Latitude</strong> and the second into <strong>Longitude</strong> below</li>
-                            </ol>
-                          </div>
+                          {!hasCoords && (
+                            <div className="p-3 bg-white rounded border border-amber-200">
+                              <p className="text-sm font-medium text-gray-800 mb-2">
+                                Or get coordinates manually:
+                              </p>
+                              <ol className="text-xs text-gray-700 space-y-1.5 pl-4 list-decimal">
+                                <li>Go to <a href="https://www.google.com/maps" target="_blank" rel="noopener noreferrer" className="text-slate-blue underline font-medium">Google Maps</a></li>
+                                <li>Navigate to the center of your service area</li>
+                                <li>Right-click on that location</li>
+                                <li>Click the coordinates at the top of the menu (e.g., &quot;45.5231, -122.6765&quot;) to copy them</li>
+                                <li>Paste the first number into <strong>Latitude</strong> and the second into <strong>Longitude</strong> below</li>
+                              </ol>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
                     <button
                       type="button"
-                      onClick={() => setGooglePlaceId(null)}
+                      onClick={() => {
+                        setGooglePlaceId(null);
+                        setVerifiedBusinessName(null);
+                      }}
                       className="text-xs text-gray-500 hover:text-gray-700 underline"
                     >
                       Change
@@ -1643,8 +1615,8 @@ export function GeoGridSetupWizard({
 
             <div className="bg-gray-50 rounded-lg p-4 space-y-3">
               <div className="flex justify-between">
-                <span className="text-gray-600">Location</span>
-                <span className="font-medium text-gray-900">{selectedLocation?.name || 'Manual Location'}</span>
+                <span className="text-gray-600">Business</span>
+                <span className="font-medium text-gray-900">{verifiedBusinessName || selectedLocation?.name || 'Unknown'}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Coordinates</span>
@@ -1754,7 +1726,8 @@ export function GeoGridSetupWizard({
           const lng = parseFloat(manualLng);
           const hasValidCoords = !isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0;
           const hasValidPlaceId = googlePlaceId?.startsWith('ChIJ');
-          const canProceed = currentStep !== 'location' || (hasValidCoords && hasValidPlaceId);
+          const hasVerifiedName = !!verifiedBusinessName;
+          const canProceed = currentStep !== 'location' || (hasValidCoords && hasValidPlaceId && hasVerifiedName);
 
           return (
             <button
@@ -1762,7 +1735,7 @@ export function GeoGridSetupWizard({
               onClick={handleNext}
               disabled={!canProceed}
               className="px-6 py-2 bg-slate-blue text-white font-medium rounded-lg hover:bg-slate-blue/90 disabled:opacity-50 disabled:cursor-not-allowed"
-              title={!canProceed ? 'Please enter valid coordinates and Place ID' : undefined}
+              title={!canProceed ? 'Please search for your business to get verified coordinates and name from Google' : undefined}
             >
               Next
             </button>

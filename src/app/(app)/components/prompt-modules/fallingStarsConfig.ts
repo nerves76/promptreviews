@@ -152,6 +152,7 @@ export const loadAllFallingIcons = async (): Promise<{
     FaStethoscope,
     FaCut,
     FaBroom,
+    FaSoap,
     FaShieldAlt,
     FaChild,
     FaWheelchair,
@@ -188,6 +189,7 @@ export const loadAllFallingIcons = async (): Promise<{
     { key: "stethoscope", label: "Stethoscope", icon: FaStethoscope, color: "text-red-500", category: "Small Business" },
     { key: "cut", label: "Scissors", icon: FaCut, color: "text-gray-600", category: "Small Business" },
     { key: "broom", label: "Broom", icon: FaBroom, color: "text-brown-500", category: "Small Business" },
+    { key: "soap", label: "Soap", icon: FaSoap, color: "text-blue-400", category: "Small Business" },
     { key: "shield", label: "Shield", icon: FaShieldAlt, color: "text-blue-600", category: "Small Business" },
     
     // Diversity, Equity & Inclusion
