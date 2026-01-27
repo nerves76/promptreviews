@@ -1226,10 +1226,10 @@ export function GeoGridSetupWizard({
             {!googlePlaceId && !isGeocoding && (
               <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg space-y-3">
                 <div>
-                  <p className="text-sm font-medium text-gray-700">
+                  <p className="text-base font-semibold text-gray-800">
                     Service-area business not showing up?
                   </p>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-sm text-gray-500 mt-1">
                     Paste your Google Maps business link and we&apos;ll find it automatically.
                   </p>
                 </div>
