@@ -8,6 +8,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { MapPinIcon, Cog6ToothIcon, CheckCircleIcon, ArrowPathIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { useGeoGridConfig, SaveConfigData } from '../hooks/useGeoGridConfig';
 import { CheckPoint, GGCheckResult, GRID_SIZE_OPTIONS, GridSize } from '../utils/types';
@@ -1491,10 +1492,10 @@ export function GeoGridSetupWizard({
                 </div>
               </div>
 
-              {/* Expanded image modal */}
-              {showCoordsHelpImage && (
+              {/* Expanded image modal - rendered via portal to escape overflow/stacking context issues */}
+              {showCoordsHelpImage && typeof document !== 'undefined' && createPortal(
                 <div
-                  className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+                  className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 p-4"
                   onClick={() => setShowCoordsHelpImage(false)}
                 >
                   <div className="relative max-w-4xl max-h-[90vh]">
@@ -1514,7 +1515,8 @@ export function GeoGridSetupWizard({
                       </svg>
                     </button>
                   </div>
-                </div>
+                </div>,
+                document.body
               )}
               <div className="grid grid-cols-2 gap-4">
                 <div>
