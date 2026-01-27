@@ -1456,33 +1456,38 @@ export function GeoGridSetupWizard({
 
               {/* How to get coordinates - helpful for service-area businesses */}
               <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                <p className="text-sm font-medium text-green-800 mb-2">
-                  How to get coordinates:
-                </p>
-                <ol className="text-xs text-green-700 space-y-1 pl-4 list-decimal">
-                  <li>Go to <a href="https://www.google.com/maps" target="_blank" rel="noopener noreferrer" className="underline font-medium">Google Maps</a></li>
-                  <li>Navigate to the center of your service area</li>
-                  <li>Right-click on that spot</li>
-                  <li>Click the coordinates (e.g., &quot;45.5231, -122.6765&quot;) to copy them</li>
-                  <li>Paste the first number into Latitude, second into Longitude</li>
-                </ol>
-                {/* Help image - click to expand */}
-                <div className="mt-3">
-                  <button
-                    type="button"
-                    onClick={() => setShowCoordsHelpImage(true)}
-                    className="group relative cursor-pointer"
-                    title="Click to expand"
-                  >
-                    <img
-                      src="/images/how-to-get-lat-long.png"
-                      alt="How to get coordinates from Google Maps"
-                      className="w-full max-w-xs rounded border border-green-300 shadow-sm group-hover:shadow-md transition-shadow"
-                    />
-                    <span className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
-                      Click to expand
-                    </span>
-                  </button>
+                <div className="flex flex-col md:flex-row md:gap-4">
+                  {/* Instructions */}
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-green-800 mb-2">
+                      How to get coordinates:
+                    </p>
+                    <ol className="text-xs text-green-700 space-y-1 pl-4 list-decimal">
+                      <li>Go to <a href="https://www.google.com/maps" target="_blank" rel="noopener noreferrer" className="underline font-medium">Google Maps</a></li>
+                      <li>Navigate to the center of your service area</li>
+                      <li>Right-click on that spot</li>
+                      <li>Click the coordinates (e.g., &quot;45.5231, -122.6765&quot;) to copy them</li>
+                      <li>Paste the first number into Latitude, second into Longitude</li>
+                    </ol>
+                  </div>
+                  {/* Help image - click to expand */}
+                  <div className="mt-3 md:mt-0 flex-shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setShowCoordsHelpImage(true)}
+                      className="group relative cursor-pointer"
+                      title="Click to expand"
+                    >
+                      <img
+                        src="/images/how-to-get-lat-long.png"
+                        alt="How to get coordinates from Google Maps"
+                        className="w-40 rounded border border-green-300 shadow-sm group-hover:shadow-md transition-shadow"
+                      />
+                      <span className="absolute bottom-1 right-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                        Click to expand
+                      </span>
+                    </button>
+                  </div>
                 </div>
               </div>
 
