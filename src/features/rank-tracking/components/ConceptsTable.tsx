@@ -869,20 +869,18 @@ export default function ConceptsTable({
               </td>
               <td className="py-3 px-4 text-center">
                 {row.gridTracked && row.gridTotalPoints !== null && row.gridTotalPoints > 0 ? (
-                  <div className="flex flex-col items-center">
-                    <span className={`text-sm font-medium ${
+                  <span
+                    className={`text-sm font-medium cursor-help ${
                       row.gridPointsInTop10 === row.gridTotalPoints
                         ? 'text-green-600'
                         : row.gridPointsInTop10 !== null && row.gridPointsInTop10 > 0
                           ? 'text-amber-600'
                           : 'text-gray-500'
-                    }`}>
-                      {row.gridPointsInTop10 ?? 0}/{row.gridTotalPoints}
-                    </span>
-                    <span className="text-[10px] text-gray-500">
-                      {Math.round(((row.gridPointsInTop10 ?? 0) / row.gridTotalPoints) * 100)}% top 10
-                    </span>
-                  </div>
+                    }`}
+                    title={`${row.gridPointsInTop10 ?? 0} of ${row.gridTotalPoints} grid points ranking in top 10 (${Math.round(((row.gridPointsInTop10 ?? 0) / row.gridTotalPoints) * 100)}%)`}
+                  >
+                    {row.gridPointsInTop10 ?? 0}/{row.gridTotalPoints}
+                  </span>
                 ) : row.gridTracked ? (
                   <span className="text-xs text-gray-500" title="No grid checks yet">—</span>
                 ) : (
