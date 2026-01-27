@@ -1267,51 +1267,67 @@ export function GeoGridSetupWizard({
                     <button
                       type="button"
                       onClick={async () => {
-                        const url = mapsUrlInput.trim();
-                        console.log('Processing Google Maps URL:', url);
+                        try {
+                          const url = mapsUrlInput.trim();
+                          console.log('Processing Google Maps URL:', url);
 
-                        // Try to extract ChIJ format Place ID first
-                        const chijMatch = url.match(/!1s(ChIJ[A-Za-z0-9_-]+)/) ||
-                                          url.match(/place_id[=:](ChIJ[A-Za-z0-9_-]+)/) ||
-                                          url.match(/^(ChIJ[A-Za-z0-9_-]+)$/);
+                          if (!url) {
+                            setGeocodeError('Please paste a Google Maps URL first.');
+                            return;
+                          }
 
-                        if (chijMatch?.[1]) {
-                          console.log('Found ChIJ Place ID:', chijMatch[1]);
-                          setGooglePlaceId(chijMatch[1]);
-                          fetchCoordsFromPlaceId(chijMatch[1]);
-                          setMapsUrlInput('');
-                          return;
-                        }
+                          setIsGeocoding(true);
+                          setGeocodeError(null);
 
-                        // Extract coordinates from URL (multiple formats)
-                        const coordsMatch = url.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*)/) ||
-                                           url.match(/ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
-                        const lat = coordsMatch?.[1] ? parseFloat(coordsMatch[1]) : undefined;
-                        const lng = coordsMatch?.[2] ? parseFloat(coordsMatch[2]) : undefined;
-                        console.log('Extracted coordinates:', { lat, lng });
+                          // Try to extract ChIJ format Place ID first
+                          const chijMatch = url.match(/!1s(ChIJ[A-Za-z0-9_-]+)/) ||
+                                            url.match(/place_id[=:](ChIJ[A-Za-z0-9_-]+)/) ||
+                                            url.match(/^(ChIJ[A-Za-z0-9_-]+)$/);
 
-                        // Try multiple URL patterns for business name
-                        // Format 1: /place/Business+Name/@...
-                        // Format 2: /search/Business+Name/@...
-                        // Format 3: ?q=Business+Name&...
-                        const nameMatch = url.match(/\/place\/([^/@]+)/) ||
-                                          url.match(/\/search\/([^/@]+)/) ||
-                                          url.match(/[?&]q=([^&]+)/);
+                          if (chijMatch?.[1]) {
+                            console.log('Found ChIJ Place ID:', chijMatch[1]);
+                            setGooglePlaceId(chijMatch[1]);
+                            await fetchCoordsFromPlaceId(chijMatch[1]);
+                            setMapsUrlInput('');
+                            return;
+                          }
 
-                        if (nameMatch?.[1]) {
-                          const businessName = decodeURIComponent(nameMatch[1].replace(/\+/g, ' '));
-                          console.log('Extracted business name:', businessName);
+                          // Extract coordinates from URL (multiple formats)
+                          const coordsMatch = url.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*)/) ||
+                                             url.match(/ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+                          const lat = coordsMatch?.[1] ? parseFloat(coordsMatch[1]) : undefined;
+                          const lng = coordsMatch?.[2] ? parseFloat(coordsMatch[2]) : undefined;
+                          console.log('Extracted coordinates:', { lat, lng });
 
-                          // Search for business using extracted name and coordinates
-                          setSearchBusinessName(businessName);
-                          await searchForBusiness(businessName, lat, lng);
-                          setMapsUrlInput('');
-                        } else if (lat && lng) {
-                          // Have coordinates but no business name - tell user to search manually
-                          setGeocodeError(`Found location coordinates but couldn't extract business name from URL. Please type your business name in the search field above.`);
-                          setMapsUrlInput('');
-                        } else {
-                          setGeocodeError('Could not find business info in that URL. Make sure you copied the full URL from Google Maps (should include the business name or location).');
+                          // Try multiple URL patterns for business name
+                          // Format 1: /place/Business+Name/@...
+                          // Format 2: /search/Business+Name/@...
+                          // Format 3: ?q=Business+Name&...
+                          const nameMatch = url.match(/\/place\/([^/@]+)/) ||
+                                            url.match(/\/search\/([^/@]+)/) ||
+                                            url.match(/[?&]q=([^&]+)/);
+
+                          if (nameMatch?.[1]) {
+                            const businessName = decodeURIComponent(nameMatch[1].replace(/\+/g, ' '));
+                            console.log('Extracted business name:', businessName);
+
+                            // Search for business using extracted name and coordinates
+                            setSearchBusinessName(businessName);
+                            await searchForBusiness(businessName, lat, lng);
+                            setMapsUrlInput('');
+                          } else if (lat && lng) {
+                            // Have coordinates but no business name - tell user to search manually
+                            setGeocodeError(`Found location coordinates but couldn't extract business name from URL. Please type your business name in the search field below.`);
+                            setMapsUrlInput('');
+                            setIsGeocoding(false);
+                          } else {
+                            setGeocodeError('Could not find business info in that URL. Make sure you copied the full URL from Google Maps (should include the business name or location).');
+                            setIsGeocoding(false);
+                          }
+                        } catch (err) {
+                          console.error('Error processing Maps URL:', err);
+                          setGeocodeError(`Error processing URL: ${err instanceof Error ? err.message : 'Unknown error'}`);
+                          setIsGeocoding(false);
                         }
                       }}
                       disabled={!mapsUrlInput.trim() || isGeocoding}
