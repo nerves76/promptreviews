@@ -517,42 +517,27 @@ export default function LocalRankingGridsPage() {
               </span>
             </p>
           </div>
-          {/* Action Button - Top Right */}
-          <div className="flex items-center gap-2 sm:mt-0 mt-4">
-            <button
-              onClick={() => setShowSettings(true)}
-              className="flex items-center gap-2 px-3 py-2 border-2 border-slate-blue text-slate-blue rounded hover:bg-indigo-50 text-sm font-semibold"
-            >
-              <Cog6ToothIcon className="w-4 h-4" />
-              Settings
-            </button>
-          </div>
         </div>
 
         {/* Location & Connection Status - Combined header */}
         {config && (
           <div className="bg-white rounded-xl border-2 border-gray-200 p-4 mb-6">
             <div className="flex flex-wrap items-center justify-between gap-4">
-              {/* Left side: Location selector or business name */}
-              <div className="flex flex-wrap items-center gap-4">
+              {/* Left side: Location selector/name + Edit button */}
+              <div className="flex flex-wrap items-center gap-3">
                 {plan === 'maven' && configs.length > 0 ? (
                   <>
                     <span className="text-sm font-medium text-gray-700">Location:</span>
-                    <div className="w-72">
+                    <div className="w-64">
                       <LocationSelector
                         locations={configs.map(c => ({
                           id: c.id,
                           name: c.locationName || c.googleBusinessLocation?.location_name || (c.targetPlaceId ? 'Location' : '⚠️ Setup incomplete'),
-                          address: c.googleBusinessLocation?.address || (!c.targetPlaceId ? 'Click Settings to complete' : null),
+                          address: c.googleBusinessLocation?.address || (!c.targetPlaceId ? 'Click to complete setup' : null),
                         }))}
                         selectedId={selectedConfigId}
                         onSelect={selectConfig}
-                        showAddButton={canAddMore}
-                        onAdd={() => {
-                          setIsAddingNewLocation(true);
-                          setShowSettings(true);
-                        }}
-                        addButtonLabel={`Add Location (${configs.length}/${maxConfigs})`}
+                        showAddButton={false}
                         placeholder="Select a location"
                         className=""
                       />
@@ -566,9 +551,17 @@ export default function LocalRankingGridsPage() {
                     </span>
                   </div>
                 )}
+                {/* Edit grid button - always visible next to location */}
+                <button
+                  onClick={() => setShowSettings(true)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-slate-blue border border-slate-blue rounded-lg hover:bg-slate-blue hover:text-white transition-colors whitespace-nowrap"
+                >
+                  <Cog6ToothIcon className="w-4 h-4" />
+                  Edit grid
+                </button>
               </div>
 
-              {/* Right side: Connection status */}
+              {/* Right side: Connection status + Add location (Maven only) */}
               <div className="flex items-center gap-3">
                 {config.targetPlaceId ? (
                   <span className="flex items-center gap-1.5 text-sm text-green-700 bg-green-50 px-3 py-1.5 rounded-full border border-green-200">
@@ -581,12 +574,19 @@ export default function LocalRankingGridsPage() {
                     Not connected
                   </span>
                 )}
-                <button
-                  onClick={() => setShowSettings(true)}
-                  className="text-sm text-slate-blue hover:text-slate-blue/80 font-medium whitespace-nowrap"
-                >
-                  {config.targetPlaceId ? 'Reconnect' : 'Connect business'}
-                </button>
+                {/* Add location button - Maven only, separate from dropdown */}
+                {plan === 'maven' && canAddMore && (
+                  <button
+                    onClick={() => {
+                      setIsAddingNewLocation(true);
+                      setShowSettings(true);
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-slate-blue rounded-lg hover:bg-slate-blue/90 transition-colors whitespace-nowrap"
+                  >
+                    <Icon name="FaPlus" className="w-3 h-3" size={12} />
+                    Add location ({configs.length}/{maxConfigs})
+                  </button>
+                )}
               </div>
             </div>
 
@@ -725,7 +725,7 @@ export default function LocalRankingGridsPage() {
                   onClick={() => setShowSettings(true)}
                   className="text-slate-blue hover:text-slate-blue/80 text-xs font-medium ml-2"
                 >
-                  Edit in settings
+                  Edit grid
                 </button>
               </div>
             </div>
