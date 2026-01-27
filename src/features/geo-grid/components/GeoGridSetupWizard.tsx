@@ -511,7 +511,7 @@ export function GeoGridSetupWizard({
 
   // Fetch coordinates from a Place ID
   const [coordsNote, setCoordsNote] = useState<string | null>(null);
-  const fetchCoordsFromPlaceId = useCallback(async (placeId: string) => {
+  const fetchCoordsFromPlaceId = useCallback(async (placeId: string): Promise<boolean> => {
     console.log('Fetching coordinates for Place ID:', placeId);
     // Mark as manually updated BEFORE API call to prevent useEffect from overwriting
     hasManuallyUpdatedLocationRef.current = true;
@@ -553,18 +553,21 @@ export function GeoGridSetupWizard({
         if (response.note) {
           setCoordsNote(response.note);
         }
+        return true;
       } else {
         // Service-area businesses don't expose coordinates via the API
         // Show a helpful message with link to Google Maps
         setGeocodeError(
           response.hint || 'Service-area businesses don\'t have a public location. Please enter the center of your service area manually.'
         );
+        return false;
       }
     } catch (err) {
       console.warn('Failed to fetch coordinates from Place ID:', err);
       setGeocodeError(
         'Could not fetch coordinates automatically. Please enter them manually.'
       );
+      return false;
     } finally {
       setIsGeocoding(false);
     }
@@ -1297,6 +1300,22 @@ export function GeoGridSetupWizard({
                             await fetchCoordsFromPlaceId(chijMatch[1]);
                             setMapsUrlInput('');
                             return;
+                          }
+
+                          // Try hex format Place ID (ftid) - format: 0x...:0x...
+                          const hexMatch = url.match(/!1s(0x[a-f0-9]+:0x[a-f0-9]+)/i);
+                          if (hexMatch?.[1]) {
+                            console.log('Found hex Place ID (ftid):', hexMatch[1]);
+                            // Try using it directly - some Google APIs accept this format
+                            const hexSuccess = await fetchCoordsFromPlaceId(hexMatch[1]);
+                            if (hexSuccess) {
+                              setGooglePlaceId(hexMatch[1]);
+                              setMapsUrlInput('');
+                              return;
+                            }
+                            // If hex format failed, clear error and continue to name-based search
+                            console.log('Hex Place ID lookup failed, trying name-based search...');
+                            setGeocodeError(null);
                           }
 
                           // Extract precise coordinates from data params (!3d=lat, !4d=lng) or fallback to @ format
