@@ -182,9 +182,24 @@ export function GeoGridSetupWizard({
         hasAutoSearchedRef.current = false;
         hasManuallyUpdatedLocationRef.current = false;
 
+        // Determine which location to use and update form state directly
+        let targetLocation: typeof locations[0] | null = null;
+
         // Auto-select if only one location
         if (locations.length === 1) {
           setPickedLocationId(locations[0].id);
+          targetLocation = locations[0];
+        } else if (pickedLocationId) {
+          // Find the currently picked location in the new data
+          targetLocation = locations.find(loc => loc.id === pickedLocationId) || null;
+        }
+
+        // CRITICAL: Directly update searchBusinessName with the fresh data
+        // Don't rely solely on the useEffect, which may not trigger if deps don't change
+        if (targetLocation && targetLocation.name) {
+          console.log('✅ [GeoGrid] Updating searchBusinessName directly to:', targetLocation.name);
+          setSearchBusinessName(targetLocation.name);
+          setSelectedLocation(targetLocation);
         }
       } else {
         setGbpError('No business locations found in your Google Business Profile');
