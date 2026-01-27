@@ -1132,7 +1132,7 @@ export function GeoGridSetupWizard({
             {effectiveGBPLocation && !googlePlaceId && !isGeocoding && (
               <div className="space-y-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-lg font-semibold text-gray-800 mb-2">
                     Business name to search
                   </label>
                   <input
@@ -1285,10 +1285,10 @@ export function GeoGridSetupWizard({
 
             {/* Coordinate Inputs */}
             <div className="space-y-4">
-              <p className="text-sm font-medium text-gray-700">
-                Search center coordinates:
+              <p className="text-lg font-semibold text-gray-800">
+                Search center coordinates
               </p>
-              <p className="text-xs text-gray-500">
+              <p className="text-sm text-gray-500 mt-1">
                 This is the center point for rank tracking. For service-area businesses, use the center of your service area.
               </p>
 
