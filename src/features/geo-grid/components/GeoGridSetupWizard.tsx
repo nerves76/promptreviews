@@ -822,8 +822,8 @@ export function GeoGridSetupWizard({
                 const isComplete = hasValidCoords && hasValidPlaceId && hasVerifiedName;
                 const needsSetup = !hasValidCoords || !hasValidPlaceId || !hasVerifiedName;
 
-                // Use verified name if available, otherwise fall back to selected/GBP location
-                const displayName = verifiedBusinessName || selectedLocation?.name || effectiveGBPLocation.name;
+                // Use verified name if available, then user's search input, then fall back to selected/GBP location
+                const displayName = verifiedBusinessName || searchBusinessName || selectedLocation?.name || effectiveGBPLocation.name;
 
                 return (
                   <div className={`p-4 rounded-lg ${needsSetup ? 'bg-amber-50 border border-amber-200' : 'bg-green-50 border border-green-200'}`}>
