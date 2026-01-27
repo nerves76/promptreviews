@@ -1445,12 +1445,14 @@ export function GeoGridSetupWizard({
 
             {/* Coordinate Inputs */}
             <div className="space-y-4">
-              <p className="text-lg font-semibold text-gray-800">
-                Search center coordinates
-              </p>
-              <p className="text-sm text-gray-500 mt-1">
-                This is the center point for rank tracking. For service-area businesses, you should choose the center of your service area rather than your business location.
-              </p>
+              <div>
+                <p className="text-lg font-semibold text-gray-800">
+                  Search center coordinates
+                </p>
+                <p className="text-sm text-gray-500 mt-1">
+                  This is the center point for rank tracking. For service-area businesses, you should choose the center of your service area rather than your business location.
+                </p>
+              </div>
 
               {/* How to get coordinates - helpful for service-area businesses */}
               <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
