@@ -177,12 +177,15 @@ export default function LocalRankingGridsPage() {
   }, [searchParams, trackedKeywords, selectedMapKeywordId]);
 
   // Collect unique competitors from all results for "View As" dropdown
+  // Excludes the user's own business (they're shown as the default option)
   const uniqueCompetitors = useMemo(() => {
     const competitorMap = new Map<string, { placeId: string; name: string }>();
+    const ownPlaceId = config?.targetPlaceId;
 
     for (const result of results) {
       for (const competitor of result.topCompetitors) {
-        if (competitor.placeId && !competitorMap.has(competitor.placeId)) {
+        // Skip the user's own business - it's already shown as the default option
+        if (competitor.placeId && competitor.placeId !== ownPlaceId && !competitorMap.has(competitor.placeId)) {
           competitorMap.set(competitor.placeId, {
             placeId: competitor.placeId,
             name: competitor.name,
@@ -194,7 +197,7 @@ export default function LocalRankingGridsPage() {
     return Array.from(competitorMap.values()).sort((a, b) =>
       a.name.localeCompare(b.name)
     );
-  }, [results]);
+  }, [results, config?.targetPlaceId]);
 
   // Check auth
   useEffect(() => {
