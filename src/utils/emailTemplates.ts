@@ -192,13 +192,23 @@ export async function sendTemplatedEmail(
 }
 
 /**
- * Send trial reminder email using template
+ * Send trial reminder email using template (3 days before expiration)
  */
 export async function sendTrialReminderEmail(
   email: string,
   firstName: string
 ): Promise<{ success: boolean; error?: string }> {
   return sendTemplatedEmail('trial_reminder', email, { firstName });
+}
+
+/**
+ * Send mid-trial check-in email (7 days into trial / 7 days left)
+ */
+export async function sendMidTrialCheckInEmail(
+  email: string,
+  firstName: string
+): Promise<{ success: boolean; error?: string }> {
+  return sendTemplatedEmail('mid_trial_checkin', email, { firstName });
 }
 
 /**

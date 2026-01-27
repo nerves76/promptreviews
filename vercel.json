@@ -19,6 +19,14 @@
       "schedule": "0 9 * * *"
     },
     {
+      "path": "/api/cron/send-mid-trial-checkins",
+      "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/send-trial-expired",
+      "schedule": "0 9 * * *"
+    },
+    {
       "path": "/api/cron/send-review-reminders",
       "schedule": "0 10 1 * *"
     },
