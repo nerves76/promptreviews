@@ -176,6 +176,11 @@ export function GeoGridSetupWizard({
         setFetchedLocations(locations);
         console.log('✅ [GeoGrid] Fetched', locations.length, 'locations');
 
+        // Reset the auto-search flag so the useEffect can update searchBusinessName
+        // with the fresh data from Google
+        hasAutoSearchedRef.current = false;
+        hasManuallyUpdatedLocationRef.current = false;
+
         // Auto-select if only one location
         if (locations.length === 1) {
           setPickedLocationId(locations[0].id);
