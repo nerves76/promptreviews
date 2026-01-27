@@ -15,7 +15,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { Dialog } from "@headlessui/react";
-import { XMarkIcon, ChevronDownIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
+import { ChevronDownIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 import Image from "next/image";
 import SectionHeader from "@/app/(app)/components/SectionHeader";
 import {
@@ -335,17 +335,20 @@ export default function FallingStarsFeature({
         <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
         
         <div className="fixed inset-0 flex items-center justify-center p-4">
-          <Dialog.Panel className="mx-auto max-w-4xl w-full bg-white rounded-lg shadow-xl">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <Dialog.Panel className="mx-auto max-w-4xl w-full bg-white rounded-lg shadow-xl relative">
+            {/* Standard red circular close button */}
+            <button
+              onClick={() => setIsModalOpen(false)}
+              className="absolute top-2 right-2 sm:-top-3 sm:-right-3 min-w-[44px] min-h-[44px] w-10 h-10 sm:w-12 sm:h-12 bg-white border border-gray-200 rounded-full flex items-center justify-center hover:bg-gray-50 shadow-lg z-10"
+              aria-label="Close"
+            >
+              <Icon name="FaTimes" className="w-4 h-4 text-red-500" />
+            </button>
+
+            <div className="p-6 border-b border-gray-200">
               <Dialog.Title className="text-lg font-semibold text-gray-900">
                 Choose Falling Icon
               </Dialog.Title>
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="text-gray-500 hover:text-gray-600"
-              >
-                <XMarkIcon className="h-6 w-6" />
-              </button>
             </div>
             
             <div className="p-6 max-h-96 overflow-y-auto">
