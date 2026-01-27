@@ -205,6 +205,8 @@ export interface GGTrackedKeyword {
   phrase?: string;
   normalizedPhrase?: string;
   reviewUsageCount?: number;
+  // Joined from config/location
+  locationName?: string;
 }
 
 // ============================================

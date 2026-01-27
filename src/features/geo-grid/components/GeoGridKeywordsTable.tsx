@@ -666,6 +666,9 @@ export function GeoGridKeywordsTable({
                     </div>
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Location
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Search term
                   </th>
                   <th
@@ -745,6 +748,11 @@ export function GeoGridKeywordsTable({
                               </span>
                             )}
                           </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className="text-sm text-gray-600 truncate max-w-[150px] block" title={group.trackedKeyword.locationName || 'Default location'}>
+                            {group.trackedKeyword.locationName || '—'}
+                          </span>
                         </td>
                         <td className="px-4 py-3">
                           {group.hasSearchTerms ? (
@@ -858,7 +866,7 @@ export function GeoGridKeywordsTable({
                       {/* Expanded Point Details */}
                       {hasResults && expandedKeywords.has(group.keywordId) && (
                         <tr>
-                          <td colSpan={9} className="bg-gray-50 px-8 py-4">
+                          <td colSpan={10} className="bg-gray-50 px-8 py-4">
                             {/* Your Average Ranking & Top Competitors */}
                             <div className="flex gap-6 mb-4">
                               {/* Your Business Average */}

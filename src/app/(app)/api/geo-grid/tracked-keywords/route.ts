@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Get tracked keywords with keyword details
+    // Get tracked keywords with keyword details and config location name
     const { data: trackedKeywords, error: keywordsError } = await serviceSupabase
       .from('gg_tracked_keywords')
       .select(`
@@ -88,6 +88,12 @@ export async function GET(request: NextRequest) {
           normalized_phrase,
           review_usage_count,
           status
+        ),
+        gg_configs (
+          location_name,
+          google_business_locations (
+            location_name
+          )
         )
       `)
       .eq('config_id', config.id)
@@ -234,6 +240,12 @@ export async function POST(request: NextRequest) {
           id,
           phrase,
           normalized_phrase
+        ),
+        gg_configs (
+          location_name,
+          google_business_locations (
+            location_name
+          )
         )
       `);
 
@@ -523,6 +535,12 @@ export async function PATCH(request: NextRequest) {
           id,
           phrase,
           normalized_phrase
+        ),
+        gg_configs (
+          location_name,
+          google_business_locations (
+            location_name
+          )
         )
       `)
       .single();

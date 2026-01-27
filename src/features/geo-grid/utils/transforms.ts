@@ -98,7 +98,19 @@ export function transformTrackedKeywordToResponse(row: {
     normalized_phrase: string;
     review_usage_count?: number | null;
   };
+  // Joined from config
+  gg_configs?: {
+    location_name?: string | null;
+    google_business_locations?: {
+      location_name?: string | null;
+    } | null;
+  } | null;
 }): GGTrackedKeyword {
+  // Determine location name from config's location_name or joined google_business_locations
+  const locationName = row.gg_configs?.location_name
+    || row.gg_configs?.google_business_locations?.location_name
+    || undefined;
+
   return {
     id: row.id,
     configId: row.config_id,
@@ -118,6 +130,7 @@ export function transformTrackedKeywordToResponse(row: {
     phrase: row.keywords?.phrase,
     normalizedPhrase: row.keywords?.normalized_phrase,
     reviewUsageCount: row.keywords?.review_usage_count ?? 0,
+    locationName,
   };
 }
 
