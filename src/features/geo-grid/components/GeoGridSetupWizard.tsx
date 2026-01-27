@@ -888,7 +888,7 @@ export function GeoGridSetupWizard({
                         <button
                           type="button"
                           onClick={() => setPickedLocationId(null)}
-                          className="text-xs text-slate-blue hover:text-slate-blue/80 underline"
+                          className="flex-shrink-0 px-3 py-1.5 text-sm font-medium text-slate-blue border border-slate-blue rounded-lg hover:bg-slate-blue hover:text-white transition-colors whitespace-nowrap"
                         >
                           Change
                         </button>
