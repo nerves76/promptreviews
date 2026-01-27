@@ -581,20 +581,20 @@ export default function ConceptsTable({
 
   return (
     <div className="overflow-x-auto border border-gray-200 rounded-xl">
-      <table className="w-full" style={{ tableLayout: 'fixed', minWidth: '1240px' }}>
+      <table className="w-full" style={{ tableLayout: 'fixed', minWidth: '1400px' }}>
         {/* Column widths: Checkbox, Keyword, Concept, Volume, Rank, Change, URL, Checked, Location, SERP, Grid, Actions */}
         <colgroup>
           <col style={{ width: '40px' }} />
-          <col style={{ width: '250px' }} />
-          <col style={{ width: '100px' }} />
-          <col style={{ width: '70px' }} />
-          <col style={{ width: '110px' }} />
-          <col style={{ width: '70px' }} />
-          <col style={{ width: '100px' }} />
-          <col style={{ width: '65px' }} />
-          <col style={{ width: '110px' }} />
+          <col style={{ width: '220px' }} />
+          <col style={{ width: '120px' }} />
           <col style={{ width: '80px' }} />
-          <col style={{ width: '50px' }} />
+          <col style={{ width: '120px' }} />
+          <col style={{ width: '80px' }} />
+          <col style={{ width: '120px' }} />
+          <col style={{ width: '90px' }} />
+          <col style={{ width: '130px' }} />
+          <col style={{ width: '80px' }} />
+          <col style={{ width: '60px' }} />
           <col style={{ width: 'auto' }} />
         </colgroup>
         <thead>
