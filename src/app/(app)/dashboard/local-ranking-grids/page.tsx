@@ -33,6 +33,8 @@ import {
   CheckPoint,
   GGPointSummary,
   ViewAsBusiness,
+  ScheduleMode,
+  ScheduleFrequency,
 } from '@/features/geo-grid';
 import { ArrowLeftIcon, Cog6ToothIcon } from '@heroicons/react/24/outline';
 import LocationSelector from '@/components/LocationSelector';
@@ -345,14 +347,11 @@ export default function LocalRankingGridsPage() {
     }
   }, [loading, isAuthenticated, gbpJustConnected]); // Re-fetch when OAuth connection completes
 
-  // Calculate credit cost for a check
+  // Calculate credit cost for a check (simplified: just grid points)
   const calculateCheckCost = useMemo(() => {
     if (!config) return 0;
-    const gridPoints = config.checkPoints?.length || 5;
-    const keywordCount = trackedKeywords.length;
-    // Cost formula: 10 base + grid points + (2 × keywords)
-    return 10 + gridPoints + (keywordCount * 2);
-  }, [config, trackedKeywords]);
+    return config.checkPoints?.length || 5;
+  }, [config]);
 
   // Handle run check button - show confirmation modal
   const handleRunCheck = useCallback(() => {
@@ -404,6 +403,30 @@ export default function LocalRankingGridsPage() {
   const handleRemoveKeyword = useCallback(async (trackedKeywordId: string) => {
     await removeKeyword(trackedKeywordId);
   }, [removeKeyword]);
+
+  // Handle updating keyword schedule
+  const handleUpdateKeywordSchedule = useCallback(async (
+    trackedKeywordId: string,
+    updates: {
+      scheduleMode: ScheduleMode;
+      scheduleFrequency: ScheduleFrequency;
+      scheduleDayOfWeek: number | null;
+      scheduleDayOfMonth: number | null;
+      scheduleHour: number;
+    }
+  ) => {
+    try {
+      await apiClient.patch<{ success: boolean }>('/geo-grid/tracked-keywords', {
+        id: trackedKeywordId,
+        ...updates,
+      });
+      await refreshKeywords();
+      showSuccess('Keyword schedule updated');
+    } catch (error) {
+      console.error('Failed to update keyword schedule:', error);
+      showError('Failed to update schedule');
+    }
+  }, [refreshKeywords, showSuccess, showError]);
 
   // Handle refreshing available keywords after new ones are created
   const handleKeywordsCreated = useCallback(async () => {
@@ -618,7 +641,7 @@ export default function LocalRankingGridsPage() {
                     <span className="text-gray-500"> per check</span>
                   </span>
                   <span className="text-xs text-gray-400">
-                    ({config.checkPoints?.length || 0} points × {trackedKeywords.length} keywords)
+                    ({config.checkPoints?.length || 0} grid points)
                   </span>
                 </div>
                 <button
@@ -767,11 +790,13 @@ export default function LocalRankingGridsPage() {
             trackedKeywords={trackedKeywords}
             availableKeywords={availableKeywords}
             results={results}
+            config={config}
             isLoadingKeywords={keywordsLoading}
             isLoadingResults={resultsLoading}
             lastCheckedAt={lastCheckedAt}
             onAddKeywords={handleAddKeywords}
             onRemoveKeyword={handleRemoveKeyword}
+            onUpdateKeywordSchedule={handleUpdateKeywordSchedule}
             maxKeywords={20}
             onKeywordsCreated={handleKeywordsCreated}
             keywordUsageCounts={keywordUsageCounts}
@@ -840,7 +865,7 @@ export default function LocalRankingGridsPage() {
           <div className="flex items-center justify-between p-3 bg-amber-50 border border-amber-200 rounded-lg">
             <div>
               <p className="text-sm font-medium text-amber-800">Cost per check</p>
-              <p className="text-xs text-amber-600">10 base + {config?.checkPoints?.length || 0} points + ({trackedKeywords.length} × 2)</p>
+              <p className="text-xs text-amber-600">{config?.checkPoints?.length || 0} grid points = {config?.checkPoints?.length || 0} credits</p>
             </div>
             <span className="text-2xl font-bold text-amber-800">{calculateCheckCost}</span>
           </div>

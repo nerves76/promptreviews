@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { createServerSupabaseClient } from '@/auth/providers/supabase';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 import { transformTrackedKeywordToResponse } from '@/features/geo-grid/utils/transforms';
+import { ScheduleMode, ScheduleFrequency } from '@/features/geo-grid/utils/types';
 
 // Service client for privileged operations
 const serviceSupabase = createClient(
@@ -74,6 +75,13 @@ export async function GET(request: NextRequest) {
         account_id,
         is_enabled,
         created_at,
+        schedule_mode,
+        schedule_frequency,
+        schedule_day_of_week,
+        schedule_day_of_month,
+        schedule_hour,
+        next_scheduled_at,
+        last_scheduled_run_at,
         keywords (
           id,
           phrase,
@@ -215,6 +223,13 @@ export async function POST(request: NextRequest) {
         account_id,
         is_enabled,
         created_at,
+        schedule_mode,
+        schedule_frequency,
+        schedule_day_of_week,
+        schedule_day_of_month,
+        schedule_hour,
+        next_scheduled_at,
+        last_scheduled_run_at,
         keywords (
           id,
           phrase,
@@ -345,6 +360,189 @@ export async function DELETE(request: NextRequest) {
     });
   } catch (error) {
     console.error('❌ [GeoGrid] Tracked keywords DELETE error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * PATCH /api/geo-grid/tracked-keywords
+ * Update a tracked keyword's schedule.
+ *
+ * Body:
+ * - id: string (required) - ID of the tracked keyword to update
+ * - scheduleMode: 'inherit' | 'custom' | 'off' (required)
+ * - scheduleFrequency: 'daily' | 'weekly' | 'monthly' | null (required if mode is 'custom')
+ * - scheduleDayOfWeek: number | null (0-6, for weekly)
+ * - scheduleDayOfMonth: number | null (1-28, for monthly)
+ * - scheduleHour: number (0-23, default 9)
+ */
+export async function PATCH(request: NextRequest) {
+  try {
+    const supabase = await createServerSupabaseClient();
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const accountId = await getRequestAccountId(request, user.id, supabase);
+    if (!accountId) {
+      return NextResponse.json({ error: 'Account not found' }, { status: 404 });
+    }
+
+    const body = await request.json();
+    const {
+      id,
+      scheduleMode,
+      scheduleFrequency,
+      scheduleDayOfWeek,
+      scheduleDayOfMonth,
+      scheduleHour,
+    } = body;
+
+    if (!id) {
+      return NextResponse.json(
+        { error: 'id is required' },
+        { status: 400 }
+      );
+    }
+
+    // Validate scheduleMode
+    const validModes: ScheduleMode[] = ['inherit', 'custom', 'off'];
+    if (!validModes.includes(scheduleMode)) {
+      return NextResponse.json(
+        { error: 'scheduleMode must be inherit, custom, or off' },
+        { status: 400 }
+      );
+    }
+
+    // Validate scheduleFrequency if mode is custom
+    if (scheduleMode === 'custom') {
+      const validFrequencies: ScheduleFrequency[] = ['daily', 'weekly', 'monthly'];
+      if (!validFrequencies.includes(scheduleFrequency)) {
+        return NextResponse.json(
+          { error: 'scheduleFrequency must be daily, weekly, or monthly when mode is custom' },
+          { status: 400 }
+        );
+      }
+
+      // Validate day of week for weekly
+      if (scheduleFrequency === 'weekly') {
+        if (scheduleDayOfWeek === undefined || scheduleDayOfWeek === null ||
+            scheduleDayOfWeek < 0 || scheduleDayOfWeek > 6) {
+          return NextResponse.json(
+            { error: 'scheduleDayOfWeek must be 0-6 for weekly frequency' },
+            { status: 400 }
+          );
+        }
+      }
+
+      // Validate day of month for monthly
+      if (scheduleFrequency === 'monthly') {
+        if (scheduleDayOfMonth === undefined || scheduleDayOfMonth === null ||
+            scheduleDayOfMonth < 1 || scheduleDayOfMonth > 28) {
+          return NextResponse.json(
+            { error: 'scheduleDayOfMonth must be 1-28 for monthly frequency' },
+            { status: 400 }
+          );
+        }
+      }
+    }
+
+    // Validate scheduleHour
+    const hour = scheduleHour ?? 9;
+    if (hour < 0 || hour > 23) {
+      return NextResponse.json(
+        { error: 'scheduleHour must be 0-23' },
+        { status: 400 }
+      );
+    }
+
+    // Verify tracked keyword exists and belongs to account
+    const { data: existing, error: existingError } = await serviceSupabase
+      .from('gg_tracked_keywords')
+      .select('id, account_id')
+      .eq('id', id)
+      .single();
+
+    if (existingError || !existing) {
+      return NextResponse.json(
+        { error: 'Tracked keyword not found' },
+        { status: 404 }
+      );
+    }
+
+    if (existing.account_id !== accountId) {
+      return NextResponse.json(
+        { error: 'Access denied' },
+        { status: 403 }
+      );
+    }
+
+    // Build update object
+    const updateData: Record<string, unknown> = {
+      schedule_mode: scheduleMode,
+    };
+
+    if (scheduleMode === 'custom') {
+      updateData.schedule_frequency = scheduleFrequency;
+      updateData.schedule_day_of_week = scheduleFrequency === 'weekly' ? scheduleDayOfWeek : null;
+      updateData.schedule_day_of_month = scheduleFrequency === 'monthly' ? scheduleDayOfMonth : null;
+      updateData.schedule_hour = hour;
+    } else {
+      // Clear custom schedule fields when not using custom mode
+      updateData.schedule_frequency = null;
+      updateData.schedule_day_of_week = null;
+      updateData.schedule_day_of_month = null;
+      updateData.schedule_hour = 9;
+    }
+
+    // Update the tracked keyword
+    const { data: updated, error: updateError } = await serviceSupabase
+      .from('gg_tracked_keywords')
+      .update(updateData)
+      .eq('id', id)
+      .select(`
+        id,
+        config_id,
+        keyword_id,
+        account_id,
+        is_enabled,
+        created_at,
+        schedule_mode,
+        schedule_frequency,
+        schedule_day_of_week,
+        schedule_day_of_month,
+        schedule_hour,
+        next_scheduled_at,
+        last_scheduled_run_at,
+        keywords (
+          id,
+          phrase,
+          normalized_phrase
+        )
+      `)
+      .single();
+
+    if (updateError) {
+      console.error('❌ [GeoGrid] Failed to update tracked keyword schedule:', updateError);
+      return NextResponse.json(
+        { error: 'Failed to update schedule' },
+        { status: 500 }
+      );
+    }
+
+    const transformed = transformTrackedKeywordToResponse(updated as any);
+
+    return NextResponse.json({
+      trackedKeyword: transformed,
+      success: true,
+    });
+  } catch (error) {
+    console.error('❌ [GeoGrid] Tracked keywords PATCH error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

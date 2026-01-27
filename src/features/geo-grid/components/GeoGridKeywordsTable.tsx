@@ -18,12 +18,13 @@ import {
   ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline';
 import Icon from '@/components/Icon';
-import { GGTrackedKeyword, GGCheckResult, CheckPoint, PositionBucket } from '../utils/types';
+import { GGTrackedKeyword, GGCheckResult, GGConfig, CheckPoint, PositionBucket, ScheduleMode, ScheduleFrequency } from '../utils/types';
 import { useKeywords } from '@/features/keywords/hooks/useKeywords';
 import { KeywordDetailsSidebar } from '@/features/keywords/components';
 import { type KeywordData, type SearchTerm } from '@/features/keywords/keywordUtils';
 import { apiClient } from '@/utils/apiClient';
 import { AddKeywordsToGridModal } from './AddKeywordsToGridModal';
+import { KeywordScheduleModal } from './KeywordScheduleModal';
 
 // ============================================
 // Types
@@ -42,6 +43,8 @@ interface GeoGridKeywordsTableProps {
   availableKeywords: Keyword[];
   /** Check results to display */
   results: GGCheckResult[];
+  /** Config for schedule inheritance info */
+  config?: GGConfig | null;
   /** Loading state for keywords */
   isLoadingKeywords?: boolean;
   /** Loading state for results */
@@ -52,6 +55,14 @@ interface GeoGridKeywordsTableProps {
   onAddKeywords: (keywordIds: string[]) => Promise<void>;
   /** Callback to remove a tracked keyword */
   onRemoveKeyword: (trackedKeywordId: string) => Promise<void>;
+  /** Callback to update keyword schedule */
+  onUpdateKeywordSchedule?: (trackedKeywordId: string, updates: {
+    scheduleMode: ScheduleMode;
+    scheduleFrequency: ScheduleFrequency;
+    scheduleDayOfWeek: number | null;
+    scheduleDayOfMonth: number | null;
+    scheduleHour: number;
+  }) => Promise<void>;
   /** Max keywords that can be tracked */
   maxKeywords?: number;
   /** Callback to refresh available keywords after creating new ones */
@@ -69,6 +80,8 @@ interface KeywordGroup {
   phrase: string;
   searchTerm: string | null;
   hasSearchTerms: boolean;
+  // Reference to the full tracked keyword for schedule info
+  trackedKeyword: GGTrackedKeyword;
   // From results (may be null if not checked yet)
   results: GGCheckResult[];
   bestBucket: PositionBucket | null;
@@ -145,6 +158,80 @@ function formatRelativeDate(dateStr: string | null): string {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
+const DAYS_OF_WEEK_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+function formatScheduleDisplay(
+  keyword: GGTrackedKeyword,
+  config: GGConfig | null | undefined
+): { label: string; subtitle: string; color: string } {
+  const mode = keyword.scheduleMode || 'inherit';
+
+  if (mode === 'off') {
+    return {
+      label: 'Manual only',
+      subtitle: 'No auto-run',
+      color: 'text-gray-500 bg-gray-100',
+    };
+  }
+
+  if (mode === 'inherit') {
+    // Show inherited config schedule
+    if (!config?.scheduleFrequency) {
+      return {
+        label: 'Inherited',
+        subtitle: 'No config schedule',
+        color: 'text-gray-500 bg-gray-100',
+      };
+    }
+
+    const freq = config.scheduleFrequency;
+    let subtitle = '';
+    if (freq === 'daily') {
+      subtitle = `Daily`;
+    } else if (freq === 'weekly') {
+      const day = DAYS_OF_WEEK_SHORT[config.scheduleDayOfWeek ?? 1];
+      subtitle = `Weekly (${day})`;
+    } else if (freq === 'monthly') {
+      subtitle = `Monthly (${config.scheduleDayOfMonth ?? 1}${getOrdinalSuffix(config.scheduleDayOfMonth ?? 1)})`;
+    }
+
+    return {
+      label: 'Inherited',
+      subtitle,
+      color: 'text-blue-700 bg-blue-50',
+    };
+  }
+
+  // Custom schedule
+  const freq = keyword.scheduleFrequency;
+  let label = '';
+  if (freq === 'daily') {
+    label = 'Daily';
+  } else if (freq === 'weekly') {
+    const day = DAYS_OF_WEEK_SHORT[keyword.scheduleDayOfWeek ?? 1];
+    label = `Weekly (${day})`;
+  } else if (freq === 'monthly') {
+    label = `Monthly (${keyword.scheduleDayOfMonth ?? 1}${getOrdinalSuffix(keyword.scheduleDayOfMonth ?? 1)})`;
+  } else {
+    label = 'Custom';
+  }
+
+  const hour = keyword.scheduleHour ?? 9;
+  const hourLabel = `${hour === 0 ? 12 : hour > 12 ? hour - 12 : hour}${hour < 12 ? 'am' : 'pm'}`;
+
+  return {
+    label,
+    subtitle: `at ${hourLabel} UTC`,
+    color: 'text-emerald-700 bg-emerald-50',
+  };
+}
+
+function getOrdinalSuffix(n: number): string {
+  const s = ['th', 'st', 'nd', 'rd'];
+  const v = n % 100;
+  return s[(v - 20) % 10] || s[v] || s[0];
+}
+
 // ============================================
 // Component
 // ============================================
@@ -153,11 +240,13 @@ export function GeoGridKeywordsTable({
   trackedKeywords,
   availableKeywords,
   results,
+  config,
   isLoadingKeywords,
   isLoadingResults,
   lastCheckedAt,
   onAddKeywords,
   onRemoveKeyword,
+  onUpdateKeywordSchedule,
   maxKeywords = 20,
   onKeywordsCreated,
   onResultClick,
@@ -173,6 +262,10 @@ export function GeoGridKeywordsTable({
   // Sidebar state
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarKeyword, setSidebarKeyword] = useState<KeywordData | null>(null);
+
+  // Schedule modal state
+  const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
+  const [scheduleKeyword, setScheduleKeyword] = useState<GGTrackedKeyword | null>(null);
 
   // Use the keywords hook for keyword data
   const { refresh: refreshKeywords, keywords: allKeywords } = useKeywords();
@@ -329,6 +422,7 @@ export function GeoGridKeywordsTable({
         phrase: tk.phrase || keywordData?.phrase || tk.keywordId,
         searchTerm: primarySearchTerm?.term || null,
         hasSearchTerms,
+        trackedKeyword: tk,
         results: keywordResults,
         bestBucket,
         avgPosition,
@@ -431,6 +525,31 @@ export function GeoGridKeywordsTable({
       onKeywordsCreated?.();
     },
     [onAddKeywords, refreshKeywords, onKeywordsCreated]
+  );
+
+  // Handle schedule button click
+  const handleScheduleClick = useCallback(
+    (e: React.MouseEvent, trackedKeyword: GGTrackedKeyword) => {
+      e.stopPropagation();
+      setScheduleKeyword(trackedKeyword);
+      setScheduleModalOpen(true);
+    },
+    []
+  );
+
+  // Handle saving schedule from modal
+  const handleSaveSchedule = useCallback(
+    async (updates: {
+      scheduleMode: ScheduleMode;
+      scheduleFrequency: ScheduleFrequency;
+      scheduleDayOfWeek: number | null;
+      scheduleDayOfMonth: number | null;
+      scheduleHour: number;
+    }) => {
+      if (!scheduleKeyword || !onUpdateKeywordSchedule) return;
+      await onUpdateKeywordSchedule(scheduleKeyword.id, updates);
+    },
+    [scheduleKeyword, onUpdateKeywordSchedule]
   );
 
   const toggleExpanded = (keywordId: string) => {
@@ -571,6 +690,9 @@ export function GeoGridKeywordsTable({
                     Visibility
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Schedule
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Checked
                   </th>
                   <th className="w-16 px-4 py-3" />
@@ -690,6 +812,22 @@ export function GeoGridKeywordsTable({
                           )}
                         </td>
                         <td className="px-4 py-3">
+                          {(() => {
+                            const scheduleInfo = formatScheduleDisplay(group.trackedKeyword, config);
+                            return (
+                              <button
+                                onClick={(e) => handleScheduleClick(e, group.trackedKeyword)}
+                                className={`inline-flex flex-col items-start px-2 py-1 rounded text-xs font-medium hover:ring-2 hover:ring-blue-300 transition-all ${scheduleInfo.color}`}
+                                title="Click to edit schedule"
+                                aria-label={`Edit schedule for ${group.phrase}`}
+                              >
+                                <span className="whitespace-nowrap">{scheduleInfo.label}</span>
+                                <span className="text-[10px] opacity-75 whitespace-nowrap">{scheduleInfo.subtitle}</span>
+                              </button>
+                            );
+                          })()}
+                        </td>
+                        <td className="px-4 py-3">
                           <span
                             className="text-sm text-gray-500"
                             title={group.lastCheckedAt || undefined}
@@ -717,7 +855,7 @@ export function GeoGridKeywordsTable({
                       {/* Expanded Point Details */}
                       {hasResults && expandedKeywords.has(group.keywordId) && (
                         <tr>
-                          <td colSpan={8} className="bg-gray-50 px-8 py-4">
+                          <td colSpan={9} className="bg-gray-50 px-8 py-4">
                             {/* Your Average Ranking & Top Competitors */}
                             <div className="flex gap-6 mb-4">
                               {/* Your Business Average */}
@@ -897,6 +1035,18 @@ export function GeoGridKeywordsTable({
           setSidebarKeyword(null);
         }}
         onUpdate={handleKeywordUpdate}
+      />
+
+      {/* Keyword Schedule Modal */}
+      <KeywordScheduleModal
+        isOpen={scheduleModalOpen}
+        onClose={() => {
+          setScheduleModalOpen(false);
+          setScheduleKeyword(null);
+        }}
+        keyword={scheduleKeyword}
+        config={config || null}
+        onSave={handleSaveSchedule}
       />
     </>
   );

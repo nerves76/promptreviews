@@ -12,6 +12,7 @@ export { GeoGridPointModal } from './GeoGridPointModal';
 export { GeoGridTrendCard } from './GeoGridTrendCard';
 export { GeoGridKeywordsTable } from './GeoGridKeywordsTable';
 export { AddKeywordsToGridModal } from './AddKeywordsToGridModal';
+export { KeywordScheduleModal } from './KeywordScheduleModal';
 export { GeoGridScheduleSettings } from './GeoGridScheduleSettings';
 export { GeoGridConfigSettings } from './GeoGridConfigSettings';
 export { GeoGridBusinessConnection } from './GeoGridBusinessConnection';

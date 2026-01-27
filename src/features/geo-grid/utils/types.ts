@@ -128,6 +128,7 @@ export function usesCartesianNotation(points: CheckPoint[]): boolean {
 // ============================================
 
 export type ScheduleFrequency = 'daily' | 'weekly' | 'monthly' | null;
+export type ScheduleMode = 'inherit' | 'custom' | 'off';
 
 // Joined Google Business Location data (from API)
 export interface GGConfigGoogleBusinessLocation {
@@ -192,6 +193,14 @@ export interface GGTrackedKeyword {
   accountId: string;
   isEnabled: boolean;
   createdAt: string;
+  // Per-keyword scheduling
+  scheduleMode: ScheduleMode;
+  scheduleFrequency: ScheduleFrequency;
+  scheduleDayOfWeek: number | null;
+  scheduleDayOfMonth: number | null;
+  scheduleHour: number;
+  nextScheduledAt: string | null;
+  lastScheduledRunAt: string | null;
   // Joined from keywords table
   phrase?: string;
   normalizedPhrase?: string;

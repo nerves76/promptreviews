@@ -15,6 +15,7 @@ import {
   CheckPoint,
   PositionBucket,
   ScheduleFrequency,
+  ScheduleMode,
 } from './types';
 
 // ============================================
@@ -84,6 +85,14 @@ export function transformTrackedKeywordToResponse(row: {
   account_id: string;
   is_enabled: boolean;
   created_at: string;
+  // Per-keyword scheduling fields
+  schedule_mode?: string | null;
+  schedule_frequency?: string | null;
+  schedule_day_of_week?: number | null;
+  schedule_day_of_month?: number | null;
+  schedule_hour?: number | null;
+  next_scheduled_at?: string | null;
+  last_scheduled_run_at?: string | null;
   keywords?: {
     phrase: string;
     normalized_phrase: string;
@@ -97,6 +106,15 @@ export function transformTrackedKeywordToResponse(row: {
     accountId: row.account_id,
     isEnabled: row.is_enabled,
     createdAt: row.created_at,
+    // Per-keyword scheduling
+    scheduleMode: (row.schedule_mode as ScheduleMode) || 'inherit',
+    scheduleFrequency: (row.schedule_frequency as ScheduleFrequency) || null,
+    scheduleDayOfWeek: row.schedule_day_of_week ?? null,
+    scheduleDayOfMonth: row.schedule_day_of_month ?? null,
+    scheduleHour: row.schedule_hour ?? 9,
+    nextScheduledAt: row.next_scheduled_at ?? null,
+    lastScheduledRunAt: row.last_scheduled_run_at ?? null,
+    // Joined data
     phrase: row.keywords?.phrase,
     normalizedPhrase: row.keywords?.normalized_phrase,
     reviewUsageCount: row.keywords?.review_usage_count ?? 0,
