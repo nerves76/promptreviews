@@ -302,6 +302,7 @@ export function GeoGridSetupWizard({
 
   // Track if we've loaded existing config data
   const hasLoadedConfigRef = React.useRef(false);
+  const [isLoadingConfig, setIsLoadingConfig] = useState(!!configId);
 
   // Load existing config data when editing (configId is provided)
   useEffect(() => {
@@ -390,11 +391,18 @@ export function GeoGridSetupWizard({
             } catch (refreshErr) {
               console.warn('Could not get business name from Google:', refreshErr);
               // User will need to search for their business to get a verified name
+            } finally {
+              setIsLoadingConfig(false);
             }
+          } else {
+            setIsLoadingConfig(false);
           }
+        } else {
+          setIsLoadingConfig(false);
         }
       } catch (err) {
         console.error('Failed to load existing config:', err);
+        setIsLoadingConfig(false);
       }
     };
 
@@ -810,8 +818,16 @@ export function GeoGridSetupWizard({
               </div>
             )}
 
+            {/* Loading state while fetching existing config */}
+            {isLoadingConfig && (
+              <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg flex items-center gap-3">
+                <ArrowPathIcon className="w-5 h-5 text-gray-400 animate-spin" />
+                <p className="text-sm text-gray-600">Loading your configuration...</p>
+              </div>
+            )}
+
             {/* GBP Connection Flow */}
-            {effectiveGBPLocation ? (
+            {!isLoadingConfig && effectiveGBPLocation ? (
               // Location selected - check if data is complete using CURRENT form state
               (() => {
                 // Check current form state, not just original location data
@@ -879,14 +895,14 @@ export function GeoGridSetupWizard({
                   </div>
                 );
               })()
-            ) : hasMultipleLocations && !pickedLocationId ? (
+            ) : !isLoadingConfig && hasMultipleLocations && !pickedLocationId ? (
               // Multiple locations - need to pick one
               <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
                 <p className="text-sm text-blue-800">
                   Select a business location above to continue.
                 </p>
               </div>
-            ) : isGBPConnected === null ? (
+            ) : !isLoadingConfig && isGBPConnected === null ? (
               // Checking connection status
               <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
                 <div className="flex items-center gap-3">
@@ -894,7 +910,7 @@ export function GeoGridSetupWizard({
                   <p className="text-sm text-gray-600">Checking Google Business connection...</p>
                 </div>
               </div>
-            ) : isGBPConnected && !hasAnyLocations ? (
+            ) : !isLoadingConfig && isGBPConnected && !hasAnyLocations ? (
               // Connected but no locations fetched yet
               <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg">
                 <div className="flex items-start gap-4">
@@ -937,7 +953,7 @@ export function GeoGridSetupWizard({
                   </div>
                 </div>
               </div>
-            ) : (
+            ) : !isLoadingConfig ? (
               // Not connected - show OAuth button
               <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
                 <div className="flex items-start gap-4">
@@ -980,7 +996,7 @@ export function GeoGridSetupWizard({
                   </div>
                 </div>
               </div>
-            )}
+            ) : null}
 
             {/* Business Lookup Status */}
             {isGeocoding && (
