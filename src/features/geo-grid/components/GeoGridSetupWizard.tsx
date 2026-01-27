@@ -1057,44 +1057,13 @@ export function GeoGridSetupWizard({
                             )}
                           </button>
 
-                          {/* Show SAB-friendly message when auto-fetch fails */}
+                          {/* Show SAB-friendly message when auto-fetch fails - no duplicate instructions */}
                           {geocodeError && !hasCoords && (
                             <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                              <p className="text-sm font-medium text-blue-900 mb-2">
-                                📍 Service-area business detected
+                              <p className="text-sm text-blue-800">
+                                <span className="font-medium">📍 Service-area business:</span> Your business doesn&apos;t have public coordinates on Google (this is normal for SABs).
+                                Enter the center of your service area in the <strong>Search center coordinates</strong> section below.
                               </p>
-                              <p className="text-sm text-blue-800 mb-3">
-                                Your business hides its address on Google (common for service-area businesses).
-                                No problem — just enter the center of your service area below to start tracking rankings.
-                              </p>
-                              <div className="bg-white rounded-lg p-3 border border-blue-100">
-                                <p className="text-sm font-medium text-gray-800 mb-2">
-                                  How to get coordinates:
-                                </p>
-                                <ol className="text-xs text-gray-700 space-y-1.5 pl-4 list-decimal">
-                                  <li>Go to <a href="https://www.google.com/maps" target="_blank" rel="noopener noreferrer" className="text-slate-blue underline font-medium">Google Maps</a></li>
-                                  <li>Navigate to the center of your service area</li>
-                                  <li>Right-click on that location</li>
-                                  <li>Click the coordinates at the top of the menu (e.g., &quot;45.5231, -122.6765&quot;) to copy them</li>
-                                  <li>Paste the first number into <strong>Latitude</strong> and the second into <strong>Longitude</strong> below</li>
-                                </ol>
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Show manual entry option if no error but still needs coords */}
-                          {!geocodeError && !hasCoords && (
-                            <div className="p-3 bg-white rounded border border-amber-200">
-                              <p className="text-sm font-medium text-gray-800 mb-2">
-                                Or get coordinates manually:
-                              </p>
-                              <ol className="text-xs text-gray-700 space-y-1.5 pl-4 list-decimal">
-                                <li>Go to <a href="https://www.google.com/maps" target="_blank" rel="noopener noreferrer" className="text-slate-blue underline font-medium">Google Maps</a></li>
-                                <li>Navigate to the center of your service area</li>
-                                <li>Right-click on that location</li>
-                                <li>Click the coordinates at the top of the menu (e.g., &quot;45.5231, -122.6765&quot;) to copy them</li>
-                                <li>Paste the first number into <strong>Latitude</strong> and the second into <strong>Longitude</strong> below</li>
-                              </ol>
                             </div>
                           )}
                         </div>

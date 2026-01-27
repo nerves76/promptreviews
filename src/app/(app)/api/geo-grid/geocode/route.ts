@@ -337,21 +337,21 @@ export async function POST(request: NextRequest) {
             });
           }
 
-          // Address geocoding also failed
+          // Address geocoding also failed - return SAB-friendly message
           console.error('Address geocoding failed:', geocodeData.status, 'for address:', addressToGeocode);
           return NextResponse.json({
             success: false,
-            error: 'Could not find coordinates for this location.',
-            hint: `The address "${addressToGeocode}" could not be geocoded. This may be because it's incomplete (missing city/state). Please enter coordinates manually using Google Maps.`,
+            error: 'SERVICE_AREA_BUSINESS',
+            hint: 'This business does not have public coordinates. Please enter the center of your service area manually.',
           });
         }
 
-        // All methods failed and no address to try - return error with Place ID status
+        // All methods failed and no address to try - return SAB-friendly message
         console.error('Place Details API error and no fallback address:', data.status, data.error_message);
         return NextResponse.json({
           success: false,
-          error: `Could not fetch coordinates for Place ID: ${data.status}`,
-          hint: data.error_message || 'This appears to be a service-area business without public coordinates. Please enter the center of your service area manually.',
+          error: 'SERVICE_AREA_BUSINESS',
+          hint: 'This business does not have public coordinates. Please enter the center of your service area manually.',
         });
       }
 
