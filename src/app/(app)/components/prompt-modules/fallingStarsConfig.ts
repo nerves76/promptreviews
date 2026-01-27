@@ -315,9 +315,9 @@ export const loadAllFallingIcons = async (): Promise<{
     { key: "handshelping", label: "Helping Hands", icon: FaHandsHelping, color: "text-green-600", category: "Community & Support" },
     { key: "handpeace", label: "Peace Hand", icon: FaHandPeace, color: "text-blue-500", category: "Community & Support" },
     { key: "thumbsdown", label: "Thumbs Down", icon: FaThumbsDown, color: "text-red-600", category: "Community & Support" },
-    { key: "handrock", label: "Rock Hand", icon: FaHandRock, color: "text-gray-600", category: "Community & Support" },
-    { key: "handpaper", label: "Paper Hand", icon: FaHandPaper, color: "text-gray-500", category: "Community & Support" },
-    { key: "handscissors", label: "Scissors Hand", icon: FaHandScissors, color: "text-gray-600", category: "Community & Support" },
+    { key: "handrock", label: "Rock Hand", icon: FaHandRock, color: "text-amber-600", category: "Community & Support" },
+    { key: "handpaper", label: "Paper Hand", icon: FaHandPaper, color: "text-blue-500", category: "Community & Support" },
+    { key: "handscissors", label: "Scissors Hand", icon: FaHandScissors, color: "text-purple-500", category: "Community & Support" },
   ];
 };
 
