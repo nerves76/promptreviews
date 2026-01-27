@@ -1066,7 +1066,7 @@ export function GeoGridSetupWizard({
                         setGooglePlaceId(null);
                         setVerifiedBusinessName(null);
                       }}
-                      className="text-xs text-gray-500 hover:text-gray-700 underline"
+                      className="px-3 py-1.5 text-sm font-medium text-slate-blue border border-slate-blue rounded-lg hover:bg-slate-blue hover:text-white transition-colors whitespace-nowrap"
                     >
                       Change
                     </button>
