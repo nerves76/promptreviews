@@ -147,11 +147,12 @@ export interface BusinessLocation {
     parentLocation?: string;
   };
   metadata?: {
+    placeId?: string;       // Google Maps Place ID
+    mapsUri?: string;       // URL to view location on Google Maps
+    newReviewUri?: string;  // URL to leave a new review
     duplicate?: {
       locationName: string;
     };
-    mapsUri: string;
-    newReviewUri: string;
   };
   // Additional fields that may be returned by the API
   locationState?: string;

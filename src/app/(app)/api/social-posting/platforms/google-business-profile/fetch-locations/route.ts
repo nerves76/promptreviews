@@ -249,8 +249,9 @@ export async function POST(request: NextRequest) {
               status = 'UNVERIFIED';
             }
             
-            // Extract Google Place ID and coordinates from locationKey
-            const googlePlaceId = location.locationKey?.placeId || null;
+            // Extract Google Place ID from metadata and coordinates from latlng
+            // Note: placeId is in metadata.placeId, not locationKey
+            const googlePlaceId = location.metadata?.placeId || null;
             const lat = location.latlng?.latitude || null;
             const lng = location.latlng?.longitude || null;
 
@@ -261,7 +262,7 @@ export async function POST(request: NextRequest) {
                 hasPlaceId: !!googlePlaceId,
                 hasLat: !!lat,
                 hasLng: !!lng,
-                locationKeyExists: !!location.locationKey,
+                metadataExists: !!location.metadata,
                 latlngExists: !!location.latlng,
               });
             }
