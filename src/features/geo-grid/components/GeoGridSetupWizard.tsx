@@ -284,6 +284,8 @@ export function GeoGridSetupWizard({
   );
   const [isGeocoding, setIsGeocoding] = useState(false);
   const [geocodeError, setGeocodeError] = useState<string | null>(null);
+  // Google Maps URL input for service-area businesses
+  const [mapsUrlInput, setMapsUrlInput] = useState('');
   // Editable search name - allows users to update if their business name changed on Google
   const [searchBusinessName, setSearchBusinessName] = useState(effectiveGBPLocation?.name || '');
   // Google-verified business name (only set when we get a name from Google's API)
@@ -1239,17 +1241,22 @@ export function GeoGridSetupWizard({
                   <div className="flex gap-2">
                     <input
                       type="text"
+                      value={mapsUrlInput}
+                      onChange={(e) => setMapsUrlInput(e.target.value)}
                       placeholder="Paste your Google Maps business URL here..."
                       className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                      onChange={(e) => {
-                        const url = e.target.value;
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const url = mapsUrlInput;
                         // Extract Place ID from various Google Maps URL formats
-                        // Format 1: ...!1sChIJ... (most common)
+                        // Format 1: ...!1sChIJ... (ChIJ format)
                         const match1 = url.match(/!1s(ChIJ[A-Za-z0-9_-]+)/);
-                        // Format 2: place_id:ChIJ...
-                        const match2 = url.match(/place_id[=:](ChIJ[A-Za-z0-9_-]+)/);
-                        // Format 3: /place/ChIJ.../
-                        const match3 = url.match(/\/place\/(ChIJ[A-Za-z0-9_-]+)/);
+                        // Format 2: ...!1s0x...:0x... (hex format)
+                        const match2 = url.match(/!1s(0x[a-f0-9]+:0x[a-f0-9]+)/i);
+                        // Format 3: place_id:ChIJ... or place_id=ChIJ...
+                        const match3 = url.match(/place_id[=:](ChIJ[A-Za-z0-9_-]+)/);
                         // Format 4: Just a Place ID pasted directly
                         const match4 = url.match(/^(ChIJ[A-Za-z0-9_-]+)$/);
 
@@ -1257,9 +1264,16 @@ export function GeoGridSetupWizard({
                         if (placeId) {
                           setGooglePlaceId(placeId);
                           fetchCoordsFromPlaceId(placeId);
+                          setMapsUrlInput('');
+                        } else {
+                          setGeocodeError('Could not find Place ID in that URL. Make sure you copied the full URL from Google Maps.');
                         }
                       }}
-                    />
+                      disabled={!mapsUrlInput.trim() || isGeocoding}
+                      className="px-4 py-2 bg-slate-blue text-white text-sm font-medium rounded-lg hover:bg-slate-blue/90 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                    >
+                      {isGeocoding ? 'Loading...' : 'Find business'}
+                    </button>
                   </div>
                   <p className="text-xs text-gray-500 mt-1.5">
                     <a href="https://www.google.com/maps" target="_blank" rel="noopener noreferrer" className="text-slate-blue underline">Open Google Maps</a>
