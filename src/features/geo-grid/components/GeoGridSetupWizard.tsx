@@ -786,9 +786,6 @@ export function GeoGridSetupWizard({
       case 'location':
         return (
           <div className="space-y-4">
-            <p className="text-gray-600">
-              Set the center point for your geo grid tracking.
-            </p>
 
             {/* Location picker for Maven accounts with multiple GBP locations */}
             {hasMultipleLocations && (
