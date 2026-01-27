@@ -54,11 +54,19 @@ interface GeoGridSummary {
   averagePosition: number | null;
 }
 
+/** Per-search-term geo grid data */
+interface GeoGridSearchTermData {
+  searchQuery: string;
+  summary: GeoGridSummary;
+  lastCheckedAt: string | null;
+}
+
 /** Geo grid data for a concept */
 interface GeoGridData {
   isTracked: boolean;
   locationName: string | null;
   summary: GeoGridSummary | null;
+  searchTerms?: GeoGridSearchTermData[];
 }
 
 /** Schedule status data for a concept */
@@ -392,6 +400,10 @@ export default function ConceptsTable({
           const foundUrl = termRank?.desktop?.foundUrl ?? termRank?.mobile?.foundUrl ?? null;
           // Use most recent check date
           const lastChecked = termRank?.desktop?.checkedAt ?? termRank?.mobile?.checkedAt ?? null;
+          // Get term-specific grid data (not aggregated across all terms)
+          const termGridData = conceptGrid?.searchTerms?.find(
+            t => t.searchQuery.toLowerCase() === term.term.toLowerCase()
+          );
           allRows.push({
             keyword: term.term,
             isCanonical: term.isCanonical,
@@ -409,8 +421,8 @@ export default function ConceptsTable({
             lastChecked,
             serpFeatures: termRank?.serpFeatures ?? null,
             gridTracked: conceptGrid?.isTracked ?? false,
-            gridPointsInTop10: conceptGrid?.summary?.pointsInTop10 ?? null,
-            gridTotalPoints: conceptGrid?.summary?.totalPoints ?? null,
+            gridPointsInTop10: termGridData?.summary?.pointsInTop10 ?? null,
+            gridTotalPoints: termGridData?.summary?.totalPoints ?? null,
             gridLocation: conceptGrid?.locationName ?? null,
             isScheduled: conceptSchedule?.isScheduled ?? false,
             scheduleFrequency: conceptSchedule?.frequency ?? null,
@@ -437,6 +449,10 @@ export default function ConceptsTable({
         const foundUrl = termRank?.desktop?.foundUrl ?? termRank?.mobile?.foundUrl ?? null;
         // Use most recent check date
         const lastChecked = termRank?.desktop?.checkedAt ?? termRank?.mobile?.checkedAt ?? null;
+        // Get term-specific grid data (not aggregated across all terms)
+        const termGridData = conceptGrid?.searchTerms?.find(
+          t => t.searchQuery.toLowerCase() === conceptName.toLowerCase()
+        );
         allRows.push({
           keyword: conceptName,
           isCanonical: true,
@@ -454,8 +470,8 @@ export default function ConceptsTable({
           lastChecked,
           serpFeatures: termRank?.serpFeatures ?? null,
           gridTracked: conceptGrid?.isTracked ?? false,
-          gridPointsInTop10: conceptGrid?.summary?.pointsInTop10 ?? null,
-          gridTotalPoints: conceptGrid?.summary?.totalPoints ?? null,
+          gridPointsInTop10: termGridData?.summary?.pointsInTop10 ?? null,
+          gridTotalPoints: termGridData?.summary?.totalPoints ?? null,
           gridLocation: conceptGrid?.locationName ?? null,
           isScheduled: conceptSchedule?.isScheduled ?? false,
           scheduleFrequency: conceptSchedule?.frequency ?? null,

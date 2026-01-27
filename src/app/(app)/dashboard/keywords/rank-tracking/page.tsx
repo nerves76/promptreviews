@@ -91,11 +91,19 @@ interface GeoGridSummary {
   averagePosition: number | null;
 }
 
+/** Per-search-term geo grid data */
+interface GeoGridSearchTermData {
+  searchQuery: string;
+  summary: GeoGridSummary;
+  lastCheckedAt: string | null;
+}
+
 /** Geo grid data for a concept */
 interface GeoGridData {
   isTracked: boolean;
   locationName: string | null;
   summary: GeoGridSummary | null;
+  searchTerms?: GeoGridSearchTermData[];
 }
 
 /** Schedule status data */
@@ -113,6 +121,7 @@ interface EnrichmentResponse {
       isTracked: boolean;
       locationName: string | null;
       summary: GeoGridSummary | null;
+      searchTerms?: GeoGridSearchTermData[];
     } | null;
     scheduleStatus?: ScheduleStatusData | null;
   }>;
@@ -293,6 +302,7 @@ export default function RankTrackingPage() {
             isTracked: data.geoGridStatus.isTracked,
             locationName: data.geoGridStatus.locationName,
             summary: data.geoGridStatus.summary,
+            searchTerms: data.geoGridStatus.searchTerms,
           });
         }
         if (data.scheduleStatus) {
