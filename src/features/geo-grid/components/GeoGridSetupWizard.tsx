@@ -1266,26 +1266,9 @@ export function GeoGridSetupWizard({
                   )}
                 </div>
 
-                <details className="text-xs text-gray-600">
-                  <summary className="cursor-pointer text-slate-blue hover:text-slate-blue/80 font-medium">
-                    How to find your Place ID
-                  </summary>
-                  <div className="mt-2 space-y-3">
-                    <div className="p-2 bg-blue-50 rounded">
-                      <p className="font-medium text-blue-800 mb-1">Using Place ID Finder:</p>
-                      <ol className="space-y-1 pl-4 list-decimal text-blue-700">
-                        <li>Go to <a href="https://developers.google.com/maps/documentation/javascript/examples/places-placeid-finder" target="_blank" rel="noopener noreferrer" className="underline font-medium">Google Place ID Finder</a></li>
-                        <li>Search for your <strong>business name</strong> (not your address)</li>
-                        <li>Click on your business listing in the results</li>
-                        <li>Copy the Place ID shown (starts with &quot;ChIJ...&quot;)</li>
-                        <li><strong>Paste it above and click &quot;Get coordinates&quot;</strong></li>
-                      </ol>
-                      <p className="mt-2 text-xs text-amber-700 bg-amber-50 p-1.5 rounded">
-                        ⚠️ Important: Search for your business name, not your address. Using an address will store the wrong name.
-                      </p>
-                    </div>
-                  </div>
-                </details>
+                <p className="text-xs text-gray-500 mt-2">
+                  Most users don&apos;t need this. Use &quot;Find My Business on Google&quot; above instead.
+                </p>
               </div>
             )}
 
