@@ -359,6 +359,18 @@ export function GeoGridSetupWizard({
           }
           if (cfg.targetPlaceId) {
             setGooglePlaceId(cfg.targetPlaceId);
+
+            // Find matching location from availableLocations by Place ID and select it
+            // This ensures the dropdown shows the correct location when editing
+            const allLocs = availableLocations || [];
+            const matchingLocation = allLocs.find(loc =>
+              loc.placeId === cfg.targetPlaceId ||
+              loc.placeId?.startsWith('ChIJ') && cfg.targetPlaceId?.startsWith('ChIJ') && loc.placeId === cfg.targetPlaceId
+            );
+            if (matchingLocation) {
+              console.log('✅ [GeoGridSetupWizard] Found matching location for config:', matchingLocation.name);
+              setPickedLocationId(matchingLocation.id);
+            }
           }
           if (cfg.radiusMiles) {
             setRadiusMiles(cfg.radiusMiles);
@@ -432,7 +444,24 @@ export function GeoGridSetupWizard({
     };
 
     loadExistingConfig();
-  }, [configId]);
+  }, [configId, availableLocations]);
+
+  // When editing an existing config, ensure the dropdown selects the correct location
+  // This handles the case where availableLocations loads after the config
+  useEffect(() => {
+    if (!configId || !googlePlaceId || !availableLocations?.length) return;
+
+    // If we already have a valid picked location, don't override
+    const currentPicked = availableLocations.find(loc => loc.id === pickedLocationId);
+    if (currentPicked) return;
+
+    // Find the location that matches the config's Place ID
+    const matchingLocation = availableLocations.find(loc => loc.placeId === googlePlaceId);
+    if (matchingLocation) {
+      console.log('✅ [GeoGridSetupWizard] Late-matched location for Place ID:', matchingLocation.name);
+      setPickedLocationId(matchingLocation.id);
+    }
+  }, [configId, googlePlaceId, availableLocations, pickedLocationId]);
 
   // Search for business Place ID using Places API
   const searchForBusiness = useCallback(async (businessName: string, lat?: number, lng?: number, preciseCoords?: boolean) => {
