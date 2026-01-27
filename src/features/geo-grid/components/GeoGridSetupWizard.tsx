@@ -1220,71 +1220,52 @@ export function GeoGridSetupWizard({
               </div>
             )}
 
-            {/* Manual Place ID Input - for service-area businesses */}
+            {/* Paste Google Maps Link - for service-area businesses */}
             {!googlePlaceId && !isGeocoding && (
               <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg space-y-3">
                 <div>
                   <p className="text-sm font-medium text-gray-700">
-                    Can't find your business automatically?
+                    Service-area business not showing up?
                   </p>
                   <p className="text-xs text-gray-500 mt-1">
-                    Service-area businesses or new listings may not appear in search. Enter your Place ID manually.
+                    Paste your Google Maps business link and we&apos;ll find it automatically.
                   </p>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Google Place ID
+                    Google Maps link
                   </label>
                   <div className="flex gap-2">
                     <input
                       type="text"
-                      value={googlePlaceId || ''}
-                      onChange={(e) => setGooglePlaceId(e.target.value || null)}
-                      placeholder="e.g., ChIJVWeoCbOhlVQR_R5sLxdsrfw"
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-sm"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (googlePlaceId?.startsWith('ChIJ')) {
-                          fetchCoordsFromPlaceId(googlePlaceId);
-                        } else {
-                          setGeocodeError('Please enter a valid Place ID (starts with "ChIJ")');
+                      placeholder="Paste your Google Maps business URL here..."
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                      onChange={(e) => {
+                        const url = e.target.value;
+                        // Extract Place ID from various Google Maps URL formats
+                        // Format 1: ...!1sChIJ... (most common)
+                        const match1 = url.match(/!1s(ChIJ[A-Za-z0-9_-]+)/);
+                        // Format 2: place_id:ChIJ...
+                        const match2 = url.match(/place_id[=:](ChIJ[A-Za-z0-9_-]+)/);
+                        // Format 3: /place/ChIJ.../
+                        const match3 = url.match(/\/place\/(ChIJ[A-Za-z0-9_-]+)/);
+                        // Format 4: Just a Place ID pasted directly
+                        const match4 = url.match(/^(ChIJ[A-Za-z0-9_-]+)$/);
+
+                        const placeId = match1?.[1] || match2?.[1] || match3?.[1] || match4?.[1];
+                        if (placeId) {
+                          setGooglePlaceId(placeId);
+                          fetchCoordsFromPlaceId(placeId);
                         }
                       }}
-                      disabled={!googlePlaceId?.startsWith('ChIJ') || isGeocoding}
-                      className="px-4 py-2 bg-slate-blue text-white text-sm font-medium rounded-lg hover:bg-slate-blue/90 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
-                    >
-                      {isGeocoding ? 'Fetching...' : 'Get coordinates'}
-                    </button>
+                    />
                   </div>
-                  {googlePlaceId?.startsWith('ChIJ') && !manualLat && !manualLng && (
-                    <p className="text-xs text-amber-600 mt-1">
-                      Click &quot;Get coordinates&quot; to fetch the location for this Place ID
-                    </p>
-                  )}
+                  <p className="text-xs text-gray-500 mt-1.5">
+                    <a href="https://www.google.com/maps" target="_blank" rel="noopener noreferrer" className="text-slate-blue underline">Open Google Maps</a>
+                    {' → '}search for your business{' → '}click on it{' → '}copy the URL from your browser
+                  </p>
                 </div>
-
-                <details className="text-xs text-gray-600">
-                  <summary className="cursor-pointer text-slate-blue hover:text-slate-blue/80 font-medium">
-                    Service-area business? Find your Place ID here
-                  </summary>
-                  <div className="mt-2 p-2 bg-blue-50 rounded">
-                    <p className="text-blue-800 mb-2">Service-area businesses often don&apos;t appear in search. Find your Place ID manually:</p>
-                    <ol className="space-y-1.5 pl-4 list-decimal text-blue-700">
-                      <li>Go to <a href="https://www.google.com/maps" target="_blank" rel="noopener noreferrer" className="underline font-medium">Google Maps</a></li>
-                      <li>Search for your business name (e.g., &quot;Diviner SEO Expert Portland&quot;)</li>
-                      <li>Click on your business listing</li>
-                      <li>Look at the URL - find the part starting with <code className="bg-blue-100 px-1 rounded">ChIJ</code></li>
-                      <li>Copy that code (e.g., <code className="bg-blue-100 px-1 rounded">ChIJN1t_tDeuEmsR...</code>)</li>
-                      <li>Paste it above and click &quot;Get coordinates&quot;</li>
-                    </ol>
-                    <p className="mt-2 text-xs text-blue-600">
-                      Tip: The Place ID appears after &quot;/place/&quot; or &quot;!1s&quot; in the URL
-                    </p>
-                  </div>
-                </details>
               </div>
             )}
 
