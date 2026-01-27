@@ -1017,8 +1017,8 @@ export function GeoGridSetupWizard({
               const needsData = !hasCoords || !hasVerifiedName;
               return (
                 <div className={`p-3 rounded-lg ${isComplete ? 'bg-green-50 border border-green-200' : 'bg-amber-50 border border-amber-200'}`}>
-                  <div className="flex items-center justify-between">
-                    <div>
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 min-w-0">
                       <p className={`text-sm font-medium ${isComplete ? 'text-green-800' : 'text-amber-800'}`}>
                         {isComplete ? '✓ Business verified!' : !hasCoords ? '⚠️ Place ID found, but coordinates needed' : '⚠️ Click below to verify business name'}
                       </p>
@@ -1075,7 +1075,7 @@ export function GeoGridSetupWizard({
                         setGooglePlaceId(null);
                         setVerifiedBusinessName(null);
                       }}
-                      className="px-3 py-1.5 text-sm font-medium text-slate-blue border border-slate-blue rounded-lg hover:bg-slate-blue hover:text-white transition-colors whitespace-nowrap"
+                      className="flex-shrink-0 px-3 py-1.5 text-sm font-medium text-slate-blue border border-slate-blue rounded-lg hover:bg-slate-blue hover:text-white transition-colors whitespace-nowrap"
                     >
                       Change
                     </button>
