@@ -841,7 +841,9 @@ export default function ConceptsTable({
                             ? 'bg-purple-100 text-purple-700'
                             : 'bg-gray-100 text-gray-500'
                         }`}
-                        title={row.serpFeatures.aiOverviewOursCited ? 'AI Overview (cited)' : 'AI Overview present'}
+                        title={row.serpFeatures.aiOverviewOursCited
+                          ? 'AI Overview: Google\'s AI-generated summary appears for this search. Your site is cited.'
+                          : 'AI Overview: Google\'s AI-generated summary appears for this search. Your site is NOT cited.'}
                       >
                         AI
                       </span>
@@ -854,7 +856,9 @@ export default function ConceptsTable({
                             ? 'bg-amber-100 text-amber-700'
                             : 'bg-gray-100 text-gray-500'
                         }`}
-                        title={row.serpFeatures.featuredSnippetOurs ? 'Featured Snippet (ours)' : 'Featured Snippet present'}
+                        title={row.serpFeatures.featuredSnippetOurs
+                          ? 'Featured Snippet: The highlighted answer box at the top of results features your site.'
+                          : 'Featured Snippet: The highlighted answer box appears but features a competitor.'}
                       >
                         FS
                       </span>
@@ -867,7 +871,9 @@ export default function ConceptsTable({
                             ? 'bg-blue-100 text-blue-700'
                             : 'bg-gray-100 text-gray-500'
                         }`}
-                        title={`PAA: ${row.serpFeatures.paaOursCount ?? 0}/${row.serpFeatures.paaQuestionCount} ours`}
+                        title={row.serpFeatures.paaOursCount !== null && row.serpFeatures.paaOursCount > 0
+                          ? `People Also Ask: ${row.serpFeatures.paaOursCount} of ${row.serpFeatures.paaQuestionCount} questions link to your site.`
+                          : `People Also Ask: ${row.serpFeatures.paaQuestionCount} questions appear but none link to your site.`}
                       >
                         ?
                       </span>
