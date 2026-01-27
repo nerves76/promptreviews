@@ -57,7 +57,7 @@ export function SidebarNavItem({
             onClick={handleFavoriteClick}
             className={`
               flex-shrink-0 p-1 rounded transition-all duration-200
-              ${isFavorited ? "text-yellow-400 opacity-100" : "text-white/50 opacity-0 group-hover:opacity-100 hover:text-yellow-400"}
+              ${isFavorited ? "text-blue-400 opacity-100" : "text-white/50 opacity-0 group-hover:opacity-100 hover:text-blue-400"}
             `}
             title={isFavorited ? "Remove from favorites" : "Add to favorites"}
             aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
