@@ -858,8 +858,8 @@ export function GeoGridSetupWizard({
         return (
           <div className="space-y-4">
 
-            {/* Location picker for Maven accounts with multiple GBP locations */}
-            {hasMultipleLocations && (
+            {/* Location picker for Maven accounts with multiple GBP locations - only when creating NEW grid */}
+            {hasMultipleLocations && !configId && (
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <label className="block text-sm font-medium text-gray-700">
@@ -909,8 +909,50 @@ export function GeoGridSetupWizard({
               </div>
             )}
 
-            {/* GBP Connection Flow */}
-            {!isLoadingConfig && effectiveGBPLocation ? (
+            {/* Edit mode - show loaded config data with editable business name */}
+            {!isLoadingConfig && configId && googlePlaceId ? (
+              (() => {
+                const currentLat = parseFloat(manualLat);
+                const currentLng = parseFloat(manualLng);
+                const hasValidCoords = !isNaN(currentLat) && !isNaN(currentLng) &&
+                                       currentLat !== 0 && currentLng !== 0;
+                const hasValidPlaceId = googlePlaceId?.startsWith('ChIJ');
+                const currentName = verifiedBusinessName || searchBusinessName?.trim();
+                const hasValidName = !!currentName && !/^\d+\s/.test(currentName);
+                const isComplete = hasValidCoords && hasValidPlaceId && hasValidName;
+
+                return (
+                  <div className={`p-4 rounded-lg ${isComplete ? 'bg-green-50 border border-green-200' : 'bg-amber-50 border border-amber-200'}`}>
+                    <div className="flex items-start gap-3">
+                      <MapPinIcon className={`w-6 h-6 ${isComplete ? 'text-green-600' : 'text-amber-600'}`} />
+                      <div className="flex-1">
+                        {/* Editable business name */}
+                        <label className="block text-xs font-medium text-gray-500 mb-1">Business name</label>
+                        <input
+                          type="text"
+                          value={searchBusinessName}
+                          onChange={(e) => setSearchBusinessName(e.target.value)}
+                          placeholder="Enter your business name"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 font-medium"
+                        />
+                        {selectedLocation?.address && (
+                          <p className="text-sm text-gray-500 mt-1">{selectedLocation.address}</p>
+                        )}
+
+                        {/* Status */}
+                        {isComplete ? (
+                          <p className="text-xs text-green-600 mt-2">✓ Ready to proceed</p>
+                        ) : !hasValidName ? (
+                          <p className="text-xs text-amber-600 mt-2">⚠️ Enter your business name above</p>
+                        ) : !hasValidCoords ? (
+                          <p className="text-xs text-amber-600 mt-2">⚠️ Coordinates needed - see below</p>
+                        ) : null}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()
+            ) : !isLoadingConfig && effectiveGBPLocation ? (
               // Location selected - check if data is complete using CURRENT form state
               (() => {
                 // Check current form state, not just original location data
