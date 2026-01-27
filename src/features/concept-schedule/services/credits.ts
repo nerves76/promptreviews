@@ -113,8 +113,7 @@ export async function calculateConceptScheduleCost(
     : 0;
 
   // Fetch geo-grid config for this account (if geo-grid is enabled)
-  let gridSize = 3; // Default 3x3
-  let checkPointCount = 9;
+  let checkPointCount = 5; // Default 5-point grid
 
   if (options.geoGridEnabled) {
     const { data: ggConfig } = await supabase
@@ -126,7 +125,6 @@ export async function calculateConceptScheduleCost(
 
     if (ggConfig?.check_points) {
       checkPointCount = ggConfig.check_points.length;
-      gridSize = Math.ceil(Math.sqrt(checkPointCount));
     }
   }
 
@@ -142,22 +140,17 @@ export async function calculateConceptScheduleCost(
       : 0,
   };
 
-  // Calculate geo-grid cost
-  // Formula: 10 base + gridSize² cells + (searchTerms × 2)
-  const baseCost = 10;
-  const cellCost = gridSize * gridSize;
-  const keywordCost = searchTermCount * 2;
-
+  // Calculate geo-grid cost (simplified: 1 credit per grid point)
   const geoGridCost: GeoGridCostBreakdown = {
     enabled: options.geoGridEnabled,
-    gridSize,
+    gridSize: Math.ceil(Math.sqrt(checkPointCount)), // For display only
     checkPointCount,
     searchTermCount,
-    baseCost,
-    cellCost,
-    keywordCost,
+    baseCost: 0,
+    cellCost: checkPointCount,
+    keywordCost: 0,
     cost: options.geoGridEnabled
-      ? calculateGeogridCost(gridSize, searchTermCount)
+      ? calculateGeogridCost(checkPointCount)
       : 0,
   };
 

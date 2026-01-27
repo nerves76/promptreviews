@@ -233,10 +233,9 @@ export async function GET(request: NextRequest) {
 
         if (!keywordCount) continue;
 
-        // Calculate cost
+        // Calculate cost (simplified: 1 credit per grid point)
         const pointCount = config.check_points?.length || 1;
-        const gridSize = Math.sqrt(pointCount);
-        const requiredCredits = calculateGeogridCost(gridSize, keywordCount);
+        const requiredCredits = calculateGeogridCost(pointCount);
 
         // Check balance
         await ensureBalanceExists(supabase, config.account_id);

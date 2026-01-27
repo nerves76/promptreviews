@@ -139,21 +139,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Calculate grid size from check points
+    // Calculate credit cost from check points (simplified: 1 credit per grid point)
     const pointCount = config.checkPoints.length;
-    const gridSize = Math.sqrt(pointCount);
+    const creditCost = calculateGeogridCost(pointCount);
 
-    // Determine actual keyword count to check
+    // Determine actual keyword count to check (for logging only)
     const actualKeywordCount = keywordIds?.length || keywordCount;
-
-    // Calculate credit cost: 10 base + 1 per cell + 1 per keyword
-    const creditCost = calculateGeogridCost(gridSize, actualKeywordCount);
 
     // Ensure balance record exists for this account
     await ensureBalanceExists(serviceSupabase, accountId);
 
     // Check if account has sufficient credits
-    const creditCheck = await checkGeogridCredits(serviceSupabase, accountId, gridSize, actualKeywordCount);
+    const creditCheck = await checkGeogridCredits(serviceSupabase, accountId, pointCount);
 
     if (!creditCheck.hasCredits) {
       console.log(`❌ [GeoGrid] Insufficient credits for account ${accountId}: need ${creditCheck.required}, have ${creditCheck.available}`);
@@ -178,18 +175,17 @@ export async function POST(request: NextRequest) {
     const idempotencyKey = `geo_grid:${accountId}:${checkId}`;
 
     // Debit credits before running the check
-    console.log(`💳 [GeoGrid] Debiting ${creditCost} credits for account ${accountId} (${gridSize}x${gridSize} grid, ${actualKeywordCount} keywords)`);
+    console.log(`💳 [GeoGrid] Debiting ${creditCost} credits for account ${accountId} (${pointCount} points, ${actualKeywordCount} keywords)`);
     try {
       await debit(serviceSupabase, accountId, creditCost, {
         featureType: 'geo_grid',
         featureMetadata: {
-          gridSize,
           pointCount,
           keywordCount: actualKeywordCount,
           checkId,
         },
         idempotencyKey,
-        description: `Geo grid check: ${gridSize}x${gridSize} grid, ${actualKeywordCount} keywords`,
+        description: `Geo grid check: ${pointCount} points, ${actualKeywordCount} keywords`,
       });
     } catch (error) {
       if (error instanceof InsufficientCreditsError) {
@@ -214,7 +210,7 @@ export async function POST(request: NextRequest) {
       // Refund credits since we're not running the check
       await refundFeature(serviceSupabase, accountId, creditCost, idempotencyKey, {
         featureType: 'geo_grid',
-        featureMetadata: { reason: 'api_cost_exceeded', gridSize, pointCount },
+        featureMetadata: { reason: 'api_cost_exceeded', pointCount },
         description: 'Refund: API cost exceeded limit',
       });
 
@@ -265,7 +261,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get updated balance after debit
-    const updatedCreditCheck = await checkGeogridCredits(serviceSupabase, accountId, gridSize, actualKeywordCount);
+    const updatedCreditCheck = await checkGeogridCredits(serviceSupabase, accountId, pointCount);
 
     return NextResponse.json({
       success: result.success,
