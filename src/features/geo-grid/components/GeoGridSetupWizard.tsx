@@ -1105,6 +1105,12 @@ export function GeoGridSetupWizard({
                         support@promptreviews.app
                       </a>
                     </>
+                  ) : geocodeError === 'SEARCH_FAILED_WITH_COORDS' ? (
+                    <>
+                      <strong>Couldn&apos;t find &quot;{searchBusinessName}&quot;</strong> in Google&apos;s database, but we extracted the coordinates from the URL.
+                      <br /><br />
+                      The coordinates have been filled in below. You can try searching with a different business name, or proceed with just the coordinates (you&apos;ll need to search for your business later to enable rank tracking).
+                    </>
                   ) : geocodeError === 'BUSINESS_NOT_FOUND' ? (
                     <>
                       <strong>Business not found</strong>
@@ -1292,12 +1298,19 @@ export function GeoGridSetupWizard({
                             return;
                           }
 
-                          // Extract coordinates from URL (multiple formats)
-                          const coordsMatch = url.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*)/) ||
-                                             url.match(/ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
-                          const lat = coordsMatch?.[1] ? parseFloat(coordsMatch[1]) : undefined;
-                          const lng = coordsMatch?.[2] ? parseFloat(coordsMatch[2]) : undefined;
-                          console.log('Extracted coordinates:', { lat, lng });
+                          // Extract precise coordinates from data params (!3d=lat, !4d=lng) or fallback to @ format
+                          const preciseMatch = url.match(/!3d(-?\d+\.?\d*)!4d(-?\d+\.?\d*)/);
+                          const atMatch = url.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+                          const llMatch = url.match(/ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+
+                          // Use precise coords if available, otherwise fallback
+                          const lat = preciseMatch?.[1] ? parseFloat(preciseMatch[1]) :
+                                     atMatch?.[1] ? parseFloat(atMatch[1]) :
+                                     llMatch?.[1] ? parseFloat(llMatch[1]) : undefined;
+                          const lng = preciseMatch?.[2] ? parseFloat(preciseMatch[2]) :
+                                     atMatch?.[2] ? parseFloat(atMatch[2]) :
+                                     llMatch?.[2] ? parseFloat(llMatch[2]) : undefined;
+                          console.log('Extracted coordinates:', { lat, lng, source: preciseMatch ? 'precise' : atMatch ? '@' : 'other' });
 
                           // Try multiple URL patterns for business name
                           // Format 1: /place/Business+Name/@...
@@ -1313,7 +1326,17 @@ export function GeoGridSetupWizard({
 
                             // Search for business using extracted name and coordinates
                             setSearchBusinessName(businessName);
-                            await searchForBusiness(businessName, lat, lng);
+                            const found = await searchForBusiness(businessName, lat, lng);
+
+                            // If search failed but we have coords and name, offer to use them directly
+                            if (!found && lat && lng) {
+                              // Set the coordinates and name from URL even though search failed
+                              setManualLat(lat.toString());
+                              setManualLng(lng.toString());
+                              setGeocodeError(`SEARCH_FAILED_WITH_COORDS`);
+                              // Store extracted name for potential use
+                              setSearchBusinessName(businessName);
+                            }
                             setMapsUrlInput('');
                           } else if (lat && lng) {
                             // Have coordinates but no business name - tell user to search manually
