@@ -341,8 +341,7 @@ export function GeoGridSetupWizard({
             }
           }
 
-          // IMPORTANT: Load the saved location name so it persists on re-save
-          // This ensures users don't lose their custom business name when editing
+          // Set initial location name from stored data (will be refreshed from Google below)
           if (cfg.locationName) {
             setSearchBusinessName(cfg.locationName);
             setSelectedLocation(prev => prev ? {
@@ -359,6 +358,35 @@ export function GeoGridSetupWizard({
           }
 
           hasLoadedConfigRef.current = true;
+
+          // Refresh business name from Google if we have a Place ID
+          // This ensures we show the current name if it changed in Google
+          if (cfg.targetPlaceId) {
+            try {
+              const refreshResponse = await apiClient.post<{
+                success: boolean;
+                businessName?: string;
+              }>('/geo-grid/geocode', { placeId: cfg.targetPlaceId });
+
+              if (refreshResponse.success && refreshResponse.businessName) {
+                console.log('✅ [GeoGridSetupWizard] Refreshed business name from Google:', refreshResponse.businessName);
+                setSearchBusinessName(refreshResponse.businessName);
+                setSelectedLocation(prev => prev ? {
+                  ...prev,
+                  name: refreshResponse.businessName!,
+                } : {
+                  id: '',
+                  name: refreshResponse.businessName!,
+                  lat: cfg.centerLat || 0,
+                  lng: cfg.centerLng || 0,
+                  placeId: cfg.targetPlaceId || '',
+                });
+              }
+            } catch (refreshErr) {
+              console.warn('Could not refresh business name from Google:', refreshErr);
+              // Keep using stored name if refresh fails
+            }
+          }
         }
       } catch (err) {
         console.error('Failed to load existing config:', err);
