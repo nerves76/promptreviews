@@ -381,6 +381,19 @@ export function GeoGridSetupWizard({
                   lng: cfg.centerLng || 0,
                   placeId: cfg.targetPlaceId || '',
                 });
+
+                // If the stored name is different (e.g., was address), update it in the database
+                if (cfg.locationName !== refreshResponse.businessName) {
+                  console.log('📝 [GeoGridSetupWizard] Updating stored location name:', cfg.locationName, '->', refreshResponse.businessName);
+                  try {
+                    await apiClient.post('/geo-grid/config', {
+                      configId: configId,
+                      locationName: refreshResponse.businessName,
+                    });
+                  } catch (updateErr) {
+                    console.warn('Could not update location name in database:', updateErr);
+                  }
+                }
               }
             } catch (refreshErr) {
               console.warn('Could not refresh business name from Google:', refreshErr);
