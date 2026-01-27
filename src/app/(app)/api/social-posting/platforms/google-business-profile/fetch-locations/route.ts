@@ -219,8 +219,14 @@ export async function POST(request: NextRequest) {
           
           // Store locations in database
           for (const location of locations) {
-            // Log the location fields for debugging
-            
+            // Log the location fields for debugging - especially title vs name
+            console.log('[fetch-locations] 📝 Location fields:', {
+              title: location.title,
+              locationName: location.locationName,
+              name: location.name,
+              hasStorefrontAddress: !!location.storefrontAddress,
+            });
+
             // Extract address properly
             let address = '';
             if (location.storefrontAddress) {
