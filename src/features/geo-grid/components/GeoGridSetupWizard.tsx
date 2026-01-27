@@ -255,7 +255,8 @@ export function GeoGridSetupWizard({
   }, [accountId]);
 
   // Combine available locations from props and fetched locations
-  const allLocations = availableLocations?.length ? availableLocations : fetchedLocations;
+  // Prefer fetchedLocations (from refresh) over availableLocations (from props) when available
+  const allLocations = fetchedLocations.length > 0 ? fetchedLocations : (availableLocations || []);
   const hasMultipleLocations = allLocations.length > 1;
   const hasAnyLocations = allLocations.length > 0;
 
