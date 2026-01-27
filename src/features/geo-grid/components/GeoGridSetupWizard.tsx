@@ -284,6 +284,7 @@ export function GeoGridSetupWizard({
   );
   const [isGeocoding, setIsGeocoding] = useState(false);
   const [geocodeError, setGeocodeError] = useState<string | null>(null);
+  const [geocodeStatus, setGeocodeStatus] = useState<string | null>(null); // Status message during operations
   // Google Maps URL input for service-area businesses
   const [mapsUrlInput, setMapsUrlInput] = useState('');
   // Editable search name - allows users to update if their business name changed on Google
@@ -1288,6 +1289,7 @@ export function GeoGridSetupWizard({
 
                           setIsGeocoding(true);
                           setGeocodeError(null);
+                          setGeocodeStatus('Parsing URL...');
 
                           // Try to extract ChIJ format Place ID first
                           const chijMatch = url.match(/!1s(ChIJ[A-Za-z0-9_-]+)/) ||
@@ -1296,9 +1298,11 @@ export function GeoGridSetupWizard({
 
                           if (chijMatch?.[1]) {
                             console.log('Found ChIJ Place ID:', chijMatch[1]);
+                            setGeocodeStatus('Found Place ID, fetching details...');
                             setGooglePlaceId(chijMatch[1]);
                             await fetchCoordsFromPlaceId(chijMatch[1]);
                             setMapsUrlInput('');
+                            setGeocodeStatus(null);
                             return;
                           }
 
@@ -1306,15 +1310,18 @@ export function GeoGridSetupWizard({
                           const hexMatch = url.match(/!1s(0x[a-f0-9]+:0x[a-f0-9]+)/i);
                           if (hexMatch?.[1]) {
                             console.log('Found hex Place ID (ftid):', hexMatch[1]);
+                            setGeocodeStatus('Found hex Place ID, trying lookup...');
                             // Try using it directly - some Google APIs accept this format
                             const hexSuccess = await fetchCoordsFromPlaceId(hexMatch[1]);
                             if (hexSuccess) {
                               setGooglePlaceId(hexMatch[1]);
                               setMapsUrlInput('');
+                              setGeocodeStatus(null);
                               return;
                             }
                             // If hex format failed, clear error and continue to name-based search
                             console.log('Hex Place ID lookup failed, trying name-based search...');
+                            setGeocodeStatus('Hex ID not recognized, trying business search...');
                             setGeocodeError(null);
                           }
 
@@ -1347,6 +1354,7 @@ export function GeoGridSetupWizard({
 
                             // Search for business using extracted name and coordinates
                             // Pass preciseCoords=true when we have exact coordinates from URL data params
+                            setGeocodeStatus(`Searching for "${businessName}"...`);
                             setSearchBusinessName(businessName);
                             const found = await searchForBusiness(businessName, lat, lng, !!preciseMatch);
 
@@ -1360,25 +1368,31 @@ export function GeoGridSetupWizard({
                               setSearchBusinessName(businessName);
                             }
                             setMapsUrlInput('');
+                            setGeocodeStatus(null);
                           } else if (lat && lng) {
                             // Have coordinates but no business name - tell user to search manually
-                            setGeocodeError(`Found location coordinates but couldn't extract business name from URL. Please type your business name in the search field below.`);
+                            setManualLat(lat.toString());
+                            setManualLng(lng.toString());
+                            setGeocodeError(`Found coordinates but couldn't extract business name. Coordinates filled in below - please search for your business name.`);
                             setMapsUrlInput('');
                             setIsGeocoding(false);
+                            setGeocodeStatus(null);
                           } else {
                             setGeocodeError('Could not find business info in that URL. Make sure you copied the full URL from Google Maps (should include the business name or location).');
                             setIsGeocoding(false);
+                            setGeocodeStatus(null);
                           }
                         } catch (err) {
                           console.error('Error processing Maps URL:', err);
                           setGeocodeError(`Error processing URL: ${err instanceof Error ? err.message : 'Unknown error'}`);
                           setIsGeocoding(false);
+                          setGeocodeStatus(null);
                         }
                       }}
                       disabled={!mapsUrlInput.trim() || isGeocoding}
                       className="px-4 py-2 bg-slate-blue text-white text-sm font-medium rounded-lg hover:bg-slate-blue/90 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                     >
-                      {isGeocoding ? 'Loading...' : 'Find business'}
+                      {isGeocoding ? (geocodeStatus || 'Loading...') : 'Find business'}
                     </button>
                   </div>
                   <p className="text-xs text-gray-500 mt-1.5">
