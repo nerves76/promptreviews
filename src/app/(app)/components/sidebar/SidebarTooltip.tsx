@@ -82,15 +82,19 @@ export function SidebarTooltip({
       {description && (
         <div className="text-xs text-white/70 mt-1">{description}</div>
       )}
-      {/* Arrow */}
+      {/* Arrow pointer on left side */}
       {position === "right" && (
         <div
-          className="absolute w-2 h-2 rotate-45"
+          className="absolute"
           style={{
-            left: -4,
+            left: -8,
             top: "50%",
             transform: "translateY(-50%)",
-            backgroundColor: "rgba(46, 74, 125, 0.95)",
+            width: 0,
+            height: 0,
+            borderTop: "8px solid transparent",
+            borderBottom: "8px solid transparent",
+            borderRight: "8px solid rgba(46, 74, 125, 0.95)",
           }}
         />
       )}
