@@ -133,7 +133,7 @@ export function GeoGridBusinessConnection({
   return (
     <div className="bg-white rounded-xl border-2 border-gray-200 p-6">
       <div className="flex items-center gap-2 mb-4">
-        <BuildingStorefrontIcon className="w-5 h-5 text-blue-600" />
+        <BuildingStorefrontIcon className="w-5 h-5 text-slate-blue" />
         <h3 className="text-lg font-semibold text-gray-900">Target business</h3>
       </div>
 
@@ -179,7 +179,7 @@ export function GeoGridBusinessConnection({
       {!showSearch ? (
         <button
           onClick={() => setShowSearch(true)}
-          className="w-full py-2 px-4 border-2 border-dashed border-gray-300 text-gray-600 hover:border-blue-400 hover:text-blue-600 font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+          className="w-full py-2 px-4 border-2 border-dashed border-gray-300 text-gray-600 hover:border-slate-blue hover:text-slate-blue font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
         >
           <ArrowPathIcon className="w-4 h-4" />
           {hasPlaceId ? 'Reconnect business' : 'Search for business'}
@@ -203,7 +203,7 @@ export function GeoGridBusinessConnection({
               <button
                 onClick={handleSearch}
                 disabled={isSearching || !searchQuery.trim()}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium rounded-lg transition-colors flex items-center gap-2"
+                className="px-4 py-2 bg-slate-blue hover:bg-slate-blue/90 disabled:bg-gray-400 text-white font-medium rounded-lg transition-colors flex items-center gap-2"
               >
                 {isSearching ? (
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />

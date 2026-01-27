@@ -104,7 +104,7 @@ export function GeoGridScheduleSettings({
   return (
     <div className="bg-white rounded-xl border-2 border-gray-200 p-6">
       <div className="flex items-center gap-2 mb-4">
-        <CalendarIcon className="w-5 h-5 text-blue-600" />
+        <CalendarIcon className="w-5 h-5 text-slate-blue" />
         <h3 className="text-lg font-semibold text-gray-900">Schedule Settings</h3>
       </div>
 
@@ -252,7 +252,7 @@ export function GeoGridScheduleSettings({
       <button
         onClick={handleSave}
         disabled={!hasChanges || isSaving}
-        className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors"
+        className="w-full py-2 px-4 bg-slate-blue hover:bg-slate-blue/90 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors"
       >
         {isSaving ? 'Saving...' : hasChanges ? 'Save Schedule' : 'No Changes'}
       </button>

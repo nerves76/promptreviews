@@ -583,7 +583,7 @@ export default function LocalRankingGridsPage() {
                 )}
                 <button
                   onClick={() => setShowSettings(true)}
-                  className="text-sm text-blue-600 hover:text-blue-800 font-medium whitespace-nowrap"
+                  className="text-sm text-slate-blue hover:text-slate-blue/80 font-medium whitespace-nowrap"
                 >
                   {config.targetPlaceId ? 'Reconnect' : 'Connect business'}
                 </button>
@@ -616,7 +616,7 @@ export default function LocalRankingGridsPage() {
                 </div>
                 <button
                   onClick={() => setShowSettings(true)}
-                  className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                  className="text-xs text-slate-blue hover:text-slate-blue/80 font-medium"
                 >
                   Edit schedule
                 </button>
@@ -723,7 +723,7 @@ export default function LocalRankingGridsPage() {
                 </span>
                 <button
                   onClick={() => setShowSettings(true)}
-                  className="text-blue-600 hover:text-blue-800 text-xs font-medium ml-2"
+                  className="text-slate-blue hover:text-slate-blue/80 text-xs font-medium ml-2"
                 >
                   Edit in settings
                 </button>
@@ -871,7 +871,7 @@ export default function LocalRankingGridsPage() {
                     setShowRunCheckModal(false);
                     setShowSettings(true);
                   }}
-                  className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                  className="text-sm text-slate-blue hover:text-slate-blue/80 font-medium"
                 >
                   {config.isEnabled ? 'Edit schedule' : 'Set up schedule'}
                 </button>

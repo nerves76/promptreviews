@@ -894,7 +894,7 @@ export function GeoGridSetupWizard({
                         <button
                           type="button"
                           onClick={() => setPickedLocationId(null)}
-                          className="text-xs text-blue-600 hover:text-blue-800 underline"
+                          className="text-xs text-slate-blue hover:text-slate-blue/80 underline"
                         >
                           Change
                         </button>
@@ -966,7 +966,7 @@ export function GeoGridSetupWizard({
               <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
                 <div className="flex items-start gap-4">
                   <div className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                    <Icon name="FaGoogle" className="w-5 h-5 text-blue-600" size={20} />
+                    <Icon name="FaGoogle" className="w-5 h-5 text-slate-blue" size={20} />
                   </div>
                   <div className="flex-1">
                     <h4 className="text-sm font-semibold text-gray-900 mb-1">
@@ -979,7 +979,7 @@ export function GeoGridSetupWizard({
                       type="button"
                       onClick={handleConnectGBP}
                       disabled={isConnecting || !accountId}
-                      className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-slate-blue text-white text-sm font-medium rounded-lg hover:bg-slate-blue/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                       {isConnecting ? (
                         <>
@@ -1009,7 +1009,7 @@ export function GeoGridSetupWizard({
             {/* Business Lookup Status */}
             {isGeocoding && (
               <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-2">
-                <ArrowPathIcon className="w-4 h-4 text-blue-600 animate-spin" />
+                <ArrowPathIcon className="w-4 h-4 text-slate-blue animate-spin" />
                 <p className="text-sm text-blue-800">Searching for your business on Google...</p>
               </div>
             )}
@@ -1041,7 +1041,7 @@ export function GeoGridSetupWizard({
                               fetchCoordsFromPlaceId(googlePlaceId);
                             }}
                             disabled={isGeocoding}
-                            className="w-full px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                            className="w-full px-4 py-2 bg-slate-blue text-white text-sm font-medium rounded-lg hover:bg-slate-blue/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                           >
                             {isGeocoding ? (
                               <>
@@ -1068,7 +1068,7 @@ export function GeoGridSetupWizard({
                               Or get coordinates manually:
                             </p>
                             <ol className="text-xs text-gray-700 space-y-1.5 pl-4 list-decimal">
-                              <li>Go to <a href="https://www.google.com/maps" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline font-medium">Google Maps</a></li>
+                              <li>Go to <a href="https://www.google.com/maps" target="_blank" rel="noopener noreferrer" className="text-slate-blue underline font-medium">Google Maps</a></li>
                               <li>Navigate to the center of your service area</li>
                               <li>Right-click on that location</li>
                               <li>Click the coordinates at the top of the menu (e.g., &quot;45.5231, -122.6765&quot;) to copy them</li>
@@ -1100,7 +1100,7 @@ export function GeoGridSetupWizard({
                       <br />
                       <a
                         href="mailto:support@promptreviews.app"
-                        className="text-blue-600 underline hover:text-blue-800"
+                        className="text-slate-blue underline hover:text-blue-800"
                       >
                         support@promptreviews.app
                       </a>
@@ -1114,7 +1114,7 @@ export function GeoGridSetupWizard({
                         href="https://developers.google.com/maps/documentation/javascript/examples/places-placeid-finder"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-blue-600 underline hover:text-blue-800"
+                        className="text-slate-blue underline hover:text-blue-800"
                       >
                         Google&apos;s Place ID Finder
                       </a>
@@ -1125,7 +1125,7 @@ export function GeoGridSetupWizard({
                         href="https://www.google.com/maps"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-blue-600 underline hover:text-blue-800"
+                        className="text-slate-blue underline hover:text-blue-800"
                       >
                         Google Maps
                       </a>
@@ -1139,7 +1139,7 @@ export function GeoGridSetupWizard({
                         href="https://www.google.com/maps"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-blue-600 underline hover:text-blue-800"
+                        className="text-slate-blue underline hover:text-blue-800"
                       >
                         Google Maps
                       </a>
@@ -1174,7 +1174,7 @@ export function GeoGridSetupWizard({
                   type="button"
                   onClick={() => searchForBusiness(searchBusinessName)}
                   disabled={!searchBusinessName.trim() || isGeocoding}
-                  className="w-full px-4 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full px-4 py-3 bg-slate-blue text-white font-medium rounded-lg hover:bg-slate-blue/90 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {isGeocoding ? (
                     <>
@@ -1216,7 +1216,7 @@ export function GeoGridSetupWizard({
                                 </p>
                               )}
                             </div>
-                            <span className="text-xs text-blue-600 font-medium whitespace-nowrap">Select</span>
+                            <span className="text-xs text-slate-blue font-medium whitespace-nowrap">Select</span>
                           </div>
                         </button>
                       ))}
@@ -1227,7 +1227,7 @@ export function GeoGridSetupWizard({
                         <button
                           type="button"
                           onClick={() => setBusinessSearchResults([])}
-                          className="text-blue-600 hover:text-blue-800 underline"
+                          className="text-slate-blue hover:text-slate-blue/80 underline"
                         >
                           manual Place ID option
                         </button>
@@ -1280,7 +1280,7 @@ export function GeoGridSetupWizard({
                         }
                       }}
                       disabled={!googlePlaceId?.startsWith('ChIJ') || isGeocoding}
-                      className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                      className="px-4 py-2 bg-slate-blue text-white text-sm font-medium rounded-lg hover:bg-slate-blue/90 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                     >
                       {isGeocoding ? 'Fetching...' : 'Get coordinates'}
                     </button>
@@ -1293,7 +1293,7 @@ export function GeoGridSetupWizard({
                 </div>
 
                 <details className="text-xs text-gray-600">
-                  <summary className="cursor-pointer text-blue-600 hover:text-blue-800 font-medium">
+                  <summary className="cursor-pointer text-slate-blue hover:text-slate-blue/80 font-medium">
                     How to find your Place ID
                   </summary>
                   <div className="mt-2 space-y-3">
@@ -1330,7 +1330,7 @@ export function GeoGridSetupWizard({
                     type="button"
                     onClick={() => searchForBusiness(searchBusinessName, parseFloat(manualLat) || undefined, parseFloat(manualLng) || undefined)}
                     disabled={isGeocoding || !searchBusinessName.trim()}
-                    className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap flex items-center gap-1"
+                    className="px-4 py-2 bg-slate-blue text-white text-sm font-medium rounded-lg hover:bg-slate-blue/90 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap flex items-center gap-1"
                   >
                     {isGeocoding ? (
                       <ArrowPathIcon className="w-4 h-4 animate-spin" />
@@ -1376,7 +1376,7 @@ export function GeoGridSetupWizard({
                             {result.placeId === googlePlaceId ? (
                               <span className="text-xs text-green-600 font-medium whitespace-nowrap bg-green-100 px-2 py-0.5 rounded">Current</span>
                             ) : (
-                              <span className="text-xs text-blue-600 font-medium whitespace-nowrap">Select →</span>
+                              <span className="text-xs text-slate-blue font-medium whitespace-nowrap">Select →</span>
                             )}
                           </div>
                         </button>
@@ -1586,7 +1586,7 @@ export function GeoGridSetupWizard({
                     {/* Circle outline */}
                     <div className="absolute inset-0 border-2 border-dashed border-gray-300 rounded-full" />
                     {/* Center point */}
-                    <div className="absolute top-1/2 left-1/2 w-4 h-4 -mt-2 -ml-2 bg-blue-600 rounded-full" />
+                    <div className="absolute top-1/2 left-1/2 w-4 h-4 -mt-2 -ml-2 bg-slate-blue rounded-full" />
                     {/* North */}
                     <div className="absolute top-0 left-1/2 w-3 h-3 -ml-1.5 bg-blue-400 rounded-full" />
                     {/* South */}
@@ -1680,7 +1680,7 @@ export function GeoGridSetupWizard({
                 className={`
                   flex items-center justify-center w-10 h-10 rounded-full
                   ${index <= currentStepIndex
-                    ? 'bg-blue-600 text-white'
+                    ? 'bg-slate-blue text-white'
                     : 'bg-gray-200 text-gray-500'
                   }
                 `}
@@ -1698,7 +1698,7 @@ export function GeoGridSetupWizard({
             {index < steps.length - 1 && (
               <div
                 className={`flex-1 h-1 mx-4 rounded ${
-                  index < currentStepIndex ? 'bg-blue-600' : 'bg-gray-200'
+                  index < currentStepIndex ? 'bg-slate-blue' : 'bg-gray-200'
                 }`}
               />
             )}
@@ -1731,7 +1731,7 @@ export function GeoGridSetupWizard({
             type="button"
             onClick={handleSubmit}
             disabled={isSubmitting || !selectedLocation}
-            className="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-6 py-2 bg-slate-blue text-white font-medium rounded-lg hover:bg-slate-blue/90 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSubmitting ? 'Saving...' : 'Complete Setup'}
           </button>
@@ -1748,7 +1748,7 @@ export function GeoGridSetupWizard({
               type="button"
               onClick={handleNext}
               disabled={!canProceed}
-              className="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-2 bg-slate-blue text-white font-medium rounded-lg hover:bg-slate-blue/90 disabled:opacity-50 disabled:cursor-not-allowed"
               title={!canProceed ? 'Please enter valid coordinates and Place ID' : undefined}
             >
               Next

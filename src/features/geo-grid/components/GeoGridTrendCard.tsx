@@ -167,7 +167,7 @@ export function GeoGridTrendCard({
               onClick={onRunCheck}
               disabled={isCheckRunning || !hasTargetBusiness}
               title={!hasTargetBusiness ? 'Connect your business first' : undefined}
-              className="px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 mx-auto"
+              className="px-4 py-2 bg-slate-blue text-white font-medium rounded-lg hover:bg-slate-blue/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 mx-auto"
             >
               {isCheckRunning && (
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -200,7 +200,7 @@ export function GeoGridTrendCard({
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <ChartBarIcon className="w-6 h-6 text-blue-600" />
+          <ChartBarIcon className="w-6 h-6 text-slate-blue" />
           <div>
             <h2 className="text-xl font-bold text-gray-900">Visibility Summary</h2>
             {lastCheckedAt && (
@@ -225,7 +225,7 @@ export function GeoGridTrendCard({
                 onClick={onRunCheck}
                 disabled={isCheckRunning || !hasTargetBusiness}
                 title={!hasTargetBusiness ? 'Connect your business first' : undefined}
-                className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                className="px-4 py-2 bg-slate-blue text-white text-sm font-medium rounded-lg hover:bg-slate-blue/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               >
                 {isCheckRunning && (
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />

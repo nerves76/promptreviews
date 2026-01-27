@@ -72,7 +72,7 @@ export function GeoGridConfigSettings({
   return (
     <div className="bg-white rounded-xl border-2 border-gray-200 p-6">
       <div className="flex items-center gap-2 mb-4">
-        <Cog6ToothIcon className="w-5 h-5 text-blue-600" />
+        <Cog6ToothIcon className="w-5 h-5 text-slate-blue" />
         <h3 className="text-lg font-semibold text-gray-900">Grid settings</h3>
       </div>
 
@@ -91,7 +91,7 @@ export function GeoGridConfigSettings({
                 onClick={() => setGridSize(option.value)}
                 className={`p-3 rounded-lg border-2 text-left transition-colors ${
                   gridSize === option.value
-                    ? 'border-blue-600 bg-blue-50'
+                    ? 'border-slate-blue bg-slate-blue/10'
                     : 'border-gray-200 hover:border-gray-300'
                 }`}
               >
@@ -145,7 +145,7 @@ export function GeoGridConfigSettings({
             return (
               <div className="relative w-32 h-32 mx-auto">
                 <div className="absolute inset-0 border-2 border-dashed border-gray-300 rounded-full" />
-                <div className="absolute top-1/2 left-1/2 w-3 h-3 -mt-1.5 -ml-1.5 bg-blue-600 rounded-full" />
+                <div className="absolute top-1/2 left-1/2 w-3 h-3 -mt-1.5 -ml-1.5 bg-slate-blue rounded-full" />
                 <div className="absolute top-0 left-1/2 w-2.5 h-2.5 -ml-1.25 bg-blue-400 rounded-full" />
                 <div className="absolute bottom-0 left-1/2 w-2.5 h-2.5 -ml-1.25 bg-blue-400 rounded-full" />
                 <div className="absolute top-1/2 right-0 w-2.5 h-2.5 -mt-1.25 bg-blue-400 rounded-full" />
@@ -171,7 +171,7 @@ export function GeoGridConfigSettings({
                 return (
                   <div
                     key={i}
-                    className={`rounded-full ${isCenter ? 'bg-blue-600' : 'bg-blue-400'}`}
+                    className={`rounded-full ${isCenter ? 'bg-slate-blue' : 'bg-blue-400'}`}
                     style={{
                       width: gridDimension <= 5 ? '12px' : '8px',
                       height: gridDimension <= 5 ? '12px' : '8px',
@@ -216,7 +216,7 @@ export function GeoGridConfigSettings({
       <button
         onClick={handleSave}
         disabled={!hasChanges || isSaving}
-        className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors"
+        className="w-full py-2 px-4 bg-slate-blue hover:bg-slate-blue/90 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors"
       >
         {isSaving ? 'Saving...' : hasChanges ? 'Save settings' : 'No changes'}
       </button>
