@@ -21,7 +21,7 @@ export function SidebarFavorites({
     return (
       <div className="mb-4 px-3">
         <div className="flex items-center gap-2 mb-2">
-          <Icon name="FaStar" size={14} className="text-yellow-400" />
+          <Icon name="FaStar" size={14} className="text-[#527DE7]" />
           {!isCollapsed && (
             <span className="text-xs font-semibold uppercase tracking-wider text-white/70">
               Favorites
@@ -63,7 +63,7 @@ export function SidebarFavorites({
     <div className="mb-4">
       {/* Section header */}
       <div className={`flex items-center gap-2 mb-2 ${isCollapsed ? "justify-center" : "px-3"}`}>
-        <Icon name="FaStar" size={14} className="text-yellow-400" />
+        <Icon name="FaStar" size={14} className="text-[#527DE7]" />
         {!isCollapsed && (
           <span className="text-xs font-semibold uppercase tracking-wider text-white/70">
             Favorites
@@ -88,9 +88,9 @@ export function SidebarFavorites({
                 ${isActive ? "bg-white/20 text-white" : "text-white/90 hover:bg-white/10 hover:text-white"}
               `}
             >
-              {/* Icon - gold for favorited items */}
+              {/* Icon - blue to match gradient top */}
               <div className="flex-shrink-0 w-5 h-5 flex items-center justify-center">
-                <Icon name={navItem.icon} size={18} className="text-brand-gold" />
+                <Icon name={navItem.icon} size={18} className="text-[#527DE7]" />
               </div>
 
               {/* Label - always shown for favorites */}
