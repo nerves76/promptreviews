@@ -512,8 +512,8 @@ export function GeoGridSetupWizard({
 
   // Fetch coordinates from a Place ID
   const [coordsNote, setCoordsNote] = useState<string | null>(null);
-  const fetchCoordsFromPlaceId = useCallback(async (placeId: string): Promise<boolean> => {
-    console.log('Fetching coordinates for Place ID:', placeId);
+  const fetchCoordsFromPlaceId = useCallback(async (placeId: string, fallbackAddress?: string): Promise<boolean> => {
+    console.log('Fetching coordinates for Place ID:', placeId, 'with fallback address:', fallbackAddress);
     // Mark as manually updated BEFORE API call to prevent useEffect from overwriting
     hasManuallyUpdatedLocationRef.current = true;
     setIsGeocoding(true);
@@ -528,7 +528,7 @@ export function GeoGridSetupWizard({
         hint?: string;
         note?: string;
         source?: string;
-      }>('/geo-grid/geocode', { placeId });
+      }>('/geo-grid/geocode', { placeId, fallbackAddress });
 
       console.log('Geocode response for Place ID:', response);
       if (response.success && response.coordinates) {
@@ -640,7 +640,7 @@ export function GeoGridSetupWizard({
         } else {
           // We have Place ID but no coordinates - fetch them from Google
           console.log('Calling fetchCoordsFromPlaceId...');
-          fetchCoordsFromPlaceId(effectiveGBPLocation.placeId);
+          fetchCoordsFromPlaceId(effectiveGBPLocation.placeId, effectiveGBPLocation.address);
         }
         hasAutoSearchedRef.current = true;
         return;
@@ -1038,7 +1038,8 @@ export function GeoGridSetupWizard({
                             type="button"
                             onClick={() => {
                               setGeocodeError(null);
-                              fetchCoordsFromPlaceId(googlePlaceId);
+                              // Pass address as fallback in case Place ID lookup fails
+                              fetchCoordsFromPlaceId(googlePlaceId, effectiveGBPLocation?.address);
                             }}
                             disabled={isGeocoding}
                             className="w-full px-4 py-2 bg-slate-blue text-white text-sm font-medium rounded-lg hover:bg-slate-blue/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"

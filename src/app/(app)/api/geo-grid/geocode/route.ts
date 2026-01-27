@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { address, placeId, lat, lng, businessName, searchBusiness, preciseCoords } = body;
+    const { address, placeId, lat, lng, businessName, searchBusiness, preciseCoords, fallbackAddress } = body;
 
     // Business search: Find the actual GBP listing using Places API
     // This is the best way to get the correct Place ID for rank tracking
@@ -306,9 +306,11 @@ export async function POST(request: NextRequest) {
 
         // No direct coordinates - try geocoding the address as fallback
         // This helps service-area businesses that hide their address but have city info
-        if (formattedAddress) {
-          console.log('No coordinates from Place ID, trying to geocode address:', formattedAddress);
-          const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(formattedAddress)}&key=${GOOGLE_MAPS_API_KEY}`;
+        // Try formattedAddress from Google first, then fallbackAddress from our database
+        const addressToGeocode = formattedAddress || fallbackAddress;
+        if (addressToGeocode) {
+          console.log('No coordinates from Place ID, trying to geocode address:', addressToGeocode);
+          const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(addressToGeocode)}&key=${GOOGLE_MAPS_API_KEY}`;
           const geocodeResponse = await fetch(geocodeUrl);
           const geocodeData = await geocodeResponse.json();
 
@@ -321,9 +323,9 @@ export async function POST(request: NextRequest) {
                 lng: location.lng,
               },
               businessName,
-              formattedAddress,
+              formattedAddress: addressToGeocode,
               source: 'google_geocode_fallback',
-              note: 'Coordinates derived from service area address. You may want to adjust to the center of your actual service area.',
+              note: 'Coordinates derived from address. You may want to adjust to the exact center of your business or service area.',
             });
           }
         }
