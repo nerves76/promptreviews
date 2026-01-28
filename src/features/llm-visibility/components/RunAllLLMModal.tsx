@@ -33,7 +33,7 @@ const HOURS = Array.from({ length: 24 }, (_, i) => ({
 interface RunAllLLMModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onStarted?: () => void;
+  onStarted?: (batchStatus: BatchStatus) => void;
 }
 
 interface BatchPreview {
@@ -231,7 +231,7 @@ export default function RunAllLLMModal({
 
       if (response.success) {
         // Set initial batch status
-        setBatchStatus({
+        const newBatchStatus: BatchStatus = {
           runId: response.runId,
           status: response.scheduled ? 'scheduled' : 'pending',
           providers: response.providers,
@@ -245,8 +245,9 @@ export default function RunAllLLMModal({
           creditsRefunded: 0,
           errorMessage: null,
           scheduledFor: response.scheduledFor || null,
-        });
-        onStarted?.();
+        };
+        setBatchStatus(newBatchStatus);
+        onStarted?.(newBatchStatus);
       } else {
         setError(response.error || 'Failed to start batch run');
       }

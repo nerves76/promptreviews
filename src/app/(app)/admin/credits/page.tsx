@@ -17,6 +17,8 @@ interface AccountResult {
   plan: string;
   is_client_account: boolean;
   monthly_credit_allocation: number | null;
+  plan_default_credits: number;
+  effective_monthly_credits: number;
   credit_balance?: {
     included_credits: number;
     purchased_credits: number;
@@ -31,9 +33,12 @@ export default function CreditsAdminPage() {
   const [results, setResults] = useState<AccountResult[]>([]);
   const [selectedAccount, setSelectedAccount] = useState<AccountResult | null>(null);
   const [creditAmount, setCreditAmount] = useState('100');
+  const [monthlyAddAmount, setMonthlyAddAmount] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUpdatingMonthly, setIsUpdatingMonthly] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [tierDefaults, setTierDefaults] = useState<Record<string, number>>({});
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
@@ -60,6 +65,9 @@ export default function CreditsAdminPage() {
       }
 
       setResults(result.accounts || []);
+      if (result.tierDefaults) {
+        setTierDefaults(result.tierDefaults);
+      }
     } catch (err: any) {
       console.error('Search error:', err);
       setError(err.message || 'Failed to search accounts');
@@ -163,6 +171,8 @@ export default function CreditsAdminPage() {
   };
 
   const handleUpdateMonthlyAllocation = async (account: AccountResult, allocation: number | null) => {
+    setIsUpdatingMonthly(true);
+    setError(null);
     try {
       const { error: updateError } = await supabase
         .from('accounts')
@@ -171,21 +181,41 @@ export default function CreditsAdminPage() {
 
       if (updateError) throw updateError;
 
+      const newEffective = allocation ?? account.plan_default_credits;
+
       // Update in results
       setResults(prev => prev.map(r =>
         r.id === account.id
-          ? { ...r, monthly_credit_allocation: allocation }
+          ? { ...r, monthly_credit_allocation: allocation, effective_monthly_credits: newEffective }
           : r
       ));
 
       if (selectedAccount?.id === account.id) {
-        setSelectedAccount({ ...selectedAccount, monthly_credit_allocation: allocation });
+        setSelectedAccount({ ...selectedAccount, monthly_credit_allocation: allocation, effective_monthly_credits: newEffective });
       }
 
-      setSuccess(`Monthly allocation updated for ${account.business_name || account.email}`);
+      setMonthlyAddAmount('');
+      setSuccess(`Monthly allocation updated to ${newEffective} credits for ${account.business_name || account.email}`);
     } catch (err: any) {
       setError('Failed to update monthly allocation');
+    } finally {
+      setIsUpdatingMonthly(false);
     }
+  };
+
+  const handleAddToMonthly = async () => {
+    if (!selectedAccount || !monthlyAddAmount) return;
+
+    const addAmount = parseInt(monthlyAddAmount, 10);
+    if (isNaN(addAmount) || addAmount <= 0) {
+      setError('Please enter a valid amount to add');
+      return;
+    }
+
+    const currentMonthly = selectedAccount.effective_monthly_credits;
+    const newTotal = currentMonthly + addAmount;
+
+    await handleUpdateMonthlyAllocation(selectedAccount, newTotal);
   };
 
   return (
@@ -277,12 +307,18 @@ export default function CreditsAdminPage() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm text-gray-600">Current Balance</p>
+                    <p className="text-sm text-gray-600">Current balance</p>
                     <p className="text-lg font-semibold text-gray-900">
                       {(account.credit_balance?.included_credits || 0) + (account.credit_balance?.purchased_credits || 0)} credits
                     </p>
                     <p className="text-xs text-gray-500">
                       {account.credit_balance?.included_credits || 0} included, {account.credit_balance?.purchased_credits || 0} purchased
+                    </p>
+                    <p className="text-xs text-blue-600 mt-1">
+                      {account.effective_monthly_credits}/mo
+                      {account.monthly_credit_allocation !== null && (
+                        <span className="text-gray-500"> (custom)</span>
+                      )}
                     </p>
                   </div>
                 </div>
@@ -349,37 +385,105 @@ export default function CreditsAdminPage() {
             {/* Monthly Allocation */}
             <div className="py-3 border-t border-gray-200">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Monthly Credit Allocation
+                Monthly credit allocation
               </label>
-              <p className="text-sm text-gray-600 mb-3">
-                Custom monthly credits (overrides plan default). Leave empty to use plan default.
-              </p>
-              <div className="flex gap-3 items-center">
-                <input
-                  type="number"
-                  value={selectedAccount.monthly_credit_allocation ?? ''}
-                  onChange={(e) => {
-                    const val = e.target.value ? parseInt(e.target.value, 10) : null;
-                    setSelectedAccount({ ...selectedAccount, monthly_credit_allocation: val });
-                  }}
-                  min="0"
-                  placeholder="Use plan default"
-                  className="w-40 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-                <button
-                  onClick={() => handleUpdateMonthlyAllocation(selectedAccount, selectedAccount.monthly_credit_allocation)}
-                  className="px-4 py-2 bg-gray-600 text-white font-medium rounded-lg hover:bg-gray-700"
-                >
-                  Save
-                </button>
-                {selectedAccount.monthly_credit_allocation !== null && (
+
+              {/* Current Status Display */}
+              <div className="bg-gray-50 rounded-lg p-4 mb-4">
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-gray-500">Plan default:</span>
+                    <span className="ml-2 font-medium text-gray-900">
+                      {selectedAccount.plan_default_credits} credits
+                      <span className="text-gray-500 ml-1">({selectedAccount.plan || 'free'})</span>
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Custom override:</span>
+                    <span className="ml-2 font-medium text-gray-900">
+                      {selectedAccount.monthly_credit_allocation !== null
+                        ? `${selectedAccount.monthly_credit_allocation} credits`
+                        : 'None'}
+                    </span>
+                  </div>
+                </div>
+                <div className="mt-3 pt-3 border-t border-gray-200">
+                  <span className="text-gray-600">Current monthly credits:</span>
+                  <span className="ml-2 text-lg font-bold text-gray-900">
+                    {selectedAccount.effective_monthly_credits} credits/month
+                  </span>
+                </div>
+              </div>
+
+              {/* Add to Monthly */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Add to monthly allocation
+                </label>
+                <div className="flex gap-3 items-center">
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-600">{selectedAccount.effective_monthly_credits}</span>
+                    <span className="text-gray-400">+</span>
+                    <input
+                      type="number"
+                      value={monthlyAddAmount}
+                      onChange={(e) => setMonthlyAddAmount(e.target.value)}
+                      min="1"
+                      placeholder="0"
+                      className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-center"
+                    />
+                    <span className="text-gray-400">=</span>
+                    <span className="font-semibold text-gray-900">
+                      {selectedAccount.effective_monthly_credits + (parseInt(monthlyAddAmount, 10) || 0)}
+                    </span>
+                  </div>
                   <button
-                    onClick={() => handleUpdateMonthlyAllocation(selectedAccount, null)}
-                    className="px-4 py-2 text-gray-600 font-medium hover:text-gray-800"
+                    onClick={handleAddToMonthly}
+                    disabled={isUpdatingMonthly || !monthlyAddAmount || parseInt(monthlyAddAmount, 10) <= 0}
+                    className="px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                   >
-                    Clear
+                    {isUpdatingMonthly ? 'Updating...' : 'Add to monthly'}
                   </button>
-                )}
+                </div>
+              </div>
+
+              {/* Set Absolute Value */}
+              <div className="pt-3 border-t border-gray-200">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Or set absolute monthly value
+                </label>
+                <p className="text-sm text-gray-500 mb-2">
+                  Set a specific value or clear to use plan default
+                </p>
+                <div className="flex gap-3 items-center">
+                  <input
+                    type="number"
+                    value={selectedAccount.monthly_credit_allocation ?? ''}
+                    onChange={(e) => {
+                      const val = e.target.value ? parseInt(e.target.value, 10) : null;
+                      setSelectedAccount({ ...selectedAccount, monthly_credit_allocation: val });
+                    }}
+                    min="0"
+                    placeholder="Use plan default"
+                    className="w-40 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <button
+                    onClick={() => handleUpdateMonthlyAllocation(selectedAccount, selectedAccount.monthly_credit_allocation)}
+                    disabled={isUpdatingMonthly}
+                    className="px-4 py-2 bg-gray-600 text-white font-medium rounded-lg hover:bg-gray-700 disabled:opacity-50"
+                  >
+                    {isUpdatingMonthly ? 'Saving...' : 'Save'}
+                  </button>
+                  {selectedAccount.monthly_credit_allocation !== null && (
+                    <button
+                      onClick={() => handleUpdateMonthlyAllocation(selectedAccount, null)}
+                      disabled={isUpdatingMonthly}
+                      className="px-4 py-2 text-gray-600 font-medium hover:text-gray-800 disabled:opacity-50"
+                    >
+                      Reset to plan default
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           </div>

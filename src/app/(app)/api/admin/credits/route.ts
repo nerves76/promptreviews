@@ -108,19 +108,34 @@ export async function GET(request: NextRequest) {
       });
     }
 
+    // Fetch tier defaults for reference
+    const { data: tierDefaults } = await serviceSupabase
+      .from('credit_included_by_tier')
+      .select('tier, monthly_credits');
+
+    const tierCreditsMap: Record<string, number> = {};
+    (tierDefaults || []).forEach((t: any) => {
+      tierCreditsMap[t.tier] = t.monthly_credits;
+    });
+
     // Combine and transform results
     const allResults = [...(directMatches || []), ...additionalAccounts];
-    const transformed = allResults.map((account: any) => ({
-      id: account.id,
-      email: account.email,
-      business_name: account.business_name,
-      plan: account.plan,
-      is_client_account: account.is_client_account,
-      monthly_credit_allocation: account.monthly_credit_allocation,
-      credit_balance: account.credit_balances?.[0] || null,
-    }));
+    const transformed = allResults.map((account: any) => {
+      const planDefault = tierCreditsMap[account.plan] || 0;
+      return {
+        id: account.id,
+        email: account.email,
+        business_name: account.business_name,
+        plan: account.plan,
+        is_client_account: account.is_client_account,
+        monthly_credit_allocation: account.monthly_credit_allocation,
+        plan_default_credits: planDefault,
+        effective_monthly_credits: account.monthly_credit_allocation ?? planDefault,
+        credit_balance: account.credit_balances?.[0] || null,
+      };
+    });
 
-    return NextResponse.json({ accounts: transformed });
+    return NextResponse.json({ accounts: transformed, tierDefaults: tierCreditsMap });
   } catch (error: any) {
     console.error('Admin credits search error:', error);
     return NextResponse.json(

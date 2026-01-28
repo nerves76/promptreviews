@@ -141,7 +141,7 @@ export default function AISearchPage() {
   // Track active batch run for progress banner
   interface BatchStatus {
     runId: string;
-    status: 'pending' | 'processing' | 'completed' | 'failed';
+    status: 'pending' | 'processing' | 'completed' | 'failed' | 'scheduled';
     providers: LLMProvider[];
     totalQuestions: number;
     processedQuestions: number;
@@ -1468,6 +1468,40 @@ export default function AISearchPage() {
           </div>
         )}
 
+        {/* Batch Progress Banner */}
+        {activeBatchRun && ['pending', 'processing'].includes(activeBatchRun.status) && !showRunAllModal && (
+          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Icon name="FaSpinner" className="w-5 h-5 text-slate-blue animate-spin" />
+                <div>
+                  <p className="text-sm font-medium text-slate-blue">
+                    {activeBatchRun.status === 'pending' ? 'Queued' : 'Checking'} LLM visibility...
+                  </p>
+                  <p className="text-xs text-slate-blue/70">
+                    {activeBatchRun.processedQuestions} of {activeBatchRun.totalQuestions} questions · {activeBatchRun.progress}% complete
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                {/* Progress bar */}
+                <div className="w-32 bg-blue-200 rounded-full h-2">
+                  <div
+                    className="bg-slate-blue h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${activeBatchRun.progress}%` }}
+                  />
+                </div>
+                <button
+                  onClick={() => setShowRunAllModal(true)}
+                  className="text-xs text-slate-blue hover:text-slate-blue/80 font-medium"
+                >
+                  Details
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Loading State */}
         {isLoading ? (
           <div className="text-center py-12">
@@ -1972,13 +2006,21 @@ export default function AISearchPage() {
                             const result = row.results.get(provider);
                             const consistencyData = row.consistency.get(provider);
                             const colors = LLM_PROVIDER_COLORS[provider];
+                            const isBatchRunning = activeBatchRun && ['pending', 'processing'].includes(activeBatchRun.status);
+                            const providerInBatch = isBatchRunning && activeBatchRun.providers.includes(provider);
 
                             if (!result) {
-                              // Not checked yet
+                              // Not checked yet - show pending indicator if batch is running for this provider
                               return (
                                 <React.Fragment key={provider}>
                                   <td className="py-3 px-2 text-center">
-                                    <span className="text-gray-300" title="Not checked">—</span>
+                                    {providerInBatch ? (
+                                      <span className="text-blue-400" title="Check pending...">
+                                        <Icon name="FaClock" className="w-3.5 h-3.5 animate-pulse" />
+                                      </span>
+                                    ) : (
+                                      <span className="text-gray-300" title="Not checked">—</span>
+                                    )}
                                   </td>
                                   {showConsistency && (
                                     <>
@@ -2413,8 +2455,8 @@ export default function AISearchPage() {
       <RunAllLLMModal
         isOpen={showRunAllModal}
         onClose={() => setShowRunAllModal(false)}
-        onStarted={() => {
-          // Could trigger a refresh when batch completes
+        onStarted={(batchStatus) => {
+          setActiveBatchRun(batchStatus);
         }}
       />
 
