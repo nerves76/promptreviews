@@ -103,10 +103,12 @@ export async function GET(request: NextRequest) {
     });
 
     // CSV headers
+    // Note: search_results and fan_out_queries are only available from ChatGPT
+    // Claude/Gemini/Perplexity don't provide these fields via the DataForSEO API
     const headers = [
+      'llm_provider',
       'concept_name',
       'question',
-      'llm_provider',
       'domain_cited',
       'brand_mentioned',
       'citation_position',
@@ -119,6 +121,7 @@ export async function GET(request: NextRequest) {
       'response_snippet',
       'full_response',
       'checked_at',
+      'data_note',
     ];
 
     // Escape CSV field - handle quotes, commas, and newlines
@@ -137,6 +140,7 @@ export async function GET(request: NextRequest) {
     // Build CSV rows
     const rows = checks?.map((check: any) => {
       const keywordPhrase = keywordPhraseMap.get(check.keyword_id) || '';
+      const provider = check.llm_provider?.toLowerCase() || '';
 
       // Format citations as a summary string: domain1 (pos 1), domain2 (pos 2)
       let citationsSummary = '';
@@ -161,10 +165,16 @@ export async function GET(request: NextRequest) {
         ? check.fan_out_queries.join('; ')
         : '';
 
+      // Add data note explaining what data is available for this provider
+      let dataNote = '';
+      if (provider !== 'chatgpt') {
+        dataNote = 'search_results and fan_out_queries only available from ChatGPT';
+      }
+
       return [
+        escapeCSV(check.llm_provider),
         escapeCSV(keywordPhrase),
         escapeCSV(check.question),
-        escapeCSV(check.llm_provider),
         escapeCSV(check.domain_cited ? 'Yes' : 'No'),
         escapeCSV(check.brand_mentioned ? 'Yes' : 'No'),
         escapeCSV(check.citation_position),
@@ -177,6 +187,7 @@ export async function GET(request: NextRequest) {
         escapeCSV(check.response_snippet),
         escapeCSV(check.full_response),
         escapeCSV(check.checked_at ? new Date(check.checked_at).toISOString() : ''),
+        escapeCSV(dataNote),
       ].join(',');
     }) || [];
 
