@@ -1469,7 +1469,14 @@ export default function AISearchPage() {
         )}
 
         {/* Batch Progress Banner */}
-        {activeBatchRun && ['pending', 'processing'].includes(activeBatchRun.status) && !showRunAllModal && (
+        {activeBatchRun && ['pending', 'processing'].includes(activeBatchRun.status) && !showRunAllModal && (() => {
+          const remaining = activeBatchRun.totalQuestions - activeBatchRun.processedQuestions;
+          const secondsPerQuestion = 4 * (activeBatchRun.providers?.length || 4);
+          const estimatedSeconds = remaining * secondsPerQuestion;
+          const estimatedMinutes = Math.ceil(estimatedSeconds / 60);
+          const timeEstimate = estimatedMinutes <= 1 ? 'less than a minute' : `~${estimatedMinutes} min`;
+
+          return (
           <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -1479,7 +1486,7 @@ export default function AISearchPage() {
                     {activeBatchRun.status === 'pending' ? 'Queued' : 'Checking'} LLM visibility...
                   </p>
                   <p className="text-xs text-slate-blue/70">
-                    {activeBatchRun.processedQuestions} of {activeBatchRun.totalQuestions} questions · {activeBatchRun.progress}% complete
+                    {activeBatchRun.processedQuestions} of {activeBatchRun.totalQuestions} questions · {activeBatchRun.progress}% complete · {timeEstimate} remaining
                   </p>
                 </div>
               </div>
@@ -1500,7 +1507,8 @@ export default function AISearchPage() {
               </div>
             </div>
           </div>
-        )}
+          );
+        })()}
 
         {/* Loading State */}
         {isLoading ? (
