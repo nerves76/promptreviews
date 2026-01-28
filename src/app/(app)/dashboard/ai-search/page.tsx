@@ -248,8 +248,8 @@ export default function AISearchPage() {
     success: boolean;
     message: string;
     keywordsCreated?: number;
-    duplicatesSkipped?: number;
-    skippedPhrases?: string[];
+    duplicatesUpdated?: number;
+    questionsAddedToDuplicates?: number;
     errors?: string[];
   } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -1021,8 +1021,9 @@ export default function AISearchPage() {
         message?: string;
         error?: string;
         keywordsCreated?: number;
-        duplicatesSkipped?: number;
-        skippedPhrases?: string[];
+        duplicatesUpdated?: number;
+        questionsAddedToDuplicates?: number;
+        duplicatePhrases?: string[];
         errors?: string[];
       }>('/keywords/upload', formData);
 
@@ -1030,8 +1031,8 @@ export default function AISearchPage() {
         success: true,
         message: result.message || 'Import successful',
         keywordsCreated: result.keywordsCreated,
-        duplicatesSkipped: result.duplicatesSkipped,
-        skippedPhrases: result.skippedPhrases,
+        duplicatesUpdated: result.duplicatesUpdated,
+        questionsAddedToDuplicates: result.questionsAddedToDuplicates,
         errors: result.errors,
       });
       // Refresh the data after successful import
@@ -2376,21 +2377,14 @@ export default function AISearchPage() {
                   </p>
                   {importResult.success && (
                     <div className="mt-2 text-sm text-green-700">
-                      <p>{importResult.keywordsCreated} concepts created</p>
-                      {importResult.duplicatesSkipped ? (
-                        <p>{importResult.duplicatesSkipped} duplicates skipped</p>
+                      {importResult.keywordsCreated ? (
+                        <p>{importResult.keywordsCreated} new concepts created</p>
                       ) : null}
-                      {importResult.skippedPhrases && importResult.skippedPhrases.length > 0 && (
-                        <details className="mt-2">
-                          <summary className="cursor-pointer text-sm text-amber-600 hover:text-amber-700">
-                            View {importResult.duplicatesSkipped} skipped duplicates
-                          </summary>
-                          <ul className="mt-1 text-xs text-gray-600 max-h-32 overflow-y-auto pl-4">
-                            {importResult.skippedPhrases.map((phrase, i) => (
-                              <li key={i} className="list-disc">{phrase}</li>
-                            ))}
-                          </ul>
-                        </details>
+                      {importResult.duplicatesUpdated ? (
+                        <p>{importResult.duplicatesUpdated} existing concepts updated with {importResult.questionsAddedToDuplicates} questions</p>
+                      ) : null}
+                      {!importResult.keywordsCreated && !importResult.duplicatesUpdated && (
+                        <p>No changes made</p>
                       )}
                     </div>
                   )}

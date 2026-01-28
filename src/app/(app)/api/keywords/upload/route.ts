@@ -214,40 +214,38 @@ export async function POST(request: NextRequest) {
     // Check for duplicates - fetch existing keywords for this account
     const { data: existingKeywords } = await serviceSupabase
       .from('keywords')
-      .select('normalized_phrase')
+      .select('id, normalized_phrase')
       .eq('account_id', accountId);
 
-    const existingPhraseSet = new Set(
-      existingKeywords?.map(k => k.normalized_phrase?.toLowerCase()).filter(Boolean) || []
-    );
+    const existingKeywordMap = new Map<string, string>();
+    existingKeywords?.forEach(k => {
+      if (k.normalized_phrase) {
+        existingKeywordMap.set(k.normalized_phrase.toLowerCase(), k.id);
+      }
+    });
 
-    // Filter out duplicates
+    // Separate new keywords from duplicates (duplicates will have questions updated)
     const uniqueKeywords: typeof keywordsToInsert = [];
-    let duplicatesSkipped = 0;
-    const skippedPhrases: string[] = [];
+    const duplicateKeywords: Array<typeof keywordsToInsert[0] & { existingId: string }> = [];
+    let duplicatesFound = 0;
+    const duplicatePhrases: string[] = [];
 
     for (const keyword of keywordsToInsert) {
       const normalizedPhrase = normalizePhrase(keyword.phrase);
-      if (existingPhraseSet.has(normalizedPhrase.toLowerCase())) {
-        duplicatesSkipped++;
-        skippedPhrases.push(keyword.phrase);
-        errors.push(`Row ${keyword.rowNumber}: Duplicate keyword "${keyword.phrase}" skipped`);
+      const existingId = existingKeywordMap.get(normalizedPhrase.toLowerCase());
+      if (existingId) {
+        duplicatesFound++;
+        duplicatePhrases.push(keyword.phrase);
+        // Keep duplicates to update their questions
+        duplicateKeywords.push({ ...keyword, normalizedPhrase, existingId });
       } else {
         uniqueKeywords.push({ ...keyword, normalizedPhrase });
-        existingPhraseSet.add(normalizedPhrase.toLowerCase());
+        existingKeywordMap.set(normalizedPhrase.toLowerCase(), 'pending');
       }
     }
 
-    // If all keywords were duplicates
-    if (uniqueKeywords.length === 0) {
-      return NextResponse.json({
-        message: 'No new keywords to import',
-        keywordsCreated: 0,
-        duplicatesSkipped,
-        skippedPhrases,
-        errors: errors.length > 0 ? errors : undefined,
-      });
-    }
+    // Combine for group creation (need groups for both new and duplicate keywords)
+    const allKeywordsForGrouping = [...uniqueKeywords, ...duplicateKeywords];
 
     // Get existing keyword groups for this account
     const { data: existingGroups } = await serviceSupabase
@@ -273,7 +271,7 @@ export async function POST(request: NextRequest) {
 
     // Collect all needed rank tracking group names and create if needed
     const neededRankGroups = new Set(
-      uniqueKeywords
+      allKeywordsForGrouping
         .map(k => k.rank_tracking_group?.toLowerCase())
         .filter(Boolean)
     );
@@ -281,7 +279,7 @@ export async function POST(request: NextRequest) {
     for (const groupNameLower of neededRankGroups) {
       if (!rankGroupMap.has(groupNameLower)) {
         // Find the original case version of the group name
-        const originalName = uniqueKeywords.find(
+        const originalName = allKeywordsForGrouping.find(
           k => k.rank_tracking_group?.toLowerCase() === groupNameLower
         )?.rank_tracking_group;
 
@@ -312,9 +310,9 @@ export async function POST(request: NextRequest) {
       aiQueryGroupMap.set(g.name.toLowerCase(), g.id);
     });
 
-    // Collect all needed AI question group names
+    // Collect all needed AI question group names (from both new and duplicate keywords)
     const neededAiQueryGroups = new Set<string>();
-    for (const keyword of uniqueKeywords) {
+    for (const keyword of allKeywordsForGrouping) {
       if (keyword.related_questions) {
         for (const q of keyword.related_questions) {
           if (q.group_name) {
@@ -329,7 +327,7 @@ export async function POST(request: NextRequest) {
       if (!aiQueryGroupMap.has(groupNameLower)) {
         // Find the original case version of the group name
         let originalName = groupNameLower;
-        for (const keyword of uniqueKeywords) {
+        for (const keyword of allKeywordsForGrouping) {
           if (keyword.related_questions) {
             for (const q of keyword.related_questions) {
               if (q.group_name?.toLowerCase() === groupNameLower) {
@@ -461,7 +459,7 @@ export async function POST(request: NextRequest) {
       insertedKeywordMap.set(ik.phrase.toLowerCase(), ik);
     }
 
-    // Insert keyword questions into the keyword_questions table
+    // Insert keyword questions into the keyword_questions table (for new keywords)
     let questionsCreated = 0;
     for (const keyword of uniqueKeywords) {
       const insertedKeyword = insertedKeywordMap.get(keyword.phrase.toLowerCase());
@@ -483,6 +481,34 @@ export async function POST(request: NextRequest) {
           console.error('[Keywords Upload] Failed to insert questions:', questionsError);
         } else {
           questionsCreated += questionInserts.length;
+        }
+      }
+    }
+
+    // Also add questions for duplicate keywords (update existing concepts with new questions)
+    let questionsAddedToDuplicates = 0;
+    for (const keyword of duplicateKeywords) {
+      if (keyword.related_questions && keyword.related_questions.length > 0) {
+        for (const q of keyword.related_questions) {
+          // Use upsert to avoid duplicate question errors
+          const { error: questionError } = await serviceSupabase
+            .from('keyword_questions')
+            .upsert({
+              keyword_id: keyword.existingId,
+              question: q.question,
+              funnel_stage: q.funnel_stage,
+              group_id: q.group_name ? aiQueryGroupMap.get(q.group_name.toLowerCase()) : null,
+              added_at: new Date().toISOString(),
+            }, {
+              onConflict: 'keyword_id,question',
+              ignoreDuplicates: false, // Update existing with new group_id
+            });
+
+          if (questionError) {
+            console.error('[Keywords Upload] Failed to upsert question for duplicate:', questionError);
+          } else {
+            questionsAddedToDuplicates++;
+          }
         }
       }
     }
@@ -526,8 +552,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       message: 'Successfully uploaded concepts',
       keywordsCreated: insertedKeywords?.length || 0,
-      duplicatesSkipped,
-      skippedPhrases,
+      duplicatesUpdated: duplicateKeywords.length,
+      questionsAddedToDuplicates,
+      duplicatePhrases: duplicatePhrases.length > 0 ? duplicatePhrases : undefined,
       rankGroupsLinked,
       errors: errors.length > 0 ? errors : undefined,
     });
