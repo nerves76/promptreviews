@@ -1,4 +1,11 @@
--- Add email template for credit refund notifications
+-- Add credit-related notification types to the enum
+ALTER TYPE notification_type ADD VALUE IF NOT EXISTS 'credit_refund';
+ALTER TYPE notification_type ADD VALUE IF NOT EXISTS 'credit_warning_upcoming';
+ALTER TYPE notification_type ADD VALUE IF NOT EXISTS 'credit_check_skipped';
+ALTER TYPE notification_type ADD VALUE IF NOT EXISTS 'credit_balance_low';
+ALTER TYPE notification_type ADD VALUE IF NOT EXISTS 'agency_invitation_received';
+
+-- Also ensure the credit_refund email template exists
 INSERT INTO email_templates (name, subject, html_content, text_content)
 VALUES (
   'credit_refund',
@@ -10,17 +17,15 @@ VALUES (
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Credits Refunded</title>
 </head>
-<body style="font-family: -apple-system, BlinkMacSystemFont, ''Segoe UI'', Roboto, Helvetica, Arial, sans-serif; background-color: #f4f4f5; margin: 0; padding: 20px;">
+<body style="font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif; background-color: #f4f4f5; margin: 0; padding: 20px;">
   <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
     <div style="background: linear-gradient(135deg, #2E4A7D 0%, #4a6fa5 100%); padding: 32px 24px; text-align: center;">
       <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 600;">Credits Refunded</h1>
     </div>
     <div style="padding: 32px 24px;">
-      <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 16px;">
-        Hi {{firstName}},
-      </p>
+      <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 16px;">Hi {{firstName}},</p>
       <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
-        We''ve refunded <strong>{{creditsRefunded}} credits</strong> to your account due to {{failedChecks}} failed {{featureName}} checks.
+        We have refunded <strong>{{creditsRefunded}} credits</strong> to your account due to {{failedChecks}} failed {{featureName}} checks.
       </p>
       <div style="background: #f0f9ff; border-left: 4px solid #2E4A7D; padding: 16px; margin: 0 0 24px; border-radius: 0 8px 8px 0;">
         <p style="color: #1e40af; font-size: 14px; margin: 0;">
@@ -46,7 +51,7 @@ VALUES (
 </html>',
   'Hi {{firstName}},
 
-We''ve refunded {{creditsRefunded}} credits to your account due to {{failedChecks}} failed {{featureName}} checks.
+We have refunded {{creditsRefunded}} credits to your account due to {{failedChecks}} failed {{featureName}} checks.
 
 What happened?
 Some checks failed due to temporary issues with the external service. Your credits have been automatically refunded.
@@ -58,8 +63,4 @@ View your credit balance: {{buyCreditsUrl}}
 ---
 This is an automated notification from Prompt Reviews.
 Manage notification preferences: {{accountUrl}}'
-) ON CONFLICT (name) DO UPDATE SET
-  subject = EXCLUDED.subject,
-  html_content = EXCLUDED.html_content,
-  text_content = EXCLUDED.text_content,
-  updated_at = now();
+) ON CONFLICT (name) DO NOTHING;
