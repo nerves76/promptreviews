@@ -104,14 +104,21 @@ export async function GET(request: NextRequest) {
       });
     });
 
-    // Fetch keyword questions from the keyword_questions table
+    // Fetch keyword questions from the keyword_questions table with group names
     const { data: keywordQuestions } = await serviceSupabase
       .from('keyword_questions')
-      .select('keyword_id, question, funnel_stage')
+      .select(`
+        keyword_id,
+        question,
+        funnel_stage,
+        ai_search_query_groups (
+          name
+        )
+      `)
       .in('keyword_id', keywords?.map((k: any) => k.id) || []);
 
     // Build a map of keyword_id -> questions array
-    const questionsMap = new Map<string, Array<{ question: string; funnelStage: string }>>();
+    const questionsMap = new Map<string, Array<{ question: string; funnelStage: string; groupName: string | null }>>();
     keywordQuestions?.forEach((q: any) => {
       if (!questionsMap.has(q.keyword_id)) {
         questionsMap.set(q.keyword_id, []);
@@ -119,6 +126,7 @@ export async function GET(request: NextRequest) {
       questionsMap.get(q.keyword_id)!.push({
         question: q.question,
         funnelStage: q.funnel_stage,
+        groupName: q.ai_search_query_groups?.name || null,
       });
     });
 
@@ -131,6 +139,7 @@ export async function GET(request: NextRequest) {
       'search_terms',
       'ai_questions',
       'funnel_stages',
+      'ai_question_groups',
       'rank_tracking_group',
       'status',
       'review_usage_count',
@@ -174,15 +183,17 @@ export async function GET(request: NextRequest) {
         ? keyword.search_terms.map((st: any) => st.term).join('|')
         : '';
 
-      // Format questions and funnel stages as separate columns (pipe-separated)
+      // Format questions, funnel stages, and groups as separate columns (pipe-separated)
       // Prefer keyword_questions table data over related_questions JSONB
       const questions = questionsMap.get(keywordId) || [];
       let aiQuestionsStr = '';
       let funnelStagesStr = '';
+      let aiQuestionGroupsStr = '';
 
       if (questions.length > 0) {
         aiQuestionsStr = questions.map((q) => q.question).join('|');
         funnelStagesStr = questions.map((q) => q.funnelStage || 'middle').join('|');
+        aiQuestionGroupsStr = questions.map((q) => q.groupName || '').join('|');
       } else if (keyword.related_questions && Array.isArray(keyword.related_questions)) {
         aiQuestionsStr = keyword.related_questions.map((q: any) =>
           typeof q === 'string' ? q : q.question
@@ -190,6 +201,7 @@ export async function GET(request: NextRequest) {
         funnelStagesStr = keyword.related_questions.map((q: any) =>
           typeof q === 'string' ? 'middle' : (q.funnelStage || q.funnel_stage || 'middle')
         ).join('|');
+        aiQuestionGroupsStr = ''; // No group info in legacy JSONB format
       }
 
       // Format LLM visibility data
@@ -207,6 +219,7 @@ export async function GET(request: NextRequest) {
         escapeCSV(searchTermsStr),
         escapeCSV(aiQuestionsStr),
         escapeCSV(funnelStagesStr),
+        escapeCSV(aiQuestionGroupsStr),
         escapeCSV(rankGroupName || ''),
         escapeCSV(keyword.status),
         escapeCSV(keyword.review_usage_count),

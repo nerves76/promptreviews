@@ -77,7 +77,8 @@ export async function POST(request: NextRequest) {
       location_scope: ['locationscope', 'scope'],
       ai_questions: ['aiquestions', 'relatedquestions', 'questions'],
       funnel_stages: ['funnelstages', 'stages'],
-      keyword_group: ['conceptgroup', 'keywordgroup', 'group', 'llmgroup'],
+      ai_question_groups: ['aiquestiongroups', 'questiongroups', 'llmgroups'],
+      keyword_group: ['conceptgroup', 'keywordgroup', 'group'],
       rank_tracking_group: ['ranktrackinggroup', 'rankgroup'],
     };
 
@@ -155,15 +156,17 @@ export async function POST(request: NextRequest) {
           })).filter((st: any) => st.term.length > 0)
         : [];
 
-      // Parse ai_questions and funnel_stages as separate columns (pipe-separated)
-      // New format: ai_questions = "Q1|Q2|Q3", funnel_stages = "top|middle|bottom"
-      // Also supports old combined format for backwards compatibility
-      const relatedQuestionsWithStage: Array<{ question: string; funnel_stage: string }> = [];
+      // Parse ai_questions, funnel_stages, and ai_question_groups as separate columns (pipe-separated)
+      // Format: ai_questions = "Q1|Q2|Q3", funnel_stages = "top|middle|bottom", ai_question_groups = "Group1||Group2"
+      const relatedQuestionsWithStage: Array<{ question: string; funnel_stage: string; group_name: string | null }> = [];
 
       if (record.ai_questions) {
         const questions = record.ai_questions.split('|').map((q: string) => q.trim()).filter(Boolean);
         const stages = record.funnel_stages
           ? record.funnel_stages.split('|').map((s: string) => s.trim())
+          : [];
+        const questionGroups = record.ai_question_groups
+          ? record.ai_question_groups.split('|').map((g: string) => g.trim())
           : [];
 
         for (let i = 0; i < questions.length; i++) {
@@ -173,7 +176,8 @@ export async function POST(request: NextRequest) {
           if (!['top', 'middle', 'bottom'].includes(funnelStage)) {
             funnelStage = 'middle';
           }
-          relatedQuestionsWithStage.push({ question, funnel_stage: funnelStage });
+          const groupName = questionGroups[i] || null;
+          relatedQuestionsWithStage.push({ question, funnel_stage: funnelStage, group_name: groupName });
         }
       }
 
@@ -266,6 +270,61 @@ export async function POST(request: NextRequest) {
     existingRankGroups?.forEach(g => {
       rankGroupMap.set(g.name.toLowerCase(), g.id);
     });
+
+    // Get existing AI search query groups for this account (for LLM visibility)
+    const { data: existingAiQueryGroups } = await serviceSupabase
+      .from('ai_search_query_groups')
+      .select('id, name')
+      .eq('account_id', accountId);
+
+    const aiQueryGroupMap = new Map<string, string>();
+    existingAiQueryGroups?.forEach(g => {
+      aiQueryGroupMap.set(g.name.toLowerCase(), g.id);
+    });
+
+    // Collect all needed AI question group names
+    const neededAiQueryGroups = new Set<string>();
+    for (const keyword of uniqueKeywords) {
+      if (keyword.related_questions) {
+        for (const q of keyword.related_questions) {
+          if (q.group_name) {
+            neededAiQueryGroups.add(q.group_name.toLowerCase());
+          }
+        }
+      }
+    }
+
+    // Create any new AI question groups needed
+    for (const groupNameLower of neededAiQueryGroups) {
+      if (!aiQueryGroupMap.has(groupNameLower)) {
+        // Find the original case version of the group name
+        let originalName = groupNameLower;
+        for (const keyword of uniqueKeywords) {
+          if (keyword.related_questions) {
+            for (const q of keyword.related_questions) {
+              if (q.group_name?.toLowerCase() === groupNameLower) {
+                originalName = q.group_name;
+                break;
+              }
+            }
+          }
+        }
+
+        const { data: newGroup, error: groupError } = await serviceSupabase
+          .from('ai_search_query_groups')
+          .insert({
+            account_id: accountId,
+            name: originalName,
+            display_order: aiQueryGroupMap.size,
+          })
+          .select('id')
+          .single();
+
+        if (!groupError && newGroup) {
+          aiQueryGroupMap.set(groupNameLower, newGroup.id);
+        }
+      }
+    }
 
     // Ensure "General" group exists
     if (!groupMap.has(DEFAULT_GROUP_NAME.toLowerCase())) {
@@ -383,6 +442,7 @@ export async function POST(request: NextRequest) {
           keyword_id: insertedKeyword.id,
           question: q.question,
           funnel_stage: q.funnel_stage,
+          group_id: q.group_name ? aiQueryGroupMap.get(q.group_name.toLowerCase()) : null,
           added_at: new Date().toISOString(),
         }));
 
@@ -505,6 +565,7 @@ export async function GET(request: NextRequest) {
     'search_terms',
     'ai_questions',
     'funnel_stages',
+    'ai_question_groups',
     'rank_tracking_group',
   ];
 
@@ -518,6 +579,7 @@ export async function GET(request: NextRequest) {
       'plumber portland oregon|best plumber portland',
       'What does a plumber do?|Who is the best plumber in Portland?',
       'top|bottom',
+      'General|Local Questions',
       rankGroups[0] || '',
     ],
     [
@@ -528,6 +590,7 @@ export async function GET(request: NextRequest) {
       'emergency plumber near me|24/7 plumber',
       'How do I handle a plumbing emergency?',
       'middle',
+      'General',
       '',
     ],
     [
@@ -536,6 +599,7 @@ export async function GET(request: NextRequest) {
       'professional drain cleaning',
       'clogged drain|drain unclogging',
       'drain cleaning service portland',
+      '',
       '',
       '',
       '',
