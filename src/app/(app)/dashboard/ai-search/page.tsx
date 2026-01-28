@@ -255,7 +255,7 @@ export default function AISearchPage() {
   } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Delete state
+  // Delete state (single concept)
   const [conceptToDelete, setConceptToDelete] = useState<{ id: string; name: string } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteCounts, setDeleteCounts] = useState<{
@@ -272,6 +272,10 @@ export default function AISearchPage() {
     reviewMatches: number;
   } | null>(null);
   const [isLoadingCounts, setIsLoadingCounts] = useState(false);
+
+  // Bulk delete state
+  const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 
   // Fetch keywords with related questions and all results
   const fetchData = useCallback(async () => {
@@ -1142,6 +1146,61 @@ export default function AISearchPage() {
       setIsDeleting(false);
     }
   }, [conceptToDelete, deleteKeyword, fetchData]);
+
+  // Handle bulk delete of selected questions only
+  const handleBulkDeleteQuestions = useCallback(async () => {
+    if (selectedQuestionIds.size === 0) return;
+    setIsBulkDeleting(true);
+    try {
+      const questionIds = Array.from(selectedQuestionIds);
+      await apiClient.post('/keyword-questions/bulk-delete', { questionIds });
+      setSelectedQuestionIds(new Set());
+      setShowBulkDeleteModal(false);
+      showSuccess(`Deleted ${questionIds.length} question${questionIds.length === 1 ? '' : 's'}`);
+      await fetchData();
+    } catch (err) {
+      console.error('[AISearch] Error bulk deleting questions:', err);
+      showError('Failed to delete questions. Please try again.');
+    } finally {
+      setIsBulkDeleting(false);
+    }
+  }, [selectedQuestionIds, fetchData, showSuccess, showError]);
+
+  // Handle bulk delete of concepts containing selected questions
+  const handleBulkDeleteConcepts = useCallback(async () => {
+    if (selectedQuestionIds.size === 0) return;
+    setIsBulkDeleting(true);
+    try {
+      // Get unique concept IDs from selected questions
+      const conceptIds = new Set<string>();
+      filteredAndSortedRows.forEach(row => {
+        if (selectedQuestionIds.has(row.id)) {
+          conceptIds.add(row.conceptId);
+        }
+      });
+
+      // Delete each concept
+      let deletedCount = 0;
+      for (const conceptId of conceptIds) {
+        try {
+          await deleteKeyword(conceptId);
+          deletedCount++;
+        } catch (err) {
+          console.error(`[AISearch] Error deleting concept ${conceptId}:`, err);
+        }
+      }
+
+      setSelectedQuestionIds(new Set());
+      setShowBulkDeleteModal(false);
+      showSuccess(`Deleted ${deletedCount} concept${deletedCount === 1 ? '' : 's'}`);
+      await fetchData();
+    } catch (err) {
+      console.error('[AISearch] Error bulk deleting concepts:', err);
+      showError('Failed to delete concepts. Please try again.');
+    } finally {
+      setIsBulkDeleting(false);
+    }
+  }, [selectedQuestionIds, filteredAndSortedRows, deleteKeyword, fetchData, showSuccess, showError]);
 
   // Handle keyword update from sidebar
   const handleKeywordUpdate = useCallback(async (id: string, updates: Partial<KeywordData>): Promise<KeywordData | null> => {
@@ -2328,7 +2387,105 @@ export default function AISearchPage() {
         onMoveToGroup={handleBulkMoveToGroup}
         allowUngrouped={true}
         ungroupedCount={actualUngroupedCount}
+        onDelete={() => setShowBulkDeleteModal(true)}
       />
+
+      {/* Bulk Delete Modal */}
+      <Modal
+        isOpen={showBulkDeleteModal}
+        onClose={() => setShowBulkDeleteModal(false)}
+        title="Delete selected items"
+        size="md"
+      >
+        {(() => {
+          // Calculate unique concepts for selected questions
+          const selectedConceptIds = new Set<string>();
+          const selectedConceptNames: string[] = [];
+          filteredAndSortedRows.forEach(row => {
+            if (selectedQuestionIds.has(row.id) && !selectedConceptIds.has(row.conceptId)) {
+              selectedConceptIds.add(row.conceptId);
+              selectedConceptNames.push(row.conceptName);
+            }
+          });
+          const conceptCount = selectedConceptIds.size;
+          const questionCount = selectedQuestionIds.size;
+
+          return (
+            <div className="space-y-4">
+              <p className="text-sm text-gray-600">
+                You have <strong>{questionCount}</strong> {questionCount === 1 ? 'question' : 'questions'} selected
+                from <strong>{conceptCount}</strong> {conceptCount === 1 ? 'concept' : 'concepts'}.
+              </p>
+
+              <p className="text-sm text-gray-600">What would you like to delete?</p>
+
+              {/* Option 1: Delete questions only */}
+              <div className="border border-gray-200 rounded-lg p-4 hover:border-gray-300 transition-colors">
+                <div className="flex items-start gap-3">
+                  <div className="flex-1">
+                    <h4 className="font-medium text-gray-900">Delete questions only</h4>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Remove the {questionCount} selected {questionCount === 1 ? 'question' : 'questions'} from their concepts.
+                      The concepts and all other data will remain.
+                    </p>
+                  </div>
+                  <Button
+                    variant="destructive"
+                    onClick={handleBulkDeleteQuestions}
+                    disabled={isBulkDeleting}
+                    className="whitespace-nowrap"
+                  >
+                    {isBulkDeleting ? (
+                      <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <>Delete {questionCount} {questionCount === 1 ? 'question' : 'questions'}</>
+                    )}
+                  </Button>
+                </div>
+              </div>
+
+              {/* Option 2: Delete entire concepts */}
+              <div className="border border-red-200 bg-red-50 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <div className="flex-1">
+                    <h4 className="font-medium text-red-800">Delete entire concepts</h4>
+                    <p className="text-sm text-red-700 mt-1">
+                      Permanently delete {conceptCount} {conceptCount === 1 ? 'concept' : 'concepts'} and ALL associated data
+                      including questions, rank checks, LLM checks, geo-grid data, and schedules.
+                    </p>
+                    {conceptCount <= 5 && (
+                      <p className="text-xs text-red-600 mt-2">
+                        Concepts: {selectedConceptNames.join(', ')}
+                      </p>
+                    )}
+                  </div>
+                  <Button
+                    variant="destructive"
+                    onClick={handleBulkDeleteConcepts}
+                    disabled={isBulkDeleting}
+                    className="whitespace-nowrap bg-red-700 hover:bg-red-800"
+                  >
+                    {isBulkDeleting ? (
+                      <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <>Delete {conceptCount} {conceptCount === 1 ? 'concept' : 'concepts'}</>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+        <Modal.Footer>
+          <Button
+            variant="secondary"
+            onClick={() => setShowBulkDeleteModal(false)}
+            disabled={isBulkDeleting}
+          >
+            Cancel
+          </Button>
+        </Modal.Footer>
+      </Modal>
 
       {/* Manage Groups Modal */}
       <ManageGroupsModal
