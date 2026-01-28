@@ -1158,13 +1158,14 @@ export default function AISearchPage() {
       setShowBulkDeleteModal(false);
       showSuccess(`Deleted ${questionIds.length} question${questionIds.length === 1 ? '' : 's'}`);
       await fetchData();
+      await refreshGroups(); // Refresh group counts
     } catch (err) {
       console.error('[AISearch] Error bulk deleting questions:', err);
       showError('Failed to delete questions. Please try again.');
     } finally {
       setBulkDeleteAction(null);
     }
-  }, [selectedQuestionIds, fetchData, showSuccess, showError]);
+  }, [selectedQuestionIds, fetchData, refreshGroups, showSuccess, showError]);
 
   // Handle bulk delete of concepts containing selected questions
   const handleBulkDeleteConcepts = useCallback(async () => {
@@ -1194,13 +1195,14 @@ export default function AISearchPage() {
       setShowBulkDeleteModal(false);
       showSuccess(`Deleted ${deletedCount} concept${deletedCount === 1 ? '' : 's'}`);
       await fetchData();
+      await refreshGroups(); // Refresh group counts
     } catch (err) {
       console.error('[AISearch] Error bulk deleting concepts:', err);
       showError('Failed to delete concepts. Please try again.');
     } finally {
       setBulkDeleteAction(null);
     }
-  }, [selectedQuestionIds, filteredAndSortedRows, deleteKeyword, fetchData, showSuccess, showError]);
+  }, [selectedQuestionIds, filteredAndSortedRows, deleteKeyword, fetchData, refreshGroups, showSuccess, showError]);
 
   // Handle keyword update from sidebar
   const handleKeywordUpdate = useCallback(async (id: string, updates: Partial<KeywordData>): Promise<KeywordData | null> => {
