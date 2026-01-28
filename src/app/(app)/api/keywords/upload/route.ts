@@ -271,6 +271,36 @@ export async function POST(request: NextRequest) {
       rankGroupMap.set(g.name.toLowerCase(), g.id);
     });
 
+    // Collect all needed rank tracking group names and create if needed
+    const neededRankGroups = new Set(
+      uniqueKeywords
+        .map(k => k.rank_tracking_group?.toLowerCase())
+        .filter(Boolean)
+    );
+
+    for (const groupNameLower of neededRankGroups) {
+      if (!rankGroupMap.has(groupNameLower)) {
+        // Find the original case version of the group name
+        const originalName = uniqueKeywords.find(
+          k => k.rank_tracking_group?.toLowerCase() === groupNameLower
+        )?.rank_tracking_group;
+
+        const { data: newGroup, error: groupError } = await serviceSupabase
+          .from('rank_keyword_groups')
+          .insert({
+            account_id: accountId,
+            name: originalName,
+            display_order: rankGroupMap.size,
+          })
+          .select('id')
+          .single();
+
+        if (!groupError && newGroup) {
+          rankGroupMap.set(groupNameLower, newGroup.id);
+        }
+      }
+    }
+
     // Get existing AI search query groups for this account (for LLM visibility)
     const { data: existingAiQueryGroups } = await serviceSupabase
       .from('ai_search_query_groups')
@@ -488,8 +518,6 @@ export async function POST(request: NextRequest) {
               rankGroupsLinked++;
             }
           }
-        } else {
-          errors.push(`Row ${keyword.rowNumber}: Rank tracking group "${keyword.rank_tracking_group}" not found`);
         }
       }
     }
