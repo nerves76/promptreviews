@@ -515,6 +515,13 @@ export default function AISearchPage() {
     return Array.from(new Set(keywords.map(k => k.phrase))).sort();
   }, [keywords]);
 
+  // Calculate actual ungrouped count from the displayed data
+  // This fixes the mismatch between API count (from keyword_questions table only)
+  // and UI display (which may include questions from JSONB field)
+  const actualUngroupedCount = useMemo(() => {
+    return questionRows.filter(r => !r.groupId).length;
+  }, [questionRows]);
+
   // Apply filters and sorting
   const filteredAndSortedRows = useMemo(() => {
     let rows = [...questionRows];
@@ -1521,7 +1528,7 @@ export default function AISearchPage() {
                   className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-300"
                 >
                   <option value="">All groups</option>
-                  <option value="ungrouped">Ungrouped ({queryUngroupedCount})</option>
+                  <option value="ungrouped">Ungrouped ({actualUngroupedCount})</option>
                   {queryGroups.map(group => (
                     <option key={group.id} value={group.id}>{group.name} ({group.queryCount})</option>
                   ))}
@@ -2242,7 +2249,7 @@ export default function AISearchPage() {
         onDeselectAll={deselectAllQuestions}
         onMoveToGroup={handleBulkMoveToGroup}
         allowUngrouped={true}
-        ungroupedCount={queryUngroupedCount}
+        ungroupedCount={actualUngroupedCount}
       />
 
       {/* Manage Groups Modal */}

@@ -360,6 +360,7 @@ export function transformRelatedQuestions(
       question: q,
       funnelStage: 'middle' as FunnelStage,
       addedAt: new Date().toISOString(),
+      groupId: null, // Explicitly set for consistency with normalized table
     }));
   }
 
@@ -368,6 +369,7 @@ export function transformRelatedQuestions(
     question: q.question,
     funnelStage: q.funnelStage || 'middle',
     addedAt: q.addedAt || new Date().toISOString(),
+    groupId: (q as any).groupId || null, // Include groupId if present, else null
   }));
 }
 
