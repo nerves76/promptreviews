@@ -275,7 +275,7 @@ export default function AISearchPage() {
 
   // Bulk delete state
   const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
-  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+  const [bulkDeleteAction, setBulkDeleteAction] = useState<'questions' | 'concepts' | null>(null);
 
   // Fetch keywords with related questions and all results
   const fetchData = useCallback(async () => {
@@ -1150,7 +1150,7 @@ export default function AISearchPage() {
   // Handle bulk delete of selected questions only
   const handleBulkDeleteQuestions = useCallback(async () => {
     if (selectedQuestionIds.size === 0) return;
-    setIsBulkDeleting(true);
+    setBulkDeleteAction('questions');
     try {
       const questionIds = Array.from(selectedQuestionIds);
       await apiClient.post('/keyword-questions/bulk-delete', { questionIds });
@@ -1162,14 +1162,14 @@ export default function AISearchPage() {
       console.error('[AISearch] Error bulk deleting questions:', err);
       showError('Failed to delete questions. Please try again.');
     } finally {
-      setIsBulkDeleting(false);
+      setBulkDeleteAction(null);
     }
   }, [selectedQuestionIds, fetchData, showSuccess, showError]);
 
   // Handle bulk delete of concepts containing selected questions
   const handleBulkDeleteConcepts = useCallback(async () => {
     if (selectedQuestionIds.size === 0) return;
-    setIsBulkDeleting(true);
+    setBulkDeleteAction('concepts');
     try {
       // Get unique concept IDs from selected questions
       const conceptIds = new Set<string>();
@@ -1198,7 +1198,7 @@ export default function AISearchPage() {
       console.error('[AISearch] Error bulk deleting concepts:', err);
       showError('Failed to delete concepts. Please try again.');
     } finally {
-      setIsBulkDeleting(false);
+      setBulkDeleteAction(null);
     }
   }, [selectedQuestionIds, filteredAndSortedRows, deleteKeyword, fetchData, showSuccess, showError]);
 
@@ -2432,10 +2432,10 @@ export default function AISearchPage() {
                   <Button
                     variant="destructive"
                     onClick={handleBulkDeleteQuestions}
-                    disabled={isBulkDeleting}
+                    disabled={bulkDeleteAction !== null}
                     className="whitespace-nowrap"
                   >
-                    {isBulkDeleting ? (
+                    {bulkDeleteAction === 'questions' ? (
                       <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
                     ) : (
                       <>Delete {questionCount} {questionCount === 1 ? 'question' : 'questions'}</>
@@ -2462,10 +2462,10 @@ export default function AISearchPage() {
                   <Button
                     variant="destructive"
                     onClick={handleBulkDeleteConcepts}
-                    disabled={isBulkDeleting}
+                    disabled={bulkDeleteAction !== null}
                     className="whitespace-nowrap bg-red-700 hover:bg-red-800"
                   >
-                    {isBulkDeleting ? (
+                    {bulkDeleteAction === 'concepts' ? (
                       <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
                     ) : (
                       <>Delete {conceptCount} {conceptCount === 1 ? 'concept' : 'concepts'}</>
@@ -2480,7 +2480,7 @@ export default function AISearchPage() {
           <Button
             variant="secondary"
             onClick={() => setShowBulkDeleteModal(false)}
-            disabled={isBulkDeleting}
+            disabled={bulkDeleteAction !== null}
           >
             Cancel
           </Button>
