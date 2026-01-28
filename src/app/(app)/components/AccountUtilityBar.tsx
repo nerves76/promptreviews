@@ -68,6 +68,11 @@ export function AccountUtilityBar() {
   // Check if selected account is an agency
   const isAgencyAccount = selectedAccount?.is_agncy === true;
 
+  // Check if selected account is a client account and user has an agency account
+  const isClientAccount = selectedAccount?.is_client_account === true;
+  const userAgencyAccount = availableAccounts.find(acc => acc.is_agncy === true);
+  const showBackToAgency = isClientAccount && userAgencyAccount && userAgencyAccount.account_id !== selectedAccount?.account_id;
+
   // Don't render if loading, error, or no selected account
   if (loading || error || !selectedAccount) {
     return null;
@@ -128,6 +133,17 @@ export function AccountUtilityBar() {
                 <Icon name="FaBriefcase" className="w-3 h-3" size={12} />
                 <span>Agency dashboard</span>
               </Link>
+            )}
+            {showBackToAgency && userAgencyAccount && (
+              <button
+                onClick={() => {
+                  switchAccount(userAgencyAccount.account_id);
+                }}
+                className="flex items-center gap-1.5 text-amber-300 hover:text-amber-200 transition-colors font-medium"
+              >
+                <Icon name="FaArrowLeft" className="w-3 h-3" size={12} />
+                <span>Back to Agency</span>
+              </button>
             )}
             {hasMultipleAccounts && (
               <span className="text-white/70">
