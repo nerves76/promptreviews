@@ -13,6 +13,8 @@ import { SubNav } from '@/app/(app)/components/SubNav';
 import Icon from '@/components/Icon';
 import { CheckRankModal, CheckVolumeModal, ConceptsTable, AddKeywordConceptModal, RunAllRankModal } from '@/features/rank-tracking/components';
 import { useKeywords, useKeywordDetails } from '@/features/keywords/hooks/useKeywords';
+import { Modal } from '@/app/(app)/components/ui/modal';
+import { Button } from '@/app/(app)/components/ui/button';
 import { KeywordDetailsSidebar } from '@/features/keywords/components/KeywordDetailsSidebar';
 import { useAccountData, useBusinessData } from '@/auth/hooks/granularAuthHooks';
 import { apiClient } from '@/utils/apiClient';
@@ -226,8 +228,13 @@ export default function RankTrackingPage() {
     keywords: concepts,
     isLoading: conceptsLoading,
     createKeyword,
+    deleteKeyword,
     refresh: refreshKeywords,
   } = useKeywords({ autoFetch: true });
+
+  // Delete concept state
+  const [conceptToDelete, setConceptToDelete] = useState<{ id: string; name: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Modal state for adding new keyword concept
   const [showAddModal, setShowAddModal] = useState(false);
@@ -263,6 +270,23 @@ export default function RankTrackingPage() {
   const handleConceptClick = useCallback((concept: KeywordData) => {
     setSelectedKeywordId(concept.id);
   }, []);
+
+  // Handle delete concept
+  const handleDeleteConcept = useCallback(async () => {
+    if (!conceptToDelete) return;
+    setIsDeleting(true);
+    try {
+      await deleteKeyword(conceptToDelete.id);
+      setConceptToDelete(null);
+      showSuccess(`Deleted "${conceptToDelete.name}"`);
+      // Data will refresh automatically from useKeywords
+    } catch (err) {
+      console.error('[RankTracking] Error deleting concept:', err);
+      showError('Failed to delete concept. Please try again.');
+    } finally {
+      setIsDeleting(false);
+    }
+  }, [conceptToDelete, deleteKeyword, showSuccess, showError]);
 
   // Handle updating a keyword from the sidebar
   const handleUpdateKeyword = useCallback(async (id: string, updates: Partial<KeywordData>): Promise<KeywordData | null> => {
@@ -992,6 +1016,7 @@ export default function RankTrackingPage() {
           onConceptClick={handleConceptClick}
           onCheckRank={handleCheckRank}
           onCheckVolume={handleCheckVolume}
+          onDelete={(concept) => setConceptToDelete({ id: concept.id, name: concept.phrase || concept.name || 'Untitled' })}
           isLoading={conceptsLoading}
           checkingRankKeyword={checkingRankKeyword}
           checkingVolumeKeyword={checkingVolumeKeyword}
@@ -1091,6 +1116,43 @@ export default function RankTrackingPage() {
         onDeleteGroup={handleDeleteGroup}
         onReorderGroups={handleReorderGroups}
       />
+
+      {/* Delete Concept Confirmation Modal */}
+      <Modal
+        isOpen={!!conceptToDelete}
+        onClose={() => setConceptToDelete(null)}
+        title="Delete concept"
+        size="sm"
+      >
+        <p className="text-sm text-gray-600">
+          Are you sure you want to delete <strong>&quot;{conceptToDelete?.name}&quot;</strong>?
+        </p>
+        <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+          <p className="text-sm text-amber-800 font-medium">Warning: This will permanently delete:</p>
+          <ul className="mt-2 text-sm text-amber-700 list-disc list-inside space-y-1">
+            <li>The concept and all its search terms</li>
+            <li>All rank tracking data and history</li>
+            <li>All AI visibility questions and check history</li>
+            <li>All geo-grid tracking data</li>
+          </ul>
+        </div>
+        <Modal.Footer>
+          <Button
+            variant="secondary"
+            onClick={() => setConceptToDelete(null)}
+            disabled={isDeleting}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={handleDeleteConcept}
+            disabled={isDeleting}
+          >
+            {isDeleting ? 'Deleting...' : 'Delete concept'}
+          </Button>
+        </Modal.Footer>
+      </Modal>
 
       {/* Toast notifications */}
       <ToastContainer toasts={toasts} onClose={closeToast} />

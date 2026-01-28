@@ -113,6 +113,7 @@ interface ConceptsTableProps {
   onConceptClick?: (concept: KeywordData) => void;
   onCheckRank?: (keyword: string, conceptId: string) => void;
   onCheckVolume?: (keyword: string, conceptId: string) => void;
+  onDelete?: (concept: KeywordData) => void;
   isLoading?: boolean;
   /** Keyword currently being checked for rank (shows spinner on that row's Rank button) */
   checkingRankKeyword?: string | null;
@@ -288,6 +289,7 @@ export default function ConceptsTable({
   onConceptClick,
   onCheckRank,
   onCheckVolume,
+  onDelete,
   isLoading = false,
   checkingRankKeyword,
   checkingVolumeKeyword,
@@ -952,6 +954,19 @@ export default function ConceptsTable({
                     <Icon name="FaMapMarker" className="w-3 h-3" />
                     Grid
                   </button>
+                  {onDelete && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDelete(row.concept);
+                      }}
+                      className="inline-flex items-center justify-center w-7 h-7 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                      title="Delete concept"
+                      aria-label={`Delete ${row.conceptName}`}
+                    >
+                      <Icon name="FaTrash" className="w-3 h-3" />
+                    </button>
+                  )}
                 </div>
               </td>
             </tr>

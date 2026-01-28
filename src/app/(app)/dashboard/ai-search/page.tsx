@@ -28,6 +28,7 @@ import { type KeywordData, transformKeywordToResponse } from '@/features/keyword
 import { useBusinessData } from '@/auth/hooks/granularAuthHooks';
 import { Pagination } from '@/components/Pagination';
 import { Modal } from '@/app/(app)/components/ui/modal';
+import { Button } from '@/app/(app)/components/ui/button';
 import { useAISearchQueryGroups, type AISearchQueryGroupData } from '@/features/ai-search/hooks/useAISearchQueryGroups';
 import { BulkMoveBar } from '@/components/BulkMoveBar';
 import { ManageGroupsModal } from '@/components/ManageGroupsModal';
@@ -176,7 +177,7 @@ export default function AISearchPage() {
   };
 
   // Use keywords hook to create new concepts
-  const { createKeyword, refresh: refreshKeywords } = useKeywords({ autoFetch: false });
+  const { createKeyword, deleteKeyword, refresh: refreshKeywords } = useKeywords({ autoFetch: false });
 
   // Group management
   const {
@@ -253,6 +254,10 @@ export default function AISearchPage() {
     errors?: string[];
   } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Delete state
+  const [conceptToDelete, setConceptToDelete] = useState<{ id: string; name: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Fetch keywords with related questions and all results
   const fetchData = useCallback(async () => {
@@ -1078,6 +1083,22 @@ export default function AISearchPage() {
     }
   }, []);
 
+  // Handle concept deletion
+  const handleDeleteConcept = useCallback(async () => {
+    if (!conceptToDelete) return;
+    setIsDeleting(true);
+    try {
+      await deleteKeyword(conceptToDelete.id);
+      setConceptToDelete(null);
+      // Refresh data
+      await fetchData();
+    } catch (err) {
+      console.error('[AISearch] Error deleting concept:', err);
+    } finally {
+      setIsDeleting(false);
+    }
+  }, [conceptToDelete, deleteKeyword, fetchData]);
+
   // Handle keyword update from sidebar
   const handleKeywordUpdate = useCallback(async (id: string, updates: Partial<KeywordData>): Promise<KeywordData | null> => {
     try {
@@ -1763,8 +1784,20 @@ export default function AISearchPage() {
                                 }}
                                 className="p-1 text-gray-500 hover:text-slate-blue hover:bg-blue-50 rounded transition-colors"
                                 title={`Edit ${row.conceptName}`}
+                                aria-label={`Edit ${row.conceptName}`}
                               >
                                 <Icon name="FaEdit" className="w-3 h-3" />
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setConceptToDelete({ id: row.conceptId, name: row.conceptName });
+                                }}
+                                className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                                title={`Delete ${row.conceptName}`}
+                                aria-label={`Delete ${row.conceptName}`}
+                              >
+                                <Icon name="FaTrash" className="w-3 h-3" />
                               </button>
                             </div>
                           </td>
@@ -2287,6 +2320,52 @@ export default function AISearchPage() {
         onDeleteGroup={deleteQueryGroup}
         onReorderGroups={reorderQueryGroups}
       />
+
+      {/* Delete Concept Modal */}
+      <Modal
+        isOpen={!!conceptToDelete}
+        onClose={() => setConceptToDelete(null)}
+        title="Delete concept"
+        size="sm"
+      >
+        <p className="text-sm text-gray-600">
+          Are you sure you want to delete <strong>&quot;{conceptToDelete?.name}&quot;</strong>?
+        </p>
+        <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+          <p className="text-sm text-amber-800 font-medium">Warning: This will permanently delete:</p>
+          <ul className="mt-2 text-sm text-amber-700 list-disc list-inside space-y-1">
+            <li>The concept and all its search terms</li>
+            <li>All AI visibility questions and check history</li>
+            <li>All rank tracking data and history</li>
+          </ul>
+        </div>
+        <p className="text-sm text-gray-500 mt-3">
+          This action cannot be undone.
+        </p>
+        <Modal.Footer>
+          <Button
+            variant="secondary"
+            onClick={() => setConceptToDelete(null)}
+            disabled={isDeleting}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={handleDeleteConcept}
+            disabled={isDeleting}
+          >
+            {isDeleting ? (
+              <>
+                <Icon name="FaSpinner" className="w-4 h-4 animate-spin mr-2" />
+                Deleting...
+              </>
+            ) : (
+              'Delete concept'
+            )}
+          </Button>
+        </Modal.Footer>
+      </Modal>
 
       {/* Import Modal */}
       {showImportModal && (
