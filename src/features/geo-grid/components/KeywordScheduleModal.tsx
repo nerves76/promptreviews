@@ -153,6 +153,26 @@ export function KeywordScheduleModal({
           </div>
         )}
 
+        {/* Warning if keyword already has a schedule */}
+        {keyword && (() => {
+          const mode = keyword.scheduleMode || 'inherit';
+          const hasExistingSchedule =
+            (mode === 'inherit' && config?.scheduleFrequency) ||
+            (mode === 'custom' && keyword.scheduleFrequency);
+
+          if (hasExistingSchedule) {
+            return (
+              <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                <p className="text-sm font-medium text-amber-800">This keyword already has a schedule</p>
+                <p className="text-xs text-amber-700 mt-0.5">
+                  Saving changes will replace the current one.
+                </p>
+              </div>
+            );
+          }
+          return null;
+        })()}
+
         {/* Schedule mode selector */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-3">Schedule mode</label>

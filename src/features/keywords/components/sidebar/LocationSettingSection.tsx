@@ -95,7 +95,7 @@ export function LocationSettingSection({
   }, [isEditing]);
 
   return (
-    <div className="bg-white/60 backdrop-blur-sm border border-gray-200 rounded-xl overflow-hidden">
+    <div className={`bg-white/60 backdrop-blur-sm border border-gray-200 rounded-xl ${isDropdownOpen ? '' : 'overflow-hidden'}`}>
       {/* Section header - clickable to collapse */}
       <div
         className="flex items-center justify-between p-5 cursor-pointer select-none"

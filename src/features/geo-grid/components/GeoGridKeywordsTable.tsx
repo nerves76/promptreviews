@@ -23,6 +23,8 @@ import { useKeywords } from '@/features/keywords/hooks/useKeywords';
 import { KeywordDetailsSidebar } from '@/features/keywords/components';
 import { type KeywordData, type SearchTerm } from '@/features/keywords/keywordUtils';
 import { apiClient } from '@/utils/apiClient';
+import { Modal } from '@/app/(app)/components/ui/modal';
+import { Button } from '@/app/(app)/components/ui/button';
 import { AddKeywordsToGridModal } from './AddKeywordsToGridModal';
 import { KeywordScheduleModal } from './KeywordScheduleModal';
 
@@ -69,6 +71,12 @@ interface GeoGridKeywordsTableProps {
     scheduleDayOfMonth: number | null;
     scheduleHour: number;
   }) => Promise<void>;
+  /** Callback to run a check for specific keywords */
+  onCheckKeywords?: (keywordIds: string[]) => Promise<void>;
+  /** Credit cost per check (grid points) */
+  checkCreditCost?: number;
+  /** Whether a check is currently running */
+  isCheckRunning?: boolean;
   /** Max keywords that can be tracked */
   maxKeywords?: number;
   /** Callback to refresh available keywords after creating new ones */
@@ -255,6 +263,9 @@ export function GeoGridKeywordsTable({
   onAddKeywords,
   onRemoveKeyword,
   onUpdateKeywordSchedule,
+  onCheckKeywords,
+  checkCreditCost = 0,
+  isCheckRunning = false,
   maxKeywords = 20,
   onKeywordsCreated,
   onResultClick,
@@ -275,6 +286,20 @@ export function GeoGridKeywordsTable({
   // Schedule modal state
   const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
   const [scheduleKeyword, setScheduleKeyword] = useState<GGTrackedKeyword | null>(null);
+
+  // Check confirmation modal state
+  const [showCheckModal, setShowCheckModal] = useState(false);
+  const [checkingKeywordId, setCheckingKeywordId] = useState<string | null>(null);
+  const [checkingKeywordPhrase, setCheckingKeywordPhrase] = useState<string>('');
+  const [checkingTrackedKeyword, setCheckingTrackedKeyword] = useState<GGTrackedKeyword | null>(null);
+
+  // Schedule options within check modal
+  const [showScheduleOptions, setShowScheduleOptions] = useState(false);
+  const [modalScheduleMode, setModalScheduleMode] = useState<ScheduleMode>('off');
+  const [modalScheduleFrequency, setModalScheduleFrequency] = useState<ScheduleFrequency>('weekly');
+  const [modalScheduleDayOfWeek, setModalScheduleDayOfWeek] = useState<number>(1);
+  const [modalScheduleDayOfMonth, setModalScheduleDayOfMonth] = useState<number>(1);
+  const [modalScheduleHour, setModalScheduleHour] = useState<number>(9);
 
   // Use the keywords hook for keyword data
   const { refresh: refreshKeywords, keywords: allKeywords } = useKeywords();
@@ -546,6 +571,65 @@ export function GeoGridKeywordsTable({
     []
   );
 
+  // Handle check button click - show confirmation modal
+  const handleCheckClick = useCallback(
+    (e: React.MouseEvent, keywordId: string, phrase: string, trackedKeyword: GGTrackedKeyword) => {
+      e.stopPropagation();
+      setCheckingKeywordId(keywordId);
+      setCheckingKeywordPhrase(phrase);
+      setCheckingTrackedKeyword(trackedKeyword);
+      // Reset schedule options to current state
+      setShowScheduleOptions(false);
+      setModalScheduleMode(trackedKeyword.scheduleMode || 'off');
+      setModalScheduleFrequency(trackedKeyword.scheduleFrequency || 'weekly');
+      setModalScheduleDayOfWeek(trackedKeyword.scheduleDayOfWeek ?? 1);
+      setModalScheduleDayOfMonth(trackedKeyword.scheduleDayOfMonth ?? 1);
+      setModalScheduleHour(trackedKeyword.scheduleHour ?? 9);
+      setShowCheckModal(true);
+    },
+    []
+  );
+
+  // Close check modal and reset state
+  const closeCheckModal = useCallback(() => {
+    setShowCheckModal(false);
+    setCheckingKeywordId(null);
+    setCheckingKeywordPhrase('');
+    setCheckingTrackedKeyword(null);
+    setShowScheduleOptions(false);
+  }, []);
+
+  // Handle check confirmation (run now)
+  const handleCheckConfirm = useCallback(async () => {
+    if (!checkingKeywordId || !onCheckKeywords) return;
+    closeCheckModal();
+    await onCheckKeywords([checkingKeywordId]);
+  }, [checkingKeywordId, onCheckKeywords, closeCheckModal]);
+
+  // Handle saving schedule from check modal
+  const handleSaveScheduleFromCheckModal = useCallback(async () => {
+    if (!checkingTrackedKeyword || !onUpdateKeywordSchedule) return;
+
+    await onUpdateKeywordSchedule(checkingTrackedKeyword.id, {
+      scheduleMode: modalScheduleMode,
+      scheduleFrequency: modalScheduleMode === 'custom' ? modalScheduleFrequency : null,
+      scheduleDayOfWeek: modalScheduleMode === 'custom' && modalScheduleFrequency === 'weekly' ? modalScheduleDayOfWeek : null,
+      scheduleDayOfMonth: modalScheduleMode === 'custom' && modalScheduleFrequency === 'monthly' ? modalScheduleDayOfMonth : null,
+      scheduleHour: modalScheduleMode === 'custom' ? modalScheduleHour : 9,
+    });
+
+    closeCheckModal();
+  }, [
+    checkingTrackedKeyword,
+    onUpdateKeywordSchedule,
+    modalScheduleMode,
+    modalScheduleFrequency,
+    modalScheduleDayOfWeek,
+    modalScheduleDayOfMonth,
+    modalScheduleHour,
+    closeCheckModal,
+  ]);
+
   // Handle saving schedule from modal
   const handleSaveSchedule = useCallback(
     async (updates: {
@@ -701,8 +785,8 @@ export function GeoGridKeywordsTable({
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Visibility
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Schedule
+                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Action
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Checked
@@ -828,22 +912,34 @@ export function GeoGridKeywordsTable({
                             <span className="text-gray-400 text-sm">—</span>
                           )}
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="px-4 py-3 text-center">
                           {(() => {
-                            const scheduleInfo = formatScheduleDisplay(group.trackedKeyword, config);
+                            // Check if keyword is scheduled
+                            const mode = group.trackedKeyword.scheduleMode || 'inherit';
+                            const isScheduled =
+                              (mode === 'inherit' && config?.scheduleFrequency) ||
+                              (mode === 'custom' && group.trackedKeyword.scheduleFrequency);
+
+                            if (isScheduled) {
+                              return (
+                                <button
+                                  onClick={(e) => handleCheckClick(e, group.keywordId, group.phrase, group.trackedKeyword)}
+                                  className="text-sm text-emerald-600 hover:text-emerald-700 whitespace-nowrap font-medium"
+                                >
+                                  Scheduled ✓
+                                </button>
+                              );
+                            }
+
                             return (
-                              <button
-                                onClick={(e) => handleScheduleClick(e, group.trackedKeyword)}
-                                className={`inline-flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium cursor-pointer hover:ring-2 hover:ring-blue-300 hover:shadow-sm transition-all ${scheduleInfo.color}`}
-                                title="Click to edit schedule"
-                                aria-label={`Edit schedule for ${group.phrase}`}
+                              <Button
+                                size="sm"
+                                onClick={(e) => handleCheckClick(e, group.keywordId, group.phrase, group.trackedKeyword)}
+                                disabled={isCheckRunning}
+                                className="bg-slate-blue hover:bg-slate-blue/90 text-white whitespace-nowrap"
                               >
-                                <div className="flex flex-col items-start">
-                                  <span className="whitespace-nowrap">{scheduleInfo.label}</span>
-                                  <span className="text-[10px] opacity-75 whitespace-nowrap">{scheduleInfo.subtitle}</span>
-                                </div>
-                                <Icon name="FaEdit" className="w-3 h-3 opacity-50" size={12} />
-                              </button>
+                                Check
+                              </Button>
                             );
                           })()}
                         </td>
@@ -1069,6 +1165,244 @@ export function GeoGridKeywordsTable({
         config={config || null}
         onSave={handleSaveSchedule}
       />
+
+      {/* Check Confirmation Modal */}
+      <Modal
+        isOpen={showCheckModal}
+        onClose={closeCheckModal}
+        size="md"
+      >
+        <div className="space-y-4">
+          {/* Header */}
+          <div className="text-center">
+            <h3 className="text-lg font-semibold text-gray-900 mb-1">
+              {checkingKeywordPhrase}
+            </h3>
+            <p className="text-sm text-gray-500">
+              {checkCreditCost} credit{checkCreditCost !== 1 ? 's' : ''} per check
+            </p>
+          </div>
+
+          {/* Run Now Section */}
+          <div className="bg-blue-50 rounded-lg p-4 border border-blue-100">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="font-medium text-gray-900">Run check now</div>
+                <div className="text-sm text-gray-500">
+                  Check ranking immediately
+                </div>
+              </div>
+              <Button
+                onClick={handleCheckConfirm}
+                disabled={isCheckRunning}
+                className="bg-slate-blue hover:bg-slate-blue/90 text-white whitespace-nowrap"
+              >
+                {isCheckRunning ? 'Running...' : 'Check now'}
+              </Button>
+            </div>
+          </div>
+
+          {/* Divider */}
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-200" />
+            </div>
+            <div className="relative flex justify-center text-xs">
+              <span className="bg-white px-2 text-gray-500">or</span>
+            </div>
+          </div>
+
+          {/* Schedule Section */}
+          <div className="border border-gray-200 rounded-lg overflow-hidden">
+            <button
+              onClick={() => setShowScheduleOptions(!showScheduleOptions)}
+              className="w-full px-4 py-3 flex items-center justify-between bg-gray-50 hover:bg-gray-100 transition-colors text-left"
+            >
+              <div>
+                <div className="font-medium text-gray-900">Set up automatic schedule</div>
+                <div className="text-sm text-gray-500">
+                  {modalScheduleMode === 'off' || modalScheduleMode === 'inherit'
+                    ? 'Run checks automatically on a schedule'
+                    : modalScheduleMode === 'custom'
+                      ? `${modalScheduleFrequency === 'daily' ? 'Daily' : modalScheduleFrequency === 'weekly' ? `Weekly` : 'Monthly'} schedule configured`
+                      : 'Configure schedule'}
+                </div>
+              </div>
+              {showScheduleOptions ? (
+                <ChevronDownIcon className="w-5 h-5 text-gray-500" />
+              ) : (
+                <ChevronRightIcon className="w-5 h-5 text-gray-500" />
+              )}
+            </button>
+
+            {showScheduleOptions && (
+              <div className="p-4 space-y-4 border-t border-gray-200">
+                {/* Warning if keyword already has a schedule */}
+                {checkingTrackedKeyword && (() => {
+                  const mode = checkingTrackedKeyword.scheduleMode || 'inherit';
+                  const hasExistingSchedule =
+                    (mode === 'inherit' && config?.scheduleFrequency) ||
+                    (mode === 'custom' && checkingTrackedKeyword.scheduleFrequency);
+
+                  if (hasExistingSchedule) {
+                    return (
+                      <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                        <div className="flex items-start gap-2">
+                          <ExclamationTriangleIcon className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                          <div>
+                            <p className="text-sm font-medium text-amber-800">This keyword already has a schedule</p>
+                            <p className="text-xs text-amber-700 mt-0.5">
+                              Saving a new schedule will replace the current one.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
+
+                {/* Schedule mode */}
+                <div className="space-y-2">
+                  {/* Inherit option */}
+                  {config?.scheduleFrequency && (
+                    <label className="flex items-start gap-3 p-2 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-50">
+                      <input
+                        type="radio"
+                        name="modalScheduleMode"
+                        checked={modalScheduleMode === 'inherit'}
+                        onChange={() => setModalScheduleMode('inherit')}
+                        className="mt-0.5"
+                      />
+                      <div className="flex-1">
+                        <div className="text-sm font-medium text-gray-900">Use config schedule</div>
+                        <div className="text-xs text-gray-500">
+                          {config.scheduleFrequency === 'daily' && 'Daily'}
+                          {config.scheduleFrequency === 'weekly' && `Weekly (${['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][config.scheduleDayOfWeek || 0]})`}
+                          {config.scheduleFrequency === 'monthly' && `Monthly (day ${config.scheduleDayOfMonth || 1})`}
+                        </div>
+                      </div>
+                    </label>
+                  )}
+
+                  {/* Custom option */}
+                  <label className="flex items-start gap-3 p-2 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-50">
+                    <input
+                      type="radio"
+                      name="modalScheduleMode"
+                      checked={modalScheduleMode === 'custom'}
+                      onChange={() => setModalScheduleMode('custom')}
+                      className="mt-0.5"
+                    />
+                    <div className="flex-1">
+                      <div className="text-sm font-medium text-gray-900">Custom schedule</div>
+                      <div className="text-xs text-gray-500">Set a specific schedule for this keyword</div>
+                    </div>
+                  </label>
+
+                  {/* Off option */}
+                  <label className="flex items-start gap-3 p-2 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-50">
+                    <input
+                      type="radio"
+                      name="modalScheduleMode"
+                      checked={modalScheduleMode === 'off'}
+                      onChange={() => setModalScheduleMode('off')}
+                      className="mt-0.5"
+                    />
+                    <div className="flex-1">
+                      <div className="text-sm font-medium text-gray-900">Manual only</div>
+                      <div className="text-xs text-gray-500">Only check when triggered manually</div>
+                    </div>
+                  </label>
+                </div>
+
+                {/* Custom schedule options */}
+                {modalScheduleMode === 'custom' && (
+                  <div className="space-y-3 p-3 bg-blue-50 rounded-lg border border-blue-100">
+                    {/* Frequency */}
+                    <div className="flex items-center gap-3">
+                      <label className="text-sm font-medium text-gray-700 w-20">Frequency</label>
+                      <select
+                        value={modalScheduleFrequency || 'weekly'}
+                        onChange={(e) => setModalScheduleFrequency(e.target.value as ScheduleFrequency)}
+                        className="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      >
+                        <option value="daily">Daily</option>
+                        <option value="weekly">Weekly</option>
+                        <option value="monthly">Monthly</option>
+                      </select>
+                    </div>
+
+                    {/* Day of week */}
+                    {modalScheduleFrequency === 'weekly' && (
+                      <div className="flex items-center gap-3">
+                        <label className="text-sm font-medium text-gray-700 w-20">Day</label>
+                        <select
+                          value={modalScheduleDayOfWeek}
+                          onChange={(e) => setModalScheduleDayOfWeek(parseInt(e.target.value))}
+                          className="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
+                          {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map((day, i) => (
+                            <option key={i} value={i}>{day}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+
+                    {/* Day of month */}
+                    {modalScheduleFrequency === 'monthly' && (
+                      <div className="flex items-center gap-3">
+                        <label className="text-sm font-medium text-gray-700 w-20">Day</label>
+                        <select
+                          value={modalScheduleDayOfMonth}
+                          onChange={(e) => setModalScheduleDayOfMonth(parseInt(e.target.value))}
+                          className="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
+                          {Array.from({ length: 28 }, (_, i) => (
+                            <option key={i + 1} value={i + 1}>{i + 1}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+
+                    {/* Hour */}
+                    <div className="flex items-center gap-3">
+                      <label className="text-sm font-medium text-gray-700 w-20">Time</label>
+                      <select
+                        value={modalScheduleHour}
+                        onChange={(e) => setModalScheduleHour(parseInt(e.target.value))}
+                        className="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      >
+                        {Array.from({ length: 24 }, (_, i) => (
+                          <option key={i} value={i}>
+                            {i === 0 ? '12:00 AM' : i < 12 ? `${i}:00 AM` : i === 12 ? '12:00 PM' : `${i - 12}:00 PM`} UTC
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                )}
+
+                {/* Save schedule button */}
+                <Button
+                  onClick={handleSaveScheduleFromCheckModal}
+                  disabled={!onUpdateKeywordSchedule}
+                  className="w-full"
+                >
+                  Save schedule
+                </Button>
+              </div>
+            )}
+          </div>
+
+          {/* Cancel button */}
+          <div className="flex justify-center pt-2">
+            <Button variant="outline" onClick={closeCheckModal}>
+              Cancel
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </>
   );
 }

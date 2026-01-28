@@ -1793,21 +1793,21 @@ export default function AISearchPage() {
                               <React.Fragment key={provider}>
                                 <td className="py-3 px-2 text-center">
                                   <div className="flex flex-col items-center gap-0.5">
-                                    {/* Citation status */}
+                                    {/* Citation status - show link if cited */}
                                     {result.domainCited ? (
                                       <span className="text-green-600 text-xs font-medium flex items-center gap-0.5" title={`Cited at position ${result.citationPosition}`}>
                                         <Icon name="FaLink" className="w-3 h-3" />
                                         #{result.citationPosition || '?'}
                                       </span>
-                                    ) : (
-                                      <span className="text-amber-500 text-xs flex items-center gap-0.5" title="Checked - not cited">
-                                        <Icon name="FaTimes" className="w-3 h-3" />
+                                    ) : result.brandMentioned ? (
+                                      /* Brand mention without citation - show chat icon only, no X */
+                                      <span className="text-slate-blue text-xs font-medium flex items-center gap-0.5" title="Brand mentioned in response (no citation link)">
+                                        <Icon name="FaCommentAlt" className="w-3 h-3" />
                                       </span>
-                                    )}
-                                    {/* Brand mention status */}
-                                    {result.brandMentioned && (
-                                      <span className="text-slate-blue text-xs font-medium flex items-center gap-0.5" title="Brand mentioned in response">
-                                        <Icon name="FaCommentAlt" className="w-2.5 h-2.5" />
+                                    ) : (
+                                      /* Not cited and not mentioned - show X */
+                                      <span className="text-amber-500 text-xs flex items-center gap-0.5" title="Checked - not cited or mentioned">
+                                        <Icon name="FaTimes" className="w-3 h-3" />
                                       </span>
                                     )}
                                   </div>
@@ -2148,7 +2148,7 @@ export default function AISearchPage() {
               </div>
               <div className="flex items-center gap-1">
                 <Icon name="FaTimes" className="w-3 h-3 text-amber-500" />
-                <span>Checked - not cited</span>
+                <span>Not cited or mentioned</span>
               </div>
               <div className="flex items-center gap-1">
                 <span className="text-gray-300">—</span>

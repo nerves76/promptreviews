@@ -97,6 +97,7 @@ export default function LocalRankingGridsPage() {
 
   // Run check confirmation modal
   const [showRunCheckModal, setShowRunCheckModal] = useState(false);
+  const [selectedCheckKeywordIds, setSelectedCheckKeywordIds] = useState<Set<string>>(new Set());
 
   // Schedule editor modal
   const [showScheduleModal, setShowScheduleModal] = useState(false);
@@ -370,17 +371,35 @@ export default function LocalRankingGridsPage() {
     return config.checkPoints?.length || 5;
   }, [config]);
 
-  // Handle run check button - show confirmation modal
-  const handleRunCheck = useCallback(() => {
-    setShowRunCheckModal(true);
-  }, []);
+  // Check if a keyword is scheduled (either inheriting config schedule or has custom schedule)
+  const isKeywordScheduled = useCallback((tk: typeof trackedKeywords[0]) => {
+    const mode = tk.scheduleMode || 'inherit';
+    return (mode === 'inherit' && config?.scheduleFrequency) ||
+           (mode === 'custom' && tk.scheduleFrequency);
+  }, [config?.scheduleFrequency]);
 
-  // Confirm and execute the check
+  // Handle run check button - show confirmation modal with unscheduled keywords pre-selected
+  const handleRunCheck = useCallback(() => {
+    // Pre-select only unscheduled keywords (exclude those already on a schedule)
+    const unscheduledKeywordIds = trackedKeywords
+      .filter(tk => !isKeywordScheduled(tk))
+      .map(tk => tk.keywordId);
+    setSelectedCheckKeywordIds(new Set(unscheduledKeywordIds));
+    setShowRunCheckModal(true);
+  }, [trackedKeywords, isKeywordScheduled]);
+
+  // Confirm and execute the check for selected keywords
   const confirmRunCheck = useCallback(async () => {
+    const keywordIds = Array.from(selectedCheckKeywordIds);
+    if (keywordIds.length === 0) {
+      showError('Please select at least one keyword to check.');
+      return;
+    }
+
     setShowRunCheckModal(false);
     setIsCheckRunning(true);
     try {
-      const result = await runCheck();
+      const result = await runCheck(keywordIds);
       if (result.success) {
         await refreshResults();
         showSuccess(`Grid check complete! ${result.checksPerformed || 0} checks performed.`);
@@ -401,7 +420,7 @@ export default function LocalRankingGridsPage() {
     } finally {
       setIsCheckRunning(false);
     }
-  }, [runCheck, refreshResults, showError, showSuccess]);
+  }, [selectedCheckKeywordIds, runCheck, refreshResults, showError, showSuccess]);
 
   // Handle setup complete
   const handleSetupComplete = useCallback(() => {
@@ -445,6 +464,27 @@ export default function LocalRankingGridsPage() {
       showError('Failed to update schedule');
     }
   }, [refreshKeywords, showSuccess, showError]);
+
+  // Handle running check for specific keywords
+  const handleCheckKeywords = useCallback(async (keywordIds: string[]) => {
+    setIsCheckRunning(true);
+    try {
+      // Run check for specific keywords
+      const result = await runCheck(keywordIds);
+      if (result.success) {
+        await refreshResults();
+        showSuccess(`Grid check complete! ${result.checksPerformed || 0} checks performed.`);
+      } else if (result.error) {
+        if (result.error.includes('Insufficient credits')) {
+          showError('Not enough credits for this grid check. Please add more credits.', 6000);
+        } else {
+          showError(result.error, 5000);
+        }
+      }
+    } finally {
+      setIsCheckRunning(false);
+    }
+  }, [runCheck, refreshResults, showError, showSuccess]);
 
   // Handle refreshing available keywords after new ones are created
   const handleKeywordsCreated = useCallback(async () => {
@@ -815,6 +855,9 @@ export default function LocalRankingGridsPage() {
             onAddKeywords={handleAddKeywords}
             onRemoveKeyword={handleRemoveKeyword}
             onUpdateKeywordSchedule={handleUpdateKeywordSchedule}
+            onCheckKeywords={handleCheckKeywords}
+            checkCreditCost={calculateCheckCost}
+            isCheckRunning={isCheckRunning}
             maxKeywords={20}
             onKeywordsCreated={handleKeywordsCreated}
             keywordUsageCounts={keywordUsageCounts}
@@ -843,19 +886,69 @@ export default function LocalRankingGridsPage() {
         size="md"
       >
         <div className="space-y-4">
-          {/* What will be checked */}
+          {/* Keyword selection */}
           <div>
-            <h4 className="text-sm font-medium text-gray-700 mb-2">Keywords to check</h4>
+            <div className="flex items-center justify-between mb-2">
+              <h4 className="text-sm font-medium text-gray-700">Select keywords to check</h4>
+              {trackedKeywords.length > 0 && (
+                <button
+                  onClick={() => {
+                    if (selectedCheckKeywordIds.size === trackedKeywords.length) {
+                      setSelectedCheckKeywordIds(new Set());
+                    } else {
+                      setSelectedCheckKeywordIds(new Set(trackedKeywords.map(tk => tk.keywordId)));
+                    }
+                  }}
+                  className="text-xs text-slate-blue hover:text-slate-blue/80 font-medium"
+                >
+                  {selectedCheckKeywordIds.size === trackedKeywords.length ? 'Deselect all' : 'Select all'}
+                </button>
+              )}
+            </div>
             {trackedKeywords.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
-                {trackedKeywords.map((tk) => (
-                  <span
-                    key={tk.keywordId}
-                    className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
-                  >
-                    {tk.phrase}
-                  </span>
-                ))}
+              <div className="space-y-2 max-h-48 overflow-y-auto border border-gray-200 rounded-lg p-2">
+                {trackedKeywords.map((tk) => {
+                  const isSelected = selectedCheckKeywordIds.has(tk.keywordId);
+                  const isScheduled = isKeywordScheduled(tk);
+                  return (
+                    <label
+                      key={tk.keywordId}
+                      className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors ${
+                        isSelected ? 'bg-blue-50 border border-blue-200' : 'hover:bg-gray-50 border border-transparent'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={(e) => {
+                          const newSet = new Set(selectedCheckKeywordIds);
+                          if (e.target.checked) {
+                            newSet.add(tk.keywordId);
+                          } else {
+                            newSet.delete(tk.keywordId);
+                          }
+                          setSelectedCheckKeywordIds(newSet);
+                        }}
+                        className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                      />
+                      <div className="flex-1 flex items-center gap-2">
+                        <span className={`text-sm font-medium ${isSelected ? 'text-blue-800' : 'text-gray-900'}`}>
+                          {tk.phrase}
+                        </span>
+                        {tk.locationName && (
+                          <span className="text-xs text-gray-500">
+                            ({tk.locationName})
+                          </span>
+                        )}
+                        {isScheduled && (
+                          <span className="text-xs text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded whitespace-nowrap">
+                            Scheduled
+                          </span>
+                        )}
+                      </div>
+                    </label>
+                  );
+                })}
               </div>
             ) : (
               <p className="text-sm text-amber-600">No keywords tracked. Add keywords first.</p>
@@ -870,8 +963,8 @@ export default function LocalRankingGridsPage() {
                 <p className="font-medium text-gray-900">{config?.checkPoints?.length || 0}</p>
               </div>
               <div>
-                <span className="text-gray-500">Keywords</span>
-                <p className="font-medium text-gray-900">{trackedKeywords.length}</p>
+                <span className="text-gray-500">Keywords selected</span>
+                <p className="font-medium text-gray-900">{selectedCheckKeywordIds.size} of {trackedKeywords.length}</p>
               </div>
               <div>
                 <span className="text-gray-500">Radius</span>
@@ -883,11 +976,19 @@ export default function LocalRankingGridsPage() {
           {/* Cost per check */}
           <div className="flex items-center justify-between p-3 bg-amber-50 border border-amber-200 rounded-lg">
             <div>
-              <p className="text-sm font-medium text-amber-800">Cost per check</p>
+              <p className="text-sm font-medium text-amber-800">Cost for this check</p>
               <p className="text-xs text-amber-600">{config?.checkPoints?.length || 0} grid points = {config?.checkPoints?.length || 0} credits</p>
             </div>
             <span className="text-2xl font-bold text-amber-800">{calculateCheckCost}</span>
           </div>
+
+          {selectedCheckKeywordIds.size === 0 && trackedKeywords.length > 0 && (
+            <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+              <p className="text-sm text-amber-700">
+                Select at least one keyword to run a check.
+              </p>
+            </div>
+          )}
 
           {trackedKeywords.length === 0 && (
             <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
@@ -937,7 +1038,7 @@ export default function LocalRankingGridsPage() {
           </Button>
           <Button
             onClick={confirmRunCheck}
-            disabled={trackedKeywords.length === 0 || !config?.targetPlaceId}
+            disabled={selectedCheckKeywordIds.size === 0 || !config?.targetPlaceId}
           >
             Run now ({calculateCheckCost} credits)
           </Button>

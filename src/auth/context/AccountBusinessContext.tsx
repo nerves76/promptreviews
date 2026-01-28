@@ -220,7 +220,7 @@ export function AccountBusinessProvider({ children }: { children: React.ReactNod
   // Load current account
   const loadAccount = useCallback(async (overrideAccountId?: string) => {
     const targetAccountId = overrideAccountId || accountId;
-    
+
     if (!user?.id) {
       setAccount(null);
       setAccountId(null);
@@ -237,7 +237,12 @@ export function AccountBusinessProvider({ children }: { children: React.ReactNod
       }
     }
 
-    setAccountLoading(true);
+    // STALE-WHILE-REVALIDATE: Only show loading if we have no existing data
+    // This prevents the UI from flashing when refreshing in the background
+    const isBackgroundRefresh = !!account;
+    if (!isBackgroundRefresh) {
+      setAccountLoading(true);
+    }
     try {
       // Get account ID if not set
       let currentAccountId = targetAccountId;
@@ -261,7 +266,7 @@ export function AccountBusinessProvider({ children }: { children: React.ReactNod
 
       if (error) {
         console.error('Failed to load account:', error);
-        
+
         if (error.code === 'PGRST116') {
           console.error('⚠️ 406 Error: Account query returned multiple or no rows', {
             accountId: currentAccountId,
@@ -269,14 +274,18 @@ export function AccountBusinessProvider({ children }: { children: React.ReactNod
             errorDetails: error.details,
             hint: error.hint,
           });
-          
+
           if (currentAccountId === user.id) {
             console.error('❌ CRITICAL: Using user.id as account.id - this is wrong for multi-account users!');
             setAccountId(null);
           }
         }
-        
-        setAccount(null);
+
+        // STALE-WHILE-REVALIDATE: Only clear account if we don't have existing data
+        // Keep showing stale data on refresh errors rather than flashing blank
+        if (!isBackgroundRefresh) {
+          setAccount(null);
+        }
         return;
       }
 
@@ -290,11 +299,17 @@ export function AccountBusinessProvider({ children }: { children: React.ReactNod
       setAccountCacheTime(Date.now());
     } catch (error) {
       console.error('Failed to load account:', error);
-      setAccount(null);
+      // STALE-WHILE-REVALIDATE: Only clear account if we don't have existing data
+      if (!isBackgroundRefresh) {
+        setAccount(null);
+      }
     } finally {
-      setAccountLoading(false);
+      // Only update loading state if we set it to true
+      if (!isBackgroundRefresh) {
+        setAccountLoading(false);
+      }
     }
-  }, [user?.id, accountId, setAccountId]);
+  }, [user?.id, accountId, setAccountId, account]);
 
   // Switch to a different account
   const switchAccount = useCallback(async (newAccountId: string) => {
@@ -363,7 +378,11 @@ export function AccountBusinessProvider({ children }: { children: React.ReactNod
       }
     }
 
-    setBusinessLoading(true);
+    // STALE-WHILE-REVALIDATE: Only show loading if we have no existing data
+    const isBackgroundRefresh = !!business;
+    if (!isBackgroundRefresh) {
+      setBusinessLoading(true);
+    }
     try {
       // ⚠️ CRITICAL: DO NOT ADD .single() - accounts can have multiple businesses
       const { data, error } = await supabase
@@ -374,11 +393,15 @@ export function AccountBusinessProvider({ children }: { children: React.ReactNod
 
       if (error) {
         console.error('Failed to load businesses:', error);
-        setBusiness(null);
+        // STALE-WHILE-REVALIDATE: Only clear if we don't have existing data
+        if (!isBackgroundRefresh) {
+          setBusiness(null);
+        }
         return;
       }
-      
+
       if (!data || data.length === 0) {
+        // Only clear if this is genuinely no data, not a refresh error
         setBusiness(null);
         return;
       }
@@ -395,11 +418,16 @@ export function AccountBusinessProvider({ children }: { children: React.ReactNod
       setBusinessCacheTime(Date.now());
     } catch (error) {
       console.error('Failed to load business:', error);
-      setBusiness(null);
+      // STALE-WHILE-REVALIDATE: Only clear if we don't have existing data
+      if (!isBackgroundRefresh) {
+        setBusiness(null);
+      }
     } finally {
-      setBusinessLoading(false);
+      if (!isBackgroundRefresh) {
+        setBusinessLoading(false);
+      }
     }
-  }, [accountId]);
+  }, [accountId, business]);
 
   // Load all businesses for account
   const loadBusinesses = useCallback(async () => {

@@ -312,17 +312,22 @@ export function FeatureProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    setAdminLoading(true);
+    // STALE-WHILE-REVALIDATE: Only show loading if we have no existing data
+    // This prevents the UI from flashing when refreshing in the background
+    const isBackgroundRefresh = adminChecked && adminCacheRef.current !== null;
+    if (!isBackgroundRefresh) {
+      setAdminLoading(true);
+    }
     try {
       // Check if user is admin
       const adminStatus = await checkIsAdmin();
       setIsAdminUser(adminStatus);
-      
+
       // If user has admin email, ensure they have admin status
       if (user.email) {
         await ensureAdminForEmail({ id: user.id, email: user.email });
       }
-      
+
       // Update cache
       adminCacheRef.current = {
         isAdmin: adminStatus,
@@ -332,12 +337,17 @@ export function FeatureProvider({ children }: { children: React.ReactNode }) {
       setAdminChecked(true);
     } catch (error) {
       console.error('Failed to check admin status:', error);
-      setIsAdminUser(false);
+      // STALE-WHILE-REVALIDATE: Keep existing admin status on error during background refresh
+      if (!isBackgroundRefresh) {
+        setIsAdminUser(false);
+      }
       setAdminChecked(true);
     } finally {
-      setAdminLoading(false);
+      if (!isBackgroundRefresh) {
+        setAdminLoading(false);
+      }
     }
-  }, [user?.id, user?.email, account?.id]);
+  }, [user?.id, user?.email, account?.id, adminChecked]);
 
   // Refresh admin status
   const refreshAdminStatus = useCallback(async () => {
