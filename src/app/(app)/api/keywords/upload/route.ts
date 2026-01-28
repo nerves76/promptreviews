@@ -550,12 +550,19 @@ export async function POST(request: NextRequest) {
  * GET /api/keywords/upload
  *
  * Returns a CSV template for keyword uploads
- * Includes user's keyword groups and rank tracking groups in comments
+ *
+ * Query params:
+ * - type: 'llm' for LLM Visibility template, 'rank' for Rank Tracking template,
+ *         or omit for full Concepts template
  */
 export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const templateType = searchParams.get('type'); // 'llm', 'rank', or null for full
+
   // Try to get user's groups if authenticated
   let keywordGroups: string[] = [];
   let rankGroups: string[] = [];
+  let llmGroups: string[] = [];
 
   try {
     const supabase = await createServerSupabaseClient();
@@ -579,60 +586,128 @@ export async function GET(request: NextRequest) {
         if (rankGroupsData) {
           rankGroups = rankGroupsData.map(g => g.name).filter(Boolean);
         }
+
+        const { data: llmGroupsData } = await serviceSupabase
+          .from('ai_search_query_groups')
+          .select('name')
+          .eq('account_id', accountId);
+        if (llmGroupsData) {
+          llmGroups = llmGroupsData.map(g => g.name).filter(Boolean);
+        }
       }
     }
   } catch {
     // Unauthenticated - just provide generic template
   }
 
-  const headers = [
-    'concept_name',
-    'concept_group',
-    'review_phrase',
-    'aliases',
-    'search_terms',
-    'ai_questions',
-    'funnel_stages',
-    'llm_group',
-    'rank_tracking_group',
-  ];
+  let headers: string[];
+  let exampleRows: string[][];
+  let filename: string;
 
-  // Build example rows (no comments - they cause issues in spreadsheets)
-  const exampleRows = [
-    [
-      'portland plumber',
-      keywordGroups[0] || 'Services',
-      'plumbing services',
-      'plumber|plumbing',
-      'plumber portland oregon|best plumber portland',
-      'What does a plumber do?|Who is the best plumber in Portland?',
-      'top|bottom',
-      'General|Local Questions',
-      rankGroups[0] || '',
-    ],
-    [
-      'emergency plumbing',
-      keywordGroups[0] || 'Services',
-      'emergency plumbing help',
-      '24 hour plumber|urgent plumbing',
-      'emergency plumber near me|24/7 plumber',
-      'How do I handle a plumbing emergency?',
-      'middle',
-      'General',
-      '',
-    ],
-    [
-      'drain cleaning',
-      '',
-      'professional drain cleaning',
-      'clogged drain|drain unclogging',
-      'drain cleaning service portland',
-      '',
-      '',
-      '',
-      '',
-    ],
-  ];
+  if (templateType === 'llm') {
+    // LLM Visibility focused template
+    headers = [
+      'concept_name',
+      'ai_questions',
+      'funnel_stages',
+      'llm_group',
+    ];
+    exampleRows = [
+      [
+        'portland plumber',
+        'What does a plumber do?|Who is the best plumber in Portland?',
+        'top|bottom',
+        llmGroups[0] || 'General',
+      ],
+      [
+        'emergency plumbing',
+        'How do I handle a plumbing emergency?|Who offers 24/7 plumbing?',
+        'middle|bottom',
+        llmGroups[0] || 'General',
+      ],
+      [
+        'drain cleaning',
+        'How much does drain cleaning cost?',
+        'middle',
+        '',
+      ],
+    ];
+    filename = 'llm-visibility-template.csv';
+  } else if (templateType === 'rank') {
+    // Rank Tracking focused template
+    headers = [
+      'concept_name',
+      'search_terms',
+      'rank_tracking_group',
+    ];
+    exampleRows = [
+      [
+        'portland plumber',
+        'plumber portland oregon|best plumber portland|portland plumbing company',
+        rankGroups[0] || 'Main Keywords',
+      ],
+      [
+        'emergency plumbing',
+        'emergency plumber near me|24/7 plumber portland',
+        rankGroups[0] || 'Main Keywords',
+      ],
+      [
+        'drain cleaning',
+        'drain cleaning service portland|clogged drain repair',
+        '',
+      ],
+    ];
+    filename = 'rank-tracking-template.csv';
+  } else {
+    // Full Concepts template (default)
+    headers = [
+      'concept_name',
+      'concept_group',
+      'review_phrase',
+      'aliases',
+      'search_terms',
+      'ai_questions',
+      'funnel_stages',
+      'llm_group',
+      'rank_tracking_group',
+    ];
+    exampleRows = [
+      [
+        'portland plumber',
+        keywordGroups[0] || 'Services',
+        'plumbing services',
+        'plumber|plumbing',
+        'plumber portland oregon|best plumber portland',
+        'What does a plumber do?|Who is the best plumber in Portland?',
+        'top|bottom',
+        llmGroups[0] || 'General',
+        rankGroups[0] || '',
+      ],
+      [
+        'emergency plumbing',
+        keywordGroups[0] || 'Services',
+        'emergency plumbing help',
+        '24 hour plumber|urgent plumbing',
+        'emergency plumber near me|24/7 plumber',
+        'How do I handle a plumbing emergency?',
+        'middle',
+        llmGroups[0] || 'General',
+        '',
+      ],
+      [
+        'drain cleaning',
+        '',
+        'professional drain cleaning',
+        'clogged drain|drain unclogging',
+        'drain cleaning service portland',
+        '',
+        '',
+        '',
+        '',
+      ],
+    ];
+    filename = 'keyword-concepts-template.csv';
+  }
 
   const csvContent = [
     headers.join(','),
@@ -643,7 +718,7 @@ export async function GET(request: NextRequest) {
     status: 200,
     headers: {
       'Content-Type': 'text/csv; charset=utf-8',
-      'Content-Disposition': 'attachment; filename="keyword-concepts-template.csv"',
+      'Content-Disposition': `attachment; filename="${filename}"`,
     },
   });
 }

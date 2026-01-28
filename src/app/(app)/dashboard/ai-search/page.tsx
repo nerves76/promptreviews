@@ -949,12 +949,12 @@ export default function AISearchPage() {
   // Handle template download for import
   const handleDownloadTemplate = async () => {
     try {
-      const response = await apiClient.download('/keywords/upload');
+      const response = await apiClient.download('/keywords/upload?type=llm');
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'concepts-template.csv';
+      a.download = 'llm-visibility-template.csv';
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
