@@ -16,7 +16,8 @@ import { sendNotificationToAccount } from '@/utils/notifications';
 export const maxDuration = 300; // 5 minutes
 
 // Process up to N keywords per execution (each has 2 API calls: desktop + mobile)
-const ITEMS_PER_EXECUTION = 3;
+// With 5-minute timeout and ~10-15s per keyword, we can safely do 15-20
+const ITEMS_PER_EXECUTION = 15;
 
 const serviceSupabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -206,7 +207,7 @@ export async function GET(request: NextRequest) {
           }
 
           // Small delay between API calls
-          await new Promise(resolve => setTimeout(resolve, 200));
+          await new Promise(resolve => setTimeout(resolve, 50));
         }
 
         // Process mobile if pending
@@ -257,7 +258,7 @@ export async function GET(request: NextRequest) {
           }
 
           // Small delay between API calls
-          await new Promise(resolve => setTimeout(resolve, 200));
+          await new Promise(resolve => setTimeout(resolve, 50));
         }
       }
 
