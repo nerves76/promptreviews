@@ -56,6 +56,7 @@ export function ManageGroupsModal({
   const [editingGroupId, setEditingGroupId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
   const [deletingGroupId, setDeletingGroupId] = useState<string | null>(null);
+  const [groupToDelete, setGroupToDelete] = useState<GroupData | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -66,6 +67,7 @@ export function ManageGroupsModal({
       setEditingGroupId(null);
       setEditingName('');
       setDeletingGroupId(null);
+      setGroupToDelete(null);
       setError(null);
     }
   }, [isOpen]);
@@ -122,21 +124,30 @@ export function ManageGroupsModal({
     setEditingName('');
   }, []);
 
-  const handleDeleteGroup = useCallback(async (groupId: string) => {
-    setDeletingGroupId(groupId);
+  // Show confirmation modal for group deletion
+  const handleDeleteGroupClick = useCallback((group: GroupData) => {
+    setGroupToDelete(group);
+  }, []);
+
+  // Actually delete the group after confirmation
+  const handleConfirmDelete = useCallback(async () => {
+    if (!groupToDelete) return;
+
+    setDeletingGroupId(groupToDelete.id);
     setError(null);
 
     try {
-      const success = await onDeleteGroup(groupId);
+      const success = await onDeleteGroup(groupToDelete.id);
       if (!success) {
         setError('Failed to delete group');
       }
+      setGroupToDelete(null);
     } catch (err: any) {
       setError(err?.message || 'Failed to delete group');
     } finally {
       setDeletingGroupId(null);
     }
-  }, [onDeleteGroup]);
+  }, [groupToDelete, onDeleteGroup]);
 
   const handleMoveUp = useCallback(async (index: number) => {
     if (index === 0) return;
@@ -314,7 +325,7 @@ export function ManageGroupsModal({
                           <Icon name="FaEdit" className="w-4 h-4" />
                         </button>
                         <button
-                          onClick={() => handleDeleteGroup(group.id)}
+                          onClick={() => handleDeleteGroupClick(group)}
                           disabled={isGeneralGroup(group.name) || deletingGroupId === group.id}
                           className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed"
                           aria-label="Delete group"
@@ -337,8 +348,44 @@ export function ManageGroupsModal({
 
         {/* Info text */}
         <p className="text-sm text-gray-500">
-          Deleting a group will move its {itemLabel} to the General group.
+          Deleting a group will move its {itemLabel} to &quot;Ungrouped&quot;.
         </p>
+
+        {/* Delete Confirmation Dialog */}
+        {groupToDelete && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div className="absolute inset-0 bg-black/50" onClick={() => setGroupToDelete(null)} />
+            <div className="relative bg-white rounded-xl shadow-xl p-6 max-w-sm mx-4">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Delete group?</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Are you sure you want to delete <strong>&quot;{groupToDelete.name}&quot;</strong>?
+              </p>
+              {groupToDelete.itemCount > 0 && (
+                <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                  <p className="text-sm text-amber-800">
+                    <strong>{groupToDelete.itemCount}</strong> {itemLabel} will be moved to &quot;Ungrouped&quot;.
+                  </p>
+                </div>
+              )}
+              <div className="flex justify-end gap-2">
+                <Button
+                  variant="secondary"
+                  onClick={() => setGroupToDelete(null)}
+                  disabled={deletingGroupId === groupToDelete.id}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={handleConfirmDelete}
+                  disabled={deletingGroupId === groupToDelete.id}
+                >
+                  {deletingGroupId === groupToDelete.id ? 'Deleting...' : 'Delete group'}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       <Modal.Footer>
