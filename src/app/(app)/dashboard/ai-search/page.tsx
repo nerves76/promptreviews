@@ -1560,7 +1560,7 @@ export default function AISearchPage() {
 
               {/* Manage groups button */}
               <button
-                onClick={() => setShowManageGroupsModal(true)}
+                onClick={() => startTransition(() => setShowManageGroupsModal(true))}
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
               >
                 <Icon name="FaCog" className="w-3.5 h-3.5" />

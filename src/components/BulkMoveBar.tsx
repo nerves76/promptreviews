@@ -134,7 +134,7 @@ export function BulkMoveBar({
                               : 'text-gray-700 hover:bg-gray-100'
                           }`}
                         >
-                          <Icon name="FaMinus" className="w-3 h-3 text-gray-400" />
+                          <Icon name="FaBoxOpen" className="w-3 h-3 text-gray-500" />
                           <span>Ungrouped</span>
                           {ungroupedCount !== undefined && (
                             <span className="ml-auto text-xs text-gray-400">
