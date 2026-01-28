@@ -9,6 +9,7 @@ import { NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { logCronExecution, verifyCronSecret } from '@/lib/cronLogger';
 import { checkRankForDomain } from '@/features/rank-tracking/api/dataforseo-serp-client';
+import { refundFeature } from '@/lib/credits';
 
 // Extend timeout for this route
 export const maxDuration = 300; // 5 minutes
@@ -30,6 +31,7 @@ interface BatchRunRow {
   successful_checks: number;
   failed_checks: number;
   started_at: string | null;
+  idempotency_key: string | null;
 }
 
 interface BatchRunItemRow {
@@ -141,7 +143,7 @@ export async function GET(request: NextRequest) {
 
       if (items.length === 0) {
         // No more pending items - check if all are done
-        await checkAndCompleteBatch(run.id);
+        await checkAndCompleteBatch(run.id, run.account_id, run.idempotency_key);
         return { success: true, summary: { message: 'No pending items, checked completion' } };
       }
 
@@ -289,7 +291,7 @@ export async function GET(request: NextRequest) {
         .eq('id', run.id);
 
       // Check if batch is complete
-      await checkAndCompleteBatch(run.id);
+      await checkAndCompleteBatch(run.id, run.account_id, run.idempotency_key);
 
       return {
         success: true,
@@ -310,7 +312,11 @@ export async function GET(request: NextRequest) {
   });
 }
 
-async function checkAndCompleteBatch(runId: string): Promise<void> {
+async function checkAndCompleteBatch(
+  runId: string,
+  accountId: string,
+  idempotencyKey: string | null
+): Promise<void> {
   // Get counts of item statuses
   const { data: items } = await serviceSupabase
     .from('rank_batch_run_items')
@@ -334,8 +340,18 @@ async function checkAndCompleteBatch(runId: string): Promise<void> {
       i => i.desktop_status === 'failed' || i.mobile_status === 'failed'
     ).length;
 
+    // Count individual failed checks (each desktop/mobile is 1 credit)
+    let failedCheckCount = 0;
+    for (const item of items) {
+      if (item.desktop_status === 'failed') failedCheckCount++;
+      if (item.mobile_status === 'failed') failedCheckCount++;
+    }
+
     const status = failedItems === totalItems ? 'failed' : 'completed';
     const errorMessage = failedItems > 0 ? `${failedItems} of ${totalItems} keywords had errors` : null;
+
+    // Calculate actual credits used (only count successful checks)
+    const creditsUsed = (totalItems * 2) - failedCheckCount;
 
     await serviceSupabase
       .from('rank_batch_runs')
@@ -344,6 +360,7 @@ async function checkAndCompleteBatch(runId: string): Promise<void> {
         processed_keywords: totalItems,
         successful_checks: successfulItems,
         failed_checks: failedItems,
+        total_credits_used: creditsUsed,
         error_message: errorMessage,
         completed_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
@@ -351,6 +368,30 @@ async function checkAndCompleteBatch(runId: string): Promise<void> {
       .eq('id', runId);
 
     console.log(`📋 [RankBatch] Batch ${runId} ${status}: ${successfulItems} completed, ${failedItems} failed`);
+
+    // Refund credits for failed checks
+    if (failedCheckCount > 0 && idempotencyKey) {
+      try {
+        await refundFeature(
+          serviceSupabase,
+          accountId,
+          failedCheckCount,
+          idempotencyKey,
+          {
+            featureType: 'rank_tracking',
+            featureMetadata: {
+              batchRunId: runId,
+              failedChecks: failedCheckCount,
+            },
+            description: `Refund for ${failedCheckCount} failed rank checks in batch ${runId}`,
+          }
+        );
+        console.log(`💰 [RankBatch] Refunded ${failedCheckCount} credits for failed checks in batch ${runId}`);
+      } catch (refundError) {
+        // Log but don't fail - the batch is complete, just couldn't refund
+        console.error(`❌ [RankBatch] Failed to refund credits for batch ${runId}:`, refundError);
+      }
+    }
   }
 }
 

@@ -201,7 +201,7 @@ export async function POST(request: NextRequest) {
       throw error;
     }
 
-    // Create the batch run record
+    // Create the batch run record (store idempotency key for potential refunds)
     const { data: batchRun, error: runError } = await serviceSupabase
       .from('rank_batch_runs')
       .insert({
@@ -215,6 +215,7 @@ export async function POST(request: NextRequest) {
         total_credits_used: totalCredits,
         triggered_by: user.id,
         scheduled_for: scheduledForDate?.toISOString() || null,
+        idempotency_key: idempotencyKey,
       })
       .select()
       .single();

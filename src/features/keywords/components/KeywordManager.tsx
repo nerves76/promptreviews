@@ -295,8 +295,8 @@ export default function KeywordManager({
         batches.push(keywordIds.slice(i, i + BATCH_SIZE));
       }
 
-      // Fetch all batches in parallel
-      const batchResponses = await Promise.all(
+      // Fetch all batches in parallel (with partial failure handling)
+      const batchResults = await Promise.allSettled(
         batches.map(batch =>
           apiClient.post<{ enrichment: Record<string, EnrichmentData> }>(
             '/keywords/batch-enrich',
@@ -305,15 +305,27 @@ export default function KeywordManager({
         )
       );
 
-      // Merge all batch results into a single Map
+      // Merge successful batch results into a single Map
       const mergedEnrichment = new Map<string, EnrichmentData>();
-      for (const response of batchResponses) {
-        for (const [keywordId, data] of Object.entries(response.enrichment)) {
-          mergedEnrichment.set(keywordId, data);
+      let failedBatches = 0;
+
+      for (const result of batchResults) {
+        if (result.status === 'fulfilled') {
+          for (const [keywordId, data] of Object.entries(result.value.enrichment)) {
+            mergedEnrichment.set(keywordId, data);
+          }
+        } else {
+          failedBatches++;
+          console.error('Batch enrichment failed:', result.reason);
         }
       }
 
       setEnrichmentData(mergedEnrichment);
+
+      // Show partial error if some batches failed
+      if (failedBatches > 0) {
+        setEnrichmentError(`Failed to load data for some keywords (${failedBatches} batch${failedBatches > 1 ? 'es' : ''} failed)`);
+      }
     } catch (err: any) {
       console.error('Failed to fetch enrichment data:', err);
       setEnrichmentError(err?.message || 'Failed to load enrichment data');
@@ -1404,8 +1416,6 @@ export default function KeywordManager({
                     businessLocationCode={business?.location_code ?? lookedUpLocation?.locationCode}
                     businessLocationName={business?.location_name ?? lookedUpLocation?.locationName}
                     onScheduleUpdated={handleRefreshEnrichment}
-                    groups={groups}
-                    onMoveToGroup={handleMoveToGroup}
                   />
                 </div>
               </div>
