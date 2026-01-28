@@ -218,6 +218,16 @@ export default function AdminLayout({
                 Cron Jobs
               </Link>
               <Link
+                href="/admin/batch-monitor"
+                className={`py-2 px-1 text-sm font-medium transition-colors whitespace-nowrap ${
+                  isActive('/admin/batch-monitor')
+                    ? 'border-b-2 border-white text-white'
+                    : 'border-b-2 border-transparent text-white/70 hover:text-white hover:border-white/50'
+                }`}
+              >
+                Batch Monitor
+              </Link>
+              <Link
                 href="/dashboard/comparisons"
                 className={`py-2 px-1 text-sm font-medium transition-colors whitespace-nowrap ${
                   isActive('/dashboard/comparisons')
