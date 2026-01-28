@@ -1,5 +1,5 @@
 -- Add email template for credit refund notifications
-INSERT INTO email_templates (name, subject, html_content, text_content, variables)
+INSERT INTO email_templates (name, subject, html_content, text_content)
 VALUES (
   'credit_refund',
   'Credits refunded for failed {{featureName}} checks',
@@ -57,11 +57,9 @@ View your credit balance: {{buyCreditsUrl}}
 
 ---
 This is an automated notification from Prompt Reviews.
-Manage notification preferences: {{accountUrl}}',
-  '["firstName", "creditsRefunded", "failedChecks", "featureName", "buyCreditsUrl", "accountUrl"]'
+Manage notification preferences: {{accountUrl}}'
 ) ON CONFLICT (name) DO UPDATE SET
   subject = EXCLUDED.subject,
   html_content = EXCLUDED.html_content,
   text_content = EXCLUDED.text_content,
-  variables = EXCLUDED.variables,
   updated_at = now();
