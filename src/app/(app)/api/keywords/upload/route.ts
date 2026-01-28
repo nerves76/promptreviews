@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
       location_scope: ['locationscope', 'scope'],
       ai_questions: ['aiquestions', 'relatedquestions', 'questions'],
       funnel_stages: ['funnelstages', 'stages'],
-      keyword_group: ['conceptgroup', 'keywordgroup', 'group'],
+      keyword_group: ['conceptgroup', 'keywordgroup', 'group', 'llmgroup'],
       rank_tracking_group: ['ranktrackinggroup', 'rankgroup'],
     };
 
