@@ -126,6 +126,14 @@ export async function searchGoogleMaps(params: MapsSearchParams): Promise<MapsSe
     if (!response.ok) {
       const errorText = await response.text();
       console.error('❌ [DataForSEO] API error:', response.status, errorText);
+      if (response.status === 402) {
+        return {
+          success: false,
+          cost: 0,
+          items: [],
+          error: '[B4L] Service temporarily unavailable. Please contact support@promptreviews.app',
+        };
+      }
       return {
         success: false,
         cost: 0,

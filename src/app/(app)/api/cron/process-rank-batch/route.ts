@@ -10,7 +10,7 @@ import { createClient } from '@supabase/supabase-js';
 import { logCronExecution, verifyCronSecret } from '@/lib/cronLogger';
 import { checkRankForDomain } from '@/features/rank-tracking/api/dataforseo-serp-client';
 import { refundFeature } from '@/lib/credits';
-import { sendNotificationToAccount } from '@/utils/notifications';
+import { sendNotificationToAccount, sendAdminAlert } from '@/utils/notifications';
 
 // Extend timeout for this route
 export const maxDuration = 300; // 5 minutes
@@ -373,7 +373,7 @@ async function checkAndCompleteBatch(
   // Get counts of item statuses
   const { data: items } = await serviceSupabase
     .from('rank_batch_run_items')
-    .select('desktop_status, mobile_status')
+    .select('desktop_status, mobile_status, error_message')
     .eq('batch_run_id', runId);
 
   if (!items) return;
@@ -451,6 +451,35 @@ async function checkAndCompleteBatch(
       } catch (refundError) {
         // Log but don't fail - the batch is complete, just couldn't refund
         console.error(`❌ [RankBatch] Failed to refund credits for batch ${runId}:`, refundError);
+      }
+    }
+
+    // Detect 100% failure with same root cause → alert admin
+    if (failedItems === totalItems && totalItems > 0) {
+      const errorMessages = items
+        .map(i => (i as { error_message?: string }).error_message || '')
+        .filter(Boolean);
+
+      // Check if all errors share the same root cause (e.g., [DFS-402])
+      const firstError = errorMessages[0] || '';
+      const allSameError = errorMessages.length > 0 &&
+        errorMessages.every(msg => msg === firstError);
+
+      if (allSameError) {
+        try {
+          await sendAdminAlert({
+            title: 'DataForSEO service issue detected',
+            message: `All ${totalItems} keywords in rank batch ${runId} failed. DataForSEO account may need attention.`,
+            data: {
+              feature: 'rank_tracking',
+              batchRunId: runId,
+              errorSample: firstError.substring(0, 200),
+            },
+          });
+          console.log(`🚨 [RankBatch] Admin alert sent for 100% failure in batch ${runId}`);
+        } catch (alertError) {
+          console.error(`❌ [RankBatch] Failed to send admin alert for batch ${runId}:`, alertError);
+        }
       }
     }
   }

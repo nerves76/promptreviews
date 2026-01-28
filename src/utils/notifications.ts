@@ -27,7 +27,8 @@ export type NotificationType =
   | 'credit_check_skipped'
   | 'credit_balance_low'
   | 'credit_refund'
-  | 'agency_invitation_received';
+  | 'agency_invitation_received'
+  | 'service_error';
 
 export interface NotificationData {
   [key: string]: any;
@@ -322,6 +323,22 @@ export const NOTIFICATION_REGISTRY: Record<NotificationType, NotificationConfig>
       inviterName: data.inviterName || 'Someone',
       role: data.role || 'manager',
       viewInvitationUrl: `${baseUrl}/dashboard/settings/agency-access`,
+      year: new Date().getFullYear(),
+    }),
+  },
+
+  'service_error': {
+    inAppPrefField: 'in_app_announcements',
+    emailPrefField: 'email_announcements',
+    emailTemplate: 'service_error',
+    getTitle: (data) => data.title || 'Service issue detected',
+    getMessage: (data) => data.message || 'A service error was detected that may need attention.',
+    getEmailVariables: (data) => ({
+      title: data.title || 'Service issue detected',
+      message: data.message || 'A service error was detected.',
+      batchRunId: data.batchRunId || 'unknown',
+      errorSample: data.errorSample || '',
+      feature: data.feature || 'unknown',
       year: new Date().getFullYear(),
     }),
   },
@@ -670,6 +687,50 @@ export async function shouldSendEmail(
   } catch (error) {
     console.error('Error checking email preferences:', error);
     return true; // Default to sending on error
+  }
+}
+
+// =============================================================================
+// ADMIN ALERTS
+// =============================================================================
+
+const ADMIN_EMAIL = 'support@promptreviews.app';
+
+/**
+ * Send an alert email directly to the admin.
+ * Used for service-level issues (e.g., DataForSEO account out of funds)
+ * that are not tied to a specific user account.
+ */
+export async function sendAdminAlert(params: {
+  title: string;
+  message: string;
+  data?: NotificationData;
+}): Promise<{ success: boolean; error?: string }> {
+  const { title, message, data = {} } = params;
+
+  try {
+    const config = NOTIFICATION_REGISTRY['service_error'];
+    const templateName = config.emailTemplate || 'service_error';
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.promptreviews.app';
+    const emailVariables = config.getEmailVariables
+      ? config.getEmailVariables({ ...data, title, message }, baseUrl)
+      : { title, message, ...data };
+
+    const emailResult = await sendTemplatedEmail(templateName, ADMIN_EMAIL, emailVariables);
+
+    if (!emailResult.success) {
+      console.error('[AdminAlert] Failed to send admin alert email:', emailResult.error);
+      return { success: false, error: emailResult.error };
+    }
+
+    console.log(`[AdminAlert] Sent alert to ${ADMIN_EMAIL}: ${title}`);
+    return { success: true };
+  } catch (error) {
+    console.error('[AdminAlert] Error sending admin alert:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
   }
 }
 

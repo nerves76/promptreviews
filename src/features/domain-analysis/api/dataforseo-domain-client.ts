@@ -137,6 +137,13 @@ export async function getDomainTechnologies(domain: string): Promise<DomainTechR
     if (!response.ok) {
       const errorText = await response.text();
       console.error('[DomainAnalysis] Technologies API error:', response.status, errorText);
+      if (response.status === 402) {
+        return {
+          success: false,
+          cost: 0,
+          error: '[B4L] Service temporarily unavailable. Please contact support@promptreviews.app',
+        };
+      }
       return {
         success: false,
         cost: 0,
@@ -269,6 +276,13 @@ export async function getWhoisOverview(domain: string): Promise<WhoisResult2> {
     if (!response.ok) {
       const errorText = await response.text();
       console.error('[DomainAnalysis] Whois API error:', response.status, errorText);
+      if (response.status === 402) {
+        return {
+          success: false,
+          cost: 0,
+          error: '[B4L] Service temporarily unavailable. Please contact support@promptreviews.app',
+        };
+      }
       return {
         success: false,
         cost: 0,

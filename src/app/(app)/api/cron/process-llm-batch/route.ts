@@ -10,7 +10,7 @@ import { createClient } from '@supabase/supabase-js';
 import { logCronExecution, verifyCronSecret } from '@/lib/cronLogger';
 import { runLLMChecks, updateSummary } from '@/features/llm-visibility/services/llm-checker';
 import { refundFeature } from '@/lib/credits';
-import { sendNotificationToAccount } from '@/utils/notifications';
+import { sendNotificationToAccount, sendAdminAlert } from '@/utils/notifications';
 import { LLM_CREDIT_COSTS, type LLMProvider } from '@/features/llm-visibility/utils/types';
 
 // Extend timeout for this route
@@ -325,7 +325,7 @@ async function checkAndCompleteBatch(
   // Get counts of item statuses
   const { data: items } = await serviceSupabase
     .from('llm_batch_run_items')
-    .select('status')
+    .select('status, error_message')
     .eq('batch_run_id', runId);
 
   if (!items) return;
@@ -394,6 +394,36 @@ async function checkAndCompleteBatch(
       } catch (refundError) {
         // Log but don't fail - the batch is complete, just couldn't refund
         console.error(`❌ [LLMBatch] Failed to refund credits for batch ${runId}:`, refundError);
+      }
+    }
+
+    // Detect 100% failure with same root cause → alert admin
+    if (failed > 0 && completed === 0) {
+      const failedItems = items.filter(i => i.status === 'failed');
+      const errorMessages = failedItems
+        .map(i => (i as { error_message?: string }).error_message || '')
+        .filter(Boolean);
+
+      // Check if all errors share the same root cause (e.g., [DFS-402])
+      const firstError = errorMessages[0] || '';
+      const allSameError = errorMessages.length > 0 &&
+        errorMessages.every(msg => msg === firstError);
+
+      if (allSameError) {
+        try {
+          await sendAdminAlert({
+            title: 'DataForSEO service issue detected',
+            message: `All ${failed} checks in LLM batch ${runId} failed. DataForSEO account may need attention.`,
+            data: {
+              feature: 'llm_visibility',
+              batchRunId: runId,
+              errorSample: firstError.substring(0, 200),
+            },
+          });
+          console.log(`🚨 [LLMBatch] Admin alert sent for 100% failure in batch ${runId}`);
+        } catch (alertError) {
+          console.error(`❌ [LLMBatch] Failed to send admin alert for batch ${runId}:`, alertError);
+        }
       }
     }
   }

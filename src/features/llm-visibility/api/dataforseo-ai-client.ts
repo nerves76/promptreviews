@@ -247,7 +247,9 @@ async function makeDataForSEORequest(
       const errorText = await response.text();
       console.error(`❌ [DataForSEO AI] API error: ${response.status}`, errorText);
       // Provide user-friendly HTTP error messages
-      if (response.status === 401 || response.status === 403) {
+      if (response.status === 402) {
+        throw new Error('[B4L] Service temporarily unavailable. Please contact support@promptreviews.app');
+      } else if (response.status === 401 || response.status === 403) {
         throw new Error('Authentication failed. Please contact support.');
       } else if (response.status === 429) {
         throw new Error('Rate limit exceeded. Please wait a moment and try again.');

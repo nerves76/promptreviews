@@ -199,6 +199,9 @@ async function makeDataForSEORequest(
     if (!response.ok) {
       const errorText = await response.text();
       console.error(`❌ [DataForSEO Backlinks] API error: ${response.status}`, errorText);
+      if (response.status === 402) {
+        throw new Error('[B4L] Service temporarily unavailable. Please contact support@promptreviews.app');
+      }
       throw new Error(`API returned ${response.status}: ${errorText}`);
     }
 
