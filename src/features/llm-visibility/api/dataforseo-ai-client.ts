@@ -35,13 +35,16 @@ const LLM_RESPONSES_ENDPOINTS: Record<Exclude<LLMProvider, 'chatgpt'>, string> =
 
 // Provider-specific request configurations
 // model_name is REQUIRED for all LLM Response APIs
+// web_search MUST be true for Claude/Gemini to return citations
 // See: https://docs.dataforseo.com/v3/ai_optimization/
 const PROVIDER_CONFIGS: Record<Exclude<LLMProvider, 'chatgpt'>, Record<string, any>> = {
   claude: {
     model_name: 'claude-sonnet-4-0', // Latest Claude Sonnet model
+    web_search: true, // Required to get citations
   },
   gemini: {
     model_name: 'gemini-2.0-flash', // Latest Gemini Flash model
+    web_search: true, // Required to get citations
   },
   perplexity: {
     model_name: 'sonar', // Perplexity Sonar model (has web search built-in)
