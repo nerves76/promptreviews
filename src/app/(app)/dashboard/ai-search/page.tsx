@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useMemo, useTransition, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useTransition, useRef, useDeferredValue } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import PageCard, { PageCardHeader } from '@/app/(app)/components/PageCard';
@@ -138,6 +138,17 @@ export default function AISearchPage() {
   // Modal state for run all batch
   const [showRunAllModal, setShowRunAllModal] = useState(false);
 
+  // Track active batch run for progress banner
+  interface BatchStatus {
+    runId: string;
+    status: 'pending' | 'processing' | 'completed' | 'failed';
+    providers: LLMProvider[];
+    totalQuestions: number;
+    processedQuestions: number;
+    progress: number;
+  }
+  const [activeBatchRun, setActiveBatchRun] = useState<BatchStatus | null>(null);
+
   // Modal state for viewing full LLM response
   const [responseModal, setResponseModal] = useState<{
     provider: LLMProvider;
@@ -220,6 +231,12 @@ export default function AISearchPage() {
   // Filter state - initialize from URL if present
   const [filterConcept, setFilterConcept] = useState<string | null>(conceptFromUrl);
   const [filterFunnel, setFilterFunnel] = useState<string | null>(null);
+
+  // Defer filter values for expensive computations (INP optimization)
+  // This keeps the select UI responsive while filtering happens in background
+  const deferredFilterGroup = useDeferredValue(filterGroup);
+  const deferredFilterConcept = useDeferredValue(filterConcept);
+  const deferredFilterFunnel = useDeferredValue(filterFunnel);
 
   // Use transition for non-blocking sort/filter updates (INP optimization)
   const [isPending, startTransition] = useTransition();
@@ -452,6 +469,49 @@ export default function AISearchPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Poll for batch status when there's an active run
+  useEffect(() => {
+    if (!activeBatchRun || !['pending', 'processing'].includes(activeBatchRun.status)) {
+      return;
+    }
+
+    const pollInterval = setInterval(async () => {
+      try {
+        const status = await apiClient.get<BatchStatus>(
+          `/llm-visibility/batch-status?runId=${activeBatchRun.runId}`
+        );
+        setActiveBatchRun(status);
+
+        // If completed or failed, refresh data to show new results
+        if (['completed', 'failed'].includes(status.status)) {
+          clearInterval(pollInterval);
+          fetchData(); // Refresh to show new check results
+        }
+      } catch (err) {
+        console.error('[AISearch] Batch polling error:', err);
+      }
+    }, 3000); // Poll every 3 seconds
+
+    return () => clearInterval(pollInterval);
+  }, [activeBatchRun?.runId, activeBatchRun?.status, fetchData]);
+
+  // Check for active batch run on mount
+  useEffect(() => {
+    const checkActiveBatch = async () => {
+      try {
+        const status = await apiClient.get<BatchStatus>('/llm-visibility/batch-status');
+        if (status && ['pending', 'processing'].includes(status.status)) {
+          setActiveBatchRun(status);
+        }
+      } catch {
+        // No active batch run or error - ignore
+      }
+    };
+    if (selectedAccountId) {
+      checkActiveBatch();
+    }
+  }, [selectedAccountId]);
+
   // Build flattened question rows with results
   const questionRows = useMemo((): QuestionRow[] => {
     const rows: QuestionRow[] = [];
@@ -545,22 +605,22 @@ export default function AISearchPage() {
     return questionRows.filter(r => !r.groupId).length;
   }, [questionRows]);
 
-  // Apply filters and sorting
+  // Apply filters and sorting (uses deferred values for INP optimization)
   const filteredAndSortedRows = useMemo(() => {
     let rows = [...questionRows];
 
-    // Apply filters
-    if (filterConcept) {
-      rows = rows.filter(r => r.conceptName === filterConcept);
+    // Apply filters using deferred values for smoother UI
+    if (deferredFilterConcept) {
+      rows = rows.filter(r => r.conceptName === deferredFilterConcept);
     }
-    if (filterFunnel) {
-      rows = rows.filter(r => r.funnelStage === filterFunnel);
+    if (deferredFilterFunnel) {
+      rows = rows.filter(r => r.funnelStage === deferredFilterFunnel);
     }
-    if (filterGroup) {
-      if (filterGroup === 'ungrouped') {
+    if (deferredFilterGroup) {
+      if (deferredFilterGroup === 'ungrouped') {
         rows = rows.filter(r => !r.groupId);
       } else {
-        rows = rows.filter(r => r.groupId === filterGroup);
+        rows = rows.filter(r => r.groupId === deferredFilterGroup);
       }
     }
 
@@ -591,7 +651,7 @@ export default function AISearchPage() {
     });
 
     return rows;
-  }, [questionRows, filterConcept, filterFunnel, filterGroup, sortField, sortDirection]);
+  }, [questionRows, deferredFilterConcept, deferredFilterFunnel, deferredFilterGroup, sortField, sortDirection]);
 
   // Calculate display stats based on selected providers and optional group filter
   const displayStats = useMemo(() => {
