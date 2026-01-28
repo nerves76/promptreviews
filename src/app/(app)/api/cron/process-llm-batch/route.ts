@@ -11,7 +11,7 @@ import { logCronExecution, verifyCronSecret } from '@/lib/cronLogger';
 import { runLLMChecks, updateSummary } from '@/features/llm-visibility/services/llm-checker';
 import { refundFeature } from '@/lib/credits';
 import { sendNotificationToAccount } from '@/utils/notifications';
-import type { LLMProvider } from '@/features/llm-visibility/utils/types';
+import { LLM_CREDIT_COSTS, type LLMProvider } from '@/features/llm-visibility/utils/types';
 
 // Extend timeout for this route
 export const maxDuration = 300; // 5 minutes
@@ -72,21 +72,26 @@ export async function GET(request: NextRequest) {
           .select('status')
           .eq('batch_run_id', stuckRun.id);
 
-        const providerCount = (stuckRun.providers as LLMProvider[])?.length || 1;
-        let completedCount = 0;
-        let failedCount = 0;
+        const providers = (stuckRun.providers as LLMProvider[]) || [];
+        const creditCostPerQuestion = providers.reduce(
+          (sum, provider) => sum + (LLM_CREDIT_COSTS[provider] || 1),
+          0
+        ) || 1;
+        let completedQuestions = 0;
+        let failedQuestions = 0;
         if (items) {
           for (const item of items) {
             if (item.status === 'completed') {
-              completedCount += providerCount;
+              completedQuestions++;
             } else {
-              failedCount += providerCount;
+              failedQuestions++;
             }
           }
         }
 
-        // Calculate credits used (only completed checks)
-        const creditsUsed = completedCount;
+        // Calculate credits used and to refund
+        const creditsUsed = completedQuestions * creditCostPerQuestion;
+        const failedCredits = failedQuestions * creditCostPerQuestion;
 
         await serviceSupabase
           .from('llm_batch_runs')
@@ -99,30 +104,31 @@ export async function GET(request: NextRequest) {
           .eq('id', stuckRun.id);
 
         // Refund credits for uncompleted checks
-        if (failedCount > 0 && stuckRun.idempotency_key) {
+        if (failedCredits > 0 && stuckRun.idempotency_key) {
           try {
             await refundFeature(
               serviceSupabase,
               stuckRun.account_id,
-              failedCount,
+              failedCredits,
               stuckRun.idempotency_key,
               {
                 featureType: 'llm_visibility',
                 featureMetadata: {
                   batchRunId: stuckRun.id,
-                  failedChecks: failedCount,
+                  failedQuestions: failedQuestions,
+                  failedCredits: failedCredits,
                   reason: 'timeout',
                 },
-                description: `Refund for ${failedCount} uncompleted LLM checks (batch timed out)`,
+                description: `Refund for ${failedQuestions} uncompleted LLM questions (${failedCredits} credits, batch timed out)`,
               }
             );
-            console.log(`💰 [LLMBatch] Refunded ${failedCount} credits for timed out batch ${stuckRun.id}`);
+            console.log(`💰 [LLMBatch] Refunded ${failedCredits} credits for ${failedQuestions} questions in timed out batch ${stuckRun.id}`);
 
             // Send notification about the refund
             await sendNotificationToAccount(stuckRun.account_id, 'credit_refund', {
               feature: 'llm_visibility',
-              creditsRefunded: failedCount,
-              failedChecks: failedCount,
+              creditsRefunded: failedCredits,
+              failedChecks: failedQuestions,
               batchRunId: stuckRun.id,
             });
           } catch (refundError) {
@@ -334,10 +340,13 @@ async function checkAndCompleteBatch(
     const status = failed === items.length ? 'failed' : 'completed';
     const errorMessage = failed > 0 ? `${failed} of ${items.length} questions failed` : null;
 
-    // Calculate credits: each question costs N credits (one per provider)
-    const providerCount = providers?.length || 1;
-    const failedCheckCount = failed * providerCount;
-    const creditsUsed = completed * providerCount;
+    // Calculate credits: each question costs sum of provider credits
+    const creditCostPerQuestion = (providers || []).reduce(
+      (sum, provider) => sum + (LLM_CREDIT_COSTS[provider] || 1),
+      0
+    ) || 1;
+    const failedCredits = failed * creditCostPerQuestion;
+    const creditsUsed = completed * creditCostPerQuestion;
 
     await serviceSupabase
       .from('llm_batch_runs')
@@ -356,29 +365,30 @@ async function checkAndCompleteBatch(
     console.log(`📋 [LLMBatch] Batch ${runId} ${status}: ${completed} completed, ${failed} failed`);
 
     // Refund credits for failed checks
-    if (failedCheckCount > 0 && idempotencyKey) {
+    if (failedCredits > 0 && idempotencyKey) {
       try {
         await refundFeature(
           serviceSupabase,
           accountId,
-          failedCheckCount,
+          failedCredits,
           idempotencyKey,
           {
             featureType: 'llm_visibility',
             featureMetadata: {
               batchRunId: runId,
-              failedChecks: failedCheckCount,
+              failedQuestions: failed,
+              failedCredits: failedCredits,
             },
-            description: `Refund for ${failedCheckCount} failed LLM checks in batch ${runId}`,
+            description: `Refund for ${failed} failed LLM questions (${failedCredits} credits) in batch ${runId}`,
           }
         );
-        console.log(`💰 [LLMBatch] Refunded ${failedCheckCount} credits for failed checks in batch ${runId}`);
+        console.log(`💰 [LLMBatch] Refunded ${failedCredits} credits for ${failed} failed questions in batch ${runId}`);
 
         // Send notification about the refund
         await sendNotificationToAccount(accountId, 'credit_refund', {
           feature: 'llm_visibility',
-          creditsRefunded: failedCheckCount,
-          failedChecks: failedCheckCount,
+          creditsRefunded: failedCredits,
+          failedChecks: failed,
           batchRunId: runId,
         });
       } catch (refundError) {
