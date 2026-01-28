@@ -134,22 +134,22 @@ export default function BatchMonitorPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Batch monitor</h1>
-          <p className="text-gray-600 mt-1">Monitor and manage background batch jobs</p>
+          <h1 className="text-2xl font-bold text-white">Batch monitor</h1>
+          <p className="text-white/80 mt-1">Monitor and manage background batch jobs</p>
         </div>
         <div className="flex items-center gap-4">
-          <label className="flex items-center gap-2 text-sm text-gray-600">
+          <label className="flex items-center gap-2 text-sm text-white">
             <input
               type="checkbox"
               checked={autoRefresh}
               onChange={(e) => setAutoRefresh(e.target.checked)}
-              className="rounded border-gray-300"
+              className="rounded border-white/30"
             />
             Auto-refresh
           </label>
           <button
             onClick={fetchData}
-            className="px-3 py-2 text-sm font-medium text-slate-blue hover:bg-blue-50 rounded-lg transition-colors flex items-center gap-2"
+            className="px-3 py-2 text-sm font-medium text-white hover:bg-white/10 rounded-lg transition-colors flex items-center gap-2"
           >
             <Icon name="FaRedo" className="w-4 h-4" />
             Refresh
