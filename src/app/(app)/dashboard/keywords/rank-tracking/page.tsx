@@ -992,13 +992,33 @@ export default function RankTrackingPage() {
                 <Icon name="FaTags" className="w-4 h-4" />
                 Manage groups
               </button>
-              <button
-                onClick={() => setShowRunAllModal(true)}
-                className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 flex items-center gap-2 transition-colors whitespace-nowrap"
-              >
-                <Icon name="FaRocket" className="w-4 h-4" />
-                Check all
-              </button>
+              {(() => {
+                const isBatchRunning = !!(activeBatchRun && ['pending', 'processing'].includes(activeBatchRun.status));
+                return (
+                  <button
+                    onClick={() => setShowRunAllModal(true)}
+                    disabled={isBatchRunning}
+                    className={`px-4 py-2 text-sm font-medium rounded-lg flex items-center gap-2 transition-colors whitespace-nowrap ${
+                      isBatchRunning
+                        ? 'bg-gray-400 text-white cursor-not-allowed'
+                        : 'text-white bg-green-600 hover:bg-green-700'
+                    }`}
+                    title={isBatchRunning ? 'Batch check already in progress' : 'Run rank checks on all keywords'}
+                  >
+                    {isBatchRunning ? (
+                      <>
+                        <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
+                        {activeBatchRun.progress}% complete
+                      </>
+                    ) : (
+                      <>
+                        <Icon name="FaRocket" className="w-4 h-4" />
+                        Check all
+                      </>
+                    )}
+                  </button>
+                );
+              })()}
               <button
                 onClick={() => setShowAddModal(true)}
                 className="px-4 py-2 text-sm font-medium text-white bg-slate-blue rounded-lg hover:bg-slate-blue/90 flex items-center gap-2 transition-colors"

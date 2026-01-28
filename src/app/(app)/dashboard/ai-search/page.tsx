@@ -1405,16 +1405,33 @@ export default function AISearchPage() {
           description="Track whether LLM chatbots cite your domain or mention your brand when answering questions."
           actions={
             <div className="flex items-center gap-2 flex-wrap justify-end">
-              {keywords.length > 0 && (
-                <button
-                  onClick={() => setShowRunAllModal(true)}
-                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors whitespace-nowrap"
-                  title="Run LLM visibility checks on all questions"
-                >
-                  <PromptyIcon className="w-4 h-4" />
-                  Check all
-                </button>
-              )}
+              {keywords.length > 0 && (() => {
+                const isBatchRunning = !!(activeBatchRun && ['pending', 'processing'].includes(activeBatchRun.status));
+                return (
+                  <button
+                    onClick={() => setShowRunAllModal(true)}
+                    disabled={isBatchRunning}
+                    className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${
+                      isBatchRunning
+                        ? 'bg-gray-400 text-white cursor-not-allowed'
+                        : 'text-white bg-green-600 hover:bg-green-700'
+                    }`}
+                    title={isBatchRunning ? 'Batch check already in progress' : 'Run LLM visibility checks on all questions'}
+                  >
+                    {isBatchRunning ? (
+                      <>
+                        <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
+                        {activeBatchRun.progress}% complete
+                      </>
+                    ) : (
+                      <>
+                        <PromptyIcon className="w-4 h-4" />
+                        Check all
+                      </>
+                    )}
+                  </button>
+                );
+              })()}
               {allResults.length > 0 && (
                 <button
                   onClick={async () => {
