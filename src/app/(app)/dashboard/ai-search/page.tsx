@@ -1463,35 +1463,48 @@ export default function AISearchPage() {
 
                 // Handle retry from history dropdown
                 const handleRetryFromHistory = async (runId: string) => {
-                  const response = await apiClient.post<{
-                    success: boolean;
-                    runId: string;
-                    totalQuestions: number;
-                    providers: LLMProvider[];
-                    estimatedCredits: number;
-                    error?: string;
-                  }>('/llm-visibility/batch-run', {
-                    providers: ['chatgpt', 'claude', 'gemini', 'perplexity'], // Default to all providers
-                    retryFailedFromRunId: runId,
-                  });
-
-                  if (response.success) {
-                    setShowCompletedBanner(false);
-                    setActiveBatchRun({
-                      runId: response.runId,
-                      status: 'pending',
-                      providers: response.providers,
-                      totalQuestions: response.totalQuestions,
-                      processedQuestions: 0,
-                      successfulChecks: 0,
-                      failedChecks: 0,
-                      progress: 0,
-                      creditsRefunded: 0,
-                      errorMessage: null,
+                  try {
+                    const response = await apiClient.post<{
+                      success: boolean;
+                      runId: string;
+                      totalQuestions: number;
+                      providers: LLMProvider[];
+                      estimatedCredits: number;
+                      error?: string;
+                    }>('/llm-visibility/batch-run', {
+                      providers: ['chatgpt', 'claude', 'gemini', 'perplexity'], // Default to all providers
+                      retryFailedFromRunId: runId,
                     });
-                    showSuccess(`Retrying ${response.totalQuestions} failed checks...`);
-                  } else {
-                    throw new Error(response.error || 'Failed to start retry');
+
+                    if (response.success) {
+                      setShowCompletedBanner(false);
+                      setActiveBatchRun({
+                        runId: response.runId,
+                        status: 'pending',
+                        providers: response.providers,
+                        totalQuestions: response.totalQuestions,
+                        processedQuestions: 0,
+                        successfulChecks: 0,
+                        failedChecks: 0,
+                        progress: 0,
+                        creditsRefunded: 0,
+                        errorMessage: null,
+                      });
+                      showSuccess(`Retrying ${response.totalQuestions} failed checks...`);
+                    } else {
+                      showError(response.error || 'Failed to start retry');
+                    }
+                  } catch (err: unknown) {
+                    let errorMessage = 'Failed to retry failed checks';
+                    if (err instanceof Error) {
+                      const errAny = err as { responseBody?: { required?: number; available?: number } };
+                      if (errAny.responseBody?.required !== undefined && errAny.responseBody?.available !== undefined) {
+                        errorMessage = `Insufficient credits: need ${errAny.responseBody.required}, have ${errAny.responseBody.available}`;
+                      } else {
+                        errorMessage = err.message;
+                      }
+                    }
+                    showError(errorMessage);
                   }
                 };
 
@@ -1651,7 +1664,17 @@ export default function AISearchPage() {
                 showError(response.error || 'Failed to start retry');
               }
             } catch (err: unknown) {
-              const errorMessage = err instanceof Error ? err.message : 'Failed to retry failed checks';
+              // Parse error to get better message for insufficient credits
+              let errorMessage = 'Failed to retry failed checks';
+              if (err instanceof Error) {
+                const errAny = err as { responseBody?: { required?: number; available?: number; error?: string } };
+                // Check if this is an insufficient credits error with details
+                if (errAny.responseBody?.required !== undefined && errAny.responseBody?.available !== undefined) {
+                  errorMessage = `Insufficient credits: need ${errAny.responseBody.required}, have ${errAny.responseBody.available}`;
+                } else {
+                  errorMessage = err.message;
+                }
+              }
               showError(errorMessage);
             } finally {
               setIsRetryingFailed(false);
