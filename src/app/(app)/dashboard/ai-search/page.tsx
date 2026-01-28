@@ -2016,7 +2016,7 @@ export default function AISearchPage() {
                                   <td className="py-3 px-2 text-center">
                                     {providerInBatch ? (
                                       <span className="text-blue-400" title="Check pending...">
-                                        <Icon name="FaClock" className="w-3.5 h-3.5 animate-pulse" />
+                                        <Icon name="FaClock" className="w-3.5 h-3.5" />
                                       </span>
                                     ) : (
                                       <span className="text-gray-300" title="Not checked">—</span>

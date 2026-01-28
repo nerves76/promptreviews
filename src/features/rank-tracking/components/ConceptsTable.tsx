@@ -802,7 +802,7 @@ export default function ConceptsTable({
                   </div>
                 ) : activeBatchRun && ['pending', 'processing'].includes(activeBatchRun.status) ? (
                   <span className="text-blue-400" title="Check pending...">
-                    <Icon name="FaClock" className="w-3.5 h-3.5 animate-pulse" />
+                    <Icon name="FaClock" className="w-3.5 h-3.5" />
                   </span>
                 ) : (
                   <span className="text-gray-500 text-xs">—</span>
