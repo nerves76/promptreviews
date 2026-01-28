@@ -251,9 +251,9 @@ export default function RunAllRankModal({
       />
 
       {/* Modal */}
-      <div className="relative bg-white rounded-xl shadow-xl max-w-md w-full mx-4 overflow-hidden">
+      <div className="relative bg-white rounded-xl shadow-xl max-w-md w-full mx-4 overflow-hidden flex flex-col max-h-[calc(100vh-4rem)]">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-100">
+        <div className="px-6 py-4 border-b border-gray-100 flex-shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Icon name="FaChartLine" className="w-5 h-5 text-slate-blue" />
@@ -275,7 +275,7 @@ export default function RunAllRankModal({
         </div>
 
         {/* Content */}
-        <div className="px-6 py-4 space-y-4">
+        <div className="px-6 py-4 space-y-4 flex-1 overflow-y-auto min-h-0">
           {isLoadingPreview ? (
             <div className="flex items-center justify-center py-8">
               <Icon name="FaSpinner" className="w-6 h-6 text-slate-blue animate-spin" />
@@ -534,7 +534,7 @@ export default function RunAllRankModal({
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
+        <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3 flex-shrink-0">
           <button
             onClick={onClose}
             className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"
