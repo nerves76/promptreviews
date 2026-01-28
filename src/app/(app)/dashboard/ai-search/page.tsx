@@ -532,16 +532,31 @@ export default function AISearchPage() {
     return () => clearInterval(pollInterval);
   }, [activeBatchRun?.runId, activeBatchRun?.status, fetchData, showSuccess, showError]);
 
-  // Check for active batch run on mount
+  // Check for active or recently completed batch run on mount
   useEffect(() => {
     const checkActiveBatch = async () => {
       try {
         const status = await apiClient.get<BatchStatus>('/llm-visibility/batch-status');
-        if (status && ['pending', 'processing'].includes(status.status)) {
+        if (!status) return;
+
+        if (['pending', 'processing'].includes(status.status)) {
+          // Active run - show progress banner
           setActiveBatchRun(status);
+        } else if (['completed', 'failed'].includes(status.status)) {
+          // Check if this run completed recently (within last 2 hours) and has failures
+          // Show the banner so user can see results and retry if needed
+          const completedAt = (status as BatchStatus & { completedAt?: string }).completedAt;
+          const twoHoursAgo = Date.now() - 2 * 60 * 60 * 1000;
+          const isRecent = completedAt && new Date(completedAt).getTime() > twoHoursAgo;
+          const hasFailures = (status.failedChecks || 0) > 0;
+
+          if (isRecent && hasFailures) {
+            setActiveBatchRun(status);
+            setShowCompletedBanner(true);
+          }
         }
       } catch {
-        // No active batch run or error - ignore
+        // No batch run or error - ignore
       }
     };
     if (selectedAccountId) {
