@@ -142,27 +142,27 @@ export async function GET(request: NextRequest) {
       const keywordPhrase = keywordPhraseMap.get(check.keyword_id) || '';
       const provider = check.llm_provider?.toLowerCase() || '';
 
-      // Format citations as a summary string: domain1 (pos 1), domain2 (pos 2)
+      // Format citations as a summary string with clear separators
       let citationsSummary = '';
       if (check.citations && Array.isArray(check.citations)) {
         citationsSummary = check.citations
-          .map((c: any) => `${c.domain}${c.isOurs ? ' [OURS]' : ''} (pos ${c.position})`)
-          .join('; ');
+          .map((c: any) => `#${c.position} ${c.domain}${c.isOurs ? ' [OURS]' : ''}`)
+          .join(' | ');
       }
 
-      // Format search results as a summary: domain1, domain2, domain3 [OURS], ...
+      // Format search results as a summary with clear separators
       let searchResultsSummary = '';
       let searchResultsCount = 0;
       if (check.search_results && Array.isArray(check.search_results)) {
         searchResultsCount = check.search_results.length;
         searchResultsSummary = check.search_results
-          .map((sr: any) => `${sr.domain}${sr.isOurs ? ' [OURS]' : ''}`)
-          .join('; ');
+          .map((sr: any, i: number) => `${i + 1}. ${sr.domain}${sr.isOurs ? ' [OURS]' : ''}`)
+          .join(' | ');
       }
 
-      // Format fan-out queries as semicolon-separated
+      // Format fan-out queries with numbering and clear separators
       const fanOutQueriesStr = check.fan_out_queries && Array.isArray(check.fan_out_queries)
-        ? check.fan_out_queries.join('; ')
+        ? check.fan_out_queries.map((q: string, i: number) => `${i + 1}. ${q}`).join(' | ')
         : '';
 
       // Add data note explaining what data is available for this provider
