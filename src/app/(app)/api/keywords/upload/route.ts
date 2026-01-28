@@ -468,7 +468,6 @@ export async function POST(request: NextRequest) {
 
       if (keyword.related_questions && keyword.related_questions.length > 0 && insertedKeyword) {
         const questionInserts = keyword.related_questions.map((q: any) => ({
-          account_id: accountId,
           keyword_id: insertedKeyword.id,
           question: q.question,
           funnel_stage: q.funnel_stage,
@@ -480,7 +479,9 @@ export async function POST(request: NextRequest) {
           .from('keyword_questions')
           .insert(questionInserts);
 
-        if (!questionsError) {
+        if (questionsError) {
+          console.error('[Keywords Upload] Failed to insert questions:', questionsError);
+        } else {
           questionsCreated += questionInserts.length;
         }
       }
