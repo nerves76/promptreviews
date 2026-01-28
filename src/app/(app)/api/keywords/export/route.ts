@@ -139,7 +139,7 @@ export async function GET(request: NextRequest) {
       'search_terms',
       'ai_questions',
       'funnel_stages',
-      'ai_question_groups',
+      'llm_group',
       'rank_tracking_group',
       'status',
       'review_usage_count',

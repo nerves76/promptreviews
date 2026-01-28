@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
       location_scope: ['locationscope', 'scope'],
       ai_questions: ['aiquestions', 'relatedquestions', 'questions'],
       funnel_stages: ['funnelstages', 'stages'],
-      ai_question_groups: ['aiquestiongroups', 'questiongroups', 'llmgroups'],
+      ai_question_groups: ['aiquestiongroups', 'questiongroups', 'llmgroups', 'llmgroup'],
       keyword_group: ['conceptgroup', 'keywordgroup', 'group'],
       rank_tracking_group: ['ranktrackinggroup', 'rankgroup'],
     };
@@ -565,7 +565,7 @@ export async function GET(request: NextRequest) {
     'search_terms',
     'ai_questions',
     'funnel_stages',
-    'ai_question_groups',
+    'llm_group',
     'rank_tracking_group',
   ];
 
