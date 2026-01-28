@@ -465,13 +465,42 @@ export function transformKeywordQuestionRows(
     return [];
   }
 
-  return rows.map((row) => ({
-    id: row.id,
-    question: row.question,
-    funnelStage: row.funnel_stage || 'middle',
-    addedAt: row.added_at || row.created_at || new Date().toISOString(),
-    groupId: row.group_id || null,
-  }));
+  return rows.map((row) => {
+    // Handle edge case where question column contains stringified JSON
+    let questionText = row.question;
+    let funnelStage = row.funnel_stage || 'middle';
+    let addedAt = row.added_at || row.created_at || new Date().toISOString();
+    let groupId = row.group_id || null;
+
+    if (questionText && questionText.startsWith('{') && questionText.includes('"question"')) {
+      try {
+        const parsed = JSON.parse(questionText);
+        if (parsed && typeof parsed.question === 'string') {
+          questionText = parsed.question;
+          // Also extract other fields if present in the stringified JSON
+          if (parsed.funnelStage || parsed.funnel_stage) {
+            funnelStage = (parsed.funnelStage || parsed.funnel_stage) as FunnelStage;
+          }
+          if (parsed.addedAt || parsed.added_at) {
+            addedAt = parsed.addedAt || parsed.added_at;
+          }
+          if (parsed.groupId || parsed.group_id) {
+            groupId = parsed.groupId || parsed.group_id;
+          }
+        }
+      } catch {
+        // Not valid JSON, use as-is
+      }
+    }
+
+    return {
+      id: row.id,
+      question: questionText,
+      funnelStage,
+      addedAt,
+      groupId,
+    };
+  });
 }
 
 /**

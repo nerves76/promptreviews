@@ -315,6 +315,22 @@ export default function AISearchPage() {
           phrase: k.phrase,
           relatedQuestions: (k.relatedQuestions || []).map((q) => {
             if (typeof q === 'string') {
+              // Handle edge case: stringified JSON objects
+              if (q.startsWith('{') && q.includes('"question"')) {
+                try {
+                  const parsed = JSON.parse(q);
+                  if (parsed && typeof parsed.question === 'string') {
+                    return {
+                      id: `${k.id}-${parsed.question}`,
+                      question: parsed.question,
+                      funnelStage: (parsed.funnelStage || parsed.funnel_stage || 'top') as 'top' | 'middle' | 'bottom',
+                      groupId: parsed.groupId || parsed.group_id || null,
+                    };
+                  }
+                } catch {
+                  // Not valid JSON, use as plain string
+                }
+              }
               // Use question text in composite ID so bulk-move API can extract it
               return { id: `${k.id}-${q}`, question: q, funnelStage: 'top' as const, groupId: null };
             }
