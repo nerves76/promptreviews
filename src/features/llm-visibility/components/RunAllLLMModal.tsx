@@ -281,7 +281,7 @@ export default function RunAllLLMModal({
       onClose={onClose}
       size="md"
       showCloseButton={true}
-      className="!p-0 flex flex-col max-h-[85vh]"
+      className="!p-0 flex flex-col max-h-[calc(100vh-6rem)]"
     >
       {/* Header */}
       <div className="px-6 py-4 border-b border-gray-100 pr-14 flex-shrink-0">
