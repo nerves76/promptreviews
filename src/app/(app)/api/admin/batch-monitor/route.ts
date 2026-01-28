@@ -50,14 +50,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Check if user is admin
-    const { data: profile } = await serviceSupabase
-      .from('profiles')
+    // Check if user is admin (using accounts table, same as isAdmin utility)
+    const { data: account } = await serviceSupabase
+      .from('accounts')
       .select('is_admin')
       .eq('id', user.id)
-      .single();
+      .maybeSingle();
 
-    if (!profile?.is_admin) {
+    if (!account?.is_admin) {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
     }
 
@@ -315,13 +315,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { data: profile } = await serviceSupabase
-      .from('profiles')
+    const { data: account } = await serviceSupabase
+      .from('accounts')
       .select('is_admin')
       .eq('id', user.id)
-      .single();
+      .maybeSingle();
 
-    if (!profile?.is_admin) {
+    if (!account?.is_admin) {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
     }
 
