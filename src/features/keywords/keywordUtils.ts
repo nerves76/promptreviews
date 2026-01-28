@@ -343,8 +343,39 @@ interface DbRelatedQuestion {
 }
 
 /**
+ * Extract the question text from a related question item.
+ * Handles both object format and string format, including edge case where
+ * JSON objects were accidentally stringified (data corruption).
+ */
+export function extractQuestionText(q: { question: string } | string | unknown): string | null {
+  if (!q) return null;
+
+  if (typeof q === 'string') {
+    // Check if this string is a stringified JSON object (data corruption edge case)
+    if (q.startsWith('{') && q.includes('"question"')) {
+      try {
+        const parsed = JSON.parse(q);
+        if (parsed && typeof parsed.question === 'string') {
+          return parsed.question;
+        }
+      } catch {
+        // Not valid JSON, use as-is
+      }
+    }
+    return q;
+  }
+
+  if (typeof q === 'object' && q !== null && 'question' in q) {
+    return (q as { question: string }).question;
+  }
+
+  return null;
+}
+
+/**
  * Transform database related_questions to API format.
  * Handles both old string[] format and new object[] format for backward compatibility.
+ * Also handles edge case where JSON objects were accidentally stringified.
  */
 export function transformRelatedQuestions(
   dbQuestions: DbRelatedQuestion[] | string[] | null | undefined
@@ -356,12 +387,32 @@ export function transformRelatedQuestions(
   // Check if it's the old string[] format
   if (dbQuestions.length > 0 && typeof dbQuestions[0] === 'string') {
     // Convert old format to new format with default 'middle' funnel stage
-    return (dbQuestions as string[]).map((q) => ({
-      question: q,
-      funnelStage: 'middle' as FunnelStage,
-      addedAt: new Date().toISOString(),
-      groupId: null, // Explicitly set for consistency with normalized table
-    }));
+    return (dbQuestions as string[]).map((q) => {
+      // Check if this string is actually a stringified JSON object
+      // (edge case: JSON objects were accidentally double-serialized)
+      if (q.startsWith('{') && q.includes('"question"')) {
+        try {
+          const parsed = JSON.parse(q);
+          if (parsed && typeof parsed.question === 'string') {
+            return {
+              question: parsed.question,
+              funnelStage: (parsed.funnelStage || parsed.funnel_stage || 'middle') as FunnelStage,
+              addedAt: parsed.addedAt || parsed.added_at || new Date().toISOString(),
+              groupId: parsed.groupId || parsed.group_id || null,
+            };
+          }
+        } catch {
+          // Not valid JSON, treat as plain string
+        }
+      }
+      // Plain string question
+      return {
+        question: q,
+        funnelStage: 'middle' as FunnelStage,
+        addedAt: new Date().toISOString(),
+        groupId: null,
+      };
+    });
   }
 
   // New format - already objects

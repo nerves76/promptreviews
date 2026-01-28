@@ -21,6 +21,7 @@ import {
   LLM_CREDIT_COSTS,
 } from '@/features/llm-visibility/utils/types';
 import { calculateLLMCheckCost } from '@/features/llm-visibility/services/credits';
+import { extractQuestionText } from '@/features/keywords/keywordUtils';
 
 // Service client for privileged operations
 const serviceSupabase = createClient(
@@ -120,7 +121,7 @@ export async function POST(request: NextRequest) {
     for (const keyword of keywords || []) {
       const relatedQuestions = keyword.related_questions || [];
       relatedQuestions.forEach((q: { question: string } | string, index: number) => {
-        const questionText = typeof q === 'string' ? q : q.question;
+        const questionText = extractQuestionText(q);
         if (questionText) {
           allQuestions.push({
             keywordId: keyword.id,
@@ -324,7 +325,7 @@ export async function GET(request: NextRequest) {
     for (const keyword of keywords || []) {
       const relatedQuestions = keyword.related_questions || [];
       totalQuestions += relatedQuestions.filter((q: { question: string } | string) => {
-        const questionText = typeof q === 'string' ? q : q.question;
+        const questionText = extractQuestionText(q);
         return !!questionText;
       }).length;
     }

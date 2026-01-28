@@ -14,6 +14,7 @@ import { runLLMChecks } from '@/features/llm-visibility/services/llm-checker';
 import { runRankChecks } from '@/features/geo-grid/services/rank-checker';
 import { transformConfigToResponse } from '@/features/geo-grid/utils/transforms';
 import type { LLMProvider } from '@/features/llm-visibility/utils/types';
+import { extractQuestionText } from '@/features/keywords/keywordUtils';
 
 // Extend timeout for this route
 export const maxDuration = 300; // 5 minutes
@@ -156,8 +157,10 @@ export async function GET(request: NextRequest) {
       await updateCheckStatus(run.id, 'llm_visibility_status', 'processing');
 
       try {
-        const questions: Array<{ question: string }> = keyword.related_questions || [];
-        const questionStrings = questions.map(q => typeof q === 'string' ? q : q.question);
+        const questions: Array<{ question: string } | string> = keyword.related_questions || [];
+        const questionStrings = questions
+          .map(q => extractQuestionText(q))
+          .filter((q): q is string => q !== null);
         const providers = (run.llm_providers || ['chatgpt']) as LLMProvider[];
 
         if (questionStrings.length > 0 && providers.length > 0) {

@@ -33,6 +33,7 @@ import {
   ensureBalanceExists,
 } from '@/lib/credits';
 import { sendNotificationToAccount } from '@/utils/notifications';
+import { extractQuestionText } from '@/features/keywords/keywordUtils';
 
 export async function GET(request: NextRequest) {
   const authError = verifyCronSecret(request);
@@ -117,9 +118,9 @@ export async function GET(request: NextRequest) {
 
         // Extract question strings from related_questions (JSONB with { question, funnelStage, addedAt })
         const relatedQuestions = keyword.related_questions || [];
-        const questions: string[] = relatedQuestions.map((q: { question: string } | string) =>
-          typeof q === 'string' ? q : q.question
-        ).filter(Boolean);
+        const questions: string[] = relatedQuestions
+          .map((q: { question: string } | string) => extractQuestionText(q))
+          .filter((q: string | null): q is string => q !== null);
 
         if (questions.length === 0) {
           console.log(`⏭️ [Scheduled LLMChecks] Keyword ${keywordId} has no questions, skipping`);

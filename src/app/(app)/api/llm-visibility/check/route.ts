@@ -16,6 +16,7 @@ import {
 } from '@/features/llm-visibility/utils/types';
 import { calculateLLMCheckCost } from '@/features/llm-visibility/services/credits';
 import { runLLMChecks, getSummary } from '@/features/llm-visibility/services/llm-checker';
+import { extractQuestionText } from '@/features/keywords/keywordUtils';
 
 // Service client for privileged operations
 const serviceSupabase = createClient(
@@ -100,9 +101,9 @@ export async function POST(request: NextRequest) {
 
     // Extract question strings from related_questions (which is now JSONB with { question, funnelStage, addedAt })
     const relatedQuestions = keyword.related_questions || [];
-    const questions: string[] = relatedQuestions.map((q: { question: string } | string) =>
-      typeof q === 'string' ? q : q.question
-    ).filter(Boolean);
+    const questions: string[] = relatedQuestions
+      .map((q: { question: string } | string) => extractQuestionText(q))
+      .filter((q: string | null): q is string => q !== null);
 
     if (questions.length === 0) {
       return NextResponse.json(
