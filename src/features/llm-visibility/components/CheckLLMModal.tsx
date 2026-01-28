@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useTransition } from 'react';
 import Icon from '@/components/Icon';
 import { apiClient } from '@/utils/apiClient';
 import { Modal } from '@/app/(app)/components/ui/modal';
@@ -36,6 +36,7 @@ export default function CheckLLMModal({
   const [isChecking, setIsChecking] = useState(false);
   const [results, setResults] = useState<LLMCheckResult[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [, startTransition] = useTransition();
 
   const totalCredits = selectedProviders.reduce((sum, p) => sum + LLM_CREDIT_COSTS[p], 0);
 
@@ -116,8 +117,11 @@ export default function CheckLLMModal({
   };
 
   const handleClose = () => {
-    setResults(null);
-    setError(null);
+    // Use startTransition to defer state updates and improve INP
+    startTransition(() => {
+      setResults(null);
+      setError(null);
+    });
     onClose();
   };
 
