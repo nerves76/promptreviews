@@ -1066,6 +1066,7 @@ export default function RankTrackingPage() {
           checkingVolumeKeyword={checkingVolumeKeyword}
           selectedTermKeys={selectedTermKeys}
           onToggleTermSelection={toggleTermSelection}
+          activeBatchRun={activeBatchRun}
         />
       </PageCard>
 

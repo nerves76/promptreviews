@@ -104,6 +104,15 @@ interface RankHistorySummary {
   topCompetitors: CompetitorData[] | null;
 }
 
+/** Batch run status for showing pending indicators */
+interface BatchRunStatus {
+  runId: string;
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  totalKeywords: number;
+  processedKeywords: number;
+  progress: number;
+}
+
 interface ConceptsTableProps {
   concepts: KeywordData[];
   volumeData?: Map<string, VolumeData>;
@@ -123,6 +132,8 @@ interface ConceptsTableProps {
   selectedTermKeys?: Set<string>;
   /** Callback when a term's selection is toggled */
   onToggleTermSelection?: (keywordId: string, term: string) => void;
+  /** Active batch run for showing pending indicators */
+  activeBatchRun?: BatchRunStatus | null;
 }
 
 /** Each row represents a single keyword (search term) */
@@ -295,6 +306,7 @@ export default function ConceptsTable({
   checkingVolumeKeyword,
   selectedTermKeys,
   onToggleTermSelection,
+  activeBatchRun,
 }: ConceptsTableProps) {
   const router = useRouter();
   const [sortField, setSortField] = useState<SortField>('keyword');
@@ -788,6 +800,10 @@ export default function ConceptsTable({
                       </span>
                     )}
                   </div>
+                ) : activeBatchRun && ['pending', 'processing'].includes(activeBatchRun.status) ? (
+                  <span className="text-blue-400" title="Check pending...">
+                    <Icon name="FaClock" className="w-3.5 h-3.5 animate-pulse" />
+                  </span>
                 ) : (
                   <span className="text-gray-500 text-xs">—</span>
                 )}
