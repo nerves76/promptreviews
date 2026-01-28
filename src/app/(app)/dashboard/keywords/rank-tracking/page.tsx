@@ -953,29 +953,34 @@ export default function RankTrackingPage() {
         />
 
         {/* Batch Run Progress Banner */}
-        {activeBatchRun && ['pending', 'processing'].includes(activeBatchRun.status) && (
-          <div className="mb-4 p-4 rounded-lg bg-blue-50 border border-blue-200">
-            <div className="flex items-center gap-3">
-              <Icon name="FaSpinner" className="w-5 h-5 text-slate-blue animate-spin" />
-              <div className="flex-1">
-                <p className="text-sm font-medium text-slate-blue">
-                  {activeBatchRun.status === 'pending' ? 'Batch queued' : 'Checking rankings'}...
-                </p>
-                <p className="text-xs text-slate-blue/70">
-                  {activeBatchRun.processedKeywords} of {activeBatchRun.totalKeywords} keywords ({activeBatchRun.progress}%)
-                </p>
-              </div>
-              <div className="w-32">
-                <div className="w-full bg-blue-200 rounded-full h-2">
-                  <div
-                    className="bg-slate-blue h-2 rounded-full transition-all duration-300"
-                    style={{ width: `${activeBatchRun.progress}%` }}
-                  />
+        {activeBatchRun && ['pending', 'processing'].includes(activeBatchRun.status) && (() => {
+          const remaining = activeBatchRun.totalKeywords - activeBatchRun.processedKeywords;
+          const estimatedMinutes = Math.ceil(remaining / 15); // ~15 keywords per minute
+          return (
+            <div className="mb-4 p-4 rounded-lg bg-blue-50 border border-blue-200">
+              <div className="flex items-center gap-3">
+                <Icon name="FaSpinner" className="w-5 h-5 text-slate-blue animate-spin" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-slate-blue">
+                    {activeBatchRun.status === 'pending' ? 'Batch queued' : 'Checking rankings'}...
+                  </p>
+                  <p className="text-xs text-slate-blue/70">
+                    {activeBatchRun.processedKeywords} of {activeBatchRun.totalKeywords} keywords
+                    {estimatedMinutes > 0 && ` · ~${estimatedMinutes} min remaining`}
+                  </p>
+                </div>
+                <div className="w-32">
+                  <div className="w-full bg-blue-200 rounded-full h-2">
+                    <div
+                      className="bg-slate-blue h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${activeBatchRun.progress}%` }}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
 
         {/* Keywords Table */}
         <ConceptsTable

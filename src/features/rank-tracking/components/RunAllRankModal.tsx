@@ -300,34 +300,41 @@ export default function RunAllRankModal({
             </div>
           ) : isRunning ? (
             /* Running state */
-            <div className="space-y-4">
-              <div className="p-4 rounded-lg bg-blue-50 border border-blue-200">
-                <div className="flex items-center gap-3 mb-3">
-                  <Icon name="FaSpinner" className="w-5 h-5 text-slate-blue animate-spin" />
-                  <div>
-                    <p className="text-sm font-medium text-slate-blue">
-                      {batchStatus?.status === 'pending' ? 'Queued' : 'Processing'}...
-                    </p>
-                    <p className="text-xs text-slate-blue/70">
-                      {batchStatus?.processedKeywords || 0} of {batchStatus?.totalKeywords || 0} keywords
+            (() => {
+              const remaining = (batchStatus?.totalKeywords || 0) - (batchStatus?.processedKeywords || 0);
+              const estimatedMinutes = Math.ceil(remaining / 15); // ~15 keywords per minute
+              return (
+                <div className="space-y-4">
+                  <div className="p-4 rounded-lg bg-blue-50 border border-blue-200">
+                    <div className="flex items-center gap-3 mb-3">
+                      <Icon name="FaSpinner" className="w-5 h-5 text-slate-blue animate-spin" />
+                      <div>
+                        <p className="text-sm font-medium text-slate-blue">
+                          {batchStatus?.status === 'pending' ? 'Queued' : 'Processing'}...
+                        </p>
+                        <p className="text-xs text-slate-blue/70">
+                          {batchStatus?.processedKeywords || 0} of {batchStatus?.totalKeywords || 0} keywords
+                          {estimatedMinutes > 0 && ` · ~${estimatedMinutes} min remaining`}
+                        </p>
+                      </div>
+                    </div>
+                    {/* Progress bar */}
+                    <div className="w-full bg-blue-200 rounded-full h-2">
+                      <div
+                        className="bg-slate-blue h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${batchStatus?.progress || 0}%` }}
+                      />
+                    </div>
+                    <p className="text-xs text-center text-slate-blue/70 mt-2">
+                      {batchStatus?.progress || 0}% complete
                     </p>
                   </div>
+                  <p className="text-xs text-gray-500 text-center">
+                    You can close this modal. Checks will continue in the background.
+                  </p>
                 </div>
-                {/* Progress bar */}
-                <div className="w-full bg-blue-200 rounded-full h-2">
-                  <div
-                    className="bg-slate-blue h-2 rounded-full transition-all duration-300"
-                    style={{ width: `${batchStatus?.progress || 0}%` }}
-                  />
-                </div>
-                <p className="text-xs text-center text-slate-blue/70 mt-2">
-                  {batchStatus?.progress || 0}% complete
-                </p>
-              </div>
-              <p className="text-xs text-gray-500 text-center">
-                You can close this modal. Checks will continue in the background.
-              </p>
-            </div>
+              );
+            })()
           ) : isComplete ? (
             /* Completed state */
             <div className="space-y-4">
