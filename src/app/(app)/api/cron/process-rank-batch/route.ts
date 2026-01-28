@@ -51,25 +51,76 @@ export async function GET(request: NextRequest) {
   if (authError) return authError;
 
   return logCronExecution('process-rank-batch', async () => {
-    // First, clean up any stuck runs (processing for > 15 minutes)
-    const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString();
+    // First, clean up any stuck runs (processing for > 60 minutes)
+    // With ~15 keywords/minute, a 500 keyword batch takes ~33 minutes
+    const sixtyMinutesAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
     const { data: stuckRuns } = await serviceSupabase
       .from('rank_batch_runs')
-      .select('id')
+      .select('id, account_id, idempotency_key, estimated_credits, processed_keywords, total_keywords')
       .eq('status', 'processing')
-      .lt('started_at', fifteenMinutesAgo);
+      .lt('started_at', sixtyMinutesAgo);
 
     if (stuckRuns && stuckRuns.length > 0) {
       console.log(`📋 [RankBatch] Found ${stuckRuns.length} stuck runs, marking as failed`);
       for (const stuckRun of stuckRuns) {
+        // Count how many checks were NOT completed (each keyword = 2 checks)
+        const { data: items } = await serviceSupabase
+          .from('rank_batch_run_items')
+          .select('desktop_status, mobile_status')
+          .eq('batch_run_id', stuckRun.id);
+
+        let failedCheckCount = 0;
+        let completedCheckCount = 0;
+        if (items) {
+          for (const item of items) {
+            if (item.desktop_status === 'completed') completedCheckCount++;
+            else failedCheckCount++;
+            if (item.mobile_status === 'completed') completedCheckCount++;
+            else failedCheckCount++;
+          }
+        }
+
         await serviceSupabase
           .from('rank_batch_runs')
           .update({
             status: 'failed',
-            error_message: 'Run timed out after 15 minutes',
+            error_message: 'Run timed out after 60 minutes',
             completed_at: new Date().toISOString(),
+            total_credits_used: completedCheckCount,
           })
           .eq('id', stuckRun.id);
+
+        // Refund credits for uncompleted checks
+        if (failedCheckCount > 0 && stuckRun.idempotency_key) {
+          try {
+            await refundFeature(
+              serviceSupabase,
+              stuckRun.account_id,
+              failedCheckCount,
+              stuckRun.idempotency_key,
+              {
+                featureType: 'rank_tracking',
+                featureMetadata: {
+                  batchRunId: stuckRun.id,
+                  failedChecks: failedCheckCount,
+                  reason: 'timeout',
+                },
+                description: `Refund for ${failedCheckCount} uncompleted rank checks (batch timed out)`,
+              }
+            );
+            console.log(`💰 [RankBatch] Refunded ${failedCheckCount} credits for timed out batch ${stuckRun.id}`);
+
+            // Send notification about the refund
+            await sendNotificationToAccount(stuckRun.account_id, 'credit_refund', {
+              feature: 'rank_tracking',
+              creditsRefunded: failedCheckCount,
+              failedChecks: failedCheckCount,
+              batchRunId: stuckRun.id,
+            });
+          } catch (refundError) {
+            console.error(`❌ [RankBatch] Failed to refund credits for timed out batch ${stuckRun.id}:`, refundError);
+          }
+        }
       }
     }
 
