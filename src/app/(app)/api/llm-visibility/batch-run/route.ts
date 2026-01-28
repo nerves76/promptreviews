@@ -32,6 +32,7 @@ const serviceSupabase = createClient(
 interface BatchRunRequest {
   providers: LLMProvider[];
   scheduledFor?: string; // ISO timestamp for when to start the run
+  retryFailedFromRunId?: string; // If provided, only retry failed items from this run
 }
 
 interface QuestionItem {
@@ -59,7 +60,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body: BatchRunRequest = await request.json();
-    const { providers, scheduledFor } = body;
+    const { providers, scheduledFor, retryFailedFromRunId } = body;
 
     // Parse scheduled time if provided
     let scheduledForDate: Date | null = null;
@@ -101,40 +102,93 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Fetch all keywords with related_questions for this account
-    const { data: keywords, error: keywordsError } = await serviceSupabase
-      .from('keywords')
-      .select('id, phrase, related_questions')
-      .eq('account_id', accountId)
-      .not('related_questions', 'is', null);
+    // Build questions list - either from failed items or all questions
+    let allQuestions: QuestionItem[] = [];
+    let isRetry = false;
 
-    if (keywordsError) {
-      console.error('❌ [LLMBatchRun] Failed to fetch keywords:', keywordsError);
-      return NextResponse.json(
-        { error: 'Failed to fetch keywords' },
-        { status: 500 }
-      );
-    }
+    if (retryFailedFromRunId) {
+      // Retry mode: fetch failed items from the previous run
+      isRetry = true;
 
-    // Extract all questions
-    const allQuestions: QuestionItem[] = [];
-    for (const keyword of keywords || []) {
-      const relatedQuestions = keyword.related_questions || [];
-      relatedQuestions.forEach((q: { question: string } | string, index: number) => {
-        const questionText = extractQuestionText(q);
-        if (questionText) {
-          allQuestions.push({
-            keywordId: keyword.id,
-            question: questionText,
-            questionIndex: index,
-          });
-        }
-      });
+      // Verify the run belongs to this account
+      const { data: previousRun, error: prevRunError } = await serviceSupabase
+        .from('llm_batch_runs')
+        .select('id, account_id, status')
+        .eq('id', retryFailedFromRunId)
+        .eq('account_id', accountId)
+        .single();
+
+      if (prevRunError || !previousRun) {
+        return NextResponse.json(
+          { error: 'Previous batch run not found' },
+          { status: 404 }
+        );
+      }
+
+      // Fetch failed items from that run
+      const { data: failedItems, error: failedError } = await serviceSupabase
+        .from('llm_batch_run_items')
+        .select('keyword_id, question, question_index')
+        .eq('batch_run_id', retryFailedFromRunId)
+        .eq('status', 'failed');
+
+      if (failedError) {
+        console.error('❌ [LLMBatchRun] Failed to fetch failed items:', failedError);
+        return NextResponse.json(
+          { error: 'Failed to fetch failed items' },
+          { status: 500 }
+        );
+      }
+
+      if (!failedItems || failedItems.length === 0) {
+        return NextResponse.json(
+          { error: 'No failed items found to retry' },
+          { status: 400 }
+        );
+      }
+
+      allQuestions = failedItems.map(item => ({
+        keywordId: item.keyword_id,
+        question: item.question,
+        questionIndex: item.question_index,
+      }));
+
+      console.log(`🔄 [LLMBatchRun] Retrying ${allQuestions.length} failed items from run ${retryFailedFromRunId}`);
+    } else {
+      // Normal mode: fetch all keywords with related_questions for this account
+      const { data: keywords, error: keywordsError } = await serviceSupabase
+        .from('keywords')
+        .select('id, phrase, related_questions')
+        .eq('account_id', accountId)
+        .not('related_questions', 'is', null);
+
+      if (keywordsError) {
+        console.error('❌ [LLMBatchRun] Failed to fetch keywords:', keywordsError);
+        return NextResponse.json(
+          { error: 'Failed to fetch keywords' },
+          { status: 500 }
+        );
+      }
+
+      // Extract all questions
+      for (const keyword of keywords || []) {
+        const relatedQuestions = keyword.related_questions || [];
+        relatedQuestions.forEach((q: { question: string } | string, index: number) => {
+          const questionText = extractQuestionText(q);
+          if (questionText) {
+            allQuestions.push({
+              keywordId: keyword.id,
+              question: questionText,
+              questionIndex: index,
+            });
+          }
+        });
+      }
     }
 
     if (allQuestions.length === 0) {
       return NextResponse.json(
-        { error: 'No questions found. Add questions to your keyword concepts first.' },
+        { error: isRetry ? 'No failed items to retry' : 'No questions found. Add questions to your keyword concepts first.' },
         { status: 400 }
       );
     }

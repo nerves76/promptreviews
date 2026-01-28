@@ -145,9 +145,15 @@ export default function AISearchPage() {
     providers: LLMProvider[];
     totalQuestions: number;
     processedQuestions: number;
+    successfulChecks: number;
+    failedChecks: number;
     progress: number;
+    creditsRefunded: number;
+    errorMessage: string | null;
   }
   const [activeBatchRun, setActiveBatchRun] = useState<BatchStatus | null>(null);
+  const [showCompletedBanner, setShowCompletedBanner] = useState(false); // Keep banner visible after completion
+  const [isRetryingFailed, setIsRetryingFailed] = useState(false);
 
   // Modal state for viewing full LLM response
   const [responseModal, setResponseModal] = useState<{
@@ -498,10 +504,25 @@ export default function AISearchPage() {
         );
         setActiveBatchRun(status);
 
-        // If completed or failed, refresh data to show new results
+        // If completed or failed, refresh data and show toast
         if (['completed', 'failed'].includes(status.status)) {
           clearInterval(pollInterval);
+          setShowCompletedBanner(true); // Keep banner visible
           fetchData(); // Refresh to show new check results
+
+          // Show toast notification
+          if (status.status === 'completed') {
+            if (status.failedChecks > 0) {
+              showError(
+                `LLM checks completed with ${status.failedChecks} failures. ` +
+                `${status.creditsRefunded > 0 ? `${status.creditsRefunded} credits refunded.` : ''}`
+              );
+            } else {
+              showSuccess(`All ${status.successfulChecks} LLM checks completed successfully!`);
+            }
+          } else {
+            showError(`LLM batch run failed: ${status.errorMessage || 'Unknown error'}`);
+          }
         }
       } catch (err) {
         console.error('[AISearch] Batch polling error:', err);
@@ -509,7 +530,7 @@ export default function AISearchPage() {
     }, 3000); // Poll every 3 seconds
 
     return () => clearInterval(pollInterval);
-  }, [activeBatchRun?.runId, activeBatchRun?.status, fetchData]);
+  }, [activeBatchRun?.runId, activeBatchRun?.status, fetchData, showSuccess, showError]);
 
   // Check for active batch run on mount
   useEffect(() => {
@@ -1501,42 +1522,183 @@ export default function AISearchPage() {
           </div>
         )}
 
-        {/* Batch Progress Banner */}
-        {activeBatchRun && ['pending', 'processing'].includes(activeBatchRun.status) && !showRunAllModal && (() => {
+        {/* Batch Progress Banner - shows during run AND after completion */}
+        {activeBatchRun && (
+          ['pending', 'processing'].includes(activeBatchRun.status) ||
+          (showCompletedBanner && ['completed', 'failed'].includes(activeBatchRun.status))
+        ) && !showRunAllModal && (() => {
+          const isRunning = ['pending', 'processing'].includes(activeBatchRun.status);
+          const isCompleted = activeBatchRun.status === 'completed';
+          const isFailed = activeBatchRun.status === 'failed';
+          const hasFailures = (activeBatchRun.failedChecks || 0) > 0;
+
+          // Progress banner styling based on status
+          const bannerStyles = isRunning
+            ? 'bg-blue-50 border-blue-200'
+            : isCompleted && !hasFailures
+              ? 'bg-green-50 border-green-200'
+              : 'bg-amber-50 border-amber-200';
+
+          const textColor = isRunning
+            ? 'text-slate-blue'
+            : isCompleted && !hasFailures
+              ? 'text-green-700'
+              : 'text-amber-700';
+
+          const iconColor = isRunning
+            ? 'text-slate-blue'
+            : isCompleted && !hasFailures
+              ? 'text-green-600'
+              : 'text-amber-600';
+
+          // Time estimate for running state
           const remaining = activeBatchRun.totalQuestions - activeBatchRun.processedQuestions;
           const secondsPerQuestion = 4 * (activeBatchRun.providers?.length || 4);
           const estimatedSeconds = remaining * secondsPerQuestion;
           const estimatedMinutes = Math.ceil(estimatedSeconds / 60);
           const timeEstimate = estimatedMinutes <= 1 ? 'less than a minute' : `~${estimatedMinutes} min`;
 
+          // Retry failed checks handler
+          const handleRetryFailed = async () => {
+            if (isRetryingFailed || !activeBatchRun.failedChecks) return;
+            setIsRetryingFailed(true);
+            try {
+              const response = await apiClient.post<{
+                success: boolean;
+                runId: string;
+                totalQuestions: number;
+                providers: LLMProvider[];
+                estimatedCredits: number;
+                error?: string;
+              }>('/llm-visibility/batch-run', {
+                providers: activeBatchRun.providers,
+                retryFailedFromRunId: activeBatchRun.runId,
+              });
+
+              if (response.success) {
+                setShowCompletedBanner(false);
+                setActiveBatchRun({
+                  runId: response.runId,
+                  status: 'pending',
+                  providers: response.providers,
+                  totalQuestions: response.totalQuestions,
+                  processedQuestions: 0,
+                  successfulChecks: 0,
+                  failedChecks: 0,
+                  progress: 0,
+                  creditsRefunded: 0,
+                  errorMessage: null,
+                });
+                showSuccess(`Retrying ${response.totalQuestions} failed checks...`);
+              } else {
+                showError(response.error || 'Failed to start retry');
+              }
+            } catch (err: unknown) {
+              const errorMessage = err instanceof Error ? err.message : 'Failed to retry failed checks';
+              showError(errorMessage);
+            } finally {
+              setIsRetryingFailed(false);
+            }
+          };
+
+          // Dismiss handler
+          const handleDismiss = () => {
+            setShowCompletedBanner(false);
+            setActiveBatchRun(null);
+          };
+
           return (
-          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+          <div className={`mb-6 p-4 border rounded-xl ${bannerStyles}`}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Icon name="FaSpinner" className="w-5 h-5 text-slate-blue animate-spin" />
+                {isRunning ? (
+                  <Icon name="FaSpinner" className={`w-5 h-5 ${iconColor} animate-spin`} />
+                ) : isCompleted && !hasFailures ? (
+                  <Icon name="FaCheckCircle" className={`w-5 h-5 ${iconColor}`} />
+                ) : (
+                  <Icon name="FaExclamationTriangle" className={`w-5 h-5 ${iconColor}`} />
+                )}
                 <div>
-                  <p className="text-sm font-medium text-slate-blue">
-                    {activeBatchRun.status === 'pending' ? 'Queued' : 'Checking'} LLM visibility...
+                  <p className={`text-sm font-medium ${textColor}`}>
+                    {isRunning
+                      ? `${activeBatchRun.status === 'pending' ? 'Queued' : 'Checking'} LLM visibility...`
+                      : isCompleted && !hasFailures
+                        ? 'LLM checks completed successfully!'
+                        : isFailed
+                          ? 'LLM batch run failed'
+                          : `LLM checks completed with ${activeBatchRun.failedChecks} failures`
+                    }
                   </p>
-                  <p className="text-xs text-slate-blue/70">
-                    {activeBatchRun.processedQuestions} of {activeBatchRun.totalQuestions} questions · {activeBatchRun.progress}% complete · {timeEstimate} remaining
+                  <p className={`text-xs ${textColor}/70`}>
+                    {isRunning ? (
+                      <>
+                        {activeBatchRun.processedQuestions} of {activeBatchRun.totalQuestions} questions · {activeBatchRun.progress}% complete · {timeEstimate} remaining
+                      </>
+                    ) : (
+                      <>
+                        {activeBatchRun.successfulChecks} successful
+                        {hasFailures && `, ${activeBatchRun.failedChecks} failed`}
+                        {(activeBatchRun.creditsRefunded || 0) > 0 && (
+                          <> · <Icon name="FaCoins" className="w-3 h-3 inline" /> {activeBatchRun.creditsRefunded} credits refunded</>
+                        )}
+                      </>
+                    )}
                   </p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                {/* Progress bar */}
-                <div className="w-32 bg-blue-200 rounded-full h-2">
-                  <div
-                    className="bg-slate-blue h-2 rounded-full transition-all duration-300"
-                    style={{ width: `${activeBatchRun.progress}%` }}
-                  />
-                </div>
-                <button
-                  onClick={() => setShowRunAllModal(true)}
-                  className="text-xs text-slate-blue hover:text-slate-blue/80 font-medium"
-                >
-                  Details
-                </button>
+                {isRunning ? (
+                  <>
+                    {/* Progress bar */}
+                    <div className="w-32 bg-blue-200 rounded-full h-2">
+                      <div
+                        className="bg-slate-blue h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${activeBatchRun.progress}%` }}
+                      />
+                    </div>
+                    <button
+                      onClick={() => setShowRunAllModal(true)}
+                      className="text-xs text-slate-blue hover:text-slate-blue/80 font-medium"
+                    >
+                      Details
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    {/* Retry failed button */}
+                    {hasFailures && (
+                      <button
+                        onClick={handleRetryFailed}
+                        disabled={isRetryingFailed}
+                        className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors whitespace-nowrap ${
+                          isRetryingFailed
+                            ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                            : 'bg-amber-600 text-white hover:bg-amber-700'
+                        }`}
+                      >
+                        {isRetryingFailed ? (
+                          <>
+                            <Icon name="FaSpinner" className="w-3 h-3 inline mr-1 animate-spin" />
+                            Retrying...
+                          </>
+                        ) : (
+                          <>
+                            <Icon name="FaRedo" className="w-3 h-3 inline mr-1" />
+                            Retry {activeBatchRun.failedChecks} failed
+                          </>
+                        )}
+                      </button>
+                    )}
+                    {/* Dismiss button */}
+                    <button
+                      onClick={handleDismiss}
+                      className={`text-xs ${textColor}/70 hover:${textColor} font-medium`}
+                      aria-label="Dismiss notification"
+                    >
+                      <Icon name="FaTimes" className="w-4 h-4" />
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           </div>

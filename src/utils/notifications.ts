@@ -291,6 +291,22 @@ export const NOTIFICATION_REGISTRY: Record<NotificationType, NotificationConfig>
     },
     actionUrl: '/dashboard/credits',
     actionLabel: 'View Credits',
+    getEmailVariables: (data, baseUrl) => {
+      const featureNames: Record<string, string> = {
+        rank_tracking: 'Rank Tracking',
+        geo_grid: 'Local Ranking Grid',
+        llm_visibility: 'LLM Visibility',
+      };
+      return {
+        firstName: data.firstName || 'there',
+        creditsRefunded: data.creditsRefunded || 0,
+        failedChecks: data.failedChecks || 0,
+        featureName: data.feature ? featureNames[data.feature as string] || 'scheduled check' : 'scheduled check',
+        buyCreditsUrl: `${baseUrl}/dashboard/credits`,
+        accountUrl: `${baseUrl}/dashboard/account`,
+        year: new Date().getFullYear(),
+      };
+    },
   },
 
   'agency_invitation_received': {
