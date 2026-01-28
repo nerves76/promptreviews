@@ -28,6 +28,7 @@ const CREDITS_PER_KEYWORD = 2;
 
 interface BatchRunRequest {
   scheduledFor?: string; // ISO timestamp for when to start the run
+  retryFailedFromRunId?: string; // If provided, only retry failed items from this run
 }
 
 interface KeywordItem {
@@ -55,7 +56,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body: BatchRunRequest = await request.json().catch(() => ({}));
-    const { scheduledFor } = body;
+    const { scheduledFor, retryFailedFromRunId } = body;
 
     // Parse scheduled time if provided
     let scheduledForDate: Date | null = null;
@@ -97,43 +98,96 @@ export async function POST(request: NextRequest) {
 
     const defaultLocationCode = business?.location_code || 2840; // USA default
 
-    // Fetch all keywords with search terms for this account
-    const { data: keywords, error: keywordsError } = await serviceSupabase
-      .from('keywords')
-      .select('id, phrase, search_terms, search_volume_location_code')
-      .eq('account_id', accountId);
+    // Build keywords list - either from failed items or all keywords
+    let allKeywords: KeywordItem[] = [];
+    let isRetry = false;
 
-    if (keywordsError) {
-      console.error('❌ [RankBatchRun] Failed to fetch keywords:', keywordsError);
-      return NextResponse.json(
-        { error: 'Failed to fetch keywords' },
-        { status: 500 }
-      );
-    }
+    if (retryFailedFromRunId) {
+      // Retry mode: fetch failed items from the previous run
+      isRetry = true;
 
-    // Extract all search terms from keywords
-    const allKeywords: KeywordItem[] = [];
-    for (const keyword of keywords || []) {
-      const searchTerms = keyword.search_terms || [];
-      const locationCode = keyword.search_volume_location_code || defaultLocationCode;
+      // Verify the run belongs to this account
+      const { data: previousRun, error: prevRunError } = await serviceSupabase
+        .from('rank_batch_runs')
+        .select('id, account_id, status')
+        .eq('id', retryFailedFromRunId)
+        .eq('account_id', accountId)
+        .single();
 
-      // If no search terms, use the phrase itself
-      if (searchTerms.length === 0) {
-        allKeywords.push({
-          keywordId: keyword.id,
-          searchTerm: keyword.phrase,
-          locationCode,
-        });
-      } else {
-        // Add each search term
-        for (const termObj of searchTerms) {
-          const term = typeof termObj === 'string' ? termObj : termObj.term;
-          if (term) {
-            allKeywords.push({
-              keywordId: keyword.id,
-              searchTerm: term,
-              locationCode,
-            });
+      if (prevRunError || !previousRun) {
+        return NextResponse.json(
+          { error: 'Previous batch run not found' },
+          { status: 404 }
+        );
+      }
+
+      // Fetch failed items from that run (items where desktop OR mobile failed)
+      const { data: failedItems, error: failedError } = await serviceSupabase
+        .from('rank_batch_run_items')
+        .select('keyword_id, search_term, location_code, desktop_status, mobile_status')
+        .eq('batch_run_id', retryFailedFromRunId)
+        .or('desktop_status.eq.failed,mobile_status.eq.failed');
+
+      if (failedError) {
+        console.error('❌ [RankBatchRun] Failed to fetch failed items:', failedError);
+        return NextResponse.json(
+          { error: 'Failed to fetch failed items' },
+          { status: 500 }
+        );
+      }
+
+      if (!failedItems || failedItems.length === 0) {
+        return NextResponse.json(
+          { error: 'No failed items found to retry' },
+          { status: 400 }
+        );
+      }
+
+      allKeywords = failedItems.map(item => ({
+        keywordId: item.keyword_id,
+        searchTerm: item.search_term,
+        locationCode: item.location_code,
+      }));
+
+      console.log(`🔄 [RankBatchRun] Retrying ${allKeywords.length} failed items from run ${retryFailedFromRunId}`);
+    } else {
+      // Normal mode: fetch all keywords with search terms for this account
+      const { data: keywords, error: keywordsError } = await serviceSupabase
+        .from('keywords')
+        .select('id, phrase, search_terms, search_volume_location_code')
+        .eq('account_id', accountId);
+
+      if (keywordsError) {
+        console.error('❌ [RankBatchRun] Failed to fetch keywords:', keywordsError);
+        return NextResponse.json(
+          { error: 'Failed to fetch keywords' },
+          { status: 500 }
+        );
+      }
+
+      // Extract all search terms from keywords
+      for (const keyword of keywords || []) {
+        const searchTerms = keyword.search_terms || [];
+        const locationCode = keyword.search_volume_location_code || defaultLocationCode;
+
+        // If no search terms, use the phrase itself
+        if (searchTerms.length === 0) {
+          allKeywords.push({
+            keywordId: keyword.id,
+            searchTerm: keyword.phrase,
+            locationCode,
+          });
+        } else {
+          // Add each search term
+          for (const termObj of searchTerms) {
+            const term = typeof termObj === 'string' ? termObj : termObj.term;
+            if (term) {
+              allKeywords.push({
+                keywordId: keyword.id,
+                searchTerm: term,
+                locationCode,
+              });
+            }
           }
         }
       }
@@ -141,7 +195,7 @@ export async function POST(request: NextRequest) {
 
     if (allKeywords.length === 0) {
       return NextResponse.json(
-        { error: 'No keywords found. Add keywords to your account first.' },
+        { error: isRetry ? 'No failed items to retry' : 'No keywords found. Add keywords to your account first.' },
         { status: 400 }
       );
     }

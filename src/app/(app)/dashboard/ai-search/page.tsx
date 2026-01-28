@@ -33,6 +33,7 @@ import { useAISearchQueryGroups, type AISearchQueryGroupData } from '@/features/
 import { BulkMoveBar } from '@/components/BulkMoveBar';
 import { ManageGroupsModal } from '@/components/ManageGroupsModal';
 import { useToast, ToastContainer } from '@/app/(app)/components/reviews/Toast';
+import BatchRunHistoryDropdown from '@/components/BatchRunHistoryDropdown';
 
 interface KeywordWithQuestions {
   id: string;
@@ -1459,29 +1460,70 @@ export default function AISearchPage() {
             <div className="flex items-center gap-2 flex-wrap justify-end">
               {keywords.length > 0 && (() => {
                 const isBatchRunning = !!(activeBatchRun && ['pending', 'processing'].includes(activeBatchRun.status));
+
+                // Handle retry from history dropdown
+                const handleRetryFromHistory = async (runId: string) => {
+                  const response = await apiClient.post<{
+                    success: boolean;
+                    runId: string;
+                    totalQuestions: number;
+                    providers: LLMProvider[];
+                    estimatedCredits: number;
+                    error?: string;
+                  }>('/llm-visibility/batch-run', {
+                    providers: ['chatgpt', 'claude', 'gemini', 'perplexity'], // Default to all providers
+                    retryFailedFromRunId: runId,
+                  });
+
+                  if (response.success) {
+                    setShowCompletedBanner(false);
+                    setActiveBatchRun({
+                      runId: response.runId,
+                      status: 'pending',
+                      providers: response.providers,
+                      totalQuestions: response.totalQuestions,
+                      processedQuestions: 0,
+                      successfulChecks: 0,
+                      failedChecks: 0,
+                      progress: 0,
+                      creditsRefunded: 0,
+                      errorMessage: null,
+                    });
+                    showSuccess(`Retrying ${response.totalQuestions} failed checks...`);
+                  } else {
+                    throw new Error(response.error || 'Failed to start retry');
+                  }
+                };
+
                 return (
-                  <button
-                    onClick={() => setShowRunAllModal(true)}
-                    disabled={isBatchRunning}
-                    className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${
-                      isBatchRunning
-                        ? 'bg-gray-400 text-white cursor-not-allowed'
-                        : 'text-white bg-green-600 hover:bg-green-700'
-                    }`}
-                    title={isBatchRunning ? 'Batch check already in progress' : 'Run LLM visibility checks on all questions'}
-                  >
-                    {isBatchRunning ? (
-                      <>
-                        <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
-                        {activeBatchRun.progress}% complete
-                      </>
-                    ) : (
-                      <>
-                        <PromptyIcon className="w-4 h-4" />
-                        Check all
-                      </>
-                    )}
-                  </button>
+                  <>
+                    <button
+                      onClick={() => setShowRunAllModal(true)}
+                      disabled={isBatchRunning}
+                      className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${
+                        isBatchRunning
+                          ? 'bg-gray-400 text-white cursor-not-allowed'
+                          : 'text-white bg-green-600 hover:bg-green-700'
+                      }`}
+                      title={isBatchRunning ? 'Batch check already in progress' : 'Run LLM visibility checks on all questions'}
+                    >
+                      {isBatchRunning ? (
+                        <>
+                          <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
+                          {activeBatchRun.progress}% complete
+                        </>
+                      ) : (
+                        <>
+                          <PromptyIcon className="w-4 h-4" />
+                          Check all
+                        </>
+                      )}
+                    </button>
+                    <BatchRunHistoryDropdown
+                      feature="llm_visibility"
+                      onRetry={handleRetryFromHistory}
+                    />
+                  </>
                 );
               })()}
               {allResults.length > 0 && (

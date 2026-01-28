@@ -23,6 +23,7 @@ import { useRankTrackingTermGroups } from '@/features/rank-tracking/hooks/useRan
 import { BulkMoveBar, GroupOption } from '@/components/BulkMoveBar';
 import { ManageGroupsModal, GroupData } from '@/components/ManageGroupsModal';
 import { useToast, ToastContainer } from '@/app/(app)/components/reviews/Toast';
+import BatchRunHistoryDropdown from '@/components/BatchRunHistoryDropdown';
 
 /** Volume data for a search term */
 interface VolumeData {
@@ -994,29 +995,66 @@ export default function RankTrackingPage() {
               </button>
               {(() => {
                 const isBatchRunning = !!(activeBatchRun && ['pending', 'processing'].includes(activeBatchRun.status));
+
+                // Handle retry from history dropdown
+                const handleRetryFromHistory = async (runId: string) => {
+                  const response = await apiClient.post<{
+                    success: boolean;
+                    runId: string;
+                    totalKeywords: number;
+                    estimatedCredits: number;
+                    error?: string;
+                  }>('/rank-tracking/batch-run', {
+                    retryFailedFromRunId: runId,
+                  });
+
+                  if (response.success) {
+                    setActiveBatchRun({
+                      runId: response.runId,
+                      status: 'pending',
+                      totalKeywords: response.totalKeywords,
+                      processedKeywords: 0,
+                      successfulChecks: 0,
+                      failedChecks: 0,
+                      progress: 0,
+                      creditsRefunded: 0,
+                      errorMessage: null,
+                    });
+                    showSuccess(`Retrying ${response.totalKeywords} failed checks...`);
+                  } else {
+                    throw new Error(response.error || 'Failed to start retry');
+                  }
+                };
+
                 return (
-                  <button
-                    onClick={() => setShowRunAllModal(true)}
-                    disabled={isBatchRunning}
-                    className={`px-4 py-2 text-sm font-medium rounded-lg flex items-center gap-2 transition-colors whitespace-nowrap ${
-                      isBatchRunning
-                        ? 'bg-gray-400 text-white cursor-not-allowed'
-                        : 'text-white bg-green-600 hover:bg-green-700'
-                    }`}
-                    title={isBatchRunning ? 'Batch check already in progress' : 'Run rank checks on all keywords'}
-                  >
-                    {isBatchRunning ? (
-                      <>
-                        <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
-                        {activeBatchRun.progress}% complete
-                      </>
-                    ) : (
-                      <>
-                        <Icon name="FaRocket" className="w-4 h-4" />
-                        Check all
-                      </>
-                    )}
-                  </button>
+                  <>
+                    <button
+                      onClick={() => setShowRunAllModal(true)}
+                      disabled={isBatchRunning}
+                      className={`px-4 py-2 text-sm font-medium rounded-lg flex items-center gap-2 transition-colors whitespace-nowrap ${
+                        isBatchRunning
+                          ? 'bg-gray-400 text-white cursor-not-allowed'
+                          : 'text-white bg-green-600 hover:bg-green-700'
+                      }`}
+                      title={isBatchRunning ? 'Batch check already in progress' : 'Run rank checks on all keywords'}
+                    >
+                      {isBatchRunning ? (
+                        <>
+                          <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
+                          {activeBatchRun.progress}% complete
+                        </>
+                      ) : (
+                        <>
+                          <Icon name="FaRocket" className="w-4 h-4" />
+                          Check all
+                        </>
+                      )}
+                    </button>
+                    <BatchRunHistoryDropdown
+                      feature="rank_tracking"
+                      onRetry={handleRetryFromHistory}
+                    />
+                  </>
                 );
               })()}
               <button
