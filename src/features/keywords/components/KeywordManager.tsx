@@ -280,7 +280,7 @@ export default function KeywordManager({
   const [isLoadingEnrichment, setIsLoadingEnrichment] = useState(false);
   const [enrichmentError, setEnrichmentError] = useState<string | null>(null);
 
-  // Fetch enrichment data for all keywords
+  // Fetch enrichment data for all keywords (batched in chunks of 100)
   const fetchEnrichmentData = useCallback(async (keywordIds: string[]) => {
     if (keywordIds.length === 0) return;
 
@@ -288,12 +288,32 @@ export default function KeywordManager({
     setEnrichmentError(null);
 
     try {
-      const response = await apiClient.post<{ enrichment: Record<string, EnrichmentData> }>(
-        '/keywords/batch-enrich',
-        { keywordIds }
+      // Chunk keyword IDs into batches of 100 (API limit)
+      const BATCH_SIZE = 100;
+      const batches: string[][] = [];
+      for (let i = 0; i < keywordIds.length; i += BATCH_SIZE) {
+        batches.push(keywordIds.slice(i, i + BATCH_SIZE));
+      }
+
+      // Fetch all batches in parallel
+      const batchResponses = await Promise.all(
+        batches.map(batch =>
+          apiClient.post<{ enrichment: Record<string, EnrichmentData> }>(
+            '/keywords/batch-enrich',
+            { keywordIds: batch }
+          )
+        )
       );
 
-      setEnrichmentData(new Map(Object.entries(response.enrichment)));
+      // Merge all batch results into a single Map
+      const mergedEnrichment = new Map<string, EnrichmentData>();
+      for (const response of batchResponses) {
+        for (const [keywordId, data] of Object.entries(response.enrichment)) {
+          mergedEnrichment.set(keywordId, data);
+        }
+      }
+
+      setEnrichmentData(mergedEnrichment);
     } catch (err: any) {
       console.error('Failed to fetch enrichment data:', err);
       setEnrichmentError(err?.message || 'Failed to load enrichment data');
