@@ -235,6 +235,20 @@ export default function RankTrackingPage() {
   // Delete concept state
   const [conceptToDelete, setConceptToDelete] = useState<{ id: string; name: string } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteCounts, setDeleteCounts] = useState<{
+    searchTerms: number;
+    aliases: number;
+    aiQuestions: number;
+    llmChecks: number;
+    rankChecks: number;
+    geoGridChecks: number;
+    geoGridTracked: boolean;
+    hasSchedule: boolean;
+    scheduleFrequency: string | null;
+    promptPages: number;
+    reviewMatches: number;
+  } | null>(null);
+  const [isLoadingCounts, setIsLoadingCounts] = useState(false);
 
   // Modal state for adding new keyword concept
   const [showAddModal, setShowAddModal] = useState(false);
@@ -271,6 +285,35 @@ export default function RankTrackingPage() {
     setSelectedKeywordId(concept.id);
   }, []);
 
+  // Handle selecting a concept for deletion (fetch counts first)
+  const handleSelectConceptToDelete = useCallback(async (id: string, name: string) => {
+    setConceptToDelete({ id, name });
+    setDeleteCounts(null);
+    setIsLoadingCounts(true);
+    try {
+      const response = await apiClient.get<{
+        counts: {
+          searchTerms: number;
+          aliases: number;
+          aiQuestions: number;
+          llmChecks: number;
+          rankChecks: number;
+          geoGridChecks: number;
+          geoGridTracked: boolean;
+          hasSchedule: boolean;
+          scheduleFrequency: string | null;
+          promptPages: number;
+          reviewMatches: number;
+        };
+      }>(`/keywords/${id}/delete-counts`);
+      setDeleteCounts(response.counts);
+    } catch (err) {
+      console.error('[RankTracking] Error fetching delete counts:', err);
+    } finally {
+      setIsLoadingCounts(false);
+    }
+  }, []);
+
   // Handle delete concept
   const handleDeleteConcept = useCallback(async () => {
     if (!conceptToDelete) return;
@@ -278,6 +321,7 @@ export default function RankTrackingPage() {
     try {
       await deleteKeyword(conceptToDelete.id);
       setConceptToDelete(null);
+      setDeleteCounts(null);
       showSuccess(`Deleted "${conceptToDelete.name}"`);
       // Data will refresh automatically from useKeywords
     } catch (err) {
@@ -1016,7 +1060,7 @@ export default function RankTrackingPage() {
           onConceptClick={handleConceptClick}
           onCheckRank={handleCheckRank}
           onCheckVolume={handleCheckVolume}
-          onDelete={(concept) => setConceptToDelete({ id: concept.id, name: concept.phrase || concept.name || 'Untitled' })}
+          onDelete={(concept) => handleSelectConceptToDelete(concept.id, concept.phrase || concept.name || 'Untitled')}
           isLoading={conceptsLoading}
           checkingRankKeyword={checkingRankKeyword}
           checkingVolumeKeyword={checkingVolumeKeyword}
@@ -1120,7 +1164,7 @@ export default function RankTrackingPage() {
       {/* Delete Concept Confirmation Modal */}
       <Modal
         isOpen={!!conceptToDelete}
-        onClose={() => setConceptToDelete(null)}
+        onClose={() => { setConceptToDelete(null); setDeleteCounts(null); }}
         title="Delete concept"
         size="sm"
       >
@@ -1129,17 +1173,59 @@ export default function RankTrackingPage() {
         </p>
         <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
           <p className="text-sm text-amber-800 font-medium">Warning: This will permanently delete:</p>
-          <ul className="mt-2 text-sm text-amber-700 list-disc list-inside space-y-1">
-            <li>The concept and all its search terms</li>
-            <li>All rank tracking data and history</li>
-            <li>All AI visibility questions and check history</li>
-            <li>All geo-grid tracking data</li>
-          </ul>
+          {isLoadingCounts ? (
+            <div className="mt-2 flex items-center gap-2 text-sm text-amber-700">
+              <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
+              Loading details...
+            </div>
+          ) : deleteCounts ? (
+            <ul className="mt-2 text-sm text-amber-700 list-disc list-inside space-y-1">
+              {deleteCounts.searchTerms > 0 && (
+                <li>{deleteCounts.searchTerms} search {deleteCounts.searchTerms === 1 ? 'term' : 'terms'}</li>
+              )}
+              {deleteCounts.aliases > 0 && (
+                <li>{deleteCounts.aliases} review {deleteCounts.aliases === 1 ? 'alias' : 'aliases'}</li>
+              )}
+              {deleteCounts.aiQuestions > 0 && (
+                <li>{deleteCounts.aiQuestions} AI visibility {deleteCounts.aiQuestions === 1 ? 'question' : 'questions'}</li>
+              )}
+              {deleteCounts.llmChecks > 0 && (
+                <li>{deleteCounts.llmChecks} LLM visibility {deleteCounts.llmChecks === 1 ? 'check' : 'checks'}</li>
+              )}
+              {deleteCounts.rankChecks > 0 && (
+                <li>{deleteCounts.rankChecks} rank {deleteCounts.rankChecks === 1 ? 'check' : 'checks'}</li>
+              )}
+              {deleteCounts.geoGridChecks > 0 && (
+                <li>{deleteCounts.geoGridChecks} geo grid {deleteCounts.geoGridChecks === 1 ? 'check' : 'checks'}</li>
+              )}
+              {deleteCounts.promptPages > 0 && (
+                <li>{deleteCounts.promptPages} prompt page {deleteCounts.promptPages === 1 ? 'assignment' : 'assignments'}</li>
+              )}
+              {deleteCounts.reviewMatches > 0 && (
+                <li>{deleteCounts.reviewMatches} review {deleteCounts.reviewMatches === 1 ? 'match' : 'matches'}</li>
+              )}
+              {deleteCounts.hasSchedule && (
+                <li>1 scheduled check ({deleteCounts.scheduleFrequency})</li>
+              )}
+              {deleteCounts.searchTerms === 0 && deleteCounts.aliases === 0 && deleteCounts.aiQuestions === 0 &&
+               deleteCounts.llmChecks === 0 && deleteCounts.rankChecks === 0 && deleteCounts.geoGridChecks === 0 &&
+               deleteCounts.promptPages === 0 && deleteCounts.reviewMatches === 0 && !deleteCounts.hasSchedule && (
+                <li>The concept (no associated data)</li>
+              )}
+            </ul>
+          ) : (
+            <ul className="mt-2 text-sm text-amber-700 list-disc list-inside space-y-1">
+              <li>The concept and all associated data</li>
+            </ul>
+          )}
         </div>
+        <p className="text-sm text-gray-500 mt-3">
+          This action cannot be undone.
+        </p>
         <Modal.Footer>
           <Button
             variant="secondary"
-            onClick={() => setConceptToDelete(null)}
+            onClick={() => { setConceptToDelete(null); setDeleteCounts(null); }}
             disabled={isDeleting}
           >
             Cancel
@@ -1147,7 +1233,7 @@ export default function RankTrackingPage() {
           <Button
             variant="destructive"
             onClick={handleDeleteConcept}
-            disabled={isDeleting}
+            disabled={isDeleting || isLoadingCounts}
           >
             {isDeleting ? 'Deleting...' : 'Delete concept'}
           </Button>
