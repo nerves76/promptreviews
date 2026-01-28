@@ -26,6 +26,7 @@ export type NotificationType =
   | 'credit_warning_upcoming'
   | 'credit_check_skipped'
   | 'credit_balance_low'
+  | 'credit_refund'
   | 'agency_invitation_received';
 
 export interface NotificationData {
@@ -269,6 +270,27 @@ export const NOTIFICATION_REGISTRY: Record<NotificationType, NotificationConfig>
       buyCreditsUrl: `${baseUrl}/dashboard/credits`,
       year: new Date().getFullYear(),
     }),
+  },
+
+  'credit_refund': {
+    inAppPrefField: 'in_app_credit_warnings',
+    emailPrefField: 'email_credit_warnings',
+    getTitle: (data) => {
+      const featureNames: Record<string, string> = {
+        rank_tracking: 'Rank Tracking',
+        geo_grid: 'Local Ranking Grid',
+        llm_visibility: 'LLM Visibility',
+      };
+      const feature = featureNames[data.feature] || 'Check';
+      return `${feature} Credits Refunded`;
+    },
+    getMessage: (data) => {
+      const credits = data.creditsRefunded || 0;
+      const failedChecks = data.failedChecks || 0;
+      return `${credits} credit${credits !== 1 ? 's' : ''} refunded for ${failedChecks} failed check${failedChecks !== 1 ? 's' : ''}.`;
+    },
+    actionUrl: '/dashboard/credits',
+    actionLabel: 'View Credits',
   },
 
   'agency_invitation_received': {

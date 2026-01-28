@@ -10,6 +10,7 @@ import { createClient } from '@supabase/supabase-js';
 import { logCronExecution, verifyCronSecret } from '@/lib/cronLogger';
 import { checkRankForDomain } from '@/features/rank-tracking/api/dataforseo-serp-client';
 import { refundFeature } from '@/lib/credits';
+import { sendNotificationToAccount } from '@/utils/notifications';
 
 // Extend timeout for this route
 export const maxDuration = 300; // 5 minutes
@@ -387,6 +388,14 @@ async function checkAndCompleteBatch(
           }
         );
         console.log(`💰 [RankBatch] Refunded ${failedCheckCount} credits for failed checks in batch ${runId}`);
+
+        // Send notification about the refund
+        await sendNotificationToAccount(accountId, 'credit_refund', {
+          feature: 'rank_tracking',
+          creditsRefunded: failedCheckCount,
+          failedChecks: failedCheckCount,
+          batchRunId: runId,
+        });
       } catch (refundError) {
         // Log but don't fail - the batch is complete, just couldn't refund
         console.error(`❌ [RankBatch] Failed to refund credits for batch ${runId}:`, refundError);
