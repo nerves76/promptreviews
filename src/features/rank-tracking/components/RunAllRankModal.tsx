@@ -10,7 +10,7 @@ type ScheduleOption = 'in1hour' | 'tomorrow8am' | 'custom';
 interface RunAllRankModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onStarted?: () => void;
+  onStarted?: (batchStatus: BatchStatus) => void;
 }
 
 interface BatchPreview {
@@ -186,9 +186,7 @@ export default function RunAllRankModal({
           // Show scheduled confirmation
           setIsScheduled(true);
           setScheduledFor(response.scheduledFor);
-        } else {
-          // Set initial batch status for immediate run
-          setBatchStatus({
+          onStarted?.({
             runId: response.runId,
             status: 'pending',
             totalKeywords: response.totalKeywords,
@@ -197,9 +195,24 @@ export default function RunAllRankModal({
             failedChecks: 0,
             progress: 0,
             errorMessage: null,
+            scheduled: true,
+            scheduledFor: response.scheduledFor,
           });
+        } else {
+          // Set initial batch status for immediate run
+          const initialStatus: BatchStatus = {
+            runId: response.runId,
+            status: 'pending',
+            totalKeywords: response.totalKeywords,
+            processedKeywords: 0,
+            successfulChecks: 0,
+            failedChecks: 0,
+            progress: 0,
+            errorMessage: null,
+          };
+          setBatchStatus(initialStatus);
+          onStarted?.(initialStatus);
         }
-        onStarted?.();
       } else {
         setError(response.error || 'Failed to start batch run');
       }

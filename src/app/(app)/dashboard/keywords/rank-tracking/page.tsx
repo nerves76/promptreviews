@@ -150,6 +150,19 @@ export default function RankTrackingPage() {
   const [gridDataMap, setGridDataMap] = useState<Map<string, GeoGridData>>(new Map());
   const [scheduleDataMap, setScheduleDataMap] = useState<Map<string, ScheduleStatusData>>(new Map());
 
+  // Batch run status tracking
+  const [activeBatchRun, setActiveBatchRun] = useState<{
+    runId: string;
+    status: 'pending' | 'processing' | 'completed' | 'failed';
+    totalKeywords: number;
+    processedKeywords: number;
+    successfulChecks: number;
+    failedChecks: number;
+    progress: number;
+    creditsRefunded?: number;
+    errorMessage: string | null;
+  } | null>(null);
+
   // Track which keyword is currently being checked (for button loading state)
   const [checkingRankKeyword, setCheckingRankKeyword] = useState<string | null>(null);
   const [checkingVolumeKeyword, setCheckingVolumeKeyword] = useState<string | null>(null);
@@ -323,12 +336,89 @@ export default function RankTrackingPage() {
     setRankChecks([]);
     setGridDataMap(new Map());
     setScheduleDataMap(new Map());
+    setActiveBatchRun(null);
 
     if (selectedAccountId) {
       fetchResearchResults();
       fetchRankChecks();
     }
   }, [selectedAccountId]); // Only depend on selectedAccountId to avoid infinite loops
+
+  // Check for active batch run on page load
+  useEffect(() => {
+    const checkActiveBatchRun = async () => {
+      try {
+        const status = await apiClient.get<{
+          runId: string;
+          status: 'pending' | 'processing' | 'completed' | 'failed';
+          totalKeywords: number;
+          processedKeywords: number;
+          successfulChecks: number;
+          failedChecks: number;
+          progress: number;
+          creditsRefunded?: number;
+          errorMessage: string | null;
+        }>('/rank-tracking/batch-status');
+
+        // Only track if pending or processing
+        if (status.status === 'pending' || status.status === 'processing') {
+          setActiveBatchRun(status);
+        }
+      } catch {
+        // No active batch run or error - that's fine
+      }
+    };
+
+    if (selectedAccountId) {
+      checkActiveBatchRun();
+    }
+  }, [selectedAccountId]);
+
+  // Poll for batch status when a batch is running
+  useEffect(() => {
+    if (!activeBatchRun || !['pending', 'processing'].includes(activeBatchRun.status)) {
+      return;
+    }
+
+    const pollInterval = setInterval(async () => {
+      try {
+        const status = await apiClient.get<{
+          runId: string;
+          status: 'pending' | 'processing' | 'completed' | 'failed';
+          totalKeywords: number;
+          processedKeywords: number;
+          successfulChecks: number;
+          failedChecks: number;
+          progress: number;
+          creditsRefunded?: number;
+          errorMessage: string | null;
+        }>(`/rank-tracking/batch-status?runId=${activeBatchRun.runId}`);
+
+        setActiveBatchRun(status);
+
+        // When complete, refresh rank checks data
+        if (['completed', 'failed'].includes(status.status)) {
+          clearInterval(pollInterval);
+          fetchRankChecks();
+
+          // Show success/error toast
+          if (status.status === 'completed') {
+            if (status.failedChecks > 0) {
+              showSuccess(`Batch complete: ${status.successfulChecks} successful, ${status.failedChecks} failed${status.creditsRefunded ? ` (${status.creditsRefunded} credits refunded)` : ''}`);
+            } else {
+              showSuccess(`Batch complete: ${status.successfulChecks} keywords checked successfully`);
+            }
+          } else {
+            showError(status.errorMessage || 'Batch run failed');
+          }
+        }
+      } catch (err) {
+        console.error('[RankTracking] Polling error:', err);
+      }
+    }, 3000); // Poll every 3 seconds
+
+    return () => clearInterval(pollInterval);
+  }, [activeBatchRun?.runId, activeBatchRun?.status, fetchRankChecks, showSuccess, showError]);
 
   // Also fetch on mount
   useEffect(() => {
@@ -862,6 +952,31 @@ export default function RankTrackingPage() {
           }
         />
 
+        {/* Batch Run Progress Banner */}
+        {activeBatchRun && ['pending', 'processing'].includes(activeBatchRun.status) && (
+          <div className="mb-4 p-4 rounded-lg bg-blue-50 border border-blue-200">
+            <div className="flex items-center gap-3">
+              <Icon name="FaSpinner" className="w-5 h-5 text-slate-blue animate-spin" />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-slate-blue">
+                  {activeBatchRun.status === 'pending' ? 'Batch queued' : 'Checking rankings'}...
+                </p>
+                <p className="text-xs text-slate-blue/70">
+                  {activeBatchRun.processedKeywords} of {activeBatchRun.totalKeywords} keywords ({activeBatchRun.progress}%)
+                </p>
+              </div>
+              <div className="w-32">
+                <div className="w-full bg-blue-200 rounded-full h-2">
+                  <div
+                    className="bg-slate-blue h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${activeBatchRun.progress}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Keywords Table */}
         <ConceptsTable
           concepts={filteredConcepts}
@@ -927,9 +1042,9 @@ export default function RankTrackingPage() {
       <RunAllRankModal
         isOpen={showRunAllModal}
         onClose={() => setShowRunAllModal(false)}
-        onStarted={() => {
-          // Refresh data after batch started
-          fetchRankChecks();
+        onStarted={(batchStatus) => {
+          // Start tracking the batch run
+          setActiveBatchRun(batchStatus);
         }}
       />
 
