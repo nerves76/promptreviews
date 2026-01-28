@@ -9,13 +9,16 @@ import { NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { logCronExecution, verifyCronSecret } from '@/lib/cronLogger';
 import { runLLMChecks, updateSummary } from '@/features/llm-visibility/services/llm-checker';
+import { refundFeature } from '@/lib/credits';
+import { sendNotificationToAccount } from '@/utils/notifications';
 import type { LLMProvider } from '@/features/llm-visibility/utils/types';
 
 // Extend timeout for this route
 export const maxDuration = 300; // 5 minutes
 
 // Process up to N questions per execution to stay within timeout
-const ITEMS_PER_EXECUTION = 5;
+// With 5-minute timeout and ~10-15s per question, we can safely do 15-20
+const ITEMS_PER_EXECUTION = 15;
 
 const serviceSupabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -32,6 +35,8 @@ interface BatchRunRow {
   successful_checks: number;
   failed_checks: number;
   started_at: string | null;
+  idempotency_key: string | null;
+  estimated_credits: number;
 }
 
 interface BatchRunItemRow {
@@ -48,25 +53,82 @@ export async function GET(request: NextRequest) {
   if (authError) return authError;
 
   return logCronExecution('process-llm-batch', async () => {
-    // First, clean up any stuck runs (processing for > 15 minutes)
-    const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString();
+    // First, clean up any stuck runs (processing for > 2 hours)
+    // With ~15 questions/minute, even 1800 questions would complete in 2 hours
+    const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
     const { data: stuckRuns } = await serviceSupabase
       .from('llm_batch_runs')
-      .select('id')
+      .select('id, account_id, idempotency_key, estimated_credits, processed_questions, total_questions, providers')
       .eq('status', 'processing')
-      .lt('started_at', fifteenMinutesAgo);
+      .lt('started_at', twoHoursAgo);
 
     if (stuckRuns && stuckRuns.length > 0) {
       console.log(`📋 [LLMBatch] Found ${stuckRuns.length} stuck runs, marking as failed`);
       for (const stuckRun of stuckRuns) {
+        // Count how many checks were NOT completed
+        // Each question has N provider checks (e.g., 3 providers = 3 credits per question)
+        const { data: items } = await serviceSupabase
+          .from('llm_batch_run_items')
+          .select('status')
+          .eq('batch_run_id', stuckRun.id);
+
+        const providerCount = (stuckRun.providers as LLMProvider[])?.length || 1;
+        let completedCount = 0;
+        let failedCount = 0;
+        if (items) {
+          for (const item of items) {
+            if (item.status === 'completed') {
+              completedCount += providerCount;
+            } else {
+              failedCount += providerCount;
+            }
+          }
+        }
+
+        // Calculate credits used (only completed checks)
+        const creditsUsed = completedCount;
+
         await serviceSupabase
           .from('llm_batch_runs')
           .update({
             status: 'failed',
-            error_message: 'Run timed out after 15 minutes',
+            error_message: 'Run timed out after 2 hours',
             completed_at: new Date().toISOString(),
+            total_credits_used: creditsUsed,
           })
           .eq('id', stuckRun.id);
+
+        // Refund credits for uncompleted checks
+        if (failedCount > 0 && stuckRun.idempotency_key) {
+          try {
+            await refundFeature(
+              serviceSupabase,
+              stuckRun.account_id,
+              failedCount,
+              stuckRun.idempotency_key,
+              {
+                featureType: 'llm_visibility',
+                featureMetadata: {
+                  batchRunId: stuckRun.id,
+                  failedChecks: failedCount,
+                  reason: 'timeout',
+                },
+                description: `Refund for ${failedCount} uncompleted LLM checks (batch timed out)`,
+              }
+            );
+            console.log(`💰 [LLMBatch] Refunded ${failedCount} credits for timed out batch ${stuckRun.id}`);
+
+            // Send notification about the refund
+            await sendNotificationToAccount(stuckRun.account_id, 'credit_refund', {
+              feature: 'llm_visibility',
+              creditsRefunded: failedCount,
+              failedChecks: failedCount,
+              batchRunId: stuckRun.id,
+            });
+          } catch (refundError) {
+            console.error(`❌ [LLMBatch] Failed to refund credits for timed out batch ${stuckRun.id}:`, refundError);
+          }
+        }
       }
     }
 
@@ -141,7 +203,7 @@ export async function GET(request: NextRequest) {
 
       if (items.length === 0) {
         // No more pending items - check if all are done
-        await checkAndCompleteBatch(run.id);
+        await checkAndCompleteBatch(run.id, run.account_id, run.idempotency_key, run.providers);
         return { success: true, summary: { message: 'No pending items, checked completion' } };
       }
 
@@ -227,7 +289,7 @@ export async function GET(request: NextRequest) {
       }
 
       // Check if batch is complete
-      await checkAndCompleteBatch(run.id);
+      await checkAndCompleteBatch(run.id, run.account_id, run.idempotency_key, run.providers);
 
       return {
         success: true,
@@ -248,7 +310,12 @@ export async function GET(request: NextRequest) {
   });
 }
 
-async function checkAndCompleteBatch(runId: string): Promise<void> {
+async function checkAndCompleteBatch(
+  runId: string,
+  accountId: string,
+  idempotencyKey: string | null,
+  providers: LLMProvider[]
+): Promise<void> {
   // Get counts of item statuses
   const { data: items } = await serviceSupabase
     .from('llm_batch_run_items')
@@ -267,6 +334,11 @@ async function checkAndCompleteBatch(runId: string): Promise<void> {
     const status = failed === items.length ? 'failed' : 'completed';
     const errorMessage = failed > 0 ? `${failed} of ${items.length} questions failed` : null;
 
+    // Calculate credits: each question costs N credits (one per provider)
+    const providerCount = providers?.length || 1;
+    const failedCheckCount = failed * providerCount;
+    const creditsUsed = completed * providerCount;
+
     await serviceSupabase
       .from('llm_batch_runs')
       .update({
@@ -274,6 +346,7 @@ async function checkAndCompleteBatch(runId: string): Promise<void> {
         processed_questions: items.length,
         successful_checks: completed,
         failed_checks: failed,
+        total_credits_used: creditsUsed,
         error_message: errorMessage,
         completed_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
@@ -281,6 +354,38 @@ async function checkAndCompleteBatch(runId: string): Promise<void> {
       .eq('id', runId);
 
     console.log(`📋 [LLMBatch] Batch ${runId} ${status}: ${completed} completed, ${failed} failed`);
+
+    // Refund credits for failed checks
+    if (failedCheckCount > 0 && idempotencyKey) {
+      try {
+        await refundFeature(
+          serviceSupabase,
+          accountId,
+          failedCheckCount,
+          idempotencyKey,
+          {
+            featureType: 'llm_visibility',
+            featureMetadata: {
+              batchRunId: runId,
+              failedChecks: failedCheckCount,
+            },
+            description: `Refund for ${failedCheckCount} failed LLM checks in batch ${runId}`,
+          }
+        );
+        console.log(`💰 [LLMBatch] Refunded ${failedCheckCount} credits for failed checks in batch ${runId}`);
+
+        // Send notification about the refund
+        await sendNotificationToAccount(accountId, 'credit_refund', {
+          feature: 'llm_visibility',
+          creditsRefunded: failedCheckCount,
+          failedChecks: failedCheckCount,
+          batchRunId: runId,
+        });
+      } catch (refundError) {
+        // Log but don't fail - the batch is complete, just couldn't refund
+        console.error(`❌ [LLMBatch] Failed to refund credits for batch ${runId}:`, refundError);
+      }
+    }
   }
 }
 

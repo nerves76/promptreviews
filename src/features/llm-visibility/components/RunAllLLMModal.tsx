@@ -61,6 +61,9 @@ interface BatchStatus {
   successfulChecks: number;
   failedChecks: number;
   progress: number;
+  estimatedCredits: number;
+  totalCreditsUsed: number;
+  creditsRefunded: number;
   errorMessage: string | null;
   scheduledFor?: string | null;
 }
@@ -237,6 +240,9 @@ export default function RunAllLLMModal({
           successfulChecks: 0,
           failedChecks: 0,
           progress: 0,
+          estimatedCredits: response.estimatedCredits,
+          totalCreditsUsed: 0,
+          creditsRefunded: 0,
           errorMessage: null,
           scheduledFor: response.scheduledFor || null,
         });
@@ -358,6 +364,15 @@ export default function RunAllLLMModal({
                   </div>
                 </div>
               </div>
+              {/* Show refund message if credits were refunded */}
+              {batchStatus?.creditsRefunded > 0 && (
+                <div className="p-3 rounded-lg bg-blue-50 border border-blue-200">
+                  <p className="text-sm text-slate-blue flex items-center gap-2">
+                    <Icon name="FaCoins" className="w-4 h-4" />
+                    {batchStatus.creditsRefunded} credit{batchStatus.creditsRefunded !== 1 ? 's' : ''} refunded for failed checks
+                  </p>
+                </div>
+              )}
             </div>
           ) : isFailed ? (
             /* Failed state */
@@ -373,6 +388,15 @@ export default function RunAllLLMModal({
                   </div>
                 </div>
               </div>
+              {/* Show refund message if credits were refunded */}
+              {batchStatus?.creditsRefunded > 0 && (
+                <div className="p-3 rounded-lg bg-blue-50 border border-blue-200">
+                  <p className="text-sm text-slate-blue flex items-center gap-2">
+                    <Icon name="FaCoins" className="w-4 h-4" />
+                    {batchStatus.creditsRefunded} credit{batchStatus.creditsRefunded !== 1 ? 's' : ''} refunded
+                  </p>
+                </div>
+              )}
             </div>
           ) : (
             /* Configuration state */

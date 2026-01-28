@@ -210,6 +210,7 @@ export async function POST(request: NextRequest) {
         total_credits_used: totalCredits,
         triggered_by: user.id,
         scheduled_for: scheduledForDate?.toISOString() || null,
+        idempotency_key: idempotencyKey,
       })
       .select()
       .single();

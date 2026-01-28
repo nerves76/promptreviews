@@ -51,14 +51,14 @@ export async function GET(request: NextRequest) {
   if (authError) return authError;
 
   return logCronExecution('process-rank-batch', async () => {
-    // First, clean up any stuck runs (processing for > 60 minutes)
-    // With ~15 keywords/minute, a 500 keyword batch takes ~33 minutes
-    const sixtyMinutesAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    // First, clean up any stuck runs (processing for > 2 hours)
+    // With ~15 keywords/minute, even 1800 keywords would complete in 2 hours
+    const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
     const { data: stuckRuns } = await serviceSupabase
       .from('rank_batch_runs')
       .select('id, account_id, idempotency_key, estimated_credits, processed_keywords, total_keywords')
       .eq('status', 'processing')
-      .lt('started_at', sixtyMinutesAgo);
+      .lt('started_at', twoHoursAgo);
 
     if (stuckRuns && stuckRuns.length > 0) {
       console.log(`📋 [RankBatch] Found ${stuckRuns.length} stuck runs, marking as failed`);
@@ -84,7 +84,7 @@ export async function GET(request: NextRequest) {
           .from('rank_batch_runs')
           .update({
             status: 'failed',
-            error_message: 'Run timed out after 60 minutes',
+            error_message: 'Run timed out after 2 hours',
             completed_at: new Date().toISOString(),
             total_credits_used: completedCheckCount,
           })
