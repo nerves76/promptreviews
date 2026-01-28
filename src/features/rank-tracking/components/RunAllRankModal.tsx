@@ -35,6 +35,7 @@ interface BatchStatus {
   successfulChecks: number;
   failedChecks: number;
   progress: number;
+  creditsRefunded?: number;
   errorMessage: string | null;
   scheduled?: boolean;
   scheduledFor?: string | null;
@@ -328,6 +329,17 @@ export default function RunAllRankModal({
                   </div>
                 </div>
               </div>
+              {/* Show refund message if credits were refunded */}
+              {(batchStatus?.creditsRefunded ?? 0) > 0 && (
+                <div className="p-3 rounded-lg bg-blue-50 border border-blue-200">
+                  <div className="flex items-center gap-2">
+                    <Icon name="FaCoins" className="w-4 h-4 text-slate-blue" />
+                    <p className="text-sm text-slate-blue">
+                      {batchStatus?.creditsRefunded} credit{batchStatus?.creditsRefunded !== 1 ? 's' : ''} refunded for failed checks
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           ) : isFailed ? (
             /* Failed state */
@@ -343,6 +355,17 @@ export default function RunAllRankModal({
                   </div>
                 </div>
               </div>
+              {/* Show refund message if credits were refunded */}
+              {(batchStatus?.creditsRefunded ?? 0) > 0 && (
+                <div className="p-3 rounded-lg bg-blue-50 border border-blue-200">
+                  <div className="flex items-center gap-2">
+                    <Icon name="FaCoins" className="w-4 h-4 text-slate-blue" />
+                    <p className="text-sm text-slate-blue">
+                      {batchStatus?.creditsRefunded} credit{batchStatus?.creditsRefunded !== 1 ? 's' : ''} refunded for failed checks
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             /* Configuration state */

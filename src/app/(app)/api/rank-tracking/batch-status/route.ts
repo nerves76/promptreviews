@@ -97,6 +97,9 @@ export async function GET(request: NextRequest) {
 
     const run = batchRun as BatchRunRow;
 
+    // Calculate credits refunded (difference between estimated and used)
+    const creditsRefunded = run.estimated_credits - run.total_credits_used;
+
     // Build response
     const response: {
       runId: string;
@@ -108,6 +111,7 @@ export async function GET(request: NextRequest) {
       progress: number;
       estimatedCredits: number;
       totalCreditsUsed: number;
+      creditsRefunded: number;
       errorMessage: string | null;
       createdAt: string;
       startedAt: string | null;
@@ -134,6 +138,7 @@ export async function GET(request: NextRequest) {
         : 0,
       estimatedCredits: run.estimated_credits,
       totalCreditsUsed: run.total_credits_used,
+      creditsRefunded: creditsRefunded > 0 ? creditsRefunded : 0,
       errorMessage: run.error_message,
       createdAt: run.created_at,
       startedAt: run.started_at,
