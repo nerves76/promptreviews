@@ -98,8 +98,17 @@ export function RefactoredGoogleBusinessPage() {
   // ╚══════════════════════════════════════════════════════════════════════════╝
   const [isLoading, setIsLoading] = useState(true);
   const [connectedEmail, setConnectedEmail] = useState<string | null>(null);
+
+  // Resolved account ID used to scope GBP localStorage cache
+  const currentAccountIdForCache = selectedAccountId || account?.id || null;
+
   const [isConnected, setIsConnected] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
+      const cachedAccountId = localStorage.getItem('google-business-cache-account-id');
+      const currentId = selectedAccountId || account?.id || null;
+      if (currentId && cachedAccountId && cachedAccountId !== currentId) {
+        return false;
+      }
       const stored = localStorage.getItem('google-business-connected');
       return stored === 'true';
     }
@@ -112,6 +121,11 @@ export function RefactoredGoogleBusinessPage() {
   // ╚══════════════════════════════════════════════════════════════════════════╝
   const [locations, setLocations] = useState<GoogleBusinessLocation[]>(() => {
     if (typeof window !== 'undefined') {
+      const cachedAccountId = localStorage.getItem('google-business-cache-account-id');
+      const currentId = selectedAccountId || account?.id || null;
+      if (currentId && cachedAccountId && cachedAccountId !== currentId) {
+        return [];
+      }
       const stored = localStorage.getItem('google-business-locations');
       try {
         return stored ? JSON.parse(stored) : [];
@@ -125,6 +139,11 @@ export function RefactoredGoogleBusinessPage() {
   // Track whether user has attempted to fetch locations before
   const [hasAttemptedFetch, setHasAttemptedFetch] = useState(() => {
     if (typeof window !== 'undefined') {
+      const cachedAccountId = localStorage.getItem('google-business-cache-account-id');
+      const currentId = selectedAccountId || account?.id || null;
+      if (currentId && cachedAccountId && cachedAccountId !== currentId) {
+        return false;
+      }
       const stored = localStorage.getItem('google-business-fetch-attempted');
       return stored === 'true';
     }
@@ -133,6 +152,11 @@ export function RefactoredGoogleBusinessPage() {
   
   const [selectedLocations, setSelectedLocations] = useState<string[]>(() => {
     if (typeof window !== 'undefined') {
+      const cachedAccountId = localStorage.getItem('google-business-cache-account-id');
+      const currentId = selectedAccountId || account?.id || null;
+      if (currentId && cachedAccountId && cachedAccountId !== currentId) {
+        return [];
+      }
       const stored = localStorage.getItem('google-business-selected-locations');
       try {
         return stored ? JSON.parse(stored) : [];
@@ -292,6 +316,7 @@ export function RefactoredGoogleBusinessPage() {
   };
   const loadingRef = useRef(false); // More persistent loading prevention
   const initialLoadDone = useRef(false); // Track if initial load has been completed
+  const postOAuthKeepConnectTab = useRef(false); // Keep connect tab active after OAuth
 
   // ╔══════════════════════════════════════════════════════════════════════════╗
   // ║                          OVERVIEW STATE                                  ║
@@ -301,6 +326,11 @@ export function RefactoredGoogleBusinessPage() {
   const OVERVIEW_CACHE_VERSION = 3; // v3 adds postsData
   const [overviewData, setOverviewData] = useState<any>(() => {
     if (typeof window !== 'undefined') {
+      const cachedAccountId = localStorage.getItem('google-business-cache-account-id');
+      const currentId = selectedAccountId || account?.id || null;
+      if (currentId && cachedAccountId && cachedAccountId !== currentId) {
+        return null;
+      }
       const stored = localStorage.getItem('google-business-overview-data');
       try {
         const parsed = stored ? JSON.parse(stored) : null;
@@ -363,8 +393,13 @@ export function RefactoredGoogleBusinessPage() {
     if (!isLoading && typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
       const hasTabParam = urlParams.has('tab');
-      
+
       if (!hasTabParam) {
+        // After OAuth, keep user on connect tab so they can see their businesses
+        if (postOAuthKeepConnectTab.current) {
+          setActiveTab('connect');
+          return;
+        }
         // If not connected or no locations, show connect tab
         // Otherwise show overview tab with stats
         const defaultTab = (!isConnected || locations.length === 0) ? 'connect' : 'overview';
@@ -384,6 +419,7 @@ export function RefactoredGoogleBusinessPage() {
   const changeTab = (newTab: 'connect' | 'overview' | 'create-post' | 'photos' | 'business-info' | 'services' | 'more' | 'reviews' | 'protection') => {
     setActiveTab(newTab);
     setIsMobileMenuOpen(false); // Close mobile menu when tab changes
+    postOAuthKeepConnectTab.current = false; // Clear post-OAuth lock on manual navigation
     
     // Update URL parameter
     if (typeof window !== 'undefined') {
@@ -514,7 +550,7 @@ export function RefactoredGoogleBusinessPage() {
       // Load platforms to show disconnected state
       loadPlatforms();
     } else if (isPostOAuth) {
-      
+
       /**
        * POST-OAUTH LOADING STATE FIX:
        * Show immediate loading feedback to user after OAuth
@@ -522,6 +558,7 @@ export function RefactoredGoogleBusinessPage() {
        */
       setIsPostOAuthConnecting(true); // Show "Finalizing connection..." state
       setIsLoading(true);
+      postOAuthKeepConnectTab.current = true; // Keep connect tab active after loading
       
       // Show initial connecting message
       const message = urlParams.get('message');
@@ -571,46 +608,60 @@ export function RefactoredGoogleBusinessPage() {
   // ║  Sync state changes to localStorage                                     ║
   // ╚══════════════════════════════════════════════════════════════════════════╝
   useEffect(() => {
+    if (currentAccountIdForCache) {
+      localStorage.setItem('google-business-cache-account-id', currentAccountIdForCache);
+    }
     localStorage.setItem('google-business-connected', isConnected.toString());
-  }, [isConnected]);
+  }, [isConnected, currentAccountIdForCache]);
 
   useEffect(() => {
+    if (currentAccountIdForCache) {
+      localStorage.setItem('google-business-cache-account-id', currentAccountIdForCache);
+    }
     localStorage.setItem('google-business-locations', JSON.stringify(locations));
-  }, [locations]);
+  }, [locations, currentAccountIdForCache]);
 
   useEffect(() => {
+    if (currentAccountIdForCache) {
+      localStorage.setItem('google-business-cache-account-id', currentAccountIdForCache);
+    }
     localStorage.setItem('google-business-selected-locations', JSON.stringify(selectedLocations));
-  }, [selectedLocations]);
+  }, [selectedLocations, currentAccountIdForCache]);
 
   useEffect(() => {
     if (overviewData) {
+      if (currentAccountIdForCache) {
+        localStorage.setItem('google-business-cache-account-id', currentAccountIdForCache);
+      }
       // Add cache version when saving
       localStorage.setItem('google-business-overview-data', JSON.stringify({
         ...overviewData,
         _cacheVersion: OVERVIEW_CACHE_VERSION
       }));
     }
-  }, [overviewData]);
+  }, [overviewData, currentAccountIdForCache]);
 
   // Clear localStorage when account changes to prevent stale data from other accounts
   const prevAccountIdRef = useRef<string | null>(null);
   useEffect(() => {
     const currentAccountId = selectedAccountId || account?.id;
+    if (!currentAccountId) return;
 
-    // On first load, just store the account ID
-    if (prevAccountIdRef.current === null) {
-      prevAccountIdRef.current = currentAccountId || null;
-      return;
-    }
+    const cachedAccountId = localStorage.getItem('google-business-cache-account-id');
+    const isFirstLoad = prevAccountIdRef.current === null;
 
-    // If account changed, clear all google-business localStorage
-    if (currentAccountId && prevAccountIdRef.current !== currentAccountId) {
-      console.log('[GBP] Account changed, clearing localStorage cache');
+    // Check if the cache belongs to a different account (covers both first load and switches)
+    const cacheStale = cachedAccountId !== null && cachedAccountId !== currentAccountId;
+    const accountSwitched = !isFirstLoad && prevAccountIdRef.current !== currentAccountId;
+
+    if (cacheStale || accountSwitched) {
+      console.log('[GBP] Account mismatch, clearing localStorage cache');
       localStorage.removeItem('google-business-connected');
       localStorage.removeItem('google-business-locations');
       localStorage.removeItem('google-business-selected-locations');
       localStorage.removeItem('google-business-fetch-attempted');
       localStorage.removeItem('google-business-overview-data');
+      localStorage.removeItem('google-business-cache-account-id');
 
       // Reset state
       setIsConnected(false);
@@ -619,12 +670,12 @@ export function RefactoredGoogleBusinessPage() {
       setHasAttemptedFetch(false);
       setOverviewData(null);
 
-      // Update the ref
-      prevAccountIdRef.current = currentAccountId;
-
       // Trigger a fresh load
       setIsLoading(true);
     }
+
+    // Always update the ref
+    prevAccountIdRef.current = currentAccountId;
   }, [selectedAccountId, account?.id]);
 
   // Clean up image URLs on unmount
@@ -1114,6 +1165,7 @@ export function RefactoredGoogleBusinessPage() {
       localStorage.removeItem('google-business-selected-locations');
       localStorage.removeItem('google-business-fetch-attempted');
       localStorage.removeItem('google-business-overview-data');
+      localStorage.removeItem('google-business-cache-account-id');
 
       // Immediately update UI state to show disconnected
       setIsConnected(false);
@@ -1239,6 +1291,7 @@ export function RefactoredGoogleBusinessPage() {
             localStorage.removeItem('google-business-connected');
             localStorage.removeItem('google-business-locations');
             localStorage.removeItem('google-business-overview-data');
+            localStorage.removeItem('google-business-cache-account-id');
             return;
           } else if (errorData.error === 'PERMISSION_ERROR') {
             setPostResult({ 
@@ -1299,13 +1352,10 @@ export function RefactoredGoogleBusinessPage() {
           
           // Show success message
           const demoNote = result.isDemoMode ? ' (Demo Mode - Using test data due to Google rate limits)' : '';
-          setPostResult({ 
-            success: true, 
-            message: `Connected to ${singleLocation.name}!${demoNote} Your business location is ready to manage.` 
+          setPostResult({
+            success: true,
+            message: `Connected to ${singleLocation.name}!${demoNote} Your business location is ready to manage.`
           });
-          
-          // Automatically switch to overview tab for single location
-          changeTab('overview');
         } else {
           // Multiple locations - show selection modal
           setPendingLocations(validLocations);

@@ -18,6 +18,8 @@ export default function GoogleBusinessConnection({ accountId }: GoogleBusinessCo
   const [status, setStatus] = useState<GBPStatus | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isConnecting, setIsConnecting] = useState(false);
+  const [isFetchingLocations, setIsFetchingLocations] = useState(false);
+  const [fetchResult, setFetchResult] = useState<{ success: boolean; message: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const fetchConnectionStatus = async () => {
@@ -105,8 +107,62 @@ export default function GoogleBusinessConnection({ accountId }: GoogleBusinessCo
     try {
       await apiClient.post('/social-posting/platforms/google-business-profile/disconnect', {});
       setStatus({ connected: false });
+      setFetchResult(null);
     } catch (err) {
       setError('Failed to disconnect');
+    }
+  };
+
+  const handleFetchLocations = async () => {
+    setIsFetchingLocations(true);
+    setFetchResult(null);
+    setError(null);
+
+    try {
+      const response = await fetch('/api/social-posting/platforms/google-business-profile/fetch-locations', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Selected-Account': accountId,
+        },
+        body: JSON.stringify({ force: true }),
+      });
+
+      if (response.status === 429) {
+        const result = await response.json();
+        setFetchResult({
+          success: false,
+          message: result.message || 'Rate limit reached. Please wait a few minutes and try again.',
+        });
+        return;
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        throw new Error(errorData?.message || 'Failed to fetch locations');
+      }
+
+      const result = await response.json();
+      const count = result.locations?.length || 0;
+
+      if (count > 0) {
+        setFetchResult({
+          success: true,
+          message: `Found ${count} business location${count !== 1 ? 's' : ''}! Go to Google Business Profile to manage them.`,
+        });
+        setStatus((prev) => prev ? { ...prev, locationCount: count } : prev);
+      } else {
+        setFetchResult({
+          success: false,
+          message: 'No business locations found. Check your Google Business Profile access.',
+        });
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to fetch locations';
+      setFetchResult({ success: false, message });
+    } finally {
+      setIsFetchingLocations(false);
     }
   };
 
@@ -163,20 +219,91 @@ export default function GoogleBusinessConnection({ accountId }: GoogleBusinessCo
             <p className="text-sm text-blue-700">
               {status.locationCount
                 ? `${status.locationCount} location${status.locationCount > 1 ? 's' : ''} available`
-                : 'No locations selected'}
+                : 'No locations fetched yet'}
             </p>
           </div>
 
-          <div className="flex items-center space-x-3">
+          {/* Fetch locations prompt when none exist */}
+          {!status.locationCount && !isFetchingLocations && !fetchResult && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
+              <div className="flex items-start space-x-3">
+                <Icon name="FaInfoCircle" className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
+                <div>
+                  <h4 className="text-sm font-medium text-yellow-800 mb-1">
+                    Next step: fetch your business locations
+                  </h4>
+                  <p className="text-sm text-yellow-700">
+                    Retrieve your locations from Google so you can start managing posts and reviews.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Fetching progress indicator */}
+          {isFetchingLocations && (
+            <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
+              <div className="flex items-center space-x-3">
+                <Icon name="FaSpinner" className="w-5 h-5 text-blue-600 animate-spin" />
+                <div>
+                  <h4 className="text-sm font-medium text-blue-800">Fetching business locations...</h4>
+                  <p className="text-xs text-blue-700 mt-1">
+                    This typically takes 1-2 minutes due to Google API rate limits.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Fetch result messages */}
+          {fetchResult && (
+            <div className={`rounded-md p-3 flex items-start space-x-2 ${
+              fetchResult.success
+                ? 'bg-green-50 border border-green-200'
+                : 'bg-red-50 border border-red-200'
+            }`}>
+              <Icon
+                name={fetchResult.success ? 'FaCheck' : 'FaExclamationTriangle'}
+                className={`w-4 h-4 mt-0.5 flex-shrink-0 ${
+                  fetchResult.success ? 'text-green-600' : 'text-red-500'
+                }`}
+              />
+              <p className={`text-sm ${fetchResult.success ? 'text-green-700' : 'text-red-700'}`}>
+                {fetchResult.message}
+              </p>
+            </div>
+          )}
+
+          <div className="flex flex-wrap items-center gap-3">
+            {!status.locationCount && (
+              <button
+                onClick={handleFetchLocations}
+                disabled={isFetchingLocations}
+                className={`px-4 py-2 text-sm font-medium rounded-md transition-colors flex items-center space-x-2 whitespace-nowrap ${
+                  isFetchingLocations
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    : 'bg-slate-blue text-white hover:bg-slate-blue/90'
+                }`}
+              >
+                {isFetchingLocations ? (
+                  <>
+                    <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
+                    <span>Fetching...</span>
+                  </>
+                ) : (
+                  <span>Fetch business locations</span>
+                )}
+              </button>
+            )}
             <a
               href="/dashboard/google-business"
-              className="px-4 py-2 text-sm font-medium text-slate-blue border border-slate-blue rounded-md hover:bg-slate-blue/5 transition-colors"
+              className="px-4 py-2 text-sm font-medium text-slate-blue border border-slate-blue rounded-md hover:bg-slate-blue/5 transition-colors whitespace-nowrap"
             >
-              Manage locations
+              {status.locationCount ? 'Manage locations' : 'Go to Google Business Profile'}
             </a>
             <button
               onClick={handleDisconnect}
-              className="px-4 py-2 text-sm font-medium text-red-600 border border-red-300 rounded-md hover:bg-red-50 transition-colors"
+              className="px-4 py-2 text-sm font-medium text-red-600 border border-red-300 rounded-md hover:bg-red-50 transition-colors whitespace-nowrap"
             >
               Disconnect
             </button>
