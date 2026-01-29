@@ -249,21 +249,20 @@ export function ReviewManagementModal({
 
       // We already have accountId from the validation above
 
-      // Fetch reviews from review_submissions for this account by joining with prompt_pages
+      // Fetch all reviews for this account (includes prompt page submissions, CSV imports, and GBP imports)
       const { data: reviews, error: reviewsError } = await supabase
         .from('review_submissions')
         .select(`
-          id, 
-          first_name, 
-          last_name, 
-          reviewer_role, 
-          review_content, 
-          platform, 
+          id,
+          first_name,
+          last_name,
+          reviewer_role,
+          review_content,
+          platform,
           created_at,
-          star_rating,
-          prompt_pages!inner(account_id)
+          star_rating
         `)
-        .eq('prompt_pages.account_id', accountId)
+        .eq('account_id', accountId)
         .order('created_at', { ascending: false });
 
       if (reviewsError) {
