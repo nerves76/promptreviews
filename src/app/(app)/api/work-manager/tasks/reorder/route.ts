@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient, createServiceRoleClient } from '@/auth/providers/supabase';
+import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 import { WMTaskStatus } from '@/types/workManager';
 
 /**
@@ -35,34 +36,27 @@ export async function PATCH(request: NextRequest) {
     }
 
     const supabaseAdmin = createServiceRoleClient();
+    const accountId = await getRequestAccountId(request, user.id, supabaseAdmin);
+
+    if (!accountId) {
+      return NextResponse.json({ error: 'No valid account found' }, { status: 403 });
+    }
+
     const taskIds = updates.map((u: any) => u.id);
 
-    // Fetch all tasks to verify access
+    // Fetch all tasks and verify they belong to the selected account
     const { data: tasks, error: tasksError } = await supabaseAdmin
       .from('wm_tasks')
       .select('id, account_id, board_id, status')
-      .in('id', taskIds);
+      .in('id', taskIds)
+      .eq('account_id', accountId);
 
     if (tasksError || !tasks || tasks.length === 0) {
       return NextResponse.json({ error: 'Tasks not found' }, { status: 404 });
     }
 
-    // Verify all tasks belong to the same account and user has access
-    const accountIds = [...new Set(tasks.map(t => t.account_id))];
-    if (accountIds.length > 1) {
-      return NextResponse.json({ error: 'All tasks must belong to the same account' }, { status: 400 });
-    }
-
-    const accountId = accountIds[0];
-    const { data: accountUser } = await supabaseAdmin
-      .from('account_users')
-      .select('account_id')
-      .eq('user_id', user.id)
-      .eq('account_id', accountId)
-      .single();
-
-    if (!accountUser) {
-      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+    if (tasks.length !== taskIds.length) {
+      return NextResponse.json({ error: 'Some tasks do not belong to the selected account' }, { status: 403 });
     }
 
     // Track status changes for activity logging

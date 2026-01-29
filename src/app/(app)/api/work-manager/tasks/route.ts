@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient, createServiceRoleClient } from '@/auth/providers/supabase';
+import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 import { WMTaskStatus, WMTaskPriority } from '@/types/workManager';
 
 /**
@@ -23,27 +24,22 @@ export async function GET(request: NextRequest) {
     }
 
     const supabaseAdmin = createServiceRoleClient();
+    const accountId = await getRequestAccountId(request, user.id, supabaseAdmin);
 
-    // Verify user has access to this board
+    if (!accountId) {
+      return NextResponse.json({ error: 'No valid account found' }, { status: 403 });
+    }
+
+    // Verify board belongs to the selected account
     const { data: board, error: boardError } = await supabaseAdmin
       .from('wm_boards')
       .select('id, account_id')
       .eq('id', boardId)
+      .eq('account_id', accountId)
       .single();
 
     if (boardError || !board) {
       return NextResponse.json({ error: 'Board not found' }, { status: 404 });
-    }
-
-    const { data: accountUser } = await supabaseAdmin
-      .from('account_users')
-      .select('account_id')
-      .eq('user_id', user.id)
-      .eq('account_id', board.account_id)
-      .single();
-
-    if (!accountUser) {
-      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
     // Fetch tasks with assignee info
@@ -141,27 +137,22 @@ export async function POST(request: NextRequest) {
     }
 
     const supabaseAdmin = createServiceRoleClient();
+    const accountId = await getRequestAccountId(request, user.id, supabaseAdmin);
 
-    // Verify user has access to the board
+    if (!accountId) {
+      return NextResponse.json({ error: 'No valid account found' }, { status: 403 });
+    }
+
+    // Verify board belongs to the selected account
     const { data: board, error: boardError } = await supabaseAdmin
       .from('wm_boards')
       .select('id, account_id')
       .eq('id', board_id)
+      .eq('account_id', accountId)
       .single();
 
     if (boardError || !board) {
       return NextResponse.json({ error: 'Board not found' }, { status: 404 });
-    }
-
-    const { data: accountUser } = await supabaseAdmin
-      .from('account_users')
-      .select('account_id')
-      .eq('user_id', user.id)
-      .eq('account_id', board.account_id)
-      .single();
-
-    if (!accountUser) {
-      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
     // Get max sort_order for this status

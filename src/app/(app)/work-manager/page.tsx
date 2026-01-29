@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Icon from "@/components/Icon";
 import { useAuth } from "@/auth";
+import { useAccountData } from "@/auth/hooks/granularAuthHooks";
 import { apiClient } from "@/utils/apiClient";
 import { WMBoard } from "@/types/workManager";
 
@@ -14,16 +15,19 @@ import { WMBoard } from "@/types/workManager";
 export default function WorkManagerDashboard() {
   const router = useRouter();
   const { user, isInitialized } = useAuth();
+  const { selectedAccountId } = useAccountData();
   const [error, setError] = useState<string | null>(null);
-  const ensureAttempted = useRef(false);
+  const lastAccountRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!isInitialized || !user || ensureAttempted.current) return;
-    ensureAttempted.current = true;
+    if (!isInitialized || !user || !selectedAccountId) return;
+    // Skip if we already redirected for this account
+    if (lastAccountRef.current === selectedAccountId) return;
+    lastAccountRef.current = selectedAccountId;
 
     const ensureAndRedirect = async () => {
       try {
-        // Get or create the board for this account
+        // Get or create the board for the selected account
         const response = await apiClient.post<{ board: WMBoard; created: boolean }>(
           '/work-manager/boards/ensure',
           {}
@@ -37,7 +41,7 @@ export default function WorkManagerDashboard() {
     };
 
     ensureAndRedirect();
-  }, [isInitialized, user, router]);
+  }, [isInitialized, user, selectedAccountId, router]);
 
   // Error state
   if (error) {
@@ -49,7 +53,7 @@ export default function WorkManagerDashboard() {
           <p className="text-gray-600 mb-6">{error}</p>
           <button
             onClick={() => {
-              ensureAttempted.current = false;
+              lastAccountRef.current = null;
               setError(null);
             }}
             className="px-6 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-blue/90 font-medium"

@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Icon from "@/components/Icon";
 import { useAuth } from "@/auth";
+import { useAccountData } from "@/auth/hooks/granularAuthHooks";
 import { apiClient } from "@/utils/apiClient";
 import WorkManagerKanban from "../components/WorkManagerKanban";
 import WMStatusLabelEditor from "../components/WMStatusLabelEditor";
@@ -25,6 +26,7 @@ export default function WorkManagerBoardPage() {
   const router = useRouter();
   const boardId = params.boardId as string;
   const { user, accounts, isInitialized } = useAuth();
+  const { selectedAccountId } = useAccountData();
 
   const [board, setBoard] = useState<WMBoard | null>(null);
   const [tasks, setTasks] = useState<WMTask[]>([]);
@@ -93,6 +95,16 @@ export default function WorkManagerBoardPage() {
       console.error("Failed to fetch account users:", err);
     }
   }, []);
+
+  // Redirect to correct board when user switches accounts
+  useEffect(() => {
+    if (!selectedAccountId || !board) return;
+    if (board.account_id !== selectedAccountId) {
+      // Board belongs to a different account — redirect to landing page
+      // which will ensure/load the correct board for the selected account
+      router.replace("/work-manager");
+    }
+  }, [selectedAccountId, board, router]);
 
   // Initial load
   useEffect(() => {

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient, createServiceRoleClient } from '@/auth/providers/supabase';
+import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 import { WMActionType } from '@/types/workManager';
 import { sendMentionNotificationEmail } from '@/lib/email/mentionNotification';
 
@@ -24,28 +25,22 @@ export async function GET(request: NextRequest) {
     }
 
     const supabaseAdmin = createServiceRoleClient();
+    const accountId = await getRequestAccountId(request, user.id, supabaseAdmin);
 
-    // Fetch the task to verify access
+    if (!accountId) {
+      return NextResponse.json({ error: 'No valid account found' }, { status: 403 });
+    }
+
+    // Fetch the task and verify it belongs to the selected account
     const { data: task, error: taskError } = await supabaseAdmin
       .from('wm_tasks')
       .select('id, account_id')
       .eq('id', taskId)
+      .eq('account_id', accountId)
       .single();
 
     if (taskError || !task) {
       return NextResponse.json({ error: 'Task not found' }, { status: 404 });
-    }
-
-    // Verify user has access
-    const { data: accountUser } = await supabaseAdmin
-      .from('account_users')
-      .select('account_id')
-      .eq('user_id', user.id)
-      .eq('account_id', task.account_id)
-      .single();
-
-    if (!accountUser) {
-      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
     // Fetch actions
@@ -159,28 +154,22 @@ export async function POST(request: NextRequest) {
     }
 
     const supabaseAdmin = createServiceRoleClient();
+    const accountId = await getRequestAccountId(request, user.id, supabaseAdmin);
 
-    // Fetch the task to verify access
+    if (!accountId) {
+      return NextResponse.json({ error: 'No valid account found' }, { status: 403 });
+    }
+
+    // Fetch the task and verify it belongs to the selected account
     const { data: task, error: taskError } = await supabaseAdmin
       .from('wm_tasks')
       .select('id, account_id')
       .eq('id', task_id)
+      .eq('account_id', accountId)
       .single();
 
     if (taskError || !task) {
       return NextResponse.json({ error: 'Task not found' }, { status: 404 });
-    }
-
-    // Verify user has access
-    const { data: accountUser } = await supabaseAdmin
-      .from('account_users')
-      .select('account_id')
-      .eq('user_id', user.id)
-      .eq('account_id', task.account_id)
-      .single();
-
-    if (!accountUser) {
-      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
     // Create the action

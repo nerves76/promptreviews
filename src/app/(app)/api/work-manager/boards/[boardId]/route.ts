@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient, createServiceRoleClient } from '@/auth/providers/supabase';
+import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 import { DEFAULT_WM_STATUS_LABELS, WMStatusLabels } from '@/types/workManager';
 
 interface RouteContext {
@@ -21,8 +22,13 @@ export async function GET(request: NextRequest, context: RouteContext) {
     }
 
     const supabaseAdmin = createServiceRoleClient();
+    const accountId = await getRequestAccountId(request, user.id, supabaseAdmin);
 
-    // Fetch the board
+    if (!accountId) {
+      return NextResponse.json({ error: 'No valid account found' }, { status: 403 });
+    }
+
+    // Fetch the board and verify it belongs to the selected account
     const { data: board, error: boardError } = await supabaseAdmin
       .from('wm_boards')
       .select(`
@@ -43,22 +49,11 @@ export async function GET(request: NextRequest, context: RouteContext) {
         )
       `)
       .eq('id', boardId)
+      .eq('account_id', accountId)
       .single();
 
     if (boardError || !board) {
       return NextResponse.json({ error: 'Board not found' }, { status: 404 });
-    }
-
-    // Verify user has access to this board's account
-    const { data: accountUser } = await supabaseAdmin
-      .from('account_users')
-      .select('account_id')
-      .eq('user_id', user.id)
-      .eq('account_id', board.account_id)
-      .single();
-
-    if (!accountUser) {
-      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
     // Get task count
@@ -108,28 +103,22 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     const { name, status_labels } = body;
 
     const supabaseAdmin = createServiceRoleClient();
+    const accountId = await getRequestAccountId(request, user.id, supabaseAdmin);
 
-    // Fetch the board to verify access
+    if (!accountId) {
+      return NextResponse.json({ error: 'No valid account found' }, { status: 403 });
+    }
+
+    // Fetch the board and verify it belongs to the selected account
     const { data: board, error: boardError } = await supabaseAdmin
       .from('wm_boards')
       .select('id, account_id')
       .eq('id', boardId)
+      .eq('account_id', accountId)
       .single();
 
     if (boardError || !board) {
       return NextResponse.json({ error: 'Board not found' }, { status: 404 });
-    }
-
-    // Verify user has access
-    const { data: accountUser } = await supabaseAdmin
-      .from('account_users')
-      .select('account_id')
-      .eq('user_id', user.id)
-      .eq('account_id', board.account_id)
-      .single();
-
-    if (!accountUser) {
-      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
     // Validate status_labels if provided
@@ -189,32 +178,33 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
     }
 
     const supabaseAdmin = createServiceRoleClient();
+    const accountId = await getRequestAccountId(request, user.id, supabaseAdmin);
 
-    // Fetch the board to verify access
+    if (!accountId) {
+      return NextResponse.json({ error: 'No valid account found' }, { status: 403 });
+    }
+
+    // Fetch the board and verify it belongs to the selected account
     const { data: board, error: boardError } = await supabaseAdmin
       .from('wm_boards')
       .select('id, account_id')
       .eq('id', boardId)
+      .eq('account_id', accountId)
       .single();
 
     if (boardError || !board) {
       return NextResponse.json({ error: 'Board not found' }, { status: 404 });
     }
 
-    // Verify user has access
+    // Verify user is owner or admin of this account
     const { data: accountUser } = await supabaseAdmin
       .from('account_users')
-      .select('account_id, role')
+      .select('role')
       .eq('user_id', user.id)
-      .eq('account_id', board.account_id)
+      .eq('account_id', accountId)
       .single();
 
-    if (!accountUser) {
-      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
-    }
-
-    // Only owners and admins can delete boards
-    if (accountUser.role !== 'owner' && accountUser.role !== 'admin') {
+    if (!accountUser || (accountUser.role !== 'owner' && accountUser.role !== 'admin')) {
       return NextResponse.json({ error: 'Only owners and admins can delete boards' }, { status: 403 });
     }
 

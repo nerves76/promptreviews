@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient, createServiceRoleClient } from '@/auth/providers/supabase';
+import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 import { DEFAULT_WM_STATUS_LABELS } from '@/types/workManager';
 
 /**
  * GET /api/work-manager/boards
- * Returns all boards the current user has access to (across all their accounts)
+ * Returns the board for the currently selected account
  */
 export async function GET(request: NextRequest) {
   try {
@@ -15,25 +16,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get all accounts the user has access to
     const supabaseAdmin = createServiceRoleClient();
-    const { data: accountUsers, error: accountsError } = await supabaseAdmin
-      .from('account_users')
-      .select('account_id')
-      .eq('user_id', user.id);
+    const accountId = await getRequestAccountId(request, user.id, supabaseAdmin);
 
-    if (accountsError) {
-      console.error('Error fetching user accounts:', accountsError);
-      return NextResponse.json({ error: 'Failed to fetch accounts' }, { status: 500 });
+    if (!accountId) {
+      return NextResponse.json({ error: 'No valid account found' }, { status: 403 });
     }
 
-    const accountIds = accountUsers?.map(au => au.account_id) || [];
-
-    if (accountIds.length === 0) {
-      return NextResponse.json({ boards: [] });
-    }
-
-    // Fetch all boards for these accounts with task counts and account info
+    // Fetch boards for the selected account
     const { data: boards, error: boardsError } = await supabaseAdmin
       .from('wm_boards')
       .select(`
@@ -52,7 +42,7 @@ export async function GET(request: NextRequest) {
           )
         )
       `)
-      .in('account_id', accountIds)
+      .eq('account_id', accountId)
       .order('created_at', { ascending: false });
 
     if (boardsError) {

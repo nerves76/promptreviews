@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient, createServiceRoleClient } from '@/auth/providers/supabase';
+import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 import { WMTaskStatus, WMTaskPriority } from '@/types/workManager';
 
 interface RouteContext {
@@ -21,28 +22,22 @@ export async function GET(request: NextRequest, context: RouteContext) {
     }
 
     const supabaseAdmin = createServiceRoleClient();
+    const accountId = await getRequestAccountId(request, user.id, supabaseAdmin);
 
-    // Fetch the task
+    if (!accountId) {
+      return NextResponse.json({ error: 'No valid account found' }, { status: 403 });
+    }
+
+    // Fetch the task and verify it belongs to the selected account
     const { data: task, error: taskError } = await supabaseAdmin
       .from('wm_tasks')
       .select('*')
       .eq('id', taskId)
+      .eq('account_id', accountId)
       .single();
 
     if (taskError || !task) {
       return NextResponse.json({ error: 'Task not found' }, { status: 404 });
-    }
-
-    // Verify user has access
-    const { data: accountUser } = await supabaseAdmin
-      .from('account_users')
-      .select('account_id')
-      .eq('user_id', user.id)
-      .eq('account_id', task.account_id)
-      .single();
-
-    if (!accountUser) {
-      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
     // Get user info for assignee and creator
@@ -94,28 +89,22 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     const { title, description, status, priority, due_date, assigned_to } = body;
 
     const supabaseAdmin = createServiceRoleClient();
+    const accountId = await getRequestAccountId(request, user.id, supabaseAdmin);
 
-    // Fetch the current task
+    if (!accountId) {
+      return NextResponse.json({ error: 'No valid account found' }, { status: 403 });
+    }
+
+    // Fetch the task and verify it belongs to the selected account
     const { data: task, error: taskError } = await supabaseAdmin
       .from('wm_tasks')
       .select('*')
       .eq('id', taskId)
+      .eq('account_id', accountId)
       .single();
 
     if (taskError || !task) {
       return NextResponse.json({ error: 'Task not found' }, { status: 404 });
-    }
-
-    // Verify user has access
-    const { data: accountUser } = await supabaseAdmin
-      .from('account_users')
-      .select('account_id')
-      .eq('user_id', user.id)
-      .eq('account_id', task.account_id)
-      .single();
-
-    if (!accountUser) {
-      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
     // Build update object and track changes for activity log
@@ -219,28 +208,22 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
     }
 
     const supabaseAdmin = createServiceRoleClient();
+    const accountId = await getRequestAccountId(request, user.id, supabaseAdmin);
 
-    // Fetch the task
+    if (!accountId) {
+      return NextResponse.json({ error: 'No valid account found' }, { status: 403 });
+    }
+
+    // Fetch the task and verify it belongs to the selected account
     const { data: task, error: taskError } = await supabaseAdmin
       .from('wm_tasks')
       .select('id, account_id')
       .eq('id', taskId)
+      .eq('account_id', accountId)
       .single();
 
     if (taskError || !task) {
       return NextResponse.json({ error: 'Task not found' }, { status: 404 });
-    }
-
-    // Verify user has access
-    const { data: accountUser } = await supabaseAdmin
-      .from('account_users')
-      .select('account_id')
-      .eq('user_id', user.id)
-      .eq('account_id', task.account_id)
-      .single();
-
-    if (!accountUser) {
-      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
     // Delete the task (cascade will delete actions)
