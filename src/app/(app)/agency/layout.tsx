@@ -15,6 +15,7 @@ interface AgencyTrialStatus {
   days_remaining?: number;
   has_paying_client: boolean;
   paying_clients_count: number;
+  total_clients_count: number;
   requires_plan_selection: boolean;
   message: string;
 }
@@ -93,9 +94,9 @@ export default function AgencyLayout({
     if (path === "/agency") {
       return pathname === "/agency" || (pathname.startsWith("/agency/clients/") && pathname !== "/agency/clients");
     }
-    // Work Manager is active only for exact /agency/clients path
-    if (path === "/agency/clients") {
-      return pathname === "/agency/clients";
+    // Work Manager is active for /agency/work-manager
+    if (path === "/agency/work-manager") {
+      return pathname === "/agency/work-manager" || pathname.startsWith("/agency/work-manager/");
     }
     // Team is active for /agency/team
     if (path === "/agency/team") {
@@ -110,7 +111,7 @@ export default function AgencyLayout({
 
   const navItems: { href: string; label: string; icon: IconName }[] = [
     { href: '/agency', label: 'Dashboard', icon: 'FaChartLine' },
-    { href: '/agency/clients', label: 'Work Manager', icon: 'FaUsers' },
+    { href: '/agency/work-manager', label: 'Work Manager', icon: 'FaTools' },
     { href: '/agency/team', label: 'Team', icon: 'FaUserPlus' },
     { href: '/agency/notifications', label: 'Notifications', icon: 'FaBell' },
   ];
@@ -126,13 +127,13 @@ export default function AgencyLayout({
                 <div className="flex items-center">
                   <Icon name="FaCheckCircle" className="text-white w-5 h-5 mr-3" size={20} />
                   <p className="text-sm font-medium text-white">
-                    {trialStatus.paying_clients_count > 0
-                      ? `Free agency account — ${trialStatus.paying_clients_count} client${trialStatus.paying_clients_count !== 1 ? 's' : ''}`
+                    {trialStatus.total_clients_count > 0
+                      ? `Free agency account — ${trialStatus.total_clients_count} client account${trialStatus.total_clients_count !== 1 ? 's' : ''}. ${trialStatus.paying_clients_count} active subscription${trialStatus.paying_clients_count !== 1 ? 's' : ''}`
                       : 'Free agency account'}
                   </p>
                 </div>
                 <Link
-                  href="/agency/clients"
+                  href="/agency/work-manager"
                   className="flex-shrink-0 bg-white/20 backdrop-blur-sm border border-white/30 hover:bg-white/30 text-white px-4 py-1.5 rounded-lg text-sm font-medium transition-all duration-200"
                 >
                   Manage clients
@@ -170,7 +171,7 @@ export default function AgencyLayout({
                 </div>
                 <div className="flex items-center space-x-3">
                   <Link
-                    href="/agency/clients"
+                    href="/agency/work-manager"
                     className="flex-shrink-0 bg-white/20 backdrop-blur-sm border border-white/30 hover:bg-white/30 text-white px-4 py-1.5 rounded-lg text-sm font-medium transition-all duration-200"
                   >
                     Add client

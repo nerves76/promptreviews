@@ -83,8 +83,15 @@ export async function GET(request: NextRequest): Promise<NextResponse<TrialStatu
       });
     }
 
+    // Count all clients
+    const { count: totalClientsCount } = await supabase
+      .from('accounts')
+      .select('*', { count: 'exact', head: true })
+      .eq('managing_agncy_id', accountId)
+      .is('deleted_at', null);
+
     // Count paying clients
-    const { count: payingClientsCount, error: countError } = await supabase
+    const { count: payingClientsCount } = await supabase
       .from('accounts')
       .select('*', { count: 'exact', head: true })
       .eq('managing_agncy_id', accountId)
@@ -153,6 +160,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<TrialStatu
       days_remaining: daysRemaining,
       has_paying_client: hasPayingClient,
       paying_clients_count: payingClientsCount || 0,
+      total_clients_count: totalClientsCount || 0,
       requires_plan_selection: requiresPlanSelection,
       message,
     });
