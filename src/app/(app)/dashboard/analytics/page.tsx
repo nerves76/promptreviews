@@ -127,11 +127,13 @@ export default function AnalyticsPage() {
   }, [supabase, accountLoading, selectedAccountId]);
 
   useEffect(() => {
+    if (!selectedAccountId) return;
     const fetchLocationNames = async () => {
       try {
         const { data: locations, error } = await supabase
           .from('business_locations')
-          .select('name');
+          .select('name')
+          .eq('account_id', selectedAccountId);
         if (error) throw error;
         setLocationNames(locations.map((loc: any) => loc.name));
       } catch (err) {
@@ -141,7 +143,7 @@ export default function AnalyticsPage() {
       }
     };
     fetchLocationNames();
-  }, [supabase]);
+  }, [supabase, selectedAccountId]);
 
   const handleFilterChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setFilter(event.target.value);

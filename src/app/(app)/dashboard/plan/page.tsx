@@ -11,6 +11,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { tiers } from "../../components/PricingModal";
 import TopLoaderOverlay from "@/app/(app)/components/TopLoaderOverlay";
 import { useAuth } from "@/auth";
+import { apiClient } from "@/utils/apiClient";
 
 export default function PlanPage() {
   const supabase = createClient();
@@ -254,17 +255,7 @@ export default function PlanPage() {
       
       // Sync with Stripe in background (non-blocking)
       if (accountData?.stripe_subscription_id) {
-        fetch('/api/sync-subscription', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId: accountId })
-        })
-        .then(syncRes => {
-          if (syncRes.ok) {
-            return syncRes.json();
-          }
-          throw new Error('Sync failed');
-        })
+        apiClient.post<{ currentPlan?: string; currentBilling?: string }>('/sync-subscription', {})
         .then(syncData => {
           if (syncData.currentPlan && syncData.currentBilling) {
             // Update local state if sync changed the values

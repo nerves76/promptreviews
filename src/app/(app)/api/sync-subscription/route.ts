@@ -1,39 +1,42 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-import { createStripeClient, PRICE_IDS, SUPABASE_CONFIG } from "@/lib/billing/config";
+import { createServerSupabaseClient, createServiceRoleClient } from "@/auth/providers/supabase";
+import { getRequestAccountId } from "@/app/(app)/api/utils/getRequestAccountId";
+import { createStripeClient, PRICE_IDS } from "@/lib/billing/config";
 
 
 export async function POST(req: NextRequest) {
   const stripe = createStripeClient();
   try {
-    const body = await req.json();
-    const { userId } = body;
-    
-    if (!userId) {
-      return NextResponse.json({ error: "User ID is required" }, { status: 400 });
+    const supabase = await createServerSupabaseClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const supabase = createClient(
-      SUPABASE_CONFIG.URL,
-      SUPABASE_CONFIG.SERVICE_ROLE_KEY,
-    );
-    
+    const supabaseAdmin = createServiceRoleClient();
+    const accountId = await getRequestAccountId(req, user.id, supabaseAdmin);
+
+    if (!accountId) {
+      return NextResponse.json({ error: "No valid account found" }, { status: 403 });
+    }
+
     // Get account with Stripe info
-    const { data: account, error } = await supabase
+    const { data: account, error } = await supabaseAdmin
       .from("accounts")
       .select("*")
-      .eq("id", userId)
+      .eq("id", accountId)
       .single();
-      
+
     if (error || !account) {
       return NextResponse.json({ error: "Account not found" }, { status: 404 });
     }
 
     if (!account.stripe_subscription_id) {
-      return NextResponse.json({ 
+      return NextResponse.json({
         message: "No subscription to sync",
         currentPlan: account.plan,
-        currentBilling: account.billing_period 
+        currentBilling: account.billing_period
       });
     }
 
@@ -51,11 +54,11 @@ export async function POST(req: NextRequest) {
     }
 
     const currentStripePrice = subscription.items.data[0].price.id;
-    
+
     // Determine actual plan and billing from Stripe price
     let actualPlan = null;
     let actualBilling = null;
-    
+
     for (const [planKey, prices] of Object.entries(PRICE_IDS)) {
       if (currentStripePrice === prices.annual) {
         actualPlan = planKey;
@@ -69,31 +72,31 @@ export async function POST(req: NextRequest) {
     }
 
     if (!actualPlan || !actualBilling) {
-      return NextResponse.json({ 
+      return NextResponse.json({
         error: "Could not determine plan from Stripe price",
-        stripePriceId: currentStripePrice 
+        stripePriceId: currentStripePrice
       }, { status: 400 });
     }
 
     // Check if update is needed
     const needsUpdate = account.plan !== actualPlan || account.billing_period !== actualBilling;
-    
+
     if (needsUpdate) {
       // Update database to match Stripe
-      const { error: updateError } = await supabase
+      const { error: updateError } = await supabaseAdmin
         .from("accounts")
         .update({
           plan: actualPlan,
           billing_period: actualBilling,
           updated_at: new Date().toISOString()
         })
-        .eq("id", userId);
-        
+        .eq("id", accountId);
+
       if (updateError) {
         console.error("Failed to update account:", updateError);
         return NextResponse.json({ error: "Failed to update account" }, { status: 500 });
       }
-      
+
       return NextResponse.json({
         success: true,
         message: "Subscription synced with Stripe",
