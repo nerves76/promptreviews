@@ -42,6 +42,10 @@ interface ReviewPlatformCardProps {
   onLastNameChange: (idx: number, value: string) => void;
   onRoleChange: (idx: number, value: string) => void;
   onReviewTextChange: (idx: number, value: string) => void;
+  /** Called when user manually types in the textarea (tracks manual word count) */
+  onManualReviewTextChange: (idx: number, value: string) => void;
+  /** Manual word count for this platform (used by AIReviewButtons to switch modes) */
+  manualWordCount: number;
   onRewriteWithAI: (idx: number) => void;
   onEnhanceWithAI: (idx: number) => void;
   onFixGrammar: (idx: number) => void;
@@ -87,6 +91,8 @@ export default function ReviewPlatformCard({
   onLastNameChange,
   onRoleChange,
   onReviewTextChange,
+  onManualReviewTextChange,
+  manualWordCount,
   onRewriteWithAI,
   onEnhanceWithAI,
   onFixGrammar,
@@ -394,7 +400,7 @@ export default function ReviewPlatformCard({
                 <AIReviewButtons
                   aiGenerateEnabled={aiButtonEnabled}
                   aiEnhanceEnabled={aiEnhanceEnabled}
-                  reviewText={reviewText}
+                  manualWordCount={manualWordCount}
                   aiGenerateLoading={aiLoading === idx}
                   aiEnhanceLoading={aiEnhanceLoading === idx}
                   aiGenerateCount={aiRewriteCounts[idx] || 0}
@@ -463,7 +469,7 @@ export default function ReviewPlatformCard({
               <textarea
                 id={`reviewText-${idx}`}
                 value={platformReviewTexts[idx]}
-                onChange={(e) => onReviewTextChange(idx, e.target.value)}
+                onChange={(e) => onManualReviewTextChange(idx, e.target.value)}
                 onFocus={() => setIsTextareaFocused(true)}
                 onBlur={() => setIsTextareaFocused(false)}
                 placeholder="Share your experience..."

@@ -264,6 +264,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
   const [aiEnhanceLoading, setAiEnhanceLoading] = useState<number | null>(null);
   const [fixGrammarCounts, setFixGrammarCounts] = useState<number[]>(Array(promptPage?.review_platforms?.length || 0).fill(0));
   const [fixGrammarLoading, setFixGrammarLoading] = useState<number | null>(null);
+  const [manualWordCounts, setManualWordCounts] = useState<number[]>(Array(promptPage?.review_platforms?.length || 0).fill(0));
   const [showAiToast, setShowAiToast] = useState<number | null>(null);
   const [showRewardsBanner, setShowRewardsBanner] = useState(true);
   const [showPersonalNote, setShowPersonalNote] = useState(true);
@@ -947,6 +948,14 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
     );
   };
 
+  /** Called when user manually types in the textarea. Updates both text and manual word count. */
+  const handleManualReviewTextChange = (idx: number, value: string) => {
+    handleReviewTextChange(idx, value);
+    setManualWordCounts((prev) =>
+      prev.map((c, i) => (i === idx ? (value.trim() ? countWords(value) : 0) : c)),
+    );
+  };
+
   const handleCopyAndSubmit = async (idx: number, url: string) => {
     setSubmitError(null);
     if (!reviewerFirstNames[idx].trim() || !reviewerLastNames[idx].trim()) {
@@ -1147,6 +1156,10 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
 
       setPlatformReviewTexts((prev) =>
         prev.map((t, i) => (i === idx ? safeReview : t)),
+      );
+      // Reset manual word count so button reverts to "Generate with AI"
+      setManualWordCounts((prev) =>
+        prev.map((c, i) => (i === idx ? 0 : c)),
       );
       setAiRewriteCounts((prev) => {
         const newCounts = prev.map((c, i) => (i === idx ? c + 1 : c));
@@ -2982,6 +2995,8 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                     setReviewerRoles(newRoles);
                   }}
                   onReviewTextChange={handleReviewTextChange}
+                  onManualReviewTextChange={handleManualReviewTextChange}
+                  manualWordCount={manualWordCounts[idx] || 0}
                   onRewriteWithAI={handleRewriteWithAI}
                   onEnhanceWithAI={handleEnhanceWithAI}
                   onFixGrammar={handleFixGrammar}

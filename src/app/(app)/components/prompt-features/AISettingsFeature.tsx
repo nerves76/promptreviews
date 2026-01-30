@@ -112,7 +112,7 @@ export default function AISettingsFeature({
           </div>
           <div className="text-sm text-gray-700 mt-[3px] ml-10">
             {isAIEnabled
-              ? 'Customers will see the "Generate with AI" button to help them write a review.'
+              ? 'Customers will see a "Generate with AI" button that creates a review for them to edit and make their own.'
               : "The AI review generation button will be hidden from customers on this prompt page."}
           </div>
         </div>
@@ -143,13 +143,13 @@ export default function AISettingsFeature({
           <div className="flex items-center gap-3">
             <Icon name="FaSparkles" className="w-7 h-7 text-slate-blue" size={28} />
             <span className="text-2xl font-bold text-slate-blue">
-              Enhance review
+              Enhance with AI
             </span>
           </div>
           <div className="text-sm text-gray-700 mt-[3px] ml-10">
             {isEnhanceEnabled
-              ? 'Customers will see the "Enhance review" button to polish their existing review with AI.'
-              : "The AI enhancement button will be hidden from customers on this prompt page."}
+              ? "Once the user has typed 10 words the AI generate button will pulse and turn into AI enhance button so they can improve their review. If AI generate is disabled the button will only enhance."
+              : "The AI enhancement option will be hidden. Customers will only see the generate button."}
           </div>
         </div>
         <div className="flex flex-col justify-start pt-1">
@@ -161,7 +161,7 @@ export default function AISettingsFeature({
               isEnhanceEnabled ? "bg-slate-blue" : "bg-gray-200"
             } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
             aria-pressed={isEnhanceEnabled}
-            aria-label="Toggle Enhance review"
+            aria-label="Toggle Enhance with AI"
             style={{ verticalAlign: "middle" }}
           >
             <span

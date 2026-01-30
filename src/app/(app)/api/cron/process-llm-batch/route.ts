@@ -12,6 +12,7 @@ import { runLLMChecks, updateSummary } from '@/features/llm-visibility/services/
 import { refundFeature } from '@/lib/credits';
 import { sendNotificationToAccount, sendAdminAlert } from '@/utils/notifications';
 import { LLM_CREDIT_COSTS, type LLMProvider } from '@/features/llm-visibility/utils/types';
+import { shouldRetry } from '@/utils/retryHelpers';
 
 // Extend timeout for this route
 export const maxDuration = 300; // 5 minutes
@@ -46,6 +47,7 @@ interface BatchRunItemRow {
   question: string;
   question_index: number;
   status: string;
+  retry_count: number;
 }
 
 export async function GET(request: NextRequest) {
@@ -251,8 +253,55 @@ export async function GET(request: NextRequest) {
             successCount++;
             console.log(`   ✓ Completed (${result.checksPerformed} checks)`);
           } else {
-            // Mark item as failed
             const errorMsg = result.errors.join('; ') || 'No checks performed';
+
+            if (shouldRetry(item.retry_count, errorMsg)) {
+              // Transient error — set back to pending for retry on next cron tick
+              await serviceSupabase
+                .from('llm_batch_run_items')
+                .update({
+                  status: 'pending',
+                  retry_count: item.retry_count + 1,
+                  error_message: null,
+                  updated_at: new Date().toISOString(),
+                })
+                .eq('id', item.id);
+              console.log(`   ↻ Retrying (attempt ${item.retry_count + 2}/3): ${errorMsg}`);
+            } else {
+              // Permanent failure
+              await serviceSupabase
+                .from('llm_batch_run_items')
+                .update({
+                  status: 'failed',
+                  error_message: errorMsg,
+                  updated_at: new Date().toISOString(),
+                })
+                .eq('id', item.id);
+              failCount++;
+              console.log(`   ✗ Failed: ${errorMsg}`);
+            }
+          }
+
+          // Update summary for this keyword
+          await updateSummary(item.keyword_id, run.account_id, serviceSupabase);
+
+        } catch (error) {
+          const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+
+          if (shouldRetry(item.retry_count, errorMsg)) {
+            // Transient error — set back to pending for retry on next cron tick
+            await serviceSupabase
+              .from('llm_batch_run_items')
+              .update({
+                status: 'pending',
+                retry_count: item.retry_count + 1,
+                error_message: null,
+                updated_at: new Date().toISOString(),
+              })
+              .eq('id', item.id);
+            console.log(`   ↻ Retrying (attempt ${item.retry_count + 2}/3): ${errorMsg}`);
+          } else {
+            // Permanent failure
             await serviceSupabase
               .from('llm_batch_run_items')
               .update({
@@ -262,24 +311,8 @@ export async function GET(request: NextRequest) {
               })
               .eq('id', item.id);
             failCount++;
-            console.log(`   ✗ Failed: ${errorMsg}`);
+            console.error(`   ✗ Error: ${errorMsg}`);
           }
-
-          // Update summary for this keyword
-          await updateSummary(item.keyword_id, run.account_id, serviceSupabase);
-
-        } catch (error) {
-          const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-          await serviceSupabase
-            .from('llm_batch_run_items')
-            .update({
-              status: 'failed',
-              error_message: errorMsg,
-              updated_at: new Date().toISOString(),
-            })
-            .eq('id', item.id);
-          failCount++;
-          console.error(`   ✗ Error: ${errorMsg}`);
         }
 
         // Update batch run progress

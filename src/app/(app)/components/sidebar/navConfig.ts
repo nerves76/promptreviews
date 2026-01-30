@@ -49,7 +49,7 @@ export const REVIEWS_SECTION: NavSection = {
     {
       path: "/prompt-pages?tab=campaign",
       label: "Campaigns",
-      icon: "FaEnvelope",
+      icon: "FaCommentDots",
       description: "Run personalized review campaigns",
     },
     {

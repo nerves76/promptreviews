@@ -11,6 +11,7 @@ import { logCronExecution, verifyCronSecret } from '@/lib/cronLogger';
 import { checkRankForDomain } from '@/features/rank-tracking/api/dataforseo-serp-client';
 import { refundFeature } from '@/lib/credits';
 import { sendNotificationToAccount, sendAdminAlert } from '@/utils/notifications';
+import { shouldRetry } from '@/utils/retryHelpers';
 
 // Extend timeout for this route
 export const maxDuration = 300; // 5 minutes
@@ -44,6 +45,7 @@ interface BatchRunItemRow {
   location_code: number | null;
   desktop_status: string;
   mobile_status: string;
+  retry_count: number;
 }
 
 export async function GET(request: NextRequest) {
@@ -210,6 +212,9 @@ export async function GET(request: NextRequest) {
         const locationCode = item.location_code || 2840; // Default to USA
         console.log(`   → Keyword: "${item.search_term}"`);
 
+        // Track whether retry_count was already incremented for this item in this pass
+        let retryIncrementedThisPass = false;
+
         // Process desktop if pending
         if (item.desktop_status === 'pending') {
           await serviceSupabase
@@ -245,16 +250,33 @@ export async function GET(request: NextRequest) {
             console.log(`   ✓ Desktop: ${result.found ? `#${result.position}` : 'Not found'}`);
           } catch (error) {
             const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-            await serviceSupabase
-              .from('rank_batch_run_items')
-              .update({
-                desktop_status: 'failed',
-                error_message: `Desktop: ${errorMsg}`,
-                updated_at: new Date().toISOString(),
-              })
-              .eq('id', item.id);
-            failCount++;
-            console.error(`   ✗ Desktop error: ${errorMsg}`);
+
+            if (shouldRetry(item.retry_count, errorMsg)) {
+              // Transient error — set desktop back to pending for retry
+              const newRetryCount = item.retry_count + 1;
+              await serviceSupabase
+                .from('rank_batch_run_items')
+                .update({
+                  desktop_status: 'pending',
+                  retry_count: newRetryCount,
+                  error_message: null,
+                  updated_at: new Date().toISOString(),
+                })
+                .eq('id', item.id);
+              retryIncrementedThisPass = true;
+              console.log(`   ↻ Desktop retrying (attempt ${newRetryCount + 1}/3): ${errorMsg}`);
+            } else {
+              await serviceSupabase
+                .from('rank_batch_run_items')
+                .update({
+                  desktop_status: 'failed',
+                  error_message: `Desktop: ${errorMsg}`,
+                  updated_at: new Date().toISOString(),
+                })
+                .eq('id', item.id);
+              failCount++;
+              console.error(`   ✗ Desktop error: ${errorMsg}`);
+            }
           }
 
           // Small delay between API calls
@@ -296,16 +318,34 @@ export async function GET(request: NextRequest) {
             console.log(`   ✓ Mobile: ${result.found ? `#${result.position}` : 'Not found'}`);
           } catch (error) {
             const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-            await serviceSupabase
-              .from('rank_batch_run_items')
-              .update({
-                mobile_status: 'failed',
-                error_message: `Mobile: ${errorMsg}`,
-                updated_at: new Date().toISOString(),
-              })
-              .eq('id', item.id);
-            failCount++;
-            console.error(`   ✗ Mobile error: ${errorMsg}`);
+
+            if (shouldRetry(item.retry_count, errorMsg)) {
+              // Transient error — set mobile back to pending for retry
+              // Only increment retry_count once per item per pass
+              const newRetryCount = item.retry_count + 1;
+              await serviceSupabase
+                .from('rank_batch_run_items')
+                .update({
+                  mobile_status: 'pending',
+                  ...(!retryIncrementedThisPass ? { retry_count: newRetryCount } : {}),
+                  error_message: null,
+                  updated_at: new Date().toISOString(),
+                })
+                .eq('id', item.id);
+              retryIncrementedThisPass = true;
+              console.log(`   ↻ Mobile retrying (attempt ${newRetryCount + 1}/3): ${errorMsg}`);
+            } else {
+              await serviceSupabase
+                .from('rank_batch_run_items')
+                .update({
+                  mobile_status: 'failed',
+                  error_message: `Mobile: ${errorMsg}`,
+                  updated_at: new Date().toISOString(),
+                })
+                .eq('id', item.id);
+              failCount++;
+              console.error(`   ✗ Mobile error: ${errorMsg}`);
+            }
           }
 
           // Small delay between API calls
