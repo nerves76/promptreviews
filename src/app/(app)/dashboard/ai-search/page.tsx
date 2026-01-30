@@ -1716,37 +1716,6 @@ export default function AISearchPage() {
             {/* Trend Chart - filtered by group when filter active */}
             <LLMVisibilityTrendChart results={chartResults} isLoading={isLoading} />
 
-            {/* Provider Filter Row */}
-            <div className="mb-4 flex flex-wrap items-center gap-4">
-              <span className="text-sm font-medium text-gray-700">Include providers:</span>
-              <div className="flex flex-wrap gap-2">
-                {LLM_PROVIDERS.map((provider) => {
-                  const isSelected = selectedProviders.has(provider);
-                  const colors = LLM_PROVIDER_COLORS[provider];
-                  return (
-                    <button
-                      key={provider}
-                      onClick={() => toggleProvider(provider)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 transition-all whitespace-nowrap ${
-                        isSelected
-                          ? `${colors.bg} ${colors.text} ${colors.border} border`
-                          : 'bg-gray-100 text-gray-400 border border-gray-200 line-through'
-                      }`}
-                      title={isSelected ? `Click to exclude ${LLM_PROVIDER_LABELS[provider]}` : `Click to include ${LLM_PROVIDER_LABELS[provider]}`}
-                    >
-                      <span className={`w-3.5 h-3.5 rounded border flex items-center justify-center ${
-                        isSelected ? `${colors.border} ${colors.text}` : 'border-gray-300'
-                      }`}>
-                        {isSelected && <Icon name="FaCheck" className="w-2 h-2" />}
-                      </span>
-                      {LLM_PROVIDER_LABELS[provider]}
-                      <span className="opacity-70">({LLM_PROVIDER_MODELS[provider]})</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
             {/* Summary Stats */}
             {displayStats && (
               <div className="mb-6">
@@ -1940,6 +1909,121 @@ export default function AISearchPage() {
               </div>
             )}
 
+            {/* Provider filter + Check button row */}
+            <div className="mb-4 flex flex-wrap items-center gap-4">
+              <span className="text-sm font-medium text-gray-700">Include providers:</span>
+              <div className="flex flex-wrap gap-2">
+                {LLM_PROVIDERS.map((provider) => {
+                  const isSelected = selectedProviders.has(provider);
+                  const colors = LLM_PROVIDER_COLORS[provider];
+                  return (
+                    <button
+                      key={provider}
+                      onClick={() => toggleProvider(provider)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 transition-all whitespace-nowrap ${
+                        isSelected
+                          ? `${colors.bg} ${colors.text} ${colors.border} border`
+                          : 'bg-gray-100 text-gray-400 border border-gray-200 line-through'
+                      }`}
+                      title={isSelected ? `Click to exclude ${LLM_PROVIDER_LABELS[provider]}` : `Click to include ${LLM_PROVIDER_LABELS[provider]}`}
+                    >
+                      <span className={`w-3.5 h-3.5 rounded border flex items-center justify-center ${
+                        isSelected ? `${colors.border} ${colors.text}` : 'border-gray-300'
+                      }`}>
+                        {isSelected && <Icon name="FaCheck" className="w-2 h-2" />}
+                      </span>
+                      {LLM_PROVIDER_LABELS[provider]}
+                      <span className="opacity-70">({LLM_PROVIDER_MODELS[provider]})</span>
+                    </button>
+                  );
+                })}
+              </div>
+              {keywords.length > 0 && (() => {
+                const isBatchRunning = !!(activeBatchRun && ['pending', 'processing'].includes(activeBatchRun.status));
+
+                const handleRetryFromHistory = async (runId: string) => {
+                  try {
+                    const response = await apiClient.post<{
+                      success: boolean;
+                      runId: string;
+                      totalQuestions: number;
+                      providers: LLMProvider[];
+                      estimatedCredits: number;
+                      error?: string;
+                    }>('/llm-visibility/batch-run', {
+                      providers: ['chatgpt', 'claude', 'gemini', 'perplexity'],
+                      retryFailedFromRunId: runId,
+                    });
+
+                    if (response.success) {
+                      setShowCompletedBanner(false);
+                      setActiveBatchRun({
+                        runId: response.runId,
+                        status: 'pending',
+                        providers: response.providers,
+                        totalQuestions: response.totalQuestions,
+                        processedQuestions: 0,
+                        successfulChecks: 0,
+                        failedChecks: 0,
+                        progress: 0,
+                        creditsRefunded: 0,
+                        errorMessage: null,
+                      });
+                      showSuccess(`Retrying ${response.totalQuestions} failed checks...`);
+                    } else {
+                      showError(response.error || 'Failed to start retry');
+                    }
+                  } catch (err: unknown) {
+                    let errorMessage = 'Failed to retry failed checks';
+                    if (err instanceof Error) {
+                      const errAny = err as { responseBody?: { required?: number; available?: number } };
+                      if (errAny.responseBody?.required !== undefined && errAny.responseBody?.available !== undefined) {
+                        errorMessage = `Insufficient credits: need ${errAny.responseBody.required}, have ${errAny.responseBody.available}`;
+                      } else {
+                        errorMessage = err.message;
+                      }
+                    }
+                    showError(errorMessage);
+                  }
+                };
+
+                return (
+                  <div className="flex items-center gap-2 ml-auto">
+                    <button
+                      onClick={() => setShowRunAllModal(true)}
+                      disabled={isBatchRunning}
+                      className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${
+                        isBatchRunning
+                          ? 'bg-gray-400 text-white cursor-not-allowed'
+                          : 'text-white bg-green-600 hover:bg-green-700'
+                      }`}
+                      title={isBatchRunning
+                        ? 'Batch check already in progress'
+                        : filterGroup
+                          ? `Run LLM checks on group "${activeGroupName}"`
+                          : 'Run LLM visibility checks on all questions'}
+                    >
+                      {isBatchRunning ? (
+                        <>
+                          <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
+                          {activeBatchRun.progress}% complete
+                        </>
+                      ) : (
+                        <>
+                          <PromptyIcon className="w-4 h-4" />
+                          {filterGroup ? 'Check group' : 'Check all'}
+                        </>
+                      )}
+                    </button>
+                    <BatchRunHistoryDropdown
+                      feature="llm_visibility"
+                      onRetry={handleRetryFromHistory}
+                    />
+                  </div>
+                );
+              })()}
+            </div>
+
             {/* Filters */}
             <div className="mb-4 flex flex-wrap items-center gap-3">
               {/* Group filter */}
@@ -2028,92 +2112,6 @@ export default function AISearchPage() {
                 {filteredAndSortedRows.length} question{filteredAndSortedRows.length !== 1 ? 's' : ''}
               </div>
             </div>
-
-            {/* Check group / Check all button row */}
-            {keywords.length > 0 && (() => {
-              const isBatchRunning = !!(activeBatchRun && ['pending', 'processing'].includes(activeBatchRun.status));
-
-              const handleRetryFromHistory = async (runId: string) => {
-                try {
-                  const response = await apiClient.post<{
-                    success: boolean;
-                    runId: string;
-                    totalQuestions: number;
-                    providers: LLMProvider[];
-                    estimatedCredits: number;
-                    error?: string;
-                  }>('/llm-visibility/batch-run', {
-                    providers: ['chatgpt', 'claude', 'gemini', 'perplexity'],
-                    retryFailedFromRunId: runId,
-                  });
-
-                  if (response.success) {
-                    setShowCompletedBanner(false);
-                    setActiveBatchRun({
-                      runId: response.runId,
-                      status: 'pending',
-                      providers: response.providers,
-                      totalQuestions: response.totalQuestions,
-                      processedQuestions: 0,
-                      successfulChecks: 0,
-                      failedChecks: 0,
-                      progress: 0,
-                      creditsRefunded: 0,
-                      errorMessage: null,
-                    });
-                    showSuccess(`Retrying ${response.totalQuestions} failed checks...`);
-                  } else {
-                    showError(response.error || 'Failed to start retry');
-                  }
-                } catch (err: unknown) {
-                  let errorMessage = 'Failed to retry failed checks';
-                  if (err instanceof Error) {
-                    const errAny = err as { responseBody?: { required?: number; available?: number } };
-                    if (errAny.responseBody?.required !== undefined && errAny.responseBody?.available !== undefined) {
-                      errorMessage = `Insufficient credits: need ${errAny.responseBody.required}, have ${errAny.responseBody.available}`;
-                    } else {
-                      errorMessage = err.message;
-                    }
-                  }
-                  showError(errorMessage);
-                }
-              };
-
-              return (
-                <div className="mb-3 flex items-center gap-2">
-                  <button
-                    onClick={() => setShowRunAllModal(true)}
-                    disabled={isBatchRunning}
-                    className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${
-                      isBatchRunning
-                        ? 'bg-gray-400 text-white cursor-not-allowed'
-                        : 'text-white bg-green-600 hover:bg-green-700'
-                    }`}
-                    title={isBatchRunning
-                      ? 'Batch check already in progress'
-                      : filterGroup
-                        ? `Run LLM checks on group "${activeGroupName}"`
-                        : 'Run LLM visibility checks on all questions'}
-                  >
-                    {isBatchRunning ? (
-                      <>
-                        <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
-                        {activeBatchRun.progress}% complete
-                      </>
-                    ) : (
-                      <>
-                        <PromptyIcon className="w-4 h-4" />
-                        {filterGroup ? 'Check group' : 'Check all'}
-                      </>
-                    )}
-                  </button>
-                  <BatchRunHistoryDropdown
-                    feature="llm_visibility"
-                    onRetry={handleRetryFromHistory}
-                  />
-                </div>
-              );
-            })()}
 
             {/* Questions Table */}
             <div className={`overflow-x-auto border border-gray-200 rounded-xl transition-opacity duration-150 ${isPending ? 'opacity-70' : ''}`}>
