@@ -34,6 +34,8 @@ interface RunAllLLMModalProps {
   isOpen: boolean;
   onClose: () => void;
   onStarted?: (batchStatus: BatchStatus) => void;
+  groupId?: string | null;
+  groupName?: string | null;
 }
 
 interface BatchPreview {
@@ -72,6 +74,8 @@ export default function RunAllLLMModal({
   isOpen,
   onClose,
   onStarted,
+  groupId,
+  groupName,
 }: RunAllLLMModalProps) {
   const [selectedProviders, setSelectedProviders] = useState<LLMProvider[]>(['chatgpt', 'claude']);
   const [preview, setPreview] = useState<BatchPreview | null>(null);
@@ -140,8 +144,9 @@ export default function RunAllLLMModal({
     setError(null);
     try {
       const providersParam = selectedProviders.join(',');
+      const groupParam = groupId ? `&groupId=${encodeURIComponent(groupId)}` : '';
       const data = await apiClient.get<BatchPreview>(
-        `/llm-visibility/batch-run?providers=${providersParam}`
+        `/llm-visibility/batch-run?providers=${providersParam}${groupParam}`
       );
       setPreview(data);
 
@@ -227,6 +232,7 @@ export default function RunAllLLMModal({
       }>('/llm-visibility/batch-run', {
         providers: selectedProviders,
         scheduledFor: scheduledTime?.toISOString() || undefined,
+        ...(groupId && { groupId }),
       });
 
       if (response.success) {
@@ -288,10 +294,14 @@ export default function RunAllLLMModal({
       <div className="px-6 py-4 border-b border-gray-100 pr-14 flex-shrink-0">
         <div className="flex items-center gap-2">
           <Icon name="FaRocket" className="w-5 h-5 text-slate-blue" />
-          <h3 className="text-lg font-semibold text-gray-900">Run all LLM checks</h3>
+          <h3 className="text-lg font-semibold text-gray-900">
+            {groupName ? `Check group: ${groupName}` : 'Run all LLM checks'}
+          </h3>
         </div>
         <p className="text-sm text-gray-600 mt-2">
-          Check all your keyword questions across selected AI platforms
+          {groupName
+            ? `Check questions in "${groupName}" across selected AI platforms`
+            : 'Check all your keyword questions across selected AI platforms'}
         </p>
       </div>
 
@@ -635,7 +645,7 @@ export default function RunAllLLMModal({
             ) : (
               <>
                 <Icon name="FaRocket" className="w-4 h-4" />
-                Run all checks
+                {groupName ? 'Check group' : 'Run all checks'}
               </>
             )}
           </button>

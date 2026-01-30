@@ -1219,8 +1219,14 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
     try {
       const currentText = platformReviewTexts[idx];
       const currentWordCount = countWords(currentText);
-      // Get up to 2 keywords from the page for natural incorporation
-      const keywords = (promptPage?.keywords || []).slice(0, 2);
+      // Get up to 2 keywords for natural incorporation
+      // Use same fallback chain as keyword inspiration modal
+      const keywordSource = unifiedKeywords.length > 0
+        ? unifiedKeywords
+        : promptPage?.selected_keyword_inspirations?.length > 0
+          ? promptPage.selected_keyword_inspirations
+          : (promptPage?.keywords || []);
+      const keywords = keywordSource.slice(0, 2);
 
       const response = await fetch("/api/enhance-review", {
         method: "POST",

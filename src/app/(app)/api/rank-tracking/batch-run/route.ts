@@ -29,6 +29,7 @@ const CREDITS_PER_KEYWORD = 2;
 interface BatchRunRequest {
   scheduledFor?: string; // ISO timestamp for when to start the run
   retryFailedFromRunId?: string; // If provided, only retry failed items from this run
+  groupId?: string; // If provided, only check keywords in this group (or "ungrouped" for null group_id)
 }
 
 interface KeywordItem {
@@ -56,7 +57,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body: BatchRunRequest = await request.json().catch(() => ({}));
-    const { scheduledFor, retryFailedFromRunId } = body;
+    const { scheduledFor, retryFailedFromRunId, groupId } = body;
 
     // Parse scheduled time if provided
     let scheduledForDate: Date | null = null;
@@ -150,6 +151,50 @@ export async function POST(request: NextRequest) {
       }));
 
       console.log(`🔄 [RankBatchRun] Retrying ${allKeywords.length} failed items from run ${retryFailedFromRunId}`);
+    } else if (groupId) {
+      // Group mode: fetch terms from rank_tracking_terms filtered by group
+      const termsQuery = serviceSupabase
+        .from('rank_tracking_terms')
+        .select('keyword_id, term')
+        .eq('account_id', accountId);
+
+      if (groupId === 'ungrouped') {
+        termsQuery.is('group_id', null);
+      } else {
+        termsQuery.eq('group_id', groupId);
+      }
+
+      const { data: terms, error: termsError } = await termsQuery;
+
+      if (termsError) {
+        console.error('❌ [RankBatchRun] Failed to fetch group terms:', termsError);
+        return NextResponse.json(
+          { error: 'Failed to fetch group terms' },
+          { status: 500 }
+        );
+      }
+
+      if (terms && terms.length > 0) {
+        // Get location codes from keywords table
+        const keywordIds = [...new Set(terms.map(t => t.keyword_id))];
+        const { data: keywords } = await serviceSupabase
+          .from('keywords')
+          .select('id, search_volume_location_code')
+          .in('id', keywordIds);
+
+        const locationCodeMap = new Map<string, number>();
+        for (const kw of keywords || []) {
+          locationCodeMap.set(kw.id, kw.search_volume_location_code || defaultLocationCode);
+        }
+
+        for (const t of terms) {
+          allKeywords.push({
+            keywordId: t.keyword_id,
+            searchTerm: t.term,
+            locationCode: locationCodeMap.get(t.keyword_id) || defaultLocationCode,
+          });
+        }
+      }
     } else {
       // Normal mode: fetch all keywords with search terms for this account
       const { data: keywords, error: keywordsError } = await serviceSupabase
@@ -224,10 +269,24 @@ export async function POST(request: NextRequest) {
     const batchId = `${Date.now()}-${Math.random().toString(36).substring(7)}`;
     const idempotencyKey = `rank_batch:${accountId}:${batchId}`;
 
+    // Look up group name if groupId provided
+    let groupName: string | null = null;
+    if (groupId && groupId !== 'ungrouped') {
+      const { data: group } = await serviceSupabase
+        .from('rank_tracking_term_groups')
+        .select('name')
+        .eq('id', groupId)
+        .single();
+      groupName = group?.name || null;
+    } else if (groupId === 'ungrouped') {
+      groupName = 'Ungrouped';
+    }
+
     // Debit credits upfront
+    const groupLabel = groupName ? ` [${groupName}]` : '';
     console.log(
       `💳 [RankBatchRun] Debiting ${totalCredits} credits for account ${accountId} ` +
-      `(${allKeywords.length} keywords × 2 devices)`
+      `(${allKeywords.length} keywords × 2 devices)${groupLabel}`
     );
 
     try {
@@ -237,9 +296,10 @@ export async function POST(request: NextRequest) {
           batchRun: true,
           keywordCount: allKeywords.length,
           batchId,
+          ...(groupId && { groupId, groupName }),
         },
         idempotencyKey,
-        description: `Rank batch run: ${allKeywords.length} keywords × 2 devices`,
+        description: `Rank batch run${groupLabel}: ${allKeywords.length} keywords × 2 devices`,
       });
     } catch (error) {
       if (error instanceof InsufficientCreditsError) {
@@ -357,6 +417,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Account not found' }, { status: 404 });
     }
 
+    // Read groupId from query params
+    const { searchParams } = new URL(request.url);
+    const groupId = searchParams.get('groupId');
+
     // Get business data for default location
     const { data: business } = await serviceSupabase
       .from('businesses')
@@ -366,27 +430,55 @@ export async function GET(request: NextRequest) {
 
     const defaultLocationCode = business?.location_code || 2840;
 
-    // Fetch all keywords
-    const { data: keywords, error: keywordsError } = await serviceSupabase
-      .from('keywords')
-      .select('id, phrase, search_terms')
-      .eq('account_id', accountId);
-
-    if (keywordsError) {
-      return NextResponse.json(
-        { error: 'Failed to fetch keywords' },
-        { status: 500 }
-      );
-    }
-
-    // Count total search terms
     let totalKeywords = 0;
-    for (const keyword of keywords || []) {
-      const searchTerms = keyword.search_terms || [];
-      if (searchTerms.length === 0) {
-        totalKeywords++; // Use phrase if no search terms
+    let conceptCount = 0;
+
+    if (groupId) {
+      // Group mode: count terms from rank_tracking_terms filtered by group
+      const termsQuery = serviceSupabase
+        .from('rank_tracking_terms')
+        .select('keyword_id, term')
+        .eq('account_id', accountId);
+
+      if (groupId === 'ungrouped') {
+        termsQuery.is('group_id', null);
       } else {
-        totalKeywords += searchTerms.length;
+        termsQuery.eq('group_id', groupId);
+      }
+
+      const { data: terms, error: termsError } = await termsQuery;
+
+      if (termsError) {
+        return NextResponse.json(
+          { error: 'Failed to fetch group terms' },
+          { status: 500 }
+        );
+      }
+
+      totalKeywords = terms?.length || 0;
+      conceptCount = new Set(terms?.map(t => t.keyword_id) || []).size;
+    } else {
+      // Normal mode: count all keywords
+      const { data: keywords, error: keywordsError } = await serviceSupabase
+        .from('keywords')
+        .select('id, phrase, search_terms')
+        .eq('account_id', accountId);
+
+      if (keywordsError) {
+        return NextResponse.json(
+          { error: 'Failed to fetch keywords' },
+          { status: 500 }
+        );
+      }
+
+      conceptCount = keywords?.length || 0;
+      for (const keyword of keywords || []) {
+        const searchTerms = keyword.search_terms || [];
+        if (searchTerms.length === 0) {
+          totalKeywords++; // Use phrase if no search terms
+        } else {
+          totalKeywords += searchTerms.length;
+        }
       }
     }
 
@@ -407,7 +499,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       totalKeywords,
-      conceptCount: keywords?.length || 0,
+      conceptCount,
       totalCredits,
       creditBalance: balance.totalCredits,
       hasCredits: balance.totalCredits >= totalCredits,

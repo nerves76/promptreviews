@@ -33,6 +33,7 @@ interface BatchRunRequest {
   providers: LLMProvider[];
   scheduledFor?: string; // ISO timestamp for when to start the run
   retryFailedFromRunId?: string; // If provided, only retry failed items from this run
+  groupId?: string; // If provided, only check questions in this group (or "ungrouped" for null group_id)
 }
 
 interface QuestionItem {
@@ -60,7 +61,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body: BatchRunRequest = await request.json();
-    const { providers, scheduledFor, retryFailedFromRunId } = body;
+    const { providers, scheduledFor, retryFailedFromRunId, groupId } = body;
 
     // Parse scheduled time if provided
     let scheduledForDate: Date | null = null;
@@ -154,6 +155,53 @@ export async function POST(request: NextRequest) {
       }));
 
       console.log(`🔄 [LLMBatchRun] Retrying ${allQuestions.length} failed items from run ${retryFailedFromRunId}`);
+    } else if (groupId) {
+      // Group mode: fetch questions from keyword_questions filtered by group
+      // First get account's keyword IDs
+      const { data: accountKeywords, error: kwError } = await serviceSupabase
+        .from('keywords')
+        .select('id')
+        .eq('account_id', accountId);
+
+      if (kwError) {
+        console.error('❌ [LLMBatchRun] Failed to fetch account keywords:', kwError);
+        return NextResponse.json(
+          { error: 'Failed to fetch keywords' },
+          { status: 500 }
+        );
+      }
+
+      const keywordIds = (accountKeywords || []).map(k => k.id);
+      if (keywordIds.length > 0) {
+        const questionsQuery = serviceSupabase
+          .from('keyword_questions')
+          .select('keyword_id, question')
+          .in('keyword_id', keywordIds);
+
+        if (groupId === 'ungrouped') {
+          questionsQuery.is('group_id', null);
+        } else {
+          questionsQuery.eq('group_id', groupId);
+        }
+
+        const { data: questions, error: questionsError } = await questionsQuery;
+
+        if (questionsError) {
+          console.error('❌ [LLMBatchRun] Failed to fetch group questions:', questionsError);
+          return NextResponse.json(
+            { error: 'Failed to fetch group questions' },
+            { status: 500 }
+          );
+        }
+
+        (questions || []).forEach((q, index) => {
+          allQuestions.push({
+            keywordId: q.keyword_id,
+            question: q.question,
+            questionIndex: index,
+          });
+        });
+      }
     } else {
       // Normal mode: fetch all keywords with related_questions for this account
       const { data: keywords, error: keywordsError } = await serviceSupabase
@@ -218,10 +266,24 @@ export async function POST(request: NextRequest) {
     const batchId = `${Date.now()}-${Math.random().toString(36).substring(7)}`;
     const idempotencyKey = `llm_batch:${accountId}:${batchId}`;
 
+    // Look up group name if groupId provided
+    let groupName: string | null = null;
+    if (groupId && groupId !== 'ungrouped') {
+      const { data: group } = await serviceSupabase
+        .from('ai_search_query_groups')
+        .select('name')
+        .eq('id', groupId)
+        .single();
+      groupName = group?.name || null;
+    } else if (groupId === 'ungrouped') {
+      groupName = 'Ungrouped';
+    }
+
     // Debit credits upfront
+    const groupLabel = groupName ? ` [${groupName}]` : '';
     console.log(
       `💳 [LLMBatchRun] Debiting ${totalCredits} credits for account ${accountId} ` +
-      `(${allQuestions.length} questions × ${validProviders.length} providers)`
+      `(${allQuestions.length} questions × ${validProviders.length} providers)${groupLabel}`
     );
 
     try {
@@ -232,9 +294,10 @@ export async function POST(request: NextRequest) {
           questionCount: allQuestions.length,
           providers: validProviders,
           batchId,
+          ...(groupId && { groupId, groupName }),
         },
         idempotencyKey,
-        description: `LLM batch run: ${allQuestions.length} questions × ${validProviders.length} providers`,
+        description: `LLM batch run${groupLabel}: ${allQuestions.length} questions × ${validProviders.length} providers`,
       });
     } catch (error) {
       if (error instanceof InsufficientCreditsError) {
@@ -353,35 +416,72 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Account not found' }, { status: 404 });
     }
 
-    // Get requested providers from query params
+    // Get requested providers and groupId from query params
     const { searchParams } = new URL(request.url);
     const providersParam = searchParams.get('providers');
+    const groupId = searchParams.get('groupId');
     const providers: LLMProvider[] = providersParam
       ? (providersParam.split(',') as LLMProvider[]).filter(p => LLM_PROVIDERS.includes(p))
       : LLM_PROVIDERS;
 
-    // Fetch all keywords with related_questions
-    const { data: keywords, error: keywordsError } = await serviceSupabase
-      .from('keywords')
-      .select('id, phrase, related_questions')
-      .eq('account_id', accountId)
-      .not('related_questions', 'is', null);
-
-    if (keywordsError) {
-      return NextResponse.json(
-        { error: 'Failed to fetch keywords' },
-        { status: 500 }
-      );
-    }
-
-    // Count questions
     let totalQuestions = 0;
-    for (const keyword of keywords || []) {
-      const relatedQuestions = keyword.related_questions || [];
-      totalQuestions += relatedQuestions.filter((q: { question: string } | string) => {
-        const questionText = extractQuestionText(q);
-        return !!questionText;
-      }).length;
+    let keywordCount = 0;
+
+    if (groupId) {
+      // Group mode: count questions from keyword_questions filtered by group
+      const { data: accountKeywords } = await serviceSupabase
+        .from('keywords')
+        .select('id')
+        .eq('account_id', accountId);
+
+      const keywordIds = (accountKeywords || []).map(k => k.id);
+      if (keywordIds.length > 0) {
+        const questionsQuery = serviceSupabase
+          .from('keyword_questions')
+          .select('keyword_id, question')
+          .in('keyword_id', keywordIds);
+
+        if (groupId === 'ungrouped') {
+          questionsQuery.is('group_id', null);
+        } else {
+          questionsQuery.eq('group_id', groupId);
+        }
+
+        const { data: questions, error: questionsError } = await questionsQuery;
+
+        if (questionsError) {
+          return NextResponse.json(
+            { error: 'Failed to fetch group questions' },
+            { status: 500 }
+          );
+        }
+
+        totalQuestions = questions?.length || 0;
+        keywordCount = new Set(questions?.map(q => q.keyword_id) || []).size;
+      }
+    } else {
+      // Normal mode: count all questions
+      const { data: keywords, error: keywordsError } = await serviceSupabase
+        .from('keywords')
+        .select('id, phrase, related_questions')
+        .eq('account_id', accountId)
+        .not('related_questions', 'is', null);
+
+      if (keywordsError) {
+        return NextResponse.json(
+          { error: 'Failed to fetch keywords' },
+          { status: 500 }
+        );
+      }
+
+      keywordCount = keywords?.length || 0;
+      for (const keyword of keywords || []) {
+        const relatedQuestions = keyword.related_questions || [];
+        totalQuestions += relatedQuestions.filter((q: { question: string } | string) => {
+          const questionText = extractQuestionText(q);
+          return !!questionText;
+        }).length;
+      }
     }
 
     // Calculate costs
@@ -404,7 +504,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       totalQuestions,
-      keywordCount: keywords?.length || 0,
+      keywordCount,
       providers,
       totalCredits,
       costPerProvider,

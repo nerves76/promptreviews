@@ -147,10 +147,21 @@ export default function FallingStarsFeature({
     }
   }, [initialData]);
 
+  // Load full icon set if the selected icon isn't in the popular set
+  useEffect(() => {
+    if (!selectedIcon) return;
+    const isPopular = POPULAR_FALLING_ICONS.some(i => i.key === selectedIcon);
+    if (!isPopular && allIcons.length === POPULAR_FALLING_ICONS.length) {
+      loadAllFallingIcons()
+        .then(fullIconList => setAllIcons(fullIconList))
+        .catch(err => console.error('Failed to load icons for selected icon:', err));
+    }
+  }, [selectedIcon, allIcons.length]);
+
   // 🚀 LAZY LOAD: Load all icons when modal opens
   const handleModalOpen = async () => {
     setIsModalOpen(true);
-    
+
     // Only load all icons if we haven't already
     if (allIcons.length === POPULAR_FALLING_ICONS.length) {
       setIsLoadingIcons(true);

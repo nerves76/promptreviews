@@ -1518,7 +1518,11 @@ export default function AISearchPage() {
                           ? 'bg-gray-400 text-white cursor-not-allowed'
                           : 'text-white bg-green-600 hover:bg-green-700'
                       }`}
-                      title={isBatchRunning ? 'Batch check already in progress' : 'Run LLM visibility checks on all questions'}
+                      title={isBatchRunning
+                        ? 'Batch check already in progress'
+                        : filterGroup
+                          ? `Run LLM checks on group "${activeGroupName}"`
+                          : 'Run LLM visibility checks on all questions'}
                     >
                       {isBatchRunning ? (
                         <>
@@ -1528,7 +1532,7 @@ export default function AISearchPage() {
                       ) : (
                         <>
                           <PromptyIcon className="w-4 h-4" />
-                          Check all
+                          {filterGroup ? 'Check group' : 'Check all'}
                         </>
                       )}
                     </button>
@@ -2741,6 +2745,8 @@ export default function AISearchPage() {
         onStarted={(batchStatus) => {
           setActiveBatchRun(batchStatus);
         }}
+        groupId={filterGroup}
+        groupName={activeGroupName}
       />
 
       {/* Full Response Modal */}

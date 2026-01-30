@@ -56,9 +56,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Determine if the review needs more depth (less than 50% of target)
-    const needsMoreDepth = targetWordCount && currentWordCount &&
-      currentWordCount < (targetWordCount * 0.5);
+    // Determine word count context
+    const hasWordCountContext = targetWordCount && currentWordCount;
+    const isShort = hasWordCountContext && currentWordCount < (targetWordCount * 0.75);
+    const isVeryShort = hasWordCountContext && currentWordCount < (targetWordCount * 0.5);
 
     // Build the system prompt
     let systemPrompt = `You are a helpful assistant that enhances customer reviews while preserving the reviewer's authentic voice and original meaning.
@@ -71,11 +72,28 @@ Your task is to make small improvements to grammar, readability, and flow. The e
 - Preserve all specific details and experiences mentioned
 - Sound natural and conversational, not overly polished or marketing-like`;
 
-    // Add business context for depth expansion
-    if (needsMoreDepth && (businessName || aboutBusiness || servicesOffered)) {
+    // Always include word count guidance when we have context
+    if (hasWordCountContext) {
+      if (isShort) {
+        // Review is short — encourage expansion
+        const idealMin = Math.round(targetWordCount * 0.6);
+        const idealMax = Math.round(targetWordCount * 0.9);
+        systemPrompt += `
+
+WORD COUNT: The review is currently ${currentWordCount} words. The platform allows up to ${targetWordCount} words. Aim for ${idealMin}-${idealMax} words by expanding the review with additional authentic-sounding detail. Do NOT exceed ${targetWordCount} words.`;
+      } else {
+        // Review is already a decent length — just enforce the ceiling
+        systemPrompt += `
+
+WORD COUNT: The review is currently ${currentWordCount} words. Do NOT exceed ${targetWordCount} words.`;
+      }
+    }
+
+    // Add business context for depth expansion when review is very short
+    if (isVeryShort && (businessName || aboutBusiness || servicesOffered)) {
       systemPrompt += `
 
-The review is currently brief (${currentWordCount} words) and the platform allows up to ${targetWordCount} words. You may thoughtfully expand the review by adding 1-2 sentences of relevant detail that feel authentic to the customer's experience.`;
+To help expand the review, here is context about the business:`;
 
       if (businessName) {
         systemPrompt += ` The business is "${businessName}".`;
@@ -101,6 +119,12 @@ The review is currently brief (${currentWordCount} words) and the platform allow
       systemPrompt += `
 
 Use this context to add depth that feels like a natural extension of what the customer wrote. For example, if they mentioned great service, you might add a detail about professionalism or responsiveness. Keep additions believable and in the customer's voice - never add specific claims they didn't make.`;
+    } else if (isShort && (businessName || aboutBusiness || servicesOffered)) {
+      // Review is moderately short — provide lighter business context
+      if (businessName) {
+        systemPrompt += ` The business is "${businessName}".`;
+      }
+      systemPrompt += ` Add 1-2 sentences of relevant detail that feel authentic to the customer's experience.`;
     }
 
     // Add keyword instructions if keywords are provided

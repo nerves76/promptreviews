@@ -275,6 +275,14 @@ export default function RankTrackingPage() {
   const [showManageGroupsModal, setShowManageGroupsModal] = useState(false);
   const [filterGroup, setFilterGroup] = useState<string | null>(null);
 
+  // Compute selected group name for display
+  const selectedGroupName = useMemo(() => {
+    if (!filterGroup) return null;
+    if (filterGroup === 'ungrouped') return 'Ungrouped';
+    const group = groups.find(g => g.id === filterGroup);
+    return group?.name || null;
+  }, [filterGroup, groups]);
+
   // Term selection state - using composite key "keywordId::term"
   const [selectedTermKeys, setSelectedTermKeys] = useState<Set<string>>(new Set());
 
@@ -1049,7 +1057,11 @@ export default function RankTrackingPage() {
                           ? 'bg-gray-400 text-white cursor-not-allowed'
                           : 'text-white bg-green-600 hover:bg-green-700'
                       }`}
-                      title={isBatchRunning ? 'Batch check already in progress' : 'Run rank checks on all keywords'}
+                      title={isBatchRunning
+                        ? 'Batch check already in progress'
+                        : filterGroup
+                          ? `Run rank checks on group "${selectedGroupName}"`
+                          : 'Run rank checks on all keywords'}
                     >
                       {isBatchRunning ? (
                         <>
@@ -1059,7 +1071,7 @@ export default function RankTrackingPage() {
                       ) : (
                         <>
                           <Icon name="FaRocket" className="w-4 h-4" />
-                          Check all
+                          {filterGroup ? 'Check group' : 'Check all'}
                         </>
                       )}
                     </button>
@@ -1192,6 +1204,8 @@ export default function RankTrackingPage() {
           // Start tracking the batch run
           setActiveBatchRun(batchStatus);
         }}
+        groupId={filterGroup}
+        groupName={selectedGroupName}
       />
 
       {/* Keyword Details Sidebar */}

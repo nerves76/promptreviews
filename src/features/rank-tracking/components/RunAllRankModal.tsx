@@ -11,6 +11,8 @@ interface RunAllRankModalProps {
   isOpen: boolean;
   onClose: () => void;
   onStarted?: (batchStatus: BatchStatus) => void;
+  groupId?: string | null;
+  groupName?: string | null;
 }
 
 interface BatchPreview {
@@ -68,6 +70,8 @@ export default function RunAllRankModal({
   isOpen,
   onClose,
   onStarted,
+  groupId,
+  groupName,
 }: RunAllRankModalProps) {
   const [preview, setPreview] = useState<BatchPreview | null>(null);
   const [isLoadingPreview, setIsLoadingPreview] = useState(false);
@@ -131,7 +135,8 @@ export default function RunAllRankModal({
     setIsLoadingPreview(true);
     setError(null);
     try {
-      const data = await apiClient.get<BatchPreview>('/rank-tracking/batch-run');
+      const groupParam = groupId ? `?groupId=${encodeURIComponent(groupId)}` : '';
+      const data = await apiClient.get<BatchPreview>(`/rank-tracking/batch-run${groupParam}`);
       setPreview(data);
 
       // If there's an active run, load its status
@@ -179,6 +184,7 @@ export default function RunAllRankModal({
         error?: string;
       }>('/rank-tracking/batch-run', {
         scheduledFor: scheduleTime?.toISOString() || undefined,
+        ...(groupId && { groupId }),
       });
 
       if (response.success) {
@@ -257,7 +263,9 @@ export default function RunAllRankModal({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Icon name="FaChartLine" className="w-5 h-5 text-slate-blue" />
-              <h3 className="text-lg font-semibold text-gray-900">Check all rankings</h3>
+              <h3 className="text-lg font-semibold text-gray-900">
+                {groupName ? `Check group: ${groupName}` : 'Check all rankings'}
+              </h3>
             </div>
             {!isRunning && !isScheduled && (
               <button
@@ -270,7 +278,9 @@ export default function RunAllRankModal({
             )}
           </div>
           <p className="text-sm text-gray-600 mt-2">
-            Check Google rankings for all your keywords (desktop &amp; mobile)
+            {groupName
+              ? `Check Google rankings for keywords in "${groupName}" (desktop & mobile)`
+              : 'Check Google rankings for all your keywords (desktop & mobile)'}
           </p>
         </div>
 
@@ -565,7 +575,7 @@ export default function RunAllRankModal({
               ) : (
                 <>
                   <Icon name="FaChartLine" className="w-4 h-4" />
-                  Check all
+                  {groupName ? 'Check group' : 'Check all'}
                 </>
               )}
             </button>
