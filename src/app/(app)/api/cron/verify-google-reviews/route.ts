@@ -188,7 +188,8 @@ export async function GET(request: NextRequest) {
         );
 
         if (match?.isMatch) {
-          await supabase
+          // Only update if still pending (prevents duplicate notifications on concurrent runs)
+          const { data: updated } = await supabase
             .from('review_submissions')
             .update({
               auto_verification_status: 'verified',
@@ -200,20 +201,25 @@ export async function GET(request: NextRequest) {
               star_rating: match.starRating,
               last_verification_attempt_at: new Date().toISOString(),
             })
-            .eq('id', submission.id);
-          verified++;
+            .eq('id', submission.id)
+            .eq('auto_verification_status', 'pending')
+            .select('id');
 
-          // Send notification to all account users
-          try {
-            await sendNotificationToAccount(accountId, 'review_auto_verified', {
-              reviewerName: reviewerName || 'A customer',
-              reviewContent: submission.review_text_copy || '',
-              starRating: match.starRating || 5,
-              submissionId: submission.id,
-            });
-          } catch (notifError) {
-            console.error('Failed to send auto-verified notification:', notifError);
-            // Don't fail verification if notification fails
+          if (updated && updated.length > 0) {
+            verified++;
+
+            // Send notification to all account users
+            try {
+              await sendNotificationToAccount(accountId, 'review_auto_verified', {
+                reviewerName: reviewerName || 'A customer',
+                reviewContent: submission.review_text_copy || '',
+                starRating: match.starRating || 5,
+                submissionId: submission.id,
+              });
+            } catch (notifError) {
+              console.error('Failed to send auto-verified notification:', notifError);
+              // Don't fail verification if notification fails
+            }
           }
         } else {
           // Increment attempt counter

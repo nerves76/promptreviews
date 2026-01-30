@@ -387,7 +387,8 @@ export class GoogleReviewSyncService {
       );
 
       if (matchResult && matchResult.isMatch) {
-        const { error: updateError } = await this.supabase
+        // Only update if still pending (prevents duplicate notifications on concurrent runs)
+        const { data: updated, error: updateError } = await this.supabase
           .from('review_submissions')
           .update({
             auto_verification_status: 'verified',
@@ -399,9 +400,11 @@ export class GoogleReviewSyncService {
             star_rating: matchResult.starRating,
             last_verification_attempt_at: new Date().toISOString(),
           })
-          .eq('id', submission.id);
+          .eq('id', submission.id)
+          .eq('auto_verification_status', 'pending')
+          .select('id');
 
-        if (!updateError) {
+        if (!updateError && updated && updated.length > 0) {
           verifiedCount++;
           console.log(`✅ Auto-verified submission ${submission.id} (score: ${matchResult.score})`);
 
