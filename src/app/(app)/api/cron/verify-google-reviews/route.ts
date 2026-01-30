@@ -170,6 +170,18 @@ export async function GET(request: NextRequest) {
         continue;
       }
 
+      // Find google_review_ids already claimed by verified submissions for this account
+      const { data: alreadyVerified } = await supabase
+        .from('review_submissions')
+        .select('google_review_id')
+        .eq('account_id', accountId)
+        .eq('auto_verification_status', 'verified')
+        .not('google_review_id', 'is', null);
+
+      const claimedGoogleReviewIds = new Set(
+        (alreadyVerified || []).map(r => r.google_review_id).filter(Boolean)
+      );
+
       // Match submissions against Google reviews (limited per account)
       const submissionsToProcess = submissions.slice(0, MAX_SUBMISSIONS_PER_ACCOUNT);
       for (const submission of submissionsToProcess) {
@@ -187,7 +199,7 @@ export async function GET(request: NextRequest) {
           allGoogleReviews
         );
 
-        if (match?.isMatch) {
+        if (match?.isMatch && !claimedGoogleReviewIds.has(match.googleReviewId)) {
           // Only update if still pending (prevents duplicate notifications on concurrent runs)
           const { data: updated } = await supabase
             .from('review_submissions')
@@ -207,6 +219,7 @@ export async function GET(request: NextRequest) {
 
           if (updated && updated.length > 0) {
             verified++;
+            claimedGoogleReviewIds.add(match.googleReviewId);
 
             // Send notification to all account users
             try {

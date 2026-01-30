@@ -366,6 +366,18 @@ export class GoogleReviewSyncService {
       return 0;
     }
 
+    // Find google_review_ids already claimed by verified submissions for this account
+    const { data: alreadyVerified } = await this.supabase
+      .from('review_submissions')
+      .select('google_review_id')
+      .eq('account_id', this.context.accountId)
+      .eq('auto_verification_status', 'verified')
+      .not('google_review_id', 'is', null);
+
+    const claimedGoogleReviewIds = new Set(
+      (alreadyVerified || []).map(r => r.google_review_id).filter(Boolean)
+    );
+
     console.log(`🔍 Checking ${pendingSubmissions.length} pending submissions against ${googleReviews.length} Google reviews`);
 
     let verifiedCount = 0;
@@ -386,7 +398,7 @@ export class GoogleReviewSyncService {
         googleReviews
       );
 
-      if (matchResult && matchResult.isMatch) {
+      if (matchResult && matchResult.isMatch && !claimedGoogleReviewIds.has(matchResult.googleReviewId)) {
         // Only update if still pending (prevents duplicate notifications on concurrent runs)
         const { data: updated, error: updateError } = await this.supabase
           .from('review_submissions')
@@ -406,6 +418,7 @@ export class GoogleReviewSyncService {
 
         if (!updateError && updated && updated.length > 0) {
           verifiedCount++;
+          claimedGoogleReviewIds.add(matchResult.googleReviewId);
           console.log(`✅ Auto-verified submission ${submission.id} (score: ${matchResult.score})`);
 
           // Send notification to all account users
