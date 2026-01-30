@@ -67,6 +67,7 @@ export async function GET(request: NextRequest) {
         email,
         plan,
         subscription_status,
+        is_free_account,
         trial_start,
         trial_end,
         agncy_billing_owner,
@@ -102,10 +103,10 @@ export async function GET(request: NextRequest) {
       creditBalances?.map(cb => [cb.account_id, cb]) || []
     );
 
-    // Get review counts for all clients (total reviews)
+    // Get review counts for all clients (total reviews from review_submissions)
     const { data: reviewCounts } = clientIds.length > 0
       ? await supabase
-          .from('widget_reviews')
+          .from('review_submissions')
           .select('account_id')
           .in('account_id', clientIds)
       : { data: [] };
@@ -183,15 +184,20 @@ export async function GET(request: NextRequest) {
       const creditBalance = creditBalanceMap.get(client.id);
       const totalBalance = (creditBalance?.included_credits || 0) + (creditBalance?.purchased_credits || 0);
 
-      // Get monthly credits based on plan (or custom allocation)
+      // Get monthly credits based on custom allocation or subscription
       let monthlyCredits = client.monthly_credit_allocation;
       if (monthlyCredits === null || monthlyCredits === undefined) {
-        // Default based on plan
-        switch (client.plan) {
-          case 'maven': monthlyCredits = 400; break;
-          case 'builder': monthlyCredits = 200; break;
-          case 'grower': monthlyCredits = 100; break;
-          default: monthlyCredits = 100; // Default for client accounts
+        if (client.is_free_account && client.subscription_status !== 'active') {
+          // Free accounts without custom allocation get 0
+          monthlyCredits = 0;
+        } else {
+          // Paying accounts default based on plan (must match credit_included_by_tier table)
+          switch (client.plan) {
+            case 'maven': monthlyCredits = 2000; break;
+            case 'builder': monthlyCredits = 1000; break;
+            case 'grower': monthlyCredits = 500; break;
+            default: monthlyCredits = 100;
+          }
         }
       }
 
@@ -204,6 +210,7 @@ export async function GET(request: NextRequest) {
         plan: client.plan,
         status,
         subscription_status: client.subscription_status,
+        is_free_account: client.is_free_account || false,
         trial_end: client.trial_end,
         billing_owner: client.agncy_billing_owner,
         access_status: access?.status || 'active',

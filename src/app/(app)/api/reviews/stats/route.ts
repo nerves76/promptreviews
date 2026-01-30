@@ -29,9 +29,9 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get total reviews from widget_reviews
+    // Get total reviews from review_submissions
     const { count: totalReviews } = await supabase
-      .from('widget_reviews')
+      .from('review_submissions')
       .select('id', { count: 'exact', head: true })
       .eq('account_id', accountId);
 

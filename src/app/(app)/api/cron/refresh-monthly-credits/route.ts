@@ -20,7 +20,8 @@
  *    - builder: 1,000 credits
  *    - maven: 2,000 credits
  *    - agency: 200 base + tiered per paying client (200/300/500 for grower/builder/maven)
- * 3. Client accounts (is_client_account=true): 100 credits default
+ * 3. Paying client accounts (is_client_account=true, is_free_account=false): 100 credits default
+ *    - Free client accounts only get credits if monthly_credit_allocation is explicitly set
  */
 
 import { NextRequest } from 'next/server';
@@ -158,8 +159,8 @@ export async function GET(request: NextRequest) {
           // Paid plan - use tier default
           monthlyCredits = await getTierCredits(supabase, account.plan);
           creditSource = 'plan';
-        } else if (account.is_client_account) {
-          // Client account - use client default
+        } else if (account.is_client_account && !account.is_free_account) {
+          // Paying client account - use client default
           monthlyCredits = DEFAULT_CLIENT_CREDITS;
           creditSource = 'client';
         } else {

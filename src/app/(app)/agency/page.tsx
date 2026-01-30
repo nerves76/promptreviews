@@ -16,6 +16,7 @@ interface ClientAccount {
   logo_url: string | null;
   plan: string | null;
   subscription_status: string | null;
+  is_free_account: boolean;
   trial_end: string | null;
   billing_owner: 'client' | 'agency';
   created_at: string;
@@ -46,7 +47,7 @@ interface CreditBalance {
   monthly: number;
 }
 
-function getStatusBadge(status: string | null, trialEnd?: string | null): { label: string; color: string } {
+function getStatusBadge(status: string | null, trialEnd?: string | null, isFreeAccount?: boolean, plan?: string | null): { label: string; color: string } {
   switch (status) {
     case 'active':
       return { label: 'Active', color: 'bg-green-100 text-green-800' };
@@ -65,6 +66,9 @@ function getStatusBadge(status: string | null, trialEnd?: string | null): { labe
     case 'canceling':
       return { label: 'Canceling', color: 'bg-orange-100 text-orange-800' };
     default:
+      if (isFreeAccount && plan && plan !== 'no_plan') {
+        return { label: 'Free', color: 'bg-emerald-100 text-emerald-800' };
+      }
       return { label: 'No plan', color: 'bg-gray-100 text-gray-600' };
   }
 }
@@ -442,7 +446,7 @@ export default function AgencyDashboardPage() {
 
           {/* Client accounts */}
           {clients.map((client) => {
-            const status = getStatusBadge(client.subscription_status, client.trial_end);
+            const status = getStatusBadge(client.subscription_status, client.trial_end, client.is_free_account, client.plan);
             const isSwitching = switchingAccountId === client.id;
 
             return (
