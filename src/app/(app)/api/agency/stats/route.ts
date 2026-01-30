@@ -73,19 +73,7 @@ export async function GET(request: NextRequest) {
     let verifiedReviews = 0;
 
     if (clientIds.length > 0) {
-      // Count widget reviews from client accounts
-      const { count: widgetReviewCount, error: widgetError } = await supabase
-        .from('widget_reviews')
-        .select('*', { count: 'exact', head: true })
-        .in('account_id', clientIds);
-
-      if (!widgetError && widgetReviewCount) {
-        totalReviews += widgetReviewCount;
-        // Widget reviews are considered verified
-        verifiedReviews += widgetReviewCount;
-      }
-
-      // Count review submissions from client accounts
+      // Count review submissions from client accounts (reviews captured through the app)
       const { count: submissionCount, error: submissionError } = await supabase
         .from('review_submissions')
         .select('*', { count: 'exact', head: true })
@@ -95,7 +83,7 @@ export async function GET(request: NextRequest) {
         totalReviews += submissionCount;
       }
 
-      // Count verified review submissions (those with verification)
+      // Count verified review submissions
       const { count: verifiedSubmissionCount, error: verifiedError } = await supabase
         .from('review_submissions')
         .select('*', { count: 'exact', head: true })
