@@ -1458,91 +1458,6 @@ export default function AISearchPage() {
           description="Track whether LLM chatbots cite your domain or mention your brand when answering questions."
           actions={
             <div className="flex items-center gap-2 flex-wrap justify-end">
-              {keywords.length > 0 && (() => {
-                const isBatchRunning = !!(activeBatchRun && ['pending', 'processing'].includes(activeBatchRun.status));
-
-                // Handle retry from history dropdown
-                const handleRetryFromHistory = async (runId: string) => {
-                  try {
-                    const response = await apiClient.post<{
-                      success: boolean;
-                      runId: string;
-                      totalQuestions: number;
-                      providers: LLMProvider[];
-                      estimatedCredits: number;
-                      error?: string;
-                    }>('/llm-visibility/batch-run', {
-                      providers: ['chatgpt', 'claude', 'gemini', 'perplexity'], // Default to all providers
-                      retryFailedFromRunId: runId,
-                    });
-
-                    if (response.success) {
-                      setShowCompletedBanner(false);
-                      setActiveBatchRun({
-                        runId: response.runId,
-                        status: 'pending',
-                        providers: response.providers,
-                        totalQuestions: response.totalQuestions,
-                        processedQuestions: 0,
-                        successfulChecks: 0,
-                        failedChecks: 0,
-                        progress: 0,
-                        creditsRefunded: 0,
-                        errorMessage: null,
-                      });
-                      showSuccess(`Retrying ${response.totalQuestions} failed checks...`);
-                    } else {
-                      showError(response.error || 'Failed to start retry');
-                    }
-                  } catch (err: unknown) {
-                    let errorMessage = 'Failed to retry failed checks';
-                    if (err instanceof Error) {
-                      const errAny = err as { responseBody?: { required?: number; available?: number } };
-                      if (errAny.responseBody?.required !== undefined && errAny.responseBody?.available !== undefined) {
-                        errorMessage = `Insufficient credits: need ${errAny.responseBody.required}, have ${errAny.responseBody.available}`;
-                      } else {
-                        errorMessage = err.message;
-                      }
-                    }
-                    showError(errorMessage);
-                  }
-                };
-
-                return (
-                  <>
-                    <button
-                      onClick={() => setShowRunAllModal(true)}
-                      disabled={isBatchRunning}
-                      className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${
-                        isBatchRunning
-                          ? 'bg-gray-400 text-white cursor-not-allowed'
-                          : 'text-white bg-green-600 hover:bg-green-700'
-                      }`}
-                      title={isBatchRunning
-                        ? 'Batch check already in progress'
-                        : filterGroup
-                          ? `Run LLM checks on group "${activeGroupName}"`
-                          : 'Run LLM visibility checks on all questions'}
-                    >
-                      {isBatchRunning ? (
-                        <>
-                          <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
-                          {activeBatchRun.progress}% complete
-                        </>
-                      ) : (
-                        <>
-                          <PromptyIcon className="w-4 h-4" />
-                          {filterGroup ? 'Check group' : 'Check all'}
-                        </>
-                      )}
-                    </button>
-                    <BatchRunHistoryDropdown
-                      feature="llm_visibility"
-                      onRetry={handleRetryFromHistory}
-                    />
-                  </>
-                );
-              })()}
               {allResults.length > 0 && (
                 <button
                   onClick={async () => {
@@ -2113,6 +2028,92 @@ export default function AISearchPage() {
                 {filteredAndSortedRows.length} question{filteredAndSortedRows.length !== 1 ? 's' : ''}
               </div>
             </div>
+
+            {/* Check group / Check all button row */}
+            {keywords.length > 0 && (() => {
+              const isBatchRunning = !!(activeBatchRun && ['pending', 'processing'].includes(activeBatchRun.status));
+
+              const handleRetryFromHistory = async (runId: string) => {
+                try {
+                  const response = await apiClient.post<{
+                    success: boolean;
+                    runId: string;
+                    totalQuestions: number;
+                    providers: LLMProvider[];
+                    estimatedCredits: number;
+                    error?: string;
+                  }>('/llm-visibility/batch-run', {
+                    providers: ['chatgpt', 'claude', 'gemini', 'perplexity'],
+                    retryFailedFromRunId: runId,
+                  });
+
+                  if (response.success) {
+                    setShowCompletedBanner(false);
+                    setActiveBatchRun({
+                      runId: response.runId,
+                      status: 'pending',
+                      providers: response.providers,
+                      totalQuestions: response.totalQuestions,
+                      processedQuestions: 0,
+                      successfulChecks: 0,
+                      failedChecks: 0,
+                      progress: 0,
+                      creditsRefunded: 0,
+                      errorMessage: null,
+                    });
+                    showSuccess(`Retrying ${response.totalQuestions} failed checks...`);
+                  } else {
+                    showError(response.error || 'Failed to start retry');
+                  }
+                } catch (err: unknown) {
+                  let errorMessage = 'Failed to retry failed checks';
+                  if (err instanceof Error) {
+                    const errAny = err as { responseBody?: { required?: number; available?: number } };
+                    if (errAny.responseBody?.required !== undefined && errAny.responseBody?.available !== undefined) {
+                      errorMessage = `Insufficient credits: need ${errAny.responseBody.required}, have ${errAny.responseBody.available}`;
+                    } else {
+                      errorMessage = err.message;
+                    }
+                  }
+                  showError(errorMessage);
+                }
+              };
+
+              return (
+                <div className="mb-3 flex items-center gap-2">
+                  <button
+                    onClick={() => setShowRunAllModal(true)}
+                    disabled={isBatchRunning}
+                    className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${
+                      isBatchRunning
+                        ? 'bg-gray-400 text-white cursor-not-allowed'
+                        : 'text-white bg-green-600 hover:bg-green-700'
+                    }`}
+                    title={isBatchRunning
+                      ? 'Batch check already in progress'
+                      : filterGroup
+                        ? `Run LLM checks on group "${activeGroupName}"`
+                        : 'Run LLM visibility checks on all questions'}
+                  >
+                    {isBatchRunning ? (
+                      <>
+                        <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
+                        {activeBatchRun.progress}% complete
+                      </>
+                    ) : (
+                      <>
+                        <PromptyIcon className="w-4 h-4" />
+                        {filterGroup ? 'Check group' : 'Check all'}
+                      </>
+                    )}
+                  </button>
+                  <BatchRunHistoryDropdown
+                    feature="llm_visibility"
+                    onRetry={handleRetryFromHistory}
+                  />
+                </div>
+              );
+            })()}
 
             {/* Questions Table */}
             <div className={`overflow-x-auto border border-gray-200 rounded-xl transition-opacity duration-150 ${isPending ? 'opacity-70' : ''}`}>
