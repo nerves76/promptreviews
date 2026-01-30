@@ -120,6 +120,12 @@ export default function WorkManagerBoardPage() {
           await fetchAccountUsers(boardData.account_id);
         }
       } catch (err: any) {
+        // If board not found (likely wrong account), redirect to landing page
+        // which will load the correct board for the selected account
+        if (err.message?.includes("Board not found") || err.message?.includes("not found")) {
+          router.replace("/work-manager");
+          return;
+        }
         setError(err.message || "Failed to load board");
       } finally {
         setIsLoading(false);
@@ -127,7 +133,7 @@ export default function WorkManagerBoardPage() {
     };
 
     loadData();
-  }, [isInitialized, user, fetchBoard, fetchTasks, fetchAccountUsers]);
+  }, [isInitialized, user, fetchBoard, fetchTasks, fetchAccountUsers, router]);
 
   // Handle status label edit
   const handleEditLabel = (status: keyof WMStatusLabels) => {
