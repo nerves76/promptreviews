@@ -3,18 +3,30 @@
 import React from "react";
 import { formatDistanceToNow, isPast, isToday } from "date-fns";
 import Icon from "@/components/Icon";
-import { WMTask, WM_PRIORITY_COLORS, WM_PRIORITY_LABELS } from "@/types/workManager";
+import { WMTask, WMTaskStatus, WMStatusLabels, WM_PRIORITY_COLORS, WM_PRIORITY_LABELS } from "@/types/workManager";
 
 interface WorkManagerCardProps {
   task: WMTask;
   isDragging?: boolean;
   onOpen?: (task: WMTask) => void;
+  /** Client name for linked (pulled) tasks */
+  clientName?: string | null;
+  /** Current client-side status for linked tasks */
+  clientStatus?: WMTaskStatus | null;
+  /** Client board status labels for the dropdown */
+  clientStatusLabels?: WMStatusLabels | null;
+  /** Callback when agency changes the client-side status */
+  onClientStatusChange?: (taskId: string, newStatus: WMTaskStatus) => void;
 }
 
 export default function WorkManagerCard({
   task,
   isDragging = false,
   onOpen,
+  clientName,
+  clientStatus,
+  clientStatusLabels,
+  onClientStatusChange,
 }: WorkManagerCardProps) {
   const handleOpen = (event?: React.MouseEvent<HTMLButtonElement>) => {
     if (event) {
@@ -88,6 +100,14 @@ export default function WorkManagerCard({
       </button>
 
       <div className="space-y-2 pr-12">
+        {/* Client badge for linked tasks */}
+        {clientName && (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-slate-blue/10 text-slate-blue border border-slate-blue/20 whitespace-nowrap">
+            <Icon name="FaBuilding" size={9} />
+            {clientName}
+          </span>
+        )}
+
         {/* Title */}
         <h3 className="text-sm font-semibold text-gray-900 line-clamp-2">
           {task.title}
@@ -135,6 +155,30 @@ export default function WorkManagerCard({
         <div className="mt-2 flex items-center gap-1 text-xs text-gray-500">
           <Icon name="FaUser" size={10} className="text-gray-500" />
           <span className="truncate">{assigneeName}</span>
+        </div>
+      )}
+
+      {/* Client status dropdown for linked tasks */}
+      {clientStatusLabels && clientStatus && onClientStatusChange && (
+        <div
+          className="mt-2 pt-2 border-t border-gray-100"
+          onClick={(e) => e.stopPropagation()}
+          onMouseDown={(e) => e.stopPropagation()}
+        >
+          <label className="text-[10px] text-gray-500 uppercase tracking-wider font-medium">Client status</label>
+          <select
+            value={clientStatus}
+            onChange={(e) => {
+              e.stopPropagation();
+              onClientStatusChange(task.id, e.target.value as WMTaskStatus);
+            }}
+            onMouseDown={(e) => e.stopPropagation()}
+            className="mt-0.5 block w-full text-xs border border-gray-200 rounded px-2 py-1 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-slate-blue"
+          >
+            {(Object.entries(clientStatusLabels) as [WMTaskStatus, string][]).map(([key, label]) => (
+              <option key={key} value={key}>{label}</option>
+            ))}
+          </select>
         </div>
       )}
     </div>

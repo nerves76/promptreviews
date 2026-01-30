@@ -21,6 +21,8 @@ interface WorkManagerKanbanProps {
   onTaskClick: (task: WMTask) => void;
   onTasksReordered?: () => void;
   onAddTask?: (status: WMTaskStatus) => void;
+  /** Optional handler for changing client-side status on linked agency tasks */
+  clientStatusChangeHandler?: (taskId: string, newStatus: WMTaskStatus) => void;
 }
 
 export default function WorkManagerKanban({
@@ -31,6 +33,7 @@ export default function WorkManagerKanban({
   onTaskClick,
   onTasksReordered,
   onAddTask,
+  clientStatusChangeHandler,
 }: WorkManagerKanbanProps) {
   const [draggedCardId, setDraggedCardId] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -199,6 +202,10 @@ export default function WorkManagerKanban({
         task={task}
         isDragging={snapshot.isDragging || draggedCardId === task.id}
         onOpen={onTaskClick}
+        clientName={task.linked_task?.client_name}
+        clientStatus={task.linked_task?.status as WMTaskStatus | undefined}
+        clientStatusLabels={task.linked_task?.client_board_status_labels}
+        onClientStatusChange={clientStatusChangeHandler}
       />
     </div>
   );

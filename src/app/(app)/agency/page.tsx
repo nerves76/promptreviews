@@ -47,6 +47,19 @@ interface CreditBalance {
   monthly: number;
 }
 
+function getPlanBadge(plan: string | null): { label: string; color: string } {
+  switch (plan) {
+    case 'maven':
+      return { label: 'Maven', color: 'bg-yellow-100 text-yellow-800' };
+    case 'builder':
+      return { label: 'Builder', color: 'bg-blue-100 text-blue-800' };
+    case 'grower':
+      return { label: 'Grower', color: 'bg-green-100 text-green-800' };
+    default:
+      return { label: 'Free', color: 'bg-gray-100 text-gray-600' };
+  }
+}
+
 function getStatusBadge(status: string | null, trialEnd?: string | null, isFreeAccount?: boolean, plan?: string | null): { label: string; color: string } {
   switch (status) {
     case 'active':
@@ -369,7 +382,7 @@ export default function AgencyDashboardPage() {
         <div className="flex items-center justify-between p-4 border-b border-white/10">
           <h2 className="text-lg font-semibold text-white">Accounts</h2>
           <Link
-            href="/agency/clients"
+            href="/agency/work-manager"
             className="text-sm text-white/70 hover:text-white transition-colors flex items-center gap-1"
           >
             View all
@@ -447,6 +460,7 @@ export default function AgencyDashboardPage() {
           {/* Client accounts */}
           {clients.map((client) => {
             const status = getStatusBadge(client.subscription_status, client.trial_end, client.is_free_account, client.plan);
+            const planBadge = getPlanBadge(client.plan);
             const isSwitching = switchingAccountId === client.id;
 
             return (
@@ -469,6 +483,14 @@ export default function AgencyDashboardPage() {
                     <div className="flex items-center gap-2 mt-1">
                       <span className={`px-2 py-0.5 text-xs font-medium rounded-full whitespace-nowrap ${status.color}`}>
                         {status.label}
+                      </span>
+                      <span className={`px-2 py-0.5 text-xs font-medium rounded-full whitespace-nowrap ${planBadge.color}`}>
+                        {planBadge.label}
+                      </span>
+                      <span className={`px-2 py-0.5 text-xs font-medium rounded-full whitespace-nowrap ${
+                        client.billing_owner === 'agency' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-600'
+                      }`}>
+                        {client.billing_owner === 'agency' ? 'Agency billing' : 'Client billing'}
                       </span>
                     </div>
                   </div>
