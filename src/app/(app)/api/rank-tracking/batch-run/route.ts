@@ -71,13 +71,20 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Check if there's already a pending/processing batch run
-    const { data: existingRun } = await serviceSupabase
+    // Check if there's already a pending/processing batch run for this group scope
+    const existingRunQuery = serviceSupabase
       .from('rank_batch_runs')
       .select('id, status')
       .eq('account_id', accountId)
-      .in('status', ['pending', 'processing'])
-      .single();
+      .in('status', ['pending', 'processing']);
+
+    if (groupId) {
+      existingRunQuery.eq('group_id', groupId);
+    } else {
+      existingRunQuery.is('group_id', null);
+    }
+
+    const { data: existingRun } = await existingRunQuery.single();
 
     if (existingRun) {
       return NextResponse.json(
@@ -330,6 +337,7 @@ export async function POST(request: NextRequest) {
         triggered_by: user.id,
         scheduled_for: scheduledForDate?.toISOString() || null,
         idempotency_key: idempotencyKey,
+        group_id: groupId || null,
       })
       .select()
       .single();
@@ -489,13 +497,20 @@ export async function GET(request: NextRequest) {
     await ensureBalanceExists(serviceSupabase, accountId);
     const balance = await getBalance(serviceSupabase, accountId);
 
-    // Check for existing active run
-    const { data: activeRun } = await serviceSupabase
+    // Check for existing active run in the same group scope
+    const activeRunQuery = serviceSupabase
       .from('rank_batch_runs')
       .select('id, status, processed_keywords, total_keywords')
       .eq('account_id', accountId)
-      .in('status', ['pending', 'processing'])
-      .single();
+      .in('status', ['pending', 'processing']);
+
+    if (groupId) {
+      activeRunQuery.eq('group_id', groupId);
+    } else {
+      activeRunQuery.is('group_id', null);
+    }
+
+    const { data: activeRun } = await activeRunQuery.single();
 
     return NextResponse.json({
       totalKeywords,
