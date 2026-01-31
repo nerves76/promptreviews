@@ -230,7 +230,7 @@ export default function FeedFormModal({
 
   return (
     <Dialog open={true} onClose={onClose} className="relative z-50" aria-label="RSS feed settings">
-      <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+      <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" aria-hidden="true" />
       <div className="fixed inset-0 flex items-center justify-center p-4">
         <div className="relative">
           {/* Red X close button - breaching top right corner */}
@@ -245,7 +245,7 @@ export default function FeedFormModal({
             </svg>
           </button>
 
-          <Dialog.Panel className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <Dialog.Panel className="bg-white/70 backdrop-blur-xl border border-white/30 rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <Dialog.Title className="text-xl font-bold text-gray-900 mb-4">
                 {isEditing ? "Edit RSS feed" : "Add RSS feed"}

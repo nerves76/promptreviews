@@ -197,7 +197,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl,
 
   // Use portal to render at document root, avoiding overflow/stacking context issues
   const modalContent = (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm p-4">
       <div className="relative max-w-4xl w-full">
         {/* Glassmorphic close button */}
         <button
@@ -225,7 +225,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl,
         )}
         
         {/* Left side: Controls */}
-        <div className="flex-1 space-y-4 py-6 px-8 min-h-0 bg-white/90 backdrop-blur-sm rounded-l-2xl overflow-y-auto max-h-[90vh]">
+        <div className="flex-1 space-y-4 py-6 px-8 min-h-0 bg-white/70 backdrop-blur-xl rounded-l-2xl overflow-y-auto max-h-[90vh]">
           <div>
             {/* Marketing Copy - Show when preview is not generated */}
             {!showPreview && (

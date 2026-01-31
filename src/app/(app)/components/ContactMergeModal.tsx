@@ -143,9 +143,9 @@ const ContactMergeModal: React.FC<ContactMergeModalProps> = ({
   return (
     <Dialog open={open} onClose={onClose} className="fixed z-50 inset-0 overflow-y-auto" aria-label="Merge duplicate contacts">
       <div className="flex items-center justify-center min-h-screen px-4">
-        <div className="fixed inset-0 bg-black opacity-30" />
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" />
         
-        <div className="relative bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl max-w-4xl w-full p-6 max-h-[90vh] overflow-y-auto border-2 border-white">
+        <div className="relative bg-white/70 backdrop-blur-xl rounded-2xl shadow-2xl max-w-4xl w-full p-6 max-h-[90vh] overflow-y-auto border border-white/30">
           {/* Standardized close button */}
           <button
             onClick={onClose}

@@ -132,7 +132,7 @@ const PromptPageEmbedModal: React.FC<PromptPageEmbedModalProps> = ({
   const promptPageUrl = `${window.location.origin}/r/${slug}`;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-50">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/30 backdrop-blur-sm">
       <div className="relative max-w-5xl w-full mx-12 my-12">
         {/* Standardized red X close button - outside overflow container */}
         <button
@@ -147,7 +147,7 @@ const PromptPageEmbedModal: React.FC<PromptPageEmbedModalProps> = ({
         </button>
 
         {/* Modal content with overflow hidden */}
-        <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl max-h-[85vh] border-2 border-white overflow-hidden">
+        <div className="bg-white/70 backdrop-blur-xl rounded-2xl shadow-2xl max-h-[85vh] border border-white/30 overflow-hidden">
           {/* Scrollable content area */}
           <div className="p-8 overflow-y-auto max-h-[85vh]">
           {/* Header section */}

@@ -65,13 +65,13 @@ export default function HelpModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-[2px]"
+        className="absolute inset-0 bg-black/30 backdrop-blur-sm"
         onClick={handleClose}
         aria-label="Close modal"
       />
       
       {/* Modal - Larger size for desktop, responsive for mobile */}
-      <div className="relative bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] md:max-h-[85vh] flex flex-col overflow-visible border border-white/40">
+      <div className="relative bg-white/70 backdrop-blur-xl rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] md:max-h-[85vh] flex flex-col overflow-visible border border-white/30">
         {/* Close button */}
         <button
           className="absolute -top-3 -right-3 bg-white border border-gray-200 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 flex items-center justify-center hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 z-50"
@@ -85,7 +85,7 @@ export default function HelpModal({
         </button>
 
         {/* Header with Tabs */}
-        <div className="bg-white/20 backdrop-blur-md border-b border-white/30 rounded-t-2xl">
+        <div className="border-b border-white/30 rounded-t-2xl">
           <div className="flex items-center justify-between p-4 md:p-6 pb-0">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-slate-blue/80 rounded-lg flex items-center justify-center">

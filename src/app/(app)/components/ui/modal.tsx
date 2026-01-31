@@ -142,7 +142,7 @@ function StandardModal({
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className={isDark ? "fixed inset-0 bg-black/50 backdrop-blur-sm" : "fixed inset-0 bg-black/30"} />
+          <div className={isDark ? "fixed inset-0 bg-black/50 backdrop-blur-sm" : "fixed inset-0 bg-black/30 backdrop-blur-sm"} />
         </Transition.Child>
 
         {/* Panel container */}
@@ -184,7 +184,7 @@ function StandardModal({
                     allowOverflow ? 'overflow-visible' : 'overflow-y-auto',
                     isDark
                       ? 'bg-white/10 backdrop-blur-md border border-white/20 text-white'
-                      : 'bg-white',
+                      : 'bg-white/70 backdrop-blur-xl border border-white/30',
                     className
                   )}
                 >
@@ -369,7 +369,7 @@ function DraggableModalInner({
         </div>
 
         {/* Body */}
-        <div className="p-6 bg-white/95 rounded-b-2xl">
+        <div className="p-6 bg-white/70 backdrop-blur-xl rounded-b-2xl">
           {children}
         </div>
       </div>
