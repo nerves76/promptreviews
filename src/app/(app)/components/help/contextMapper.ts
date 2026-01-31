@@ -104,6 +104,131 @@ const routeContextMap: Record<string, RouteContext> = {
     keywords: ['local', 'ranking', 'grid', 'geo', 'map', 'location', 'gmb'],
     pageName: 'Local Ranking Grid',
     helpTopics: ['local-seo', 'geo-grid', 'map-rankings']
+  },
+  '/dashboard/ai-search/competitors': {
+    keywords: ['ai', 'search', 'competitors', 'llm', 'visibility', 'competitor-tracking'],
+    pageName: 'AI Search Competitors',
+    helpTopics: ['ai-competitor-tracking', 'llm-visibility', 'brand-mentions']
+  },
+  '/dashboard/ai-search/research-sources': {
+    keywords: ['ai', 'search', 'research', 'sources', 'citations', 'llm'],
+    pageName: 'AI Research Sources',
+    helpTopics: ['ai-sources', 'citations', 'content-strategy']
+  },
+  '/dashboard/ai-search': {
+    keywords: ['ai', 'search', 'llm', 'chatgpt', 'perplexity', 'visibility'],
+    pageName: 'AI Search',
+    helpTopics: ['ai-visibility', 'llm-tracking', 'brand-monitoring']
+  },
+  '/dashboard/comparisons/competitors': {
+    keywords: ['comparisons', 'competitors', 'tracking', 'benchmark', 'rival'],
+    pageName: 'Competitor Tracking',
+    helpTopics: ['competitor-analysis', 'benchmarking', 'tracking']
+  },
+  '/dashboard/comparisons/features': {
+    keywords: ['comparisons', 'features', 'compare', 'advantages', 'differentiators'],
+    pageName: 'Feature Comparisons',
+    helpTopics: ['feature-comparison', 'competitive-advantages']
+  },
+  '/dashboard/comparisons/tables': {
+    keywords: ['comparisons', 'tables', 'comparison-table', 'embed', 'publish'],
+    pageName: 'Comparison Tables',
+    helpTopics: ['comparison-tables', 'embedding', 'publishing']
+  },
+  '/dashboard/comparisons': {
+    keywords: ['comparisons', 'competitors', 'competitive', 'analysis', 'benchmark'],
+    pageName: 'Comparisons',
+    helpTopics: ['competitor-analysis', 'comparison-tools', 'benchmarking']
+  },
+  '/dashboard/reviews/sources': {
+    keywords: ['reviews', 'sources', 'platforms', 'google', 'facebook', 'yelp'],
+    pageName: 'Review Sources',
+    helpTopics: ['review-platforms', 'source-management', 'aggregation']
+  },
+  '/dashboard/get-reviews/sentiment-analyzer': {
+    keywords: ['sentiment', 'analysis', 'reviews', 'positive', 'negative', 'trends'],
+    pageName: 'Sentiment Analyzer',
+    helpTopics: ['sentiment-analysis', 'review-trends', 'insights']
+  },
+  '/dashboard/social-posting': {
+    keywords: ['social', 'posting', 'google', 'posts', 'schedule', 'publish'],
+    pageName: 'Social Posting',
+    helpTopics: ['social-posts', 'scheduling', 'google-posts']
+  },
+  '/dashboard/rss-feeds': {
+    keywords: ['rss', 'feeds', 'syndication', 'content', 'automation'],
+    pageName: 'RSS Feeds',
+    helpTopics: ['rss-setup', 'content-syndication', 'automation']
+  },
+  '/dashboard/backlinks': {
+    keywords: ['backlinks', 'seo', 'domains', 'link-building', 'authority'],
+    pageName: 'Backlinks',
+    helpTopics: ['backlink-analysis', 'link-building', 'domain-authority']
+  },
+  '/dashboard/research/domains': {
+    keywords: ['research', 'domains', 'domain-analysis', 'competitors', 'authority'],
+    pageName: 'Domain Research',
+    helpTopics: ['domain-research', 'competitor-domains', 'authority-analysis']
+  },
+  '/dashboard/research/backlinks': {
+    keywords: ['research', 'backlinks', 'link-analysis', 'referring-domains'],
+    pageName: 'Backlink Research',
+    helpTopics: ['backlink-research', 'link-profile', 'referring-domains']
+  },
+  '/dashboard/research': {
+    keywords: ['research', 'seo', 'domains', 'backlinks', 'competitive'],
+    pageName: 'Research',
+    helpTopics: ['seo-research', 'domain-analysis', 'backlink-research']
+  },
+  '/dashboard/domain-analysis': {
+    keywords: ['domain', 'analysis', 'seo', 'authority', 'metrics', 'audit'],
+    pageName: 'Domain Analysis',
+    helpTopics: ['domain-audit', 'seo-metrics', 'site-health']
+  },
+  '/dashboard/keywords/rank-tracking/paa-questions': {
+    keywords: ['paa', 'people-also-ask', 'questions', 'serp', 'featured-snippets'],
+    pageName: 'PAA Questions',
+    helpTopics: ['paa-tracking', 'question-optimization', 'featured-snippets']
+  },
+  '/dashboard/testimonials': {
+    keywords: ['testimonials', 'reviews', 'showcase', 'display', 'social-proof'],
+    pageName: 'Testimonials',
+    helpTopics: ['testimonial-management', 'display', 'social-proof']
+  },
+  '/dashboard/integrations': {
+    keywords: ['integrations', 'connect', 'api', 'zapier', 'webhooks', 'tools'],
+    pageName: 'Integrations',
+    helpTopics: ['available-integrations', 'setup', 'api-access']
+  },
+  '/dashboard/settings/agency-access': {
+    keywords: ['agency', 'access', 'permissions', 'client', 'management'],
+    pageName: 'Agency Access',
+    helpTopics: ['agency-setup', 'client-access', 'permissions']
+  },
+  '/dashboard/credits': {
+    keywords: ['credits', 'billing', 'usage', 'balance', 'purchase', 'transactions'],
+    pageName: 'Credits',
+    helpTopics: ['credit-usage', 'purchasing', 'billing']
+  },
+  '/dashboard/notifications': {
+    keywords: ['notifications', 'alerts', 'email', 'preferences', 'settings'],
+    pageName: 'Notifications',
+    helpTopics: ['notification-settings', 'alerts', 'email-preferences']
+  },
+  '/dashboard/google-business-profile': {
+    keywords: ['google', 'business-profile', 'gbp', 'integration', 'reviews', 'listings'],
+    pageName: 'Google Business Profile',
+    helpTopics: ['gbp-connection', 'review-sync', 'listing-management']
+  },
+  '/prompt-pages/outreach-templates': {
+    keywords: ['outreach', 'templates', 'email', 'sms', 'review-requests', 'campaigns'],
+    pageName: 'Outreach Templates',
+    helpTopics: ['template-creation', 'email-campaigns', 'sms-outreach']
+  },
+  '/prompt-pages/individual': {
+    keywords: ['individual', 'prompt-pages', 'personalized', 'custom', 'requests'],
+    pageName: 'Individual Prompt Pages',
+    helpTopics: ['individual-requests', 'personalization', 'custom-pages']
   }
 };
 

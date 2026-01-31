@@ -44,7 +44,13 @@ export const HELP_CONFIG = {
     'support': { priority: 'medium', color: 'gray' },
     'integrations': { priority: 'medium', color: 'indigo' },
     'business': { priority: 'medium', color: 'teal' },
-    'widgets': { priority: 'medium', color: 'pink' }
+    'widgets': { priority: 'medium', color: 'pink' },
+    'seo': { priority: 'high', color: 'green' },
+    'comparisons': { priority: 'medium', color: 'blue' },
+    'reviews': { priority: 'high', color: 'orange' },
+    'social': { priority: 'medium', color: 'pink' },
+    'research': { priority: 'medium', color: 'teal' },
+    'analytics': { priority: 'medium', color: 'blue' }
   },
   
   // Default Fallback Content

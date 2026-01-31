@@ -69,6 +69,181 @@ const articleAssociations: ArticleAssociation[] = [
     keywords: ['widgets', 'embed', 'website'],
     priority: 'medium',
     userActions: ['embed_widget', 'page_view']
+  },
+  {
+    appPage: '/dashboard/ai-search',
+    articles: ['ai-search'],
+    keywords: ['ai', 'search', 'llm', 'visibility', 'chatgpt', 'perplexity'],
+    priority: 'high',
+    userActions: ['view_ai_search', 'page_view']
+  },
+  {
+    appPage: '/dashboard/ai-search/competitors',
+    articles: ['ai-search', 'comparisons'],
+    keywords: ['ai', 'competitors', 'llm', 'tracking'],
+    priority: 'medium',
+    userActions: ['view_ai_competitors', 'page_view']
+  },
+  {
+    appPage: '/dashboard/ai-search/research-sources',
+    articles: ['ai-search'],
+    keywords: ['ai', 'research', 'sources', 'citations'],
+    priority: 'medium',
+    userActions: ['view_ai_sources', 'page_view']
+  },
+  {
+    appPage: '/dashboard/comparisons',
+    articles: ['comparisons'],
+    keywords: ['comparisons', 'competitors', 'competitive', 'analysis'],
+    priority: 'high',
+    userActions: ['view_comparisons', 'page_view']
+  },
+  {
+    appPage: '/dashboard/comparisons/competitors',
+    articles: ['comparisons'],
+    keywords: ['competitors', 'tracking', 'benchmark'],
+    priority: 'medium',
+    userActions: ['view_competitors', 'page_view']
+  },
+  {
+    appPage: '/dashboard/comparisons/features',
+    articles: ['comparisons'],
+    keywords: ['features', 'compare', 'advantages'],
+    priority: 'medium',
+    userActions: ['view_feature_comparisons', 'page_view']
+  },
+  {
+    appPage: '/dashboard/comparisons/tables',
+    articles: ['comparisons'],
+    keywords: ['tables', 'comparison-table', 'embed'],
+    priority: 'medium',
+    userActions: ['view_comparison_tables', 'page_view']
+  },
+  {
+    appPage: '/dashboard/reviews/sources',
+    articles: ['getting-started'],
+    keywords: ['reviews', 'sources', 'platforms'],
+    priority: 'medium',
+    userActions: ['view_review_sources', 'page_view']
+  },
+  {
+    appPage: '/dashboard/get-reviews/sentiment-analyzer',
+    articles: ['sentiment-analyzer'],
+    keywords: ['sentiment', 'analysis', 'reviews', 'trends'],
+    priority: 'medium',
+    userActions: ['analyze_sentiment', 'page_view']
+  },
+  {
+    appPage: '/dashboard/social-posting',
+    articles: ['social-posting', 'google-post-types'],
+    keywords: ['social', 'posting', 'schedule', 'publish'],
+    priority: 'high',
+    userActions: ['create_post', 'schedule_post', 'page_view']
+  },
+  {
+    appPage: '/dashboard/rss-feeds',
+    articles: ['social-posting'],
+    keywords: ['rss', 'feeds', 'syndication'],
+    priority: 'low',
+    userActions: ['view_rss', 'page_view']
+  },
+  {
+    appPage: '/dashboard/backlinks',
+    articles: ['backlinks'],
+    keywords: ['backlinks', 'seo', 'link-building', 'authority'],
+    priority: 'medium',
+    userActions: ['view_backlinks', 'page_view']
+  },
+  {
+    appPage: '/dashboard/research',
+    articles: ['backlinks'],
+    keywords: ['research', 'domains', 'backlinks', 'seo'],
+    priority: 'medium',
+    userActions: ['view_research', 'page_view']
+  },
+  {
+    appPage: '/dashboard/research/domains',
+    articles: ['backlinks'],
+    keywords: ['domain', 'research', 'analysis', 'authority'],
+    priority: 'medium',
+    userActions: ['research_domain', 'page_view']
+  },
+  {
+    appPage: '/dashboard/research/backlinks',
+    articles: ['backlinks'],
+    keywords: ['backlinks', 'research', 'link-profile'],
+    priority: 'medium',
+    userActions: ['research_backlinks', 'page_view']
+  },
+  {
+    appPage: '/dashboard/domain-analysis',
+    articles: ['backlinks'],
+    keywords: ['domain', 'analysis', 'seo', 'audit', 'metrics'],
+    priority: 'medium',
+    userActions: ['analyze_domain', 'page_view']
+  },
+  {
+    appPage: '/dashboard/keywords/rank-tracking/paa-questions',
+    articles: ['rank-tracking'],
+    keywords: ['paa', 'people-also-ask', 'questions', 'serp'],
+    priority: 'medium',
+    userActions: ['view_paa', 'page_view']
+  },
+  {
+    appPage: '/dashboard/testimonials',
+    articles: ['testimonials'],
+    keywords: ['testimonials', 'showcase', 'social-proof'],
+    priority: 'high',
+    userActions: ['manage_testimonials', 'page_view']
+  },
+  {
+    appPage: '/dashboard/integrations',
+    articles: ['integrations'],
+    keywords: ['integrations', 'connect', 'api', 'tools'],
+    priority: 'medium',
+    userActions: ['view_integrations', 'page_view']
+  },
+  {
+    appPage: '/dashboard/settings/agency-access',
+    articles: ['team'],
+    keywords: ['agency', 'access', 'permissions', 'client'],
+    priority: 'medium',
+    userActions: ['manage_agency_access', 'page_view']
+  },
+  {
+    appPage: '/dashboard/credits',
+    articles: ['credits'],
+    keywords: ['credits', 'billing', 'usage', 'balance'],
+    priority: 'high',
+    userActions: ['view_credits', 'purchase_credits', 'page_view']
+  },
+  {
+    appPage: '/dashboard/notifications',
+    articles: ['getting-started'],
+    keywords: ['notifications', 'alerts', 'preferences'],
+    priority: 'low',
+    userActions: ['update_notifications', 'page_view']
+  },
+  {
+    appPage: '/dashboard/google-business-profile',
+    articles: ['google-business'],
+    keywords: ['google', 'business-profile', 'gbp', 'reviews'],
+    priority: 'high',
+    userActions: ['connect_gbp', 'page_view']
+  },
+  {
+    appPage: '/prompt-pages/outreach-templates',
+    articles: ['getting-started', 'contacts'],
+    keywords: ['outreach', 'templates', 'email', 'sms', 'campaigns'],
+    priority: 'medium',
+    userActions: ['create_template', 'page_view']
+  },
+  {
+    appPage: '/prompt-pages/individual',
+    articles: ['getting-started'],
+    keywords: ['individual', 'prompt-pages', 'personalized'],
+    priority: 'medium',
+    userActions: ['create_individual_page', 'page_view']
   }
 ];
 

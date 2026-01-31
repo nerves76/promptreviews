@@ -33,6 +33,96 @@ const fallbackTutorials = [
     category: 'contacts',
     tags: ['contacts', 'manage', 'organize', 'customers'],
     plans: ['builder', 'maven', 'enterprise'] // Builder+ only
+  },
+  {
+    id: 'ai-1',
+    title: 'AI Search & LLM Visibility',
+    description: 'Track how your business appears in AI search results from ChatGPT, Perplexity, and other LLMs',
+    url: 'https://docs.promptreviews.app/ai-search',
+    category: 'ai',
+    tags: ['ai', 'search', 'llm', 'visibility', 'chatgpt', 'perplexity'],
+    plans: ['builder', 'maven', 'enterprise']
+  },
+  {
+    id: 'comp-1',
+    title: 'Competitor Comparisons & Tables',
+    description: 'Compare your business against competitors with feature tables and tracking',
+    url: 'https://docs.promptreviews.app/comparisons',
+    category: 'comparisons',
+    tags: ['comparisons', 'competitors', 'tables', 'features', 'benchmark'],
+    plans: ['builder', 'maven', 'enterprise']
+  },
+  {
+    id: 'seo-1',
+    title: 'Rank Tracking & PAA Questions',
+    description: 'Monitor your keyword rankings and People Also Ask positions in search results',
+    url: 'https://docs.promptreviews.app/rank-tracking',
+    category: 'seo',
+    tags: ['rank', 'tracking', 'seo', 'keywords', 'paa', 'serp', 'positions'],
+    plans: ['builder', 'maven', 'enterprise']
+  },
+  {
+    id: 'seo-2',
+    title: 'Local Ranking Grids',
+    description: 'Visualize your local search rankings across geographic areas with geo-grids',
+    url: 'https://docs.promptreviews.app/local-ranking-grids',
+    category: 'seo',
+    tags: ['local', 'ranking', 'grid', 'geo', 'map', 'location'],
+    plans: ['builder', 'maven', 'enterprise']
+  },
+  {
+    id: 'social-1',
+    title: 'Social Posting',
+    description: 'Create and schedule posts for Google Business Profile and social channels',
+    url: 'https://docs.promptreviews.app/social-posting',
+    category: 'social',
+    tags: ['social', 'posting', 'schedule', 'google', 'posts', 'publish'],
+    plans: ['builder', 'maven', 'enterprise']
+  },
+  {
+    id: 'research-1',
+    title: 'Backlinks & Domain Research',
+    description: 'Analyze backlink profiles, domain authority, and competitor link strategies',
+    url: 'https://docs.promptreviews.app/backlinks',
+    category: 'research',
+    tags: ['backlinks', 'domains', 'research', 'seo', 'authority', 'link-building'],
+    plans: ['builder', 'maven', 'enterprise']
+  },
+  {
+    id: 'reviews-1',
+    title: 'Testimonials & Review Widgets',
+    description: 'Collect testimonials and display review widgets on your website',
+    url: 'https://docs.promptreviews.app/testimonials',
+    category: 'reviews',
+    tags: ['testimonials', 'reviews', 'widgets', 'showcase', 'social-proof'],
+    plans: ['grower', 'builder', 'maven', 'enterprise']
+  },
+  {
+    id: 'int-1',
+    title: 'Integrations',
+    description: 'Connect Prompt Reviews with your existing tools and platforms',
+    url: 'https://docs.promptreviews.app/integrations',
+    category: 'integrations',
+    tags: ['integrations', 'connect', 'api', 'zapier', 'tools'],
+    plans: ['builder', 'maven', 'enterprise']
+  },
+  {
+    id: 'reviews-2',
+    title: 'Sentiment Analysis',
+    description: 'Analyze review sentiment to identify trends and areas for improvement',
+    url: 'https://docs.promptreviews.app/sentiment-analyzer',
+    category: 'reviews',
+    tags: ['sentiment', 'analysis', 'reviews', 'trends', 'positive', 'negative'],
+    plans: ['builder', 'maven', 'enterprise']
+  },
+  {
+    id: 'billing-1',
+    title: 'Credits & Billing',
+    description: 'Understand how credits work, view your balance, and manage billing',
+    url: 'https://docs.promptreviews.app/credits',
+    category: 'analytics',
+    tags: ['credits', 'billing', 'usage', 'balance', 'purchase', 'transactions'],
+    plans: ['grower', 'builder', 'maven', 'enterprise']
   }
 ];
 

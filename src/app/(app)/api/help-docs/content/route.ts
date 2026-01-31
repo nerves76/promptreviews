@@ -651,6 +651,379 @@ const articleContent: Record<string, string> = {
     <p><strong>Action Step:</strong> Review your services list today. Are you missing opportunities to rank for specific, high-intent searches your customers are making?</p>
   `,
 
+  'ai-search': `
+    <h1>AI Search Visibility</h1>
+
+    <p>Monitor and improve how your business appears in AI-powered search results across platforms like ChatGPT, Perplexity, Google AI Overviews, and other large language models.</p>
+
+    <h2>What is AI search visibility?</h2>
+
+    <p>AI search engines are changing how customers find businesses. Instead of traditional search results, AI tools provide conversational answers that may or may not mention your business. Tracking your visibility in these results is essential for staying competitive.</p>
+
+    <h2>Key features</h2>
+
+    <h3>Brand monitoring</h3>
+    <p>Track how often your business is mentioned in AI-generated responses. See which queries trigger mentions and how you compare to competitors.</p>
+
+    <h3>Competitor tracking</h3>
+    <p>Monitor competitor visibility across AI platforms. The competitors tab lets you add rivals and compare visibility scores side by side.</p>
+
+    <h3>Research sources</h3>
+    <p>Discover which sources AI engines cite when generating responses about your industry. Use this to identify content opportunities and improve your chances of being referenced.</p>
+
+    <h2>Getting started</h2>
+    <ol>
+      <li>Navigate to AI Search from your dashboard</li>
+      <li>Add keywords and queries relevant to your business</li>
+      <li>Review visibility scores and citation sources</li>
+      <li>Use the competitors tab to benchmark against rivals</li>
+      <li>Check research sources for content strategy insights</li>
+    </ol>
+
+    <h2>Tips for improving AI visibility</h2>
+    <ul>
+      <li>Create comprehensive, factual content on your website</li>
+      <li>Build citations and mentions across authoritative sources</li>
+      <li>Keep your business information consistent across all platforms</li>
+      <li>Publish original research and data that AI models can reference</li>
+    </ul>
+  `,
+
+  'comparisons': `
+    <h1>Competitor Comparison Tools</h1>
+
+    <p>Analyze and compare your business against competitors with detailed feature tables, tracking dashboards, and publishable comparison pages.</p>
+
+    <h2>Overview</h2>
+
+    <p>The comparisons section helps you understand your competitive landscape and showcase your advantages to potential customers.</p>
+
+    <h2>Competitor tracking</h2>
+
+    <h3>Adding competitors</h3>
+    <p>Add competitors by name or URL. The system will gather publicly available information including reviews, ratings, and service offerings.</p>
+
+    <h3>Tracking metrics</h3>
+    <p>Monitor key metrics over time:</p>
+    <ul>
+      <li>Review counts and average ratings</li>
+      <li>Review velocity and trends</li>
+      <li>Feature and service offerings</li>
+      <li>Online presence and visibility</li>
+    </ul>
+
+    <h2>Feature comparisons</h2>
+    <p>Create side-by-side feature comparison tables highlighting your strengths. Define custom features and categories relevant to your industry.</p>
+
+    <h2>Comparison tables</h2>
+    <p>Build and publish comparison tables that can be embedded on your website. These interactive tables help potential customers see how you stack up against alternatives.</p>
+
+    <h3>Publishing options</h3>
+    <ul>
+      <li>Embed directly on your website with a code snippet</li>
+      <li>Share a standalone comparison page link</li>
+      <li>Export as an image for marketing materials</li>
+    </ul>
+  `,
+
+  'rank-tracking': `
+    <h1>Keyword Rank Tracking</h1>
+
+    <p>Monitor your search engine rankings for target keywords and track your progress over time.</p>
+
+    <h2>How rank tracking works</h2>
+
+    <p>Rank tracking checks your position in search results for specific keywords on a regular schedule. Results are recorded over time so you can see trends and measure the impact of your SEO efforts.</p>
+
+    <h2>Adding keywords to track</h2>
+    <ol>
+      <li>Navigate to Keywords &rarr; Rank Tracking</li>
+      <li>Enter keywords you want to monitor</li>
+      <li>Select your target location and search engine</li>
+      <li>Set the tracking frequency (daily, weekly, or monthly)</li>
+    </ol>
+
+    <h2>Understanding your results</h2>
+    <ul>
+      <li><strong>Position:</strong> Your current ranking for the keyword</li>
+      <li><strong>Change:</strong> Position movement since last check</li>
+      <li><strong>URL:</strong> The page ranking for the keyword</li>
+      <li><strong>Search volume:</strong> Estimated monthly searches</li>
+    </ul>
+
+    <h2>People Also Ask (PAA) questions</h2>
+    <p>The PAA questions tab tracks which "People Also Ask" questions appear for your keywords and whether your content is featured in the answers. Appearing in PAA boxes can significantly increase your visibility and traffic.</p>
+
+    <h3>Optimizing for PAA</h3>
+    <ul>
+      <li>Create content that directly answers common questions</li>
+      <li>Use clear, concise answers in your content</li>
+      <li>Structure content with question-based headings</li>
+      <li>Provide authoritative, well-sourced information</li>
+    </ul>
+  `,
+
+  'social-posting': `
+    <h1>Social Posting</h1>
+
+    <p>Create, schedule, and publish posts to your Google Business Profile and other social channels directly from Prompt Reviews.</p>
+
+    <h2>Supported platforms</h2>
+    <ul>
+      <li>Google Business Profile posts</li>
+      <li>Social media channels (when connected)</li>
+    </ul>
+
+    <h2>Creating a post</h2>
+    <ol>
+      <li>Navigate to Social Posting from your dashboard</li>
+      <li>Click "Create post"</li>
+      <li>Write your content and add an image</li>
+      <li>Choose the post type (update, offer, or event)</li>
+      <li>Schedule for later or publish immediately</li>
+    </ol>
+
+    <h2>Post types</h2>
+    <h3>Updates</h3>
+    <p>Share news, announcements, or general content. Updates are visible for 7 days on Google.</p>
+
+    <h3>Offers</h3>
+    <p>Promote special deals with custom start and end dates. Include coupon codes and redemption details.</p>
+
+    <h3>Events</h3>
+    <p>Promote upcoming events with dates, times, and details. Events remain visible until they end.</p>
+
+    <h2>RSS feeds</h2>
+    <p>Set up RSS feeds to automatically create draft posts from your blog or news content. Navigate to RSS Feeds to configure auto-posting from your content sources.</p>
+
+    <h2>Best practices</h2>
+    <ul>
+      <li>Post consistently, aiming for 2-3 times per week</li>
+      <li>Include high-quality images (720x720px minimum)</li>
+      <li>Use clear calls to action</li>
+      <li>Keep content concise and engaging</li>
+    </ul>
+  `,
+
+  'backlinks': `
+    <h1>Backlinks & Domain Research</h1>
+
+    <p>Analyze your backlink profile, research competitor domains, and identify link-building opportunities to improve your search rankings.</p>
+
+    <h2>Backlink analysis</h2>
+
+    <h3>Your backlink profile</h3>
+    <p>View all backlinks pointing to your domain, including:</p>
+    <ul>
+      <li>Referring domains and pages</li>
+      <li>Link authority scores</li>
+      <li>Anchor text distribution</li>
+      <li>New and lost links over time</li>
+    </ul>
+
+    <h3>Competitor backlinks</h3>
+    <p>Research competitor backlink profiles to discover link opportunities you may be missing. Identify authoritative sites linking to competitors but not to you.</p>
+
+    <h2>Domain research</h2>
+    <p>Analyze any domain to understand its authority, traffic estimates, and backlink profile. Useful for evaluating competitors and potential link partners.</p>
+
+    <h2>Domain analysis</h2>
+    <p>Get a comprehensive overview of a domain including:</p>
+    <ul>
+      <li>Domain authority score</li>
+      <li>Total backlinks and referring domains</li>
+      <li>Top-ranking keywords</li>
+      <li>Traffic estimates</li>
+      <li>Historical trends</li>
+    </ul>
+
+    <h2>Link building tips</h2>
+    <ul>
+      <li>Focus on quality over quantity</li>
+      <li>Build relationships with industry publications</li>
+      <li>Create link-worthy content like guides and research</li>
+      <li>Monitor for new and lost backlinks regularly</li>
+    </ul>
+  `,
+
+  'testimonials': `
+    <h1>Testimonials Management</h1>
+
+    <p>Collect, curate, and display customer testimonials to build trust and social proof for your business.</p>
+
+    <h2>Collecting testimonials</h2>
+    <p>Testimonials can be gathered from multiple sources:</p>
+    <ul>
+      <li>Direct submissions through your prompt pages</li>
+      <li>Imported from Google Business Profile reviews</li>
+      <li>Manually added from other platforms</li>
+      <li>Customer interviews and feedback</li>
+    </ul>
+
+    <h2>Managing testimonials</h2>
+    <h3>Approval workflow</h3>
+    <p>Review and approve testimonials before they appear publicly. Edit for clarity while preserving the customer's intent and voice.</p>
+
+    <h3>Categorization</h3>
+    <p>Tag testimonials by service type, customer segment, or use case. This makes it easy to display relevant testimonials in different contexts.</p>
+
+    <h2>Displaying testimonials</h2>
+    <p>Use review widgets to display curated testimonials on your website. Choose from multiple display formats:</p>
+    <ul>
+      <li>Carousel sliders</li>
+      <li>Grid layouts</li>
+      <li>Single featured testimonials</li>
+      <li>Badge-style rating displays</li>
+    </ul>
+
+    <h2>Best practices</h2>
+    <ul>
+      <li>Include the customer's name and photo when possible</li>
+      <li>Feature testimonials that address common objections</li>
+      <li>Rotate featured testimonials regularly</li>
+      <li>Include specific details and results in testimonials</li>
+    </ul>
+  `,
+
+  'integrations': `
+    <h1>Integrations</h1>
+
+    <p>Connect Prompt Reviews with your existing tools and platforms to streamline your workflow and get more from your review management.</p>
+
+    <h2>Available integrations</h2>
+
+    <h3>Google Business Profile</h3>
+    <p>Sync reviews, respond to feedback, post updates, and manage your business listing directly from your dashboard.</p>
+
+    <h3>Email services</h3>
+    <p>Connect your email service to send review requests, follow-ups, and notifications to customers.</p>
+
+    <h3>CRM systems</h3>
+    <p>Sync contacts and customer data with your CRM for seamless review campaign management.</p>
+
+    <h2>Setting up integrations</h2>
+    <ol>
+      <li>Navigate to Integrations from your dashboard</li>
+      <li>Find the integration you want to connect</li>
+      <li>Click "Connect" and follow the authorization steps</li>
+      <li>Configure sync settings and preferences</li>
+    </ol>
+
+    <h2>API access</h2>
+    <p>For custom integrations, use the Prompt Reviews API to programmatically access your data and automate workflows. API documentation and keys are available in your account settings.</p>
+
+    <h2>Agency access</h2>
+    <p>If you manage multiple client accounts, the agency access feature lets you grant controlled access to team members or clients. Configure permissions from Settings &rarr; Agency Access.</p>
+  `,
+
+  'sentiment-analyzer': `
+    <h1>Review Sentiment Analysis</h1>
+
+    <p>Understand the emotional tone and themes in your customer reviews with AI-powered sentiment analysis.</p>
+
+    <h2>How it works</h2>
+    <p>The sentiment analyzer processes your reviews to identify positive, negative, and neutral sentiment. It also extracts common themes, keywords, and topics mentioned by customers.</p>
+
+    <h2>Sentiment dashboard</h2>
+    <ul>
+      <li><strong>Overall score:</strong> Your aggregate sentiment score across all reviews</li>
+      <li><strong>Trend chart:</strong> How sentiment has changed over time</li>
+      <li><strong>Top themes:</strong> Most frequently mentioned topics</li>
+      <li><strong>Positive highlights:</strong> What customers love about your business</li>
+      <li><strong>Areas for improvement:</strong> Common complaints or concerns</li>
+    </ul>
+
+    <h2>Using sentiment data</h2>
+    <h3>Identify strengths</h3>
+    <p>Look at positive sentiment themes to understand what sets you apart. Double down on what customers appreciate most.</p>
+
+    <h3>Address weaknesses</h3>
+    <p>Negative sentiment themes highlight areas where you can improve. Track whether changes you make lead to improved sentiment over time.</p>
+
+    <h3>Monitor trends</h3>
+    <p>Watch for shifts in sentiment that may indicate emerging issues or the impact of recent changes to your business.</p>
+  `,
+
+  'credits': `
+    <h1>Credits & Billing</h1>
+
+    <p>Understand how credits work in Prompt Reviews, view your balance, and manage your billing settings.</p>
+
+    <h2>How credits work</h2>
+    <p>Credits are used for premium features like AI-powered content generation, keyword research, rank tracking, and backlink analysis. Your plan includes a monthly credit allowance, and additional credits can be purchased as needed.</p>
+
+    <h2>Credit usage</h2>
+    <p>Common actions that use credits:</p>
+    <ul>
+      <li>AI review response generation</li>
+      <li>Keyword rank tracking checks</li>
+      <li>Backlink and domain analysis queries</li>
+      <li>AI search visibility scans</li>
+      <li>Competitor analysis reports</li>
+    </ul>
+
+    <h2>Viewing your balance</h2>
+    <p>Check your current credit balance and usage history from the Credits page. You can see a breakdown of how credits were spent and when they were purchased.</p>
+
+    <h2>Purchasing credits</h2>
+    <p>Buy additional credits from the Credits page when you need more. Credits are added to your balance immediately and do not expire.</p>
+
+    <h2>Billing management</h2>
+    <p>Manage your subscription, update payment methods, and view invoices from the Plan &amp; Billing section in your settings.</p>
+  `,
+
+  'team': `
+    <h1>Team Management</h1>
+
+    <p>Invite team members, manage roles and permissions, and collaborate effectively on review management.</p>
+
+    <h2>Inviting team members</h2>
+    <ol>
+      <li>Navigate to Team from your dashboard</li>
+      <li>Click "Invite member"</li>
+      <li>Enter their email address</li>
+      <li>Select a role</li>
+      <li>Send the invitation</li>
+    </ol>
+
+    <h2>Roles and permissions</h2>
+    <ul>
+      <li><strong>Owner:</strong> Full access including billing and team management</li>
+      <li><strong>Admin:</strong> Full access except billing changes</li>
+      <li><strong>Member:</strong> Can manage reviews, contacts, and content</li>
+      <li><strong>Viewer:</strong> Read-only access to dashboards and reports</li>
+    </ul>
+
+    <h2>Agency access</h2>
+    <p>For agencies managing multiple client accounts, the agency access feature provides controlled access with custom permissions. Set up agency access from Settings &rarr; Agency Access.</p>
+
+    <h2>Managing members</h2>
+    <p>From the Team page you can change roles, resend invitations, or remove team members. Changes take effect immediately.</p>
+  `,
+
+  'analytics': `
+    <h1>Analytics & Reporting</h1>
+
+    <p>Track your review performance, customer engagement, and business growth with detailed analytics and reports.</p>
+
+    <h2>Dashboard metrics</h2>
+    <ul>
+      <li><strong>Total reviews:</strong> Across all connected platforms</li>
+      <li><strong>Average rating:</strong> Your overall rating and trend</li>
+      <li><strong>Response rate:</strong> Percentage of reviews you have responded to</li>
+      <li><strong>Review velocity:</strong> How quickly new reviews are coming in</li>
+    </ul>
+
+    <h2>Review analytics</h2>
+    <p>Deep-dive into review data with filters by date range, platform, rating, and sentiment. Export data for custom reporting.</p>
+
+    <h2>Prompt page performance</h2>
+    <p>See how your prompt pages are performing with metrics like page views, click-through rates, and review conversion rates.</p>
+
+    <h2>Reports</h2>
+    <p>Generate reports for stakeholders or team reviews. Reports can be customized by date range and metrics, and exported as PDF or CSV.</p>
+  `,
+
   'google-post-types': `
     <h1>Google Business Post Types Guide</h1>
     
