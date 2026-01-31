@@ -124,6 +124,8 @@ interface ConceptsTableProps {
   onCheckRank?: (keyword: string, conceptId: string) => void;
   onCheckVolume?: (keyword: string, conceptId: string) => void;
   onDelete?: (concept: KeywordData) => void;
+  /** Callback when the schedule cell is clicked for a concept */
+  onOpenSchedule?: (concept: KeywordData) => void;
   isLoading?: boolean;
   /** Keyword currently being checked for rank (shows spinner on that row's Rank button) */
   checkingRankKeyword?: string | null;
@@ -306,6 +308,7 @@ export default function ConceptsTable({
   onCheckRank,
   onCheckVolume,
   onDelete,
+  onOpenSchedule,
   isLoading = false,
   checkingRankKeyword,
   checkingVolumeKeyword,
@@ -618,7 +621,7 @@ export default function ConceptsTable({
   return (
     <div className="overflow-x-auto border border-gray-200 rounded-xl">
       <table className="w-full" style={{ tableLayout: 'fixed', minWidth: '1400px' }}>
-        {/* Column widths: Checkbox, Keyword, Concept, Volume, Rank, Change, URL, Checked, Location, SERP, Grid, Actions */}
+        {/* Column widths: Checkbox, Keyword, Concept, Volume, Rank, Change, URL, Checked, Location, SERP, Grid, Schedule, Actions */}
         <colgroup>
           <col style={{ width: '40px' }} />
           <col style={{ width: '220px' }} />
@@ -631,6 +634,7 @@ export default function ConceptsTable({
           <col style={{ width: '130px' }} />
           <col style={{ width: '80px' }} />
           <col style={{ width: '60px' }} />
+          <col style={{ width: '80px' }} />
           <col style={{ width: 'auto' }} />
         </colgroup>
         <thead>
@@ -699,6 +703,9 @@ export default function ConceptsTable({
             <th className="text-center py-3 px-4">
               <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider">Grid</span>
             </th>
+            <th className="text-center py-3 px-3">
+              <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider">Schedule</span>
+            </th>
             <th className="text-center py-3 pl-4 pr-6">
               <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</span>
             </th>
@@ -750,19 +757,6 @@ export default function ConceptsTable({
                     onClick={() => onConceptClick?.(row.concept)}
                   >
                     <span>{row.keyword}</span>
-                    {row.isScheduled && row.scheduleFrequency && (
-                      <span
-                        className={`px-1.5 py-0.5 text-[10px] font-medium rounded flex items-center gap-0.5 flex-shrink-0 ${
-                          row.scheduleEnabled
-                            ? 'bg-green-100 text-green-700'
-                            : 'bg-gray-100 text-gray-500'
-                        }`}
-                        title={row.scheduleEnabled ? `Scheduled ${row.scheduleFrequency}` : 'Schedule paused'}
-                      >
-                        <Icon name="FaCalendarAlt" className="w-2.5 h-2.5" />
-                        {row.scheduleFrequency.charAt(0).toUpperCase() + row.scheduleFrequency.slice(1)}
-                      </span>
-                    )}
                     <span className="w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center invisible group-hover/row:visible flex-shrink-0 mt-0.5">
                       <Icon
                         name="FaChevronRight"
@@ -966,6 +960,32 @@ export default function ConceptsTable({
                   <span className="text-gray-300">—</span>
                 )}
               </td>
+              {/* Schedule */}
+              <td className="py-3 px-3 text-center">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onOpenSchedule?.(row.concept);
+                  }}
+                  className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+                  title={row.isScheduled && row.scheduleFrequency
+                    ? (row.scheduleEnabled ? `Scheduled ${row.scheduleFrequency}` : 'Schedule paused')
+                    : 'Set up schedule'}
+                  aria-label={`${row.isScheduled ? 'Edit' : 'Set up'} schedule for ${row.keyword}`}
+                >
+                  {row.isScheduled && row.scheduleFrequency ? (
+                    <span className={`flex items-center gap-1 ${row.scheduleEnabled ? 'text-green-700' : 'text-gray-500'}`}>
+                      <Icon name="FaCalendarAlt" className="w-2.5 h-2.5" />
+                      <span className="whitespace-nowrap">{row.scheduleFrequency.charAt(0).toUpperCase() + row.scheduleFrequency.slice(1)}</span>
+                    </span>
+                  ) : (
+                    <span className="text-gray-400 hover:text-gray-600 flex items-center gap-1">
+                      <Icon name="FaCalendarAlt" className="w-2.5 h-2.5" />
+                      <span>—</span>
+                    </span>
+                  )}
+                </button>
+              </td>
               <td className="py-3 pl-4 pr-6">
                 <div className="flex items-center justify-center gap-2">
                   <button
@@ -1028,7 +1048,7 @@ export default function ConceptsTable({
             {/* Expanded history row */}
             {expandedRowKey === `${row.concept.id}::${row.keyword}` && (
               <tr className="bg-blue-50">
-                <td colSpan={12} className="py-2 px-6">
+                <td colSpan={13} className="py-2 px-6">
                   <div className="max-w-[900px]">
                     {/* Chart */}
                     <RankHistoryChart

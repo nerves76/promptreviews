@@ -35,6 +35,7 @@ import { ManageGroupsModal } from '@/components/ManageGroupsModal';
 import { useToast, ToastContainer } from '@/app/(app)/components/reviews/Toast';
 import BatchRunHistoryDropdown from '@/components/BatchRunHistoryDropdown';
 import ScheduledRunIndicator, { type ScheduledRunInfo } from '@/components/ScheduledRunIndicator';
+import { ScheduleSettingsModal } from '@/features/concept-schedule';
 
 interface KeywordWithQuestions {
   id: string;
@@ -159,6 +160,17 @@ export default function AISearchPage() {
 
   // Scheduled runs for showing indicators in the table
   const [scheduledRuns, setScheduledRuns] = useState<ScheduledRunInfo[]>([]);
+
+  // Per-concept schedule data (fetched via batch-enrich)
+  const [scheduleDataMap, setScheduleDataMap] = useState<Map<string, { isScheduled: boolean; frequency: 'daily' | 'weekly' | 'monthly' | null; isEnabled: boolean }>>(new Map());
+
+  // Schedule modal state (opened from schedule column)
+  const [scheduleKeyword, setScheduleKeyword] = useState<{ id: string; name: string } | null>(null);
+  // Group schedule modal state (opened from schedule column for grouped questions)
+  const [scheduleGroupId, setScheduleGroupId] = useState<string | null>(null);
+
+  // Ungroup confirmation dialog
+  const [showUngroupConfirm, setShowUngroupConfirm] = useState(false);
 
   // Modal state for viewing full LLM response
   const [responseModal, setResponseModal] = useState<{
@@ -486,6 +498,33 @@ export default function AISearchPage() {
     }
   }, []);
 
+  // Fetch schedule status for concepts via batch-enrich API
+  const fetchScheduleData = useCallback(async (keywordIds: string[]) => {
+    if (keywordIds.length === 0) return;
+    try {
+      const response = await apiClient.post<{
+        enrichment: Record<string, {
+          geoGridStatus: unknown;
+          scheduleStatus?: { isScheduled: boolean; frequency: 'daily' | 'weekly' | 'monthly' | null; isEnabled: boolean; nextScheduledAt: string | null } | null;
+        }>;
+      }>('/keywords/batch-enrich', { keywordIds });
+
+      const newMap = new Map<string, { isScheduled: boolean; frequency: 'daily' | 'weekly' | 'monthly' | null; isEnabled: boolean }>();
+      for (const [keywordId, data] of Object.entries(response.enrichment)) {
+        if (data.scheduleStatus) {
+          newMap.set(keywordId, {
+            isScheduled: data.scheduleStatus.isScheduled,
+            frequency: data.scheduleStatus.frequency,
+            isEnabled: data.scheduleStatus.isEnabled,
+          });
+        }
+      }
+      setScheduleDataMap(newMap);
+    } catch (err) {
+      console.error('[AISearch] Error fetching schedule data:', err);
+    }
+  }, []);
+
   // Build a map for quick lookup: groupId -> ScheduledRunInfo (or 'all' for null-group runs)
   const scheduledRunMap = useMemo(() => {
     const map = new Map<string, ScheduledRunInfo>();
@@ -507,6 +546,7 @@ export default function AISearchPage() {
     setAccountSummary(null);
     setError(null);
     setScheduledRuns([]);
+    setScheduleDataMap(new Map());
 
     if (selectedAccountId) {
       fetchData();
@@ -522,6 +562,14 @@ export default function AISearchPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Fetch schedule data when keywords are loaded
+  useEffect(() => {
+    if (keywords.length > 0) {
+      const keywordIds = keywords.map(k => k.id);
+      fetchScheduleData(keywordIds);
+    }
+  }, [keywords, fetchScheduleData]);
 
   // Poll for batch status when there's an active run
   useEffect(() => {
@@ -1032,8 +1080,19 @@ export default function AISearchPage() {
     setSelectedQuestionIds(new Set());
   }, []);
 
-  // Handle bulk move
-  const handleBulkMoveToGroup = useCallback(async (groupId: string | null) => {
+  // Handle opening schedule from table column click
+  const handleOpenSchedule = useCallback((row: QuestionRow) => {
+    if (row.groupId) {
+      // Grouped question: open the RunAllLLMModal scoped to that group
+      setScheduleGroupId(row.groupId);
+    } else {
+      // Ungrouped question: open individual schedule modal for the concept
+      setScheduleKeyword({ id: row.conceptId, name: row.conceptName });
+    }
+  }, []);
+
+  // Execute the actual bulk move
+  const executeBulkMove = useCallback(async (groupId: string | null) => {
     const questionIds = Array.from(selectedQuestionIds);
     const count = questionIds.length;
     const success = await bulkMoveQueries(questionIds, groupId);
@@ -1050,6 +1109,20 @@ export default function AISearchPage() {
       showError('Failed to move queries. Please try again.');
     }
   }, [selectedQuestionIds, bulkMoveQueries, fetchData, queryGroups, showSuccess, showError]);
+
+  // Handle bulk move to group (with ungroup warning)
+  const handleBulkMoveToGroup = useCallback(async (groupId: string | null) => {
+    if (groupId === null) {
+      // Check if any selected questions are currently in a group
+      const selectedRows = filteredAndSortedRows.filter(r => selectedQuestionIds.has(r.id));
+      const hasGroupedItems = selectedRows.some(r => r.groupId !== null);
+      if (hasGroupedItems) {
+        setShowUngroupConfirm(true);
+        return;
+      }
+    }
+    await executeBulkMove(groupId);
+  }, [executeBulkMove, filteredAndSortedRows, selectedQuestionIds]);
 
   // Handle sort header click (wrapped in transition to avoid INP issues)
   const handleSort = (field: SortField) => {
@@ -2200,6 +2273,9 @@ export default function AISearchPage() {
                         <SortIndicator field="lastChecked" />
                       </div>
                     </th>
+                    <th className="text-center py-3 px-2 w-20">
+                      <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider">Schedule</span>
+                    </th>
                     <th className="text-center py-3 px-3 w-20">
                       <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</span>
                     </th>
@@ -2400,6 +2476,41 @@ export default function AISearchPage() {
                             })()}
                           </td>
 
+                          {/* Schedule */}
+                          <td className="py-3 px-2 text-center">
+                            {(() => {
+                              const schedule = scheduleDataMap.get(row.conceptId);
+                              return (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleOpenSchedule(row);
+                                  }}
+                                  className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+                                  title={schedule?.isScheduled && schedule.frequency
+                                    ? (schedule.isEnabled ? `Scheduled ${schedule.frequency}` : 'Schedule paused')
+                                    : 'Set up schedule'}
+                                  aria-label={`${schedule?.isScheduled ? 'Edit' : 'Set up'} schedule for ${row.conceptName}`}
+                                >
+                                  {schedule?.isScheduled && schedule.frequency ? (
+                                    <span className={`flex items-center gap-1 ${schedule.isEnabled ? 'text-green-700' : 'text-gray-500'}`}>
+                                      <Icon name="FaCalendarAlt" className="w-2.5 h-2.5" />
+                                      <span className="whitespace-nowrap">{schedule.frequency.charAt(0).toUpperCase() + schedule.frequency.slice(1)}</span>
+                                      {row.groupId && (
+                                        <span title="Group schedule"><Icon name="FaUsers" className="w-2.5 h-2.5" /></span>
+                                      )}
+                                    </span>
+                                  ) : (
+                                    <span className="text-gray-400 hover:text-gray-600 flex items-center gap-1">
+                                      <Icon name="FaCalendarAlt" className="w-2.5 h-2.5" />
+                                      <span>—</span>
+                                    </span>
+                                  )}
+                                </button>
+                              );
+                            })()}
+                          </td>
+
                           {/* Actions */}
                           <td className="py-3 px-3 text-center">
                             <button
@@ -2416,7 +2527,7 @@ export default function AISearchPage() {
                         {/* Expanded Details Row */}
                         {isExpanded && (
                           <tr className="bg-blue-50">
-                            <td colSpan={8 + LLM_PROVIDERS.length * (showConsistency ? 3 : 1)} className="p-4">
+                            <td colSpan={9 + LLM_PROVIDERS.length * (showConsistency ? 3 : 1)} className="p-4">
                               {/* Citation Timeline */}
                               <CitationTimeline
                                 question={row.question}
@@ -2763,6 +2874,36 @@ export default function AISearchPage() {
         groupId={filterGroup}
         groupName={activeGroupName}
       />
+
+      {/* Individual Keyword Schedule Modal (from schedule column click) */}
+      {scheduleKeyword && (
+        <ScheduleSettingsModal
+          isOpen={true}
+          onClose={() => setScheduleKeyword(null)}
+          keywordId={scheduleKeyword.id}
+          keywordName={scheduleKeyword.name}
+          onScheduleUpdated={() => {
+            const keywordIds = keywords.map(k => k.id);
+            fetchScheduleData(keywordIds);
+          }}
+        />
+      )}
+
+      {/* Group Schedule Modal (from schedule column click on grouped question) */}
+      {scheduleGroupId && (
+        <RunAllLLMModal
+          isOpen={true}
+          onClose={() => {
+            setScheduleGroupId(null);
+            fetchScheduledRuns();
+          }}
+          onStarted={(batchStatus) => {
+            setActiveBatchRun(batchStatus);
+          }}
+          groupId={scheduleGroupId}
+          groupName={queryGroups.find(g => g.id === scheduleGroupId)?.name || null}
+        />
+      )}
 
       {/* Full Response Modal */}
       <Modal
@@ -3155,6 +3296,35 @@ export default function AISearchPage() {
           </div>
         </div>
       )}
+
+      {/* Ungroup Confirmation Modal */}
+      <Modal
+        isOpen={showUngroupConfirm}
+        onClose={() => setShowUngroupConfirm(false)}
+        title="Remove from group?"
+        size="sm"
+      >
+        <p className="text-sm text-gray-600">
+          Moving selected queries to <strong>Ungrouped</strong> will
+          remove them from any group-level schedules.
+        </p>
+        <p className="text-sm text-gray-500 mt-2">
+          You can set up individual schedules for each keyword after ungrouping.
+        </p>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowUngroupConfirm(false)}>
+            Cancel
+          </Button>
+          <Button
+            onClick={async () => {
+              setShowUngroupConfirm(false);
+              await executeBulkMove(null);
+            }}
+          >
+            Move to ungrouped
+          </Button>
+        </Modal.Footer>
+      </Modal>
 
       {/* Toast notifications */}
       <ToastContainer toasts={toasts} onClose={closeToast} />

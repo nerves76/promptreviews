@@ -25,6 +25,7 @@ import { ManageGroupsModal, GroupData } from '@/components/ManageGroupsModal';
 import { useToast, ToastContainer } from '@/app/(app)/components/reviews/Toast';
 import BatchRunHistoryDropdown from '@/components/BatchRunHistoryDropdown';
 import { type ScheduledRunInfo } from '@/components/ScheduledRunIndicator';
+import { ScheduleSettingsModal } from '@/features/concept-schedule';
 
 /** Volume data for a search term */
 interface VolumeData {
@@ -258,6 +259,12 @@ export default function RankTrackingPage() {
   // Modal state for adding new keyword concept
   const [showAddModal, setShowAddModal] = useState(false);
   const [showRunAllModal, setShowRunAllModal] = useState(false);
+
+  // Schedule modal state (opened from schedule column)
+  const [scheduleKeyword, setScheduleKeyword] = useState<{ id: string; name: string } | null>(null);
+
+  // Ungroup confirmation dialog
+  const [showUngroupConfirm, setShowUngroupConfirm] = useState(false);
 
   // State for concept sidebar
   const [selectedKeywordId, setSelectedKeywordId] = useState<string | null>(null);
@@ -887,8 +894,8 @@ export default function RankTrackingPage() {
     setSelectedTermKeys(new Set());
   }, []);
 
-  // Handle bulk move to group
-  const handleBulkMoveToGroup = useCallback(async (groupId: string | null) => {
+  // Execute the actual bulk move
+  const executeBulkMove = useCallback(async (groupId: string | null) => {
     if (selectedTermKeys.size === 0) return;
 
     const count = selectedTermKeys.size;
@@ -914,6 +921,22 @@ export default function RankTrackingPage() {
       showError('Failed to move terms. Please try again.');
     }
   }, [selectedTermKeys, bulkMoveTerms, refreshGroups, groups, showSuccess, showError]);
+
+  // Handle bulk move to group (with ungroup warning)
+  const handleBulkMoveToGroup = useCallback(async (groupId: string | null) => {
+    if (groupId === null) {
+      // Moving to ungrouped - show warning about group schedules
+      setShowUngroupConfirm(true);
+      return;
+    }
+    await executeBulkMove(groupId);
+  }, [executeBulkMove]);
+
+  // Handle opening schedule from table column click
+  const handleOpenSchedule = useCallback((concept: KeywordData) => {
+    const name = concept.searchTerms?.find(t => t.isCanonical)?.term || concept.searchQuery || concept.phrase;
+    setScheduleKeyword({ id: concept.id, name });
+  }, []);
 
   // Convert groups for modal
   const groupsForModal: GroupData[] = groups.map((g) => ({
@@ -1160,6 +1183,7 @@ export default function RankTrackingPage() {
           onConceptClick={handleConceptClick}
           onCheckRank={handleCheckRank}
           onCheckVolume={handleCheckVolume}
+          onOpenSchedule={handleOpenSchedule}
           onDelete={(concept) => handleSelectConceptToDelete(concept.id, concept.phrase || concept.name || 'Untitled')}
           isLoading={conceptsLoading}
           checkingRankKeyword={checkingRankKeyword}
@@ -1232,6 +1256,21 @@ export default function RankTrackingPage() {
         groupId={filterGroup}
         groupName={selectedGroupName}
       />
+
+      {/* Individual Keyword Schedule Modal (from schedule column click) */}
+      {scheduleKeyword && (
+        <ScheduleSettingsModal
+          isOpen={true}
+          onClose={() => setScheduleKeyword(null)}
+          keywordId={scheduleKeyword.id}
+          keywordName={scheduleKeyword.name}
+          onScheduleUpdated={() => {
+            // Refresh enrichment data to update schedule indicators
+            const keywordIds = concepts.map(c => c.id);
+            fetchEnrichmentData(keywordIds);
+          }}
+        />
+      )}
 
       {/* Keyword Details Sidebar */}
       <KeywordDetailsSidebar
@@ -1347,6 +1386,35 @@ export default function RankTrackingPage() {
             disabled={isDeleting || isLoadingCounts}
           >
             {isDeleting ? 'Deleting...' : 'Delete concept'}
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Ungroup Confirmation Modal */}
+      <Modal
+        isOpen={showUngroupConfirm}
+        onClose={() => setShowUngroupConfirm(false)}
+        title="Remove from group?"
+        size="sm"
+      >
+        <p className="text-sm text-gray-600">
+          Moving {selectedTermKeys.size} {selectedTermKeys.size === 1 ? 'term' : 'terms'} to <strong>Ungrouped</strong> will
+          remove {selectedTermKeys.size === 1 ? 'it' : 'them'} from any group-level schedules.
+        </p>
+        <p className="text-sm text-gray-500 mt-2">
+          You can set up individual schedules for each keyword after ungrouping.
+        </p>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowUngroupConfirm(false)}>
+            Cancel
+          </Button>
+          <Button
+            onClick={async () => {
+              setShowUngroupConfirm(false);
+              await executeBulkMove(null);
+            }}
+          >
+            Move to ungrouped
           </Button>
         </Modal.Footer>
       </Modal>
