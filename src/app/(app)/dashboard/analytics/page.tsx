@@ -19,6 +19,7 @@ import {
   Tooltip,
   ResponsiveContainer,
   CartesianGrid,
+  Legend,
 } from "recharts";
 import { format } from "date-fns";
 import { trackEvent, GA_EVENTS } from "@/utils/analytics";
@@ -171,20 +172,40 @@ export default function AnalyticsPage() {
           return;
         }
         // Fetch all analytics events for these prompt pages
-        const { data: events, error: eventsError } = await supabase
-          .from("analytics_events")
-          .select("*")
-          .in("prompt_page_id", pageIds);
-        if (eventsError) throw eventsError;
+        // Use pagination to get ALL rows (Supabase defaults to 1000 max)
+        let events: any[] = [];
+        const PAGE_SIZE = 1000;
+        let offset = 0;
+        let hasMore = true;
+        while (hasMore) {
+          const { data: batch, error: batchError } = await supabase
+            .from("analytics_events")
+            .select("*")
+            .in("prompt_page_id", pageIds)
+            .range(offset, offset + PAGE_SIZE - 1);
+          if (batchError) throw batchError;
+          events = events.concat(batch || []);
+          hasMore = (batch?.length || 0) === PAGE_SIZE;
+          offset += PAGE_SIZE;
+        }
 
         // Fetch all review submissions for these prompt pages
         // Exclude imported reviews - only count reviews gained through the app
-        const { data: reviewSubmissions, error: reviewError } = await supabase
-          .from("review_submissions")
-          .select("id, prompt_page_id, created_at, verified")
-          .in("prompt_page_id", pageIds)
-          .or("imported_from_google.is.null,imported_from_google.eq.false");
-        if (reviewError) throw reviewError;
+        let reviewSubmissions: any[] = [];
+        offset = 0;
+        hasMore = true;
+        while (hasMore) {
+          const { data: batch, error: batchError } = await supabase
+            .from("review_submissions")
+            .select("id, prompt_page_id, created_at, verified")
+            .in("prompt_page_id", pageIds)
+            .or("imported_from_google.is.null,imported_from_google.eq.false")
+            .range(offset, offset + PAGE_SIZE - 1);
+          if (batchError) throw batchError;
+          reviewSubmissions = reviewSubmissions.concat(batch || []);
+          hasMore = (batch?.length || 0) === PAGE_SIZE;
+          offset += PAGE_SIZE;
+        }
 
         // Filter by time range
         let startDate: Date | null = null;
@@ -288,6 +309,7 @@ export default function AnalyticsPage() {
         // Use daily granularity for week/month views, monthly for longer periods
         const useDailyGranularity = ["lastWeek", "thisWeek", "thisMonth"].includes(timeRange);
         const timelineMap: Record<string, number> = {};
+        const verifiedTimelineMap: Record<string, number> = {};
 
         filteredEvents.forEach((event: any) => {
           // Count by platform - only count non-view events for platform distribution
@@ -458,6 +480,20 @@ export default function AnalyticsPage() {
           if (endDate && reviewDate > endDate) return false;
           return true;
         });
+        // Build verified timeline from review_submissions
+        filteredReviews.forEach((r: any) => {
+          if (r.verified) {
+            const d = new Date(r.created_at);
+            let key: string;
+            if (useDailyGranularity) {
+              key = `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, "0")}-${d.getDate().toString().padStart(2, "0")}`;
+            } else {
+              key = `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, "0")}`;
+            }
+            verifiedTimelineMap[key] = (verifiedTimelineMap[key] || 0) + 1;
+          }
+        });
+
         analyticsData.verifiedReviewsAll = filteredReviews.filter((r: any) => r.verified).length;
         analyticsData.verifiedReviewsWeek = filteredReviews.filter(
           (r: any) =>
@@ -477,7 +513,7 @@ export default function AnalyticsPage() {
 
         // Prepare timeline data for chart
         // Fill in missing dates/months with zero values for complete timeline
-        let timelineData: { month: string; count: number }[] = [];
+        let timelineData: { month: string; verified: number; unverified: number }[] = [];
 
         if (useDailyGranularity && startDate && endDate) {
           // Generate all days in range
@@ -488,10 +524,11 @@ export default function AnalyticsPage() {
             daysList.push(key);
             currentDay.setDate(currentDay.getDate() + 1);
           }
-          timelineData = daysList.map(day => ({
-            month: day,
-            count: timelineMap[day] || 0
-          }));
+          timelineData = daysList.map(day => {
+            const captured = timelineMap[day] || 0;
+            const verified = verifiedTimelineMap[day] || 0;
+            return { month: day, verified, unverified: Math.max(0, captured - verified) };
+          });
         } else {
           // Generate last 12 months for monthly view (default)
           const monthsList: string[] = [];
@@ -503,10 +540,11 @@ export default function AnalyticsPage() {
             const key = `${monthDate.getFullYear()}-${(monthDate.getMonth() + 1).toString().padStart(2, "0")}`;
             monthsList.push(key);
           }
-          timelineData = monthsList.map(month => ({
-            month,
-            count: timelineMap[month] || 0
-          }));
+          timelineData = monthsList.map(month => {
+            const captured = timelineMap[month] || 0;
+            const verified = verifiedTimelineMap[month] || 0;
+            return { month, verified, unverified: Math.max(0, captured - verified) };
+          });
         }
 
         (analyticsData as any).timelineData = timelineData;
@@ -650,10 +688,24 @@ export default function AnalyticsPage() {
                   }
                 }}
               />
+              <Legend />
               <Bar
-                dataKey="count"
-                fill="#6366f1"
+                dataKey="verified"
+                name="Verified"
+                stackId="reviews"
+                fill="#16a34a"
+                animationDuration={800}
+                animationEasing="ease-out"
+              />
+              <Bar
+                dataKey="unverified"
+                name="Unverified"
+                stackId="reviews"
+                fill="#2E4A7D"
                 radius={[4, 4, 0, 0]}
+                animationDuration={800}
+                animationEasing="ease-out"
+                animationBegin={200}
               />
             </BarChart>
           </ResponsiveContainer>
