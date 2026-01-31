@@ -278,7 +278,7 @@ export default function LLMVisibilityTrendChart({
 }: LLMVisibilityTrendChartProps) {
   const [granularity, setGranularity] = useState<TimeGranularity>('weekly');
   const [showProviders, setShowProviders] = useState(true);
-  const [metricType, setMetricType] = useState<MetricType>('citations');
+  const [metricType, setMetricType] = useState<MetricType>('mentions');
 
   const chartData = useMemo(() => {
     return processResultsData(results, granularity);
