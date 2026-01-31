@@ -59,22 +59,16 @@ export function SubNav({ items, maxWidth, className = '' }: SubNavProps) {
     return pathname === item.href;
   };
 
-  // Determine grid columns based on item count
-  const getGridCols = () => {
-    if (items.length <= 2) return 'grid-cols-2';
-    if (items.length === 3) return 'grid-cols-3';
-    return 'grid-cols-2'; // 4+ items use 2 columns on mobile
-  };
-
   return (
     <div className={`flex justify-center w-full z-20 px-4 relative isolate ${className}`}>
       <nav
         className={`
-          ${getGridCols()} grid sm:flex
+          flex overflow-x-auto scrollbar-hide
+          sm:flex
           bg-white/10 backdrop-blur-sm border border-white/30
-          rounded-2xl sm:rounded-full p-1 shadow-lg
+          rounded-full p-1 shadow-lg
           ${maxWidth ? maxWidth : 'w-auto'}
-          gap-1 sm:gap-0
+          gap-0
           isolate
         `}
         role="navigation"
@@ -93,8 +87,9 @@ export function SubNav({ items, maxWidth, className = '' }: SubNavProps) {
                 font-semibold text-sm
                 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50
                 transition-all duration-200
-                rounded-xl sm:rounded-full
+                rounded-full
                 flex items-center justify-center gap-2
+                flex-shrink-0
                 sm:flex-1
                 active:scale-95
                 cursor-pointer

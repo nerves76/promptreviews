@@ -2077,10 +2077,6 @@ export default function AISearchPage() {
                 </button>
               )}
 
-              {/* Results count */}
-              <div className="text-sm text-gray-500 ml-auto">
-                {filteredAndSortedRows.length} question{filteredAndSortedRows.length !== 1 ? 's' : ''}
-              </div>
             </div>
 
             {/* Questions Table */}
@@ -2109,7 +2105,7 @@ export default function AISearchPage() {
                       onClick={() => handleSort('question')}
                     >
                       <div className="flex items-center gap-1">
-                        <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider">Question</span>
+                        <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider">Question ({filteredAndSortedRows.length})</span>
                         <SortIndicator field="question" />
                       </div>
                     </th>
