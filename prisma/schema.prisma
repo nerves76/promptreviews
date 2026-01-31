@@ -592,6 +592,7 @@ model accounts {
   llm_visibility_summary                                              llm_visibility_summary[]
   notification_preferences                                            notification_preferences?
   notifications                                                       notifications[]
+  onboarding_email_logs                                               onboarding_email_logs[]
   onboarding_tasks                                                    onboarding_tasks[]
   ownership_transfer_requests                                         ownership_transfer_requests[]
   posts                                                               posts[]
@@ -618,6 +619,7 @@ model accounts {
   wm_boards                                                           wm_boards?
   wm_task_actions                                                     wm_task_actions[]
   wm_tasks                                                            wm_tasks[]
+  wm_tasks_wm_tasks_linked_account_idToaccounts                       wm_tasks[]                        @relation("wm_tasks_linked_account_idToaccounts")
 
   @@index([billing_period], map: "idx_accounts_billing_period")
   @@index([created_at], map: "idx_accounts_created_at")
@@ -1853,6 +1855,8 @@ model notification_preferences {
   email_review_auto_verified  Boolean?  @default(true)
   in_app_credit_warnings      Boolean?  @default(true)
   email_credit_warnings       Boolean?  @default(true)
+  in_app_batch_completed      Boolean?  @default(true)
+  email_batch_completed       Boolean?  @default(true)
   in_app_agency_invitations   Boolean?  @default(true)
   email_agency_invitations    Boolean?  @default(true)
   accounts                    accounts  @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
@@ -3289,26 +3293,31 @@ model wm_task_actions {
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model wm_tasks {
-  id                                String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  board_id                          String            @db.Uuid
-  account_id                        String            @db.Uuid
-  title                             String
-  description                       String?
-  status                            wm_task_status    @default(backlog)
-  priority                          wm_task_priority? @default(medium)
-  due_date                          DateTime?         @db.Timestamptz(6)
-  assigned_to                       String?           @db.Uuid
-  sort_order                        Int?              @default(0)
-  created_by                        String?           @db.Uuid
-  created_at                        DateTime?         @default(now()) @db.Timestamptz(6)
-  updated_at                        DateTime?         @default(now()) @db.Timestamptz(6)
-  source_type                       String?
-  source_reference                  String?
-  wm_task_actions                   wm_task_actions[]
-  accounts                          accounts          @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  users_wm_tasks_assigned_toTousers users?            @relation("wm_tasks_assigned_toTousers", fields: [assigned_to], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  wm_boards                         wm_boards         @relation(fields: [board_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  users_wm_tasks_created_byTousers  users?            @relation("wm_tasks_created_byTousers", fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  id                                            String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  board_id                                      String            @db.Uuid
+  account_id                                    String            @db.Uuid
+  title                                         String
+  description                                   String?
+  status                                        wm_task_status    @default(backlog)
+  priority                                      wm_task_priority? @default(medium)
+  due_date                                      DateTime?         @db.Timestamptz(6)
+  assigned_to                                   String?           @db.Uuid
+  sort_order                                    Int?              @default(0)
+  created_by                                    String?           @db.Uuid
+  created_at                                    DateTime?         @default(now()) @db.Timestamptz(6)
+  updated_at                                    DateTime?         @default(now()) @db.Timestamptz(6)
+  source_type                                   String?
+  source_reference                              String?
+  linked_task_id                                String?           @db.Uuid
+  linked_account_id                             String?           @db.Uuid
+  wm_task_actions                               wm_task_actions[]
+  accounts                                      accounts          @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users_wm_tasks_assigned_toTousers             users?            @relation("wm_tasks_assigned_toTousers", fields: [assigned_to], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  wm_boards                                     wm_boards         @relation(fields: [board_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users_wm_tasks_created_byTousers              users?            @relation("wm_tasks_created_byTousers", fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  accounts_wm_tasks_linked_account_idToaccounts accounts?         @relation("wm_tasks_linked_account_idToaccounts", fields: [linked_account_id], references: [id], onUpdate: NoAction)
+  wm_tasks                                      wm_tasks?         @relation("wm_tasksTowm_tasks", fields: [linked_task_id], references: [id], onUpdate: NoAction)
+  other_wm_tasks                                wm_tasks[]        @relation("wm_tasksTowm_tasks")
 
   @@index([account_id], map: "idx_wm_tasks_account_id")
   @@index([assigned_to], map: "idx_wm_tasks_assigned_to")
@@ -4270,6 +4279,23 @@ model user_logins {
   @@index([email], map: "idx_user_logins_email")
   @@index([login_at(sort: Desc)], map: "idx_user_logins_login_at")
   @@index([user_id], map: "idx_user_logins_user_id")
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model onboarding_email_logs {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  account_id    String    @db.Uuid
+  email_type    String
+  email         String
+  sent_at       DateTime? @default(now()) @db.Timestamptz(6)
+  success       Boolean   @default(true)
+  error_message String?
+  created_at    DateTime? @default(now()) @db.Timestamptz(6)
+  accounts      accounts  @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([account_id], map: "idx_onboarding_email_logs_account_id")
+  @@index([email_type], map: "idx_onboarding_email_logs_email_type")
   @@schema("public")
 }
 
