@@ -12,6 +12,7 @@ import { checkRankForDomain } from '@/features/rank-tracking/api/dataforseo-serp
 import { refundFeature } from '@/lib/credits';
 import { sendNotificationToAccount, sendAdminAlert } from '@/utils/notifications';
 import { shouldRetry } from '@/utils/retryHelpers';
+import { computeRankBatchStats } from '@/utils/batchCompletionStats';
 
 // Extend timeout for this route
 export const maxDuration = 300; // 5 minutes
@@ -483,6 +484,16 @@ async function checkAndCompleteBatch(
       .eq('id', runId);
 
     console.log(`📋 [RankBatch] Batch ${runId} ${status}: ${successfulItems} completed, ${failedItems} failed`);
+
+    // Send batch completion notification
+    if (status === 'completed') {
+      try {
+        const stats = await computeRankBatchStats(serviceSupabase, runId, accountId);
+        await sendNotificationToAccount(accountId, 'batch_run_completed', { ...stats });
+      } catch (notifError) {
+        console.error(`[RankBatch] Failed to send completion notification:`, notifError);
+      }
+    }
 
     // Refund credits for failed checks
     if (failedCheckCount > 0 && idempotencyKey) {

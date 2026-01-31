@@ -87,7 +87,9 @@ export async function PUT(request: NextRequest) {
       'email_subscription_updates',
       'email_announcements',
       'email_review_auto_verified',
-      'email_digest_frequency'
+      'email_digest_frequency',
+      'in_app_batch_completed',
+      'email_batch_completed',
     ];
 
     // Filter to only allowed fields

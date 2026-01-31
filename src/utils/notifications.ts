@@ -28,7 +28,8 @@ export type NotificationType =
   | 'credit_balance_low'
   | 'credit_refund'
   | 'agency_invitation_received'
-  | 'service_error';
+  | 'service_error'
+  | 'batch_run_completed';
 
 export interface NotificationData {
   [key: string]: any;
@@ -341,6 +342,55 @@ export const NOTIFICATION_REGISTRY: Record<NotificationType, NotificationConfig>
       feature: data.feature || 'unknown',
       year: new Date().getFullYear(),
     }),
+  },
+
+  'batch_run_completed': {
+    inAppPrefField: 'in_app_batch_completed',
+    emailPrefField: 'email_batch_completed',
+    emailTemplate: 'batch_run_completed',
+    getTitle: (data) => {
+      const featureNames: Record<string, string> = {
+        rank_tracking: 'Rank Tracking',
+        llm_visibility: 'AI Search',
+        geo_grid: 'Local Ranking Grid',
+      };
+      const feature = featureNames[data.feature] || 'Batch';
+      return `${feature} check completed`;
+    },
+    getMessage: (data) => {
+      const parts: string[] = [];
+      if (data.improved > 0) parts.push(`${data.improved} improved`);
+      if (data.declined > 0) parts.push(`${data.declined} declined`);
+      if (data.unchanged > 0) parts.push(`${data.unchanged} unchanged`);
+      if (data.newEntries > 0) parts.push(`${data.newEntries} new`);
+      return `${data.totalChecked} checked: ${parts.join(', ') || 'no changes'}`;
+    },
+    getEmailVariables: (data, baseUrl) => {
+      const featureNames: Record<string, string> = {
+        rank_tracking: 'Rank Tracking',
+        llm_visibility: 'AI Search',
+        geo_grid: 'Local Ranking Grid',
+      };
+      const dashboardPaths: Record<string, string> = {
+        rank_tracking: '/dashboard/rank-tracking',
+        llm_visibility: '/dashboard/ai-search',
+        geo_grid: '/dashboard/local-ranking-grid',
+      };
+      return {
+        firstName: data.firstName || 'there',
+        featureName: featureNames[data.feature] || 'Batch',
+        totalChecked: data.totalChecked ?? 0,
+        improved: data.improved ?? 0,
+        declined: data.declined ?? 0,
+        unchanged: data.unchanged ?? 0,
+        newEntries: data.newEntries ?? 0,
+        successfulChecks: data.successfulChecks ?? 0,
+        failedChecks: data.failedChecks ?? 0,
+        dashboardUrl: `${baseUrl}${dashboardPaths[data.feature] || '/dashboard'}`,
+        accountUrl: `${baseUrl}/dashboard/account`,
+        year: new Date().getFullYear(),
+      };
+    },
   },
 };
 

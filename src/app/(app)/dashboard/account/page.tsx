@@ -20,6 +20,8 @@ interface NotificationPreferences {
   in_app_new_reviews: boolean;
   email_review_auto_verified: boolean;
   in_app_review_auto_verified: boolean;
+  email_batch_completed: boolean;
+  in_app_batch_completed: boolean;
 }
 
 export default function AccountPage() {
@@ -234,6 +236,7 @@ export default function AccountPage() {
   const [notifPrefs, setNotifPrefs] = useState<NotificationPreferences | null>(null);
   const [gbpProtectionSaving, setGbpProtectionSaving] = useState(false);
   const [autoVerifiedSaving, setAutoVerifiedSaving] = useState(false);
+  const [batchCompletedSaving, setBatchCompletedSaving] = useState(false);
 
   // Fetch notification preferences
   useEffect(() => {
@@ -289,6 +292,27 @@ export default function AccountPage() {
       setError('Failed to update notification settings');
     }
     setAutoVerifiedSaving(false);
+  };
+
+  const handleBatchCompletedToggle = async () => {
+    if (!notifPrefs) return;
+    setBatchCompletedSaving(true);
+    try {
+      const newValue = !(notifPrefs.email_batch_completed ?? true);
+      await apiClient.put('/notifications/preferences', {
+        email_batch_completed: newValue,
+        in_app_batch_completed: newValue
+      });
+      setNotifPrefs({
+        ...notifPrefs,
+        email_batch_completed: newValue,
+        in_app_batch_completed: newValue
+      });
+    } catch (error) {
+      console.error('Error updating batch completed notifications:', error);
+      setError('Failed to update notification settings');
+    }
+    setBatchCompletedSaving(false);
   };
 
   const handleCreateAccount = async (e: React.FormEvent) => {
@@ -728,6 +752,41 @@ export default function AccountPage() {
                   inline-block h-4 w-4 transform rounded-full bg-white
                   transition-transform
                   ${(notifPrefs?.email_review_auto_verified ?? true)
+                    ? "translate-x-6"
+                    : "translate-x-1"
+                  }
+                `}
+              />
+            </button>
+          </div>
+
+          {/* Batch Run Completion Notifications Toggle */}
+          <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+            <div>
+              <label className="text-sm font-medium text-gray-900">
+                Batch run completion alerts
+              </label>
+              <p className="text-sm text-gray-500">Get notified when scheduled rank, AI search, or grid checks complete</p>
+            </div>
+            <button
+              onClick={handleBatchCompletedToggle}
+              disabled={batchCompletedSaving || !notifPrefs}
+              className={`
+                relative inline-flex h-6 w-11 items-center rounded-full
+                transition-colors focus:outline-none focus:ring-2
+                focus:ring-slate-blue focus:ring-offset-2
+                ${(notifPrefs?.email_batch_completed ?? true)
+                  ? "bg-slate-blue"
+                  : "bg-gray-200"
+                }
+                ${batchCompletedSaving || !notifPrefs ? "opacity-50 cursor-not-allowed" : ""}
+              `}
+            >
+              <span
+                className={`
+                  inline-block h-4 w-4 transform rounded-full bg-white
+                  transition-transform
+                  ${(notifPrefs?.email_batch_completed ?? true)
                     ? "translate-x-6"
                     : "translate-x-1"
                   }

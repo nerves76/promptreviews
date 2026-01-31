@@ -13,6 +13,7 @@ import { refundFeature } from '@/lib/credits';
 import { sendNotificationToAccount, sendAdminAlert } from '@/utils/notifications';
 import { LLM_CREDIT_COSTS, type LLMProvider } from '@/features/llm-visibility/utils/types';
 import { shouldRetry } from '@/utils/retryHelpers';
+import { computeLlmBatchStats } from '@/utils/batchCompletionStats';
 
 // Extend timeout for this route
 export const maxDuration = 300; // 5 minutes
@@ -415,6 +416,16 @@ async function checkAndCompleteBatch(
       .eq('id', runId);
 
     console.log(`📋 [LLMBatch] Batch ${runId} ${status}: ${completed} completed, ${failed} failed`);
+
+    // Send batch completion notification
+    if (status === 'completed') {
+      try {
+        const stats = await computeLlmBatchStats(serviceSupabase, runId, accountId);
+        await sendNotificationToAccount(accountId, 'batch_run_completed', { ...stats });
+      } catch (notifError) {
+        console.error(`[LLMBatch] Failed to send completion notification:`, notifError);
+      }
+    }
 
     // Refund credits for failed checks
     if (failedCredits > 0 && idempotencyKey) {

@@ -29,6 +29,7 @@ import {
   getBalance,
 } from '@/lib/credits';
 import { sendNotificationToAccount } from '@/utils/notifications';
+import { computeGeoGridStats, mergeBatchStats, type BatchCompletionStats } from '@/utils/batchCompletionStats';
 
 // Cost limit per check run (safety measure)
 const MAX_COST_PER_RUN_USD = 5.0;
@@ -71,6 +72,9 @@ export async function GET(request: NextRequest) {
       },
       details: [] as ProcessResult[],
     };
+
+    // Accumulate stats per account for batch completion notifications
+    const accountStatsMap = new Map<string, BatchCompletionStats>();
 
     // ========================================
     // PHASE 1: Config-level scheduling
@@ -251,6 +255,15 @@ export async function GET(request: NextRequest) {
           .from('gg_configs')
           .update({ last_scheduled_run_at: new Date().toISOString() })
           .eq('id', configId);
+
+        // Compute stats for batch completion notification
+        try {
+          const stats = await computeGeoGridStats(supabase, accountId, configId, keywordIds, now);
+          const existing = accountStatsMap.get(accountId);
+          accountStatsMap.set(accountId, existing ? mergeBatchStats(existing, stats) : stats);
+        } catch (statsError) {
+          console.error(`   ⚠️ Failed to compute geo-grid stats for ${configId}:`, statsError);
+        }
 
         console.log(`   ✅ Completed ${configId}: ${result.checksPerformed} checks`);
 
@@ -448,6 +461,15 @@ export async function GET(request: NextRequest) {
             .update({ last_scheduled_run_at: new Date().toISOString() })
             .eq('id', trackedKeywordId);
 
+          // Compute stats for batch completion notification
+          try {
+            const stats = await computeGeoGridStats(supabase, accountId, configId, [keywordId], now);
+            const existing = accountStatsMap.get(accountId);
+            accountStatsMap.set(accountId, existing ? mergeBatchStats(existing, stats) : stats);
+          } catch (statsError) {
+            console.error(`   ⚠️ Failed to compute geo-grid stats for keyword ${keywordId}:`, statsError);
+          }
+
           console.log(`   ✅ Completed keyword ${keywordId}: ${result.checksPerformed} checks`);
 
           results.phase2.processed++;
@@ -482,6 +504,15 @@ export async function GET(request: NextRequest) {
             .update({ last_scheduled_run_at: new Date().toISOString() })
             .eq('id', trackedKeywordId);
         }
+      }
+    }
+
+    // Send aggregated batch completion notifications per account
+    for (const [acctId, stats] of accountStatsMap) {
+      try {
+        await sendNotificationToAccount(acctId, 'batch_run_completed', { ...stats });
+      } catch (notifError) {
+        console.error(`[ScheduledGeoGrids] Failed to send completion notification for account ${acctId}:`, notifError);
       }
     }
 
