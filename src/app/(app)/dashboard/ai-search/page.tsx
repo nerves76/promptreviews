@@ -34,6 +34,7 @@ import { BulkMoveBar } from '@/components/BulkMoveBar';
 import { ManageGroupsModal } from '@/components/ManageGroupsModal';
 import { useToast, ToastContainer } from '@/app/(app)/components/reviews/Toast';
 import BatchRunHistoryDropdown from '@/components/BatchRunHistoryDropdown';
+import ScheduledRunIndicator, { type ScheduledRunInfo } from '@/components/ScheduledRunIndicator';
 
 interface KeywordWithQuestions {
   id: string;
@@ -155,6 +156,9 @@ export default function AISearchPage() {
   const [activeBatchRun, setActiveBatchRun] = useState<BatchStatus | null>(null);
   const [showCompletedBanner, setShowCompletedBanner] = useState(false); // Keep banner visible after completion
   const [isRetryingFailed, setIsRetryingFailed] = useState(false);
+
+  // Scheduled runs for showing indicators in the table
+  const [scheduledRuns, setScheduledRuns] = useState<ScheduledRunInfo[]>([]);
 
   // Modal state for viewing full LLM response
   const [responseModal, setResponseModal] = useState<{
@@ -471,6 +475,30 @@ export default function AISearchPage() {
     }
   }, []);
 
+  // Fetch scheduled runs for the account
+  const fetchScheduledRuns = useCallback(async () => {
+    try {
+      const data = await apiClient.get<{ runs: ScheduledRunInfo[] }>('/llm-visibility/scheduled-runs');
+      setScheduledRuns(data.runs || []);
+    } catch (err) {
+      console.error('[AISearch] Error fetching scheduled runs:', err);
+      setScheduledRuns([]);
+    }
+  }, []);
+
+  // Build a map for quick lookup: groupId -> ScheduledRunInfo (or 'all' for null-group runs)
+  const scheduledRunMap = useMemo(() => {
+    const map = new Map<string, ScheduledRunInfo>();
+    for (const run of scheduledRuns) {
+      const key = run.groupId ?? 'all';
+      // Keep the earliest scheduled run per key
+      if (!map.has(key) || new Date(run.scheduledFor) < new Date(map.get(key)!.scheduledFor)) {
+        map.set(key, run);
+      }
+    }
+    return map;
+  }, [scheduledRuns]);
+
   // Clear data and refetch when account changes
   useEffect(() => {
     // Clear stale data immediately when account changes
@@ -478,9 +506,11 @@ export default function AISearchPage() {
     setAllResults([]);
     setAccountSummary(null);
     setError(null);
+    setScheduledRuns([]);
 
     if (selectedAccountId) {
       fetchData();
+      fetchScheduledRuns();
     }
   }, [selectedAccountId]); // Only depend on selectedAccountId to avoid infinite loops
 
@@ -488,6 +518,7 @@ export default function AISearchPage() {
   useEffect(() => {
     if (selectedAccountId) {
       fetchData();
+      fetchScheduledRuns();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -2351,6 +2382,22 @@ export default function AISearchPage() {
                             <span className="text-xs text-gray-500">
                               {row.lastCheckedAt ? formatRelativeTime(row.lastCheckedAt) : '—'}
                             </span>
+                            {(() => {
+                              const run = (row.groupId ? scheduledRunMap.get(row.groupId) : scheduledRunMap.get('ungrouped')) || scheduledRunMap.get('all');
+                              if (!run) return null;
+                              return (
+                                <div className="mt-0.5">
+                                  <ScheduledRunIndicator
+                                    run={run}
+                                    type="llm"
+                                    onCancel={async (runId) => {
+                                      await apiClient.delete(`/llm-visibility/batch-run?runId=${runId}`);
+                                      await fetchScheduledRuns();
+                                    }}
+                                  />
+                                </div>
+                              );
+                            })()}
                           </td>
 
                           {/* Actions */}
@@ -2706,7 +2753,10 @@ export default function AISearchPage() {
       {/* Run All LLM Modal */}
       <RunAllLLMModal
         isOpen={showRunAllModal}
-        onClose={() => setShowRunAllModal(false)}
+        onClose={() => {
+          setShowRunAllModal(false);
+          fetchScheduledRuns();
+        }}
         onStarted={(batchStatus) => {
           setActiveBatchRun(batchStatus);
         }}

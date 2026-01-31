@@ -24,6 +24,7 @@ import { BulkMoveBar, GroupOption } from '@/components/BulkMoveBar';
 import { ManageGroupsModal, GroupData } from '@/components/ManageGroupsModal';
 import { useToast, ToastContainer } from '@/app/(app)/components/reviews/Toast';
 import BatchRunHistoryDropdown from '@/components/BatchRunHistoryDropdown';
+import { type ScheduledRunInfo } from '@/components/ScheduledRunIndicator';
 
 /** Volume data for a search term */
 interface VolumeData {
@@ -165,6 +166,9 @@ export default function RankTrackingPage() {
     creditsRefunded?: number;
     errorMessage: string | null;
   } | null>(null);
+
+  // Scheduled runs for showing indicators in the table
+  const [scheduledRuns, setScheduledRuns] = useState<ScheduledRunInfo[]>([]);
 
   // Track which keyword is currently being checked (for button loading state)
   const [checkingRankKeyword, setCheckingRankKeyword] = useState<string | null>(null);
@@ -374,6 +378,17 @@ export default function RankTrackingPage() {
     }
   }, []);
 
+  // Fetch scheduled runs for the account
+  const fetchScheduledRuns = useCallback(async () => {
+    try {
+      const data = await apiClient.get<{ runs: ScheduledRunInfo[] }>('/rank-tracking/scheduled-runs');
+      setScheduledRuns(data.runs || []);
+    } catch (err) {
+      console.error('[RankTracking] Error fetching scheduled runs:', err);
+      setScheduledRuns([]);
+    }
+  }, []);
+
   // Fetch grid data and schedule status for concepts using batch-enrich API
   const fetchEnrichmentData = useCallback(async (keywordIds: string[]) => {
     if (keywordIds.length === 0) return;
@@ -414,10 +429,12 @@ export default function RankTrackingPage() {
     setGridDataMap(new Map());
     setScheduleDataMap(new Map());
     setActiveBatchRun(null);
+    setScheduledRuns([]);
 
     if (selectedAccountId) {
       fetchResearchResults();
       fetchRankChecks();
+      fetchScheduledRuns();
     }
   }, [selectedAccountId]); // Only depend on selectedAccountId to avoid infinite loops
 
@@ -1150,6 +1167,11 @@ export default function RankTrackingPage() {
           selectedTermKeys={selectedTermKeys}
           onToggleTermSelection={toggleTermSelection}
           activeBatchRun={activeBatchRun}
+          scheduledRuns={scheduledRuns}
+          onCancelScheduledRun={async (runId) => {
+            await apiClient.delete(`/rank-tracking/batch-run?runId=${runId}`);
+            await fetchScheduledRuns();
+          }}
         />
       </PageCard>
 
@@ -1199,7 +1221,10 @@ export default function RankTrackingPage() {
       {/* Run All Rank Checks Modal */}
       <RunAllRankModal
         isOpen={showRunAllModal}
-        onClose={() => setShowRunAllModal(false)}
+        onClose={() => {
+          setShowRunAllModal(false);
+          fetchScheduledRuns();
+        }}
         onStarted={(batchStatus) => {
           // Start tracking the batch run
           setActiveBatchRun(batchStatus);

@@ -7,6 +7,7 @@ import Pagination from '@/components/Pagination';
 import { usePagination } from '@/hooks/usePagination';
 import { type KeywordData, normalizePhrase } from '@/features/keywords/keywordUtils';
 import { apiClient } from '@/utils/apiClient';
+import ScheduledRunIndicator, { type ScheduledRunInfo } from '@/components/ScheduledRunIndicator';
 import RankHistoryChart from './RankHistoryChart';
 
 // ============================================
@@ -134,6 +135,10 @@ interface ConceptsTableProps {
   onToggleTermSelection?: (keywordId: string, term: string) => void;
   /** Active batch run for showing pending indicators */
   activeBatchRun?: BatchRunStatus | null;
+  /** Scheduled future batch runs for showing indicators */
+  scheduledRuns?: ScheduledRunInfo[];
+  /** Callback when a scheduled run is cancelled */
+  onCancelScheduledRun?: (runId: string) => Promise<void>;
 }
 
 /** Each row represents a single keyword (search term) */
@@ -307,6 +312,8 @@ export default function ConceptsTable({
   selectedTermKeys,
   onToggleTermSelection,
   activeBatchRun,
+  scheduledRuns,
+  onCancelScheduledRun,
 }: ConceptsTableProps) {
   const router = useRouter();
   const [sortField, setSortField] = useState<SortField>('keyword');
@@ -318,6 +325,21 @@ export default function ConceptsTable({
   const [historySummary, setHistorySummary] = useState<RankHistorySummary | null>(null);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyDays, setHistoryDays] = useState(90);
+
+  // Build a function to find the scheduled run for a given concept (keyword) ID
+  const getScheduledRunForConcept = useCallback((conceptId: string): ScheduledRunInfo | null => {
+    if (!scheduledRuns || scheduledRuns.length === 0) return null;
+    // Check for "all groups" run first (groupId is null)
+    const allGroupsRun = scheduledRuns.find(r => r.groupId === null);
+    if (allGroupsRun) return allGroupsRun;
+    // Check group-specific runs that include this concept's keyword IDs
+    for (const run of scheduledRuns) {
+      if (run.keywordIds && run.keywordIds.includes(conceptId)) {
+        return run;
+      }
+    }
+    return null;
+  }, [scheduledRuns]);
 
   // Fetch history when a row is expanded
   const fetchHistory = useCallback(async (keywordId: string) => {
@@ -831,6 +853,23 @@ export default function ConceptsTable({
                 <span className="text-xs text-gray-500" title={row.lastChecked || undefined}>
                   {formatRelativeDate(row.lastChecked)}
                 </span>
+                {(() => {
+                  const run = getScheduledRunForConcept(row.concept.id);
+                  if (!run) return null;
+                  return (
+                    <div className="mt-0.5">
+                      <ScheduledRunIndicator
+                        run={run}
+                        type="rank"
+                        onCancel={async (runId) => {
+                          if (onCancelScheduledRun) {
+                            await onCancelScheduledRun(runId);
+                          }
+                        }}
+                      />
+                    </div>
+                  );
+                })()}
               </td>
               <td className="py-3 px-4 text-center">
                 {(row.rankLocation || row.volumeLocation) ? (() => {
