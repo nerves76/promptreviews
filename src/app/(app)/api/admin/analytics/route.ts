@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
 
     try {
       // Get platform metrics for lifetime totals
-      const [{ data: metrics }, { count: reviewsCapturedFast }, { count: accountsCountFast }] = await Promise.all([
+      const [{ data: metrics }, { count: reviewsCapturedFast }, { count: accountsCountFast }, { data: activeAccountUsers }] = await Promise.all([
         supabaseAdmin
           .from('platform_metrics')
           .select('metric_name, metric_value'),
@@ -54,7 +54,11 @@ export async function GET(request: NextRequest) {
         supabaseAdmin
           .from('accounts')
           .select('id', { count: 'exact', head: true })
-          .is('deleted_at', null)
+          .is('deleted_at', null),
+        supabaseAdmin
+          .from('account_users')
+          .select('user_id, accounts!inner(id)')
+          .is('accounts.deleted_at', null)
       ]);
 
       // Get last 30 days from daily_stats for monthly totals
@@ -82,8 +86,10 @@ export async function GET(request: NextRequest) {
         const accountsThisMonth = last30Days.reduce((sum, day) => sum + (day.accounts_created_today || 0), 0);
         const reviewsThisWeek = last30Days.slice(0, 7).reduce((sum, day) => sum + (day.reviews_captured_today || 0), 0);
 
+        const uniqueUsersFast = new Set(activeAccountUsers?.map(u => u.user_id));
+
         analyticsData = {
-          totalUsers: getMetric('total_accounts_created'),
+          totalUsers: uniqueUsersFast.size || 0,
           totalAccounts: accountsCountFast || 0,
           totalBusinesses: latest.accounts_total || 0,
           totalReviews: getMetric('total_reviews_captured'),
@@ -137,7 +143,7 @@ export async function GET(request: NextRequest) {
         supabaseAdmin.from('widgets').select('id, created_at'),
         supabaseAdmin.from('google_business_locations').select('location_id').not('location_id', 'is', null),
         supabaseAdmin.from('review_submissions').select('id', { count: 'exact', head: true }).not('prompt_page_id', 'is', null),
-        supabaseAdmin.from('account_users').select('user_id')
+        supabaseAdmin.from('account_users').select('user_id, accounts!inner(id)').is('accounts.deleted_at', null)
       ]);
 
       // Count GBP posts
