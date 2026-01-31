@@ -1456,7 +1456,7 @@ export default function ReviewsPage() {
           <div className="relative z-10">
             {/* Close button - outside the scrollable area */}
             <button
-              className="absolute -top-3 -right-3 bg-white border border-gray-200 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-100 focus:outline-none z-20"
+              className="absolute -top-3 -right-3 bg-white/50 backdrop-blur-md border border-white/40 rounded-full shadow-lg flex items-center justify-center hover:bg-white/70 focus:outline-none z-20"
               style={{ width: 40, height: 40 }}
               onClick={() => {
                 setShowImportModal(false);

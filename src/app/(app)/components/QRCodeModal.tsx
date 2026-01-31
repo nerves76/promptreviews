@@ -201,7 +201,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl,
       <div className="relative max-w-4xl w-full">
         {/* Glassmorphic close button */}
         <button
-          className="absolute -top-3 -right-3 bg-white border border-gray-200 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 flex items-center justify-center hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 z-50"
+          className="absolute -top-3 -right-3 bg-white/50 backdrop-blur-md border border-white/40 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 flex items-center justify-center hover:bg-white/70 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 z-50"
           style={{ width: 48, height: 48 }}
           onClick={onClose}
           aria-label="Close modal"
@@ -822,7 +822,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl,
               {/* Standardized circular close button */}
               <button
                 onClick={() => setShowBrandingPopup(false)}
-                className="absolute -top-3 -right-3 bg-white border border-gray-200 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 flex items-center justify-center hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 z-20"
+                className="absolute -top-3 -right-3 bg-white/50 backdrop-blur-md border border-white/40 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 flex items-center justify-center hover:bg-white/70 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 z-20"
                 style={{ width: 48, height: 48 }}
                 aria-label="Close modal"
               >

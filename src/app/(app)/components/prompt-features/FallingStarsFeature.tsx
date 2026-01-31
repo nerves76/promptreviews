@@ -350,7 +350,7 @@ export default function FallingStarsFeature({
             {/* Standard red circular close button */}
             <button
               onClick={() => setIsModalOpen(false)}
-              className="absolute top-2 right-2 sm:-top-3 sm:-right-3 min-w-[44px] min-h-[44px] w-10 h-10 sm:w-12 sm:h-12 bg-white border border-gray-200 rounded-full flex items-center justify-center hover:bg-gray-50 shadow-lg z-10"
+              className="absolute top-2 right-2 sm:-top-3 sm:-right-3 min-w-[44px] min-h-[44px] w-10 h-10 sm:w-12 sm:h-12 bg-white/50 backdrop-blur-md border border-white/40 rounded-full flex items-center justify-center hover:bg-white/70 shadow-lg z-10"
               aria-label="Close"
             >
               <Icon name="FaTimes" className="w-4 h-4 text-red-500" />

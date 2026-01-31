@@ -1598,7 +1598,7 @@ export function GeoGridSetupWizard({
                         e.stopPropagation();
                         setShowCoordsHelpImage(false);
                       }}
-                      className="absolute top-2 right-2 sm:-top-3 sm:-right-3 w-12 h-12 bg-white border border-gray-200 rounded-full shadow-lg hover:shadow-xl hover:bg-gray-100 transition-shadow duration-200 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
+                      className="absolute top-2 right-2 sm:-top-3 sm:-right-3 w-12 h-12 bg-white/50 backdrop-blur-md border border-white/40 rounded-full shadow-lg hover:shadow-xl hover:bg-white/70 transition-shadow duration-200 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
                       aria-label="Close"
                     >
                       <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">

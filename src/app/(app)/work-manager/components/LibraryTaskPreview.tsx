@@ -41,7 +41,7 @@ export default function LibraryTaskPreview({
       {/* Close button - small red circle at top right */}
       <button
         onClick={onClose}
-        className="absolute -top-2 -right-2 w-8 h-8 bg-white border border-gray-200 rounded-full shadow-md hover:shadow-lg transition-shadow duration-200 flex items-center justify-center hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 z-10"
+        className="absolute -top-2 -right-2 w-8 h-8 bg-white/50 backdrop-blur-md border border-white/40 rounded-full shadow-md hover:shadow-lg transition-shadow duration-200 flex items-center justify-center hover:bg-white/70 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 z-10"
         aria-label="Close preview"
       >
         <svg className="w-3 h-3 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -1437,7 +1437,7 @@ export default function UploadContactsPage() {
             <div className="relative bg-white rounded-lg shadow-xl max-w-2xl w-full mx-auto p-8 z-10">
               {/* Close button */}
               <button
-                className="absolute -top-4 -right-4 bg-white border border-gray-200 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-100 focus:outline-none"
+                className="absolute -top-4 -right-4 bg-white/50 backdrop-blur-md border border-white/40 rounded-full shadow-lg flex items-center justify-center hover:bg-white/70 focus:outline-none"
                 style={{ zIndex: 20, width: 40, height: 40 }}
                 onClick={() => setShowUploadModal(false)}
                 aria-label="Close"
@@ -1576,7 +1576,7 @@ export default function UploadContactsPage() {
             <div className="relative bg-white rounded-lg shadow-xl max-w-4xl w-full mx-auto p-8 z-10">
               {/* Close button */}
               <button
-                className="absolute -top-4 -right-4 bg-white border border-gray-200 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-100 focus:outline-none"
+                className="absolute -top-4 -right-4 bg-white/50 backdrop-blur-md border border-white/40 rounded-full shadow-lg flex items-center justify-center hover:bg-white/70 focus:outline-none"
                 style={{ zIndex: 20, width: 40, height: 40 }}
                 onClick={() => setShowEditModal(false)}
                 aria-label="Close"

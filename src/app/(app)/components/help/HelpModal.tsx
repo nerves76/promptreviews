@@ -71,10 +71,10 @@ export default function HelpModal({
       />
       
       {/* Modal - Larger size for desktop, responsive for mobile */}
-      <div className="relative bg-white/70 backdrop-blur-xl rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] md:max-h-[85vh] flex flex-col overflow-visible border border-white/30">
+      <div className="relative rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] md:max-h-[85vh] flex flex-col overflow-visible border border-white/30">
         {/* Close button */}
         <button
-          className="absolute -top-3 -right-3 bg-white border border-gray-200 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 flex items-center justify-center hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 z-50"
+          className="absolute -top-3 -right-3 bg-white/50 backdrop-blur-md border border-white/40 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 flex items-center justify-center hover:bg-white/70 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 z-50"
           style={{ width: 48, height: 48 }}
           onClick={handleClose}
           aria-label="Close modal"
@@ -84,24 +84,24 @@ export default function HelpModal({
           </svg>
         </button>
 
-        {/* Header with Tabs */}
-        <div className="border-b border-white/30 rounded-t-2xl">
+        {/* Header with Tabs - fully transparent */}
+        <div className="backdrop-blur-sm border-b border-white/30 rounded-t-2xl">
           <div className="flex items-center justify-between p-4 md:p-6 pb-0">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-slate-blue/80 rounded-lg flex items-center justify-center">
                 <Icon name="FaQuestionCircle" className="w-5 h-5 text-white" size={20} />
               </div>
               <div>
-                <h2 className="text-lg md:text-xl font-semibold text-gray-900">
+                <h2 className="text-lg md:text-xl font-semibold text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.3)]">
                   Help & support
                 </h2>
-                <p className="text-xs text-gray-600 hidden md:block">
+                <p className="text-xs text-white/80 hidden md:block drop-shadow-[0_1px_2px_rgba(0,0,0,0.2)]">
                   Get help, find tutorials, or report issues
                 </p>
               </div>
             </div>
           </div>
-          
+
           {/* Tab Navigation */}
           <div className="flex space-x-1 px-4 md:px-6 pt-4">
             <button
@@ -109,7 +109,7 @@ export default function HelpModal({
               className={`flex-1 md:flex-initial px-3 md:px-4 py-2 text-sm font-medium rounded-t-md transition-all ${
                 activeTab === 'tutorials'
                   ? 'bg-white/90 text-slate-blue shadow-sm'
-                  : 'text-gray-700 hover:text-gray-900 hover:bg-white/40'
+                  : 'text-white/90 hover:text-white hover:bg-white/20'
               }`}
             >
               <div className="flex items-center justify-center md:justify-start space-x-2">
@@ -127,7 +127,7 @@ export default function HelpModal({
               className={`flex-1 md:flex-initial px-3 md:px-4 py-2 text-sm font-medium rounded-t-md transition-all ${
                 activeTab === 'faqs'
                   ? 'bg-white/90 text-slate-blue shadow-sm'
-                  : 'text-gray-700 hover:text-gray-900 hover:bg-white/40'
+                  : 'text-white/90 hover:text-white hover:bg-white/20'
               }`}
             >
               <div className="flex items-center justify-center md:justify-start space-x-2">
@@ -140,7 +140,7 @@ export default function HelpModal({
               className={`flex-1 md:flex-initial px-3 md:px-4 py-2 text-sm font-medium rounded-t-md transition-all ${
                 activeTab === 'issues'
                   ? 'bg-white/90 text-slate-blue shadow-sm'
-                  : 'text-gray-700 hover:text-gray-900 hover:bg-white/40'
+                  : 'text-white/90 hover:text-white hover:bg-white/20'
               }`}
             >
               <div className="flex items-center justify-center md:justify-start space-x-2">
@@ -152,7 +152,7 @@ export default function HelpModal({
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 overflow-y-auto rounded-b-2xl" style={{ minHeight: 0 }}>
+        <div className="flex-1 overflow-y-auto rounded-b-2xl bg-white/70 backdrop-blur-xl" style={{ minHeight: 0 }}>
           <div className="h-full flex flex-col rounded-b-2xl">
             <div className="flex-1" style={{ minHeight: 0 }}>
               {activeTab === 'tutorials' && (
@@ -180,9 +180,9 @@ export default function HelpModal({
                 />
               )}
             </div>
-            
+
             {/* Footer - simplified */}
-            <div className="bg-white/30 backdrop-blur-sm border-t border-white/20 px-4 md:px-6 py-3">
+            <div className="bg-white/30 backdrop-blur-sm border-t border-white/20 px-4 md:px-6 py-3 rounded-b-2xl">
               <div className="flex items-center justify-center text-xs text-gray-600">
                 <div className="flex items-center space-x-1">
                   <span>Just press</span>
