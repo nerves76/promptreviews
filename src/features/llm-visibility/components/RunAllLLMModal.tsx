@@ -218,7 +218,7 @@ export default function RunAllLLMModal({
   }, [frequency, dayOfWeek, dayOfMonth, hour]);
 
   const handleStartBatch = async () => {
-    if (!preview || selectedProviders.length === 0 || !hasCredits) return;
+    if (!preview || selectedProviders.length === 0 || (runMode === 'now' && !hasCredits)) return;
 
     setIsStarting(true);
     setError(null);
@@ -676,7 +676,7 @@ export default function RunAllLLMModal({
             disabled={
               isStarting ||
               isLoadingPreview ||
-              !hasCredits ||
+              (runMode === 'now' && !hasCredits) ||
               selectedProviders.length === 0 ||
               (preview?.totalQuestions || 0) === 0
             }

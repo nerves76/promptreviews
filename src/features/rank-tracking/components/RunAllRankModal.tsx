@@ -161,7 +161,7 @@ export default function RunAllRankModal({
   };
 
   const handleStartBatch = async () => {
-    if (!preview || !preview.hasCredits) return;
+    if (!preview || (runMode === 'now' && !preview.hasCredits)) return;
 
     // Validate schedule if in schedule mode
     let scheduleTime: Date | null = null;
@@ -607,7 +607,7 @@ export default function RunAllRankModal({
               disabled={
                 isStarting ||
                 isLoadingPreview ||
-                !preview?.hasCredits ||
+                (runMode === 'now' && !preview?.hasCredits) ||
                 (preview?.totalKeywords || 0) === 0
               }
               className="px-4 py-2 text-sm font-medium text-white bg-slate-blue rounded-lg hover:bg-slate-blue/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2 whitespace-nowrap"
