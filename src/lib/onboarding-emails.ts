@@ -55,7 +55,8 @@ async function alreadySent(
 }
 
 /**
- * Log an onboarding email send attempt
+ * Log an onboarding email send attempt.
+ * Uses upsert to handle the unique index on (account_id, email_type) WHERE success = true.
  */
 async function logEmailSend(
   accountId: string,
@@ -66,38 +67,80 @@ async function logEmailSend(
   supabase?: ReturnType<typeof getServiceClient>
 ): Promise<void> {
   const client = supabase || getServiceClient();
-  await client
-    .from('onboarding_email_logs')
-    .insert({
-      account_id: accountId,
-      email_type: emailType,
-      email,
-      success,
-      error_message: errorMessage || null,
-    });
+
+  if (success) {
+    // For successful sends, upsert to avoid unique constraint violation
+    // if a previous successful log already exists (e.g., after clearing for resend)
+    const { data: existing } = await client
+      .from('onboarding_email_logs')
+      .select('id')
+      .eq('account_id', accountId)
+      .eq('email_type', emailType)
+      .eq('success', true)
+      .limit(1);
+
+    if (existing?.length) {
+      // Update the existing record with new timestamp
+      await client
+        .from('onboarding_email_logs')
+        .update({ email, sent_at: new Date().toISOString(), error_message: null })
+        .eq('id', existing[0].id);
+    } else {
+      await client
+        .from('onboarding_email_logs')
+        .insert({ account_id: accountId, email_type: emailType, email, success, error_message: null });
+    }
+  } else {
+    // Failed attempts can always be inserted (no unique constraint on failures)
+    await client
+      .from('onboarding_email_logs')
+      .insert({ account_id: accountId, email_type: emailType, email, success, error_message: errorMessage || null });
+  }
 }
 
 // =============================================================
 // Generic Send Helper
 // =============================================================
 
+interface SendOnboardingEmailOptions {
+  /** Skip duplicate prevention — allows re-sending the same email type. */
+  skipDedup?: boolean;
+}
+
 /**
  * Send an onboarding email with automatic duplicate prevention and logging.
  * Returns true if sent, false if skipped or failed.
+ *
+ * Set `options.skipDedup` to true for emails that may legitimately need to be
+ * re-sent (e.g., payment failure emails across separate billing incidents).
  */
 export async function sendOnboardingEmail(
   accountId: string,
   email: string,
   emailType: string,
   variables: Record<string, string>,
-  supabase?: ReturnType<typeof getServiceClient>
+  supabaseOrOptions?: ReturnType<typeof getServiceClient> | SendOnboardingEmailOptions,
+  optionsArg?: SendOnboardingEmailOptions
 ): Promise<boolean> {
-  const client = supabase || getServiceClient();
+  // Support both (accountId, email, type, vars, supabase, options) and
+  // (accountId, email, type, vars, options) signatures
+  let client: ReturnType<typeof getServiceClient>;
+  let options: SendOnboardingEmailOptions = {};
 
-  // Check for duplicate
-  const sent = await alreadySent(accountId, emailType, client);
-  if (sent) {
-    return false;
+  if (supabaseOrOptions && typeof supabaseOrOptions === 'object' && 'skipDedup' in supabaseOrOptions) {
+    client = getServiceClient();
+    options = supabaseOrOptions;
+  } else {
+    client = (supabaseOrOptions as ReturnType<typeof getServiceClient>) || getServiceClient();
+    options = optionsArg || {};
+  }
+
+  // Check for duplicate (unless skipDedup is set)
+  if (!options.skipDedup) {
+    const sent = await alreadySent(accountId, emailType, client);
+    if (sent) {
+      return false;
+    }
   }
 
   // Send
@@ -213,6 +256,7 @@ export async function processOnboardingSequence(
   for (const account of accounts) {
     const createdAt = new Date(account.created_at);
     const firstName = account.first_name || 'there';
+    let sentThisIteration = false;
 
     // Day 1: Setup prompt page
     if (createdAt >= day1Start && createdAt <= day1End) {
@@ -224,7 +268,8 @@ export async function processOnboardingSequence(
           account.id, account.email, 'onboarding_setup_prompt_page',
           { firstName }, supabase
         );
-        didSend ? sent++ : (await alreadySent(account.id, 'onboarding_setup_prompt_page', supabase) ? skipped++ : failed++);
+        if (didSend) { sent++; sentThisIteration = true; }
+        else { (await alreadySent(account.id, 'onboarding_setup_prompt_page', supabase)) ? skipped++ : failed++; }
       }
     }
 
@@ -238,7 +283,8 @@ export async function processOnboardingSequence(
           account.id, account.email, 'onboarding_connect_google',
           { firstName }, supabase
         );
-        didSend ? sent++ : (await alreadySent(account.id, 'onboarding_connect_google', supabase) ? skipped++ : failed++);
+        if (didSend) { sent++; sentThisIteration = true; }
+        else { (await alreadySent(account.id, 'onboarding_connect_google', supabase)) ? skipped++ : failed++; }
       }
     }
 
@@ -252,12 +298,13 @@ export async function processOnboardingSequence(
           account.id, account.email, 'onboarding_add_widget',
           { firstName }, supabase
         );
-        didSend ? sent++ : (await alreadySent(account.id, 'onboarding_add_widget', supabase) ? skipped++ : failed++);
+        if (didSend) { sent++; sentThisIteration = true; }
+        else { (await alreadySent(account.id, 'onboarding_add_widget', supabase)) ? skipped++ : failed++; }
       }
     }
 
-    // Rate limit: 500ms between sends
-    if (sent > 0) {
+    // Rate limit: 500ms delay only when an email was actually sent
+    if (sentThisIteration) {
       await new Promise(resolve => setTimeout(resolve, 500));
     }
   }
@@ -320,11 +367,8 @@ export async function processPostExpirationDrip(
       account.id, account.email, 'post_expiration_1_week',
       { firstName }, supabase
     );
-    didSend ? sent++ : (await alreadySent(account.id, 'post_expiration_1_week', supabase) ? skipped++ : failed++);
-
-    if (sent > 0) {
-      await new Promise(resolve => setTimeout(resolve, 500));
-    }
+    if (didSend) { sent++; await new Promise(resolve => setTimeout(resolve, 500)); }
+    else { (await alreadySent(account.id, 'post_expiration_1_week', supabase)) ? skipped++ : failed++; }
   }
 
   // 1-month post-expiration
@@ -334,11 +378,8 @@ export async function processPostExpirationDrip(
       account.id, account.email, 'post_expiration_1_month',
       { firstName }, supabase
     );
-    didSend ? sent++ : (await alreadySent(account.id, 'post_expiration_1_month', supabase) ? skipped++ : failed++);
-
-    if (sent > 0) {
-      await new Promise(resolve => setTimeout(resolve, 500));
-    }
+    if (didSend) { sent++; await new Promise(resolve => setTimeout(resolve, 500)); }
+    else { (await alreadySent(account.id, 'post_expiration_1_month', supabase)) ? skipped++ : failed++; }
   }
 
   return { sent, skipped, failed };
@@ -350,6 +391,7 @@ export async function processPostExpirationDrip(
 
 /**
  * Send subscription activated email (after trial converts to paid).
+ * Allows re-sending so customers who cancel and re-subscribe get the email again.
  */
 export async function sendSubscriptionActivatedEmail(
   accountId: string,
@@ -360,7 +402,7 @@ export async function sendSubscriptionActivatedEmail(
   return sendOnboardingEmail(accountId, email, 'subscription_activated', {
     firstName,
     planName,
-  });
+  }, { skipDedup: true });
 }
 
 /**
@@ -399,7 +441,7 @@ export async function sendPaymentEmail(
   return sendOnboardingEmail(accountId, account.email, emailType, {
     firstName: account.first_name || 'there',
     ...variables,
-  }, supabase);
+  }, supabase, { skipDedup: true });
 }
 
 /**
