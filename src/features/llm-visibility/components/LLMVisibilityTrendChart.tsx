@@ -319,15 +319,15 @@ export default function LLMVisibilityTrendChart({
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
-      <div className="flex items-center justify-between mb-4">
-        <div>
+      <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
+        <div className="shrink-0">
           <h3 className="text-lg font-semibold text-gray-900">Visibility trend</h3>
           <p className="text-sm text-gray-500">
             {metricType === 'citations' ? 'Citation' : 'Mention'} rate over {granularity === 'monthly' ? 'the last 6 months' : 'the last 8 weeks'}
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2">
           {/* Metric type toggle */}
           <div className="flex items-center bg-gray-100 rounded-lg p-0.5">
             <button
