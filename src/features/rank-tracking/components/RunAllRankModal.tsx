@@ -27,6 +27,12 @@ interface BatchPreview {
     progress: number;
     total: number;
   } | null;
+  scheduledRun: {
+    runId: string;
+    scheduledFor: string;
+    totalKeywords: number;
+    estimatedCredits: number;
+  } | null;
 }
 
 interface BatchStatus {
@@ -76,6 +82,7 @@ export default function RunAllRankModal({
   const [preview, setPreview] = useState<BatchPreview | null>(null);
   const [isLoadingPreview, setIsLoadingPreview] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
+  const [isCancellingScheduled, setIsCancellingScheduled] = useState(false);
   const [batchStatus, setBatchStatus] = useState<BatchStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -242,6 +249,23 @@ export default function RunAllRankModal({
     }
   };
 
+  const handleCancelScheduled = async () => {
+    if (!preview?.scheduledRun) return;
+    setIsCancellingScheduled(true);
+    setError(null);
+    try {
+      await apiClient.delete(
+        `/rank-tracking/batch-run?runId=${preview.scheduledRun.runId}`
+      );
+      // Refresh preview to clear the scheduled run
+      await loadPreview();
+    } catch (err: any) {
+      setError(err?.message || 'Failed to cancel scheduled run');
+    } finally {
+      setIsCancellingScheduled(false);
+    }
+  };
+
   if (!isOpen) return null;
 
   const isRunning = batchStatus && ['pending', 'processing'].includes(batchStatus.status);
@@ -400,6 +424,32 @@ export default function RunAllRankModal({
           ) : (
             /* Configuration state */
             <>
+              {/* Scheduled run warning */}
+              {preview?.scheduledRun && (
+                <div className="p-3 rounded-lg bg-blue-50 border border-blue-200">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Icon name="FaClock" className="w-4 h-4 text-slate-blue flex-shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-slate-blue">
+                          Check scheduled for {new Date(preview.scheduledRun.scheduledFor).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                        </p>
+                        <p className="text-xs text-slate-blue/70">
+                          {preview.scheduledRun.estimatedCredits} credits reserved
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={handleCancelScheduled}
+                      disabled={isCancellingScheduled}
+                      className="text-xs font-medium text-red-600 hover:text-red-700 whitespace-nowrap disabled:opacity-50"
+                    >
+                      {isCancellingScheduled ? 'Cancelling...' : 'Cancel run'}
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {/* Run mode toggle */}
               <div className="flex rounded-lg bg-gray-100 p-1">
                 <button

@@ -101,6 +101,7 @@ export default function LocalRankingGridsPage() {
 
   // Schedule editor modal
   const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [isCancellingSchedule, setIsCancellingSchedule] = useState(false);
 
   // Toast notifications
   const { toasts, closeToast, error: showError, success: showSuccess } = useToast();
@@ -421,6 +422,20 @@ export default function LocalRankingGridsPage() {
       setIsCheckRunning(false);
     }
   }, [selectedCheckKeywordIds, runCheck, refreshResults, showError, showSuccess]);
+
+  // Handle cancelling geo-grid schedule
+  const handleCancelSchedule = useCallback(async () => {
+    setIsCancellingSchedule(true);
+    try {
+      await apiClient.delete('/geo-grid/schedule');
+      refreshConfig();
+      showSuccess('Schedule cancelled');
+    } catch (err: any) {
+      showError(err?.message || 'Failed to cancel schedule');
+    } finally {
+      setIsCancellingSchedule(false);
+    }
+  }, [refreshConfig, showSuccess, showError]);
 
   // Handle setup complete
   const handleSetupComplete = useCallback(() => {
@@ -1018,15 +1033,26 @@ export default function LocalRankingGridsPage() {
                     )}
                   </p>
                 </div>
-                <button
-                  onClick={() => {
-                    setShowRunCheckModal(false);
-                    setShowScheduleModal(true);
-                  }}
-                  className="text-sm text-slate-blue hover:text-slate-blue/80 font-medium"
-                >
-                  {config.isEnabled ? 'Edit schedule' : 'Set up schedule'}
-                </button>
+                <div className="flex items-center gap-3">
+                  {config.isEnabled && (
+                    <button
+                      onClick={handleCancelSchedule}
+                      disabled={isCancellingSchedule}
+                      className="text-xs font-medium text-red-600 hover:text-red-700 whitespace-nowrap disabled:opacity-50"
+                    >
+                      {isCancellingSchedule ? 'Cancelling...' : 'Cancel schedule'}
+                    </button>
+                  )}
+                  <button
+                    onClick={() => {
+                      setShowRunCheckModal(false);
+                      setShowScheduleModal(true);
+                    }}
+                    className="text-sm text-slate-blue hover:text-slate-blue/80 font-medium whitespace-nowrap"
+                  >
+                    {config.isEnabled ? 'Edit schedule' : 'Set up schedule'}
+                  </button>
+                </div>
               </div>
             </div>
           )}

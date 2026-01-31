@@ -14,6 +14,7 @@ import {
   debit,
   ensureBalanceExists,
   InsufficientCreditsError,
+  refundFeature,
 } from '@/lib/credits';
 import {
   LLMProvider,
@@ -85,11 +86,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if there's already a pending/processing batch run for this group scope
+    // Exclude future scheduled runs so users can still run immediate checks
+    const now = new Date().toISOString();
     const existingRunQuery = serviceSupabase
       .from('llm_batch_runs')
       .select('id, status')
       .eq('account_id', accountId)
-      .in('status', ['pending', 'processing']);
+      .in('status', ['pending', 'processing'])
+      .or(`scheduled_for.is.null,scheduled_for.lte.${now}`);
 
     if (groupId) {
       existingRunQuery.eq('group_id', groupId);
@@ -503,11 +507,14 @@ export async function GET(request: NextRequest) {
     const balance = await getBalance(serviceSupabase, accountId);
 
     // Check for existing active run in the same group scope
+    // Exclude future scheduled runs from activeRun (they're not actually running)
+    const now = new Date().toISOString();
     const activeRunQuery = serviceSupabase
       .from('llm_batch_runs')
       .select('id, status, processed_questions, total_questions')
       .eq('account_id', accountId)
-      .in('status', ['pending', 'processing']);
+      .in('status', ['pending', 'processing'])
+      .or(`scheduled_for.is.null,scheduled_for.lte.${now}`);
 
     if (groupId) {
       activeRunQuery.eq('group_id', groupId);
@@ -516,6 +523,23 @@ export async function GET(request: NextRequest) {
     }
 
     const { data: activeRun } = await activeRunQuery.single();
+
+    // Check for future scheduled run in the same group scope
+    const scheduledRunQuery = serviceSupabase
+      .from('llm_batch_runs')
+      .select('id, status, total_questions, scheduled_for, estimated_credits')
+      .eq('account_id', accountId)
+      .eq('status', 'pending')
+      .not('scheduled_for', 'is', null)
+      .gt('scheduled_for', now);
+
+    if (groupId) {
+      scheduledRunQuery.eq('group_id', groupId);
+    } else {
+      scheduledRunQuery.is('group_id', null);
+    }
+
+    const { data: scheduledRun } = await scheduledRunQuery.single();
 
     return NextResponse.json({
       totalQuestions,
@@ -531,10 +555,134 @@ export async function GET(request: NextRequest) {
         progress: activeRun.processed_questions,
         total: activeRun.total_questions,
       } : null,
+      scheduledRun: scheduledRun ? {
+        runId: scheduledRun.id,
+        scheduledFor: scheduledRun.scheduled_for,
+        totalQuestions: scheduledRun.total_questions,
+        estimatedCredits: scheduledRun.estimated_credits,
+      } : null,
     });
 
   } catch (error) {
     console.error('❌ [LLMBatchRun] Preview error:', error);
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * DELETE /api/llm-visibility/batch-run?runId=...
+ * Cancel a future scheduled batch run and refund credits.
+ */
+export async function DELETE(request: NextRequest) {
+  try {
+    const supabase = await createServerSupabaseClient();
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const accountId = await getRequestAccountId(request, user.id, supabase);
+    if (!accountId) {
+      return NextResponse.json({ error: 'Account not found' }, { status: 404 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const runId = searchParams.get('runId');
+
+    if (!runId) {
+      return NextResponse.json({ error: 'runId is required' }, { status: 400 });
+    }
+
+    // Verify run belongs to account, is pending, and is scheduled for the future
+    const { data: run, error: runError } = await serviceSupabase
+      .from('llm_batch_runs')
+      .select('id, account_id, status, scheduled_for, estimated_credits, idempotency_key')
+      .eq('id', runId)
+      .eq('account_id', accountId)
+      .single();
+
+    if (runError || !run) {
+      return NextResponse.json({ error: 'Batch run not found' }, { status: 404 });
+    }
+
+    if (run.status !== 'pending') {
+      return NextResponse.json(
+        { error: 'Only pending runs can be cancelled' },
+        { status: 400 }
+      );
+    }
+
+    if (!run.scheduled_for || new Date(run.scheduled_for) <= new Date()) {
+      return NextResponse.json(
+        { error: 'Only future scheduled runs can be cancelled' },
+        { status: 400 }
+      );
+    }
+
+    // Delete batch run items first (foreign key constraint)
+    const { error: itemsDeleteError } = await serviceSupabase
+      .from('llm_batch_run_items')
+      .delete()
+      .eq('batch_run_id', runId);
+
+    if (itemsDeleteError) {
+      console.error('❌ [LLMBatchRun] Failed to delete run items:', itemsDeleteError);
+      return NextResponse.json(
+        { error: 'Failed to cancel batch run' },
+        { status: 500 }
+      );
+    }
+
+    // Delete the batch run
+    const { error: runDeleteError } = await serviceSupabase
+      .from('llm_batch_runs')
+      .delete()
+      .eq('id', runId);
+
+    if (runDeleteError) {
+      console.error('❌ [LLMBatchRun] Failed to delete run:', runDeleteError);
+      return NextResponse.json(
+        { error: 'Failed to cancel batch run' },
+        { status: 500 }
+      );
+    }
+
+    // Refund credits
+    let creditsRefunded = 0;
+    if (run.estimated_credits > 0 && run.idempotency_key) {
+      try {
+        await refundFeature(
+          serviceSupabase,
+          accountId,
+          run.estimated_credits,
+          run.idempotency_key,
+          {
+            featureType: 'llm_visibility',
+            description: `Cancelled scheduled LLM batch run`,
+            createdBy: user.id,
+          }
+        );
+        creditsRefunded = run.estimated_credits;
+        console.log(
+          `💰 [LLMBatchRun] Refunded ${creditsRefunded} credits for cancelled run ${runId}`
+        );
+      } catch (refundError) {
+        console.error('❌ [LLMBatchRun] Refund failed:', refundError);
+        // Run is already deleted, log error but return success
+      }
+    }
+
+    return NextResponse.json({
+      success: true,
+      creditsRefunded,
+    });
+
+  } catch (error) {
+    console.error('❌ [LLMBatchRun] Cancel error:', error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Internal server error' },
       { status: 500 }

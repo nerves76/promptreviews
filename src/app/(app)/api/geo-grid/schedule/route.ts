@@ -162,3 +162,44 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
+
+/**
+ * DELETE /api/geo-grid/schedule
+ * Cancel the recurring schedule by clearing frequency and next_scheduled_at.
+ */
+export async function DELETE(request: NextRequest) {
+  try {
+    const supabase = await createServerSupabaseClient();
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const accountId = await getRequestAccountId(request, user.id, supabase);
+    if (!accountId) {
+      return NextResponse.json({ error: 'Account not found' }, { status: 404 });
+    }
+
+    const { error } = await serviceSupabase
+      .from('gg_configs')
+      .update({
+        schedule_frequency: null,
+        schedule_day_of_week: null,
+        schedule_day_of_month: null,
+        next_scheduled_at: null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('account_id', accountId);
+
+    if (error) {
+      console.error('Failed to clear schedule:', error);
+      return NextResponse.json({ error: 'Failed to cancel schedule' }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Schedule DELETE error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
