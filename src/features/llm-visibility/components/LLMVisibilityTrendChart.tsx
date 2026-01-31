@@ -15,7 +15,6 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
 } from 'recharts';
 import Icon from '@/components/Icon';
@@ -23,12 +22,16 @@ import {
   LLMProvider,
   LLM_PROVIDERS,
   LLM_PROVIDER_LABELS,
+  LLM_PROVIDER_MODELS,
+  LLM_PROVIDER_COLORS,
   LLMVisibilityCheck,
 } from '../utils/types';
 
 interface LLMVisibilityTrendChartProps {
   results: LLMVisibilityCheck[];
   isLoading?: boolean;
+  selectedProviders?: Set<LLMProvider>;
+  onToggleProvider?: (provider: LLMProvider) => void;
 }
 
 type TimeGranularity = 'weekly' | 'monthly';
@@ -275,6 +278,8 @@ function createCustomTooltip(metricType: MetricType) {
 export default function LLMVisibilityTrendChart({
   results,
   isLoading = false,
+  selectedProviders,
+  onToggleProvider,
 }: LLMVisibilityTrendChartProps) {
   const [granularity, setGranularity] = useState<TimeGranularity>('weekly');
   const [showProviders, setShowProviders] = useState(true);
@@ -416,13 +421,6 @@ export default function LLMVisibilityTrendChart({
                 width={40}
               />
               <Tooltip content={createCustomTooltip(metricType)} />
-              <Legend
-                verticalAlign="bottom"
-                height={24}
-                iconType="circle"
-                iconSize={8}
-                wrapperStyle={{ fontSize: '11px' }}
-              />
 
               {/* Overall line (always shown) */}
               <Line
@@ -454,6 +452,41 @@ export default function LLMVisibilityTrendChart({
                 ))}
             </LineChart>
           </ResponsiveContainer>
+        </div>
+      )}
+
+      {/* Provider toggle legend */}
+      {hasAnyData && (
+        <div className="mt-3 flex flex-wrap items-center gap-1.5 justify-center">
+          {/* Overall indicator (non-interactive) */}
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium bg-indigo-50 text-indigo-700 border border-indigo-200/50">
+            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#6366f1' }} />
+            Overall
+          </span>
+          {LLM_PROVIDERS.map((provider) => {
+            const isSelected = selectedProviders ? selectedProviders.has(provider) : true;
+            const colors = LLM_PROVIDER_COLORS[provider];
+            return (
+              <button
+                key={provider}
+                onClick={() => onToggleProvider?.(provider)}
+                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium transition-all whitespace-nowrap ${
+                  isSelected
+                    ? `${colors.bg} ${colors.text} ${colors.border} border`
+                    : 'bg-gray-100 text-gray-400 border border-gray-200 line-through'
+                }`}
+                title={isSelected ? `Click to exclude ${LLM_PROVIDER_LABELS[provider]}` : `Click to include ${LLM_PROVIDER_LABELS[provider]}`}
+              >
+                <span className={`w-2.5 h-2.5 rounded border flex items-center justify-center ${
+                  isSelected ? `${colors.border} ${colors.text}` : 'border-gray-300'
+                }`}>
+                  {isSelected && <Icon name="FaCheck" className="w-1.5 h-1.5" />}
+                </span>
+                {LLM_PROVIDER_LABELS[provider]}
+                <span className="opacity-70">({LLM_PROVIDER_MODELS[provider]})</span>
+              </button>
+            );
+          })}
         </div>
       )}
     </div>
