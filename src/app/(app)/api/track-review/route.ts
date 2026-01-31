@@ -2,6 +2,7 @@ import { NextResponse, NextRequest } from "next/server";
 import { createClient, createServiceRoleClient } from "@/auth/providers/supabase";
 import { sendTemplatedEmail } from "@/utils/emailTemplates";
 import { standardReviewRateLimit } from "@/utils/reviewRateLimit";
+import { sendFirstReviewMilestoneEmail } from "@/lib/onboarding-emails";
 
 // Use service role client to bypass RLS for anonymous review submissions
 const supabase = createServiceRoleClient();
@@ -402,6 +403,20 @@ export async function POST(request: NextRequest) {
         }
       } catch (emailError) {
         console.error("[track-review] Error sending templated email:", emailError);
+      }
+    }
+
+    // Check if this is the account's first review (milestone email)
+    if (account?.email) {
+      const { count } = await supabase
+        .from('review_submissions')
+        .select('id', { count: 'exact', head: true })
+        .eq('account_id', account_id);
+
+      if (count === 1) {
+        sendFirstReviewMilestoneEmail(
+          account_id, account.email, account.first_name || 'there'
+        ).catch(err => console.error('[track-review] Failed to send first review milestone email:', err));
       }
     }
 

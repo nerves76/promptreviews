@@ -3,6 +3,7 @@ import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
 import { credit, ensureBalanceExists } from "@/lib/credits";
 import { syncAgencyFreeWorkspace, getAgenciesForClient } from "@/lib/billing/agencyIncentive";
+import { sendSubscriptionActivatedEmail, sendPaymentEmail } from "@/lib/onboarding-emails";
 
 // Lazy initialization to avoid build-time env var access
 function getStripeClient() {
@@ -507,9 +508,23 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // If payment succeeded and this was a past_due subscription, mark as reactivated
-    if (paymentSucceeded && subscriptionId) {
-      console.log("🎉 Payment succeeded - account reactivated!");
+    // If payment succeeded, send relevant email
+    if (paymentSucceeded && updateResult.data?.length) {
+      const acct = updateResult.data[0];
+      // Send subscription activated email (dedup prevents re-sending)
+      sendSubscriptionActivatedEmail(
+        acct.id, acct.email, acct.first_name || 'there', acct.plan || 'Paid'
+      ).catch(err => console.error("[stripe-webhook] Failed to send subscription activated email:", err));
+    }
+
+    // If payment failed, send first failure email
+    if (!paymentSucceeded && updateResult.data?.length) {
+      const acct = updateResult.data[0];
+      sendPaymentEmail(acct.id, 'FIRST_FAILURE', {
+        amount: String((invoice.amount_due || 0) / 100),
+        gracePeriodDays: '7',
+        nextRetryDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toLocaleDateString(),
+      }).catch(err => console.error("[stripe-webhook] Failed to send payment failed email:", err));
     }
   } else if (event.type === "charge.refunded") {
     // Handle refunds - claw back credits if this was a credit pack purchase

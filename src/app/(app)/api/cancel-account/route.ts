@@ -13,6 +13,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/auth/providers/supabase';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 import { createStripeClientWithRetry, STRIPE_CONFIG } from '@/lib/billing/config';
+import { sendCancellationEmail } from '@/lib/onboarding-emails';
 
 export async function POST(request: NextRequest) {
   // Create Stripe client inside request handler to avoid build-time env var access
@@ -67,7 +68,7 @@ export async function POST(request: NextRequest) {
     // Get the account details including Stripe info
     const { data: account, error: accountError } = await supabase
       .from('accounts')
-      .select('id, email, deleted_at, stripe_subscription_id, stripe_customer_id, plan')
+      .select('id, email, first_name, deleted_at, stripe_subscription_id, stripe_customer_id, plan')
       .eq('id', accountId)
       .single();
 
@@ -171,6 +172,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to cancel account' }, { status: 500 });
     }
 
+
+    // Send cancellation feedback email (non-blocking)
+    if (account.email) {
+      sendCancellationEmail(accountId, account.email, account.first_name || 'there')
+        .catch(err => console.error('[cancel-account] Failed to send cancellation email:', err));
+    }
 
     // Optional: Sign out the user
     await supabase.auth.signOut();

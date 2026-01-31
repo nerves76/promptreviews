@@ -9,6 +9,7 @@ import { createServerClient } from '@supabase/ssr';
 import { createServiceRoleClient } from '@/auth/providers/supabase';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
+import { sendTeamWelcomeEmail } from '@/lib/onboarding-emails';
 
 // 🔧 CONSOLIDATION: Shared server client creation for API routes
 // This eliminates duplicate client creation patterns
@@ -286,6 +287,24 @@ export async function POST(request: NextRequest) {
     if (updateError) {
       console.error('Error updating invitation:', updateError);
       // Don't fail the request if this fails - user is already added
+    }
+
+    // Send team member welcome email (non-blocking)
+    if (user.email) {
+      const { data: business } = await supabaseAdmin
+        .from('businesses')
+        .select('name')
+        .eq('account_id', invitation.account_id)
+        .limit(1)
+        .single();
+
+      sendTeamWelcomeEmail(
+        invitation.account_id,
+        user.email,
+        user.user_metadata?.first_name || 'there',
+        business?.name || 'the team',
+        invitation.role
+      ).catch(err => console.error('[team/accept] Failed to send welcome email:', err));
     }
 
     return NextResponse.json({

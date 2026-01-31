@@ -379,11 +379,17 @@ export class PaymentRetrySystem {
     template: string,
     data: any
   ): Promise<void> {
-    
-    // In production, integrate with email service
-    // Example: SendGrid, Postmark, AWS SES
-    
-    // Log email for now
+    try {
+      const { sendPaymentEmail } = await import('@/lib/onboarding-emails');
+      const variables: Record<string, string> = {};
+      if (data.amount != null) variables.amount = String(data.amount);
+      if (data.gracePeriodDays != null) variables.gracePeriodDays = String(data.gracePeriodDays);
+      if (data.nextRetryDate) variables.nextRetryDate = String(data.nextRetryDate);
+      if (data.daysRemaining != null) variables.daysRemaining = String(data.daysRemaining);
+      await sendPaymentEmail(accountId, template, variables);
+    } catch (err) {
+      console.error(`[payment-retry] Failed to send ${template} email for account ${accountId}:`, err);
+    }
   }
 
   /**

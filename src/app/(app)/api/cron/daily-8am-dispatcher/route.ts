@@ -79,6 +79,7 @@ export async function GET(request: NextRequest) {
     runJob("/api/cron/send-credit-warnings", "credit-warnings"),
     runJob("/api/cron/monitor-gbp-changes", "gbp-changes"),
     runJob("/api/cron/send-communication-reminders", "communication-reminders"),
+    runJob("/api/cron/send-onboarding-emails", "onboarding-emails"),
   ]);
 
   const totalDuration = Date.now() - startTime;
