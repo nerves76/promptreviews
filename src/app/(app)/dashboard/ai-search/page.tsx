@@ -1961,6 +1961,17 @@ export default function AISearchPage() {
 
               return (
                 <div className="mb-4 flex items-center gap-2 justify-end">
+                  {/* Show consistency toggle */}
+                  <button
+                    onClick={() => setShowConsistency(!showConsistency)}
+                    className="inline-flex items-center gap-2 text-sm text-gray-600"
+                    title={showConsistency ? 'Hide consistency columns' : 'Show consistency columns'}
+                  >
+                    <span>Show consistency</span>
+                    <div className={`relative w-9 h-5 rounded-full transition-colors ${showConsistency ? 'bg-slate-blue' : 'bg-gray-300'}`}>
+                      <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${showConsistency ? 'translate-x-4' : 'translate-x-0.5'}`} />
+                    </div>
+                  </button>
                   <BatchRunHistoryDropdown
                     feature="llm_visibility"
                     onRetry={handleRetryFromHistory}
@@ -2065,18 +2076,6 @@ export default function AISearchPage() {
                   Clear filters
                 </button>
               )}
-
-              {/* Show consistency toggle */}
-              <button
-                onClick={() => setShowConsistency(!showConsistency)}
-                className="inline-flex items-center gap-2 text-sm text-gray-600"
-                title={showConsistency ? 'Hide consistency columns' : 'Show consistency columns'}
-              >
-                <span>Consistency</span>
-                <div className={`relative w-9 h-5 rounded-full transition-colors ${showConsistency ? 'bg-slate-blue' : 'bg-gray-300'}`}>
-                  <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${showConsistency ? 'translate-x-4' : 'translate-x-0.5'}`} />
-                </div>
-              </button>
 
               {/* Results count */}
               <div className="text-sm text-gray-500 ml-auto">

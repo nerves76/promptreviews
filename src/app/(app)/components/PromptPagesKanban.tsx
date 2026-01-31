@@ -329,7 +329,7 @@ export default function PromptPagesKanban({
             {...provided.droppableProps}
             className={`
               bg-white/30 backdrop-blur-md border-l border-r border-b rounded-b-lg p-3
-              ${columnType === 'mobile' ? "min-h-[60vh]" : "min-h-[400px] max-h-[calc(100vh-300px)]"}
+              ${columnType === 'mobile' ? "min-h-[60vh]" : "min-h-[400px] max-h-[calc(100vh_-_300px)]"}
               transition-colors
               ${snapshot.isDraggingOver ? "bg-blue-100/40 border-blue-300" : "border-white/40"}
             `}

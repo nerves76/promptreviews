@@ -288,7 +288,7 @@ export default function RunAllLLMModal({
       onClose={onClose}
       size="md"
       showCloseButton={true}
-      className="!p-0 flex flex-col max-h-[calc(100vh-6rem)]"
+      className="!p-0 flex flex-col max-h-[calc(100vh_-_6rem)]"
     >
       {/* Header */}
       <div className="px-6 py-4 border-b border-gray-100 pr-14 flex-shrink-0">
@@ -613,7 +613,7 @@ export default function RunAllLLMModal({
         </div>
 
       {/* Footer */}
-      <Modal.Footer className="bg-gray-50 flex-shrink-0">
+      <Modal.Footer className="!mt-0 px-6 py-4 border-t border-gray-100 bg-gray-50 flex-shrink-0">
         <button
           onClick={onClose}
           className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"

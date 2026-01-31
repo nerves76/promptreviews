@@ -157,18 +157,9 @@ function StandardModal({
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel
-                className={cn(
-                  'relative w-full transform rounded-2xl p-4 sm:p-6 shadow-xl transition-all my-auto',
-                  sizeClasses[size],
-                  (allowOverflow || showCloseButton) ? 'overflow-visible' : 'overflow-hidden',
-                  isDark
-                    ? 'bg-white/10 backdrop-blur-md border border-white/20 text-white'
-                    : 'bg-white',
-                  className
-                )}
-              >
-                {/* Standardized close button - inside on mobile, outside on larger screens */}
+              {/* Wrapper div: positions close button outside Panel so Panel can scroll */}
+              <div className={cn('relative w-full my-auto', sizeClasses[size])}>
+                {/* Close button - in wrapper so it's not clipped by Panel overflow */}
                 {showCloseButton && (
                   <button
                     className={cn(
@@ -186,17 +177,29 @@ function StandardModal({
                     </svg>
                   </button>
                 )}
-                {/* Title */}
-                {title && (
-                  <Dialog.Title className={cn(
-                    "text-lg font-semibold mb-4",
-                    isDark ? "text-white" : "text-gray-900"
-                  )}>
-                    {title}
-                  </Dialog.Title>
-                )}
-                {children}
-              </Dialog.Panel>
+                <Dialog.Panel
+                  className={cn(
+                    'w-full transform rounded-2xl p-4 sm:p-6 shadow-xl transition-all',
+                    'max-h-[calc(100vh_-_4rem)] flex flex-col',
+                    allowOverflow ? 'overflow-visible' : 'overflow-y-auto',
+                    isDark
+                      ? 'bg-white/10 backdrop-blur-md border border-white/20 text-white'
+                      : 'bg-white',
+                    className
+                  )}
+                >
+                  {/* Title */}
+                  {title && (
+                    <Dialog.Title className={cn(
+                      "text-lg font-semibold mb-4",
+                      isDark ? "text-white" : "text-gray-900"
+                    )}>
+                      {title}
+                    </Dialog.Title>
+                  )}
+                  {children}
+                </Dialog.Panel>
+              </div>
             </Transition.Child>
           </div>
         </div>

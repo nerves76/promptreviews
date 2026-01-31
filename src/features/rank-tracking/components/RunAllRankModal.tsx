@@ -257,7 +257,7 @@ export default function RunAllRankModal({
       />
 
       {/* Modal */}
-      <div className="relative bg-white rounded-xl shadow-xl max-w-md w-full mx-4 overflow-hidden flex flex-col max-h-[calc(100vh-4rem)]">
+      <div className="relative bg-white rounded-xl shadow-xl max-w-md w-full mx-4 overflow-hidden flex flex-col max-h-[calc(100vh_-_4rem)]">
         {/* Header */}
         <div className="px-6 py-4 border-b border-gray-100 flex-shrink-0">
           <div className="flex items-center justify-between">
