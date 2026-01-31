@@ -9,6 +9,10 @@ import { createClient } from '@supabase/supabase-js';
 import { createServerSupabaseClient } from '@/auth/providers/supabase';
 import { refundFeature } from '@/lib/credits';
 import { sendNotificationToAccount } from '@/utils/notifications';
+import { LLM_CREDIT_COSTS, type LLMProvider } from '@/features/llm-visibility/utils/types';
+
+// Rank tracking: 2 credits per keyword (desktop + mobile)
+const RANK_CREDITS_PER_KEYWORD = 2;
 
 const serviceSupabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -367,17 +371,67 @@ export async function POST(request: NextRequest) {
 
     switch (action) {
       case 'force_fail': {
-        // Mark as failed and issue refund
+        // Calculate actual credits used based on successfully completed items.
+        // total_credits_used is set equal to estimated_credits at creation and
+        // only gets reduced by cron on completion, so for in-progress runs it's
+        // unreliable. Instead, count actual completed items.
         const estimatedCredits = run.estimated_credits || 0;
-        const usedCredits = run.total_credits_used || 0;
-        const refundAmount = estimatedCredits - usedCredits;
 
+        // Count completed items from the items table
+        const itemsTableMap: Record<string, string> = {
+          rank: 'rank_batch_run_items',
+          llm: 'llm_batch_run_items',
+          analysis: 'analysis_batch_run_items',
+        };
+        const itemsTable = itemsTableMap[runType];
+
+        let actualCreditsUsed = 0;
+        let completedCount = 0;
+        let failedCount = 0;
+
+        if (itemsTable) {
+          const { data: items } = await serviceSupabase
+            .from(itemsTable)
+            .select('status')
+            .eq('batch_run_id', runId);
+
+          if (items) {
+            completedCount = items.filter(i => i.status === 'completed').length;
+            failedCount = items.filter(i => i.status !== 'completed').length;
+          }
+
+          // Calculate cost per item based on run type
+          if (runType === 'llm') {
+            const providers = (run.providers as LLMProvider[]) || [];
+            const costPerQuestion = providers.reduce(
+              (sum: number, provider: LLMProvider) => sum + (LLM_CREDIT_COSTS[provider] || 1),
+              0
+            ) || 1;
+            actualCreditsUsed = completedCount * costPerQuestion;
+          } else if (runType === 'rank') {
+            actualCreditsUsed = completedCount * RANK_CREDITS_PER_KEYWORD;
+          } else {
+            // For other types, fall back to successful_checks from the run record
+            actualCreditsUsed = run.successful_checks || 0;
+          }
+        } else {
+          // No items table (e.g., concept runs) - use successful_checks as-is
+          actualCreditsUsed = run.successful_checks || 0;
+        }
+
+        const refundAmount = Math.max(0, estimatedCredits - actualCreditsUsed);
+
+        // Update the run with corrected total_credits_used
         await serviceSupabase
           .from(tableName)
           .update({
             status: 'failed',
             error_message: 'Manually cancelled by admin',
             completed_at: new Date().toISOString(),
+            total_credits_used: actualCreditsUsed,
+            successful_checks: completedCount || run.successful_checks || 0,
+            failed_checks: failedCount || run.failed_checks || 0,
+            processed_questions: (completedCount + failedCount) || run.processed_questions || run.processed_keywords || 0,
           })
           .eq('id', runId);
 
@@ -396,8 +450,10 @@ export async function POST(request: NextRequest) {
                 featureMetadata: {
                   batchRunId: runId,
                   reason: 'admin_cancelled',
+                  completedItems: completedCount,
+                  refundedCredits: refundAmount,
                 },
-                description: `Admin cancelled batch run, refunded ${refundAmount} credits`,
+                description: `Admin cancelled batch run, refunded ${refundAmount} credits (${completedCount} items completed)`,
               }
             );
 
@@ -405,7 +461,7 @@ export async function POST(request: NextRequest) {
             await sendNotificationToAccount(run.account_id, 'credit_refund', {
               feature: runType,
               creditsRefunded: refundAmount,
-              failedChecks: refundAmount,
+              failedChecks: failedCount,
               batchRunId: runId,
             });
           } catch (refundError) {
@@ -415,7 +471,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({
           success: true,
-          message: `Run marked as failed${refundAmount > 0 ? `, ${refundAmount} credits refunded` : ''}`,
+          message: `Run marked as failed${refundAmount > 0 ? `, ${refundAmount} credits refunded` : ''} (${completedCount} items completed, ${failedCount} not processed)`,
         });
       }
 
