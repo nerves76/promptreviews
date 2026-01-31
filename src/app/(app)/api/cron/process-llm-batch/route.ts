@@ -193,6 +193,25 @@ export async function GET(request: NextRequest) {
         // Use as-is
       }
 
+      // Reset items stuck in 'processing' for > 10 minutes (function timeout is 5 min)
+      const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+      const { data: stuckItems } = await serviceSupabase
+        .from('llm_batch_run_items')
+        .select('id')
+        .eq('batch_run_id', run.id)
+        .eq('status', 'processing')
+        .lt('updated_at', tenMinutesAgo);
+
+      if (stuckItems && stuckItems.length > 0) {
+        console.log(`📋 [LLMBatch] Resetting ${stuckItems.length} stuck items to pending`);
+        await serviceSupabase
+          .from('llm_batch_run_items')
+          .update({ status: 'pending', updated_at: new Date().toISOString() })
+          .eq('batch_run_id', run.id)
+          .eq('status', 'processing')
+          .lt('updated_at', tenMinutesAgo);
+      }
+
       // Get next batch of pending items
       const { data: pendingItems, error: itemsError } = await serviceSupabase
         .from('llm_batch_run_items')

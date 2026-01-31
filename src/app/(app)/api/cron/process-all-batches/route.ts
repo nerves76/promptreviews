@@ -5,33 +5,55 @@
  * This consolidates multiple cron jobs into one to stay within Vercel's
  * 20 cron job limit.
  *
- * Runs every minute and processes each batch type sequentially.
+ * Runs every minute. All batch types are dispatched in PARALLEL (fire-and-forget)
+ * so each processor gets its own full 5-minute serverless timeout and they don't
+ * block each other.
  */
 
 import { NextRequest } from 'next/server';
 import { logCronExecution, verifyCronSecret } from '@/lib/cronLogger';
 
-// Extend timeout for this route
-export const maxDuration = 300; // 5 minutes
+// This route just dispatches — it doesn't need a long timeout itself
+export const maxDuration = 30; // 30 seconds is plenty for dispatching
 
-// Helper to call internal API endpoints
-async function callInternalEndpoint(path: string, cronSecret: string): Promise<{ success: boolean; message: string }> {
+// Helper to fire off an internal API endpoint without waiting for its full response.
+// We use a short timeout so this dispatcher finishes quickly. The called endpoints
+// are their own serverless functions with their own 5-minute timeouts.
+async function fireInternalEndpoint(path: string, cronSecret: string): Promise<{ success: boolean; message: string }> {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.promptreviews.app';
 
   try {
+    const controller = new AbortController();
+    // Wait up to 5 seconds for the response. If the endpoint takes longer,
+    // it's still running in its own serverless function — we just won't
+    // get the result. That's fine; the cron logger on the endpoint itself
+    // captures the outcome.
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+
     const response = await fetch(`${baseUrl}${path}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${cronSecret}`,
       },
+      signal: controller.signal,
     });
+
+    clearTimeout(timeoutId);
 
     const data = await response.json();
     return {
       success: response.ok,
-      message: data.message || data.error || 'Unknown response',
+      message: data.message || data.error || 'OK',
     };
   } catch (error) {
+    // AbortError means we timed out waiting — that's fine, the endpoint is
+    // still running in its own process.
+    if (error instanceof Error && error.name === 'AbortError') {
+      return {
+        success: true,
+        message: 'Dispatched (running in background)',
+      };
+    }
     return {
       success: false,
       message: error instanceof Error ? error.message : 'Unknown error',
@@ -45,34 +67,31 @@ export async function GET(request: NextRequest) {
 
   return logCronExecution('process-all-batches', async () => {
     const cronSecret = process.env.CRON_SECRET || '';
-    const results: Record<string, { success: boolean; message: string }> = {};
 
-    // Process LLM batch runs
-    console.log('📋 [AllBatches] Processing LLM batch runs...');
-    results.llmBatch = await callInternalEndpoint('/api/cron/process-llm-batch', cronSecret);
-    console.log(`📋 [AllBatches] LLM batch: ${results.llmBatch.success ? 'success' : 'failed'} - ${results.llmBatch.message}`);
+    // Dispatch ALL batch processors in parallel so they each get their
+    // own serverless function and don't block each other.
+    console.log('📋 [AllBatches] Dispatching all batch processors in parallel...');
 
-    // Process Rank batch runs
-    console.log('📋 [AllBatches] Processing Rank batch runs...');
-    results.rankBatch = await callInternalEndpoint('/api/cron/process-rank-batch', cronSecret);
-    console.log(`📋 [AllBatches] Rank batch: ${results.rankBatch.success ? 'success' : 'failed'} - ${results.rankBatch.message}`);
+    const [llmBatch, rankBatch, conceptChecks, analysisBatch] = await Promise.all([
+      fireInternalEndpoint('/api/cron/process-llm-batch', cronSecret),
+      fireInternalEndpoint('/api/cron/process-rank-batch', cronSecret),
+      fireInternalEndpoint('/api/cron/process-concept-checks', cronSecret),
+      fireInternalEndpoint('/api/cron/process-analysis-batch', cronSecret),
+    ]);
 
-    // Process Concept check runs
-    console.log('📋 [AllBatches] Processing Concept check runs...');
-    results.conceptChecks = await callInternalEndpoint('/api/cron/process-concept-checks', cronSecret);
-    console.log(`📋 [AllBatches] Concept checks: ${results.conceptChecks.success ? 'success' : 'failed'} - ${results.conceptChecks.message}`);
+    const results = { llmBatch, rankBatch, conceptChecks, analysisBatch };
 
-    // Process Analysis batch runs (domain and competitor analysis)
-    console.log('📋 [AllBatches] Processing Analysis batch runs...');
-    results.analysisBatch = await callInternalEndpoint('/api/cron/process-analysis-batch', cronSecret);
-    console.log(`📋 [AllBatches] Analysis batch: ${results.analysisBatch.success ? 'success' : 'failed'} - ${results.analysisBatch.message}`);
+    console.log(`📋 [AllBatches] LLM: ${llmBatch.message}`);
+    console.log(`📋 [AllBatches] Rank: ${rankBatch.message}`);
+    console.log(`📋 [AllBatches] Concept: ${conceptChecks.message}`);
+    console.log(`📋 [AllBatches] Analysis: ${analysisBatch.message}`);
 
     const allSuccessful = Object.values(results).every(r => r.success);
 
     return {
       success: true,
       summary: {
-        message: allSuccessful ? 'All batch processors completed successfully' : 'Some batch processors had issues',
+        message: allSuccessful ? 'All batch processors dispatched successfully' : 'Some batch processors had issues',
         results,
       },
     };

@@ -20,6 +20,7 @@ interface BatchRun {
   idempotencyKey: string | null;
   isStuck: boolean;
   minutesElapsed: number;
+  scheduledFor?: string | null;
 }
 
 interface BatchMonitorData {
@@ -27,6 +28,7 @@ interface BatchMonitorData {
   summary: {
     total: number;
     active: number;
+    scheduled: number;
     stuck: number;
     failed: number;
   };
@@ -42,6 +44,7 @@ const TYPE_LABELS: Record<string, string> = {
 const STATUS_COLORS: Record<string, string> = {
   pending: 'bg-yellow-100 text-yellow-800',
   processing: 'bg-blue-100 text-blue-800',
+  scheduled: 'bg-purple-100 text-purple-800',
   completed: 'bg-green-100 text-green-800',
   failed: 'bg-red-100 text-red-800',
 };
@@ -125,7 +128,7 @@ export default function BatchMonitorPage() {
     );
   }
 
-  const activeRuns = data?.runs.filter(r => ['pending', 'processing'].includes(r.status)) || [];
+  const activeRuns = data?.runs.filter(r => ['pending', 'processing', 'scheduled'].includes(r.status)) || [];
   const stuckRuns = data?.runs.filter(r => r.isStuck) || [];
   const completedRuns = data?.runs.filter(r => ['completed', 'failed'].includes(r.status)) || [];
 
@@ -244,7 +247,9 @@ export default function BatchMonitorPage() {
                       )}
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
-                      {formatTime(run.minutesElapsed)}
+                      {run.status === 'scheduled' && run.scheduledFor
+                        ? new Date(run.scheduledFor).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
+                        : formatTime(run.minutesElapsed)}
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
                       {run.creditsUsed}/{run.estimatedCredits}

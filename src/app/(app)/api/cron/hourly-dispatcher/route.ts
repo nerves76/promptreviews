@@ -11,6 +11,7 @@ import { NextRequest, NextResponse } from "next/server";
  * - run-scheduled-rank-checks
  * - run-scheduled-backlink-checks
  * - run-scheduled-concepts
+ * - run-scheduled-llm-checks
  */
 
 const CRON_SECRET = process.env.CRON_SECRET_TOKEN;
@@ -81,6 +82,7 @@ export async function GET(request: NextRequest) {
     runJob("/api/cron/run-scheduled-rank-checks", "scheduled-rank-checks"),
     runJob("/api/cron/run-scheduled-backlink-checks", "scheduled-backlink-checks"),
     runJob("/api/cron/run-scheduled-concepts", "scheduled-concepts"),
+    runJob("/api/cron/run-scheduled-llm-checks", "scheduled-llm-checks"),
   ]);
 
   const totalDuration = Date.now() - startTime;

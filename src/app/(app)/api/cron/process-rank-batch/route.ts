@@ -179,6 +179,28 @@ export async function GET(request: NextRequest) {
         // Use as-is
       }
 
+      // Reset items stuck in 'processing' for > 10 minutes (function timeout is 5 min)
+      const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+      const { data: stuckItems } = await serviceSupabase
+        .from('rank_batch_run_items')
+        .select('id, desktop_status, mobile_status')
+        .eq('batch_run_id', run.id)
+        .or('desktop_status.eq.processing,mobile_status.eq.processing')
+        .lt('updated_at', tenMinutesAgo);
+
+      if (stuckItems && stuckItems.length > 0) {
+        console.log(`📋 [RankBatch] Resetting ${stuckItems.length} stuck items`);
+        for (const item of stuckItems) {
+          const updates: Record<string, string> = { updated_at: new Date().toISOString() };
+          if (item.desktop_status === 'processing') updates.desktop_status = 'pending';
+          if (item.mobile_status === 'processing') updates.mobile_status = 'pending';
+          await serviceSupabase
+            .from('rank_batch_run_items')
+            .update(updates)
+            .eq('id', item.id);
+        }
+      }
+
       // Get next batch of items that need processing
       // An item needs processing if desktop_status or mobile_status is 'pending'
       const { data: pendingItems, error: itemsError } = await serviceSupabase

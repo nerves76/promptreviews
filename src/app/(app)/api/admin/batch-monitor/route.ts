@@ -34,6 +34,7 @@ interface BatchRun {
   idempotencyKey: string | null;
   isStuck: boolean;
   minutesElapsed: number;
+  scheduledFor?: string | null;
 }
 
 /**
@@ -74,7 +75,7 @@ export async function GET(request: NextRequest) {
       .select(`
         id, account_id, status, total_keywords, processed_keywords,
         started_at, created_at, error_message, estimated_credits,
-        total_credits_used, idempotency_key
+        total_credits_used, idempotency_key, scheduled_for
       `)
       .order('created_at', { ascending: false })
       .limit(limit);
@@ -88,15 +89,17 @@ export async function GET(request: NextRequest) {
     for (const run of rankRuns || []) {
       const startTime = run.started_at ? new Date(run.started_at) : new Date(run.created_at);
       const minutesElapsed = Math.round((now.getTime() - startTime.getTime()) / 60000);
+      const isFutureScheduled = run.scheduled_for && new Date(run.scheduled_for) > now;
       const isStuck = ['pending', 'processing'].includes(run.status) &&
                       minutesElapsed > STUCK_THRESHOLD_MINUTES &&
-                      run.processed_keywords === 0;
+                      run.processed_keywords === 0 &&
+                      !isFutureScheduled;
 
       runs.push({
         id: run.id,
         type: 'rank',
         accountId: run.account_id,
-        status: run.status,
+        status: isFutureScheduled ? 'scheduled' : run.status,
         progress: run.processed_keywords || 0,
         total: run.total_keywords || 0,
         startedAt: run.started_at,
@@ -107,6 +110,7 @@ export async function GET(request: NextRequest) {
         idempotencyKey: run.idempotency_key,
         isStuck,
         minutesElapsed,
+        scheduledFor: run.scheduled_for,
       });
     }
 
@@ -116,7 +120,7 @@ export async function GET(request: NextRequest) {
       .select(`
         id, account_id, status, total_questions, processed_questions,
         started_at, created_at, error_message, estimated_credits,
-        total_credits_used, idempotency_key
+        total_credits_used, idempotency_key, scheduled_for
       `)
       .order('created_at', { ascending: false })
       .limit(limit);
@@ -130,15 +134,17 @@ export async function GET(request: NextRequest) {
     for (const run of llmRuns || []) {
       const startTime = run.started_at ? new Date(run.started_at) : new Date(run.created_at);
       const minutesElapsed = Math.round((now.getTime() - startTime.getTime()) / 60000);
+      const isFutureScheduled = run.scheduled_for && new Date(run.scheduled_for) > now;
       const isStuck = ['pending', 'processing'].includes(run.status) &&
                       minutesElapsed > STUCK_THRESHOLD_MINUTES &&
-                      run.processed_questions === 0;
+                      run.processed_questions === 0 &&
+                      !isFutureScheduled;
 
       runs.push({
         id: run.id,
         type: 'llm',
         accountId: run.account_id,
-        status: run.status,
+        status: isFutureScheduled ? 'scheduled' : run.status,
         progress: run.processed_questions || 0,
         total: run.total_questions || 0,
         startedAt: run.started_at,
@@ -149,6 +155,7 @@ export async function GET(request: NextRequest) {
         idempotencyKey: run.idempotency_key,
         isStuck,
         minutesElapsed,
+        scheduledFor: run.scheduled_for,
       });
     }
 
@@ -279,6 +286,7 @@ export async function GET(request: NextRequest) {
 
     // Summary stats
     const activeRuns = runs.filter(r => ['pending', 'processing'].includes(r.status));
+    const scheduledRuns = runs.filter(r => r.status === 'scheduled');
     const stuckRuns = runs.filter(r => r.isStuck);
     const failedRuns = runs.filter(r => r.status === 'failed');
 
@@ -287,6 +295,7 @@ export async function GET(request: NextRequest) {
       summary: {
         total: runs.length,
         active: activeRuns.length,
+        scheduled: scheduledRuns.length,
         stuck: stuckRuns.length,
         failed: failedRuns.length,
       },
