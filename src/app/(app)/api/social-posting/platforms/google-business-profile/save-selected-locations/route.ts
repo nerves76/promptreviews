@@ -163,6 +163,52 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Upsert into selected_gbp_locations so the dashboard can gate on this table
+    // First delete existing selections for this account, then insert new ones
+    const { error: deleteSelectedError } = await serviceSupabase
+      .from('selected_gbp_locations')
+      .delete()
+      .eq('account_id', accountId);
+
+    if (deleteSelectedError) {
+      console.error('[save-selected-locations] Error clearing selected_gbp_locations:', deleteSelectedError);
+      // Continue — non-fatal, the google_business_locations cleanup already succeeded
+    }
+
+    if (selectedLocationIds.length > 0) {
+      const rowsToInsert = locations.map((loc: { id: string; name: string; address?: string }) => ({
+        account_id: accountId,
+        user_id: user.id,
+        location_id: loc.id,
+        location_name: loc.name || '',
+        address: loc.address || null,
+        selected_at: new Date().toISOString(),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }));
+
+      const { error: insertSelectedError } = await serviceSupabase
+        .from('selected_gbp_locations')
+        .insert(rowsToInsert);
+
+      if (insertSelectedError) {
+        console.error('[save-selected-locations] Error writing selected_gbp_locations:', insertSelectedError);
+        // If the trigger fires (plan limit exceeded), surface that to the caller
+        if (insertSelectedError.message?.includes('maximum GBP locations limit')) {
+          return NextResponse.json(
+            {
+              error: `Plan limit exceeded. Your ${account.plan} plan allows up to ${maxLocations} locations.`,
+              maxAllowed: maxLocations,
+              requested: locations.length,
+            },
+            { status: 400 }
+          );
+        }
+      } else {
+        console.log(`[save-selected-locations] Wrote ${rowsToInsert.length} rows to selected_gbp_locations`);
+      }
+    }
+
     // Auto-create protection snapshots for eligible accounts (Builder/Maven)
     const isEligible = account.plan === 'builder' || account.plan === 'maven';
     let snapshotsCreated = 0;

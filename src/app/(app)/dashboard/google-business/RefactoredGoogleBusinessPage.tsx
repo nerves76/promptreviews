@@ -171,6 +171,9 @@ export function RefactoredGoogleBusinessPage() {
   // Track maxLocations from API response
   const [maxGBPLocations, setMaxGBPLocations] = useState<number | null>(null);
 
+  // Whether the user has explicitly selected locations in selected_gbp_locations
+  const [needsLocationSelection, setNeedsLocationSelection] = useState(false);
+
   useEffect(() => {
     if (selectedLocations.length === 0) {
       return;
@@ -739,6 +742,47 @@ export function RefactoredGoogleBusinessPage() {
     }
   }, [selectedLocations, selectedLocationId, scopedLocations]);
 
+  // When user has fetched locations but hasn't selected any, fetch all locations
+  // from google_business_locations (non-dashboard mode) and show the selection modal
+  useEffect(() => {
+    if (!needsLocationSelection || !isConnected) return;
+
+    const fetchAllLocationsForModal = async () => {
+      try {
+        const activeAccountId = accountIdRef.current;
+        const hdrs: Record<string, string> = { 'Cache-Control': 'no-cache' };
+        if (activeAccountId) hdrs['X-Selected-Account'] = activeAccountId;
+
+        const resp = await fetch(`/api/social-posting/platforms?t=${Date.now()}`, {
+          cache: 'no-store',
+          headers: hdrs,
+          credentials: 'same-origin'
+        });
+        if (!resp.ok) return;
+
+        const data = await resp.json();
+        const gbp = data.platforms?.find((p: any) => p.id === 'google-business-profile');
+        const allLocs = gbp?.locations || [];
+
+        if (allLocs.length > 0) {
+          const transformed = safeTransformLocations(
+            allLocs.map((loc: any) => ({
+              ...loc,
+              name: loc.location_name || loc.name,
+              title: loc.location_name || loc.title,
+            }))
+          );
+          setPendingLocations(transformed);
+          setShowLocationSelectionModal(true);
+        }
+      } catch (err) {
+        console.error('[GBP] Failed to fetch locations for selection modal:', err);
+      }
+    };
+
+    fetchAllLocationsForModal();
+  }, [needsLocationSelection, isConnected]);
+
   // Fetch overview data when tab becomes active
   // Track whether we have a valid account ID to trigger refetch
   const hasValidAccountId = !!(selectedAccountId || account?.id);
@@ -855,7 +899,7 @@ export function RefactoredGoogleBusinessPage() {
         headers['X-Selected-Account'] = activeAccountId;
       }
 
-      const response = await fetch(`/api/social-posting/platforms?t=${Date.now()}`, {
+      const response = await fetch(`/api/social-posting/platforms?source=dashboard&t=${Date.now()}`, {
         cache: 'no-store',
         headers,
         credentials: 'same-origin'
@@ -890,8 +934,60 @@ export function RefactoredGoogleBusinessPage() {
             console.log(`✅ Account max GBP locations limit: ${googlePlatform.maxLocations}`);
           }
 
-          // Load business locations from the platforms response
-          const locations = googlePlatform.locations || [];
+          // Check if user needs to select locations (dashboard mode)
+          const apiHasSelected = googlePlatform.hasSelectedLocations === true;
+          const apiAllCount = googlePlatform.allLocationsCount ?? 0;
+
+          // Will hold the final locations to process — normally from dashboard response,
+          // but overridden when we auto-select a single location.
+          let locationsToProcess = googlePlatform.locations || [];
+
+          if (!apiHasSelected && apiAllCount > 0) {
+            if (apiAllCount === 1) {
+              // Single location — auto-select without showing modal
+              try {
+                const allLocsResp = await fetch(`/api/social-posting/platforms?t=${Date.now()}`, {
+                  cache: 'no-store',
+                  headers,
+                  credentials: 'same-origin'
+                });
+                if (allLocsResp.ok) {
+                  const allLocsData = await allLocsResp.json();
+                  const gbp = allLocsData.platforms?.find((p: any) => p.id === 'google-business-profile');
+                  const allLocs = gbp?.locations || [];
+                  if (allLocs.length > 0) {
+                    const loc = allLocs[0];
+                    await fetch('/api/social-posting/platforms/google-business-profile/save-selected-locations', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json', ...headers },
+                      credentials: 'same-origin',
+                      body: JSON.stringify({
+                        locations: [{
+                          id: loc.location_id || loc.id,
+                          name: loc.location_name || loc.name || '',
+                          address: loc.address || ''
+                        }]
+                      })
+                    });
+                    console.log('[loadPlatforms] Auto-selected single location');
+                    // Use the fetched locations directly so we don't need a second round-trip
+                    locationsToProcess = allLocs;
+                  }
+                }
+              } catch (autoErr) {
+                console.error('[loadPlatforms] Auto-select failed:', autoErr);
+              }
+              setNeedsLocationSelection(false);
+            } else {
+              // Multiple locations — flag so modal will be shown
+              setNeedsLocationSelection(true);
+            }
+          } else {
+            setNeedsLocationSelection(false);
+          }
+
+          // Load business locations from the platforms response (or overridden data)
+          const locations = locationsToProcess;
           
           // Debug: Log the raw location data structure
           if (locations.length > 0) {
@@ -996,12 +1092,7 @@ export function RefactoredGoogleBusinessPage() {
     } finally {
       loadingRef.current = false;
       setIsLoading(false);
-      
-      // Add a delay before clearing the platforms loading state
-      // This ensures React has time to process the location state updates
-      setTimeout(() => {
-        setIsLoadingPlatforms(false);
-      }, 500); // Increased delay to 500ms for better reliability
+      setIsLoadingPlatforms(false);
     }
   }, []); // Remove dependency to prevent useEffect from running multiple times
 
@@ -1432,21 +1523,28 @@ export function RefactoredGoogleBusinessPage() {
       setLocations(selectedLocs);
       localStorage.setItem('google-business-locations', JSON.stringify(selectedLocs));
       setHasAttemptedFetch(false);
-      
-      // Auto-select first location if none selected
-      if (!selectedLocationId && selectedLocs.length > 0) {
-        setSelectedLocationId(selectedLocs[0].id);
+
+      // Ensure selectedLocationId points to a valid selected location
+      if (selectedLocs.length > 0) {
+        const currentStillValid = selectedLocationId && selectedLocs.some(l => l.id === selectedLocationId);
+        if (!currentStillValid) {
+          setSelectedLocationId(selectedLocs[0].id);
+        }
       }
       
       setShowLocationSelectionModal(false);
       setPendingLocations([]);
-      
+      setNeedsLocationSelection(false);
+
+      // Reload platforms with dashboard mode so the new selection is reflected
+      await loadPlatforms();
+
       // Show success message
-      setPostResult({ 
-        success: true, 
-        message: `Successfully configured ${selectedLocs.length} location${selectedLocs.length !== 1 ? 's' : ''} for management!` 
+      setPostResult({
+        success: true,
+        message: `Successfully configured ${selectedLocs.length} location${selectedLocs.length !== 1 ? 's' : ''} for management!`
       });
-      
+
       // Switch to overview tab
       setActiveTab('overview');
     } catch (error) {
@@ -1463,11 +1561,12 @@ export function RefactoredGoogleBusinessPage() {
     // Clear pending locations and close modal
     setPendingLocations([]);
     setShowLocationSelectionModal(false);
-    
+    setNeedsLocationSelection(false);
+
     // Mark as attempted so user can try again
     setHasAttemptedFetch(true);
     localStorage.setItem('google-business-fetch-attempted', 'true');
-    
+
     setPostResult({
       success: false,
       message: 'Location selection cancelled. You can select locations later from the settings.'
@@ -1829,7 +1928,7 @@ export function RefactoredGoogleBusinessPage() {
           monthlyDataLength: data.data?.reviewTrends?.monthlyReviewData?.length,
           monthlyData: data.data?.reviewTrends?.monthlyReviewData
         });
-        setOverviewData({ ...data.data, locationId });
+        setOverviewData({ ...data.data, locationId, _cacheVersion: OVERVIEW_CACHE_VERSION });
         // Mark that we've successfully fetched data this session
         sessionFetchCompleted.current = true;
       } else {
