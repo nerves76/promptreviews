@@ -73,6 +73,20 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (createError) {
+      // Handle race condition: if another request already created the page,
+      // fetch and return it instead of failing
+      if (createError.message?.includes('unique_universal_per_account')) {
+        const { data: raceExisting } = await supabaseAdmin
+          .from('prompt_pages')
+          .select('*')
+          .eq('account_id', accountId)
+          .eq('is_universal', true)
+          .limit(1);
+
+        if (raceExisting?.length) {
+          return NextResponse.json({ success: true, page: raceExisting[0] });
+        }
+      }
       return NextResponse.json({ error: 'Failed to create universal prompt page', details: createError.message }, { status: 500 });
     }
 
