@@ -372,9 +372,9 @@ export const NOTIFICATION_REGISTRY: Record<NotificationType, NotificationConfig>
         geo_grid: 'Local Ranking Grid',
       };
       const dashboardPaths: Record<string, string> = {
-        rank_tracking: '/dashboard/rank-tracking',
+        rank_tracking: '/dashboard/keywords/rank-tracking',
         llm_visibility: '/dashboard/ai-search',
-        geo_grid: '/dashboard/local-ranking-grid',
+        geo_grid: '/dashboard/local-ranking-grids',
       };
       return {
         firstName: data.firstName || 'there',
