@@ -19,6 +19,7 @@ import {
 import { platformOptions } from "@/app/(app)/components/prompt-features/ReviewPlatformsFeature";
 import ShareButton from "@/app/(app)/components/reviews/ShareButton";
 import { ToastContainer, useToast } from "@/app/(app)/components/reviews/Toast";
+import Link from "next/link";
 import { SharePlatform } from "@/app/(app)/components/reviews/utils/shareHandlers";
 import { Tooltip } from "@/app/(app)/components/ui/Tooltip";
 
@@ -795,7 +796,7 @@ export default function ReviewsPage() {
   const filteredReviews = reviews.filter((r) => {
     const platformMatch = !platformFilter || r.platform === platformFilter;
     // Status filter: verified, imported (from Google or spreadsheet), or not verified
-    const isImported = r.source_channel === 'gbp_import' || r.source_channel === 'csv_upload' || r.imported_from_google;
+    const isImported = r.source_channel === 'gbp_import' || r.source_channel === 'csv_upload' || r.source_channel === 'dataforseo_import' || r.imported_from_google;
     const verifiedMatch =
       !verifiedFilter ||
       (verifiedFilter === "verified" && r.verified) ||
@@ -1221,8 +1222,9 @@ export default function ReviewsPage() {
                     <span className="font-semibold text-base text-gray-800">
                       {review.first_name} {review.last_name}
                     </span>
-                    {review.emoji_sentiment_selection &&
-                      getSentimentIcon(review.emoji_sentiment_selection)}
+                    {review.star_rating ? (
+                      <StarRating rating={review.star_rating} />
+                    ) : null}
                     <span className="text-xs text-gray-500 ml-2">
                       {new Date(review.created_at).toLocaleDateString()}
                     </span>
@@ -1251,6 +1253,11 @@ export default function ReviewsPage() {
                         <span className="ml-2 inline-flex items-center gap-1 px-2 py-1 text-xs bg-blue-50 text-blue-600 rounded">
                           <Icon name="FaGoogle" className="w-3 h-3" size={12} />
                           Imported from Google
+                        </span>
+                      ) : review.source_channel === 'dataforseo_import' ? (
+                        <span className="ml-2 inline-flex items-center gap-1 px-2 py-1 text-xs bg-purple-50 text-purple-600 rounded">
+                          <Icon name="FaGlobe" className="w-3 h-3" size={12} />
+                          Imported from {review.platform || 'platform'}
                         </span>
                       ) : review.source_channel === 'csv_upload' ? (
                         <span className="ml-2 inline-flex items-center gap-1 px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded">
@@ -1301,9 +1308,8 @@ export default function ReviewsPage() {
                         {review.review_content}
                       </span>
                     </div>
-                    {review.star_rating && (
+                    {review.star_rating && review.imported_from_google && (
                       <div className="flex items-center gap-2 mb-2">
-                        <StarRating rating={review.star_rating} />
                         <span className="text-xs text-gray-500">(From Google)</span>
                       </div>
                     )}
@@ -1542,7 +1548,27 @@ export default function ReviewsPage() {
               <div className="flex-1 h-px bg-gray-200" />
             </div>
 
-            {/* Section 2: Upload from CSV */}
+            {/* Link to platform import page */}
+            <Link
+              href="/dashboard/review-import"
+              onClick={() => setShowImportModal(false)}
+              className="mb-8 flex items-center gap-3 px-4 py-3 bg-purple-50 border border-purple-100 rounded-lg hover:bg-purple-100 transition-colors"
+            >
+              <Icon name="FaGlobe" className="w-5 h-5 text-slate-blue" size={20} />
+              <span className="text-sm text-gray-700">
+                Import from Trustpilot, TripAdvisor, and other platforms
+              </span>
+              <Icon name="FaChevronRight" className="w-3 h-3 text-gray-500 ml-auto" size={12} />
+            </Link>
+
+            {/* Divider */}
+            <div className="flex items-center gap-4 mb-8">
+              <div className="flex-1 h-px bg-gray-200" />
+              <span className="text-sm text-gray-500">or</span>
+              <div className="flex-1 h-px bg-gray-200" />
+            </div>
+
+            {/* Section 3: Upload from CSV */}
             <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
               <h3 className="text-lg font-semibold text-slate-blue flex items-center gap-2 mb-4">
                 <Icon name="FaUpload" className="w-5 h-5" />
