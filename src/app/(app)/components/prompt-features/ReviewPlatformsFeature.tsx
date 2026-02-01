@@ -54,6 +54,8 @@ export const platformOptions = [
   "Facebook",
   "TripAdvisor",
   "Amazon",
+  "App Store",
+  "Google Play",
   "G2",
   "BBB",
   "Thumbtack",
@@ -81,6 +83,10 @@ const getPlatformIcon = (name: string, url: string) => {
     return { icon: "FaTripadvisor", color: "text-slate-blue" };
   if (lowerName.includes("amazon") || lowerUrl.includes("amazon"))
     return { icon: "FaAmazon", color: "text-slate-blue" };
+  if (lowerName.includes("app store") || lowerName.includes("apple") || lowerUrl.includes("apple.com"))
+    return { icon: "FaApple", color: "text-slate-blue" };
+  if (lowerName.includes("google play") || lowerUrl.includes("play.google"))
+    return { icon: "FaGooglePlay", color: "text-slate-blue" };
   if (lowerName.includes("bbb") || lowerName.includes("better business") || lowerUrl.includes("bbb"))
     return { icon: "FaBbb", color: "text-slate-blue" };
   if (lowerName.includes("g2") || lowerUrl.includes("g2"))
