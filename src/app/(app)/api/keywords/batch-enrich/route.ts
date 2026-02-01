@@ -225,7 +225,7 @@ export async function POST(request: NextRequest) {
     const allNormalizedTerms = Array.from(normalizedTermToKeywordId.keys());
 
     // Parallel fetch all enrichment data
-    const [volumeByKeywordId, volumeByTerm, rankGroupKeywords, llmResults, geoGridTracking, geoGridChecks, conceptSchedules, conceptCheckRuns] = await Promise.all([
+    const [volumeByKeywordId, volumeByTerm, rankGroupKeywords, llmResults, geoGridTracking, geoGridChecks, conceptSchedules, conceptCheckRuns, activeBatchLLMItems] = await Promise.all([
       // 1a. Fetch volume data linked by keyword_id
       serviceSupabase
         .from('keyword_research_results')
@@ -313,6 +313,16 @@ export async function POST(request: NextRequest) {
         .in('keyword_id', filteredKeywordIds)
         .in('status', ['pending', 'processing'])
         .order('created_at', { ascending: false }),
+
+      // 8. Fetch pending/processing LLM batch run items for progress indicators
+      // Join through llm_batch_runs for account isolation
+      serviceSupabase
+        .from('llm_batch_run_items')
+        .select('keyword_id, status, batch_run_id, llm_batch_runs!inner(account_id, status)')
+        .in('keyword_id', filteredKeywordIds)
+        .in('status', ['pending', 'processing'])
+        .eq('llm_batch_runs.account_id', accountId)
+        .in('llm_batch_runs.status', ['pending', 'processing']),
     ]);
 
     // Build enrichment map
@@ -381,6 +391,59 @@ export async function POST(request: NextRequest) {
           reviewMatchingEnabled: false,
           runStatus,
         };
+      }
+    }
+
+    // Inject llmVisibilityStatus for keywords with active batch LLM runs
+    if (activeBatchLLMItems.data && activeBatchLLMItems.data.length > 0) {
+      const keywordsWithActiveBatchLLM = new Set<string>();
+      for (const item of activeBatchLLMItems.data) {
+        if (item.keyword_id) {
+          keywordsWithActiveBatchLLM.add(item.keyword_id);
+        }
+      }
+
+      for (const keywordId of keywordsWithActiveBatchLLM) {
+        if (!enrichment[keywordId]) continue;
+
+        if (enrichment[keywordId].scheduleStatus?.runStatus) {
+          // Already has a run status — inject llmVisibilityStatus if not set
+          if (!enrichment[keywordId].scheduleStatus!.runStatus!.llmVisibilityStatus) {
+            enrichment[keywordId].scheduleStatus!.runStatus!.llmVisibilityStatus = 'processing';
+          }
+        } else if (enrichment[keywordId].scheduleStatus) {
+          // Has schedule but no active run — create synthetic run status
+          enrichment[keywordId].scheduleStatus!.runStatus = {
+            runId: 'batch-llm',
+            status: 'processing',
+            searchRankStatus: null,
+            geoGridStatus: null,
+            llmVisibilityStatus: 'processing',
+            reviewMatchingStatus: null,
+            createdAt: new Date().toISOString(),
+          };
+        } else {
+          // No schedule at all — create both
+          enrichment[keywordId].scheduleStatus = {
+            isScheduled: false,
+            frequency: null,
+            isEnabled: false,
+            nextScheduledAt: null,
+            searchRankEnabled: false,
+            geoGridEnabled: false,
+            llmVisibilityEnabled: false,
+            reviewMatchingEnabled: false,
+            runStatus: {
+              runId: 'batch-llm',
+              status: 'processing',
+              searchRankStatus: null,
+              geoGridStatus: null,
+              llmVisibilityStatus: 'processing',
+              reviewMatchingStatus: null,
+              createdAt: new Date().toISOString(),
+            },
+          };
+        }
       }
     }
 

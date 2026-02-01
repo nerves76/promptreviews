@@ -19,8 +19,8 @@ import { computeLlmBatchStats } from '@/utils/batchCompletionStats';
 export const maxDuration = 300; // 5 minutes
 
 // Process up to N questions per execution to stay within timeout
-// With 5-minute timeout and ~10-15s per question, we can safely do 15-20
-const ITEMS_PER_EXECUTION = 15;
+// With 5-minute timeout, parallelized providers (~10-15s per question), we can do 20
+const ITEMS_PER_EXECUTION = 20;
 
 const serviceSupabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,

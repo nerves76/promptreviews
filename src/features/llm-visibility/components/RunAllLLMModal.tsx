@@ -103,6 +103,20 @@ export default function RunAllLLMModal({
     return providers.reduce((sum, p) => sum + LLM_CREDIT_COSTS[p], 0) * questionCount;
   }, []);
 
+  // Estimate batch duration in minutes
+  // ~12s per question (parallelized providers), 20 items per cron tick, 60s between ticks
+  const estimateDuration = useCallback((questionCount: number): number => {
+    const SECONDS_PER_QUESTION = 12;
+    const ITEMS_PER_TICK = 20;
+    const TICK_INTERVAL_SECONDS = 60;
+
+    if (questionCount <= 0) return 0;
+    const ticks = Math.ceil(questionCount / ITEMS_PER_TICK);
+    const processingTime = questionCount * SECONDS_PER_QUESTION;
+    const waitTime = Math.max(0, ticks - 1) * TICK_INTERVAL_SECONDS;
+    return Math.ceil((processingTime + waitTime) / 60);
+  }, []);
+
   // Load preview when modal opens
   useEffect(() => {
     if (isOpen) {
@@ -361,6 +375,17 @@ export default function RunAllLLMModal({
                   {batchStatus?.progress || 0}% complete
                 </p>
               </div>
+              {/* Remaining time estimate */}
+              {(() => {
+                const remaining = batchStatus ? batchStatus.totalQuestions - (batchStatus.processedQuestions || 0) : 0;
+                const mins = estimateDuration(remaining);
+                if (mins <= 0) return null;
+                return (
+                  <p className="text-xs text-gray-500 text-center">
+                    ~{mins} minute{mins !== 1 ? 's' : ''} remaining
+                  </p>
+                );
+              })()}
               <p className="text-xs text-gray-500 text-center">
                 You can close this modal. Checks will continue in the background.
               </p>
@@ -636,6 +661,16 @@ export default function RunAllLLMModal({
                       <Icon name="FaExclamationTriangle" className="w-5 h-5 text-amber-600" />
                     )}
                   </div>
+                </div>
+              )}
+
+              {/* Duration estimate */}
+              {preview && preview.totalQuestions > 0 && runMode === 'now' && (
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Icon name="FaClock" className="w-3.5 h-3.5 text-gray-500" />
+                  <span>
+                    Estimated time: about {estimateDuration(preview.totalQuestions)} minute{estimateDuration(preview.totalQuestions) !== 1 ? 's' : ''}
+                  </span>
                 </div>
               )}
 

@@ -651,7 +651,7 @@ export async function checkLLMVisibility(params: {
 /**
  * Check visibility across multiple LLM providers for a single question.
  *
- * Processes providers sequentially with delays to avoid rate limiting.
+ * Runs all providers in parallel since each hits a different DataForSEO endpoint.
  */
 export async function checkMultipleProviders(params: {
   question: string;
@@ -660,25 +660,17 @@ export async function checkMultipleProviders(params: {
   providers: LLMProvider[];
 }): Promise<LLMCheckResult[]> {
   const { question, targetDomain, businessName, providers } = params;
-  const results: LLMCheckResult[] = [];
 
-  for (let i = 0; i < providers.length; i++) {
-    const provider = providers[i];
-
-    // Add delay between requests (except for first)
-    if (i > 0) {
-      await sleep(REQUEST_DELAY);
-    }
-
-    const result = await checkLLMVisibility({
-      question,
-      targetDomain,
-      businessName,
-      provider,
-    });
-
-    results.push(result);
-  }
+  const results = await Promise.all(
+    providers.map(provider =>
+      checkLLMVisibility({
+        question,
+        targetDomain,
+        businessName,
+        provider,
+      })
+    )
+  );
 
   return results;
 }
