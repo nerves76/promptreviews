@@ -466,10 +466,6 @@ export default function OverviewStats({
               <span className={`text-sm font-medium flex items-center ${
                 reviewTrend > 0 ? 'text-green-600' : 'text-red-600'
               }`}>
-                <Icon
-                  name={reviewTrend > 0 ? "FaCaretUp" : "FaCaretDown"}
-                  className="w-3 h-3 mr-1"
-                />
                 {reviewTrend > 0 ? '+' : ''}{animatedReviewTrend} last 30 days
                 <div className="inline-flex flex-shrink-0 ml-1">
                   <GBPHelpBubble
