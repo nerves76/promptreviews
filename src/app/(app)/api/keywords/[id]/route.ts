@@ -14,6 +14,7 @@ import {
   type RelatedQuestion,
   type KeywordQuestionRow,
 } from '@/features/keywords/keywordUtils';
+import { DEFAULT_AI_SEARCH_GROUP_NAME } from '@/lib/groupConstants';
 
 // Service client for privileged operations
 const serviceSupabase = createClient(
@@ -469,25 +470,53 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
     // If questions were updated, sync to the keyword_questions table
     if (relatedQuestions !== undefined) {
-      // Delete existing questions for this keyword
-      await serviceSupabase
+      // Read existing group_id assignments so we can preserve them
+      const { data: existingQuestions } = await serviceSupabase
         .from('keyword_questions')
-        .delete()
+        .select('question, group_id')
         .eq('keyword_id', id);
 
-      // Insert the new questions
+      const existingGroupMap = new Map<string, string | null>();
+      if (existingQuestions) {
+        for (const eq of existingQuestions) {
+          existingGroupMap.set(eq.question, eq.group_id);
+        }
+      }
+
+      const newQuestionTexts = new Set(
+        (relatedQuestions as RelatedQuestion[]).map(q => q.question)
+      );
+
+      // Upsert new/updated questions (safe: crash here just leaves extra rows)
       if (relatedQuestions.length > 0) {
-        const questionsToInsert = (relatedQuestions as RelatedQuestion[]).map(q =>
-          prepareQuestionForInsert(id, q)
-        );
+        const generalGroupId = await ensureAISearchGeneralGroup(accountId);
 
-        const { error: questionsError } = await serviceSupabase
+        const questionsToUpsert = (relatedQuestions as RelatedQuestion[]).map(q => {
+          const preservedGroupId = existingGroupMap.get(q.question);
+          const groupId = preservedGroupId !== undefined ? preservedGroupId : generalGroupId;
+          return prepareQuestionForInsert(id, q, groupId);
+        });
+
+        const { error: upsertError } = await serviceSupabase
           .from('keyword_questions')
-          .insert(questionsToInsert);
+          .upsert(questionsToUpsert, { onConflict: 'keyword_id,question' });
 
-        if (questionsError) {
-          console.error('⚠️ Failed to sync questions to normalized table:', questionsError);
-          // Don't fail the request - JSONB fallback is still available
+        if (upsertError) {
+          console.error('⚠️ Failed to sync questions to normalized table:', upsertError);
+        }
+      }
+
+      // Delete only questions that were removed from the list
+      const removedQuestions = [...existingGroupMap.keys()].filter(q => !newQuestionTexts.has(q));
+      if (removedQuestions.length > 0) {
+        const { error: deleteError } = await serviceSupabase
+          .from('keyword_questions')
+          .delete()
+          .eq('keyword_id', id)
+          .in('question', removedQuestions);
+
+        if (deleteError) {
+          console.error('⚠️ Failed to delete removed questions:', deleteError);
         }
       }
     }
@@ -598,4 +627,46 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       { status: 500 }
     );
   }
+}
+
+/**
+ * Ensure the "General" AI search query group exists for the given account.
+ * Returns the group ID.
+ */
+async function ensureAISearchGeneralGroup(accountId: string): Promise<string | null> {
+  const { data: existingGroup } = await serviceSupabase
+    .from('ai_search_query_groups')
+    .select('id')
+    .eq('account_id', accountId)
+    .eq('name', DEFAULT_AI_SEARCH_GROUP_NAME)
+    .maybeSingle();
+
+  if (existingGroup) {
+    return existingGroup.id;
+  }
+
+  const { data: newGroup, error } = await serviceSupabase
+    .from('ai_search_query_groups')
+    .insert({
+      account_id: accountId,
+      name: DEFAULT_AI_SEARCH_GROUP_NAME,
+      display_order: 0,
+    })
+    .select('id')
+    .single();
+
+  if (newGroup) return newGroup.id;
+
+  // Handle race condition: another request may have created it concurrently
+  if (error) {
+    const { data: retryGroup } = await serviceSupabase
+      .from('ai_search_query_groups')
+      .select('id')
+      .eq('account_id', accountId)
+      .eq('name', DEFAULT_AI_SEARCH_GROUP_NAME)
+      .maybeSingle();
+    return retryGroup?.id || null;
+  }
+
+  return null;
 }

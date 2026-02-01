@@ -10,6 +10,7 @@ import {
   DEFAULT_GROUP_NAME,
   type RelatedQuestion,
 } from '@/features/keywords/keywordUtils';
+import { DEFAULT_AI_SEARCH_GROUP_NAME } from '@/lib/groupConstants';
 
 // Service client for privileged operations
 const serviceSupabase = createClient(
@@ -116,6 +117,9 @@ export async function POST(request: NextRequest) {
     const skippedCount = questions.length - questionsToCreate.length;
     const createdConcepts: any[] = [];
 
+    // Resolve the General AI search query group for question assignment
+    const aiSearchGeneralGroupId = await ensureAISearchGeneralGroup(accountId);
+
     // Create each concept
     for (const question of questionsToCreate) {
       const normalizedQuestion = normalizePhrase(question);
@@ -174,7 +178,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Also insert into the normalized keyword_questions table
-      const questionToInsert = prepareQuestionForInsert(newKeyword.id, relatedQuestion);
+      const questionToInsert = prepareQuestionForInsert(newKeyword.id, relatedQuestion, aiSearchGeneralGroupId);
       const { error: questionsError } = await serviceSupabase
         .from('keyword_questions')
         .insert(questionToInsert);
@@ -203,4 +207,45 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+/**
+ * Ensure the "General" AI search query group exists for the given account.
+ */
+async function ensureAISearchGeneralGroup(accountId: string): Promise<string | null> {
+  const { data: existingGroup } = await serviceSupabase
+    .from('ai_search_query_groups')
+    .select('id')
+    .eq('account_id', accountId)
+    .eq('name', DEFAULT_AI_SEARCH_GROUP_NAME)
+    .maybeSingle();
+
+  if (existingGroup) {
+    return existingGroup.id;
+  }
+
+  const { data: newGroup, error } = await serviceSupabase
+    .from('ai_search_query_groups')
+    .insert({
+      account_id: accountId,
+      name: DEFAULT_AI_SEARCH_GROUP_NAME,
+      display_order: 0,
+    })
+    .select('id')
+    .single();
+
+  if (newGroup) return newGroup.id;
+
+  // Handle race condition: another request may have created it concurrently
+  if (error) {
+    const { data: retryGroup } = await serviceSupabase
+      .from('ai_search_query_groups')
+      .select('id')
+      .eq('account_id', accountId)
+      .eq('name', DEFAULT_AI_SEARCH_GROUP_NAME)
+      .maybeSingle();
+    return retryGroup?.id || null;
+  }
+
+  return null;
 }

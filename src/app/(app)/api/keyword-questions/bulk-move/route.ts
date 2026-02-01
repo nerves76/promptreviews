@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { createServerSupabaseClient } from '@/auth/providers/supabase';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
-import { DEFAULT_AI_SEARCH_GROUP_NAME } from '@/app/(app)/api/ai-search-query-groups/route';
+import { DEFAULT_AI_SEARCH_GROUP_NAME } from '@/lib/groupConstants';
 
 // Service client for privileged operations
 const serviceSupabase = createClient(
@@ -19,7 +19,7 @@ const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12
  *
  * Body:
  * - questionIds: string[] (required) - Array of keyword_question IDs or composite IDs
- * - groupId: string | null (required) - Target group ID, or null to move to ungrouped
+ * - groupId: string | null (required) - Target group ID, or null to move to General
  *
  * Composite IDs (format: {keyword_id}-{question_text}) are automatically converted
  * to real keyword_questions entries if they don't exist yet.
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { questionIds, groupId } = body;
+    const { questionIds, groupId: rawGroupId } = body;
 
     if (!Array.isArray(questionIds) || questionIds.length === 0) {
       return NextResponse.json(
@@ -48,8 +48,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // If groupId is provided and not null, verify it belongs to this account
-    if (groupId) {
+    // Resolve target group: if null, default to General
+    let groupId = rawGroupId;
+    if (!groupId) {
+      groupId = await ensureGeneralGroupExists(accountId);
+      if (!groupId) {
+        return NextResponse.json(
+          { error: 'Failed to resolve General group' },
+          { status: 500 }
+        );
+      }
+    } else {
+      // Verify the provided groupId belongs to this account
       const { data: group, error: groupError } = await serviceSupabase
         .from('ai_search_query_groups')
         .select('id')
@@ -227,7 +237,7 @@ async function ensureGeneralGroupExists(accountId: string): Promise<string | nul
   }
 
   // Create General group
-  const { data: newGeneral } = await serviceSupabase
+  const { data: newGeneral, error } = await serviceSupabase
     .from('ai_search_query_groups')
     .insert({
       account_id: accountId,
@@ -237,5 +247,18 @@ async function ensureGeneralGroupExists(accountId: string): Promise<string | nul
     .select('id')
     .single();
 
-  return newGeneral?.id || null;
+  if (newGeneral) return newGeneral.id;
+
+  // Handle race condition: another request may have created it concurrently
+  if (error) {
+    const { data: retryGroup } = await serviceSupabase
+      .from('ai_search_query_groups')
+      .select('id')
+      .eq('account_id', accountId)
+      .eq('name', DEFAULT_AI_SEARCH_GROUP_NAME)
+      .maybeSingle();
+    return retryGroup?.id || null;
+  }
+
+  return null;
 }

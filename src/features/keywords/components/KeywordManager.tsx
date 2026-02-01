@@ -163,7 +163,6 @@ export default function KeywordManager({
   const {
     keywords,
     groups,
-    ungroupedCount,
     isLoading,
     error,
     refresh,
@@ -1668,7 +1667,6 @@ export default function KeywordManager({
         onSelectAll={handleSelectAll}
         onDeselectAll={handleDeselectAll}
         onMoveToGroup={handleBulkMoveToGroup}
-        allowUngrouped={false}
         onDelete={() => setShowBulkDeleteModal(true)}
       />
 

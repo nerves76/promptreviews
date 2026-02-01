@@ -23,49 +23,49 @@ export interface UserAction {
 const articleAssociations: ArticleAssociation[] = [
   {
     appPage: '/dashboard',
-    articles: ['getting-started'],
+    articles: ['getting-started', 'getting-started/account-setup'],
     keywords: ['dashboard', 'overview', 'getting-started'],
     priority: 'high',
     userActions: ['page_view', 'first_visit']
   },
   {
     appPage: '/dashboard/create-prompt-page',
-    articles: ['prompt-pages'],
+    articles: ['prompt-pages', 'getting-started/first-prompt-page', 'prompt-pages/types'],
     keywords: ['prompt-pages', 'create', 'setup'],
     priority: 'high',
     userActions: ['create_prompt_page', 'page_view']
   },
   {
     appPage: '/dashboard/edit-prompt-page',
-    articles: ['prompt-pages'],
+    articles: ['prompt-pages', 'prompt-pages/settings', 'prompt-pages/features'],
     keywords: ['prompt-pages', 'edit', 'customize'],
     priority: 'medium',
     userActions: ['edit_prompt_page', 'page_view']
   },
   {
     appPage: '/dashboard/contacts',
-    articles: ['contacts'],
+    articles: ['contacts', 'getting-started/adding-contacts'],
     keywords: ['contacts', 'import', 'manage'],
     priority: 'high',
     userActions: ['upload_contacts', 'page_view']
   },
   {
     appPage: '/dashboard/business-profile',
-    articles: ['getting-started'],
+    articles: ['business-profile', 'getting-started/account-setup'],
     keywords: ['business', 'profile', 'setup'],
     priority: 'medium',
     userActions: ['update_profile', 'page_view']
   },
   {
     appPage: '/dashboard/google-business',
-    articles: ['troubleshooting', 'bulk-business-info-update'],
+    articles: ['google-business', 'google-business/bulk-updates', 'google-business/review-import'],
     keywords: ['google', 'integration', 'business-profile', 'bulk', 'update', 'multiple', 'locations'],
     priority: 'medium',
     userActions: ['connect_google', 'page_view', 'bulk_update', 'update_business_info']
   },
   {
     appPage: '/dashboard/widget',
-    articles: ['getting-started'],
+    articles: ['widgets', 'getting-started/review-widget'],
     keywords: ['widgets', 'embed', 'website'],
     priority: 'medium',
     userActions: ['embed_widget', 'page_view']
@@ -121,7 +121,7 @@ const articleAssociations: ArticleAssociation[] = [
   },
   {
     appPage: '/dashboard/reviews/sources',
-    articles: ['getting-started'],
+    articles: ['reviews', 'prompt-pages/features/integration'],
     keywords: ['reviews', 'sources', 'platforms'],
     priority: 'medium',
     userActions: ['view_review_sources', 'page_view']
@@ -135,70 +135,70 @@ const articleAssociations: ArticleAssociation[] = [
   },
   {
     appPage: '/dashboard/social-posting',
-    articles: ['social-posting', 'google-post-types'],
+    articles: ['google-business/scheduling', 'google-biz-optimizer/optimization/posts'],
     keywords: ['social', 'posting', 'schedule', 'publish'],
     priority: 'high',
     userActions: ['create_post', 'schedule_post', 'page_view']
   },
   {
     appPage: '/dashboard/rss-feeds',
-    articles: ['social-posting'],
+    articles: ['rss-feeds/finding-feed-urls', 'google-business/scheduling'],
     keywords: ['rss', 'feeds', 'syndication'],
     priority: 'low',
     userActions: ['view_rss', 'page_view']
   },
   {
     appPage: '/dashboard/backlinks',
-    articles: ['backlinks'],
+    articles: ['keywords/research-overview'],
     keywords: ['backlinks', 'seo', 'link-building', 'authority'],
     priority: 'medium',
     userActions: ['view_backlinks', 'page_view']
   },
   {
     appPage: '/dashboard/research',
-    articles: ['backlinks'],
+    articles: ['keywords/research-overview', 'keywords/using-research-tool'],
     keywords: ['research', 'domains', 'backlinks', 'seo'],
     priority: 'medium',
     userActions: ['view_research', 'page_view']
   },
   {
     appPage: '/dashboard/research/domains',
-    articles: ['backlinks'],
+    articles: ['keywords/research-overview'],
     keywords: ['domain', 'research', 'analysis', 'authority'],
     priority: 'medium',
     userActions: ['research_domain', 'page_view']
   },
   {
     appPage: '/dashboard/research/backlinks',
-    articles: ['backlinks'],
+    articles: ['keywords/research-overview'],
     keywords: ['backlinks', 'research', 'link-profile'],
     priority: 'medium',
     userActions: ['research_backlinks', 'page_view']
   },
   {
     appPage: '/dashboard/domain-analysis',
-    articles: ['backlinks'],
+    articles: ['keywords/research-overview'],
     keywords: ['domain', 'analysis', 'seo', 'audit', 'metrics'],
     priority: 'medium',
     userActions: ['analyze_domain', 'page_view']
   },
   {
     appPage: '/dashboard/keywords/rank-tracking/paa-questions',
-    articles: ['rank-tracking'],
+    articles: ['keywords/rank-tracking-overview', 'keywords/reading-rank-results'],
     keywords: ['paa', 'people-also-ask', 'questions', 'serp'],
     priority: 'medium',
     userActions: ['view_paa', 'page_view']
   },
   {
     appPage: '/dashboard/testimonials',
-    articles: ['testimonials'],
+    articles: ['testimonials', 'reviews', 'sharing-reviews'],
     keywords: ['testimonials', 'showcase', 'social-proof'],
     priority: 'high',
     userActions: ['manage_testimonials', 'page_view']
   },
   {
     appPage: '/dashboard/integrations',
-    articles: ['integrations'],
+    articles: ['integrations', 'google-business', 'prompt-pages/features/integration'],
     keywords: ['integrations', 'connect', 'api', 'tools'],
     priority: 'medium',
     userActions: ['view_integrations', 'page_view']
@@ -212,24 +212,80 @@ const articleAssociations: ArticleAssociation[] = [
   },
   {
     appPage: '/dashboard/credits',
-    articles: ['credits'],
+    articles: ['keywords/credits-explained', 'billing'],
     keywords: ['credits', 'billing', 'usage', 'balance'],
     priority: 'high',
     userActions: ['view_credits', 'purchase_credits', 'page_view']
   },
   {
     appPage: '/dashboard/notifications',
-    articles: ['getting-started'],
+    articles: ['settings', 'getting-started/account-setup'],
     keywords: ['notifications', 'alerts', 'preferences'],
     priority: 'low',
     userActions: ['update_notifications', 'page_view']
   },
   {
     appPage: '/dashboard/google-business-profile',
-    articles: ['google-business'],
+    articles: ['google-business', 'google-biz-optimizer', 'google-business/review-import'],
     keywords: ['google', 'business-profile', 'gbp', 'reviews'],
     priority: 'high',
     userActions: ['connect_gbp', 'page_view']
+  },
+  {
+    appPage: '/prompt-pages',
+    articles: ['prompt-pages', 'prompt-pages/types', 'getting-started/first-prompt-page'],
+    keywords: ['prompt-pages', 'manage', 'list', 'overview'],
+    priority: 'high',
+    userActions: ['page_view']
+  },
+  {
+    appPage: '/dashboard/reviews',
+    articles: ['reviews', 'ai-reviews', 'sharing-reviews'],
+    keywords: ['reviews', 'manage', 'verify', 'respond'],
+    priority: 'high',
+    userActions: ['page_view']
+  },
+  {
+    appPage: '/dashboard/analytics',
+    articles: ['analytics'],
+    keywords: ['analytics', 'metrics', 'insights', 'performance'],
+    priority: 'medium',
+    userActions: ['page_view']
+  },
+  {
+    appPage: '/dashboard/team',
+    articles: ['team', 'settings'],
+    keywords: ['team', 'members', 'roles', 'invite'],
+    priority: 'medium',
+    userActions: ['page_view']
+  },
+  {
+    appPage: '/dashboard/plan',
+    articles: ['billing', 'billing/upgrades-downgrades', 'getting-started/choosing-plan'],
+    keywords: ['plan', 'billing', 'subscription', 'upgrade'],
+    priority: 'medium',
+    userActions: ['page_view']
+  },
+  {
+    appPage: '/dashboard/keywords',
+    articles: ['keywords/library-overview', 'keywords/import-concepts'],
+    keywords: ['keywords', 'concepts', 'library', 'seo'],
+    priority: 'medium',
+    userActions: ['page_view']
+  },
+  {
+    appPage: '/dashboard/keywords/rank-tracking',
+    articles: ['keywords/rank-tracking-overview', 'keywords/setting-up-rank-tracking', 'keywords/reading-rank-results'],
+    keywords: ['rank', 'tracking', 'serp', 'position'],
+    priority: 'medium',
+    userActions: ['page_view']
+  },
+  {
+    appPage: '/dashboard/local-ranking-grids',
+    articles: ['local-ranking-grids/overview', 'local-ranking-grids/setup', 'local-ranking-grids/reading-results'],
+    keywords: ['local', 'ranking', 'grid', 'geo', 'map'],
+    priority: 'medium',
+    userActions: ['page_view']
   },
   {
     appPage: '/prompt-pages/outreach-templates',

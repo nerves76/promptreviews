@@ -4,6 +4,7 @@ import { createClient } from '@supabase/supabase-js';
 import { createServerSupabaseClient } from '@/auth/providers/supabase';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 import { normalizePhrase, calculateWordCount, DEFAULT_GROUP_NAME } from '@/features/keywords/keywordUtils';
+import { DEFAULT_AI_SEARCH_GROUP_NAME } from '@/lib/groupConstants';
 
 // Service client for privileged operations
 const serviceSupabase = createClient(
@@ -354,6 +355,24 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Ensure "General" AI search query group exists for question grouping
+    if (!aiQueryGroupMap.has(DEFAULT_AI_SEARCH_GROUP_NAME.toLowerCase())) {
+      const { data: newAiGroup, error: aiGroupError } = await serviceSupabase
+        .from('ai_search_query_groups')
+        .insert({
+          account_id: accountId,
+          name: DEFAULT_AI_SEARCH_GROUP_NAME,
+          display_order: 0,
+        })
+        .select('id')
+        .single();
+
+      if (!aiGroupError && newAiGroup) {
+        aiQueryGroupMap.set(DEFAULT_AI_SEARCH_GROUP_NAME.toLowerCase(), newAiGroup.id);
+      }
+    }
+    const defaultAiQueryGroupId = aiQueryGroupMap.get(DEFAULT_AI_SEARCH_GROUP_NAME.toLowerCase()) || null;
+
     // Ensure "General" group exists
     if (!groupMap.has(DEFAULT_GROUP_NAME.toLowerCase())) {
       const { data: newGroup, error: groupError } = await serviceSupabase
@@ -469,7 +488,7 @@ export async function POST(request: NextRequest) {
           keyword_id: insertedKeyword.id,
           question: q.question,
           funnel_stage: q.funnel_stage,
-          group_id: q.group_name ? aiQueryGroupMap.get(q.group_name.toLowerCase()) : null,
+          group_id: q.group_name ? aiQueryGroupMap.get(q.group_name.toLowerCase()) : defaultAiQueryGroupId,
           added_at: new Date().toISOString(),
         }));
 
@@ -497,7 +516,7 @@ export async function POST(request: NextRequest) {
               keyword_id: keyword.existingId,
               question: q.question,
               funnel_stage: q.funnel_stage,
-              group_id: q.group_name ? aiQueryGroupMap.get(q.group_name.toLowerCase()) : null,
+              group_id: q.group_name ? aiQueryGroupMap.get(q.group_name.toLowerCase()) : defaultAiQueryGroupId,
               added_at: new Date().toISOString(),
             }, {
               onConflict: 'keyword_id,question',

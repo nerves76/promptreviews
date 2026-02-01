@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { createServerSupabaseClient } from '@/auth/providers/supabase';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
-import { DEFAULT_RANK_TRACKING_GROUP_NAME } from '../route';
+import { DEFAULT_RANK_TRACKING_GROUP_NAME } from '@/lib/groupConstants';
 
 // Service client for privileged operations
 const serviceSupabase = createClient(

@@ -85,6 +85,7 @@ export default function LocalRankingGridsPage() {
   const [googleBusinessLocations, setGoogleBusinessLocations] = useState<GoogleBusinessLocation[]>([]);
   const [googleBusinessLocation, setGoogleBusinessLocation] = useState<GoogleBusinessLocation | null>(null);
   const [isCheckRunning, setIsCheckRunning] = useState(false);
+  const [checkingKeywordIds, setCheckingKeywordIds] = useState<Set<string>>(new Set());
   const [showSettings, setShowSettings] = useState(false);
   const [isAddingNewLocation, setIsAddingNewLocation] = useState(false);
   const [selectedMapKeywordId, setSelectedMapKeywordId] = useState<string | null>(null);
@@ -399,6 +400,7 @@ export default function LocalRankingGridsPage() {
 
     setShowRunCheckModal(false);
     setIsCheckRunning(true);
+    setCheckingKeywordIds(new Set(keywordIds));
     try {
       const result = await runCheck(keywordIds);
       if (result.success) {
@@ -420,6 +422,7 @@ export default function LocalRankingGridsPage() {
       }
     } finally {
       setIsCheckRunning(false);
+      setCheckingKeywordIds(new Set());
     }
   }, [selectedCheckKeywordIds, runCheck, refreshResults, showError, showSuccess]);
 
@@ -483,6 +486,7 @@ export default function LocalRankingGridsPage() {
   // Handle running check for specific keywords
   const handleCheckKeywords = useCallback(async (keywordIds: string[]) => {
     setIsCheckRunning(true);
+    setCheckingKeywordIds(new Set(keywordIds));
     try {
       // Run check for specific keywords
       const result = await runCheck(keywordIds);
@@ -498,6 +502,7 @@ export default function LocalRankingGridsPage() {
       }
     } finally {
       setIsCheckRunning(false);
+      setCheckingKeywordIds(new Set());
     }
   }, [runCheck, refreshResults, showError, showSuccess]);
 
@@ -873,6 +878,7 @@ export default function LocalRankingGridsPage() {
             onCheckKeywords={handleCheckKeywords}
             checkCreditCost={calculateCheckCost}
             isCheckRunning={isCheckRunning}
+            checkingKeywordIds={checkingKeywordIds}
             maxKeywords={20}
             onKeywordsCreated={handleKeywordsCreated}
             keywordUsageCounts={keywordUsageCounts}

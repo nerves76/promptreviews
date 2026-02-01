@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { createServerSupabaseClient } from '@/auth/providers/supabase';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
-import { transformGroupToResponse } from '@/features/keywords/keywordUtils';
+import { transformGroupToResponse, DEFAULT_GROUP_NAME } from '@/features/keywords/keywordUtils';
 
 // Service client for privileged operations
 const serviceSupabase = createClient(
@@ -40,13 +40,31 @@ export async function GET(request: NextRequest) {
       // If table doesn't exist, return empty list instead of error
       if (groupsError.code === '42P01' || groupsError.message?.includes('does not exist')) {
         console.warn('⚠️ keyword_groups table does not exist, returning empty list');
-        return NextResponse.json({ groups: [], ungroupedCount: 0 });
+        return NextResponse.json({ groups: [] });
       }
       console.error('❌ Failed to fetch keyword groups:', groupsError);
       return NextResponse.json(
         { error: 'Failed to fetch keyword groups' },
         { status: 500 }
       );
+    }
+
+    // Auto-create General group if it doesn't exist
+    let groupsList = groups || [];
+    if (!groupsList.some((g: any) => g.name === DEFAULT_GROUP_NAME)) {
+      const { data: newGeneral } = await serviceSupabase
+        .from('keyword_groups')
+        .insert({
+          account_id: accountId,
+          name: DEFAULT_GROUP_NAME,
+          display_order: 0,
+        })
+        .select('*')
+        .single();
+
+      if (newGeneral) {
+        groupsList = [newGeneral, ...groupsList];
+      }
     }
 
     // Get keyword counts per group
@@ -56,27 +74,22 @@ export async function GET(request: NextRequest) {
       .eq('account_id', accountId);
 
     const countByGroup: Record<string, number> = {};
-    let ungroupedCount = 0;
 
-    // If keywords table doesn't exist, just use empty counts
     if (!keywordCountsError) {
       for (const kw of keywordCounts || []) {
         if (kw.group_id) {
           countByGroup[kw.group_id] = (countByGroup[kw.group_id] || 0) + 1;
-        } else {
-          ungroupedCount++;
         }
       }
     }
 
     // Transform groups with counts
-    const transformedGroups = (groups || []).map((g: any) =>
+    const transformedGroups = groupsList.map((g: any) =>
       transformGroupToResponse(g, countByGroup[g.id] || 0)
     );
 
     return NextResponse.json({
       groups: transformedGroups,
-      ungroupedCount,
     });
   } catch (error: any) {
     console.error('❌ Keyword groups GET error:', error);

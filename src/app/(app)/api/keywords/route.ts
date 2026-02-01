@@ -16,6 +16,7 @@ import {
   type RelatedQuestion,
   type KeywordQuestionRow,
 } from '@/features/keywords/keywordUtils';
+import { DEFAULT_AI_SEARCH_GROUP_NAME } from '@/lib/groupConstants';
 
 // Service client for privileged operations
 const serviceSupabase = createClient(
@@ -430,8 +431,11 @@ export async function POST(request: NextRequest) {
 
     // Insert questions into the normalized keyword_questions table
     if (related_questions && Array.isArray(related_questions) && related_questions.length > 0) {
+      // Resolve the General AI search query group for this account
+      const aiSearchGeneralGroupId = await ensureAISearchGeneralGroup(accountId);
+
       const questionsToInsert = (related_questions as RelatedQuestion[]).map(q =>
-        prepareQuestionForInsert(newKeyword.id, q)
+        prepareQuestionForInsert(newKeyword.id, q, aiSearchGeneralGroupId)
       );
 
       const { error: questionsError } = await serviceSupabase
@@ -464,4 +468,46 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+/**
+ * Ensure the "General" AI search query group exists for the given account.
+ * Returns the group ID.
+ */
+async function ensureAISearchGeneralGroup(accountId: string): Promise<string | null> {
+  const { data: existingGroup } = await serviceSupabase
+    .from('ai_search_query_groups')
+    .select('id')
+    .eq('account_id', accountId)
+    .eq('name', DEFAULT_AI_SEARCH_GROUP_NAME)
+    .maybeSingle();
+
+  if (existingGroup) {
+    return existingGroup.id;
+  }
+
+  const { data: newGroup, error } = await serviceSupabase
+    .from('ai_search_query_groups')
+    .insert({
+      account_id: accountId,
+      name: DEFAULT_AI_SEARCH_GROUP_NAME,
+      display_order: 0,
+    })
+    .select('id')
+    .single();
+
+  if (newGroup) return newGroup.id;
+
+  // Handle race condition: another request may have created it concurrently
+  if (error) {
+    const { data: retryGroup } = await serviceSupabase
+      .from('ai_search_query_groups')
+      .select('id')
+      .eq('account_id', accountId)
+      .eq('name', DEFAULT_AI_SEARCH_GROUP_NAME)
+      .maybeSingle();
+    return retryGroup?.id || null;
+  }
+
+  return null;
 }

@@ -77,6 +77,8 @@ interface GeoGridKeywordsTableProps {
   checkCreditCost?: number;
   /** Whether a check is currently running */
   isCheckRunning?: boolean;
+  /** Set of keyword IDs currently being checked */
+  checkingKeywordIds?: Set<string>;
   /** Max keywords that can be tracked */
   maxKeywords?: number;
   /** Callback to refresh available keywords after creating new ones */
@@ -266,6 +268,7 @@ export function GeoGridKeywordsTable({
   onCheckKeywords,
   checkCreditCost = 0,
   isCheckRunning = false,
+  checkingKeywordIds,
   maxKeywords = 20,
   onKeywordsCreated,
   onResultClick,
@@ -944,12 +947,19 @@ export function GeoGridKeywordsTable({
                           })()}
                         </td>
                         <td className="px-4 py-3">
-                          <span
-                            className="text-sm text-gray-500"
-                            title={group.lastCheckedAt || undefined}
-                          >
-                            {formatRelativeDate(group.lastCheckedAt)}
-                          </span>
+                          {checkingKeywordIds?.has(group.keywordId) ? (
+                            <div className="flex items-center gap-1">
+                              <div className="w-3 h-3 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+                              <span className="text-xs text-blue-500">Pending</span>
+                            </div>
+                          ) : (
+                            <span
+                              className="text-sm text-gray-500"
+                              title={group.lastCheckedAt || undefined}
+                            >
+                              {formatRelativeDate(group.lastCheckedAt)}
+                            </span>
+                          )}
                         </td>
                         <td className="px-4 py-3 text-right">
                           <button

@@ -137,6 +137,8 @@ interface ConceptsTableProps {
   onToggleTermSelection?: (keywordId: string, term: string) => void;
   /** Active batch run for showing pending indicators */
   activeBatchRun?: BatchRunStatus | null;
+  /** Set of keyword IDs currently pending in an active batch run */
+  pendingKeywordIds?: Set<string>;
   /** Scheduled future batch runs for showing indicators */
   scheduledRuns?: ScheduledRunInfo[];
   /** Callback when a scheduled run is cancelled */
@@ -315,6 +317,7 @@ export default function ConceptsTable({
   selectedTermKeys,
   onToggleTermSelection,
   activeBatchRun,
+  pendingKeywordIds,
   scheduledRuns,
   onCancelScheduledRun,
 }: ConceptsTableProps) {
@@ -844,9 +847,16 @@ export default function ConceptsTable({
                 )}
               </td>
               <td className="py-3 px-4 text-center">
-                <span className="text-xs text-gray-500" title={row.lastChecked || undefined}>
-                  {formatRelativeDate(row.lastChecked)}
-                </span>
+                {pendingKeywordIds?.has(row.concept.id) ? (
+                  <div className="flex items-center justify-center gap-1">
+                    <div className="w-3 h-3 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+                    <span className="text-xs text-blue-500">Pending</span>
+                  </div>
+                ) : (
+                  <span className="text-xs text-gray-500" title={row.lastChecked || undefined}>
+                    {formatRelativeDate(row.lastChecked)}
+                  </span>
+                )}
                 {(() => {
                   const run = getScheduledRunForConcept(row.concept.id);
                   if (!run) return null;

@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { apiClient } from '@/utils/apiClient';
 import { useAccountData } from '@/auth/hooks/granularAuthHooks';
-import { type KeywordData, type KeywordGroupData, type RelatedQuestion, DEFAULT_GROUP_NAME } from '../keywordUtils';
+import { type KeywordData, type KeywordGroupData, type RelatedQuestion } from '../keywordUtils';
 
 interface UseKeywordsOptions {
   /** Auto-fetch on mount */
@@ -21,8 +21,6 @@ interface UseKeywordsResult {
   keywords: KeywordData[];
   /** All groups */
   groups: KeywordGroupData[];
-  /** Ungrouped keyword count */
-  ungroupedCount: number;
   /** Loading state */
   isLoading: boolean;
   /** Error message */
@@ -75,7 +73,6 @@ export function useKeywords(options: UseKeywordsOptions = {}): UseKeywordsResult
 
   const [keywords, setKeywords] = useState<KeywordData[]>([]);
   const [groups, setGroups] = useState<KeywordGroupData[]>([]);
-  const [ungroupedCount, setUngroupedCount] = useState(0);
   const [promptPageUsage, setPromptPageUsage] = useState<Record<string, string[]>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -105,9 +102,8 @@ export function useKeywords(options: UseKeywordsOptions = {}): UseKeywordsResult
   // Fetch groups
   const fetchGroups = useCallback(async () => {
     try {
-      const data = await apiClient.get<{ groups: KeywordGroupData[]; ungroupedCount: number }>('/keyword-groups');
+      const data = await apiClient.get<{ groups: KeywordGroupData[] }>('/keyword-groups');
       setGroups(data.groups || []);
-      setUngroupedCount(data.ungroupedCount || 0);
     } catch (err: any) {
       console.error('Failed to fetch keyword groups:', err);
       throw err;
@@ -132,7 +128,6 @@ export function useKeywords(options: UseKeywordsOptions = {}): UseKeywordsResult
     // Clear stale data immediately when account changes
     setKeywords([]);
     setGroups([]);
-    setUngroupedCount(0);
     setPromptPageUsage({});
     setError(null);
 
@@ -370,7 +365,6 @@ export function useKeywords(options: UseKeywordsOptions = {}): UseKeywordsResult
   return {
     keywords,
     groups,
-    ungroupedCount,
     isLoading,
     error,
     refresh,

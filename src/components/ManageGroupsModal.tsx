@@ -247,7 +247,7 @@ export function ManageGroupsModal({
                     <button
                       onClick={() => handleMoveUp(index)}
                       disabled={index === 0}
-                      className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
+                      className="p-1 text-gray-500 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
                       aria-label="Move up"
                     >
                       <Icon name="FaChevronUp" className="w-3 h-3" />
@@ -255,7 +255,7 @@ export function ManageGroupsModal({
                     <button
                       onClick={() => handleMoveDown(index)}
                       disabled={index === groups.length - 1}
-                      className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
+                      className="p-1 text-gray-500 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
                       aria-label="Move down"
                     >
                       <Icon name="FaChevronDown" className="w-3 h-3" />
@@ -282,7 +282,7 @@ export function ManageGroupsModal({
                       />
                     ) : (
                       <div className="flex items-center gap-2">
-                        <Icon name="FaTags" className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                        <Icon name="FaTags" className="w-4 h-4 text-gray-500 flex-shrink-0" />
                         <span className="font-medium text-gray-900 truncate">
                           {group.name}
                         </span>
@@ -307,7 +307,7 @@ export function ManageGroupsModal({
                         </button>
                         <button
                           onClick={handleCancelEdit}
-                          className="p-2 text-gray-400 hover:bg-gray-100 rounded-lg"
+                          className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg"
                           aria-label="Cancel"
                         >
                           <Icon name="FaTimes" className="w-4 h-4" />
@@ -318,7 +318,7 @@ export function ManageGroupsModal({
                         <button
                           onClick={() => handleStartEdit(group)}
                           disabled={isGeneralGroup(group.name)}
-                          className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed"
+                          className="p-2 text-gray-500 hover:text-gray-600 hover:bg-gray-100 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed"
                           aria-label="Rename group"
                           title={isGeneralGroup(group.name) ? 'Cannot rename General group' : 'Rename group'}
                         >
@@ -327,7 +327,7 @@ export function ManageGroupsModal({
                         <button
                           onClick={() => handleDeleteGroupClick(group)}
                           disabled={isGeneralGroup(group.name) || deletingGroupId === group.id}
-                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed"
+                          className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed"
                           aria-label="Delete group"
                           title={isGeneralGroup(group.name) ? 'Cannot delete General group' : 'Delete group'}
                         >
@@ -348,26 +348,29 @@ export function ManageGroupsModal({
 
         {/* Info text */}
         <p className="text-sm text-gray-500">
-          Deleting a group will move its {itemLabel} to &quot;Ungrouped&quot;.
+          Deleting a group will move its {itemLabel} to &quot;General&quot;.
         </p>
 
         {/* Delete Confirmation Dialog */}
-        {groupToDelete && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center">
-            <div className="absolute inset-0 bg-black/50" onClick={() => setGroupToDelete(null)} />
-            <div className="relative bg-white rounded-xl shadow-xl p-6 max-w-sm mx-4">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Delete group?</h3>
-              <p className="text-sm text-gray-600 mb-4">
+        <Modal
+          isOpen={!!groupToDelete}
+          onClose={() => setGroupToDelete(null)}
+          title="Delete group?"
+          size="sm"
+        >
+          {groupToDelete && (
+            <>
+              <p className="text-sm text-gray-600">
                 Are you sure you want to delete <strong>&quot;{groupToDelete.name}&quot;</strong>?
               </p>
               {groupToDelete.itemCount > 0 && (
-                <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
                   <p className="text-sm text-amber-800">
-                    <strong>{groupToDelete.itemCount}</strong> {itemLabel} will be moved to &quot;Ungrouped&quot;.
+                    <strong>{groupToDelete.itemCount}</strong> {itemLabel} will be moved to &quot;General&quot;.
                   </p>
                 </div>
               )}
-              <div className="flex justify-end gap-2">
+              <Modal.Footer>
                 <Button
                   variant="secondary"
                   onClick={() => setGroupToDelete(null)}
@@ -382,10 +385,10 @@ export function ManageGroupsModal({
                 >
                   {deletingGroupId === groupToDelete.id ? 'Deleting...' : 'Delete group'}
                 </Button>
-              </div>
-            </div>
-          </div>
-        )}
+              </Modal.Footer>
+            </>
+          )}
+        </Modal>
       </div>
 
       <Modal.Footer>

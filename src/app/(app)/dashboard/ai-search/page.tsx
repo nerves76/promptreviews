@@ -158,6 +158,9 @@ export default function AISearchPage() {
   const [showCompletedBanner, setShowCompletedBanner] = useState(false); // Keep banner visible after completion
   const [isRetryingFailed, setIsRetryingFailed] = useState(false);
 
+  // Track keyword IDs pending in active batch run (for checked column indicator)
+  const [pendingKeywordIds, setPendingKeywordIds] = useState<Set<string>>(new Set());
+
   // Scheduled runs for showing indicators in the table
   const [scheduledRuns, setScheduledRuns] = useState<ScheduledRunInfo[]>([]);
 
@@ -169,8 +172,6 @@ export default function AISearchPage() {
   // Group schedule modal state (opened from schedule column for grouped questions)
   const [scheduleGroupId, setScheduleGroupId] = useState<string | null>(null);
 
-  // Ungroup confirmation dialog
-  const [showUngroupConfirm, setShowUngroupConfirm] = useState(false);
 
   // Modal state for viewing full LLM response
   const [responseModal, setResponseModal] = useState<{
@@ -216,7 +217,6 @@ export default function AISearchPage() {
   // Group management
   const {
     groups: queryGroups,
-    ungroupedCount: queryUngroupedCount,
     isLoading: isLoadingGroups,
     createGroup: createQueryGroup,
     updateGroup: updateQueryGroup,
@@ -579,14 +579,25 @@ export default function AISearchPage() {
 
     const pollInterval = setInterval(async () => {
       try {
-        const status = await apiClient.get<BatchStatus>(
-          `/llm-visibility/batch-status?runId=${activeBatchRun.runId}`
+        const status = await apiClient.get<BatchStatus & { items?: Array<{ keywordId: string; status: string }> }>(
+          `/llm-visibility/batch-status?runId=${activeBatchRun.runId}&includeItems=true`
         );
         setActiveBatchRun(status);
+
+        // Update pending keyword IDs
+        if (status.items) {
+          const pending = new Set(
+            status.items
+              .filter(item => ['pending', 'processing'].includes(item.status))
+              .map(item => item.keywordId)
+          );
+          setPendingKeywordIds(pending);
+        }
 
         // If completed or failed, refresh data and show toast
         if (['completed', 'failed'].includes(status.status)) {
           clearInterval(pollInterval);
+          setPendingKeywordIds(new Set());
           setShowCompletedBanner(true); // Keep banner visible
           fetchData(); // Refresh to show new check results
 
@@ -616,12 +627,21 @@ export default function AISearchPage() {
   useEffect(() => {
     const checkActiveBatch = async () => {
       try {
-        const status = await apiClient.get<BatchStatus>('/llm-visibility/batch-status');
+        const status = await apiClient.get<BatchStatus & { items?: Array<{ keywordId: string; status: string }> }>('/llm-visibility/batch-status?includeItems=true');
         if (!status) return;
 
         if (['pending', 'processing'].includes(status.status)) {
           // Active run - show progress banner
           setActiveBatchRun(status);
+          // Extract pending keyword IDs
+          if (status.items) {
+            const pending = new Set(
+              status.items
+                .filter(item => ['pending', 'processing'].includes(item.status))
+                .map(item => item.keywordId)
+            );
+            setPendingKeywordIds(pending);
+          }
         } else if (['completed', 'failed'].includes(status.status)) {
           // Check if this run completed recently (within last 2 hours) and has failures
           // Show the banner so user can see results and retry if needed
@@ -730,13 +750,6 @@ export default function AISearchPage() {
     return Array.from(new Set(keywords.map(k => k.phrase))).sort();
   }, [keywords]);
 
-  // Calculate actual ungrouped count from the displayed data
-  // This fixes the mismatch between API count (from keyword_questions table only)
-  // and UI display (which may include questions from JSONB field)
-  const actualUngroupedCount = useMemo(() => {
-    return questionRows.filter(r => !r.groupId).length;
-  }, [questionRows]);
-
   // Apply filters and sorting (uses deferred values for INP optimization)
   const filteredAndSortedRows = useMemo(() => {
     let rows = [...questionRows];
@@ -749,11 +762,7 @@ export default function AISearchPage() {
       rows = rows.filter(r => r.funnelStage === deferredFilterFunnel);
     }
     if (deferredFilterGroup) {
-      if (deferredFilterGroup === 'ungrouped') {
-        rows = rows.filter(r => !r.groupId);
-      } else {
-        rows = rows.filter(r => r.groupId === deferredFilterGroup);
-      }
+      rows = rows.filter(r => r.groupId === deferredFilterGroup);
     }
 
     // Apply sorting
@@ -943,7 +952,6 @@ export default function AISearchPage() {
   // Get group name for display
   const activeGroupName = useMemo(() => {
     if (!filterGroup) return null;
-    if (filterGroup === 'ungrouped') return 'Ungrouped';
     const group = queryGroups.find(g => g.id === filterGroup);
     return group?.name || 'Unknown group';
   }, [filterGroup, queryGroups]);
@@ -1082,13 +1090,8 @@ export default function AISearchPage() {
 
   // Handle opening schedule from table column click
   const handleOpenSchedule = useCallback((row: QuestionRow) => {
-    if (row.groupId) {
-      // Grouped question: open the RunAllLLMModal scoped to that group
-      setScheduleGroupId(row.groupId);
-    } else {
-      // Ungrouped question: open individual schedule modal for the concept
-      setScheduleKeyword({ id: row.conceptId, name: row.conceptName });
-    }
+    // Open the RunAllLLMModal scoped to the question's group
+    setScheduleGroupId(row.groupId);
   }, []);
 
   // Execute the actual bulk move
@@ -1101,28 +1104,17 @@ export default function AISearchPage() {
       await fetchData(); // Refresh to show updated group assignments
 
       // Show success notification
-      const groupName = groupId === null
-        ? 'Ungrouped'
-        : queryGroups.find(g => g.id === groupId)?.name || 'group';
+      const groupName = queryGroups.find(g => g.id === groupId)?.name || 'group';
       showSuccess(`Moved ${count} ${count === 1 ? 'query' : 'queries'} to ${groupName}`);
     } else {
       showError('Failed to move queries. Please try again.');
     }
   }, [selectedQuestionIds, bulkMoveQueries, fetchData, queryGroups, showSuccess, showError]);
 
-  // Handle bulk move to group (with ungroup warning)
+  // Handle bulk move to group
   const handleBulkMoveToGroup = useCallback(async (groupId: string | null) => {
-    if (groupId === null) {
-      // Check if any selected questions are currently in a group
-      const selectedRows = filteredAndSortedRows.filter(r => selectedQuestionIds.has(r.id));
-      const hasGroupedItems = selectedRows.some(r => r.groupId !== null);
-      if (hasGroupedItems) {
-        setShowUngroupConfirm(true);
-        return;
-      }
-    }
     await executeBulkMove(groupId);
-  }, [executeBulkMove, filteredAndSortedRows, selectedQuestionIds]);
+  }, [executeBulkMove]);
 
   // Handle sort header click (wrapped in transition to avoid INP issues)
   const handleSort = (field: SortField) => {
@@ -2121,7 +2113,6 @@ export default function AISearchPage() {
                   className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-300"
                 >
                   <option value="">All groups</option>
-                  <option value="ungrouped">Ungrouped ({actualUngroupedCount})</option>
                   {queryGroups.map(group => (
                     <option key={group.id} value={group.id}>{group.name} ({group.queryCount})</option>
                   ))}
@@ -2455,11 +2446,18 @@ export default function AISearchPage() {
 
                           {/* Last Checked */}
                           <td className="py-3 px-2 text-center">
-                            <span className="text-xs text-gray-500">
-                              {row.lastCheckedAt ? formatRelativeTime(row.lastCheckedAt) : '—'}
-                            </span>
+                            {pendingKeywordIds.has(row.conceptId) ? (
+                              <div className="flex items-center justify-center gap-1">
+                                <div className="w-3 h-3 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+                                <span className="text-xs text-blue-500">Pending</span>
+                              </div>
+                            ) : (
+                              <span className="text-xs text-gray-500">
+                                {row.lastCheckedAt ? formatRelativeTime(row.lastCheckedAt) : '—'}
+                              </span>
+                            )}
                             {(() => {
-                              const run = (row.groupId ? scheduledRunMap.get(row.groupId) : scheduledRunMap.get('ungrouped')) || scheduledRunMap.get('all');
+                              const run = (row.groupId ? scheduledRunMap.get(row.groupId) : undefined) || scheduledRunMap.get('all');
                               if (!run) return null;
                               return (
                                 <div className="mt-0.5">
@@ -2934,8 +2932,6 @@ export default function AISearchPage() {
         onSelectAll={selectAllQuestions}
         onDeselectAll={deselectAllQuestions}
         onMoveToGroup={handleBulkMoveToGroup}
-        allowUngrouped={true}
-        ungroupedCount={actualUngroupedCount}
         onDelete={() => setShowBulkDeleteModal(true)}
       />
 
@@ -3296,35 +3292,6 @@ export default function AISearchPage() {
           </div>
         </div>
       )}
-
-      {/* Ungroup Confirmation Modal */}
-      <Modal
-        isOpen={showUngroupConfirm}
-        onClose={() => setShowUngroupConfirm(false)}
-        title="Remove from group?"
-        size="sm"
-      >
-        <p className="text-sm text-gray-600">
-          Moving selected queries to <strong>Ungrouped</strong> will
-          remove them from any group-level schedules.
-        </p>
-        <p className="text-sm text-gray-500 mt-2">
-          You can set up individual schedules for each keyword after ungrouping.
-        </p>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowUngroupConfirm(false)}>
-            Cancel
-          </Button>
-          <Button
-            onClick={async () => {
-              setShowUngroupConfirm(false);
-              await executeBulkMove(null);
-            }}
-          >
-            Move to ungrouped
-          </Button>
-        </Modal.Footer>
-      </Modal>
 
       {/* Toast notifications */}
       <ToastContainer toasts={toasts} onClose={closeToast} />

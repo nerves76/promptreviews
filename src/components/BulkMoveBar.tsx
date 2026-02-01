@@ -23,10 +23,6 @@ interface BulkMoveBarProps {
   onDeselectAll: () => void;
   /** Callback to move selected items to a group */
   onMoveToGroup: (groupId: string | null) => void;
-  /** Allow moving to ungrouped (null) */
-  allowUngrouped?: boolean;
-  /** Ungrouped count for display */
-  ungroupedCount?: number;
   /** Optional callback to delete selected items */
   onDelete?: () => void;
 }
@@ -45,19 +41,16 @@ export function BulkMoveBar({
   onSelectAll,
   onDeselectAll,
   onMoveToGroup,
-  allowUngrouped = false,
-  ungroupedCount,
   onDelete,
 }: BulkMoveBarProps) {
   const [showGroupDropdown, setShowGroupDropdown] = useState(false);
-  const [selectedGroupId, setSelectedGroupId] = useState<string | null | undefined>(undefined);
+  const [selectedGroupId, setSelectedGroupId] = useState<string | undefined>(undefined);
 
   if (selectedCount === 0) return null;
 
   // Get selected group name for display
   const getSelectedGroupName = () => {
     if (selectedGroupId === undefined) return 'Select group';
-    if (selectedGroupId === null) return 'Ungrouped';
     const group = groups.find(g => g.id === selectedGroupId);
     return group?.name || 'Select group';
   };
@@ -122,27 +115,6 @@ export function BulkMoveBar({
                       Select target group
                     </div>
                     <div className="max-h-64 overflow-y-auto">
-                      {allowUngrouped && (
-                        <button
-                          onClick={() => {
-                            setSelectedGroupId(null);
-                            setShowGroupDropdown(false);
-                          }}
-                          className={`w-full px-3 py-2 text-left text-sm transition-colors flex items-center gap-2 ${
-                            selectedGroupId === null
-                              ? 'bg-blue-50 text-blue-700'
-                              : 'text-gray-700 hover:bg-gray-100'
-                          }`}
-                        >
-                          <Icon name="FaBoxOpen" className="w-3 h-3 text-gray-500" />
-                          <span>Ungrouped</span>
-                          {ungroupedCount !== undefined && (
-                            <span className="ml-auto text-xs text-gray-400">
-                              {ungroupedCount}
-                            </span>
-                          )}
-                        </button>
-                      )}
                       {groups.map((group) => (
                         <button
                           key={group.id}
@@ -160,8 +132,8 @@ export function BulkMoveBar({
                           <span>{group.name}</span>
                         </button>
                       ))}
-                      {groups.length === 0 && !allowUngrouped && (
-                        <div className="px-3 py-2 text-sm text-gray-400 italic">
+                      {groups.length === 0 && (
+                        <div className="px-3 py-2 text-sm text-gray-500 italic">
                           No groups available
                         </div>
                       )}

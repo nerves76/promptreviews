@@ -17,6 +17,7 @@ import {
   InsufficientCreditsError,
   refundFeature,
 } from '@/lib/credits';
+import { DEFAULT_RANK_TRACKING_GROUP_NAME } from '@/lib/groupConstants';
 
 // Service client for privileged operations
 const serviceSupabase = createClient(
@@ -30,7 +31,7 @@ const CREDITS_PER_KEYWORD = 2;
 interface BatchRunRequest {
   scheduledFor?: string; // ISO timestamp for when to start the run
   retryFailedFromRunId?: string; // If provided, only retry failed items from this run
-  groupId?: string; // If provided, only check keywords in this group (or "ungrouped" for null group_id)
+  groupId?: string; // If provided, only check keywords in this group. "ungrouped" is resolved to the General group UUID for backward compat.
 }
 
 interface KeywordItem {
@@ -58,7 +59,28 @@ export async function POST(request: NextRequest) {
     }
 
     const body: BatchRunRequest = await request.json().catch(() => ({}));
-    const { scheduledFor, retryFailedFromRunId, groupId } = body;
+    const { scheduledFor, retryFailedFromRunId, groupId: rawGroupId } = body;
+
+    // Resolve 'ungrouped' to the General group UUID for backward compatibility
+    let groupId = rawGroupId;
+    if (rawGroupId === 'ungrouped') {
+      const { data: generalGroup } = await serviceSupabase
+        .from('rank_tracking_term_groups')
+        .select('id')
+        .eq('account_id', accountId)
+        .eq('name', DEFAULT_RANK_TRACKING_GROUP_NAME)
+        .single();
+
+      if (generalGroup) {
+        groupId = generalGroup.id;
+      } else {
+        console.warn(`⚠️ [RankBatchRun] No General group found for account ${accountId}, 'ungrouped' groupId cannot be resolved`);
+        return NextResponse.json(
+          { error: 'General group not found for account' },
+          { status: 404 }
+        );
+      }
+    }
 
     // Parse scheduled time if provided
     let scheduledForDate: Date | null = null;
@@ -164,18 +186,11 @@ export async function POST(request: NextRequest) {
       console.log(`🔄 [RankBatchRun] Retrying ${allKeywords.length} failed items from run ${retryFailedFromRunId}`);
     } else if (groupId) {
       // Group mode: fetch terms from rank_tracking_terms filtered by group
-      const termsQuery = serviceSupabase
+      const { data: terms, error: termsError } = await serviceSupabase
         .from('rank_tracking_terms')
         .select('keyword_id, term')
-        .eq('account_id', accountId);
-
-      if (groupId === 'ungrouped') {
-        termsQuery.is('group_id', null);
-      } else {
-        termsQuery.eq('group_id', groupId);
-      }
-
-      const { data: terms, error: termsError } = await termsQuery;
+        .eq('account_id', accountId)
+        .eq('group_id', groupId);
 
       if (termsError) {
         console.error('❌ [RankBatchRun] Failed to fetch group terms:', termsError);
@@ -282,15 +297,13 @@ export async function POST(request: NextRequest) {
 
     // Look up group name if groupId provided
     let groupName: string | null = null;
-    if (groupId && groupId !== 'ungrouped') {
+    if (groupId) {
       const { data: group } = await serviceSupabase
         .from('rank_tracking_term_groups')
         .select('name')
         .eq('id', groupId)
         .single();
       groupName = group?.name || null;
-    } else if (groupId === 'ungrouped') {
-      groupName = 'Ungrouped';
     }
 
     // Debit credits upfront
@@ -341,7 +354,7 @@ export async function POST(request: NextRequest) {
         triggered_by: user.id,
         scheduled_for: scheduledForDate?.toISOString() || null,
         idempotency_key: idempotencyKey,
-        group_id: groupId || null,
+        group_id: groupId ?? null,
       })
       .select()
       .single();
@@ -431,7 +444,27 @@ export async function GET(request: NextRequest) {
 
     // Read groupId from query params
     const { searchParams } = new URL(request.url);
-    const groupId = searchParams.get('groupId');
+    let groupId = searchParams.get('groupId');
+
+    // Resolve 'ungrouped' to the General group UUID for backward compatibility
+    if (groupId === 'ungrouped') {
+      const { data: generalGroup } = await serviceSupabase
+        .from('rank_tracking_term_groups')
+        .select('id')
+        .eq('account_id', accountId)
+        .eq('name', DEFAULT_RANK_TRACKING_GROUP_NAME)
+        .single();
+
+      if (generalGroup) {
+        groupId = generalGroup.id;
+      } else {
+        console.warn(`⚠️ [RankBatchRun] No General group found for account ${accountId}, 'ungrouped' groupId cannot be resolved`);
+        return NextResponse.json(
+          { error: 'General group not found for account' },
+          { status: 404 }
+        );
+      }
+    }
 
     // Get business data for default location
     const { data: business } = await serviceSupabase
@@ -447,18 +480,11 @@ export async function GET(request: NextRequest) {
 
     if (groupId) {
       // Group mode: count terms from rank_tracking_terms filtered by group
-      const termsQuery = serviceSupabase
+      const { data: terms, error: termsError } = await serviceSupabase
         .from('rank_tracking_terms')
         .select('keyword_id, term')
-        .eq('account_id', accountId);
-
-      if (groupId === 'ungrouped') {
-        termsQuery.is('group_id', null);
-      } else {
-        termsQuery.eq('group_id', groupId);
-      }
-
-      const { data: terms, error: termsError } = await termsQuery;
+        .eq('account_id', accountId)
+        .eq('group_id', groupId);
 
       if (termsError) {
         return NextResponse.json(

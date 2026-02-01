@@ -175,6 +175,9 @@ export default function RankTrackingPage() {
   const [checkingRankKeyword, setCheckingRankKeyword] = useState<string | null>(null);
   const [checkingVolumeKeyword, setCheckingVolumeKeyword] = useState<string | null>(null);
 
+  // Track keyword IDs pending in active batch run (for checked column indicator)
+  const [pendingKeywordIds, setPendingKeywordIds] = useState<Set<string>>(new Set());
+
   // Looked-up location from business address (if location_code not set)
   const [lookedUpLocation, setLookedUpLocation] = useState<{
     locationCode: number;
@@ -263,9 +266,6 @@ export default function RankTrackingPage() {
   // Schedule modal state (opened from schedule column)
   const [scheduleKeyword, setScheduleKeyword] = useState<{ id: string; name: string } | null>(null);
 
-  // Ungroup confirmation dialog
-  const [showUngroupConfirm, setShowUngroupConfirm] = useState(false);
-
   // State for concept sidebar
   const [selectedKeywordId, setSelectedKeywordId] = useState<string | null>(null);
   const { keyword: selectedKeyword, promptPages, recentReviews, refresh: refreshKeywordDetails } = useKeywordDetails(selectedKeywordId);
@@ -273,7 +273,6 @@ export default function RankTrackingPage() {
   // Group management state
   const {
     groups,
-    ungroupedCount,
     isLoading: groupsLoading,
     refresh: refreshGroups,
     createGroup,
@@ -289,7 +288,6 @@ export default function RankTrackingPage() {
   // Compute selected group name for display
   const selectedGroupName = useMemo(() => {
     if (!filterGroup) return null;
-    if (filterGroup === 'ungrouped') return 'Ungrouped';
     const group = groups.find(g => g.id === filterGroup);
     return group?.name || null;
   }, [filterGroup, groups]);
@@ -459,11 +457,21 @@ export default function RankTrackingPage() {
           progress: number;
           creditsRefunded?: number;
           errorMessage: string | null;
-        }>('/rank-tracking/batch-status');
+          items?: Array<{ keywordId: string; desktopStatus: string; mobileStatus: string }>;
+        }>('/rank-tracking/batch-status?includeItems=true');
 
         // Only track if pending or processing
         if (status.status === 'pending' || status.status === 'processing') {
           setActiveBatchRun(status);
+          // Extract pending keyword IDs
+          if (status.items) {
+            const pending = new Set(
+              status.items
+                .filter(item => ['pending', 'processing'].includes(item.desktopStatus) || ['pending', 'processing'].includes(item.mobileStatus))
+                .map(item => item.keywordId)
+            );
+            setPendingKeywordIds(pending);
+          }
         }
       } catch {
         // No active batch run or error - that's fine
@@ -493,13 +501,25 @@ export default function RankTrackingPage() {
           progress: number;
           creditsRefunded?: number;
           errorMessage: string | null;
-        }>(`/rank-tracking/batch-status?runId=${activeBatchRun.runId}`);
+          items?: Array<{ keywordId: string; desktopStatus: string; mobileStatus: string }>;
+        }>(`/rank-tracking/batch-status?runId=${activeBatchRun.runId}&includeItems=true`);
 
         setActiveBatchRun(status);
+
+        // Update pending keyword IDs
+        if (status.items) {
+          const pending = new Set(
+            status.items
+              .filter(item => ['pending', 'processing'].includes(item.desktopStatus) || ['pending', 'processing'].includes(item.mobileStatus))
+              .map(item => item.keywordId)
+          );
+          setPendingKeywordIds(pending);
+        }
 
         // When complete, refresh rank checks data
         if (['completed', 'failed'].includes(status.status)) {
           clearInterval(pollInterval);
+          setPendingKeywordIds(new Set());
           fetchRankChecks();
 
           // Show success/error toast
@@ -913,22 +933,15 @@ export default function RankTrackingPage() {
       await refreshGroups();
 
       // Show success notification
-      const groupName = groupId === null
-        ? 'Ungrouped'
-        : groups.find(g => g.id === groupId)?.name || 'group';
+      const groupName = groups.find(g => g.id === groupId)?.name || 'group';
       showSuccess(`Moved ${count} ${count === 1 ? 'term' : 'terms'} to ${groupName}`);
     } else {
       showError('Failed to move terms. Please try again.');
     }
   }, [selectedTermKeys, bulkMoveTerms, refreshGroups, groups, showSuccess, showError]);
 
-  // Handle bulk move to group (with ungroup warning)
+  // Handle bulk move to group
   const handleBulkMoveToGroup = useCallback(async (groupId: string | null) => {
-    if (groupId === null) {
-      // Moving to ungrouped - show warning about group schedules
-      setShowUngroupConfirm(true);
-      return;
-    }
     await executeBulkMove(groupId);
   }, [executeBulkMove]);
 
@@ -1030,9 +1043,6 @@ export default function RankTrackingPage() {
                     {group.name} ({group.termCount})
                   </option>
                 ))}
-                {ungroupedCount > 0 && (
-                  <option value="ungrouped">Ungrouped ({ungroupedCount})</option>
-                )}
               </select>
               <button
                 onClick={() => setShowManageGroupsModal(true)}
@@ -1191,6 +1201,7 @@ export default function RankTrackingPage() {
           selectedTermKeys={selectedTermKeys}
           onToggleTermSelection={toggleTermSelection}
           activeBatchRun={activeBatchRun}
+          pendingKeywordIds={pendingKeywordIds}
           scheduledRuns={scheduledRuns}
           onCancelScheduledRun={async (runId) => {
             await apiClient.delete(`/rank-tracking/batch-run?runId=${runId}`);
@@ -1293,8 +1304,6 @@ export default function RankTrackingPage() {
         onSelectAll={selectAllTerms}
         onDeselectAll={deselectAllTerms}
         onMoveToGroup={handleBulkMoveToGroup}
-        allowUngrouped
-        ungroupedCount={ungroupedCount}
       />
 
       {/* Manage Groups Modal */}
@@ -1386,35 +1395,6 @@ export default function RankTrackingPage() {
             disabled={isDeleting || isLoadingCounts}
           >
             {isDeleting ? 'Deleting...' : 'Delete concept'}
-          </Button>
-        </Modal.Footer>
-      </Modal>
-
-      {/* Ungroup Confirmation Modal */}
-      <Modal
-        isOpen={showUngroupConfirm}
-        onClose={() => setShowUngroupConfirm(false)}
-        title="Remove from group?"
-        size="sm"
-      >
-        <p className="text-sm text-gray-600">
-          Moving {selectedTermKeys.size} {selectedTermKeys.size === 1 ? 'term' : 'terms'} to <strong>Ungrouped</strong> will
-          remove {selectedTermKeys.size === 1 ? 'it' : 'them'} from any group-level schedules.
-        </p>
-        <p className="text-sm text-gray-500 mt-2">
-          You can set up individual schedules for each keyword after ungrouping.
-        </p>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowUngroupConfirm(false)}>
-            Cancel
-          </Button>
-          <Button
-            onClick={async () => {
-              setShowUngroupConfirm(false);
-              await executeBulkMove(null);
-            }}
-          >
-            Move to ungrouped
           </Button>
         </Modal.Footer>
       </Modal>

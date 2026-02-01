@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { createServerSupabaseClient } from '@/auth/providers/supabase';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
-import { DEFAULT_RANK_TRACKING_GROUP_NAME } from '@/app/(app)/api/rank-tracking-term-groups/route';
+import { DEFAULT_RANK_TRACKING_GROUP_NAME } from '@/lib/groupConstants';
 
 // Service client for privileged operations
 const serviceSupabase = createClient(
@@ -17,7 +17,7 @@ const serviceSupabase = createClient(
  * Body:
  * - termIds: string[] (optional) - Array of rank_tracking_term IDs to move
  * - termIdentifiers: Array<{keywordId: string, term: string}> (optional) - Alternative way to identify terms
- * - groupId: string | null (required) - Target group ID, or null to move to ungrouped
+ * - groupId: string | null (required) - Target group ID, or null to move to General
  *
  * Either termIds or termIdentifiers must be provided.
  */
@@ -36,7 +36,19 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { termIds: providedTermIds, termIdentifiers, groupId } = body;
+    const { termIds: providedTermIds, termIdentifiers, groupId: rawGroupId } = body;
+
+    // Resolve target group: if null, default to General
+    let groupId = rawGroupId;
+    if (!groupId) {
+      groupId = await ensureGeneralGroupExists(accountId);
+      if (!groupId) {
+        return NextResponse.json(
+          { error: 'Failed to resolve General group' },
+          { status: 500 }
+        );
+      }
+    }
 
     // Resolve term IDs from either direct IDs or keyword+term pairs
     let termIds: string[] = [];
@@ -158,7 +170,7 @@ async function ensureGeneralGroupExists(accountId: string): Promise<string | nul
   }
 
   // Create General group
-  const { data: newGeneral } = await serviceSupabase
+  const { data: newGeneral, error } = await serviceSupabase
     .from('rank_tracking_term_groups')
     .insert({
       account_id: accountId,
@@ -168,5 +180,18 @@ async function ensureGeneralGroupExists(accountId: string): Promise<string | nul
     .select('id')
     .single();
 
-  return newGeneral?.id || null;
+  if (newGeneral) return newGeneral.id;
+
+  // Handle race condition: another request may have created it concurrently
+  if (error) {
+    const { data: retryGroup } = await serviceSupabase
+      .from('rank_tracking_term_groups')
+      .select('id')
+      .eq('account_id', accountId)
+      .eq('name', DEFAULT_RANK_TRACKING_GROUP_NAME)
+      .maybeSingle();
+    return retryGroup?.id || null;
+  }
+
+  return null;
 }

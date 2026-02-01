@@ -10,6 +10,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { createServerSupabaseClient } from '@/auth/providers/supabase';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
+import { DEFAULT_RANK_TRACKING_GROUP_NAME } from '@/lib/groupConstants';
 
 const serviceSupabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -50,21 +51,37 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ runs: [] });
     }
 
+    // Resolve historical 'ungrouped' entries to the General group
+    let generalGroupId: string | null = null;
+    const hasUngroupedRun = runs.some(r => r.group_id === 'ungrouped');
+    if (hasUngroupedRun) {
+      const { data: generalGroup } = await serviceSupabase
+        .from('rank_tracking_term_groups')
+        .select('id')
+        .eq('account_id', accountId)
+        .eq('name', DEFAULT_RANK_TRACKING_GROUP_NAME)
+        .maybeSingle();
+      generalGroupId = generalGroup?.id || null;
+    }
+
     // Collect unique group IDs to fetch names and affected keyword IDs
     const groupIds = runs
-      .map(r => r.group_id)
-      .filter((id): id is string => id !== null && id !== 'ungrouped');
-    const hasUngroupedRun = runs.some(r => r.group_id === 'ungrouped');
+      .map(r => {
+        if (r.group_id === 'ungrouped') return generalGroupId;
+        return r.group_id;
+      })
+      .filter((id): id is string => id !== null);
+    const uniqueGroupIds = [...new Set(groupIds)];
 
     let groupNameMap: Record<string, string> = {};
     let groupKeywordMap: Record<string, string[]> = {};
 
-    if (groupIds.length > 0) {
+    if (uniqueGroupIds.length > 0) {
       // Fetch group names
       const { data: groups } = await serviceSupabase
         .from('rank_tracking_term_groups')
         .select('id, name')
-        .in('id', groupIds);
+        .in('id', uniqueGroupIds);
 
       if (groups) {
         groupNameMap = Object.fromEntries(groups.map(g => [g.id, g.name]));
@@ -75,7 +92,7 @@ export async function GET(request: NextRequest) {
         .from('rank_tracking_terms')
         .select('group_id, keyword_id')
         .eq('account_id', accountId)
-        .in('group_id', groupIds);
+        .in('group_id', uniqueGroupIds);
 
       if (terms) {
         for (const term of terms) {
@@ -91,35 +108,20 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Fetch keyword IDs for "ungrouped" runs (terms with no group)
-    if (hasUngroupedRun) {
-      const { data: ungroupedTerms } = await serviceSupabase
-        .from('rank_tracking_terms')
-        .select('keyword_id')
-        .eq('account_id', accountId)
-        .is('group_id', null);
-
-      if (ungroupedTerms) {
-        const ids: string[] = [];
-        for (const term of ungroupedTerms) {
-          if (!ids.includes(term.keyword_id)) {
-            ids.push(term.keyword_id);
-          }
-        }
-        groupKeywordMap['ungrouped'] = ids;
-      }
-    }
-
-    const result = runs.map(run => ({
-      runId: run.id,
-      groupId: run.group_id,
-      groupName: run.group_id ? (groupNameMap[run.group_id] || null) : null,
-      scheduledFor: run.scheduled_for,
-      totalKeywords: run.total_keywords,
-      estimatedCredits: run.estimated_credits,
-      // For group-specific runs, include affected keyword IDs so the UI can match rows
-      keywordIds: run.group_id ? (groupKeywordMap[run.group_id] || []) : null,
-    }));
+    const result = runs.map(run => {
+      // Resolve historical 'ungrouped' to General group UUID
+      const resolvedGroupId = run.group_id === 'ungrouped' ? generalGroupId : run.group_id;
+      return {
+        runId: run.id,
+        groupId: resolvedGroupId,
+        groupName: resolvedGroupId ? (groupNameMap[resolvedGroupId] || null) : null,
+        scheduledFor: run.scheduled_for,
+        totalKeywords: run.total_keywords,
+        estimatedCredits: run.estimated_credits,
+        // For group-specific runs, include affected keyword IDs so the UI can match rows
+        keywordIds: resolvedGroupId ? (groupKeywordMap[resolvedGroupId] || []) : null,
+      };
+    });
 
     return NextResponse.json({ runs: result });
   } catch (err) {

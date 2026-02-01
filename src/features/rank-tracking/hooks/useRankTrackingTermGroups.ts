@@ -18,7 +18,6 @@ interface UseRankTrackingTermGroupsOptions {
 
 interface UseRankTrackingTermGroupsReturn {
   groups: RankTrackingTermGroupData[];
-  ungroupedCount: number;
   isLoading: boolean;
   error: string | null;
   refresh: () => Promise<void>;
@@ -35,7 +34,6 @@ export function useRankTrackingTermGroups(
   const { autoFetch = true } = options;
 
   const [groups, setGroups] = useState<RankTrackingTermGroupData[]>([]);
-  const [ungroupedCount, setUngroupedCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -46,11 +44,9 @@ export function useRankTrackingTermGroups(
     try {
       const response = await apiClient.get<{
         groups: RankTrackingTermGroupData[];
-        ungroupedCount: number;
       }>('/rank-tracking-term-groups');
 
       setGroups(response.groups || []);
-      setUngroupedCount(response.ungroupedCount || 0);
     } catch (err: any) {
       console.error('❌ Failed to fetch rank tracking term groups:', err);
       setError(err?.message || 'Failed to fetch groups');
@@ -177,7 +173,6 @@ export function useRankTrackingTermGroups(
 
   return {
     groups,
-    ungroupedCount,
     isLoading,
     error,
     refresh,

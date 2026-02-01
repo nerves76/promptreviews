@@ -508,12 +508,14 @@ export function transformKeywordQuestionRows(
  */
 export function prepareQuestionForInsert(
   keywordId: string,
-  question: RelatedQuestion
+  question: RelatedQuestion,
+  groupId?: string | null
 ): Omit<KeywordQuestionRow, 'id' | 'created_at' | 'updated_at'> {
   return {
     keyword_id: keywordId,
     question: question.question,
     funnel_stage: question.funnelStage,
+    group_id: groupId ?? null,
     added_at: question.addedAt || new Date().toISOString(),
   };
 }

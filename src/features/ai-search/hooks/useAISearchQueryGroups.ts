@@ -18,7 +18,6 @@ interface UseAISearchQueryGroupsOptions {
 
 interface UseAISearchQueryGroupsReturn {
   groups: AISearchQueryGroupData[];
-  ungroupedCount: number;
   isLoading: boolean;
   error: string | null;
   refresh: () => Promise<void>;
@@ -35,7 +34,6 @@ export function useAISearchQueryGroups(
   const { autoFetch = true } = options;
 
   const [groups, setGroups] = useState<AISearchQueryGroupData[]>([]);
-  const [ungroupedCount, setUngroupedCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -46,11 +44,9 @@ export function useAISearchQueryGroups(
     try {
       const response = await apiClient.get<{
         groups: AISearchQueryGroupData[];
-        ungroupedCount: number;
       }>('/ai-search-query-groups');
 
       setGroups(response.groups || []);
-      setUngroupedCount(response.ungroupedCount || 0);
     } catch (err: any) {
       console.error('❌ Failed to fetch AI search query groups:', err);
       setError(err?.message || 'Failed to fetch groups');
@@ -177,7 +173,6 @@ export function useAISearchQueryGroups(
 
   return {
     groups,
-    ungroupedCount,
     isLoading,
     error,
     refresh,

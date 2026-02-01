@@ -59,9 +59,7 @@ export default function ScheduledRunIndicator({ run, onCancel, type }: Scheduled
 
   const scopeLabel = !run.groupId
     ? 'All groups'
-    : run.groupId === 'ungrouped'
-      ? 'Ungrouped'
-      : (run.groupName || 'Unknown group');
+    : (run.groupName || 'Unknown group');
 
   return (
     <Popover className="relative inline-block">

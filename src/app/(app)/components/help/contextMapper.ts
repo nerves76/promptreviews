@@ -35,14 +35,14 @@ const routeContextMap: Record<string, RouteContext> = {
     pageName: 'Business Profile',
     helpTopics: ['business-info', 'branding', 'social-links']
   },
-  '/dashboard/style': {
-    keywords: ['style', 'branding', 'customize', 'colors', 'fonts', 'design'],
-    pageName: 'Style Settings',
-    helpTopics: ['colors', 'fonts', 'themes']
+  '/dashboard/prompt-page-settings': {
+    keywords: ['style', 'branding', 'customize', 'colors', 'fonts', 'design', 'settings'],
+    pageName: 'Prompt Page Settings',
+    helpTopics: ['colors', 'fonts', 'themes', 'settings']
   },
   '/dashboard/widget': {
     keywords: ['widgets', 'embed', 'website', 'reviews', 'display'],
-    pageName: 'Review Widgets',
+    pageName: 'Widgets',
     helpTopics: ['widget-types', 'embedding', 'customization']
   },
   '/dashboard/google-business': {
@@ -52,7 +52,7 @@ const routeContextMap: Record<string, RouteContext> = {
   },
   '/dashboard/reviews': {
     keywords: ['reviews', 'manage', 'verification', 'feedback', 'ratings'],
-    pageName: 'Reviews Management',
+    pageName: 'Reviews',
     helpTopics: ['moderation', 'verification', 'responses']
   },
   '/dashboard/team': {
@@ -72,7 +72,7 @@ const routeContextMap: Record<string, RouteContext> = {
   },
   '/prompt-pages': {
     keywords: ['prompt-pages', 'public', 'sharing', 'list', 'manage'],
-    pageName: 'Prompt Pages List',
+    pageName: 'Prompt Pages',
     helpTopics: ['management', 'sharing', 'status']
   },
   '/r/': {
@@ -82,7 +82,7 @@ const routeContextMap: Record<string, RouteContext> = {
   },
   '/dashboard/keywords': {
     keywords: ['keywords', 'concepts', 'search-terms', 'seo', 'tracking', 'library'],
-    pageName: 'Keyword Concepts Library',
+    pageName: 'Keyword Concepts',
     helpTopics: ['keyword-concepts', 'search-terms', 'organization', 'groups']
   },
   '/dashboard/keywords/rank-tracking': {
@@ -90,34 +90,29 @@ const routeContextMap: Record<string, RouteContext> = {
     pageName: 'Rank Tracking',
     helpTopics: ['rank-tracking', 'seo-monitoring', 'positions']
   },
-  '/dashboard/keywords/llm-visibility': {
-    keywords: ['llm', 'ai', 'visibility', 'chatgpt', 'perplexity', 'citations'],
-    pageName: 'LLM Visibility',
-    helpTopics: ['ai-visibility', 'llm-tracking', 'citations']
-  },
   '/dashboard/keywords/research': {
-    keywords: ['research', 'volume', 'search-volume', 'keywords', 'discover'],
+    keywords: ['keywords', 'research', 'volume', 'search-volume', 'discover'],
     pageName: 'Keyword Research',
     helpTopics: ['keyword-research', 'search-volume', 'discovery']
   },
   '/dashboard/local-ranking-grids': {
     keywords: ['local', 'ranking', 'grid', 'geo', 'map', 'location', 'gmb'],
-    pageName: 'Local Ranking Grid',
+    pageName: 'Local Ranking Grids',
     helpTopics: ['local-seo', 'geo-grid', 'map-rankings']
   },
   '/dashboard/ai-search/competitors': {
     keywords: ['ai', 'search', 'competitors', 'llm', 'visibility', 'competitor-tracking'],
-    pageName: 'AI Search Competitors',
+    pageName: 'LLM Visibility Competitors',
     helpTopics: ['ai-competitor-tracking', 'llm-visibility', 'brand-mentions']
   },
   '/dashboard/ai-search/research-sources': {
     keywords: ['ai', 'search', 'research', 'sources', 'citations', 'llm'],
-    pageName: 'AI Research Sources',
+    pageName: 'LLM Research Sources',
     helpTopics: ['ai-sources', 'citations', 'content-strategy']
   },
   '/dashboard/ai-search': {
     keywords: ['ai', 'search', 'llm', 'chatgpt', 'perplexity', 'visibility'],
-    pageName: 'AI Search',
+    pageName: 'LLM Visibility',
     helpTopics: ['ai-visibility', 'llm-tracking', 'brand-monitoring']
   },
   '/dashboard/comparisons/competitors': {
@@ -152,7 +147,7 @@ const routeContextMap: Record<string, RouteContext> = {
   },
   '/dashboard/social-posting': {
     keywords: ['social', 'posting', 'google', 'posts', 'schedule', 'publish'],
-    pageName: 'Social Posting',
+    pageName: 'Post Scheduling',
     helpTopics: ['social-posts', 'scheduling', 'google-posts']
   },
   '/dashboard/rss-feeds': {
@@ -197,7 +192,7 @@ const routeContextMap: Record<string, RouteContext> = {
   },
   '/dashboard/integrations': {
     keywords: ['integrations', 'connect', 'api', 'zapier', 'webhooks', 'tools'],
-    pageName: 'Integrations',
+    pageName: 'Connect',
     helpTopics: ['available-integrations', 'setup', 'api-access']
   },
   '/dashboard/settings/agency-access': {

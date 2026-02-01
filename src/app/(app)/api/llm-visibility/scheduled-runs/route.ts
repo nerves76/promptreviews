@@ -9,6 +9,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { createServerSupabaseClient } from '@/auth/providers/supabase';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
+import { DEFAULT_AI_SEARCH_GROUP_NAME } from '@/lib/groupConstants';
 
 const serviceSupabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -49,31 +50,51 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ runs: [] });
     }
 
+    // Resolve historical 'ungrouped' entries to the General group
+    let generalGroupId: string | null = null;
+    const hasUngroupedRun = runs.some(r => r.group_id === 'ungrouped');
+    if (hasUngroupedRun) {
+      const { data: generalGroup } = await serviceSupabase
+        .from('ai_search_query_groups')
+        .select('id')
+        .eq('account_id', accountId)
+        .eq('name', DEFAULT_AI_SEARCH_GROUP_NAME)
+        .maybeSingle();
+      generalGroupId = generalGroup?.id || null;
+    }
+
     // Collect unique group IDs to fetch names
     const groupIds = runs
-      .map(r => r.group_id)
-      .filter((id): id is string => id !== null && id !== 'ungrouped');
+      .map(r => {
+        if (r.group_id === 'ungrouped') return generalGroupId;
+        return r.group_id;
+      })
+      .filter((id): id is string => id !== null);
+    const uniqueGroupIds = [...new Set(groupIds)];
 
     let groupNameMap: Record<string, string> = {};
-    if (groupIds.length > 0) {
+    if (uniqueGroupIds.length > 0) {
       const { data: groups } = await serviceSupabase
         .from('ai_search_query_groups')
         .select('id, name')
-        .in('id', groupIds);
+        .in('id', uniqueGroupIds);
 
       if (groups) {
         groupNameMap = Object.fromEntries(groups.map(g => [g.id, g.name]));
       }
     }
 
-    const result = runs.map(run => ({
-      runId: run.id,
-      groupId: run.group_id,
-      groupName: run.group_id ? (groupNameMap[run.group_id] || null) : null,
-      scheduledFor: run.scheduled_for,
-      totalQuestions: run.total_questions,
-      estimatedCredits: run.estimated_credits,
-    }));
+    const result = runs.map(run => {
+      const resolvedGroupId = run.group_id === 'ungrouped' ? generalGroupId : run.group_id;
+      return {
+        runId: run.id,
+        groupId: resolvedGroupId,
+        groupName: resolvedGroupId ? (groupNameMap[resolvedGroupId] || null) : null,
+        scheduledFor: run.scheduled_for,
+        totalQuestions: run.total_questions,
+        estimatedCredits: run.estimated_credits,
+      };
+    });
 
     return NextResponse.json({ runs: result });
   } catch (err) {

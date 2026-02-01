@@ -1,10 +1,7 @@
 // Unified Keyword System - UI Components
 
 export { default as KeywordChip, SimpleKeywordChip } from './KeywordChip';
-export {
-  default as KeywordGroupAccordion,
-  UngroupedKeywordsSection,
-} from './KeywordGroupAccordion';
+export { default as KeywordGroupAccordion } from './KeywordGroupAccordion';
 export { default as KeywordManager } from './KeywordManager';
 export { default as UnifiedKeywordsInput } from './UnifiedKeywordsInput';
 export { default as KeywordRotationPanel } from './KeywordRotationPanel';

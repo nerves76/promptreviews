@@ -23,6 +23,7 @@ import {
 } from '@/features/llm-visibility/utils/types';
 import { calculateLLMCheckCost } from '@/features/llm-visibility/services/credits';
 import { extractQuestionText } from '@/features/keywords/keywordUtils';
+import { DEFAULT_AI_SEARCH_GROUP_NAME } from '@/lib/groupConstants';
 
 // Service client for privileged operations
 const serviceSupabase = createClient(
@@ -34,7 +35,7 @@ interface BatchRunRequest {
   providers: LLMProvider[];
   scheduledFor?: string; // ISO timestamp for when to start the run
   retryFailedFromRunId?: string; // If provided, only retry failed items from this run
-  groupId?: string; // If provided, only check questions in this group (or "ungrouped" for null group_id)
+  groupId?: string; // If provided, only check questions in this group ("ungrouped" is resolved to General group for backward compat)
 }
 
 interface QuestionItem {
@@ -62,7 +63,28 @@ export async function POST(request: NextRequest) {
     }
 
     const body: BatchRunRequest = await request.json();
-    const { providers, scheduledFor, retryFailedFromRunId, groupId } = body;
+    const { providers, scheduledFor, retryFailedFromRunId, groupId: rawGroupId } = body;
+
+    // Resolve 'ungrouped' to the General group UUID for backward compatibility
+    let groupId = rawGroupId;
+    if (rawGroupId === 'ungrouped') {
+      const { data: generalGroup } = await serviceSupabase
+        .from('ai_search_query_groups')
+        .select('id')
+        .eq('account_id', accountId)
+        .eq('name', DEFAULT_AI_SEARCH_GROUP_NAME)
+        .single();
+
+      if (generalGroup) {
+        groupId = generalGroup.id;
+        console.log(`🔄 [LLMBatchRun] Resolved 'ungrouped' to General group ${groupId}`);
+      } else {
+        return NextResponse.json(
+          { error: 'General group not found for account' },
+          { status: 404 }
+        );
+      }
+    }
 
     // Parse scheduled time if provided
     let scheduledForDate: Date | null = null;
@@ -187,13 +209,8 @@ export async function POST(request: NextRequest) {
         const questionsQuery = serviceSupabase
           .from('keyword_questions')
           .select('keyword_id, question')
-          .in('keyword_id', keywordIds);
-
-        if (groupId === 'ungrouped') {
-          questionsQuery.is('group_id', null);
-        } else {
-          questionsQuery.eq('group_id', groupId);
-        }
+          .in('keyword_id', keywordIds)
+          .eq('group_id', groupId);
 
         const { data: questions, error: questionsError } = await questionsQuery;
 
@@ -279,15 +296,13 @@ export async function POST(request: NextRequest) {
 
     // Look up group name if groupId provided
     let groupName: string | null = null;
-    if (groupId && groupId !== 'ungrouped') {
+    if (groupId) {
       const { data: group } = await serviceSupabase
         .from('ai_search_query_groups')
         .select('name')
         .eq('id', groupId)
         .single();
       groupName = group?.name || null;
-    } else if (groupId === 'ungrouped') {
-      groupName = 'Ungrouped';
     }
 
     // Debit credits upfront
@@ -431,10 +446,30 @@ export async function GET(request: NextRequest) {
     // Get requested providers and groupId from query params
     const { searchParams } = new URL(request.url);
     const providersParam = searchParams.get('providers');
-    const groupId = searchParams.get('groupId');
+    const rawGroupId = searchParams.get('groupId');
     const providers: LLMProvider[] = providersParam
       ? (providersParam.split(',') as LLMProvider[]).filter(p => LLM_PROVIDERS.includes(p))
       : LLM_PROVIDERS;
+
+    // Resolve 'ungrouped' to the General group UUID for backward compatibility
+    let groupId = rawGroupId;
+    if (rawGroupId === 'ungrouped') {
+      const { data: generalGroup } = await serviceSupabase
+        .from('ai_search_query_groups')
+        .select('id')
+        .eq('account_id', accountId)
+        .eq('name', DEFAULT_AI_SEARCH_GROUP_NAME)
+        .single();
+
+      if (generalGroup) {
+        groupId = generalGroup.id;
+      } else {
+        return NextResponse.json(
+          { error: 'General group not found for account' },
+          { status: 404 }
+        );
+      }
+    }
 
     let totalQuestions = 0;
     let keywordCount = 0;
@@ -451,13 +486,8 @@ export async function GET(request: NextRequest) {
         const questionsQuery = serviceSupabase
           .from('keyword_questions')
           .select('keyword_id, question')
-          .in('keyword_id', keywordIds);
-
-        if (groupId === 'ungrouped') {
-          questionsQuery.is('group_id', null);
-        } else {
-          questionsQuery.eq('group_id', groupId);
-        }
+          .in('keyword_id', keywordIds)
+          .eq('group_id', groupId);
 
         const { data: questions, error: questionsError } = await questionsQuery;
 
