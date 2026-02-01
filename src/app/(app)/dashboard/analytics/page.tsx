@@ -19,7 +19,6 @@ import {
   Tooltip,
   ResponsiveContainer,
   CartesianGrid,
-  Legend,
 } from "recharts";
 import { format } from "date-fns";
 import { trackEvent, GA_EVENTS } from "@/utils/analytics";
@@ -637,29 +636,22 @@ export default function AnalyticsPage() {
           <ResponsiveContainer width="100%" height={300}>
             <BarChart
               data={(analytics as any).timelineData}
-              margin={{ top: 10, right: 30, left: 0, bottom: 20 }}
+              margin={{ top: 10, right: 30, left: 0, bottom: 5 }}
             >
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis
                 dataKey="month"
                 tickFormatter={(dateKey) => {
                   if ((analytics as any).useDailyGranularity) {
-                    // Daily format: show MM/DD
                     const [year, month, day] = dateKey.split("-");
                     return `${month}/${day}`;
                   } else {
-                    // Monthly format: show MMM yyyy
                     const [year, month] = dateKey.split("-");
                     return format(
                       new Date(Number(year), Number(month) - 1, 1),
                       "MMM yyyy",
                     );
                   }
-                }}
-                label={{
-                  value: (analytics as any).useDailyGranularity ? "Date" : "Month",
-                  position: "insideBottom",
-                  offset: -5
                 }}
               />
               <YAxis
@@ -688,7 +680,6 @@ export default function AnalyticsPage() {
                   }
                 }}
               />
-              <Legend />
               <Bar
                 dataKey="verified"
                 name="Verified"
@@ -708,6 +699,24 @@ export default function AnalyticsPage() {
               />
             </BarChart>
           </ResponsiveContainer>
+          <div className="flex flex-wrap items-center justify-center gap-6 mt-4 pt-4 border-t border-gray-100">
+            <div className="flex items-center gap-2 group relative">
+              <span className="inline-block w-3.5 h-3.5 rounded-sm" style={{ backgroundColor: '#2E4A7D' }} />
+              <span className="text-sm font-medium text-gray-700">Unverified</span>
+              <Icon name="FaInfoCircle" size={14} className="text-gray-400 cursor-help" />
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+                Reviews captured with prompt pages
+              </div>
+            </div>
+            <div className="flex items-center gap-2 group relative">
+              <span className="inline-block w-3.5 h-3.5 rounded-sm" style={{ backgroundColor: '#16a34a' }} />
+              <span className="text-sm font-medium text-gray-700">Verified</span>
+              <Icon name="FaInfoCircle" size={14} className="text-gray-400 cursor-help" />
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+                Reviews manually or auto-verified
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
