@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createClient, getUserOrMock } from "@/auth/providers/supabase";
 import { useAuthGuard } from "@/utils/authGuard";
 import { useAccountData } from "@/auth/hooks/granularAuthHooks";
@@ -98,6 +98,24 @@ export default function AnalyticsPage() {
   const router = useRouter();
   const [locationNames, setLocationNames] = useState<string[]>([]);
   const [filter, setFilter] = useState<'all' | 'universal' | string>('all');
+  const [chartVisible, setChartVisible] = useState(false);
+  const chartRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const node = chartRef.current;
+    if (!node) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setChartVisible(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.3 }
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [analytics]);
 
   useEffect(() => {
     const fetchPromptPages = async () => {
@@ -631,7 +649,7 @@ export default function AnalyticsPage() {
       </div>
 
       {analytics && (analytics as any).timelineData && (
-        <div className="mb-12 bg-white rounded-lg shadow p-6">
+        <div ref={chartRef} className="mb-12 bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold mb-4">Reviews Over Time</h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart
@@ -685,6 +703,7 @@ export default function AnalyticsPage() {
                 name="Verified"
                 stackId="reviews"
                 fill="#16a34a"
+                isAnimationActive={chartVisible}
                 animationDuration={1800}
                 animationEasing="ease-in-out"
               />
@@ -694,6 +713,7 @@ export default function AnalyticsPage() {
                 stackId="reviews"
                 fill="#2E4A7D"
                 radius={[4, 4, 0, 0]}
+                isAnimationActive={chartVisible}
                 animationDuration={1800}
                 animationEasing="ease-in-out"
               />
