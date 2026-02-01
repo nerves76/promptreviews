@@ -694,8 +694,8 @@ export default function AnalyticsPage() {
                 name="Verified"
                 stackId="reviews"
                 fill="#16a34a"
-                animationDuration={800}
-                animationEasing="ease-out"
+                animationDuration={1800}
+                animationEasing="ease-in-out"
               />
               <Bar
                 dataKey="unverified"
@@ -703,9 +703,8 @@ export default function AnalyticsPage() {
                 stackId="reviews"
                 fill="#2E4A7D"
                 radius={[4, 4, 0, 0]}
-                animationDuration={800}
-                animationEasing="ease-out"
-                animationBegin={200}
+                animationDuration={1800}
+                animationEasing="ease-in-out"
               />
             </BarChart>
           </ResponsiveContainer>
