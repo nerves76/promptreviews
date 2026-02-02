@@ -65,8 +65,8 @@ const FOLLOW_UP_OPTIONS = [
 ];
 
 const STATUS_OPTIONS = [
-  { value: 'draft', label: 'Draft', description: 'Still being worked on' },
-  { value: 'in_queue', label: 'In queue', description: 'Ready to send for review' },
+  { value: 'draft', label: 'Backlog', description: 'Still being worked on' },
+  { value: 'in_queue', label: 'In progress', description: 'Ready to send for review' },
   { value: 'sent', label: 'Sent', description: 'Communication sent to customer' },
   { value: 'follow_up', label: 'Follow up', description: 'Needs follow up' },
   { value: 'complete', label: 'Complete', description: 'Review submitted' },

@@ -3,8 +3,8 @@ import { createServerSupabaseClient } from "@/auth/providers/supabase";
 import { getRequestAccountId } from "@/app/(app)/api/utils/getRequestAccountId";
 
 const DEFAULT_LABELS = {
-  draft: "Draft",
-  in_queue: "In Queue",
+  draft: "Backlog",
+  in_queue: "In progress",
   sent: "Sent",
   follow_up: "Follow Up",
   complete: "Complete",

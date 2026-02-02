@@ -66,8 +66,8 @@ export default function PromptPagesTable({
   account,
   universalUrl,
   statusLabels = {
-    draft: "Draft",
-    in_queue: "In queue",
+    draft: "Backlog",
+    in_queue: "In progress",
     sent: "Sent",
     follow_up: "Follow up",
     complete: "Complete",

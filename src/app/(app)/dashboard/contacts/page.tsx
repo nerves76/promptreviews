@@ -295,9 +295,9 @@ export default function UploadContactsPage() {
   const getCampaignStatusStyle = (status: string) => {
     switch (status) {
       case 'draft':
-        return { bg: 'bg-gray-100', text: 'text-gray-700', label: 'Draft' };
+        return { bg: 'bg-gray-100', text: 'text-gray-700', label: 'Backlog' };
       case 'in_queue':
-        return { bg: 'bg-blue-100', text: 'text-blue-700', label: 'In Queue' };
+        return { bg: 'bg-blue-100', text: 'text-blue-700', label: 'In progress' };
       case 'sent':
         return { bg: 'bg-indigo-100', text: 'text-indigo-700', label: 'Sent' };
       case 'responded':

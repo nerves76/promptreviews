@@ -77,10 +77,10 @@ const STATUS_COLORS = {
 };
 
 const STATUS_LABELS = {
-  in_queue: "In queue",
+  in_queue: "In progress",
   in_progress: "In progress",
   complete: "Complete",
-  draft: "Draft",
+  draft: "Backlog",
 };
 
 const DashboardContent = React.memo(function DashboardContent({

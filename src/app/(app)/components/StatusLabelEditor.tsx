@@ -14,12 +14,12 @@ const MAX_LABEL_LENGTH = 20;
 const STATUS_INFO = {
   draft: {
     key: "draft" as const,
-    defaultLabel: "Draft",
+    defaultLabel: "Backlog",
     description: "Pages that are being created or edited",
   },
   in_queue: {
     key: "in_queue" as const,
-    defaultLabel: "In queue",
+    defaultLabel: "In progress",
     description: "Pages ready to be sent to customers",
   },
   sent: {
@@ -92,8 +92,8 @@ export default function StatusLabelEditor({
 
   const handleReset = () => {
     const defaultLabels: StatusLabels = {
-      draft: "Draft",
-      in_queue: "In queue",
+      draft: "Backlog",
+      in_queue: "In progress",
       sent: "Sent",
       follow_up: "Follow up",
       complete: "Complete",

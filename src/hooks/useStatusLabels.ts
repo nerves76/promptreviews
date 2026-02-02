@@ -10,8 +10,8 @@ export interface StatusLabels {
 }
 
 const DEFAULT_LABELS: StatusLabels = {
-  draft: "Draft",
-  in_queue: "In queue",
+  draft: "Backlog",
+  in_queue: "In progress",
   sent: "Sent",
   follow_up: "Follow up",
   complete: "Complete",
