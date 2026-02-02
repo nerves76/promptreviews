@@ -1,6 +1,5 @@
 "use client";
 
-import HelpBubble from "@/components/ui/HelpBubble";
 import type { BenefitCard } from "../../types";
 
 interface BenefitsSectionProps {
@@ -9,18 +8,7 @@ interface BenefitsSectionProps {
 
 export default function BenefitsSection({ data }: BenefitsSectionProps) {
   return (
-    <div className="py-6">
-      <div className="flex items-center gap-1.5 mb-5">
-        <span className="text-[11px] font-semibold text-white/80 uppercase tracking-wider">
-          Key benefits
-        </span>
-        <HelpBubble
-          tooltip="Benefit-focused content demonstrates expertise and builds trust (E-E-A-T), which Google rewards in rankings."
-          label="Learn about E-E-A-T signals"
-          size="sm"
-        />
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {data.map((card, i) => (
           <div
             key={i}
@@ -34,7 +22,6 @@ export default function BenefitsSection({ data }: BenefitsSectionProps) {
             </p>
           </div>
         ))}
-      </div>
     </div>
   );
 }

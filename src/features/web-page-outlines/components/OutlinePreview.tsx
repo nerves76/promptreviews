@@ -72,6 +72,7 @@ export default function OutlinePreview({
       <SectionWrapper
         sectionKey="hero"
         label="Hero"
+        showLabel={false}
         seoAnnotation="Your H1 should contain your primary keyword and clearly describe the page topic."
         outline={outline}
         outlineId={outlineId}
@@ -92,6 +93,8 @@ export default function OutlinePreview({
             sectionKey="intro"
             label="Introduction"
             seoAnnotation="The opening paragraph should include your keyword within the first 100 words."
+            helpTooltip="The opening paragraph should hook readers and include your keyword naturally within the first 100 words."
+            helpLabel="Learn about intro content"
             outline={outline}
             outlineId={outlineId}
             onRegenerate={onRegenerate}
@@ -102,8 +105,10 @@ export default function OutlinePreview({
 
           <SectionWrapper
             sectionKey="benefits"
-            label="Benefits"
+            label="Key benefits"
             seoAnnotation="Benefit-focused content demonstrates expertise (E-E-A-T)."
+            helpTooltip="Benefit-focused content demonstrates expertise and builds trust (E-E-A-T), which Google rewards in rankings."
+            helpLabel="Learn about E-E-A-T signals"
             outline={outline}
             outlineId={outlineId}
             onRegenerate={onRegenerate}
@@ -116,6 +121,8 @@ export default function OutlinePreview({
             sectionKey="bodySections"
             label="Body content"
             seoAnnotation="H2 subheadings help search engines understand content structure."
+            helpTooltip="Each section is written to stand alone — this helps AI systems like Google's SGE extract and cite your content."
+            helpLabel="Learn about standalone content"
             outline={outline}
             outlineId={outlineId}
             onRegenerate={onRegenerate}
@@ -127,6 +134,8 @@ export default function OutlinePreview({
           <SectionWrapper
             sectionKey="cta"
             label="Call to action"
+            helpTooltip="A clear call-to-action converts visitors. Include action words and make the next step obvious."
+            helpLabel="Learn about CTAs"
             outline={outline}
             outlineId={outlineId}
             onRegenerate={onRegenerate}
@@ -137,8 +146,10 @@ export default function OutlinePreview({
 
           <SectionWrapper
             sectionKey="faq"
-            label="FAQ"
+            label="Frequently asked questions"
             seoAnnotation="FAQ sections can trigger rich snippets in Google search results."
+            helpTooltip="FAQ sections can trigger rich snippets in Google search results, increasing visibility and click-through rates."
+            helpLabel="Learn about FAQ rich snippets"
             outline={outline}
             outlineId={outlineId}
             onRegenerate={onRegenerate}
@@ -150,6 +161,7 @@ export default function OutlinePreview({
           <SectionWrapper
             sectionKey="footer"
             label="Footer"
+            showLabel={false}
             outline={outline}
             outlineId={outlineId}
             onRegenerate={onRegenerate}

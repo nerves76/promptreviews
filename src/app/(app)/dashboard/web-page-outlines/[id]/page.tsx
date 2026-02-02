@@ -209,7 +209,7 @@ export default function OutlineDetailPage() {
         </div>
 
         {/* Make it human disclaimer */}
-        <div className="bg-white/10 backdrop-blur-sm border border-white/30 rounded-xl p-3 flex items-start gap-2 mb-6">
+        <div className="bg-white/10 backdrop-blur-sm border border-white/30 rounded-xl p-3 flex items-start gap-2 mb-6 max-w-[750px]">
           <Icon
             name="FaExclamationTriangle"
             size={14}

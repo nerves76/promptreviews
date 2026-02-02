@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Icon from "@/components/Icon";
+import HelpBubble from "@/components/ui/HelpBubble";
 import { Tooltip } from "@/app/(app)/components/ui/Tooltip";
 import { copySectionText } from "../utils/clipboard";
 import { SECTION_REGEN_COST } from "../services/credits";
@@ -11,6 +12,9 @@ interface SectionWrapperProps {
   sectionKey: SectionKey;
   label: string;
   seoAnnotation?: string;
+  helpTooltip?: string;
+  helpLabel?: string;
+  showLabel?: boolean;
   children: React.ReactNode;
   outline: PageOutline;
   outlineId: string;
@@ -22,6 +26,9 @@ export default function SectionWrapper({
   sectionKey,
   label,
   seoAnnotation,
+  helpTooltip,
+  helpLabel,
+  showLabel = true,
   children,
   outline,
   onRegenerate,
@@ -38,19 +45,37 @@ export default function SectionWrapper({
 
   return (
     <div className="group">
-      {/* Action bar — visible on hover, sits above content in normal flow */}
-      <div className="flex items-center justify-end pb-3 z-10">
-        <div className="flex items-center gap-1">
-        {seoAnnotation && (
-          <Tooltip content={seoAnnotation}>
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-white/70 text-gray-700 backdrop-blur-sm border border-white/40 whitespace-nowrap cursor-help">
-              <Icon name="FaLightbulb" size={10} />
-              SEO tip
+      {/* Section header + action bar */}
+      <div className="flex items-center justify-between pb-3 z-10">
+        {/* Left: section label */}
+        {showLabel ? (
+          <div className="flex items-center gap-1.5">
+            <span className="text-[11px] font-semibold text-white/80 uppercase tracking-wider">
+              {label}
             </span>
-          </Tooltip>
+            {helpTooltip && (
+              <HelpBubble
+                tooltip={helpTooltip}
+                label={helpLabel || `Learn about ${label}`}
+                size="sm"
+              />
+            )}
+          </div>
+        ) : (
+          <div />
         )}
 
+        {/* Right: action buttons — all visible on hover */}
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+          {seoAnnotation && (
+            <Tooltip content={seoAnnotation}>
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-white/70 text-gray-700 backdrop-blur-sm border border-white/40 whitespace-nowrap cursor-help">
+                <Icon name="FaLightbulb" size={10} />
+                SEO tip
+              </span>
+            </Tooltip>
+          )}
+
           <button
             type="button"
             onClick={handleCopy}
@@ -77,7 +102,6 @@ export default function SectionWrapper({
               {isRegenerating ? "Regenerating..." : `Regenerate (${SECTION_REGEN_COST} cr)`}
             </span>
           </button>
-        </div>
         </div>
       </div>
 

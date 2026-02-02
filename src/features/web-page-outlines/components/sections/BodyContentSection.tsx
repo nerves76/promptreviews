@@ -1,7 +1,6 @@
 "use client";
 
 import { Tooltip } from "@/app/(app)/components/ui/Tooltip";
-import HelpBubble from "@/components/ui/HelpBubble";
 import type { BodySection } from "../../types";
 
 interface BodyContentSectionProps {
@@ -10,11 +9,11 @@ interface BodyContentSectionProps {
 
 export default function BodyContentSection({ data }: BodyContentSectionProps) {
   return (
-    <div className="py-6 space-y-6">
+    <div className="space-y-6">
       {data.map((section, i) => (
         <div
           key={i}
-          className="rounded-xl p-5 bg-white/90 border border-white/60"
+          className="rounded-xl p-5 bg-white/90 border border-white/60 max-w-[750px]"
         >
           <div className="flex items-center gap-2 mb-3">
             <Tooltip content="H2 subheadings help search engines understand your content structure. Include keyword variations naturally.">
@@ -23,13 +22,6 @@ export default function BodyContentSection({ data }: BodyContentSectionProps) {
               </span>
             </Tooltip>
             <h2 className="text-xl font-bold text-gray-900">{section.h2}</h2>
-            {i === 0 && (
-              <HelpBubble
-                tooltip="Each section is written to stand alone - this helps AI systems like Google's SGE extract and cite your content."
-                label="Learn about standalone content"
-                size="sm"
-              />
-            )}
           </div>
           <div className="space-y-4">
             {section.paragraphs.map((paragraph, j) => (
