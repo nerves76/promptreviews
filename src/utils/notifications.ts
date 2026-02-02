@@ -29,7 +29,8 @@ export type NotificationType =
   | 'credit_refund'
   | 'agency_invitation_received'
   | 'service_error'
-  | 'batch_run_completed';
+  | 'batch_run_completed'
+  | 'review_import_completed';
 
 export interface NotificationData {
   [key: string]: any;
@@ -391,6 +392,21 @@ export const NOTIFICATION_REGISTRY: Record<NotificationType, NotificationConfig>
         year: new Date().getFullYear(),
       };
     },
+  },
+
+  'review_import_completed': {
+    inAppPrefField: 'in_app_review_import',
+    emailPrefField: 'email_review_import',
+    getTitle: () => 'Review import completed',
+    getMessage: (data) => {
+      const platform = data.platformDisplayName || data.platform || 'External';
+      const parts: string[] = [];
+      if (data.importedCount > 0) parts.push(`${data.importedCount} new`);
+      if (data.skippedCount > 0) parts.push(`${data.skippedCount} duplicates skipped`);
+      return `Imported ${platform} reviews: ${parts.join(', ') || 'no new reviews'}`;
+    },
+    actionUrl: '/dashboard/reviews',
+    actionLabel: 'View reviews',
   },
 };
 

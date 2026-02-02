@@ -214,6 +214,10 @@ const AngiIcon = () => (
 // Helper to get platform icon based on platform name
 function getPlatformIcon(platform: string): { icon: any; label: string } {
   const lower = (platform || "").toLowerCase();
+  if (lower.includes("google_play") || lower.includes("google play"))
+    return { icon: "FaGooglePlay", label: "Google Play" };
+  if (lower.includes("app_store") || lower.includes("app store"))
+    return { icon: "FaApple", label: "App Store" };
   if (lower.includes("google"))
     return { icon: "FaGoogle", label: "Google Business Profile" };
   if (lower.includes("yelp")) return { icon: "FaYelp", label: "Yelp" };
@@ -1556,7 +1560,7 @@ export default function ReviewsPage() {
             >
               <Icon name="FaGlobe" className="w-5 h-5 text-slate-blue" size={20} />
               <span className="text-sm text-gray-700">
-                Import from Trustpilot, TripAdvisor, and other platforms
+                Import from Trustpilot, TripAdvisor, Google Play, App Store, or Google Business Profile
               </span>
               <Icon name="FaChevronRight" className="w-3 h-3 text-gray-500 ml-auto" size={12} />
             </Link>

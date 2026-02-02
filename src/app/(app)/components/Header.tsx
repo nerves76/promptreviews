@@ -931,6 +931,27 @@ const Header = React.memo(function Header() {
                           Reviews
                         </Link>
                         <Link
+                          href={hasBusiness ? "/dashboard/review-import" : "#"}
+                          onClick={(e) => {
+                            if (!hasBusiness) {
+                              e.preventDefault();
+                              router.push("/dashboard/create-business");
+                              setMenuOpen(false);
+                            } else {
+                              setMenuOpen(false);
+                            }
+                          }}
+                          className={`${
+                            isActive("/dashboard/review-import")
+                              ? "bg-white/20 text-white"
+                              : hasBusiness
+                                ? "text-white hover:bg-white/10"
+                                : "text-gray-500 cursor-not-allowed"
+                          } block px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200`}
+                        >
+                          Review import
+                        </Link>
+                        <Link
                           href={hasBusiness ? "/dashboard/get-reviews/sentiment-analyzer" : "#"}
                           onClick={(e) => {
                             if (!hasBusiness) {

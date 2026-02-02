@@ -36,6 +36,7 @@ const NOTIFICATION_TYPE_CONFIG: Record<string, { icon: IconName; color: string; 
   system_announcement: { icon: "FaBell", color: "text-pink-400", bgColor: "bg-pink-500/20" },
   credit_warning_upcoming: { icon: "FaExclamationTriangle", color: "text-amber-400", bgColor: "bg-amber-500/20" },
   credit_check_skipped: { icon: "FaTimes", color: "text-red-400", bgColor: "bg-red-500/20" },
+  review_import_completed: { icon: "FaUpload", color: "text-green-400", bgColor: "bg-green-500/20" },
   // Default fallback
   default: { icon: "FaBell", color: "text-white", bgColor: "bg-white/20" },
 };

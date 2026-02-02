@@ -29,6 +29,13 @@ export const TOP_NAV_ITEMS: NavItem[] = [
     icon: "FaUsers",
     description: "Connect with other users",
   },
+  {
+    path: "/dashboard/integrations",
+    label: "Connect",
+    icon: "FaShare",
+    description: "Connect GBP, Bluesky, and LinkedIn",
+    requiresBusiness: true,
+  },
 ];
 
 /**
@@ -57,6 +64,13 @@ export const REVIEWS_SECTION: NavSection = {
       label: "Reviews",
       icon: "FaStar",
       description: "Manage, verify, and share",
+    },
+    {
+      path: "/dashboard/review-import",
+      label: "Review Import",
+      icon: "FaUpload",
+      description: "Import from Trustpilot, TripAdvisor, and more",
+      requiresBusiness: true,
     },
     {
       path: "/dashboard/widget",
@@ -107,13 +121,6 @@ export const GOOGLE_BUSINESS_SECTION: NavSection = {
       label: "Post Scheduling",
       icon: "FaCalendarAlt",
       description: "Queue and schedule posts",
-      requiresBusiness: true,
-    },
-    {
-      path: "/dashboard/integrations",
-      label: "Connect",
-      icon: "FaShare",
-      description: "Connect GBP, Bluesky, and LinkedIn",
       requiresBusiness: true,
     },
     {
@@ -169,6 +176,13 @@ export const SEO_VISIBILITY_SECTION: NavSection = {
       label: "Rank Tracking",
       icon: "FaChartLine",
       description: "Track rankings in Google",
+      requiresBusiness: true,
+    },
+    {
+      path: "/dashboard/web-page-outlines",
+      label: "Web Page Planner",
+      icon: "FaFileAlt",
+      description: "AI-powered web page content planner",
       requiresBusiness: true,
     },
   ],

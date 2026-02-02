@@ -188,13 +188,15 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
   };
 
   // Helper function to check if keywords/AI guidelines have been added
+  // Only check ai_dos/ai_donts (which require deliberate user action).
+  // Business-level keywords are excluded because they get auto-imported
+  // from the website scraper during profile setup, which would falsely
+  // mark this step complete before the user reviews their AI guidelines.
   const checkKeywordsAndGuidelinesComplete = (data: BusinessData | null | undefined): boolean => {
     if (!data) return false;
-    const hasKeywords = Array.isArray(data.keywords) && data.keywords.length > 0;
     const hasAiDos = !!(data.ai_dos && data.ai_dos.trim().length > 0);
     const hasAiDonts = !!(data.ai_donts && data.ai_donts.trim().length > 0);
-    // Complete if they have keywords OR any AI guidelines
-    return hasKeywords || hasAiDos || hasAiDonts;
+    return hasAiDos || hasAiDonts;
   };
 
   // Helper function to check if universal prompt page has been customized

@@ -1,0 +1,145 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import PageCard, { PageCardHeader } from "@/app/(app)/components/PageCard";
+import { SubNav } from "@/app/(app)/components/SubNav";
+import Icon from "@/components/Icon";
+import { useAuthGuard } from "@/utils/authGuard";
+import { useAccountData } from "@/auth/hooks/granularAuthHooks";
+import { apiClient } from "@/utils/apiClient";
+
+interface LibraryItem {
+  id: string;
+  keyword_phrase: string;
+  tone: string;
+  business_name: string;
+  page_title: string | null;
+  credit_cost: number;
+  created_at: string;
+}
+
+const SUB_NAV_ITEMS = [
+  { label: "Create", icon: "FaRocket" as const, href: "/dashboard/web-page-outlines", matchType: "exact" as const },
+  { label: "Library", icon: "FaClock" as const, href: "/dashboard/web-page-outlines/library", matchType: "exact" as const },
+];
+
+export default function WebPageOutlinesLibraryPage() {
+  useAuthGuard();
+  const { selectedAccountId } = useAccountData();
+  const router = useRouter();
+
+  const [outlines, setOutlines] = useState<LibraryItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!selectedAccountId) return;
+
+    async function fetchOutlines() {
+      try {
+        const data = await apiClient.get<{ outlines: LibraryItem[] }>(
+          "/web-page-outlines?limit=50"
+        );
+        setOutlines(data.outlines || []);
+      } catch {
+        // Silently fail
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchOutlines();
+  }, [selectedAccountId]);
+
+  return (
+    <>
+      <div className="px-4 sm:px-6 lg:px-8 pt-8 mt-8">
+        <div className="max-w-7xl mx-auto flex flex-col items-center mb-3">
+          <h1 className="text-3xl lg:text-4xl font-bold text-white mb-6">
+            Web Page Planner
+          </h1>
+        </div>
+      </div>
+
+      <SubNav items={SUB_NAV_ITEMS} />
+
+      <PageCard
+        icon={
+          <Icon
+            name="FaFileAlt"
+            className="w-7 h-7 text-slate-blue"
+            size={28}
+          />
+        }
+      >
+        <PageCardHeader
+          title="Page plan library"
+          description="Browse and revisit your previously generated web page plans."
+          variant="large"
+        />
+
+        {loading ? (
+          <div className="flex justify-center py-12">
+            <Icon
+              name="FaSpinner"
+              className="w-8 h-8 text-slate-blue animate-spin"
+              size={32}
+            />
+          </div>
+        ) : outlines.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <Icon
+              name="FaFileAlt"
+              size={32}
+              className="text-gray-300 mb-3"
+            />
+            <p className="text-gray-600 text-sm font-medium">
+              No page plans yet
+            </p>
+            <p className="text-gray-500 text-xs mt-1">
+              Generate your first plan from the{" "}
+              <button
+                type="button"
+                onClick={() => router.push("/dashboard/web-page-outlines")}
+                className="text-slate-blue hover:underline focus:outline-none"
+              >
+                planner
+              </button>
+              .
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {outlines.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() =>
+                  router.push(
+                    `/dashboard/web-page-outlines?id=${item.id}`
+                  )
+                }
+                className="w-full flex items-center justify-between px-4 py-3 rounded-lg text-left hover:bg-white/60 border border-gray-100 bg-white/40 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2 transition-colors"
+              >
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-gray-900 truncate">
+                    {item.keyword_phrase}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    {item.tone} &middot; {item.business_name} &middot;{" "}
+                    {new Date(item.created_at).toLocaleDateString()}
+                  </p>
+                </div>
+                <Icon
+                  name="FaChevronRight"
+                  size={10}
+                  className="text-gray-400 flex-shrink-0 ml-3"
+                />
+              </button>
+            ))}
+          </div>
+        )}
+      </PageCard>
+    </>
+  );
+}

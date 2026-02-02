@@ -1,0 +1,162 @@
+"use client";
+
+import { useState } from "react";
+import Icon from "@/components/Icon";
+import SectionWrapper from "./SectionWrapper";
+import {
+  HeroSection,
+  IntroSection,
+  BenefitsSection,
+  BodyContentSection,
+  CTASection,
+  FAQSection,
+  FooterSection,
+} from "./sections";
+import { copyFullOutline } from "../utils/clipboard";
+import { exportOutlineAsCsv } from "../utils/csvExport";
+import type { PageOutline, SEOMetadata, SectionKey } from "../types";
+
+interface OutlinePreviewProps {
+  outline: PageOutline;
+  outlineId: string;
+  seo: SEOMetadata;
+  keyword: string;
+  onRegenerate: (sectionKey: SectionKey) => Promise<void>;
+  regeneratingSection: SectionKey | null;
+}
+
+export default function OutlinePreview({
+  outline,
+  outlineId,
+  seo,
+  keyword,
+  onRegenerate,
+  regeneratingSection,
+}: OutlinePreviewProps) {
+  const [allCopied, setAllCopied] = useState(false);
+
+  const handleCopyAll = async () => {
+    const text = copyFullOutline(outline);
+    await navigator.clipboard.writeText(text);
+    setAllCopied(true);
+    setTimeout(() => setAllCopied(false), 2000);
+  };
+
+  return (
+    <div>
+      {/* Copy all + Download CSV — always visible */}
+      <div className="flex justify-start gap-2 mb-2">
+        <button
+          type="button"
+          onClick={handleCopyAll}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] bg-white/70 backdrop-blur-sm border border-white/40 text-gray-700 hover:bg-white/90 transition-colors whitespace-nowrap shadow-sm"
+          aria-label="Copy all outline content"
+        >
+          <Icon name={allCopied ? "FaCheck" : "FaCopy"} size={10} />
+          {allCopied ? "Copied all" : "Copy all content"}
+        </button>
+        <button
+          type="button"
+          onClick={() => exportOutlineAsCsv(outline, seo, keyword)}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] bg-white/70 backdrop-blur-sm border border-white/40 text-gray-700 hover:bg-white/90 transition-colors whitespace-nowrap shadow-sm"
+          aria-label="Download outline as CSV"
+        >
+          <Icon name="FaSave" size={10} />
+          Download CSV
+        </button>
+      </div>
+
+      {/* Hero — outside overflow-hidden so action buttons aren't clipped */}
+      <SectionWrapper
+        sectionKey="hero"
+        label="Hero"
+        seoAnnotation="Your H1 should contain your primary keyword and clearly describe the page topic."
+        outline={outline}
+        outlineId={outlineId}
+        onRegenerate={onRegenerate}
+        isRegenerating={regeneratingSection === "hero"}
+      >
+        <div className="rounded-t-2xl border border-white/20 border-b-0 shadow-sm overflow-hidden">
+          <HeroSection data={outline.hero} />
+        </div>
+      </SectionWrapper>
+
+      {/* Page preview container — continues from hero */}
+      <div className="rounded-b-2xl border border-white/20 border-t-0 shadow-sm overflow-hidden">
+
+        {/* Content area — constrained width for readability */}
+        <div className="max-w-[680px] mx-auto px-6 sm:px-10 py-8 space-y-2">
+          <SectionWrapper
+            sectionKey="intro"
+            label="Introduction"
+            seoAnnotation="The opening paragraph should include your keyword within the first 100 words."
+            outline={outline}
+            outlineId={outlineId}
+            onRegenerate={onRegenerate}
+            isRegenerating={regeneratingSection === "intro"}
+          >
+            <IntroSection data={outline.intro} />
+          </SectionWrapper>
+
+          <SectionWrapper
+            sectionKey="benefits"
+            label="Benefits"
+            seoAnnotation="Benefit-focused content demonstrates expertise (E-E-A-T)."
+            outline={outline}
+            outlineId={outlineId}
+            onRegenerate={onRegenerate}
+            isRegenerating={regeneratingSection === "benefits"}
+          >
+            <BenefitsSection data={outline.benefits} />
+          </SectionWrapper>
+
+          <SectionWrapper
+            sectionKey="bodySections"
+            label="Body content"
+            seoAnnotation="H2 subheadings help search engines understand content structure."
+            outline={outline}
+            outlineId={outlineId}
+            onRegenerate={onRegenerate}
+            isRegenerating={regeneratingSection === "bodySections"}
+          >
+            <BodyContentSection data={outline.bodySections} />
+          </SectionWrapper>
+
+          <SectionWrapper
+            sectionKey="cta"
+            label="Call to action"
+            outline={outline}
+            outlineId={outlineId}
+            onRegenerate={onRegenerate}
+            isRegenerating={regeneratingSection === "cta"}
+          >
+            <CTASection data={outline.cta} />
+          </SectionWrapper>
+
+          <SectionWrapper
+            sectionKey="faq"
+            label="FAQ"
+            seoAnnotation="FAQ sections can trigger rich snippets in Google search results."
+            outline={outline}
+            outlineId={outlineId}
+            onRegenerate={onRegenerate}
+            isRegenerating={regeneratingSection === "faq"}
+          >
+            <FAQSection data={outline.faq} />
+          </SectionWrapper>
+
+          <SectionWrapper
+            sectionKey="footer"
+            label="Footer"
+            outline={outline}
+            outlineId={outlineId}
+            onRegenerate={onRegenerate}
+            isRegenerating={regeneratingSection === "footer"}
+          >
+            <FooterSection data={outline.footer} />
+          </SectionWrapper>
+        </div>
+      </div>
+    </div>
+  );
+}

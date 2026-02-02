@@ -33,7 +33,9 @@ export type FeatureType =
   | 'review_matching'
   | 'rss_manual_post'
   | 'rss_auto_post'
-  | 'scheduled_post';
+  | 'scheduled_post'
+  | 'review_import'
+  | 'web_page_outline';
 
 export interface CreditBalance {
   accountId: string;
