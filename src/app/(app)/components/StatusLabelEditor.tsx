@@ -112,7 +112,7 @@ export default function StatusLabelEditor({
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-bold text-slate-blue">
-                Customize Status Labels
+                Customize status labels
               </h2>
               <p className="text-sm text-gray-600 mt-1">
                 Rename the status columns to match your workflow
