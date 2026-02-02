@@ -12,7 +12,7 @@ export default function BenefitsSection({ data }: BenefitsSectionProps) {
         {data.map((card, i) => (
           <div
             key={i}
-            className="rounded-xl p-5 bg-white/90 border border-white/60 shadow-sm"
+            className="rounded-xl p-5 bg-white/70 border border-white/60 shadow-sm"
           >
             <h3 className="font-semibold text-gray-900 mb-2 text-[15px]">
               {card.heading}

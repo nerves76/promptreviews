@@ -221,7 +221,7 @@ export default function WebPageOutlinesPage() {
         }
       >
         <PageCardHeader
-          title="Create web page outline"
+          title="Create web page outlines"
           description="Create a page outline with optimized copy and metadata that you can easily copy or download. Prompty will scrape the top ranking pages for your keyword and use your business info to create keyword focused content."
           variant="large"
         />

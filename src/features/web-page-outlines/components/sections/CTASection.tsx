@@ -9,7 +9,7 @@ interface CTASectionProps {
 export default function CTASection({ data }: CTASectionProps) {
   return (
     <div
-      className="rounded-2xl px-8 py-10 text-center bg-white/90 border border-white/60 shadow-sm"
+      className="rounded-2xl px-8 py-10 text-center bg-white/70 border border-white/60 shadow-sm"
     >
         <h2 className="text-xl font-bold text-gray-900 mb-2">{data.heading}</h2>
         <p className="text-gray-600 mb-6 max-w-md mx-auto">{data.subCopy}</p>

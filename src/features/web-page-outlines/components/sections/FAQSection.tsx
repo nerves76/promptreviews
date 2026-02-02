@@ -16,7 +16,7 @@ export default function FAQSection({ data }: FAQSectionProps) {
       {data.map((item, i) => (
         <div
           key={i}
-          className="rounded-xl overflow-hidden bg-white/90 border border-white/60 shadow-sm"
+          className="rounded-xl overflow-hidden bg-white/70 border border-white/60 shadow-sm"
         >
           <button
             type="button"

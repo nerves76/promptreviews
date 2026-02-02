@@ -13,7 +13,7 @@ export default function BodyContentSection({ data }: BodyContentSectionProps) {
       {data.map((section, i) => (
         <div
           key={i}
-          className="rounded-xl p-5 bg-white/90 border border-white/60 max-w-[750px]"
+          className="rounded-xl p-5 bg-white/70 border border-white/60 max-w-[750px]"
         >
           <div className="flex items-center gap-2 mb-3">
             <Tooltip content="H2 subheadings help search engines understand your content structure. Include keyword variations naturally.">
