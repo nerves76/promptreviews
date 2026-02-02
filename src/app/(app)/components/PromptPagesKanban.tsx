@@ -298,13 +298,13 @@ export default function PromptPagesKanban({
         className={`${column.color} border rounded-t-lg p-3 flex items-center justify-between`}
       >
         <div className="flex items-center gap-2">
-          <h3 className="font-bold text-gray-900">{column.label}</h3>
-          <span className="text-sm text-gray-600">({column.pages.length})</span>
+          <h3 className="font-bold text-white">{column.label}</h3>
+          <span className="text-sm text-white/80">({column.pages.length})</span>
         </div>
         <button
           type="button"
           onClick={() => onEditLabel(column.id)}
-          className="text-gray-600 hover:text-gray-900 transition"
+          className="text-white/80 hover:text-white transition"
           title="Edit column name"
           aria-label={`Edit ${column.label} label`}
         >
@@ -382,7 +382,7 @@ export default function PromptPagesKanban({
                 className={`
                   px-2.5 py-1 rounded-full text-xs font-medium transition-all whitespace-nowrap flex-shrink-0
                   ${index === activeColumnIndex
-                    ? `${column.color} text-gray-900 shadow-md`
+                    ? `${column.color} text-white shadow-md`
                     : 'bg-white/30 text-white/70 hover:bg-white/40'
                   }
                 `}
