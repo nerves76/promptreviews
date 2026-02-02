@@ -194,7 +194,7 @@ export default function OutlineDetailPage() {
           </button>
 
           <h2 className="text-lg font-semibold text-white truncate">
-            {outline.keyword_phrase}
+            <span className="font-normal text-white/70">Keyword:</span> {outline.keyword_phrase}
           </h2>
 
           <Button
