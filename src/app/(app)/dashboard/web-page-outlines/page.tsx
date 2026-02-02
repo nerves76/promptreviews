@@ -31,6 +31,7 @@ import type {
   WebPageOutlineRecord,
   GenerateOutlineResponse,
   RegenerateSectionResponse,
+  CompetitorUrl,
 } from "@/features/web-page-outlines/types";
 
 type PageState = "idle" | "configuring" | "generating" | "viewing";
@@ -78,6 +79,7 @@ export default function WebPageOutlinesPage() {
     useState<WebPageOutlineRecord | null>(null);
   const [regeneratingSection, setRegeneratingSection] =
     useState<SectionKey | null>(null);
+  const [competitorUrls, setCompetitorUrls] = useState<CompetitorUrl[]>([]);
   const [progressIdx, setProgressIdx] = useState(0);
 
   // URL search params for loading a specific outline
@@ -187,6 +189,7 @@ export default function WebPageOutlinesPage() {
 
       if (result.success && result.outline) {
         setCurrentOutline(result.outline);
+        setCompetitorUrls(result.competitorUrls || []);
         setCreditBalance(result.creditsRemaining);
         setPageState("viewing");
         success("Page plan generated successfully!");
@@ -248,6 +251,7 @@ export default function WebPageOutlinesPage() {
       );
       if (data.outline) {
         setCurrentOutline(data.outline);
+        setCompetitorUrls([]);
         setPageState("viewing");
       }
     } catch {
@@ -428,6 +432,7 @@ export default function WebPageOutlinesPage() {
             keyword={currentOutline.keyword_phrase}
             onRegenerate={handleRegenerate}
             regeneratingSection={regeneratingSection}
+            competitorUrls={competitorUrls}
           />
 
           {/* Side panels */}

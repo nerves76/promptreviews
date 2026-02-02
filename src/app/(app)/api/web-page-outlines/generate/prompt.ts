@@ -58,12 +58,14 @@ Rules:
 9. LocalBusiness schema: use real business info fields provided (name, address, website).
 10. FAQPage schema: generate from the FAQ section questions and answers.
 11. Each paragraph should stand alone and make sense independently (AI optimization).
-12. Do NOT use generic filler. Every sentence should be specific to the business.`;
+12. Do NOT use generic filler. Every sentence should be specific to the business.
+13. If a competitive landscape is provided, use it to match or exceed the depth and structure of top-ranking pages, but produce entirely original content. Do not copy competitor headings verbatim.`;
 }
 
 export function buildUserPrompt(
   keyword: string,
-  businessInfo: BusinessInfoForOutline
+  businessInfo: BusinessInfoForOutline,
+  competitorContext?: string
 ): string {
   const infoLines: string[] = [];
 
@@ -86,10 +88,14 @@ export function buildUserPrompt(
   if (businessInfo.aiDonts)
     infoLines.push(`Content guidelines (don't): ${businessInfo.aiDonts}`);
 
+  const competitorBlock = competitorContext
+    ? `\n\n${competitorContext}\n\nUse the above competitive landscape to inform your outline's structure and depth, but create entirely original content.`
+    : '';
+
   return `Generate a complete web page outline for the keyword: "${keyword}"
 
 Business information:
-${infoLines.join('\n')}
+${infoLines.join('\n')}${competitorBlock}
 
 Return the structured JSON outline following the exact format specified.`;
 }

@@ -121,6 +121,14 @@ export interface WebPageOutlineRecord {
   updated_at: string;
 }
 
+// --- Competitor Data ---
+
+export interface CompetitorUrl {
+  url: string;
+  title: string;
+  wordCount: number;
+}
+
 // --- API Request/Response ---
 
 export interface GenerateOutlineRequest {
@@ -135,6 +143,7 @@ export interface GenerateOutlineResponse {
   outline: WebPageOutlineRecord;
   creditsDebited: number;
   creditsRemaining: number;
+  competitorUrls?: CompetitorUrl[];
 }
 
 export interface RegenerateSectionRequest {

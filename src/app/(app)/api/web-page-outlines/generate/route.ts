@@ -11,9 +11,15 @@ import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 import { withCredits } from '@/lib/credits/withCredits';
 import { FULL_GENERATION_COST } from '@/features/web-page-outlines/services/credits';
 import { buildSystemPrompt, buildUserPrompt } from './prompt';
+import {
+  fetchTopCompetitors,
+  scrapeCompetitorPages,
+  buildCompetitorContext,
+} from '@/features/web-page-outlines/services/competitorAnalysis';
 import type {
   GenerateOutlineRequest,
   OutlineGenerationResult,
+  CompetitorUrl,
 } from '@/features/web-page-outlines/types';
 
 export const maxDuration = 60;
@@ -61,6 +67,29 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // --- Competitor Analysis (enhancement only, never blocks generation) ---
+    let competitorContext = '';
+    let competitorUrlData: CompetitorUrl[] = [];
+    try {
+      const userDomain = businessInfo.website || undefined;
+      const topUrls = await fetchTopCompetitors(keywordPhrase, userDomain);
+      if (topUrls.length > 0) {
+        const scraped = await scrapeCompetitorPages(topUrls);
+        competitorContext = buildCompetitorContext(keywordPhrase, scraped);
+
+        // Extract URL data for frontend display
+        competitorUrlData = scraped
+          .filter((c): c is Extract<typeof c, { scraped: true }> => c.scraped)
+          .map((c) => ({ url: c.url, title: c.title, wordCount: c.estimatedWordCount }));
+
+        if (competitorContext) {
+          console.log(`[web-page-outlines] Competitor context built (${competitorContext.length} chars)`);
+        }
+      }
+    } catch (error) {
+      console.warn('[web-page-outlines] Competitor analysis failed, continuing without it:', error);
+    }
+
     const idempotencyKey = `web-outline-gen-${accountId}-${Date.now()}`;
 
     const result = await withCredits({
@@ -79,7 +108,7 @@ export async function POST(request: NextRequest) {
           model: 'gpt-4o',
           messages: [
             { role: 'system', content: buildSystemPrompt(tone) },
-            { role: 'user', content: buildUserPrompt(keywordPhrase, businessInfo) },
+            { role: 'user', content: buildUserPrompt(keywordPhrase, businessInfo, competitorContext || undefined) },
           ],
           response_format: { type: 'json_object' },
           temperature: 0.7,
@@ -157,6 +186,7 @@ export async function POST(request: NextRequest) {
       outline: result.data,
       creditsDebited: result.creditsDebited,
       creditsRemaining: result.creditsRemaining,
+      ...(competitorUrlData.length > 0 && { competitorUrls: competitorUrlData }),
     });
   } catch (error) {
     console.error('[web-page-outlines/generate] Error:', error);
