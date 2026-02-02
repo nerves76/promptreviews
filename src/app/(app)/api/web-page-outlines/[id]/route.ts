@@ -1,6 +1,7 @@
 /**
- * GET /api/web-page-outlines/:id
- * Fetch a single outline by ID (account ownership check)
+ * GET /api/web-page-outlines/:id  — Fetch a single outline
+ * DELETE /api/web-page-outlines/:id — Delete an outline
+ * Both enforce account ownership.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -41,7 +42,49 @@ export async function GET(
 
     return NextResponse.json({ outline: data });
   } catch (error) {
-    console.error('[web-page-outlines/[id]] Error:', error);
+    console.error('[web-page-outlines/[id]] GET error:', error);
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const supabase = await createServerSupabaseClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const accountId = await getRequestAccountId(request, user.id, supabase);
+    if (!accountId) {
+      return NextResponse.json({ error: 'No valid account found' }, { status: 403 });
+    }
+
+    const { id } = await params;
+
+    const { error } = await supabase
+      .from('web_page_outlines')
+      .delete()
+      .eq('id', id)
+      .eq('account_id', accountId);
+
+    if (error) {
+      console.error('[web-page-outlines/[id]] Delete error:', error);
+      return NextResponse.json({ error: 'Failed to delete outline' }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('[web-page-outlines/[id]] DELETE error:', error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Internal server error' },
       { status: 500 }
