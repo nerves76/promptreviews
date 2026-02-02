@@ -14,7 +14,7 @@ export default function CTASection({ data }: CTASectionProps) {
         className="rounded-2xl px-8 py-10 text-center bg-white/90 border border-white/60 shadow-sm"
       >
         <div className="flex items-center justify-center gap-1.5 mb-3">
-          <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
+          <span className="text-[11px] font-semibold text-white/80 uppercase tracking-wider">
             Call to action
           </span>
           <HelpBubble

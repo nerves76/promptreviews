@@ -31,6 +31,7 @@ const SUB_NAV_ITEMS = [
 
 const PROGRESS_MESSAGES = [
   "Analyzing your keyword...",
+  "Checking top ranked pages...",
   "Building content structure...",
   "Generating SEO-optimized sections...",
   "Creating schema markup...",

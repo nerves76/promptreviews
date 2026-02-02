@@ -187,13 +187,13 @@ export default function OutlineDetailPage() {
           <button
             type="button"
             onClick={() => router.push("/dashboard/web-page-outlines/library")}
-            className="inline-flex items-center gap-1.5 text-sm text-gray-600 hover:text-gray-900 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2 rounded"
+            className="inline-flex items-center gap-1.5 text-sm text-white/80 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-white/40 focus:ring-offset-2 rounded"
           >
             <Icon name="FaArrowLeft" size={12} />
             Back to library
           </button>
 
-          <h2 className="text-lg font-semibold text-gray-900 truncate">
+          <h2 className="text-lg font-semibold text-white truncate">
             {outline.keyword_phrase}
           </h2>
 
@@ -201,21 +201,21 @@ export default function OutlineDetailPage() {
             variant="outline"
             size="sm"
             onClick={() => router.push("/dashboard/web-page-outlines")}
-            className="whitespace-nowrap"
+            className="whitespace-nowrap border-white/40 text-white hover:bg-white/10"
           >
             <Icon name="FaPlus" size={12} className="mr-1.5" />
-            New plan
+            Create new
           </Button>
         </div>
 
         {/* Make it human disclaimer */}
-        <div className="bg-amber-50/80 backdrop-blur-sm border border-amber-200/60 rounded-xl p-3 flex items-start gap-2 mb-6">
+        <div className="bg-white/10 backdrop-blur-sm border border-white/30 rounded-xl p-3 flex items-start gap-2 mb-6">
           <Icon
             name="FaExclamationTriangle"
             size={14}
-            className="text-amber-500 mt-0.5 flex-shrink-0"
+            className="text-white/70 mt-0.5 flex-shrink-0"
           />
-          <p className="text-sm text-amber-800">
+          <p className="text-sm text-white/90">
             <span className="font-semibold">Make it human:</span> We do not
             recommend publishing AI content verbatim on your website. Instead,
             think of this as a starting point and make it great!
