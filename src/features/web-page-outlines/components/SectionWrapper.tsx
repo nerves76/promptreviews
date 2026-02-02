@@ -39,7 +39,7 @@ export default function SectionWrapper({
   return (
     <div className="group">
       {/* Action bar — visible on hover, sits above content in normal flow */}
-      <div className="flex items-center justify-end pb-3 opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-10">
+      <div className="flex items-center justify-end pb-3 z-10">
         <div className="flex items-center gap-1">
         {seoAnnotation && (
           <Tooltip content={seoAnnotation}>
@@ -50,32 +50,34 @@ export default function SectionWrapper({
           </Tooltip>
         )}
 
-        <button
-          type="button"
-          onClick={handleCopy}
-          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] bg-white/70 backdrop-blur-sm border border-white/40 text-gray-700 hover:bg-white/90 hover:shadow-sm transition-all whitespace-nowrap"
-          aria-label={`Copy ${label} section`}
-        >
-          <Icon name={copied ? "FaCheck" : "FaCopy"} size={10} />
-          {copied ? "Copied" : "Copy"}
-        </button>
+        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+          <button
+            type="button"
+            onClick={handleCopy}
+            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] bg-white/70 backdrop-blur-sm border border-white/40 text-gray-700 hover:bg-white/90 hover:shadow-sm transition-all whitespace-nowrap"
+            aria-label={`Copy ${label} section`}
+          >
+            <Icon name={copied ? "FaCheck" : "FaCopy"} size={10} />
+            {copied ? "Copied" : "Copy"}
+          </button>
 
-        <button
-          type="button"
-          onClick={() => onRegenerate(sectionKey)}
-          disabled={isRegenerating}
-          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] bg-white/70 backdrop-blur-sm border border-white/40 text-gray-700 hover:bg-white/90 hover:shadow-sm disabled:opacity-50 transition-all whitespace-nowrap"
-          aria-label={`Regenerate ${label} section (${SECTION_REGEN_COST} credit)`}
-        >
-          <Icon
-            name={isRegenerating ? "FaSpinner" : "FaRedo"}
-            size={10}
-            className={isRegenerating ? "animate-spin" : ""}
-          />
-          <span className="whitespace-nowrap">
-            {isRegenerating ? "Regenerating..." : `Regenerate (${SECTION_REGEN_COST} cr)`}
-          </span>
-        </button>
+          <button
+            type="button"
+            onClick={() => onRegenerate(sectionKey)}
+            disabled={isRegenerating}
+            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] bg-white/70 backdrop-blur-sm border border-white/40 text-gray-700 hover:bg-white/90 hover:shadow-sm disabled:opacity-50 transition-all whitespace-nowrap"
+            aria-label={`Regenerate ${label} section (${SECTION_REGEN_COST} credit)`}
+          >
+            <Icon
+              name={isRegenerating ? "FaSpinner" : "FaRedo"}
+              size={10}
+              className={isRegenerating ? "animate-spin" : ""}
+            />
+            <span className="whitespace-nowrap">
+              {isRegenerating ? "Regenerating..." : `Regenerate (${SECTION_REGEN_COST} cr)`}
+            </span>
+          </button>
+        </div>
         </div>
       </div>
 

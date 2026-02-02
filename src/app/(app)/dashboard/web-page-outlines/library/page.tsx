@@ -73,7 +73,7 @@ export default function WebPageOutlinesLibraryPage() {
         }
       >
         <PageCardHeader
-          title="Page plan library"
+          title="Page planner library"
           description="Browse and revisit your previously generated web page plans."
           variant="large"
         />
