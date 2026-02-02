@@ -201,7 +201,7 @@ export default function WebPageOutlinesLibraryPage() {
                   type="button"
                   onClick={() =>
                     router.push(
-                      `/dashboard/web-page-outlines?id=${item.id}`
+                      `/dashboard/web-page-outlines/${item.id}`
                     )
                   }
                   className="flex-1 min-w-0 text-left focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2 rounded"
@@ -233,7 +233,7 @@ export default function WebPageOutlinesLibraryPage() {
                   type="button"
                   onClick={() =>
                     router.push(
-                      `/dashboard/web-page-outlines?id=${item.id}`
+                      `/dashboard/web-page-outlines/${item.id}`
                     )
                   }
                   className="flex-shrink-0 text-gray-400"

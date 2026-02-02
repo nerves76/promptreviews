@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useCallback, useMemo, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useState, useCallback, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import PageCard, { PageCardHeader } from "@/app/(app)/components/PageCard";
 import { SubNav } from "@/app/(app)/components/SubNav";
 import Icon from "@/components/Icon";
@@ -14,27 +14,15 @@ import {
   KeywordSelector,
   ToneSelector,
   BusinessInfoPanel,
-  OutlinePreview,
-  SEOMetadataPanel,
-  SchemaMarkupViewer,
-  KeywordDensityCard,
 } from "@/features/web-page-outlines/components";
-import { calculateKeywordDensity } from "@/features/web-page-outlines/utils/keywordDensity";
 import { FULL_GENERATION_COST } from "@/features/web-page-outlines/services/credits";
 import type {
   OutlineTone,
   BusinessInfoForOutline,
-  PageOutline,
-  SEOMetadata,
-  KeywordDensity,
-  SectionKey,
-  WebPageOutlineRecord,
   GenerateOutlineResponse,
-  RegenerateSectionResponse,
-  CompetitorUrl,
 } from "@/features/web-page-outlines/types";
 
-type PageState = "idle" | "configuring" | "generating" | "viewing";
+type PageState = "configuring" | "generating";
 
 const SUB_NAV_ITEMS = [
   { label: "Create", icon: "FaRocket" as const, href: "/dashboard/web-page-outlines", matchType: "exact" as const },
@@ -61,6 +49,7 @@ export default function WebPageOutlinesPage() {
   const { selectedAccountId } = useAccountData();
   const { business, hasBusiness } = useBusinessData();
   const { toasts, closeToast, success, error: showError } = useToast();
+  const router = useRouter();
 
   // Page state
   const [pageState, setPageState] = useState<PageState>("configuring");
@@ -73,17 +62,7 @@ export default function WebPageOutlinesPage() {
     buildBusinessInfo(business)
   );
   const [creditBalance, setCreditBalance] = useState<number | null>(null);
-
-  // Generation result
-  const [currentOutline, setCurrentOutline] =
-    useState<WebPageOutlineRecord | null>(null);
-  const [regeneratingSection, setRegeneratingSection] =
-    useState<SectionKey | null>(null);
-  const [competitorUrls, setCompetitorUrls] = useState<CompetitorUrl[]>([]);
   const [progressIdx, setProgressIdx] = useState(0);
-
-  // URL search params for loading a specific outline
-  const searchParams = useSearchParams();
 
   // Load credit balance on mount
   const loadBalance = useCallback(async () => {
@@ -147,14 +126,6 @@ export default function WebPageOutlinesPage() {
     loadBalance();
   }, [business]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Load outline from ?id= param
-  useEffect(() => {
-    const outlineId = searchParams.get("id");
-    if (outlineId && !currentOutline) {
-      handleLoadOutline(outlineId);
-    }
-  }, [searchParams]); // eslint-disable-line react-hooks/exhaustive-deps
-
   // Generate outline
   const handleGenerate = async () => {
     if (!selectedKeyword) {
@@ -188,11 +159,8 @@ export default function WebPageOutlinesPage() {
       );
 
       if (result.success && result.outline) {
-        setCurrentOutline(result.outline);
-        setCompetitorUrls(result.competitorUrls || []);
-        setCreditBalance(result.creditsRemaining);
-        setPageState("viewing");
         success("Page plan generated successfully!");
+        router.push(`/dashboard/web-page-outlines/${result.outline.id}`);
       } else {
         throw new Error("Generation failed");
       }
@@ -205,66 +173,6 @@ export default function WebPageOutlinesPage() {
       clearInterval(interval);
     }
   };
-
-  // Regenerate a section
-  const handleRegenerate = async (sectionKey: SectionKey) => {
-    if (!currentOutline) return;
-
-    setRegeneratingSection(sectionKey);
-
-    try {
-      const result = await apiClient.post<RegenerateSectionResponse>(
-        "/web-page-outlines/regenerate-section",
-        {
-          outlineId: currentOutline.id,
-          sectionKey,
-        }
-      );
-
-      if (result.success && result.sectionData) {
-        // Update the local outline
-        const updatedOutlineJson = {
-          ...(currentOutline.outline_json as unknown as PageOutline),
-          [sectionKey]: result.sectionData,
-        };
-        setCurrentOutline({
-          ...currentOutline,
-          outline_json: updatedOutlineJson as unknown as WebPageOutlineRecord["outline_json"],
-        });
-        setCreditBalance(result.creditsRemaining);
-        success(`${sectionKey} regenerated!`);
-      }
-    } catch (err) {
-      const msg =
-        err instanceof Error ? err.message : "Failed to regenerate section";
-      showError(msg);
-    } finally {
-      setRegeneratingSection(null);
-    }
-  };
-
-  // Load a historical outline
-  const handleLoadOutline = async (id: string) => {
-    try {
-      const data = await apiClient.get<{ outline: WebPageOutlineRecord }>(
-        `/web-page-outlines/${id}`
-      );
-      if (data.outline) {
-        setCurrentOutline(data.outline);
-        setCompetitorUrls([]);
-        setPageState("viewing");
-      }
-    } catch {
-      showError("Failed to load page plan");
-    }
-  };
-
-  // Compute keyword density for the current outline
-  const keywordDensity: KeywordDensity | null = useMemo(() => {
-    if (!currentOutline) return null;
-    const outline = currentOutline.outline_json as unknown as PageOutline;
-    return calculateKeywordDensity(outline, currentOutline.keyword_phrase);
-  }, [currentOutline]);
 
   if (!selectedAccountId) {
     return (
@@ -302,7 +210,6 @@ export default function WebPageOutlinesPage() {
 
       <SubNav items={SUB_NAV_ITEMS} />
 
-      {/* PageCard: header + config form only */}
       <PageCard
         icon={
           <Icon
@@ -316,39 +223,7 @@ export default function WebPageOutlinesPage() {
           title="Create web page outline"
           description="Plan AI-powered web page content optimized for search engines and AI visibility."
           variant="large"
-          actions={
-            pageState === "viewing" ? (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setCurrentOutline(null);
-                  setPageState("configuring");
-                }}
-                className="whitespace-nowrap"
-              >
-                <Icon name="FaPlus" size={12} className="mr-1.5" />
-                New plan
-              </Button>
-            ) : undefined
-          }
         />
-
-        {/* Make it human disclaimer - shown in viewing state */}
-        {pageState === "viewing" && (
-          <div className="bg-amber-50/80 backdrop-blur-sm border border-amber-200/60 rounded-xl p-3 flex items-start gap-2">
-            <Icon
-              name="FaExclamationTriangle"
-              size={14}
-              className="text-amber-500 mt-0.5 flex-shrink-0"
-            />
-            <p className="text-sm text-amber-800">
-              <span className="font-semibold">Make it human:</span> We do not
-              recommend publishing AI content verbatim on your website. Instead,
-              think of this as a starting point and make it great!
-            </p>
-          </div>
-        )}
 
         {/* Configuring state */}
         {pageState === "configuring" && (
@@ -419,38 +294,6 @@ export default function WebPageOutlinesPage() {
           </div>
         )}
       </PageCard>
-
-      {/* Preview + panels sit outside the PageCard */}
-      {pageState === "viewing" && currentOutline && (
-        <div className="w-full max-w-[1280px] mx-auto px-4 space-y-6 mt-6 pb-12">
-          <OutlinePreview
-            outline={
-              currentOutline.outline_json as unknown as PageOutline
-            }
-            outlineId={currentOutline.id}
-            seo={currentOutline.schema_markup as unknown as SEOMetadata}
-            keyword={currentOutline.keyword_phrase}
-            onRegenerate={handleRegenerate}
-            regeneratingSection={regeneratingSection}
-            competitorUrls={competitorUrls}
-          />
-
-          {/* Side panels */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <SEOMetadataPanel
-              seo={currentOutline.schema_markup as unknown as SEOMetadata}
-            />
-            {keywordDensity && (
-              <KeywordDensityCard data={keywordDensity} />
-            )}
-          </div>
-
-          <SchemaMarkupViewer
-            seo={currentOutline.schema_markup as unknown as SEOMetadata}
-          />
-        </div>
-      )}
-
     </>
   );
 }
