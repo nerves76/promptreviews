@@ -237,6 +237,9 @@ export function Sidebar({
             </div>
           </div>
         )}
+
+        {/* Spacer to prevent content from being cut off at bottom */}
+        <div className="border-t border-white/10 mt-4" style={{ minHeight: '75px' }} />
       </nav>
     </aside>
   );
