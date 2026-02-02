@@ -75,9 +75,14 @@ export default function HelpBubble({
     lg: 24
   };
 
+  // When only a tooltip is provided (no articlePath or onClick), act as tooltip-only
+  const isTooltipOnly = tooltip && !articlePath && !onClick;
+
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent event bubbling
     e.preventDefault();
+
+    if (isTooltipOnly) return;
 
     if (onClick) {
       onClick();
@@ -101,7 +106,7 @@ export default function HelpBubble({
           ${sizeClasses[size]}
           items-center justify-center
           rounded-full
-          bg-blue-100 hover:bg-blue-700
+          bg-blue-100 ${isTooltipOnly ? '' : 'hover:bg-blue-700 cursor-pointer'}
           transition-all duration-200
           group
           relative
@@ -129,7 +134,7 @@ export default function HelpBubble({
       </button>
 
       {/* Help Modal - only render if we're handling the modal internally */}
-      {!onClick && (
+      {!onClick && !isTooltipOnly && (
         <HelpModal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}

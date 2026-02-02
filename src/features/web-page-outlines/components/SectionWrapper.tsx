@@ -44,7 +44,7 @@ export default function SectionWrapper({
   };
 
   return (
-    <div className="group">
+    <div className="group pt-6">
       {/* Section header + action bar */}
       <div className="flex items-center justify-between pb-3 z-10">
         {/* Left: section label */}
@@ -65,8 +65,8 @@ export default function SectionWrapper({
           <div />
         )}
 
-        {/* Right: action buttons — all visible on hover */}
-        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+        {/* Right: action buttons */}
+        <div className="flex items-center gap-1">
           {seoAnnotation && (
             <Tooltip content={seoAnnotation}>
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-white/70 text-gray-700 backdrop-blur-sm border border-white/40 whitespace-nowrap cursor-help">

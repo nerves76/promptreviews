@@ -88,7 +88,7 @@ export default function OutlinePreview({
       <div className="rounded-b-2xl border border-white/20 border-t-0 shadow-sm">
 
         {/* Content area — constrained width for readability */}
-        <div className="max-w-[680px] mx-auto px-6 sm:px-10 py-8 space-y-2">
+        <div className="max-w-[680px] mx-auto px-6 sm:px-10 py-8">
           <SectionWrapper
             sectionKey="intro"
             label="Introduction"
