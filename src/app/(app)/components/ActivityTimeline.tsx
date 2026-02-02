@@ -24,7 +24,7 @@ interface Activity {
   prompt_page_id: string;
   contact_id?: string;
   account_id: string;
-  activity_type: "email" | "sms" | "status_change" | "note" | "manual";
+  activity_type: "email" | "sms" | "status_change" | "note" | "manual" | "assignment_change";
   content: string;
   metadata: {
     mentions?: string[];
@@ -88,6 +88,13 @@ const ACTIVITY_TYPE_CONFIG: Record<string, {
     bgColor: "bg-gray-50",
     borderColor: "border-gray-200",
     textColor: "text-gray-700",
+  },
+  assignment_change: {
+    icon: "FaUser",
+    label: "Assignment",
+    bgColor: "bg-slate-50",
+    borderColor: "border-slate-200",
+    textColor: "text-slate-700",
   },
 };
 

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient, createServiceRoleClient } from '@/auth/providers/supabase';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 import { WMTaskStatus, WMTaskPriority } from '@/types/workManager';
+import { sendAssignmentNotificationEmail } from '@/lib/email/assignmentNotification';
 
 interface RouteContext {
   params: Promise<{ taskId: string }>;
@@ -184,6 +185,65 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
         metadata: { from: change.from, to: change.to },
         created_by: user.id,
       });
+    }
+
+    // Send assignment email notification (fire-and-forget)
+    const assignmentChange = changes.find(c => c.type === 'assignment_change' && c.to);
+    if (assignmentChange && assignmentChange.to !== user.id) {
+      (async () => {
+        try {
+          // Resolve assignee email
+          const { data: { users: allUsers } } = await supabaseAdmin.auth.admin.listUsers();
+          const assigneeAuth = allUsers?.find(u => u.id === assignmentChange.to);
+          if (!assigneeAuth?.email) return;
+
+          // Resolve names from user_profiles
+          const { data: profiles } = await supabaseAdmin
+            .from('user_profiles')
+            .select('id, first_name, last_name')
+            .in('id', [user.id, assignmentChange.to]);
+
+          const assignerProfile = profiles?.find(p => p.id === user.id);
+          const assigneeProfile = profiles?.find(p => p.id === assignmentChange.to);
+
+          const assignerName = [assignerProfile?.first_name, assignerProfile?.last_name].filter(Boolean).join(' ')
+            || user.email || 'A team member';
+          const assigneeFirstName = assigneeProfile?.first_name || undefined;
+
+          // Get board info for URL
+          const { data: board } = await supabaseAdmin
+            .from('wm_boards')
+            .select('id')
+            .eq('account_id', task.account_id)
+            .limit(1)
+            .single();
+
+          // Get business name
+          const { data: biz } = await supabaseAdmin
+            .from('businesses')
+            .select('name')
+            .eq('account_id', task.account_id)
+            .limit(1)
+            .single();
+
+          const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.promptreviews.app';
+          const taskUrl = board?.id
+            ? `${appUrl}/work-manager/${board.id}?task=${taskId}`
+            : `${appUrl}/work-manager`;
+
+          await sendAssignmentNotificationEmail({
+            to: assigneeAuth.email,
+            assigneeFirstName,
+            assignerName,
+            itemTitle: updatedTask.title || task.title,
+            itemType: 'task',
+            itemUrl: taskUrl,
+            businessName: biz?.name || undefined,
+          });
+        } catch (emailErr) {
+          console.error('Failed to send assignment notification email:', emailErr);
+        }
+      })();
     }
 
     return NextResponse.json({ task: updatedTask });

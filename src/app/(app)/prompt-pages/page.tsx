@@ -40,6 +40,7 @@ import BusinessProfileBanner from "@/app/(app)/components/BusinessProfileBanner"
 import { useAuth } from "@/auth";
 import { useBusinessData, useAuthUser, useAccountData, useAuthLoading } from "@/auth/hooks/granularAuthHooks";
 import { apiClient } from "@/utils/apiClient";
+import type { WMUserInfo } from "@/types/workManager";
 
 const StylePage = dynamic(() => import("../dashboard/style/StyleModalPage"), { ssr: false });
 
@@ -141,7 +142,10 @@ function PromptPagesContent() {
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [editingLocation, setEditingLocation] = useState<BusinessLocation | null>(null);
   const [locationLimits, setLocationLimits] = useState({ current: 0, max: 0, canCreateMore: false });
-  
+
+  // Team members for assignment
+  const [accountUsers, setAccountUsers] = useState<WMUserInfo[]>([]);
+
   // Tab state for prompt pages types - initialize from URL parameter
   const [promptPagesTab, setPromptPagesTab] = useState<PromptPagesTab>(
     (searchParams.get('tab') as 'catch-all' | 'campaign' | 'locations') || 'catch-all'
@@ -164,6 +168,16 @@ function PromptPagesContent() {
               status: newStatus,
               last_contact_at: lastContactAt ?? page.last_contact_at,
             }
+          : page
+      )
+    );
+  };
+
+  const updateLocalAssignee = (pageId: string, assignedTo: string | null) => {
+    setIndividualPromptPages((pages) =>
+      pages.map((page) =>
+        page.id === pageId
+          ? { ...page, assigned_to: assignedTo }
           : page
       )
     );
@@ -496,6 +510,21 @@ function PromptPagesContent() {
           .order("created_at", { ascending: false });
         setLocationPromptPages(locationPages || []);
         
+        // Fetch team members for assignment dropdown
+        try {
+          const teamData = await apiClient.get<{ members: Array<{ user_id?: string; id?: string; first_name: string; last_name: string; email: string; avatar_url?: string }> }>('/team/members');
+          const mappedUsers: WMUserInfo[] = (teamData.members || []).map((m) => ({
+            id: m.user_id || m.id || '',
+            first_name: m.first_name ?? null,
+            last_name: m.last_name ?? null,
+            email: m.email || '',
+            avatar_url: m.avatar_url ?? null,
+          }));
+          setAccountUsers(mappedUsers);
+        } catch (err) {
+          console.error('Failed to fetch team members:', err);
+        }
+
         // Fetch locations if user has access
         if (accountData && hasLocationAccess(accountData.plan)) {
           await fetchLocations(accountId);
@@ -1351,6 +1380,8 @@ function PromptPagesContent() {
                             setShowLabelEditor(true);
                           }}
                           onLocalStatusUpdate={updateLocalPromptPageStatus}
+                          accountUsers={accountUsers}
+                          onAssigneeUpdate={updateLocalAssignee}
                         />
                       </div>
                     )}

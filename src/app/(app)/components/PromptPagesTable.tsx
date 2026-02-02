@@ -24,6 +24,14 @@ export interface PromptPage {
   location?: string | null;
   business_name?: string | null;
   sort_order?: number | null;
+  assigned_to?: string | null;
+  assignee?: {
+    id: string;
+    first_name: string | null;
+    last_name: string | null;
+    email: string;
+    avatar_url?: string | null;
+  } | null;
   contacts?: {
     id: string;
     first_name: string;

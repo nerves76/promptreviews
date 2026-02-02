@@ -59,7 +59,7 @@ Rules:
 10. FAQPage schema: generate from the FAQ section questions and answers.
 11. Each paragraph should stand alone and make sense independently (AI optimization).
 12. Do NOT use generic filler. Every sentence should be specific to the business.
-13. If a competitive landscape is provided, use it to match or exceed the depth and structure of top-ranking pages, but produce entirely original content. Do not copy competitor headings verbatim.`;
+13. If a competitive landscape with topic analysis is provided: topics marked "must-cover" are table stakes — your outline MUST include a body section or FAQ addressing each one. Topics marked "recommended" should be included when relevant. Use unique angles as inspiration for differentiation. Produce entirely original headings and content — do not copy competitor headings verbatim.`;
 }
 
 export function buildUserPrompt(
@@ -89,7 +89,7 @@ export function buildUserPrompt(
     infoLines.push(`Content guidelines (don't): ${businessInfo.aiDonts}`);
 
   const competitorBlock = competitorContext
-    ? `\n\n${competitorContext}\n\nUse the above competitive landscape to inform your outline's structure and depth, but create entirely original content.`
+    ? `\n\n${competitorContext}\n\nUse the competitive landscape and topic analysis above to ensure topical completeness. Every must-cover topic should map to at least one section in your outline. Create entirely original content.`
     : '';
 
   return `Generate a complete web page outline for the keyword: "${keyword}"

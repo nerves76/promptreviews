@@ -158,6 +158,190 @@ export function buildCompetitorContext(
     lines.push('');
   });
 
+  // Append topic analysis when 2+ pages were successfully scraped
+  if (successfulScrapes.length >= 2) {
+    const clusters = analyzeCommonTopics(successfulScrapes);
+    const topicSection = formatTopicAnalysis(clusters, successfulScrapes.length);
+    if (topicSection) {
+      lines.push(topicSection);
+    }
+  }
+
+  return lines.join('\n').trim();
+}
+
+// --- Topic Analysis ---
+
+interface TopicCluster {
+  topic: string;
+  frequency: number;
+  examples: { heading: string; domain: string }[];
+}
+
+const STOP_WORDS = new Set([
+  'the', 'a', 'an', 'our', 'your', 'my', 'his', 'her', 'its', 'their',
+  'we', 'you', 'it', 'is', 'are', 'was', 'were', 'be', 'been', 'being',
+  'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with',
+  'by', 'from', 'as', 'into', 'about', 'not', 'no', 'do', 'does',
+  'did', 'will', 'would', 'can', 'could', 'should', 'may', 'might',
+  'shall', 'has', 'have', 'had', 'that', 'this', 'these', 'those',
+  'what', 'which', 'who', 'whom', 'how', 'why', 'when', 'where',
+  'all', 'each', 'every', 'both', 'more', 'most', 'other', 'some',
+  'such', 'than', 'too', 'very', 'just', 'also', 'so', 'get', 'got',
+]);
+
+/**
+ * Normalize an H2: lowercase, strip punctuation, remove stop words.
+ * Returns significant words (2+ chars, not a stop word).
+ */
+function extractSignificantWords(heading: string): string[] {
+  return heading
+    .toLowerCase()
+    .replace(/[^\w\s]/g, '')
+    .split(/\s+/)
+    .filter((w) => w.length >= 2 && !STOP_WORDS.has(w));
+}
+
+/**
+ * Analyze H2s across competitor pages to identify common topic clusters.
+ * Uses simple keyword overlap: two headings belong to the same topic
+ * if they share at least one significant word.
+ *
+ * Returns clusters sorted by frequency (descending), then alphabetically.
+ */
+function analyzeCommonTopics(
+  competitors: CompetitorPageData[]
+): TopicCluster[] {
+  if (competitors.length < 2) return [];
+
+  // Collect all H2s with their source domain
+  const entries: { heading: string; domain: string; words: string[] }[] = [];
+  for (const comp of competitors) {
+    const domain = extractDomain(comp.url);
+    for (const h2 of comp.h2s) {
+      const words = extractSignificantWords(h2);
+      if (words.length > 0) {
+        entries.push({ heading: h2, domain, words });
+      }
+    }
+  }
+
+  if (entries.length === 0) return [];
+
+  // Union-find for grouping entries
+  const parent: number[] = entries.map((_, i) => i);
+  function find(x: number): number {
+    while (parent[x] !== x) {
+      parent[x] = parent[parent[x]];
+      x = parent[x];
+    }
+    return x;
+  }
+  function union(a: number, b: number): void {
+    const ra = find(a);
+    const rb = find(b);
+    if (ra !== rb) parent[ra] = rb;
+  }
+
+  // Group entries that share a significant word AND come from different domains
+  for (let i = 0; i < entries.length; i++) {
+    for (let j = i + 1; j < entries.length; j++) {
+      if (entries[i].domain === entries[j].domain) continue;
+      const shared = entries[i].words.some((w) => entries[j].words.includes(w));
+      if (shared) union(i, j);
+    }
+  }
+
+  // Build clusters
+  const clusterMap = new Map<number, number[]>();
+  for (let i = 0; i < entries.length; i++) {
+    const root = find(i);
+    if (!clusterMap.has(root)) clusterMap.set(root, []);
+    clusterMap.get(root)!.push(i);
+  }
+
+  const clusters: TopicCluster[] = [];
+  for (const indices of clusterMap.values()) {
+    // Count distinct competitor domains in this cluster
+    const domains = new Set(indices.map((i) => entries[i].domain));
+    const frequency = domains.size;
+
+    // Pick the most common significant words as the topic label
+    const wordCounts = new Map<string, number>();
+    for (const i of indices) {
+      for (const w of entries[i].words) {
+        wordCounts.set(w, (wordCounts.get(w) || 0) + 1);
+      }
+    }
+    const sortedWords = [...wordCounts.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .map(([w]) => w);
+    // Use the top 1-2 words as the topic label
+    const topic = sortedWords.slice(0, 2).join(' / ') || 'misc';
+    // Capitalize first letter
+    const topicLabel = topic.charAt(0).toUpperCase() + topic.slice(1);
+
+    const examples = indices.map((i) => ({
+      heading: entries[i].heading,
+      domain: entries[i].domain,
+    }));
+
+    clusters.push({ topic: topicLabel, frequency, examples });
+  }
+
+  // Sort: highest frequency first, then alphabetically
+  clusters.sort((a, b) => b.frequency - a.frequency || a.topic.localeCompare(b.topic));
+  return clusters;
+}
+
+/**
+ * Format topic clusters into a readable text section for the AI prompt.
+ */
+function formatTopicAnalysis(
+  clusters: TopicCluster[],
+  totalCompetitors: number
+): string {
+  if (clusters.length === 0) return '';
+
+  const lines: string[] = ['Topic analysis:', ''];
+
+  const mustCover = clusters.filter((c) => c.frequency === totalCompetitors);
+  const recommended = clusters.filter(
+    (c) => c.frequency > 1 && c.frequency < totalCompetitors
+  );
+  const unique = clusters.filter((c) => c.frequency === 1);
+
+  if (mustCover.length > 0) {
+    lines.push(
+      `Must-cover topics (appeared in all ${totalCompetitors} pages):`
+    );
+    for (const c of mustCover) {
+      const seen = c.examples.map((e) => `"${e.heading}"`).join(', ');
+      lines.push(`  • ${c.topic} — seen as: ${seen}`);
+    }
+    lines.push('');
+  }
+
+  if (recommended.length > 0) {
+    lines.push(
+      `Recommended topics (appeared in ${recommended[0].frequency} of ${totalCompetitors} pages):`
+    );
+    for (const c of recommended) {
+      const seen = c.examples.map((e) => `"${e.heading}"`).join(', ');
+      lines.push(`  • ${c.topic} — seen as: ${seen}`);
+    }
+    lines.push('');
+  }
+
+  if (unique.length > 0) {
+    lines.push('Unique angles (appeared in only 1 page):');
+    for (const c of unique) {
+      const ex = c.examples[0];
+      lines.push(`  • "${ex.heading}" (${ex.domain})`);
+    }
+    lines.push('');
+  }
+
   return lines.join('\n').trim();
 }
 

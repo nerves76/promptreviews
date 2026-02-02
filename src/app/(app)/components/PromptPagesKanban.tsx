@@ -7,6 +7,7 @@ import PromptPageCard from "./PromptPageCard";
 import Icon from "@/components/Icon";
 import { StatusLabels } from "@/hooks/useStatusLabels";
 import PromptPageDetailsPanel from "./PromptPageDetailsPanel";
+import type { WMUserInfo } from "@/types/workManager";
 
 interface PromptPagesKanbanProps {
   promptPages: PromptPage[];
@@ -17,6 +18,8 @@ interface PromptPagesKanbanProps {
   onEditLabel: (status: keyof StatusLabels) => void;
   selectedType?: string;
   onLocalStatusUpdate?: (pageId: string, newStatus: PromptPage["status"], lastContactAt?: string | null) => void;
+  accountUsers?: WMUserInfo[];
+  onAssigneeUpdate?: (pageId: string, assignedTo: string | null) => void;
 }
 
 const STATUS_COLORS = {
@@ -36,6 +39,8 @@ export default function PromptPagesKanban({
   onEditLabel,
   selectedType,
   onLocalStatusUpdate,
+  accountUsers,
+  onAssigneeUpdate,
 }: PromptPagesKanbanProps) {
   const [draggedCardId, setDraggedCardId] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -437,6 +442,8 @@ export default function PromptPagesKanban({
           business={business}
           onClose={() => setActivePage(null)}
           onLocalStatusUpdate={onLocalStatusUpdate}
+          accountUsers={accountUsers}
+          onAssigneeUpdate={onAssigneeUpdate}
         />
       )}
     </DragDropContext>
@@ -448,6 +455,8 @@ interface PromptPageDetailsDrawerProps {
   business: any;
   onClose: () => void;
   onLocalStatusUpdate?: (pageId: string, newStatus: PromptPage["status"], lastContactAt?: string | null) => void;
+  accountUsers?: WMUserInfo[];
+  onAssigneeUpdate?: (pageId: string, assignedTo: string | null) => void;
 }
 
 function PromptPageDetailsDrawer({
@@ -455,6 +464,8 @@ function PromptPageDetailsDrawer({
   business,
   onClose,
   onLocalStatusUpdate,
+  accountUsers,
+  onAssigneeUpdate,
 }: PromptPageDetailsDrawerProps) {
   useEffect(() => {
     const originalOverflow = document.body.style.overflow;
@@ -477,6 +488,8 @@ function PromptPageDetailsDrawer({
           business={business}
           onClose={onClose}
           onLocalStatusUpdate={onLocalStatusUpdate}
+          accountUsers={accountUsers}
+          onAssigneeUpdate={onAssigneeUpdate}
         />
       </div>
     </div>

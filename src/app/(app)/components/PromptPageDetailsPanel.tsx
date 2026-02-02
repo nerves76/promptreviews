@@ -4,12 +4,16 @@ import Icon from "@/components/Icon";
 import CommunicationButtons from "./communication/CommunicationButtons";
 import ActivityTimeline from "./ActivityTimeline";
 import type { PromptPage } from "./PromptPagesTable";
+import type { WMUserInfo } from "@/types/workManager";
+import { apiClient } from "@/utils/apiClient";
 
 interface PromptPageDetailsPanelProps {
   page: PromptPage;
   business?: any;
   onClose?: () => void;
   onLocalStatusUpdate?: (pageId: string, newStatus: PromptPage["status"], lastContactAt?: string | null) => void;
+  accountUsers?: WMUserInfo[];
+  onAssigneeUpdate?: (pageId: string, assignedTo: string | null) => void;
 }
 
 export default function PromptPageDetailsPanel({
@@ -17,8 +21,11 @@ export default function PromptPageDetailsPanel({
   business,
   onClose,
   onLocalStatusUpdate,
+  accountUsers,
+  onAssigneeUpdate,
 }: PromptPageDetailsPanelProps) {
   const [copySuccess, setCopySuccess] = useState(false);
+  const [assigneeLoading, setAssigneeLoading] = useState(false);
 
   const contactForShare = {
     id: page.contact_id || page.contacts?.id || '', // Use contact_id or joined contacts.id
@@ -54,6 +61,23 @@ export default function PromptPageDetailsPanel({
       : page.review_type
       ? page.review_type.charAt(0).toUpperCase() + page.review_type.slice(1)
       : "Service";
+
+  const handleAssigneeChange = async (newAssignedTo: string | null) => {
+    setAssigneeLoading(true);
+    try {
+      await apiClient.patch('/prompt-pages/assign', {
+        id: page.id,
+        assigned_to: newAssignedTo,
+      });
+      onAssigneeUpdate?.(page.id, newAssignedTo);
+    } catch (err) {
+      console.error('Failed to update assignee:', err);
+    } finally {
+      setAssigneeLoading(false);
+    }
+  };
+
+  const currentAssignee = accountUsers?.find(u => u.id === page.assigned_to);
 
   const handleCopyLink = async () => {
     try {
@@ -149,6 +173,40 @@ export default function PromptPageDetailsPanel({
                 </div>
               )}
             </div>
+          </section>
+        )}
+
+        {/* Assigned to section */}
+        {accountUsers && accountUsers.length > 0 && (
+          <section className="p-5 bg-white/60 backdrop-blur-sm border border-gray-100/50 rounded-xl space-y-3">
+            <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Assigned to</h3>
+            <div className="flex items-center gap-3">
+              <select
+                value={page.assigned_to || ''}
+                onChange={(e) => handleAssigneeChange(e.target.value || null)}
+                disabled={assigneeLoading}
+                className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white/80 focus:outline-none focus:ring-2 focus:ring-slate-blue/50 disabled:opacity-50"
+                aria-label="Assign team member"
+              >
+                <option value="">No one assigned</option>
+                {accountUsers.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {[u.first_name, u.last_name].filter(Boolean).join(' ') || u.email}
+                  </option>
+                ))}
+              </select>
+              {assigneeLoading && (
+                <Icon name="FaSpinner" size={14} className="animate-spin text-gray-500" />
+              )}
+            </div>
+            {currentAssignee && (
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <Icon name="FaUser" size={12} className="text-gray-500" />
+                <span>
+                  {[currentAssignee.first_name, currentAssignee.last_name].filter(Boolean).join(' ') || currentAssignee.email}
+                </span>
+              </div>
+            )}
           </section>
         )}
 
