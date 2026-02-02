@@ -51,7 +51,7 @@ export default function OutlinePreview({
         <button
           type="button"
           onClick={handleCopyAll}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] bg-white/70 backdrop-blur-sm border border-white/40 text-gray-700 hover:bg-white/90 transition-colors whitespace-nowrap shadow-sm"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] bg-white/90 border border-white/60 text-gray-700 hover:bg-white/90 transition-colors whitespace-nowrap shadow-sm"
           aria-label="Copy all outline content"
         >
           <Icon name={allCopied ? "FaCheck" : "FaCopy"} size={10} />
@@ -60,7 +60,7 @@ export default function OutlinePreview({
         <button
           type="button"
           onClick={() => exportOutlineAsCsv(outline, seo, keyword)}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] bg-white/70 backdrop-blur-sm border border-white/40 text-gray-700 hover:bg-white/90 transition-colors whitespace-nowrap shadow-sm"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] bg-white/90 border border-white/60 text-gray-700 hover:bg-white/90 transition-colors whitespace-nowrap shadow-sm"
           aria-label="Download outline as CSV"
         >
           <Icon name="FaSave" size={10} />
@@ -162,7 +162,7 @@ export default function OutlinePreview({
 
       {/* Competitor URLs */}
       {competitorUrls && competitorUrls.length > 0 && (
-        <div className="mt-4 rounded-2xl border border-white/20 bg-white/50 backdrop-blur-sm p-5">
+        <div className="mt-4 rounded-2xl border border-white/20 bg-white/90 p-5">
           <h3 className="text-sm font-semibold text-gray-700 mb-3">
             <Icon name="FaSearch" size={12} className="inline mr-1.5 text-gray-500" />
             Top {competitorUrls.length} organic result{competitorUrls.length !== 1 ? "s" : ""} for &ldquo;{keyword}&rdquo;

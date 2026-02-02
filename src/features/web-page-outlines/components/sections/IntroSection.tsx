@@ -19,7 +19,7 @@ export default function IntroSection({ data }: IntroSectionProps) {
           size="sm"
         />
       </div>
-      <div className="rounded-xl p-5 bg-white/60 backdrop-blur-sm border border-white/40">
+      <div className="rounded-xl p-5 bg-white/90 border border-white/60">
         <p className="text-gray-700 text-[15px] leading-[1.8]">{data}</p>
       </div>
     </div>

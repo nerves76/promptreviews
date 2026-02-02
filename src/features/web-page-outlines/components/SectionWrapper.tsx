@@ -54,7 +54,7 @@ export default function SectionWrapper({
           <button
             type="button"
             onClick={handleCopy}
-            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] bg-white/70 backdrop-blur-sm border border-white/40 text-gray-700 hover:bg-white/90 hover:shadow-sm transition-all whitespace-nowrap"
+            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] bg-white/90 border border-white/60 text-gray-700 hover:bg-white/90 hover:shadow-sm transition-all whitespace-nowrap"
             aria-label={`Copy ${label} section`}
           >
             <Icon name={copied ? "FaCheck" : "FaCopy"} size={10} />
@@ -65,7 +65,7 @@ export default function SectionWrapper({
             type="button"
             onClick={() => onRegenerate(sectionKey)}
             disabled={isRegenerating}
-            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] bg-white/70 backdrop-blur-sm border border-white/40 text-gray-700 hover:bg-white/90 hover:shadow-sm disabled:opacity-50 transition-all whitespace-nowrap"
+            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] bg-white/90 border border-white/60 text-gray-700 hover:bg-white/90 hover:shadow-sm disabled:opacity-50 transition-all whitespace-nowrap"
             aria-label={`Regenerate ${label} section (${SECTION_REGEN_COST} credit)`}
           >
             <Icon
