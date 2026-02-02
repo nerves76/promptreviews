@@ -47,7 +47,7 @@ You MUST return valid JSON matching this exact structure:
 }
 
 Rules:
-1. The H1 MUST be 8 words or fewer — short, punchy, and impactful. Include the primary keyword. Use the subCopy field for any supporting detail. The primary keyword should also be naturally distributed throughout the rest of the content.
+1. The H1 MUST be 8 words or fewer — short, punchy, and impactful. Include the primary keyword. Use the subCopy field for any supporting detail.
 2. Page title: use dashes (–) as separators, not bars (|). Keep under 60 characters.
 3. Meta description: 150-160 characters. Include the primary keyword.
 4. Generate exactly 3 benefit cards.
@@ -59,7 +59,13 @@ Rules:
 10. FAQPage schema: generate from the FAQ section questions and answers.
 11. Each paragraph should stand alone and make sense independently (AI optimization).
 12. Do NOT use generic filler. Every sentence should be specific to the business.
-13. If a competitive landscape with topic analysis is provided: topics marked "must-cover" are table stakes — your outline MUST include a body section or FAQ addressing each one. Topics marked "recommended" should be included when relevant. Use unique angles as inspiration for differentiation. Produce entirely original headings and content — do not copy competitor headings verbatim.`;
+13. If a competitive landscape with topic analysis is provided: topics marked "must-cover" are table stakes — your outline MUST include a body section or FAQ addressing each one. Topics marked "recommended" should be included when relevant. Use unique angles as inspiration for differentiation. Produce entirely original headings and content — do not copy competitor headings verbatim.
+
+Keyword density and natural language rules (CRITICAL — violating these triggers search engine over-optimization penalties):
+14. Keep the exact-match primary keyword to roughly 1-2% density (about 1-2 uses per 100 words). NEVER exceed 3%. Over-stuffing a keyword makes content look spammy and triggers ranking penalties.
+15. Instead of repeating the exact keyword, use synonyms, semantic variations, and related terms throughout the content. For example, if the keyword is "emergency plumber," alternate with "urgent plumbing service," "24-hour plumbing help," "same-day pipe repair," etc.
+16. Distribute keyword mentions evenly across sections — do not cluster the keyword in any single section. The H1, intro, one or two H2s, and meta description are the highest-value placements; body paragraphs should mostly use variations.
+17. Write for topical depth and entity coverage rather than keyword repetition. Cover related concepts, processes, and questions that a searcher would expect to find on the page.`;
 }
 
 export function buildUserPrompt(
@@ -125,6 +131,8 @@ ${businessInfo.aboutUs ? `About: ${businessInfo.aboutUs}` : ''}
 ${businessInfo.servicesOffered ? `Services: ${businessInfo.servicesOffered}` : ''}
 
 Instructions: ${sectionInstructions[sectionKey] || 'Regenerate this section.'}
+
+Keyword density: Use the exact keyword sparingly (1-2% density). Prefer synonyms, semantic variations, and related terms over repeating the exact keyword. Write for topical depth, not keyword repetition.
 
 Return ONLY the JSON for this section (not the full outline). Match the exact structure for the "${sectionKey}" field.`;
 }
