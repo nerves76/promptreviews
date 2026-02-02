@@ -10,7 +10,7 @@ export default function IntroSection({ data }: IntroSectionProps) {
   return (
     <div className="py-6">
       <div className="flex items-center gap-1.5 mb-3">
-        <span className="text-[11px] font-semibold text-white/70 uppercase tracking-wider">
+        <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
           Introduction
         </span>
         <HelpBubble

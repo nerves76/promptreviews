@@ -15,7 +15,7 @@ export default function FAQSection({ data }: FAQSectionProps) {
   return (
     <div className="py-6">
       <div className="flex items-center gap-1.5 mb-5">
-        <span className="text-[11px] font-semibold text-white/70 uppercase tracking-wider">
+        <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
           Frequently asked questions
         </span>
         <HelpBubble
