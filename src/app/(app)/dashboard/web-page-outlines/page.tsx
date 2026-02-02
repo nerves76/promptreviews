@@ -222,7 +222,7 @@ export default function WebPageOutlinesPage() {
       >
         <PageCardHeader
           title="Create web page outline"
-          description="Plan AI-powered web page content optimized for search engines and AI visibility."
+          description="Create a page outline with optimized copy and metadata that you can easily copy or download. Prompty will scrape the top ranking pages for your keyword and use your business info to create keyword focused content."
           variant="large"
         />
 
@@ -266,7 +266,7 @@ export default function WebPageOutlinesPage() {
                 }
                 className="whitespace-nowrap"
               >
-                <Icon name="FaRocket" size={14} className="mr-1.5" />
+                <Icon name="prompty" size={14} className="mr-1.5" />
                 Generate plan ({FULL_GENERATION_COST} credits)
               </Button>
             </div>

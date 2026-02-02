@@ -203,7 +203,7 @@ export default function OutlineDetailPage() {
             onClick={() => router.push("/dashboard/web-page-outlines")}
             className="whitespace-nowrap border-white/40 text-white hover:bg-white/10"
           >
-            <Icon name="FaPlus" size={12} className="mr-1.5" />
+            <Icon name="prompty" size={12} className="mr-1.5" />
             Create new
           </Button>
         </div>
