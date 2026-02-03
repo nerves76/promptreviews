@@ -1177,11 +1177,11 @@ export function ConceptCard({
                             <button
                               onClick={() => router.push(`/dashboard/local-ranking-grids?keywordId=${keyword.id}`)}
                               className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded transition-colors ${
-                                keyword.isUsedInGeoGrid
+                                keyword.isUsedInGeoGrid || (enrichedData?.geoGridStatus?.summary?.totalPoints ?? 0) > 0
                                   ? 'text-white bg-emerald-600 hover:bg-emerald-700'
                                   : 'text-emerald-600 bg-emerald-50 hover:bg-emerald-100'
                               }`}
-                              title={keyword.isUsedInGeoGrid ? 'View geo grid results' : 'Set up local ranking grid'}
+                              title={keyword.isUsedInGeoGrid || (enrichedData?.geoGridStatus?.summary?.totalPoints ?? 0) > 0 ? 'View geo grid results' : 'Set up local ranking grid'}
                             >
                               <Icon name="FaMapMarker" className="w-3 h-3" />
                               Grid
