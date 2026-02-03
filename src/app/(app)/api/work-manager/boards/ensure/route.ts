@@ -2,6 +2,82 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient, createServiceRoleClient } from '@/auth/providers/supabase';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 import { DEFAULT_WM_STATUS_LABELS } from '@/types/workManager';
+import { SupabaseClient } from '@supabase/supabase-js';
+
+// Default SEO resources to add to new boards
+const DEFAULT_RESOURCES = [
+  {
+    title: "Beginner's Guide to SEO",
+    description: "A comprehensive guide to SEO fundamentals by Moz - perfect for learning the basics of search engine optimization.",
+    category: 'guide',
+    priority: 'medium',
+    tags: ['seo', 'learning', 'fundamentals'],
+    sort_order: 1,
+    link: { name: "Moz Beginner's Guide to SEO", url: 'https://moz.com/beginners-guide-to-seo' },
+  },
+  {
+    title: 'Search Engine Journal',
+    description: 'Leading SEO and digital marketing publication with news, guides, and industry insights.',
+    category: 'reference',
+    priority: 'medium',
+    tags: ['seo', 'news', 'publication'],
+    sort_order: 2,
+    link: { name: 'Search Engine Journal', url: 'https://www.searchenginejournal.com' },
+  },
+  {
+    title: 'Search Engine Land',
+    description: 'Industry news source covering SEO, SEM, and search marketing topics.',
+    category: 'reference',
+    priority: 'medium',
+    tags: ['seo', 'news', 'publication'],
+    sort_order: 3,
+    link: { name: 'Search Engine Land', url: 'https://searchengineland.com' },
+  },
+];
+
+async function createDefaultResources(supabase: SupabaseClient, boardId: string, accountId: string) {
+  try {
+    for (const resource of DEFAULT_RESOURCES) {
+      // Create the resource
+      const { data: newResource, error: resourceError } = await supabase
+        .from('wm_resources')
+        .insert({
+          board_id: boardId,
+          account_id: accountId,
+          title: resource.title,
+          description: resource.description,
+          category: resource.category,
+          priority: resource.priority,
+          tags: resource.tags,
+          sort_order: resource.sort_order,
+        })
+        .select('id')
+        .single();
+
+      if (resourceError) {
+        console.error('Error creating default resource:', resourceError);
+        continue;
+      }
+
+      // Create the link for this resource
+      if (newResource && resource.link) {
+        const { error: linkError } = await supabase
+          .from('wm_links')
+          .insert({
+            resource_id: newResource.id,
+            name: resource.link.name,
+            url: resource.link.url,
+          });
+
+        if (linkError) {
+          console.error('Error creating default link:', linkError);
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Error creating default resources:', error);
+  }
+}
 
 /**
  * POST /api/work-manager/boards/ensure
@@ -101,6 +177,9 @@ export async function POST(request: NextRequest) {
       console.error('Error creating board:', createError);
       return NextResponse.json({ error: 'Failed to create board' }, { status: 500 });
     }
+
+    // Add default SEO resources for new boards
+    await createDefaultResources(supabaseAdmin, newBoard.id, accountId);
 
     return NextResponse.json({
       board: {
