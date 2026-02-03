@@ -161,12 +161,84 @@ export const WidgetEditorForm: React.FC<WidgetEditorFormProps> = ({
     }
   };
 
+  const widgetTypes = [
+    {
+      value: 'multi',
+      label: 'Multi review',
+      description: 'Shows 3 reviews at a time in a carousel.',
+      preview: (
+        <div className="flex gap-1.5 justify-center">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="w-12 h-16 bg-white rounded border border-gray-200 shadow-sm flex flex-col items-center justify-center p-1">
+              <div className="w-5 h-5 rounded-full bg-gray-200 mb-1" />
+              <div className="w-8 h-1 bg-gray-200 rounded mb-0.5" />
+              <div className="w-6 h-1 bg-gray-100 rounded" />
+              <div className="flex gap-0.5 mt-1">
+                {[1, 2, 3, 4, 5].map((s) => (
+                  <div key={s} className="w-1 h-1 rounded-full bg-amber-400" />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      ),
+    },
+    {
+      value: 'single',
+      label: 'Single review',
+      description: 'Shows reviews one-at-a-time in a carousel.',
+      preview: (
+        <div className="flex justify-center">
+          <div className="w-24 h-16 bg-white rounded border border-gray-200 shadow-sm flex flex-col items-center justify-center p-1.5">
+            <div className="w-6 h-6 rounded-full bg-gray-200 mb-1" />
+            <div className="w-16 h-1 bg-gray-200 rounded mb-0.5" />
+            <div className="w-12 h-1 bg-gray-100 rounded" />
+            <div className="flex gap-0.5 mt-1">
+              {[1, 2, 3, 4, 5].map((s) => (
+                <div key={s} className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+              ))}
+            </div>
+          </div>
+        </div>
+      ),
+    },
+    {
+      value: 'photo',
+      label: 'Photo review',
+      description: 'Displays a photo alongside the review. Best with photo prompt pages.',
+      preview: (
+        <div className="flex justify-center">
+          <div className="w-28 h-16 bg-white rounded border border-gray-200 shadow-sm flex overflow-hidden">
+            <div className="w-12 h-full bg-gray-200 flex items-center justify-center flex-shrink-0">
+              <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <div className="flex-1 flex flex-col items-center justify-center p-1.5">
+              <div className="w-10 h-1 bg-gray-200 rounded mb-0.5" />
+              <div className="w-8 h-1 bg-gray-100 rounded mb-0.5" />
+              <div className="w-6 h-1 bg-gray-100 rounded" />
+              <div className="flex gap-0.5 mt-1">
+                {[1, 2, 3, 4, 5].map((s) => (
+                  <div key={s} className="w-1 h-1 rounded-full bg-amber-400" />
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      ),
+    },
+  ];
+
+  const isTypeDisabled = !!widgetToEdit || isLoading;
+
   return (
     <div className="p-4">
-      <div className="space-y-4">
+      <div className="space-y-5">
         <div>
-          <label className="block text-sm font-medium text-white">Widget name</label>
+          <label htmlFor="widget-name" className="block text-sm font-medium text-white">Widget name</label>
           <input
+            id="widget-name"
             ref={nameInputRef}
             type="text"
             value={form.name || ""}
@@ -176,31 +248,51 @@ export const WidgetEditorForm: React.FC<WidgetEditorFormProps> = ({
           />
           {nameError && <p className="text-red-500 text-xs mt-1">{nameError}</p>}
         </div>
+
         <div>
-          <label className="block text-sm font-medium text-white">Widget type</label>
-          <select
-            value={form.widgetType || ""}
-            onChange={(e) => setForm({ ...form, widgetType: e.target.value })}
-            className="mt-1 block w-full border border-gray-300 focus:border-slate-600 focus:ring-2 focus:ring-slate-400 rounded-md px-3 py-2 shadow-sm"
-            disabled={!!widgetToEdit || isLoading}
-          >
-            <option value="single">Single</option>
-            <option value="multi">Multi</option>
-            <option value="photo">Photo</option>
-          </select>
-          {/* Widget type description */}
-          <p className="mt-2 text-sm text-white">
+          <label className="block text-sm font-medium text-white mb-2">Choose a layout</label>
+          <div className="grid grid-cols-3 gap-3">
+            {widgetTypes.map((type) => {
+              const isSelected = form.widgetType === type.value;
+              return (
+                <button
+                  key={type.value}
+                  type="button"
+                  onClick={() => {
+                    if (!isTypeDisabled) {
+                      setForm({ ...form, widgetType: type.value });
+                    }
+                  }}
+                  disabled={isTypeDisabled}
+                  className={`relative rounded-lg p-3 text-center transition-all focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2 ${
+                    isSelected
+                      ? 'bg-white ring-2 ring-slate-blue shadow-md'
+                      : 'bg-white/60 hover:bg-white/80 border border-white/40'
+                  } ${isTypeDisabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
+                  aria-label={`${type.label}: ${type.description}`}
+                >
+                  <div className="h-20 flex items-center justify-center mb-2">
+                    {type.preview}
+                  </div>
+                  <p className={`text-xs font-semibold whitespace-nowrap ${isSelected ? 'text-slate-blue' : 'text-gray-700'}`}>
+                    {type.label}
+                  </p>
+                </button>
+              );
+            })}
+          </div>
+          <p className="mt-2 text-sm text-white/80">
             {form.widgetType === 'single' && 'Shows reviews one-at-a-time in a carousel.'}
             {form.widgetType === 'multi' && 'Shows 3 reviews at a time in a carousel.'}
-            {form.widgetType === 'photo' && 'Allows you to upload photos of reviewer (Photo + Testimonial Prompt Pages).'}
+            {form.widgetType === 'photo' && 'Displays a photo alongside the review. Best with photo prompt pages.'}
           </p>
         </div>
       </div>
+
       <div className="flex justify-end gap-4 mt-6">
-        {/* Only show the Save/Create button, styled with slate blue */}
         <button
           onClick={handleSave}
-          className="px-4 py-2 bg-slate-blue text-white rounded hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue/50 focus:ring-offset-2 disabled:opacity-50"
+          className="px-5 py-2.5 bg-slate-blue text-white rounded-lg hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue/50 focus:ring-offset-2 disabled:opacity-50 font-medium whitespace-nowrap"
           disabled={isLoading}
         >
           {isLoading ? 'Saving...' : (widgetToEdit ? 'Save widget' : 'Create widget')}

@@ -115,15 +115,15 @@ export const DraggableModal: React.FC<DraggableModalProps> = ({
         }}
         onMouseDown={handleMouseDown}
       >
-        {/* Circular close button - inside on mobile, outside on desktop */}
+        {/* Circular close button - inside on mobile, centered on corner on desktop */}
         <button
-          className="absolute top-2 right-2 sm:-top-3 sm:-right-3 bg-white/50 backdrop-blur-md border border-white/40 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 flex items-center justify-center hover:bg-white/70 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 z-50 min-w-[44px] min-h-[44px]"
-          style={{ width: 48, height: 48 }}
+          className="absolute top-2 right-2 sm:-top-4 sm:-right-4 bg-white border border-gray-200 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 flex items-center justify-center hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 z-50"
+          style={{ width: 36, height: 36 }}
           onClick={onClose}
           aria-label="Close modal"
         >
-          <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          <svg className="w-3.5 h-3.5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
 
