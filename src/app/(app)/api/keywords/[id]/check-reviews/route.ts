@@ -127,6 +127,17 @@ export async function POST(
         throw new Error(`Failed to fetch reviews: ${reviewsError.message}`);
       }
 
+      // Debug: Log review count and samples
+      console.log('[CheckReviews] Reviews found:', reviews?.length || 0);
+      if (reviews && reviews.length > 0) {
+        console.log('[CheckReviews] Sample review:', {
+          id: reviews[0].id,
+          hasContent: !!reviews[0].review_content,
+          hasTextCopy: !!reviews[0].review_text_copy,
+          contentPreview: (reviews[0].review_content || reviews[0].review_text_copy || '').substring(0, 100),
+        });
+      }
+
       // Clear existing matches for this keyword only
       await serviceSupabase
         .from('keyword_review_matches_v2')
@@ -159,6 +170,19 @@ export async function POST(
           };
         })
         .filter(Boolean) as SyncedReviewRecord[];
+
+      // Debug: Log processed records count
+      console.log('[CheckReviews] Records with content:', records.length);
+      if (records.length > 0) {
+        // Log a sample to see if "diviner" appears in any review
+        const divinerMatches = records.filter(r =>
+          r.reviewText.toLowerCase().includes('diviner')
+        );
+        console.log('[CheckReviews] Records containing "diviner":', divinerMatches.length);
+        if (divinerMatches.length > 0) {
+          console.log('[CheckReviews] Sample match:', divinerMatches[0].reviewText.substring(0, 200));
+        }
+      }
 
       // Run keyword matching
       const matcher = new KeywordMatchService(serviceSupabase, accountId);
