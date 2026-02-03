@@ -230,7 +230,7 @@ export default function WorkManagerDetailsPanel({
   };
 
   return (
-    <div className="flex flex-col h-full backdrop-blur-xl shadow-2xl">
+    <div className="flex flex-col h-full">
       {/* Close button */}
       <div className="flex justify-end px-4 pt-4 pb-2">
         <button
