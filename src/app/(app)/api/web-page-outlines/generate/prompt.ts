@@ -62,9 +62,9 @@ Rules:
 13. If a competitive landscape with topic analysis is provided: topics marked "must-cover" are table stakes — your outline MUST include a body section or FAQ addressing each one. Topics marked "recommended" should be included when relevant. Use unique angles as inspiration for differentiation. Produce entirely original headings and content — do not copy competitor headings verbatim.
 
 Keyword density and natural language rules (CRITICAL — violating these triggers search engine over-optimization penalties):
-14. Keep the exact-match primary keyword to roughly 1-2% density (about 1-2 uses per 100 words). NEVER exceed 3%. Over-stuffing a keyword makes content look spammy and triggers ranking penalties.
-15. Instead of repeating the exact keyword, use synonyms, semantic variations, and related terms throughout the content. For example, if the keyword is "emergency plumber," alternate with "urgent plumbing service," "24-hour plumbing help," "same-day pipe repair," etc.
-16. Distribute keyword mentions evenly across sections — do not cluster the keyword in any single section. The H1, intro, one or two H2s, and meta description are the highest-value placements; body paragraphs should mostly use variations.
+14. Target 1.5-2.5% exact-match keyword density (the optimal range is 1-3%). For a 400-word outline this means using the exact keyword phrase roughly 6-10 times total across all sections. Below 1% signals weak relevance; above 3% risks over-optimization. Count your keyword uses and adjust before finalizing.
+15. In addition to exact-match uses, also use synonyms, semantic variations, and related terms throughout the content. For example, if the keyword is "emergency plumber," alternate with "urgent plumbing service," "24-hour plumbing help," "same-day pipe repair," etc.
+16. Distribute exact keyword mentions across sections — do not cluster them. Place the exact keyword in the H1, intro, at least one H2, at least one FAQ question or answer, the meta description, and spread remaining uses across body paragraphs.
 17. Write for topical depth and entity coverage rather than keyword repetition. Cover related concepts, processes, and questions that a searcher would expect to find on the page.`;
 }
 
