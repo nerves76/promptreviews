@@ -15,6 +15,8 @@ type LoadedKeyword = {
   id: string;
   phrase: string;
   normalized: string;
+  /** The phrase to search for in reviews. If set, takes precedence over normalized. */
+  reviewPhrase: string | null;
   wordCount: number;
   status: 'active' | 'paused';
   aliases: string[];
@@ -63,6 +65,7 @@ export class KeywordMatchService {
         id,
         phrase,
         normalized_phrase,
+        review_phrase,
         word_count,
         status,
         aliases
@@ -80,6 +83,7 @@ export class KeywordMatchService {
       id: kw.id,
       phrase: kw.phrase,
       normalized: kw.normalized_phrase,
+      reviewPhrase: kw.review_phrase ? normalizePhrase(kw.review_phrase) : null,
       wordCount: kw.word_count,
       status: kw.status as 'active' | 'paused',
       aliases: (kw.aliases || []).map((a: string) => normalizePhrase(a)),
@@ -91,12 +95,20 @@ export class KeywordMatchService {
   /**
    * Check if text matches a keyword (exact or alias).
    * Returns the match type if found, null otherwise.
+   *
+   * Match priority:
+   * 1. reviewPhrase (if set) - the user-specified phrase to search for
+   * 2. normalized phrase (keyword name) - fallback if no reviewPhrase
+   * 3. aliases - additional phrases to match
    */
   private matchKeyword(keyword: LoadedKeyword, text: string): { type: MatchType; matchedPhrase: string } | null {
-    // Check exact match first
-    const exactRegex = new RegExp(`\\b${escapeRegex(keyword.normalized)}\\b`, 'i');
+    // Use reviewPhrase if set, otherwise fall back to normalized (keyword name)
+    const primaryPhrase = keyword.reviewPhrase || keyword.normalized;
+
+    // Check exact match first (using reviewPhrase or normalized)
+    const exactRegex = new RegExp(`\\b${escapeRegex(primaryPhrase)}\\b`, 'i');
     if (exactRegex.test(text)) {
-      return { type: 'exact', matchedPhrase: keyword.phrase };
+      return { type: 'exact', matchedPhrase: keyword.reviewPhrase || keyword.phrase };
     }
 
     // Check aliases
