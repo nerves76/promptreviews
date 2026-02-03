@@ -104,8 +104,8 @@ export const DraggableModal: React.FC<DraggableModalProps> = ({
       <div
         className={`rounded-2xl shadow-2xl w-full ${maxWidth} relative ${
           opaqueBody
-            ? 'border border-gray-200'
-            : 'bg-gradient-to-br from-indigo-50 via-white to-purple-50 border border-white/20 backdrop-blur-sm'
+            ? 'border border-gray-200 bg-white'
+            : 'backdrop-blur-xl border border-white/20'
         }`}
         style={{
           position: 'absolute',
