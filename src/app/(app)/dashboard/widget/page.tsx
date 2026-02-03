@@ -385,7 +385,7 @@ export default function WidgetPage() {
               {selectedWidget ? `Editing: ${selectedWidget.name}` : ''}
             </p>
           </div>
-          <div className="w-full">
+          <div className="w-full min-h-[300px]">
             <WidgetPreview widget={selectedWidgetFull} design={design} />
           </div>
         </div>
