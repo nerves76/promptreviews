@@ -127,14 +127,17 @@ export const DraggableModal: React.FC<DraggableModalProps> = ({
           </svg>
         </button>
 
-        <div className="modal-header flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-4 cursor-move bg-white/10 backdrop-blur-md rounded-t-2xl gap-2 sm:gap-0">
-          <div className="flex-1 min-w-0 pr-2">
+        <div className="modal-header relative flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-4 cursor-move bg-white/10 backdrop-blur-md rounded-t-2xl gap-2 sm:gap-0">
+          {/* Title area - left */}
+          <div className="min-w-0 pr-2 max-w-[60%]">
             <h2 className="text-lg sm:text-xl font-semibold text-white flex items-center flex-wrap gap-2">{title}</h2>
           </div>
+          {/* Move icon - center (absolute) */}
+          <div className="hidden sm:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white/20 backdrop-blur-sm rounded-lg p-2">
+            <Icon name="FaArrowsAlt" className="text-white" size={16} />
+          </div>
+          {/* Buttons - right */}
           <div className="flex flex-shrink-0 items-center gap-2 sm:pr-8">
-             <div className="hidden sm:flex bg-white/20 backdrop-blur-sm rounded-lg p-2">
-               <Icon name="FaArrowsAlt" className="text-white" size={16} />
-             </div>
              {onReset && (
                 <button
                    onClick={onReset}
