@@ -1140,7 +1140,7 @@ export function ConceptCard({
                                         : 'text-gray-500'
                                   }`}>
                                     {summary.pointsInTop10}/{summary.totalPoints}
-                                    <span className="text-xs text-gray-500 ml-0.5">({pct}%)</span>
+                                    <span className="text-xs text-gray-500 ml-1">({pct}%)</span>
                                   </span>
                                 );
                               }
