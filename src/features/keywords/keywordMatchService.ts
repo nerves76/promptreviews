@@ -89,6 +89,15 @@ export class KeywordMatchService {
       aliases: (kw.aliases || []).map((a: string) => normalizePhrase(a)),
     }));
 
+    // Debug logging
+    console.log('[KeywordMatchService] Loaded keywords:', this.keywords.map(k => ({
+      id: k.id,
+      phrase: k.phrase,
+      normalized: k.normalized,
+      reviewPhrase: k.reviewPhrase,
+      aliases: k.aliases,
+    })));
+
     return this.keywords;
   }
 
@@ -107,7 +116,22 @@ export class KeywordMatchService {
 
     // Check exact match first (using reviewPhrase or normalized)
     const exactRegex = new RegExp(`\\b${escapeRegex(primaryPhrase)}\\b`, 'i');
-    if (exactRegex.test(text)) {
+    const exactMatch = exactRegex.test(text);
+
+    // Debug: log matching attempts for troubleshooting
+    if (keyword.phrase.toLowerCase().includes('diviner')) {
+      console.log('[KeywordMatchService] Matching "diviner" keyword:', {
+        keywordPhrase: keyword.phrase,
+        primaryPhrase,
+        reviewPhrase: keyword.reviewPhrase,
+        normalized: keyword.normalized,
+        textSample: text.substring(0, 200),
+        exactMatch,
+        regexPattern: exactRegex.source,
+      });
+    }
+
+    if (exactMatch) {
       return { type: 'exact', matchedPhrase: keyword.reviewPhrase || keyword.phrase };
     }
 
