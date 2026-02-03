@@ -781,37 +781,37 @@ export function ReviewManagementModal({
     <DraggableModal
       isOpen={isOpen}
       onClose={onClose}
-      title={
-        <div className="flex items-center gap-3">
-          <span>Manage reviews</span>
-          {hasUnsavedChanges && (
-            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-              Unsaved changes
-            </span>
-          )}
-          {widgetType && (
-            <span
-              className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap flex-shrink-0"
-              style={{
-                backgroundColor: 
-                  widgetType === 'single' ? '#60A5FA' :
-                  widgetType === 'multi' ? '#34D399' :
-                  widgetType === 'photo' ? '#A78BFA' : '#6B7280',
-                color: 'white'
-              }}
-            >
-              {widgetType === 'single' && 'Single card'}
-              {widgetType === 'multi' && 'Multi card'}
-              {widgetType === 'photo' && 'Photo'}
-            </span>
-          )}
-        </div>
-      }
+      title="Manage reviews"
       onSave={handleSaveReviews}
       saveLabel="Save"
     >
       {/* Top right save button is now handled by DraggableModal via onSave prop */}
-      
+
+      {/* Status badges */}
+      <div className="flex items-center gap-2 mb-4">
+        {widgetType && (
+          <span
+            className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap"
+            style={{
+              backgroundColor:
+                widgetType === 'single' ? '#60A5FA' :
+                widgetType === 'multi' ? '#34D399' :
+                widgetType === 'photo' ? '#A78BFA' : '#6B7280',
+              color: 'white'
+            }}
+          >
+            {widgetType === 'single' && 'Single card'}
+            {widgetType === 'multi' && 'Multi card'}
+            {widgetType === 'photo' && 'Photo'}
+          </span>
+        )}
+        {hasUnsavedChanges && (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 whitespace-nowrap">
+            Unsaved changes
+          </span>
+        )}
+      </div>
+
       {/* Restored data notification */}
       {showRestoredNotification && (
         <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center">
