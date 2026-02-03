@@ -132,8 +132,8 @@
 .pr-photo-prev-btn,
 .pr-photo-next-btn {
     cursor: pointer;
-    width: 40px;
-    height: 40px;
+    width: 34px;
+    height: 34px;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -141,7 +141,7 @@
     transition: all 0.2s ease;
     position: relative;
 }
-  
+
 .pr-photo-prev-btn::before,
 .pr-photo-next-btn::before {
     content: '';
@@ -149,46 +149,46 @@
     height: 0;
     border-style: solid;
 }
-  
+
 .pr-photo-prev-btn::before {
-    border-width: 6px 8px 6px 0;
+    border-width: 5px 7px 5px 0;
     border-color: transparent #4f46e5 transparent transparent;
     margin-left: -2px;
 }
-  
+
 .pr-photo-next-btn::before {
-    border-width: 6px 0 6px 8px;
+    border-width: 5px 0 5px 7px;
     border-color: transparent transparent transparent #4f46e5;
     margin-right: -2px;
 }
-  
+
 .pr-photo-dots-container {
     display: flex;
-    gap: 16px;
+    gap: 14px;
     align-items: center;
 }
-  
+
 .pr-photo-dot {
-    height: 12px;
-    width: 12px;
+    height: 10px;
+    width: 10px;
     border: none;
     border-radius: 50%;
     cursor: pointer;
     padding: 0;
     margin: 0;
 }
-  
+
 .pr-photo-submit-review-container {
     text-align: right;
     margin-top: 0.5rem;
 }
-  
+
 .pr-photo-submit-btn {
     display: inline-block;
-    padding: 6px 12px;
+    padding: 5px 10px;
     text-decoration: none;
     font-weight: 500;
-    font-size: 0.875rem;
+    font-size: 0.75rem;
 }
   
 /* Responsive Design - simplified for single card */

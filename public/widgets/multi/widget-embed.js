@@ -4,8 +4,12 @@
 (function() {
   'use strict';
 
-  // --- Start of Shared Canonical Functions ---
-  // This section is now the single source of truth for card generation.
+  // --- Local Aliases for Shared Utilities (injected at build time) ---
+  const generateSchemaMarkup = typeof __PR_generateSchemaMarkup !== 'undefined' ? __PR_generateSchemaMarkup : function() { return ''; };
+  const getRelativeTime = (d) => typeof __PR_getRelativeTime !== 'undefined' ? __PR_getRelativeTime(d, true) : '';
+  const hexToRgba = typeof __PR_hexToRgba !== 'undefined' ? __PR_hexToRgba : function(hex, opacity) { return hex; };
+
+  // --- Widget-Specific Functions ---
 
   function renderStars(rating) {
     let stars = '';
@@ -13,26 +17,6 @@
       stars += `<span class="star${i <= rating ? ' filled' : ''}" style="color: ${i <= rating ? '#ffc107' : '#e0e0e0'}; font-size: 1.2rem;">&#9733;</span>`;
     }
     return stars;
-  }
-
-  function getRelativeTime(dateString) {
-    const date = new Date(dateString);
-    const now = new Date();
-    const seconds = Math.round((now - date) / 1000);
-    const minutes = Math.round(seconds / 60);
-    const hours = Math.round(minutes / 60);
-    const days = Math.round(hours / 24);
-    const weeks = Math.round(days / 7);
-    const months = Math.round(days / 30.44);
-    const years = Math.round(days / 365.25);
-
-    if (seconds < 60) return `${seconds} second${seconds !== 1 ? 's' : ''} ago`;
-    if (minutes < 60) return `${minutes} minute${minutes !== 1 ? 's' : ''} ago`;
-    if (hours < 24) return `${hours} hour${hours !== 1 ? 's' : ''} ago`;
-    if (days < 7) return `${days} day${days !== 1 ? 's' : ''} ago`;
-    if (weeks < 5) return `${weeks} week${weeks !== 1 ? 's' : ''} ago`;
-    if (months < 12) return `${months} month${months !== 1 ? 's' : ''} ago`;
-    return `${years} year${years !== 1 ? 's' : ''} ago`;
   }
 
   function isColorDark(hexColor) {
@@ -68,22 +52,10 @@
     const quoteSize = design.quoteSize || 1.5; // Default quote size in rem
     
     // Convert hex color to rgba with opacity if needed
-    let backgroundColorWithOpacity = bgColor;
-    if (bgOpacity < 1 && bgColor.startsWith('#')) {
-      const r = parseInt(bgColor.slice(1, 3), 16);
-      const g = parseInt(bgColor.slice(3, 5), 16);
-      const b = parseInt(bgColor.slice(5, 7), 16);
-      backgroundColorWithOpacity = `rgba(${r}, ${g}, ${b}, ${bgOpacity})`;
-    }
-    
+    const backgroundColorWithOpacity = bgOpacity < 1 ? hexToRgba(bgColor, bgOpacity) : bgColor;
+
     // Convert border color to rgba with opacity if needed
-    let borderColorWithOpacity = borderColor;
-    if (borderOpacity < 1 && borderColor.startsWith('#')) {
-      const r = parseInt(borderColor.slice(1, 3), 16);
-      const g = parseInt(borderColor.slice(3, 5), 16);
-      const b = parseInt(borderColor.slice(5, 7), 16);
-      borderColorWithOpacity = `rgba(${r}, ${g}, ${b}, ${borderOpacity})`;
-    }
+    const borderColorWithOpacity = borderOpacity < 1 ? hexToRgba(borderColor, borderOpacity) : borderColor;
     
     let cardStyle = `
       border-radius: ${borderRadius}px;
@@ -116,33 +88,15 @@
     if (design.shadow) {
       const shadowColor = design.shadowColor || '#222222';
       const shadowIntensity = design.shadowIntensity || 0.2;
-      
-      // Convert hex shadow color to rgba
-      let shadowRgba = `rgba(0, 0, 0, ${shadowIntensity})`;
-      if (shadowColor.startsWith('#')) {
-        const r = parseInt(shadowColor.slice(1, 3), 16);
-        const g = parseInt(shadowColor.slice(3, 5), 16);
-        const b = parseInt(shadowColor.slice(5, 7), 16);
-        shadowRgba = `rgba(${r}, ${g}, ${b}, ${shadowIntensity})`;
-      }
-      
+      const shadowRgba = hexToRgba(shadowColor, shadowIntensity);
       shadows.push(`0 4px 6px -1px ${shadowRgba}`);
     }
-    
+
     // Add inner shadow for frosty glass effect
     if (design.innerShadow) {
       const innerShadowColor = design.innerShadowColor || '#FFFFFF';
       const innerShadowOpacity = design.innerShadowOpacity || 0.5;
-      
-      // Convert hex to rgba for inner shadow
-      let innerShadowRgba = `rgba(255, 255, 255, ${innerShadowOpacity})`;
-      if (innerShadowColor.startsWith('#')) {
-        const r = parseInt(innerShadowColor.slice(1, 3), 16);
-        const g = parseInt(innerShadowColor.slice(3, 5), 16);
-        const b = parseInt(innerShadowColor.slice(5, 7), 16);
-        innerShadowRgba = `rgba(${r}, ${g}, ${b}, ${innerShadowOpacity})`;
-      }
-      
+      const innerShadowRgba = hexToRgba(innerShadowColor, innerShadowOpacity);
       shadows.push(`inset 0 1px 3px ${innerShadowRgba}`);
     }
     
@@ -177,8 +131,6 @@
     `;
   }
   
-  // --- End of Shared Canonical Functions ---
-
   // --- Start of Carousel Logic ---
   let carouselState = {};
 
@@ -318,49 +270,6 @@
     }
   }
 
-  function generateSchemaMarkup(reviews, businessName) {
-    if (!reviews || reviews.length === 0) return '';
-    
-    // Calculate aggregate rating
-    const totalRating = reviews.reduce((sum, review) => sum + (review.star_rating || 0), 0);
-    const averageRating = (totalRating / reviews.length).toFixed(1);
-    const reviewCount = reviews.length;
-    
-    // Get business name from the page or use a default
-    const name = businessName || document.title || 'Business';
-    
-    const schema = {
-      "@context": "https://schema.org",
-      "@type": "Product", // Can also use "LocalBusiness" or "Organization"
-      "name": name,
-      "aggregateRating": {
-        "@type": "AggregateRating",
-        "ratingValue": averageRating,
-        "bestRating": "5",
-        "worstRating": "1",
-        "ratingCount": reviewCount,
-        "reviewCount": reviewCount
-      },
-      "review": reviews.slice(0, 5).map(review => ({ // Google typically shows first 5
-        "@type": "Review",
-        "reviewRating": {
-          "@type": "Rating",
-          "ratingValue": review.star_rating || 5,
-          "bestRating": "5",
-          "worstRating": "1"
-        },
-        "author": {
-          "@type": "Person",
-          "name": `${review.first_name || ''} ${review.last_name || ''}`.trim() || "Anonymous"
-        },
-        "datePublished": review.created_at,
-        "reviewBody": review.review_content
-      }))
-    };
-    
-    return `<script type="application/ld+json">${JSON.stringify(schema)}</script>`;
-  }
-
   function createCarouselHTML(widgetId, reviews, design, businessSlug, actualWidgetId) {
     initCarouselState(widgetId, reviews, design);
     const state = carouselState[widgetId];
@@ -400,22 +309,10 @@
     const accentColor = design.accentColor || '#4f46e5';
     
     // Convert hex color to rgba with opacity for buttons
-    let buttonBackgroundColor = bgColor;
-    if (bgOpacity < 1 && bgColor.startsWith('#')) {
-      const r = parseInt(bgColor.slice(1, 3), 16);
-      const g = parseInt(bgColor.slice(3, 5), 16);
-      const b = parseInt(bgColor.slice(5, 7), 16);
-      buttonBackgroundColor = `rgba(${r}, ${g}, ${b}, ${bgOpacity})`;
-    }
-    
+    const buttonBackgroundColor = bgOpacity < 1 ? hexToRgba(bgColor, bgOpacity) : bgColor;
+
     // Convert border color to rgba with opacity if needed
-    let borderColorWithOpacity = borderColor;
-    if (borderOpacity < 1 && borderColor.startsWith('#')) {
-      const r = parseInt(borderColor.slice(1, 3), 16);
-      const g = parseInt(borderColor.slice(3, 5), 16);
-      const b = parseInt(borderColor.slice(5, 7), 16);
-      borderColorWithOpacity = `rgba(${r}, ${g}, ${b}, ${borderOpacity})`;
-    }
+    const borderColorWithOpacity = borderOpacity < 1 ? hexToRgba(borderColor, borderOpacity) : borderColor;
     
     const buttonStyle = `
       background-color: ${buttonBackgroundColor};
@@ -703,8 +600,8 @@
         .pr-prev-btn,
         .pr-next-btn {
             cursor: pointer;
-            width: 40px;
-            height: 40px;
+            width: 34px;
+            height: 34px;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -712,7 +609,7 @@
             transition: all 0.2s ease;
             position: relative;
         }
-        
+
         .pr-prev-btn::before,
         .pr-next-btn::before {
             content: '';
@@ -720,36 +617,36 @@
             height: 0;
             border-style: solid;
         }
-        
+
         .pr-prev-btn::before {
-            border-width: 6px 8px 6px 0;
+            border-width: 5px 7px 5px 0;
             border-color: transparent #4f46e5 transparent transparent;
             margin-left: -2px;
         }
-        
+
         .pr-next-btn::before {
-            border-width: 6px 0 6px 8px;
+            border-width: 5px 0 5px 7px;
             border-color: transparent transparent transparent #4f46e5;
             margin-right: -2px;
         }
-        
+
         .pr-dots-container {
             display: flex;
-            gap: 16px;
+            gap: 14px;
             align-items: center;
-            margin: 0 20px; /* Add margin to create more space between arrows and dots */
+            margin: 0 17px; /* Add margin to create more space between arrows and dots */
         }
-        
+
         .pr-dot {
-            height: 12px;
-            width: 12px;
+            height: 10px;
+            width: 10px;
             border: none;
             border-radius: 50%;
             cursor: pointer;
             padding: 0;
             margin: 0;
         }
-        
+
         .pr-submit-review-container {
             text-align: right;
             margin-top: 0.5rem;
@@ -759,7 +656,7 @@
 
         .pr-submit-btn {
             display: inline-block;
-            padding: 8px 16px;
+            padding: 7px 14px;
             text-decoration: none;
             font-weight: 500;
             box-sizing: border-box;

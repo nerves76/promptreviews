@@ -4,6 +4,11 @@
 (function() {
   'use strict';
 
+  // --- Local Aliases for Shared Utilities (injected at build time) ---
+  const generateSchemaMarkup = typeof __PR_generateSchemaMarkup !== 'undefined' ? __PR_generateSchemaMarkup : function() { return ''; };
+  const getRelativeTime = (d) => typeof __PR_getRelativeTime !== 'undefined' ? __PR_getRelativeTime(d, false) : '';
+  const hexToRgba = typeof __PR_hexToRgba !== 'undefined' ? __PR_hexToRgba : function(hex, opacity) { return hex; };
+
   // Global state for carousel management
   const initializingWidgets = new Set(); // Track widgets being initialized
   let carouselState = {};
@@ -247,7 +252,7 @@
 
   function createReviewCard(review, design) {
     const reviewText = design.showQuotes ? `&#8220;${review.review_content}&#8221;` : review.review_content;
-    const dateText = design.showRelativeDate ? getRelativeDate(review.created_at) : new Date(review.created_at).toLocaleDateString();
+    const dateText = design.showRelativeDate ? getRelativeTime(review.created_at) : new Date(review.created_at).toLocaleDateString();
     const platformText = design.showPlatform && review.platform ? ` via ${review.platform}` : '';
     
     // Use the new renderStars function
@@ -267,15 +272,6 @@
     // Calculate background color with opacity
     const bgColor = design.bgColor || '#ffffff';
     const bgOpacity = design.bgOpacity !== undefined ? design.bgOpacity : 1;
-    
-    // Convert hex to rgba for transparency
-    const hexToRgba = (hex, alpha) => {
-      const r = parseInt(hex.slice(1, 3), 16);
-      const g = parseInt(hex.slice(3, 5), 16);
-      const b = parseInt(hex.slice(5, 7), 16);
-      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-    };
-    
     const backgroundColorWithOpacity = hexToRgba(bgColor, bgOpacity);
     
     // Handle border color with opacity
@@ -384,62 +380,6 @@
     `;
   }
 
-  function getRelativeDate(dateString) {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffTime = Math.abs(now - date);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays === 1) return '1 day ago';
-    if (diffDays < 7) return `${diffDays} days ago`;
-    if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
-    if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`;
-    return `${Math.floor(diffDays / 365)} years ago`;
-  }
-
-  function generateSchemaMarkup(reviews, businessName) {
-    if (!reviews || reviews.length === 0) return '';
-    
-    // Calculate aggregate rating
-    const totalRating = reviews.reduce((sum, review) => sum + (review.star_rating || 0), 0);
-    const averageRating = (totalRating / reviews.length).toFixed(1);
-    const reviewCount = reviews.length;
-    
-    // Get business name from the page or use a default
-    const name = businessName || document.title || 'Business';
-    
-    const schema = {
-      "@context": "https://schema.org",
-      "@type": "Product", // Can also use "LocalBusiness" or "Organization"
-      "name": name,
-      "aggregateRating": {
-        "@type": "AggregateRating",
-        "ratingValue": averageRating,
-        "bestRating": "5",
-        "worstRating": "1",
-        "ratingCount": reviewCount,
-        "reviewCount": reviewCount
-      },
-      "review": reviews.slice(0, 5).map(review => ({ // Google typically shows first 5
-        "@type": "Review",
-        "reviewRating": {
-          "@type": "Rating",
-          "ratingValue": review.star_rating || 5,
-          "bestRating": "5",
-          "worstRating": "1"
-        },
-        "author": {
-          "@type": "Person",
-          "name": `${review.first_name || ''} ${review.last_name || ''}`.trim() || "Anonymous"
-        },
-        "datePublished": review.created_at,
-        "reviewBody": review.review_content
-      }))
-    };
-    
-    return `<script type="application/ld+json">${JSON.stringify(schema)}</script>`;
-  }
-
   function createCarouselHTML(widgetId, reviews, design, businessSlug, actualWidgetId) {
     initCarouselState(widgetId, reviews, design);
     const state = carouselState[widgetId];
@@ -459,22 +399,8 @@
     const borderOpacity = design.borderOpacity !== undefined ? design.borderOpacity : 1;
     const accentColor = design.accentColor || '#4f46e5';
     
-    // Helper function to convert hex to rgba
-    const hexToRgba = (hex, opacity) => {
-      const r = parseInt(hex.slice(1, 3), 16);
-      const g = parseInt(hex.slice(3, 5), 16);
-      const b = parseInt(hex.slice(5, 7), 16);
-      return `rgba(${r}, ${g}, ${b}, ${opacity})`;
-    };
-    
-    const borderWithOpacity = borderOpacity < 1 && borderColor.startsWith('#')
-      ? hexToRgba(borderColor, borderOpacity)
-      : borderColor;
-    
-    // Convert background color to rgba for buttons
-    const backgroundWithOpacity = bgOpacity < 1 && bgColor.startsWith('#')
-      ? hexToRgba(bgColor, bgOpacity)
-      : bgColor;
+    const borderWithOpacity = borderOpacity < 1 ? hexToRgba(borderColor, borderOpacity) : borderColor;
+    const backgroundWithOpacity = bgOpacity < 1 ? hexToRgba(bgColor, bgOpacity) : bgColor;
     
     // Base style for arrow buttons
     const buttonStyle = `
