@@ -115,7 +115,8 @@ export class KeywordMatchService {
     const primaryPhrase = keyword.reviewPhrase || keyword.normalized;
 
     // Check exact match first (using reviewPhrase or normalized)
-    const exactRegex = new RegExp(`\\b${escapeRegex(primaryPhrase)}\\b`, 'i');
+    // Allow optional 's, 's, or s at the end to match possessives and plurals
+    const exactRegex = new RegExp(`\\b${escapeRegex(primaryPhrase)}(?:'?s)?\\b`, 'i');
     const exactMatch = exactRegex.test(text);
 
     // Debug: log matching attempts for troubleshooting
@@ -135,9 +136,9 @@ export class KeywordMatchService {
       return { type: 'exact', matchedPhrase: keyword.reviewPhrase || keyword.phrase };
     }
 
-    // Check aliases
+    // Check aliases (also allow possessives and plurals)
     for (const alias of keyword.aliases) {
-      const aliasRegex = new RegExp(`\\b${escapeRegex(alias)}\\b`, 'i');
+      const aliasRegex = new RegExp(`\\b${escapeRegex(alias)}(?:'?s)?\\b`, 'i');
       if (aliasRegex.test(text)) {
         return { type: 'alias', matchedPhrase: alias };
       }
