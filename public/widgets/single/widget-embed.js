@@ -5,9 +5,16 @@
   'use strict';
 
   // --- Local Aliases for Shared Utilities (injected at build time) ---
+  // Fallbacks include full implementation for dashboard preview where shared utils aren't injected
   const generateSchemaMarkup = typeof __PR_generateSchemaMarkup !== 'undefined' ? __PR_generateSchemaMarkup : function() { return ''; };
   const getRelativeTime = (d) => typeof __PR_getRelativeTime !== 'undefined' ? __PR_getRelativeTime(d, false) : '';
-  const hexToRgba = typeof __PR_hexToRgba !== 'undefined' ? __PR_hexToRgba : function(hex, opacity) { return hex; };
+  const hexToRgba = typeof __PR_hexToRgba !== 'undefined' ? __PR_hexToRgba : function(hex, opacity) {
+    if (!hex || !hex.startsWith('#')) return hex;
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+  };
 
   // Global state for carousel management
   const carouselState = {};
