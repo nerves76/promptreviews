@@ -126,13 +126,27 @@ export function AccountUtilityBar() {
           <div className="flex items-center gap-4 text-xs">
             {/* Show Agency dashboard link when viewing agency OR when viewing a client account and user has an agency */}
             {(selectedAccount.is_agncy || (isClientAccount && userAgencyAccount)) && (
-              <Link
-                href="/agency"
-                className="flex items-center gap-1.5 text-amber-300 hover:text-amber-200 transition-colors font-medium"
-              >
-                <Icon name="FaBriefcase" className="w-3 h-3" size={12} />
-                <span>Agency dashboard</span>
-              </Link>
+              isClientAccount && userAgencyAccount ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    // Switch to the agency account and navigate to /agency
+                    switchAccount(userAgencyAccount.account_id, '/agency');
+                  }}
+                  className="flex items-center gap-1.5 text-amber-300 hover:text-amber-200 transition-colors font-medium"
+                >
+                  <Icon name="FaBriefcase" className="w-3 h-3" size={12} />
+                  <span>Agency dashboard</span>
+                </button>
+              ) : (
+                <Link
+                  href="/agency"
+                  className="flex items-center gap-1.5 text-amber-300 hover:text-amber-200 transition-colors font-medium"
+                >
+                  <Icon name="FaBriefcase" className="w-3 h-3" size={12} />
+                  <span>Agency dashboard</span>
+                </Link>
+              )
             )}
             {hasMultipleAccounts && (
               <span className="text-white/70">

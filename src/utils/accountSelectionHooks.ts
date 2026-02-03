@@ -209,8 +209,8 @@ export function useAccountSelection() {
     loadAccountData();
   }, [refreshCounter]); // Re-run when refreshCounter changes
 
-  // Switch to a different account
-  const switchAccount = async (accountId: string) => {
+  // Switch to a different account. Optionally navigate to a specific URL instead of reloading.
+  const switchAccount = async (accountId: string, redirectTo?: string) => {
     if (!currentUserId) {
       console.warn('[AccountSelection] No currentUserId, cannot switch');
       return;
@@ -251,8 +251,12 @@ export function useAccountSelection() {
     }
     keysToRemove.forEach(key => localStorage.removeItem(key));
     
-    // Simple reload to apply the new account selection
-    window.location.reload();
+    // Navigate to target URL or reload to apply the new account selection
+    if (redirectTo) {
+      window.location.href = redirectTo;
+    } else {
+      window.location.reload();
+    }
   };
 
   // Refresh account data (useful after business creation/updates)
