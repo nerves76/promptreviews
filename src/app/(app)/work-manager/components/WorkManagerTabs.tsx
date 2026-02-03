@@ -12,7 +12,7 @@ interface Tab {
 
 const TABS: Tab[] = [
   { id: "board", label: "Tasks", icon: "FaCheckCircle" },
-  { id: "resources", label: "Resources", icon: "FaBookmark" },
+  { id: "resources", label: "Resources", icon: "FaLink" },
 ];
 
 interface WorkManagerTabsProps {
