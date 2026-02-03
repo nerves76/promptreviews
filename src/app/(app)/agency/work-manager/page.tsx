@@ -11,6 +11,8 @@ import WorkManagerDetailsPanel from "@/app/(app)/work-manager/components/WorkMan
 import ClientTaskBrowser from "./components/ClientTaskBrowser";
 import BoardSelector, { BoardContext } from "./components/BoardSelector";
 import ClientBoardCreateTaskModal from "./components/ClientBoardCreateTaskModal";
+import WorkManagerTabs from "@/app/(app)/work-manager/components/WorkManagerTabs";
+import ResourcesView from "@/app/(app)/work-manager/components/ResourcesView";
 import {
   WMBoard,
   WMTask,
@@ -18,6 +20,7 @@ import {
   WMTaskStatus,
   DEFAULT_WM_STATUS_LABELS,
   WMUserInfo,
+  WMViewTab,
 } from "@/types/workManager";
 
 interface AgencyBoardResponse {
@@ -46,6 +49,9 @@ export default function AgencyWorkManagerPage() {
 
   // Board context state
   const [boardContext, setBoardContext] = useState<BoardContext>({ type: "agency" });
+
+  // View tab state
+  const [activeTab, setActiveTab] = useState<WMViewTab>("board");
 
   const [board, setBoard] = useState<WMBoard | null>(null);
   const [tasks, setTasks] = useState<WMTask[]>([]);
@@ -326,15 +332,12 @@ export default function AgencyWorkManagerPage() {
       <div className="max-w-[1800px] mx-auto px-6 py-4">
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-white">Work Manager</h1>
-              <p className="text-sm text-white/70 mt-1">
-                {isAgencyBoard
-                  ? "Manage agency tasks and pull in work from client boards"
-                  : `Working directly on ${boardContext.clientName}'s board`
-                }
-              </p>
-            </div>
+            <p className="text-sm text-white/70">
+              {isAgencyBoard
+                ? "Manage agency tasks and pull in work from client boards"
+                : `Working directly on ${boardContext.clientName}'s board`
+              }
+            </p>
           </div>
           <div className="flex items-center gap-3 flex-wrap">
             {/* Board Selector */}
@@ -344,8 +347,8 @@ export default function AgencyWorkManagerPage() {
               onChange={handleBoardContextChange}
             />
 
-            {/* Pull from client - only on agency board */}
-            {isAgencyBoard && (
+            {/* Pull from client - only on agency board and board tab */}
+            {isAgencyBoard && activeTab === "board" && (
               <button
                 onClick={() => setIsClientBrowserOpen(true)}
                 className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 font-medium transition-colors whitespace-nowrap"
@@ -355,38 +358,49 @@ export default function AgencyWorkManagerPage() {
               </button>
             )}
 
-            <button
-              onClick={() => setIsCreateTaskOpen(true)}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-blue/90 font-medium shadow whitespace-nowrap"
-            >
-              <Icon name="FaPlus" size={14} />
-              Add task
-            </button>
+            {activeTab === "board" && (
+              <button
+                onClick={() => setIsCreateTaskOpen(true)}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-blue/90 font-medium shadow whitespace-nowrap"
+              >
+                <Icon name="FaPlus" size={14} />
+                Add task
+              </button>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Kanban Board */}
+      {/* Tabs */}
+      <div className="max-w-[1800px] mx-auto px-6">
+        <WorkManagerTabs activeTab={activeTab} onTabChange={setActiveTab} />
+      </div>
+
+      {/* Content */}
       {board && (
         <div className="max-w-[1800px] mx-auto px-6 py-6">
-          <WorkManagerKanban
-            tasks={tasks}
-            boardId={board.id}
-            statusLabels={statusLabels}
-            onEditLabel={handleEditLabel}
-            onTaskClick={handleTaskClick}
-            onTasksReordered={handleTasksReordered}
-            onAddTask={handleAddTask}
-            clientStatusChangeHandler={isAgencyBoard ? handleClientStatusChange : undefined}
-            customReorderEndpoint={
-              boardContext.type === "client"
-                ? {
-                    endpoint: "/agency/work-manager/client-board/tasks/reorder",
-                    extraPayload: { client_account_id: boardContext.clientId },
-                  }
-                : undefined
-            }
-          />
+          {activeTab === "board" ? (
+            <WorkManagerKanban
+              tasks={tasks}
+              boardId={board.id}
+              statusLabels={statusLabels}
+              onEditLabel={handleEditLabel}
+              onTaskClick={handleTaskClick}
+              onTasksReordered={handleTasksReordered}
+              onAddTask={handleAddTask}
+              clientStatusChangeHandler={isAgencyBoard ? handleClientStatusChange : undefined}
+              customReorderEndpoint={
+                boardContext.type === "client"
+                  ? {
+                      endpoint: "/agency/work-manager/client-board/tasks/reorder",
+                      extraPayload: { client_account_id: boardContext.clientId },
+                    }
+                  : undefined
+              }
+            />
+          ) : (
+            <ResourcesView boardId={board.id} />
+          )}
         </div>
       )}
 

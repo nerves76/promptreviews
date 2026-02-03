@@ -13,8 +13,10 @@ import {
   WM_PRIORITY_LABELS,
   WM_PRIORITY_COLORS,
   WMUserInfo,
+  WMLink,
 } from "@/types/workManager";
 import MentionInput from "./MentionInput";
+import LinksSection from "./LinksSection";
 
 interface WorkManagerDetailsPanelProps {
   task: WMTask;
@@ -50,6 +52,10 @@ export default function WorkManagerDetailsPanel({
   const [newNote, setNewNote] = useState("");
   const [isAddingNote, setIsAddingNote] = useState(false);
 
+  // Links
+  const [links, setLinks] = useState<WMLink[]>([]);
+  const [linksLoading, setLinksLoading] = useState(true);
+
   // Fetch activity log
   useEffect(() => {
     const fetchActions = async () => {
@@ -65,6 +71,31 @@ export default function WorkManagerDetailsPanel({
     };
     fetchActions();
   }, [task.id]);
+
+  // Fetch links
+  useEffect(() => {
+    const fetchLinks = async () => {
+      try {
+        setLinksLoading(true);
+        const response = await apiClient.get<{ links: WMLink[] }>(`/work-manager/links?taskId=${task.id}`);
+        setLinks(response.links || []);
+      } catch (err) {
+        console.error("Failed to fetch task links:", err);
+      } finally {
+        setLinksLoading(false);
+      }
+    };
+    fetchLinks();
+  }, [task.id]);
+
+  const handleLinksChanged = async () => {
+    try {
+      const response = await apiClient.get<{ links: WMLink[] }>(`/work-manager/links?taskId=${task.id}`);
+      setLinks(response.links || []);
+    } catch (err) {
+      console.error("Failed to refresh links:", err);
+    }
+  };
 
   // Reset form when task changes
   useEffect(() => {
@@ -350,6 +381,22 @@ export default function WorkManagerDetailsPanel({
             <p className="text-sm text-gray-700 whitespace-pre-wrap">{task.description}</p>
           ) : (
             <p className="text-sm text-gray-500 italic">No description</p>
+          )}
+        </section>
+
+        {/* Links */}
+        <section className="p-5 bg-white/60 backdrop-blur-sm border border-gray-100/50 rounded-xl">
+          {linksLoading ? (
+            <div className="flex items-center justify-center py-4">
+              <Icon name="FaSpinner" size={16} className="animate-spin text-gray-400" />
+            </div>
+          ) : (
+            <LinksSection
+              links={links}
+              taskId={task.id}
+              onLinksChanged={handleLinksChanged}
+              readOnly={isEditing}
+            />
           )}
         </section>
 

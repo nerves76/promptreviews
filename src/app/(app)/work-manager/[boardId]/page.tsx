@@ -12,6 +12,8 @@ import WMStatusLabelEditor from "../components/WMStatusLabelEditor";
 import CreateTaskModal from "../components/CreateTaskModal";
 import WorkManagerDetailsPanel from "../components/WorkManagerDetailsPanel";
 import LibraryBrowser from "../components/LibraryBrowser";
+import WorkManagerTabs from "../components/WorkManagerTabs";
+import ResourcesView from "../components/ResourcesView";
 import {
   WMBoard,
   WMTask,
@@ -19,6 +21,7 @@ import {
   WMTaskStatus,
   DEFAULT_WM_STATUS_LABELS,
   WMUserInfo,
+  WMViewTab,
 } from "@/types/workManager";
 
 export default function WorkManagerBoardPage() {
@@ -33,6 +36,9 @@ export default function WorkManagerBoardPage() {
   const [accountUsers, setAccountUsers] = useState<WMUserInfo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // View tab state
+  const [activeTab, setActiveTab] = useState<WMViewTab>("board");
 
   // Modal states
   const [isLabelEditorOpen, setIsLabelEditorOpen] = useState(false);
@@ -269,42 +275,54 @@ export default function WorkManagerBoardPage() {
               </Link>
             )}
             <div>
-              <h1 className="text-2xl font-bold text-white">{businessName} Work Manager</h1>
-              <p className="text-sm text-white/70 mt-1">
-                Manage SEO and LLM visibility tasks. Use our library of optimization tasks or create your own.
+              <p className="text-sm text-white/70">
+                {businessName}
               </p>
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => setIsLibraryOpen(true)}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 font-medium transition-colors"
-            >
-              <Icon name="FaBookmark" size={14} />
-              Browse library
-            </button>
-            <button
-              onClick={() => setIsCreateTaskOpen(true)}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-blue/90 font-medium shadow"
-            >
-              <Icon name="FaPlus" size={14} />
-              Add task
-            </button>
+            {activeTab === "board" && (
+              <>
+                <button
+                  onClick={() => setIsLibraryOpen(true)}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 font-medium transition-colors whitespace-nowrap"
+                >
+                  <Icon name="FaBookmark" size={14} />
+                  Browse library
+                </button>
+                <button
+                  onClick={() => setIsCreateTaskOpen(true)}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-blue/90 font-medium shadow whitespace-nowrap"
+                >
+                  <Icon name="FaPlus" size={14} />
+                  Add task
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Kanban Board */}
+      {/* Tabs */}
+      <div className="max-w-[1800px] mx-auto px-6">
+        <WorkManagerTabs activeTab={activeTab} onTabChange={setActiveTab} />
+      </div>
+
+      {/* Content */}
       <div className="max-w-[1800px] mx-auto px-6 py-6">
-        <WorkManagerKanban
-          tasks={tasks}
-          boardId={boardId}
-          statusLabels={statusLabels}
-          onEditLabel={handleEditLabel}
-          onTaskClick={handleTaskClick}
-          onTasksReordered={fetchTasks}
-          onAddTask={handleAddTask}
-        />
+        {activeTab === "board" ? (
+          <WorkManagerKanban
+            tasks={tasks}
+            boardId={boardId}
+            statusLabels={statusLabels}
+            onEditLabel={handleEditLabel}
+            onTaskClick={handleTaskClick}
+            onTasksReordered={fetchTasks}
+            onAddTask={handleAddTask}
+          />
+        ) : (
+          <ResourcesView boardId={boardId} />
+        )}
       </div>
 
       {/* Status Label Editor */}

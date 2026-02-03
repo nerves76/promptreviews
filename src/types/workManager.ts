@@ -359,3 +359,113 @@ export const WM_LIBRARY_DIFFICULTY_COLORS: Record<WMLibraryDifficulty, { bg: str
   medium: { bg: 'bg-amber-100', text: 'text-amber-700' },
   advanced: { bg: 'bg-red-100', text: 'text-red-700' },
 };
+
+// ============================================
+// Resources & Links Types
+// ============================================
+
+// Resource category
+export type WMResourceCategory = 'general' | 'documentation' | 'tool' | 'reference' | 'template' | 'guide';
+
+// Resource type
+export interface WMResource {
+  id: string;
+  board_id: string;
+  account_id: string;
+  title: string;
+  description: string | null;
+  category: WMResourceCategory;
+  priority: WMTaskPriority;
+  tags: string[];
+  sort_order: number;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+  // Joined fields (optional, populated by API)
+  creator?: WMUserInfo | null;
+  links?: WMLink[];
+  linked_tasks?: WMTaskResourceLink[];
+}
+
+// Link type (attachable to tasks or resources)
+export interface WMLink {
+  id: string;
+  task_id: string | null;
+  resource_id: string | null;
+  name: string;
+  url: string;
+  created_by: string | null;
+  created_at: string;
+  // Joined fields
+  creator?: WMUserInfo | null;
+}
+
+// Task-Resource link (junction)
+export interface WMTaskResourceLink {
+  id: string;
+  task_id: string;
+  resource_id: string;
+  created_by: string | null;
+  created_at: string;
+  // Joined fields (for display)
+  task?: {
+    id: string;
+    title: string;
+    status: WMTaskStatus;
+    priority: WMTaskPriority;
+  };
+  resource?: {
+    id: string;
+    title: string;
+    category: WMResourceCategory;
+  };
+}
+
+// Resource category labels
+export const WM_RESOURCE_CATEGORIES: { id: WMResourceCategory; label: string; icon: string }[] = [
+  { id: 'general', label: 'General', icon: 'FaFileAlt' },
+  { id: 'documentation', label: 'Documentation', icon: 'FaStickyNote' },
+  { id: 'tool', label: 'Tool', icon: 'FaTools' },
+  { id: 'reference', label: 'Reference', icon: 'FaBookmark' },
+  { id: 'template', label: 'Template', icon: 'FaCopy' },
+  { id: 'guide', label: 'Guide', icon: 'FaLightbulb' },
+];
+
+// Resource category colors
+export const WM_RESOURCE_CATEGORY_COLORS: Record<WMResourceCategory, { bg: string; text: string; border: string }> = {
+  general: { bg: 'bg-gray-100', text: 'text-gray-700', border: 'border-gray-200' },
+  documentation: { bg: 'bg-blue-100', text: 'text-blue-700', border: 'border-blue-200' },
+  tool: { bg: 'bg-purple-100', text: 'text-purple-700', border: 'border-purple-200' },
+  reference: { bg: 'bg-amber-100', text: 'text-amber-700', border: 'border-amber-200' },
+  template: { bg: 'bg-green-100', text: 'text-green-700', border: 'border-green-200' },
+  guide: { bg: 'bg-indigo-100', text: 'text-indigo-700', border: 'border-indigo-200' },
+};
+
+// API Request types for resources
+export interface CreateResourceRequest {
+  board_id: string;
+  title: string;
+  description?: string;
+  category?: WMResourceCategory;
+  priority?: WMTaskPriority;
+  tags?: string[];
+}
+
+export interface UpdateResourceRequest {
+  title?: string;
+  description?: string | null;
+  category?: WMResourceCategory;
+  priority?: WMTaskPriority;
+  tags?: string[];
+}
+
+// API Request types for links
+export interface CreateLinkRequest {
+  task_id?: string;
+  resource_id?: string;
+  name: string;
+  url: string;
+}
+
+// Work Manager view tabs
+export type WMViewTab = 'board' | 'resources';
