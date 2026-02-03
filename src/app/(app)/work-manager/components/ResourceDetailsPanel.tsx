@@ -138,7 +138,7 @@ export default function ResourceDetailsPanel({
   const linkedTasks: WMTaskResourceLink[] = fullResource?.linked_tasks || [];
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full backdrop-blur-sm">
       {/* Close button */}
       <div className="flex justify-end px-4 pt-4 pb-2">
         <button
