@@ -16,7 +16,7 @@ export default function BodyContentSection({ data }: BodyContentSectionProps) {
           className="rounded-xl p-5 bg-white/70 border border-white/60 max-w-[750px]"
         >
           <div className="flex items-center gap-2 mb-3">
-            <Tooltip content="H2 subheadings help search engines understand your content structure. Include keyword variations naturally.">
+            <Tooltip content="H2 subheadings help search engines understand your content structure. It's usually good to include keyword variations naturally.">
               <span className="text-xs font-mono text-slate-blue/70 bg-slate-blue/10 px-2 py-0.5 rounded-md border border-slate-blue/15">
                 H2
               </span>

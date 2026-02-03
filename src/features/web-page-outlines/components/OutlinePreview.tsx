@@ -73,7 +73,7 @@ export default function OutlinePreview({
         sectionKey="hero"
         label="Hero"
         showLabel={false}
-        seoAnnotation="Your H1 should contain your primary keyword and clearly describe the page topic."
+        seoAnnotation="It's usually best for your H1 to contain your primary keyword and clearly describe the page topic."
         outline={outline}
         outlineId={outlineId}
         onRegenerate={onRegenerate}
@@ -92,8 +92,8 @@ export default function OutlinePreview({
           <SectionWrapper
             sectionKey="intro"
             label="Introduction"
-            seoAnnotation="The opening paragraph should include your keyword within the first 100 words."
-            helpTooltip="The opening paragraph should hook readers and include your keyword naturally within the first 100 words."
+            seoAnnotation="It's generally a good idea to include your keyword within the first 100 words."
+            helpTooltip="The opening paragraph is a great place to hook readers and include your keyword naturally within the first 100 words."
             helpLabel="Learn about intro content"
             outline={outline}
             outlineId={outlineId}
@@ -134,7 +134,7 @@ export default function OutlinePreview({
           <SectionWrapper
             sectionKey="cta"
             label="Call to action"
-            helpTooltip="A clear call-to-action converts visitors. Include action words and make the next step obvious."
+            helpTooltip="A clear call-to-action tends to convert more visitors. Try to include action words and make the next step obvious."
             helpLabel="Learn about CTAs"
             outline={outline}
             outlineId={outlineId}

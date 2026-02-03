@@ -31,13 +31,13 @@ export default function HeroSection({ data }: HeroSectionProps) {
 
       <div className="relative z-10 max-w-[620px] mx-auto">
         <div className="flex items-center justify-center gap-1.5 mb-4">
-          <Tooltip content="Your H1 should contain your primary keyword and clearly describe the page topic. Search engines use this as a strong ranking signal.">
+          <Tooltip content="It's usually best for your H1 to contain your primary keyword and clearly describe the page topic. Search engines tend to use this as a strong ranking signal.">
             <span className="text-xs font-mono text-white/80 bg-white/20 backdrop-blur-sm px-2 py-0.5 rounded-md border border-white/20">
               H1
             </span>
           </Tooltip>
           <HelpBubble
-            tooltip="Your H1 should contain your primary keyword and clearly describe the page topic. Search engines use this as a strong ranking signal."
+            tooltip="It's usually best for your H1 to contain your primary keyword and clearly describe the page topic. Search engines tend to use this as a strong ranking signal."
             label="Learn about H1 tags"
             size="sm"
             className="opacity-80"
