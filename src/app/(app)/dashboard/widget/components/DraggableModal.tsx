@@ -95,7 +95,7 @@ export const DraggableModal: React.FC<DraggableModalProps> = ({
     <div className="fixed inset-0 z-50">
       {/* Backdrop */}
       <div
-        className={lightBackdrop ? "fixed inset-0 bg-black/20" : "fixed inset-0 bg-black/50 backdrop-blur-sm"}
+        className="fixed inset-0"
         onClick={onClose}
         aria-label="Close modal"
       />
@@ -155,7 +155,7 @@ export const DraggableModal: React.FC<DraggableModalProps> = ({
              )}
           </div>
         </div>
-        <div className={`p-4 sm:p-6 rounded-b-2xl ${opaqueBody ? 'bg-white/95' : ''}`}>
+        <div className={`p-4 sm:p-6 rounded-b-2xl ${opaqueBody ? 'bg-white/95' : 'bg-black/30 backdrop-blur-xl'}`}>
           {children}
         </div>
       </div>
