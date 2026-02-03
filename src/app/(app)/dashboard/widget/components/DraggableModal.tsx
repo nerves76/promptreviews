@@ -148,7 +148,7 @@ export const DraggableModal: React.FC<DraggableModalProps> = ({
              {onSave && (
                 <button
                   onClick={onSave}
-                  className="px-3 sm:px-4 py-2 min-h-[44px] bg-white/20 backdrop-blur-sm text-white rounded-lg font-semibold hover:bg-white/30 transition text-sm border border-white/30 whitespace-nowrap"
+                  className="px-3 sm:px-4 py-2 min-h-[44px] bg-slate-blue text-white rounded-lg font-semibold hover:bg-slate-700 transition text-sm shadow whitespace-nowrap"
                 >
                   {saveLabel}
                 </button>
