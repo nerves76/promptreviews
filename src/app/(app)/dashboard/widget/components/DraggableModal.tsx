@@ -129,7 +129,7 @@ export const DraggableModal: React.FC<DraggableModalProps> = ({
 
         <div className="modal-header flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-4 cursor-move bg-white/10 backdrop-blur-md rounded-t-2xl gap-2 sm:gap-0">
           <div className="flex-1 min-w-0 pr-2">
-            <h2 className="text-lg sm:text-xl font-semibold text-slate-600 flex items-center flex-wrap gap-2">{title}</h2>
+            <h2 className="text-lg sm:text-xl font-semibold text-white flex items-center flex-wrap gap-2">{title}</h2>
           </div>
           <div className="flex flex-shrink-0 items-center gap-2 sm:pr-8">
              <div className="hidden sm:flex bg-white/20 backdrop-blur-sm rounded-lg p-2">
