@@ -329,7 +329,7 @@ export default function AgencyWorkManagerPage() {
       )}
 
       {/* Header */}
-      <div className="max-w-[1800px] mx-auto px-6 py-4">
+      <div className="max-w-[1800px] mx-auto px-6 pt-8 pb-4">
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center gap-6">
             <h1 className="text-2xl font-bold text-white">Work Manager</h1>
