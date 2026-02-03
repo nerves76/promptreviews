@@ -37,8 +37,8 @@ export default function WorkManagerTabs({
               flex items-center gap-2 px-4 py-2 font-medium text-sm rounded-lg
               transition-all duration-200 ease-out
               ${isActive
-                ? "bg-transparent text-white"
-                : "bg-white/10 text-white/70 hover:text-white hover:bg-white/15"
+                ? "border border-white/50 text-white"
+                : "text-white/50 hover:text-white/70"
               }
             `}
             aria-selected={isActive}
