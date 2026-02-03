@@ -9,7 +9,7 @@ interface FooterSectionProps {
 export default function FooterSection({ data }: FooterSectionProps) {
   return (
     <div className="pt-6 mt-4 border-t border-white/30">
-      <p className="text-sm text-gray-500 leading-relaxed text-center">{data.content}</p>
+      <p className="text-sm text-white/80 leading-relaxed text-center">{data.content}</p>
     </div>
   );
 }
