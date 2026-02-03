@@ -999,20 +999,32 @@ export function ReviewManagementModal({
                         {/* Move arrows */}
                         <div className="absolute top-2 right-2 flex gap-1">
                           <button
-                            onClick={() => handleMoveReview(index, 'up')}
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleMoveReview(index, 'up');
+                            }}
                             disabled={index === 0}
                             className={`p-1 rounded ${index === 0 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-gray-100'}`}
                             title="Move up"
+                            aria-label="Move review up"
                           >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
                             </svg>
                           </button>
                           <button
-                            onClick={() => handleMoveReview(index, 'down')}
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleMoveReview(index, 'down');
+                            }}
                             disabled={index === selectedReviews.length - 1}
                             className={`p-1 rounded ${index === selectedReviews.length - 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-gray-100'}`}
                             title="Move down"
+                            aria-label="Move review down"
                           >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
