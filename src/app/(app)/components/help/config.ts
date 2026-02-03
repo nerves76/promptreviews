@@ -50,7 +50,8 @@ export const HELP_CONFIG = {
     'reviews': { priority: 'high', color: 'orange' },
     'social': { priority: 'medium', color: 'pink' },
     'research': { priority: 'medium', color: 'teal' },
-    'analytics': { priority: 'medium', color: 'blue' }
+    'analytics': { priority: 'medium', color: 'blue' },
+    'work-manager': { priority: 'high', color: 'indigo' }
   },
   
   // Default Fallback Content

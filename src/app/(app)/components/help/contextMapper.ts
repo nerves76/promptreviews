@@ -224,6 +224,16 @@ const routeContextMap: Record<string, RouteContext> = {
     keywords: ['individual', 'prompt-pages', 'personalized', 'custom', 'requests'],
     pageName: 'Individual Prompt Pages',
     helpTopics: ['individual-requests', 'personalization', 'custom-pages']
+  },
+  '/work-manager': {
+    keywords: ['work-manager', 'tasks', 'seo', 'workflow', 'kanban', 'resources', 'project-management'],
+    pageName: 'Work Manager',
+    helpTopics: ['task-management', 'seo-workflows', 'resources', 'kanban']
+  },
+  '/agency/work-manager': {
+    keywords: ['work-manager', 'agency', 'tasks', 'seo', 'workflow', 'kanban', 'resources', 'clients'],
+    pageName: 'Agency Work Manager',
+    helpTopics: ['agency-tasks', 'client-management', 'seo-workflows', 'resources']
   }
 };
 

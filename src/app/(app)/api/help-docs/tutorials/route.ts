@@ -123,6 +123,15 @@ const fallbackTutorials = [
     category: 'analytics',
     tags: ['credits', 'billing', 'usage', 'balance', 'purchase', 'transactions'],
     plans: ['grower', 'builder', 'maven', 'enterprise']
+  },
+  {
+    id: 'wm-1',
+    title: 'Work Manager: SEO Tasks & Workflows',
+    description: 'Manage your SEO tasks with a kanban board, track progress, and organize resources like guides and reference links',
+    url: 'https://docs.promptreviews.app/work-manager',
+    category: 'work-manager',
+    tags: ['work-manager', 'tasks', 'seo', 'workflow', 'kanban', 'resources', 'project-management'],
+    plans: ['grower', 'builder', 'maven', 'enterprise']
   }
 ];
 
