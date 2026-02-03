@@ -261,7 +261,10 @@ export default function WorkManagerBoardPage() {
       <div className="max-w-[1800px] mx-auto px-6 pt-8 pb-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-6">
-            <h1 className="text-2xl font-bold text-white">Work Manager</h1>
+            <div>
+              <h1 className="text-2xl font-bold text-white">Work Manager</h1>
+              <p className="text-sm text-white/70 mt-1">Use Work Manager to manage your SEO tasks and workflows.</p>
+            </div>
             <WorkManagerTabs activeTab={activeTab} onTabChange={setActiveTab} />
           </div>
           <div className="flex items-center gap-3">
