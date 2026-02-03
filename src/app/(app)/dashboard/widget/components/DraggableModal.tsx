@@ -155,7 +155,7 @@ export const DraggableModal: React.FC<DraggableModalProps> = ({
              )}
           </div>
         </div>
-        <div className={`p-4 sm:p-6 ${opaqueBody ? 'bg-white/95 rounded-b-2xl' : ''}`}>
+        <div className={`p-4 sm:p-6 rounded-b-2xl ${opaqueBody ? 'bg-white/95' : 'bg-slate-700/80 backdrop-blur-md'}`}>
           {children}
         </div>
       </div>
