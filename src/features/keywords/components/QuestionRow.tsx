@@ -167,13 +167,35 @@ export function QuestionRow({
           </button>
         ) : (
           <div className="flex items-center gap-2 flex-shrink-0">
-            {/* Citation status badge */}
+            {/* Citation status with provider badges */}
             {hasResults ? (
-              <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
-                citedCount > 0 ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
-              }`}>
-                {citedCount}/{totalProviders} cited
-              </span>
+              <div className="flex items-center gap-1.5">
+                {/* Show which providers cited */}
+                {citedCount > 0 && (
+                  <div className="flex items-center gap-0.5">
+                    {Array.from(llmResults.entries())
+                      .filter(([_, r]) => r.domainCited)
+                      .map(([provider]) => {
+                        const colors = LLM_PROVIDER_COLORS[provider as LLMProvider];
+                        return (
+                          <span
+                            key={provider}
+                            className={`px-1 py-0.5 rounded text-[9px] font-medium ${colors.bg} ${colors.text}`}
+                            title={`${LLM_PROVIDER_LABELS[provider as LLMProvider]} cited your website`}
+                          >
+                            {LLM_PROVIDER_LABELS[provider as LLMProvider].slice(0, 3)}
+                          </span>
+                        );
+                      })}
+                  </div>
+                )}
+                {/* Citation count badge */}
+                <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                  citedCount > 0 ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+                }`}>
+                  {citedCount}/{totalProviders} cited
+                </span>
+              </div>
             ) : (
               <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-500">
                 Not checked

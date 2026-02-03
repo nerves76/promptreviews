@@ -1329,7 +1329,7 @@ export function ConceptCard({
               {/* Footer link to LLM visibility page */}
               <div className="mt-2 text-right">
                 <Link
-                  href={`/dashboard/keywords/llm-visibility?concept=${encodeURIComponent(keyword.name)}`}
+                  href={`/dashboard/ai-search?concept=${encodeURIComponent(keyword.name)}`}
                   className="text-xs text-slate-blue hover:text-slate-blue/80 inline-flex items-center gap-1"
                 >
                   View details
