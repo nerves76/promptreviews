@@ -117,7 +117,7 @@ export const DraggableModal: React.FC<DraggableModalProps> = ({
       >
         {/* Circular close button - inside on mobile, centered on corner on desktop */}
         <button
-          className="absolute top-2 right-2 sm:-top-4 sm:-right-4 bg-white border border-gray-200 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 flex items-center justify-center hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 z-50"
+          className="absolute top-2 right-2 sm:-top-4 sm:-right-4 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 flex items-center justify-center hover:bg-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 z-50"
           style={{ width: 36, height: 36 }}
           onClick={onClose}
           aria-label="Close modal"
@@ -131,16 +131,14 @@ export const DraggableModal: React.FC<DraggableModalProps> = ({
           <div className="flex-1 min-w-0 pr-2">
             <h2 className="text-lg sm:text-xl font-semibold text-slate-600 flex items-center flex-wrap gap-2">{title}</h2>
           </div>
-          <div className="hidden sm:flex flex-shrink-0 mx-2">
-             <div className="bg-white/20 backdrop-blur-sm rounded-lg p-2">
+          <div className="flex flex-shrink-0 items-center gap-2 sm:pr-8">
+             <div className="hidden sm:flex bg-white/20 backdrop-blur-sm rounded-lg p-2">
                <Icon name="FaArrowsAlt" className="text-white" size={16} />
              </div>
-          </div>
-          <div className="flex flex-shrink-0 justify-start sm:justify-end items-center gap-2 sm:pr-8">
              {onReset && (
                 <button
                    onClick={onReset}
-                   className="px-3 sm:px-4 py-2 min-h-[44px] bg-white/20 backdrop-blur-sm text-white rounded-lg font-semibold hover:bg-white/30 transition text-sm border border-white/30 whitespace-nowrap"
+                   className="px-5 py-2 bg-slate-500 text-white rounded-md font-semibold hover:bg-slate-600 transition shadow whitespace-nowrap"
                 >
                    {resetLabel}
                </button>
