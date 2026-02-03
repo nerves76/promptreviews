@@ -53,11 +53,7 @@ export const WidgetPreview = React.memo(function WidgetPreview({ widget, design 
     }
   }, [widget?.type]);
 
-  // Memoize the widget data to prevent unnecessary re-renders
-  // Only update if ID or type changes, not on every theme or review update
-  const memoizedWidget = useMemo(() => widget, [widget?.id, widget?.type]);
-
-  if (!memoizedWidget || !WidgetComponent) {
+  if (!widget || !WidgetComponent) {
     if (isDevelopment) {
     }
     // Return null when no widget is selected or the component is not available.
@@ -67,5 +63,5 @@ export const WidgetPreview = React.memo(function WidgetPreview({ widget, design 
   if (isDevelopment) {
   }
   
-  return <WidgetComponent data={memoizedWidget} design={design} />;
+  return <WidgetComponent data={widget} design={design} />;
 }); 
