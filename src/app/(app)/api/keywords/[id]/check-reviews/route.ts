@@ -184,6 +184,18 @@ export async function POST(
         }
       }
 
+      // Get the keyword's review_phrase for debugging
+      const { data: keywordWithPhrase } = await serviceSupabase
+        .from('keywords')
+        .select('review_phrase, normalized_phrase, aliases')
+        .eq('id', keywordId)
+        .single();
+
+      // Debug: Check if "diviner" appears in any review
+      const divinerCount = records.filter(r =>
+        r.reviewText.toLowerCase().includes('diviner')
+      ).length;
+
       // Run keyword matching
       const matcher = new KeywordMatchService(serviceSupabase, accountId);
       await matcher.process(records);
@@ -211,6 +223,16 @@ export async function POST(
         lastMatchedAt: updatedKeyword?.last_used_in_review_at,
         creditsUsed: REVIEW_MATCHING_CREDIT_COST,
         creditsRemaining: newBalance.totalCredits,
+        // Debug info - remove after fixing
+        _debug: {
+          totalReviewsInDb: reviews?.length || 0,
+          reviewsWithContent: records.length,
+          reviewsContainingDiviner: divinerCount,
+          keywordReviewPhrase: keywordWithPhrase?.review_phrase,
+          keywordNormalizedPhrase: keywordWithPhrase?.normalized_phrase,
+          keywordAliases: keywordWithPhrase?.aliases,
+          sampleReviewText: records.length > 0 ? records[0].reviewText.substring(0, 150) : null,
+        },
       });
     } catch (error) {
       // Refund on failure

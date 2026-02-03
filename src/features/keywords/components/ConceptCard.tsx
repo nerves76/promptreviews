@@ -511,7 +511,13 @@ export function ConceptCard({
         matchesFound: number;
         exactMatches: number;
         aliasMatches: number;
+        _debug?: any;
       }>(`/keywords/${keyword.id}/check-reviews`, {});
+
+      // Debug: Log the full response to help troubleshoot
+      if (result._debug) {
+        console.log('[CheckReviews DEBUG]', result._debug);
+      }
 
       setCheckReviewsResult({
         reviewsScanned: result.reviewsScanned,
