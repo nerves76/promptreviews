@@ -135,7 +135,7 @@ export function ReviewManagementModal({
   const [reviewSort, setReviewSort] = useState<"recent" | "alphabetical">("recent");
   const [reviewSearch, setReviewSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const reviewsPerPage = 10;
+  const reviewsPerPage = 20;
   const [reviewModalPos, setReviewModalPos] = useState({ x: 0, y: 0 });
   const [reviewModalDragging, setReviewModalDragging] = useState(false);
   const reviewModalDragStart = useRef<{ x: number; y: number } | null>(null);
@@ -861,12 +861,12 @@ export function ReviewManagementModal({
                     type="text"
                     placeholder="Search reviews..."
                     value={reviewSearch}
-                    onChange={(e) => setReviewSearch(e.target.value)}
+                    onChange={(e) => { setReviewSearch(e.target.value); setCurrentPage(1); }}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   <select
                     value={reviewSort}
-                    onChange={(e) => setReviewSort(e.target.value as "recent" | "alphabetical")}
+                    onChange={(e) => { setReviewSort(e.target.value as "recent" | "alphabetical"); setCurrentPage(1); }}
                     className="ml-4 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="recent">Most recent</option>
@@ -918,6 +918,36 @@ export function ReviewManagementModal({
                   ))
                   )}
                 </div>
+                {/* Pagination controls */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-between pt-3 border-t border-gray-200">
+                    <button
+                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                      className={`px-3 py-1.5 text-sm font-medium rounded-md whitespace-nowrap ${
+                        currentPage === 1
+                          ? 'text-gray-400 cursor-not-allowed'
+                          : 'text-gray-700 hover:bg-gray-100'
+                      }`}
+                    >
+                      Previous
+                    </button>
+                    <span className="text-sm text-gray-600">
+                      Page {currentPage} of {totalPages} ({totalReviews} reviews)
+                    </span>
+                    <button
+                      onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                      disabled={currentPage === totalPages}
+                      className={`px-3 py-1.5 text-sm font-medium rounded-md whitespace-nowrap ${
+                        currentPage === totalPages
+                          ? 'text-gray-400 cursor-not-allowed'
+                          : 'text-gray-700 hover:bg-gray-100'
+                      }`}
+                    >
+                      Next
+                    </button>
+                  </div>
+                )}
               </div>
             )}
             
