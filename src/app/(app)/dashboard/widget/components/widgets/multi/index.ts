@@ -77,7 +77,7 @@ export const DEFAULT_DESIGN: DesignState = {
   showQuotes: false,
   quoteSize: 1.5,
   showRelativeDate: false,
-  showPlatform: false,
+  showPlatform: true,
   showGrid: false,
   width: 1000,
   sectionBgType: 'none',
