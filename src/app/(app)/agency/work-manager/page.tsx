@@ -9,6 +9,8 @@ import WMStatusLabelEditor from "@/app/(app)/work-manager/components/WMStatusLab
 import CreateTaskModal from "@/app/(app)/work-manager/components/CreateTaskModal";
 import WorkManagerDetailsPanel from "@/app/(app)/work-manager/components/WorkManagerDetailsPanel";
 import ClientTaskBrowser from "./components/ClientTaskBrowser";
+import BoardSelector, { BoardContext } from "./components/BoardSelector";
+import ClientBoardCreateTaskModal from "./components/ClientBoardCreateTaskModal";
 import {
   WMBoard,
   WMTask,
@@ -23,6 +25,13 @@ interface AgencyBoardResponse {
   tasks: WMTask[];
 }
 
+interface ClientBoardResponse {
+  board: WMBoard;
+  tasks: WMTask[];
+  accountUsers: WMUserInfo[];
+  client_name: string | null;
+}
+
 interface ClientInfo {
   id: string;
   business_name: string | null;
@@ -34,6 +43,9 @@ interface AgencyClientsResponse {
 
 export default function AgencyWorkManagerPage() {
   const { user, isInitialized } = useAuth();
+
+  // Board context state
+  const [boardContext, setBoardContext] = useState<BoardContext>({ type: "agency" });
 
   const [board, setBoard] = useState<WMBoard | null>(null);
   const [tasks, setTasks] = useState<WMTask[]>([]);
@@ -49,8 +61,8 @@ export default function AgencyWorkManagerPage() {
   const [selectedTask, setSelectedTask] = useState<WMTask | null>(null);
   const [isClientBrowserOpen, setIsClientBrowserOpen] = useState(false);
 
-  // Fetch board + tasks
-  const fetchBoard = useCallback(async () => {
+  // Fetch agency board + tasks
+  const fetchAgencyBoard = useCallback(async () => {
     try {
       const data = await apiClient.get<AgencyBoardResponse>('/agency/work-manager/board');
       setBoard(data.board);
@@ -62,18 +74,41 @@ export default function AgencyWorkManagerPage() {
     }
   }, []);
 
-  // Fetch just tasks (for refreshes after reorder etc.)
-  const fetchTasks = useCallback(async () => {
+  // Fetch client board + tasks
+  const fetchClientBoard = useCallback(async (clientId: string) => {
     try {
-      const data = await apiClient.get<AgencyBoardResponse>('/agency/work-manager/board');
+      const data = await apiClient.get<ClientBoardResponse>(
+        `/agency/work-manager/client-board?clientAccountId=${clientId}`
+      );
+      setBoard(data.board);
       setTasks(data.tasks || []);
+      setAccountUsers(data.accountUsers || []);
+      return data;
     } catch (err: any) {
-      console.error("Failed to refresh tasks:", err);
+      console.error("Failed to fetch client board:", err);
+      throw err;
     }
   }, []);
 
-  // Fetch team members for assignment
-  const fetchAccountUsers = useCallback(async () => {
+  // Fetch just tasks (for refreshes after reorder etc.)
+  const fetchTasks = useCallback(async () => {
+    try {
+      if (boardContext.type === "agency") {
+        const data = await apiClient.get<AgencyBoardResponse>('/agency/work-manager/board');
+        setTasks(data.tasks || []);
+      } else {
+        const data = await apiClient.get<ClientBoardResponse>(
+          `/agency/work-manager/client-board?clientAccountId=${boardContext.clientId}`
+        );
+        setTasks(data.tasks || []);
+      }
+    } catch (err: any) {
+      console.error("Failed to refresh tasks:", err);
+    }
+  }, [boardContext]);
+
+  // Fetch agency team members for assignment
+  const fetchAgencyTeamMembers = useCallback(async () => {
     try {
       interface TeamMember {
         user_id?: string;
@@ -98,7 +133,7 @@ export default function AgencyWorkManagerPage() {
     }
   }, []);
 
-  // Fetch client list for browser panel
+  // Fetch client list for browser panel and selector
   const fetchClients = useCallback(async () => {
     try {
       const data = await apiClient.get<AgencyClientsResponse>('/agency/clients');
@@ -120,8 +155,8 @@ export default function AgencyWorkManagerPage() {
       setError(null);
       try {
         await Promise.all([
-          fetchBoard(),
-          fetchAccountUsers(),
+          fetchAgencyBoard(),
+          fetchAgencyTeamMembers(),
           fetchClients(),
         ]);
       } catch (err: any) {
@@ -132,10 +167,39 @@ export default function AgencyWorkManagerPage() {
     };
 
     loadData();
-  }, [isInitialized, user, fetchBoard, fetchAccountUsers, fetchClients]);
+  }, [isInitialized, user, fetchAgencyBoard, fetchAgencyTeamMembers, fetchClients]);
+
+  // Handle board context change
+  const handleBoardContextChange = useCallback(async (newContext: BoardContext) => {
+    if (
+      newContext.type === boardContext.type &&
+      (newContext.type === "agency" ||
+        (newContext.type === "client" && boardContext.type === "client" && newContext.clientId === boardContext.clientId))
+    ) {
+      return; // No change
+    }
+
+    setIsLoading(true);
+    setError(null);
+    setSelectedTask(null); // Close any open task detail panel
+
+    try {
+      if (newContext.type === "agency") {
+        await fetchAgencyBoard();
+        await fetchAgencyTeamMembers();
+      } else {
+        await fetchClientBoard(newContext.clientId);
+      }
+      setBoardContext(newContext);
+    } catch (err: any) {
+      setError(err.message || "Failed to load board");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [boardContext, fetchAgencyBoard, fetchAgencyTeamMembers, fetchClientBoard]);
 
   // Handle status label edit
-  const handleEditLabel = (status: keyof WMStatusLabels) => {
+  const handleEditLabel = () => {
     setIsLabelEditorOpen(true);
   };
 
@@ -170,16 +234,24 @@ export default function AgencyWorkManagerPage() {
     await fetchTasks();
     if (selectedTask) {
       try {
-        const data = await apiClient.get<AgencyBoardResponse>('/agency/work-manager/board');
-        const updated = (data.tasks || []).find(t => t.id === selectedTask.id);
-        setSelectedTask(updated || null);
+        if (boardContext.type === "agency") {
+          const data = await apiClient.get<AgencyBoardResponse>('/agency/work-manager/board');
+          const updated = (data.tasks || []).find(t => t.id === selectedTask.id);
+          setSelectedTask(updated || null);
+        } else {
+          const data = await apiClient.get<ClientBoardResponse>(
+            `/agency/work-manager/client-board?clientAccountId=${boardContext.clientId}`
+          );
+          const updated = (data.tasks || []).find(t => t.id === selectedTask.id);
+          setSelectedTask(updated || null);
+        }
       } catch {
         setSelectedTask(null);
       }
     }
   };
 
-  // Handle client status change from card dropdown
+  // Handle client status change from card dropdown (agency board only)
   const handleClientStatusChange = async (taskId: string, newStatus: WMTaskStatus) => {
     try {
       await apiClient.patch('/agency/work-manager/client-task-status', {
@@ -193,7 +265,16 @@ export default function AgencyWorkManagerPage() {
     }
   };
 
+  // Custom reorder handler for client boards
+  const handleTasksReordered = useCallback(async () => {
+    // The WorkManagerKanban calls the standard reorder endpoint
+    // For client boards, we need to intercept and use a different endpoint
+    // This is handled by providing a custom reorder function
+    await fetchTasks();
+  }, [fetchTasks]);
+
   const statusLabels = board?.status_labels || DEFAULT_WM_STATUS_LABELS;
+  const isAgencyBoard = boardContext.type === "agency";
 
   if (isLoading) {
     return (
@@ -224,23 +305,56 @@ export default function AgencyWorkManagerPage() {
 
   return (
     <div className="min-h-screen">
+      {/* Client Board Banner */}
+      {!isAgencyBoard && (
+        <div className="bg-amber-500/20 border-b border-amber-400/30">
+          <div className="max-w-[1800px] mx-auto px-6 py-3">
+            <div className="flex items-center gap-3">
+              <Icon name="FaBuilding" size={16} className="text-amber-300" />
+              <span className="text-amber-100 text-sm">
+                Working on <strong>{boardContext.clientName}</strong>&apos;s board
+              </span>
+              <span className="text-amber-200/60 text-xs">
+                Changes sync directly to client
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="max-w-[1800px] mx-auto px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-white">Work Manager</h1>
-            <p className="text-sm text-white/70 mt-1">
-              Manage agency tasks and pull in work from client boards
-            </p>
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          <div className="flex items-center gap-4">
+            <div>
+              <h1 className="text-2xl font-bold text-white">Work Manager</h1>
+              <p className="text-sm text-white/70 mt-1">
+                {isAgencyBoard
+                  ? "Manage agency tasks and pull in work from client boards"
+                  : `Working directly on ${boardContext.clientName}'s board`
+                }
+              </p>
+            </div>
           </div>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setIsClientBrowserOpen(true)}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 font-medium transition-colors whitespace-nowrap"
-            >
-              <Icon name="FaUsers" size={14} />
-              Pull from client
-            </button>
+          <div className="flex items-center gap-3 flex-wrap">
+            {/* Board Selector */}
+            <BoardSelector
+              currentContext={boardContext}
+              clients={clients}
+              onChange={handleBoardContextChange}
+            />
+
+            {/* Pull from client - only on agency board */}
+            {isAgencyBoard && (
+              <button
+                onClick={() => setIsClientBrowserOpen(true)}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 font-medium transition-colors whitespace-nowrap"
+              >
+                <Icon name="FaUsers" size={14} />
+                Pull from client
+              </button>
+            )}
+
             <button
               onClick={() => setIsCreateTaskOpen(true)}
               className="inline-flex items-center gap-2 px-4 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-blue/90 font-medium shadow whitespace-nowrap"
@@ -261,9 +375,17 @@ export default function AgencyWorkManagerPage() {
             statusLabels={statusLabels}
             onEditLabel={handleEditLabel}
             onTaskClick={handleTaskClick}
-            onTasksReordered={fetchTasks}
+            onTasksReordered={handleTasksReordered}
             onAddTask={handleAddTask}
-            clientStatusChangeHandler={handleClientStatusChange}
+            clientStatusChangeHandler={isAgencyBoard ? handleClientStatusChange : undefined}
+            customReorderEndpoint={
+              boardContext.type === "client"
+                ? {
+                    endpoint: "/agency/work-manager/client-board/tasks/reorder",
+                    extraPayload: { client_account_id: boardContext.clientId },
+                  }
+                : undefined
+            }
           />
         </div>
       )}
@@ -276,12 +398,26 @@ export default function AgencyWorkManagerPage() {
         onSave={handleSaveLabels}
       />
 
-      {/* Create Task Modal */}
-      {board && (
+      {/* Create Task Modal - different based on context */}
+      {board && isAgencyBoard && (
         <CreateTaskModal
           isOpen={isCreateTaskOpen}
           onClose={() => setIsCreateTaskOpen(false)}
           boardId={board.id}
+          statusLabels={statusLabels}
+          defaultStatus={createTaskDefaultStatus}
+          accountUsers={accountUsers}
+          onTaskCreated={fetchTasks}
+        />
+      )}
+
+      {/* Create Task Modal for Client Board */}
+      {board && boardContext.type === "client" && (
+        <ClientBoardCreateTaskModal
+          isOpen={isCreateTaskOpen}
+          onClose={() => setIsCreateTaskOpen(false)}
+          boardId={board.id}
+          clientAccountId={boardContext.clientId}
           statusLabels={statusLabels}
           defaultStatus={createTaskDefaultStatus}
           accountUsers={accountUsers}
@@ -301,7 +437,7 @@ export default function AgencyWorkManagerPage() {
         />
       )}
 
-      {/* Client Task Browser */}
+      {/* Client Task Browser - only available from agency board */}
       <ClientTaskBrowser
         isOpen={isClientBrowserOpen}
         onClose={() => setIsClientBrowserOpen(false)}

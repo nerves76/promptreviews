@@ -13,6 +13,11 @@ import {
 } from "@/types/workManager";
 import { apiClient } from "@/utils/apiClient";
 
+interface CustomReorderEndpoint {
+  endpoint: string;
+  extraPayload?: Record<string, any>;
+}
+
 interface WorkManagerKanbanProps {
   tasks: WMTask[];
   boardId: string;
@@ -23,6 +28,8 @@ interface WorkManagerKanbanProps {
   onAddTask?: (status: WMTaskStatus) => void;
   /** Optional handler for changing client-side status on linked agency tasks */
   clientStatusChangeHandler?: (taskId: string, newStatus: WMTaskStatus) => void;
+  /** Optional custom reorder endpoint (for agency working on client boards) */
+  customReorderEndpoint?: CustomReorderEndpoint;
 }
 
 export default function WorkManagerKanban({
@@ -34,6 +41,7 @@ export default function WorkManagerKanban({
   onTasksReordered,
   onAddTask,
   clientStatusChangeHandler,
+  customReorderEndpoint,
 }: WorkManagerKanbanProps) {
   const [draggedCardId, setDraggedCardId] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -163,7 +171,15 @@ export default function WorkManagerKanban({
 
     // Persist the changes
     try {
-      await apiClient.patch("/work-manager/tasks/reorder", { updates });
+      if (customReorderEndpoint) {
+        // Use custom endpoint (e.g., for agency editing client boards)
+        await apiClient.patch(customReorderEndpoint.endpoint, {
+          updates,
+          ...customReorderEndpoint.extraPayload,
+        });
+      } else {
+        await apiClient.patch("/work-manager/tasks/reorder", { updates });
+      }
 
       // Trigger a refetch
       onTasksReordered?.();
