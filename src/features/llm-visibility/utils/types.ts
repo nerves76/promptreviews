@@ -25,6 +25,13 @@ export const LLM_PROVIDER_LABELS: Record<LLMProvider, string> = {
   perplexity: 'Perplexity',
 };
 
+export const LLM_PROVIDER_SHORT_LABELS: Record<LLMProvider, string> = {
+  chatgpt: 'CGPT',
+  claude: 'CLDE',
+  gemini: 'GMNI',
+  perplexity: 'PLXY',
+};
+
 // Model names used by DataForSEO API
 // ChatGPT uses scraper (web UI), others use specific model versions
 export const LLM_PROVIDER_MODELS: Record<LLMProvider, string> = {

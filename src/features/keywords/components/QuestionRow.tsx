@@ -10,6 +10,7 @@ import {
 import {
   type LLMProvider,
   LLM_PROVIDER_LABELS,
+  LLM_PROVIDER_SHORT_LABELS,
   LLM_PROVIDER_COLORS,
   LLM_CREDIT_COSTS,
 } from '@/features/llm-visibility/utils/types';
@@ -183,7 +184,7 @@ export function QuestionRow({
                             className={`px-1 py-0.5 rounded text-[9px] font-medium ${colors.bg} ${colors.text}`}
                             title={`${LLM_PROVIDER_LABELS[provider as LLMProvider]} cited your website`}
                           >
-                            {LLM_PROVIDER_LABELS[provider as LLMProvider].slice(0, 3)}
+                            {LLM_PROVIDER_SHORT_LABELS[provider as LLMProvider]}
                           </span>
                         );
                       })}
