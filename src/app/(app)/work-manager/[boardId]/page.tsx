@@ -28,7 +28,7 @@ export default function WorkManagerBoardPage() {
   const params = useParams();
   const router = useRouter();
   const boardId = params.boardId as string;
-  const { user, accounts, isInitialized } = useAuth();
+  const { user, isInitialized } = useAuth();
   const { selectedAccountId } = useAccountData();
 
   const [board, setBoard] = useState<WMBoard | null>(null);
@@ -47,8 +47,6 @@ export default function WorkManagerBoardPage() {
   const [createTaskDefaultStatus, setCreateTaskDefaultStatus] = useState<WMTaskStatus>("backlog");
   const [selectedTask, setSelectedTask] = useState<WMTask | null>(null);
   const [isLibraryOpen, setIsLibraryOpen] = useState(false);
-
-  const hasMultipleAccounts = accounts && accounts.length > 1;
 
   // Fetch board data
   const fetchBoard = useCallback(async () => {
@@ -257,28 +255,14 @@ export default function WorkManagerBoardPage() {
     );
   }
 
-  const businessName = board.business_name || board.account_name || board.name || "Your Business";
-
   return (
     <div className="min-h-screen">
       {/* Header */}
       <div className="max-w-[1800px] mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            {hasMultipleAccounts && (
-              <Link
-                href="/work-manager"
-                className="text-white/70 hover:text-white transition"
-                title="Back to boards"
-              >
-                <Icon name="FaArrowLeft" size={18} />
-              </Link>
-            )}
-            <div>
-              <p className="text-sm text-white/70">
-                {businessName}
-              </p>
-            </div>
+          <div className="flex items-center gap-6">
+            <h1 className="text-2xl font-bold text-white">Work Manager</h1>
+            <WorkManagerTabs activeTab={activeTab} onTabChange={setActiveTab} />
           </div>
           <div className="flex items-center gap-3">
             {activeTab === "board" && (
@@ -301,11 +285,6 @@ export default function WorkManagerBoardPage() {
             )}
           </div>
         </div>
-      </div>
-
-      {/* Tabs */}
-      <div className="max-w-[1800px] mx-auto px-6">
-        <WorkManagerTabs activeTab={activeTab} onTabChange={setActiveTab} />
       </div>
 
       {/* Content */}

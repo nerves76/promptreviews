@@ -11,7 +11,7 @@ interface Tab {
 }
 
 const TABS: Tab[] = [
-  { id: "board", label: "Board", icon: "FaColumns" },
+  { id: "board", label: "Tasks", icon: "FaCheckCircle" },
   { id: "resources", label: "Resources", icon: "FaBookmark" },
 ];
 
@@ -25,7 +25,7 @@ export default function WorkManagerTabs({
   onTabChange,
 }: WorkManagerTabsProps) {
   return (
-    <div className="flex items-end">
+    <div className="flex items-center gap-1">
       {TABS.map((tab) => {
         const isActive = activeTab === tab.id;
 
@@ -34,11 +34,11 @@ export default function WorkManagerTabs({
             key={tab.id}
             onClick={() => onTabChange(tab.id)}
             className={`
-              relative flex items-center gap-2 px-5 py-2.5 font-semibold text-sm
+              flex items-center gap-2 px-4 py-2 font-medium text-sm rounded-lg
               transition-all duration-200 ease-out
               ${isActive
-                ? "bg-white/20 text-white border-t border-l border-r border-white/30 rounded-t-lg -mb-px z-10"
-                : "bg-white/5 text-white/70 hover:text-white hover:bg-white/10 border-t border-l border-r border-transparent rounded-t-lg"
+                ? "bg-transparent text-white"
+                : "bg-white/10 text-white/70 hover:text-white hover:bg-white/15"
               }
             `}
             aria-selected={isActive}
@@ -49,8 +49,6 @@ export default function WorkManagerTabs({
           </button>
         );
       })}
-      {/* Spacer that extends the bottom border */}
-      <div className="flex-1 border-b border-white/30 -mb-px" />
     </div>
   );
 }
