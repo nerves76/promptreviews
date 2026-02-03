@@ -674,8 +674,8 @@ export function ConceptCard({
                     {llmCitationStats.cited}/{llmCitationStats.total}
                   </span>
                 )}
-                {/* Google ranking - blue */}
-                {keyword.isUsedInRankTracking && rankingStats !== null && (
+                {/* Google ranking - blue (shows when there's rank data from tracking groups OR standalone checks) */}
+                {rankingStats !== null && (
                   <span
                     className="px-1.5 py-0.5 text-[10px] font-medium rounded flex items-center gap-0.5 bg-blue-100 text-blue-700"
                     title={`Google ranking: ${rankingStats.inTop10} of ${rankingStats.total} search terms rank in the top 10`}
