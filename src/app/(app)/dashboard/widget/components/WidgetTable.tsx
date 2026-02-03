@@ -102,7 +102,7 @@ export function WidgetTable({
                       ) : (
                         <Icon name="FaCode" className="w-4 h-4" size={16} />
                       )}
-                      <span>{isCopied ? 'Copied' : 'Copy'}</span>
+                      <span>{isCopied ? 'Copied' : 'Embed'}</span>
                     </button>
 
                     <button
