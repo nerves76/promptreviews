@@ -931,14 +931,14 @@ export function ConceptCard({
               {enrichedData?.scheduleStatus?.runStatus &&
                 ['pending', 'processing'].includes(enrichedData.scheduleStatus.runStatus.searchRankStatus || '') && (
                 <span className="ml-1.5 text-[9px] font-medium text-amber-600 inline-flex items-center gap-0.5">
-                  <Icon name="FaSpinner" className="w-2 h-2 animate-[spin_2s_linear_infinite]" />
+                  <Icon name="FaClock" className="w-2 h-2" />
                   Checking rank
                 </span>
               )}
               {enrichedData?.scheduleStatus?.runStatus &&
                 ['pending', 'processing'].includes(enrichedData.scheduleStatus.runStatus.geoGridStatus || '') && (
                 <span className="ml-1.5 text-[9px] font-medium text-amber-600 inline-flex items-center gap-0.5">
-                  <Icon name="FaSpinner" className="w-2 h-2 animate-[spin_2s_linear_infinite]" />
+                  <Icon name="FaClock" className="w-2 h-2" />
                   Checking grid
                 </span>
               )}
@@ -1226,7 +1226,7 @@ export function ConceptCard({
               {enrichedData?.scheduleStatus?.runStatus &&
                 ['pending', 'processing'].includes(enrichedData.scheduleStatus.runStatus.llmVisibilityStatus || '') && (
                 <span className="ml-1.5 text-[9px] font-medium text-amber-600 inline-flex items-center gap-0.5">
-                  <Icon name="FaSpinner" className="w-2 h-2 animate-[spin_2s_linear_infinite]" />
+                  <Icon name="FaClock" className="w-2 h-2" />
                   Checking
                 </span>
               )}
@@ -1360,7 +1360,7 @@ export function ConceptCard({
                 {enrichedData?.scheduleStatus?.runStatus &&
                   ['pending', 'processing'].includes(enrichedData.scheduleStatus.runStatus.reviewMatchingStatus || '') && (
                   <span className="ml-1.5 text-[9px] font-medium text-amber-600 inline-flex items-center gap-0.5">
-                    <Icon name="FaSpinner" className="w-2 h-2 animate-[spin_2s_linear_infinite]" />
+                    <Icon name="FaClock" className="w-2 h-2" />
                     Matching
                   </span>
                 )}
