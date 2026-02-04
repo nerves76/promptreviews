@@ -203,6 +203,30 @@ export async function POST(
         r.reviewText.toLowerCase().includes('diviner')
       ).length;
 
+      // Debug: Check what active keywords exist for this account
+      const { data: activeKeywords } = await serviceSupabase
+        .from('keywords')
+        .select('id, phrase, review_phrase, normalized_phrase')
+        .eq('account_id', accountId)
+        .eq('status', 'active');
+
+      console.log('[CheckReviews] Active keywords for account:', activeKeywords?.length || 0);
+      console.log('[CheckReviews] Active keyword IDs:', activeKeywords?.map(k => k.id));
+
+      // Debug: Manual regex test
+      const testPhrase = (keywordWithPhrase?.review_phrase || keywordWithPhrase?.normalized_phrase || '').toLowerCase().trim();
+      if (testPhrase && records.length > 0) {
+        const testRegex = new RegExp(`\\b${testPhrase}\\b`, 'i');
+        const sampleText = records[0].reviewText.toLowerCase();
+        const manualMatch = testRegex.test(sampleText);
+        console.log('[CheckReviews] Manual regex test:', {
+          phrase: testPhrase,
+          regexPattern: testRegex.source,
+          sampleText: sampleText.substring(0, 100),
+          matches: manualMatch,
+        });
+      }
+
       // Run keyword matching
       const matcher = new KeywordMatchService(serviceSupabase, accountId);
       await matcher.process(records);
@@ -248,6 +272,13 @@ export async function POST(
           keywordNormalizedPhrase: keywordWithPhrase?.normalized_phrase,
           keywordAliases: keywordWithPhrase?.aliases,
           matchesInserted: matchCount || 0,
+          activeKeywordsInAccount: activeKeywords?.length || 0,
+          thisKeywordInActiveList: activeKeywords?.some(k => k.id === keywordId) || false,
+          manualRegexTest: testPhrase && records.length > 0 ? {
+            phrase: testPhrase,
+            pattern: `\\b${testPhrase}\\b`,
+            matches: new RegExp(`\\b${testPhrase}\\b`, 'i').test(records[0].reviewText.toLowerCase()),
+          } : null,
           sampleReviewText: records.length > 0 ? records[0].reviewText.substring(0, 150) : null,
         },
       });
