@@ -203,6 +203,9 @@ export default function KeywordManager({
   const [usageInfo, setUsageInfo] = useState<{ current: number; limit: number; remaining: number } | null>(null);
   const [generatorError, setGeneratorError] = useState<string | null>(null);
 
+  // Add concept form visibility (controlled mode)
+  const [showAddConceptForm, setShowAddConceptForm] = useState(false);
+
   // Looked-up location from business address (if location_code not set)
   const [lookedUpLocation, setLookedUpLocation] = useState<{
     locationCode: number;
@@ -1077,32 +1080,58 @@ export default function KeywordManager({
 
       {/* Add Concept Section */}
       <div ref={addKeywordFormRef} className="mb-4 p-4 bg-white border border-gray-200 rounded-lg">
-        <div className="mb-4">
-          <h3 className="text-base font-semibold text-gray-800">Add concept</h3>
-          <p className="text-sm text-gray-500">Each concept includes search terms for rank tracking and local grid, review phrases, and questions for AI visibility.</p>
+        {/* Header row: title/description on left, buttons on right (large screens) */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex-1 min-w-0">
+            <h3 className="text-base font-semibold text-gray-800">Add concept</h3>
+            <p className="text-sm text-gray-500">Each concept includes search terms for rank tracking and local grid, review phrases, and questions for AI visibility.</p>
+          </div>
+          {/* Buttons - shown when form is closed */}
+          {!showAddConceptForm && (
+            <div className="flex items-center gap-3 flex-shrink-0">
+              <button
+                onClick={() => setShowAddConceptForm(true)}
+                className="px-4 py-2 bg-slate-blue text-white rounded-lg text-sm font-medium hover:bg-slate-blue/90 flex items-center gap-2 whitespace-nowrap"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                Add concept
+              </button>
+              <button
+                onClick={handleGenerateClick}
+                disabled={isGenerating}
+                className="px-4 py-2 text-sm font-medium text-slate-blue bg-white border border-slate-blue rounded-lg hover:bg-slate-blue/5 disabled:text-gray-500 disabled:border-gray-300 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap"
+              >
+                {isGenerating ? (
+                  <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Icon name="prompty" className="w-4 h-4" />
+                )}
+                <span>{isGenerating ? 'Generating...' : 'Generate 10 concepts'}</span>
+              </button>
+            </div>
+          )}
         </div>
-        <KeywordConceptInput
-          generateButton={
-            <button
-              onClick={handleGenerateClick}
-              disabled={isGenerating}
-              className="px-4 py-2 text-sm font-medium text-slate-blue bg-white border border-slate-blue rounded-lg hover:bg-slate-blue/5 disabled:text-gray-500 disabled:border-gray-300 disabled:cursor-not-allowed flex items-center gap-2"
-            >
-              {isGenerating ? (
-                <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
-              ) : (
-                <Icon name="prompty" className="w-4 h-4" />
-              )}
-              <span>{isGenerating ? 'Generating...' : 'Generate 10 concepts'}</span>
-            </button>
-          }
-          onKeywordAdded={handleAddEnrichedKeyword}
-          businessName={businessName}
-          businessCity={businessCity}
-          businessState={businessState}
-          businessLocationCode={business?.location_code}
-          businessLocationName={business?.location_name}
-        />
+        {/* Form - shown when open */}
+        {showAddConceptForm && (
+          <div className="mt-4">
+            <KeywordConceptInput
+              isOpen={showAddConceptForm}
+              onOpenChange={setShowAddConceptForm}
+              formOnly
+              onKeywordAdded={(keyword) => {
+                handleAddEnrichedKeyword(keyword);
+                setShowAddConceptForm(false);
+              }}
+              businessName={businessName}
+              businessCity={businessCity}
+              businessState={businessState}
+              businessLocationCode={business?.location_code}
+              businessLocationName={business?.location_name}
+            />
+          </div>
+        )}
       </div>
 
       {/* AI Keyword Generator Panel */}

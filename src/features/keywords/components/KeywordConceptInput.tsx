@@ -44,6 +44,12 @@ interface KeywordConceptInputProps {
   className?: string;
   /** Optional button to render next to the Add concept button */
   generateButton?: React.ReactNode;
+  /** Controlled mode: whether the form is open */
+  isOpen?: boolean;
+  /** Controlled mode: callback when form open state changes */
+  onOpenChange?: (open: boolean) => void;
+  /** When true, only renders the form (no buttons when closed) - use with controlled mode */
+  formOnly?: boolean;
 }
 
 /**
@@ -67,9 +73,20 @@ export default function KeywordConceptInput({
   placeholder = "Name this concept (e.g., Green eggs and ham)",
   className = "",
   generateButton,
+  isOpen,
+  onOpenChange,
+  formOnly = false,
 }: KeywordConceptInputProps) {
-  // Form visibility
-  const [showForm, setShowForm] = useState(false);
+  // Form visibility - use controlled mode if isOpen is provided
+  const [internalShowForm, setInternalShowForm] = useState(false);
+  const showForm = isOpen !== undefined ? isOpen : internalShowForm;
+  const setShowForm = (open: boolean) => {
+    if (onOpenChange) {
+      onOpenChange(open);
+    } else {
+      setInternalShowForm(open);
+    }
+  };
 
   // Form fields
   const [keyword, setKeyword] = useState("");
@@ -404,8 +421,12 @@ export default function KeywordConceptInput({
     );
   }, [searchTerms]);
 
-  // Show "Add concept" button when form is closed
+  // Show "Add concept" button when form is closed (unless formOnly mode)
   if (!showForm) {
+    // In formOnly mode, don't render anything when closed
+    if (formOnly) {
+      return null;
+    }
     return (
       <div className={`flex items-center gap-3 ${className}`}>
         <button
