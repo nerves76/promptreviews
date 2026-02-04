@@ -314,7 +314,7 @@ export default function AgencyWorkManagerPage() {
       {/* Client Board Banner */}
       {!isAgencyBoard && (
         <div className="bg-amber-500/20 border-b border-amber-400/30">
-          <div className="max-w-[1800px] mx-auto px-6 py-3">
+          <div className="max-w-[1550px] mx-auto px-6 py-3">
             <div className="flex items-center gap-3">
               <Icon name="FaBuilding" size={16} className="text-amber-300" />
               <span className="text-amber-100 text-sm">
@@ -329,12 +329,13 @@ export default function AgencyWorkManagerPage() {
       )}
 
       {/* Header */}
-      <div className="max-w-[1800px] mx-auto px-6 pt-8 pb-4">
-        <div className="flex items-center justify-between flex-wrap gap-4">
+      <div className="max-w-[1550px] mx-auto px-6 pt-8 pb-4">
+        <div className="flex items-center justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-6">
             <h1 className="text-2xl font-bold text-white">Work Manager</h1>
             <WorkManagerTabs activeTab={activeTab} onTabChange={setActiveTab} />
           </div>
+
           <div className="flex items-center gap-3 flex-wrap">
             {/* Board Selector */}
             <BoardSelector
@@ -369,7 +370,7 @@ export default function AgencyWorkManagerPage() {
 
       {/* Content */}
       {board && (
-        <div className="max-w-[1800px] mx-auto px-6 py-6">
+        <div className="max-w-[1550px] mx-auto px-6 py-6">
           {activeTab === "board" ? (
             <WorkManagerKanban
               tasks={tasks}
