@@ -198,6 +198,11 @@ export function QuestionRow({
                   {mentionedCount}/{totalProviders} mentioned
                 </span>
               </div>
+            ) : isChecking ? (
+              <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-100 text-amber-700 flex items-center gap-1">
+                <Icon name="FaClock" className="w-2.5 h-2.5" />
+                Checking
+              </span>
             ) : (
               <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-500">
                 Not checked
