@@ -656,14 +656,14 @@ export function ConceptCard({
                 {keyword.reviewPhrase && (
                   <span
                     className={`px-1.5 py-0.5 text-[10px] font-medium rounded flex items-center gap-0.5 ${
-                      (keyword.reviewUsageCount + keyword.aliasMatchCount) > 0
+                      (displayKeyword.reviewUsageCount + displayKeyword.aliasMatchCount) > 0
                         ? 'bg-yellow-100 text-yellow-700'
                         : 'bg-gray-100 text-gray-500'
                     }`}
                     title="Number of your reviews that mention this keyword"
                   >
                     <Icon name="FaStar" className="w-2 h-2" />
-                    {keyword.reviewUsageCount + keyword.aliasMatchCount} in reviews
+                    {displayKeyword.reviewUsageCount + displayKeyword.aliasMatchCount} in reviews
                   </span>
                 )}
                 {/* AI visibility - rose */}
@@ -1352,11 +1352,11 @@ export function ConceptCard({
         <CollapsibleSection
           title="Reviews"
           badge={
-            (keyword.reviewUsageCount + keyword.aliasMatchCount > 0 ||
+            (displayKeyword.reviewUsageCount + displayKeyword.aliasMatchCount > 0 ||
               (enrichedData?.scheduleStatus?.runStatus &&
                 ['pending', 'processing'].includes(enrichedData.scheduleStatus.runStatus.reviewMatchingStatus || ''))) ? (
               <>
-                {(keyword.reviewUsageCount + keyword.aliasMatchCount > 0) && (keyword.reviewUsageCount + keyword.aliasMatchCount)}
+                {(displayKeyword.reviewUsageCount + displayKeyword.aliasMatchCount > 0) && (displayKeyword.reviewUsageCount + displayKeyword.aliasMatchCount)}
                 {enrichedData?.scheduleStatus?.runStatus &&
                   ['pending', 'processing'].includes(enrichedData.scheduleStatus.runStatus.reviewMatchingStatus || '') && (
                   <span className="ml-1.5 text-[9px] font-medium text-amber-600 inline-flex items-center gap-0.5">

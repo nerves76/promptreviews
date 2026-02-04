@@ -127,17 +127,6 @@ export async function POST(
         throw new Error(`Failed to fetch reviews: ${reviewsError.message}`);
       }
 
-      // Debug: Log review count and samples
-      console.log('[CheckReviews] Reviews found:', reviews?.length || 0);
-      if (reviews && reviews.length > 0) {
-        console.log('[CheckReviews] Sample review:', {
-          id: reviews[0].id,
-          hasContent: !!reviews[0].review_content,
-          hasTextCopy: !!reviews[0].review_text_copy,
-          contentPreview: (reviews[0].review_content || reviews[0].review_text_copy || '').substring(0, 100),
-        });
-      }
-
       // Clear existing matches for this keyword only
       await serviceSupabase
         .from('keyword_review_matches_v2')
@@ -171,74 +160,9 @@ export async function POST(
         })
         .filter(Boolean) as SyncedReviewRecord[];
 
-      // Debug: Log processed records count
-      console.log('[CheckReviews] Records with content:', records.length);
-      if (records.length > 0) {
-        // Log a sample to see if "diviner" appears in any review
-        const divinerMatches = records.filter(r =>
-          r.reviewText.toLowerCase().includes('diviner')
-        );
-        console.log('[CheckReviews] Records containing "diviner":', divinerMatches.length);
-        if (divinerMatches.length > 0) {
-          console.log('[CheckReviews] Sample match:', divinerMatches[0].reviewText.substring(0, 200));
-        }
-      }
-
-      // Get the keyword's review_phrase for debugging
-      const { data: keywordWithPhrase } = await serviceSupabase
-        .from('keywords')
-        .select('review_phrase, normalized_phrase, aliases, status')
-        .eq('id', keywordId)
-        .single();
-
-      console.log('[CheckReviews] Keyword details:', {
-        id: keywordId,
-        status: keywordWithPhrase?.status,
-        review_phrase: keywordWithPhrase?.review_phrase,
-        normalized_phrase: keywordWithPhrase?.normalized_phrase,
-      });
-
-      // Debug: Check if "diviner" appears in any review
-      const divinerCount = records.filter(r =>
-        r.reviewText.toLowerCase().includes('diviner')
-      ).length;
-
-      // Debug: Check what active keywords exist for this account
-      const { data: activeKeywords } = await serviceSupabase
-        .from('keywords')
-        .select('id, phrase, review_phrase, normalized_phrase')
-        .eq('account_id', accountId)
-        .eq('status', 'active');
-
-      console.log('[CheckReviews] Active keywords for account:', activeKeywords?.length || 0);
-      console.log('[CheckReviews] Active keyword IDs:', activeKeywords?.map(k => k.id));
-
-      // Debug: Manual regex test
-      const testPhrase = (keywordWithPhrase?.review_phrase || keywordWithPhrase?.normalized_phrase || '').toLowerCase().trim();
-      if (testPhrase && records.length > 0) {
-        const testRegex = new RegExp(`\\b${testPhrase}\\b`, 'i');
-        const sampleText = records[0].reviewText.toLowerCase();
-        const manualMatch = testRegex.test(sampleText);
-        console.log('[CheckReviews] Manual regex test:', {
-          phrase: testPhrase,
-          regexPattern: testRegex.source,
-          sampleText: sampleText.substring(0, 100),
-          matches: manualMatch,
-        });
-      }
-
       // Run keyword matching
       const matcher = new KeywordMatchService(serviceSupabase, accountId);
-      const matcherStats = await matcher.process(records);
-      console.log('[CheckReviews] Matcher stats:', matcherStats);
-
-      // Debug: Count how many matches were inserted for this keyword
-      const { count: matchCount } = await serviceSupabase
-        .from('keyword_review_matches_v2')
-        .select('*', { count: 'exact', head: true })
-        .eq('keyword_id', keywordId);
-
-      console.log('[CheckReviews] Matches inserted for keyword:', matchCount);
+      await matcher.process(records);
 
       // Sync usage counts for this keyword
       await syncKeywordUsageCounts(serviceSupabase, accountId);
@@ -263,26 +187,6 @@ export async function POST(
         lastMatchedAt: updatedKeyword?.last_used_in_review_at,
         creditsUsed: REVIEW_MATCHING_CREDIT_COST,
         creditsRemaining: newBalance.totalCredits,
-        // Debug info - remove after fixing
-        _debug: {
-          totalReviewsInDb: reviews?.length || 0,
-          reviewsWithContent: records.length,
-          reviewsContainingDiviner: divinerCount,
-          keywordStatus: keywordWithPhrase?.status,
-          keywordReviewPhrase: keywordWithPhrase?.review_phrase,
-          keywordNormalizedPhrase: keywordWithPhrase?.normalized_phrase,
-          keywordAliases: keywordWithPhrase?.aliases,
-          matchesInserted: matchCount || 0,
-          activeKeywordsInAccount: activeKeywords?.length || 0,
-          thisKeywordInActiveList: activeKeywords?.some(k => k.id === keywordId) || false,
-          manualRegexTest: testPhrase && records.length > 0 ? {
-            phrase: testPhrase,
-            pattern: `\\b${testPhrase}\\b`,
-            matches: new RegExp(`\\b${testPhrase}\\b`, 'i').test(records[0].reviewText.toLowerCase()),
-          } : null,
-          matcherStats: matcherStats || null,
-          sampleReviewText: records.length > 0 ? records[0].reviewText.substring(0, 150) : null,
-        },
       });
     } catch (error) {
       // Refund on failure

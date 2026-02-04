@@ -89,15 +89,6 @@ export class KeywordMatchService {
       aliases: (kw.aliases || []).map((a: string) => normalizePhrase(a)),
     }));
 
-    // Debug logging
-    console.log('[KeywordMatchService] Loaded keywords:', this.keywords.map(k => ({
-      id: k.id,
-      phrase: k.phrase,
-      normalized: k.normalized,
-      reviewPhrase: k.reviewPhrase,
-      aliases: k.aliases,
-    })));
-
     return this.keywords;
   }
 
@@ -118,19 +109,6 @@ export class KeywordMatchService {
     // Allow optional 's, 's, or s at the end to match possessives and plurals
     const exactRegex = new RegExp(`\\b${escapeRegex(primaryPhrase)}(?:'?s)?\\b`, 'i');
     const exactMatch = exactRegex.test(text);
-
-    // Debug: log matching attempts for troubleshooting
-    if (keyword.phrase.toLowerCase().includes('diviner')) {
-      console.log('[KeywordMatchService] Matching "diviner" keyword:', {
-        keywordPhrase: keyword.phrase,
-        primaryPhrase,
-        reviewPhrase: keyword.reviewPhrase,
-        normalized: keyword.normalized,
-        textSample: text.substring(0, 200),
-        exactMatch,
-        regexPattern: exactRegex.source,
-      });
-    }
 
     if (exactMatch) {
       return { type: 'exact', matchedPhrase: keyword.reviewPhrase || keyword.phrase };
@@ -162,14 +140,11 @@ export class KeywordMatchService {
    */
   async process(records: SyncedReviewRecord[]): Promise<{ matchesFound: number; keywordsLoaded: number; recordsProcessed: number }> {
     if (!records.length) {
-      console.log('[KeywordMatchService] No records to process');
       return { matchesFound: 0, keywordsLoaded: 0, recordsProcessed: 0 };
     }
 
     const keywords = await this.loadKeywords();
-    console.log('[KeywordMatchService] Active keywords loaded:', keywords.length);
     if (!keywords.length) {
-      console.log('[KeywordMatchService] No active keywords found for account');
       return { matchesFound: 0, keywordsLoaded: keywords.length, recordsProcessed: 0 };
     }
 
@@ -205,10 +180,7 @@ export class KeywordMatchService {
       }
     }
 
-    console.log('[KeywordMatchService] Records processed:', processedCount);
-    console.log('[KeywordMatchService] Total matches found:', inserts.length);
     if (!inserts.length) {
-      console.log('[KeywordMatchService] No matches found in any records');
       return { matchesFound: 0, keywordsLoaded: keywords.length, recordsProcessed: processedCount };
     }
 
@@ -216,37 +188,25 @@ export class KeywordMatchService {
     const submissionInserts = inserts.filter(i => i.review_submission_id !== null);
     const googleInserts = inserts.filter(i => i.google_review_id !== null && i.review_submission_id === null);
 
-    console.log('[KeywordMatchService] Submission inserts:', submissionInserts.length);
-    console.log('[KeywordMatchService] Google inserts:', googleInserts.length);
-
-    // Insert submission-based matches (we cleared existing matches, so use insert instead of upsert)
+    // Insert submission-based matches
     if (submissionInserts.length > 0) {
-      console.log('[KeywordMatchService] Sample insert:', JSON.stringify(submissionInserts[0]));
-      const { data, error } = await this.supabase
+      const { error } = await this.supabase
         .from('keyword_review_matches_v2')
-        .insert(submissionInserts)
-        .select('id');
+        .insert(submissionInserts);
 
       if (error) {
         console.error('❌ Failed to insert submission keyword matches:', error);
-        console.error('❌ Error details:', JSON.stringify(error));
-      } else {
-        console.log('[KeywordMatchService] Successfully inserted:', data?.length || 0, 'submission matches');
       }
     }
 
     // Insert Google review-based matches
     if (googleInserts.length > 0) {
-      const { data, error } = await this.supabase
+      const { error } = await this.supabase
         .from('keyword_review_matches_v2')
-        .insert(googleInserts)
-        .select('id');
+        .insert(googleInserts);
 
       if (error) {
         console.error('❌ Failed to insert Google review keyword matches:', error);
-        console.error('❌ Error details:', JSON.stringify(error));
-      } else {
-        console.log('[KeywordMatchService] Successfully inserted:', data?.length || 0, 'Google matches');
       }
     }
 
