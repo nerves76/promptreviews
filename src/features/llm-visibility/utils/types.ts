@@ -42,7 +42,7 @@ export const LLM_PROVIDER_MODELS: Record<LLMProvider, string> = {
 };
 
 // Brand-aligned colors for each LLM provider
-// ChatGPT: #0fa47f (green), Claude: #d97757 (coral), Gemini: #5885f3 (blue), Perplexity: #22808d (teal)
+// ChatGPT: Dark slate (matches their dark UI), Claude: #d97757 (coral), Gemini: #5885f3 (blue), Perplexity: #22808d (teal)
 // Colors defined in tailwind.config.js under theme.extend.colors
 export const LLM_PROVIDER_COLORS: Record<
   LLMProvider,
