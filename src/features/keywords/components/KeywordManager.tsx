@@ -1079,12 +1079,12 @@ export default function KeywordManager({
       )}
 
       {/* Add Concept Section */}
-      <div ref={addKeywordFormRef} className="mb-4 p-4 bg-white border border-gray-200 rounded-lg">
+      <div ref={addKeywordFormRef} className="mb-4 p-4 bg-blue-50 border border-slate-blue/20 rounded-lg">
         {/* Header row: title/description on left, buttons on right (large screens) */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex-1 min-w-0">
-            <h3 className="text-base font-semibold text-gray-800">Add concept</h3>
-            <p className="text-sm text-gray-500">Each concept includes search terms for rank tracking and local grid, review phrases, and questions for AI visibility.</p>
+            <h3 className="text-base font-semibold text-slate-blue">Add concept</h3>
+            <p className="text-sm text-gray-600">Each concept includes search terms for rank tracking and local grid, review phrases, and questions for AI visibility.</p>
           </div>
           {/* Buttons - shown when form is closed */}
           {!showAddConceptForm && (
