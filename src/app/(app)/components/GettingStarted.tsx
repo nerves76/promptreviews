@@ -266,6 +266,15 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
             helpArticleId: "style-settings"
           },
           {
+            id: "prompt-page-settings",
+            title: "Set defaults and AI dos and don'ts",
+            description: "Configure default settings for better AI responses",
+            link: "/prompt-pages?openSettings=true",
+            icon: <Icon name="FaCog" className="w-5 h-5" size={20} />,
+            completed: taskStatus["prompt-page-settings"] || false,
+            helpArticleId: "prompt-pages/settings"
+          },
+          {
             id: "customize-universal",
             title: "Customize your universal prompt options",
             description: "Configure your Universal Prompt Page settings",
@@ -315,6 +324,15 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
             icon: <Icon name="FaPalette" className="w-5 h-5" size={20} />,
             completed: false,
             helpArticleId: "style-settings"
+          },
+          {
+            id: "prompt-page-settings",
+            title: "Set defaults and AI dos and don'ts",
+            description: "Configure default settings for better AI responses",
+            link: "/prompt-pages?openSettings=true",
+            icon: <Icon name="FaCog" className="w-5 h-5" size={20} />,
+            completed: false,
+            helpArticleId: "prompt-pages/settings"
           },
           {
             id: "customize-universal",
