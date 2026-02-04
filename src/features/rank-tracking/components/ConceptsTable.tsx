@@ -650,6 +650,7 @@ export default function ConceptsTable({
               <button
                 onClick={() => handleSort('keyword')}
                 className="flex items-center gap-1.5 text-xs font-semibold text-gray-600 uppercase tracking-wider hover:text-gray-900 ml-5"
+                title="The search term or phrase being tracked"
               >
                 Keyword
                 <SortIcon field="keyword" />
@@ -659,6 +660,7 @@ export default function ConceptsTable({
               <button
                 onClick={() => handleSort('concept')}
                 className="flex items-center gap-1.5 text-xs font-semibold text-gray-600 uppercase tracking-wider hover:text-gray-900"
+                title="The keyword concept this search term belongs to"
               >
                 Concept
                 <SortIcon field="concept" />
@@ -668,6 +670,7 @@ export default function ConceptsTable({
               <button
                 onClick={() => handleSort('volume')}
                 className="flex items-center gap-1.5 text-xs font-semibold text-gray-600 uppercase tracking-wider hover:text-gray-900 mx-auto"
+                title="Estimated monthly search volume for this keyword"
               >
                 Volume
                 <SortIcon field="volume" />
@@ -677,6 +680,7 @@ export default function ConceptsTable({
               <button
                 onClick={() => handleSort('rank')}
                 className="flex items-center gap-1.5 text-xs font-semibold text-gray-600 uppercase tracking-wider hover:text-gray-900 mx-auto"
+                title="Your Google search ranking position (desktop and mobile)"
               >
                 Rank
                 <SortIcon field="rank" />
@@ -686,31 +690,32 @@ export default function ConceptsTable({
               <button
                 onClick={() => handleSort('change')}
                 className="flex items-center gap-1.5 text-xs font-semibold text-gray-600 uppercase tracking-wider hover:text-gray-900 mx-auto"
+                title="Position change since last check (↑ = improved, ↓ = declined)"
               >
                 Change
                 <SortIcon field="change" />
               </button>
             </th>
             <th className="text-center py-3 px-4">
-              <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider">URL</span>
+              <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider cursor-help" title="The URL from your site that is ranking for this keyword">URL</span>
             </th>
             <th className="text-center py-3 px-4">
-              <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider">Checked</span>
+              <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider cursor-help" title="When the rank was last checked">Checked</span>
             </th>
             <th className="text-center py-3 px-4">
-              <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider">Location</span>
+              <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider cursor-help" title="Geographic location used for the search">Location</span>
             </th>
             <th className="text-center py-3 px-4">
-              <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider">SERP</span>
+              <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider cursor-help" title="SERP features: AI Overview, Featured Snippet, People Also Ask">SERP</span>
             </th>
             <th className="text-center py-3 px-4">
-              <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider">Grid</span>
+              <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider cursor-help" title="Local ranking grid: points ranking in top 10 out of total grid points">Grid</span>
             </th>
             <th className="text-center py-3 px-3">
-              <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider">Schedule</span>
+              <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider cursor-help" title="Automated rank checking schedule (daily, weekly, or monthly)">Schedule</span>
             </th>
             <th className="text-center py-3 pl-4 pr-6">
-              <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</span>
+              <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider cursor-help" title="Available actions: check volume, check rank, view grid, delete">Actions</span>
             </th>
           </tr>
         </thead>
