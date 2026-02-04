@@ -207,7 +207,7 @@ Examples of GENERAL/SERVICE-FOCUSED (NO location at all):
     }
 
     // Build the prompt for OpenAI
-    const prompt = `Generate 10 SEO-optimized keyword ideas for a ${businessType} business.
+    const prompt = `Generate 10 keyword concepts for a ${businessType} business.
 
 Business Information:
 - Name: ${businessName}
@@ -216,42 +216,46 @@ Business Information:
 - Differentiators: ${differentiators}${yearsInBusiness ? `\n- Years in Business: ${yearsInBusiness}` : ''}
 - Services/Offerings: ${servicesOffered}${industriesServed ? `\n- Industries Served: ${industriesServed}` : ''}
 
-These keywords will be used to help customers find this business when searching for reviews.
+WHAT IS A KEYWORD CONCEPT?
+A keyword concept represents a SINGLE CUSTOMER INTENT - one specific thing a potential customer wants. Each concept is then adapted for the different platforms where customers search:
+
+• GOOGLE SEARCH (searchTerms): Short keyword phrases people type into Google
+• AI ASSISTANTS (relatedQuestions): Full questions people ask ChatGPT, Perplexity, or Google AI
+• CUSTOMER REVIEWS (reviewPhrase): How satisfied customers naturally describe this in their own words
+
+Example:
+Intent: Getting urgent help quickly
+- conceptName: "Same-day emergency" (shorthand label to identify this concept)
+- searchTerms: ["emergency plumber same day", "24 hour plumber", "plumber near me now"]
+- relatedQuestions: ["Can I get a plumber to come today?", "What plumbers offer same-day service?"]
+- reviewPhrase: "They came out the same day I called - lifesaver!"
+
 ${locationInstructions}
 
-The keywords should:
-• Sound like real search phrases people would use when looking for reviews
-• Focus on review-oriented search intent - how customers search when researching businesses
-• Reflect how customers talk (not marketing-speak)
-• Consider the business's unique differentiators and specific services/offerings
-• Include a variety of lengths and styles
+GUIDELINES:
+• Each concept = ONE clear customer intent (not multiple ideas bundled together)
+• conceptName is a SHORT LABEL (2-4 words) for quickly identifying the intent - not a search term
+• Search terms should sound like real Google searches (2-5 words typically)
+• AI questions should be conversational, full sentences people actually ask
+• Review phrases should be authentic, first-person experiences (5-12 words)
+• NEVER mention "reviews" or "ratings" in review phrases - customers describe their experience, not others' opinions
+• NEVER use the phrase "top-notch" - it sounds artificial and is overused
+${isLocationBased ? '• Include location in searchTerms and reviewPhrase when relevant to location-specific keywords' : '• Do NOT include any location references'}
 
-For each keyword concept, provide:
-1. A short concept name (2-4 words) that describes the topic - NEVER include location in the concept name
-2. THREE closely related search term variations - different word orders and phrasings that people might actually type into Google
-3. A natural-sounding review phrase that incorporates the concept organically
-4. 2-3 related questions people might ask AI assistants or search engines about this topic
+For related_questions, include a mix of funnel stages:
+• "top" = awareness ("What is X?", "Why do I need X?")
+• "middle" = consideration ("What's the best X?", "How do I choose X?")
+• "bottom" = decision ("How much does X cost?", "Where can I find X near me?")
 
-IMPORTANT: Keep review phrases SHORT and punchy - ideally one short sentence or fragment (5-12 words max).
-
-CRITICAL: NEVER generate review phrases that mention "reviews", "ratings", "testimonials", or "recommendations". A customer writing their own review wouldn't say "I read great reviews" or "with fantastic reviews" - they should describe THEIR OWN experience, not reference other people's opinions.
-
-For related_questions:
-- Questions should be what people type into ChatGPT, Google, or other AI/search tools
-- Include a mix of funnel stages:
-  • "top" = awareness (educational: "What is X?", "Why do I need X?")
-  • "middle" = consideration (comparison: "What is the best X?", "How do I choose X?")
-  • "bottom" = decision (purchase-intent: "How much does X cost?", "Where can I find X near me?")
-${isLocationBased ? '- Include location when relevant to location-specific keywords' : '- Do NOT include any location references'}
 ${locationExamples}
 
-Format your output as a JSON array of objects with these fields:
-- conceptName: Short name for this concept (2-4 words, title case, NO LOCATION)
-- searchTerms: Array of 3 related search phrases (different word orders/phrasings of the same concept)
-- reviewPhrase: A SHORT, punchy review phrase (5-12 words, authentic, conversational)
+Return JSON array with these fields per concept:
+- conceptName: Short label to identify this intent (2-4 words, title case, NO LOCATION)
+- searchTerms: Array of 3 Google search phrases for this intent
+- reviewPhrase: How a customer would mention this intent in their review
 - relatedQuestions: Array of 2-3 objects with "question" and "funnelStage" fields
 
-Return ONLY valid JSON, no additional text or markdown formatting.`;
+Return ONLY valid JSON.`;
 
     // Call OpenAI directly (no credit wrapper needed)
     const openai = new OpenAI({
