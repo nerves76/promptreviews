@@ -178,7 +178,6 @@ export class KeywordMatchService {
       review_submission_id: string | null;
       google_review_id: string | null;
       account_id: string;
-      google_business_location_id: string | null;
       matched_phrase: string;
       match_type: MatchType;
       matched_at: string;
@@ -199,7 +198,6 @@ export class KeywordMatchService {
           review_submission_id: record.reviewSubmissionId || null,
           google_review_id: record.googleReviewId || null,
           account_id: record.accountId,
-          google_business_location_id: record.googleBusinessLocationId || null,
           matched_phrase: match.matchedPhrase,
           match_type: match.type,
           matched_at: new Date().toISOString(),
@@ -218,31 +216,37 @@ export class KeywordMatchService {
     const submissionInserts = inserts.filter(i => i.review_submission_id !== null);
     const googleInserts = inserts.filter(i => i.google_review_id !== null && i.review_submission_id === null);
 
-    // Upsert submission-based matches
+    console.log('[KeywordMatchService] Submission inserts:', submissionInserts.length);
+    console.log('[KeywordMatchService] Google inserts:', googleInserts.length);
+
+    // Insert submission-based matches (we cleared existing matches, so use insert instead of upsert)
     if (submissionInserts.length > 0) {
-      const { error } = await this.supabase
+      console.log('[KeywordMatchService] Sample insert:', JSON.stringify(submissionInserts[0]));
+      const { data, error } = await this.supabase
         .from('keyword_review_matches_v2')
-        .upsert(submissionInserts, {
-          onConflict: 'keyword_id,review_submission_id',
-          ignoreDuplicates: true,
-        });
+        .insert(submissionInserts)
+        .select('id');
 
       if (error) {
-        console.error('❌ Failed to upsert submission keyword matches:', error);
+        console.error('❌ Failed to insert submission keyword matches:', error);
+        console.error('❌ Error details:', JSON.stringify(error));
+      } else {
+        console.log('[KeywordMatchService] Successfully inserted:', data?.length || 0, 'submission matches');
       }
     }
 
-    // Upsert Google review-based matches
+    // Insert Google review-based matches
     if (googleInserts.length > 0) {
-      const { error } = await this.supabase
+      const { data, error } = await this.supabase
         .from('keyword_review_matches_v2')
-        .upsert(googleInserts, {
-          onConflict: 'keyword_id,google_review_id',
-          ignoreDuplicates: true,
-        });
+        .insert(googleInserts)
+        .select('id');
 
       if (error) {
-        console.error('❌ Failed to upsert Google review keyword matches:', error);
+        console.error('❌ Failed to insert Google review keyword matches:', error);
+        console.error('❌ Error details:', JSON.stringify(error));
+      } else {
+        console.log('[KeywordMatchService] Successfully inserted:', data?.length || 0, 'Google matches');
       }
     }
 
@@ -273,7 +277,6 @@ export class KeywordMatchService {
       review_submission_id: string;
       google_review_id: null;
       account_id: string;
-      google_business_location_id: null;
       matched_phrase: string;
       match_type: MatchType;
       matched_at: string;
@@ -289,7 +292,6 @@ export class KeywordMatchService {
         review_submission_id: reviewSubmissionId,
         google_review_id: null,
         account_id: this.accountId,
-        google_business_location_id: null,
         matched_phrase: match.matchedPhrase,
         match_type: match.type,
         matched_at: new Date().toISOString(),
