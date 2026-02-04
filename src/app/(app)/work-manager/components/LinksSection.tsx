@@ -27,6 +27,13 @@ export default function LinksSection({
   const [deletingLinkId, setDeletingLinkId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // Edit state
+  const [editingLinkId, setEditingLinkId] = useState<string | null>(null);
+  const [editLinkName, setEditLinkName] = useState("");
+  const [editLinkUrl, setEditLinkUrl] = useState("");
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
+
   const handleAddLink = async () => {
     if (!newLinkName.trim() || !newLinkUrl.trim()) {
       setError("Both name and URL are required");
@@ -84,6 +91,56 @@ export default function LinksSection({
     setError(null);
   };
 
+  const handleStartEdit = (link: WMLink) => {
+    setEditingLinkId(link.id);
+    setEditLinkName(link.name);
+    setEditLinkUrl(link.url);
+    setEditError(null);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingLinkId(null);
+    setEditLinkName("");
+    setEditLinkUrl("");
+    setEditError(null);
+  };
+
+  const handleUpdateLink = async () => {
+    if (!editLinkName.trim() || !editLinkUrl.trim()) {
+      setEditError("Both name and URL are required");
+      return;
+    }
+
+    // Basic URL validation
+    try {
+      new URL(editLinkUrl.trim());
+    } catch {
+      setEditError("Please enter a valid URL (e.g., https://example.com)");
+      return;
+    }
+
+    setIsUpdating(true);
+    setEditError(null);
+
+    try {
+      await apiClient.patch("/work-manager/links", {
+        link_id: editingLinkId,
+        name: editLinkName.trim(),
+        url: editLinkUrl.trim(),
+      });
+
+      setEditingLinkId(null);
+      setEditLinkName("");
+      setEditLinkUrl("");
+      onLinksChanged();
+    } catch (err: any) {
+      console.error("Failed to update link:", err);
+      setEditError(err.message || "Failed to update link");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
@@ -109,32 +166,94 @@ export default function LinksSection({
       {links.length > 0 && (
         <div className="space-y-2">
           {links.map((link) => (
-            <div
-              key={link.id}
-              className="flex items-center justify-between gap-3 p-2 bg-gray-50 rounded-lg group"
-            >
-              <a
-                href={link.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 text-sm text-slate-blue hover:underline min-w-0 flex-1"
-              >
-                <Icon name="FaGlobe" size={14} className="text-gray-400 flex-shrink-0" />
-                <span className="truncate">{link.name}</span>
-              </a>
-              {!readOnly && (
-                <button
-                  onClick={() => handleDeleteLink(link.id)}
-                  disabled={deletingLinkId === link.id}
-                  className="p-1 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
-                  aria-label={`Delete link ${link.name}`}
-                >
-                  {deletingLinkId === link.id ? (
-                    <Icon name="FaSpinner" size={14} className="animate-spin" />
-                  ) : (
-                    <Icon name="FaTimes" size={14} />
+            <div key={link.id}>
+              {editingLinkId === link.id ? (
+                /* Edit mode */
+                <div className="p-3 bg-amber-50 rounded-lg border border-amber-100 space-y-2">
+                  <div className="space-y-2">
+                    <input
+                      type="text"
+                      value={editLinkName}
+                      onChange={(e) => {
+                        setEditLinkName(e.target.value);
+                        setEditError(null);
+                      }}
+                      placeholder="Link name"
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-blue"
+                      autoFocus
+                    />
+                    <input
+                      type="url"
+                      value={editLinkUrl}
+                      onChange={(e) => {
+                        setEditLinkUrl(e.target.value);
+                        setEditError(null);
+                      }}
+                      placeholder="https://..."
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-blue"
+                    />
+                  </div>
+
+                  {editError && (
+                    <p className="text-xs text-red-600 flex items-center gap-1">
+                      <Icon name="FaExclamationTriangle" size={12} />
+                      {editError}
+                    </p>
                   )}
-                </button>
+
+                  <div className="flex items-center justify-end gap-2">
+                    <button
+                      onClick={handleCancelEdit}
+                      className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-800"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleUpdateLink}
+                      disabled={isUpdating || !editLinkName.trim() || !editLinkUrl.trim()}
+                      className="px-3 py-1.5 text-sm bg-slate-blue text-white rounded-lg hover:bg-slate-blue/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
+                    >
+                      {isUpdating && <Icon name="FaSpinner" size={12} className="animate-spin" />}
+                      {isUpdating ? "Saving..." : "Save"}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                /* View mode */
+                <div className="flex items-center justify-between gap-3 p-2 bg-gray-50 rounded-lg group">
+                  <a
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 text-sm text-slate-blue hover:underline min-w-0 flex-1"
+                  >
+                    <Icon name="FaGlobe" size={14} className="text-gray-400 flex-shrink-0" />
+                    <span className="truncate">{link.name}</span>
+                  </a>
+                  {!readOnly && (
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                      <button
+                        onClick={() => handleStartEdit(link)}
+                        className="p-1 text-gray-400 hover:text-slate-blue"
+                        aria-label={`Edit link ${link.name}`}
+                      >
+                        <Icon name="FaEdit" size={14} />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteLink(link.id)}
+                        disabled={deletingLinkId === link.id}
+                        className="p-1 text-gray-400 hover:text-red-500"
+                        aria-label={`Delete link ${link.name}`}
+                      >
+                        {deletingLinkId === link.id ? (
+                          <Icon name="FaSpinner" size={14} className="animate-spin" />
+                        ) : (
+                          <Icon name="FaTimes" size={14} />
+                        )}
+                      </button>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           ))}

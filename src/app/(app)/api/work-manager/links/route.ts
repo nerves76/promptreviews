@@ -3,6 +3,7 @@
  *
  * GET    - Fetch links for a task or resource
  * POST   - Create a link (for task or resource)
+ * PATCH  - Update a link
  * DELETE - Delete a link
  */
 
@@ -188,6 +189,106 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ link: newLink }, { status: 201 });
   } catch (error) {
     console.error('Error in POST /api/work-manager/links:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+
+export async function PATCH(request: NextRequest) {
+  try {
+    const supabase = await createServerSupabaseClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const { link_id, name, url } = body;
+
+    if (!link_id) {
+      return NextResponse.json({ error: 'link_id is required' }, { status: 400 });
+    }
+
+    if (!name || name.trim().length === 0) {
+      return NextResponse.json({ error: 'name is required' }, { status: 400 });
+    }
+
+    if (!url || url.trim().length === 0) {
+      return NextResponse.json({ error: 'url is required' }, { status: 400 });
+    }
+
+    // Basic URL validation
+    try {
+      new URL(url.trim());
+    } catch {
+      return NextResponse.json({ error: 'Invalid URL format' }, { status: 400 });
+    }
+
+    const supabaseAdmin = createServiceRoleClient();
+    const accountId = await getRequestAccountId(request, user.id, supabaseAdmin);
+
+    if (!accountId) {
+      return NextResponse.json({ error: 'No valid account found' }, { status: 403 });
+    }
+
+    // Fetch the link to verify ownership
+    const { data: link, error: linkError } = await supabaseAdmin
+      .from('wm_links')
+      .select('id, task_id, resource_id')
+      .eq('id', link_id)
+      .single();
+
+    if (linkError || !link) {
+      return NextResponse.json({ error: 'Link not found' }, { status: 404 });
+    }
+
+    // Verify the parent (task or resource) belongs to the account
+    if (link.task_id) {
+      const { data: task, error: taskError } = await supabaseAdmin
+        .from('wm_tasks')
+        .select('id, account_id')
+        .eq('id', link.task_id)
+        .eq('account_id', accountId)
+        .single();
+
+      if (taskError || !task) {
+        return NextResponse.json({ error: 'Link not found' }, { status: 404 });
+      }
+    }
+
+    if (link.resource_id) {
+      const { data: resource, error: resourceError } = await supabaseAdmin
+        .from('wm_resources')
+        .select('id, account_id')
+        .eq('id', link.resource_id)
+        .eq('account_id', accountId)
+        .single();
+
+      if (resourceError || !resource) {
+        return NextResponse.json({ error: 'Link not found' }, { status: 404 });
+      }
+    }
+
+    // Update the link
+    const { data: updatedLink, error: updateError } = await supabaseAdmin
+      .from('wm_links')
+      .update({
+        name: name.trim(),
+        url: url.trim(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', link_id)
+      .select()
+      .single();
+
+    if (updateError) {
+      console.error('Error updating link:', updateError);
+      return NextResponse.json({ error: 'Failed to update link' }, { status: 500 });
+    }
+
+    return NextResponse.json({ link: updatedLink });
+  } catch (error) {
+    console.error('Error in PATCH /api/work-manager/links:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
