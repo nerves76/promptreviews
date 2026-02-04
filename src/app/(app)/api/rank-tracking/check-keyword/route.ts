@@ -174,6 +174,10 @@ export async function POST(request: NextRequest) {
         }
       }
 
+      // Extract PAA stats for denormalized columns
+      const paaQuestionCount = rankResult.serpFeatures?.peopleAlsoAsk?.questions?.length ?? 0;
+      const paaOursCount = rankResult.serpFeatures?.peopleAlsoAsk?.ourQuestionCount ?? 0;
+
       const { error: insertError } = await serviceSupabase
         .from('rank_checks')
         .insert({
@@ -185,7 +189,9 @@ export async function POST(request: NextRequest) {
           device,
           position: rankResult.position,
           found_url: rankResult.url,
-          serp_features: extractSerpFeatures(rankResult.topCompetitors),
+          serp_features: rankResult.serpFeatures,
+          paa_question_count: paaQuestionCount,
+          paa_ours_count: paaOursCount,
           top_competitors: rankResult.topCompetitors.slice(0, 10).map((c) => ({
             domain: c.domain,
             position: c.position,

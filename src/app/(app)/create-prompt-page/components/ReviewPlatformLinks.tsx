@@ -15,7 +15,6 @@ interface ReviewPlatformLinksProps {
 
 const PLATFORM_OPTIONS = [
   { value: "google", label: "Google" },
-  { value: "yelp", label: "Yelp" },
   { value: "facebook", label: "Facebook" },
   { value: "trustpilot", label: "Trustpilot" },
   { value: "other", label: "Other" },

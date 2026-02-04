@@ -50,7 +50,6 @@ export interface ReviewPlatformsFeatureProps {
 export const platformOptions = [
   "",
   "Google Business Profile",
-  "Yelp",
   "Facebook",
   "TripAdvisor",
   "Amazon",
