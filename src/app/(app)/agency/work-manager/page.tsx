@@ -113,7 +113,7 @@ export default function AgencyWorkManagerPage() {
     }
   }, [boardContext]);
 
-  // Fetch agency team members for assignment
+  // Fetch agency team members AND client account users for assignment/mentions
   const fetchAgencyTeamMembers = useCallback(async () => {
     try {
       interface TeamMember {
@@ -124,16 +124,53 @@ export default function AgencyWorkManagerPage() {
         email?: string;
         avatar_url?: string | null;
       }
-      const response = await apiClient.get<{ members: TeamMember[] }>('/team/members');
-      if (response.members) {
-        setAccountUsers(response.members.map((m): WMUserInfo => ({
-          id: m.user_id || m.id || '',
-          first_name: m.first_name ?? null,
-          last_name: m.last_name ?? null,
-          email: m.email || '',
-          avatar_url: m.avatar_url ?? null,
-        })));
+
+      // Fetch agency team members
+      const teamResponse = await apiClient.get<{ members: TeamMember[] }>('/team/members');
+      const agencyMembers = (teamResponse.members || []).map((m): WMUserInfo => ({
+        id: m.user_id || m.id || '',
+        first_name: m.first_name ?? null,
+        last_name: m.last_name ?? null,
+        email: m.email || '',
+        avatar_url: m.avatar_url ?? null,
+      }));
+
+      // Fetch users from all managed client accounts
+      interface ClientUsersResponse {
+        users: Array<{
+          id: string;
+          first_name: string | null;
+          last_name: string | null;
+          email: string;
+          avatar_url: string | null;
+          account_name: string | null;
+        }>;
       }
+      let clientUsers: WMUserInfo[] = [];
+      try {
+        const clientUsersResponse = await apiClient.get<ClientUsersResponse>('/agency/client-users');
+        clientUsers = (clientUsersResponse.users || []).map((u): WMUserInfo => ({
+          id: u.id,
+          first_name: u.first_name,
+          last_name: u.last_name,
+          email: u.email,
+          avatar_url: u.avatar_url,
+        }));
+      } catch {
+        // Endpoint may not exist yet, continue with just agency members
+      }
+
+      // Combine and dedupe by user ID
+      const allUsers = [...agencyMembers];
+      const existingIds = new Set(agencyMembers.map(m => m.id));
+      for (const clientUser of clientUsers) {
+        if (!existingIds.has(clientUser.id)) {
+          allUsers.push(clientUser);
+          existingIds.add(clientUser.id);
+        }
+      }
+
+      setAccountUsers(allUsers);
     } catch (err) {
       console.error("Failed to fetch account users:", err);
     }
