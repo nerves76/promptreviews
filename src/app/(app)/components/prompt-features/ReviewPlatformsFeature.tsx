@@ -93,6 +93,12 @@ const getPlatformIcon = (name: string, url: string) => {
   return { icon: "FaRegStar", color: "text-slate-blue" };
 };
 
+const isYelpPlatform = (platform: ReviewPlatform): boolean => {
+  const lowerUrl = (platform.url || "").toLowerCase();
+  const lowerCustomName = (platform.customPlatform || "").toLowerCase();
+  return lowerUrl.includes("yelp") || lowerCustomName.includes("yelp");
+};
+
 export default function ReviewPlatformsFeature({
   platforms,
   onPlatformsChange,
@@ -275,6 +281,15 @@ export default function ReviewPlatformsFeature({
                   </div>
                 )}
               </div>
+
+              {isYelpPlatform(platform) && (
+                <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-md flex items-start gap-2">
+                  <Icon name="FaExclamationTriangle" className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" size={16} />
+                  <p className="text-sm text-amber-800">
+                    Yelp does not allow asking for reviews. Reviews coming from Prompt Reviews may not make it past moderation.
+                  </p>
+                </div>
+              )}
 
               {onGenerateReview && (
                 <div className="mt-4">

@@ -54,6 +54,13 @@ function getPlatformIcon(platform: string): { icon: IconName; label: string } {
   return { icon: "FaStar", label: "Other" };
 }
 
+// Helper to detect if platform is Yelp (via URL or custom name)
+function isYelpPlatform(platform: ReviewPlatformLink): boolean {
+  const lowerUrl = (platform.url || "").toLowerCase();
+  const lowerCustomName = (platform.customPlatform || "").toLowerCase();
+  return lowerUrl.includes("yelp") || lowerCustomName.includes("yelp");
+}
+
 const ReviewPlatformsSection: React.FC<ReviewPlatformsSectionProps> = ({
   value,
   onChange,
@@ -225,6 +232,14 @@ const ReviewPlatformsSection: React.FC<ReviewPlatformsSectionProps> = ({
             <div className="text-xs text-gray-500 text-right">
               {platform.customInstructions?.length || 0}/160
             </div>
+            {isYelpPlatform(platform) && (
+              <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-md flex items-start gap-2">
+                <Icon name="FaExclamationTriangle" className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" size={16} />
+                <p className="text-sm text-amber-800">
+                  Yelp does not allow asking for reviews. Reviews coming from Prompt Reviews may not make it past moderation.
+                </p>
+              </div>
+            )}
           </div>
         ))}
         <button
