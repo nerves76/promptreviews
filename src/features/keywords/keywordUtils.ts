@@ -907,6 +907,7 @@ export interface LLMVisibilityResult {
   question: string;
   llmProvider: string;
   domainCited: boolean;
+  brandMentioned: boolean;
   citationPosition: number | null;
   checkedAt: string;
 }
@@ -916,6 +917,7 @@ export interface LLMVisibilityResult {
  */
 export interface LLMProviderResult {
   domainCited: boolean;
+  brandMentioned: boolean;
   citationPosition?: number | null;
   checkedAt: string;
 }
@@ -943,6 +945,7 @@ export function buildQuestionLLMMap(
     if (!existing || new Date(result.checkedAt) > new Date(existing.checkedAt)) {
       providerMap.set(result.llmProvider, {
         domainCited: result.domainCited,
+        brandMentioned: result.brandMentioned,
         citationPosition: result.citationPosition,
         checkedAt: result.checkedAt,
       });

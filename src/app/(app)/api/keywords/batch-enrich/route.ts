@@ -57,6 +57,7 @@ interface LLMVisibilityResult {
   question: string;
   llmProvider: string;
   domainCited: boolean;
+  brandMentioned: boolean;
   citationPosition: number | null;
   checkedAt: string;
 }
@@ -621,6 +622,7 @@ export async function POST(request: NextRequest) {
             question: row.question,
             llmProvider: row.llm_provider,
             domainCited: row.domain_cited,
+            brandMentioned: row.brand_mentioned ?? false,
             citationPosition: row.citation_position,
             checkedAt: row.checked_at,
           });

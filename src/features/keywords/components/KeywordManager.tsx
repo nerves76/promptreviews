@@ -43,6 +43,7 @@ interface LLMVisibilityResult {
   question: string;
   llmProvider: string;
   domainCited: boolean;
+  brandMentioned: boolean;
   citationPosition: number | null;
   checkedAt: string;
 }

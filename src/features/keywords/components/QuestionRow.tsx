@@ -44,7 +44,7 @@ function formatRelativeTime(dateStr: string): string {
  * Renders a single AI visibility question with:
  * - Question text
  * - Funnel stage badge (editable dropdown in edit mode)
- * - LLM citation status (X/Y cited) with appropriate colors
+ * - LLM mention status (X/Y mentioned) with appropriate colors
  * - Last checked date
  * - Check/Re-check button
  * - Optional expandable section showing per-provider results
@@ -56,6 +56,7 @@ interface QuestionRowProps {
   index: number;
   llmResults?: Map<string, {
     domainCited: boolean;
+    brandMentioned: boolean;
     citationPosition?: number | null;
     checkedAt: string
   }>;
@@ -95,10 +96,10 @@ export function QuestionRow({
 }: QuestionRowProps) {
   const funnelColor = getFunnelStageColor(question.funnelStage);
 
-  // Calculate citation stats
+  // Calculate mention stats
   const hasResults = llmResults && llmResults.size > 0;
-  const citedCount = hasResults
-    ? Array.from(llmResults.values()).filter(r => r.domainCited).length
+  const mentionedCount = hasResults
+    ? Array.from(llmResults.values()).filter(r => r.brandMentioned).length
     : 0;
   const totalProviders = hasResults ? llmResults.size : 0;
 
@@ -168,21 +169,21 @@ export function QuestionRow({
           </button>
         ) : (
           <div className="flex items-center gap-2 flex-shrink-0">
-            {/* Citation status with provider badges */}
+            {/* Mention status with provider badges */}
             {hasResults ? (
               <div className="flex items-center gap-1.5">
-                {/* Show which providers cited */}
-                {citedCount > 0 && (
+                {/* Show which providers mentioned */}
+                {mentionedCount > 0 && (
                   <div className="flex items-center gap-0.5">
                     {Array.from(llmResults.entries())
-                      .filter(([_, r]) => r.domainCited)
+                      .filter(([_, r]) => r.brandMentioned)
                       .map(([provider]) => {
                         const colors = LLM_PROVIDER_COLORS[provider as LLMProvider];
                         return (
                           <span
                             key={provider}
                             className={`px-1 py-0.5 rounded text-[9px] font-medium ${colors.bg} ${colors.text}`}
-                            title={`${LLM_PROVIDER_LABELS[provider as LLMProvider]} cited your website`}
+                            title={`${LLM_PROVIDER_LABELS[provider as LLMProvider]} mentioned your business`}
                           >
                             {LLM_PROVIDER_SHORT_LABELS[provider as LLMProvider]}
                           </span>
@@ -190,11 +191,11 @@ export function QuestionRow({
                       })}
                   </div>
                 )}
-                {/* Citation count badge */}
+                {/* Mention count badge */}
                 <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
-                  citedCount > 0 ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+                  mentionedCount > 0 ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
                 }`}>
-                  {citedCount}/{totalProviders} cited
+                  {mentionedCount}/{totalProviders} mentioned
                 </span>
               </div>
             ) : (

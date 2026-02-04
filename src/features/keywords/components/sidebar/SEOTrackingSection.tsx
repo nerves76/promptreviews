@@ -108,7 +108,7 @@ export interface SEOTrackingSectionProps {
   /** Callback to toggle LLM provider selection */
   onToggleLLMProvider: (provider: LLMProvider) => void;
   /** Map of question to LLM results */
-  questionLLMMap: Map<string, Map<string, { domainCited: boolean; citationPosition?: number | null; checkedAt: string }>>;
+  questionLLMMap: Map<string, Map<string, { domainCited: boolean; brandMentioned: boolean; citationPosition?: number | null; checkedAt: string }>>;
   /** Index of question being checked */
   checkingQuestionIndex: number | null;
   /** Callback to check a question */

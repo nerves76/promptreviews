@@ -237,11 +237,11 @@ export function ConceptCard({
     return terms.length > 0 && terms.every(t => (t.searchVolume || 0) < 10);
   }, [termVolumeData]);
 
-  // Calculate LLM citation stats (cited / total checks)
-  const llmCitationStats = useMemo(() => {
+  // Calculate LLM mention stats (mentioned / total checks)
+  const llmMentionStats = useMemo(() => {
     if (llmResults.length === 0) return null;
-    const citedCount = llmResults.filter(r => r.domainCited).length;
-    return { cited: citedCount, total: llmResults.length };
+    const mentionedCount = llmResults.filter(r => r.brandMentioned).length;
+    return { mentioned: mentionedCount, total: llmResults.length };
   }, [llmResults]);
 
   // Check volume for a term
@@ -667,17 +667,17 @@ export function ConceptCard({
                   </span>
                 )}
                 {/* AI visibility - rose */}
-                {llmCitationStats && (
+                {llmMentionStats && (
                   <span
                     className={`px-1.5 py-0.5 text-[10px] font-medium rounded flex items-center gap-0.5 ${
-                      llmCitationStats.cited > 0
+                      llmMentionStats.mentioned > 0
                         ? 'bg-rose-100 text-rose-700'
                         : 'bg-gray-100 text-gray-600'
                     }`}
-                    title={`AI visibility: ${llmCitationStats.cited} of ${llmCitationStats.total} AI responses cite your business`}
+                    title={`AI visibility: ${llmMentionStats.mentioned} of ${llmMentionStats.total} AI responses mention your business`}
                   >
                     <Icon name="FaSparkles" className="w-2 h-2" />
-                    {llmCitationStats.cited}/{llmCitationStats.total}
+                    {llmMentionStats.mentioned}/{llmMentionStats.total}
                   </span>
                 )}
                 {/* Google ranking - blue (shows when there's rank data from tracking groups OR standalone checks) */}

@@ -15,6 +15,7 @@ export interface FunnelStageGroupProps {
   /** Map of question text -> provider -> LLM visibility results */
   llmResultsMap: Map<string, Map<string, {
     domainCited: boolean;
+    brandMentioned: boolean;
     citationPosition?: number | null;
     checkedAt: string;
   }>>;
