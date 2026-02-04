@@ -187,18 +187,6 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
     return hasName && (hasAboutUs || hasServices);
   };
 
-  // Helper function to check if keywords/AI guidelines have been added
-  // Only check ai_dos/ai_donts (which require deliberate user action).
-  // Business-level keywords are excluded because they get auto-imported
-  // from the website scraper during profile setup, which would falsely
-  // mark this step complete before the user reviews their AI guidelines.
-  const checkKeywordsAndGuidelinesComplete = (data: BusinessData | null | undefined): boolean => {
-    if (!data) return false;
-    const hasAiDos = !!(data.ai_dos && data.ai_dos.trim().length > 0);
-    const hasAiDonts = !!(data.ai_donts && data.ai_donts.trim().length > 0);
-    return hasAiDos || hasAiDonts;
-  };
-
   // Helper function to check if universal prompt page has been customized
   const checkUniversalPromptPageCustomized = (data: UniversalPromptPageData | null | undefined): boolean => {
     if (!data) return false;
@@ -253,7 +241,6 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
 
         // Check actual data for smart task completion
         const businessProfileComplete = checkBusinessProfileComplete(businessData);
-        const keywordsComplete = checkKeywordsAndGuidelinesComplete(businessData);
         const stylingComplete = checkStylingComplete(businessData);
         const universalPageCustomized = checkUniversalPromptPageCustomized(universalPromptPageData);
 
@@ -277,15 +264,6 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
             icon: <Icon name="FaPalette" className="w-5 h-5" size={20} />,
             completed: stylingComplete || taskStatus["style-prompt-pages"] || false,
             helpArticleId: "style-settings"
-          },
-          {
-            id: "prompt-page-settings",
-            title: "Add keywords and AI guidelines",
-            description: "Set keywords, dos and don'ts for better AI responses",
-            link: "/prompt-pages?openSettings=true",
-            icon: <Icon name="FaCog" className="w-5 h-5" size={20} />,
-            completed: keywordsComplete || taskStatus["prompt-page-settings"] || false,
-            helpArticleId: "prompt-pages/settings"
           },
           {
             id: "customize-universal",
@@ -337,15 +315,6 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
             icon: <Icon name="FaPalette" className="w-5 h-5" size={20} />,
             completed: false,
             helpArticleId: "style-settings"
-          },
-          {
-            id: "prompt-page-settings",
-            title: "Add keywords and AI guidelines",
-            description: "Set keywords, dos and don'ts for better AI responses",
-            link: "/prompt-pages?openSettings=true",
-            icon: <Icon name="FaCog" className="w-5 h-5" size={20} />,
-            completed: false,
-            helpArticleId: "prompt-pages/settings"
           },
           {
             id: "customize-universal",
