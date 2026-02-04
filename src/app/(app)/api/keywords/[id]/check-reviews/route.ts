@@ -229,7 +229,8 @@ export async function POST(
 
       // Run keyword matching
       const matcher = new KeywordMatchService(serviceSupabase, accountId);
-      await matcher.process(records);
+      const matcherStats = await matcher.process(records);
+      console.log('[CheckReviews] Matcher stats:', matcherStats);
 
       // Debug: Count how many matches were inserted for this keyword
       const { count: matchCount } = await serviceSupabase
@@ -279,6 +280,7 @@ export async function POST(
             pattern: `\\b${testPhrase}\\b`,
             matches: new RegExp(`\\b${testPhrase}\\b`, 'i').test(records[0].reviewText.toLowerCase()),
           } : null,
+          matcherStats: matcherStats || null,
           sampleReviewText: records.length > 0 ? records[0].reviewText.substring(0, 150) : null,
         },
       });

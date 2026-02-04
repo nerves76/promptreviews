@@ -160,17 +160,17 @@ export class KeywordMatchService {
    *
    * @param records - Array of synced review records to process
    */
-  async process(records: SyncedReviewRecord[]): Promise<void> {
+  async process(records: SyncedReviewRecord[]): Promise<{ matchesFound: number; keywordsLoaded: number; recordsProcessed: number }> {
     if (!records.length) {
       console.log('[KeywordMatchService] No records to process');
-      return;
+      return { matchesFound: 0, keywordsLoaded: 0, recordsProcessed: 0 };
     }
 
     const keywords = await this.loadKeywords();
     console.log('[KeywordMatchService] Active keywords loaded:', keywords.length);
     if (!keywords.length) {
       console.log('[KeywordMatchService] No active keywords found for account');
-      return;
+      return { matchesFound: 0, keywordsLoaded: keywords.length, recordsProcessed: 0 };
     }
 
     const inserts: {
@@ -211,7 +211,7 @@ export class KeywordMatchService {
     console.log('[KeywordMatchService] Total matches found:', inserts.length);
     if (!inserts.length) {
       console.log('[KeywordMatchService] No matches found in any records');
-      return;
+      return { matchesFound: 0, keywordsLoaded: keywords.length, recordsProcessed: processedCount };
     }
 
     // Split inserts by type - each has a different unique constraint
@@ -245,6 +245,8 @@ export class KeywordMatchService {
         console.error('❌ Failed to upsert Google review keyword matches:', error);
       }
     }
+
+    return { matchesFound: inserts.length, keywordsLoaded: keywords.length, recordsProcessed: processedCount };
   }
 
   /**
