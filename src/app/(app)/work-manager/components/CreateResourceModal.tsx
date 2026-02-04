@@ -11,6 +11,12 @@ import {
   WM_PRIORITY_LABELS,
 } from "@/types/workManager";
 
+interface PendingLink {
+  id: string;
+  name: string;
+  url: string;
+}
+
 interface CreateResourceModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -31,6 +37,12 @@ export default function CreateResourceModal({
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Links state
+  const [pendingLinks, setPendingLinks] = useState<PendingLink[]>([]);
+  const [newLinkName, setNewLinkName] = useState("");
+  const [newLinkUrl, setNewLinkUrl] = useState("");
+  const [linkError, setLinkError] = useState<string | null>(null);
+
   // Reset form when modal opens
   useEffect(() => {
     if (isOpen) {
@@ -39,8 +51,43 @@ export default function CreateResourceModal({
       setCategory("general");
       setPriority("medium");
       setError(null);
+      setPendingLinks([]);
+      setNewLinkName("");
+      setNewLinkUrl("");
+      setLinkError(null);
     }
   }, [isOpen]);
+
+  const handleAddPendingLink = () => {
+    if (!newLinkName.trim() || !newLinkUrl.trim()) {
+      setLinkError("Both name and URL are required");
+      return;
+    }
+
+    // Basic URL validation
+    try {
+      new URL(newLinkUrl.trim());
+    } catch {
+      setLinkError("Please enter a valid URL (e.g., https://example.com)");
+      return;
+    }
+
+    setPendingLinks([
+      ...pendingLinks,
+      {
+        id: `pending-${Date.now()}`,
+        name: newLinkName.trim(),
+        url: newLinkUrl.trim(),
+      },
+    ]);
+    setNewLinkName("");
+    setNewLinkUrl("");
+    setLinkError(null);
+  };
+
+  const handleRemovePendingLink = (id: string) => {
+    setPendingLinks(pendingLinks.filter((link) => link.id !== id));
+  };
 
   const handleCreate = async () => {
     if (!title.trim()) {
@@ -52,13 +99,29 @@ export default function CreateResourceModal({
     setError(null);
 
     try {
-      await apiClient.post("/work-manager/resources", {
+      // Create the resource first
+      const response = await apiClient.post<{ resource: { id: string } }>("/work-manager/resources", {
         board_id: boardId,
         title: title.trim(),
         description: description.trim() || undefined,
         category,
         priority,
       });
+
+      const resourceId = response.resource.id;
+
+      // Create any pending links
+      if (pendingLinks.length > 0) {
+        await Promise.all(
+          pendingLinks.map((link) =>
+            apiClient.post("/work-manager/links", {
+              resource_id: resourceId,
+              name: link.name,
+              url: link.url,
+            })
+          )
+        );
+      }
 
       onResourceCreated();
       onClose();
@@ -155,6 +218,83 @@ export default function CreateResourceModal({
                 </option>
               ))}
             </select>
+          </div>
+        </div>
+
+        {/* Links section */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+            <Icon name="FaLink" size={14} className="text-gray-500" />
+            Links
+            {pendingLinks.length > 0 && (
+              <span className="text-xs font-normal text-gray-500">({pendingLinks.length})</span>
+            )}
+          </label>
+
+          {/* Pending links list */}
+          {pendingLinks.length > 0 && (
+            <div className="space-y-2 mb-2">
+              {pendingLinks.map((link) => (
+                <div
+                  key={link.id}
+                  className="flex items-center justify-between gap-3 p-2 bg-gray-50 rounded-lg group"
+                >
+                  <div className="flex items-center gap-2 text-sm text-slate-blue min-w-0 flex-1">
+                    <Icon name="FaGlobe" size={14} className="text-gray-400 flex-shrink-0" />
+                    <span className="truncate">{link.name}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleRemovePendingLink(link.id)}
+                    className="p-1 text-gray-400 hover:text-red-500 flex-shrink-0"
+                    aria-label={`Remove link ${link.name}`}
+                  >
+                    <Icon name="FaTimes" size={14} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Add link form */}
+          <div className="p-3 bg-blue-50 rounded-lg border border-blue-100 space-y-2">
+            <div className="grid grid-cols-2 gap-2">
+              <input
+                type="text"
+                value={newLinkName}
+                onChange={(e) => {
+                  setNewLinkName(e.target.value);
+                  setLinkError(null);
+                }}
+                placeholder="Link name"
+                className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-blue"
+              />
+              <input
+                type="url"
+                value={newLinkUrl}
+                onChange={(e) => {
+                  setNewLinkUrl(e.target.value);
+                  setLinkError(null);
+                }}
+                placeholder="https://..."
+                className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-blue"
+              />
+            </div>
+            {linkError && (
+              <p className="text-xs text-red-600 flex items-center gap-1">
+                <Icon name="FaExclamationTriangle" size={12} />
+                {linkError}
+              </p>
+            )}
+            <button
+              type="button"
+              onClick={handleAddPendingLink}
+              disabled={!newLinkName.trim() || !newLinkUrl.trim()}
+              className="text-sm text-slate-blue hover:text-slate-blue/80 font-medium flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Icon name="FaPlus" size={12} />
+              Add link
+            </button>
           </div>
         </div>
 
