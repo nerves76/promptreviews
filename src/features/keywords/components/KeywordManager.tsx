@@ -991,7 +991,7 @@ export default function KeywordManager({
       {!compact && (
         <div className="mb-6 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div className="flex-1 min-w-0">
-            <h2 className="text-xl font-bold text-slate-blue">Keyword Concepts Library</h2>
+            <h2 className="text-xl font-bold text-slate-blue">Keyword Concepts</h2>
             <p className="text-sm text-gray-500 mt-1">
               Organize concepts for SEO rank tracking, review keyword matching, and AI visibility monitoring.
             </p>
