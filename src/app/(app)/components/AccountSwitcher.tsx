@@ -114,6 +114,21 @@ export function AccountSwitcher() {
     }
   };
 
+  // Get the user's agency account IDs for checking managed accounts
+  const userAgencyIds = availableAccounts
+    .filter(acc => acc.is_agncy && (acc.role === 'owner' || acc.role === 'admin'))
+    .map(acc => acc.account_id);
+
+  // Get display label for role - shows "Managing agency" for agency-managed client accounts
+  const getRoleDisplayLabel = (account: UserAccount): string => {
+    // Check if this account is managed by one of the user's agencies
+    if (account.managing_agncy_id && userAgencyIds.includes(account.managing_agncy_id)) {
+      return 'Managing agency';
+    }
+    // Capitalize first letter of role
+    return account.role.charAt(0).toUpperCase() + account.role.slice(1).replace('_', ' ');
+  };
+
   return (
     <div className="relative" ref={dropdownRef}>
       {/* Current Account Button */}
@@ -224,7 +239,7 @@ export function AccountSwitcher() {
                     
                     {/* Account Details */}
                     <div className="flex items-center gap-2 mt-1">
-                      <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-white/10 text-white border border-white/20">{account.role}</span>
+                      <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-white/10 text-white border border-white/20">{getRoleDisplayLabel(account)}</span>
                     </div>
                   </div>
                   

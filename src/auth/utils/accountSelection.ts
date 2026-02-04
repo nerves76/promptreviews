@@ -18,6 +18,7 @@ export interface UserAccount {
   is_primary?: boolean; // The account that would be selected by default algorithm
   is_agncy?: boolean; // Whether this account is an agency account
   is_client_account?: boolean; // Whether this account is a client account
+  managing_agncy_id?: string | null; // The agency that manages this client account
 }
 
 /**
@@ -82,7 +83,8 @@ export async function fetchUserAccounts(userId: string, supabaseClient?: any): P
           business_name,
           plan,
           is_agncy,
-          is_client_account
+          is_client_account,
+          managing_agncy_id
         )
       `)
       .eq("user_id", userId);
@@ -102,6 +104,7 @@ export async function fetchUserAccounts(userId: string, supabaseClient?: any): P
       business_name: au.accounts.business_name,
       is_agncy: au.accounts.is_agncy || false,
       is_client_account: au.accounts.is_client_account || false,
+      managing_agncy_id: au.accounts.managing_agncy_id || null,
     })) || [];
 
     // 2. Find agency accounts that this user owns/admins
@@ -122,7 +125,8 @@ export async function fetchUserAccounts(userId: string, supabaseClient?: any): P
           business_name,
           plan,
           is_agncy,
-          is_client_account
+          is_client_account,
+          managing_agncy_id
         `)
         .in("managing_agncy_id", agencyAccountIds)
         .is("deleted_at", null);
@@ -140,6 +144,7 @@ export async function fetchUserAccounts(userId: string, supabaseClient?: any): P
           business_name: acc.business_name,
           is_agncy: acc.is_agncy || false,
           is_client_account: acc.is_client_account || false,
+          managing_agncy_id: acc.managing_agncy_id || null,
         })) || [];
       }
     }
