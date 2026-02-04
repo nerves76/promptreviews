@@ -126,11 +126,11 @@ module.exports = {
         // Glassmorphic - use white with opacity (white/20, white/90, etc.)
 
         // === LLM PROVIDER BRAND COLORS ===
-        // ChatGPT - Dark slate (matches their dark UI)
+        // ChatGPT - Soft slate (inspired by their dark UI, but softer)
         "llm-chatgpt": {
-          bg: "#1e293b",
-          text: "#f1f5f9",
-          border: "#475569",
+          bg: "#475569",
+          text: "#f8fafc",
+          border: "#64748b",
         },
         // Claude - Coral (#d97757) - more saturated
         "llm-claude": {
