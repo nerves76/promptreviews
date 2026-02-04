@@ -224,13 +224,13 @@ export default function HomePage() {
           {/* Search Bar */}
           <div className="max-w-md mx-auto">
             <div className="relative">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-white" />
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-white/90 z-10" />
               <input
                 type="text"
                 placeholder="Search documentation..."
                 className="w-full pl-12 pr-12 py-3 bg-white/10 border border-white/30 rounded-lg focus:ring-2 focus:ring-white/50 focus:border-white/50 outline-none text-white placeholder:text-white/70 backdrop-blur-sm"
               />
-              <kbd className="absolute right-3 top-1/2 transform -translate-y-1/2 px-2 py-1 text-xs font-mono text-white/70 border border-white/30 rounded">
+              <kbd className="absolute right-3 top-1/2 transform -translate-y-1/2 px-2 py-1 text-xs font-mono text-white/70 border border-white/30 rounded z-10">
                 ⌘K
               </kbd>
             </div>

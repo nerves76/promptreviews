@@ -161,10 +161,17 @@ export class KeywordMatchService {
    * @param records - Array of synced review records to process
    */
   async process(records: SyncedReviewRecord[]): Promise<void> {
-    if (!records.length) return;
+    if (!records.length) {
+      console.log('[KeywordMatchService] No records to process');
+      return;
+    }
 
     const keywords = await this.loadKeywords();
-    if (!keywords.length) return;
+    console.log('[KeywordMatchService] Active keywords loaded:', keywords.length);
+    if (!keywords.length) {
+      console.log('[KeywordMatchService] No active keywords found for account');
+      return;
+    }
 
     const inserts: {
       keyword_id: string;
@@ -177,9 +184,11 @@ export class KeywordMatchService {
       matched_at: string;
     }[] = [];
 
+    let processedCount = 0;
     for (const record of records) {
       const body = (record.reviewText || '').toLowerCase();
       if (!body) continue;
+      processedCount++;
 
       for (const keyword of keywords) {
         const match = this.matchKeyword(keyword, body);
@@ -198,7 +207,12 @@ export class KeywordMatchService {
       }
     }
 
-    if (!inserts.length) return;
+    console.log('[KeywordMatchService] Records processed:', processedCount);
+    console.log('[KeywordMatchService] Total matches found:', inserts.length);
+    if (!inserts.length) {
+      console.log('[KeywordMatchService] No matches found in any records');
+      return;
+    }
 
     // Split inserts by type - each has a different unique constraint
     const submissionInserts = inserts.filter(i => i.review_submission_id !== null);

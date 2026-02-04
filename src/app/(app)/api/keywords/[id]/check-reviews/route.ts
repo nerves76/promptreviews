@@ -187,9 +187,16 @@ export async function POST(
       // Get the keyword's review_phrase for debugging
       const { data: keywordWithPhrase } = await serviceSupabase
         .from('keywords')
-        .select('review_phrase, normalized_phrase, aliases')
+        .select('review_phrase, normalized_phrase, aliases, status')
         .eq('id', keywordId)
         .single();
+
+      console.log('[CheckReviews] Keyword details:', {
+        id: keywordId,
+        status: keywordWithPhrase?.status,
+        review_phrase: keywordWithPhrase?.review_phrase,
+        normalized_phrase: keywordWithPhrase?.normalized_phrase,
+      });
 
       // Debug: Check if "diviner" appears in any review
       const divinerCount = records.filter(r =>
@@ -199,6 +206,14 @@ export async function POST(
       // Run keyword matching
       const matcher = new KeywordMatchService(serviceSupabase, accountId);
       await matcher.process(records);
+
+      // Debug: Count how many matches were inserted for this keyword
+      const { count: matchCount } = await serviceSupabase
+        .from('keyword_review_matches_v2')
+        .select('*', { count: 'exact', head: true })
+        .eq('keyword_id', keywordId);
+
+      console.log('[CheckReviews] Matches inserted for keyword:', matchCount);
 
       // Sync usage counts for this keyword
       await syncKeywordUsageCounts(serviceSupabase, accountId);
@@ -228,9 +243,11 @@ export async function POST(
           totalReviewsInDb: reviews?.length || 0,
           reviewsWithContent: records.length,
           reviewsContainingDiviner: divinerCount,
+          keywordStatus: keywordWithPhrase?.status,
           keywordReviewPhrase: keywordWithPhrase?.review_phrase,
           keywordNormalizedPhrase: keywordWithPhrase?.normalized_phrase,
           keywordAliases: keywordWithPhrase?.aliases,
+          matchesInserted: matchCount || 0,
           sampleReviewText: records.length > 0 ? records[0].reviewText.substring(0, 150) : null,
         },
       });
