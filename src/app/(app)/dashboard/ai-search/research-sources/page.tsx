@@ -338,10 +338,15 @@ export default function ResearchSourcesPage() {
     }
   }, [expandedDomain, fetchAnalysis]);
 
-  // Toggle row expand (URL view)
-  const toggleUrlRowExpand = useCallback((url: string) => {
-    setExpandedUrl(prev => prev === url ? null : url);
-  }, []);
+  // Toggle row expand (URL view) - also fetches domain analysis
+  const toggleUrlRowExpand = useCallback((url: string, domain: string) => {
+    const isCurrentlyExpanded = expandedUrl === url;
+    setExpandedUrl(isCurrentlyExpanded ? null : url);
+
+    if (!isCurrentlyExpanded) {
+      fetchAnalysis(domain);
+    }
+  }, [expandedUrl, fetchAnalysis]);
 
   // Analyze button click - expands strategy and fetches if needed
   const analyzeDomain = useCallback((domain: string) => {
@@ -674,19 +679,17 @@ export default function ResearchSourcesPage() {
                   )}
                   Export CSV
                 </button>
-                {viewMode === 'domain' && (
-                  <button
-                    onClick={() => setShowRunAllModal(true)}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-blue/90 font-medium text-sm transition-colors whitespace-nowrap"
-                  >
-                    <PromptyIcon className="w-4 h-4" />
-                    {unanalyzedCount === null
-                      ? 'Analyze all domains'
-                      : unanalyzedCount === 0
-                      ? 'Analyze again'
-                      : `Analyze all (${unanalyzedCount})`}
-                  </button>
-                )}
+                <button
+                  onClick={() => setShowRunAllModal(true)}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-blue/90 font-medium text-sm transition-colors whitespace-nowrap"
+                >
+                  <PromptyIcon className="w-4 h-4" />
+                  {unanalyzedCount === null
+                    ? 'Analyze opportunities'
+                    : unanalyzedCount === 0
+                    ? 'Analyze again'
+                    : `Analyze opportunities (${unanalyzedCount})`}
+                </button>
               </div>
             </div>
 
@@ -863,8 +866,8 @@ export default function ResearchSourcesPage() {
                                     </>
                                   ) : (
                                     <>
-                                      <Icon name="FaLightbulb" className="w-3 h-3" />
-                                      Strategy
+                                      <PromptyIcon className="w-3 h-3" />
+                                      Opportunities
                                     </>
                                   )}
                                 </button>
@@ -1029,11 +1032,18 @@ export default function ResearchSourcesPage() {
                           <URLSortIcon field="concepts" />
                         </button>
                       </th>
+                      <th className="py-3 px-3 text-center">
+                        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                          Actions
+                        </span>
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
                     {paginatedUrlSources.map((source) => {
                       const isExpanded = expandedUrl === source.url;
+                      const analysis = analyses[source.domain];
+                      const isAnalyzing = analyzingDomains.has(source.domain);
 
                       return (
                         <React.Fragment key={source.url}>
@@ -1046,7 +1056,7 @@ export default function ResearchSourcesPage() {
                             <td className="py-3 px-4 max-w-md">
                               <div className="flex items-start gap-2">
                                 <button
-                                  onClick={() => toggleUrlRowExpand(source.url)}
+                                  onClick={() => toggleUrlRowExpand(source.url, source.domain)}
                                   className="p-1 hover:bg-gray-100 rounded mt-0.5 flex-shrink-0"
                                   aria-label={isExpanded ? 'Collapse details' : 'Expand details'}
                                 >
@@ -1124,24 +1134,93 @@ export default function ResearchSourcesPage() {
                                 )}
                               </div>
                             </td>
+
+                            {/* Actions */}
+                            <td className="py-3 px-3 text-center">
+                              <div className="flex items-center justify-center gap-1">
+                                <button
+                                  onClick={() => analyzeDomain(source.domain)}
+                                  disabled={isAnalyzing}
+                                  className={`inline-flex items-center gap-1 px-2 py-1 text-xs rounded transition-colors whitespace-nowrap ${
+                                    isAnalyzing
+                                      ? 'bg-gray-100 text-gray-400 cursor-wait'
+                                      : analysis
+                                      ? 'text-slate-blue hover:text-slate-blue/80 hover:bg-blue-50'
+                                      : 'bg-slate-blue text-white hover:bg-slate-blue/90'
+                                  }`}
+                                >
+                                  {isAnalyzing ? (
+                                    <>
+                                      <Icon name="FaSpinner" className="w-3 h-3 animate-spin" />
+                                      Analyzing...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <PromptyIcon className="w-3 h-3" />
+                                      Opportunities
+                                    </>
+                                  )}
+                                </button>
+                                <a
+                                  href={source.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1 px-2 py-1 text-xs text-gray-500 hover:text-slate-blue hover:bg-blue-50 rounded transition-colors"
+                                  aria-label={`Visit ${stripTrackingParams(source.url)}`}
+                                >
+                                  <Icon name="FaLink" className="w-3 h-3" />
+                                </a>
+                              </div>
+                            </td>
                           </tr>
 
                           {/* Expanded Row - All Concepts */}
-                          {isExpanded && source.concepts.length > 2 && (
+                          {isExpanded && (
                             <tr className="bg-gray-50">
-                              <td colSpan={5} className="py-3 px-4 pl-12">
-                                <div className="text-xs font-medium text-gray-500 uppercase mb-2">
-                                  All concepts ({source.concepts.length})
-                                </div>
-                                <div className="flex flex-wrap gap-1">
-                                  {source.concepts.map((concept, idx) => (
-                                    <span
-                                      key={idx}
-                                      className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded"
-                                    >
-                                      {concept}
-                                    </span>
-                                  ))}
+                              <td colSpan={6} className="py-3 px-4 pl-12">
+                                <div className="space-y-4">
+                                  {/* Analysis Section */}
+                                  {(analysis || isAnalyzing) && (
+                                    <div className="space-y-2">
+                                      {isAnalyzing ? (
+                                        <div className="flex items-center gap-2 text-gray-500">
+                                          <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
+                                          <span>Analyzing {source.domain}...</span>
+                                        </div>
+                                      ) : analysis ? (
+                                        <>
+                                          <div className="text-sm text-gray-600 mb-2">
+                                            <span className="font-medium">Site type:</span> {analysis.siteType}
+                                          </div>
+                                          <div className="text-sm text-gray-700 bg-white p-3 rounded-lg border border-gray-200">
+                                            <div className="flex items-start gap-2">
+                                              <Icon name="FaLightbulb" className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                                              <p>{analysis.strategy}</p>
+                                            </div>
+                                          </div>
+                                        </>
+                                      ) : null}
+                                    </div>
+                                  )}
+
+                                  {/* All Concepts */}
+                                  {source.concepts.length > 2 && (
+                                    <div>
+                                      <div className="text-xs font-medium text-gray-500 uppercase mb-2">
+                                        All concepts ({source.concepts.length})
+                                      </div>
+                                      <div className="flex flex-wrap gap-1">
+                                        {source.concepts.map((concept, idx) => (
+                                          <span
+                                            key={idx}
+                                            className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded"
+                                          >
+                                            {concept}
+                                          </span>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
                                 </div>
                               </td>
                             </tr>
