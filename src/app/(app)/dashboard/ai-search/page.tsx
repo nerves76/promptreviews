@@ -2223,7 +2223,7 @@ export default function AISearchPage() {
                       </div>
                     </th>
                     {/* Provider columns - results and consistency (citations + mentions) */}
-                    {LLM_PROVIDERS.map(provider => {
+                    {LLM_PROVIDERS.filter(p => selectedProviders.has(p)).map(provider => {
                       const colors = LLM_PROVIDER_COLORS[provider];
                       return (
                         <React.Fragment key={provider}>
@@ -2352,7 +2352,7 @@ export default function AISearchPage() {
                           </td>
 
                           {/* Provider Status Columns + Consistency */}
-                          {LLM_PROVIDERS.map(provider => {
+                          {LLM_PROVIDERS.filter(p => selectedProviders.has(p)).map(provider => {
                             const result = row.results.get(provider);
                             const consistencyData = row.consistency.get(provider);
                             const colors = LLM_PROVIDER_COLORS[provider];
@@ -2525,7 +2525,7 @@ export default function AISearchPage() {
                         {/* Expanded Details Row */}
                         {isExpanded && (
                           <tr className="bg-blue-50">
-                            <td colSpan={9 + LLM_PROVIDERS.length * (showConsistency ? 3 : 1)} className="p-4">
+                            <td colSpan={9 + selectedProviders.size * (showConsistency ? 3 : 1)} className="p-4">
                               {/* Citation Timeline */}
                               <CitationTimeline
                                 question={row.question}
@@ -2535,6 +2535,7 @@ export default function AISearchPage() {
 
                               {(() => {
                                 const resultsWithData = LLM_PROVIDERS
+                                  .filter(p => selectedProviders.has(p))
                                   .map(provider => ({ provider, result: row.results.get(provider) }))
                                   .filter(({ result }) => result !== null);
 

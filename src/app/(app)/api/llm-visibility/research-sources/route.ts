@@ -8,18 +8,33 @@
  * GET /api/llm-visibility/research-sources
  * Query params:
  *   - conceptId (optional): Filter to a specific keyword/concept
+ *   - view (optional): 'domain' (default) or 'url' - aggregate by domain or individual URL
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/auth/providers/supabase';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 
+interface ResearchSourceUrl {
+  url: string;
+  count: number;
+}
+
 interface ResearchSource {
   domain: string;
   frequency: number;
   lastSeen: string;
-  sampleUrls: string[];
+  sampleUrls: ResearchSourceUrl[];
   sampleTitles: string[];
+  concepts: string[];
+  isOurs: boolean;
+}
+
+interface URLResearchSource {
+  url: string;
+  domain: string;
+  frequency: number;
+  lastSeen: string;
   concepts: string[];
   isOurs: boolean;
 }
@@ -29,6 +44,13 @@ interface ResearchSourcesResponse {
   totalChecks: number;
   uniqueDomains: number;
   yourDomainAppearances: number;
+}
+
+interface URLResearchSourcesResponse {
+  sources: URLResearchSource[];
+  totalChecks: number;
+  uniqueUrls: number;
+  yourUrlAppearances: number;
 }
 
 export async function GET(request: NextRequest) {
@@ -45,9 +67,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'No valid account found' }, { status: 403 });
     }
 
-    // Get optional concept filter
+    // Get optional filters
     const { searchParams } = new URL(request.url);
     const conceptId = searchParams.get('conceptId');
+    const view = searchParams.get('view') || 'domain';
 
     // Fetch all checks with search_results for this account
     let query = supabase
@@ -76,18 +99,18 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch data' }, { status: 500 });
     }
 
-    // Aggregate search_results by domain
-    const domainMap = new Map<string, {
-      frequency: number;
-      lastSeen: Date;
-      urls: Set<string>;
-      titles: Set<string>;
-      concepts: Set<string>;
+    // Parse checks into a flat list of results
+    type ParsedResult = {
+      url: string;
+      domain: string;
+      title: string | null;
       isOurs: boolean;
-    }>();
+      conceptName: string;
+      checkedAt: Date;
+    };
 
+    const allResults: ParsedResult[] = [];
     let totalChecksWithResults = 0;
-    let yourDomainAppearances = 0;
 
     for (const check of checks || []) {
       const searchResults = check.search_results as Array<{
@@ -108,36 +131,115 @@ export async function GET(request: NextRequest) {
 
       for (const result of searchResults) {
         if (!result.domain) continue;
+        allResults.push({
+          url: result.url,
+          domain: result.domain.toLowerCase(),
+          title: result.title,
+          isOurs: result.isOurs,
+          conceptName,
+          checkedAt,
+        });
+      }
+    }
 
-        const domain = result.domain.toLowerCase();
+    // --- URL view ---
+    if (view === 'url') {
+      const urlMap = new Map<string, {
+        domain: string;
+        frequency: number;
+        lastSeen: Date;
+        concepts: Set<string>;
+        isOurs: boolean;
+      }>();
 
-        if (!domainMap.has(domain)) {
-          domainMap.set(domain, {
+      let yourUrlAppearances = 0;
+
+      for (const r of allResults) {
+        if (!r.url) continue;
+
+        if (!urlMap.has(r.url)) {
+          urlMap.set(r.url, {
+            domain: r.domain,
             frequency: 0,
-            lastSeen: checkedAt,
-            urls: new Set(),
-            titles: new Set(),
+            lastSeen: r.checkedAt,
             concepts: new Set(),
             isOurs: false,
           });
         }
 
-        const entry = domainMap.get(domain)!;
+        const entry = urlMap.get(r.url)!;
         entry.frequency++;
-        if (checkedAt > entry.lastSeen) {
-          entry.lastSeen = checkedAt;
+        if (r.checkedAt > entry.lastSeen) {
+          entry.lastSeen = r.checkedAt;
         }
-        if (result.url) {
-          entry.urls.add(result.url);
-        }
-        if (result.title) {
-          entry.titles.add(result.title);
-        }
-        entry.concepts.add(conceptName);
-        if (result.isOurs) {
+        entry.concepts.add(r.conceptName);
+        if (r.isOurs) {
           entry.isOurs = true;
-          yourDomainAppearances++;
+          yourUrlAppearances++;
         }
+      }
+
+      const urlSources: URLResearchSource[] = Array.from(urlMap.entries())
+        .map(([url, data]) => ({
+          url,
+          domain: data.domain,
+          frequency: data.frequency,
+          lastSeen: data.lastSeen.toISOString(),
+          concepts: Array.from(data.concepts).slice(0, 10),
+          isOurs: data.isOurs,
+        }))
+        .sort((a, b) => b.frequency - a.frequency)
+        .slice(0, 200);
+
+      const urlResponse: URLResearchSourcesResponse = {
+        sources: urlSources,
+        totalChecks: totalChecksWithResults,
+        uniqueUrls: urlMap.size,
+        yourUrlAppearances,
+      };
+
+      return NextResponse.json(urlResponse);
+    }
+
+    // --- Domain view (default) ---
+    const domainMap = new Map<string, {
+      frequency: number;
+      lastSeen: Date;
+      urls: Map<string, number>;
+      titles: Set<string>;
+      concepts: Set<string>;
+      isOurs: boolean;
+    }>();
+
+    let yourDomainAppearances = 0;
+
+    for (const r of allResults) {
+      if (!domainMap.has(r.domain)) {
+        domainMap.set(r.domain, {
+          frequency: 0,
+          lastSeen: r.checkedAt,
+          urls: new Map(),
+          titles: new Set(),
+          concepts: new Set(),
+          isOurs: false,
+        });
+      }
+
+      const entry = domainMap.get(r.domain)!;
+      entry.frequency++;
+      if (r.checkedAt > entry.lastSeen) {
+        entry.lastSeen = r.checkedAt;
+      }
+      if (r.url) {
+        entry.urls.set(r.url, (entry.urls.get(r.url) || 0) + 1);
+      }
+      if (r.title) {
+        entry.titles.add(r.title);
+      }
+      entry.concepts.add(r.conceptName);
+      if (r.isOurs) {
+        entry.isOurs = true;
+        yourDomainAppearances++;
       }
     }
 
@@ -147,7 +249,10 @@ export async function GET(request: NextRequest) {
         domain,
         frequency: data.frequency,
         lastSeen: data.lastSeen.toISOString(),
-        sampleUrls: Array.from(data.urls).slice(0, 5),
+        sampleUrls: Array.from(data.urls.entries())
+          .map(([url, count]) => ({ url, count }))
+          .sort((a, b) => b.count - a.count)
+          .slice(0, 5),
         sampleTitles: Array.from(data.titles).slice(0, 5),
         concepts: Array.from(data.concepts).slice(0, 10),
         isOurs: data.isOurs,
