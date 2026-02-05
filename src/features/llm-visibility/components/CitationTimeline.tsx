@@ -128,16 +128,6 @@ export function CitationTimeline({ question, keywordId, className = '' }: Citati
         <div className="text-xs font-medium text-gray-600">Check history</div>
         <div className="flex items-center bg-gray-100 rounded p-0.5">
           <button
-            onClick={() => setMetricType('citations')}
-            className={`px-2 py-0.5 text-[10px] font-medium rounded transition-colors ${
-              metricType === 'citations'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            Citations
-          </button>
-          <button
             onClick={() => setMetricType('mentions')}
             className={`px-2 py-0.5 text-[10px] font-medium rounded transition-colors ${
               metricType === 'mentions'
@@ -146,6 +136,16 @@ export function CitationTimeline({ question, keywordId, className = '' }: Citati
             }`}
           >
             Mentions
+          </button>
+          <button
+            onClick={() => setMetricType('citations')}
+            className={`px-2 py-0.5 text-[10px] font-medium rounded transition-colors ${
+              metricType === 'citations'
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            Citations
           </button>
         </div>
       </div>

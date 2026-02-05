@@ -331,16 +331,6 @@ export default function LLMVisibilityTrendChart({
           {/* Metric type toggle */}
           <div className="flex items-center bg-gray-100 rounded-lg p-0.5">
             <button
-              onClick={() => setMetricType('citations')}
-              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-                metricType === 'citations'
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              Citations
-            </button>
-            <button
               onClick={() => setMetricType('mentions')}
               className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
                 metricType === 'mentions'
@@ -349,6 +339,16 @@ export default function LLMVisibilityTrendChart({
               }`}
             >
               Mentions
+            </button>
+            <button
+              onClick={() => setMetricType('citations')}
+              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                metricType === 'citations'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Citations
             </button>
           </div>
 

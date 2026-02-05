@@ -1833,6 +1833,40 @@ export default function AISearchPage() {
                 )}
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {/* Mention Rate with Per-Model Rates */}
+                  <div className={`p-4 rounded-xl border ${displayStats.isFiltered ? 'bg-gradient-to-br from-blue-50/80 to-cyan-50 border-blue-100' : 'bg-gradient-to-br from-cyan-50 to-blue-50 border-cyan-100'}`}>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-2xl font-bold text-blue-600">
+                        {displayStats.averageMentionRate !== null ? `${displayStats.averageMentionRate.toFixed(2)}%` : '--'}
+                      </span>
+                    </div>
+                    <div className="text-sm text-gray-600 flex items-center gap-1">
+                      Mention rate
+                      <span title="Percentage of checks where your brand was mentioned in the AI response text">
+                        <Icon name="FaInfoCircle" className="w-3 h-3 text-gray-400 cursor-help" />
+                      </span>
+                    </div>
+                    {/* Per-model mention rates - only show selected providers */}
+                    <div className="mt-2 flex gap-1.5 flex-wrap">
+                      {LLM_PROVIDERS.filter(p => selectedProviders.has(p)).map((provider) => {
+                        const stats = displayStats.providerStats[provider];
+                        const colors = LLM_PROVIDER_COLORS[provider];
+                        const rate = stats && stats.checked > 0
+                          ? Math.round((stats.mentioned / stats.checked) * 100)
+                          : null;
+                        return (
+                          <span
+                            key={provider}
+                            className={`px-1.5 py-0.5 rounded text-xs ${colors.bg} ${colors.text}`}
+                            title={`${LLM_PROVIDER_LABELS[provider]}: ${stats?.mentioned || 0} mentioned / ${stats?.checked || 0} checked`}
+                          >
+                            {rate !== null ? `${rate}%` : '--'}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  </div>
+
                   {/* Citation Rate with Trend and Per-Model Rates */}
                   <div className={`p-4 rounded-xl border ${displayStats.isFiltered ? 'bg-gradient-to-br from-slate-blue/10 to-blue-50 border-slate-blue/20' : 'bg-gradient-to-br from-blue-50 to-pink-50 border-blue-100'}`}>
                     <div className="flex items-baseline gap-2">
@@ -1873,40 +1907,6 @@ export default function AISearchPage() {
                             key={provider}
                             className={`px-1.5 py-0.5 rounded text-xs ${colors.bg} ${colors.text}`}
                             title={`${LLM_PROVIDER_LABELS[provider]}: ${stats?.cited || 0} cited / ${stats?.checked || 0} checked`}
-                          >
-                            {rate !== null ? `${rate}%` : '--'}
-                          </span>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Mention Rate with Per-Model Rates */}
-                  <div className={`p-4 rounded-xl border ${displayStats.isFiltered ? 'bg-gradient-to-br from-blue-50/80 to-cyan-50 border-blue-100' : 'bg-gradient-to-br from-cyan-50 to-blue-50 border-cyan-100'}`}>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-2xl font-bold text-blue-600">
-                        {displayStats.averageMentionRate !== null ? `${displayStats.averageMentionRate.toFixed(2)}%` : '--'}
-                      </span>
-                    </div>
-                    <div className="text-sm text-gray-600 flex items-center gap-1">
-                      Mention rate
-                      <span title="Percentage of checks where your brand was mentioned in the AI response text">
-                        <Icon name="FaInfoCircle" className="w-3 h-3 text-gray-400 cursor-help" />
-                      </span>
-                    </div>
-                    {/* Per-model mention rates - only show selected providers */}
-                    <div className="mt-2 flex gap-1.5 flex-wrap">
-                      {LLM_PROVIDERS.filter(p => selectedProviders.has(p)).map((provider) => {
-                        const stats = displayStats.providerStats[provider];
-                        const colors = LLM_PROVIDER_COLORS[provider];
-                        const rate = stats && stats.checked > 0
-                          ? Math.round((stats.mentioned / stats.checked) * 100)
-                          : null;
-                        return (
-                          <span
-                            key={provider}
-                            className={`px-1.5 py-0.5 rounded text-xs ${colors.bg} ${colors.text}`}
-                            title={`${LLM_PROVIDER_LABELS[provider]}: ${stats?.mentioned || 0} mentioned / ${stats?.checked || 0} checked`}
                           >
                             {rate !== null ? `${rate}%` : '--'}
                           </span>
