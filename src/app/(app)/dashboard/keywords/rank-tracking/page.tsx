@@ -259,6 +259,10 @@ export default function RankTrackingPage() {
   } | null>(null);
   const [isLoadingCounts, setIsLoadingCounts] = useState(false);
 
+  // Bulk delete state
+  const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+
   // Modal state for adding new keyword concept
   const [showAddModal, setShowAddModal] = useState(false);
   const [showRunAllModal, setShowRunAllModal] = useState(false);
@@ -349,6 +353,101 @@ export default function RankTrackingPage() {
       setIsDeleting(false);
     }
   }, [conceptToDelete, deleteKeyword, showSuccess, showError]);
+
+  // Compute bulk delete summary for confirmation modal
+  const bulkDeleteSummary = useMemo(() => {
+    if (selectedTermKeys.size === 0) return { termsToRemove: 0, conceptsToDelete: 0 };
+
+    // Group selected keys by concept ID
+    const conceptTerms = new Map<string, Set<string>>();
+    for (const key of selectedTermKeys) {
+      const [keywordId, ...termParts] = key.split('::');
+      const term = termParts.join('::');
+      if (!conceptTerms.has(keywordId)) {
+        conceptTerms.set(keywordId, new Set());
+      }
+      conceptTerms.get(keywordId)!.add(term);
+    }
+
+    let termsToRemove = 0;
+    let conceptsToDelete = 0;
+
+    for (const [keywordId, selectedTermsSet] of conceptTerms) {
+      const concept = concepts.find(c => c.id === keywordId);
+      if (!concept) continue;
+
+      const totalTerms = concept.searchTerms.length;
+      const selectedCount = selectedTermsSet.size;
+
+      if (selectedCount >= totalTerms) {
+        // All terms selected → entire concept will be deleted
+        conceptsToDelete++;
+      } else {
+        // Only some terms selected → those terms will be removed
+        termsToRemove += selectedCount;
+      }
+    }
+
+    return { termsToRemove, conceptsToDelete };
+  }, [selectedTermKeys, concepts]);
+
+  // Handle bulk delete of selected terms
+  const handleBulkDelete = useCallback(async () => {
+    if (selectedTermKeys.size === 0) return;
+    setIsBulkDeleting(true);
+
+    try {
+      // Group selected keys by concept ID
+      const conceptTerms = new Map<string, Set<string>>();
+      for (const key of selectedTermKeys) {
+        const [keywordId, ...termParts] = key.split('::');
+        const term = termParts.join('::');
+        if (!conceptTerms.has(keywordId)) {
+          conceptTerms.set(keywordId, new Set());
+        }
+        conceptTerms.get(keywordId)!.add(term);
+      }
+
+      const promises: Promise<unknown>[] = [];
+
+      for (const [keywordId, selectedTermsSet] of conceptTerms) {
+        const concept = concepts.find(c => c.id === keywordId);
+        if (!concept) continue;
+
+        const totalTerms = concept.searchTerms.length;
+        const selectedCount = selectedTermsSet.size;
+
+        if (selectedCount >= totalTerms) {
+          // All terms selected → delete the whole concept
+          promises.push(apiClient.delete(`/keywords/${keywordId}`));
+        } else {
+          // Partial selection → update concept with remaining terms
+          const remainingTerms = concept.searchTerms.filter(t => !selectedTermsSet.has(t.term));
+          // If the canonical term was removed, make the first remaining term canonical
+          const hasCanonical = remainingTerms.some(t => t.isCanonical);
+          if (!hasCanonical && remainingTerms.length > 0) {
+            remainingTerms[0] = { ...remainingTerms[0], isCanonical: true };
+          }
+          promises.push(apiClient.put(`/keywords/${keywordId}`, { searchTerms: remainingTerms }));
+        }
+      }
+
+      await Promise.all(promises);
+
+      // Clear selection, close modal, refresh data
+      setSelectedTermKeys(new Set());
+      setShowBulkDeleteModal(false);
+      await refreshKeywords();
+
+      const total = selectedTermKeys.size;
+      showSuccess(`Deleted ${total} ${total === 1 ? 'term' : 'terms'}`);
+    } catch (err) {
+      console.error('[RankTracking] Bulk delete error:', err);
+      showError('Failed to delete some terms. Please try again.');
+    } finally {
+      setIsBulkDeleting(false);
+    }
+  }, [selectedTermKeys, concepts, refreshKeywords, showSuccess, showError]);
 
   // Handle updating a keyword from the sidebar
   const handleUpdateKeyword = useCallback(async (id: string, updates: Partial<KeywordData>): Promise<KeywordData | null> => {
@@ -1304,6 +1403,7 @@ export default function RankTrackingPage() {
         onSelectAll={selectAllTerms}
         onDeselectAll={deselectAllTerms}
         onMoveToGroup={handleBulkMoveToGroup}
+        onDelete={() => setShowBulkDeleteModal(true)}
       />
 
       {/* Manage Groups Modal */}
@@ -1395,6 +1495,50 @@ export default function RankTrackingPage() {
             disabled={isDeleting || isLoadingCounts}
           >
             {isDeleting ? 'Deleting...' : 'Delete concept'}
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Bulk Delete Confirmation Modal */}
+      <Modal
+        isOpen={showBulkDeleteModal}
+        onClose={() => setShowBulkDeleteModal(false)}
+        title="Delete selected terms"
+        size="sm"
+      >
+        <p className="text-sm text-gray-600">
+          Are you sure you want to delete {selectedTermKeys.size} selected {selectedTermKeys.size === 1 ? 'term' : 'terms'}?
+        </p>
+        {(bulkDeleteSummary.termsToRemove > 0 || bulkDeleteSummary.conceptsToDelete > 0) && (
+          <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+            <p className="text-sm text-amber-800 font-medium">This will:</p>
+            <ul className="mt-2 text-sm text-amber-700 list-disc list-inside space-y-1">
+              {bulkDeleteSummary.termsToRemove > 0 && (
+                <li>Remove {bulkDeleteSummary.termsToRemove} {bulkDeleteSummary.termsToRemove === 1 ? 'term' : 'terms'} from their concepts</li>
+              )}
+              {bulkDeleteSummary.conceptsToDelete > 0 && (
+                <li>Permanently delete {bulkDeleteSummary.conceptsToDelete} entire {bulkDeleteSummary.conceptsToDelete === 1 ? 'concept' : 'concepts'} (all terms selected)</li>
+              )}
+            </ul>
+          </div>
+        )}
+        <p className="text-sm text-gray-500 mt-3">
+          This action cannot be undone.
+        </p>
+        <Modal.Footer>
+          <Button
+            variant="secondary"
+            onClick={() => setShowBulkDeleteModal(false)}
+            disabled={isBulkDeleting}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={handleBulkDelete}
+            disabled={isBulkDeleting}
+          >
+            {isBulkDeleting ? 'Deleting...' : `Delete ${selectedTermKeys.size} ${selectedTermKeys.size === 1 ? 'term' : 'terms'}`}
           </Button>
         </Modal.Footer>
       </Modal>
