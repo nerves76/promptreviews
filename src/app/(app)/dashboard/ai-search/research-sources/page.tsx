@@ -61,7 +61,7 @@ interface DomainAnalysis {
 
 type ViewMode = 'domain' | 'url';
 type SortField = 'domain' | 'frequency' | 'lastSeen' | 'concepts' | 'difficulty';
-type URLSortField = 'url' | 'domain' | 'frequency' | 'lastSeen' | 'concepts';
+type URLSortField = 'url' | 'domain' | 'frequency' | 'lastSeen' | 'concepts' | 'difficulty';
 type SortDirection = 'asc' | 'desc';
 
 // Pagination
@@ -148,6 +148,10 @@ export default function ResearchSourcesPage() {
   const [analyses, setAnalyses] = useState<Record<string, DomainAnalysis>>({});
   const [analyzingDomains, setAnalyzingDomains] = useState<Set<string>>(new Set());
   const [strategyExpanded, setStrategyExpanded] = useState<Set<string>>(new Set());
+
+  // URL analysis state (separate from domain analyses)
+  const [urlAnalyses, setUrlAnalyses] = useState<Record<string, DomainAnalysis>>({});
+  const [analyzingUrls, setAnalyzingUrls] = useState<Set<string>>(new Set());
 
   // Run all modal state
   const [showRunAllModal, setShowRunAllModal] = useState(false);
@@ -239,6 +243,21 @@ export default function ResearchSourcesPage() {
     }
   }, [selectedAccountId]);
 
+  // Fetch all cached URL analyses
+  const fetchCachedUrlAnalyses = useCallback(async () => {
+    if (!selectedAccountId) return;
+    try {
+      const response = await apiClient.get<{ analyses: Record<string, DomainAnalysis> }>(
+        '/llm-visibility/url-analyses'
+      );
+      if (response.analyses) {
+        setUrlAnalyses(response.analyses);
+      }
+    } catch (err) {
+      console.error('[ResearchSourcesPage] Error fetching cached URL analyses:', err);
+    }
+  }, [selectedAccountId]);
+
   // Fetch domain data on mount
   useEffect(() => {
     fetchData();
@@ -246,12 +265,13 @@ export default function ResearchSourcesPage() {
     fetchCachedAnalyses();
   }, [fetchData, fetchUnanalyzedCount, fetchCachedAnalyses]);
 
-  // Fetch URL data when switching to URL view
+  // Fetch URL data and cached URL analyses when switching to URL view
   useEffect(() => {
     if (viewMode === 'url' && !urlData && !isUrlLoading) {
       fetchUrlData();
+      fetchCachedUrlAnalyses();
     }
-  }, [viewMode, urlData, isUrlLoading, fetchUrlData]);
+  }, [viewMode, urlData, isUrlLoading, fetchUrlData, fetchCachedUrlAnalyses]);
 
   // Handle view mode switch
   const handleViewModeChange = useCallback((mode: ViewMode) => {
@@ -338,15 +358,50 @@ export default function ResearchSourcesPage() {
     }
   }, [expandedDomain, fetchAnalysis]);
 
-  // Toggle row expand (URL view) - also fetches domain analysis
-  const toggleUrlRowExpand = useCallback((url: string, domain: string) => {
+  // Fetch URL-specific analysis
+  const fetchUrlAnalysis = useCallback(async (url: string) => {
+    if (analyzingUrls.has(url) || urlAnalyses[url]) {
+      return;
+    }
+
+    setAnalyzingUrls(prev => new Set(prev).add(url));
+
+    try {
+      const result = await apiClient.post<DomainAnalysis>('/llm-visibility/analyze-url', {
+        url,
+      });
+      setUrlAnalyses(prev => ({
+        ...prev,
+        [url]: result,
+      }));
+    } catch (err) {
+      console.error('[ResearchSourcesPage] Error fetching URL analysis:', err);
+      setUrlAnalyses(prev => ({
+        ...prev,
+        [url]: {
+          difficulty: 'medium',
+          siteType: 'Unknown',
+          strategy: 'Unable to analyze this URL. Please try again later.',
+        },
+      }));
+    } finally {
+      setAnalyzingUrls(prev => {
+        const next = new Set(prev);
+        next.delete(url);
+        return next;
+      });
+    }
+  }, [analyzingUrls, urlAnalyses]);
+
+  // Toggle row expand (URL view) - fetches URL-specific analysis
+  const toggleUrlRowExpand = useCallback((url: string) => {
     const isCurrentlyExpanded = expandedUrl === url;
     setExpandedUrl(isCurrentlyExpanded ? null : url);
 
     if (!isCurrentlyExpanded) {
-      fetchAnalysis(domain);
+      fetchUrlAnalysis(url);
     }
-  }, [expandedUrl, fetchAnalysis]);
+  }, [expandedUrl, fetchUrlAnalysis]);
 
   // Analyze button click - expands strategy and fetches if needed
   const analyzeDomain = useCallback((domain: string) => {
@@ -361,6 +416,20 @@ export default function ResearchSourcesPage() {
     });
     fetchAnalysis(domain);
   }, [fetchAnalysis]);
+
+  // Analyze URL button click
+  const analyzeUrl = useCallback((url: string) => {
+    setStrategyExpanded(prev => {
+      const next = new Set(prev);
+      if (next.has(url)) {
+        next.delete(url);
+      } else {
+        next.add(url);
+      }
+      return next;
+    });
+    fetchUrlAnalysis(url);
+  }, [fetchUrlAnalysis]);
 
   // Handle sort (domain view)
   const handleSort = (field: SortField) => {
@@ -382,7 +451,7 @@ export default function ResearchSourcesPage() {
     }
   };
 
-  // Helper to get difficulty sort value
+  // Helper to get difficulty sort value (domain view)
   const getDifficultySortValue = useCallback((domain: string) => {
     const analysis = analyses[domain];
     if (!analysis) return 4;
@@ -393,6 +462,18 @@ export default function ResearchSourcesPage() {
       default: return 4;
     }
   }, [analyses]);
+
+  // Helper to get difficulty sort value (URL view)
+  const getUrlDifficultySortValue = useCallback((url: string) => {
+    const analysis = urlAnalyses[url];
+    if (!analysis) return 4;
+    switch (analysis.difficulty) {
+      case 'easy': return 1;
+      case 'medium': return 2;
+      case 'hard': return 3;
+      default: return 4;
+    }
+  }, [urlAnalyses]);
 
   // Sorted domain data
   const sortedSources = useMemo(() => {
@@ -446,11 +527,14 @@ export default function ResearchSourcesPage() {
         case 'concepts':
           comparison = a.concepts.length - b.concepts.length;
           break;
+        case 'difficulty':
+          comparison = getUrlDifficultySortValue(a.url) - getUrlDifficultySortValue(b.url);
+          break;
       }
 
       return urlSortDirection === 'asc' ? comparison : -comparison;
     });
-  }, [urlData?.sources, urlSortField, urlSortDirection]);
+  }, [urlData?.sources, urlSortField, urlSortDirection, getUrlDifficultySortValue]);
 
   // Pagination - domain view
   const totalPages = Math.ceil(sortedSources.length / PAGE_SIZE);
@@ -1005,6 +1089,15 @@ export default function ResearchSourcesPage() {
                           Frequency
                         </button>
                       </th>
+                      <th className="py-3 px-3 text-center">
+                        <button
+                          onClick={() => handleUrlSort('difficulty')}
+                          className="flex items-center gap-1 text-xs font-semibold text-gray-500 uppercase tracking-wider hover:text-gray-700 mx-auto"
+                        >
+                          Difficulty
+                          <URLSortIcon field="difficulty" />
+                        </button>
+                      </th>
                       <th className="py-3 px-3 text-left">
                         <button
                           onClick={() => handleUrlSort('domain')}
@@ -1042,8 +1135,8 @@ export default function ResearchSourcesPage() {
                   <tbody>
                     {paginatedUrlSources.map((source) => {
                       const isExpanded = expandedUrl === source.url;
-                      const analysis = analyses[source.domain];
-                      const isAnalyzing = analyzingDomains.has(source.domain);
+                      const urlAnalysis = urlAnalyses[source.url];
+                      const isAnalyzingUrl = analyzingUrls.has(source.url);
 
                       return (
                         <React.Fragment key={source.url}>
@@ -1056,7 +1149,7 @@ export default function ResearchSourcesPage() {
                             <td className="py-3 px-4 max-w-md">
                               <div className="flex items-start gap-2">
                                 <button
-                                  onClick={() => toggleUrlRowExpand(source.url, source.domain)}
+                                  onClick={() => toggleUrlRowExpand(source.url)}
                                   className="p-1 hover:bg-gray-100 rounded mt-0.5 flex-shrink-0"
                                   aria-label={isExpanded ? 'Collapse details' : 'Expand details'}
                                 >
@@ -1094,6 +1187,17 @@ export default function ResearchSourcesPage() {
                               }`}>
                                 {source.frequency}x
                               </span>
+                            </td>
+
+                            {/* Difficulty */}
+                            <td className="py-3 px-3 text-center">
+                              {isAnalyzingUrl ? (
+                                <Icon name="FaSpinner" className="w-4 h-4 text-gray-400 animate-spin mx-auto" />
+                              ) : urlAnalysis ? (
+                                <DifficultyBadge difficulty={urlAnalysis.difficulty} />
+                              ) : (
+                                <span className="text-xs text-gray-400">—</span>
+                              )}
                             </td>
 
                             {/* Domain */}
@@ -1139,17 +1243,17 @@ export default function ResearchSourcesPage() {
                             <td className="py-3 px-3 text-center">
                               <div className="flex items-center justify-center gap-1">
                                 <button
-                                  onClick={() => analyzeDomain(source.domain)}
-                                  disabled={isAnalyzing}
+                                  onClick={() => analyzeUrl(source.url)}
+                                  disabled={isAnalyzingUrl}
                                   className={`inline-flex items-center gap-1 px-2 py-1 text-xs rounded transition-colors whitespace-nowrap ${
-                                    isAnalyzing
+                                    isAnalyzingUrl
                                       ? 'bg-gray-100 text-gray-400 cursor-wait'
-                                      : analysis
+                                      : urlAnalysis
                                       ? 'text-slate-blue hover:text-slate-blue/80 hover:bg-blue-50'
                                       : 'bg-slate-blue text-white hover:bg-slate-blue/90'
                                   }`}
                                 >
-                                  {isAnalyzing ? (
+                                  {isAnalyzingUrl ? (
                                     <>
                                       <Icon name="FaSpinner" className="w-3 h-3 animate-spin" />
                                       Analyzing...
@@ -1174,28 +1278,28 @@ export default function ResearchSourcesPage() {
                             </td>
                           </tr>
 
-                          {/* Expanded Row - All Concepts */}
+                          {/* Expanded Row - URL Analysis & Concepts */}
                           {isExpanded && (
                             <tr className="bg-gray-50">
-                              <td colSpan={6} className="py-3 px-4 pl-12">
+                              <td colSpan={7} className="py-3 px-4 pl-12">
                                 <div className="space-y-4">
-                                  {/* Analysis Section */}
-                                  {(analysis || isAnalyzing) && (
+                                  {/* URL Analysis Section */}
+                                  {(urlAnalysis || isAnalyzingUrl) && (
                                     <div className="space-y-2">
-                                      {isAnalyzing ? (
+                                      {isAnalyzingUrl ? (
                                         <div className="flex items-center gap-2 text-gray-500">
                                           <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
-                                          <span>Analyzing {source.domain}...</span>
+                                          <span>Analyzing URL...</span>
                                         </div>
-                                      ) : analysis ? (
+                                      ) : urlAnalysis ? (
                                         <>
                                           <div className="text-sm text-gray-600 mb-2">
-                                            <span className="font-medium">Site type:</span> {analysis.siteType}
+                                            <span className="font-medium">Page type:</span> {urlAnalysis.siteType}
                                           </div>
                                           <div className="text-sm text-gray-700 bg-white p-3 rounded-lg border border-gray-200">
                                             <div className="flex items-start gap-2">
                                               <Icon name="FaLightbulb" className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
-                                              <p>{analysis.strategy}</p>
+                                              <p>{urlAnalysis.strategy}</p>
                                             </div>
                                           </div>
                                         </>
