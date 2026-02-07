@@ -748,13 +748,19 @@ export default function RankTrackingPage() {
     return map;
   }, [rankChecks]);
 
+  // Only show concepts that have search terms in rank tracking
+  const rankTrackingConcepts = useMemo(() =>
+    concepts.filter(c => c.searchTerms && c.searchTerms.length > 0),
+    [concepts]
+  );
+
   // Filter concepts by search query
   const filteredConcepts = searchQuery.trim()
-    ? concepts.filter(c =>
+    ? rankTrackingConcepts.filter(c =>
         c.phrase.toLowerCase().includes(searchQuery.toLowerCase()) ||
         c.searchTerms.some(t => t.term.toLowerCase().includes(searchQuery.toLowerCase()))
       )
-    : concepts;
+    : rankTrackingConcepts;
 
   // Handle clicking "Check ranking" - auto-run if location available, otherwise show modal
   const handleCheckRank = useCallback(async (keyword: string, conceptId: string) => {
@@ -975,19 +981,13 @@ export default function RankTrackingPage() {
   // Get all term keys from current concepts for selection purposes
   const allTermKeys = useMemo(() => {
     const keys: string[] = [];
-    concepts.forEach((concept) => {
-      if (concept.searchTerms && concept.searchTerms.length > 0) {
-        concept.searchTerms.forEach((term) => {
-          keys.push(`${concept.id}::${term.term}`);
-        });
-      } else {
-        // Concept with no search terms - use the concept name
-        const conceptName = concept.searchQuery || concept.phrase;
-        keys.push(`${concept.id}::${conceptName}`);
-      }
+    rankTrackingConcepts.forEach((concept) => {
+      concept.searchTerms.forEach((term) => {
+        keys.push(`${concept.id}::${term.term}`);
+      });
     });
     return keys;
-  }, [concepts]);
+  }, [rankTrackingConcepts]);
 
   // Toggle selection of a single term
   const toggleTermSelection = useCallback((keywordId: string, term: string) => {
