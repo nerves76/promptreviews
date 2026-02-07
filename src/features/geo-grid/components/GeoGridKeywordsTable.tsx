@@ -949,7 +949,7 @@ export function GeoGridKeywordsTable({
                         <td className="px-4 py-3">
                           {checkingKeywordIds?.has(group.keywordId) ? (
                             <div className="flex items-center gap-1">
-                              <div className="w-3 h-3 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+                              <Icon name="FaSpinner" className="w-3 h-3 text-blue-400 animate-spin" />
                               <span className="text-xs text-blue-500">Pending</span>
                             </div>
                           ) : (
@@ -970,7 +970,7 @@ export function GeoGridKeywordsTable({
                             aria-label="Remove keyword from grid"
                           >
                             {removingId === group.trackedKeywordId ? (
-                              <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+                              <Icon name="FaSpinner" className="w-4 h-4 text-gray-400 animate-spin" />
                             ) : (
                               <TrashIcon className="w-4 h-4" />
                             )}

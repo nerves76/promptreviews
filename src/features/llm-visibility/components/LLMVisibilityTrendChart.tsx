@@ -455,38 +455,22 @@ export default function LLMVisibilityTrendChart({
         </div>
       )}
 
-      {/* Provider toggle legend */}
+      {/* Chart legend (non-interactive) */}
       {hasAnyData && (
-        <div className="mt-3 flex flex-wrap items-center gap-1.5 justify-center">
-          {/* Overall indicator (non-interactive) */}
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium bg-indigo-50 text-indigo-700 border border-indigo-200/50">
+        <div className="mt-3 flex flex-wrap items-center gap-2 justify-center">
+          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-medium text-indigo-700">
             <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#6366f1' }} />
             Overall
           </span>
-          {LLM_PROVIDERS.map((provider) => {
-            const isSelected = selectedProviders ? selectedProviders.has(provider) : true;
-            const colors = LLM_PROVIDER_COLORS[provider];
-            return (
-              <button
-                key={provider}
-                onClick={() => onToggleProvider?.(provider)}
-                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium transition-all whitespace-nowrap ${
-                  isSelected
-                    ? `${colors.bg} ${colors.text} ${colors.border} border`
-                    : 'bg-gray-100 text-gray-400 border border-gray-200 line-through'
-                }`}
-                title={isSelected ? `Click to exclude ${LLM_PROVIDER_LABELS[provider]}` : `Click to include ${LLM_PROVIDER_LABELS[provider]}`}
-              >
-                <span className={`w-2.5 h-2.5 rounded border flex items-center justify-center ${
-                  isSelected ? `${colors.border} ${colors.text}` : 'border-gray-300'
-                }`}>
-                  {isSelected && <Icon name="FaCheck" className="w-1.5 h-1.5" />}
-                </span>
-                {LLM_PROVIDER_LABELS[provider]}
-                <span className="opacity-70">({LLM_PROVIDER_MODELS[provider]})</span>
-              </button>
-            );
-          })}
+          {showProviders && LLM_PROVIDERS.filter(p => providersWithData.has(p)).map((provider) => (
+            <span
+              key={provider}
+              className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-medium text-gray-600"
+            >
+              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: PROVIDER_CHART_COLORS[provider] }} />
+              {LLM_PROVIDER_LABELS[provider]}
+            </span>
+          ))}
         </div>
       )}
     </div>

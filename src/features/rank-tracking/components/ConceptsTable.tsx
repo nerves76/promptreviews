@@ -854,7 +854,7 @@ export default function ConceptsTable({
               <td className="py-3 px-4 text-center">
                 {pendingKeywordIds?.has(row.concept.id) ? (
                   <div className="flex items-center justify-center gap-1">
-                    <div className="w-3 h-3 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+                    <Icon name="FaSpinner" className="w-3 h-3 text-blue-400 animate-spin" />
                     <span className="text-xs text-blue-500">Pending</span>
                   </div>
                 ) : (
@@ -1037,7 +1037,7 @@ export default function ConceptsTable({
                     className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded transition-colors ${
                       row.gridTracked
                         ? 'text-white bg-emerald-600 hover:bg-emerald-700'
-                        : 'text-emerald-600 bg-emerald-50 hover:bg-emerald-100'
+                        : 'text-emerald-700 bg-white border border-emerald-300 hover:bg-emerald-50'
                     }`}
                     title={row.gridTracked ? 'View geo grid results' : 'Set up local ranking grid'}
                   >

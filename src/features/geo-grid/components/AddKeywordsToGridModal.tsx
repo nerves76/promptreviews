@@ -9,6 +9,7 @@
 
 import { useState, useEffect } from 'react';
 import { MagnifyingGlassIcon, PlusIcon } from '@heroicons/react/24/outline';
+import Icon from '@/components/Icon';
 import { Modal } from '@/app/(app)/components/ui/modal';
 import { Button } from '@/app/(app)/components/ui/button';
 import { useKeywords } from '@/features/keywords/hooks/useKeywords';
@@ -330,7 +331,7 @@ export function AddKeywordsToGridModal({
                       >
                         {isAdding ? (
                           <>
-                            <div className="w-3 h-3 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin" />
+                            <Icon name="FaSpinner" className="w-3 h-3 text-emerald-600 animate-spin" />
                             Adding...
                           </>
                         ) : (

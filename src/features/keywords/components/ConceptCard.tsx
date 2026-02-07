@@ -1185,7 +1185,7 @@ export function ConceptCard({
                               className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded transition-colors ${
                                 keyword.isUsedInGeoGrid || (enrichedData?.geoGridStatus?.summary?.totalPoints ?? 0) > 0
                                   ? 'text-white bg-emerald-600 hover:bg-emerald-700'
-                                  : 'text-emerald-600 bg-white border border-emerald-300 hover:bg-emerald-50'
+                                  : 'text-emerald-700 bg-white border border-emerald-300 hover:bg-emerald-50'
                               }`}
                               title={keyword.isUsedInGeoGrid || (enrichedData?.geoGridStatus?.summary?.totalPoints ?? 0) > 0 ? 'View geo grid results' : 'Set up local ranking grid'}
                             >

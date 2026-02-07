@@ -1812,6 +1812,35 @@ export default function AISearchPage() {
             {/* Trend Chart - filtered by group when filter active */}
             <LLMVisibilityTrendChart results={chartResults} isLoading={isLoading} selectedProviders={selectedProviders} onToggleProvider={toggleProvider} />
 
+            {/* Provider Filter Toggles */}
+            <div className="mb-6 flex flex-wrap items-center justify-center gap-2">
+              <span className="text-xs text-gray-500 mr-1">Filter providers:</span>
+              {LLM_PROVIDERS.map((provider) => {
+                const isSelected = selectedProviders.has(provider);
+                const colors = LLM_PROVIDER_COLORS[provider];
+                return (
+                  <button
+                    key={provider}
+                    onClick={() => toggleProvider(provider)}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
+                      isSelected
+                        ? `${colors.bg} ${colors.text} ${colors.border} border`
+                        : 'bg-gray-100 text-gray-400 border border-gray-200 line-through'
+                    }`}
+                    title={isSelected ? `Click to hide ${LLM_PROVIDER_LABELS[provider]}` : `Click to show ${LLM_PROVIDER_LABELS[provider]}`}
+                  >
+                    <span className={`w-3 h-3 rounded border flex items-center justify-center ${
+                      isSelected ? `${colors.border} ${colors.text}` : 'border-gray-300'
+                    }`}>
+                      {isSelected && <Icon name="FaCheck" className="w-2 h-2" />}
+                    </span>
+                    {LLM_PROVIDER_LABELS[provider]}
+                    <span className="opacity-70">({LLM_PROVIDER_MODELS[provider]})</span>
+                  </button>
+                );
+              })}
+            </div>
+
             {/* Summary Stats */}
             {displayStats && (
               <div className="mb-6">
@@ -2337,17 +2366,6 @@ export default function AISearchPage() {
                               >
                                 <Icon name="FaEdit" className="w-3 h-3" />
                               </button>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleSelectConceptToDelete(row.conceptId, row.conceptName);
-                                }}
-                                className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
-                                title={`Delete ${row.conceptName}`}
-                                aria-label={`Delete ${row.conceptName}`}
-                              >
-                                <Icon name="FaTrash" className="w-3 h-3" />
-                              </button>
                             </div>
                           </td>
 
@@ -2448,7 +2466,7 @@ export default function AISearchPage() {
                           <td className="py-3 px-2 text-center">
                             {pendingKeywordIds.has(row.conceptId) ? (
                               <div className="flex items-center justify-center gap-1">
-                                <div className="w-3 h-3 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+                                <Icon name="FaSpinner" className="w-3 h-3 text-blue-400 animate-spin" />
                                 <span className="text-xs text-blue-500">Pending</span>
                               </div>
                             ) : (
