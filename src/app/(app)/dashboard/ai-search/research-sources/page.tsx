@@ -616,6 +616,9 @@ export default function ResearchSourcesPage() {
     );
   };
 
+  // Whether a provider filter is actively narrowing results
+  const isProviderFiltered = selectedProviders.size < LLM_PROVIDERS.length;
+
   // Determine if we have data to show (either view)
   const hasData = viewMode === 'domain'
     ? (!isLoading && !error && data && data.sources.length > 0)
@@ -623,9 +626,14 @@ export default function ResearchSourcesPage() {
 
   const isCurrentLoading = viewMode === 'domain' ? isLoading : isUrlLoading;
   const currentError = viewMode === 'domain' ? error : urlError;
+  // Only show the "no data" empty state when there's truly no data (not just filtered to zero)
   const isEmpty = viewMode === 'domain'
-    ? (!isLoading && !error && data && data.sources.length === 0)
-    : (!isUrlLoading && !urlError && urlData && urlData.sources.length === 0);
+    ? (!isLoading && !error && data && data.sources.length === 0 && !isProviderFiltered)
+    : (!isUrlLoading && !urlError && urlData && urlData.sources.length === 0 && !isProviderFiltered);
+  // Show the data section (with action bar / filters) even when filtered results are empty
+  const showDataSection = viewMode === 'domain'
+    ? (!isLoading && !error && data && (data.sources.length > 0 || isProviderFiltered))
+    : (!isUrlLoading && !urlError && urlData && (urlData.sources.length > 0 || isProviderFiltered));
 
   return (
     <div>
@@ -694,8 +702,8 @@ export default function ResearchSourcesPage() {
           </div>
         )}
 
-        {/* Data Display - show when domain view has data OR we're in URL view and domain loaded */}
-        {!isCurrentLoading && !currentError && (data && data.sources.length > 0 || (viewMode === 'url' && urlData)) && (
+        {/* Data Display - show when we have data or filters are active */}
+        {showDataSection && (
           <>
             {/* Summary Cards - always from domain data */}
             {data && data.sources.length > 0 && (
@@ -826,7 +834,13 @@ export default function ResearchSourcesPage() {
             </div>
 
             {/* === DOMAIN VIEW TABLE === */}
-            {viewMode === 'domain' && (
+            {viewMode === 'domain' && data && data.sources.length === 0 && isProviderFiltered && (
+              <div className="text-center py-12 text-gray-500">
+                <Icon name="FaFilter" className="w-6 h-6 mx-auto mb-2 text-gray-400" />
+                <p>No sources match the selected providers.</p>
+              </div>
+            )}
+            {viewMode === 'domain' && data && data.sources.length > 0 && (
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
@@ -1115,7 +1129,13 @@ export default function ResearchSourcesPage() {
             )}
 
             {/* === URL VIEW TABLE === */}
-            {viewMode === 'url' && urlData && (
+            {viewMode === 'url' && urlData && urlData.sources.length === 0 && isProviderFiltered && (
+              <div className="text-center py-12 text-gray-500">
+                <Icon name="FaFilter" className="w-6 h-6 mx-auto mb-2 text-gray-400" />
+                <p>No sources match the selected providers.</p>
+              </div>
+            )}
+            {viewMode === 'url' && urlData && urlData.sources.length > 0 && (
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
