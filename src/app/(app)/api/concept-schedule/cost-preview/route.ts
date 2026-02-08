@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
       searchRankEnabled = true,
       geoGridEnabled = true,
       llmVisibilityEnabled = true,
-      llmProviders = ['chatgpt', 'claude', 'gemini', 'perplexity'],
+      llmProviders = ['chatgpt', 'claude', 'gemini', 'perplexity', 'ai_overview'],
       reviewMatchingEnabled = false,
     } = body;
 

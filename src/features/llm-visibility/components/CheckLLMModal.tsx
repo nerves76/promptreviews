@@ -22,6 +22,8 @@ interface CheckLLMModalProps {
   onCheckComplete?: () => void;
   /** Business name to display in results (e.g., "Acme Co was not mentioned") */
   businessName?: string;
+  /** If provided, delegates the check to the parent (runs in background, modal closes) */
+  onStartCheck?: (keywordId: string, question: string, providers: LLMProvider[]) => void;
 }
 
 export default function CheckLLMModal({
@@ -31,6 +33,7 @@ export default function CheckLLMModal({
   onClose,
   onCheckComplete,
   businessName,
+  onStartCheck,
 }: CheckLLMModalProps) {
   const [selectedProviders, setSelectedProviders] = useState<LLMProvider[]>(['chatgpt', 'claude']);
   const [isChecking, setIsChecking] = useState(false);
@@ -60,6 +63,12 @@ export default function CheckLLMModal({
 
   const handleCheck = async () => {
     if (selectedProviders.length === 0) return;
+
+    // If parent wants to handle the check (background mode), delegate
+    if (onStartCheck) {
+      onStartCheck(keywordId, question, selectedProviders);
+      return;
+    }
 
     console.log('[CheckLLMModal] Starting check for question:', question.substring(0, 50));
     console.log('[CheckLLMModal] Selected providers:', selectedProviders);

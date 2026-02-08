@@ -161,6 +161,9 @@ export default function AISearchPage() {
   // Track keyword IDs pending in active batch run (for checked column indicator)
   const [pendingKeywordIds, setPendingKeywordIds] = useState<Set<string>>(new Set());
 
+  // Track keyword IDs with individual checks running in the background
+  const [checkingKeywordIds, setCheckingKeywordIds] = useState<Set<string>>(new Set());
+
   // Scheduled runs for showing indicators in the table
   const [scheduledRuns, setScheduledRuns] = useState<ScheduledRunInfo[]>([]);
 
@@ -1149,6 +1152,39 @@ export default function AISearchPage() {
     fetchData();
   }, [fetchData]);
 
+  // Handle individual check in background (delegated from CheckLLMModal)
+  const handleStartCheck = useCallback(async (keywordId: string, question: string, providers: LLMProvider[]) => {
+    // Close modal immediately
+    setCheckingModal(null);
+
+    // Add to checking set (shows spinner on row)
+    setCheckingKeywordIds(prev => new Set(prev).add(keywordId));
+
+    try {
+      await apiClient.post('/llm-visibility/check', {
+        keywordId,
+        providers,
+        questions: [question],
+      });
+      // Refresh data to show new results
+      fetchData();
+      showSuccess('Check completed');
+    } catch (err: any) {
+      if (err?.status === 402) {
+        showError('Insufficient credits');
+      } else {
+        showError('Check failed');
+      }
+    } finally {
+      // Remove from checking set
+      setCheckingKeywordIds(prev => {
+        const next = new Set(prev);
+        next.delete(keywordId);
+        return next;
+      });
+    }
+  }, [fetchData, showSuccess, showError]);
+
   // Handle adding a new LLM concept
   const handleAddLLMConcept = useCallback(async (data: {
     name: string;
@@ -2048,7 +2084,7 @@ export default function AISearchPage() {
                     estimatedCredits: number;
                     error?: string;
                   }>('/llm-visibility/batch-run', {
-                    providers: ['chatgpt', 'claude', 'gemini', 'perplexity'],
+                    providers: ['chatgpt', 'claude', 'gemini', 'perplexity', 'ai_overview'],
                     retryFailedFromRunId: runId,
                   });
 
@@ -2464,10 +2500,10 @@ export default function AISearchPage() {
 
                           {/* Last Checked */}
                           <td className="py-3 px-2 text-center">
-                            {pendingKeywordIds.has(row.conceptId) ? (
+                            {(pendingKeywordIds.has(row.conceptId) || checkingKeywordIds.has(row.conceptId)) ? (
                               <div className="flex items-center justify-center gap-1">
                                 <Icon name="FaSpinner" className="w-3 h-3 text-blue-400 animate-spin" />
-                                <span className="text-xs text-blue-500">Pending</span>
+                                <span className="text-xs text-blue-500">Checking</span>
                               </div>
                             ) : (
                               <span className="text-xs text-gray-500">
@@ -2531,7 +2567,8 @@ export default function AISearchPage() {
                           <td className="py-3 px-3 text-center">
                             <button
                               onClick={() => setCheckingModal({ question: row.question, conceptId: row.conceptId })}
-                              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-white bg-slate-blue rounded-lg hover:bg-slate-blue/90 transition-colors"
+                              disabled={checkingKeywordIds.has(row.conceptId) || pendingKeywordIds.has(row.conceptId)}
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-white bg-slate-blue rounded-lg hover:bg-slate-blue/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                               title="Check if AI assistants cite your business for this question"
                             >
                               <Icon name="FaSearch" className="w-3 h-3" />
@@ -2842,6 +2879,7 @@ export default function AISearchPage() {
         onClose={() => setCheckingModal(null)}
         onCheckComplete={handleCheckComplete}
         businessName={business?.name || undefined}
+        onStartCheck={handleStartCheck}
       />
 
       {/* Add LLM Concept Modal */}

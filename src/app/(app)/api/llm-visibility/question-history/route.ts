@@ -80,7 +80,7 @@ export async function GET(request: NextRequest) {
     const allDates = Array.from(dateSet).sort().slice(-limit);
 
     // Build timeline data per provider
-    const providers = ['chatgpt', 'claude', 'gemini', 'perplexity'] as const;
+    const providers = ['chatgpt', 'claude', 'gemini', 'perplexity', 'ai_overview'] as const;
     const timeline: Record<string, {
       provider: string;
       citationRate: number;

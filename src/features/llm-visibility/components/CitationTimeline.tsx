@@ -34,7 +34,7 @@ interface CitationTimelineProps {
   className?: string;
 }
 
-const PROVIDERS_ORDER: LLMProvider[] = ['chatgpt', 'claude', 'gemini', 'perplexity'];
+const PROVIDERS_ORDER: LLMProvider[] = ['chatgpt', 'claude', 'gemini', 'perplexity', 'ai_overview'];
 
 /**
  * CitationTimeline - Visual timeline showing check history across all LLM providers
