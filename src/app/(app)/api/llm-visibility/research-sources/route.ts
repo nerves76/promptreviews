@@ -101,9 +101,10 @@ export async function GET(request: NextRequest) {
     }
 
     // Debug: log what we got from the database
+    const totalChecksFound = checks?.length || 0;
     const checksWithSearchResults = (checks || []).filter(c => c.search_results != null);
     const checksWithCitations = (checks || []).filter(c => c.citations != null);
-    console.log(`[research-sources] Found ${checks?.length || 0} ChatGPT checks, ${checksWithSearchResults.length} with search_results, ${checksWithCitations.length} with citations`);
+    console.log(`[research-sources] Found ${totalChecksFound} ChatGPT checks, ${checksWithSearchResults.length} with search_results, ${checksWithCitations.length} with citations`);
 
     // Parse checks into a flat list of results
     type ParsedResult = {
@@ -223,11 +224,17 @@ export async function GET(request: NextRequest) {
         .sort((a, b) => b.frequency - a.frequency)
         .slice(0, 200);
 
-      const urlResponse: URLResearchSourcesResponse = {
+      const urlResponse = {
         sources: urlSources,
         totalChecks: totalChecksWithResults,
         uniqueUrls: urlMap.size,
         yourUrlAppearances,
+        _debug: {
+          totalChatGPTChecks: totalChecksFound,
+          checksWithSearchResults: checksWithSearchResults.length,
+          checksWithCitations: checksWithCitations.length,
+          parsedResults: allResults.length,
+        },
       };
 
       return NextResponse.json(urlResponse);
@@ -292,11 +299,17 @@ export async function GET(request: NextRequest) {
       .sort((a, b) => b.frequency - a.frequency)
       .slice(0, 100); // Limit to top 100 domains
 
-    const response: ResearchSourcesResponse = {
+    const response = {
       sources,
       totalChecks: totalChecksWithResults,
       uniqueDomains: domainMap.size,
       yourDomainAppearances,
+      _debug: {
+        totalChatGPTChecks: totalChecksFound,
+        checksWithSearchResults: checksWithSearchResults.length,
+        checksWithCitations: checksWithCitations.length,
+        parsedResults: allResults.length,
+      },
     };
 
     return NextResponse.json(response);

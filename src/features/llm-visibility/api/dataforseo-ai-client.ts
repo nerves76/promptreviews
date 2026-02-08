@@ -346,33 +346,62 @@ export async function checkChatGPTVisibility(params: {
 
     // Debug: Log available fields in the result
     console.log(`🔍 [DataForSEO AI] ChatGPT result fields: ${Object.keys(result).join(', ')}`);
-    console.log(`🔍 [DataForSEO AI] sources: ${result.sources?.length ?? 'undefined'}, search_results: ${result.search_results?.length ?? 'undefined'}, items: ${result.items?.length ?? 'undefined'}`);
+    console.log(`🔍 [DataForSEO AI] sources: ${result.sources?.length ?? 'undefined'}, search_results: ${result.search_results?.length ?? 'undefined'}, items: ${result.items?.length ?? 'undefined'}, markdown: ${result.markdown ? 'yes' : 'no'}`);
+    if (result.items && Array.isArray(result.items)) {
+      const itemTypes = result.items.map((item: any) => `${item.type || 'unknown'}(sources:${item.sources?.length ?? 0})`);
+      console.log(`🔍 [DataForSEO AI] items detail: ${itemTypes.join(', ')}`);
+    }
 
     // Extract citations from sources array
+    // Sources can appear at top-level result.sources AND/OR inside items[].sources
     const citations: LLMCitation[] = [];
     let domainCited = false;
     let citationPosition: number | null = null;
     let citationUrl: string | null = null;
 
-    if (result.sources && Array.isArray(result.sources)) {
-      for (let i = 0; i < result.sources.length; i++) {
-        const source = result.sources[i];
-        const domain = source.domain || extractDomain(source.url || '');
-        const isOurs = isDomainMatch(domain, targetDomain);
+    // Collect all sources: top-level first, then from items as fallback
+    const allSources: Array<{ domain: string; url?: string; title?: string }> = [];
 
-        citations.push({
-          domain,
-          url: source.url || null,
-          title: source.title || null,
-          position: i + 1,
-          isOurs,
-        });
+    if (result.sources && Array.isArray(result.sources) && result.sources.length > 0) {
+      allSources.push(...result.sources);
+    }
 
-        if (isOurs && !domainCited) {
-          domainCited = true;
-          citationPosition = i + 1;
-          citationUrl = source.url || null;
+    // Also extract sources from items (chat_gpt_text, chat_gpt_navigation_list, etc.)
+    if (allSources.length === 0 && result.items && Array.isArray(result.items)) {
+      const seenUrls = new Set<string>();
+      for (const item of result.items) {
+        if (item.sources && Array.isArray(item.sources)) {
+          for (const source of item.sources) {
+            const key = source.url || source.domain || '';
+            if (key && !seenUrls.has(key)) {
+              seenUrls.add(key);
+              allSources.push(source);
+            }
+          }
         }
+      }
+      if (allSources.length > 0) {
+        console.log(`🔍 [DataForSEO AI] Extracted ${allSources.length} sources from items[] (top-level was empty)`);
+      }
+    }
+
+    for (let i = 0; i < allSources.length; i++) {
+      const source = allSources[i];
+      const domain = source.domain || extractDomain(source.url || '');
+      const isOurs = isDomainMatch(domain, targetDomain);
+
+      citations.push({
+        domain,
+        url: source.url || null,
+        title: source.title || null,
+        position: i + 1,
+        isOurs,
+      });
+
+      if (isOurs && !domainCited) {
+        domainCited = true;
+        citationPosition = i + 1;
+        citationUrl = source.url || null;
       }
     }
 
@@ -381,9 +410,17 @@ export async function checkChatGPTVisibility(params: {
     if (result.markdown) {
       fullResponseText = result.markdown;
     } else if (result.items && result.items.length > 0) {
-      const firstItem = result.items[0];
-      if (firstItem.content) {
-        fullResponseText = firstItem.content;
+      // Try content from first item, then collect text from all items
+      const textParts: string[] = [];
+      for (const item of result.items) {
+        if (item.content) {
+          textParts.push(item.content);
+        } else if (item.text) {
+          textParts.push(item.text);
+        }
+      }
+      if (textParts.length > 0) {
+        fullResponseText = textParts.join('\n\n');
       }
     }
 
@@ -412,18 +449,35 @@ export async function checkChatGPTVisibility(params: {
 
     // Extract search results (all websites the AI retrieved, including unused)
     const searchResults: LLMSearchResult[] = [];
-    if (result.search_results && Array.isArray(result.search_results)) {
-      for (const sr of result.search_results) {
-        if (sr.url || sr.domain) {
-          const domain = sr.domain || extractDomain(sr.url || '');
-          searchResults.push({
-            url: sr.url || '',
-            domain,
-            title: sr.title || null,
-            description: sr.description || null,
-            isOurs: isDomainMatch(domain, targetDomain),
-          });
+
+    // Top-level search_results
+    const topSearchResults = result.search_results && Array.isArray(result.search_results) ? result.search_results : [];
+
+    // Also check items for search_results if top-level is empty
+    let itemSearchResults: Array<{ url?: string; domain?: string; title?: string; description?: string }> = [];
+    if (topSearchResults.length === 0 && result.items && Array.isArray(result.items)) {
+      for (const item of result.items) {
+        if (item.search_results && Array.isArray(item.search_results)) {
+          itemSearchResults.push(...item.search_results);
         }
+      }
+      if (itemSearchResults.length > 0) {
+        console.log(`🔍 [DataForSEO AI] Extracted ${itemSearchResults.length} search_results from items[] (top-level was empty)`);
+      }
+    }
+
+    const allSearchResults = topSearchResults.length > 0 ? topSearchResults : itemSearchResults;
+
+    for (const sr of allSearchResults) {
+      if (sr.url || sr.domain) {
+        const domain = sr.domain || extractDomain(sr.url || '');
+        searchResults.push({
+          url: sr.url || '',
+          domain,
+          title: sr.title || null,
+          description: sr.description || null,
+          isOurs: isDomainMatch(domain, targetDomain),
+        });
       }
     }
 
