@@ -8,6 +8,12 @@ import Icon from '@/components/Icon';
 import PromptyIcon from '@/app/(app)/components/prompt-modules/PromptyIcon';
 import { apiClient } from '@/utils/apiClient';
 import { useAccountData } from '@/auth/hooks/granularAuthHooks';
+import {
+  LLM_PROVIDERS,
+  LLM_PROVIDER_LABELS,
+  LLM_PROVIDER_COLORS,
+  type LLMProvider,
+} from '@/features/llm-visibility/utils/types';
 import RunAllAnalysisModal from '../components/RunAllAnalysisModal';
 import { Pagination } from '@/components/Pagination';
 
@@ -132,6 +138,9 @@ export default function ResearchSourcesPage() {
   // View mode
   const [viewMode, setViewMode] = useState<ViewMode>('domain');
 
+  // Provider filter
+  const [selectedProviders, setSelectedProviders] = useState<Set<LLMProvider>>(new Set(LLM_PROVIDERS));
+
   // Domain view state
   const [data, setData] = useState<ResearchSourcesData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -173,6 +182,12 @@ export default function ResearchSourcesPage() {
   const [urlCurrentPage, setUrlCurrentPage] = useState(1);
   const [isPending, startTransition] = useTransition();
 
+  // Build provider query param string
+  const providerParam = useMemo(() => {
+    if (selectedProviders.size === LLM_PROVIDERS.length) return '';
+    return `&provider=${Array.from(selectedProviders).join(',')}`;
+  }, [selectedProviders]);
+
   // Fetch domain data
   const fetchData = useCallback(async () => {
     if (!selectedAccountId) return;
@@ -182,7 +197,7 @@ export default function ResearchSourcesPage() {
 
     try {
       const response = await apiClient.get<ResearchSourcesData>(
-        '/llm-visibility/research-sources'
+        `/llm-visibility/research-sources?view=domain${providerParam}`
       );
       setData(response);
     } catch (err: any) {
@@ -191,7 +206,7 @@ export default function ResearchSourcesPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [selectedAccountId]);
+  }, [selectedAccountId, providerParam]);
 
   // Fetch URL data (lazy - only when switching to URL view)
   const fetchUrlData = useCallback(async () => {
@@ -202,7 +217,7 @@ export default function ResearchSourcesPage() {
 
     try {
       const response = await apiClient.get<URLResearchSourcesData>(
-        '/llm-visibility/research-sources?view=url'
+        `/llm-visibility/research-sources?view=url${providerParam}`
       );
       setUrlData(response);
     } catch (err: any) {
@@ -211,7 +226,7 @@ export default function ResearchSourcesPage() {
     } finally {
       setIsUrlLoading(false);
     }
-  }, [selectedAccountId]);
+  }, [selectedAccountId, providerParam]);
 
   // Fetch unanalyzed count
   const fetchUnanalyzedCount = useCallback(async () => {
@@ -267,17 +282,32 @@ export default function ResearchSourcesPage() {
 
   // Fetch URL data and cached URL analyses when switching to URL view
   useEffect(() => {
-    if (viewMode === 'url' && !urlData && !isUrlLoading) {
+    if (viewMode === 'url' && !isUrlLoading) {
       fetchUrlData();
       fetchCachedUrlAnalyses();
     }
-  }, [viewMode, urlData, isUrlLoading, fetchUrlData, fetchCachedUrlAnalyses]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [viewMode, providerParam]);
 
   // Handle view mode switch
   const handleViewModeChange = useCallback((mode: ViewMode) => {
     setViewMode(mode);
     setCurrentPage(1);
     setUrlCurrentPage(1);
+  }, []);
+
+  // Toggle provider filter
+  const toggleProvider = useCallback((provider: LLMProvider) => {
+    setSelectedProviders(prev => {
+      const next = new Set(prev);
+      if (next.has(provider)) {
+        if (next.size === 1) return prev; // keep at least 1
+        next.delete(provider);
+      } else {
+        next.add(provider);
+      }
+      return next;
+    });
   }, []);
 
   // Handle batch analysis complete - refresh data and count
@@ -550,14 +580,14 @@ export default function ResearchSourcesPage() {
     return sortedUrlSources.slice(start, start + PAGE_SIZE);
   }, [sortedUrlSources, urlCurrentPage]);
 
-  // Reset to page 1 when sort changes
+  // Reset to page 1 when sort or provider filter changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [sortField, sortDirection]);
+  }, [sortField, sortDirection, providerParam]);
 
   useEffect(() => {
     setUrlCurrentPage(1);
-  }, [urlSortField, urlSortDirection]);
+  }, [urlSortField, urlSortDirection, providerParam]);
 
   // Get top domain for summary
   const topDomain = sortedSources.length > 0 ? sortedSources[0] : null;
@@ -740,11 +770,38 @@ export default function ResearchSourcesPage() {
                   </button>
                 </div>
 
+                {/* Provider Filter Toggles */}
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {LLM_PROVIDERS.map((provider) => {
+                    const isSelected = selectedProviders.has(provider);
+                    const colors = LLM_PROVIDER_COLORS[provider];
+                    return (
+                      <button
+                        key={provider}
+                        onClick={() => toggleProvider(provider)}
+                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-all whitespace-nowrap ${
+                          isSelected
+                            ? `${colors.bg} ${colors.text} ${colors.border} border`
+                            : 'bg-gray-100 text-gray-400 border border-gray-200 line-through'
+                        }`}
+                        title={isSelected ? `Click to hide ${LLM_PROVIDER_LABELS[provider]}` : `Click to show ${LLM_PROVIDER_LABELS[provider]}`}
+                      >
+                        <span className={`w-3 h-3 rounded border flex items-center justify-center ${
+                          isSelected ? `${colors.border} ${colors.text}` : 'border-gray-300'
+                        }`}>
+                          {isSelected && <Icon name="FaCheck" className="w-2 h-2" />}
+                        </span>
+                        {LLM_PROVIDER_LABELS[provider]}
+                      </button>
+                    );
+                  })}
+                </div>
+
                 <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg flex-1">
                   <div className="flex items-start gap-2">
                     <Icon name="FaInfoCircle" className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
                     <div className="text-sm text-blue-800">
-                      <p>This data comes from ChatGPT checks only.</p>
+                      <p>Sources cited by AI providers in their responses.</p>
                       <p className="text-blue-700 mt-1">AI analysis may contain errors. We recommend verifying with trusted sources.</p>
                     </div>
                   </div>

@@ -71,6 +71,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const conceptId = searchParams.get('conceptId');
     const view = searchParams.get('view') || 'domain';
+    const providerParam = searchParams.get('provider'); // comma-separated, e.g. "chatgpt,ai_overview"
 
     // Fetch all checks that might have source data (any provider can return citations)
     let query = supabase
@@ -90,6 +91,13 @@ export async function GET(request: NextRequest) {
 
     if (conceptId) {
       query = query.eq('keyword_id', conceptId);
+    }
+
+    if (providerParam) {
+      const providers = providerParam.split(',').map(p => p.trim()).filter(Boolean);
+      if (providers.length > 0) {
+        query = query.in('llm_provider', providers);
+      }
     }
 
     const { data: checks, error } = await query;
