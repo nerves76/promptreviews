@@ -199,7 +199,7 @@ export default function RunAllAnalysisModal({
       />
 
       {/* Modal */}
-      <div className="relative bg-white/70 backdrop-blur-xl border border-white/30 rounded-xl shadow-xl max-w-md w-full mx-4 overflow-hidden flex flex-col max-h-[calc(100vh_-_4rem)]">
+      <div className="relative bg-white/70 backdrop-blur-xl border border-white/30 rounded-xl shadow-xl max-w-md w-full mx-4 flex flex-col max-h-[calc(100vh_-_4rem)]">
         {/* Standardized close button */}
         {!isRunning && (
           <button
