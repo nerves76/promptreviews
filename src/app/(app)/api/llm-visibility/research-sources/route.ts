@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
     const conceptId = searchParams.get('conceptId');
     const view = searchParams.get('view') || 'domain';
 
-    // Fetch all ChatGPT checks for this account (only ChatGPT returns sources)
+    // Fetch checks from providers that return sources (ChatGPT and AI Overviews)
     let query = supabase
       .from('llm_visibility_checks')
       .select(`
@@ -87,7 +87,7 @@ export async function GET(request: NextRequest) {
         )
       `)
       .eq('account_id', accountId)
-      .eq('llm_provider', 'chatgpt');
+      .in('llm_provider', ['chatgpt', 'ai_overview']);
 
     if (conceptId) {
       query = query.eq('keyword_id', conceptId);
@@ -104,7 +104,7 @@ export async function GET(request: NextRequest) {
     const totalChecksFound = checks?.length || 0;
     const checksWithSearchResults = (checks || []).filter(c => c.search_results != null);
     const checksWithCitations = (checks || []).filter(c => c.citations != null);
-    console.log(`[research-sources] Found ${totalChecksFound} ChatGPT checks, ${checksWithSearchResults.length} with search_results, ${checksWithCitations.length} with citations`);
+    console.log(`[research-sources] Found ${totalChecksFound} checks (ChatGPT + AI Overviews), ${checksWithSearchResults.length} with search_results, ${checksWithCitations.length} with citations`);
 
     // Parse checks into a flat list of results
     type ParsedResult = {
@@ -230,7 +230,7 @@ export async function GET(request: NextRequest) {
         uniqueUrls: urlMap.size,
         yourUrlAppearances,
         _debug: {
-          totalChatGPTChecks: totalChecksFound,
+          totalSourceChecks: totalChecksFound,
           checksWithSearchResults: checksWithSearchResults.length,
           checksWithCitations: checksWithCitations.length,
           parsedResults: allResults.length,
@@ -305,7 +305,7 @@ export async function GET(request: NextRequest) {
       uniqueDomains: domainMap.size,
       yourDomainAppearances,
       _debug: {
-        totalChatGPTChecks: totalChecksFound,
+        totalSourceChecks: totalChecksFound,
         checksWithSearchResults: checksWithSearchResults.length,
         checksWithCitations: checksWithCitations.length,
         parsedResults: allResults.length,
