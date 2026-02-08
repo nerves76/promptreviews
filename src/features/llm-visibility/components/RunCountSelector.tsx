@@ -23,9 +23,9 @@ export default function RunCountSelector({ value, onChange, disabled }: RunCount
             onClick={() => onChange(Math.max(1, value - 1))}
             disabled={disabled || value <= 1}
             aria-label="Decrease run count"
-            className="w-7 h-7 flex items-center justify-center rounded-md border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            className="w-7 h-7 flex items-center justify-center rounded-md border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            <Icon name="FaMinus" className="w-2.5 h-2.5" />
+            <Icon name="FaMinus" className="w-3 h-3" />
           </button>
           <span className="w-8 text-center text-sm font-semibold text-gray-900 tabular-nums">
             {value}
@@ -34,9 +34,9 @@ export default function RunCountSelector({ value, onChange, disabled }: RunCount
             onClick={() => onChange(Math.min(20, value + 1))}
             disabled={disabled || value >= 20}
             aria-label="Increase run count"
-            className="w-7 h-7 flex items-center justify-center rounded-md border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            className="w-7 h-7 flex items-center justify-center rounded-md border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            <Icon name="FaPlus" className="w-2.5 h-2.5" />
+            <Icon name="FaPlus" className="w-3 h-3" />
           </button>
         </div>
 
