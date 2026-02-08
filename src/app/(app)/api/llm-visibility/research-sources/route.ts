@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
     const conceptId = searchParams.get('conceptId');
     const view = searchParams.get('view') || 'domain';
 
-    // Fetch all checks with search_results or citations for this account
+    // Fetch all ChatGPT checks for this account (only ChatGPT returns sources)
     let query = supabase
       .from('llm_visibility_checks')
       .select(`
@@ -87,7 +87,7 @@ export async function GET(request: NextRequest) {
         )
       `)
       .eq('account_id', accountId)
-      .or('search_results.not.is.null,citations.not.is.null');
+      .eq('llm_provider', 'chatgpt');
 
     if (conceptId) {
       query = query.eq('keyword_id', conceptId);
@@ -99,6 +99,11 @@ export async function GET(request: NextRequest) {
       console.error('[research-sources] Database error:', error);
       return NextResponse.json({ error: 'Failed to fetch data' }, { status: 500 });
     }
+
+    // Debug: log what we got from the database
+    const checksWithSearchResults = (checks || []).filter(c => c.search_results != null);
+    const checksWithCitations = (checks || []).filter(c => c.citations != null);
+    console.log(`[research-sources] Found ${checks?.length || 0} ChatGPT checks, ${checksWithSearchResults.length} with search_results, ${checksWithCitations.length} with citations`);
 
     // Parse checks into a flat list of results
     type ParsedResult = {

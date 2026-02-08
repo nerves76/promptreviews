@@ -7,6 +7,7 @@
  * API Documentation:
  * - ChatGPT Scraper: https://docs.dataforseo.com/v3/ai_optimization-chat_gpt-llm_scraper-live-advanced/
  * - LLM Responses: https://docs.dataforseo.com/v3/ai_optimization/llm_responses/live/
+ * - SERP (AI Overview): https://docs.dataforseo.com/v3/serp/google/organic/live/advanced/
  */
 
 import {
@@ -26,8 +27,11 @@ const DATAFORSEO_API_BASE = 'https://api.dataforseo.com/v3';
 // ChatGPT Scraper - scrapes actual ChatGPT search results
 const CHATGPT_SCRAPER_ENDPOINT = '/ai_optimization/chat_gpt/llm_scraper/live/advanced';
 
+// Google SERP - for AI Overview extraction
+const SERP_ENDPOINT = '/serp/google/organic/live/advanced';
+
 // LLM Responses - queries LLMs directly via DataForSEO
-const LLM_RESPONSES_ENDPOINTS: Record<Exclude<LLMProvider, 'chatgpt'>, string> = {
+const LLM_RESPONSES_ENDPOINTS: Record<Exclude<LLMProvider, 'chatgpt' | 'ai_overview'>, string> = {
   claude: '/ai_optimization/claude/llm_responses/live',
   gemini: '/ai_optimization/gemini/llm_responses/live',
   perplexity: '/ai_optimization/perplexity/llm_responses/live',
@@ -37,7 +41,7 @@ const LLM_RESPONSES_ENDPOINTS: Record<Exclude<LLMProvider, 'chatgpt'>, string> =
 // model_name is REQUIRED for all LLM Response APIs
 // web_search MUST be true for Claude/Gemini to return citations
 // See: https://docs.dataforseo.com/v3/ai_optimization/
-const PROVIDER_CONFIGS: Record<Exclude<LLMProvider, 'chatgpt'>, Record<string, any>> = {
+const PROVIDER_CONFIGS: Record<Exclude<LLMProvider, 'chatgpt' | 'ai_overview'>, Record<string, any>> = {
   claude: {
     model_name: 'claude-sonnet-4-0', // Latest Claude Sonnet model
     web_search: true, // Required to get citations
@@ -340,6 +344,10 @@ export async function checkChatGPTVisibility(params: {
       return createErrorResult('chatgpt', question, 'No result in task', task.cost);
     }
 
+    // Debug: Log available fields in the result
+    console.log(`🔍 [DataForSEO AI] ChatGPT result fields: ${Object.keys(result).join(', ')}`);
+    console.log(`🔍 [DataForSEO AI] sources: ${result.sources?.length ?? 'undefined'}, search_results: ${result.search_results?.length ?? 'undefined'}, items: ${result.items?.length ?? 'undefined'}`);
+
     // Extract citations from sources array
     const citations: LLMCitation[] = [];
     let domainCited = false;
@@ -474,7 +482,7 @@ export async function checkLLMResponseVisibility(params: {
   question: string;
   targetDomain: string;
   businessName?: string | null;
-  provider: Exclude<LLMProvider, 'chatgpt'>;
+  provider: Exclude<LLMProvider, 'chatgpt' | 'ai_overview'>;
 }): Promise<LLMCheckResult> {
   const { question, targetDomain, businessName = null, provider } = params;
 
@@ -622,6 +630,199 @@ export async function checkLLMResponseVisibility(params: {
 }
 
 // ============================================
+// AI Overview Visibility Check (via Google SERP API)
+// ============================================
+
+/**
+ * Check visibility in Google AI Overviews using the SERP API.
+ *
+ * Queries Google SERP with `load_async_ai_overview: true` to get the AI-generated
+ * overview at the top of search results. Extracts citations from the `references`
+ * array (ai_overview_reference objects).
+ *
+ * Cost: ~$0.0012 per query
+ */
+export async function checkAIOverviewVisibility(params: {
+  question: string;
+  targetDomain: string;
+  businessName?: string | null;
+  locationCode?: number;
+  languageCode?: string;
+}): Promise<LLMCheckResult> {
+  const {
+    question,
+    targetDomain,
+    businessName = null,
+    locationCode = 2840, // US
+    languageCode = 'en',
+  } = params;
+
+  const requestBody = [
+    {
+      keyword: question,
+      location_code: locationCode,
+      language_code: languageCode,
+      load_async_ai_overview: true,
+    },
+  ];
+
+  try {
+    const data = await makeDataForSEORequest(
+      SERP_ENDPOINT,
+      requestBody,
+      `AI Overview check: "${question.substring(0, 50)}..."`
+    );
+
+    const task = data.tasks?.[0];
+    if (!task) {
+      return createErrorResult('ai_overview', question, 'No task returned from API');
+    }
+
+    if (task.status_code !== 20000) {
+      const friendlyError = getDataForSEOErrorMessage(task.status_code, task.status_message, 'ai_overview');
+      return createErrorResult('ai_overview', question, friendlyError, task.cost);
+    }
+
+    const result = task.result?.[0];
+    if (!result) {
+      return createErrorResult('ai_overview', question, 'No result in task', task.cost);
+    }
+
+    // Find the ai_overview item in the SERP results
+    const aiOverviewItem = result.items?.find(
+      (item: any) => item.type === 'ai_overview'
+    );
+
+    // No AI Overview for this query — not an error, just no coverage
+    if (!aiOverviewItem) {
+      console.log(
+        `🤖 [DataForSEO AI] AI Overview: No AI Overview present for query, cost: $${task.cost}`
+      );
+
+      return {
+        success: true,
+        provider: 'ai_overview',
+        question,
+        domainCited: false,
+        brandMentioned: false,
+        citationPosition: null,
+        citationUrl: null,
+        totalCitations: 0,
+        citations: [],
+        mentionedBrands: [],
+        responseSnippet: null,
+        fullResponse: null,
+        searchResults: [],
+        fanOutQueries: [],
+        cost: task.cost || 0,
+      };
+    }
+
+    // Extract citations from references array
+    const citations: LLMCitation[] = [];
+    let domainCited = false;
+    let citationPosition: number | null = null;
+    let citationUrl: string | null = null;
+
+    const references = aiOverviewItem.references || [];
+    for (let i = 0; i < references.length; i++) {
+      const ref = references[i];
+      // References can be ai_overview_reference objects with domain, url, title, source, text
+      const domain = ref.domain || (ref.url ? extractDomain(ref.url) : '');
+      if (!domain) continue;
+
+      const isOurs = isDomainMatch(domain, targetDomain);
+
+      citations.push({
+        domain,
+        url: ref.url || null,
+        title: ref.title || ref.source || null,
+        position: i + 1,
+        isOurs,
+      });
+
+      if (isOurs && !domainCited) {
+        domainCited = true;
+        citationPosition = i + 1;
+        citationUrl = ref.url || null;
+      }
+    }
+
+    // Extract response text from the AI Overview
+    // The ai_overview item can have items[].text or top-level text/markdown
+    let fullResponseText: string | null = null;
+
+    if (aiOverviewItem.items && Array.isArray(aiOverviewItem.items)) {
+      const textParts: string[] = [];
+      for (const subItem of aiOverviewItem.items) {
+        if (subItem.text) {
+          textParts.push(subItem.text);
+        }
+      }
+      if (textParts.length > 0) {
+        fullResponseText = textParts.join('\n\n');
+      }
+    }
+
+    // Fallback to top-level text or markdown
+    if (!fullResponseText && aiOverviewItem.text) {
+      fullResponseText = aiOverviewItem.text;
+    }
+
+    // Also check reference text snippets if no main text found
+    if (!fullResponseText && references.length > 0) {
+      const refTexts = references
+        .filter((ref: any) => ref.text)
+        .map((ref: any) => ref.text);
+      if (refTexts.length > 0) {
+        fullResponseText = refTexts.join('\n\n');
+      }
+    }
+
+    // Check for brand mention in the full response text
+    const brandMentioned = checkBrandMentioned(fullResponseText, businessName);
+
+    // Extract snippet centered around brand mention
+    const responseSnippet = extractSnippet(fullResponseText, businessName);
+
+    // Clean and store full response
+    const fullResponse = cleanLLMResponse(fullResponseText);
+
+    console.log(
+      `🤖 [DataForSEO AI] AI Overview: ${citations.length} citations, ` +
+      `domain cited: ${domainCited}${citationPosition ? ` (position ${citationPosition})` : ''}, ` +
+      `brand mentioned: ${brandMentioned}, ` +
+      `cost: $${task.cost}`
+    );
+
+    return {
+      success: true,
+      provider: 'ai_overview',
+      question,
+      domainCited,
+      brandMentioned,
+      citationPosition,
+      citationUrl,
+      totalCitations: citations.length,
+      citations,
+      mentionedBrands: [],
+      responseSnippet,
+      fullResponse,
+      searchResults: [],
+      fanOutQueries: [],
+      cost: task.cost || 0,
+    };
+  } catch (error) {
+    console.error('❌ [DataForSEO AI] checkAIOverviewVisibility failed:', error);
+    return createErrorResult(
+      'ai_overview',
+      question,
+      error instanceof Error ? error.message : 'Unknown error'
+    );
+  }
+}
+
+// ============================================
 // Unified Check Function
 // ============================================
 
@@ -642,9 +843,13 @@ export async function checkLLMVisibility(params: {
     return checkChatGPTVisibility(params);
   }
 
+  if (provider === 'ai_overview') {
+    return checkAIOverviewVisibility(params);
+  }
+
   return checkLLMResponseVisibility({
     ...params,
-    provider: provider as Exclude<LLMProvider, 'chatgpt'>,
+    provider: provider as Exclude<LLMProvider, 'chatgpt' | 'ai_overview'>,
   });
 }
 
@@ -719,7 +924,8 @@ export async function checkMultipleQuestions(params: {
 function getDataForSEOErrorMessage(statusCode: number, statusMessage: string, provider: LLMProvider): string {
   const providerLabel = provider === 'chatgpt' ? 'ChatGPT' :
     provider === 'claude' ? 'Claude' :
-    provider === 'gemini' ? 'Gemini' : 'Perplexity';
+    provider === 'gemini' ? 'Gemini' :
+    provider === 'ai_overview' ? 'AI Overviews' : 'Perplexity';
 
   // Map common error codes to friendly messages
   switch (statusCode) {
@@ -948,6 +1154,7 @@ export const ESTIMATED_COSTS: Record<LLMProvider, number> = {
   claude: 0.003,
   gemini: 0.002,
   perplexity: 0.003,
+  ai_overview: 0.0012,
 };
 
 export function estimateTotalCost(
