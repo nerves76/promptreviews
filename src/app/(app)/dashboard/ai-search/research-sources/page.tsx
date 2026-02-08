@@ -378,15 +378,11 @@ export default function ResearchSourcesPage() {
     }
   }, [analyzingDomains, analyses]);
 
-  // Toggle row expand (domain view) and fetch analysis if needed
+  // Toggle row expand (domain view) — does NOT auto-run analysis
   const toggleRowExpand = useCallback((domain: string) => {
     const isCurrentlyExpanded = expandedDomain === domain;
     setExpandedDomain(isCurrentlyExpanded ? null : domain);
-
-    if (!isCurrentlyExpanded) {
-      fetchAnalysis(domain);
-    }
-  }, [expandedDomain, fetchAnalysis]);
+  }, [expandedDomain]);
 
   // Fetch URL-specific analysis
   const fetchUrlAnalysis = useCallback(async (url: string) => {
@@ -423,15 +419,11 @@ export default function ResearchSourcesPage() {
     }
   }, [analyzingUrls, urlAnalyses]);
 
-  // Toggle row expand (URL view) - fetches URL-specific analysis
+  // Toggle row expand (URL view) — does NOT auto-run analysis
   const toggleUrlRowExpand = useCallback((url: string) => {
     const isCurrentlyExpanded = expandedUrl === url;
     setExpandedUrl(isCurrentlyExpanded ? null : url);
-
-    if (!isCurrentlyExpanded) {
-      fetchUrlAnalysis(url);
-    }
-  }, [expandedUrl, fetchUrlAnalysis]);
+  }, [expandedUrl]);
 
   // Analyze button click - expands strategy and fetches if needed
   const analyzeDomain = useCallback((domain: string) => {
