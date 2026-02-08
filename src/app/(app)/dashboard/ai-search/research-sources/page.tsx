@@ -739,9 +739,9 @@ export default function ResearchSourcesPage() {
               </div>
             )}
 
-            {/* Action Bar with View Toggle */}
-            <div className="mb-4 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
-              <div className="flex items-center gap-3">
+            {/* Action Bar */}
+            <div className="mb-4 space-y-3">
+              <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
                 {/* View Toggle */}
                 <div className="flex items-center bg-gray-100 border border-gray-200 rounded-full p-1">
                   <button
@@ -769,68 +769,59 @@ export default function ResearchSourcesPage() {
                     By URL
                   </button>
                 </div>
-
-                {/* Provider Filter Toggles */}
-                <div className="flex flex-wrap items-center gap-1.5">
-                  {LLM_PROVIDERS.map((provider) => {
-                    const isSelected = selectedProviders.has(provider);
-                    const colors = LLM_PROVIDER_COLORS[provider];
-                    return (
-                      <button
-                        key={provider}
-                        onClick={() => toggleProvider(provider)}
-                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-all whitespace-nowrap ${
-                          isSelected
-                            ? `${colors.bg} ${colors.text} ${colors.border} border`
-                            : 'bg-gray-100 text-gray-400 border border-gray-200 line-through'
-                        }`}
-                        title={isSelected ? `Click to hide ${LLM_PROVIDER_LABELS[provider]}` : `Click to show ${LLM_PROVIDER_LABELS[provider]}`}
-                      >
-                        <span className={`w-3 h-3 rounded border flex items-center justify-center ${
-                          isSelected ? `${colors.border} ${colors.text}` : 'border-gray-300'
-                        }`}>
-                          {isSelected && <Icon name="FaCheck" className="w-2 h-2" />}
-                        </span>
-                        {LLM_PROVIDER_LABELS[provider]}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg flex-1">
-                  <div className="flex items-start gap-2">
-                    <Icon name="FaInfoCircle" className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                    <div className="text-sm text-blue-800">
-                      <p>Sources cited by AI providers in their responses.</p>
-                      <p className="text-blue-700 mt-1">AI analysis may contain errors. We recommend verifying with trusted sources.</p>
-                    </div>
-                  </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleExport}
+                    disabled={isExporting}
+                    className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium text-sm transition-colors whitespace-nowrap disabled:opacity-50"
+                  >
+                    {isExporting ? (
+                      <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Icon name="FaFileAlt" className="w-4 h-4" />
+                    )}
+                    Export CSV
+                  </button>
+                  <button
+                    onClick={() => setShowRunAllModal(true)}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-blue/90 font-medium text-sm transition-colors whitespace-nowrap"
+                  >
+                    <PromptyIcon className="w-4 h-4" />
+                    {unanalyzedCount === null
+                      ? 'Analyze opportunities'
+                      : unanalyzedCount === 0
+                      ? 'Analyze again'
+                      : `Analyze opportunities (${unanalyzedCount})`}
+                  </button>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={handleExport}
-                  disabled={isExporting}
-                  className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium text-sm transition-colors whitespace-nowrap disabled:opacity-50"
-                >
-                  {isExporting ? (
-                    <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Icon name="FaFileAlt" className="w-4 h-4" />
-                  )}
-                  Export CSV
-                </button>
-                <button
-                  onClick={() => setShowRunAllModal(true)}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-blue/90 font-medium text-sm transition-colors whitespace-nowrap"
-                >
-                  <PromptyIcon className="w-4 h-4" />
-                  {unanalyzedCount === null
-                    ? 'Analyze opportunities'
-                    : unanalyzedCount === 0
-                    ? 'Analyze again'
-                    : `Analyze opportunities (${unanalyzedCount})`}
-                </button>
+
+              {/* Provider Filter Toggles */}
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="text-xs text-gray-500 mr-1">Filter providers:</span>
+                {LLM_PROVIDERS.map((provider) => {
+                  const isSelected = selectedProviders.has(provider);
+                  const colors = LLM_PROVIDER_COLORS[provider];
+                  return (
+                    <button
+                      key={provider}
+                      onClick={() => toggleProvider(provider)}
+                      className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-all whitespace-nowrap ${
+                        isSelected
+                          ? `${colors.bg} ${colors.text} ${colors.border} border`
+                          : 'bg-gray-100 text-gray-400 border border-gray-200 line-through'
+                      }`}
+                      title={isSelected ? `Click to hide ${LLM_PROVIDER_LABELS[provider]}` : `Click to show ${LLM_PROVIDER_LABELS[provider]}`}
+                    >
+                      <span className={`w-3 h-3 rounded border flex items-center justify-center ${
+                        isSelected ? `${colors.border} ${colors.text}` : 'border-gray-300'
+                      }`}>
+                        {isSelected && <Icon name="FaCheck" className="w-2 h-2" />}
+                      </span>
+                      {LLM_PROVIDER_LABELS[provider]}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
