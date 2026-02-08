@@ -45,11 +45,13 @@ interface TrendDataPoint {
   claude?: number;
   gemini?: number;
   perplexity?: number;
+  ai_overview?: number;
   // Per-provider rates (0-100) - for mentions
   chatgpt_mentions?: number;
   claude_mentions?: number;
   gemini_mentions?: number;
   perplexity_mentions?: number;
+  ai_overview_mentions?: number;
   // Overall rates
   overall: number;
   overallMentions: number;
@@ -65,6 +67,7 @@ const PROVIDER_CHART_COLORS: Record<LLMProvider, string> = {
   claude: '#d97757', // Claude coral
   gemini: '#5885f3', // Gemini blue
   perplexity: '#22808d', // Perplexity teal
+  ai_overview: '#4285f4', // Google blue
 };
 
 function getWeekStart(date: Date): Date {

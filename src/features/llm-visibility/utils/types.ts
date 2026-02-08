@@ -2,20 +2,21 @@
  * LLM Visibility Tracking Types
  *
  * Types for tracking brand visibility in AI assistants
- * (ChatGPT, Claude, Gemini, Perplexity)
+ * (ChatGPT, Claude, Gemini, Perplexity, Google AI Overviews)
  */
 
 // ============================================
 // Core Types
 // ============================================
 
-export type LLMProvider = 'chatgpt' | 'claude' | 'gemini' | 'perplexity';
+export type LLMProvider = 'chatgpt' | 'claude' | 'gemini' | 'perplexity' | 'ai_overview';
 
 export const LLM_PROVIDERS: LLMProvider[] = [
   'chatgpt',
   'claude',
   'gemini',
   'perplexity',
+  'ai_overview',
 ];
 
 export const LLM_PROVIDER_LABELS: Record<LLMProvider, string> = {
@@ -23,6 +24,7 @@ export const LLM_PROVIDER_LABELS: Record<LLMProvider, string> = {
   claude: 'Claude',
   gemini: 'Gemini',
   perplexity: 'Perplexity',
+  ai_overview: 'AI Overviews',
 };
 
 export const LLM_PROVIDER_SHORT_LABELS: Record<LLMProvider, string> = {
@@ -30,19 +32,23 @@ export const LLM_PROVIDER_SHORT_LABELS: Record<LLMProvider, string> = {
   claude: 'CLDE',
   gemini: 'GMNI',
   perplexity: 'PLXY',
+  ai_overview: 'GAIO',
 };
 
 // Model names used by DataForSEO API
 // ChatGPT uses scraper (web UI), others use specific model versions
+// AI Overviews uses Google SERP API
 export const LLM_PROVIDER_MODELS: Record<LLMProvider, string> = {
   chatgpt: 'Web UI', // Uses ChatGPT web interface scraper
   claude: 'Sonnet 4', // claude-sonnet-4-0
   gemini: 'Flash 2.0', // gemini-2.0-flash
   perplexity: 'Sonar', // sonar model
+  ai_overview: 'Google SERP', // Google SERP API with AI Overview
 };
 
 // Brand-aligned colors for each LLM provider
 // ChatGPT: Dark slate (matches their dark UI), Claude: #d97757 (coral), Gemini: #5885f3 (blue), Perplexity: #22808d (teal)
+// AI Overviews: Google blue (#4285f4)
 // Colors defined in tailwind.config.js under theme.extend.colors
 export const LLM_PROVIDER_COLORS: Record<
   LLMProvider,
@@ -68,6 +74,11 @@ export const LLM_PROVIDER_COLORS: Record<
     text: 'text-llm-perplexity-text',
     border: 'border-llm-perplexity-border/30',
   },
+  ai_overview: {
+    bg: 'bg-llm-ai_overview-bg',
+    text: 'text-llm-ai_overview-text',
+    border: 'border-llm-ai_overview-border/30',
+  },
 };
 
 // ============================================
@@ -79,9 +90,10 @@ export const LLM_CREDIT_COSTS: Record<LLMProvider, number> = {
   claude: 3, // DataForSEO: ~$0.003, Revenue: $0.006
   gemini: 2, // DataForSEO: ~$0.002, Revenue: $0.004
   perplexity: 3, // DataForSEO: ~$0.003, Revenue: $0.006
+  ai_overview: 2, // DataForSEO: ~$0.0012, Revenue: $0.004
 };
 
-// Total for all 4 providers: 11 credits per question
+// Total for all 5 providers: 13 credits per question
 export const LLM_ALL_PROVIDERS_COST = Object.values(LLM_CREDIT_COSTS).reduce(
   (sum, cost) => sum + cost,
   0

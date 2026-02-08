@@ -76,6 +76,7 @@ module.exports = {
     'bg-llm-claude-bg', 'text-llm-claude-text', 'border-llm-claude-border/30',
     'bg-llm-gemini-bg', 'text-llm-gemini-text', 'border-llm-gemini-border/30',
     'bg-llm-perplexity-bg', 'text-llm-perplexity-text', 'border-llm-perplexity-border/30',
+    'bg-llm-ai_overview-bg', 'text-llm-ai_overview-text', 'border-llm-ai_overview-border/30',
   ],
   theme: {
     extend: {
@@ -149,6 +150,12 @@ module.exports = {
           bg: "#ccfbf1",
           text: "#115e59",
           border: "#22808d",
+        },
+        // AI Overviews - Google Blue (#4285f4)
+        "llm-ai_overview": {
+          bg: "#e8f0fe",
+          text: "#1967d2",
+          border: "#4285f4",
         },
       },
       gap: {
