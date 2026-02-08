@@ -2292,8 +2292,8 @@ export default function AISearchPage() {
                       const colors = LLM_PROVIDER_COLORS[provider];
                       return (
                         <React.Fragment key={provider}>
-                          <th className="text-center py-3 px-2 w-16 align-middle">
-                            <span className={`px-2 py-1 rounded text-xs font-semibold ${colors.bg} ${colors.text}`}>
+                          <th className="text-center py-3 px-2 align-middle">
+                            <span className={`px-2 py-1 rounded text-xs font-semibold whitespace-nowrap ${colors.bg} ${colors.text}`}>
                               {LLM_PROVIDER_LABELS[provider]}
                             </span>
                           </th>
