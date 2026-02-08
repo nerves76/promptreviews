@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
       .in('status', ['pending', 'processing'])
       .order('created_at', { ascending: true })
       .limit(1)
-      .single();
+      .maybeSingle();
 
     if (runError || !run) {
       return { success: true, message: 'No pending runs to process' };
