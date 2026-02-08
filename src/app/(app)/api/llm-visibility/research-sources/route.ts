@@ -72,13 +72,14 @@ export async function GET(request: NextRequest) {
     const conceptId = searchParams.get('conceptId');
     const view = searchParams.get('view') || 'domain';
 
-    // Fetch all checks with search_results for this account
+    // Fetch all checks with search_results or citations for this account
     let query = supabase
       .from('llm_visibility_checks')
       .select(`
         id,
         keyword_id,
         search_results,
+        citations,
         checked_at,
         keywords!inner (
           id,
@@ -86,7 +87,7 @@ export async function GET(request: NextRequest) {
         )
       `)
       .eq('account_id', accountId)
-      .not('search_results', 'is', null);
+      .or('search_results.not.is.null,citations.not.is.null');
 
     if (conceptId) {
       query = query.eq('keyword_id', conceptId);
@@ -121,7 +122,19 @@ export async function GET(request: NextRequest) {
         isOurs: boolean;
       }> | null;
 
-      if (!searchResults || !Array.isArray(searchResults) || searchResults.length === 0) {
+      const citations = check.citations as Array<{
+        url: string | null;
+        domain: string;
+        title: string | null;
+        position: number;
+        isOurs: boolean;
+      }> | null;
+
+      // Use search_results if available, otherwise fall back to citations
+      const hasSearchResults = searchResults && Array.isArray(searchResults) && searchResults.length > 0;
+      const hasCitations = citations && Array.isArray(citations) && citations.length > 0;
+
+      if (!hasSearchResults && !hasCitations) {
         continue;
       }
 
@@ -129,16 +142,30 @@ export async function GET(request: NextRequest) {
       const conceptName = (check.keywords as any)?.phrase || 'Unknown';
       const checkedAt = new Date(check.checked_at);
 
-      for (const result of searchResults) {
-        if (!result.domain) continue;
-        allResults.push({
-          url: result.url,
-          domain: result.domain.toLowerCase(),
-          title: result.title,
-          isOurs: result.isOurs,
-          conceptName,
-          checkedAt,
-        });
+      if (hasSearchResults) {
+        for (const result of searchResults) {
+          if (!result.domain) continue;
+          allResults.push({
+            url: result.url,
+            domain: result.domain.toLowerCase(),
+            title: result.title,
+            isOurs: result.isOurs,
+            conceptName,
+            checkedAt,
+          });
+        }
+      } else if (hasCitations) {
+        for (const citation of citations) {
+          if (!citation.domain) continue;
+          allResults.push({
+            url: citation.url || '',
+            domain: citation.domain.toLowerCase(),
+            title: citation.title,
+            isOurs: citation.isOurs,
+            conceptName,
+            checkedAt,
+          });
+        }
       }
     }
 
