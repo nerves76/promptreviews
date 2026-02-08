@@ -36,6 +36,7 @@ interface BatchRunRequest {
   scheduledFor?: string; // ISO timestamp for when to start the run
   retryFailedFromRunId?: string; // If provided, only retry failed items from this run
   groupId?: string; // If provided, only check questions in this group ("ungrouped" is resolved to General group for backward compat)
+  runCount?: number; // 1-20, repeat each question N times for consistency measurement
 }
 
 interface QuestionItem {
@@ -63,7 +64,10 @@ export async function POST(request: NextRequest) {
     }
 
     const body: BatchRunRequest = await request.json();
-    const { providers, scheduledFor, retryFailedFromRunId, groupId: rawGroupId } = body;
+    const { providers, scheduledFor, retryFailedFromRunId, groupId: rawGroupId, runCount: rawRunCount } = body;
+
+    // Validate runCount (1-20)
+    const validRunCount = Math.min(Math.max(1, Math.floor(rawRunCount || 1)), 20);
 
     // Resolve 'ungrouped' to the General group UUID for backward compatibility
     let groupId = rawGroupId;
@@ -269,6 +273,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Multiply questions if runCount > 1
+    if (validRunCount > 1) {
+      const baseQuestions = [...allQuestions];
+      for (let i = 1; i < validRunCount; i++) {
+        allQuestions.push(...baseQuestions.map(q => ({
+          ...q,
+          questionIndex: q.questionIndex + (baseQuestions.length * i),
+        })));
+      }
+    }
+
     // Calculate total credit cost
     const totalCredits = calculateLLMCheckCost(allQuestions.length, validProviders);
 
@@ -307,9 +322,10 @@ export async function POST(request: NextRequest) {
 
     // Debit credits upfront
     const groupLabel = groupName ? ` [${groupName}]` : '';
+    const runCountLabel = validRunCount > 1 ? ` × ${validRunCount} runs` : '';
     console.log(
       `💳 [LLMBatchRun] Debiting ${totalCredits} credits for account ${accountId} ` +
-      `(${allQuestions.length} questions × ${validProviders.length} providers)${groupLabel}`
+      `(${allQuestions.length} questions × ${validProviders.length} providers${runCountLabel})${groupLabel}`
     );
 
     try {

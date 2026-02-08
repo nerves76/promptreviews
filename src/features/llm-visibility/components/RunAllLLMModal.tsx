@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect, useMemo } from 'react';
 import { Modal } from '@/app/(app)/components/ui/modal';
 import Icon from '@/components/Icon';
 import { apiClient } from '@/utils/apiClient';
+import RunCountSelector from './RunCountSelector';
 import {
   LLMProvider,
   LLM_PROVIDERS,
@@ -90,6 +91,7 @@ export default function RunAllLLMModal({
   const [isCancellingScheduled, setIsCancellingScheduled] = useState(false);
   const [batchStatus, setBatchStatus] = useState<BatchStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [runCount, setRunCount] = useState(1);
 
   // Schedule options
   const [runMode, setRunMode] = useState<RunMode>('now');
@@ -127,6 +129,7 @@ export default function RunAllLLMModal({
       setBatchStatus(null);
       setError(null);
       setIsStarting(false);
+      setRunCount(1);
       setRunMode('now');
       setFrequency('weekly');
       setDayOfWeek(1);
@@ -195,9 +198,9 @@ export default function RunAllLLMModal({
     });
   }, []);
 
-  // Recalculate cost when providers change
+  // Recalculate cost when providers or runCount change
   const totalCredits = preview
-    ? calculateCost(preview.totalQuestions, selectedProviders)
+    ? calculateCost(preview.totalQuestions, selectedProviders) * runCount
     : 0;
 
   const hasCredits = preview ? preview.creditBalance >= totalCredits : false;
@@ -254,6 +257,7 @@ export default function RunAllLLMModal({
         providers: selectedProviders,
         scheduledFor: scheduledTime?.toISOString() || undefined,
         ...(groupId && { groupId }),
+        ...(runCount > 1 && { runCount }),
       });
 
       if (response.success) {
@@ -498,6 +502,14 @@ export default function RunAllLLMModal({
                     <span className="text-gray-600">Across concepts</span>
                     <span className="font-medium text-gray-900">{preview.keywordCount}</span>
                   </div>
+                  {runCount > 1 && (
+                    <div className="flex items-center justify-between text-sm mt-1 pt-1 border-t border-gray-100">
+                      <span className="text-gray-600">Total checks</span>
+                      <span className="font-medium text-gray-900">
+                        {preview.totalQuestions} x {runCount} runs = {preview.totalQuestions * runCount}
+                      </span>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -531,6 +543,13 @@ export default function RunAllLLMModal({
                   })}
                 </div>
               </div>
+
+              {/* Run count selector */}
+              <RunCountSelector
+                value={runCount}
+                onChange={setRunCount}
+                disabled={isStarting}
+              />
 
               {/* Run mode toggle */}
               <div>
@@ -669,7 +688,7 @@ export default function RunAllLLMModal({
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <Icon name="FaClock" className="w-3.5 h-3.5 text-gray-500" />
                   <span>
-                    Estimated time: about {estimateDuration(preview.totalQuestions)} minute{estimateDuration(preview.totalQuestions) !== 1 ? 's' : ''}
+                    Estimated time: about {estimateDuration(preview.totalQuestions * runCount)} minute{estimateDuration(preview.totalQuestions * runCount) !== 1 ? 's' : ''}
                   </span>
                 </div>
               )}

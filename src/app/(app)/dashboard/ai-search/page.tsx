@@ -1153,7 +1153,7 @@ export default function AISearchPage() {
   }, [fetchData]);
 
   // Handle individual check in background (delegated from CheckLLMModal)
-  const handleStartCheck = useCallback(async (keywordId: string, question: string, providers: LLMProvider[]) => {
+  const handleStartCheck = useCallback(async (keywordId: string, question: string, providers: LLMProvider[], runCount: number = 1) => {
     // Close modal immediately
     setCheckingModal(null);
 
@@ -1161,14 +1161,20 @@ export default function AISearchPage() {
     setCheckingKeywordIds(prev => new Set(prev).add(keywordId));
 
     try {
-      await apiClient.post('/llm-visibility/check', {
-        keywordId,
-        providers,
-        questions: [question],
-      });
+      for (let i = 0; i < runCount; i++) {
+        await apiClient.post('/llm-visibility/check', {
+          keywordId,
+          providers,
+          questions: [question],
+        });
+        // Delay between runs (not after the last one)
+        if (i < runCount - 1) {
+          await new Promise(r => setTimeout(r, 2000));
+        }
+      }
       // Refresh data to show new results
       fetchData();
-      showSuccess('Check completed');
+      showSuccess(runCount > 1 ? `${runCount} checks completed` : 'Check completed');
     } catch (err: any) {
       if (err?.status === 402) {
         showError('Insufficient credits');
