@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
     const conceptId = searchParams.get('conceptId');
     const view = searchParams.get('view') || 'domain';
 
-    // Fetch checks from providers that return sources (ChatGPT and AI Overviews)
+    // Fetch all checks that might have source data (any provider can return citations)
     let query = supabase
       .from('llm_visibility_checks')
       .select(`
@@ -86,8 +86,7 @@ export async function GET(request: NextRequest) {
           phrase
         )
       `)
-      .eq('account_id', accountId)
-      .in('llm_provider', ['chatgpt', 'ai_overview']);
+      .eq('account_id', accountId);
 
     if (conceptId) {
       query = query.eq('keyword_id', conceptId);
@@ -104,7 +103,7 @@ export async function GET(request: NextRequest) {
     const totalChecksFound = checks?.length || 0;
     const checksWithSearchResults = (checks || []).filter(c => c.search_results != null);
     const checksWithCitations = (checks || []).filter(c => c.citations != null);
-    console.log(`[research-sources] Found ${totalChecksFound} checks (ChatGPT + AI Overviews), ${checksWithSearchResults.length} with search_results, ${checksWithCitations.length} with citations`);
+    console.log(`[research-sources] Found ${totalChecksFound} checks, ${checksWithSearchResults.length} with search_results, ${checksWithCitations.length} with citations`);
 
     // Parse checks into a flat list of results
     type ParsedResult = {
