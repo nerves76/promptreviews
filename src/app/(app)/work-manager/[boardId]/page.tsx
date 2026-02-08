@@ -165,8 +165,9 @@ export default function WorkManagerBoardPage() {
     setIsCreateTaskOpen(true);
   };
 
-  // Handle task created
-  const handleTaskCreated = () => {
+  // Handle task created - optimistically add to state, then refetch for full data
+  const handleTaskCreated = (newTask: WMTask) => {
+    setTasks((prev) => [...prev, newTask]);
     fetchTasks();
   };
 

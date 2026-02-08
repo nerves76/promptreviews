@@ -5,6 +5,7 @@ import { Modal } from "@/app/(app)/components/ui/modal";
 import Icon from "@/components/Icon";
 import { apiClient } from "@/utils/apiClient";
 import {
+  WMTask,
   WMTaskStatus,
   WMTaskPriority,
   WMStatusLabels,
@@ -19,7 +20,7 @@ interface CreateTaskModalProps {
   statusLabels: WMStatusLabels;
   defaultStatus?: WMTaskStatus;
   accountUsers: WMUserInfo[];
-  onTaskCreated: () => void;
+  onTaskCreated: (task: WMTask) => void;
 }
 
 export default function CreateTaskModal({
@@ -63,7 +64,7 @@ export default function CreateTaskModal({
     setError(null);
 
     try {
-      await apiClient.post("/work-manager/tasks", {
+      const response = await apiClient.post<{ task: WMTask }>("/work-manager/tasks", {
         board_id: boardId,
         title: title.trim(),
         description: description.trim() || undefined,
@@ -73,7 +74,7 @@ export default function CreateTaskModal({
         assigned_to: assignedTo || undefined,
       });
 
-      onTaskCreated();
+      onTaskCreated(response.task);
       onClose();
     } catch (err: any) {
       console.error("Failed to create task:", err);
