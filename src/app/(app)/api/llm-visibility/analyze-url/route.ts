@@ -1,11 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 import { createServerSupabaseClient } from '@/auth/providers/supabase';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
+import { getBalance, debit } from '@/lib/credits';
 import OpenAI from 'openai';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
+
+const serviceSupabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
+const ANALYSIS_CREDIT_COST = 1;
 
 interface URLAnalysis {
   difficulty: 'easy' | 'medium' | 'hard';
@@ -17,7 +26,7 @@ interface URLAnalysis {
  * POST /api/llm-visibility/analyze-url
  *
  * Analyzes a specific URL (not just its domain) to determine the page type
- * and provide tailored link-building strategies.
+ * and provide tailored link-building strategies. Costs 1 credit (cached results are free).
  */
 export async function POST(request: NextRequest) {
   try {
@@ -55,6 +64,28 @@ export async function POST(request: NextRequest) {
         cached: true,
       });
     }
+
+    // Check credit balance (only for non-cached analyses)
+    const balance = await getBalance(serviceSupabase, accountId);
+    if (balance.totalCredits < ANALYSIS_CREDIT_COST) {
+      return NextResponse.json(
+        {
+          error: 'Insufficient credits',
+          required: ANALYSIS_CREDIT_COST,
+          available: balance.totalCredits,
+        },
+        { status: 402 }
+      );
+    }
+
+    // Debit credit before calling OpenAI
+    const idempotencyKey = `analyze-url:${accountId}:${url}:${Date.now()}`;
+    await debit(serviceSupabase, accountId, ANALYSIS_CREDIT_COST, {
+      featureType: 'url_analysis',
+      featureMetadata: { url },
+      idempotencyKey,
+      description: `URL analysis: ${url}`,
+    });
 
     // Use AI to analyze the specific URL
     const prompt = `Analyze the following specific URL and determine:

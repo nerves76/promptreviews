@@ -1,11 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 import { createServerSupabaseClient } from '@/auth/providers/supabase';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
+import { getBalance, debit } from '@/lib/credits';
 import OpenAI from 'openai';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
+
+const serviceSupabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
+const ANALYSIS_CREDIT_COST = 1;
 
 interface DomainAnalysis {
   difficulty: 'easy' | 'medium' | 'hard';
@@ -17,7 +26,7 @@ interface DomainAnalysis {
  * POST /api/llm-visibility/analyze-domain
  *
  * Analyzes a domain to determine how difficult it would be to get listed/cited
- * and provides actionable advice.
+ * and provides actionable advice. Costs 1 credit (cached results are free).
  */
 export async function POST(request: NextRequest) {
   try {
@@ -55,6 +64,28 @@ export async function POST(request: NextRequest) {
         cached: true,
       });
     }
+
+    // Check credit balance (only for non-cached analyses)
+    const balance = await getBalance(serviceSupabase, accountId);
+    if (balance.totalCredits < ANALYSIS_CREDIT_COST) {
+      return NextResponse.json(
+        {
+          error: 'Insufficient credits',
+          required: ANALYSIS_CREDIT_COST,
+          available: balance.totalCredits,
+        },
+        { status: 402 }
+      );
+    }
+
+    // Debit credit before calling OpenAI
+    const idempotencyKey = `analyze-domain:${accountId}:${domain}:${Date.now()}`;
+    await debit(serviceSupabase, accountId, ANALYSIS_CREDIT_COST, {
+      featureType: 'domain_analysis',
+      featureMetadata: { domain },
+      idempotencyKey,
+      description: `Domain analysis: ${domain}`,
+    });
 
     // Use AI to analyze the domain
     const prompt = `Analyze the following website domain and determine:
@@ -114,7 +145,7 @@ Respond in JSON format:
       };
     }
 
-    // Cache the result (create table if needed via migration, but try insert anyway)
+    // Cache the result
     try {
       await supabase
         .from('domain_analysis_cache')
@@ -128,7 +159,6 @@ Respond in JSON format:
           onConflict: 'domain',
         });
     } catch (cacheError) {
-      // Cache table might not exist yet, that's okay
       console.warn('[analyze-domain] Could not cache result:', cacheError);
     }
 

@@ -359,16 +359,28 @@ export default function ResearchSourcesPage() {
         ...prev,
         [domain]: result,
       }));
-    } catch (err) {
+    } catch (err: any) {
       console.error('[ResearchSourcesPage] Error fetching domain analysis:', err);
-      setAnalyses(prev => ({
-        ...prev,
-        [domain]: {
-          difficulty: 'medium',
-          siteType: 'Unknown',
-          strategy: 'Unable to analyze this domain. Please try again later.',
-        },
-      }));
+      if (err?.status === 402) {
+        const available = err?.responseBody?.available ?? 0;
+        setAnalyses(prev => ({
+          ...prev,
+          [domain]: {
+            difficulty: 'medium',
+            siteType: 'Insufficient credits',
+            strategy: `You need 1 credit to run this analysis (${available} available). Purchase more credits or wait for your monthly refresh.`,
+          },
+        }));
+      } else {
+        setAnalyses(prev => ({
+          ...prev,
+          [domain]: {
+            difficulty: 'medium',
+            siteType: 'Unknown',
+            strategy: 'Unable to analyze this domain. Please try again later.',
+          },
+        }));
+      }
     } finally {
       setAnalyzingDomains(prev => {
         const next = new Set(prev);
@@ -400,16 +412,28 @@ export default function ResearchSourcesPage() {
         ...prev,
         [url]: result,
       }));
-    } catch (err) {
+    } catch (err: any) {
       console.error('[ResearchSourcesPage] Error fetching URL analysis:', err);
-      setUrlAnalyses(prev => ({
-        ...prev,
-        [url]: {
-          difficulty: 'medium',
-          siteType: 'Unknown',
-          strategy: 'Unable to analyze this URL. Please try again later.',
-        },
-      }));
+      if (err?.status === 402) {
+        const available = err?.responseBody?.available ?? 0;
+        setUrlAnalyses(prev => ({
+          ...prev,
+          [url]: {
+            difficulty: 'medium',
+            siteType: 'Insufficient credits',
+            strategy: `You need 1 credit to run this analysis (${available} available). Purchase more credits or wait for your monthly refresh.`,
+          },
+        }));
+      } else {
+        setUrlAnalyses(prev => ({
+          ...prev,
+          [url]: {
+            difficulty: 'medium',
+            siteType: 'Unknown',
+            strategy: 'Unable to analyze this URL. Please try again later.',
+          },
+        }));
+      }
     } finally {
       setAnalyzingUrls(prev => {
         const next = new Set(prev);
@@ -1006,6 +1030,7 @@ export default function ResearchSourcesPage() {
                                     <>
                                       <PromptyIcon className="w-3 h-3" />
                                       Opportunities
+                                      {!analysis && <span className="opacity-70">· 1 cr</span>}
                                     </>
                                   )}
                                 </button>
@@ -1322,6 +1347,7 @@ export default function ResearchSourcesPage() {
                                     <>
                                       <PromptyIcon className="w-3 h-3" />
                                       Opportunities
+                                      {!urlAnalysis && <span className="opacity-70">· 1 cr</span>}
                                     </>
                                   )}
                                 </button>
