@@ -27,6 +27,7 @@ interface ResearchSource {
   sampleUrls: ResearchSourceUrl[];
   sampleTitles: string[];
   concepts: string[];
+  providers: string[];
   isOurs: boolean;
 }
 
@@ -36,6 +37,7 @@ interface URLResearchSource {
   frequency: number;
   lastSeen: string;
   concepts: string[];
+  providers: string[];
   isOurs: boolean;
 }
 
@@ -79,6 +81,7 @@ export async function GET(request: NextRequest) {
       .select(`
         id,
         keyword_id,
+        llm_provider,
         search_results,
         citations,
         checked_at,
@@ -121,6 +124,7 @@ export async function GET(request: NextRequest) {
       isOurs: boolean;
       conceptName: string;
       checkedAt: Date;
+      provider: string;
     };
 
     const allResults: ParsedResult[] = [];
@@ -154,6 +158,7 @@ export async function GET(request: NextRequest) {
       totalChecksWithResults++;
       const conceptName = (check.keywords as any)?.phrase || 'Unknown';
       const checkedAt = new Date(check.checked_at);
+      const provider = (check.llm_provider as string) || 'unknown';
 
       if (hasSearchResults) {
         for (const result of searchResults) {
@@ -165,6 +170,7 @@ export async function GET(request: NextRequest) {
             isOurs: result.isOurs,
             conceptName,
             checkedAt,
+            provider,
           });
         }
       } else if (hasCitations) {
@@ -177,6 +183,7 @@ export async function GET(request: NextRequest) {
             isOurs: citation.isOurs,
             conceptName,
             checkedAt,
+            provider,
           });
         }
       }
@@ -189,6 +196,7 @@ export async function GET(request: NextRequest) {
         frequency: number;
         lastSeen: Date;
         concepts: Set<string>;
+        providers: Set<string>;
         isOurs: boolean;
       }>();
 
@@ -203,6 +211,7 @@ export async function GET(request: NextRequest) {
             frequency: 0,
             lastSeen: r.checkedAt,
             concepts: new Set(),
+            providers: new Set(),
             isOurs: false,
           });
         }
@@ -213,6 +222,7 @@ export async function GET(request: NextRequest) {
           entry.lastSeen = r.checkedAt;
         }
         entry.concepts.add(r.conceptName);
+        entry.providers.add(r.provider);
         if (r.isOurs) {
           entry.isOurs = true;
           yourUrlAppearances++;
@@ -226,6 +236,7 @@ export async function GET(request: NextRequest) {
           frequency: data.frequency,
           lastSeen: data.lastSeen.toISOString(),
           concepts: Array.from(data.concepts).slice(0, 10),
+          providers: Array.from(data.providers),
           isOurs: data.isOurs,
         }))
         .sort((a, b) => b.frequency - a.frequency)
@@ -254,6 +265,7 @@ export async function GET(request: NextRequest) {
       urls: Map<string, number>;
       titles: Set<string>;
       concepts: Set<string>;
+      providers: Set<string>;
       isOurs: boolean;
     }>();
 
@@ -267,6 +279,7 @@ export async function GET(request: NextRequest) {
           urls: new Map(),
           titles: new Set(),
           concepts: new Set(),
+          providers: new Set(),
           isOurs: false,
         });
       }
@@ -283,6 +296,7 @@ export async function GET(request: NextRequest) {
         entry.titles.add(r.title);
       }
       entry.concepts.add(r.conceptName);
+      entry.providers.add(r.provider);
       if (r.isOurs) {
         entry.isOurs = true;
         yourDomainAppearances++;
@@ -301,6 +315,7 @@ export async function GET(request: NextRequest) {
           .slice(0, 5),
         sampleTitles: Array.from(data.titles).slice(0, 5),
         concepts: Array.from(data.concepts).slice(0, 10),
+        providers: Array.from(data.providers),
         isOurs: data.isOurs,
       }))
       .sort((a, b) => b.frequency - a.frequency)

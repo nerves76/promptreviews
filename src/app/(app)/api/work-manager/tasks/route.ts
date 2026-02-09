@@ -114,6 +114,7 @@ export async function POST(request: NextRequest) {
       priority = 'medium',
       due_date,
       assigned_to,
+      metadata,
     } = body;
 
     if (!board_id) {
@@ -181,6 +182,7 @@ export async function POST(request: NextRequest) {
         assigned_to: assigned_to || null,
         sort_order: nextSortOrder,
         created_by: user.id,
+        ...(metadata ? { metadata } : {}),
       })
       .select()
       .single();

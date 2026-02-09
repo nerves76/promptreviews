@@ -10,7 +10,7 @@ export type WMTaskStatus = 'backlog' | 'todo' | 'in_progress' | 'review' | 'done
 export type WMTaskPriority = 'low' | 'medium' | 'high';
 
 // Source type for tracking where tasks originated
-export type WMTaskSourceType = 'manual' | 'gbp_suggestion' | 'library' | 'client_task';
+export type WMTaskSourceType = 'manual' | 'gbp_suggestion' | 'library' | 'client_task' | 'visibility_opportunity';
 
 // Action type enum matching database
 export type WMActionType =
@@ -93,6 +93,8 @@ export interface WMTask {
   // Source tracking fields
   source_type: WMTaskSourceType | null;
   source_reference: string | null;
+  // Metadata for enriched task display (e.g. provider/concept tags)
+  metadata: Record<string, unknown> | null;
   // Linked task fields (agency → client linking)
   linked_task_id: string | null;
   linked_account_id: string | null;
@@ -147,6 +149,7 @@ export interface CreateTaskRequest {
   assigned_to?: string | null;
   source_type?: WMTaskSourceType;
   source_reference?: string;
+  metadata?: Record<string, unknown>;
 }
 
 export interface UpdateTaskRequest {

@@ -4,6 +4,7 @@ import React from "react";
 import { formatDistanceToNow, isPast, isToday } from "date-fns";
 import Icon from "@/components/Icon";
 import { WMTask, WMTaskStatus, WMStatusLabels, WM_PRIORITY_COLORS, WM_PRIORITY_LABELS } from "@/types/workManager";
+import { LLM_PROVIDER_LABELS, LLM_PROVIDER_COLORS, type LLMProvider } from "@/features/llm-visibility/utils/types";
 
 interface WorkManagerCardProps {
   task: WMTask;
@@ -112,6 +113,39 @@ export default function WorkManagerCard({
         <h3 className="text-sm font-semibold text-gray-900 line-clamp-2">
           {task.title}
         </h3>
+
+        {/* Provider & concept tags from metadata */}
+        {Array.isArray(task.metadata?.providers) && (task.metadata.providers as string[]).length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {(task.metadata.providers as string[]).map(p => {
+              const providerLabel = LLM_PROVIDER_LABELS[p as LLMProvider] || p;
+              const colors = LLM_PROVIDER_COLORS[p as LLMProvider];
+              return (
+                <span
+                  key={p}
+                  className={`px-1.5 py-0.5 text-[10px] rounded whitespace-nowrap ${
+                    colors ? `${colors.bg} ${colors.text}` : 'bg-blue-50 text-blue-700'
+                  }`}
+                >
+                  {providerLabel}
+                </span>
+              );
+            })}
+          </div>
+        )}
+        {Array.isArray(task.metadata?.concepts) && (task.metadata.concepts as string[]).length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {(task.metadata.concepts as string[]).slice(0, 3).map(c => (
+              <span
+                key={c}
+                className="px-1.5 py-0.5 bg-gray-100 text-gray-600 text-[10px] rounded truncate max-w-[120px] whitespace-nowrap"
+                title={c}
+              >
+                {c}
+              </span>
+            ))}
+          </div>
+        )}
 
         {/* Priority badge */}
         <span

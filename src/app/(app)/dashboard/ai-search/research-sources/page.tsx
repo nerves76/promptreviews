@@ -31,6 +31,7 @@ interface ResearchSource {
   sampleUrls: ResearchSourceUrl[];
   sampleTitles: string[];
   concepts: string[];
+  providers: string[];
   isOurs: boolean;
 }
 
@@ -49,6 +50,7 @@ interface URLResearchSource {
   frequency: number;
   lastSeen: string;
   concepts: string[];
+  providers: string[];
   isOurs: boolean;
 }
 
@@ -165,6 +167,10 @@ export default function ResearchSourcesPage() {
   // Run all modal state
   const [showRunAllModal, setShowRunAllModal] = useState(false);
   const [unanalyzedCount, setUnanalyzedCount] = useState<number | null>(null);
+
+  // Work Manager state
+  const [addedToWM, setAddedToWM] = useState<Set<string>>(new Set());
+  const [addingToWM, setAddingToWM] = useState<string | null>(null);
 
   // Export state
   const [isExporting, setIsExporting] = useState(false);
@@ -476,6 +482,32 @@ export default function ResearchSourcesPage() {
     });
     fetchUrlAnalysis(url);
   }, [fetchUrlAnalysis]);
+
+  // Add to Work Manager handler
+  const handleAddToWorkManager = useCallback(async (
+    source: { url?: string; domain: string; concepts: string[]; providers: string[]; frequency: number },
+    analysis: DomainAnalysis
+  ) => {
+    const key = source.url || source.domain;
+    setAddingToWM(key);
+    try {
+      await apiClient.post('/work-manager/tasks/from-visibility-opportunity', {
+        url: source.url,
+        domain: source.domain,
+        difficulty: analysis.difficulty,
+        siteType: analysis.siteType,
+        strategy: analysis.strategy,
+        concepts: source.concepts,
+        providers: source.providers,
+        frequency: source.frequency,
+      });
+      setAddedToWM(prev => new Set(prev).add(key));
+    } catch (err) {
+      console.error('[ResearchSourcesPage] Error adding to Work Manager:', err);
+    } finally {
+      setAddingToWM(null);
+    }
+  }, []);
 
   // Handle sort (domain view)
   const handleSort = (field: SortField) => {
@@ -1043,6 +1075,29 @@ export default function ResearchSourcesPage() {
                                 >
                                   <Icon name="FaLink" className="w-3 h-3" />
                                 </a>
+                                {analysis && !addedToWM.has(source.domain) && (
+                                  <button
+                                    onClick={() => handleAddToWorkManager(source, analysis)}
+                                    disabled={addingToWM === source.domain}
+                                    className="inline-flex items-center gap-1 px-2 py-1 text-xs text-gray-500 hover:text-slate-blue hover:bg-blue-50 rounded transition-colors whitespace-nowrap"
+                                    aria-label={`Add ${source.domain} to Work Manager`}
+                                  >
+                                    {addingToWM === source.domain ? (
+                                      <Icon name="FaSpinner" className="w-3 h-3 animate-spin" />
+                                    ) : (
+                                      <>
+                                        <Icon name="FaBriefcase" className="w-3 h-3" />
+                                        <span className="hidden xl:inline">Add task</span>
+                                      </>
+                                    )}
+                                  </button>
+                                )}
+                                {addedToWM.has(source.domain) && (
+                                  <span className="inline-flex items-center gap-1 px-2 py-1 text-xs text-green-600 whitespace-nowrap">
+                                    <Icon name="FaCheck" className="w-3 h-3" />
+                                    <span className="hidden xl:inline">Added</span>
+                                  </span>
+                                )}
                               </div>
                             </td>
                           </tr>
@@ -1360,6 +1415,29 @@ export default function ResearchSourcesPage() {
                                 >
                                   <Icon name="FaLink" className="w-3 h-3" />
                                 </a>
+                                {urlAnalysis && !addedToWM.has(source.url) && (
+                                  <button
+                                    onClick={() => handleAddToWorkManager({ ...source, url: source.url }, urlAnalysis)}
+                                    disabled={addingToWM === source.url}
+                                    className="inline-flex items-center gap-1 px-2 py-1 text-xs text-gray-500 hover:text-slate-blue hover:bg-blue-50 rounded transition-colors whitespace-nowrap"
+                                    aria-label={`Add ${stripTrackingParams(source.url)} to Work Manager`}
+                                  >
+                                    {addingToWM === source.url ? (
+                                      <Icon name="FaSpinner" className="w-3 h-3 animate-spin" />
+                                    ) : (
+                                      <>
+                                        <Icon name="FaBriefcase" className="w-3 h-3" />
+                                        <span className="hidden xl:inline">Add task</span>
+                                      </>
+                                    )}
+                                  </button>
+                                )}
+                                {addedToWM.has(source.url) && (
+                                  <span className="inline-flex items-center gap-1 px-2 py-1 text-xs text-green-600 whitespace-nowrap">
+                                    <Icon name="FaCheck" className="w-3 h-3" />
+                                    <span className="hidden xl:inline">Added</span>
+                                  </span>
+                                )}
                               </div>
                             </td>
                           </tr>
