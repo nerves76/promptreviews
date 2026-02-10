@@ -8,9 +8,9 @@
 
 import React, { useState, useEffect } from 'react';
 import Icon from '@/components/Icon';
+import { apiClient } from '@/utils/apiClient';
 import ShareModal, { Review } from './ShareModal';
 import { SharePlatform } from './utils/shareHandlers';
-import { createClient } from '@/auth/providers/supabase';
 
 interface ShareButtonProps {
   review: Review;
@@ -38,28 +38,8 @@ export default function ShareButton({
     const fetchShareCount = async () => {
       try {
         setIsLoadingCount(true);
-        const supabase = createClient();
-        const { data: { session } } = await supabase.auth.getSession();
-
-        if (!session) {
-          setShareCount(0);
-          setIsLoadingCount(false);
-          return;
-        }
-
-        const response = await fetch(
-          `/api/review-shares?reviewId=${review.id}`,
-          {
-            headers: {
-              'Authorization': `Bearer ${session.access_token}`,
-            },
-          }
-        );
-
-        if (response.ok) {
-          const data = await response.json();
-          setShareCount(data.total_shares || 0);
-        }
+        const data = await apiClient.get<{ total_shares: number }>(`/review-shares?reviewId=${review.id}`);
+        setShareCount(data.total_shares || 0);
       } catch (error) {
         console.error('Error fetching share count:', error);
       } finally {
@@ -73,35 +53,10 @@ export default function ShareButton({
   const handleShareComplete = async (platform: SharePlatform) => {
     // Track the share via API
     try {
-      const supabase = createClient();
-      const { data: { session } } = await supabase.auth.getSession();
-
-      if (!session) {
-        console.warn('No session available for tracking share');
-        // Still call success callback even if tracking fails
-        if (onShareSuccess) {
-          onShareSuccess(platform);
-        }
-        return;
-      }
-
-      const response = await fetch('/api/review-shares', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({
-          review_id: review.id,
-          platform,
-        }),
+      await apiClient.post('/review-shares', {
+        review_id: review.id,
+        platform,
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('Share tracking error:', errorData);
-        throw new Error(errorData.error || 'Failed to track share');
-      }
 
       // Update share count
       setShareCount((prev) => (prev !== null ? prev + 1 : 1));

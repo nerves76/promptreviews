@@ -10,6 +10,7 @@ import Icon from '@/components/Icon';
 import { createClient } from '@/auth/providers/supabase';
 import { trackEvent } from '@/utils/analytics';
 import { Modal } from '@/app/(app)/components/ui/modal';
+import { apiClient } from '@/utils/apiClient';
 
 interface FeedbackModalProps {
   isOpen: boolean;
@@ -58,56 +59,29 @@ export default function FeedbackModal({
     setSubmitStatus('idle');
 
     try {
-      // Try to get the current session (optional)
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-
-      // Prepare headers
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      };
-
-      // Add authorization header if we have a session
-      if (session && !sessionError) {
-        headers['Authorization'] = `Bearer ${session.access_token}`;
-      }
-
-      // Headers are already prepared above
-
-      const response = await fetch('/api/feedback', {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
-          category,
-          message: message.trim(),
-          email: email.trim() || undefined,
-        }),
+      const result = await apiClient.post<{ feedback_id: string }>('/feedback', {
+        category,
+        message: message.trim(),
+        email: email.trim() || undefined,
       });
 
-      if (response.ok) {
-        const result = await response.json();
+      setSubmitStatus('success');
+      setMessage('');
+      setEmail('');
 
-        setSubmitStatus('success');
-        setMessage('');
-        setEmail('');
+      // Track the feedback submission
+      trackEvent('feedback_submitted', {
+        category,
+        has_email: !!email.trim(),
+        message_length: message.length,
+        feedback_id: result.feedback_id,
+      });
 
-        // Track the feedback submission
-        trackEvent('feedback_submitted', {
-          category,
-          has_email: !!email.trim(),
-          message_length: message.length,
-          feedback_id: result.feedback_id,
-        });
-
-        // Close modal after a short delay
-        setTimeout(() => {
-          onClose();
-          setSubmitStatus('idle');
-        }, 2000);
-      } else {
-        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-        console.error('Feedback submission failed:', errorData);
-        setSubmitStatus('error');
-      }
+      // Close modal after a short delay
+      setTimeout(() => {
+        onClose();
+        setSubmitStatus('idle');
+      }, 2000);
     } catch (error) {
       console.error('Error submitting feedback:', error);
       setSubmitStatus('error');

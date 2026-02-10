@@ -129,22 +129,11 @@ export default function PhotoPromptPageForm({
   // Handle kickstarters color changes (updates global business setting)
   const handleKickstartersColorChange = async (color: string) => {
     try {
-      const response = await fetch('/api/businesses/update-style', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Selected-Account': businessProfile?.account_id || '',
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          businessId: businessProfile?.id,
-          kickstarters_primary_color: color,
-        }),
+      await apiClient.post('/businesses/update-style', {
+        businessId: businessProfile?.id,
+        kickstarters_primary_color: color,
       });
-      if (!response.ok) {
-        const result = await response.json();
-        console.error('Error updating kickstarters primary color:', result.error);
-      } else if (businessProfile) {
+      if (businessProfile) {
         businessProfile.kickstarters_primary_color = color;
       }
     } catch (error) {

@@ -6,7 +6,7 @@
 
 import { useState } from 'react';
 import Icon from '@/components/Icon';
-import { createClient } from '@/auth/providers/supabase';
+import { apiClient } from '@/utils/apiClient';
 import { FeedbackCategory, CategoryOption } from './types';
 import { trackEvent } from '@/utils/analytics';
 
@@ -42,8 +42,6 @@ export default function IssuesTab({
   contextKeywords,
   onClose 
 }: IssuesTabProps) {
-  const supabase = createClient();
-  
   const [category, setCategory] = useState<FeedbackCategory>('general_feedback');
   const [message, setMessage] = useState('');
   const [email, setEmail] = useState('');
@@ -58,52 +56,33 @@ export default function IssuesTab({
     setSubmitStatus('idle');
 
     try {
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      };
-      
-      if (session && !sessionError) {
-        headers['Authorization'] = `Bearer ${session.access_token}`;
-      }
-
-      const response = await fetch('/api/feedback', {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
-          category,
-          message: message.trim(),
-          email: email.trim() || undefined,
-          context: {
-            pathname,
-            contextKeywords
-          }
-        }),
+      const result = await apiClient.post<{ feedback_id: string }>('/feedback', {
+        category,
+        message: message.trim(),
+        email: email.trim() || undefined,
+        context: {
+          pathname,
+          contextKeywords
+        }
       });
 
-      if (response.ok) {
-        const result = await response.json();
-        setSubmitStatus('success');
-        setMessage('');
-        setEmail('');
-        
-        trackEvent('feedback_submitted', {
-          category,
-          has_email: !!email.trim(),
-          message_length: message.length,
-          feedback_id: result.feedback_id,
-          context: pathname,
-          source: 'help_modal'
-        });
+      setSubmitStatus('success');
+      setMessage('');
+      setEmail('');
 
-        setTimeout(() => {
-          onClose();
-          setSubmitStatus('idle');
-        }, 2000);
-      } else {
-        setSubmitStatus('error');
-      }
+      trackEvent('feedback_submitted', {
+        category,
+        has_email: !!email.trim(),
+        message_length: message.length,
+        feedback_id: result.feedback_id,
+        context: pathname,
+        source: 'help_modal'
+      });
+
+      setTimeout(() => {
+        onClose();
+        setSubmitStatus('idle');
+      }, 2000);
     } catch (error) {
       console.error('Error submitting feedback:', error);
       setSubmitStatus('error');

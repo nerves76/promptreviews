@@ -326,13 +326,7 @@ export default function ResearchSourcesPage() {
   const handleExport = useCallback(async () => {
     setIsExporting(true);
     try {
-      const response = await fetch('/api/llm-visibility/export-research-sources', {
-        headers: {
-          'X-Selected-Account': selectedAccountId || '',
-        },
-      });
-      if (!response.ok) throw new Error('Export failed');
-
+      const response = await apiClient.download('/llm-visibility/export-research-sources');
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');

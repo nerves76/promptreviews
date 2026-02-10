@@ -11,7 +11,7 @@
 import { useState } from "react";
 import { Dialog } from "@headlessui/react";
 import Icon from "@/components/Icon";
-import { createClient } from "@/auth/providers/supabase";
+import { apiClient } from "@/utils/apiClient";
 import { platformOptions } from "@/app/(app)/components/prompt-features/ReviewPlatformsFeature";
 
 interface ManualContactFormProps {
@@ -53,7 +53,6 @@ export default function ManualContactForm({
   onClose,
   onContactCreated,
 }: ManualContactFormProps) {
-  const supabase = createClient();
   const [formData, setFormData] = useState<ContactFormData>({
     first_name: "",
     last_name: "",
@@ -181,40 +180,10 @@ export default function ManualContactForm({
     setSuccess("");
 
     try {
-      // Get the current session for authentication
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
-      
-      // Prepare headers
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      };
-      
-      // Add authorization header if we have a session
-      if (session && !sessionError) {
-        headers['Authorization'] = `Bearer ${session.access_token}`;
-      } else {
-      }
-
-      
-      const response = await fetch("/api/contacts/create", {
-        method: "POST",
-        headers,
-        body: JSON.stringify({
-          ...formData,
-          reviews: reviews, // Include reviews in the request
-        }),
+      const result = await apiClient.post<any>('/contacts/create', {
+        ...formData,
+        reviews: reviews,
       });
-
-      
-      const result = await response.json();
-
-      if (!response.ok) {
-        if (result.upgrade_required) {
-          throw new Error(`${result.error} Please upgrade your plan to add contacts.`);
-        }
-        throw new Error(result.error || "Failed to create contact");
-      }
 
       setSuccess("Contact created successfully!");
       
@@ -248,7 +217,12 @@ export default function ManualContactForm({
         setSuccess("");
       }, 1500);
     } catch (err: any) {
-      setError(err.message || "Failed to create contact");
+      const body = err.responseBody || {};
+      if (body.upgrade_required) {
+        setError(`${body.error} Please upgrade your plan to add contacts.`);
+      } else {
+        setError(body.error || err.message || "Failed to create contact");
+      }
     } finally {
       setIsSubmitting(false);
     }

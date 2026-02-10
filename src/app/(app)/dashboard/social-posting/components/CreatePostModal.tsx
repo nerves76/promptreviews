@@ -200,19 +200,7 @@ export default function CreatePostModal({
           formData.append("file", compressed);
           formData.append("folder", "social-posts/scheduled");
 
-          const response = await fetch("/api/social-posting/upload-image", {
-            method: "POST",
-            body: formData,
-            credentials: "include",
-          });
-
-          if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            console.error("Upload failed:", response.status, errorData);
-            throw new Error(errorData.error || `Upload failed with status ${response.status}`);
-          }
-
-          const data = await response.json();
+          const data = await apiClient.upload<{ url: string; bucket: string; path: string; size: number; mime: string; checksum: string; originalName: string }>('/social-posting/upload-image', formData);
 
           // upload-image returns { url, bucket, path, size, mime, checksum, originalName }
           if (data.url) {

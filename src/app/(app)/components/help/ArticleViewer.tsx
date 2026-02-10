@@ -7,6 +7,7 @@
 
 import { useState, useEffect } from 'react';
 import Icon from '@/components/Icon';
+import { apiClient } from '@/utils/apiClient';
 import { Tutorial } from './types';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -32,17 +33,9 @@ export default function ArticleViewer({ article, onBack }: ArticleViewerProps) {
     try {
       // Try the new CMS API first - use article.id as the slug
       const slug = article.id;
-      const response = await fetch(`/api/docs/articles/${encodeURIComponent(slug)}`);
-
-      if (response.ok) {
-        const data = await response.json();
-        // Content is in markdown format - store as-is for ReactMarkdown
-        setContent(data.article.content);
-      } else {
-        // Fallback to legacy API
-        console.warn('CMS API failed, trying legacy API');
-        await fetchArticleContentLegacy();
-      }
+      const data = await apiClient.get<{ article: { content: string } }>(`/docs/articles/${encodeURIComponent(slug)}`);
+      // Content is in markdown format - store as-is for ReactMarkdown
+      setContent(data.article.content);
     } catch (err) {
       console.error('Error fetching article from CMS:', err);
       // Try legacy API as fallback
@@ -63,13 +56,7 @@ export default function ArticleViewer({ article, onBack }: ArticleViewerProps) {
     const urlParts = article.url.split('/docs/');
     const articlePath = urlParts[1] || article.id;
 
-    const response = await fetch(`/api/help-docs/content?path=${articlePath}`);
-
-    if (!response.ok) {
-      throw new Error('Failed to load article from legacy API');
-    }
-
-    const data = await response.json();
+    const data = await apiClient.get<{ content: string }>(`/help-docs/content?path=${articlePath}`);
     setContent(data.content || getDefaultContent());
   };
 

@@ -7,6 +7,7 @@
 
 import { useState, useEffect } from 'react';
 import Icon from '@/components/Icon';
+import { apiClient } from '@/utils/apiClient';
 import { FAQ, PlanType } from './types';
 import { useSubscription } from '@/auth';
 import { trackEvent } from '@/utils/analytics';
@@ -42,24 +43,13 @@ export default function FAQsTab({
   const fetchFaqs = async () => {
     setLoadingFaqs(true);
     try {
-      const response = await fetch('/api/docs/faqs', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contextKeywords,
-          plan: userPlan,
-          category: selectedCategory === 'all' ? undefined : selectedCategory,
-          search: searchQuery || undefined,
-        })
+      const data = await apiClient.post<{ faqs: FAQ[] }>('/docs/faqs', {
+        contextKeywords,
+        plan: userPlan,
+        category: selectedCategory === 'all' ? undefined : selectedCategory,
+        search: searchQuery || undefined,
       });
-
-      if (response.ok) {
-        const data = await response.json();
-        setFaqs(data.faqs || []);
-      } else {
-        console.error('Failed to fetch FAQs');
-        setFaqs([]);
-      }
+      setFaqs(data.faqs || []);
     } catch (error) {
       console.error('Error fetching FAQs:', error);
       setFaqs([]);

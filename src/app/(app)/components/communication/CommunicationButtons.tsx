@@ -158,24 +158,18 @@ export default function CommunicationButtons({
 
         // Log campaign action for the communication
         try {
-          await fetch('/api/campaign-actions', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
+          await apiClient.post('/campaign-actions', {
+            promptPageId: data.promptPageId,
+            contactId: data.contactId,
+            accountId: promptPage.account_id,
+            activityType: data.communicationType,
+            content: data.communicationType === 'email'
+              ? `Email sent: ${data.subject || 'No subject'}`
+              : `SMS sent: ${data.message.substring(0, 50)}${data.message.length > 50 ? '...' : ''}`,
+            metadata: {
+              subject: data.subject,
+              message: data.message,
             },
-            body: JSON.stringify({
-              promptPageId: data.promptPageId,
-              contactId: data.contactId,
-              accountId: promptPage.account_id,
-              activityType: data.communicationType,
-              content: data.communicationType === 'email'
-                ? `Email sent: ${data.subject || 'No subject'}`
-                : `SMS sent: ${data.message.substring(0, 50)}${data.message.length > 50 ? '...' : ''}`,
-              metadata: {
-                subject: data.subject,
-                message: data.message,
-              },
-            }),
           });
         } catch (activityError) {
           // Don't fail the whole operation if campaign action logging fails

@@ -971,36 +971,7 @@ export default function UploadContactsPage() {
             <button
               onClick={async () => {
                 try {
-                  // For blob responses, we need to use raw fetch but with apiClient's authentication approach
-                  const { tokenManager } = await import('@/auth/services/TokenManager');
-                  const token = await tokenManager.getAccessToken();
-
-                  const headers: Record<string, string> = {};
-                  if (token) {
-                    headers['Authorization'] = `Bearer ${token}`;
-
-                    // Get selected account
-                    try {
-                      const payload = JSON.parse(atob(token.split('.')[1]));
-                      if (payload.sub) {
-                        const accountKey = `promptreviews_selected_account_${payload.sub}`;
-                        const selectedAccount = localStorage.getItem(accountKey);
-                        if (selectedAccount) {
-                          headers['X-Selected-Account'] = selectedAccount;
-                        }
-                      }
-                    } catch (e) {
-                      // Token parsing failed, ignore
-                    }
-                  }
-
-                  const response = await fetch('/api/contacts/export', { headers });
-
-                  if (!response.ok) {
-                    throw new Error('Export failed');
-                  }
-
-                  // Create download
+                  const response = await apiClient.download('/contacts/export');
                   const blob = await response.blob();
                   const url = window.URL.createObjectURL(blob);
                   const a = document.createElement('a');

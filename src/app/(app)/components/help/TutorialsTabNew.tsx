@@ -6,6 +6,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Icon, { IconName } from '@/components/Icon';
+import { apiClient } from '@/utils/apiClient';
 import { Tutorial } from './types';
 import { calculateRelevanceScore } from './contextMapper';
 import { trackEvent } from '@/utils/analytics';
@@ -153,12 +154,7 @@ export default function TutorialsTabNew({
     const loadNavigation = async () => {
       try {
         setNavigationLoading(true);
-        const response = await fetch('/api/docs/navigation', { cache: 'no-store' });
-        if (!response.ok) {
-          throw new Error('Failed to fetch navigation');
-        }
-
-        const data = await response.json();
+        const data = await apiClient.get<{ navigation: NavigationNode[] }>('/docs/navigation');
         const mappedCategories = mapNavigationToCategories(data.navigation || []);
         setHelpCategories(mappedCategories);
       } catch (error) {
@@ -248,34 +244,23 @@ export default function TutorialsTabNew({
   useEffect(() => {
     const getFeaturedArticles = async () => {
       try {
-        const response = await fetch('/api/docs/contextual', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            route: pathname,
-            limit: 3,
-            // userPlan can be added later for plan-based filtering
-          })
+        const data = await apiClient.post<{ articles: any[] }>('/docs/contextual', {
+          route: pathname,
+          limit: 3,
         });
 
-    if (response.ok) {
-      const data = await response.json();
-      // Transform Article type to featured article format
-      const featured = data.articles.map((article: any) => ({
-        id: article.slug,
-        title: article.title,
-        category: article.metadata?.category || 'general',
-        icon: article.metadata?.category_icon || 'FaQuestionCircle',
-        slug: article.slug,
-        path: `/${article.slug}`,
-        content: article.content || ''
-      }));
+        // Transform Article type to featured article format
+        const featured = data.articles.map((article: any) => ({
+          id: article.slug,
+          title: article.title,
+          category: article.metadata?.category || 'general',
+          icon: article.metadata?.category_icon || 'FaQuestionCircle',
+          slug: article.slug,
+          path: `/${article.slug}`,
+          content: article.content || ''
+        }));
 
-      setFeaturedArticles(featured.length > 0 ? featured : getDefaultFeatured());
-    } else {
-      // Fallback to hardcoded featured articles
-      setFeaturedArticles(getDefaultFeatured());
-    }
+        setFeaturedArticles(featured.length > 0 ? featured : getDefaultFeatured());
       } catch (error) {
         console.error('Error fetching featured articles:', error);
         setFeaturedArticles(getDefaultFeatured());
@@ -314,23 +299,11 @@ export default function TutorialsTabNew({
   useEffect(() => {
     const getFeaturedFaqs = async () => {
       try {
-        const response = await fetch('/api/docs/faqs/contextual', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            route: pathname,
-            limit: 3,
-            // userPlan can be added later for plan-based filtering
-          })
+        const data = await apiClient.post<{ faqs: any[] }>('/docs/faqs/contextual', {
+          route: pathname,
+          limit: 3,
         });
-
-        if (response.ok) {
-          const data = await response.json();
-          setFeaturedFaqs(data.faqs || []);
-        } else {
-          // No contextual FAQs found, that's okay
-          setFeaturedFaqs([]);
-        }
+        setFeaturedFaqs(data.faqs || []);
       } catch (error) {
         console.error('Error fetching featured FAQs:', error);
         setFeaturedFaqs([]);
@@ -353,16 +326,14 @@ export default function TutorialsTabNew({
 
       if (slug) {
         // Use the new /api/docs/articles/[slug] endpoint
-        const response = await fetch(`/api/docs/articles/${encodeURIComponent(slug)}`);
-
-        if (response.ok) {
-          const data = await response.json();
+        try {
+          const data = await apiClient.get<{ article: any; source?: string }>(`/docs/articles/${encodeURIComponent(slug)}`);
           // The new API returns { article, source }
           // Article content is in markdown format
           setArticleContent(data.article.content);
           setFullArticleData(data.article); // Store full article with metadata
           setIsHtmlContent(false);
-        } else {
+        } catch (slugErr) {
           console.warn('New API failed, falling back to legacy fetch-from-docs API');
           await loadArticleContentLegacy(identifier);
         }
@@ -385,35 +356,30 @@ export default function TutorialsTabNew({
       const legacyId = identifier.legacyId || identifier.slug || '';
 
       // First try the content API for standalone articles like google-products, google-post-types
-      const contentResponse = await fetch(`/api/help-docs/content?path=${encodeURIComponent(legacyId)}`);
-      if (contentResponse.ok) {
-        const data = await contentResponse.json();
-        if (data.content) {
-          setArticleContent(formatLegacyHtml(data.content));
+      try {
+        const contentData = await apiClient.get<{ content?: string }>(`/help-docs/content?path=${encodeURIComponent(legacyId)}`);
+        if (contentData.content) {
+          setArticleContent(formatLegacyHtml(contentData.content));
           setIsHtmlContent(true);
           return;
         }
+      } catch (_contentErr) {
+        // Content API failed, fall through to next fallback
       }
 
       // Fall back to fetch-from-docs for docs site articles
       const normalizedPath = normalizePath(identifier.path, identifier.slug);
       const isGoogleBizOptimizer = legacyId.startsWith('google-biz-optimizer/');
 
-      const response = await fetch('/api/help-docs/fetch-from-docs', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(
+      try {
+        const data = await apiClient.post<{ content: string }>('/help-docs/fetch-from-docs',
           isGoogleBizOptimizer
             ? { articleId: legacyId }
             : { path: normalizedPath }
-        )
-      });
-
-      if (response.ok) {
-        const data = await response.json();
+        );
         setArticleContent(formatLegacyHtml(data.content));
         setIsHtmlContent(true);
-      } else {
+      } catch (_fetchErr) {
         setArticleContent('**Failed to load article content. Please try again.**');
         setIsHtmlContent(false);
       }

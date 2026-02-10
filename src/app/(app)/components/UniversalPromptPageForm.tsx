@@ -196,28 +196,13 @@ export default function UniversalPromptPageForm({
   // Handle kickstarters color changes (updates global business setting)
   const handleKickstartersColorChange = async (color: string) => {
     try {
-      // Use the API endpoint for proper account isolation and authentication
-      const response = await fetch('/api/businesses/update-style', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Selected-Account': businessProfile?.account_id || '',
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          businessId: businessProfile?.id,
-          kickstarters_primary_color: color,
-        }),
+      await apiClient.post('/businesses/update-style', {
+        businessId: businessProfile?.id,
+        kickstarters_primary_color: color,
       });
-
-      if (!response.ok) {
-        const result = await response.json();
-        console.error('Error updating kickstarters primary color:', result.error);
-      } else {
-        // Update the business profile object for immediate sync with live page
-        if (businessProfile) {
-          businessProfile.kickstarters_primary_color = color;
-        }
+      // Update the business profile object for immediate sync with live page
+      if (businessProfile) {
+        businessProfile.kickstarters_primary_color = color;
       }
     } catch (error) {
       console.error('Error updating kickstarters primary color:', error);

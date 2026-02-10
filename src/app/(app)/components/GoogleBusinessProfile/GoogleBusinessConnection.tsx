@@ -119,31 +119,7 @@ export default function GoogleBusinessConnection({ accountId }: GoogleBusinessCo
     setError(null);
 
     try {
-      const response = await fetch('/api/social-posting/platforms/google-business-profile/fetch-locations', {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Selected-Account': accountId,
-        },
-        body: JSON.stringify({ force: true }),
-      });
-
-      if (response.status === 429) {
-        const result = await response.json();
-        setFetchResult({
-          success: false,
-          message: result.message || 'Rate limit reached. Please wait a few minutes and try again.',
-        });
-        return;
-      }
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => null);
-        throw new Error(errorData?.message || 'Failed to fetch locations');
-      }
-
-      const result = await response.json();
+      const result = await apiClient.post<{ locations?: any[] }>('/social-posting/platforms/google-business-profile/fetch-locations', { force: true });
       const count = result.locations?.length || 0;
 
       if (count > 0) {

@@ -749,18 +749,7 @@ export function RefactoredGoogleBusinessPage() {
 
     const fetchAllLocationsForModal = async () => {
       try {
-        const activeAccountId = accountIdRef.current;
-        const hdrs: Record<string, string> = { 'Cache-Control': 'no-cache' };
-        if (activeAccountId) hdrs['X-Selected-Account'] = activeAccountId;
-
-        const resp = await fetch(`/api/social-posting/platforms?t=${Date.now()}`, {
-          cache: 'no-store',
-          headers: hdrs,
-          credentials: 'same-origin'
-        });
-        if (!resp.ok) return;
-
-        const data = await resp.json();
+        const data = await apiClient.get<any>(`/social-posting/platforms?t=${Date.now()}`);
         const gbp = data.platforms?.find((p: any) => p.id === 'google-business-profile');
         const allLocs = gbp?.locations || [];
 
@@ -873,53 +862,10 @@ export function RefactoredGoogleBusinessPage() {
         console.warn('[Google Business] Missing account context for platform status fetch');
       }
 
-      // Get the current session token for authentication
-      const supabase = createClient();
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session?.access_token) {
-        setIsConnected(false);
-        setLocations([]);
-        setSelectedLocations([]);
-        setPostResult({ 
-          success: false, 
-          message: 'Please refresh the page to sign in again.' 
-        });
-        setIsLoading(false);
-        return;
-      }
-
       // Check platforms API for database state only (no token validation calls)
       // Add cache-busting to ensure fresh data after disconnect
-      const headers: Record<string, string> = {
-        'Cache-Control': 'no-cache'
-      };
+      const responseData = await apiClient.get<any>(`/social-posting/platforms?source=dashboard&t=${Date.now()}`);
 
-      if (activeAccountId) {
-        headers['X-Selected-Account'] = activeAccountId;
-      }
-
-      const response = await fetch(`/api/social-posting/platforms?source=dashboard&t=${Date.now()}`, {
-        cache: 'no-store',
-        headers,
-        credentials: 'same-origin'
-      });
-      
-      if (response.status === 401) {
-        setIsConnected(false);
-        setLocations([]);
-        setSelectedLocations([]);
-        setPostResult({ 
-          success: false, 
-          message: 'Please refresh the page or sign in again to access Google Business Profile features.' 
-        });
-        setIsLoading(false);
-        return;
-      }
-      
-      if (response.ok) {
-        const responseData = await response.json();
-        
         const platforms = responseData.platforms || [];
         const googlePlatform = platforms.find((p: any) => p.id === 'google-business-profile');
         
@@ -946,34 +892,22 @@ export function RefactoredGoogleBusinessPage() {
             if (apiAllCount === 1) {
               // Single location — auto-select without showing modal
               try {
-                const allLocsResp = await fetch(`/api/social-posting/platforms?t=${Date.now()}`, {
-                  cache: 'no-store',
-                  headers,
-                  credentials: 'same-origin'
-                });
-                if (allLocsResp.ok) {
-                  const allLocsData = await allLocsResp.json();
+                const allLocsData = await apiClient.get<any>(`/social-posting/platforms?t=${Date.now()}`);
                   const gbp = allLocsData.platforms?.find((p: any) => p.id === 'google-business-profile');
                   const allLocs = gbp?.locations || [];
                   if (allLocs.length > 0) {
                     const loc = allLocs[0];
-                    await fetch('/api/social-posting/platforms/google-business-profile/save-selected-locations', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json', ...headers },
-                      credentials: 'same-origin',
-                      body: JSON.stringify({
-                        locations: [{
-                          id: loc.location_id || loc.id,
-                          name: loc.location_name || loc.name || '',
-                          address: loc.address || ''
-                        }]
-                      })
+                    await apiClient.post('/social-posting/platforms/google-business-profile/save-selected-locations', {
+                      locations: [{
+                        id: loc.location_id || loc.id,
+                        name: loc.location_name || loc.name || '',
+                        address: loc.address || ''
+                      }]
                     });
                     console.log('[loadPlatforms] Auto-selected single location');
                     // Use the fetched locations directly so we don't need a second round-trip
                     locationsToProcess = allLocs;
                   }
-                }
               } catch (autoErr) {
                 console.error('[loadPlatforms] Auto-select failed:', autoErr);
               }
@@ -1068,27 +1002,23 @@ export function RefactoredGoogleBusinessPage() {
             });
           }
         }
-      } else {
-        console.error('Failed to check platform connections, status:', response.status);
-        const errorData = await response.text();
-        console.error('Error response:', errorData);
-        setIsConnected(false);
-        setPostResult({ 
-          success: false, 
-          message: `Unable to load social posting platforms (status: ${response.status}). Please try refreshing the page.` 
-        });
-      }
     } catch (error) {
       console.error('Failed to load platforms:', error);
       setIsConnected(false);
       setLocations([]);
       setSelectedLocations([]);
-      
-      // const errorMessage = error instanceof Error ? error.message : String(error);
-      setPostResult({ 
-        success: false, 
-        message: 'Failed to load Google Business Profile connection. Please refresh the page or try reconnecting.' 
-      });
+
+      if ((error as any).status === 401) {
+        setPostResult({
+          success: false,
+          message: 'Please refresh the page or sign in again to access Google Business Profile features.'
+        });
+      } else {
+        setPostResult({
+          success: false,
+          message: 'Failed to load Google Business Profile connection. Please refresh the page or try reconnecting.'
+        });
+      }
     } finally {
       loadingRef.current = false;
       setIsLoading(false);
@@ -1326,93 +1256,13 @@ export function RefactoredGoogleBusinessPage() {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5 * 60 * 1000); // 5 minutes
 
-      const response = await fetch(`/api/social-posting/platforms/${platformId}/fetch-locations`, {
-        method: 'POST',
-        signal: controller.signal,
-        credentials: 'same-origin',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Selected-Account': activeAccountId
-        },
-        body: JSON.stringify({ force: true }) // Always force refresh to get latest from Google
-      });
-      
+      const result = await apiClient.post<any>(
+        `/social-posting/platforms/${platformId}/fetch-locations`,
+        { force: true }, // Always force refresh to get latest from Google
+        { signal: controller.signal }
+      );
+
       clearTimeout(timeoutId);
-
-      if (response.status === 429) {
-        const result = await response.json();
-        const retryAfter = result.retryAfter || 120; // Default to 120 seconds (2 minutes)
-        const cooldownTime = Date.now() + (retryAfter * 1000);
-        setRateLimitedUntil(cooldownTime);
-        
-        // Show detailed rate limit message
-        let message = `⏳ Google Business Profile API Rate Limit\n\n`;
-        message += result.message || 'API rate limit reached.';
-        
-        if (result.suggestion) {
-          message += `\n\n💡 ${result.suggestion}`;
-        }
-        
-        if (result.details?.waitTime) {
-          message += `\n\n⏱️ Wait time: ${result.details.waitTime}`;
-        }
-        
-        if (result.details?.reason) {
-          message += `\n📝 Reason: ${result.details.reason}`;
-        }
-        
-        setPostResult({ success: false, message });
-        return;
-      }
-
-      if (!response.ok) {
-        try {
-          const errorData = await response.json();
-          
-          // Handle specific error types
-          if (errorData.error === 'AUTH_ERROR') {
-            setPostResult({ 
-              success: false, 
-              message: `Authentication Error: ${errorData.message}. ${errorData.suggestion || 'Please reconnect your Google Business Profile.'}` 
-            });
-            // Clear connection state
-            setIsConnected(false);
-            setLocations([]);
-            setOverviewData(null);
-            localStorage.removeItem('google-business-connected');
-            localStorage.removeItem('google-business-locations');
-            localStorage.removeItem('google-business-overview-data');
-            localStorage.removeItem('google-business-cache-account-id');
-            return;
-          } else if (errorData.error === 'PERMISSION_ERROR') {
-            setPostResult({ 
-              success: false, 
-              message: `Permission Error: ${errorData.message}. ${errorData.suggestion || 'Check your Google Business Profile permissions.'}` 
-            });
-            return;
-          } else if (errorData.error === 'NETWORK_ERROR') {
-            setPostResult({ 
-              success: false, 
-              message: `Network Error: ${errorData.message}. ${errorData.suggestion || 'Check your internet connection.'}` 
-            });
-            return;
-          } else if (errorData.error === 'TOKEN_REFRESHED') {
-            // Token was refreshed, retry automatically
-            setPostResult({ success: true, message: 'Your authentication was refreshed. Retrying...' });
-            // Retry the fetch
-            setTimeout(() => handleFetchLocations(), 1000);
-            return;
-          }
-          
-          throw new Error(errorData.message || errorData.error || 'Failed to fetch locations');
-        } catch (parseError) {
-          // If JSON parsing fails, fall back to text
-          const errorText = await response.text();
-          throw new Error(`Failed to fetch locations: ${errorText}`);
-        }
-      }
-
-      const result = await response.json();
       
       // Update local state with fetched locations
       if (result.locations && result.locations.length > 0) {
@@ -1473,23 +1323,67 @@ export function RefactoredGoogleBusinessPage() {
       // The state is already updated above
     } catch (error) {
       console.error('Error fetching locations:', error);
+      const status = (error as any).status;
+      const errorBody = (error as any).responseBody;
+
       if (error instanceof Error && error.name === 'AbortError') {
-        setPostResult({ 
-          success: false, 
-          message: 'Request timed out. The process may still be running in the background. Please wait a few minutes and refresh the page to check if locations were fetched.' 
+        setPostResult({
+          success: false,
+          message: 'Request timed out. The process may still be running in the background. Please wait a few minutes and refresh the page to check if locations were fetched.'
         });
-             } else if (error instanceof Error && error.message.includes('rate limit')) {
-        // Rate limited - set a 2 minute cooldown
-        const cooldownTime = Date.now() + (120 * 1000); // 2 minutes
+      } else if (status === 429) {
+        const retryAfter = errorBody?.retryAfter || 120;
+        const cooldownTime = Date.now() + (retryAfter * 1000);
         setRateLimitedUntil(cooldownTime);
-        setPostResult({ 
-          success: false, 
-          message: 'Google Business Profile API quota exhausted. Please wait 2 minutes before trying again, or request higher quota limits in Google Cloud Console.' 
+
+        let message = `⏳ Google Business Profile API Rate Limit\n\n`;
+        message += errorBody?.message || 'API rate limit reached.';
+        if (errorBody?.suggestion) {
+          message += `\n\n💡 ${errorBody.suggestion}`;
+        }
+        if (errorBody?.details?.waitTime) {
+          message += `\n\n⏱️ Wait time: ${errorBody.details.waitTime}`;
+        }
+        if (errorBody?.details?.reason) {
+          message += `\n📝 Reason: ${errorBody.details.reason}`;
+        }
+        setPostResult({ success: false, message });
+      } else if (errorBody?.error === 'AUTH_ERROR') {
+        setPostResult({
+          success: false,
+          message: `Authentication Error: ${errorBody.message}. ${errorBody.suggestion || 'Please reconnect your Google Business Profile.'}`
+        });
+        setIsConnected(false);
+        setLocations([]);
+        setOverviewData(null);
+        localStorage.removeItem('google-business-connected');
+        localStorage.removeItem('google-business-locations');
+        localStorage.removeItem('google-business-overview-data');
+        localStorage.removeItem('google-business-cache-account-id');
+      } else if (errorBody?.error === 'PERMISSION_ERROR') {
+        setPostResult({
+          success: false,
+          message: `Permission Error: ${errorBody.message}. ${errorBody.suggestion || 'Check your Google Business Profile permissions.'}`
+        });
+      } else if (errorBody?.error === 'NETWORK_ERROR') {
+        setPostResult({
+          success: false,
+          message: `Network Error: ${errorBody.message}. ${errorBody.suggestion || 'Check your internet connection.'}`
+        });
+      } else if (errorBody?.error === 'TOKEN_REFRESHED') {
+        setPostResult({ success: true, message: 'Your authentication was refreshed. Retrying...' });
+        setTimeout(() => handleFetchLocations(), 1000);
+      } else if (error instanceof Error && error.message.includes('rate limit')) {
+        const cooldownTime = Date.now() + (120 * 1000);
+        setRateLimitedUntil(cooldownTime);
+        setPostResult({
+          success: false,
+          message: 'Google Business Profile API quota exhausted. Please wait 2 minutes before trying again, or request higher quota limits in Google Cloud Console.'
         });
       } else {
-        setPostResult({ 
-          success: false, 
-          message: 'Failed to fetch business locations. Please try again.' 
+        setPostResult({
+          success: false,
+          message: 'Failed to fetch business locations. Please try again.'
         });
       }
     } finally {

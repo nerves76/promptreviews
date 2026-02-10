@@ -7,6 +7,7 @@
 
 import { useState, useEffect } from 'react';
 import Icon from '@/components/Icon';
+import { apiClient } from '@/utils/apiClient';
 import { Tutorial, PlanType } from './types';
 import { calculateRelevanceScore } from './contextMapper';
 import { 
@@ -119,19 +120,14 @@ export default function TutorialsTab({
       const pageKeywords = getPageKeywords(pathname);
       const allKeywords = [...new Set([...contextKeywords, ...pageKeywords])];
       
-      const response = await fetch('/api/help-docs/tutorials', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          context: allKeywords,
-          pathname: pathname,
-          recommendedArticles: recommendations,
-          userPlan: userPlan
-        })
+      const data = await apiClient.post<{ tutorials: Tutorial[] }>('/help-docs/tutorials', {
+        context: allKeywords,
+        pathname: pathname,
+        recommendedArticles: recommendations,
+        userPlan: userPlan
       });
 
-      if (response.ok) {
-        const data = await response.json();
+      if (data.tutorials) {
         const tutorialsWithScores = data.tutorials.map((tutorial: Tutorial) => ({
           ...tutorial,
           relevanceScore: calculateRelevanceScore(tutorial, allKeywords)

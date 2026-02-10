@@ -6,6 +6,7 @@
  */
 
 import React, { useState, useEffect } from "react";
+import { apiClient } from "@/utils/apiClient";
 import {
   EMOJI_SENTIMENT_LABELS,
   EMOJI_SENTIMENT_ICONS,
@@ -95,15 +96,11 @@ const EmojiSentimentModal: React.FC<EmojiSentimentModalProps> = ({
                   
                   // Track emoji selection for analytics
                   if (promptPageId) {
-                    fetch("/api/track-event", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({
-                        promptPageId: promptPageId,
-                        eventType: 'emoji_sentiment',
-                        emoji_sentiment: sentiment,
-                        source: 'modal_interaction'
-                      }),
+                    apiClient.post("/track-event", {
+                      promptPageId: promptPageId,
+                      eventType: 'emoji_sentiment',
+                      emoji_sentiment: sentiment,
+                      source: 'modal_interaction'
                     }).catch(() => {
                       // Silently fail if analytics tracking fails
                     });

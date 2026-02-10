@@ -164,11 +164,7 @@ export default function PlanPage() {
         (async () => {
           try {
             if (success === '1' && sessionId && authAccount?.id) {
-              await fetch('/api/finalize-checkout', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ session_id: sessionId, userId: authAccount.id })
-              });
+              await apiClient.post('/finalize-checkout', { session_id: sessionId, userId: authAccount.id });
             }
           } catch (e) {
             console.warn('Finalize checkout failed (non-blocking):', e);
@@ -315,95 +311,68 @@ export default function PlanPage() {
         
         try {
           // Fetch the billing change preview
-          const previewRes = await fetch("/api/preview-billing-change", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              plan: tierKey,
-              userId: account.id,
-              billingPeriod: billing,
-            }),
+          const { preview } = await apiClient.post<{ preview: any }>('/preview-billing-change', {
+            plan: tierKey,
+            userId: account.id,
+            billingPeriod: billing,
           });
-          
-          if (previewRes.ok) {
-            const { preview } = await previewRes.json();
-            
-            // Update modal with actual preview data
-            setConfirmModalConfig({
-              title: isToAnnual ? 'Switch to Annual Billing' : 'Switch to Monthly Billing',
-              message: preview.message,
-              confirmText: isToAnnual ? 'Switch to Annual' : 'Switch to Monthly',
-              cancelText: 'Keep Current Plan',
-              loading: false,
-              details: {
-                creditAmount: preview.creditAmount,
-                timeline: preview.timeline,
-                stripeEmail: preview.stripeEmail,
-                processingFeeNote: preview.processingFeeNote,
-              },
-              onConfirm: async () => {
-            setShowConfirmModal(false);
-            setUpgrading(true);
-            setUpgradingPlan('Updating billing period...');
-            
-            try {
-              const res = await fetch("/api/upgrade-subscription", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    plan: tierKey,
-                    userId: account.id,
-                    currentPlan: currentPlan,
-                    billingPeriod: billing,
-                    successPath: '/dashboard/plan',
-                  }),
+
+          // Update modal with actual preview data
+          setConfirmModalConfig({
+            title: isToAnnual ? 'Switch to Annual Billing' : 'Switch to Monthly Billing',
+            message: preview.message,
+            confirmText: isToAnnual ? 'Switch to Annual' : 'Switch to Monthly',
+            cancelText: 'Keep Current Plan',
+            loading: false,
+            details: {
+              creditAmount: preview.creditAmount,
+              timeline: preview.timeline,
+              stripeEmail: preview.stripeEmail,
+              processingFeeNote: preview.processingFeeNote,
+            },
+            onConfirm: async () => {
+              setShowConfirmModal(false);
+              setUpgrading(true);
+              setUpgradingPlan('Updating billing period...');
+
+              try {
+                await apiClient.post('/upgrade-subscription', {
+                  plan: tierKey,
+                  userId: account.id,
+                  currentPlan: currentPlan,
+                  billingPeriod: billing,
+                  successPath: '/dashboard/plan',
                 });
-              
-              if (res.ok) {
+
                 // Redirect to success page
                 window.location.href = `/dashboard/plan?success=1&change=billing_period&plan=${tierKey}&billing=${billing}`;
                 return;
-              } else {
-                const errorData = await res.json();
-                throw new Error(errorData.message || 'Billing period change failed');
+              } catch (error) {
+                console.error("Billing period change error:", error);
+                // Use modal for error too
+                setConfirmModalConfig({
+                  title: 'Error',
+                  message: 'Failed to change billing period. Please try again.',
+                  confirmText: 'OK',
+                  cancelText: '',
+                  onConfirm: () => setShowConfirmModal(false)
+                });
+                setShowConfirmModal(true);
+              } finally {
+                setUpgrading(false);
+                setUpgradingPlan('');
               }
-            } catch (error) {
-              console.error("Billing period change error:", error);
-              // Use modal for error too
-              setConfirmModalConfig({
-                title: 'Error',
-                message: 'Failed to change billing period. Please try again.',
-                confirmText: 'OK',
-                cancelText: '',
-                onConfirm: () => setShowConfirmModal(false)
-              });
-              setShowConfirmModal(true);
-            } finally {
-              setUpgrading(false);
-              setUpgradingPlan('');
+            },
+            onCancel: () => {
+              setShowConfirmModal(false);
             }
-              },
-              onCancel: () => {
-                setShowConfirmModal(false);
-              }
-            });
-          } else {
-            // Error fetching preview
-            const errorData = await previewRes.json();
-            setConfirmModalConfig({
-              title: 'Error',
-              message: errorData.message || 'Unable to calculate billing changes. Please try again.',
-              confirmText: 'OK',
-              cancelText: '',
-              loading: false,
-              onConfirm: () => setShowConfirmModal(false)
-            });
-          }
+          });
         } catch (error) {
           console.error("Error fetching billing preview:", error);
+          const errorMessage = (error as any)?.responseBody?.message || 'Unable to calculate billing changes. Please try again.';
           setConfirmModalConfig({
             title: 'Error',
-            message: 'Unable to calculate billing changes. Please try again.',
+            message: errorMessage,
             confirmText: 'OK',
             cancelText: '',
             loading: false,
@@ -431,29 +400,19 @@ export default function PlanPage() {
           setUpgradingPlan(`Setting up ${targetTier.name} plan...`);
           
           try {
-            const res = await fetch("/api/create-checkout-session", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                priceId: getPriceId(tierKey, billing),
-                plan: tierKey,
-                billingPeriod: billing,
-                userId: account.id,
-                isReactivation: isReactivation,
-                isAdditionalAccount: account.is_additional_account === true,
-                successPath: '/dashboard/plan',
-                cancelPath: '/dashboard/plan',
-              }),
+            const data = await apiClient.post<{ url: string }>('/create-checkout-session', {
+              priceId: getPriceId(tierKey, billing),
+              plan: tierKey,
+              billingPeriod: billing,
+              userId: account.id,
+              isReactivation: isReactivation,
+              isAdditionalAccount: account.is_additional_account === true,
+              successPath: '/dashboard/plan',
+              cancelPath: '/dashboard/plan',
             });
-            
-            if (res.ok) {
-              const data = await res.json();
-              window.location.href = data.url;
-              return;
-            } else {
-              const errorData = await res.json();
-              throw new Error(errorData.message || 'Checkout failed');
-            }
+
+            window.location.href = data.url;
+            return;
           } catch (error) {
             console.error("Checkout error:", error);
             alert("Failed to create checkout session. Please try again.");
@@ -468,172 +427,110 @@ export default function PlanPage() {
         setShowUpgradeModal(true);
         
         // Fetch proration preview in the background
-        fetch("/api/preview-billing-change", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            plan: tierKey,
-            userId: account.id,
-            billingPeriod: billing,
-          }),
-        }).then(async (previewRes) => {
-          if (previewRes.ok) {
-            const { preview } = await previewRes.json();
-            
-            // Store the proration info to show after upgrade confirmation
-            setConfirmModalConfig({
-              title: `Billing Details for ${targetTier.name}`,
-              message: `You'll be charged $${preview.netAmount} for the prorated difference.`,
-              confirmText: 'Proceed with Upgrade',
-              cancelText: 'Cancel',
-              loading: false,
-              details: {
-                creditAmount: preview.creditAmount,
-                timeline: preview.timeline,
-                stripeEmail: preview.stripeEmail,
-                processingFeeNote: preview.processingFeeNote,
-              },
-              onConfirm: async () => {
-                // Actually perform the upgrade
-                setShowConfirmModal(false);
-                setUpgrading(true);
-                setUpgradingPlan(`Upgrading to ${targetTier.name}...`);
-                
-                try {
-                  const res = await fetch("/api/upgrade-subscription", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    plan: tierKey,
-                    userId: account.id,
-                    currentPlan: currentPlan,
-                    billingPeriod: billing,
-                    successPath: '/dashboard/plan',
-                  }),
-                });
-                  
-                  if (res.ok) {
-                    const data = await res.json();
-                    window.location.href = data.redirectUrl || `/dashboard/plan?success=1&change=upgrade&plan=${tierKey}&billing=${billing}`;
-                  } else {
-                    throw new Error('Upgrade failed');
-                  }
-                } catch (error) {
-                  console.error("Upgrade error:", error);
-                  alert("Failed to upgrade. Please try again.");
-                } finally {
-                  setUpgrading(false);
-                  setUpgradingPlan('');
-                }
-              },
-              onCancel: () => {
-                setShowConfirmModal(false);
-                setUpgradeTarget(null);
-                setUpgradeFeatures([]);
-              }
-            });
-          } else {
-            // If preview fails, check if it's because user needs checkout
-            console.error('Billing preview failed with status:', previewRes.status);
-
-            let errorData: any = { error: 'Unknown error' };
-            const responseText = await previewRes.text();
-
-            try {
-              errorData = JSON.parse(responseText);
-            } catch (e) {
-              console.error('Failed to parse error response:', e);
-              errorData = { error: 'Server error', message: responseText || 'Unable to calculate billing changes' };
-            }
-
-            console.error('Failed to fetch billing preview:', errorData);
-
-            // If user requires checkout (free trial/no subscription), redirect to checkout
-            if (errorData.error === 'NO_SUBSCRIPTION' || errorData.requiresCheckout) {
-              console.log('✅ Preview failed because user needs checkout - redirecting to checkout flow');
-              console.log('Account data:', {
-                accountId: account?.id,
-                plan: account?.plan,
-                hasStripeCustomer: !!account?.stripe_customer_id
-              });
-
-              setShowUpgradeModal(false);
+        apiClient.post<{ preview: any }>('/preview-billing-change', {
+          plan: tierKey,
+          userId: account.id,
+          billingPeriod: billing,
+        }).then(async ({ preview }) => {
+          // Store the proration info to show after upgrade confirmation
+          setConfirmModalConfig({
+            title: `Billing Details for ${targetTier.name}`,
+            message: `You'll be charged $${preview.netAmount} for the prorated difference.`,
+            confirmText: 'Proceed with Upgrade',
+            cancelText: 'Cancel',
+            loading: false,
+            details: {
+              creditAmount: preview.creditAmount,
+              timeline: preview.timeline,
+              stripeEmail: preview.stripeEmail,
+              processingFeeNote: preview.processingFeeNote,
+            },
+            onConfirm: async () => {
+              // Actually perform the upgrade
+              setShowConfirmModal(false);
               setUpgrading(true);
-              setUpgradingPlan(`Setting up ${targetTier.name} plan...`);
+              setUpgradingPlan(`Upgrading to ${targetTier.name}...`);
 
               try {
-                const checkoutPayload = {
-                  priceId: getPriceId(tierKey, billing),
+                const data = await apiClient.post<{ redirectUrl?: string }>('/upgrade-subscription', {
                   plan: tierKey,
-                  billingPeriod: billing,
                   userId: account.id,
-                  isReactivation: false,
-                  isAdditionalAccount: account.is_additional_account === true,
+                  currentPlan: currentPlan,
+                  billingPeriod: billing,
                   successPath: '/dashboard/plan',
-                  cancelPath: '/dashboard/plan',
-                };
-
-                console.log('📤 Creating checkout session with:', checkoutPayload);
-
-                const res = await fetch("/api/create-checkout-session", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify(checkoutPayload),
                 });
 
-                console.log('📥 Checkout session response status:', res.status);
-
-                if (res.ok) {
-                  const data = await res.json();
-                  console.log('✅ Checkout session created, redirecting to:', data.url);
-                  window.location.href = data.url;
-                  return;
-                } else {
-                  const checkoutError = await res.json();
-                  console.error('❌ Checkout session creation failed:', checkoutError);
-                  throw new Error(checkoutError.message || checkoutError.error || 'Checkout failed');
-                }
+                window.location.href = data.redirectUrl || `/dashboard/plan?success=1&change=upgrade&plan=${tierKey}&billing=${billing}`;
               } catch (error) {
-                console.error("❌ Checkout error:", error);
-                alert(`Failed to create checkout session: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`);
+                console.error("Upgrade error:", error);
+                alert("Failed to upgrade. Please try again.");
+              } finally {
                 setUpgrading(false);
                 setUpgradingPlan('');
               }
-              return;
+            },
+            onCancel: () => {
+              setShowConfirmModal(false);
+              setUpgradeTarget(null);
+              setUpgradeFeatures([]);
             }
-
-            // Show error message to user for other errors
-            setConfirmModalConfig({
-              title: 'Unable to Calculate Billing',
-              message: errorData.message || 'Unable to calculate billing changes. You can still proceed with the upgrade.',
-              confirmText: 'Continue Anyway',
-              cancelText: 'Cancel',
-              loading: false,
-              onConfirm: () => {
-                setShowConfirmModal(false);
-                setShowUpgradeModal(true);
-              },
-              onCancel: () => {
-                setShowConfirmModal(false);
-                setUpgradeTarget(null);
-                setUpgradeFeatures([]);
-              }
-            });
-          }
-        }).catch((error) => {
+          });
+        }).catch(async (error) => {
           console.error('Error fetching billing preview:', error);
-          
-          // Show error message to user
+
+          const errorData = (error as any)?.responseBody || { error: 'Unknown error' };
+
+          // If user requires checkout (free trial/no subscription), redirect to checkout
+          if (errorData.error === 'NO_SUBSCRIPTION' || errorData.requiresCheckout) {
+            console.log('Preview failed because user needs checkout - redirecting to checkout flow');
+            console.log('Account data:', {
+              accountId: account?.id,
+              plan: account?.plan,
+              hasStripeCustomer: !!account?.stripe_customer_id
+            });
+
+            setShowUpgradeModal(false);
+            setUpgrading(true);
+            setUpgradingPlan(`Setting up ${targetTier.name} plan...`);
+
+            try {
+              const checkoutPayload = {
+                priceId: getPriceId(tierKey, billing),
+                plan: tierKey,
+                billingPeriod: billing,
+                userId: account.id,
+                isReactivation: false,
+                isAdditionalAccount: account.is_additional_account === true,
+                successPath: '/dashboard/plan',
+                cancelPath: '/dashboard/plan',
+              };
+
+              console.log('Creating checkout session with:', checkoutPayload);
+
+              const data = await apiClient.post<{ url: string }>('/create-checkout-session', checkoutPayload);
+
+              console.log('Checkout session created, redirecting to:', data.url);
+              window.location.href = data.url;
+              return;
+            } catch (checkoutError) {
+              console.error("Checkout error:", checkoutError);
+              alert(`Failed to create checkout session: ${checkoutError instanceof Error ? checkoutError.message : 'Unknown error'}. Please try again.`);
+              setUpgrading(false);
+              setUpgradingPlan('');
+            }
+            return;
+          }
+
+          // Show error message to user for other errors
           setConfirmModalConfig({
-            title: 'Connection Error',
-            message: 'Unable to connect to billing service. Please try again.',
-            confirmText: 'Try Again',
+            title: 'Unable to Calculate Billing',
+            message: errorData.message || 'Unable to calculate billing changes. You can still proceed with the upgrade.',
+            confirmText: 'Continue Anyway',
             cancelText: 'Cancel',
             loading: false,
             onConfirm: () => {
               setShowConfirmModal(false);
-              // Retry by calling handleSelectTier again
-              handleSelectTier(tierKey, billing);
+              setShowUpgradeModal(true);
             },
             onCancel: () => {
               setShowConfirmModal(false);
@@ -648,30 +545,20 @@ export default function PlanPage() {
       // Handle new user or users with no valid plan selecting a paid plan (bypass upgrade modal for direct checkout)
       if ((isNewUser || !hasValidCurrentPlan || currentPlan === 'grower' || currentPlan === 'no_plan' || currentPlan === 'NULL') && tierKey !== 'grower') {
         try {
-          const res = await fetch("/api/create-checkout-session", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              plan: tierKey,
-              userId: account.id,
-              email: user.email,
-              billingPeriod: billing,
-              isReactivation: isReactivation,
-              isAdditionalAccount: account.is_additional_account === true,
-              successPath: '/dashboard/plan',
-              cancelPath: '/dashboard/plan',
-            }),
+          const data = await apiClient.post<{ url: string }>('/create-checkout-session', {
+            plan: tierKey,
+            userId: account.id,
+            email: user.email,
+            billingPeriod: billing,
+            isReactivation: isReactivation,
+            isAdditionalAccount: account.is_additional_account === true,
+            successPath: '/dashboard/plan',
+            cancelPath: '/dashboard/plan',
           });
-          
-          if (res.ok) {
-            const data = await res.json();
-            // Redirect to Stripe checkout
-            window.location.href = data.url;
-            return;
-          } else {
-            const errorData = await res.json();
-            throw new Error(errorData.message || 'Checkout failed');
-          }
+
+          // Redirect to Stripe checkout
+          window.location.href = data.url;
+          return;
         } catch (error) {
           console.error("Checkout error:", error);
           alert("Failed to create checkout session. Please try again.");
@@ -706,12 +593,9 @@ export default function PlanPage() {
               setShowConfirmModal(false);
               setUpgrading(true);
               setUpgradingPlan(`Setting up ${targetTier.name} plan...`);
-              
+
               try {
-                const res = await fetch("/api/create-checkout-session", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
+                const data = await apiClient.post<{ url: string }>('/create-checkout-session', {
                   priceId: getPriceId(tierKey, billing),
                   plan: tierKey,
                   billingPeriod: billing,
@@ -719,15 +603,9 @@ export default function PlanPage() {
                   isAdditionalAccount: account.is_additional_account === true,
                   successPath: '/dashboard/plan',
                   cancelPath: '/dashboard/plan',
-                }),
-              });
-                
-                if (res.ok) {
-                  const data = await res.json();
-                  window.location.href = data.url;
-                } else {
-                  throw new Error('Failed to create checkout session');
-                }
+                });
+
+                window.location.href = data.url;
               } catch (error) {
                 console.error("Checkout error:", error);
                 alert("Failed to create checkout session. Please try again.");
@@ -807,184 +685,152 @@ export default function PlanPage() {
     
     try {
       // Fetch proration preview
-      const previewRes = await fetch("/api/preview-billing-change", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          plan: downgradeTarget,
-          userId: account.id,
-          billingPeriod: billingPeriod,
-        }),
+      const { preview } = await apiClient.post<{ preview: any }>('/preview-billing-change', {
+        plan: downgradeTarget,
+        userId: account.id,
+        billingPeriod: billingPeriod,
       });
-      
-      if (previewRes.ok) {
-        const { preview } = await previewRes.json();
-        
-        // Update modal with actual preview data
-        setConfirmModalConfig({
-          title: `Downgrade to ${targetTier.name}`,
-          message: preview.message,
-          confirmText: 'Confirm Downgrade',
-          cancelText: 'Cancel',
-          loading: false,
-          details: {
-            creditAmount: preview.creditAmount,
-            timeline: preview.timeline,
-            stripeEmail: preview.stripeEmail,
-            processingFeeNote: preview.processingFeeNote,
-          },
-          onConfirm: async () => {
-            // Show loading state in the modal
-            setConfirmModalConfig(prev => ({
-              ...prev!,
-              loading: true,
-              title: 'Processing downgrade...',
-              message: 'Please wait while we update your subscription.'
-            }));
-            
-            setDowngradeProcessing(true);
-            
-            try {
-              // For customers with active Stripe subscriptions, use the upgrade API to downgrade
-              if (account.stripe_customer_id) {
-                const res = await fetch("/api/upgrade-subscription", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  plan: downgradeTarget,
-                  userId: account.id,
-                  currentPlan: currentPlan,
-                  billingPeriod: billingPeriod,
-                  successPath: '/dashboard/plan',
-                }),
+
+      // Update modal with actual preview data
+      setConfirmModalConfig({
+        title: `Downgrade to ${targetTier.name}`,
+        message: preview.message,
+        confirmText: 'Confirm Downgrade',
+        cancelText: 'Cancel',
+        loading: false,
+        details: {
+          creditAmount: preview.creditAmount,
+          timeline: preview.timeline,
+          stripeEmail: preview.stripeEmail,
+          processingFeeNote: preview.processingFeeNote,
+        },
+        onConfirm: async () => {
+          // Show loading state in the modal
+          setConfirmModalConfig(prev => ({
+            ...prev!,
+            loading: true,
+            title: 'Processing downgrade...',
+            message: 'Please wait while we update your subscription.'
+          }));
+
+          setDowngradeProcessing(true);
+
+          try {
+            // For customers with active Stripe subscriptions, use the upgrade API to downgrade
+            if (account.stripe_customer_id) {
+              await apiClient.post('/upgrade-subscription', {
+                plan: downgradeTarget,
+                userId: account.id,
+                currentPlan: currentPlan,
+                billingPeriod: billingPeriod,
+                successPath: '/dashboard/plan',
               });
-                
-                if (res.ok) {
-                  const data = await res.json();
-                  
-                  // Build full URL to ensure proper redirect
-                  const baseUrl = window.location.origin;
-                  const redirectUrl = `${baseUrl}/dashboard/plan?success=1&change=downgrade&plan=${downgradeTarget}&billing=${billingPeriod}`;
-                  
-                  // Close modal and redirect
-                  setShowConfirmModal(false);
-                  
-                  // Add a small delay to ensure the database update completes
-                  setTimeout(() => {
-                    window.location.href = redirectUrl;
-                  }, 500);
-                  return;
-                } else {
-                  const errorData = await res.json();
-                  throw new Error(errorData.message || 'Downgrade failed');
-                }
-              } else {
-                // For free/trial users, update the database directly
-                await supabase
-                  .from("accounts")
-                  .update({ plan: downgradeTarget })
-                  .eq("id", account.id);
-                
-                // Refetch account data after downgrade
-                const { data: updatedAccount } = await supabase
-                  .from("accounts")
-                  .select("*")
-                  .eq("id", account.id)
-                  .single();
-                
-                if (updatedAccount) {
-                  setAccount(updatedAccount);
-                  setCurrentPlan(updatedAccount.plan);
-                  prevPlanRef.current = updatedAccount.plan;
-                }
-                
-                setShowDowngradeModal(false);
-                setLastAction("downgrade");
-                // Don't show star animation for success modal
-                setStarAnimation(false);
-                setShowSuccessModal(true);
+
+              // Build full URL to ensure proper redirect
+              const baseUrl = window.location.origin;
+              const redirectUrl = `${baseUrl}/dashboard/plan?success=1&change=downgrade&plan=${downgradeTarget}&billing=${billingPeriod}`;
+
+              // Close modal and redirect
+              setShowConfirmModal(false);
+
+              // Add a small delay to ensure the database update completes
+              setTimeout(() => {
+                window.location.href = redirectUrl;
+              }, 500);
+              return;
+            } else {
+              // For free/trial users, update the database directly
+              await supabase
+                .from("accounts")
+                .update({ plan: downgradeTarget })
+                .eq("id", account.id);
+
+              // Refetch account data after downgrade
+              const { data: updatedAccount } = await supabase
+                .from("accounts")
+                .select("*")
+                .eq("id", account.id)
+                .single();
+
+              if (updatedAccount) {
+                setAccount(updatedAccount);
+                setCurrentPlan(updatedAccount.plan);
+                prevPlanRef.current = updatedAccount.plan;
+              }
+
+              setShowDowngradeModal(false);
+              setLastAction("downgrade");
+              // Don't show star animation for success modal
+              setStarAnimation(false);
+              setShowSuccessModal(true);
+              setShowConfirmModal(false);
+            }
+          } catch (error) {
+            console.error("Downgrade error:", error);
+            // Show error in modal instead of alert
+            setConfirmModalConfig({
+              title: 'Downgrade Failed',
+              message: 'There was an error processing your downgrade. Please try again.',
+              confirmText: 'Close',
+              cancelText: '',
+              loading: false,
+              onConfirm: () => {
                 setShowConfirmModal(false);
               }
-            } catch (error) {
-              console.error("Downgrade error:", error);
-              // Show error in modal instead of alert
-              setConfirmModalConfig({
-                title: 'Downgrade Failed',
-                message: 'There was an error processing your downgrade. Please try again.',
-                confirmText: 'Close',
-                cancelText: '',
-                loading: false,
-                onConfirm: () => {
-                  setShowConfirmModal(false);
-                }
-              });
-            } finally {
-              setDowngradeProcessing(false);
-            }
-          },
-          onCancel: () => {
-            setShowConfirmModal(false);
-            setDowngradeTarget(null);
-            setDowngradeFeatures([]);
+            });
+          } finally {
+            setDowngradeProcessing(false);
           }
-        });
-      } else {
-        // If preview fails, show error and allow proceeding anyway
-        console.error('Billing preview failed');
-        
-        setConfirmModalConfig({
-          title: 'Unable to Calculate Credit',
-          message: 'Unable to calculate your credit amount. You can still proceed with the downgrade.',
-          confirmText: 'Continue Anyway',
-          cancelText: 'Cancel',
-          loading: false,
-          onConfirm: async () => {
-            // Proceed with downgrade without preview
-            setShowConfirmModal(false);
-            setDowngradeProcessing(true);
-            
-            try {
-              if (account.stripe_customer_id) {
-                const res = await fetch("/api/upgrade-subscription", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  plan: downgradeTarget,
-                  userId: account.id,
-                  currentPlan: currentPlan,
-                  billingPeriod: billingPeriod,
-                  successPath: '/dashboard/plan',
-                }),
-              });
-                
-                if (res.ok) {
-                  const data = await res.json();
-                  const redirectUrl = `/dashboard/plan?success=1&change=downgrade&plan=${downgradeTarget}&billing=${billingPeriod}`;
-                  setTimeout(() => {
-                    window.location.href = redirectUrl;
-                  }, 500);
-                } else {
-                  throw new Error('Downgrade failed');
-                }
-              }
-            } catch (error) {
-              console.error("Downgrade error:", error);
-              alert("Failed to downgrade. Please try again.");
-            } finally {
-              setDowngradeProcessing(false);
-            }
-          },
-          onCancel: () => {
-            setShowConfirmModal(false);
-            setDowngradeTarget(null);
-            setDowngradeFeatures([]);
-          }
-        });
-      }
+        },
+        onCancel: () => {
+          setShowConfirmModal(false);
+          setDowngradeTarget(null);
+          setDowngradeFeatures([]);
+        }
+      });
     } catch (error) {
       console.error('Error fetching billing preview:', error);
-      setShowConfirmModal(false);
-      alert('Failed to fetch billing information. Please try again.');
+
+      // If preview fails, show error and allow proceeding anyway
+      setConfirmModalConfig({
+        title: 'Unable to Calculate Credit',
+        message: 'Unable to calculate your credit amount. You can still proceed with the downgrade.',
+        confirmText: 'Continue Anyway',
+        cancelText: 'Cancel',
+        loading: false,
+        onConfirm: async () => {
+          // Proceed with downgrade without preview
+          setShowConfirmModal(false);
+          setDowngradeProcessing(true);
+
+          try {
+            if (account.stripe_customer_id) {
+              await apiClient.post('/upgrade-subscription', {
+                plan: downgradeTarget,
+                userId: account.id,
+                currentPlan: currentPlan,
+                billingPeriod: billingPeriod,
+                successPath: '/dashboard/plan',
+              });
+
+              const redirectUrl = `/dashboard/plan?success=1&change=downgrade&plan=${downgradeTarget}&billing=${billingPeriod}`;
+              setTimeout(() => {
+                window.location.href = redirectUrl;
+              }, 500);
+            }
+          } catch (downgradeError) {
+            console.error("Downgrade error:", downgradeError);
+            alert("Failed to downgrade. Please try again.");
+          } finally {
+            setDowngradeProcessing(false);
+          }
+        },
+        onCancel: () => {
+          setShowConfirmModal(false);
+          setDowngradeTarget(null);
+          setDowngradeFeatures([]);
+        }
+      });
     }
   };
   const handleCancelDowngrade = () => {
@@ -1014,47 +860,37 @@ export default function PlanPage() {
     } else {
       // If no proration info, proceed directly with upgrade
       setUpgradeProcessing(true);
-      
+
       try {
         // Check if user has a Stripe customer ID (existing customer vs new user)
         const hasStripeCustomer = !!account.stripe_customer_id;
-        
+
         if (hasStripeCustomer) {
           // Existing customer - use upgrade API
-        const res = await fetch("/api/upgrade-subscription", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            plan: upgradeTarget,
-            userId: account.id,
-            currentPlan: currentPlan,
-            billingPeriod: billingPeriod,
-            successPath: '/dashboard/plan',
-          }),
-        });
-          
-          if (res.ok) {
-          const data = await res.json();
-          
-          // For now, always use local redirect to ensure it works
-          const redirectUrl = `/dashboard/plan?success=1&change=upgrade&plan=${upgradeTarget}&billing=${billingPeriod}`;
-          
-          // Add a small delay to ensure the database update completes
-          setTimeout(() => {
-            window.location.href = redirectUrl;
-          }, 500);
-          return;
-        } else {
-          const errorData = await res.json();
-          
-          // Check if this is a free trial user who should use checkout instead
-          if (errorData.error === "FREE_TRIAL_USER" || errorData.redirectToCheckout) {
-            
-            // Redirect to checkout session API instead
-            const checkoutRes = await fetch("/api/create-checkout-session", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
+          try {
+            await apiClient.post('/upgrade-subscription', {
+              plan: upgradeTarget,
+              userId: account.id,
+              currentPlan: currentPlan,
+              billingPeriod: billingPeriod,
+              successPath: '/dashboard/plan',
+            });
+
+            // For now, always use local redirect to ensure it works
+            const redirectUrl = `/dashboard/plan?success=1&change=upgrade&plan=${upgradeTarget}&billing=${billingPeriod}`;
+
+            // Add a small delay to ensure the database update completes
+            setTimeout(() => {
+              window.location.href = redirectUrl;
+            }, 500);
+            return;
+          } catch (upgradeError) {
+            const errorData = (upgradeError as any)?.responseBody || {};
+
+            // Check if this is a free trial user who should use checkout instead
+            if (errorData.error === "FREE_TRIAL_USER" || errorData.redirectToCheckout) {
+              // Redirect to checkout session API instead
+              const checkoutData = await apiClient.post<{ url: string }>('/create-checkout-session', {
                 plan: upgradeTarget,
                 userId: account.id,
                 email: user.email,
@@ -1062,28 +898,18 @@ export default function PlanPage() {
                 isAdditionalAccount: account.is_additional_account === true,
                 successPath: '/dashboard/plan',
                 cancelPath: '/dashboard/plan',
-              }),
-            });
-            
-            if (checkoutRes.ok) {
-              const checkoutData = await checkoutRes.json();
+              });
+
               // Redirect to Stripe checkout
               window.location.href = checkoutData.url;
               return;
-            } else {
-              const checkoutErrorData = await checkoutRes.json();
-              throw new Error(checkoutErrorData.message || 'Checkout failed');
             }
+
+            throw new Error(errorData.message || 'Upgrade failed');
           }
-          
-          throw new Error(errorData.message || 'Upgrade failed');
-        }
-      } else {
-        // New user or trial user - use checkout session API
-        const res = await fetch("/api/create-checkout-session", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
+        } else {
+          // New user or trial user - use checkout session API
+          const data = await apiClient.post<{ url: string }>('/create-checkout-session', {
             plan: upgradeTarget,
             userId: account.id,
             email: user.email,
@@ -1091,19 +917,12 @@ export default function PlanPage() {
             isAdditionalAccount: account.is_additional_account === true,
             successPath: '/dashboard/plan',
             cancelPath: '/dashboard/plan',
-          }),
-        });
-        
-        if (res.ok) {
-          const data = await res.json();
+          });
+
           // Redirect to Stripe checkout
           window.location.href = data.url;
           return;
-        } else {
-          const errorData = await res.json();
-          throw new Error(errorData.message || 'Checkout failed');
         }
-      }
       } catch (error) {
         console.error("Upgrade error:", error);
         alert("Failed to upgrade. Please try again.");

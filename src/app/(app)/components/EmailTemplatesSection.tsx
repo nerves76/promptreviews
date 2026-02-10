@@ -6,6 +6,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@/auth/providers/supabase';
+import { apiClient } from '@/utils/apiClient';
 
 interface EmailTemplate {
   id: string;
@@ -36,14 +37,8 @@ export default function EmailTemplatesSection() {
 
   const fetchTemplates = async () => {
     try {
-      const response = await fetch('/api/email-templates');
-      const data = await response.json();
-      
-      if (response.ok) {
-        setTemplates(data.templates);
-      } else {
-        console.error('Error fetching templates:', data.error);
-      }
+      const data = await apiClient.get<{ templates: EmailTemplate[] }>('/email-templates');
+      setTemplates(data.templates);
     } catch (error) {
       console.error('Error fetching templates:', error);
     } finally {
@@ -56,35 +51,22 @@ export default function EmailTemplatesSection() {
 
     setSaving(true);
     try {
-      const response = await fetch('/api/email-templates', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          id: editingTemplate.id,
-          updates: {
-            subject: editingTemplate.subject,
-            html_content: editingTemplate.html_content,
-            text_content: editingTemplate.text_content,
-          }
-        }),
+      await apiClient.post('/email-templates', {
+        id: editingTemplate.id,
+        updates: {
+          subject: editingTemplate.subject,
+          html_content: editingTemplate.html_content,
+          text_content: editingTemplate.text_content,
+        }
       });
 
-      const data = await response.json();
-      
-      if (response.ok) {
-        setTemplates(templates.map(t => 
-          t.id === editingTemplate.id ? editingTemplate : t
-        ));
-        setEditingTemplate(null);
-      } else {
-        console.error('Error saving template:', data.error);
-        alert('Error saving template: ' + data.error);
-      }
-    } catch (error) {
+      setTemplates(templates.map(t =>
+        t.id === editingTemplate.id ? editingTemplate : t
+      ));
+      setEditingTemplate(null);
+    } catch (error: any) {
       console.error('Error saving template:', error);
-      alert('Error saving template');
+      alert('Error saving template: ' + (error.responseBody?.error || error.message));
     } finally {
       setSaving(false);
     }
@@ -93,22 +75,12 @@ export default function EmailTemplatesSection() {
   const handleSendTrialReminders = async () => {
     setSendingReminders(true);
     try {
-      const response = await fetch('/api/send-trial-reminders', {
-        method: 'POST',
-      });
-
-      const data = await response.json();
-      
-      if (response.ok) {
-        setReminderResults(data);
-        alert(`Trial reminders sent! ${data.summary.sent} successful, ${data.summary.failed} failed.`);
-      } else {
-        console.error('Error sending reminders:', data.error);
-        alert('Error sending reminders: ' + data.error);
-      }
-    } catch (error) {
+      const data = await apiClient.post<{ summary: { total: number; sent: number; failed: number; skipped?: number } }>('/send-trial-reminders');
+      setReminderResults(data);
+      alert(`Trial reminders sent! ${data.summary.sent} successful, ${data.summary.failed} failed.`);
+    } catch (error: any) {
       console.error('Error sending reminders:', error);
-      alert('Error sending reminders');
+      alert('Error sending reminders: ' + (error.responseBody?.error || error.message));
     } finally {
       setSendingReminders(false);
     }

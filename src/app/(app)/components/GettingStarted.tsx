@@ -12,6 +12,7 @@ import { useRouter } from "next/navigation";
 import { fetchOnboardingTasks, markTaskAsCompleted, markTaskAsIncomplete } from "@/utils/onboardingTasks";
 import { createClient } from '@/auth/providers/supabase';
 import HelpModal from './help/HelpModal';
+import { apiClient } from "@/utils/apiClient";
 
 interface BusinessData {
   id?: string;
@@ -88,70 +89,22 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
       if (!accountId) return;
 
       try {
-        // Get the authentication token from Supabase
-        // Using singleton Supabase client from supabaseClient.ts
-        
-        // Wait for session to be available
-        let retries = 0;
-        const maxRetries = 5;
-        let session = null;
-        
-        while (retries < maxRetries) {
-          const { data: { session: currentSession } } = await supabase.auth.getSession();
-          if (currentSession?.access_token) {
-            session = currentSession;
-            break;
-          }
-          retries++;
-          // Wait 500ms before retrying
-          await new Promise(resolve => setTimeout(resolve, 500));
-        }
-
-        if (!session?.access_token) {
-          return;
-        }
-
         // Add retry logic for API calls to handle race conditions
         let success = false;
         let lastError = null;
 
         for (let attempt = 0; attempt < 3; attempt++) {
           try {
-            const response = await fetch('/api/initialize-onboarding-tasks', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${session.access_token}`,
-              },
-            });
-
-            if (!response.ok) {
-              const errorData = await response.json();
-              lastError = {
-                status: response.status,
-                statusText: response.statusText,
-                errorData: errorData,
-              };
-              
-              // If it's a 404 (account not found), retry after waiting
-              if (response.status === 404 && attempt < 2) {
-                await new Promise(resolve => setTimeout(resolve, 2000));
-                continue;
-              }
-              
-              console.error('Error initializing default tasks:', {
-                error: lastError,
-                status: response.status,
-                statusText: response.statusText,
-                attempt: attempt + 1
-              });
-            } else {
-              const result = await response.json();
-              success = true;
-              break;
-            }
-          } catch (fetchError) {
+            await apiClient.post('/initialize-onboarding-tasks');
+            success = true;
+            break;
+          } catch (fetchError: any) {
             lastError = fetchError;
+            // If it's a 404 (account not found), retry after waiting
+            if (fetchError.status === 404 && attempt < 2) {
+              await new Promise(resolve => setTimeout(resolve, 2000));
+              continue;
+            }
             if (attempt < 2) {
               await new Promise(resolve => setTimeout(resolve, 2000));
             }

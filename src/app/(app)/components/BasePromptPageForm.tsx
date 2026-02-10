@@ -16,6 +16,7 @@
 "use client";
 import React, { useState, useEffect, ReactNode } from "react";
 import { useRouter } from "next/navigation";
+import { apiClient } from "@/utils/apiClient";
 import {
   PersonalizedNoteFeature,
   EmojiSentimentFeature,
@@ -489,30 +490,14 @@ export default function BasePromptPageForm({
   const handleKickstartersColorChange = async (color: string) => {
     console.log('[BasePromptPageForm] Saving kickstarters color:', color, 'to business:', businessProfile?.id);
     try {
-      // Use the API endpoint for proper account isolation and authentication
-      const response = await fetch('/api/businesses/update-style', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Selected-Account': businessProfile?.account_id || '',
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          businessId: businessProfile?.id,
-          kickstarters_primary_color: color,
-        }),
+      const result = await apiClient.post<{ error?: string }>('/businesses/update-style', {
+        businessId: businessProfile?.id,
+        kickstarters_primary_color: color,
       });
-
-      if (!response.ok) {
-        const result = await response.json();
-        console.error('[BasePromptPageForm] Error updating kickstarters primary color:', result.error);
-      } else {
-        const result = await response.json();
-        console.log('[BasePromptPageForm] Successfully saved kickstarters color:', result);
-        // Update the business profile object for immediate sync with live page
-        if (businessProfile) {
-          businessProfile.kickstarters_primary_color = color;
-        }
+      console.log('[BasePromptPageForm] Successfully saved kickstarters color:', result);
+      // Update the business profile object for immediate sync with live page
+      if (businessProfile) {
+        businessProfile.kickstarters_primary_color = color;
       }
     } catch (error) {
       console.error('Error updating kickstarters primary color:', error);

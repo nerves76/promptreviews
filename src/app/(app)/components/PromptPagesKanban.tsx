@@ -5,6 +5,7 @@ import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea
 import { PromptPage } from "./PromptPagesTable";
 import PromptPageCard from "./PromptPageCard";
 import Icon from "@/components/Icon";
+import { apiClient } from "@/utils/apiClient";
 import { StatusLabels } from "@/hooks/useStatusLabels";
 import PromptPageDetailsPanel from "./PromptPageDetailsPanel";
 import type { WMUserInfo } from "@/types/workManager";
@@ -135,23 +136,16 @@ export default function PromptPagesKanban({
 
       // Log campaign action for status change
       try {
-        await fetch('/api/campaign-actions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
+        await apiClient.post('/campaign-actions', {
+          promptPageId: draggableId,
+          contactId: page.contact_id,
+          accountId: page.account_id || account?.id,
+          activityType: 'status_change',
+          content: `Status changed from "${statusLabels[oldStatus] || oldStatus}" to "${statusLabels[newStatus] || newStatus}"`,
+          metadata: {
+            status_from: oldStatus,
+            status_to: newStatus,
           },
-          credentials: 'include',
-          body: JSON.stringify({
-            promptPageId: draggableId,
-            contactId: page.contact_id,
-            accountId: page.account_id || account?.id,
-            activityType: 'status_change',
-            content: `Status changed from "${statusLabels[oldStatus] || oldStatus}" to "${statusLabels[newStatus] || newStatus}"`,
-            metadata: {
-              status_from: oldStatus,
-              status_to: newStatus,
-            },
-          }),
         });
       } catch (error) {
         // Don't fail the status update if campaign action logging fails
@@ -190,32 +184,7 @@ export default function PromptPagesKanban({
 
     // Persist the new sort orders to the database
     try {
-      const headers: HeadersInit = {
-        'Content-Type': 'application/json',
-      };
-
-      // Add selected account header if available
-      if (typeof window !== 'undefined') {
-        const userId = localStorage.getItem('promptreviews_last_user_id');
-        if (userId) {
-          const accountKey = `promptreviews_selected_account_${userId}`;
-          const selectedAccountId = localStorage.getItem(accountKey);
-          if (selectedAccountId) {
-            headers['X-Selected-Account'] = selectedAccountId;
-          }
-        }
-      }
-
-      const response = await fetch('/api/prompt-pages/reorder', {
-        method: 'PATCH',
-        headers,
-        credentials: 'include',
-        body: JSON.stringify({ updates }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to persist sort order');
-      }
+      await apiClient.patch('/prompt-pages/reorder', { updates });
 
       // Trigger a refetch to show the new order
       // The parent component should pass a refresh callback

@@ -159,13 +159,7 @@ export default function CompetitorsPage() {
   const handleExport = useCallback(async () => {
     setIsExporting(true);
     try {
-      const response = await fetch('/api/llm-visibility/export-competitors', {
-        headers: {
-          'X-Selected-Account': selectedAccountId || '',
-        },
-      });
-      if (!response.ok) throw new Error('Export failed');
-
+      const response = await apiClient.download('/llm-visibility/export-competitors');
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');

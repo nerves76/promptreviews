@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/auth/providers/supabase";
+import { apiClient } from "@/utils/apiClient";
 import { useAuth } from "@/auth";
 
 export default function DebugAccountsPage() {
@@ -56,8 +57,12 @@ export default function DebugAccountsPage() {
         // Check payment status for each account
         const accountsWithStatus = await Promise.all(
           (accounts || []).map(async (acc) => {
-            const response = await fetch(`/api/accounts/payment-status?accountId=${acc.id}`);
-            const paymentStatus = response.ok ? await response.json() : null;
+            let paymentStatus = null;
+            try {
+              paymentStatus = await apiClient.get<any>(`/accounts/payment-status?accountId=${acc.id}`);
+            } catch (_err) {
+              // Payment status fetch failed, leave as null
+            }
 
             return {
               ...acc,

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import imageCompression from 'browser-image-compression';
+import { apiClient } from '@/utils/apiClient';
 
 interface PhotoUploadProps {
   reviewId: string;
@@ -53,39 +54,14 @@ export const PhotoUpload: React.FC<PhotoUploadProps> = ({
       formData.append('file', compressedFile);
       formData.append('widgetId', selectedWidget);
 
-      const response = await fetch('/api/upload-widget-photo', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('[DEBUG] Error uploading photo:', errorData);
-        setPhotoUploadError(errorData.error || 'Failed to upload photo');
-        return;
-      }
-
-      const { url } = await response.json();
+      const { url } = await apiClient.upload<{ url: string }>('/upload-widget-photo', formData);
 
       // Update the review with the photo URL using the API
-      const updateResponse = await fetch('/api/widgets/upload-photo', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          reviewId,
-          widgetId: selectedWidget,
-          photoUrl: url,
-        }),
+      await apiClient.post('/widgets/upload-photo', {
+        reviewId,
+        widgetId: selectedWidget,
+        photoUrl: url,
       });
-
-      if (!updateResponse.ok) {
-        const errorData = await updateResponse.json();
-        console.error('[DEBUG] Error updating review with photo URL:', errorData);
-        setPhotoUploadError('Failed to update review with photo');
-        return;
-      }
 
       setPhotoUrl(url);
       

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Icon from '@/components/Icon';
+import { apiClient } from '@/utils/apiClient';
 
 interface GeneratedKeyword {
   searchTerm: string;
@@ -81,38 +82,20 @@ export default function KeywordGeneratorModal({
     setSelectedKeywords(new Set());
 
     try {
-      const response = await fetch('/api/ai/generate-keywords', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          businessName,
-          businessType,
-          city,
-          state,
-          accountId,
-          aboutUs,
-          differentiators,
-          yearsInBusiness,
-          servicesOffered,
-          industriesServed,
-          isLocationBased,
-          locationAliases,
-        }),
+      const data = await apiClient.post<any>('/ai/generate-keywords', {
+        businessName,
+        businessType,
+        city,
+        state,
+        accountId,
+        aboutUs,
+        differentiators,
+        yearsInBusiness,
+        servicesOffered,
+        industriesServed,
+        isLocationBased,
+        locationAliases,
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        if (response.status === 429) {
-          setError(data.details || 'Monthly limit reached');
-          setUsageInfo(data);
-        } else {
-          setError(data.error || 'Failed to generate keywords');
-        }
-        return;
-      }
 
       setKeywords(data.keywords || []);
 
@@ -124,9 +107,17 @@ export default function KeywordGeneratorModal({
       // Auto-select all keywords
       const allIndices = new Set<number>(data.keywords.map((_: any, index: number) => index));
       setSelectedKeywords(allIndices);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error generating keywords:', err);
-      setError('An error occurred while generating keywords');
+      if (err.status === 429) {
+        const body = err.responseBody || {};
+        setError(body.details || 'Monthly limit reached');
+        if (body.current != null && body.limit != null && body.remaining != null) {
+          setUsageInfo({ current: body.current, limit: body.limit, remaining: body.remaining });
+        }
+      } else {
+        setError(err.responseBody?.error || 'An error occurred while generating keywords');
+      }
     } finally {
       setIsGenerating(false);
       onGeneratingChange(false);

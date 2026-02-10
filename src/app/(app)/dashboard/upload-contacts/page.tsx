@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useAuthGuard } from "@/utils/authGuard";
 // 🔧 CONSOLIDATED: Single import from supabaseClient module
 import { createClient, getUserOrMock, getSessionOrMock } from "@/auth/providers/supabase";
+import { apiClient } from "@/utils/apiClient";
 import { useAccountData } from "@/auth/hooks/granularAuthHooks";
 import { useAuth } from "@/auth";
 import Icon from "@/components/Icon";
@@ -213,56 +214,10 @@ export default function UploadContactsPage() {
     setIsLoading(true);
 
     try {
-      const {
-        data: { session },
-        error,
-      } = await getSessionOrMock(supabase);
-      if (error || !session) {
-        setError("Please sign in to upload contacts");
-        return;
-      }
-
-
       const formData = new FormData();
       formData.append("file", selectedFile);
 
-      const response = await fetch("/api/upload-contacts", {
-        method: "POST",
-        body: formData,
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        credentials: "include",
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        if (
-          response.status === 403 &&
-          data.error &&
-          data.error.includes("Limit reached for your plan")
-        ) {
-          setUpgradeModalMessage(
-            `Contact Limit Reached\n\n${data.error}\nUpgrade your plan to add more contacts.`
-          );
-          setShowUpgradeModal(true);
-          return;
-        }
-        if (data.invalidRecords) {
-          const errorDetails = data.invalidRecords
-            .map((r: any) => `Row ${r.row}: Missing ${r.missingFields}`)
-            .join("\n");
-          setError(
-            `Some records are missing required fields:\n${errorDetails}`,
-          );
-        } else if (data.details) {
-          setError(`Error: ${data.error}. Details: ${data.details}`);
-        } else {
-          setError(data.error || "Failed to upload contacts");
-        }
-        return;
-      }
+      const data = await apiClient.upload<any>('/upload-contacts', formData);
 
       if (data.contactsCreated > 0) {
         setSuccess(
@@ -273,9 +228,30 @@ export default function UploadContactsPage() {
       } else {
         setError("No contacts were created. Please check your CSV file.");
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Upload error:", err);
-      setError("Failed to upload contacts. Please try again.");
+      const body = err.responseBody || {};
+      if (
+        err.status === 403 &&
+        body.error &&
+        body.error.includes("Limit reached for your plan")
+      ) {
+        setUpgradeModalMessage(
+          `Contact Limit Reached\n\n${body.error}\nUpgrade your plan to add more contacts.`
+        );
+        setShowUpgradeModal(true);
+      } else if (body.invalidRecords) {
+        const errorDetails = body.invalidRecords
+          .map((r: any) => `Row ${r.row}: Missing ${r.missingFields}`)
+          .join("\n");
+        setError(
+          `Some records are missing required fields:\n${errorDetails}`,
+        );
+      } else if (body.details) {
+        setError(`Error: ${body.error}. Details: ${body.details}`);
+      } else {
+        setError(body.error || err.message || "Failed to upload contacts. Please try again.");
+      }
     } finally {
       setIsLoading(false);
     }

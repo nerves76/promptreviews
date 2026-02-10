@@ -4,20 +4,7 @@ import React, { useState, useEffect } from "react";
 import Icon, { IconName } from "@/components/Icon";
 import { formatDistanceToNow } from "date-fns";
 import { useAuth } from "@/auth";
-
-// Helper to get selected account ID from localStorage
-function getSelectedAccountId(): string | null {
-  if (typeof window === 'undefined') return null;
-  try {
-    const userId = localStorage.getItem('promptreviews_last_user_id');
-    if (!userId) return null;
-    const accountKey = `promptreviews_selected_account_${userId}`;
-    return localStorage.getItem(accountKey);
-  } catch (error) {
-    console.error('Error reading selected account:', error);
-    return null;
-  }
-}
+import { apiClient } from "@/utils/apiClient";
 
 interface Activity {
   id: string;
@@ -124,28 +111,9 @@ export default function ActivityTimeline({
       setIsLoading(true);
       setError(null);
 
-      const headers: HeadersInit = {};
-      const selectedAccountId = getSelectedAccountId();
-      if (selectedAccountId) {
-        headers["X-Selected-Account"] = selectedAccountId;
-      }
-
-      const response = await fetch(
-        `/api/campaign-actions?prompt_page_id=${promptPageId}`,
-        {
-          headers,
-          credentials: 'include' // Include cookies for auth
-        }
+      const data = await apiClient.get<{ activities: Activity[] }>(
+        `/campaign-actions?prompt_page_id=${promptPageId}`
       );
-
-      if (!response.ok) {
-        // Silently fail if fetch fails (likely auth not ready)
-        setActivities([]);
-        setIsLoading(false);
-        return;
-      }
-
-      const data = await response.json();
       setActivities(data.activities || []);
     } catch (err) {
       // Only log errors if auth is initialized (suppress initial auth timing issues)
@@ -184,37 +152,17 @@ export default function ActivityTimeline({
     setError(null);
 
     try {
-      const headers: HeadersInit = {
-        "Content-Type": "application/json",
-      };
-      const selectedAccountId = getSelectedAccountId();
-      if (selectedAccountId) {
-        headers["X-Selected-Account"] = selectedAccountId;
-      }
+      console.log('Submitting campaign action:', { promptPageId, accountId });
 
-      console.log('Submitting campaign action:', { promptPageId, accountId, selectedAccountId });
-
-      const response = await fetch("/api/campaign-actions", {
-        method: "POST",
-        headers,
-        credentials: 'include', // Include cookies for auth
-        body: JSON.stringify({
-          promptPageId,
-          contactId,
-          accountId,
-          activityType: "note",
-          content: newActivityContent.trim(),
-          metadata: {},
-        }),
+      const data = await apiClient.post<{ activity: Activity }>("/campaign-actions", {
+        promptPageId,
+        contactId,
+        accountId,
+        activityType: "note",
+        content: newActivityContent.trim(),
+        metadata: {},
       });
 
-      if (!response.ok) {
-        const errorData = await response.text();
-        console.error('Campaign action failed:', response.status, errorData);
-        throw new Error("Failed to add campaign action");
-      }
-
-      const data = await response.json();
       setActivities([data.activity, ...activities]);
       setNewActivityContent("");
       onRefresh?.();
@@ -233,30 +181,12 @@ export default function ActivityTimeline({
     }
 
     try {
-      const headers: HeadersInit = {
-        "Content-Type": "application/json",
-      };
-      const selectedAccountId = getSelectedAccountId();
-      if (selectedAccountId) {
-        headers["X-Selected-Account"] = selectedAccountId;
-      }
-
-      const response = await fetch("/api/campaign-actions", {
-        method: "PATCH",
-        headers,
-        credentials: 'include', // Include cookies for auth
-        body: JSON.stringify({
-          id,
-          content: editContent.trim(),
-          metadata: {},
-        }),
+      const data = await apiClient.patch<{ activity: Activity }>("/campaign-actions", {
+        id,
+        content: editContent.trim(),
+        metadata: {},
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to update campaign action");
-      }
-
-      const data = await response.json();
       setActivities(
         activities.map((a) => (a.id === id ? data.activity : a))
       );
@@ -275,24 +205,7 @@ export default function ActivityTimeline({
     }
 
     try {
-      const headers: HeadersInit = {};
-      const selectedAccountId = getSelectedAccountId();
-      if (selectedAccountId) {
-        headers["X-Selected-Account"] = selectedAccountId;
-      }
-
-      const response = await fetch(
-        `/api/campaign-actions?id=${id}`,
-        {
-          method: "DELETE",
-          headers,
-          credentials: 'include' // Include cookies for auth
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to delete campaign action");
-      }
+      await apiClient.delete(`/campaign-actions?id=${id}`);
 
       setActivities(activities.filter((a) => a.id !== id));
       onRefresh?.();

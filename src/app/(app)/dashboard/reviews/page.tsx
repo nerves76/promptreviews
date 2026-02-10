@@ -660,30 +660,7 @@ export default function ReviewsPage() {
 
   const handleDownloadTemplate = async () => {
     try {
-      // Include auth headers so template includes user's location names
-      const { tokenManager } = await import('@/auth/services/TokenManager');
-      const token = await tokenManager.getAccessToken();
-
-      const headers: Record<string, string> = {};
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-        try {
-          const payload = JSON.parse(atob(token.split('.')[1]));
-          if (payload.sub) {
-            const accountKey = `promptreviews_selected_account_${payload.sub}`;
-            const selectedAccount = localStorage.getItem(accountKey);
-            if (selectedAccount) {
-              headers['X-Selected-Account'] = selectedAccount;
-            }
-          }
-        } catch (e) {
-          // Token parsing failed
-        }
-      }
-
-      const response = await fetch('/api/reviews/upload', { headers });
-      if (!response.ok) throw new Error('Failed to download template');
-
+      const response = await apiClient.download('/reviews/upload');
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
