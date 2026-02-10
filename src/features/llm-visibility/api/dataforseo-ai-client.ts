@@ -434,10 +434,35 @@ export async function checkChatGPTVisibility(params: {
     const fullResponse = cleanLLMResponse(fullResponseText);
 
     // Extract brand entities mentioned in the response
+    // brand_entities can appear at top-level result AND/OR inside items[]
     const mentionedBrands: LLMBrandEntity[] = [];
-    if (result.brand_entities && Array.isArray(result.brand_entities)) {
-      for (const entity of result.brand_entities) {
-        if (entity.title) {
+    const seenBrandTitles = new Set<string>();
+
+    // Collect all brand_entities: top-level first, then from items as fallback
+    const allBrandEntities: any[] = [];
+
+    if (result.brand_entities && Array.isArray(result.brand_entities) && result.brand_entities.length > 0) {
+      allBrandEntities.push(...result.brand_entities);
+    }
+
+    // Also extract brand_entities from items (chat_gpt_text, chat_gpt_table, etc.)
+    if (result.items && Array.isArray(result.items)) {
+      for (const item of result.items) {
+        if (item.brand_entities && Array.isArray(item.brand_entities)) {
+          allBrandEntities.push(...item.brand_entities);
+        }
+      }
+    }
+
+    if (allBrandEntities.length > 0) {
+      console.log(`🔍 [DataForSEO AI] ChatGPT: Found ${allBrandEntities.length} brand_entities (top-level: ${result.brand_entities?.length ?? 0}, from items: ${allBrandEntities.length - (result.brand_entities?.length ?? 0)})`);
+    }
+
+    for (const entity of allBrandEntities) {
+      if (entity.title) {
+        const key = entity.title.trim().toLowerCase();
+        if (!seenBrandTitles.has(key)) {
+          seenBrandTitles.add(key);
           mentionedBrands.push({
             title: entity.title,
             category: entity.category || null,
