@@ -87,13 +87,14 @@ export async function POST(request: NextRequest) {
           sectionKey,
           record.keyword_phrase,
           record.tone,
-          record.business_info
+          record.business_info,
+          record.page_purpose ?? undefined
         );
 
         const completion = await openai.chat.completions.create({
           model: 'gpt-4o',
           messages: [
-            { role: 'system', content: buildSystemPrompt(record.tone) },
+            { role: 'system', content: buildSystemPrompt(record.tone, record.page_purpose ?? 'service') },
             { role: 'user', content: prompt },
           ],
           response_format: { type: 'json_object' },

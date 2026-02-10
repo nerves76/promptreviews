@@ -41,11 +41,11 @@ export async function POST(request: NextRequest) {
     }
 
     const body: GenerateOutlineRequest = await request.json();
-    const { keywordId, keywordPhrase, tone, businessInfo } = body;
+    const { keywordId, keywordPhrase, tone, pagePurpose, businessInfo } = body;
 
-    if (!keywordPhrase || !tone || !businessInfo?.name) {
+    if (!keywordPhrase || !tone || !pagePurpose || !businessInfo?.name) {
       return NextResponse.json(
-        { error: 'Missing required fields: keywordPhrase, tone, businessInfo.name' },
+        { error: 'Missing required fields: keywordPhrase, tone, pagePurpose, businessInfo.name' },
         { status: 400 }
       );
     }
@@ -100,15 +100,15 @@ export async function POST(request: NextRequest) {
       creditCost: FULL_GENERATION_COST,
       idempotencyKey,
       description: `Web page outline: ${keywordPhrase}`,
-      featureMetadata: { keywordPhrase, tone },
+      featureMetadata: { keywordPhrase, tone, pagePurpose },
       operation: async () => {
         const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
         const completion = await openai.chat.completions.create({
           model: 'gpt-4o',
           messages: [
-            { role: 'system', content: buildSystemPrompt(tone) },
-            { role: 'user', content: buildUserPrompt(keywordPhrase, businessInfo, competitorContext || undefined) },
+            { role: 'system', content: buildSystemPrompt(tone, pagePurpose) },
+            { role: 'user', content: buildUserPrompt(keywordPhrase, businessInfo, pagePurpose, competitorContext || undefined) },
           ],
           response_format: { type: 'json_object' },
           temperature: 0.7,
@@ -154,6 +154,7 @@ export async function POST(request: NextRequest) {
             keyword_id: keywordId || null,
             keyword_phrase: keywordPhrase,
             tone,
+            page_purpose: pagePurpose,
             business_name: businessInfo.name,
             business_info: businessInfo,
             outline_json: parsed.outline,

@@ -13,6 +13,19 @@ export const TONE_OPTIONS: { value: OutlineTone; label: string; description: str
   { value: 'casual', label: 'Casual', description: 'Relaxed, informal, and easy-going' },
 ];
 
+// --- Page Purpose ---
+
+export type PagePurpose = 'service' | 'product' | 'location' | 'lead_capture' | 'informational' | 'about';
+
+export const PAGE_PURPOSE_OPTIONS: { value: PagePurpose; label: string; description: string }[] = [
+  { value: 'service', label: 'Service page', description: 'Showcase a specific service to attract customers' },
+  { value: 'product', label: 'Product page', description: 'Showcase a product with features and benefits' },
+  { value: 'location', label: 'Location page', description: 'Target a geographic area for local SEO' },
+  { value: 'lead_capture', label: 'Lead capture', description: 'Drive sign-ups, downloads, or free consultations' },
+  { value: 'informational', label: 'Informational', description: 'Educational content to build authority' },
+  { value: 'about', label: 'About / brand', description: 'Company story, mission, and team' },
+];
+
 // --- Outline Section Types ---
 
 export interface HeroSection {
@@ -110,6 +123,7 @@ export interface WebPageOutlineRecord {
   keyword_id: string | null;
   keyword_phrase: string;
   tone: OutlineTone;
+  page_purpose: PagePurpose | null;
   business_name: string;
   business_info: BusinessInfoForOutline;
   outline_json: PageOutline;
@@ -135,6 +149,7 @@ export interface GenerateOutlineRequest {
   keywordId: string | null;
   keywordPhrase: string;
   tone: OutlineTone;
+  pagePurpose: PagePurpose;
   businessInfo: BusinessInfoForOutline;
 }
 

@@ -13,11 +13,13 @@ import { useToast, ToastContainer } from "@/app/(app)/components/reviews/Toast";
 import {
   KeywordSelector,
   ToneSelector,
+  PagePurposeSelector,
   BusinessInfoPanel,
 } from "@/features/web-page-outlines/components";
 import { FULL_GENERATION_COST } from "@/features/web-page-outlines/services/credits";
 import type {
   OutlineTone,
+  PagePurpose,
   BusinessInfoForOutline,
   GenerateOutlineResponse,
 } from "@/features/web-page-outlines/types";
@@ -59,6 +61,7 @@ export default function WebPageOutlinesPage() {
     phrase: string;
   } | null>(null);
   const [tone, setTone] = useState<OutlineTone>("professional");
+  const [pagePurpose, setPagePurpose] = useState<PagePurpose>("service");
   const [businessInfo, setBusinessInfo] = useState<BusinessInfoForOutline>(() =>
     buildBusinessInfo(business)
   );
@@ -155,6 +158,7 @@ export default function WebPageOutlinesPage() {
           keywordId: selectedKeyword.id,
           keywordPhrase: selectedKeyword.phrase,
           tone,
+          pagePurpose,
           businessInfo,
         }
       );
@@ -235,6 +239,8 @@ export default function WebPageOutlinesPage() {
             />
 
             <ToneSelector selected={tone} onChange={setTone} />
+
+            <PagePurposeSelector selected={pagePurpose} onChange={setPagePurpose} />
 
             <BusinessInfoPanel
               businessInfo={businessInfo}

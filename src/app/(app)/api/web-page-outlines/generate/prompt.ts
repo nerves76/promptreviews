@@ -2,7 +2,7 @@
  * Web Page Outlines - AI Prompt Builder
  */
 
-import type { OutlineTone, BusinessInfoForOutline } from '@/features/web-page-outlines/types';
+import type { OutlineTone, PagePurpose, BusinessInfoForOutline } from '@/features/web-page-outlines/types';
 
 const TONE_INSTRUCTIONS: Record<OutlineTone, string> = {
   professional:
@@ -15,10 +15,33 @@ const TONE_INSTRUCTIONS: Record<OutlineTone, string> = {
     'Use relaxed, informal language. Keep sentences short and punchy. Avoid corporate jargon.',
 };
 
-export function buildSystemPrompt(tone: OutlineTone): string {
+const PURPOSE_INSTRUCTIONS: Record<PagePurpose, string> = {
+  service:
+    'This is a SERVICE PAGE. Focus on what the service is, who it benefits, the process/approach, and why this provider is the right choice. Business info supports credibility — reference it where it strengthens trust, but keep the service front and center.',
+  product:
+    'This is a PRODUCT PAGE. Focus on product features, use cases, specifications, and value proposition. Business info supports trust — mention it where it builds confidence in the product, but let the product details lead.',
+  location:
+    'This is a LOCATION PAGE for local SEO. Focus on geographic relevance, local expertise, service area details, and community connection. Business info establishes local presence — weave in location-specific details naturally.',
+  lead_capture:
+    'This is a LEAD CAPTURE PAGE. Focus on the offer/value proposition, urgency, social proof, and a clear call-to-action. Keep business info minimal — let the offer shine. Every section should drive toward the conversion action.',
+  informational:
+    'This is an INFORMATIONAL/EDUCATIONAL PAGE. Focus on teaching the topic thoroughly with depth and clarity. Business info positions the company as a knowledgeable source — reference it lightly to establish authority, but prioritize educational value.',
+  about:
+    'This is an ABOUT/BRAND PAGE. Business info IS the primary content here. Lean heavily into company story, values, team, differentiators, and mission. The keyword should frame the narrative but the brand story drives the content.',
+};
+
+export function buildSystemPrompt(tone: OutlineTone, pagePurpose: PagePurpose): string {
   return `You are an expert SEO content strategist. You produce structured web page outlines optimized for both search engines and AI systems like Google SGE.
 
 Tone: ${TONE_INSTRUCTIONS[tone]}
+
+PAGE PURPOSE:
+${PURPOSE_INSTRUCTIONS[pagePurpose]}
+
+IMPORTANT — how to use business information:
+- The page purpose defines the PRIMARY focus of all content.
+- Business information is SUPPORTING CONTEXT — reference it naturally where relevant, but do not force it into every section.
+- The keyword + purpose should drive the content structure and messaging.
 
 You MUST return valid JSON matching this exact structure:
 
@@ -68,9 +91,19 @@ Keyword density and natural language rules (CRITICAL — violating these trigger
 17. Write for topical depth and entity coverage rather than keyword repetition. Cover related concepts, processes, and questions that a searcher would expect to find on the page.`;
 }
 
+const PURPOSE_LABELS: Record<PagePurpose, string> = {
+  service: 'Service page — focus on the service offering, process, and why choose this provider',
+  product: 'Product page — focus on features, use cases, and value proposition',
+  location: 'Location page — focus on geographic relevance and local expertise',
+  lead_capture: 'Lead capture page — focus on the offer, urgency, and conversion',
+  informational: 'Informational page — focus on educating the reader thoroughly',
+  about: 'About/brand page — focus on company story, values, and team',
+};
+
 export function buildUserPrompt(
   keyword: string,
   businessInfo: BusinessInfoForOutline,
+  pagePurpose: PagePurpose,
   competitorContext?: string
 ): string {
   const infoLines: string[] = [];
@@ -100,7 +133,14 @@ export function buildUserPrompt(
 
   return `Generate a complete web page outline for the keyword: "${keyword}"
 
-Business information:
+Page purpose: ${PURPOSE_LABELS[pagePurpose]}
+
+Primary content focus:
+- Keyword: "${keyword}"
+- Structure and messaging should serve the page purpose above
+- Let the keyword + purpose drive what each section covers
+
+Business context (use as supporting detail, not primary content):
 ${infoLines.join('\n')}${competitorBlock}
 
 Return the structured JSON outline following the exact format specified.`;
@@ -110,7 +150,8 @@ export function buildSectionRegenerationPrompt(
   sectionKey: string,
   keyword: string,
   tone: OutlineTone,
-  businessInfo: BusinessInfoForOutline
+  businessInfo: BusinessInfoForOutline,
+  pagePurpose?: PagePurpose
 ): string {
   const sectionInstructions: Record<string, string> = {
     hero: 'Generate a new hero section. The H1 must be 8 words or fewer — short, punchy, and include the primary keyword. Use subCopy for supporting detail.',
@@ -122,10 +163,14 @@ export function buildSectionRegenerationPrompt(
     footer: 'Generate new footer content (1-2 sentences) summarizing the business.',
   };
 
+  const purposeLine = pagePurpose
+    ? `\nPage purpose: ${PURPOSE_LABELS[pagePurpose]}\n`
+    : '';
+
   return `Regenerate ONLY the "${sectionKey}" section for a web page targeting the keyword: "${keyword}"
 
 Tone: ${TONE_INSTRUCTIONS[tone]}
-
+${purposeLine}
 Business: ${businessInfo.name}
 ${businessInfo.aboutUs ? `About: ${businessInfo.aboutUs}` : ''}
 ${businessInfo.servicesOffered ? `Services: ${businessInfo.servicesOffered}` : ''}

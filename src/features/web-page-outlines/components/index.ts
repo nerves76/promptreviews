@@ -1,5 +1,6 @@
 export { default as KeywordSelector } from "./KeywordSelector";
 export { default as ToneSelector } from "./ToneSelector";
+export { default as PagePurposeSelector } from "./PagePurposeSelector";
 export { default as BusinessInfoPanel } from "./BusinessInfoPanel";
 export { default as SectionWrapper } from "./SectionWrapper";
 export { default as OutlinePreview } from "./OutlinePreview";
