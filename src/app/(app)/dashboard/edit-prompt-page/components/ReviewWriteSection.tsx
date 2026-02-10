@@ -267,7 +267,7 @@ const ReviewWriteSection: React.FC<ReviewWriteSectionProps> = ({
                         Word count
                       </label>
                       <HoverTooltip text="This tells Prompty AI how many words to write. Common platform limits: Google (~650 words), Yelp (~800 words), Facebook (~1,300 words), TripAdvisor (~50 words), Amazon (~800 words), Trustpilot (~500 words).">
-                        <Icon name="FaInfoCircle" className="w-3 h-3 text-gray-400 cursor-pointer" size={12} />
+                        <Icon name="FaInfoCircle" className="w-3 h-3 text-gray-500 cursor-pointer" size={12} />
                       </HoverTooltip>
                     </div>
                     <Input
@@ -320,7 +320,7 @@ const ReviewWriteSection: React.FC<ReviewWriteSectionProps> = ({
                         Review template
                       </label>
                       <HoverTooltip text="By filling this out, you give your client or customer a template that will make posting a review much easier and quicker. They will still be able to use the AI button to generate a new review if they are not sure about the one you provide, or they can choose to write a custom review on their own.">
-                        <Icon name="FaInfoCircle" className="w-4 h-4 text-gray-400 cursor-pointer" size={16} />
+                        <Icon name="FaInfoCircle" className="w-4 h-4 text-gray-500 cursor-pointer" size={16} />
                       </HoverTooltip>
                     </div>
                     <p className="text-sm text-gray-500 mt-1">

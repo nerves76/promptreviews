@@ -316,7 +316,7 @@ export default function UploadContactsPage() {
     const campaigns = contact.campaigns || [];
 
     if (campaigns.length === 0) {
-      return <span className="text-gray-400">—</span>;
+      return <span className="text-gray-500">—</span>;
     }
 
     // Get the most recent campaign (already sorted by created_at desc)

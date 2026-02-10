@@ -266,7 +266,7 @@ export default function AgencyAccessPage() {
             ) : (
               <div className="text-center py-8">
                 <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Icon name="FaBriefcase" className="text-gray-400" size={24} />
+                  <Icon name="FaBriefcase" className="text-gray-500" size={24} />
                 </div>
                 <p className="text-gray-600 mb-2">No agency is managing your workspace</p>
                 <p className="text-gray-500 text-sm">

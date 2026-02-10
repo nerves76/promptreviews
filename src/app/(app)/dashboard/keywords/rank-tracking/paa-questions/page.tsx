@@ -234,7 +234,7 @@ export default function PAAQuestionsPage() {
   // Sort icon helper
   const SortIcon = ({ field }: { field: SortField }) => {
     if (sortField !== field) {
-      return <Icon name="FaChevronDown" className="w-2.5 h-2.5 text-gray-400" />;
+      return <Icon name="FaChevronDown" className="w-2.5 h-2.5 text-gray-500" />;
     }
     return sortDirection === 'asc' ? (
       <Icon name="FaCaretUp" className="w-3 h-3 text-slate-blue" />
@@ -401,7 +401,7 @@ export default function PAAQuestionsPage() {
               <div className="flex flex-col sm:flex-row gap-3 flex-1">
                 {/* Search */}
                 <div className="relative flex-1 max-w-xs">
-                  <Icon name="FaSearch" className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Icon name="FaSearch" className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                   <input
                     type="text"
                     placeholder="Search questions..."
@@ -570,7 +570,7 @@ export default function PAAQuestionsPage() {
                                 )}
                               </div>
                             ) : (
-                              <span className="text-xs text-gray-400">—</span>
+                              <span className="text-xs text-gray-500">—</span>
                             )}
                           </td>
 
@@ -651,7 +651,7 @@ export default function PAAQuestionsPage() {
                                             >
                                               {d.domain}
                                             </a>
-                                            <span className="text-gray-400">({d.count}x)</span>
+                                            <span className="text-gray-500">({d.count}x)</span>
                                             {d.isOurs && (
                                               <span className="px-1.5 py-0.5 rounded text-xs bg-green-100 text-green-700">
                                                 Your site

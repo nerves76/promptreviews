@@ -643,7 +643,7 @@ export default function ResearchSourcesPage() {
   // Sort icon helper (domain view)
   const SortIcon = ({ field }: { field: SortField }) => {
     if (sortField !== field) {
-      return <Icon name="FaChevronDown" className="w-2.5 h-2.5 text-gray-400" />;
+      return <Icon name="FaChevronDown" className="w-2.5 h-2.5 text-gray-500" />;
     }
     return sortDirection === 'asc' ? (
       <Icon name="FaCaretUp" className="w-3 h-3 text-slate-blue" />
@@ -655,7 +655,7 @@ export default function ResearchSourcesPage() {
   // Sort icon helper (URL view)
   const URLSortIcon = ({ field }: { field: URLSortField }) => {
     if (urlSortField !== field) {
-      return <Icon name="FaChevronDown" className="w-2.5 h-2.5 text-gray-400" />;
+      return <Icon name="FaChevronDown" className="w-2.5 h-2.5 text-gray-500" />;
     }
     return urlSortDirection === 'asc' ? (
       <Icon name="FaCaretUp" className="w-3 h-3 text-slate-blue" />
@@ -865,7 +865,7 @@ export default function ResearchSourcesPage() {
                       className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-all whitespace-nowrap ${
                         isSelected
                           ? `${colors.bg} ${colors.text} ${colors.border} border`
-                          : 'bg-gray-100 text-gray-400 border border-gray-200 line-through'
+                          : 'bg-gray-100 text-gray-500 border border-gray-200 line-through'
                       }`}
                       title={isSelected ? `Click to hide ${LLM_PROVIDER_LABELS[provider]}` : `Click to show ${LLM_PROVIDER_LABELS[provider]}`}
                     >
@@ -884,7 +884,7 @@ export default function ResearchSourcesPage() {
             {/* === DOMAIN VIEW TABLE === */}
             {viewMode === 'domain' && data && data.sources.length === 0 && isProviderFiltered && (
               <div className="text-center py-12 text-gray-500">
-                <Icon name="FaFilter" className="w-6 h-6 mx-auto mb-2 text-gray-400" />
+                <Icon name="FaFilter" className="w-6 h-6 mx-auto mb-2 text-gray-500" />
                 <p>No sources match the selected providers.</p>
               </div>
             )}
@@ -1004,11 +1004,11 @@ export default function ResearchSourcesPage() {
                             {/* Difficulty */}
                             <td className="py-3 px-3 text-center">
                               {isAnalyzing ? (
-                                <Icon name="FaSpinner" className="w-4 h-4 text-gray-400 animate-spin mx-auto" />
+                                <Icon name="FaSpinner" className="w-4 h-4 text-gray-500 animate-spin mx-auto" />
                               ) : analysis ? (
                                 <DifficultyBadge difficulty={analysis.difficulty} />
                               ) : (
-                                <span className="text-xs text-gray-400">—</span>
+                                <span className="text-xs text-gray-500">—</span>
                               )}
                             </td>
 
@@ -1047,7 +1047,7 @@ export default function ResearchSourcesPage() {
                                   disabled={isAnalyzing}
                                   className={`inline-flex items-center gap-1 px-2 py-1 text-xs rounded transition-colors whitespace-nowrap ${
                                     isAnalyzing
-                                      ? 'bg-gray-100 text-gray-400 cursor-wait'
+                                      ? 'bg-gray-100 text-gray-500 cursor-wait'
                                       : analysis
                                       ? 'text-slate-blue hover:text-slate-blue/80 hover:bg-blue-50'
                                       : 'bg-slate-blue text-white hover:bg-slate-blue/90'
@@ -1139,7 +1139,7 @@ export default function ResearchSourcesPage() {
                                     <ul className="space-y-1">
                                       {source.sampleUrls.map((urlData, idx) => (
                                         <li key={idx} className="flex items-start gap-2">
-                                          <Icon name="FaLink" className="w-3 h-3 text-gray-400 mt-1 flex-shrink-0" />
+                                          <Icon name="FaLink" className="w-3 h-3 text-gray-500 mt-1 flex-shrink-0" />
                                           <a
                                             href={urlData.url}
                                             target="_blank"
@@ -1203,7 +1203,7 @@ export default function ResearchSourcesPage() {
             {/* === URL VIEW TABLE === */}
             {viewMode === 'url' && urlData && urlData.sources.length === 0 && isProviderFiltered && (
               <div className="text-center py-12 text-gray-500">
-                <Icon name="FaFilter" className="w-6 h-6 mx-auto mb-2 text-gray-400" />
+                <Icon name="FaFilter" className="w-6 h-6 mx-auto mb-2 text-gray-500" />
                 <p>No sources match the selected providers.</p>
               </div>
             )}
@@ -1332,11 +1332,11 @@ export default function ResearchSourcesPage() {
                             {/* Difficulty */}
                             <td className="py-3 px-3 text-center">
                               {isAnalyzingUrl ? (
-                                <Icon name="FaSpinner" className="w-4 h-4 text-gray-400 animate-spin mx-auto" />
+                                <Icon name="FaSpinner" className="w-4 h-4 text-gray-500 animate-spin mx-auto" />
                               ) : urlAnalysis ? (
                                 <DifficultyBadge difficulty={urlAnalysis.difficulty} />
                               ) : (
-                                <span className="text-xs text-gray-400">—</span>
+                                <span className="text-xs text-gray-500">—</span>
                               )}
                             </td>
 
@@ -1387,7 +1387,7 @@ export default function ResearchSourcesPage() {
                                   disabled={isAnalyzingUrl}
                                   className={`inline-flex items-center gap-1 px-2 py-1 text-xs rounded transition-colors whitespace-nowrap ${
                                     isAnalyzingUrl
-                                      ? 'bg-gray-100 text-gray-400 cursor-wait'
+                                      ? 'bg-gray-100 text-gray-500 cursor-wait'
                                       : urlAnalysis
                                       ? 'text-slate-blue hover:text-slate-blue/80 hover:bg-blue-50'
                                       : 'bg-slate-blue text-white hover:bg-slate-blue/90'

@@ -219,7 +219,7 @@ export default function WebPageOutlinesLibraryPage() {
                   type="button"
                   onClick={(e) => handleDelete(e, item.id)}
                   disabled={deletingId === item.id}
-                  className="flex-shrink-0 p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 disabled:opacity-50 transition-colors focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2"
+                  className="flex-shrink-0 p-2 rounded-lg text-gray-500 hover:text-red-500 hover:bg-red-50 disabled:opacity-50 transition-colors focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2"
                   aria-label={`Delete ${item.keyword_phrase} page plan`}
                 >
                   <Icon
@@ -236,7 +236,7 @@ export default function WebPageOutlinesLibraryPage() {
                       `/dashboard/web-page-outlines/${item.id}`
                     )
                   }
-                  className="flex-shrink-0 text-gray-400"
+                  className="flex-shrink-0 text-gray-500"
                   aria-label={`Open ${item.keyword_phrase} page plan`}
                 >
                   <Icon name="FaChevronRight" size={10} />

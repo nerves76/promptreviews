@@ -1,21 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSessionOrMock, createClient, createServiceRoleClient } from '@/auth/providers/supabase';
+import { createServerSupabaseClient } from '@/auth/providers/supabase';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createClient();
-    const supabaseAdmin = createServiceRoleClient();
+    const supabase = await createServerSupabaseClient();
 
     // Get authenticated user
-    const { data: { session }, error: sessionError } = await getSessionOrMock(supabase);
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-    if (sessionError || !session?.user) {
+    if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Get account ID using the standard method (checks X-Selected-Account header)
-    const accountId = await getRequestAccountId(request, session.user.id, supabase);
+    const accountId = await getRequestAccountId(request, user.id, supabase);
 
     if (!accountId) {
       return NextResponse.json({ error: 'No valid account found or access denied' }, { status: 403 });

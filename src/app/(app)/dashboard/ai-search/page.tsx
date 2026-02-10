@@ -1867,7 +1867,7 @@ export default function AISearchPage() {
                     className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
                       isSelected
                         ? `${colors.bg} ${colors.text} ${colors.border} border`
-                        : 'bg-gray-100 text-gray-400 border border-gray-200 line-through'
+                        : 'bg-gray-100 text-gray-500 border border-gray-200 line-through'
                     }`}
                     title={isSelected ? `Click to hide ${LLM_PROVIDER_LABELS[provider]}` : `Click to show ${LLM_PROVIDER_LABELS[provider]}`}
                   >
@@ -1914,7 +1914,7 @@ export default function AISearchPage() {
                     <div className="text-sm text-gray-600 flex items-center gap-1">
                       Mention rate
                       <span title="Percentage of checks where your brand was mentioned in the AI response text">
-                        <Icon name="FaInfoCircle" className="w-3 h-3 text-gray-400 cursor-help" />
+                        <Icon name="FaInfoCircle" className="w-3 h-3 text-gray-500 cursor-help" />
                       </span>
                     </div>
                     {/* Per-model mention rates - only show selected providers */}
@@ -1962,7 +1962,7 @@ export default function AISearchPage() {
                     <div className="text-sm text-gray-600 flex items-center gap-1">
                       Citation rate
                       <span title="Percentage of checks where your site was cited as a source in the AI response">
-                        <Icon name="FaInfoCircle" className="w-3 h-3 text-gray-400 cursor-help" />
+                        <Icon name="FaInfoCircle" className="w-3 h-3 text-gray-500 cursor-help" />
                       </span>
                     </div>
                     {/* Per-model citation rates - only show selected providers */}
@@ -2019,7 +2019,7 @@ export default function AISearchPage() {
                       <div className="text-sm text-gray-600 mb-2 flex items-center gap-1">
                         Citation consistency
                         <span title="How often each provider gives the same citation answer when re-checking the same question">
-                          <Icon name="FaInfoCircle" className="w-3 h-3 text-gray-400 cursor-help" />
+                          <Icon name="FaInfoCircle" className="w-3 h-3 text-gray-500 cursor-help" />
                         </span>
                       </div>
                       <div className="flex gap-1.5 flex-wrap">
@@ -2052,7 +2052,7 @@ export default function AISearchPage() {
                       <div className="text-sm text-gray-600 mb-2 flex items-center gap-1">
                         Mention consistency
                         <span title="How often each provider gives the same mention answer when re-checking the same question">
-                          <Icon name="FaInfoCircle" className="w-3 h-3 text-gray-400 cursor-help" />
+                          <Icon name="FaInfoCircle" className="w-3 h-3 text-gray-500 cursor-help" />
                         </span>
                       </div>
                       <div className="flex gap-1.5 flex-wrap">
@@ -2559,7 +2559,7 @@ export default function AISearchPage() {
                                       )}
                                     </span>
                                   ) : (
-                                    <span className="text-gray-400 hover:text-gray-600 flex items-center gap-1">
+                                    <span className="text-gray-500 hover:text-gray-600 flex items-center gap-1">
                                       <Icon name="FaCalendarAlt" className="w-2.5 h-2.5" />
                                       <span>—</span>
                                     </span>
@@ -2706,7 +2706,7 @@ export default function AISearchPage() {
                                                 </span>
                                                 <Icon
                                                   name={expandedAccordions.has(`${result.id}-searches`) ? 'FaChevronUp' : 'FaChevronDown'}
-                                                  className="w-3 h-3 text-gray-400"
+                                                  className="w-3 h-3 text-gray-500"
                                                 />
                                               </button>
                                               {expandedAccordions.has(`${result.id}-searches`) && (
@@ -2742,7 +2742,7 @@ export default function AISearchPage() {
                                                 </span>
                                                 <Icon
                                                   name={expandedAccordions.has(`${result.id}-websites`) ? 'FaChevronUp' : 'FaChevronDown'}
-                                                  className="w-3 h-3 text-gray-400"
+                                                  className="w-3 h-3 text-gray-500"
                                                 />
                                               </button>
                                               {expandedAccordions.has(`${result.id}-websites`) && (
@@ -2789,7 +2789,7 @@ export default function AISearchPage() {
                                                 </span>
                                                 <Icon
                                                   name={expandedAccordions.has(`${result.id}-citations`) ? 'FaChevronUp' : 'FaChevronDown'}
-                                                  className="w-3 h-3 text-gray-400"
+                                                  className="w-3 h-3 text-gray-500"
                                                 />
                                               </button>
                                               {expandedAccordions.has(`${result.id}-citations`) && (

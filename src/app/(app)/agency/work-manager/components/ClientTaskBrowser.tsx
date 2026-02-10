@@ -185,7 +185,7 @@ export default function ClientTaskBrowser({
                   }`}
                 >
                   <div className="flex items-center gap-2">
-                    <Icon name="FaBuilding" size={12} className="text-gray-400 flex-shrink-0" />
+                    <Icon name="FaBuilding" size={12} className="text-gray-500 flex-shrink-0" />
                     <span className="truncate">{client.business_name || 'Unnamed'}</span>
                   </div>
                 </button>
@@ -204,7 +204,7 @@ export default function ClientTaskBrowser({
               </div>
             ) : loading ? (
               <div className="flex items-center justify-center h-full">
-                <Icon name="FaSpinner" size={24} className="animate-spin text-gray-400" />
+                <Icon name="FaSpinner" size={24} className="animate-spin text-gray-500" />
               </div>
             ) : error ? (
               <div className="p-6 text-center">

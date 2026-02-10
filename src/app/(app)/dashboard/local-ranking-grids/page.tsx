@@ -621,7 +621,7 @@ export default function LocalRankingGridsPage() {
                 className="inline-flex items-center align-middle"
                 title="This feature tracks where your Google Business Profile appears in local search results across different locations in your city. It helps you understand your visibility from various geographic points."
               >
-                <Icon name="FaInfoCircle" className="w-4 h-4 text-gray-400 hover:text-gray-600 cursor-help" size={16} />
+                <Icon name="FaInfoCircle" className="w-4 h-4 text-gray-500 hover:text-gray-600 cursor-help" size={16} />
               </span>
             </p>
           </div>
@@ -718,7 +718,7 @@ export default function LocalRankingGridsPage() {
                     <span className="font-medium text-amber-700">{calculateCheckCost} credits</span>
                     <span className="text-gray-500"> per check</span>
                   </span>
-                  <span className="text-xs text-gray-400">
+                  <span className="text-xs text-gray-500">
                     ({config.checkPoints?.length || 0} grid points)
                   </span>
                 </div>

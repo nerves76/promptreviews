@@ -4,12 +4,12 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/auth/providers/supabase';
+import { createServerSupabaseClient } from '@/auth/providers/supabase';
 
 export async function POST(req: NextRequest) {
   try {
     const { email } = await req.json();
-    
+
     if (!email) {
       return NextResponse.json(
         { error: 'Email is required' },
@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const supabase = createClient();
+    const supabase = await createServerSupabaseClient();
     
     // Since auth triggers are disabled, we need to ensure account exists after login
     // We'll call the ensure_user_account function we created

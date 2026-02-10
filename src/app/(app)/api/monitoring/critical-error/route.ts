@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/auth/providers/supabase';
+import { createServerSupabaseClient } from '@/auth/providers/supabase';
 import type { CriticalFunctionError } from '@/utils/criticalFunctionMonitoring';
 
 // Configure alert thresholds
@@ -126,7 +126,7 @@ async function sendSlackAlert(error: CriticalFunctionError): Promise<void> {
 
 async function storeError(error: CriticalFunctionError): Promise<void> {
   try {
-    const supabase = createClient();
+    const supabase = await createServerSupabaseClient();
     
     await supabase
       .from('critical_function_errors')
@@ -149,7 +149,7 @@ async function storeError(error: CriticalFunctionError): Promise<void> {
 
 async function checkErrorRate(functionName: string): Promise<boolean> {
   try {
-    const supabase = createClient();
+    const supabase = await createServerSupabaseClient();
     const windowStart = new Date(Date.now() - ALERT_CONFIG.TIME_WINDOW_MINUTES * 60 * 1000);
     
     // Get error count in time window

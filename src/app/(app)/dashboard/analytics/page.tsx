@@ -723,7 +723,7 @@ export default function AnalyticsPage() {
             <div className="flex items-center gap-2 group relative">
               <span className="inline-block w-3.5 h-3.5 rounded-sm" style={{ backgroundColor: '#2E4A7D' }} />
               <span className="text-sm font-medium text-gray-700">Unverified</span>
-              <Icon name="FaInfoCircle" size={14} className="text-gray-400 cursor-help" />
+              <Icon name="FaInfoCircle" size={14} className="text-gray-500 cursor-help" />
               <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
                 Reviews captured with prompt pages
               </div>
@@ -731,7 +731,7 @@ export default function AnalyticsPage() {
             <div className="flex items-center gap-2 group relative">
               <span className="inline-block w-3.5 h-3.5 rounded-sm" style={{ backgroundColor: '#16a34a' }} />
               <span className="text-sm font-medium text-gray-700">Verified</span>
-              <Icon name="FaInfoCircle" size={14} className="text-gray-400 cursor-help" />
+              <Icon name="FaInfoCircle" size={14} className="text-gray-500 cursor-help" />
               <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
                 Reviews manually or auto-verified
               </div>

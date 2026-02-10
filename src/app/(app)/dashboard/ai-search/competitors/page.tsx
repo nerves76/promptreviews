@@ -298,7 +298,7 @@ export default function CompetitorsPage() {
   // Sort icon helper
   const SortIcon = ({ field }: { field: SortField }) => {
     if (sortField !== field) {
-      return <Icon name="FaChevronDown" className="w-2.5 h-2.5 text-gray-400" />;
+      return <Icon name="FaChevronDown" className="w-2.5 h-2.5 text-gray-500" />;
     }
     return sortDirection === 'asc' ? (
       <Icon name="FaCaretUp" className="w-3 h-3 text-slate-blue" />
@@ -594,7 +594,7 @@ export default function CompetitorsPage() {
                                 disabled={isAnalyzing}
                                 className={`inline-flex items-center gap-1 px-2 py-1 text-xs rounded transition-colors whitespace-nowrap ${
                                   isAnalyzing
-                                    ? 'bg-gray-100 text-gray-400 cursor-wait'
+                                    ? 'bg-gray-100 text-gray-500 cursor-wait'
                                     : analysis
                                     ? 'text-slate-blue hover:text-slate-blue/80 hover:bg-blue-50'
                                     : 'bg-slate-blue text-white hover:bg-slate-blue/90'
@@ -716,7 +716,7 @@ export default function CompetitorsPage() {
                                           </a>
                                           <a
                                             href={`/dashboard/domain-analysis?domain=${encodeURIComponent(domainName)}`}
-                                            className="p-1 text-gray-400 hover:text-slate-blue hover:bg-gray-100 rounded transition-colors"
+                                            className="p-1 text-gray-500 hover:text-slate-blue hover:bg-gray-100 rounded transition-colors"
                                             title="Analyze this domain"
                                             aria-label={`Analyze ${domainName}`}
                                           >
@@ -737,7 +737,7 @@ export default function CompetitorsPage() {
                                     <ul className="space-y-1">
                                       {competitor.sampleUrls.slice(0, 3).map((url, idx) => (
                                         <li key={idx} className="flex items-start gap-2">
-                                          <Icon name="FaLink" className="w-3 h-3 text-gray-400 mt-1 flex-shrink-0" />
+                                          <Icon name="FaLink" className="w-3 h-3 text-gray-500 mt-1 flex-shrink-0" />
                                           <a
                                             href={url}
                                             target="_blank"

@@ -926,7 +926,7 @@ export function ReviewManagementModal({
                       disabled={currentPage === 1}
                       className={`px-3 py-1.5 text-sm font-medium rounded-md whitespace-nowrap ${
                         currentPage === 1
-                          ? 'text-gray-400 cursor-not-allowed'
+                          ? 'text-gray-500 cursor-not-allowed'
                           : 'text-gray-700 hover:bg-gray-100'
                       }`}
                     >
@@ -940,7 +940,7 @@ export function ReviewManagementModal({
                       disabled={currentPage === totalPages}
                       className={`px-3 py-1.5 text-sm font-medium rounded-md whitespace-nowrap ${
                         currentPage === totalPages
-                          ? 'text-gray-400 cursor-not-allowed'
+                          ? 'text-gray-500 cursor-not-allowed'
                           : 'text-gray-700 hover:bg-gray-100'
                       }`}
                     >

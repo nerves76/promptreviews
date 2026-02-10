@@ -240,13 +240,13 @@ export default function CreateResourceModal({
                   className="flex items-center justify-between gap-3 p-2 bg-gray-50 rounded-lg group"
                 >
                   <div className="flex items-center gap-2 text-sm text-slate-blue min-w-0 flex-1">
-                    <Icon name="FaGlobe" size={14} className="text-gray-400 flex-shrink-0" />
+                    <Icon name="FaGlobe" size={14} className="text-gray-500 flex-shrink-0" />
                     <span className="truncate">{link.name}</span>
                   </div>
                   <button
                     type="button"
                     onClick={() => handleRemovePendingLink(link.id)}
-                    className="p-1 text-gray-400 hover:text-red-500 flex-shrink-0"
+                    className="p-1 text-gray-500 hover:text-red-500 flex-shrink-0"
                     aria-label={`Remove link ${link.name}`}
                   >
                     <Icon name="FaTimes" size={14} />

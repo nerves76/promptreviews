@@ -388,7 +388,7 @@ export default function WorkManagerDetailsPanel({
         <section className="p-5 bg-white/60 backdrop-blur-sm border border-gray-100/50 rounded-xl">
           {linksLoading ? (
             <div className="flex items-center justify-center py-4">
-              <Icon name="FaSpinner" size={16} className="animate-spin text-gray-400" />
+              <Icon name="FaSpinner" size={16} className="animate-spin text-gray-500" />
             </div>
           ) : (
             <LinksSection

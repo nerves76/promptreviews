@@ -328,7 +328,7 @@ export default function ClientDetailPage() {
         ) : (
           <div className="space-y-4">
             <div className="flex items-center gap-3 p-4 bg-gray-500/10 border border-gray-500/20 rounded-lg">
-              <Icon name="FaWallet" className="text-gray-400" size={20} />
+              <Icon name="FaWallet" className="text-gray-500" size={20} />
               <div>
                 <p className="text-white font-medium">Client manages their own billing</p>
                 <p className="text-white/60 text-sm">

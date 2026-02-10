@@ -1,44 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSessionOrMock, createClient, createServiceRoleClient } from '@/auth/providers/supabase';
+import { createServerSupabaseClient, createServiceRoleClient } from '@/auth/providers/supabase';
 import { slugify } from '@/utils/slugify';
 import { preparePromptPageData } from '@/utils/promptPageDataMapping';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createClient();
+    const supabase = await createServerSupabaseClient();
     const supabaseAdmin = createServiceRoleClient();
-    
-    // Get authenticated user - try both cookie and header auth
-    let user = null;
-    let userError = null;
 
-    // First try cookie-based auth
-    const cookieResult = await getSessionOrMock(supabase);
-    if (!cookieResult.error && cookieResult.data?.session?.user) {
-      user = cookieResult.data.session.user;
-    } else {
-      // If cookie auth fails, try Authorization header
-      const authHeader = request.headers.get('authorization');
-      if (authHeader?.startsWith('Bearer ')) {
-        const token = authHeader.substring(7);
-        const headerResult = await supabaseAdmin.auth.getUser(token);
-        if (!headerResult.error && headerResult.data.user) {
-          user = headerResult.data.user;
-        } else {
-          userError = headerResult.error;
-        }
-      } else {
-        userError = cookieResult.error;
-      }
-    }
+    // Get authenticated user
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-    if (!user) {
-      console.error('🔒 Bulk API - Authentication failed:', {
-        cookieError: cookieResult.error instanceof Error ? cookieResult.error.message : 'No cookie session',
-        headerError: userError instanceof Error ? userError.message : 'No valid token',
-        hasAuthHeader: !!request.headers.get('authorization')
-      });
+    if (authError || !user) {
+      console.error('🔒 Bulk API - Authentication failed:', authError?.message);
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

@@ -227,14 +227,14 @@ export default function LinksSection({
                     rel="noopener noreferrer"
                     className="flex items-center gap-2 text-sm text-slate-blue hover:underline min-w-0 flex-1"
                   >
-                    <Icon name="FaGlobe" size={14} className="text-gray-400 flex-shrink-0" />
+                    <Icon name="FaGlobe" size={14} className="text-gray-500 flex-shrink-0" />
                     <span className="truncate">{link.name}</span>
                   </a>
                   {!readOnly && (
                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                       <button
                         onClick={() => handleStartEdit(link)}
-                        className="p-1 text-gray-400 hover:text-slate-blue"
+                        className="p-1 text-gray-500 hover:text-slate-blue"
                         aria-label={`Edit link ${link.name}`}
                       >
                         <Icon name="FaEdit" size={14} />
@@ -242,7 +242,7 @@ export default function LinksSection({
                       <button
                         onClick={() => handleDeleteLink(link.id)}
                         disabled={deletingLinkId === link.id}
-                        className="p-1 text-gray-400 hover:text-red-500"
+                        className="p-1 text-gray-500 hover:text-red-500"
                         aria-label={`Delete link ${link.name}`}
                       >
                         {deletingLinkId === link.id ? (

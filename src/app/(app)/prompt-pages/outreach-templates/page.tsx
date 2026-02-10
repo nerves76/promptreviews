@@ -310,7 +310,7 @@ export default function OutreachTemplatesPage() {
           </div>
         ) : templates.length === 0 ? (
           <div className="text-center py-12">
-            <Icon name="FaEnvelope" className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+            <Icon name="FaEnvelope" className="w-12 h-12 mx-auto text-gray-500 mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">No templates yet</h3>
             <p className="text-gray-500 mb-4">Create your first template to get started.</p>
             <Button onClick={openCreateModal}>Create template</Button>
@@ -550,7 +550,7 @@ function TemplateCard({
               <button
                 type="button"
                 onClick={onEdit}
-                className="p-2 text-gray-400 hover:text-slate-blue transition-colors"
+                className="p-2 text-gray-500 hover:text-slate-blue transition-colors"
                 aria-label="Edit template"
               >
                 <Icon name="FaEdit" className="w-4 h-4" />
@@ -558,7 +558,7 @@ function TemplateCard({
               <button
                 type="button"
                 onClick={onDelete}
-                className="p-2 text-gray-400 hover:text-red-600 transition-colors"
+                className="p-2 text-gray-500 hover:text-red-600 transition-colors"
                 aria-label="Delete template"
               >
                 <Icon name="FaTrash" className="w-4 h-4" />

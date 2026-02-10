@@ -4,14 +4,14 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/auth/providers/supabase';
+import { createServerSupabaseClient } from '@/auth/providers/supabase';
 import type { CriticalFunctionSuccess } from '@/utils/criticalFunctionMonitoring';
 
 export async function POST(request: NextRequest) {
   try {
     const success: CriticalFunctionSuccess = await request.json();
-    
-    const supabase = createClient();
+
+    const supabase = await createServerSupabaseClient();
     
     // Store success record
     await supabase

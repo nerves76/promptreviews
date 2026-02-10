@@ -653,7 +653,7 @@ export default function AgencyDashboardPage() {
                         >
                           <p className="font-medium text-gray-900">{plan.name}</p>
                           <p className="text-sm text-gray-500">{plan.price}/mo</p>
-                          <p className="text-xs text-gray-400 mt-1">{plan.credits} credits/mo</p>
+                          <p className="text-xs text-gray-500 mt-1">{plan.credits} credits/mo</p>
                         </button>
                       ))}
                     </div>

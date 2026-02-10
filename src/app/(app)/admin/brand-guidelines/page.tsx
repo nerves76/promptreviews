@@ -138,7 +138,7 @@ function ColorCard({ color, onCopy }: { color: ColorSwatch; onCopy: (text: strin
             <Icon
               name="FaCopy"
               size={12}
-              className="text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity"
+              className="text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity"
             />
           </button>
 
@@ -154,7 +154,7 @@ function ColorCard({ color, onCopy }: { color: ColorSwatch; onCopy: (text: strin
               <Icon
                 name="FaCopy"
                 size={12}
-                className="text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                className="text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity"
               />
             </button>
           )}

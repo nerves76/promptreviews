@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/auth/providers/supabase";
+import { createServerSupabaseClient } from "@/auth/providers/supabase";
 import { getRequestAccountId } from "@/app/(app)/api/utils/getRequestAccountId";
 
 /**
@@ -8,7 +8,7 @@ import { getRequestAccountId } from "@/app/(app)/api/utils/getRequestAccountId";
  */
 export async function GET(req: NextRequest) {
   try {
-    const supabase = createClient();
+    const supabase = await createServerSupabaseClient();
 
     // Get authenticated user
     const { data: { user }, error: authError } = await supabase.auth.getUser();

@@ -234,7 +234,7 @@ export default function ResourceDetailsPanel({
         <section className="p-5 bg-white/60 backdrop-blur-sm border border-gray-100/50 rounded-xl">
           {isLoadingFull ? (
             <div className="flex items-center justify-center py-4">
-              <Icon name="FaSpinner" size={16} className="animate-spin text-gray-400" />
+              <Icon name="FaSpinner" size={16} className="animate-spin text-gray-500" />
             </div>
           ) : (
             <LinksSection
@@ -260,7 +260,7 @@ export default function ResourceDetailsPanel({
                   className="flex items-center justify-between gap-3 p-2 bg-gray-50 rounded-lg"
                 >
                   <div className="flex items-center gap-2 min-w-0">
-                    <Icon name="FaCheck" size={12} className="text-gray-400 flex-shrink-0" />
+                    <Icon name="FaCheck" size={12} className="text-gray-500 flex-shrink-0" />
                     <span className="text-sm text-gray-700 truncate">
                       {link.task?.title || "Unknown task"}
                     </span>

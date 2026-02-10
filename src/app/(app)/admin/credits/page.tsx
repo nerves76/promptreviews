@@ -423,7 +423,7 @@ export default function CreditsAdminPage() {
                 <div className="flex gap-3 items-center">
                   <div className="flex items-center gap-2">
                     <span className="text-gray-600">{selectedAccount.effective_monthly_credits}</span>
-                    <span className="text-gray-400">+</span>
+                    <span className="text-gray-500">+</span>
                     <input
                       type="number"
                       value={monthlyAddAmount}
@@ -432,7 +432,7 @@ export default function CreditsAdminPage() {
                       placeholder="0"
                       className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-center"
                     />
-                    <span className="text-gray-400">=</span>
+                    <span className="text-gray-500">=</span>
                     <span className="font-semibold text-gray-900">
                       {selectedAccount.effective_monthly_credits + (parseInt(monthlyAddAmount, 10) || 0)}
                     </span>

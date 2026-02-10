@@ -139,7 +139,7 @@ export default function FreeAccountsPage() {
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
           <div className="flex justify-between items-center">
             <span>{error}</span>
-            <button onClick={clearMessages} className="text-red-500 hover:text-red-700">
+            <button onClick={clearMessages} className="text-red-500 hover:text-red-700" aria-label="Dismiss error">
               <Icon name="FaTimes" />
             </button>
           </div>
@@ -150,7 +150,7 @@ export default function FreeAccountsPage() {
         <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mb-4">
           <div className="flex justify-between items-center">
             <span>{success}</span>
-            <button onClick={clearMessages} className="text-green-500 hover:text-green-700">
+            <button onClick={clearMessages} className="text-green-500 hover:text-green-700" aria-label="Dismiss success message">
               <Icon name="FaTimes" />
             </button>
           </div>

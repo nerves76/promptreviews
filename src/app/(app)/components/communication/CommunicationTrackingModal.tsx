@@ -366,7 +366,7 @@ export default function CommunicationTrackingModal({
           {isLoadingContact ? (
             <div className="p-8 flex flex-col items-center justify-center text-center">
               <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4 bg-gray-100">
-                <Icon name="FaSpinner" className="w-8 h-8 text-gray-400 animate-spin" />
+                <Icon name="FaSpinner" className="w-8 h-8 text-gray-500 animate-spin" />
               </div>
               <p className="text-gray-500">Loading contact information...</p>
             </div>

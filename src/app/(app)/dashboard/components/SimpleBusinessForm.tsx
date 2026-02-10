@@ -772,7 +772,7 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
           <Icon
             name={showPromotionCode ? "FaChevronDown" : "FaChevronRight"}
             size={12}
-            className="text-gray-400"
+            className="text-gray-500"
           />
           Have a promotion code?
         </button>

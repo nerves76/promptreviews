@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient, createServiceRoleClient } from '@/auth/providers/supabase';
+import { createServerSupabaseClient, createServiceRoleClient } from '@/auth/providers/supabase';
 import { GoogleBusinessProfileClient } from '@/features/social-posting/platforms/google-business-profile/googleBusinessProfileClient';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 
@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     const token = authHeader.split(' ')[1];
 
     // Create Supabase client and verify user
-    const supabase = createClient();
+    const supabase = await createServerSupabaseClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
 
     if (authError || !user) {
