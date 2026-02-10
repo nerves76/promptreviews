@@ -5,80 +5,27 @@
  * Only account owners can resend invitations.
  */
 
-import { createServerClient } from '@supabase/ssr';
-import { createServiceRoleClient } from '@/auth/providers/supabase';
-import { cookies } from 'next/headers';
+import { createServerSupabaseClient, createServiceRoleClient } from '@/auth/providers/supabase';
 import { NextRequest, NextResponse } from 'next/server';
 import { randomBytes } from 'crypto';
 import { sendTeamInvitationEmail } from '@/utils/emailTemplates';
 import { checkInvitationRateLimit, recordInvitationSuccess } from '@/middleware/invitationRateLimit';
-
-// 🔧 CONSOLIDATION: Shared server client creation for API routes
-async function createAuthenticatedSupabaseClient() {
-  const cookieStore = await cookies();
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get: (name) => cookieStore.get(name)?.value,
-        set: () => {},
-        remove: () => {},
-      },
-    }
-  );
-}
+import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 
 export async function POST(request: NextRequest) {
-  const supabase = await createAuthenticatedSupabaseClient();
+  const supabase = await createServerSupabaseClient();
   const supabaseAdmin = createServiceRoleClient();
 
   try {
-    // Get the current user - try both cookie and header auth
-    let user = null;
-    let userError = null;
+    // Get authenticated user
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-    // First try cookie-based auth
-    const cookieResult = await supabase.auth.getUser();
-    if (!cookieResult.error && cookieResult.data.user) {
-      user = cookieResult.data.user;
-    } else {
-      // If cookie auth fails, try Authorization header
-      const authHeader = request.headers.get('authorization');
-      if (authHeader?.startsWith('Bearer ')) {
-        const token = authHeader.substring(7);
-        const headerResult = await supabaseAdmin.auth.getUser(token);
-        if (!headerResult.error && headerResult.data.user) {
-          user = headerResult.data.user;
-        } else {
-          userError = headerResult.error;
-        }
-      } else {
-        userError = cookieResult.error;
-      }
-    }
-    
-    if (!user) {
-      console.error('🔒 Resend API - Authentication failed:', {
-        cookieError: cookieResult.error?.message,
-        headerError: userError?.message,
-        hasAuthHeader: !!request.headers.get('authorization'),
-        authHeaderValue: request.headers.get('authorization')?.substring(0, 20) + '...',
-        allHeaders: Object.fromEntries(request.headers.entries())
-      });
+    if (authError || !user) {
       return NextResponse.json(
-        { 
-          error: 'Authentication required',
-          debug: {
-            cookieAuth: cookieResult.error?.message || 'No cookie session',
-            headerAuth: userError?.message || 'No valid token',
-            hasAuthHeader: !!request.headers.get('authorization')
-          }
-        },
+        { error: 'Authentication required' },
         { status: 401 }
       );
     }
-
 
     // Get request body
     const { invitation_id } = await request.json();
@@ -90,11 +37,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get the user's account
+    // Get the user's selected account (respects account switcher)
+    const accountId = await getRequestAccountId(request, user.id, supabase);
+    if (!accountId) {
+      return NextResponse.json(
+        { error: 'Account not found' },
+        { status: 404 }
+      );
+    }
+
+    // Verify user is an owner of this account
     const { data: accountUser, error: accountError } = await supabase
       .from('account_users')
       .select('account_id, role')
       .eq('user_id', user.id)
+      .eq('account_id', accountId)
       .single();
 
     if (accountError || !accountUser) {

@@ -5,38 +5,17 @@
  * This endpoint uses the service role key to bypass RLS policies.
  */
 
-import { createServiceRoleClient } from '@/auth/providers/supabase';
+import { createServerSupabaseClient, createServiceRoleClient } from '@/auth/providers/supabase';
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
-
-// 🔧 CONSOLIDATION: Shared server client creation for API routes
-// This replaces the mixed authentication approaches with standard server client pattern
-async function createAuthenticatedSupabaseClient() {
-  const { cookies } = await import('next/headers');
-  const cookieStore = await cookies();
-  
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get: (name) => cookieStore.get(name)?.value,
-        set: () => {}, // No-op for API route
-        remove: () => {}, // No-op for API route
-      },
-    }
-  );
-}
+import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 
 export async function POST(request: NextRequest) {
   try {
-    // 🔧 CONSOLIDATED: Use standard server client authentication
-    // This replaces the complex cookie/header logic with the standard pattern
-    const supabase = await createAuthenticatedSupabaseClient();
-    
-    // Get authenticated user using standard server client pattern
+    const supabase = await createServerSupabaseClient();
+
+    // Get authenticated user
     const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
+
     if (authError || !user) {
       return NextResponse.json(
         { error: 'Authentication required' },
@@ -44,51 +23,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    
-
     // Create a service role client for database operations
     const serviceClient = createServiceRoleClient();
 
-    // Get the account ID for the user (using accounts table directly)
-    // Add retry logic to handle race conditions during account creation
-    let account = null;
-    let accountError = null;
-    
-    for (let attempt = 0; attempt < 3; attempt++) {
-      const { data, error } = await serviceClient
-        .from('accounts')
-        .select('id')
-        .eq('id', user.id)
-        .single();
-      
-      if (error) {
-        accountError = error;
-        
-        // Wait before retrying (except on last attempt)
-        if (attempt < 2) {
-          await new Promise(resolve => setTimeout(resolve, 1000));
-        }
-      } else {
-        account = data;
-        break;
-      }
-    }
-
-    if (accountError || !account) {
-      console.error('Error getting account for user after retries:', {
-        message: accountError?.message,
-        code: accountError?.code,
-        details: accountError?.details,
-        hint: accountError?.hint,
-        userId: user.id,
-      });
+    // Get the account ID using the standard method (respects account switcher)
+    const accountId = await getRequestAccountId(request, user.id, supabase);
+    if (!accountId) {
       return NextResponse.json(
-        { error: 'Account not found for user. Please try again in a moment.' },
+        { error: 'Account not found for user.' },
         { status: 404 }
       );
     }
-
-    const accountId = account.id;
 
     // Define default tasks
     const defaultTasks = [
