@@ -42,7 +42,7 @@ function SkeletonBar({ className = "" }: { className?: string }) {
 // --- Skeleton preview matching the real outline layout ---
 function OutlineSkeletonPreview() {
   return (
-    <div className="mt-4 opacity-60 pointer-events-none select-none" aria-hidden="true">
+    <div className="opacity-60 pointer-events-none select-none" aria-hidden="true">
       {/* Hero skeleton */}
       <div className="rounded-t-2xl border border-white/20 border-b-0 bg-gradient-to-br from-slate-blue/10 to-slate-blue/5 px-8 py-12 text-center">
         {/* Fake nav */}
@@ -343,10 +343,18 @@ export default function WebPageOutlinesPage() {
           title="Create web page outlines"
           description="Create a page outline with optimized copy and metadata that you can easily copy or download. Prompty will scrape the top ranking pages for your keyword and use your business info to create keyword focused content."
           variant="large"
+          actions={
+            !isGenerating ? (
+              <Button onClick={() => setIsModalOpen(true)} className="whitespace-nowrap">
+                <Icon name="FaPlus" size={14} className="mr-1.5" />
+                Create
+              </Button>
+            ) : undefined
+          }
         />
 
-        {/* Create button or generating spinner */}
-        {isGenerating ? (
+        {/* Generating spinner */}
+        {isGenerating && (
           <div className="flex flex-col items-center justify-center py-16 space-y-4">
             <Icon
               name="FaSpinner"
@@ -357,20 +365,17 @@ export default function WebPageOutlinesPage() {
               {PROGRESS_MESSAGES[progressIdx]}
             </p>
           </div>
-        ) : (
-          <>
-            <div className="flex justify-center pt-6 pb-4">
-              <Button onClick={() => setIsModalOpen(true)}>
-                <Icon name="FaPlus" size={14} className="mr-1.5" />
-                Create
-              </Button>
-            </div>
-
-            {/* Skeleton preview — shows the page layout users will get */}
-            <OutlineSkeletonPreview />
-          </>
         )}
       </PageCard>
+
+      {/* Skeleton preview — sits on gradient background below the card */}
+      {!isGenerating && (
+        <div className="px-4 sm:px-6 lg:px-8 pb-8">
+          <div className="max-w-7xl mx-auto">
+            <OutlineSkeletonPreview />
+          </div>
+        </div>
+      )}
 
       {/* Configuration modal */}
       <Modal
