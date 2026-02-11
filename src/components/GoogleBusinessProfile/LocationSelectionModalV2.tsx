@@ -99,7 +99,7 @@ export default function LocationSelectionModal({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onCancel} size="3xl" className="!p-0 max-h-[80vh] flex flex-col">
+    <Modal isOpen={isOpen} onClose={onCancel} size="3xl" allowOverflow className="!p-0 max-h-[80vh] !overflow-hidden flex flex-col">
       {/* Header */}
       <div className="p-6 border-b border-gray-200 pr-14">
         <h2 className="text-xl font-semibold text-gray-900 mb-2">
