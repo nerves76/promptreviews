@@ -52,7 +52,7 @@ export function TrackingLocationsSection({ rankStatus }: TrackingLocationsSectio
               />
               <div className="min-w-0">
                 <div className="text-sm font-medium text-gray-800 truncate">{location.location}</div>
-                <div className="text-xs text-gray-500 flex items-center gap-1.5">
+                <div className="text-xs text-gray-600 flex items-center gap-1.5">
                   <span className="capitalize">{location.device}</span>
                   <span className="text-gray-300">•</span>
                   <span>{location.groupName}</span>
@@ -60,7 +60,7 @@ export function TrackingLocationsSection({ rankStatus }: TrackingLocationsSectio
               </div>
             </div>
             {location.latestCheck && (
-              <div className="text-xs text-gray-500 flex-shrink-0">
+              <div className="text-xs text-gray-600 flex-shrink-0">
                 {new Date(location.latestCheck.checkedAt).toLocaleDateString()}
               </div>
             )}

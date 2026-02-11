@@ -36,7 +36,7 @@ export function GeoGridSection({ geoGridStatus, isLoading }: GeoGridSectionProps
 
   // Determine color based on avg position
   const getPositionColor = (pos: number | null) => {
-    if (!pos) return 'text-gray-500';
+    if (!pos) return 'text-gray-600';
     if (pos <= 3) return 'text-green-600';
     if (pos <= 10) return 'text-blue-600';
     if (pos <= 20) return 'text-amber-600';
@@ -64,20 +64,20 @@ export function GeoGridSection({ geoGridStatus, isLoading }: GeoGridSectionProps
       {hasResults ? (
         <div className="flex items-center gap-4 text-sm">
           <div>
-            <span className="text-gray-500">Avg: </span>
+            <span className="text-gray-600">Avg: </span>
             <span className={`font-semibold ${getPositionColor(summary.averagePosition)}`}>
               {summary.averagePosition ? `#${summary.averagePosition}` : '--'}
             </span>
           </div>
           <div>
-            <span className="text-gray-500">Top 10: </span>
+            <span className="text-gray-600">Top 10: </span>
             <span className="font-semibold text-gray-700">
               {visibilityPct}%
             </span>
           </div>
         </div>
       ) : (
-        <div className="text-sm text-gray-500">
+        <div className="text-sm text-gray-600">
           No checks yet
         </div>
       )}

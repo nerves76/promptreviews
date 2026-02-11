@@ -35,7 +35,7 @@ export function HeaderStats({
       {/* Header */}
       <div className="flex items-start justify-between mb-3">
         <div>
-          <span className="text-xs text-gray-500 uppercase tracking-wide">Keyword concept</span>
+          <span className="text-xs text-gray-600 uppercase tracking-wide">Keyword concept</span>
           <h2 className="text-lg font-bold text-gray-900">
             {keyword.name}
           </h2>
@@ -59,23 +59,23 @@ export function HeaderStats({
           className="cursor-help"
           title="Number of search term variations tracked for this concept"
         >
-          <span className="text-gray-500 block text-xs">Terms</span>
+          <span className="text-gray-600 block text-xs">Terms</span>
           <span className="font-medium">{keyword.searchTerms?.length || 0}</span>
         </div>
         <div
           className="cursor-help"
           title="Number of AI visibility questions for tracking citations"
         >
-          <span className="text-gray-500 block text-xs">Questions</span>
+          <span className="text-gray-600 block text-xs">Questions</span>
           <span className="font-medium">{keyword.relatedQuestions?.length || 0}</span>
         </div>
         <div
           className="cursor-help"
           title="Number of prompt pages using this keyword concept"
         >
-          <span className="text-gray-500 block text-xs">Pages</span>
+          <span className="text-gray-600 block text-xs">Pages</span>
           <span
-            className={`font-medium ${promptPagesCount > 0 ? 'text-green-600' : 'text-gray-500'}`}
+            className={`font-medium ${promptPagesCount > 0 ? 'text-green-600' : 'text-gray-600'}`}
           >
             {promptPagesCount}
           </span>
@@ -84,14 +84,14 @@ export function HeaderStats({
           className="cursor-help"
           title="Number of customer reviews mentioning this keyword or its aliases"
         >
-          <span className="text-gray-500 block text-xs">Reviews</span>
+          <span className="text-gray-600 block text-xs">Reviews</span>
           <span className="font-medium">{keyword.reviewUsageCount}</span>
         </div>
         <div
           className="cursor-help"
           title="Keyword group for organizing related concepts"
         >
-          <span className="text-gray-500 block text-xs">Group</span>
+          <span className="text-gray-600 block text-xs">Group</span>
           <span className="font-medium truncate block">{keyword.groupName || 'None'}</span>
         </div>
       </div>

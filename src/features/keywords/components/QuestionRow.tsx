@@ -161,7 +161,7 @@ export function QuestionRow({
               e.stopPropagation();
               onRemove?.();
             }}
-            className="p-1 text-gray-500 hover:text-red-500 rounded transition-colors flex-shrink-0"
+            className="p-1 text-gray-600 hover:text-red-500 rounded transition-colors flex-shrink-0"
             title="Remove question"
             aria-label={`Remove question: ${question.question.substring(0, 50)}${question.question.length > 50 ? '...' : ''}`}
           >
@@ -193,7 +193,7 @@ export function QuestionRow({
                 )}
                 {/* Mention count badge */}
                 <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
-                  mentionedCount > 0 ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+                  mentionedCount > 0 ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
                 }`}>
                   {mentionedCount}/{totalProviders} mentioned
                 </span>
@@ -204,7 +204,7 @@ export function QuestionRow({
                 Checking
               </span>
             ) : (
-              <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-500">
+              <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-600">
                 Not checked
               </span>
             )}
@@ -234,7 +234,7 @@ export function QuestionRow({
             {onToggleExpand && (
               <Icon
                 name={isExpanded ? "FaChevronUp" : "FaChevronDown"}
-                className="w-3 h-3 text-gray-500"
+                className="w-3 h-3 text-gray-600"
               />
             )}
           </div>
@@ -269,7 +269,7 @@ export function QuestionRow({
 
           {/* Last checked date (if no provider grid shown) */}
           {lastCheckedAt && selectedProviders.length === 0 && (
-            <div className="text-xs text-gray-500">
+            <div className="text-xs text-gray-600">
               Last checked: {formatRelativeTime(lastCheckedAt)}
             </div>
           )}
@@ -298,7 +298,7 @@ export function QuestionRow({
                 )}
               </button>
               {totalCredits > 0 && (
-                <p className="text-[10px] text-center text-gray-500">
+                <p className="text-[10px] text-center text-gray-600">
                   Uses {totalCredits} credits
                 </p>
               )}
@@ -335,7 +335,7 @@ function ProviderResultsGrid({
 
   return (
     <div className="space-y-2">
-      <div className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+      <div className="text-xs font-medium text-gray-600 uppercase tracking-wider">
         AI visibility results
       </div>
       <div className="grid grid-cols-2 gap-2">
@@ -374,16 +374,16 @@ function ProviderResultsGrid({
                       Cited{result.citationPosition ? ` (#${result.citationPosition})` : ''}
                     </span>
                   ) : (
-                    <span className="text-gray-500">Not cited</span>
+                    <span className="text-gray-600">Not cited</span>
                   )}
                   {result.checkedAt && (
-                    <div className="text-[10px] text-gray-500 mt-0.5">
+                    <div className="text-[10px] text-gray-600 mt-0.5">
                       {formatRelativeTime(result.checkedAt)}
                     </div>
                   )}
                 </div>
               ) : (
-                <div className="text-xs text-gray-500">Not checked yet</div>
+                <div className="text-xs text-gray-600">Not checked yet</div>
               )}
             </div>
           );

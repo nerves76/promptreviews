@@ -106,7 +106,7 @@ export function LocationSettingSection({
           <span className="text-lg font-semibold text-gray-800">Location</span>
           {/* Show location value in header when collapsed */}
           {isCollapsed && !isEditing && (
-            <span className="text-sm text-gray-500 truncate ml-2">
+            <span className="text-sm text-gray-600 truncate ml-2">
               {locationCode && locationName ? locationName : '(not set)'}
             </span>
           )}
@@ -127,7 +127,7 @@ export function LocationSettingSection({
               </button>
               <Icon
                 name="FaChevronDown"
-                className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${
+                className={`w-4 h-4 text-gray-600 transition-transform duration-200 ${
                   isCollapsed ? '' : 'rotate-180'
                 }`}
               />
@@ -156,7 +156,7 @@ export function LocationSettingSection({
       {/* Collapsible content */}
       {!isCollapsed && (
         <div className="px-5 py-5 border-t border-gray-100">
-          <p className="text-xs text-gray-500 mb-3">
+          <p className="text-xs text-gray-600 mb-3">
             Set a default location for volume and rank checks on this keyword.
           </p>
 
@@ -169,7 +169,7 @@ export function LocationSettingSection({
                   <span className="font-medium">{locationName}</span>
                 </div>
               ) : (
-                <span className="text-gray-500 italic">Not set (uses business location)</span>
+                <span className="text-gray-600 italic">Not set (uses business location)</span>
               )}
             </div>
           ) : (
@@ -184,7 +184,7 @@ export function LocationSettingSection({
                   </div>
                   <button
                     onClick={handleClear}
-                    className="text-gray-500 hover:text-gray-600 p-1"
+                    className="text-gray-600 hover:text-gray-600 p-1"
                     title="Clear location"
                   >
                     <Icon name="FaTimes" className="w-3.5 h-3.5" />
@@ -192,7 +192,7 @@ export function LocationSettingSection({
                 </div>
               ) : (
                 <div className="relative">
-                  <Icon name="FaSearch" className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                  <Icon name="FaSearch" className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600" />
                   <input
                     type="text"
                     value={query}
@@ -211,12 +211,12 @@ export function LocationSettingSection({
               {isDropdownOpen && query.length >= 2 && (
                 <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
                   {isLoading ? (
-                    <div className="px-4 py-3 text-sm text-gray-500 flex items-center gap-2">
+                    <div className="px-4 py-3 text-sm text-gray-600 flex items-center gap-2">
                       <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
                       Searching...
                     </div>
                   ) : locations.length === 0 ? (
-                    <div className="px-4 py-3 text-sm text-gray-500">No locations found</div>
+                    <div className="px-4 py-3 text-sm text-gray-600">No locations found</div>
                   ) : (
                     locations.map((loc) => (
                       <button
@@ -224,9 +224,9 @@ export function LocationSettingSection({
                         onClick={() => handleSelect(loc)}
                         className="w-full px-4 py-2.5 text-left hover:bg-gray-50 flex items-center gap-2 border-b border-gray-50 last:border-0"
                       >
-                        <Icon name="FaMapMarker" className="w-4 h-4 text-gray-500" />
+                        <Icon name="FaMapMarker" className="w-4 h-4 text-gray-600" />
                         <span className="text-sm text-gray-700">{loc.locationName}</span>
-                        <span className="text-xs text-gray-500 ml-auto">{loc.locationType}</span>
+                        <span className="text-xs text-gray-600 ml-auto">{loc.locationType}</span>
                       </button>
                     ))
                   )}

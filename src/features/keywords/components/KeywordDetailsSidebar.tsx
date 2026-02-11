@@ -602,7 +602,7 @@ export function KeywordDetailsSidebar({
                                 </select>
                               ) : (
                                 <div className="text-sm text-gray-700 bg-white/80 px-3 py-2.5 rounded-lg border border-gray-100">
-                                  {keyword.groupName || <span className="text-gray-500 italic">No group</span>}
+                                  {keyword.groupName || <span className="text-gray-600 italic">No group</span>}
                                 </div>
                               )}
                             </div>

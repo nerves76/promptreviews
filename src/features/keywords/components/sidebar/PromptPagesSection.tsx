@@ -26,7 +26,7 @@ export function PromptPagesSection({ promptPages }: PromptPagesSectionProps) {
 
   return (
     <div className="p-4 bg-white/60 backdrop-blur-sm border border-gray-100/50 rounded-xl">
-      <span className="text-xs font-medium uppercase tracking-wider text-gray-500">
+      <span className="text-xs font-medium uppercase tracking-wider text-gray-600">
         Used in Prompt Pages
       </span>
       <div className="space-y-1 mt-2">

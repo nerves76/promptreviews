@@ -29,7 +29,7 @@ function RankingItem({ ranking }: { ranking: RankingData }) {
       <div className="flex items-start justify-between">
         <div>
           <div className="text-sm font-medium text-gray-900">{ranking.groupName}</div>
-          <div className="text-xs text-gray-500 flex items-center gap-2 mt-0.5">
+          <div className="text-xs text-gray-600 flex items-center gap-2 mt-0.5">
             <span>{ranking.location}</span>
             <span className="text-gray-300">•</span>
             <span className="capitalize">{ranking.device}</span>
@@ -58,15 +58,15 @@ function RankingItem({ ranking }: { ranking: RankingData }) {
                     )}
                 </>
               ) : (
-                <span className="text-sm text-gray-500">Not found</span>
+                <span className="text-sm text-gray-600">Not found</span>
               )}
             </div>
-            <div className="text-xs text-gray-500 mt-0.5">
+            <div className="text-xs text-gray-600 mt-0.5">
               {new Date(ranking.latestCheck.checkedAt).toLocaleDateString()}
             </div>
           </div>
         ) : (
-          <span className="text-xs text-gray-500">No checks yet</span>
+          <span className="text-xs text-gray-600">No checks yet</span>
         )}
       </div>
 
@@ -140,7 +140,7 @@ export function RankTrackingSection({ rankStatus, isLoading }: RankTrackingSecti
       </div>
 
       {isLoading ? (
-        <div className="flex items-center gap-2 text-sm text-gray-500">
+        <div className="flex items-center gap-2 text-sm text-gray-600">
           <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
           Loading...
         </div>
@@ -151,7 +151,7 @@ export function RankTrackingSection({ rankStatus, isLoading }: RankTrackingSecti
           ))}
         </div>
       ) : (
-        <div className="text-sm text-gray-500">
+        <div className="text-sm text-gray-600">
           Added to rank tracking but no checks performed yet.
         </div>
       )}

@@ -31,7 +31,7 @@ export function RecentReviewsSection({
 
   return (
     <div className="p-4 bg-white/60 backdrop-blur-sm border border-gray-100/50 rounded-xl">
-      <span className="text-xs font-medium uppercase tracking-wider text-gray-500">
+      <span className="text-xs font-medium uppercase tracking-wider text-gray-600">
         Recent Matches
       </span>
       <div className="space-y-2 mt-2">
@@ -39,7 +39,7 @@ export function RecentReviewsSection({
           <div key={review.id} className="text-sm p-2 bg-white/80 rounded-lg">
             <div className="font-medium text-gray-700">{review.reviewerName}</div>
             {review.content && (
-              <div className="text-gray-500 text-xs line-clamp-2 mt-1">{review.content}</div>
+              <div className="text-gray-600 text-xs line-clamp-2 mt-1">{review.content}</div>
             )}
           </div>
         ))}

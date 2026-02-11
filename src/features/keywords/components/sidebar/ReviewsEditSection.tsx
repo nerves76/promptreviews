@@ -136,7 +136,7 @@ export function ReviewsEditSection({
               </button>
               <Icon
                 name="FaChevronDown"
-                className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${
+                className={`w-4 h-4 text-gray-600 transition-transform duration-200 ${
                   isCollapsed ? '' : 'rotate-180'
                 }`}
               />
@@ -170,7 +170,7 @@ export function ReviewsEditSection({
           <label className="text-sm font-medium text-gray-700 block mb-1">
             Review phrase
           </label>
-          <p className="text-xs text-gray-500 mb-2">
+          <p className="text-xs text-gray-600 mb-2">
             This is the phrase used in AI Generate and the Suggested Reviews feature on Prompt
             Pages.
           </p>
@@ -184,7 +184,7 @@ export function ReviewsEditSection({
             />
           ) : (
             <div className="text-sm text-gray-700 bg-white/80 px-3 py-2.5 rounded-lg border border-gray-100">
-              {keyword.reviewPhrase || <span className="text-gray-500 italic">Not set</span>}
+              {keyword.reviewPhrase || <span className="text-gray-600 italic">Not set</span>}
             </div>
           )}
         </div>
@@ -192,7 +192,7 @@ export function ReviewsEditSection({
         {/* Review Aliases */}
         <div>
           <label className="text-sm font-medium text-gray-700 block mb-1">Review aliases</label>
-          <p className="text-xs text-gray-500 mb-2">
+          <p className="text-xs text-gray-600 mb-2">
             Alternative spellings or phrases that count as mentions of this keyword.
           </p>
           {isEditing ? (
@@ -217,7 +217,7 @@ export function ReviewsEditSection({
                   ))}
                 </div>
               ) : (
-                <span className="text-gray-500 italic">No aliases</span>
+                <span className="text-gray-600 italic">No aliases</span>
               )}
             </div>
           )}
@@ -243,7 +243,7 @@ export function ReviewsEditSection({
                 </>
               )}
             </button>
-            <p className="text-xs text-gray-500 mt-1.5 text-center">
+            <p className="text-xs text-gray-600 mt-1.5 text-center">
               Scan all reviews to find matches for this concept
             </p>
 

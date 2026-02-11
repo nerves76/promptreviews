@@ -254,7 +254,7 @@ export function SEOTrackingSection({
               </button>
               <Icon
                 name="FaChevronDown"
-                className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${
+                className={`w-4 h-4 text-gray-600 transition-transform duration-200 ${
                   isCollapsed ? '' : 'rotate-180'
                 }`}
               />
@@ -286,7 +286,7 @@ export function SEOTrackingSection({
         {/* Search Terms */}
         <div>
           <label className="text-sm font-medium text-gray-700 block mb-1">Search terms</label>
-          <p className="text-xs text-gray-500 mb-2">
+          <p className="text-xs text-gray-600 mb-2">
             Terms tracked in Google SERPs. The root phrase that defines this concept should share
             root words with these terms.
           </p>
@@ -313,7 +313,7 @@ export function SEOTrackingSection({
               ))}
             </div>
           ) : (
-            <div className="text-sm text-gray-500 italic bg-white/80 px-3 py-2.5 rounded-lg border border-gray-100 mb-3">
+            <div className="text-sm text-gray-600 italic bg-white/80 px-3 py-2.5 rounded-lg border border-gray-100 mb-3">
               No search terms added
             </div>
           )}
@@ -370,7 +370,7 @@ export function SEOTrackingSection({
                         </button>
                         <button
                           onClick={onDismissRelevanceWarning}
-                          className="px-3 py-1.5 text-xs font-medium text-gray-500 hover:text-gray-700 transition-colors"
+                          className="px-3 py-1.5 text-xs font-medium text-gray-600 hover:text-gray-700 transition-colors"
                         >
                           Cancel
                         </button>
@@ -380,7 +380,7 @@ export function SEOTrackingSection({
                 </div>
               )}
 
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-gray-600">
                 <Icon name="FaStar" className="w-2.5 h-2.5 inline mr-1" />= Canonical term (shown
                 when space is limited)
               </p>
@@ -406,7 +406,7 @@ export function SEOTrackingSection({
           <label className="text-sm font-medium text-gray-700 block mb-1">
             AI visibility questions
           </label>
-          <p className="text-xs text-gray-500 mb-2">
+          <p className="text-xs text-gray-600 mb-2">
             Questions to track your visibility in AI search results.
           </p>
 
@@ -416,7 +416,7 @@ export function SEOTrackingSection({
               if (!displayQuestions || displayQuestions.length === 0) {
                 if (!isEditing) {
                   return (
-                    <div className="text-sm text-gray-500 italic bg-white/80 px-3 py-2.5 rounded-lg border border-gray-100">
+                    <div className="text-sm text-gray-600 italic bg-white/80 px-3 py-2.5 rounded-lg border border-gray-100">
                       No questions added
                     </div>
                   );
@@ -583,7 +583,7 @@ function SearchTermItem({
             {!term.isCanonical && (
               <button
                 onClick={() => onSetCanonical(term.term)}
-                className="p-1 text-gray-500 hover:text-blue-500 rounded transition-colors"
+                className="p-1 text-gray-600 hover:text-blue-500 rounded transition-colors"
                 title="Set as primary"
                 aria-label={`Set ${term.term} as primary term`}
               >
@@ -592,7 +592,7 @@ function SearchTermItem({
             )}
             <button
               onClick={() => onRemove(term.term)}
-              className="p-1 text-gray-500 hover:text-red-500 rounded transition-colors"
+              className="p-1 text-gray-600 hover:text-red-500 rounded transition-colors"
               title="Remove term"
               aria-label={`Remove search term: ${term.term}`}
             >
@@ -609,12 +609,12 @@ function SearchTermItem({
           <div className="flex items-center justify-between text-xs">
             <div className="flex items-center gap-3">
               <div>
-                <span className="text-gray-500">Volume: </span>
+                <span className="text-gray-600">Volume: </span>
                 <span className="font-semibold text-gray-900">
                   {formatVolume(termData.searchVolume)}
                 </span>
               </div>
-              <div className="flex items-center gap-1 text-gray-500">
+              <div className="flex items-center gap-1 text-gray-600">
                 <Icon name="FaMapMarker" className="w-2.5 h-2.5" />
                 {termData.locationName || 'United States'}
               </div>
@@ -627,7 +627,7 @@ function SearchTermItem({
               )}
             </div>
             {termData.cpc && (
-              <div className="text-gray-500">
+              <div className="text-gray-600">
                 CPC: <span className="font-medium text-gray-700">${termData.cpc.toFixed(2)}</span>
               </div>
             )}
@@ -642,7 +642,7 @@ function SearchTermItem({
                 key={ranking.groupId}
                 className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-50 rounded text-xs"
               >
-                <span className="text-gray-500 truncate max-w-[80px]">{ranking.location}:</span>
+                <span className="text-gray-600 truncate max-w-[80px]">{ranking.location}:</span>
                 {ranking.latestCheck?.position ? (
                   <>
                     <span className={`font-semibold ${getPositionColor(ranking.latestCheck.position)}`}>
@@ -663,7 +663,7 @@ function SearchTermItem({
                       )}
                   </>
                 ) : (
-                  <span className="text-gray-500">—</span>
+                  <span className="text-gray-600">—</span>
                 )}
               </div>
             ))}
@@ -687,7 +687,7 @@ function SearchTermItem({
                     : geoGridStatus.summary.averagePosition <= 20
                       ? 'text-amber-600'
                       : 'text-gray-600'
-                : 'text-gray-500'
+                : 'text-gray-600'
             }`}>
               {geoGridStatus.summary.averagePosition
                 ? `Avg #${geoGridStatus.summary.averagePosition}`
