@@ -101,7 +101,7 @@ export default function LocationSelectionModal({
   return (
     <Modal isOpen={isOpen} onClose={onCancel} size="3xl" allowOverflow className="!p-0 max-h-[80vh] !overflow-hidden flex flex-col">
       {/* Header */}
-      <div className="p-6 border-b border-gray-200 pr-14">
+      <div className="shrink-0 p-6 border-b border-gray-200 pr-14">
         <h2 className="text-xl font-semibold text-gray-900 mb-2">
           Select business locations to manage
         </h2>
@@ -131,7 +131,7 @@ export default function LocationSelectionModal({
       )}
 
       {/* Selection count and actions */}
-      <div className="px-6 py-3 border-b border-gray-200 flex items-center justify-between bg-gray-50">
+      <div className="shrink-0 px-6 py-3 border-b border-gray-200 flex items-center justify-between bg-gray-50">
         <div className="flex items-center space-x-4">
           <span className="text-sm font-medium text-gray-700">
             {selectedIds.length} of {planLimit} selected
@@ -173,7 +173,7 @@ export default function LocationSelectionModal({
       )}
 
       {/* Location list */}
-      <div className="flex-1 overflow-y-auto px-6 py-4">
+      <div className="flex-1 min-h-0 overflow-y-auto px-6 py-4">
         <div className="space-y-2">
           {filteredLocations.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
@@ -222,7 +222,7 @@ export default function LocationSelectionModal({
       </div>
 
       {/* Footer */}
-      <div className="p-6 border-t border-gray-200 bg-gray-50 rounded-b-xl">
+      <div className="shrink-0 p-6 border-t border-gray-200 bg-gray-50 rounded-b-xl">
         <div className="flex items-center justify-between">
           <button
             onClick={onCancel}
