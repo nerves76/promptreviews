@@ -8,6 +8,7 @@ import Icon from '@/components/Icon';
 import PromptyIcon from '@/app/(app)/components/prompt-modules/PromptyIcon';
 import { apiClient } from '@/utils/apiClient';
 import { useAccountData } from '@/auth/hooks/granularAuthHooks';
+import { TIME_WINDOW_OPTIONS, type TimeWindow } from '@/features/llm-visibility/utils/timeWindow';
 import {
   LLM_PROVIDERS,
   LLM_PROVIDER_LABELS,
@@ -140,6 +141,9 @@ export default function ResearchSourcesPage() {
   // View mode
   const [viewMode, setViewMode] = useState<ViewMode>('domain');
 
+  // Time window filter
+  const [timeWindow, setTimeWindow] = useState<TimeWindow>('all');
+
   // Provider filter
   const [selectedProviders, setSelectedProviders] = useState<Set<LLMProvider>>(new Set(LLM_PROVIDERS));
 
@@ -194,6 +198,12 @@ export default function ResearchSourcesPage() {
     return `&provider=${Array.from(selectedProviders).join(',')}`;
   }, [selectedProviders]);
 
+  // Build time window query param string
+  const timeWindowParam = useMemo(() => {
+    if (timeWindow === 'all') return '';
+    return `&timeWindow=${timeWindow}`;
+  }, [timeWindow]);
+
   // Fetch domain data
   const fetchData = useCallback(async () => {
     if (!selectedAccountId) return;
@@ -203,7 +213,7 @@ export default function ResearchSourcesPage() {
 
     try {
       const response = await apiClient.get<ResearchSourcesData>(
-        `/llm-visibility/research-sources?view=domain${providerParam}`
+        `/llm-visibility/research-sources?view=domain${providerParam}${timeWindowParam}`
       );
       setData(response);
     } catch (err: any) {
@@ -212,7 +222,7 @@ export default function ResearchSourcesPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [selectedAccountId, providerParam]);
+  }, [selectedAccountId, providerParam, timeWindowParam]);
 
   // Fetch URL data (lazy - only when switching to URL view)
   const fetchUrlData = useCallback(async () => {
@@ -223,7 +233,7 @@ export default function ResearchSourcesPage() {
 
     try {
       const response = await apiClient.get<URLResearchSourcesData>(
-        `/llm-visibility/research-sources?view=url${providerParam}`
+        `/llm-visibility/research-sources?view=url${providerParam}${timeWindowParam}`
       );
       setUrlData(response);
     } catch (err: any) {
@@ -232,7 +242,7 @@ export default function ResearchSourcesPage() {
     } finally {
       setIsUrlLoading(false);
     }
-  }, [selectedAccountId, providerParam]);
+  }, [selectedAccountId, providerParam, timeWindowParam]);
 
   // Fetch unanalyzed count
   const fetchUnanalyzedCount = useCallback(async () => {
@@ -293,7 +303,7 @@ export default function ResearchSourcesPage() {
       fetchCachedUrlAnalyses();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [viewMode, providerParam]);
+  }, [viewMode, providerParam, timeWindowParam]);
 
   // Handle view mode switch
   const handleViewModeChange = useCallback((mode: ViewMode) => {
@@ -622,14 +632,14 @@ export default function ResearchSourcesPage() {
     return sortedUrlSources.slice(start, start + PAGE_SIZE);
   }, [sortedUrlSources, urlCurrentPage]);
 
-  // Reset to page 1 when sort or provider filter changes
+  // Reset to page 1 when sort, provider filter, or time window changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [sortField, sortDirection, providerParam]);
+  }, [sortField, sortDirection, providerParam, timeWindowParam]);
 
   useEffect(() => {
     setUrlCurrentPage(1);
-  }, [urlSortField, urlSortDirection, providerParam]);
+  }, [urlSortField, urlSortDirection, providerParam, timeWindowParam]);
 
   // Get top domain for summary
   const topDomain = sortedSources.length > 0 ? sortedSources[0] : null;
@@ -792,7 +802,8 @@ export default function ResearchSourcesPage() {
             {/* Action Bar */}
             <div className="mb-4 space-y-3">
               <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
-                {/* View Toggle */}
+                {/* View Toggle + Time Window */}
+                <div className="flex items-center gap-3">
                 <div className="flex items-center bg-gray-100 border border-gray-200 rounded-full p-1">
                   <button
                     type="button"
@@ -818,6 +829,17 @@ export default function ResearchSourcesPage() {
                     <Icon name="FaLink" className="w-3.5 h-3.5" />
                     By URL
                   </button>
+                </div>
+                <select
+                  value={timeWindow}
+                  onChange={(e) => setTimeWindow(e.target.value as TimeWindow)}
+                  className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
+                  aria-label="Time range filter"
+                >
+                  {TIME_WINDOW_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </select>
                 </div>
                 <div className="flex items-center gap-2">
                   <button

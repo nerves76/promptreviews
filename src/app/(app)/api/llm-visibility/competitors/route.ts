@@ -12,6 +12,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/auth/providers/supabase';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
+import { getStartDateFromTimeWindow } from '@/features/llm-visibility/utils/timeWindow';
 
 interface LLMBrandEntity {
   title: string;
@@ -51,9 +52,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'No valid account found' }, { status: 403 });
     }
 
-    // Get optional concept filter
+    // Get optional filters
     const { searchParams } = new URL(request.url);
     const conceptId = searchParams.get('conceptId');
+    const timeWindow = searchParams.get('timeWindow') || 'all';
+    const startDate = getStartDateFromTimeWindow(timeWindow);
 
     // Get business name for identifying "our" brand
     const { data: business } = await supabase
@@ -82,6 +85,10 @@ export async function GET(request: NextRequest) {
 
     if (conceptId) {
       query = query.eq('keyword_id', conceptId);
+    }
+
+    if (startDate) {
+      query = query.gte('checked_at', startDate.toISOString());
     }
 
     const { data: checks, error } = await query;

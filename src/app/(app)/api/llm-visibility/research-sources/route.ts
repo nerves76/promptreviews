@@ -14,6 +14,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/auth/providers/supabase';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
+import { getStartDateFromTimeWindow } from '@/features/llm-visibility/utils/timeWindow';
 
 interface ResearchSourceUrl {
   url: string;
@@ -74,6 +75,8 @@ export async function GET(request: NextRequest) {
     const conceptId = searchParams.get('conceptId');
     const view = searchParams.get('view') || 'domain';
     const providerParam = searchParams.get('provider'); // comma-separated, e.g. "chatgpt,ai_overview"
+    const timeWindow = searchParams.get('timeWindow') || 'all';
+    const startDate = getStartDateFromTimeWindow(timeWindow);
 
     // Fetch all checks that might have source data (any provider can return citations)
     let query = supabase
@@ -101,6 +104,10 @@ export async function GET(request: NextRequest) {
       if (providers.length > 0) {
         query = query.in('llm_provider', providers);
       }
+    }
+
+    if (startDate) {
+      query = query.gte('checked_at', startDate.toISOString());
     }
 
     const { data: checks, error } = await query;

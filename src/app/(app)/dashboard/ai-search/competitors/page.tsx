@@ -8,6 +8,7 @@ import Icon from '@/components/Icon';
 import PromptyIcon from '@/app/(app)/components/prompt-modules/PromptyIcon';
 import { apiClient } from '@/utils/apiClient';
 import { useAccountData } from '@/auth/hooks/granularAuthHooks';
+import { TIME_WINDOW_OPTIONS, type TimeWindow } from '@/features/llm-visibility/utils/timeWindow';
 import RunAllAnalysisModal from '../components/RunAllAnalysisModal';
 import { Pagination } from '@/components/Pagination';
 
@@ -85,6 +86,9 @@ export default function CompetitorsPage() {
   // Unanalyzed count for button text
   const [unanalyzedCount, setUnanalyzedCount] = useState<number | null>(null);
 
+  // Time window filter
+  const [timeWindow, setTimeWindow] = useState<TimeWindow>('all');
+
   // Sorting
   const [sortField, setSortField] = useState<SortField>('frequency');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
@@ -101,8 +105,9 @@ export default function CompetitorsPage() {
     setError(null);
 
     try {
+      const params = timeWindow !== 'all' ? `?timeWindow=${timeWindow}` : '';
       const response = await apiClient.get<CompetitorsData>(
-        '/llm-visibility/competitors'
+        `/llm-visibility/competitors${params}`
       );
       setData(response);
     } catch (err: any) {
@@ -111,7 +116,7 @@ export default function CompetitorsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [selectedAccountId]);
+  }, [selectedAccountId, timeWindow]);
 
   // Fetch unanalyzed count
   const fetchUnanalyzedCount = useCallback(async () => {
@@ -281,10 +286,10 @@ export default function CompetitorsPage() {
     return sortedCompetitors.slice(start, start + PAGE_SIZE);
   }, [sortedCompetitors, currentPage]);
 
-  // Reset to page 1 when sort changes
+  // Reset to page 1 when sort or time window changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [sortField, sortDirection]);
+  }, [sortField, sortDirection, timeWindow]);
 
   // Get top competitor for summary
   const topCompetitor = sortedCompetitors.length > 0 ? sortedCompetitors[0] : null;
@@ -421,6 +426,16 @@ export default function CompetitorsPage() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
+                <select
+                  value={timeWindow}
+                  onChange={(e) => setTimeWindow(e.target.value as TimeWindow)}
+                  className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
+                  aria-label="Time range filter"
+                >
+                  {TIME_WINDOW_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </select>
                 <button
                   onClick={handleExport}
                   disabled={isExporting}
