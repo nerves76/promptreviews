@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServiceRoleClient } from '@/auth/providers/supabase';
 import { verifyTurnstileToken } from '@/lib/turnstile';
 import { applyRateLimit, createRateLimitResponse, RateLimits } from '@/app/(app)/api/middleware/rate-limit';
+import { sendAdminNewUserNotification } from '@/utils/emailTemplates';
 
 export async function POST(request: NextRequest) {
   // Apply persistent rate limiting (Supabase-backed)
@@ -201,6 +202,14 @@ export async function POST(request: NextRequest) {
     } else {
     }
     
+    // Send admin notification for new signup (non-blocking)
+    try {
+      await sendAdminNewUserNotification(email, firstName, lastName);
+    } catch (adminNotificationError) {
+      console.error('❌ Error sending admin notification:', adminNotificationError);
+      // Don't fail signup for notification errors
+    }
+
     return NextResponse.json({
       success: true,
       message: 'Account created successfully! You can now sign in.',
