@@ -13,13 +13,12 @@ import {
   OutlinePreview,
   SEOMetadataPanel,
   SchemaMarkupViewer,
-  KeywordDensityCard,
+  CompetitorTopicsCard,
 } from "@/features/web-page-outlines/components";
-import { calculateKeywordDensity } from "@/features/web-page-outlines/utils/keywordDensity";
 import type {
   PageOutline,
   SEOMetadata,
-  KeywordDensity,
+  CompetitorData,
   SectionKey,
   WebPageOutlineRecord,
   RegenerateSectionResponse,
@@ -112,11 +111,10 @@ export default function OutlineDetailPage() {
     }
   };
 
-  // Compute keyword density
-  const keywordDensity: KeywordDensity | null = useMemo(() => {
-    if (!outline) return null;
-    const outlineJson = outline.outline_json as unknown as PageOutline;
-    return calculateKeywordDensity(outlineJson, outline.keyword_phrase);
+  // Extract competitor data from stored outline
+  const competitorData: CompetitorData | null = useMemo(() => {
+    if (!outline?.competitor_data) return null;
+    return outline.competitor_data as unknown as CompetitorData;
   }, [outline]);
 
   if (!selectedAccountId || loading) {
@@ -239,8 +237,8 @@ export default function OutlineDetailPage() {
           <SEOMetadataPanel
             seo={outline.schema_markup as unknown as SEOMetadata}
           />
-          {keywordDensity && (
-            <KeywordDensityCard data={keywordDensity} />
+          {competitorData && (
+            <CompetitorTopicsCard data={competitorData} keyword={outline.keyword_phrase} />
           )}
         </div>
 

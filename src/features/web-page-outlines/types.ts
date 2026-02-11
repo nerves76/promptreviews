@@ -131,6 +131,7 @@ export interface WebPageOutlineRecord {
   page_title: string | null;
   meta_description: string | null;
   credit_cost: number;
+  competitor_data: CompetitorData | null;
   created_at: string;
   updated_at: string;
 }
@@ -141,6 +142,25 @@ export interface CompetitorUrl {
   url: string;
   title: string;
   wordCount: number;
+}
+
+export interface CompetitorTopicCluster {
+  topic: string;
+  frequency: number;
+  examples: { heading: string; domain: string }[];
+  sampleSnippet?: string;
+}
+
+export interface CompetitorWordCountTarget {
+  min: number;
+  max: number;
+  median: number;
+}
+
+export interface CompetitorData {
+  urls: CompetitorUrl[];
+  topics: CompetitorTopicCluster[];
+  wordCountTarget: CompetitorWordCountTarget | null;
 }
 
 // --- API Request/Response ---
@@ -158,7 +178,6 @@ export interface GenerateOutlineResponse {
   outline: WebPageOutlineRecord;
   creditsDebited: number;
   creditsRemaining: number;
-  competitorUrls?: CompetitorUrl[];
 }
 
 export interface RegenerateSectionRequest {

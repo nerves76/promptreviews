@@ -88,7 +88,8 @@ Keyword density and natural language rules (CRITICAL — violating these trigger
 14. Target 1.5-2.5% exact-match keyword density (the optimal range is 1-3%). For a 400-word outline this means using the exact keyword phrase roughly 6-10 times total across all sections. Below 1% signals weak relevance; above 3% risks over-optimization. Count your keyword uses and adjust before finalizing.
 15. In addition to exact-match uses, also use synonyms, semantic variations, and related terms throughout the content. For example, if the keyword is "emergency plumber," alternate with "urgent plumbing service," "24-hour plumbing help," "same-day pipe repair," etc.
 16. Distribute exact keyword mentions across sections — do not cluster them. Place the exact keyword in the H1, intro, at least one H2, at least one FAQ question or answer, the meta description, and spread remaining uses across body paragraphs.
-17. Write for topical depth and entity coverage rather than keyword repetition. Cover related concepts, processes, and questions that a searcher would expect to find on the page.`;
+17. Write for topical depth and entity coverage rather than keyword repetition. Cover related concepts, processes, and questions that a searcher would expect to find on the page.
+18. If a recommended content length is provided in the competitive landscape, calibrate outline depth accordingly. For 2000+ word targets: generate 4-5 body sections with 3 paragraphs each. For under 1000 words: 2-3 sections with 2 paragraphs each. The outline itself won't reach the target word count, but should be proportionally deep enough for a writer to expand to that length.`;
 }
 
 const PURPOSE_LABELS: Record<PagePurpose, string> = {
@@ -128,7 +129,7 @@ export function buildUserPrompt(
     infoLines.push(`Content guidelines (don't): ${businessInfo.aiDonts}`);
 
   const competitorBlock = competitorContext
-    ? `\n\n${competitorContext}\n\nUse the competitive landscape and topic analysis above to ensure topical completeness. Every must-cover topic should map to at least one section in your outline. Create entirely original content.`
+    ? `\n\n${competitorContext}\n\nUse the competitive landscape above to ensure topical completeness. Study the content snippets under each H2 to understand what competitors actually cover — match or exceed their depth on each topic. Every must-cover topic should map to at least one section in your outline. Follow the recommended content length if provided. Create entirely original headings and content — do not copy competitor headings verbatim.`
     : '';
 
   return `Generate a complete web page outline for the keyword: "${keyword}"

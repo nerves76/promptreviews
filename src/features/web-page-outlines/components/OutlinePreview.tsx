@@ -14,7 +14,7 @@ import {
 } from "./sections";
 import { copyFullOutline } from "../utils/clipboard";
 import { exportOutlineAsCsv } from "../utils/csvExport";
-import type { PageOutline, SEOMetadata, SectionKey, CompetitorUrl } from "../types";
+import type { PageOutline, SEOMetadata, SectionKey } from "../types";
 
 interface OutlinePreviewProps {
   outline: PageOutline;
@@ -23,7 +23,6 @@ interface OutlinePreviewProps {
   keyword: string;
   onRegenerate: (sectionKey: SectionKey) => Promise<void>;
   regeneratingSection: SectionKey | null;
-  competitorUrls?: CompetitorUrl[];
 }
 
 export default function OutlinePreview({
@@ -33,7 +32,6 @@ export default function OutlinePreview({
   keyword,
   onRegenerate,
   regeneratingSection,
-  competitorUrls,
 }: OutlinePreviewProps) {
   const [allCopied, setAllCopied] = useState(false);
 
@@ -172,32 +170,6 @@ export default function OutlinePreview({
         </div>
       </div>
 
-      {/* Competitor URLs */}
-      {competitorUrls && competitorUrls.length > 0 && (
-        <div className="mt-4 rounded-2xl border border-white/20 bg-white/90 p-5">
-          <h3 className="text-sm font-semibold text-gray-700 mb-3">
-            <Icon name="FaSearch" size={12} className="inline mr-1.5 text-gray-500" />
-            Top {competitorUrls.length} organic result{competitorUrls.length !== 1 ? "s" : ""} for &ldquo;{keyword}&rdquo;
-          </h3>
-          <ol className="space-y-2 list-decimal list-inside">
-            {competitorUrls.map((comp) => (
-              <li key={comp.url} className="text-sm text-gray-600">
-                <a
-                  href={comp.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-slate-blue hover:underline"
-                >
-                  {comp.title || comp.url}
-                </a>
-                <span className="text-gray-500 ml-1.5">
-                  — ~{comp.wordCount.toLocaleString()} words
-                </span>
-              </li>
-            ))}
-          </ol>
-        </div>
-      )}
     </div>
   );
 }

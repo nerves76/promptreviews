@@ -15,11 +15,12 @@ import {
   fetchTopCompetitors,
   scrapeCompetitorPages,
   buildCompetitorContext,
+  buildCompetitorData,
 } from '@/features/web-page-outlines/services/competitorAnalysis';
 import type {
   GenerateOutlineRequest,
   OutlineGenerationResult,
-  CompetitorUrl,
+  CompetitorData,
 } from '@/features/web-page-outlines/types';
 
 export const maxDuration = 60;
@@ -82,18 +83,14 @@ export async function POST(request: NextRequest) {
 
     // --- Competitor Analysis (enhancement only, never blocks generation) ---
     let competitorContext = '';
-    let competitorUrlData: CompetitorUrl[] = [];
+    let competitorData: CompetitorData | null = null;
     try {
       const userDomain = businessInfo.website || undefined;
       const topUrls = await fetchTopCompetitors(keywordPhrase, userDomain);
       if (topUrls.length > 0) {
         const scraped = await scrapeCompetitorPages(topUrls);
         competitorContext = buildCompetitorContext(keywordPhrase, scraped);
-
-        // Extract URL data for frontend display
-        competitorUrlData = scraped
-          .filter((c): c is Extract<typeof c, { scraped: true }> => c.scraped)
-          .map((c) => ({ url: c.url, title: c.title, wordCount: c.estimatedWordCount }));
+        competitorData = buildCompetitorData(scraped);
 
         if (competitorContext) {
           console.log(`[web-page-outlines] Competitor context built (${competitorContext.length} chars)`);
@@ -175,6 +172,7 @@ export async function POST(request: NextRequest) {
             page_title: parsed.seo?.pageTitle || null,
             meta_description: parsed.seo?.metaDescription || null,
             credit_cost: FULL_GENERATION_COST,
+            competitor_data: competitorData,
           })
           .select()
           .single();
@@ -200,7 +198,6 @@ export async function POST(request: NextRequest) {
       outline: result.data,
       creditsDebited: result.creditsDebited,
       creditsRemaining: result.creditsRemaining,
-      ...(competitorUrlData.length > 0 && { competitorUrls: competitorUrlData }),
     });
   } catch (error) {
     console.error('[web-page-outlines/generate] Error:', error);

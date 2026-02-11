@@ -10,12 +10,18 @@ import { searchGoogleSerp } from '@/features/rank-tracking/api/dataforseo-serp-c
 
 // --- Types ---
 
+export interface H2Section {
+  heading: string;
+  snippet: string;
+}
+
 export interface CompetitorPageData {
   url: string;
   title: string;
   metaDescription: string;
   h1: string[];
   h2s: string[];
+  h2Sections: H2Section[];
   estimatedWordCount: number;
   scraped: true;
 }
@@ -31,6 +37,8 @@ export type CompetitorResult = CompetitorPageData | CompetitorScrapeFailure;
 const SCRAPE_TIMEOUT_MS = 5_000;
 const MAX_COMPETITORS = 3;
 const DEFAULT_LOCATION_CODE = 2840; // USA
+const MAX_H2_SECTIONS = 10;
+const SNIPPET_WORD_LIMIT = 80;
 
 // --- Public Functions ---
 
@@ -142,9 +150,6 @@ export function buildCompetitorContext(
       lines.push(
         `${num}. "${title}" (${domain}) — ~${comp.estimatedWordCount.toLocaleString()} words`
       );
-      if (comp.h2s.length) {
-        lines.push(`   H2s: ${comp.h2s.join(', ')}`);
-      }
       if (comp.metaDescription) {
         const truncated =
           comp.metaDescription.length > 120
@@ -152,11 +157,33 @@ export function buildCompetitorContext(
             : comp.metaDescription;
         lines.push(`   Meta: "${truncated}"`);
       }
+      // Include H2 sections with content snippets
+      if (comp.h2Sections.length) {
+        lines.push('');
+        for (const section of comp.h2Sections) {
+          lines.push(`   H2: "${section.heading}"`);
+          if (section.snippet) {
+            lines.push(`     > ${section.snippet}`);
+          }
+        }
+      } else if (comp.h2s.length) {
+        // Fallback to flat H2 list if no sections extracted
+        lines.push(`   H2s: ${comp.h2s.join(', ')}`);
+      }
     } else {
       lines.push(`${num}. (${extractDomain(comp.url)} — scrape failed, skipped)`);
     }
     lines.push('');
   });
+
+  // Append word count target
+  const wordCountTarget = calculateWordCountTarget(competitors);
+  if (wordCountTarget) {
+    lines.push(
+      `Recommended content length: aim for ${wordCountTarget.min.toLocaleString()}-${wordCountTarget.max.toLocaleString()} words (competitor median: ~${wordCountTarget.median.toLocaleString()} words).`
+    );
+    lines.push('');
+  }
 
   // Append topic analysis when 2+ pages were successfully scraped
   if (successfulScrapes.length >= 2) {
@@ -170,12 +197,86 @@ export function buildCompetitorContext(
   return lines.join('\n').trim();
 }
 
+/**
+ * Build a persistable CompetitorData object from scraped results.
+ * Includes topic clusters, competitor URLs, and word count target.
+ * Returns null if no successful scrapes.
+ */
+export function buildCompetitorData(
+  competitors: CompetitorResult[]
+): {
+  urls: { url: string; title: string; wordCount: number }[];
+  topics: {
+    topic: string;
+    frequency: number;
+    examples: { heading: string; domain: string }[];
+    sampleSnippet?: string;
+  }[];
+  wordCountTarget: { min: number; max: number; median: number } | null;
+} | null {
+  const successfulScrapes = competitors.filter(
+    (c): c is CompetitorPageData => c.scraped
+  );
+
+  if (!successfulScrapes.length) return null;
+
+  const urls = successfulScrapes.map((c) => ({
+    url: c.url,
+    title: c.title,
+    wordCount: c.estimatedWordCount,
+  }));
+
+  const topics =
+    successfulScrapes.length >= 2
+      ? analyzeCommonTopics(successfulScrapes).map((c) => ({
+          topic: c.topic,
+          frequency: c.frequency,
+          examples: c.examples,
+          ...(c.sampleSnippet ? { sampleSnippet: c.sampleSnippet } : {}),
+        }))
+      : [];
+
+  const wordCountTarget = calculateWordCountTarget(competitors);
+
+  return { urls, topics, wordCountTarget };
+}
+
+/**
+ * Calculate a recommended word count target range based on competitor data.
+ * Uses median word count with a -15% to +20% range, clamped between 500 and 5000.
+ * Returns null if no successful scrapes.
+ */
+export function calculateWordCountTarget(
+  competitors: CompetitorResult[]
+): { min: number; max: number; median: number } | null {
+  const wordCounts = competitors
+    .filter((c): c is CompetitorPageData => c.scraped)
+    .map((c) => c.estimatedWordCount)
+    .filter((wc) => wc > 0);
+
+  if (wordCounts.length === 0) return null;
+
+  wordCounts.sort((a, b) => a - b);
+  const mid = Math.floor(wordCounts.length / 2);
+  const median =
+    wordCounts.length % 2 === 0
+      ? Math.round((wordCounts[mid - 1] + wordCounts[mid]) / 2)
+      : wordCounts[mid];
+
+  const roundTo50 = (n: number) => Math.round(n / 50) * 50;
+  const min = Math.max(500, roundTo50(median * 0.85));
+  const max = Math.min(5000, roundTo50(median * 1.2));
+
+  return { min, max, median };
+}
+
 // --- Topic Analysis ---
 
 interface TopicCluster {
   topic: string;
   frequency: number;
   examples: { heading: string; domain: string }[];
+  sampleSnippet?: string;
 }
 
 const STOP_WORDS = new Set([
@@ -214,14 +315,19 @@ function analyzeCommonTopics(
 ): TopicCluster[] {
   if (competitors.length < 2) return [];
 
-  // Collect all H2s with their source domain
-  const entries: { heading: string; domain: string; words: string[] }[] = [];
+  // Collect all H2s with their source domain and snippet
+  const entries: { heading: string; domain: string; words: string[]; snippet: string }[] = [];
   for (const comp of competitors) {
     const domain = extractDomain(comp.url);
+    // Build a snippet lookup from h2Sections
+    const snippetMap = new Map<string, string>();
+    for (const sec of comp.h2Sections) {
+      snippetMap.set(sec.heading, sec.snippet);
+    }
     for (const h2 of comp.h2s) {
       const words = extractSignificantWords(h2);
       if (words.length > 0) {
-        entries.push({ heading: h2, domain, words });
+        entries.push({ heading: h2, domain, words, snippet: snippetMap.get(h2) || '' });
       }
     }
   }
@@ -286,7 +392,17 @@ function analyzeCommonTopics(
       domain: entries[i].domain,
     }));
 
-    clusters.push({ topic: topicLabel, frequency, examples });
+    // Pick the longest snippet from the cluster as a representative sample
+    const longestSnippet = indices
+      .map((i) => entries[i].snippet)
+      .filter(Boolean)
+      .sort((a, b) => b.length - a.length)[0] || '';
+    // Truncate to ~40 words for the topic analysis
+    const sampleSnippet = longestSnippet
+      ? truncateToWords(longestSnippet, 40)
+      : undefined;
+
+    clusters.push({ topic: topicLabel, frequency, examples, sampleSnippet });
   }
 
   // Sort: highest frequency first, then alphabetically
@@ -318,6 +434,9 @@ function formatTopicAnalysis(
     for (const c of mustCover) {
       const seen = c.examples.map((e) => `"${e.heading}"`).join(', ');
       lines.push(`  • ${c.topic} — seen as: ${seen}`);
+      if (c.sampleSnippet) {
+        lines.push(`    Context: ${c.sampleSnippet}`);
+      }
     }
     lines.push('');
   }
@@ -329,6 +448,9 @@ function formatTopicAnalysis(
     for (const c of recommended) {
       const seen = c.examples.map((e) => `"${e.heading}"`).join(', ');
       lines.push(`  • ${c.topic} — seen as: ${seen}`);
+      if (c.sampleSnippet) {
+        lines.push(`    Context: ${c.sampleSnippet}`);
+      }
     }
     lines.push('');
   }
@@ -391,6 +513,22 @@ async function scrapeOneUrl(url: string): Promise<CompetitorPageData> {
       if (text) h2s.push(text);
     });
 
+    // Extract H2 sections with content snippets (capped at MAX_H2_SECTIONS)
+    const h2Sections: H2Section[] = [];
+    $('h2').each((_, el) => {
+      if (h2Sections.length >= MAX_H2_SECTIONS) return false; // break
+      const heading = $(el).text().trim();
+      if (!heading) return; // continue
+
+      const siblings = $(el).nextUntil('h1, h2, h3, h4, h5, h6');
+      const rawText = siblings.map((__, sib) => $(sib).text().trim()).get().join(' ');
+      const words = rawText.split(/\s+/).filter(Boolean);
+      const snippet = words.slice(0, SNIPPET_WORD_LIMIT).join(' ') +
+        (words.length > SNIPPET_WORD_LIMIT ? '...' : '');
+
+      h2Sections.push({ heading, snippet });
+    });
+
     // Estimate word count from visible body text
     const bodyText = $('body').text().replace(/\s+/g, ' ').trim();
     const estimatedWordCount = bodyText
@@ -403,12 +541,19 @@ async function scrapeOneUrl(url: string): Promise<CompetitorPageData> {
       metaDescription,
       h1,
       h2s,
+      h2Sections,
       estimatedWordCount,
       scraped: true,
     };
   } finally {
     clearTimeout(timeout);
   }
+}
+
+function truncateToWords(text: string, maxWords: number): string {
+  const words = text.split(/\s+/).filter(Boolean);
+  if (words.length <= maxWords) return text;
+  return words.slice(0, maxWords).join(' ') + '...';
 }
 
 function extractDomain(url: string): string {

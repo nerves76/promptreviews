@@ -7,3 +7,4 @@ export { default as OutlinePreview } from "./OutlinePreview";
 export { default as SEOMetadataPanel } from "./SEOMetadataPanel";
 export { default as SchemaMarkupViewer } from "./SchemaMarkupViewer";
 export { default as KeywordDensityCard } from "./KeywordDensityCard";
+export { default as CompetitorTopicsCard } from "./CompetitorTopicsCard";
