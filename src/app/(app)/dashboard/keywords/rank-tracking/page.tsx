@@ -895,63 +895,77 @@ export default function RankTrackingPage() {
     };
   }, [checkingVolumeTerm, fetchResearchResults]);
 
-  // Perform the rank check (called from modal) - checks both desktop and mobile
-  const performRankCheck = useCallback(async (
+  // Fire-and-forget rank check (called from modal after confirmation)
+  const startRankCheck = useCallback((
     locationCode: number,
     locationName: string
-  ): Promise<{
-    desktop: { position: number | null; found: boolean };
-    mobile: { position: number | null; found: boolean };
-  }> => {
-    if (!checkingKeyword) throw new Error('No keyword selected');
+  ) => {
+    if (!checkingKeyword) return;
 
-    // Check both desktop and mobile in parallel
-    const [desktopResponse, mobileResponse] = await Promise.all([
-      apiClient.post<{
-        success: boolean;
-        position: number | null;
-        found: boolean;
-        foundUrl: string | null;
-        creditsUsed: number;
-        creditsRemaining: number;
-        error?: string;
-      }>('/rank-tracking/check-keyword', {
-        keyword: checkingKeyword.keyword,
-        keywordId: checkingKeyword.conceptId,
-        locationCode,
-        device: 'desktop',
-      }),
-      apiClient.post<{
-        success: boolean;
-        position: number | null;
-        found: boolean;
-        foundUrl: string | null;
-        creditsUsed: number;
-        creditsRemaining: number;
-        error?: string;
-      }>('/rank-tracking/check-keyword', {
-        keyword: checkingKeyword.keyword,
-        keywordId: checkingKeyword.conceptId,
-        locationCode,
-        device: 'mobile',
-      }),
-    ]);
+    const conceptId = checkingKeyword.conceptId;
+    const kw = checkingKeyword.keyword;
+    const hasExistingLocation = !!checkingKeyword.locationCode;
 
-    if (!desktopResponse.success) {
-      throw new Error(desktopResponse.error || 'Failed to check desktop rank');
-    }
-    if (!mobileResponse.success) {
-      throw new Error(mobileResponse.error || 'Failed to check mobile rank');
-    }
+    (async () => {
+      try {
+        const [desktopResponse, mobileResponse] = await Promise.all([
+          apiClient.post<{
+            success: boolean;
+            position: number | null;
+            found: boolean;
+            foundUrl: string | null;
+            creditsUsed: number;
+            creditsRemaining: number;
+            error?: string;
+          }>('/rank-tracking/check-keyword', {
+            keyword: kw,
+            keywordId: conceptId,
+            locationCode,
+            device: 'desktop',
+          }),
+          apiClient.post<{
+            success: boolean;
+            position: number | null;
+            found: boolean;
+            foundUrl: string | null;
+            creditsUsed: number;
+            creditsRemaining: number;
+            error?: string;
+          }>('/rank-tracking/check-keyword', {
+            keyword: kw,
+            keywordId: conceptId,
+            locationCode,
+            device: 'mobile',
+          }),
+        ]);
 
-    // Refresh rank checks to update the table
-    await fetchRankChecks();
+        if (!desktopResponse.success) {
+          console.error('Desktop rank check failed:', desktopResponse.error);
+        }
+        if (!mobileResponse.success) {
+          console.error('Mobile rank check failed:', mobileResponse.error);
+        }
 
-    return {
-      desktop: { position: desktopResponse.position, found: desktopResponse.found },
-      mobile: { position: mobileResponse.position, found: mobileResponse.found },
-    };
-  }, [checkingKeyword, fetchRankChecks]);
+        // Save the location to the concept if it wasn't already set
+        if (conceptId && !hasExistingLocation) {
+          try {
+            await apiClient.put(`/keywords/${conceptId}`, {
+              searchVolumeLocationCode: locationCode,
+              searchVolumeLocationName: locationName,
+            });
+            await refreshKeywords();
+          } catch (err) {
+            console.error('Failed to save location to concept:', err);
+          }
+        }
+
+        // Refresh rank checks to update the table
+        await fetchRankChecks();
+      } catch (err) {
+        console.error('Rank check failed:', err);
+      }
+    })();
+  }, [checkingKeyword, fetchRankChecks, refreshKeywords]);
 
   // Handle adding a new keyword concept
   const handleAddKeywordConcept = useCallback(async (data: { name: string; keywords: string[] }) => {
@@ -1314,24 +1328,7 @@ export default function RankTrackingPage() {
         keyword={checkingKeyword?.keyword || ''}
         isOpen={!!checkingKeyword}
         onClose={() => setCheckingKeyword(null)}
-        onCheck={performRankCheck}
-        onCheckComplete={async (locationCode, locationName) => {
-          // Save the location to the concept if it wasn't already set
-          if (checkingKeyword?.conceptId && !checkingKeyword.locationCode) {
-            try {
-              await apiClient.put(`/keywords/${checkingKeyword.conceptId}`, {
-                searchVolumeLocationCode: locationCode,
-                searchVolumeLocationName: locationName,
-              });
-              // Refresh keywords to update concept data
-              await refreshKeywords();
-            } catch (err) {
-              console.error('Failed to save location to concept:', err);
-            }
-          }
-          // Refresh rank checks to update the table
-          await fetchRankChecks();
-        }}
+        onCheck={startRankCheck}
         defaultLocationCode={checkingKeyword?.locationCode}
         defaultLocationName={checkingKeyword?.locationName}
         locationLocked={!!checkingKeyword?.locationCode}

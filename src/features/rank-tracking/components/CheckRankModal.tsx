@@ -5,21 +5,12 @@ import { Modal } from '@/app/(app)/components/ui/modal';
 import Icon from '@/components/Icon';
 import LocationPicker from './LocationPicker';
 
-interface RankResult {
-  position: number | null;
-  found: boolean;
-}
-
 interface CheckRankModalProps {
   keyword: string;
   isOpen: boolean;
   onClose: () => void;
-  onCheck: (locationCode: number, locationName: string) => Promise<{
-    desktop: RankResult;
-    mobile: RankResult;
-  }>;
-  /** Called when a check completes successfully, with the location used */
-  onCheckComplete?: (locationCode: number, locationName: string) => void;
+  /** Fire-and-forget: starts the check and returns immediately */
+  onCheck: (locationCode: number, locationName: string) => void;
   /** Pre-selected location code (from concept) */
   defaultLocationCode?: number;
   /** Pre-selected location name (from concept) */
@@ -33,7 +24,6 @@ export default function CheckRankModal({
   isOpen,
   onClose,
   onCheck,
-  onCheckComplete,
   defaultLocationCode,
   defaultLocationName,
   locationLocked = false,
@@ -50,8 +40,8 @@ export default function CheckRankModal({
       setLocation({ code: defaultLocationCode, name: defaultLocationName });
     }
   }, [isOpen, defaultLocationCode, defaultLocationName]);
-  const [isChecking, setIsChecking] = useState(false);
-  const [result, setResult] = useState<{ desktop: RankResult; mobile: RankResult } | null>(null);
+
+  const [hasStartedCheck, setHasStartedCheck] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
 
@@ -60,46 +50,22 @@ export default function CheckRankModal({
     setShowConfirm(true);
   };
 
-  const handleConfirmedCheck = async () => {
+  const handleConfirmedCheck = () => {
     if (!location) return;
 
     setShowConfirm(false);
-    setIsChecking(true);
     setError(null);
-    setResult(null);
+    setHasStartedCheck(true);
 
-    try {
-      const res = await onCheck(location.code, location.name);
-      setResult(res);
-      onCheckComplete?.(location.code, location.name);
-    } catch (err: any) {
-      setError(err?.message || 'Failed to check rank');
-    } finally {
-      setIsChecking(false);
-    }
+    // Fire-and-forget: starts the check at page level
+    onCheck(location.code, location.name);
   };
 
   const handleClose = () => {
-    setResult(null);
     setError(null);
     setShowConfirm(false);
+    setHasStartedCheck(false);
     onClose();
-  };
-
-  const getPositionDisplay = (res: RankResult | undefined) => {
-    if (!res) return '—';
-    if (res.found && res.position !== null) {
-      return `#${res.position}`;
-    }
-    return 'Not in top 100';
-  };
-
-  const getPositionColor = (res: RankResult | undefined) => {
-    if (!res || !res.found || res.position === null) return 'text-gray-500';
-    if (res.position <= 3) return 'text-green-600';
-    if (res.position <= 10) return 'text-blue-600';
-    if (res.position <= 20) return 'text-amber-600';
-    return 'text-gray-600';
   };
 
   return (
@@ -178,30 +144,20 @@ export default function CheckRankModal({
               </p>
             </div>
 
-            {/* Result */}
-            {result && (
-              <div className="p-4 rounded-lg bg-gray-50 border border-gray-200">
-                <p className="text-sm font-medium text-gray-700 mb-3">{location?.name}</p>
-                <div className="grid grid-cols-2 gap-4">
-                  {/* Desktop Result */}
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">🖥️</span>
-                    <div>
-                      <p className="text-xs text-gray-500">Desktop</p>
-                      <p className={`font-semibold ${getPositionColor(result.desktop)}`}>
-                        {getPositionDisplay(result.desktop)}
-                      </p>
-                    </div>
+            {/* "You can close" info box - shown after check is started */}
+            {hasStartedCheck && (
+              <div className="p-4 rounded-lg bg-blue-50 border border-blue-200">
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 mt-0.5">
+                    <Icon name="FaSpinner" className="w-5 h-5 text-slate-blue animate-spin" />
                   </div>
-                  {/* Mobile Result */}
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">📱</span>
-                    <div>
-                      <p className="text-xs text-gray-500">Mobile</p>
-                      <p className={`font-semibold ${getPositionColor(result.mobile)}`}>
-                        {getPositionDisplay(result.mobile)}
-                      </p>
-                    </div>
+                  <div>
+                    <p className="text-sm font-medium text-slate-blue">
+                      Checking desktop and mobile rankings...
+                    </p>
+                    <p className="text-xs text-slate-blue mt-0.5">
+                      This typically takes 15-30 seconds. You can close this window.
+                    </p>
                   </div>
                 </div>
               </div>
@@ -221,25 +177,16 @@ export default function CheckRankModal({
               onClick={handleClose}
               className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"
             >
-              {result ? 'Done' : 'Cancel'}
+              {hasStartedCheck ? 'Close' : 'Cancel'}
             </button>
-            {!result && (
+            {!hasStartedCheck && (
               <button
                 onClick={handleCheckClick}
-                disabled={!location || isChecking}
+                disabled={!location}
                 className="px-4 py-2 text-sm font-medium text-white bg-slate-blue rounded-lg hover:bg-slate-blue/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
               >
-                {isChecking ? (
-                  <>
-                    <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
-                    Checking...
-                  </>
-                ) : (
-                  <>
-                    <Icon name="FaSearch" className="w-4 h-4" />
-                    Check now
-                  </>
-                )}
+                <Icon name="FaSearch" className="w-4 h-4" />
+                Check now
               </button>
             )}
           </Modal.Footer>

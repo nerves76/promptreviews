@@ -1493,68 +1493,65 @@ export default function AISearchPage() {
     });
   }, [selectedKeyword, business]);
 
-  // Perform rank check (called from modal)
-  const performRankCheck = useCallback(async (
+  // Fire-and-forget rank check (called from modal after confirmation)
+  const startRankCheck = useCallback((
     locationCode: number,
     locationName: string
-  ): Promise<{
-    desktop: { position: number | null; found: boolean };
-    mobile: { position: number | null; found: boolean };
-  }> => {
-    if (!checkingRank) throw new Error('No keyword selected');
+  ) => {
+    if (!checkingRank) return;
 
-    // Check both desktop and mobile in parallel
-    const [desktopResponse, mobileResponse] = await Promise.all([
-      apiClient.post<{
-        success: boolean;
-        position: number | null;
-        found: boolean;
-        foundUrl: string | null;
-        creditsUsed: number;
-        creditsRemaining: number;
-        error?: string;
-      }>('/rank-tracking/check-keyword', {
-        keyword: checkingRank.keyword,
-        keywordId: checkingRank.conceptId,
-        locationCode,
-        device: 'desktop',
-      }),
-      apiClient.post<{
-        success: boolean;
-        position: number | null;
-        found: boolean;
-        foundUrl: string | null;
-        creditsUsed: number;
-        creditsRemaining: number;
-        error?: string;
-      }>('/rank-tracking/check-keyword', {
-        keyword: checkingRank.keyword,
-        keywordId: checkingRank.conceptId,
-        locationCode,
-        device: 'mobile',
-      }),
-    ]);
+    const conceptId = checkingRank.conceptId;
+    const kw = checkingRank.keyword;
 
-    if (!desktopResponse.success) {
-      throw new Error(desktopResponse.error || 'Failed to check desktop rank');
-    }
-    if (!mobileResponse.success) {
-      throw new Error(mobileResponse.error || 'Failed to check mobile rank');
-    }
+    (async () => {
+      try {
+        const [desktopResponse, mobileResponse] = await Promise.all([
+          apiClient.post<{
+            success: boolean;
+            position: number | null;
+            found: boolean;
+            foundUrl: string | null;
+            creditsUsed: number;
+            creditsRemaining: number;
+            error?: string;
+          }>('/rank-tracking/check-keyword', {
+            keyword: kw,
+            keywordId: conceptId,
+            locationCode,
+            device: 'desktop',
+          }),
+          apiClient.post<{
+            success: boolean;
+            position: number | null;
+            found: boolean;
+            foundUrl: string | null;
+            creditsUsed: number;
+            creditsRemaining: number;
+            error?: string;
+          }>('/rank-tracking/check-keyword', {
+            keyword: kw,
+            keywordId: conceptId,
+            locationCode,
+            device: 'mobile',
+          }),
+        ]);
 
-    return {
-      desktop: { position: desktopResponse.position, found: desktopResponse.found },
-      mobile: { position: mobileResponse.position, found: mobileResponse.found },
-    };
-  }, [checkingRank]);
+        if (!desktopResponse.success) {
+          console.error('Desktop rank check failed:', desktopResponse.error);
+        }
+        if (!mobileResponse.success) {
+          console.error('Mobile rank check failed:', mobileResponse.error);
+        }
 
-  // Handle rank check complete - refresh sidebar data
-  const handleRankCheckComplete = useCallback(() => {
-    // Refresh sidebar data if open
-    if (selectedKeyword) {
-      handleOpenConceptSidebar(selectedKeyword.id);
-    }
-  }, [selectedKeyword, handleOpenConceptSidebar]);
+        // Refresh sidebar data if open
+        if (selectedKeyword) {
+          handleOpenConceptSidebar(selectedKeyword.id);
+        }
+      } catch (err) {
+        console.error('Rank check failed:', err);
+      }
+    })();
+  }, [checkingRank, selectedKeyword, handleOpenConceptSidebar]);
 
   // Sort indicator component
   const SortIndicator = ({ field }: { field: SortField }) => {
@@ -2915,8 +2912,7 @@ export default function AISearchPage() {
         keyword={checkingRank?.keyword || ''}
         isOpen={!!checkingRank}
         onClose={() => setCheckingRank(null)}
-        onCheck={performRankCheck}
-        onCheckComplete={handleRankCheckComplete}
+        onCheck={startRankCheck}
         defaultLocationCode={checkingRank?.locationCode}
         defaultLocationName={checkingRank?.locationName}
         locationLocked={!!checkingRank?.locationCode}
