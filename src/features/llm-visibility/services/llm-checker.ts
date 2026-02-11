@@ -291,7 +291,7 @@ export async function updateSummary(
     // Get all checks for this keyword (most recent per question per provider)
     const { data: checks, error: fetchError } = await serviceSupabase
       .from('llm_visibility_checks')
-      .select('*')
+      .select('id, question, llm_provider, domain_cited, brand_mentioned, citation_position, checked_at')
       .eq('keyword_id', keywordId)
       .eq('account_id', accountId)
       .order('checked_at', { ascending: false });

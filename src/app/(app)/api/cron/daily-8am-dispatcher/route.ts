@@ -10,6 +10,8 @@ import { NextRequest, NextResponse } from "next/server";
  * - send-credit-warnings
  * - monitor-gbp-changes
  * - send-communication-reminders
+ * - send-onboarding-emails
+ * - llm-data-maintenance
  */
 
 const CRON_SECRET = process.env.CRON_SECRET_TOKEN;
@@ -80,6 +82,7 @@ export async function GET(request: NextRequest) {
     runJob("/api/cron/monitor-gbp-changes", "gbp-changes"),
     runJob("/api/cron/send-communication-reminders", "communication-reminders"),
     runJob("/api/cron/send-onboarding-emails", "onboarding-emails"),
+    runJob("/api/cron/llm-data-maintenance", "llm-data-maintenance"),
   ]);
 
   const totalDuration = Date.now() - startTime;

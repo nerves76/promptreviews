@@ -2640,7 +2640,7 @@ export default function AISearchPage() {
                                           </div>
 
                                           {/* Response excerpt with view button */}
-                                          {(result.responseSnippet || result.fullResponse) && (
+                                          {(result.responseSnippet || result.fullResponse) ? (
                                             <div className="mb-3">
                                               <div className="text-sm text-gray-700 pl-4 border-l-2 border-gray-200">
                                                 {(() => {
@@ -2665,7 +2665,11 @@ export default function AISearchPage() {
                                                 </button>
                                               )}
                                             </div>
-                                          )}
+                                          ) : result.checkedAt && new Date(result.checkedAt) < new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) ? (
+                                            <div className="mb-3 text-xs text-gray-500 italic pl-4 border-l-2 border-gray-200">
+                                              Full response text is available for 30 days after each check
+                                            </div>
+                                          ) : null}
 
                                           {/* Brand entities mentioned in response */}
                                           {result.mentionedBrands && result.mentionedBrands.length > 0 && (
@@ -2747,19 +2751,31 @@ export default function AISearchPage() {
                                                   <div className="space-y-1.5">
                                                     {result.searchResults.map((sr, sridx) => (
                                                       <div key={sridx} className="flex items-start gap-2">
-                                                        <a
-                                                          href={sr.url || '#'}
-                                                          target="_blank"
-                                                          rel="noopener noreferrer"
-                                                          className={`text-xs break-all hover:underline ${
-                                                            sr.isOurs
-                                                              ? 'text-green-700 font-medium'
-                                                              : 'text-slate-600'
-                                                          }`}
-                                                          title={sr.title || undefined}
-                                                        >
-                                                          {sr.url || sr.domain}
-                                                        </a>
+                                                        {sr.url ? (
+                                                          <a
+                                                            href={sr.url}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className={`text-xs break-all hover:underline ${
+                                                              sr.isOurs
+                                                                ? 'text-green-700 font-medium'
+                                                                : 'text-slate-600'
+                                                            }`}
+                                                            title={sr.title || undefined}
+                                                          >
+                                                            {sr.url}
+                                                          </a>
+                                                        ) : (
+                                                          <span
+                                                            className={`text-xs ${
+                                                              sr.isOurs
+                                                                ? 'text-green-700 font-medium'
+                                                                : 'text-slate-600'
+                                                            }`}
+                                                          >
+                                                            {sr.domain || 'Unknown source'}
+                                                          </span>
+                                                        )}
                                                         {sr.isOurs && (
                                                           <span className="text-[10px] text-green-600 font-bold bg-green-100 px-1.5 py-0.5 rounded whitespace-nowrap">You</span>
                                                         )}
