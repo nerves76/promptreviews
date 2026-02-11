@@ -34,7 +34,7 @@ interface LLMVisibilityTrendChartProps {
   onToggleProvider?: (provider: LLMProvider) => void;
 }
 
-type TimeGranularity = 'weekly' | 'monthly';
+type TimeGranularity = 'daily' | 'weekly' | 'monthly';
 type MetricType = 'citations' | 'mentions';
 
 interface TrendDataPoint {
@@ -52,6 +52,17 @@ interface TrendDataPoint {
   gemini_mentions?: number;
   perplexity_mentions?: number;
   ai_overview_mentions?: number;
+  // Per-provider absolute counts (daily mode)
+  chatgpt_count?: number;
+  claude_count?: number;
+  gemini_count?: number;
+  perplexity_count?: number;
+  ai_overview_count?: number;
+  chatgpt_mentioned_count?: number;
+  claude_mentioned_count?: number;
+  gemini_mentioned_count?: number;
+  perplexity_mentioned_count?: number;
+  ai_overview_mentioned_count?: number;
   // Overall rates
   overall: number;
   overallMentions: number;
@@ -93,6 +104,16 @@ function formatMonthLabel(date: Date): string {
   return date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
 }
 
+function formatDayLabel(date: Date): string {
+  const month = date.toLocaleDateString('en-US', { month: 'short' });
+  const day = date.getDate();
+  return `${month} ${day}`;
+}
+
+function getDayKey(date: Date): string {
+  return date.toISOString().split('T')[0];
+}
+
 function processResultsData(
   results: LLMVisibilityCheck[],
   granularity: TimeGranularity
@@ -102,7 +123,7 @@ function processResultsData(
   }
 
   const now = new Date();
-  const periods = granularity === 'monthly' ? 6 : 8; // 6 months or 8 weeks
+  const periods = granularity === 'monthly' ? 6 : granularity === 'daily' ? 30 : 8;
   const dataMap = new Map<string, {
     date: Date;
     label: string;
@@ -119,11 +140,16 @@ function processResultsData(
     if (granularity === 'monthly') {
       periodStart = new Date(now.getFullYear(), now.getMonth() - i, 1);
       label = formatMonthLabel(periodStart);
-      key = periodStart.toISOString().split('T')[0]; // e.g., "2026-01-01"
+      key = periodStart.toISOString().split('T')[0];
+    } else if (granularity === 'daily') {
+      periodStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+      periodStart.setHours(0, 0, 0, 0);
+      label = formatDayLabel(periodStart);
+      key = getDayKey(periodStart);
     } else {
       periodStart = getWeekStart(new Date(now.getTime() - i * 7 * 24 * 60 * 60 * 1000));
       label = formatWeekLabel(periodStart);
-      key = periodStart.toISOString().split('T')[0]; // e.g., "2026-01-19"
+      key = periodStart.toISOString().split('T')[0];
     }
 
     dataMap.set(key, {
@@ -141,6 +167,8 @@ function processResultsData(
     if (granularity === 'monthly') {
       const monthStart = getMonthStart(checkDate);
       key = monthStart.toISOString().split('T')[0];
+    } else if (granularity === 'daily') {
+      key = getDayKey(checkDate);
     } else {
       const weekStart = getWeekStart(checkDate);
       key = weekStart.toISOString().split('T')[0];
@@ -187,8 +215,10 @@ function processResultsData(
         point[provider] = citedRate;
         // Mention rate
         const mentionRate = Math.round((stats.mentioned / stats.total) * 100);
-        // Use type assertion for dynamic key
         (point as any)[`${provider}_mentions`] = mentionRate;
+        // Absolute counts (used in daily mode)
+        (point as any)[`${provider}_count`] = stats.cited;
+        (point as any)[`${provider}_mentioned_count`] = stats.mentioned;
 
         totalAll += stats.total;
         citedAll += stats.cited;
@@ -210,7 +240,7 @@ function processResultsData(
 
 function generateEmptyData(granularity: TimeGranularity): TrendDataPoint[] {
   const now = new Date();
-  const periods = granularity === 'monthly' ? 6 : 8;
+  const periods = granularity === 'monthly' ? 6 : granularity === 'daily' ? 30 : 8;
   const data: TrendDataPoint[] = [];
 
   for (let i = periods - 1; i >= 0; i--) {
@@ -220,6 +250,10 @@ function generateEmptyData(granularity: TimeGranularity): TrendDataPoint[] {
     if (granularity === 'monthly') {
       periodStart = new Date(now.getFullYear(), now.getMonth() - i, 1);
       label = formatMonthLabel(periodStart);
+    } else if (granularity === 'daily') {
+      periodStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+      periodStart.setHours(0, 0, 0, 0);
+      label = formatDayLabel(periodStart);
     } else {
       periodStart = getWeekStart(new Date(now.getTime() - i * 7 * 24 * 60 * 60 * 1000));
       label = formatWeekLabel(periodStart);
@@ -240,7 +274,9 @@ function generateEmptyData(granularity: TimeGranularity): TrendDataPoint[] {
 }
 
 // Custom tooltip component factory
-function createCustomTooltip(metricType: MetricType) {
+function createCustomTooltip(metricType: MetricType, granularity: TimeGranularity) {
+  const isDaily = granularity === 'daily';
+
   return function CustomTooltip({ active, payload, label }: any) {
     if (!active || !payload || payload.length === 0) return null;
 
@@ -262,15 +298,21 @@ function createCustomTooltip(metricType: MetricType) {
                   />
                   <span className="text-gray-600">{entry.name}</span>
                 </span>
-                <span className="font-medium text-gray-900">{entry.value}%</span>
+                <span className="font-medium text-gray-900">
+                  {isDaily ? entry.value : `${entry.value}%`}
+                </span>
               </div>
             );
           })}
         </div>
         <div className="mt-2 pt-2 border-t border-gray-100 text-xs text-gray-500">
-          {isMentions
-            ? `${data.mentionedChecks} mentioned / ${data.totalChecks} checks`
-            : `${data.citedChecks} cited / ${data.totalChecks} checks`
+          {isDaily
+            ? isMentions
+              ? `${data.mentionedChecks} mentions out of ${data.totalChecks} checks`
+              : `${data.citedChecks} citations out of ${data.totalChecks} checks`
+            : isMentions
+              ? `${data.mentionedChecks} mentioned / ${data.totalChecks} checks`
+              : `${data.citedChecks} cited / ${data.totalChecks} checks`
           }
         </div>
       </div>
@@ -326,7 +368,10 @@ export default function LLMVisibilityTrendChart({
         <div className="shrink-0">
           <h3 className="text-lg font-semibold text-gray-900">Visibility trend</h3>
           <p className="text-sm text-gray-500">
-            {metricType === 'citations' ? 'Citation' : 'Mention'} rate over {granularity === 'monthly' ? 'the last 6 months' : 'the last 8 weeks'}
+            {granularity === 'daily'
+              ? `${metricType === 'citations' ? 'Citation' : 'Mention'} counts over the last 30 days`
+              : `${metricType === 'citations' ? 'Citation' : 'Mention'} rate over ${granularity === 'monthly' ? 'the last 6 months' : 'the last 8 weeks'}`
+            }
           </p>
         </div>
 
@@ -369,6 +414,16 @@ export default function LLMVisibilityTrendChart({
 
           {/* Granularity Toggle */}
           <div className="flex items-center bg-gray-100 rounded-lg p-0.5">
+            <button
+              onClick={() => setGranularity('daily')}
+              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                granularity === 'daily'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Daily
+            </button>
             <button
               onClick={() => setGranularity('weekly')}
               className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
@@ -416,43 +471,88 @@ export default function LLMVisibilityTrendChart({
                 axisLine={{ stroke: '#e5e7eb' }}
               />
               <YAxis
-                domain={[0, 100]}
+                domain={granularity === 'daily' ? [0, 'auto'] : [0, 100]}
                 tick={{ fontSize: 11, fill: '#6b7280' }}
                 tickLine={false}
                 axisLine={{ stroke: '#e5e7eb' }}
-                tickFormatter={(value) => `${value}%`}
+                tickFormatter={granularity === 'daily' ? (value) => `${value}` : (value) => `${value}%`}
                 width={40}
+                allowDecimals={false}
               />
-              <Tooltip content={createCustomTooltip(metricType)} />
+              <Tooltip content={createCustomTooltip(metricType, granularity)} />
 
-              {/* Overall line (always shown) */}
-              <Line
-                type="monotone"
-                dataKey={metricType === 'mentions' ? 'overallMentions' : 'overall'}
-                name="Overall"
-                stroke="#6366f1"
-                strokeWidth={2}
-                dot={{ r: 3, fill: '#6366f1' }}
-                activeDot={{ r: 5 }}
-                connectNulls
-              />
-
-              {/* Per-provider lines (when toggled on) */}
-              {showProviders &&
-                LLM_PROVIDERS.filter(p => providersWithData.has(p)).map(provider => (
+              {granularity === 'daily' ? (
+                <>
+                  {/* Daily mode: absolute counts */}
+                  {/* Total checks line (gray baseline) */}
                   <Line
-                    key={provider}
                     type="monotone"
-                    dataKey={metricType === 'mentions' ? `${provider}_mentions` : provider}
-                    name={LLM_PROVIDER_LABELS[provider]}
-                    stroke={PROVIDER_CHART_COLORS[provider]}
-                    strokeWidth={1.5}
-                    strokeDasharray="4 2"
-                    dot={{ r: 2, fill: PROVIDER_CHART_COLORS[provider] }}
-                    activeDot={{ r: 4 }}
+                    dataKey="totalChecks"
+                    name="Total checks"
+                    stroke="#9ca3af"
+                    strokeWidth={2}
+                    dot={{ r: 3, fill: '#9ca3af' }}
+                    activeDot={{ r: 5 }}
                     connectNulls
                   />
-                ))}
+                  {/* Metric line (mentions or citations count) */}
+                  <Line
+                    type="monotone"
+                    dataKey={metricType === 'mentions' ? 'mentionedChecks' : 'citedChecks'}
+                    name={metricType === 'mentions' ? 'Mentioned' : 'Cited'}
+                    stroke="#6366f1"
+                    strokeWidth={2}
+                    dot={{ r: 3, fill: '#6366f1' }}
+                    activeDot={{ r: 5 }}
+                    connectNulls
+                  />
+                  {/* Per-provider count lines (when toggled on) */}
+                  {showProviders &&
+                    LLM_PROVIDERS.filter(p => providersWithData.has(p)).map(provider => (
+                      <Line
+                        key={provider}
+                        type="monotone"
+                        dataKey={metricType === 'mentions' ? `${provider}_mentioned_count` : `${provider}_count`}
+                        name={LLM_PROVIDER_LABELS[provider]}
+                        stroke={PROVIDER_CHART_COLORS[provider]}
+                        strokeWidth={1.5}
+                        strokeDasharray="4 2"
+                        dot={{ r: 2, fill: PROVIDER_CHART_COLORS[provider] }}
+                        activeDot={{ r: 4 }}
+                        connectNulls
+                      />
+                    ))}
+                </>
+              ) : (
+                <>
+                  {/* Weekly/Monthly mode: percentage rates */}
+                  <Line
+                    type="monotone"
+                    dataKey={metricType === 'mentions' ? 'overallMentions' : 'overall'}
+                    name="Overall"
+                    stroke="#6366f1"
+                    strokeWidth={2}
+                    dot={{ r: 3, fill: '#6366f1' }}
+                    activeDot={{ r: 5 }}
+                    connectNulls
+                  />
+                  {showProviders &&
+                    LLM_PROVIDERS.filter(p => providersWithData.has(p)).map(provider => (
+                      <Line
+                        key={provider}
+                        type="monotone"
+                        dataKey={metricType === 'mentions' ? `${provider}_mentions` : provider}
+                        name={LLM_PROVIDER_LABELS[provider]}
+                        stroke={PROVIDER_CHART_COLORS[provider]}
+                        strokeWidth={1.5}
+                        strokeDasharray="4 2"
+                        dot={{ r: 2, fill: PROVIDER_CHART_COLORS[provider] }}
+                        activeDot={{ r: 4 }}
+                        connectNulls
+                      />
+                    ))}
+                </>
+              )}
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -461,10 +561,23 @@ export default function LLMVisibilityTrendChart({
       {/* Chart legend (non-interactive) */}
       {hasAnyData && (
         <div className="mt-3 flex flex-wrap items-center gap-2 justify-center">
-          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-medium text-indigo-700">
-            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#6366f1' }} />
-            Overall
-          </span>
+          {granularity === 'daily' ? (
+            <>
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-medium text-gray-500">
+                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#9ca3af' }} />
+                Total checks
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-medium text-indigo-700">
+                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#6366f1' }} />
+                {metricType === 'mentions' ? 'Mentioned' : 'Cited'}
+              </span>
+            </>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-medium text-indigo-700">
+              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#6366f1' }} />
+              Overall
+            </span>
+          )}
           {showProviders && LLM_PROVIDERS.filter(p => providersWithData.has(p)).map((provider) => (
             <span
               key={provider}
