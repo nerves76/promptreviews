@@ -7,6 +7,105 @@
  * is unavailable.
  */
 
+// Known generic terms in the review management space — never brand names
+const GENERIC_INDUSTRY_TERMS = new Set([
+  // Industry categories
+  'reputation management', 'review management', 'sentiment analysis',
+  'customer feedback', 'online reviews', 'digital marketing', 'local seo',
+  'social media marketing', 'customer experience', 'brand management',
+  'online reputation', 'review marketing', 'feedback management',
+  'customer engagement', 'review strategy', 'customer satisfaction',
+  'business reputation', 'brand monitoring', 'review monitoring',
+  'customer retention', 'review generation', 'customer loyalty',
+  // Feature descriptions
+  'ease of use', 'automated review requests', 'centralized review monitoring',
+  'multi-platform support', 'api integration', 'review aggregation',
+  'white-label solution', 'review response', 'review solicitation',
+  'review collection', 'review display', 'review widget', 'review widgets',
+  'custom branding', 'email templates', 'sms requests', 'drip campaigns',
+  'review filtering', 'negative review alerts', 'review notifications',
+  'auto-response', 'response templates', 'ai responses', 'ai-powered responses',
+  'review analytics', 'sentiment tracking', 'competitor analysis',
+  'competitor tracking', 'competitive analysis', 'competitive intelligence',
+  // Platform features
+  'google reviews', 'google my business', 'google business profile',
+  'facebook reviews', 'yelp reviews', 'star ratings', 'tripadvisor reviews',
+  'bbb reviews', 'trustpilot reviews', 'online listings',
+  'google maps', 'apple maps', 'bing places',
+  // Generic business terms
+  'small business', 'enterprise solution', 'saas platform', 'saas tool',
+  'customer support', 'help desk', 'knowledge base', 'user interface',
+  'dashboard', 'reporting tools', 'mobile app', 'browser extension',
+]);
+
+// Suffixes that indicate a generic descriptor phrase, not a brand name
+const GENERIC_SUFFIXES = [
+  'management', 'analysis', 'monitoring', 'optimization', 'automation',
+  'integration', 'tracking', 'analytics', 'reporting', 'generation',
+  'collection', 'aggregation', 'marketing', 'software', 'platform',
+  'solution', 'service', 'services', 'tools', 'system', 'systems',
+];
+
+// Adjective prefixes that signal a feature description, not a brand name
+const GENERIC_PREFIXES = [
+  'automated', 'centralized', 'customizable', 'advanced', 'comprehensive',
+  'integrated', 'multi-platform', 'multi-channel', 'real-time', 'ai-powered',
+  'cloud-based', 'enterprise-grade', 'scalable', 'robust', 'seamless',
+];
+
+/**
+ * Clean markdown formatting artifacts from a brand name.
+ *
+ * Strips bold markers, numbered/bulleted list prefixes, and excess whitespace.
+ */
+export function cleanBrandName(raw: string): string {
+  let name = raw;
+
+  // Remove markdown bold markers: **text** → text
+  name = name.replace(/\*\*/g, '');
+
+  // Remove numbered list prefixes: "1. ", "2) "
+  name = name.replace(/^\d+[\.\)]\s+/, '');
+
+  // Remove bullet prefixes: "- ", "* "
+  name = name.replace(/^[\-\*]\s+/, '');
+
+  // Trim whitespace and trailing punctuation
+  name = name.replace(/[\s\-–—:.,;!?]+$/, '').trim();
+
+  return name;
+}
+
+/**
+ * Determine whether a string looks like an actual brand/company name.
+ *
+ * Returns `false` for generic industry terms, feature descriptions, and
+ * overly long phrases that are unlikely to be brand names.
+ */
+export function isLikelyBrandName(name: string): boolean {
+  if (!name || name.trim().length < 2) return false;
+
+  const lower = name.toLowerCase().trim();
+  const words = lower.split(/\s+/);
+
+  // 1. Exact blocklist match
+  if (GENERIC_INDUSTRY_TERMS.has(lower)) return false;
+
+  // 2. Length heuristic — 5+ words is almost never a brand name
+  if (words.length >= 5) return false;
+
+  // 3. Suffix heuristic — multi-word phrases ending in generic descriptors
+  if (words.length >= 2) {
+    const lastWord = words[words.length - 1];
+    if (GENERIC_SUFFIXES.includes(lastWord)) return false;
+  }
+
+  // 4. Generic prefix pattern — "automated X", "comprehensive Y", etc.
+  if (GENERIC_PREFIXES.includes(words[0])) return false;
+
+  return true;
+}
+
 // Words that commonly start false-positive matches (section headers, generic phrases)
 const STOPWORD_STARTS = new Set([
   'the', 'this', 'that', 'these', 'those',
@@ -97,9 +196,21 @@ export function extractBrandsFromText(
       continue;
     }
 
+    // Clean markdown artifacts and filter non-brand entries
+    const cleaned = cleanBrandName(name);
+    if (cleaned.length < 2) continue;
+    if (!isLikelyBrandName(cleaned)) continue;
+
+    const cleanedLower = cleaned.toLowerCase();
+
+    // Re-check own brand after cleaning
+    if (ownBrandLower && (cleanedLower.includes(ownBrandLower) || ownBrandLower.includes(cleanedLower))) {
+      continue;
+    }
+
     // Deduplicate case-insensitively, keep first occurrence's casing
-    if (!seen.has(nameLower)) {
-      seen.set(nameLower, name);
+    if (!seen.has(cleanedLower)) {
+      seen.set(cleanedLower, cleaned);
     }
   }
 

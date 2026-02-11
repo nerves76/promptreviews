@@ -13,7 +13,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/auth/providers/supabase';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 import { getStartDateFromTimeWindow } from '@/features/llm-visibility/utils/timeWindow';
-import { extractBrandsFromText } from '@/features/llm-visibility/utils/brandExtraction';
+import { extractBrandsFromText, cleanBrandName, isLikelyBrandName } from '@/features/llm-visibility/utils/brandExtraction';
 
 interface LLMBrandEntity {
   title: string;
@@ -137,7 +137,10 @@ export async function GET(request: NextRequest) {
       for (const brand of brands) {
         if (!brand.title) continue;
 
-        const brandName = brand.title.trim();
+        const brandName = cleanBrandName(brand.title.trim());
+        if (brandName.length < 2) continue;
+        if (!isLikelyBrandName(brandName)) continue;
+
         const brandKey = brandName.toLowerCase();
 
         if (!brandMap.has(brandKey)) {
