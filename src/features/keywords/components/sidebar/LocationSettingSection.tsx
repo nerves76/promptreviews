@@ -48,7 +48,7 @@ export function LocationSettingSection({
   };
 
   return (
-    <div className="bg-white/60 backdrop-blur-sm border border-gray-200 rounded-xl overflow-hidden">
+    <div className="relative z-10 bg-white/60 backdrop-blur-sm border border-gray-200 rounded-xl">
       {/* Section header - clickable to collapse */}
       <div
         className="flex items-center justify-between p-5 cursor-pointer select-none"
