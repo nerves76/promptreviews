@@ -3,11 +3,10 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Icon from '@/components/Icon';
-import { type KeywordData, type SearchTerm, type RelatedQuestion, type FunnelStage, type ResearchResultData } from '../../keywordUtils';
+import { type KeywordData, type SearchTerm, type ResearchResultData } from '../../keywordUtils';
 import { type RankStatusResponse } from '../../hooks/useRankStatus';
 import { type GeoGridStatusResponse } from '../../hooks/useGeoGridStatus';
 import { type RelevanceWarning } from '../../hooks/useKeywordEditor';
-import { FunnelStageGroup } from '../FunnelStageGroup';
 
 // LLM provider constants
 export const LLM_PROVIDERS = ['chatgpt', 'perplexity', 'gemini', 'claude'] as const;
@@ -28,7 +27,6 @@ export const LLM_PROVIDER_COLORS: Record<LLMProvider, { bg: string; text: string
 };
 
 const MAX_SEARCH_TERMS = 10;
-const MAX_QUESTIONS = 20;
 
 export interface SEOTrackingSectionProps {
   /** The keyword being displayed */
@@ -84,40 +82,6 @@ export interface SEOTrackingSectionProps {
   /** Callback to check rank for a term */
   onCheckRank?: (term: string, keywordId: string) => void;
 
-  // AI visibility questions
-  /** The edited questions */
-  editedQuestions: RelatedQuestion[];
-  /** New question text input */
-  newQuestionText: string;
-  /** Callback when new question text changes */
-  onNewQuestionTextChange: (value: string) => void;
-  /** New question funnel stage */
-  newQuestionFunnel: FunnelStage;
-  /** Callback when new question funnel changes */
-  onNewQuestionFunnelChange: (stage: FunnelStage) => void;
-  /** Callback to add a question */
-  onAddQuestion: () => void;
-  /** Callback to remove a question */
-  onRemoveQuestion: (index: number) => void;
-  /** Callback to update question funnel stage */
-  onUpdateQuestionFunnel: (index: number, stage: FunnelStage) => void;
-
-  // LLM checking
-  /** Selected LLM providers */
-  selectedLLMProviders: LLMProvider[];
-  /** Map of question to LLM results */
-  questionLLMMap: Map<string, Map<string, { domainCited: boolean; brandMentioned: boolean; citationPosition?: number | null; checkedAt: string }>>;
-  /** Index of question being checked */
-  checkingQuestionIndex: number | null;
-  /** Callback to check a question */
-  onCheckQuestion: (index: number) => void;
-  /** Last check result */
-  lastCheckResult: { questionIndex: number; success: boolean; message: string } | null;
-  // Question expansion
-  /** Index of expanded question */
-  expandedQuestionIndex: number | null;
-  /** Callback to toggle question expansion */
-  onToggleQuestionExpand: (index: number | null) => void;
   /** Whether section is initially collapsed (default: false) */
   defaultCollapsed?: boolean;
 }
@@ -168,9 +132,9 @@ function getPositionColor(position: number): string {
 /**
  * SEOTrackingSection Component
  *
- * Displays and allows editing of SEO and LLM tracking data:
+ * Displays and allows editing of search engine tracking data:
  * - Search terms with volume and ranking data
- * - AI visibility questions grouped by funnel stage
+ * - Geo grid tracking status
  */
 export function SEOTrackingSection({
   keyword,
@@ -196,25 +160,9 @@ export function SEOTrackingSection({
   rankStatus,
   geoGridStatus,
   onCheckRank,
-  editedQuestions,
-  newQuestionText,
-  onNewQuestionTextChange,
-  newQuestionFunnel,
-  onNewQuestionFunnelChange,
-  onAddQuestion,
-  onRemoveQuestion,
-  onUpdateQuestionFunnel,
-  selectedLLMProviders,
-  questionLLMMap,
-  checkingQuestionIndex,
-  onCheckQuestion,
-  lastCheckResult,
-  expandedQuestionIndex,
-  onToggleQuestionExpand,
   defaultCollapsed = false,
 }: SEOTrackingSectionProps) {
   const searchTermsAtLimit = editedSearchTerms.length >= MAX_SEARCH_TERMS;
-  const questionsAtLimit = editedQuestions.length >= MAX_QUESTIONS;
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
 
   // Expand when editing starts
@@ -223,9 +171,6 @@ export function SEOTrackingSection({
       setIsCollapsed(false);
     }
   }, [isEditing]);
-
-  // Get display questions (edited if editing, otherwise from keyword)
-  const displayQuestions = isEditing ? editedQuestions : keyword.relatedQuestions;
 
   return (
     <div className="bg-white/60 backdrop-blur-sm border border-gray-200 rounded-xl overflow-hidden">
@@ -236,7 +181,7 @@ export function SEOTrackingSection({
       >
         <div className="flex items-center gap-2">
           <Icon name="FaChartLine" className="w-5 h-5 text-slate-blue" />
-          <span className="text-lg font-semibold text-gray-800">SEO & LLM tracking</span>
+          <span className="text-lg font-semibold text-gray-800">Search engine tracking</span>
         </div>
         <div className="flex items-center gap-2">
           {!isEditing ? (
@@ -247,8 +192,8 @@ export function SEOTrackingSection({
                   onStartEditing();
                 }}
                 className="p-1.5 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
-                title="Edit SEO section"
-                aria-label="Edit SEO section"
+                title="Edit search engine tracking"
+                aria-label="Edit search engine tracking"
               >
                 <Icon name="FaEdit" className="w-4 h-4" />
               </button>
@@ -398,125 +343,6 @@ export function SEOTrackingSection({
               <Icon name="FaExclamationTriangle" className="w-3 h-3" />
               {volumeLookupError}
             </div>
-          )}
-        </div>
-
-        {/* AI Visibility Questions */}
-        <div>
-          <label className="text-sm font-medium text-gray-700 block mb-1">
-            AI visibility questions
-          </label>
-          <p className="text-xs text-gray-600 mb-2">
-            Questions to track your visibility in AI search results.
-          </p>
-
-          {/* Questions list - grouped by funnel stage */}
-          <div className="space-y-3 mb-3">
-            {(() => {
-              if (!displayQuestions || displayQuestions.length === 0) {
-                if (!isEditing) {
-                  return (
-                    <div className="text-sm text-gray-600 italic bg-white/80 px-3 py-2.5 rounded-lg border border-gray-100">
-                      No questions added
-                    </div>
-                  );
-                }
-                return null;
-              }
-
-              // Group questions by funnel stage
-              const grouped = {
-                top: displayQuestions
-                  .map((q, idx) => ({ ...q, originalIndex: idx }))
-                  .filter((q) => q.funnelStage === 'top'),
-                middle: displayQuestions
-                  .map((q, idx) => ({ ...q, originalIndex: idx }))
-                  .filter((q) => q.funnelStage === 'middle'),
-                bottom: displayQuestions
-                  .map((q, idx) => ({ ...q, originalIndex: idx }))
-                  .filter((q) => q.funnelStage === 'bottom'),
-              };
-
-              return (['top', 'middle', 'bottom'] as const).map((stage) => (
-                <FunnelStageGroup
-                  key={stage}
-                  stage={stage}
-                  questions={grouped[stage]}
-                  llmResultsMap={questionLLMMap}
-                  isEditing={isEditing}
-                  expandedIndex={expandedQuestionIndex}
-                  onToggleExpand={(idx) =>
-                    onToggleQuestionExpand(expandedQuestionIndex === idx ? null : idx)
-                  }
-                  onRemoveQuestion={onRemoveQuestion}
-                  onUpdateFunnel={onUpdateQuestionFunnel}
-                  onCheckQuestion={onCheckQuestion}
-                  checkingIndex={checkingQuestionIndex}
-                  selectedProviders={selectedLLMProviders}
-                  checkResult={lastCheckResult}
-                />
-              ));
-            })()}
-          </div>
-
-          {/* Add new question (edit mode) */}
-          {isEditing && !questionsAtLimit && (
-            <div className="space-y-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
-              <input
-                type="text"
-                value={newQuestionText}
-                onChange={(e) => onNewQuestionTextChange(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    onAddQuestion();
-                  }
-                }}
-                placeholder="Type your question..."
-                className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-300 transition-all"
-              />
-              <div className="flex items-center gap-2">
-                <div className="relative group flex-1">
-                  <select
-                    value={newQuestionFunnel}
-                    onChange={(e) => onNewQuestionFunnelChange(e.target.value as FunnelStage)}
-                    className="w-full px-2 py-1.5 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-300 cursor-help"
-                  >
-                    <option value="top">Top (awareness)</option>
-                    <option value="middle">Middle (consideration)</option>
-                    <option value="bottom">Bottom (decision)</option>
-                  </select>
-                  <div className="absolute bottom-full left-0 mb-1 p-2 bg-gray-900 text-white text-xs rounded w-64 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none">
-                    <div className="font-semibold mb-1">Marketing funnel stage</div>
-                    <div className="space-y-0.5">
-                      <div>
-                        <span className="text-blue-300">Top:</span> Awareness - broad, educational
-                        questions
-                      </div>
-                      <div>
-                        <span className="text-amber-300">Middle:</span> Consideration - comparison
-                        questions
-                      </div>
-                      <div>
-                        <span className="text-green-300">Bottom:</span> Decision - purchase-intent
-                        questions
-                      </div>
-                    </div>
-                    <div className="absolute top-full left-4 border-4 border-transparent border-t-gray-900" />
-                  </div>
-                </div>
-                <button
-                  onClick={onAddQuestion}
-                  disabled={!newQuestionText.trim()}
-                  className="px-3 py-1.5 text-sm font-medium text-white bg-purple-500 rounded-lg hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex-shrink-0"
-                >
-                  Add question
-                </button>
-              </div>
-            </div>
-          )}
-          {isEditing && questionsAtLimit && (
-            <p className="text-xs text-amber-600">Maximum of {MAX_QUESTIONS} questions reached</p>
           )}
         </div>
         </div>

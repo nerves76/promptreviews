@@ -22,6 +22,10 @@ export {
   type LLMProvider,
 } from './SEOTrackingSection';
 export {
+  AIVisibilitySection,
+  type AIVisibilitySectionProps,
+} from './AIVisibilitySection';
+export {
   TrackingLocationsSection,
   type TrackingLocationsSectionProps,
 } from './TrackingLocationsSection';

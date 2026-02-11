@@ -25,11 +25,11 @@ import {
   DiscoveredQuestionsSection,
   ReviewsEditSection,
   SEOTrackingSection,
+  AIVisibilitySection,
   TrackingLocationsSection,
   PromptPagesSection,
   RecentReviewsSection,
   LocationSettingSection,
-  type LLMProvider as SidebarLLMProvider,
 } from './sidebar';
 import { ConceptScheduleSettings } from '@/features/concept-schedule';
 
@@ -146,6 +146,7 @@ export function KeywordDetailsSidebar({
   // === EDITING STATE ===
   const [isEditingReviews, setIsEditingReviews] = useState(false);
   const [isEditingSEO, setIsEditingSEO] = useState(false);
+  const [isEditingAI, setIsEditingAI] = useState(false);
   const [isEditingLocation, setIsEditingLocation] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [editedReviewPhrase, setEditedReviewPhrase] = useState(keyword?.reviewPhrase || '');
@@ -164,7 +165,7 @@ export function KeywordDetailsSidebar({
   const [volumeLookupError, setVolumeLookupError] = useState<string | null>(null);
   const [isLookingUpVolume, setIsLookingUpVolume] = useState(false);
 
-  const isAnyEditing = isEditingReviews || isEditingSEO || isEditingLocation;
+  const isAnyEditing = isEditingReviews || isEditingSEO || isEditingAI || isEditingLocation;
   const questionLLMMap = buildQuestionLLMMap(llmResults);
 
   // === EFFECTS ===
@@ -189,6 +190,7 @@ export function KeywordDetailsSidebar({
       resetQuestions(keyword.relatedQuestions || []);
       setIsEditingReviews(false);
       setIsEditingSEO(false);
+      setIsEditingAI(false);
       setIsEditingLocation(false);
       setNewSearchTerm('');
       setRelevanceWarning(null);
@@ -221,11 +223,27 @@ export function KeywordDetailsSidebar({
       await onUpdate(keyword.id, {
         searchTerms: editedSearchTerms,
         locationScope: editedLocationScope,
-        relatedQuestions: editedQuestions.slice(0, 20),
         ...(showGroupSelector && { groupId: editedGroupId || undefined }),
       });
       if (onRefresh) await onRefresh();
       setIsEditingSEO(false);
+      resetEnrichment();
+    } catch (error) {
+      console.error('Failed to save keyword:', error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleSaveAI = async () => {
+    if (!keyword) return;
+    setIsSaving(true);
+    try {
+      await onUpdate(keyword.id, {
+        relatedQuestions: editedQuestions.slice(0, 20),
+      });
+      if (onRefresh) await onRefresh();
+      setIsEditingAI(false);
       resetEnrichment();
     } catch (error) {
       console.error('Failed to save keyword:', error);
@@ -247,11 +265,17 @@ export function KeywordDetailsSidebar({
     setEditedSearchTerms(keyword.searchTerms || []);
     setEditedLocationScope(keyword.locationScope);
     setEditedGroupId(keyword.groupId);
-    resetQuestions(keyword.relatedQuestions || []);
     setIsEditingSEO(false);
     resetEnrichment();
     setNewSearchTerm('');
     setRelevanceWarning(null);
+  };
+
+  const handleCancelAI = () => {
+    if (!keyword) return;
+    resetQuestions(keyword.relatedQuestions || []);
+    setIsEditingAI(false);
+    resetEnrichment();
   };
 
   const handleLocationChange = (location: { code: number; name: string } | null) => {
@@ -284,17 +308,17 @@ export function KeywordDetailsSidebar({
   };
 
   const handleAddQuestion = () => {
-    if (addQuestion()) setIsEditingSEO(true);
+    if (addQuestion()) setIsEditingAI(true);
   };
 
   const handleRemoveQuestion = (index: number) => {
     removeQuestion(index);
-    setIsEditingSEO(true);
+    setIsEditingAI(true);
   };
 
   const handleUpdateQuestionFunnel = (index: number, newStage: FunnelStage) => {
     updateQuestionFunnel(index, newStage);
-    setIsEditingSEO(true);
+    setIsEditingAI(true);
   };
 
   const handleAddSearchTerm = useCallback((forceAdd = false) => {
@@ -368,6 +392,7 @@ export function KeywordDetailsSidebar({
       setEditedQuestions(result.relatedQuestions || []);
       setIsEditingReviews(true);
       setIsEditingSEO(true);
+      setIsEditingAI(true);
     }
   };
 
@@ -440,6 +465,7 @@ export function KeywordDetailsSidebar({
                             onSave={async () => {
                               if (isEditingReviews) await handleSaveReviews();
                               if (isEditingSEO) await handleSaveSEO();
+                              if (isEditingAI) await handleSaveAI();
                               if (isEditingLocation) await handleSaveLocation();
                             }}
                           />
@@ -530,7 +556,7 @@ export function KeywordDetailsSidebar({
                             onCancel={handleCancelReviews}
                           />
 
-                          {/* SEO & LLM Tracking Section */}
+                          {/* Search Engine Tracking Section */}
                           <SEOTrackingSection
                             keyword={keyword}
                             isEditing={isEditingSEO}
@@ -555,6 +581,16 @@ export function KeywordDetailsSidebar({
                             rankStatus={rankStatus}
                             geoGridStatus={geoGridStatus}
                             onCheckRank={onCheckRank}
+                          />
+
+                          {/* AI Visibility Section */}
+                          <AIVisibilitySection
+                            keyword={keyword}
+                            isEditing={isEditingAI}
+                            isSaving={isSaving}
+                            onStartEditing={() => setIsEditingAI(true)}
+                            onSave={handleSaveAI}
+                            onCancel={handleCancelAI}
                             editedQuestions={editedQuestions}
                             newQuestionText={newQuestionText}
                             onNewQuestionTextChange={setNewQuestionText}
@@ -563,7 +599,7 @@ export function KeywordDetailsSidebar({
                             onAddQuestion={handleAddQuestion}
                             onRemoveQuestion={handleRemoveQuestion}
                             onUpdateQuestionFunnel={handleUpdateQuestionFunnel}
-                            selectedLLMProviders={selectedLLMProviders as SidebarLLMProvider[]}
+                            selectedLLMProviders={selectedLLMProviders}
                             questionLLMMap={questionLLMMap}
                             checkingQuestionIndex={checkingQuestionIndex}
                             onCheckQuestion={handleCheckQuestion}
