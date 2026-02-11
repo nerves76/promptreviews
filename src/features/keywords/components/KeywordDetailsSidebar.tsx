@@ -139,7 +139,6 @@ export function KeywordDetailsSidebar({
   const [checkModalQuestionIndex, setCheckModalQuestionIndex] = useState<number | null>(null);
   const {
     results: llmResults,
-    error: llmError,
     fetchResults: fetchLLMResults,
     runCheck: runLLMCheck,
   } = useLLMVisibility({ keywordId: keyword?.id || '' });
@@ -384,15 +383,6 @@ export function KeywordDetailsSidebar({
     onUpdate(keyword.id, { relatedQuestions: newQuestions });
   };
 
-  const handleToggleLLMProvider = (provider: SidebarLLMProvider) => {
-    setSelectedLLMProviders(prev => {
-      if (prev.includes(provider as LLMProvider)) {
-        if (prev.length === 1) return prev;
-        return prev.filter(p => p !== provider);
-      }
-      return [...prev, provider as LLMProvider];
-    });
-  };
 
   // === COMPUTED VALUES ===
   const hasEmptySEOFields = !keyword?.reviewPhrase ||
@@ -574,12 +564,10 @@ export function KeywordDetailsSidebar({
                             onRemoveQuestion={handleRemoveQuestion}
                             onUpdateQuestionFunnel={handleUpdateQuestionFunnel}
                             selectedLLMProviders={selectedLLMProviders as SidebarLLMProvider[]}
-                            onToggleLLMProvider={handleToggleLLMProvider}
                             questionLLMMap={questionLLMMap}
                             checkingQuestionIndex={checkingQuestionIndex}
                             onCheckQuestion={handleCheckQuestion}
                             lastCheckResult={lastCheckResult}
-                            llmError={llmError}
                             expandedQuestionIndex={expandedQuestionIndex}
                             onToggleQuestionExpand={setExpandedQuestionIndex}
                           />

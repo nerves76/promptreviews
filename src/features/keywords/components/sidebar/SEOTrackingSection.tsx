@@ -105,8 +105,6 @@ export interface SEOTrackingSectionProps {
   // LLM checking
   /** Selected LLM providers */
   selectedLLMProviders: LLMProvider[];
-  /** Callback to toggle LLM provider selection */
-  onToggleLLMProvider: (provider: LLMProvider) => void;
   /** Map of question to LLM results */
   questionLLMMap: Map<string, Map<string, { domainCited: boolean; brandMentioned: boolean; citationPosition?: number | null; checkedAt: string }>>;
   /** Index of question being checked */
@@ -115,9 +113,6 @@ export interface SEOTrackingSectionProps {
   onCheckQuestion: (index: number) => void;
   /** Last check result */
   lastCheckResult: { questionIndex: number; success: boolean; message: string } | null;
-  /** LLM check error */
-  llmError: string | null;
-
   // Question expansion
   /** Index of expanded question */
   expandedQuestionIndex: number | null;
@@ -210,12 +205,10 @@ export function SEOTrackingSection({
   onRemoveQuestion,
   onUpdateQuestionFunnel,
   selectedLLMProviders,
-  onToggleLLMProvider,
   questionLLMMap,
   checkingQuestionIndex,
   onCheckQuestion,
   lastCheckResult,
-  llmError,
   expandedQuestionIndex,
   onToggleQuestionExpand,
   defaultCollapsed = false,
@@ -416,34 +409,6 @@ export function SEOTrackingSection({
           <p className="text-xs text-gray-500 mb-2">
             Questions to track your visibility in AI search results.
           </p>
-
-          {/* AI providers selector (view mode only, at top) */}
-          {!isEditing && displayQuestions && displayQuestions.length > 0 && (
-            <div className="mb-3 p-2 bg-purple-50/60 rounded-lg border border-purple-100/50">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-medium text-purple-600">Check with:</span>
-                <div className="flex flex-wrap gap-1">
-                  {LLM_PROVIDERS.map((provider) => {
-                    const isSelected = selectedLLMProviders.includes(provider);
-                    const colors = LLM_PROVIDER_COLORS[provider];
-                    return (
-                      <button
-                        key={provider}
-                        onClick={() => onToggleLLMProvider(provider)}
-                        className={`px-1.5 py-0.5 rounded text-[10px] font-medium transition-all ${
-                          isSelected ? `${colors.bg} ${colors.text}` : 'bg-gray-100 text-gray-500'
-                        }`}
-                        aria-label={`${isSelected ? 'Deselect' : 'Select'} ${LLM_PROVIDER_LABELS[provider]}`}
-                      >
-                        {LLM_PROVIDER_LABELS[provider]}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-              {llmError && <p className="mt-1 text-xs text-red-600">{llmError}</p>}
-            </div>
-          )}
 
           {/* Questions list - grouped by funnel stage */}
           <div className="space-y-3 mb-3">
