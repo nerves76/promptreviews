@@ -16,6 +16,7 @@ import { useRankStatus, getDiscoveredQuestions } from '../hooks/useRankStatus';
 import { useGeoGridStatus } from '../hooks/useGeoGridStatus';
 import { useLLMVisibility } from '@/features/llm-visibility/hooks/useLLMVisibility';
 import { LLMProvider } from '@/features/llm-visibility/utils/types';
+import CheckLLMModal from '@/features/llm-visibility/components/CheckLLMModal';
 import { useAuth } from '@/auth';
 import {
   HeaderStats,
@@ -135,6 +136,7 @@ export function KeywordDetailsSidebar({
   const [checkingQuestionIndex, setCheckingQuestionIndex] = useState<number | null>(null);
   const [expandedQuestionIndex, setExpandedQuestionIndex] = useState<number | null>(null);
   const [lastCheckResult, setLastCheckResult] = useState<{ success: boolean; message: string; questionIndex: number } | null>(null);
+  const [checkModalQuestionIndex, setCheckModalQuestionIndex] = useState<number | null>(null);
   const {
     results: llmResults,
     error: llmError,
@@ -335,27 +337,15 @@ export function KeywordDetailsSidebar({
     setIsEditingSEO(true);
   };
 
-  const handleCheckQuestion = async (questionIndex: number) => {
-    if (!keyword?.id || selectedLLMProviders.length === 0) return;
-    setCheckingQuestionIndex(questionIndex);
-    setLastCheckResult(null);
-    try {
-      const response = await runLLMCheck(selectedLLMProviders, [questionIndex]);
-      if (response && response.checksPerformed > 0) {
-        setLastCheckResult({
-          success: true,
-          message: `Check complete for ${selectedLLMProviders.length} AI${selectedLLMProviders.length > 1 ? 's' : ''}. See results below.`,
-          questionIndex,
-        });
-        setExpandedQuestionIndex(questionIndex);
-      } else {
-        setLastCheckResult({ success: false, message: llmError || 'Check failed', questionIndex });
-      }
-    } catch (err) {
-      setLastCheckResult({ success: false, message: err instanceof Error ? err.message : 'Check failed', questionIndex });
-    } finally {
-      setCheckingQuestionIndex(null);
-      setTimeout(() => setLastCheckResult(null), 5000);
+  const handleCheckQuestion = (questionIndex: number) => {
+    if (!keyword?.id) return;
+    setCheckModalQuestionIndex(questionIndex);
+  };
+
+  const handleCheckModalComplete = () => {
+    if (checkModalQuestionIndex !== null) {
+      fetchLLMResults();
+      setExpandedQuestionIndex(checkModalQuestionIndex);
     }
   };
 
@@ -672,6 +662,18 @@ export function KeywordDetailsSidebar({
           </div>
         )}
       </div>
+
+      {/* LLM Check Modal */}
+      {keyword && checkModalQuestionIndex !== null && editedQuestions[checkModalQuestionIndex] && (
+        <CheckLLMModal
+          isOpen={true}
+          onClose={() => setCheckModalQuestionIndex(null)}
+          question={editedQuestions[checkModalQuestionIndex].question}
+          keywordId={keyword.id}
+          onCheckComplete={handleCheckModalComplete}
+          businessName={account?.business_name || account?.businesses?.[0]?.name}
+        />
+      )}
     </>
   );
 }
