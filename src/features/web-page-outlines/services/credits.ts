@@ -4,3 +4,4 @@
 
 export const FULL_GENERATION_COST = 7;
 export const SECTION_REGEN_COST = 1;
+export const MAX_OUTLINES_PER_ACCOUNT = 200;

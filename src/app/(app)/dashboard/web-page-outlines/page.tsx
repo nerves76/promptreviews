@@ -17,7 +17,7 @@ import {
   PagePurposeSelector,
   BusinessInfoPanel,
 } from "@/features/web-page-outlines/components";
-import { FULL_GENERATION_COST } from "@/features/web-page-outlines/services/credits";
+import { FULL_GENERATION_COST, MAX_OUTLINES_PER_ACCOUNT } from "@/features/web-page-outlines/services/credits";
 import type {
   OutlineTone,
   PagePurpose,
@@ -65,7 +65,7 @@ function OutlineSkeletonPreview() {
 
       {/* Body skeleton */}
       <div className="rounded-b-2xl border border-white/20 border-t-0 bg-white/40">
-        <div className="max-w-[680px] mx-auto px-6 sm:px-10 py-8 space-y-8">
+        <div className="max-w-[900px] mx-auto px-6 sm:px-10 py-8 space-y-8">
           {/* Intro */}
           <div className="space-y-2">
             <SkeletonLabel>Introduction</SkeletonLabel>
@@ -180,17 +180,22 @@ export default function WebPageOutlinesPage() {
     buildBusinessInfo(business)
   );
   const [creditBalance, setCreditBalance] = useState<number | null>(null);
+  const [outlineCount, setOutlineCount] = useState<number | null>(null);
   const [progressIdx, setProgressIdx] = useState(0);
 
-  // Load credit balance on mount
+  const atOutlineLimit = outlineCount !== null && outlineCount >= MAX_OUTLINES_PER_ACCOUNT;
+
+  // Load credit balance and outline count on mount
   const loadBalance = useCallback(async () => {
     try {
-      const data = await apiClient.get<{ totalCredits: number }>(
-        "/credits/balance"
-      );
-      setCreditBalance(data.totalCredits);
+      const [balanceData, outlinesData] = await Promise.all([
+        apiClient.get<{ totalCredits: number }>("/credits/balance"),
+        apiClient.get<{ total: number }>("/web-page-outlines?limit=1"),
+      ]);
+      setCreditBalance(balanceData.totalCredits);
+      setOutlineCount(outlinesData.total);
     } catch {
-      // Balance will show as unknown
+      // Will show as unknown
     }
   }, []);
 
@@ -345,13 +350,27 @@ export default function WebPageOutlinesPage() {
           variant="large"
           actions={
             !isGenerating ? (
-              <Button onClick={() => setIsModalOpen(true)} className="whitespace-nowrap">
+              <Button
+                onClick={() => setIsModalOpen(true)}
+                disabled={atOutlineLimit}
+                className="whitespace-nowrap"
+              >
                 <Icon name="FaPlus" size={14} className="mr-1.5" />
                 Create
               </Button>
             ) : undefined
           }
         />
+
+        {atOutlineLimit && (
+          <p className="text-sm text-amber-600 mt-2">
+            You&apos;ve reached the limit of {MAX_OUTLINES_PER_ACCOUNT} outlines. Please delete some from your{" "}
+            <a href="/dashboard/web-page-outlines/library" className="underline font-medium">
+              library
+            </a>{" "}
+            before creating new ones.
+          </p>
+        )}
 
         {/* Generating spinner */}
         {isGenerating && (

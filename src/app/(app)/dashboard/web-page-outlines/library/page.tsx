@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import PageCard, { PageCardHeader } from "@/app/(app)/components/PageCard";
 import { SubNav } from "@/app/(app)/components/SubNav";
 import Icon from "@/components/Icon";
+import { Pagination } from "@/components/Pagination";
 import { useAuthGuard } from "@/utils/authGuard";
 import { useAccountData } from "@/auth/hooks/granularAuthHooks";
 import { apiClient } from "@/utils/apiClient";
@@ -19,8 +20,7 @@ interface LibraryItem {
   created_at: string;
 }
 
-type SortField = "created_at" | "keyword_phrase";
-type SortDir = "asc" | "desc";
+const PAGE_SIZE = 25;
 
 const SUB_NAV_ITEMS = [
   { label: "Create", icon: "FaRocket" as const, href: "/dashboard/web-page-outlines", matchType: "exact" as const },
@@ -33,47 +33,37 @@ export default function WebPageOutlinesLibraryPage() {
   const router = useRouter();
 
   const [outlines, setOutlines] = useState<LibraryItem[]>([]);
+  const [totalItems, setTotalItems] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [sortField, setSortField] = useState<SortField>("created_at");
-  const [sortDir, setSortDir] = useState<SortDir>("desc");
+
+  const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
+
+  const fetchOutlines = useCallback(async (page: number) => {
+    setLoading(true);
+    try {
+      const offset = (page - 1) * PAGE_SIZE;
+      const data = await apiClient.get<{ outlines: LibraryItem[]; total: number }>(
+        `/web-page-outlines?limit=${PAGE_SIZE}&offset=${offset}`
+      );
+      setOutlines(data.outlines || []);
+      setTotalItems(data.total || 0);
+    } catch {
+      // Silently fail
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     if (!selectedAccountId) return;
+    fetchOutlines(currentPage);
+  }, [selectedAccountId, currentPage, fetchOutlines]);
 
-    async function fetchOutlines() {
-      try {
-        const data = await apiClient.get<{ outlines: LibraryItem[] }>(
-          "/web-page-outlines?limit=50"
-        );
-        setOutlines(data.outlines || []);
-      } catch {
-        // Silently fail
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchOutlines();
-  }, [selectedAccountId]);
-
-  const sortedOutlines = useMemo(() => {
-    const sorted = [...outlines].sort((a, b) => {
-      if (sortField === "keyword_phrase") {
-        return a.keyword_phrase.localeCompare(b.keyword_phrase);
-      }
-      return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-    });
-    return sortDir === "desc" ? sorted.reverse() : sorted;
-  }, [outlines, sortField, sortDir]);
-
-  const handleSort = (field: SortField) => {
-    if (sortField === field) {
-      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
-    } else {
-      setSortField(field);
-      setSortDir(field === "created_at" ? "desc" : "asc");
-    }
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleDelete = async (e: React.MouseEvent, id: string) => {
@@ -83,7 +73,12 @@ export default function WebPageOutlinesLibraryPage() {
     setDeletingId(id);
     try {
       await apiClient.delete(`/web-page-outlines/${id}`);
-      setOutlines((prev) => prev.filter((o) => o.id !== id));
+      // If we deleted the last item on this page, go back one page
+      if (outlines.length === 1 && currentPage > 1) {
+        setCurrentPage((p) => p - 1);
+      } else {
+        await fetchOutlines(currentPage);
+      }
     } catch {
       // Silently fail
     } finally {
@@ -126,7 +121,7 @@ export default function WebPageOutlinesLibraryPage() {
               size={32}
             />
           </div>
-        ) : outlines.length === 0 ? (
+        ) : totalItems === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <Icon
               name="FaFileAlt"
@@ -150,49 +145,8 @@ export default function WebPageOutlinesLibraryPage() {
           </div>
         ) : (
           <div className="space-y-3">
-            {/* Sort controls */}
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-500">Sort by:</span>
-              <button
-                type="button"
-                onClick={() => handleSort("created_at")}
-                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs border transition-colors whitespace-nowrap ${
-                  sortField === "created_at"
-                    ? "bg-slate-blue/10 border-slate-blue/30 text-slate-blue font-medium"
-                    : "bg-white/50 border-gray-200 text-gray-600 hover:bg-white/80"
-                }`}
-                aria-label={`Sort by date ${sortField === "created_at" ? (sortDir === "desc" ? "descending" : "ascending") : ""}`}
-              >
-                Date
-                {sortField === "created_at" && (
-                  <Icon
-                    name={sortDir === "desc" ? "FaChevronDown" : "FaChevronUp"}
-                    size={8}
-                  />
-                )}
-              </button>
-              <button
-                type="button"
-                onClick={() => handleSort("keyword_phrase")}
-                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs border transition-colors whitespace-nowrap ${
-                  sortField === "keyword_phrase"
-                    ? "bg-slate-blue/10 border-slate-blue/30 text-slate-blue font-medium"
-                    : "bg-white/50 border-gray-200 text-gray-600 hover:bg-white/80"
-                }`}
-                aria-label={`Sort by keyword ${sortField === "keyword_phrase" ? (sortDir === "desc" ? "descending" : "ascending") : ""}`}
-              >
-                Keyword
-                {sortField === "keyword_phrase" && (
-                  <Icon
-                    name={sortDir === "desc" ? "FaChevronDown" : "FaChevronUp"}
-                    size={8}
-                  />
-                )}
-              </button>
-            </div>
-
             {/* Outline list */}
-            {sortedOutlines.map((item) => (
+            {outlines.map((item) => (
               <div
                 key={item.id}
                 className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/60 border border-gray-100 bg-white/40 transition-colors"
@@ -243,6 +197,17 @@ export default function WebPageOutlinesLibraryPage() {
                 </button>
               </div>
             ))}
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={totalItems}
+                pageSize={PAGE_SIZE}
+                onPageChange={handlePageChange}
+              />
+            )}
           </div>
         )}
       </PageCard>

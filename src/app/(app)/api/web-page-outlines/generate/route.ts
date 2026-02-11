@@ -9,7 +9,7 @@ import { createServerSupabaseClient } from '@/auth/providers/supabase';
 import { createServiceRoleClient } from '@/auth/providers/supabase';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 import { withCredits } from '@/lib/credits/withCredits';
-import { FULL_GENERATION_COST } from '@/features/web-page-outlines/services/credits';
+import { FULL_GENERATION_COST, MAX_OUTLINES_PER_ACCOUNT } from '@/features/web-page-outlines/services/credits';
 import { buildSystemPrompt, buildUserPrompt } from './prompt';
 import {
   fetchTopCompetitors,
@@ -65,6 +65,19 @@ export async function POST(request: NextRequest) {
           { status: 404 }
         );
       }
+    }
+
+    // Check outline count cap
+    const { count: outlineCount } = await supabase
+      .from('web_page_outlines')
+      .select('*', { count: 'exact', head: true })
+      .eq('account_id', accountId);
+
+    if (outlineCount !== null && outlineCount >= MAX_OUTLINES_PER_ACCOUNT) {
+      return NextResponse.json(
+        { error: `You've reached the limit of ${MAX_OUTLINES_PER_ACCOUNT} outlines. Please delete some from your library before creating new ones.` },
+        { status: 400 }
+      );
     }
 
     // --- Competitor Analysis (enhancement only, never blocks generation) ---
