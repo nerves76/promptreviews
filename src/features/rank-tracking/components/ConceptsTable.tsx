@@ -882,8 +882,11 @@ export default function ConceptsTable({
                 })()}
               </td>
               <td className="py-3 px-4 text-center">
-                {(row.rankLocation || row.volumeLocation) ? (() => {
-                  const location = row.rankLocation || row.volumeLocation || '';
+                {(() => {
+                  // Prefer the concept's configured location (what future checks will use),
+                  // fall back to the location from the most recent check result
+                  const location = row.concept.searchVolumeLocationName || row.rankLocation || row.volumeLocation || '';
+                  if (!location) return <span className="text-gray-400">—</span>;
                   const parts = location.split(', ');
                   const country = parts.pop();
                   const cityState = abbreviateState(parts.join(', '));
@@ -893,9 +896,7 @@ export default function ConceptsTable({
                       {country && <div className="text-gray-500">{country}</div>}
                     </div>
                   );
-                })() : (
-                  <span className="text-gray-400">—</span>
-                )}
+                })()}
               </td>
               <td className="py-3 px-4 text-center">
                 {row.serpFeatures ? (
