@@ -623,7 +623,7 @@ export default function ConceptsTable({
 
   return (
     <div className="overflow-x-auto border border-gray-200 rounded-xl">
-      <table className="w-full" style={{ tableLayout: 'fixed', minWidth: '1400px' }}>
+      <table className="w-full" style={{ tableLayout: 'fixed', minWidth: '1500px' }}>
         {/* Column widths: Checkbox, Keyword, Concept, Volume, Rank, Change, URL, Checked, Location, SERP, Grid, Schedule, Actions */}
         <colgroup>
           <col style={{ width: '40px' }} />
@@ -763,11 +763,12 @@ export default function ConceptsTable({
                   <button
                     className="text-sm font-medium text-gray-900 cursor-pointer hover:text-slate-blue text-left inline-flex items-start gap-1.5 group"
                     onClick={() => onConceptClick?.(row.concept)}
+                    title="Open keyword details"
                   >
                     <span>{row.keyword}</span>
-                    <span className="w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center invisible group-hover/row:visible flex-shrink-0 mt-0.5">
+                    <span className="w-5 h-5 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center flex-shrink-0 mt-0.5 transition-colors">
                       <Icon
-                        name="FaChevronRight"
+                        name="FaCog"
                         className="w-2.5 h-2.5 text-gray-500"
                       />
                     </span>
