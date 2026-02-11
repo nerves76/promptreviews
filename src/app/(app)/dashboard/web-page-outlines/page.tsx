@@ -28,7 +28,7 @@ import type {
 // --- Skeleton label for the preview ---
 function SkeletonLabel({ children }: { children: ReactNode }) {
   return (
-    <span className="text-[11px] font-medium text-gray-500 uppercase tracking-wide">
+    <span className="text-[11px] font-medium text-white/90 uppercase tracking-wide">
       {children}
     </span>
   );
