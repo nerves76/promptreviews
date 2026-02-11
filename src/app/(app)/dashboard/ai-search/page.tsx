@@ -396,20 +396,10 @@ export default function AISearchPage() {
         0
       );
 
-      // Aggregate provider stats from results
+      // Aggregate provider stats from ALL runs (not deduplicated)
       const providerStats: Record<string, { checked: number; cited: number; mentioned: number }> = {};
 
-      // Group results by question+provider to get unique checks
-      const uniqueChecks = new Map<string, LLMVisibilityCheck>();
       for (const result of flatResults) {
-        const key = `${result.question}:${result.llmProvider}`;
-        const existing = uniqueChecks.get(key);
-        if (!existing || new Date(result.checkedAt) > new Date(existing.checkedAt)) {
-          uniqueChecks.set(key, result);
-        }
-      }
-
-      for (const result of uniqueChecks.values()) {
         if (!providerStats[result.llmProvider]) {
           providerStats[result.llmProvider] = { checked: 0, cited: 0, mentioned: 0 };
         }
@@ -418,36 +408,34 @@ export default function AISearchPage() {
         if (result.brandMentioned) providerStats[result.llmProvider].mentioned++;
       }
 
-      // Calculate average visibility
-      const citedCount = Array.from(uniqueChecks.values()).filter(r => r.domainCited).length;
-      const averageVisibility = uniqueChecks.size > 0
-        ? (citedCount / uniqueChecks.size) * 100
+      // Calculate average visibility across ALL runs
+      const citedCount = flatResults.filter(r => r.domainCited).length;
+      const averageVisibility = flatResults.length > 0
+        ? (citedCount / flatResults.length) * 100
         : null;
 
       // Count unique questions that have been checked (have at least one result)
       const uniqueQuestionsChecked = new Set(
-        Array.from(uniqueChecks.values()).map(r => r.question)
+        flatResults.map(r => r.question)
       ).size;
 
-      // Count unique questions that have at least one citation from any provider
-      const citedQuestions = new Set(
-        Array.from(uniqueChecks.values())
+      // Count unique questions that have at least one citation in any run from any provider
+      const questionsCited = new Set(
+        flatResults
           .filter(r => r.domainCited)
           .map(r => r.question)
-      );
-      const questionsCited = citedQuestions.size;
+      ).size;
 
-      // Count unique questions that have at least one brand mention from any provider
-      const mentionedQuestions = new Set(
-        Array.from(uniqueChecks.values())
+      // Count unique questions that have at least one brand mention in any run from any provider
+      const questionsMentioned = new Set(
+        flatResults
           .filter(r => r.brandMentioned)
           .map(r => r.question)
-      );
-      const questionsMentioned = mentionedQuestions.size;
+      ).size;
 
-      // Calculate consistency (standard deviation of citation rates)
+      // Calculate consistency (standard deviation of citation rates per question)
       const questionRates = new Map<string, { cited: number; total: number }>();
-      for (const result of uniqueChecks.values()) {
+      for (const result of flatResults) {
         const existing = questionRates.get(result.question) || { cited: 0, total: 0 };
         existing.total++;
         if (result.domainCited) existing.cited++;
@@ -461,7 +449,7 @@ export default function AISearchPage() {
       // Per-provider consistency
       const providerConsistency: Record<string, number | null> = {};
       for (const provider of LLM_PROVIDERS) {
-        const providerResults = Array.from(uniqueChecks.values()).filter(r => r.llmProvider === provider);
+        const providerResults = flatResults.filter(r => r.llmProvider === provider);
         if (providerResults.length > 1) {
           const providerRates = providerResults.map(r => r.domainCited ? 100 : 0);
           providerConsistency[provider] = calculateStdDev(providerRates);
@@ -822,19 +810,9 @@ export default function AISearchPage() {
       relevantQuestions.has(r.question) && selectedProviders.has(r.llmProvider)
     );
 
-    // Group results by question+provider to get unique checks (most recent per combo)
-    const uniqueChecks = new Map<string, LLMVisibilityCheck>();
-    for (const result of filteredResults) {
-      const key = `${result.question}:${result.llmProvider}`;
-      const existing = uniqueChecks.get(key);
-      if (!existing || new Date(result.checkedAt) > new Date(existing.checkedAt)) {
-        uniqueChecks.set(key, result);
-      }
-    }
-
-    // Calculate provider stats (only for selected providers)
+    // Calculate provider stats from ALL runs (not deduplicated)
     const providerStats: Record<string, { checked: number; cited: number; mentioned: number }> = {};
-    for (const result of uniqueChecks.values()) {
+    for (const result of filteredResults) {
       if (!providerStats[result.llmProvider]) {
         providerStats[result.llmProvider] = { checked: 0, cited: 0, mentioned: 0 };
       }
@@ -843,36 +821,34 @@ export default function AISearchPage() {
       if (result.brandMentioned) providerStats[result.llmProvider].mentioned++;
     }
 
-    // Calculate citation rate (across selected providers)
-    const citedCount = Array.from(uniqueChecks.values()).filter(r => r.domainCited).length;
-    const mentionedCount = Array.from(uniqueChecks.values()).filter(r => r.brandMentioned).length;
-    const averageVisibility = uniqueChecks.size > 0
-      ? (citedCount / uniqueChecks.size) * 100
+    // Calculate citation rate across ALL runs (selected providers)
+    const citedCount = filteredResults.filter(r => r.domainCited).length;
+    const mentionedCount = filteredResults.filter(r => r.brandMentioned).length;
+    const averageVisibility = filteredResults.length > 0
+      ? (citedCount / filteredResults.length) * 100
       : null;
-    const averageMentionRate = uniqueChecks.size > 0
-      ? (mentionedCount / uniqueChecks.size) * 100
+    const averageMentionRate = filteredResults.length > 0
+      ? (mentionedCount / filteredResults.length) * 100
       : null;
 
     // Count unique questions that have been checked (by selected providers)
     const questionsChecked = new Set(
-      Array.from(uniqueChecks.values()).map(r => r.question)
+      filteredResults.map(r => r.question)
     ).size;
 
-    // Count unique questions that have at least one citation from selected providers
-    const citedQuestions = new Set(
-      Array.from(uniqueChecks.values())
+    // Count unique questions that have at least one citation in any run from selected providers
+    const questionsCited = new Set(
+      filteredResults
         .filter(r => r.domainCited)
         .map(r => r.question)
-    );
-    const questionsCited = citedQuestions.size;
+    ).size;
 
-    // Count unique questions that have at least one brand mention from selected providers
-    const mentionedQuestions = new Set(
-      Array.from(uniqueChecks.values())
+    // Count unique questions that have at least one brand mention in any run from selected providers
+    const questionsMentioned = new Set(
+      filteredResults
         .filter(r => r.brandMentioned)
         .map(r => r.question)
-    );
-    const questionsMentioned = mentionedQuestions.size;
+    ).size;
 
     // Calculate REPEATABILITY (how consistent is each provider when asked the same question multiple times)
     // This uses the per-question consistency scores from questionRows
@@ -1926,7 +1902,7 @@ export default function AISearchPage() {
                           <span
                             key={provider}
                             className={`px-1.5 py-0.5 rounded text-xs ${colors.bg} ${colors.text}`}
-                            title={`${LLM_PROVIDER_LABELS[provider]}: ${stats?.mentioned || 0} mentioned / ${stats?.checked || 0} checked`}
+                            title={`${LLM_PROVIDER_LABELS[provider]}: ${stats?.mentioned || 0} mentioned / ${stats?.checked || 0} total checks`}
                           >
                             {rate !== null ? `${rate}%` : '--'}
                           </span>
@@ -1974,7 +1950,7 @@ export default function AISearchPage() {
                           <span
                             key={provider}
                             className={`px-1.5 py-0.5 rounded text-xs ${colors.bg} ${colors.text}`}
-                            title={`${LLM_PROVIDER_LABELS[provider]}: ${stats?.cited || 0} cited / ${stats?.checked || 0} checked`}
+                            title={`${LLM_PROVIDER_LABELS[provider]}: ${stats?.cited || 0} cited / ${stats?.checked || 0} total checks`}
                           >
                             {rate !== null ? `${rate}%` : '--'}
                           </span>
@@ -2448,22 +2424,41 @@ export default function AISearchPage() {
                               <React.Fragment key={provider}>
                                 <td className="py-3 px-2 text-center">
                                   <div className="flex flex-col items-center gap-0.5">
-                                    {/* Citation status - show link if cited */}
-                                    {result.domainCited ? (
-                                      <span className="text-green-600 text-xs font-medium flex items-center gap-0.5" title={`Cited at position ${result.citationPosition}`}>
-                                        <Icon name="FaLink" className="w-3 h-3" />
-                                        #{result.citationPosition || '?'}
-                                      </span>
-                                    ) : result.brandMentioned ? (
-                                      /* Brand mention without citation - show chat icon only, no X */
-                                      <span className="text-slate-blue text-xs font-medium flex items-center gap-0.5" title="Brand mentioned in response (no citation link)">
-                                        <Icon name="FaCommentAlt" className="w-3 h-3" />
-                                      </span>
+                                    {/* Citation status - multi-run aware */}
+                                    {consistencyData && consistencyData.totalChecks > 1 ? (
+                                      // Multi-run: show fraction counts
+                                      consistencyData.citedCount > 0 ? (
+                                        <span className="text-green-600 text-xs font-medium flex items-center gap-0.5" title={`Cited in ${consistencyData.citedCount} of ${consistencyData.totalChecks} checks`}>
+                                          <Icon name="FaLink" className="w-3 h-3" />
+                                          {consistencyData.citedCount}/{consistencyData.totalChecks}
+                                        </span>
+                                      ) : consistencyData.mentionedCount > 0 ? (
+                                        <span className="text-slate-blue text-xs font-medium flex items-center gap-0.5" title={`Mentioned in ${consistencyData.mentionedCount} of ${consistencyData.totalChecks} checks`}>
+                                          <Icon name="FaCommentAlt" className="w-3 h-3" />
+                                          {consistencyData.mentionedCount}/{consistencyData.totalChecks}
+                                        </span>
+                                      ) : (
+                                        <span className="text-amber-500 text-xs flex items-center gap-0.5" title={`Not cited or mentioned in ${consistencyData.totalChecks} checks`}>
+                                          <Icon name="FaTimes" className="w-3 h-3" />
+                                          0/{consistencyData.totalChecks}
+                                        </span>
+                                      )
                                     ) : (
-                                      /* Not cited and not mentioned - show X */
-                                      <span className="text-amber-500 text-xs flex items-center gap-0.5" title="Checked - not cited or mentioned">
-                                        <Icon name="FaTimes" className="w-3 h-3" />
-                                      </span>
+                                      // Single run: show original behavior
+                                      result.domainCited ? (
+                                        <span className="text-green-600 text-xs font-medium flex items-center gap-0.5" title={`Cited at position ${result.citationPosition}`}>
+                                          <Icon name="FaLink" className="w-3 h-3" />
+                                          #{result.citationPosition || '?'}
+                                        </span>
+                                      ) : result.brandMentioned ? (
+                                        <span className="text-slate-blue text-xs font-medium flex items-center gap-0.5" title="Brand mentioned in response (no citation link)">
+                                          <Icon name="FaCommentAlt" className="w-3 h-3" />
+                                        </span>
+                                      ) : (
+                                        <span className="text-amber-500 text-xs flex items-center gap-0.5" title="Checked - not cited or mentioned">
+                                          <Icon name="FaTimes" className="w-3 h-3" />
+                                        </span>
+                                      )
                                     )}
                                   </div>
                                 </td>
@@ -2594,7 +2589,7 @@ export default function AISearchPage() {
                               {(() => {
                                 const resultsWithData = LLM_PROVIDERS
                                   .filter(p => selectedProviders.has(p))
-                                  .map(provider => ({ provider, result: row.results.get(provider) }))
+                                  .map(provider => ({ provider, result: row.results.get(provider), consistency: row.consistency.get(provider) }))
                                   .filter(({ result }) => result !== null);
 
                                 if (resultsWithData.length === 0) {
@@ -2607,7 +2602,7 @@ export default function AISearchPage() {
 
                                 return (
                                   <div className="space-y-4">
-                                    {resultsWithData.map(({ provider, result }) => {
+                                    {resultsWithData.map(({ provider, result, consistency }) => {
                                       if (!result) return null;
                                       const colors = LLM_PROVIDER_COLORS[provider];
 
@@ -2638,6 +2633,12 @@ export default function AISearchPage() {
                                               </span>
                                             </div>
                                           </div>
+                                          {/* Multi-run counts */}
+                                          {consistency && consistency.totalChecks > 1 && (
+                                            <div className="text-xs text-gray-500 mb-2 pl-1">
+                                              Across {consistency.totalChecks} checks: Cited in {consistency.citedCount}/{consistency.totalChecks} · Mentioned in {consistency.mentionedCount}/{consistency.totalChecks}
+                                            </div>
+                                          )}
 
                                           {/* Response excerpt with view button */}
                                           {(result.responseSnippet || result.fullResponse) ? (
