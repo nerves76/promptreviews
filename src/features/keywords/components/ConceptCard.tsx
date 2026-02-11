@@ -68,7 +68,7 @@ interface ConceptCardProps {
   /** Callback to delete keyword */
   onDelete?: (id: string) => Promise<void>;
   /** Callback when user wants to check rank for a search term */
-  onCheckRank?: (term: string, conceptId: string) => void;
+  onCheckRank?: (term: string, conceptId: string, locationCode?: number | null, locationName?: string | null) => void;
   /** Callback when user wants to check AI visibility for a question */
   onCheckLLMVisibility?: (question: string, conceptId: string) => void;
   /** Optional: Show edit actions */
@@ -87,6 +87,8 @@ interface ConceptCardProps {
   creditBalance?: number;
   /** Callback when a schedule is updated or check is run */
   onScheduleUpdated?: () => void;
+  /** Whether a manual rank check is currently in progress for this concept */
+  isRankChecking?: boolean;
 }
 
 /**
@@ -110,6 +112,7 @@ export function ConceptCard({
   businessLocationName,
   creditBalance,
   onScheduleUpdated,
+  isRankChecking = false,
 }: ConceptCardProps) {
   const router = useRouter();
 
@@ -732,6 +735,16 @@ export function ConceptCard({
                     In progress
                   </span>
                 )}
+                {/* Manual rank check in progress indicator */}
+                {isRankChecking && (
+                  <span
+                    className="px-1.5 py-0.5 text-[10px] font-medium rounded flex items-center gap-0.5 text-blue-600 whitespace-nowrap"
+                    title="Manual rank check in progress"
+                  >
+                    <Icon name="FaSpinner" className="w-2.5 h-2.5 animate-[spin_2s_linear_infinite]" />
+                    Checking rank...
+                  </span>
+                )}
               </>
             )}
             {/* Edit button */}
@@ -933,6 +946,12 @@ export function ConceptCard({
                 <span className="ml-1.5 text-[9px] font-medium text-amber-600 inline-flex items-center gap-0.5">
                   <Icon name="FaClock" className="w-2 h-2" />
                   Checking rank
+                </span>
+              )}
+              {isRankChecking && (
+                <span className="ml-1.5 text-[9px] font-medium text-blue-600 inline-flex items-center gap-0.5">
+                  <Icon name="FaSpinner" className="w-2 h-2 animate-[spin_2s_linear_infinite]" />
+                  Checking rank...
                 </span>
               )}
               {enrichedData?.scheduleStatus?.runStatus &&
@@ -1171,7 +1190,7 @@ export function ConceptCard({
                             </button>
                             {onCheckRank && (
                               <button
-                                onClick={() => onCheckRank(term.term, keyword.id)}
+                                onClick={() => onCheckRank(term.term, keyword.id, keyword.searchVolumeLocationCode, keyword.searchVolumeLocationName)}
                                 disabled={Object.values(loadingStates).some(s => s !== null)}
                                 className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-white bg-slate-blue rounded hover:bg-slate-blue/90 transition-colors disabled:opacity-50"
                                 title="Check ranking"

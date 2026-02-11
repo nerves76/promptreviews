@@ -131,11 +131,13 @@ interface KeywordManagerProps {
   businessCity?: string;
   businessState?: string;
   /** Callback when user wants to check rank for a search term */
-  onCheckRank?: (keyword: string, conceptId: string) => void;
+  onCheckRank?: (keyword: string, conceptId: string, locationCode?: number | null, locationName?: string | null) => void;
   /** Callback when user wants to check LLM visibility for a question */
   onCheckLLMVisibility?: (question: string, conceptId: string) => void;
   /** Key that triggers enrichment data refresh when changed */
   enrichmentRefreshKey?: number;
+  /** Set of concept IDs that currently have a manual rank check in progress */
+  rankCheckingConceptIds?: Set<string>;
 }
 
 /**
@@ -160,6 +162,7 @@ export default function KeywordManager({
   onCheckRank,
   onCheckLLMVisibility,
   enrichmentRefreshKey,
+  rankCheckingConceptIds,
 }: KeywordManagerProps) {
   const {
     keywords,
@@ -1445,6 +1448,7 @@ export default function KeywordManager({
                     businessLocationCode={business?.location_code ?? lookedUpLocation?.locationCode}
                     businessLocationName={business?.location_name ?? lookedUpLocation?.locationName}
                     onScheduleUpdated={handleRefreshEnrichment}
+                    isRankChecking={rankCheckingConceptIds?.has(keyword.id) ?? false}
                   />
                 </div>
               </div>

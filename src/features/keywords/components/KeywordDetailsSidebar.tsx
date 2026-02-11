@@ -44,7 +44,7 @@ export interface KeywordDetailsSidebarProps {
   groups?: Array<{ id: string; name: string }>;
   showGroupSelector?: boolean;
   onRefresh?: () => Promise<void>;
-  onCheckRank?: (keyword: string, conceptId: string) => void;
+  onCheckRank?: (keyword: string, conceptId: string, locationCode?: number | null, locationName?: string | null) => void;
 }
 
 export function KeywordDetailsSidebar({
@@ -580,7 +580,7 @@ export function KeywordDetailsSidebar({
                             volumeLookupError={volumeLookupError}
                             rankStatus={rankStatus}
                             geoGridStatus={geoGridStatus}
-                            onCheckRank={onCheckRank}
+                            onCheckRank={onCheckRank ? (term: string, keywordId: string) => onCheckRank(term, keywordId, keyword?.searchVolumeLocationCode, keyword?.searchVolumeLocationName) : undefined}
                           />
 
                           {/* AI Visibility Section */}

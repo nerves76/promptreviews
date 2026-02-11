@@ -5,7 +5,6 @@ import Icon from '@/components/Icon';
 import PageCard from '@/app/(app)/components/PageCard';
 import { SubNav } from '@/app/(app)/components/SubNav';
 import { KeywordManager } from '@/features/keywords/components';
-import { useKeywords } from '@/features/keywords/hooks/useKeywords';
 import { CheckRankModal } from '@/features/rank-tracking/components';
 import { CheckLLMModal } from '@/features/llm-visibility/components';
 import { apiClient } from '@/utils/apiClient';
@@ -19,11 +18,13 @@ import { useBusinessData } from '@/auth/hooks/granularAuthHooks';
  * Design matches Prompt Pages convention with PageCard.
  */
 export default function KeywordsPage() {
-  const { keywords } = useKeywords();
   const { business } = useBusinessData();
   const [checkingKeyword, setCheckingKeyword] = useState<{ keyword: string; conceptId: string; locationCode?: number; locationName?: string } | null>(null);
   const [checkingLLM, setCheckingLLM] = useState<{ question: string; conceptId: string } | null>(null);
   const [enrichmentRefreshKey, setEnrichmentRefreshKey] = useState(0);
+
+  // Track which concepts have a manual rank check in progress
+  const [rankCheckingConceptIds, setRankCheckingConceptIds] = useState<Set<string>>(new Set());
 
   // Looked-up location from business address (if location_code not set)
   const [lookedUpLocation, setLookedUpLocation] = useState<{
@@ -80,85 +81,94 @@ export default function KeywordsPage() {
   }, []);
 
   // Handle clicking "Check ranking" on a search term
-  // Always show modal with credit info and confirmation
-  const handleCheckRank = useCallback((keyword: string, conceptId: string) => {
-    // Find the concept to get its location
-    const concept = keywords.find(k => k.id === conceptId);
-    const conceptLocationCode = concept?.searchVolumeLocationCode;
-    const conceptLocationName = concept?.searchVolumeLocationName;
-
-    // Use concept location, or fallback to business location, or looked-up location from address
-    const locationCode = conceptLocationCode || business?.location_code || lookedUpLocation?.locationCode;
-    const locationName = conceptLocationName || business?.location_name || lookedUpLocation?.locationName;
+  // Location is passed directly from ConceptCard (freshest data) to avoid stale lookups
+  const handleCheckRank = useCallback((keyword: string, conceptId: string, locationCode?: number | null, locationName?: string | null) => {
+    // Use passed-in concept location, or fallback to business location, or looked-up location from address
+    const resolvedLocationCode = locationCode || business?.location_code || lookedUpLocation?.locationCode;
+    const resolvedLocationName = locationName || business?.location_name || lookedUpLocation?.locationName;
 
     // Always show modal with pre-selected location if available
     setCheckingKeyword({
       keyword,
       conceptId,
-      locationCode,
-      locationName,
+      locationCode: resolvedLocationCode,
+      locationName: resolvedLocationName,
     });
-  }, [keywords, business, lookedUpLocation]);
+  }, [business, lookedUpLocation]);
 
   // Handle clicking "Check" on an AI visibility question
   const handleCheckLLMVisibility = useCallback((question: string, conceptId: string) => {
     setCheckingLLM({ question, conceptId });
   }, []);
 
-  // Perform the actual rank check (called from modal) - checks both desktop and mobile
-  const performRankCheck = useCallback(async (
+  // Fire-and-forget rank check (called from modal after confirmation)
+  const startRankCheck = useCallback((
     locationCode: number,
     locationName: string
-  ): Promise<{
-    desktop: { position: number | null; found: boolean };
-    mobile: { position: number | null; found: boolean };
-  }> => {
-    if (!checkingKeyword) throw new Error('No keyword selected');
+  ) => {
+    if (!checkingKeyword) return;
 
-    // Check both desktop and mobile in parallel
-    const [desktopResponse, mobileResponse] = await Promise.all([
-      apiClient.post<{
-        success: boolean;
-        position: number | null;
-        found: boolean;
-        foundUrl: string | null;
-        creditsUsed: number;
-        creditsRemaining: number;
-        error?: string;
-      }>('/rank-tracking/check-keyword', {
-        keyword: checkingKeyword.keyword,
-        keywordId: checkingKeyword.conceptId,
-        locationCode,
-        device: 'desktop',
-      }),
-      apiClient.post<{
-        success: boolean;
-        position: number | null;
-        found: boolean;
-        foundUrl: string | null;
-        creditsUsed: number;
-        creditsRemaining: number;
-        error?: string;
-      }>('/rank-tracking/check-keyword', {
-        keyword: checkingKeyword.keyword,
-        keywordId: checkingKeyword.conceptId,
-        locationCode,
-        device: 'mobile',
-      }),
-    ]);
+    const conceptId = checkingKeyword.conceptId;
+    const kw = checkingKeyword.keyword;
 
-    if (!desktopResponse.success) {
-      throw new Error(desktopResponse.error || 'Failed to check desktop rank');
-    }
-    if (!mobileResponse.success) {
-      throw new Error(mobileResponse.error || 'Failed to check mobile rank');
-    }
+    // Mark concept as checking
+    setRankCheckingConceptIds(prev => new Set(prev).add(conceptId));
 
-    return {
-      desktop: { position: desktopResponse.position, found: desktopResponse.found },
-      mobile: { position: mobileResponse.position, found: mobileResponse.found },
-    };
-  }, [checkingKeyword]);
+    // Fire off the check without awaiting
+    (async () => {
+      try {
+        const [desktopResponse, mobileResponse] = await Promise.all([
+          apiClient.post<{
+            success: boolean;
+            position: number | null;
+            found: boolean;
+            foundUrl: string | null;
+            creditsUsed: number;
+            creditsRemaining: number;
+            error?: string;
+          }>('/rank-tracking/check-keyword', {
+            keyword: kw,
+            keywordId: conceptId,
+            locationCode,
+            device: 'desktop',
+          }),
+          apiClient.post<{
+            success: boolean;
+            position: number | null;
+            found: boolean;
+            foundUrl: string | null;
+            creditsUsed: number;
+            creditsRemaining: number;
+            error?: string;
+          }>('/rank-tracking/check-keyword', {
+            keyword: kw,
+            keywordId: conceptId,
+            locationCode,
+            device: 'mobile',
+          }),
+        ]);
+
+        if (!desktopResponse.success) {
+          console.error('Desktop rank check failed:', desktopResponse.error);
+        }
+        if (!mobileResponse.success) {
+          console.error('Mobile rank check failed:', mobileResponse.error);
+        }
+
+        // Trigger enrichment data refresh
+        handleCheckComplete();
+      } catch (err) {
+        console.error('Rank check failed:', err);
+      } finally {
+        // Remove concept from checking set
+        setRankCheckingConceptIds(prev => {
+          const next = new Set(prev);
+          next.delete(conceptId);
+          return next;
+        });
+      }
+    })();
+  }, [checkingKeyword, handleCheckComplete]);
 
   return (
     <div>
@@ -189,6 +199,7 @@ export default function KeywordsPage() {
           onCheckRank={handleCheckRank}
           onCheckLLMVisibility={handleCheckLLMVisibility}
           enrichmentRefreshKey={enrichmentRefreshKey}
+          rankCheckingConceptIds={rankCheckingConceptIds}
         />
       </PageCard>
 
@@ -197,8 +208,7 @@ export default function KeywordsPage() {
         keyword={checkingKeyword?.keyword || ''}
         isOpen={!!checkingKeyword}
         onClose={() => setCheckingKeyword(null)}
-        onCheck={performRankCheck}
-        onCheckComplete={handleCheckComplete}
+        onCheck={startRankCheck}
         defaultLocationCode={checkingKeyword?.locationCode}
         defaultLocationName={checkingKeyword?.locationName}
         locationLocked={!!checkingKeyword?.locationCode}
