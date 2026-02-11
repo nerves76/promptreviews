@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/auth/providers/supabase';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
+import { extractBrandsFromText } from '@/features/llm-visibility/utils/brandExtraction';
 
 /**
  * GET /api/llm-visibility/export-competitors
@@ -29,16 +30,17 @@ export async function GET(request: NextRequest) {
 
     const businessName = business?.name?.toLowerCase() || '';
 
-    // Fetch all checks with mentioned_brands
+    // Fetch all checks with brand data or response text
     const { data: checks, error: checksError } = await supabase
       .from('llm_visibility_checks')
       .select(`
         mentioned_brands,
+        full_response,
         checked_at,
         keywords!inner(phrase)
       `)
       .eq('account_id', accountId)
-      .not('mentioned_brands', 'is', null);
+      .or('mentioned_brands.not.is.null,full_response.not.is.null');
 
     if (checksError) {
       console.error('[export-competitors] Error fetching checks:', checksError);
@@ -63,12 +65,23 @@ export async function GET(request: NextRequest) {
         category?: string;
         urls?: Array<{ url: string; domain: string }>;
       }> | null;
+      const fullResponse = (check as any).full_response as string | null;
 
-      if (!mentionedBrands || !Array.isArray(mentionedBrands)) continue;
+      // Determine brands: prefer structured data, fall back to text extraction
+      let brands: Array<{ title: string; category?: string; urls?: Array<{ url: string; domain: string }> }>;
+      if (mentionedBrands && Array.isArray(mentionedBrands) && mentionedBrands.length > 0) {
+        brands = mentionedBrands;
+      } else if (fullResponse) {
+        brands = extractBrandsFromText(fullResponse, business?.name || undefined);
+      } else {
+        continue;
+      }
+
+      if (brands.length === 0) continue;
 
       const concept = (check.keywords as any)?.phrase || '';
 
-      for (const brand of mentionedBrands) {
+      for (const brand of brands) {
         if (!brand.title) continue;
 
         const key = brand.title.toLowerCase();

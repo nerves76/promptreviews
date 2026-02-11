@@ -360,8 +360,8 @@ export default function CompetitorsPage() {
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">No competitor mentions yet</h3>
             <p className="text-gray-600 mb-6 max-w-md mx-auto">
-              Run AI visibility checks with ChatGPT to see which brands are being mentioned.
-              Brand mentions are extracted from ChatGPT responses.
+              Run AI visibility checks to see which brands are being mentioned.
+              Brand mentions are extracted from all AI provider responses.
             </p>
             <Link
               href="/dashboard/ai-search"
@@ -420,7 +420,7 @@ export default function CompetitorsPage() {
                 <div className="flex items-start gap-2">
                   <Icon name="FaInfoCircle" className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
                   <div className="text-sm text-blue-800">
-                    <p>This data comes from ChatGPT checks only.</p>
+                    <p>This data comes from all AI provider checks.</p>
                     <p className="text-blue-700 mt-1">AI analysis may contain errors. We recommend verifying with trusted sources.</p>
                   </div>
                 </div>

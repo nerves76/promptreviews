@@ -13,6 +13,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/auth/providers/supabase';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 import { getStartDateFromTimeWindow } from '@/features/llm-visibility/utils/timeWindow';
+import { extractBrandsFromText } from '@/features/llm-visibility/utils/brandExtraction';
 
 interface LLMBrandEntity {
   title: string;
@@ -67,13 +68,14 @@ export async function GET(request: NextRequest) {
 
     const businessName = business?.name?.toLowerCase() || '';
 
-    // Fetch all checks with mentioned_brands for this account
+    // Fetch all checks with brand data or response text for this account
     let query = supabase
       .from('llm_visibility_checks')
       .select(`
         id,
         keyword_id,
         mentioned_brands,
+        full_response,
         checked_at,
         keywords!inner (
           id,
@@ -81,7 +83,7 @@ export async function GET(request: NextRequest) {
         )
       `)
       .eq('account_id', accountId)
-      .not('mentioned_brands', 'is', null);
+      .or('mentioned_brands.not.is.null,full_response.not.is.null');
 
     if (conceptId) {
       query = query.eq('keyword_id', conceptId);
@@ -114,16 +116,25 @@ export async function GET(request: NextRequest) {
 
     for (const check of checks || []) {
       const mentionedBrands = check.mentioned_brands as LLMBrandEntity[] | null;
+      const fullResponse = (check as any).full_response as string | null;
 
-      if (!mentionedBrands || !Array.isArray(mentionedBrands) || mentionedBrands.length === 0) {
+      // Determine brands: prefer structured data, fall back to text extraction
+      let brands: Array<{ title: string; category?: string | null; urls?: Array<{ url: string; domain: string }> | null }>;
+      if (mentionedBrands && Array.isArray(mentionedBrands) && mentionedBrands.length > 0) {
+        brands = mentionedBrands;
+      } else if (fullResponse) {
+        brands = extractBrandsFromText(fullResponse, business?.name || undefined);
+      } else {
         continue;
       }
+
+      if (brands.length === 0) continue;
 
       totalChecksWithBrands++;
       const conceptName = (check.keywords as any)?.phrase || 'Unknown';
       const checkedAt = new Date(check.checked_at);
 
-      for (const brand of mentionedBrands) {
+      for (const brand of brands) {
         if (!brand.title) continue;
 
         const brandName = brand.title.trim();
