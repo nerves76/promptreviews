@@ -6,7 +6,7 @@ import { Switch } from '@headlessui/react';
 import PageCard from '@/app/(app)/components/PageCard';
 import { SubNav } from '@/app/(app)/components/SubNav';
 import { Button } from '@/app/(app)/components/ui/button';
-import { Modal } from '@/app/(app)/components/ui/modal';
+import GlassSuccessModal from '@/app/(app)/components/GlassSuccessModal';
 import Icon from '@/components/Icon';
 import { useSurvey } from '@/features/surveys/hooks/useSurvey';
 import { SurveyBuilder } from '@/features/surveys/components/SurveyBuilder';
@@ -298,85 +298,47 @@ export function SurveyBuilderPageContent({ basePath, surveyId }: SurveyBuilderPa
       )}
 
       {/* Publish success modal */}
-      <Modal
+      <GlassSuccessModal
         isOpen={showPublishModal}
         onClose={() => setShowPublishModal(false)}
         title="Survey published!"
-        size="md"
+        message="Your survey is now live. Share it with your audience."
+        iconName="FaRocket"
+        dismissOnBackdrop
+        primaryAction={{
+          label: copySuccess ? 'Copied!' : 'Copy link',
+          onClick: handleCopyLink,
+          iconName: 'FaCopy',
+        }}
+        secondaryAction={{
+          label: 'Generate QR code',
+          onClick: () => {
+            setShowPublishModal(false);
+            setShowQR(true);
+          },
+          iconName: 'FaImage',
+        }}
       >
-        <div className="space-y-4">
-          <p className="text-gray-600 text-sm">
-            Your survey is now live. Share it with your audience using the options below.
-          </p>
-
-          {/* Copy link */}
-          <div className="flex items-center gap-2">
-            <div className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 truncate">
-              {surveyUrl}
-            </div>
-            <Button size="sm" variant="secondary" onClick={handleCopyLink} className="whitespace-nowrap">
-              <Icon name="FaCopy" size={14} className="mr-1" />
-              {copySuccess ? 'Copied!' : 'Copy'}
-            </Button>
-          </div>
-
-          {/* Action buttons */}
-          <div className="space-y-2">
-            <button
-              onClick={() => {
-                setShowPublishModal(false);
-                setShowQR(true);
-              }}
-              className="w-full flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors text-left"
-            >
-              <div className="w-8 h-8 rounded-lg bg-slate-blue/10 flex items-center justify-center flex-shrink-0">
-                <Icon name="FaImage" size={14} className="text-slate-blue" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-900">Generate QR code</p>
-                <p className="text-xs text-gray-500">Download a QR code for print materials</p>
-              </div>
-            </button>
-
-            <button
-              onClick={() => {
-                window.open(`/s/${survey.slug}`, '_blank');
-              }}
-              className="w-full flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors text-left"
-            >
-              <div className="w-8 h-8 rounded-lg bg-slate-blue/10 flex items-center justify-center flex-shrink-0">
-                <Icon name="FaEye" size={14} className="text-slate-blue" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-900">Preview survey</p>
-                <p className="text-xs text-gray-500">Open the live survey in a new tab</p>
-              </div>
-            </button>
-
-            <button
-              onClick={() => {
-                setShowPublishModal(false);
-                router.push(`${basePath}/${surveyId}/responses`);
-              }}
-              className="w-full flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors text-left"
-            >
-              <div className="w-8 h-8 rounded-lg bg-slate-blue/10 flex items-center justify-center flex-shrink-0">
-                <Icon name="FaChartLine" size={14} className="text-slate-blue" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-900">View responses</p>
-                <p className="text-xs text-gray-500">Monitor incoming survey responses</p>
-              </div>
-            </button>
-          </div>
+        <div className="mt-2 flex flex-col gap-2">
+          <button
+            onClick={() => window.open(`/s/${survey.slug}`, '_blank')}
+            className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/40 bg-white/20 px-5 py-3 text-sm font-semibold text-white transition-all hover:bg-white/30"
+          >
+            <Icon name="FaEye" className="h-4 w-4" size={16} />
+            Preview survey
+          </button>
+          <button
+            onClick={() => {
+              setShowPublishModal(false);
+              router.push(`${basePath}/${surveyId}/responses`);
+            }}
+            className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/40 bg-white/20 px-5 py-3 text-sm font-semibold text-white transition-all hover:bg-white/30"
+          >
+            <Icon name="FaChartLine" className="h-4 w-4" size={16} />
+            View responses
+          </button>
         </div>
-
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowPublishModal(false)}>
-            Done
-          </Button>
-        </Modal.Footer>
-      </Modal>
+      </GlassSuccessModal>
     </PageCard>
     </>
   );
