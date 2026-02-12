@@ -25,11 +25,21 @@ interface SurveyFormProps {
   onError: (error: string) => void;
 }
 
+const QUESTIONS_PER_PAGE = 10;
+
 export function SurveyForm({ survey, questions, styleConfig, onSubmitted, onError }: SurveyFormProps) {
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [respondentName, setRespondentName] = useState('');
   const [respondentEmail, setRespondentEmail] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0);
+
+  const totalPages = Math.ceil(questions.length / QUESTIONS_PER_PAGE);
+  const needsPagination = questions.length > QUESTIONS_PER_PAGE;
+  const pageQuestions = needsPagination
+    ? questions.slice(currentPage * QUESTIONS_PER_PAGE, (currentPage + 1) * QUESTIONS_PER_PAGE)
+    : questions;
+  const isLastPage = currentPage >= totalPages - 1;
 
   const answeredCount = Object.keys(answers).filter(k => {
     const val = answers[k];
@@ -42,6 +52,32 @@ export function SurveyForm({ survey, questions, styleConfig, onSubmitted, onErro
 
   const handleAnswerChange = (questionId: string, value: any) => {
     setAnswers(prev => ({ ...prev, [questionId]: value }));
+  };
+
+  const validateCurrentPage = (): boolean => {
+    for (const q of pageQuestions) {
+      if (q.is_required) {
+        const answer = answers[q.id];
+        if (answer === undefined || answer === null || answer === '' || (Array.isArray(answer) && answer.length === 0)) {
+          onError(`Please answer: "${q.question_text}"`);
+          return false;
+        }
+      }
+    }
+    onError('');
+    return true;
+  };
+
+  const handleNextPage = () => {
+    if (!validateCurrentPage()) return;
+    setCurrentPage(prev => Math.min(prev + 1, totalPages - 1));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handlePrevPage = () => {
+    onError('');
+    setCurrentPage(prev => Math.max(prev - 1, 0));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -175,9 +211,17 @@ export function SurveyForm({ survey, questions, styleConfig, onSubmitted, onErro
         </div>
       )}
 
+      {/* Page indicator */}
+      {needsPagination && (
+        <div className="flex justify-between items-center mb-4 text-sm" style={{ color: textColor }}>
+          <span className="opacity-70">Page {currentPage + 1} of {totalPages}</span>
+          <span className="opacity-70">Questions {currentPage * QUESTIONS_PER_PAGE + 1}–{Math.min((currentPage + 1) * QUESTIONS_PER_PAGE, questions.length)} of {questions.length}</span>
+        </div>
+      )}
+
       {/* Questions */}
       <div className="space-y-6">
-        {questions.map((question, index) => (
+        {pageQuestions.map((question, index) => (
           <SurveyQuestion
             key={question.id}
             question={question}
@@ -188,23 +232,53 @@ export function SurveyForm({ survey, questions, styleConfig, onSubmitted, onErro
             inputBg={inputBg}
             innerShadow={innerShadow}
             placeholderColor={placeholderColor}
-            index={index}
+            index={currentPage * QUESTIONS_PER_PAGE + index}
           />
         ))}
       </div>
 
-      {/* Submit — matches prompt page button */}
-      <button
-        type="submit"
-        disabled={submitting}
-        className="mt-8 w-full py-3 px-6 rounded-lg font-semibold text-lg shadow-lg text-white hover:opacity-90 focus:outline-none transition disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
-        style={{
-          backgroundColor: styleConfig.secondaryColor || '#2E4A7D',
-          fontFamily: styleConfig.primaryFont || 'Inter',
-        }}
-      >
-        {submitting ? 'Submitting...' : 'Submit'}
-      </button>
+      {/* Navigation and submit */}
+      <div className="mt-8 flex gap-3">
+        {needsPagination && currentPage > 0 && (
+          <button
+            type="button"
+            onClick={handlePrevPage}
+            className="py-3 px-6 rounded-lg font-semibold text-base shadow-lg hover:opacity-90 focus:outline-none transition whitespace-nowrap"
+            style={{
+              backgroundColor: inputBg,
+              color: textColor,
+              fontFamily: styleConfig.primaryFont || 'Inter',
+            }}
+          >
+            Previous
+          </button>
+        )}
+        {needsPagination && !isLastPage ? (
+          <button
+            type="button"
+            onClick={handleNextPage}
+            className="flex-1 py-3 px-6 rounded-lg font-semibold text-base shadow-lg text-white hover:opacity-90 focus:outline-none transition whitespace-nowrap"
+            style={{
+              backgroundColor: styleConfig.secondaryColor || '#2E4A7D',
+              fontFamily: styleConfig.primaryFont || 'Inter',
+            }}
+          >
+            Next
+          </button>
+        ) : (
+          <button
+            type="submit"
+            disabled={submitting}
+            className="flex-1 py-3 px-6 rounded-lg font-semibold text-lg shadow-lg text-white hover:opacity-90 focus:outline-none transition disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+            style={{
+              backgroundColor: styleConfig.secondaryColor || '#2E4A7D',
+              fontFamily: styleConfig.primaryFont || 'Inter',
+            }}
+          >
+            {submitting ? 'Submitting...' : 'Submit'}
+          </button>
+        )}
+      </div>
     </form>
   );
 }

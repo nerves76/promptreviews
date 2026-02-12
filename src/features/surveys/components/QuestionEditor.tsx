@@ -27,7 +27,7 @@ export function QuestionEditor({ question, onChange, onRemove, index }: Question
   return (
     <div className="border border-gray-200 rounded-lg p-4 bg-white">
       <div className="flex items-start justify-between mb-4">
-        <span className="text-sm font-medium text-gray-500">Question {index + 1}</span>
+        <span className="text-base font-semibold text-gray-900">Question {index + 1}</span>
         <button
           onClick={onRemove}
           className="text-gray-400 hover:text-red-500 transition-colors"

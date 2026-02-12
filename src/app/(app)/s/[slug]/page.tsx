@@ -58,9 +58,9 @@ async function getSurveyData(slug: string) {
       survey.survey_questions.sort((a: any, b: any) => a.position - b.position);
     }
 
-    // Fetch business styling if enabled
+    // Always fetch business profile for styling (matches prompt page behavior)
     let businessProfile = null;
-    if (survey.use_business_styling && survey.account_id) {
+    if (survey.account_id) {
       const { data: business } = await supabase
         .from('businesses')
         .select('*')

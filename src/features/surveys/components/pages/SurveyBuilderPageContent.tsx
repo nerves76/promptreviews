@@ -141,14 +141,14 @@ export function SurveyBuilderPageContent({ basePath, surveyId }: SurveyBuilderPa
       />
 
       <PageCard icon={<Icon name="FaFileAlt" size={24} className="text-slate-blue" />} topMargin="mt-16">
-      {/* Header: title + actions */}
-      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mt-4 mb-6 w-full gap-4">
-        <div className="flex flex-col flex-1 min-w-0 sm:min-w-[200px] md:min-w-[280px] space-y-2">
+      {/* Header: title + actions — matches PageCardHeader convention */}
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-6 w-full gap-4">
+        <div className="flex flex-col flex-1 min-w-0 sm:min-w-[200px] md:min-w-[280px]">
           <input
             type="text"
             value={title}
             onChange={(e) => { setTitle(e.target.value); if (saveMessage === 'Please add a survey title') setSaveMessage(null); }}
-            className={`w-full text-2xl font-bold text-slate-blue border-0 border-b-2 focus:border-slate-blue focus:ring-0 px-0 py-1 bg-transparent ${
+            className={`w-full text-2xl font-bold text-slate-blue border-0 border-b-2 focus:border-slate-blue focus:ring-0 px-0 py-1 bg-transparent mt-4 mb-2 ${
               saveMessage === 'Please add a survey title' ? 'border-red-400' : 'border-transparent'
             }`}
             placeholder="Survey title"
@@ -158,7 +158,7 @@ export function SurveyBuilderPageContent({ basePath, surveyId }: SurveyBuilderPa
             type="text"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="w-full text-gray-600 text-sm border-0 border-b border-transparent focus:border-gray-300 focus:ring-0 px-0 py-1 bg-transparent truncate"
+            className="w-full text-gray-600 text-base border-0 border-b border-transparent focus:border-gray-300 focus:ring-0 px-0 py-1 bg-transparent truncate"
             placeholder="Add a description (optional)"
             aria-label="Survey description"
           />

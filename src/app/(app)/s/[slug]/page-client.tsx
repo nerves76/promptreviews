@@ -6,6 +6,7 @@ import { SurveyForm } from './components/SurveyForm';
 import { ThankYouScreen } from './components/ThankYouScreen';
 import { applyCardTransparency } from '@/utils/colorUtils';
 import { createClient, getUserOrMock } from '@/auth/providers/supabase';
+import Icon from '@/components/Icon';
 
 interface StyleConfig {
   primaryFont: string;
@@ -110,10 +111,25 @@ export default function SurveyPageClient({ survey, questions, styleConfig }: Sur
         fontFamily: styleConfig.primaryFont,
       }}
     >
-      {/* Back button — only visible to authenticated users */}
+      {/* Edit & Back buttons — only visible to authenticated users */}
       {!userLoading && currentUser && (
         <div className="fixed left-4 z-[60] top-4">
-          <div className="bg-black bg-opacity-20 backdrop-blur-sm rounded-xl p-3">
+          <div className="bg-black bg-opacity-20 backdrop-blur-sm rounded-xl p-3 space-y-2">
+            <a
+              href={`/dashboard/surveys/${survey.id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 px-4 py-2 rounded-lg shadow-md hover:bg-gray-50 transition-colors group w-full"
+              style={{
+                background: '#FFFFFF',
+                color: '#2E4A7D',
+                border: '1px solid #E5E7EB',
+              }}
+              title="Edit this survey (opens in new tab)"
+            >
+              <Icon name="FaEdit" className="w-5 h-5 transition-colors group-hover:text-slate-blue" size={20} />
+              <span className="hidden sm:inline">Edit</span>
+            </a>
             <button
               onClick={() => window.location.href = '/dashboard/surveys'}
               className="flex items-center gap-2 px-4 py-2 rounded-lg shadow-md hover:bg-gray-50 transition-colors group w-full"
