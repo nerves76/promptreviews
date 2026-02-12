@@ -19,6 +19,7 @@ export default function AppMain({
   // Note: /prompt-pages/outreach-templates is an authenticated dashboard page, not public
   const isPublic =
     pathname.startsWith("/r/") ||
+    pathname.startsWith("/s/") ||
     (pathname.startsWith("/prompt-pages/") && !pathname.startsWith("/prompt-pages/outreach-templates")) ||
     pathname.startsWith("/demo/") ||
     pathname.startsWith("/embed/") ||
