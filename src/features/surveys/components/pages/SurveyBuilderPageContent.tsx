@@ -57,6 +57,10 @@ export function SurveyBuilderPageContent({ basePath, surveyId }: SurveyBuilderPa
   }, [survey]);
 
   const handleSave = useCallback(async () => {
+    if (!title.trim()) {
+      setSaveMessage('Please add a survey title');
+      return;
+    }
     setSaving(true);
     setSaveMessage(null);
     try {
@@ -144,8 +148,10 @@ export function SurveyBuilderPageContent({ basePath, surveyId }: SurveyBuilderPa
           <input
             type="text"
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="w-full text-2xl font-bold text-slate-blue border-0 border-b-2 border-transparent focus:border-slate-blue focus:ring-0 px-0 py-1 bg-transparent"
+            onChange={(e) => { setTitle(e.target.value); if (saveMessage === 'Please add a survey title') setSaveMessage(null); }}
+            className={`w-full text-2xl font-bold text-slate-blue border-0 border-b-2 focus:border-slate-blue focus:ring-0 px-0 py-1 bg-transparent ${
+              saveMessage === 'Please add a survey title' ? 'border-red-400' : 'border-transparent'
+            }`}
             placeholder="Survey title"
             aria-label="Survey title"
           />
@@ -205,12 +211,15 @@ export function SurveyBuilderPageContent({ basePath, surveyId }: SurveyBuilderPa
             </Button>
           )}
 
+          {saveMessage && (
+            <span className="text-xs text-red-500 whitespace-nowrap">{saveMessage}</span>
+          )}
           <Button
             size="sm"
             onClick={handleSave}
             disabled={saving}
           >
-            {saving ? 'Saving...' : saveMessage || 'Save'}
+            {saving ? 'Saving...' : 'Save'}
           </Button>
         </div>
       </div>
