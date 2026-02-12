@@ -4296,21 +4296,22 @@ model survey_response_purchases {
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model survey_responses {
-  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  survey_id        String   @db.Uuid
-  account_id       String   @db.Uuid
-  respondent_name  String?
-  respondent_email String?
-  respondent_phone String?
-  answers          Json     @default("[]")
-  source_channel   String?  @default("direct")
-  utm_params       Json?    @default("{}")
-  user_agent       String?
-  is_free_response Boolean  @default(false)
-  submitted_at     DateTime @default(now()) @db.Timestamptz(6)
-  created_at       DateTime @default(now()) @db.Timestamptz(6)
-  accounts         accounts @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  surveys          surveys  @relation(fields: [survey_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  id                       String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  survey_id                String   @db.Uuid
+  account_id               String   @db.Uuid
+  respondent_name          String?
+  respondent_email         String?
+  respondent_phone         String?
+  answers                  Json     @default("[]")
+  source_channel           String?  @default("direct")
+  utm_params               Json?    @default("{}")
+  user_agent               String?
+  is_free_response         Boolean  @default(false)
+  submitted_at             DateTime @default(now()) @db.Timestamptz(6)
+  created_at               DateTime @default(now()) @db.Timestamptz(6)
+  respondent_business_name String?
+  accounts                 accounts @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  surveys                  surveys  @relation(fields: [survey_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([account_id], map: "idx_survey_responses_account_id")
   @@index([submitted_at], map: "idx_survey_responses_submitted_at")
@@ -4320,16 +4321,18 @@ model survey_responses {
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model survey_templates {
-  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name          String
-  description   String?
-  category      String    @default("general")
-  questions     Json      @default("[]")
-  is_active     Boolean   @default(true)
-  display_order Int       @default(0)
-  created_at    DateTime  @default(now()) @db.Timestamptz(6)
-  updated_at    DateTime  @default(now()) @db.Timestamptz(6)
-  surveys       surveys[]
+  id                         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                       String
+  description                String?
+  category                   String    @default("general")
+  questions                  Json      @default("[]")
+  is_active                  Boolean   @default(true)
+  display_order              Int       @default(0)
+  created_at                 DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at                 DateTime  @default(now()) @db.Timestamptz(6)
+  default_survey_title       String?
+  default_survey_description String?
+  surveys                    surveys[]
 
   @@schema("public")
 }
@@ -4356,6 +4359,14 @@ model surveys {
   template_id                                         String?                     @db.Uuid
   created_at                                          DateTime                    @default(now()) @db.Timestamptz(6)
   updated_at                                          DateTime                    @default(now()) @db.Timestamptz(6)
+  collect_name                                        Boolean                     @default(false)
+  require_name                                        Boolean                     @default(false)
+  collect_email                                       Boolean                     @default(false)
+  require_email                                       Boolean                     @default(false)
+  collect_phone                                       Boolean                     @default(false)
+  require_phone                                       Boolean                     @default(false)
+  collect_business_name                               Boolean                     @default(false)
+  require_business_name                               Boolean                     @default(false)
   survey_questions                                    survey_questions[]
   survey_response_purchases                           survey_response_purchases[]
   survey_responses                                    survey_responses[]
