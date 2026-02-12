@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { SurveyForm } from './components/SurveyForm';
 import { ThankYouScreen } from './components/ThankYouScreen';
 import { applyCardTransparency } from '@/utils/colorUtils';
+import { createClient, getUserOrMock } from '@/auth/providers/supabase';
 
 interface StyleConfig {
   primaryFont: string;
@@ -42,6 +43,23 @@ function getCardBorderStyle(config: StyleConfig) {
 export default function SurveyPageClient({ survey, questions, styleConfig }: SurveyPageClientProps) {
   const [submitted, setSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [userLoading, setUserLoading] = useState(true);
+
+  // Check if user is logged in (for back button)
+  useEffect(() => {
+    const supabase = createClient();
+    (async () => {
+      try {
+        const { data: { user } } = await getUserOrMock(supabase);
+        setCurrentUser(user);
+      } catch {
+        setCurrentUser(null);
+      } finally {
+        setUserLoading(false);
+      }
+    })();
+  }, []);
 
   const cardBg = applyCardTransparency(styleConfig.cardBg, styleConfig.cardTransparency);
   const cardBorder = getCardBorderStyle(styleConfig);
@@ -89,6 +107,35 @@ export default function SurveyPageClient({ survey, questions, styleConfig }: Sur
         fontFamily: styleConfig.primaryFont,
       }}
     >
+      {/* Back button — only visible to authenticated users */}
+      {!userLoading && currentUser && (
+        <div className="fixed left-4 z-[60] top-4">
+          <div className="bg-black bg-opacity-20 backdrop-blur-sm rounded-xl p-3">
+            <button
+              onClick={() => window.location.href = '/dashboard/surveys'}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg shadow-md hover:bg-gray-50 transition-colors group w-full"
+              style={{
+                background: '#FFFFFF',
+                color: '#2E4A7D',
+                border: '1px solid #E5E7EB',
+              }}
+              title="Back to surveys"
+              aria-label="Back to surveys"
+            >
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              <span className="hidden sm:inline">Back</span>
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-[1000px] w-full mx-auto">
         {/* Business info card — matches prompt page BusinessInfoCard */}
         <div
