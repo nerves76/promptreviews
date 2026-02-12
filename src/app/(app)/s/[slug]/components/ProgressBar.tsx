@@ -15,10 +15,10 @@ export function ProgressBar({ current, total, textColor }: ProgressBarProps) {
         <span>{current} of {total} answered</span>
         <span>{percentage}%</span>
       </div>
-      <div className="w-full bg-white/10 rounded-full h-2">
+      <div className="w-full rounded-full h-2" style={{ backgroundColor: 'rgba(0,0,0,0.08)' }}>
         <div
-          className="bg-white/40 h-2 rounded-full transition-all duration-300"
-          style={{ width: `${percentage}%` }}
+          className="h-2 rounded-full transition-all duration-300"
+          style={{ width: `${percentage}%`, backgroundColor: 'rgba(0,0,0,0.2)' }}
         />
       </div>
     </div>

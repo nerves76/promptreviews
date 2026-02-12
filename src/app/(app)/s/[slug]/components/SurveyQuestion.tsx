@@ -10,15 +10,18 @@ interface SurveyQuestionProps {
   onChange: (value: any) => void;
   textColor: string;
   inputColor: string;
+  inputBg: string;
+  innerShadow: string;
+  placeholderColor: string;
   index: number;
 }
 
-export function SurveyQuestion({ question, value, onChange, textColor, inputColor, index }: SurveyQuestionProps) {
+export function SurveyQuestion({ question, value, onChange, textColor, inputColor, inputBg, innerShadow, placeholderColor, index }: SurveyQuestionProps) {
   return (
     <div>
       <label className="block font-medium mb-2" style={{ color: textColor }}>
         {question.question_text}
-        {question.is_required && <span className="text-red-300 ml-1">*</span>}
+        {question.is_required && <span className="text-red-500 ml-1">*</span>}
       </label>
       {question.description && (
         <p className="text-sm mb-3 opacity-70" style={{ color: textColor }}>
@@ -33,6 +36,9 @@ export function SurveyQuestion({ question, value, onChange, textColor, inputColo
           placeholder={question.text_placeholder || ''}
           maxLength={question.text_max_length || 1000}
           inputColor={inputColor}
+          inputBg={inputBg}
+          innerShadow={innerShadow}
+          placeholderColor={placeholderColor}
         />
       )}
 
@@ -45,6 +51,7 @@ export function SurveyQuestion({ question, value, onChange, textColor, inputColo
           max={question.rating_max || 5}
           labels={question.rating_labels || {}}
           textColor={textColor}
+          inputBg={inputBg}
         />
       )}
 
@@ -57,6 +64,9 @@ export function SurveyQuestion({ question, value, onChange, textColor, inputColo
           onChange={onChange}
           textColor={textColor}
           inputColor={inputColor}
+          inputBg={inputBg}
+          innerShadow={innerShadow}
+          placeholderColor={placeholderColor}
         />
       )}
     </div>

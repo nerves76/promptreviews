@@ -10,6 +10,7 @@ import { createClient, getUserOrMock } from '@/auth/providers/supabase';
 interface StyleConfig {
   primaryFont: string;
   primaryColor: string;
+  secondaryColor: string;
   gradientStart: string;
   gradientMiddle: string;
   gradientEnd: string;
@@ -19,6 +20,8 @@ interface StyleConfig {
   cardBorderWidth: number;
   cardBorderColor: string;
   cardBorderTransparency: number;
+  cardPlaceholderColor: string;
+  cardInnerShadow: boolean;
   inputTextColor: string;
   logoUrl: string | null;
   businessName: string | null;

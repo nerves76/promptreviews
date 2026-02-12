@@ -6,7 +6,13 @@ import { ProgressBar } from './ProgressBar';
 import { SurveyAnswer } from '@/features/surveys/types';
 
 interface StyleConfig {
+  cardBg: string;
   cardText: string;
+  cardTransparency: number;
+  cardPlaceholderColor: string;
+  cardInnerShadow: boolean;
+  secondaryColor: string;
+  primaryFont: string;
   inputTextColor: string;
   [key: string]: any;
 }
@@ -107,9 +113,31 @@ export function SurveyForm({ survey, questions, styleConfig, onSubmitted, onErro
 
   const textColor = styleConfig.cardText;
   const inputColor = styleConfig.inputTextColor;
+  const placeholderColor = styleConfig.cardPlaceholderColor;
+  const inputBg = styleConfig.cardBg || '#F9FAFB';
+  const innerShadow = styleConfig.cardInnerShadow
+    ? 'inset 0 2px 4px 0 rgba(0,0,0,0.2), inset 0 1px 2px 0 rgba(0,0,0,0.15)'
+    : 'none';
+
+  // Input style matching prompt page pattern
+  const inputStyle: React.CSSProperties = {
+    background: inputBg,
+    boxShadow: innerShadow,
+    border: 'none',
+    color: inputColor,
+    WebkitTextFillColor: inputColor,
+  };
 
   return (
     <form onSubmit={handleSubmit}>
+      {/* CSS for placeholder colors */}
+      <style>{`
+        .survey-input::placeholder {
+          color: ${placeholderColor} !important;
+          opacity: 1 !important;
+        }
+      `}</style>
+
       {survey.show_progress_bar && totalQuestions > 0 && (
         <ProgressBar current={answeredCount} total={totalQuestions} textColor={textColor} />
       )}
@@ -118,29 +146,29 @@ export function SurveyForm({ survey, questions, styleConfig, onSubmitted, onErro
       {survey.collect_respondent_info && (
         <div className="mb-6 space-y-3">
           <div>
-            <label className="block text-sm font-medium mb-1 opacity-80" style={{ color: textColor }}>
+            <label className="block text-sm font-medium mb-1" style={{ color: textColor }}>
               Name
             </label>
             <input
               type="text"
               value={respondentName}
               onChange={(e) => setRespondentName(e.target.value)}
-              className="w-full p-3 rounded-lg border border-white/20 bg-white/10 backdrop-blur-sm focus:ring-2 focus:ring-white/30 focus:outline-none"
-              style={{ color: inputColor }}
+              className="w-full py-3 px-4 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm survey-input"
+              style={inputStyle}
               placeholder="Your name"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1 opacity-80" style={{ color: textColor }}>
-              Email {survey.require_respondent_email && <span className="text-red-300">*</span>}
+            <label className="block text-sm font-medium mb-1" style={{ color: textColor }}>
+              Email {survey.require_respondent_email && <span className="text-red-500">*</span>}
             </label>
             <input
               type="email"
               value={respondentEmail}
               onChange={(e) => setRespondentEmail(e.target.value)}
               required={survey.require_respondent_email}
-              className="w-full p-3 rounded-lg border border-white/20 bg-white/10 backdrop-blur-sm focus:ring-2 focus:ring-white/30 focus:outline-none"
-              style={{ color: inputColor }}
+              className="w-full py-3 px-4 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm survey-input"
+              style={inputStyle}
               placeholder="your@email.com"
             />
           </div>
@@ -157,17 +185,23 @@ export function SurveyForm({ survey, questions, styleConfig, onSubmitted, onErro
             onChange={(value) => handleAnswerChange(question.id, value)}
             textColor={textColor}
             inputColor={inputColor}
+            inputBg={inputBg}
+            innerShadow={innerShadow}
+            placeholderColor={placeholderColor}
             index={index}
           />
         ))}
       </div>
 
-      {/* Submit */}
+      {/* Submit — matches prompt page button */}
       <button
         type="submit"
         disabled={submitting}
-        className="mt-8 w-full py-3 px-6 rounded-lg font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-white/20 hover:bg-white/30 border border-white/30 backdrop-blur-sm whitespace-nowrap"
-        style={{ color: textColor }}
+        className="mt-8 w-full py-3 px-6 rounded-lg font-semibold text-lg shadow-lg text-white hover:opacity-90 focus:outline-none transition disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+        style={{
+          backgroundColor: styleConfig.secondaryColor || '#2E4A7D',
+          fontFamily: styleConfig.primaryFont || 'Inter',
+        }}
       >
         {submitting ? 'Submitting...' : 'Submit'}
       </button>

@@ -10,9 +10,10 @@ interface RatingInputProps {
   max: number;
   labels: Record<string, string>;
   textColor: string;
+  inputBg: string;
 }
 
-export function RatingInput({ type, value, onChange, min, max, labels, textColor }: RatingInputProps) {
+export function RatingInput({ type, value, onChange, min, max, labels, textColor, inputBg }: RatingInputProps) {
   const [hoveredValue, setHoveredValue] = useState<number | null>(null);
   const range = Array.from({ length: max - min + 1 }, (_, i) => min + i);
 
@@ -32,9 +33,9 @@ export function RatingInput({ type, value, onChange, min, max, labels, textColor
                 onClick={() => onChange(n)}
                 onMouseEnter={() => setHoveredValue(n)}
                 onMouseLeave={() => setHoveredValue(null)}
-                className="text-3xl transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-white/30 rounded"
+                className="text-3xl transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-indigo-400 rounded"
               >
-                <span className={isActive ? 'text-brand-gold' : 'text-white/30'}>
+                <span className={isActive ? 'text-brand-gold' : 'opacity-30'} style={{ color: isActive ? undefined : textColor }}>
                   ★
                 </span>
               </button>
@@ -68,12 +69,13 @@ export function RatingInput({ type, value, onChange, min, max, labels, textColor
             aria-checked={value === n}
             aria-label={`Rating ${n}`}
             onClick={() => onChange(n)}
-            className={`w-10 h-10 rounded-lg border text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-white/30 ${
-              value === n
-                ? 'bg-white/30 border-white/50'
-                : 'bg-white/5 border-white/20 hover:bg-white/15'
-            }`}
-            style={{ color: textColor }}
+            className="w-10 h-10 rounded-lg text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-indigo-400"
+            style={{
+              background: inputBg,
+              border: value === n ? '2px solid rgba(0,0,0,0.2)' : '1px solid rgba(0,0,0,0.1)',
+              boxShadow: value === n ? 'inset 0 2px 4px 0 rgba(0,0,0,0.2)' : 'none',
+              color: textColor,
+            }}
           >
             {n}
           </button>

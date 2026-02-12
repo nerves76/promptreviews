@@ -91,6 +91,7 @@ export default async function SurveyPage({ params }: { params: Promise<{ slug: s
   const styleConfig = {
     primaryFont: businessProfile?.primary_font || GLASSY_DEFAULTS.primary_font,
     primaryColor: businessProfile?.primary_color || GLASSY_DEFAULTS.primary_color,
+    secondaryColor: businessProfile?.secondary_color || GLASSY_DEFAULTS.secondary_color,
     gradientStart: businessProfile?.gradient_start || GLASSY_DEFAULTS.gradient_start,
     gradientMiddle: businessProfile?.gradient_middle || GLASSY_DEFAULTS.gradient_middle,
     gradientEnd: businessProfile?.gradient_end || GLASSY_DEFAULTS.gradient_end,
@@ -100,6 +101,8 @@ export default async function SurveyPage({ params }: { params: Promise<{ slug: s
     cardBorderWidth: businessProfile?.card_border_width ?? GLASSY_DEFAULTS.card_border_width,
     cardBorderColor: businessProfile?.card_border_color || GLASSY_DEFAULTS.card_border_color,
     cardBorderTransparency: businessProfile?.card_border_transparency ?? GLASSY_DEFAULTS.card_border_transparency,
+    cardPlaceholderColor: businessProfile?.card_placeholder_color || GLASSY_DEFAULTS.card_placeholder_color,
+    cardInnerShadow: businessProfile?.card_inner_shadow ?? GLASSY_DEFAULTS.card_inner_shadow,
     inputTextColor: businessProfile?.input_text_color || GLASSY_DEFAULTS.input_text_color,
     logoUrl: businessProfile?.logo_url || null,
     businessName: businessProfile?.name || null,
