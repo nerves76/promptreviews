@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { Switch } from '@headlessui/react';
 import PageCard from '@/app/(app)/components/PageCard';
 import { SubNav } from '@/app/(app)/components/SubNav';
 import { Button } from '@/app/(app)/components/ui/button';
@@ -169,15 +170,24 @@ export default function SurveyBuilderPage() {
               Publish
             </Button>
           )}
-          {survey.status === 'active' && (
-            <Button size="sm" variant="secondary" onClick={() => handleStatusChange('paused')}>
-              Pause
-            </Button>
-          )}
-          {survey.status === 'paused' && (
-            <Button size="sm" onClick={() => handleStatusChange('active')}>
-              Resume
-            </Button>
+          {survey.status !== 'draft' && (
+            <div className="flex items-center gap-2">
+              <Switch
+                checked={survey.status === 'active'}
+                onChange={(checked) => handleStatusChange(checked ? 'active' : 'paused')}
+                className={`${
+                  survey.status === 'active' ? 'bg-green-500' : 'bg-gray-300'
+                } relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2`}
+              >
+                <span className="sr-only">Enable survey</span>
+                <span
+                  className={`${
+                    survey.status === 'active' ? 'translate-x-6' : 'translate-x-1'
+                  } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
+                />
+              </Switch>
+              <span className="text-sm text-gray-600 whitespace-nowrap">Enabled</span>
+            </div>
           )}
 
           {survey.slug && (

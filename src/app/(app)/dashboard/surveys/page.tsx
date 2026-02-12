@@ -15,9 +15,8 @@ import QRCodeModal from '@/app/(app)/components/QRCodeModal';
 const STATUS_TABS: { value: SurveyStatus | 'all'; label: string }[] = [
   { value: 'all', label: 'All' },
   { value: 'draft', label: 'Draft' },
-  { value: 'active', label: 'Active' },
-  { value: 'paused', label: 'Paused' },
-  { value: 'closed', label: 'Closed' },
+  { value: 'active', label: 'Enabled' },
+  { value: 'paused', label: 'Disabled' },
 ];
 
 export default function SurveysPage() {

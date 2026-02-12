@@ -25,8 +25,8 @@ export type SurveyStatus = 'draft' | 'active' | 'paused' | 'closed';
 
 export const SURVEY_STATUS_LABELS: Record<SurveyStatus, string> = {
   draft: 'Draft',
-  active: 'Active',
-  paused: 'Paused',
+  active: 'Enabled',
+  paused: 'Disabled',
   closed: 'Closed',
 };
 
