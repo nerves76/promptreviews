@@ -39,11 +39,11 @@ export function QuestionEditor({ question, onChange, onRemove, index }: Question
 
       {/* Question type */}
       <div className="mb-3">
-        <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Question type</label>
         <select
           value={question.question_type}
           onChange={(e) => updateField('question_type', e.target.value as QuestionType)}
-          className="w-full p-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-slate-blue focus:border-transparent"
+          className="inline-block w-auto px-3 py-1.5 bg-gray-100 border-0 rounded-full text-sm font-medium text-gray-700 cursor-pointer hover:bg-gray-200 focus:ring-2 focus:ring-slate-blue focus:ring-offset-2 focus:outline-none transition-colors appearance-none pr-8 bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22%236b7280%22%3E%3Cpath%20fill-rule%3D%22evenodd%22%20d%3D%22M5.23%207.21a.75.75%200%20011.06.02L10%2011.168l3.71-3.938a.75.75%200%20111.08%201.04l-4.25%204.5a.75.75%200%2001-1.08%200l-4.25-4.5a.75.75%200%2001.02-1.06z%22%20clip-rule%3D%22evenodd%22%2F%3E%3C%2Fsvg%3E')] bg-[length:1.25rem] bg-[right_0.5rem_center] bg-no-repeat"
         >
           {Object.entries(QUESTION_TYPE_LABELS).map(([value, label]) => (
             <option key={value} value={value}>{label}</option>
