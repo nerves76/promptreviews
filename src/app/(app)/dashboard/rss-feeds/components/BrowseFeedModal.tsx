@@ -26,6 +26,12 @@ interface ScheduleResponse {
   errors?: Array<{ guid: string; error: string }>;
 }
 
+interface BalanceResponse {
+  balance: {
+    total: number;
+  };
+}
+
 export default function BrowseFeedModal({
   feedId,
   feedName,
@@ -60,7 +66,10 @@ export default function BrowseFeedModal({
   const [scheduling, setScheduling] = useState(false);
   const [scheduleError, setScheduleError] = useState<string | null>(null);
 
-  // Fetch items on mount
+  // Credit balance
+  const [creditBalance, setCreditBalance] = useState<number | null>(null);
+
+  // Fetch items and credit balance on mount
   useEffect(() => {
     async function fetchItems() {
       try {
@@ -82,8 +91,20 @@ export default function BrowseFeedModal({
       }
     }
 
+    async function fetchBalance() {
+      try {
+        const response = await apiClient.get<BalanceResponse>("/credits/balance");
+        setCreditBalance(response.balance.total);
+      } catch (err) {
+        console.error("Failed to fetch credit balance:", err);
+      }
+    }
+
     fetchItems();
+    fetchBalance();
   }, [feedId]);
+
+  const insufficientCredits = creditBalance !== null && selectedGuids.size > creditBalance;
 
   // Calculate scheduled dates for preview
   const scheduledDates = useMemo(() => {
@@ -159,9 +180,14 @@ export default function BrowseFeedModal({
       }
     } catch (err) {
       console.error("Failed to schedule items:", err);
-      setScheduleError(
-        err instanceof Error ? err.message : "Failed to schedule items"
-      );
+      const status = (err as any)?.status;
+      if (status === 402) {
+        setScheduleError("Not enough credits to schedule these posts. Purchase more credits or select fewer posts.");
+      } else {
+        setScheduleError(
+          err instanceof Error ? err.message : "Failed to schedule items"
+        );
+      }
     } finally {
       setScheduling(false);
     }
@@ -192,7 +218,7 @@ export default function BrowseFeedModal({
           <div className="p-6 border-b border-gray-200">
             <div className="flex items-center justify-between">
               <Dialog.Title className="text-xl font-bold text-gray-900">
-                Browse: {feedName}
+                Schedule existing posts: {feedName}
               </Dialog.Title>
               <button
                 onClick={onClose}
@@ -363,10 +389,20 @@ export default function BrowseFeedModal({
                       {scheduledDates.length > 5 &&
                         ` and ${scheduledDates.length - 5} more`}
                     </p>
-                    <p className="text-sm text-amber-700 flex items-center">
-                      <Icon name="FaCoins" size={12} className="mr-1.5" />
-                      This will use <strong className="mx-1">{selectedGuids.size}</strong> credit{selectedGuids.size !== 1 ? "s" : ""}
-                    </p>
+                    {insufficientCredits ? (
+                      <p className="text-sm text-red-700 flex items-center">
+                        <Icon name="FaExclamationTriangle" size={12} className="mr-1.5" />
+                        Not enough credits — you need {selectedGuids.size} but only have {creditBalance}. Purchase more credits or select fewer posts.
+                      </p>
+                    ) : (
+                      <p className="text-sm text-amber-700 flex items-center">
+                        <Icon name="FaCoins" size={12} className="mr-1.5" />
+                        This will use <strong className="mx-1">{selectedGuids.size}</strong> credit{selectedGuids.size !== 1 ? "s" : ""}
+                        {creditBalance !== null && (
+                          <span className="ml-1">({creditBalance} available)</span>
+                        )}
+                      </p>
+                    )}
                   </div>
                 )}
 
@@ -390,7 +426,7 @@ export default function BrowseFeedModal({
             </button>
             <button
               onClick={handleSchedule}
-              disabled={scheduling || selectedGuids.size === 0}
+              disabled={scheduling || selectedGuids.size === 0 || insufficientCredits}
               className="px-4 py-2 text-sm font-medium text-white bg-slate-blue rounded-lg hover:bg-slate-blue/90 transition-colors disabled:opacity-50"
             >
               {scheduling ? (

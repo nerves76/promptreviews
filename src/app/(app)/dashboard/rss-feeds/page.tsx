@@ -373,11 +373,41 @@ export default function RssFeedsPage() {
                     <span className="text-xs text-gray-500 sm:hidden">
                       Last polled: {formatLastPolled(feed.lastPolledAt)}
                     </span>
-                    <div className="flex items-center gap-1 ml-auto">
+                    <div className="flex items-center gap-2 ml-auto">
+                      <button
+                        onClick={() => handleProcessFeed(feed.id)}
+                        className="px-3 py-1.5 text-xs font-medium text-slate-blue border border-slate-blue/30 hover:bg-slate-blue/5 rounded-lg transition-colors whitespace-nowrap disabled:opacity-50"
+                        title="Check for new feed items and auto-schedule them"
+                        disabled={
+                          !feed.isActive || processingFeedId === feed.id
+                        }
+                      >
+                        {processingFeedId === feed.id ? (
+                          <>
+                            <Icon
+                              name="FaSpinner"
+                              size={11}
+                              className="inline mr-1.5 animate-spin"
+                            />
+                            Scheduling...
+                          </>
+                        ) : (
+                          "Schedule new posts"
+                        )}
+                      </button>
+                      <button
+                        onClick={() => setBrowsingFeed(feed)}
+                        className="px-3 py-1.5 text-xs font-medium text-slate-blue border border-slate-blue/30 hover:bg-slate-blue/5 rounded-lg transition-colors whitespace-nowrap"
+                        title="Pick from existing feed items to schedule"
+                      >
+                        Schedule existing posts
+                      </button>
+                      <div className="w-px h-5 bg-gray-200" />
                       <button
                         onClick={() => handleToggleActive(feed)}
                         className="p-2 text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
                         title={feed.isActive ? "Pause feed" : "Activate feed"}
+                        aria-label={feed.isActive ? "Pause feed" : "Activate feed"}
                       >
                         <Icon
                           name={feed.isActive ? "FaTimes" : "FaCheck"}
@@ -385,41 +415,17 @@ export default function RssFeedsPage() {
                         />
                       </button>
                       <button
-                        onClick={() => handleProcessFeed(feed.id)}
-                        className="p-2 text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
-                        title="Process feed now"
-                        disabled={
-                          !feed.isActive || processingFeedId === feed.id
-                        }
-                      >
-                        {processingFeedId === feed.id ? (
-                          <Icon
-                            name="FaSpinner"
-                            size={14}
-                            className="animate-spin"
-                          />
-                        ) : (
-                          <Icon name="FaRedo" size={14} />
-                        )}
-                      </button>
-                      <button
-                        onClick={() => setBrowsingFeed(feed)}
-                        className="p-2 text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
-                        title="Browse & schedule items"
-                      >
-                        <Icon name="FaSearch" size={14} />
-                      </button>
-                      <button
                         onClick={() => setEditingFeed(feed)}
                         className="p-2 text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
                         title="Edit feed"
+                        aria-label="Edit feed"
                       >
                         <Icon name="FaEdit" size={14} />
                       </button>
                       <button
                         onClick={() => handleResetFeed(feed.id)}
-                        className="px-2 py-1 text-xs text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
-                        title="Reset feed - clear all and re-sync as Available"
+                        className="px-2 py-1 text-xs text-amber-600 hover:bg-amber-50 rounded-lg transition-colors whitespace-nowrap"
+                        title="Reset feed - clear all and re-sync as available"
                         disabled={resettingFeedId === feed.id}
                       >
                         {resettingFeedId === feed.id ? (
@@ -432,6 +438,7 @@ export default function RssFeedsPage() {
                         onClick={() => handleDeleteFeed(feed.id)}
                         className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                         title="Delete feed"
+                        aria-label="Delete feed"
                       >
                         <Icon name="FaTrash" size={14} />
                       </button>
