@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import PageCard from '@/app/(app)/components/PageCard';
+import { SubNav } from '@/app/(app)/components/SubNav';
 import { Button } from '@/app/(app)/components/ui/button';
 import { Modal } from '@/app/(app)/components/ui/modal';
 import Icon from '@/components/Icon';
@@ -120,7 +121,15 @@ export default function SurveyBuilderPage() {
   }
 
   return (
-    <PageCard icon={<Icon name="FaFileAlt" size={24} className="text-slate-blue" />}>
+    <>
+      <SubNav
+        items={[
+          { label: 'Builder', icon: 'FaFileAlt', href: `/dashboard/surveys/${surveyId}`, matchType: 'exact' },
+          { label: 'Responses', icon: 'FaChartLine', href: `/dashboard/surveys/${surveyId}/responses`, matchType: 'startsWith' },
+        ]}
+      />
+
+      <PageCard icon={<Icon name="FaFileAlt" size={24} className="text-slate-blue" />} topMargin="mt-16">
       {/* Header: title + actions */}
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mt-4 mb-6 w-full gap-4">
         <div className="flex flex-col flex-1 min-w-0 sm:min-w-[200px] md:min-w-[280px] space-y-2">
@@ -178,11 +187,6 @@ export default function SurveyBuilderPage() {
               Preview
             </Button>
           )}
-
-          <Button size="sm" variant="secondary" onClick={() => router.push(`/dashboard/surveys/${surveyId}/responses`)}>
-            <Icon name="FaChartLine" size={14} className="mr-1" />
-            Responses
-          </Button>
 
           <Button
             size="sm"
@@ -357,5 +361,6 @@ export default function SurveyBuilderPage() {
         </Modal.Footer>
       </Modal>
     </PageCard>
+    </>
   );
 }

@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import PageCard, { PageCardHeader } from '@/app/(app)/components/PageCard';
+import { SubNav } from '@/app/(app)/components/SubNav';
 import { Button } from '@/app/(app)/components/ui/button';
 import Icon from '@/components/Icon';
 import { useSurvey } from '@/features/surveys/hooks/useSurvey';
@@ -14,7 +15,6 @@ import { ResponsePackSelector } from '@/features/surveys/components/ResponsePack
 import { apiClient } from '@/utils/apiClient';
 
 export default function SurveyResponsesPage() {
-  const router = useRouter();
   const params = useParams();
   const surveyId = params.id as string;
 
@@ -62,7 +62,15 @@ export default function SurveyResponsesPage() {
   }
 
   return (
-    <PageCard icon={<Icon name="FaChartLine" size={24} className="text-slate-blue" />}>
+    <>
+      <SubNav
+        items={[
+          { label: 'Builder', icon: 'FaFileAlt', href: `/dashboard/surveys/${surveyId}`, matchType: 'exact' },
+          { label: 'Responses', icon: 'FaChartLine', href: `/dashboard/surveys/${surveyId}/responses`, matchType: 'startsWith' },
+        ]}
+      />
+
+      <PageCard icon={<Icon name="FaChartLine" size={24} className="text-slate-blue" />} topMargin="mt-16">
       <PageCardHeader
         title={`Responses: ${survey?.title || 'Survey'}`}
         actions={
@@ -84,10 +92,6 @@ export default function SurveyResponsesPage() {
             >
               <Icon name="FaSave" size={14} className="mr-1" />
               {exporting ? 'Exporting...' : 'Export CSV'}
-            </Button>
-            <Button variant="secondary" size="sm" onClick={() => router.push(`/dashboard/surveys/${surveyId}`)}>
-              <Icon name="FaArrowLeft" size={14} className="mr-1" />
-              Back to builder
             </Button>
           </div>
         }
@@ -147,5 +151,6 @@ export default function SurveyResponsesPage() {
         onPurchased={refetchQuota}
       />
     </PageCard>
+    </>
   );
 }
