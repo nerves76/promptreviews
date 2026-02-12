@@ -2,6 +2,6 @@
 
 import { SurveyListPageContent } from '@/features/surveys/components/pages/SurveyListPageContent';
 
-export default function SurveysPage() {
-  return <SurveyListPageContent basePath="/dashboard/surveys" />;
+export default function AgencySurveysPage() {
+  return <SurveyListPageContent basePath="/agency/surveys" />;
 }
