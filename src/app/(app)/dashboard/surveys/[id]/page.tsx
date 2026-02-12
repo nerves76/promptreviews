@@ -121,80 +121,82 @@ export default function SurveyBuilderPage() {
 
   return (
     <PageCard icon={<Icon name="FaFileAlt" size={24} className="text-slate-blue" />}>
-      {/* Actions bar */}
-      <div className="flex items-center gap-2 flex-wrap justify-end mt-4 mb-4">
-        <SurveyStatusBadge status={survey.status} />
+      {/* Header: title + actions */}
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mt-4 mb-6 w-full gap-4">
+        <div className="flex flex-col flex-1 min-w-0 sm:min-w-[200px] md:min-w-[280px] space-y-2">
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="w-full text-2xl font-bold text-slate-blue border-0 border-b-2 border-transparent focus:border-slate-blue focus:ring-0 px-0 py-1 bg-transparent"
+            placeholder="Survey title"
+            aria-label="Survey title"
+          />
+          <input
+            type="text"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="w-full text-gray-600 text-sm border-0 border-b border-transparent focus:border-gray-300 focus:ring-0 px-0 py-1 bg-transparent truncate"
+            placeholder="Add a description (optional)"
+            aria-label="Survey description"
+          />
+        </div>
 
-        {quota && (
-          <span className="text-xs text-gray-500 whitespace-nowrap">
-            {quota.total_remaining} responses remaining
-          </span>
-        )}
+        <div className="flex items-center gap-2 flex-wrap justify-start sm:justify-end">
+          <SurveyStatusBadge status={survey.status} />
 
-        {survey.status === 'draft' && (
-          <Button size="sm" onClick={() => handleStatusChange('active')}>
-            Publish
-          </Button>
-        )}
-        {survey.status === 'active' && (
-          <Button size="sm" variant="secondary" onClick={() => handleStatusChange('paused')}>
-            Pause
-          </Button>
-        )}
-        {survey.status === 'paused' && (
-          <Button size="sm" onClick={() => handleStatusChange('active')}>
-            Resume
-          </Button>
-        )}
+          {quota && (
+            <span className="text-xs text-gray-500 whitespace-nowrap">
+              {quota.total_remaining} responses remaining
+            </span>
+          )}
 
-        {survey.slug && (
+          {survey.status === 'draft' && (
+            <Button size="sm" onClick={() => handleStatusChange('active')}>
+              Publish
+            </Button>
+          )}
+          {survey.status === 'active' && (
+            <Button size="sm" variant="secondary" onClick={() => handleStatusChange('paused')}>
+              Pause
+            </Button>
+          )}
+          {survey.status === 'paused' && (
+            <Button size="sm" onClick={() => handleStatusChange('active')}>
+              Resume
+            </Button>
+          )}
+
+          {survey.slug && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => window.open(`/s/${survey.slug}`, '_blank')}
+              aria-label="Preview survey"
+            >
+              <Icon name="FaEye" size={14} className="mr-1" />
+              Preview
+            </Button>
+          )}
+
+          <Button size="sm" variant="secondary" onClick={() => router.push(`/dashboard/surveys/${surveyId}/responses`)}>
+            <Icon name="FaChartLine" size={14} className="mr-1" />
+            Responses
+          </Button>
+
           <Button
             size="sm"
-            variant="ghost"
-            onClick={() => window.open(`/s/${survey.slug}`, '_blank')}
-            aria-label="Preview survey"
+            onClick={handleSave}
+            disabled={saving}
           >
-            <Icon name="FaEye" size={14} className="mr-1" />
-            Preview
+            {saving ? 'Saving...' : saveMessage || 'Save'}
           </Button>
-        )}
-
-        <Button size="sm" variant="secondary" onClick={() => router.push(`/dashboard/surveys/${surveyId}/responses`)}>
-          <Icon name="FaChartLine" size={14} className="mr-1" />
-          Responses
-        </Button>
-
-        <Button
-          size="sm"
-          onClick={handleSave}
-          disabled={saving}
-        >
-          {saving ? 'Saving...' : saveMessage || 'Save'}
-        </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main builder area */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Title & description */}
-          <div className="space-y-2">
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="w-full text-2xl font-bold text-gray-900 border-0 border-b-2 border-transparent focus:border-slate-blue focus:ring-0 px-0 py-1 bg-transparent"
-              placeholder="Survey title"
-              aria-label="Survey title"
-            />
-            <input
-              type="text"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full text-gray-600 text-sm border-0 border-b border-transparent focus:border-gray-300 focus:ring-0 px-0 py-1 bg-transparent truncate"
-              placeholder="Add a description (optional)"
-              aria-label="Survey description"
-            />
-          </div>
 
           {/* Questions */}
           <div className="pl-10">
