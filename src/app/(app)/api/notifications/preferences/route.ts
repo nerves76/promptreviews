@@ -90,6 +90,8 @@ export async function PUT(request: NextRequest) {
       'email_digest_frequency',
       'in_app_batch_completed',
       'email_batch_completed',
+      'in_app_survey_responses',
+      'email_survey_responses',
     ];
 
     // Filter to only allowed fields

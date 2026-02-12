@@ -8,6 +8,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceRoleClient } from '@/auth/providers/supabase';
+import { sendNotificationToAccount } from '@/utils/notifications';
 
 export async function POST(request: NextRequest) {
   try {
@@ -27,7 +28,7 @@ export async function POST(request: NextRequest) {
     // Fetch survey to get account_id and validate
     const { data: survey, error: surveyError } = await supabase
       .from('surveys')
-      .select('id, account_id, status, free_responses_remaining, collect_respondent_info, require_respondent_email, one_response_per_email')
+      .select('id, account_id, status, title, free_responses_remaining, collect_respondent_info, require_respondent_email, one_response_per_email')
       .eq('id', survey_id)
       .single();
 
@@ -148,6 +149,20 @@ export async function POST(request: NextRequest) {
       console.error('[SURVEY-SUBMIT] Insert error:', insertError);
       return NextResponse.json({ error: 'Failed to submit response' }, { status: 500 });
     }
+
+    // Fire-and-forget notification to account owners
+    const { count: responseCount } = await supabase
+      .from('survey_responses')
+      .select('id', { count: 'exact', head: true })
+      .eq('survey_id', survey_id);
+
+    sendNotificationToAccount(survey.account_id, 'survey_response_submitted', {
+      surveyTitle: survey.title || 'Untitled survey',
+      surveyId: survey_id,
+      respondentName: respondent_name || null,
+      respondentEmail: respondent_email || null,
+      responseCount: responseCount ?? 1,
+    }).catch((err) => console.error('[SURVEY-SUBMIT] Notification error:', err));
 
     return NextResponse.json({ success: true, id: response.id });
   } catch (error) {

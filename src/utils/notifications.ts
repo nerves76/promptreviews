@@ -30,7 +30,8 @@ export type NotificationType =
   | 'agency_invitation_received'
   | 'service_error'
   | 'batch_run_completed'
-  | 'review_import_completed';
+  | 'review_import_completed'
+  | 'survey_response_submitted';
 
 export interface NotificationData {
   [key: string]: any;
@@ -407,6 +408,27 @@ export const NOTIFICATION_REGISTRY: Record<NotificationType, NotificationConfig>
     },
     actionUrl: '/dashboard/reviews',
     actionLabel: 'View reviews',
+  },
+
+  'survey_response_submitted': {
+    inAppPrefField: 'in_app_survey_responses',
+    emailPrefField: 'email_survey_responses',
+    getTitle: () => 'New survey response',
+    getMessage: (data) => {
+      const respondent = data.respondentName || data.respondentEmail || 'Anonymous';
+      return `${respondent} submitted a response to "${data.surveyTitle || 'your survey'}"`;
+    },
+    actionUrl: '/dashboard/surveys',
+    actionLabel: 'View responses',
+    getEmailVariables: (data, baseUrl) => ({
+      firstName: data.firstName || 'there',
+      surveyTitle: data.surveyTitle || 'Untitled survey',
+      respondentLabel: data.respondentName || data.respondentEmail || 'Anonymous',
+      responseCount: data.responseCount ?? '—',
+      responsesUrl: `${baseUrl}/dashboard/surveys/${data.surveyId}/responses`,
+      accountUrl: `${baseUrl}/dashboard/account`,
+      year: new Date().getFullYear(),
+    }),
   },
 };
 

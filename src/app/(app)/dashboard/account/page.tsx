@@ -22,6 +22,8 @@ interface NotificationPreferences {
   in_app_review_auto_verified: boolean;
   email_batch_completed: boolean;
   in_app_batch_completed: boolean;
+  email_survey_responses: boolean;
+  in_app_survey_responses: boolean;
 }
 
 export default function AccountPage() {
@@ -237,6 +239,7 @@ export default function AccountPage() {
   const [gbpProtectionSaving, setGbpProtectionSaving] = useState(false);
   const [autoVerifiedSaving, setAutoVerifiedSaving] = useState(false);
   const [batchCompletedSaving, setBatchCompletedSaving] = useState(false);
+  const [surveyResponseSaving, setSurveyResponseSaving] = useState(false);
 
   // Fetch notification preferences
   useEffect(() => {
@@ -313,6 +316,27 @@ export default function AccountPage() {
       setError('Failed to update notification settings');
     }
     setBatchCompletedSaving(false);
+  };
+
+  const handleSurveyResponseToggle = async () => {
+    if (!notifPrefs) return;
+    setSurveyResponseSaving(true);
+    try {
+      const newValue = !(notifPrefs.email_survey_responses ?? true);
+      await apiClient.put('/notifications/preferences', {
+        email_survey_responses: newValue,
+        in_app_survey_responses: newValue
+      });
+      setNotifPrefs({
+        ...notifPrefs,
+        email_survey_responses: newValue,
+        in_app_survey_responses: newValue
+      });
+    } catch (error) {
+      console.error('Error updating survey response notifications:', error);
+      setError('Failed to update notification settings');
+    }
+    setSurveyResponseSaving(false);
   };
 
   const handleCreateAccount = async (e: React.FormEvent) => {
@@ -787,6 +811,41 @@ export default function AccountPage() {
                   inline-block h-4 w-4 transform rounded-full bg-white
                   transition-transform
                   ${(notifPrefs?.email_batch_completed ?? true)
+                    ? "translate-x-6"
+                    : "translate-x-1"
+                  }
+                `}
+              />
+            </button>
+          </div>
+
+          {/* Survey Response Notifications Toggle */}
+          <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+            <div>
+              <label className="text-sm font-medium text-gray-900">
+                Survey response alerts
+              </label>
+              <p className="text-sm text-gray-500">Get notified when someone submits a survey response</p>
+            </div>
+            <button
+              onClick={handleSurveyResponseToggle}
+              disabled={surveyResponseSaving || !notifPrefs}
+              className={`
+                relative inline-flex h-6 w-11 items-center rounded-full
+                transition-colors focus:outline-none focus:ring-2
+                focus:ring-slate-blue focus:ring-offset-2
+                ${(notifPrefs?.email_survey_responses ?? true)
+                  ? "bg-slate-blue"
+                  : "bg-gray-200"
+                }
+                ${surveyResponseSaving || !notifPrefs ? "opacity-50 cursor-not-allowed" : ""}
+              `}
+            >
+              <span
+                className={`
+                  inline-block h-4 w-4 transform rounded-full bg-white
+                  transition-transform
+                  ${(notifPrefs?.email_survey_responses ?? true)
                     ? "translate-x-6"
                     : "translate-x-1"
                   }
