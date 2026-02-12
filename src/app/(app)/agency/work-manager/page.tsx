@@ -352,14 +352,36 @@ export default function AgencyWorkManagerPage() {
       {!isAgencyBoard && (
         <div className="bg-amber-500/20 border-b border-amber-400/30">
           <div className="max-w-[1550px] mx-auto px-6 py-3">
-            <div className="flex items-center gap-3">
-              <Icon name="FaBuilding" size={16} className="text-amber-300" />
-              <span className="text-amber-100 text-sm">
-                Working on <strong>{boardContext.clientName}</strong>&apos;s board
-              </span>
-              <span className="text-amber-200/60 text-xs">
-                Changes sync directly to client
-              </span>
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <Icon name="FaBuilding" size={16} className="text-amber-300" />
+                <span className="text-amber-100 text-sm">
+                  Working on <strong>{boardContext.clientName}</strong>&apos;s board
+                </span>
+                <span className="text-amber-200/60 text-xs">
+                  Changes sync directly to client
+                </span>
+              </div>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={board?.show_time_to_client ?? false}
+                  onChange={async () => {
+                    if (!board) return;
+                    const newValue = !(board.show_time_to_client ?? false);
+                    try {
+                      await apiClient.patch(`/work-manager/boards/${board.id}`, {
+                        show_time_to_client: newValue,
+                      });
+                      setBoard(prev => prev ? { ...prev, show_time_to_client: newValue } : null);
+                    } catch (err) {
+                      console.error("Failed to toggle show_time_to_client:", err);
+                    }
+                  }}
+                  className="w-4 h-4 rounded border-amber-300 text-amber-500 focus:ring-amber-400"
+                />
+                <span className="text-amber-100 text-sm whitespace-nowrap">Show time to client</span>
+              </label>
             </div>
           </div>
         </div>
@@ -426,6 +448,7 @@ export default function AgencyWorkManagerPage() {
                     }
                   : undefined
               }
+              showTimeSpent={true}
             />
           ) : (
             <ResourcesView boardId={board.id} />
@@ -477,6 +500,9 @@ export default function AgencyWorkManagerPage() {
           onClose={() => setSelectedTask(null)}
           onTaskUpdated={handleTaskUpdated}
           onTaskDeleted={() => { fetchTasks(); setSelectedTask(null); }}
+          showTimeEntries={true}
+          showTimeEntriesDetail={true}
+          currentUserId={user?.id}
         />
       )}
 
@@ -499,6 +525,9 @@ function TaskDetailsDrawer({
   onClose,
   onTaskUpdated,
   onTaskDeleted,
+  showTimeEntries,
+  showTimeEntriesDetail,
+  currentUserId,
 }: {
   task: WMTask;
   statusLabels: WMStatusLabels;
@@ -506,6 +535,9 @@ function TaskDetailsDrawer({
   onClose: () => void;
   onTaskUpdated: () => void;
   onTaskDeleted: () => void;
+  showTimeEntries?: boolean;
+  showTimeEntriesDetail?: boolean;
+  currentUserId?: string;
 }) {
   useEffect(() => {
     const originalOverflow = document.body.style.overflow;
@@ -530,6 +562,9 @@ function TaskDetailsDrawer({
           onClose={onClose}
           onTaskUpdated={onTaskUpdated}
           onTaskDeleted={onTaskDeleted}
+          showTimeEntries={showTimeEntries}
+          showTimeEntriesDetail={showTimeEntriesDetail}
+          currentUserId={currentUserId}
         />
       </div>
     </div>

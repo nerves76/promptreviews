@@ -30,6 +30,8 @@ interface WorkManagerKanbanProps {
   clientStatusChangeHandler?: (taskId: string, newStatus: WMTaskStatus) => void;
   /** Optional custom reorder endpoint (for agency working on client boards) */
   customReorderEndpoint?: CustomReorderEndpoint;
+  /** Whether to show time spent badge on cards */
+  showTimeSpent?: boolean;
 }
 
 export default function WorkManagerKanban({
@@ -42,6 +44,7 @@ export default function WorkManagerKanban({
   onAddTask,
   clientStatusChangeHandler,
   customReorderEndpoint,
+  showTimeSpent,
 }: WorkManagerKanbanProps) {
   const [draggedCardId, setDraggedCardId] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -222,6 +225,7 @@ export default function WorkManagerKanban({
         clientStatus={task.linked_task?.status as WMTaskStatus | undefined}
         clientStatusLabels={task.linked_task?.client_board_status_labels}
         onClientStatusChange={clientStatusChangeHandler}
+        showTimeSpent={showTimeSpent}
       />
     </div>
   );

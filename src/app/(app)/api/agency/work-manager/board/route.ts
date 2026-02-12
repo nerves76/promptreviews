@@ -114,7 +114,7 @@ export async function GET(request: NextRequest) {
     // Get or create board
     let { data: board } = await supabaseAdmin
       .from('wm_boards')
-      .select('id, account_id, name, status_labels, created_at, updated_at')
+      .select('id, account_id, name, status_labels, show_time_to_client, created_at, updated_at')
       .eq('account_id', accountId)
       .single();
 
@@ -127,7 +127,7 @@ export async function GET(request: NextRequest) {
           status_labels: DEFAULT_WM_STATUS_LABELS,
           created_by: user.id,
         })
-        .select('id, account_id, name, status_labels, created_at, updated_at')
+        .select('id, account_id, name, status_labels, show_time_to_client, created_at, updated_at')
         .single();
 
       if (createError || !newBoard) {
@@ -241,6 +241,24 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // Aggregate time spent per task
+    const allTaskIds = (tasks || []).map(t => t.id);
+    const timeSpentMap = new Map<string, number>();
+
+    if (allTaskIds.length > 0) {
+      const { data: timeEntries } = await supabaseAdmin
+        .from('wm_time_entries')
+        .select('task_id, duration_minutes')
+        .in('task_id', allTaskIds);
+
+      if (timeEntries) {
+        for (const entry of timeEntries) {
+          const current = timeSpentMap.get(entry.task_id) || 0;
+          timeSpentMap.set(entry.task_id, current + entry.duration_minutes);
+        }
+      }
+    }
+
     // Build response tasks with linked data
     const enrichedTasks = (tasks || []).map(task => {
       const linkedData = task.linked_task_id ? linkedTaskMap.get(task.linked_task_id) : null;
@@ -250,6 +268,7 @@ export async function GET(request: NextRequest) {
 
       return {
         ...task,
+        total_time_spent_minutes: timeSpentMap.get(task.id) || 0,
         assignee: assignee ? {
           id: task.assigned_to,
           first_name: assignee.first_name,
@@ -274,6 +293,7 @@ export async function GET(request: NextRequest) {
         account_id: board.account_id,
         name: board.name,
         status_labels: board.status_labels || DEFAULT_WM_STATUS_LABELS,
+        show_time_to_client: (board as any).show_time_to_client ?? false,
         business_name: account.business_name,
         created_at: board.created_at,
         updated_at: board.updated_at,

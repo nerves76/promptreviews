@@ -302,6 +302,7 @@ export default function WorkManagerBoardPage() {
             onTaskClick={handleTaskClick}
             onTasksReordered={fetchTasks}
             onAddTask={handleAddTask}
+            showTimeSpent={board?.show_time_to_client ?? false}
           />
         ) : (
           <ResourcesView boardId={boardId} />
@@ -339,6 +340,9 @@ export default function WorkManagerBoardPage() {
           onClose={() => setSelectedTask(null)}
           onTaskUpdated={handleTaskUpdated}
           onTaskDeleted={handleTaskDeleted}
+          showTimeEntries={board?.show_time_to_client ?? false}
+          showTimeEntriesDetail={false}
+          currentUserId={user?.id}
         />
       )}
 
@@ -360,6 +364,9 @@ function TaskDetailsDrawer({
   onClose,
   onTaskUpdated,
   onTaskDeleted,
+  showTimeEntries,
+  showTimeEntriesDetail,
+  currentUserId,
 }: {
   task: WMTask;
   statusLabels: WMStatusLabels;
@@ -367,6 +374,9 @@ function TaskDetailsDrawer({
   onClose: () => void;
   onTaskUpdated: () => void;
   onTaskDeleted: () => void;
+  showTimeEntries?: boolean;
+  showTimeEntriesDetail?: boolean;
+  currentUserId?: string;
 }) {
   useEffect(() => {
     const originalOverflow = document.body.style.overflow;
@@ -391,6 +401,9 @@ function TaskDetailsDrawer({
           onClose={onClose}
           onTaskUpdated={onTaskUpdated}
           onTaskDeleted={onTaskDeleted}
+          showTimeEntries={showTimeEntries}
+          showTimeEntriesDetail={showTimeEntriesDetail}
+          currentUserId={currentUserId}
         />
       </div>
     </div>

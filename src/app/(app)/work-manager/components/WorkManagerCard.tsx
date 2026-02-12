@@ -3,7 +3,7 @@
 import React from "react";
 import { formatDistanceToNow, isPast, isToday } from "date-fns";
 import Icon from "@/components/Icon";
-import { WMTask, WMTaskStatus, WMStatusLabels, WM_PRIORITY_COLORS, WM_PRIORITY_LABELS } from "@/types/workManager";
+import { WMTask, WMTaskStatus, WMStatusLabels, WM_PRIORITY_COLORS, WM_PRIORITY_LABELS, formatTimeEstimate } from "@/types/workManager";
 import { LLM_PROVIDER_LABELS, LLM_PROVIDER_COLORS, type LLMProvider } from "@/features/llm-visibility/utils/types";
 
 interface WorkManagerCardProps {
@@ -18,6 +18,8 @@ interface WorkManagerCardProps {
   clientStatusLabels?: WMStatusLabels | null;
   /** Callback when agency changes the client-side status */
   onClientStatusChange?: (taskId: string, newStatus: WMTaskStatus) => void;
+  /** Whether to show time spent badge */
+  showTimeSpent?: boolean;
 }
 
 export default function WorkManagerCard({
@@ -28,6 +30,7 @@ export default function WorkManagerCard({
   clientStatus,
   clientStatusLabels,
   onClientStatusChange,
+  showTimeSpent = true,
 }: WorkManagerCardProps) {
   const handleOpen = (event?: React.MouseEvent<HTMLButtonElement>) => {
     if (event) {
@@ -160,16 +163,34 @@ export default function WorkManagerCard({
       {/* Footer */}
       <div className="mt-3 flex items-center justify-between border-t border-gray-100 pt-3 text-xs">
         {/* Due date or assignee */}
-        <div className={`inline-flex items-center gap-1 truncate ${dueDateClassName}`}>
-          {dueDateDisplay || (
-            assigneeName ? (
-              <>
-                <Icon name="FaUser" size={10} className="text-gray-500" />
-                <span className="truncate text-gray-600">{assigneeName}</span>
-              </>
-            ) : (
-              <span className="text-gray-500">No due date</span>
-            )
+        <div className="flex items-center gap-3 min-w-0">
+          <div className={`inline-flex items-center gap-1 truncate ${dueDateClassName}`}>
+            {dueDateDisplay || (
+              assigneeName ? (
+                <>
+                  <Icon name="FaUser" size={10} className="text-gray-500" />
+                  <span className="truncate text-gray-600">{assigneeName}</span>
+                </>
+              ) : (
+                <span className="text-gray-500">No due date</span>
+              )
+            )}
+          </div>
+
+          {/* Time estimate */}
+          {task.time_estimate_minutes != null && task.time_estimate_minutes > 0 && (
+            <span className="inline-flex items-center gap-1 text-gray-500 whitespace-nowrap">
+              <Icon name="FaClock" size={10} />
+              {formatTimeEstimate(task.time_estimate_minutes)}
+            </span>
+          )}
+
+          {/* Time spent */}
+          {showTimeSpent && (task.total_time_spent_minutes ?? 0) > 0 && (
+            <span className="inline-flex items-center gap-1 text-emerald-600 whitespace-nowrap">
+              <Icon name="FaCheck" size={10} />
+              {formatTimeEstimate(task.total_time_spent_minutes!)}
+            </span>
           )}
         </div>
 

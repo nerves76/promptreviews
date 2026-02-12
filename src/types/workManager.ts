@@ -46,6 +46,7 @@ export interface WMBoard {
   account_id: string;
   name: string | null;
   status_labels: WMStatusLabels;
+  show_time_to_client: boolean;
   created_by: string | null;
   created_at: string;
   updated_at: string;
@@ -95,6 +96,10 @@ export interface WMTask {
   source_reference: string | null;
   // Metadata for enriched task display (e.g. provider/concept tags)
   metadata: Record<string, unknown> | null;
+  // Time estimate in minutes (nullable)
+  time_estimate_minutes: number | null;
+  // Time spent (computed, not in DB)
+  total_time_spent_minutes?: number;
   // Linked task fields (agency → client linking)
   linked_task_id: string | null;
   linked_account_id: string | null;
@@ -127,6 +132,27 @@ export interface WMTaskAction {
   creator?: WMUserInfo | null;
 }
 
+// Time entry type
+export interface WMTimeEntry {
+  id: string;
+  task_id: string;
+  account_id: string;
+  duration_minutes: number;
+  entry_date: string;
+  note: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+  creator?: WMUserInfo | null;
+}
+
+export interface CreateTimeEntryRequest {
+  task_id: string;
+  duration_minutes: number;
+  entry_date?: string;
+  note?: string;
+}
+
 // API Request/Response types
 
 export interface CreateBoardRequest {
@@ -137,6 +163,7 @@ export interface CreateBoardRequest {
 export interface UpdateBoardRequest {
   name?: string;
   status_labels?: WMStatusLabels;
+  show_time_to_client?: boolean;
 }
 
 export interface CreateTaskRequest {
@@ -147,6 +174,7 @@ export interface CreateTaskRequest {
   priority?: WMTaskPriority;
   due_date?: string | null;
   assigned_to?: string | null;
+  time_estimate_minutes?: number | null;
   source_type?: WMTaskSourceType;
   source_reference?: string;
   metadata?: Record<string, unknown>;
@@ -159,6 +187,7 @@ export interface UpdateTaskRequest {
   priority?: WMTaskPriority;
   due_date?: string | null;
   assigned_to?: string | null;
+  time_estimate_minutes?: number | null;
 }
 
 export interface ReorderTasksRequest {
@@ -468,6 +497,15 @@ export interface CreateLinkRequest {
   resource_id?: string;
   name: string;
   url: string;
+}
+
+// Format a time estimate (in minutes) for display
+export function formatTimeEstimate(minutes: number): string {
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  if (h && m) return `${h}h ${m}m`;
+  if (h) return `${h}h`;
+  return `${m}m`;
 }
 
 // Work Manager view tabs

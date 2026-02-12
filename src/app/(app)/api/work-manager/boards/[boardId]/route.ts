@@ -36,6 +36,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
         account_id,
         name,
         status_labels,
+        show_time_to_client,
         created_by,
         created_at,
         updated_at,
@@ -70,6 +71,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
       account_id: board.account_id,
       name: board.name,
       status_labels: board.status_labels || DEFAULT_WM_STATUS_LABELS,
+      show_time_to_client: (board as any).show_time_to_client ?? false,
       account_name: account ? `${account.first_name || ''} ${account.last_name || ''}`.trim() || 'Unknown' : 'Unknown',
       business_name: business?.name || null,
       task_count: taskCount || 0,
@@ -100,7 +102,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     }
 
     const body = await request.json();
-    const { name, status_labels } = body;
+    const { name, status_labels, show_time_to_client } = body;
 
     const supabaseAdmin = createServiceRoleClient();
     const accountId = await getRequestAccountId(request, user.id, supabaseAdmin);
@@ -138,6 +140,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     const updateData: any = {};
     if (name !== undefined) updateData.name = name;
     if (status_labels !== undefined) updateData.status_labels = status_labels;
+    if (show_time_to_client !== undefined) updateData.show_time_to_client = show_time_to_client;
 
     if (Object.keys(updateData).length === 0) {
       return NextResponse.json({ error: 'No fields to update' }, { status: 400 });

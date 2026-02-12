@@ -78,9 +78,28 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // Aggregate time spent per task
+    const allTaskIds = (tasks || []).map(t => t.id);
+    const timeSpentMap = new Map<string, number>();
+
+    if (allTaskIds.length > 0) {
+      const { data: timeEntries } = await supabaseAdmin
+        .from('wm_time_entries')
+        .select('task_id, duration_minutes')
+        .in('task_id', allTaskIds);
+
+      if (timeEntries) {
+        for (const entry of timeEntries) {
+          const current = timeSpentMap.get(entry.task_id) || 0;
+          timeSpentMap.set(entry.task_id, current + entry.duration_minutes);
+        }
+      }
+    }
+
     // Transform tasks with user info
     const transformedTasks = tasks?.map(task => ({
       ...task,
+      total_time_spent_minutes: timeSpentMap.get(task.id) || 0,
       assignee: task.assigned_to ? usersMap[task.assigned_to] || null : null,
       creator: task.created_by ? usersMap[task.created_by] || null : null,
     })) || [];
@@ -114,6 +133,7 @@ export async function POST(request: NextRequest) {
       priority = 'medium',
       due_date,
       assigned_to,
+      time_estimate_minutes,
       metadata,
     } = body;
 
@@ -182,6 +202,7 @@ export async function POST(request: NextRequest) {
         assigned_to: assigned_to || null,
         sort_order: nextSortOrder,
         created_by: user.id,
+        ...(time_estimate_minutes != null ? { time_estimate_minutes } : {}),
         ...(metadata ? { metadata } : {}),
       })
       .select()

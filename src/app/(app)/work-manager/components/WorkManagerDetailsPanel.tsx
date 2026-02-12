@@ -14,9 +14,12 @@ import {
   WM_PRIORITY_COLORS,
   WMUserInfo,
   WMLink,
+  WMTimeEntry,
+  formatTimeEstimate,
 } from "@/types/workManager";
 import MentionInput from "./MentionInput";
 import LinksSection from "./LinksSection";
+import TimeEntriesSection from "./TimeEntriesSection";
 
 interface WorkManagerDetailsPanelProps {
   task: WMTask;
@@ -25,6 +28,9 @@ interface WorkManagerDetailsPanelProps {
   onClose: () => void;
   onTaskUpdated: () => void;
   onTaskDeleted: () => void;
+  showTimeEntries?: boolean;
+  showTimeEntriesDetail?: boolean;
+  currentUserId?: string;
 }
 
 export default function WorkManagerDetailsPanel({
@@ -34,6 +40,9 @@ export default function WorkManagerDetailsPanel({
   onClose,
   onTaskUpdated,
   onTaskDeleted,
+  showTimeEntries = true,
+  showTimeEntriesDetail = true,
+  currentUserId,
 }: WorkManagerDetailsPanelProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedTitle, setEditedTitle] = useState(task.title);
@@ -42,6 +51,12 @@ export default function WorkManagerDetailsPanel({
   const [editedPriority, setEditedPriority] = useState<WMTaskPriority>(task.priority);
   const [editedDueDate, setEditedDueDate] = useState(task.due_date ? task.due_date.split("T")[0] : "");
   const [editedAssignee, setEditedAssignee] = useState(task.assigned_to || "");
+  const [editedEstimateHours, setEditedEstimateHours] = useState(
+    task.time_estimate_minutes ? String(Math.floor(task.time_estimate_minutes / 60)) : ""
+  );
+  const [editedEstimateMinutes, setEditedEstimateMinutes] = useState(
+    task.time_estimate_minutes ? String(task.time_estimate_minutes % 60) : ""
+  );
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -55,6 +70,10 @@ export default function WorkManagerDetailsPanel({
   // Links
   const [links, setLinks] = useState<WMLink[]>([]);
   const [linksLoading, setLinksLoading] = useState(true);
+
+  // Time entries
+  const [timeEntries, setTimeEntries] = useState<WMTimeEntry[]>([]);
+  const [timeEntriesLoading, setTimeEntriesLoading] = useState(true);
 
   // Fetch activity log
   useEffect(() => {
@@ -88,6 +107,36 @@ export default function WorkManagerDetailsPanel({
     fetchLinks();
   }, [task.id]);
 
+  // Fetch time entries
+  useEffect(() => {
+    if (!showTimeEntries) {
+      setTimeEntriesLoading(false);
+      return;
+    }
+    const fetchTimeEntries = async () => {
+      try {
+        setTimeEntriesLoading(true);
+        const response = await apiClient.get<{ entries: WMTimeEntry[]; total_minutes: number }>(`/work-manager/time-entries?taskId=${task.id}`);
+        setTimeEntries(response.entries || []);
+      } catch (err) {
+        console.error("Failed to fetch time entries:", err);
+      } finally {
+        setTimeEntriesLoading(false);
+      }
+    };
+    fetchTimeEntries();
+  }, [task.id, showTimeEntries]);
+
+  const handleTimeEntriesChanged = async () => {
+    try {
+      const response = await apiClient.get<{ entries: WMTimeEntry[]; total_minutes: number }>(`/work-manager/time-entries?taskId=${task.id}`);
+      setTimeEntries(response.entries || []);
+    } catch (err) {
+      console.error("Failed to refresh time entries:", err);
+    }
+    onTaskUpdated();
+  };
+
   const handleLinksChanged = async () => {
     try {
       const response = await apiClient.get<{ links: WMLink[] }>(`/work-manager/links?taskId=${task.id}`);
@@ -105,6 +154,12 @@ export default function WorkManagerDetailsPanel({
     setEditedPriority(task.priority);
     setEditedDueDate(task.due_date ? task.due_date.split("T")[0] : "");
     setEditedAssignee(task.assigned_to || "");
+    setEditedEstimateHours(
+      task.time_estimate_minutes ? String(Math.floor(task.time_estimate_minutes / 60)) : ""
+    );
+    setEditedEstimateMinutes(
+      task.time_estimate_minutes ? String(task.time_estimate_minutes % 60) : ""
+    );
     setIsEditing(false);
     setError(null);
   }, [task]);
@@ -119,6 +174,10 @@ export default function WorkManagerDetailsPanel({
     setError(null);
 
     try {
+      const h = parseInt(editedEstimateHours) || 0;
+      const m = parseInt(editedEstimateMinutes) || 0;
+      const totalMinutes = h * 60 + m;
+
       await apiClient.patch(`/work-manager/tasks/${task.id}`, {
         title: editedTitle.trim(),
         description: editedDescription.trim() || null,
@@ -126,6 +185,7 @@ export default function WorkManagerDetailsPanel({
         priority: editedPriority,
         due_date: editedDueDate || null,
         assigned_to: editedAssignee || null,
+        time_estimate_minutes: totalMinutes > 0 ? totalMinutes : null,
       });
       setIsEditing(false);
       onTaskUpdated();
@@ -333,6 +393,68 @@ export default function WorkManagerDetailsPanel({
             <p className="text-sm text-gray-500">No due date set</p>
           )}
         </section>
+
+        {/* Time estimate */}
+        <section className="p-5 bg-white/60 backdrop-blur-sm border border-gray-100/50 rounded-xl space-y-2">
+          <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Time estimate</h3>
+          {isEditing ? (
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1">
+                <input
+                  type="number"
+                  min={0}
+                  max={99}
+                  value={editedEstimateHours}
+                  onChange={(e) => setEditedEstimateHours(e.target.value)}
+                  placeholder="0"
+                  className="w-16 px-2 py-2 border border-gray-300 rounded-lg text-center"
+                  aria-label="Hours"
+                />
+                <span className="text-sm text-gray-500">h</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <input
+                  type="number"
+                  min={0}
+                  max={59}
+                  value={editedEstimateMinutes}
+                  onChange={(e) => setEditedEstimateMinutes(e.target.value)}
+                  placeholder="0"
+                  className="w-16 px-2 py-2 border border-gray-300 rounded-lg text-center"
+                  aria-label="Minutes"
+                />
+                <span className="text-sm text-gray-500">m</span>
+              </div>
+            </div>
+          ) : task.time_estimate_minutes ? (
+            <div className="flex items-center gap-2 text-sm text-gray-700">
+              <Icon name="FaClock" size={14} className="text-gray-500" />
+              <span>{formatTimeEstimate(task.time_estimate_minutes)}</span>
+            </div>
+          ) : (
+            <p className="text-sm text-gray-500">No estimate</p>
+          )}
+        </section>
+
+        {/* Time entries */}
+        {showTimeEntries && (
+          <section className="p-5 bg-white/60 backdrop-blur-sm border border-gray-100/50 rounded-xl">
+            {timeEntriesLoading ? (
+              <div className="flex items-center justify-center py-4">
+                <Icon name="FaSpinner" size={16} className="animate-spin text-gray-500" />
+              </div>
+            ) : (
+              <TimeEntriesSection
+                entries={timeEntries}
+                taskId={task.id}
+                onEntriesChanged={handleTimeEntriesChanged}
+                readOnly={isEditing}
+                totalOnly={!showTimeEntriesDetail}
+                currentUserId={currentUserId}
+              />
+            )}
+          </section>
+        )}
 
         {/* Assignee */}
         <section className="p-5 bg-white/60 backdrop-blur-sm border border-gray-100/50 rounded-xl space-y-2">
