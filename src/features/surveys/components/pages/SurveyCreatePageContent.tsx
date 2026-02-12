@@ -70,20 +70,20 @@ export function SurveyCreatePageContent({ basePath }: SurveyCreatePageContentPro
           <p>Loading templates...</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {/* Blank survey */}
           <button
             onClick={handleCreateBlank}
             disabled={creating}
-            className="flex flex-col items-start p-6 rounded-xl border-2 border-dashed border-gray-300 hover:border-slate-blue hover:bg-slate-blue/5 transition-all text-left w-full disabled:opacity-50"
+            className="flex items-start gap-3 p-4 rounded-xl border border-dashed border-gray-300 hover:border-slate-blue hover:bg-slate-blue/5 transition-all text-left w-full disabled:opacity-50"
           >
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
-                <Icon name="FaPlus" size={18} className="text-gray-500" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900">Start from scratch</h3>
+            <div className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <Icon name="FaPlus" size={16} className="text-gray-500" />
             </div>
-            <p className="text-sm text-gray-600">Build a custom survey with your own questions</p>
+            <div className="min-w-0">
+              <h3 className="text-sm font-semibold text-gray-900 leading-snug">Start from scratch</h3>
+              <p className="text-xs text-gray-500 mt-1">Build a custom survey with your own questions</p>
+            </div>
           </button>
 
           {/* Templates */}
