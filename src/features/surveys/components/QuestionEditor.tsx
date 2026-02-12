@@ -24,6 +24,38 @@ export function QuestionEditor({ question, onChange, onRemove, index }: Question
   const isMultipleChoice = question.question_type === 'multiple_choice_single' || question.question_type === 'multiple_choice_multi';
   const isRating = question.question_type === 'rating_star' || question.question_type === 'rating_number';
 
+  // Section header — simplified editor
+  if (question.question_type === 'section_header') {
+    return (
+      <div className="border border-dashed border-gray-300 rounded-lg p-4 bg-gray-50/50">
+        <div className="flex items-start justify-between mb-3">
+          <span className="text-sm font-medium text-gray-500">Section header</span>
+          <button
+            onClick={onRemove}
+            className="text-gray-400 hover:text-red-500 transition-colors"
+            aria-label="Remove section header"
+          >
+            <Icon name="FaTrash" size={14} />
+          </button>
+        </div>
+        <input
+          type="text"
+          value={question.question_text}
+          onChange={(e) => updateField('question_text', e.target.value)}
+          className="w-full p-2 border border-gray-300 rounded-md text-base font-semibold focus:ring-2 focus:ring-slate-blue focus:border-transparent mb-2"
+          placeholder="Section title"
+        />
+        <input
+          type="text"
+          value={question.description || ''}
+          onChange={(e) => updateField('description', e.target.value || null)}
+          className="w-full p-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-slate-blue focus:border-transparent"
+          placeholder="Section description (optional)"
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="border border-gray-200 rounded-lg p-4 bg-white">
       <div className="flex items-start justify-between mb-4">
@@ -45,9 +77,11 @@ export function QuestionEditor({ question, onChange, onRemove, index }: Question
           onChange={(e) => updateField('question_type', e.target.value as QuestionType)}
           className="inline-block w-auto px-3 py-1.5 bg-gray-100 border-0 rounded-full text-sm font-medium text-gray-700 cursor-pointer hover:bg-gray-200 focus:ring-2 focus:ring-slate-blue focus:ring-offset-2 focus:outline-none transition-colors appearance-none pr-8 bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22%236b7280%22%3E%3Cpath%20fill-rule%3D%22evenodd%22%20d%3D%22M5.23%207.21a.75.75%200%20011.06.02L10%2011.168l3.71-3.938a.75.75%200%20111.08%201.04l-4.25%204.5a.75.75%200%2001-1.08%200l-4.25-4.5a.75.75%200%2001.02-1.06z%22%20clip-rule%3D%22evenodd%22%2F%3E%3C%2Fsvg%3E')] bg-[length:1.25rem] bg-[right_0.5rem_center] bg-no-repeat"
         >
-          {Object.entries(QUESTION_TYPE_LABELS).map(([value, label]) => (
-            <option key={value} value={value}>{label}</option>
-          ))}
+          {Object.entries(QUESTION_TYPE_LABELS)
+            .filter(([value]) => value !== 'section_header')
+            .map(([value, label]) => (
+              <option key={value} value={value}>{label}</option>
+            ))}
         </select>
       </div>
 

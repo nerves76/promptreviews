@@ -56,6 +56,8 @@ export async function GET(request: NextRequest, context: RouteContext) {
       'Submitted At',
       'Respondent Name',
       'Respondent Email',
+      'Respondent Phone',
+      'Respondent Business Name',
       'Source',
       ...questions.map((q: any) => q.question_text),
     ];
@@ -77,6 +79,8 @@ export async function GET(request: NextRequest, context: RouteContext) {
         r.submitted_at || '',
         r.respondent_name || '',
         r.respondent_email || '',
+        r.respondent_phone || '',
+        r.respondent_business_name || '',
         r.source_channel || '',
         ...questions.map((q: any) => {
           const answer = answerMap.get(q.id);

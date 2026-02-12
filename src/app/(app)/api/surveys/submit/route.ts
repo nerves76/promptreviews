@@ -13,7 +13,7 @@ import { sendNotificationToAccount } from '@/utils/notifications';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { survey_id, answers, respondent_name, respondent_email, respondent_phone, source_channel, utm_params } = body;
+    const { survey_id, answers, respondent_name, respondent_email, respondent_phone, respondent_business_name, source_channel, utm_params } = body;
 
     if (!survey_id) {
       return NextResponse.json({ error: 'survey_id is required' }, { status: 400 });
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     // Fetch survey to get account_id and validate
     const { data: survey, error: surveyError } = await supabase
       .from('surveys')
-      .select('id, account_id, status, title, free_responses_remaining, collect_respondent_info, require_respondent_email, one_response_per_email')
+      .select('id, account_id, status, title, free_responses_remaining, collect_respondent_info, require_respondent_email, one_response_per_email, require_name, require_email, require_phone, require_business_name')
       .eq('id', survey_id)
       .single();
 
@@ -54,9 +54,18 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Validate required email
-    if (survey.require_respondent_email && !respondent_email) {
+    // Validate required respondent fields (granular)
+    if (survey.require_name && !respondent_name?.trim()) {
+      return NextResponse.json({ error: 'Name is required for this survey' }, { status: 400 });
+    }
+    if ((survey.require_email || survey.require_respondent_email) && !respondent_email?.trim()) {
       return NextResponse.json({ error: 'Email is required for this survey' }, { status: 400 });
+    }
+    if (survey.require_phone && !respondent_phone?.trim()) {
+      return NextResponse.json({ error: 'Phone number is required for this survey' }, { status: 400 });
+    }
+    if (survey.require_business_name && !respondent_business_name?.trim()) {
+      return NextResponse.json({ error: 'Business name is required for this survey' }, { status: 400 });
     }
 
     // Determine if this is a free response or purchased
@@ -136,6 +145,7 @@ export async function POST(request: NextRequest) {
         respondent_name: respondent_name || null,
         respondent_email: respondent_email || null,
         respondent_phone: respondent_phone || null,
+        respondent_business_name: respondent_business_name || null,
         answers: sanitizedAnswers,
         source_channel: ['direct', 'qr', 'email', 'sms'].includes(source_channel) ? source_channel : 'direct',
         utm_params: typeof utm_params === 'object' ? utm_params : {},

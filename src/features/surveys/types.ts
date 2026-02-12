@@ -9,7 +9,8 @@ export type QuestionType =
   | 'multiple_choice_single'
   | 'multiple_choice_multi'
   | 'rating_star'
-  | 'rating_number';
+  | 'rating_number'
+  | 'section_header';
 
 export const QUESTION_TYPE_LABELS: Record<QuestionType, string> = {
   text: 'Free text',
@@ -17,6 +18,7 @@ export const QUESTION_TYPE_LABELS: Record<QuestionType, string> = {
   multiple_choice_multi: 'Multiple choice (multi)',
   rating_star: 'Star rating',
   rating_number: 'Number rating',
+  section_header: 'Section header',
 };
 
 // --- Survey Status ---
@@ -76,6 +78,14 @@ export interface Survey {
   show_progress_bar: boolean;
   collect_respondent_info: boolean;
   require_respondent_email: boolean;
+  collect_name: boolean;
+  require_name: boolean;
+  collect_email: boolean;
+  require_email: boolean;
+  collect_phone: boolean;
+  require_phone: boolean;
+  collect_business_name: boolean;
+  require_business_name: boolean;
   one_response_per_email: boolean;
   free_responses_remaining: number;
   agency_account_id?: string | null;
@@ -106,6 +116,7 @@ export interface SurveyResponse {
   respondent_name?: string | null;
   respondent_email?: string | null;
   respondent_phone?: string | null;
+  respondent_business_name?: string | null;
   answers: SurveyAnswer[];
   source_channel: SurveySourceChannel;
   utm_params: Record<string, string>;
@@ -181,6 +192,14 @@ export interface CreateSurveyRequest {
   show_progress_bar?: boolean;
   collect_respondent_info?: boolean;
   require_respondent_email?: boolean;
+  collect_name?: boolean;
+  require_name?: boolean;
+  collect_email?: boolean;
+  require_email?: boolean;
+  collect_phone?: boolean;
+  require_phone?: boolean;
+  collect_business_name?: boolean;
+  require_business_name?: boolean;
   one_response_per_email?: boolean;
 }
 
@@ -199,6 +218,7 @@ export interface SurveySubmitRequest {
   respondent_name?: string;
   respondent_email?: string;
   respondent_phone?: string;
+  respondent_business_name?: string;
   source_channel?: SurveySourceChannel;
   utm_params?: Record<string, string>;
 }

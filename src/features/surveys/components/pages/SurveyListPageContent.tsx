@@ -6,9 +6,9 @@ import PageCard, { PageCardHeader } from '@/app/(app)/components/PageCard';
 import { Button } from '@/app/(app)/components/ui/button';
 import Icon from '@/components/Icon';
 import { useSurveys } from '@/features/surveys/hooks/useSurveys';
-import { SurveyStatusBadge } from '@/features/surveys/components/SurveyStatusBadge';
-import { SurveyStatus } from '@/features/surveys/types';
+import { SurveyStatus, SURVEY_STATUS_LABELS, SURVEY_STATUS_COLORS } from '@/features/surveys/types';
 import { apiClient } from '@/utils/apiClient';
+import { useToast, ToastContainer } from '@/app/(app)/components/reviews/Toast';
 import QRCodeModal from '@/app/(app)/components/QRCodeModal';
 
 const STATUS_TABS: { value: SurveyStatus | 'all'; label: string }[] = [
@@ -33,6 +33,8 @@ export function SurveyListPageContent({ basePath }: SurveyListPageContentProps) 
   const [showQR, setShowQR] = useState(false);
   const [copyLinkId, setCopyLinkId] = useState<string | null>(null);
   const [qrModal, setQrModal] = useState<{ open: boolean; url: string; clientName: string } | null>(null);
+  const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null);
+  const { toasts, closeToast, success, error: showError } = useToast();
 
   // Check for post-save modal flag
   useEffect(() => {
@@ -67,6 +69,19 @@ export function SurveyListPageContent({ basePath }: SurveyListPageContentProps) 
       // Error handled silently
     } finally {
       setDeleting(null);
+    }
+  };
+
+  const handleStatusChange = async (surveyId: string, newStatus: SurveyStatus) => {
+    setUpdatingStatusId(surveyId);
+    try {
+      await apiClient.patch(`/surveys/${surveyId}/status`, { status: newStatus });
+      await refetch();
+      success(`Survey ${SURVEY_STATUS_LABELS[newStatus].toLowerCase()}`);
+    } catch {
+      showError('Failed to update status');
+    } finally {
+      setUpdatingStatusId(null);
     }
   };
 
@@ -154,7 +169,18 @@ export function SurveyListPageContent({ basePath }: SurveyListPageContentProps) 
                     </button>
                   </td>
                   <td className="whitespace-nowrap px-3 py-4 text-sm">
-                    <SurveyStatusBadge status={survey.status} />
+                    <select
+                      value={survey.status}
+                      onChange={(e) => handleStatusChange(survey.id, e.target.value as SurveyStatus)}
+                      disabled={updatingStatusId === survey.id}
+                      aria-label={`Change status for ${survey.title}`}
+                      className={`text-xs font-medium rounded-full px-2.5 py-0.5 border-0 cursor-pointer focus:ring-2 focus:ring-slate-blue focus:ring-offset-1 ${SURVEY_STATUS_COLORS[survey.status]} ${updatingStatusId === survey.id ? 'opacity-50' : ''}`}
+                    >
+                      <option value="draft">Draft</option>
+                      <option value="active">Enabled</option>
+                      <option value="paused">Disabled</option>
+                      <option value="closed">Closed</option>
+                    </select>
                   </td>
                   <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-600">
                     {survey.response_count ?? 0}
@@ -315,6 +341,8 @@ export function SurveyListPageContent({ basePath }: SurveyListPageContentProps) 
         url={qrModal?.url || ''}
         clientName={qrModal?.clientName || ''}
       />
+
+      <ToastContainer toasts={toasts} onClose={closeToast} />
     </PageCard>
   );
 }

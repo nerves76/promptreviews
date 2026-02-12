@@ -38,8 +38,14 @@ export function SurveyBuilderPageContent({ basePath, surveyId }: SurveyBuilderPa
 
   // Survey settings
   const [showProgressBar, setShowProgressBar] = useState(true);
-  const [collectRespondentInfo, setCollectRespondentInfo] = useState(false);
+  const [collectName, setCollectName] = useState(false);
+  const [requireName, setRequireName] = useState(false);
+  const [collectEmail, setCollectEmail] = useState(false);
   const [requireEmail, setRequireEmail] = useState(false);
+  const [collectPhone, setCollectPhone] = useState(false);
+  const [requirePhone, setRequirePhone] = useState(false);
+  const [collectBusinessName, setCollectBusinessName] = useState(false);
+  const [requireBusinessName, setRequireBusinessName] = useState(false);
   const [thankYouMessage, setThankYouMessage] = useState('Thank you for your response!');
 
   // Sync state from fetched survey
@@ -49,8 +55,14 @@ export function SurveyBuilderPageContent({ basePath, surveyId }: SurveyBuilderPa
       setDescription(survey.description || '');
       setQuestions((survey as any).survey_questions || []);
       setShowProgressBar(survey.show_progress_bar);
-      setCollectRespondentInfo(survey.collect_respondent_info);
-      setRequireEmail(survey.require_respondent_email);
+      setCollectName(survey.collect_name);
+      setRequireName(survey.require_name);
+      setCollectEmail(survey.collect_email);
+      setRequireEmail(survey.require_email);
+      setCollectPhone(survey.collect_phone);
+      setRequirePhone(survey.require_phone);
+      setCollectBusinessName(survey.collect_business_name);
+      setRequireBusinessName(survey.require_business_name);
       setThankYouMessage(survey.thank_you_message || 'Thank you for your response!');
     }
   }, [survey]);
@@ -68,8 +80,14 @@ export function SurveyBuilderPageContent({ basePath, surveyId }: SurveyBuilderPa
         description: description || undefined,
         questions,
         show_progress_bar: showProgressBar,
-        collect_respondent_info: collectRespondentInfo,
-        require_respondent_email: requireEmail,
+        collect_name: collectName,
+        require_name: requireName,
+        collect_email: collectEmail,
+        require_email: requireEmail,
+        collect_phone: collectPhone,
+        require_phone: requirePhone,
+        collect_business_name: collectBusinessName,
+        require_business_name: requireBusinessName,
         thank_you_message: thankYouMessage,
       } as any);
       // Set localStorage flag so the surveys list page shows a success modal
@@ -83,7 +101,7 @@ export function SurveyBuilderPageContent({ basePath, surveyId }: SurveyBuilderPa
       setSaveMessage('Failed to save');
       setSaving(false);
     }
-  }, [title, description, questions, showProgressBar, collectRespondentInfo, requireEmail, thankYouMessage, updateSurvey, survey, router, basePath]);
+  }, [title, description, questions, showProgressBar, collectName, requireName, collectEmail, requireEmail, collectPhone, requirePhone, collectBusinessName, requireBusinessName, thankYouMessage, updateSurvey, survey, router, basePath]);
 
   const handleStatusChange = async (status: SurveyStatus) => {
     try {
@@ -133,6 +151,13 @@ export function SurveyBuilderPageContent({ basePath, surveyId }: SurveyBuilderPa
 
   return (
     <>
+      {/* Page title */}
+      <div className="px-4 sm:px-6 lg:px-8 pt-8 mt-8">
+        <div className="max-w-7xl mx-auto flex flex-col items-center mb-3">
+          <h1 className="text-3xl lg:text-4xl font-bold text-white mb-6">Surveys</h1>
+        </div>
+      </div>
+
       <SubNav
         items={[
           { label: 'Builder', icon: 'FaFileAlt', href: `${basePath}/${surveyId}`, matchType: 'exact' },
@@ -148,8 +173,8 @@ export function SurveyBuilderPageContent({ basePath, surveyId }: SurveyBuilderPa
             type="text"
             value={title}
             onChange={(e) => { setTitle(e.target.value); if (saveMessage === 'Please add a survey title') setSaveMessage(null); }}
-            className={`w-full text-2xl font-bold text-slate-blue border-0 border-b-2 focus:border-slate-blue focus:ring-0 px-0 py-1 bg-transparent mt-4 mb-2 ${
-              saveMessage === 'Please add a survey title' ? 'border-red-400' : 'border-transparent'
+            className={`w-full text-2xl font-bold text-slate-blue rounded-lg px-3 py-2 mt-4 mb-2 border bg-white hover:border-gray-300 focus:border-slate-blue focus:ring-2 focus:ring-slate-blue/20 transition-colors ${
+              saveMessage === 'Please add a survey title' ? 'border-red-400' : 'border-gray-200'
             }`}
             placeholder="Survey title"
             aria-label="Survey title"
@@ -158,7 +183,7 @@ export function SurveyBuilderPageContent({ basePath, surveyId }: SurveyBuilderPa
             type="text"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="w-full text-gray-600 text-base border-0 border-b border-transparent focus:border-gray-300 focus:ring-0 px-0 py-1 bg-transparent truncate"
+            className="w-full text-gray-600 text-base rounded-lg px-3 py-2 border border-gray-200 bg-white hover:border-gray-300 focus:border-slate-blue focus:ring-2 focus:ring-slate-blue/20 transition-colors"
             placeholder="Add a description (optional)"
             aria-label="Survey description"
           />
@@ -237,27 +262,110 @@ export function SurveyBuilderPageContent({ basePath, surveyId }: SurveyBuilderPa
               <span className="text-gray-700">Show progress bar</span>
             </label>
 
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={collectRespondentInfo}
-                onChange={(e) => setCollectRespondentInfo(e.target.checked)}
-                className="rounded border-gray-300 text-slate-blue focus:ring-slate-blue"
-              />
-              <span className="text-gray-700">Collect respondent info</span>
-            </label>
+            {/* Respondent fields */}
+            <div className="space-y-2">
+              <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wider">Respondent fields</h4>
 
-            {collectRespondentInfo && (
-              <label className="flex items-center gap-2 text-sm ml-6">
+              {/* Name */}
+              <label className="flex items-center gap-2 text-sm">
                 <input
                   type="checkbox"
-                  checked={requireEmail}
-                  onChange={(e) => setRequireEmail(e.target.checked)}
+                  checked={collectName}
+                  onChange={(e) => {
+                    setCollectName(e.target.checked);
+                    if (!e.target.checked) setRequireName(false);
+                  }}
                   className="rounded border-gray-300 text-slate-blue focus:ring-slate-blue"
                 />
-                <span className="text-gray-700">Require email</span>
+                <span className="text-gray-700">Name</span>
               </label>
-            )}
+              {collectName && (
+                <label className="flex items-center gap-2 text-sm ml-6">
+                  <input
+                    type="checkbox"
+                    checked={requireName}
+                    onChange={(e) => setRequireName(e.target.checked)}
+                    className="rounded border-gray-300 text-slate-blue focus:ring-slate-blue"
+                  />
+                  <span className="text-gray-500">Required</span>
+                </label>
+              )}
+
+              {/* Email */}
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={collectEmail}
+                  onChange={(e) => {
+                    setCollectEmail(e.target.checked);
+                    if (!e.target.checked) setRequireEmail(false);
+                  }}
+                  className="rounded border-gray-300 text-slate-blue focus:ring-slate-blue"
+                />
+                <span className="text-gray-700">Email</span>
+              </label>
+              {collectEmail && (
+                <label className="flex items-center gap-2 text-sm ml-6">
+                  <input
+                    type="checkbox"
+                    checked={requireEmail}
+                    onChange={(e) => setRequireEmail(e.target.checked)}
+                    className="rounded border-gray-300 text-slate-blue focus:ring-slate-blue"
+                  />
+                  <span className="text-gray-500">Required</span>
+                </label>
+              )}
+
+              {/* Phone */}
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={collectPhone}
+                  onChange={(e) => {
+                    setCollectPhone(e.target.checked);
+                    if (!e.target.checked) setRequirePhone(false);
+                  }}
+                  className="rounded border-gray-300 text-slate-blue focus:ring-slate-blue"
+                />
+                <span className="text-gray-700">Phone</span>
+              </label>
+              {collectPhone && (
+                <label className="flex items-center gap-2 text-sm ml-6">
+                  <input
+                    type="checkbox"
+                    checked={requirePhone}
+                    onChange={(e) => setRequirePhone(e.target.checked)}
+                    className="rounded border-gray-300 text-slate-blue focus:ring-slate-blue"
+                  />
+                  <span className="text-gray-500">Required</span>
+                </label>
+              )}
+
+              {/* Business name */}
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={collectBusinessName}
+                  onChange={(e) => {
+                    setCollectBusinessName(e.target.checked);
+                    if (!e.target.checked) setRequireBusinessName(false);
+                  }}
+                  className="rounded border-gray-300 text-slate-blue focus:ring-slate-blue"
+                />
+                <span className="text-gray-700">Business name</span>
+              </label>
+              {collectBusinessName && (
+                <label className="flex items-center gap-2 text-sm ml-6">
+                  <input
+                    type="checkbox"
+                    checked={requireBusinessName}
+                    onChange={(e) => setRequireBusinessName(e.target.checked)}
+                    className="rounded border-gray-300 text-slate-blue focus:ring-slate-blue"
+                  />
+                  <span className="text-gray-500">Required</span>
+                </label>
+              )}
+            </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Thank you message</label>

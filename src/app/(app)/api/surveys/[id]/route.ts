@@ -85,6 +85,8 @@ export async function PUT(request: NextRequest, context: RouteContext) {
     const allowedFields = [
       'title', 'description', 'status', 'use_business_styling', 'thank_you_message',
       'show_progress_bar', 'collect_respondent_info', 'require_respondent_email',
+      'collect_name', 'require_name', 'collect_email', 'require_email',
+      'collect_phone', 'require_phone', 'collect_business_name', 'require_business_name',
       'one_response_per_email',
     ];
 

@@ -128,11 +128,19 @@ export function SurveyBuilder({ questions, onChange }: SurveyBuilderProps) {
               <button
                 key={type}
                 onClick={() => addQuestion(type)}
-                className="w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg"
+                className="w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 first:rounded-t-lg"
               >
                 {label}
               </button>
             ))}
+            <div className="border-t border-gray-100 my-1" />
+            <button
+              onClick={() => addQuestion('section_header')}
+              className="w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 rounded-b-lg text-gray-500"
+            >
+              <Icon name="FaMinus" size={10} className="inline mr-2" />
+              Section header
+            </button>
           </div>
         )}
       </div>

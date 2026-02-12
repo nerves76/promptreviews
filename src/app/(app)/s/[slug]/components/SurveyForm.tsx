@@ -31,6 +31,8 @@ export function SurveyForm({ survey, questions, styleConfig, onSubmitted, onErro
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [respondentName, setRespondentName] = useState('');
   const [respondentEmail, setRespondentEmail] = useState('');
+  const [respondentPhone, setRespondentPhone] = useState('');
+  const [respondentBusinessName, setRespondentBusinessName] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
 
@@ -41,6 +43,9 @@ export function SurveyForm({ survey, questions, styleConfig, onSubmitted, onErro
     : questions;
   const isLastPage = currentPage >= totalPages - 1;
 
+  // Filter out section headers for counting and validation
+  const answerableQuestions = questions.filter(q => q.question_type !== 'section_header');
+
   const answeredCount = Object.keys(answers).filter(k => {
     const val = answers[k];
     if (val === undefined || val === null || val === '') return false;
@@ -48,7 +53,7 @@ export function SurveyForm({ survey, questions, styleConfig, onSubmitted, onErro
     return true;
   }).length;
 
-  const totalQuestions = questions.length;
+  const totalQuestions = answerableQuestions.length;
 
   const handleAnswerChange = (questionId: string, value: any) => {
     setAnswers(prev => ({ ...prev, [questionId]: value }));
@@ -56,6 +61,7 @@ export function SurveyForm({ survey, questions, styleConfig, onSubmitted, onErro
 
   const validateCurrentPage = (): boolean => {
     for (const q of pageQuestions) {
+      if (q.question_type === 'section_header') continue;
       if (q.is_required) {
         const answer = answers[q.id];
         if (answer === undefined || answer === null || answer === '' || (Array.isArray(answer) && answer.length === 0)) {
@@ -86,6 +92,7 @@ export function SurveyForm({ survey, questions, styleConfig, onSubmitted, onErro
 
     // Validate required fields
     for (const q of questions) {
+      if (q.question_type === 'section_header') continue;
       if (q.is_required) {
         const answer = answers[q.id];
         if (answer === undefined || answer === null || answer === '' || (Array.isArray(answer) && answer.length === 0)) {
@@ -95,17 +102,30 @@ export function SurveyForm({ survey, questions, styleConfig, onSubmitted, onErro
       }
     }
 
-    if (survey.require_respondent_email && !respondentEmail.trim()) {
+    // Validate required respondent fields
+    if (survey.require_name && !respondentName.trim()) {
+      onError('Name is required for this survey');
+      return;
+    }
+    if ((survey.require_email || survey.require_respondent_email) && !respondentEmail.trim()) {
       onError('Email is required for this survey');
+      return;
+    }
+    if (survey.require_phone && !respondentPhone.trim()) {
+      onError('Phone number is required for this survey');
+      return;
+    }
+    if (survey.require_business_name && !respondentBusinessName.trim()) {
+      onError('Business name is required for this survey');
       return;
     }
 
     setSubmitting(true);
 
     try {
-      // Build answers array
+      // Build answers array (exclude section headers)
       const formattedAnswers: SurveyAnswer[] = questions
-        .filter(q => answers[q.id] !== undefined && answers[q.id] !== null && answers[q.id] !== '')
+        .filter(q => q.question_type !== 'section_header' && answers[q.id] !== undefined && answers[q.id] !== null && answers[q.id] !== '')
         .map(q => ({
           question_id: q.id,
           question_type: q.question_type,
@@ -127,6 +147,8 @@ export function SurveyForm({ survey, questions, styleConfig, onSubmitted, onErro
           answers: formattedAnswers,
           respondent_name: respondentName || null,
           respondent_email: respondentEmail || null,
+          respondent_phone: respondentPhone || null,
+          respondent_business_name: respondentBusinessName || null,
           source_channel: sourceChannel,
           utm_params: Object.fromEntries(
             Array.from(urlParams.entries()).filter(([k]) => k.startsWith('utm_'))
@@ -178,36 +200,73 @@ export function SurveyForm({ survey, questions, styleConfig, onSubmitted, onErro
         <ProgressBar current={answeredCount} total={totalQuestions} textColor={textColor} />
       )}
 
-      {/* Respondent info */}
-      {survey.collect_respondent_info && (
+      {/* Respondent info fields */}
+      {(survey.collect_name || survey.collect_email || survey.collect_phone || survey.collect_business_name) && (
         <div className="mb-6 space-y-3">
-          <div>
-            <label className="block text-sm font-medium mb-1" style={{ color: textColor }}>
-              Name
-            </label>
-            <input
-              type="text"
-              value={respondentName}
-              onChange={(e) => setRespondentName(e.target.value)}
-              className="w-full py-3 px-4 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm survey-input"
-              style={inputStyle}
-              placeholder="Your name"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1" style={{ color: textColor }}>
-              Email {survey.require_respondent_email && <span className="text-red-500">*</span>}
-            </label>
-            <input
-              type="email"
-              value={respondentEmail}
-              onChange={(e) => setRespondentEmail(e.target.value)}
-              required={survey.require_respondent_email}
-              className="w-full py-3 px-4 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm survey-input"
-              style={inputStyle}
-              placeholder="your@email.com"
-            />
-          </div>
+          {survey.collect_name && (
+            <div>
+              <label className="block text-sm font-medium mb-1" style={{ color: textColor }}>
+                Name {survey.require_name && <span className="text-red-500">*</span>}
+              </label>
+              <input
+                type="text"
+                value={respondentName}
+                onChange={(e) => setRespondentName(e.target.value)}
+                required={survey.require_name}
+                className="w-full py-3 px-4 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm survey-input"
+                style={inputStyle}
+                placeholder="Your name"
+              />
+            </div>
+          )}
+          {survey.collect_email && (
+            <div>
+              <label className="block text-sm font-medium mb-1" style={{ color: textColor }}>
+                Email {survey.require_email && <span className="text-red-500">*</span>}
+              </label>
+              <input
+                type="email"
+                value={respondentEmail}
+                onChange={(e) => setRespondentEmail(e.target.value)}
+                required={survey.require_email}
+                className="w-full py-3 px-4 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm survey-input"
+                style={inputStyle}
+                placeholder="your@email.com"
+              />
+            </div>
+          )}
+          {survey.collect_phone && (
+            <div>
+              <label className="block text-sm font-medium mb-1" style={{ color: textColor }}>
+                Phone {survey.require_phone && <span className="text-red-500">*</span>}
+              </label>
+              <input
+                type="tel"
+                value={respondentPhone}
+                onChange={(e) => setRespondentPhone(e.target.value)}
+                required={survey.require_phone}
+                className="w-full py-3 px-4 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm survey-input"
+                style={inputStyle}
+                placeholder="Your phone number"
+              />
+            </div>
+          )}
+          {survey.collect_business_name && (
+            <div>
+              <label className="block text-sm font-medium mb-1" style={{ color: textColor }}>
+                Business name {survey.require_business_name && <span className="text-red-500">*</span>}
+              </label>
+              <input
+                type="text"
+                value={respondentBusinessName}
+                onChange={(e) => setRespondentBusinessName(e.target.value)}
+                required={survey.require_business_name}
+                className="w-full py-3 px-4 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm survey-input"
+                style={inputStyle}
+                placeholder="Your business name"
+              />
+            </div>
+          )}
         </div>
       )}
 

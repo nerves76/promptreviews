@@ -17,6 +17,24 @@ interface SurveyQuestionProps {
 }
 
 export function SurveyQuestion({ question, value, onChange, textColor, inputColor, inputBg, innerShadow, placeholderColor, index }: SurveyQuestionProps) {
+  // Section header — render as styled divider heading
+  if (question.question_type === 'section_header') {
+    return (
+      <div className="pt-4 pb-2">
+        <div className="border-b pb-2 mb-1" style={{ borderColor: `${textColor}20` }}>
+          <h3 className="text-lg font-bold" style={{ color: textColor }}>
+            {question.question_text}
+          </h3>
+        </div>
+        {question.description && (
+          <p className="text-sm opacity-70" style={{ color: textColor }}>
+            {question.description}
+          </p>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div>
       <label className="block font-medium mb-2" style={{ color: textColor }}>

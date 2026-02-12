@@ -55,8 +55,17 @@ export function ResponsesTable({ responses, questions }: ResponsesTableProps) {
                 <td className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">
                   {new Date(response.submitted_at).toLocaleDateString()}
                 </td>
-                <td className="px-4 py-3 text-sm text-gray-900 whitespace-nowrap">
-                  {response.respondent_name || response.respondent_email || 'Anonymous'}
+                <td className="px-4 py-3 text-sm text-gray-900">
+                  <div className="whitespace-nowrap">{response.respondent_name || response.respondent_email || 'Anonymous'}</div>
+                  {response.respondent_email && response.respondent_name && (
+                    <div className="text-xs text-gray-500 whitespace-nowrap">{response.respondent_email}</div>
+                  )}
+                  {response.respondent_phone && (
+                    <div className="text-xs text-gray-500 whitespace-nowrap">{response.respondent_phone}</div>
+                  )}
+                  {response.respondent_business_name && (
+                    <div className="text-xs text-gray-500 whitespace-nowrap">{response.respondent_business_name}</div>
+                  )}
                 </td>
                 <td className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap capitalize">
                   {response.source_channel}

@@ -46,7 +46,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: 'Failed to fetch responses' }, { status: 500 });
     }
 
-    const questions = (survey.survey_questions || []) as any[];
+    const questions = ((survey.survey_questions || []) as any[]).filter((q: any) => q.question_type !== 'section_header');
     const allAnswers = (responses || []).flatMap((r: any) => r.answers || []);
 
     const questionSummaries = questions.map((q: any) => {
