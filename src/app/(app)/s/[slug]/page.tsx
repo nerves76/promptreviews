@@ -90,12 +90,16 @@ export default async function SurveyPage({ params }: { params: Promise<{ slug: s
   // Build style config from business profile or defaults
   const styleConfig = {
     primaryFont: businessProfile?.primary_font || GLASSY_DEFAULTS.primary_font,
+    primaryColor: businessProfile?.primary_color || GLASSY_DEFAULTS.primary_color,
     gradientStart: businessProfile?.gradient_start || GLASSY_DEFAULTS.gradient_start,
     gradientMiddle: businessProfile?.gradient_middle || GLASSY_DEFAULTS.gradient_middle,
     gradientEnd: businessProfile?.gradient_end || GLASSY_DEFAULTS.gradient_end,
     cardBg: businessProfile?.card_bg || GLASSY_DEFAULTS.card_bg,
     cardText: businessProfile?.card_text || GLASSY_DEFAULTS.card_text,
     cardTransparency: businessProfile?.card_transparency ?? GLASSY_DEFAULTS.card_transparency,
+    cardBorderWidth: businessProfile?.card_border_width ?? GLASSY_DEFAULTS.card_border_width,
+    cardBorderColor: businessProfile?.card_border_color || GLASSY_DEFAULTS.card_border_color,
+    cardBorderTransparency: businessProfile?.card_border_transparency ?? GLASSY_DEFAULTS.card_border_transparency,
     inputTextColor: businessProfile?.input_text_color || GLASSY_DEFAULTS.input_text_color,
     logoUrl: businessProfile?.logo_url || null,
     businessName: businessProfile?.name || null,
