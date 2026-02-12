@@ -4302,7 +4302,7 @@ model surveys {
   collect_respondent_info                             Boolean                     @default(false)
   require_respondent_email                            Boolean                     @default(false)
   one_response_per_email                              Boolean                     @default(false)
-  free_responses_remaining                            Int                         @default(10)
+  free_responses_remaining                            Int                         @default(50)
   agency_account_id                                   String?                     @db.Uuid
   is_onboarding_survey                                Boolean                     @default(false)
   target_client_account_id                            String?                     @db.Uuid

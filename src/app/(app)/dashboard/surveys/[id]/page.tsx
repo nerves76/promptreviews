@@ -2,8 +2,9 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import PageCard, { PageCardHeader } from '@/app/(app)/components/PageCard';
+import PageCard from '@/app/(app)/components/PageCard';
 import { Button } from '@/app/(app)/components/ui/button';
+import { Modal } from '@/app/(app)/components/ui/modal';
 import Icon from '@/components/Icon';
 import { useSurvey } from '@/features/surveys/hooks/useSurvey';
 import { SurveyBuilder } from '@/features/surveys/components/SurveyBuilder';
@@ -28,6 +29,8 @@ export default function SurveyBuilderPage() {
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [showQR, setShowQR] = useState(false);
+  const [showPublishModal, setShowPublishModal] = useState(false);
+  const [copySuccess, setCopySuccess] = useState(false);
 
   // Survey settings
   const [showProgressBar, setShowProgressBar] = useState(true);
@@ -73,10 +76,19 @@ export default function SurveyBuilderPage() {
   const handleStatusChange = async (status: SurveyStatus) => {
     try {
       await apiClient.patch(`/surveys/${surveyId}/status`, { status });
-      refetch();
+      await refetch();
+      if (status === 'active') {
+        setShowPublishModal(true);
+      }
     } catch {
       // Error handled silently
     }
+  };
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(surveyUrl);
+    setCopySuccess(true);
+    setTimeout(() => setCopySuccess(false), 2000);
   };
 
   const surveyUrl = survey?.slug
@@ -109,72 +121,68 @@ export default function SurveyBuilderPage() {
 
   return (
     <PageCard icon={<Icon name="FaFileAlt" size={24} className="text-slate-blue" />}>
-      <PageCardHeader
-        title=""
-        actions={
-          <div className="flex items-center gap-2 flex-wrap">
-            <SurveyStatusBadge status={survey.status} />
+      {/* Actions bar */}
+      <div className="flex items-center gap-2 flex-wrap justify-end mt-4 mb-4">
+        <SurveyStatusBadge status={survey.status} />
 
-            {quota && (
-              <span className="text-xs text-gray-500 whitespace-nowrap">
-                {quota.total_remaining} responses remaining
-              </span>
-            )}
+        {quota && (
+          <span className="text-xs text-gray-500 whitespace-nowrap">
+            {quota.total_remaining} responses remaining
+          </span>
+        )}
 
-            {survey.status === 'draft' && (
-              <Button size="sm" onClick={() => handleStatusChange('active')}>
-                Publish
-              </Button>
-            )}
-            {survey.status === 'active' && (
-              <Button size="sm" variant="secondary" onClick={() => handleStatusChange('paused')}>
-                Pause
-              </Button>
-            )}
-            {survey.status === 'paused' && (
-              <Button size="sm" onClick={() => handleStatusChange('active')}>
-                Resume
-              </Button>
-            )}
+        {survey.status === 'draft' && (
+          <Button size="sm" onClick={() => handleStatusChange('active')}>
+            Publish
+          </Button>
+        )}
+        {survey.status === 'active' && (
+          <Button size="sm" variant="secondary" onClick={() => handleStatusChange('paused')}>
+            Pause
+          </Button>
+        )}
+        {survey.status === 'paused' && (
+          <Button size="sm" onClick={() => handleStatusChange('active')}>
+            Resume
+          </Button>
+        )}
 
-            {survey.slug && (
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => window.open(`/s/${survey.slug}`, '_blank')}
-                aria-label="Preview survey"
-              >
-                <Icon name="FaEye" size={14} className="mr-1" />
-                Preview
-              </Button>
-            )}
+        {survey.slug && (
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => window.open(`/s/${survey.slug}`, '_blank')}
+            aria-label="Preview survey"
+          >
+            <Icon name="FaEye" size={14} className="mr-1" />
+            Preview
+          </Button>
+        )}
 
-            <Button size="sm" variant="secondary" onClick={() => router.push(`/dashboard/surveys/${surveyId}/responses`)}>
-              <Icon name="FaChartLine" size={14} className="mr-1" />
-              Responses
-            </Button>
+        <Button size="sm" variant="secondary" onClick={() => router.push(`/dashboard/surveys/${surveyId}/responses`)}>
+          <Icon name="FaChartLine" size={14} className="mr-1" />
+          Responses
+        </Button>
 
-            <Button
-              size="sm"
-              onClick={handleSave}
-              disabled={saving}
-            >
-              {saving ? 'Saving...' : saveMessage || 'Save'}
-            </Button>
-          </div>
-        }
-      />
+        <Button
+          size="sm"
+          onClick={handleSave}
+          disabled={saving}
+        >
+          {saving ? 'Saving...' : saveMessage || 'Save'}
+        </Button>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main builder area */}
         <div className="lg:col-span-2 space-y-6">
           {/* Title & description */}
-          <div className="space-y-3">
+          <div className="space-y-2">
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full text-2xl font-bold text-gray-900 border-0 border-b-2 border-transparent focus:border-slate-blue focus:ring-0 px-0 py-2 bg-transparent"
+              className="w-full text-2xl font-bold text-gray-900 border-0 border-b-2 border-transparent focus:border-slate-blue focus:ring-0 px-0 py-1 bg-transparent"
               placeholder="Survey title"
               aria-label="Survey title"
             />
@@ -182,7 +190,7 @@ export default function SurveyBuilderPage() {
               type="text"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full text-gray-600 border-0 border-b border-transparent focus:border-gray-300 focus:ring-0 px-0 py-1 bg-transparent"
+              className="w-full text-gray-600 text-sm border-0 border-b border-transparent focus:border-gray-300 focus:ring-0 px-0 py-1 bg-transparent truncate"
               placeholder="Add a description (optional)"
               aria-label="Survey description"
             />
@@ -265,6 +273,87 @@ export default function SurveyBuilderPage() {
           clientName={survey.title}
         />
       )}
+
+      {/* Publish success modal */}
+      <Modal
+        isOpen={showPublishModal}
+        onClose={() => setShowPublishModal(false)}
+        title="Survey published!"
+        size="md"
+      >
+        <div className="space-y-4">
+          <p className="text-gray-600 text-sm">
+            Your survey is now live. Share it with your audience using the options below.
+          </p>
+
+          {/* Copy link */}
+          <div className="flex items-center gap-2">
+            <div className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 truncate">
+              {surveyUrl}
+            </div>
+            <Button size="sm" variant="secondary" onClick={handleCopyLink} className="whitespace-nowrap">
+              <Icon name="FaCopy" size={14} className="mr-1" />
+              {copySuccess ? 'Copied!' : 'Copy'}
+            </Button>
+          </div>
+
+          {/* Action buttons */}
+          <div className="space-y-2">
+            <button
+              onClick={() => {
+                setShowPublishModal(false);
+                setShowQR(true);
+              }}
+              className="w-full flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors text-left"
+            >
+              <div className="w-8 h-8 rounded-lg bg-slate-blue/10 flex items-center justify-center flex-shrink-0">
+                <Icon name="FaImage" size={14} className="text-slate-blue" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-900">Generate QR code</p>
+                <p className="text-xs text-gray-500">Download a QR code for print materials</p>
+              </div>
+            </button>
+
+            <button
+              onClick={() => {
+                window.open(`/s/${survey.slug}`, '_blank');
+              }}
+              className="w-full flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors text-left"
+            >
+              <div className="w-8 h-8 rounded-lg bg-slate-blue/10 flex items-center justify-center flex-shrink-0">
+                <Icon name="FaEye" size={14} className="text-slate-blue" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-900">Preview survey</p>
+                <p className="text-xs text-gray-500">Open the live survey in a new tab</p>
+              </div>
+            </button>
+
+            <button
+              onClick={() => {
+                setShowPublishModal(false);
+                router.push(`/dashboard/surveys/${surveyId}/responses`);
+              }}
+              className="w-full flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors text-left"
+            >
+              <div className="w-8 h-8 rounded-lg bg-slate-blue/10 flex items-center justify-center flex-shrink-0">
+                <Icon name="FaChartLine" size={14} className="text-slate-blue" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-900">View responses</p>
+                <p className="text-xs text-gray-500">Monitor incoming survey responses</p>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowPublishModal(false)}>
+            Done
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </PageCard>
   );
 }

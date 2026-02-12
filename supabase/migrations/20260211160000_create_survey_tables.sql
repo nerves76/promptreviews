@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS surveys (
   collect_respondent_info BOOLEAN NOT NULL DEFAULT false,
   require_respondent_email BOOLEAN NOT NULL DEFAULT false,
   one_response_per_email BOOLEAN NOT NULL DEFAULT false,
-  free_responses_remaining INTEGER NOT NULL DEFAULT 10,
+  free_responses_remaining INTEGER NOT NULL DEFAULT 50,
   agency_account_id UUID REFERENCES accounts(id) ON DELETE SET NULL,
   is_onboarding_survey BOOLEAN NOT NULL DEFAULT false,
   target_client_account_id UUID REFERENCES accounts(id) ON DELETE SET NULL,
