@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import PageCard, { PageCardHeader } from '@/app/(app)/components/PageCard';
 import { Button } from '@/app/(app)/components/ui/button';
@@ -9,6 +9,8 @@ import { useSurveys } from '@/features/surveys/hooks/useSurveys';
 import { SurveyStatusBadge } from '@/features/surveys/components/SurveyStatusBadge';
 import { SurveyStatus } from '@/features/surveys/types';
 import { apiClient } from '@/utils/apiClient';
+import { Modal } from '@/app/(app)/components/ui/modal';
+import QRCodeModal from '@/app/(app)/components/QRCodeModal';
 
 const STATUS_TABS: { value: SurveyStatus | 'all'; label: string }[] = [
   { value: 'all', label: 'All' },
@@ -23,6 +25,33 @@ export default function SurveysPage() {
   const [statusFilter, setStatusFilter] = useState<SurveyStatus | 'all'>('all');
   const { surveys, loading, error, refetch } = useSurveys(statusFilter);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [saveModalData, setSaveModalData] = useState<{ title: string; url: string; slug: string } | null>(null);
+  const [copySuccess, setCopySuccess] = useState(false);
+  const [showQR, setShowQR] = useState(false);
+
+  // Check for post-save modal flag
+  useEffect(() => {
+    const flag = localStorage.getItem('showSurveySaveModal');
+    if (flag) {
+      try {
+        const data = JSON.parse(flag);
+        setSaveModalData(data);
+        setShowSaveModal(true);
+      } catch {
+        // Invalid JSON, ignore
+      }
+      localStorage.removeItem('showSurveySaveModal');
+    }
+  }, []);
+
+  const handleCopySaveLink = () => {
+    if (saveModalData?.url) {
+      navigator.clipboard.writeText(saveModalData.url);
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    }
+  };
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this survey? This cannot be undone.')) return;
@@ -168,6 +197,80 @@ export default function SurveysPage() {
             </tbody>
           </table>
         </div>
+      )}
+      {/* Post-save success modal */}
+      <Modal
+        isOpen={showSaveModal}
+        onClose={() => setShowSaveModal(false)}
+        title="Survey saved!"
+        size="md"
+      >
+        <div className="space-y-4">
+          <p className="text-gray-600 text-sm">
+            Your survey has been saved. Share it with your audience using the options below.
+          </p>
+
+          {saveModalData?.url && (
+            <>
+              <div className="flex items-center gap-2">
+                <div className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 truncate">
+                  {saveModalData.url}
+                </div>
+                <Button size="sm" variant="secondary" onClick={handleCopySaveLink} className="whitespace-nowrap">
+                  <Icon name="FaCopy" size={14} className="mr-1" />
+                  {copySuccess ? 'Copied!' : 'Copy'}
+                </Button>
+              </div>
+
+              <div className="space-y-2">
+                <button
+                  onClick={() => {
+                    setShowSaveModal(false);
+                    setShowQR(true);
+                  }}
+                  className="w-full flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors text-left"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-slate-blue/10 flex items-center justify-center flex-shrink-0">
+                    <Icon name="FaImage" size={14} className="text-slate-blue" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">Generate QR code</p>
+                    <p className="text-xs text-gray-500">Download a QR code for print materials</p>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => window.open(`/s/${saveModalData.slug}`, '_blank')}
+                  className="w-full flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors text-left"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-slate-blue/10 flex items-center justify-center flex-shrink-0">
+                    <Icon name="FaEye" size={14} className="text-slate-blue" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">Preview survey</p>
+                    <p className="text-xs text-gray-500">Open the live survey in a new tab</p>
+                  </div>
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowSaveModal(false)}>
+            Done
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* QR Code Modal from save */}
+      {showQR && saveModalData?.url && (
+        <QRCodeModal
+          isOpen={showQR}
+          onClose={() => setShowQR(false)}
+          url={saveModalData.url}
+          clientName={saveModalData.title}
+        />
       )}
     </PageCard>
   );

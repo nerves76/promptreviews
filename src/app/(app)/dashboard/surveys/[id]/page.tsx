@@ -65,14 +65,18 @@ export default function SurveyBuilderPage() {
         require_respondent_email: requireEmail,
         thank_you_message: thankYouMessage,
       } as any);
-      setSaveMessage('Saved');
-      setTimeout(() => setSaveMessage(null), 2000);
+      // Set localStorage flag so the surveys list page shows a success modal
+      localStorage.setItem('showSurveySaveModal', JSON.stringify({
+        title,
+        url: survey?.slug ? `${window.location.origin}/s/${survey.slug}` : '',
+        slug: survey?.slug || '',
+      }));
+      router.push('/dashboard/surveys');
     } catch {
       setSaveMessage('Failed to save');
-    } finally {
       setSaving(false);
     }
-  }, [title, description, questions, showProgressBar, collectRespondentInfo, requireEmail, thankYouMessage, updateSurvey]);
+  }, [title, description, questions, showProgressBar, collectRespondentInfo, requireEmail, thankYouMessage, updateSurvey, survey, router]);
 
   const handleStatusChange = async (status: SurveyStatus) => {
     try {
