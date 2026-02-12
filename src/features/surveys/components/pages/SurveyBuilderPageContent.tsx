@@ -199,18 +199,6 @@ export function SurveyBuilderPageContent({ basePath, surveyId }: SurveyBuilderPa
             </div>
           )}
 
-          {survey.slug && (
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => window.open(`/s/${survey.slug}`, '_blank')}
-              aria-label="Preview survey"
-            >
-              <Icon name="FaEye" size={14} className="mr-1" />
-              Preview
-            </Button>
-          )}
-
           {saveMessage && (
             <span className="text-xs text-red-500 whitespace-nowrap">{saveMessage}</span>
           )}
