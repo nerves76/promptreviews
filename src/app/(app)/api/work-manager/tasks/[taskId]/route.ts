@@ -87,7 +87,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     }
 
     const body = await request.json();
-    const { title, description, status, priority, due_date, assigned_to } = body;
+    const { title, description, status, priority, due_date, assigned_to, time_estimate_minutes } = body;
 
     const supabaseAdmin = createServiceRoleClient();
     const accountId = await getRequestAccountId(request, user.id, supabaseAdmin);
@@ -157,6 +157,10 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
         changes.push({ type: 'assignment_change', from: task.assigned_to, to: assigned_to });
       }
       updateData.assigned_to = assigned_to || null;
+    }
+
+    if (time_estimate_minutes !== undefined) {
+      updateData.time_estimate_minutes = time_estimate_minutes;
     }
 
     if (Object.keys(updateData).length === 0) {

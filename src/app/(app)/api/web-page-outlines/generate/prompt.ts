@@ -28,6 +28,8 @@ const PURPOSE_INSTRUCTIONS: Record<PagePurpose, string> = {
     'This is an INFORMATIONAL/EDUCATIONAL PAGE. Focus on teaching the topic thoroughly with depth and clarity. Business info positions the company as a knowledgeable source — reference it lightly to establish authority, but prioritize educational value.',
   about:
     'This is an ABOUT/BRAND PAGE. Business info IS the primary content here. Lean heavily into company story, values, team, differentiators, and mission. The keyword should frame the narrative but the brand story drives the content.',
+  feature:
+    'This is a FEATURE PAGE. Focus on a specific feature or capability — what it does, how it works, the problem it solves, and why it matters. Use clear examples and use cases to demonstrate value. Business info supports credibility — reference it where it builds trust, but keep the feature front and center.',
 };
 
 export function buildSystemPrompt(tone: OutlineTone, pagePurpose: PagePurpose): string {
@@ -99,6 +101,7 @@ const PURPOSE_LABELS: Record<PagePurpose, string> = {
   lead_capture: 'Lead capture page — focus on the offer, urgency, and conversion',
   informational: 'Informational page — focus on educating the reader thoroughly',
   about: 'About/brand page — focus on company story, values, and team',
+  feature: 'Feature page — focus on a specific feature, how it works, and the problem it solves',
 };
 
 export function buildUserPrompt(

@@ -15,7 +15,7 @@ export const TONE_OPTIONS: { value: OutlineTone; label: string; description: str
 
 // --- Page Purpose ---
 
-export type PagePurpose = 'service' | 'product' | 'location' | 'lead_capture' | 'informational' | 'about';
+export type PagePurpose = 'service' | 'product' | 'location' | 'lead_capture' | 'informational' | 'about' | 'feature';
 
 export const PAGE_PURPOSE_OPTIONS: { value: PagePurpose; label: string; description: string }[] = [
   { value: 'service', label: 'Service page', description: 'Showcase a specific service to attract customers' },
@@ -24,6 +24,7 @@ export const PAGE_PURPOSE_OPTIONS: { value: PagePurpose; label: string; descript
   { value: 'lead_capture', label: 'Lead capture', description: 'Drive sign-ups, downloads, or free consultations' },
   { value: 'informational', label: 'Informational', description: 'Educational content to build authority' },
   { value: 'about', label: 'About / brand', description: 'Company story, mission, and team' },
+  { value: 'feature', label: 'Feature page', description: 'Highlight a specific feature or capability in depth' },
 ];
 
 // --- Outline Section Types ---

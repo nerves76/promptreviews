@@ -1,0 +1,64 @@
+'use client';
+
+import { RatingInput } from './RatingInput';
+import { MultipleChoiceInput } from './MultipleChoiceInput';
+import { TextInput } from './TextInput';
+
+interface SurveyQuestionProps {
+  question: any;
+  value: any;
+  onChange: (value: any) => void;
+  textColor: string;
+  inputColor: string;
+  index: number;
+}
+
+export function SurveyQuestion({ question, value, onChange, textColor, inputColor, index }: SurveyQuestionProps) {
+  return (
+    <div>
+      <label className="block font-medium mb-2" style={{ color: textColor }}>
+        {question.question_text}
+        {question.is_required && <span className="text-red-300 ml-1">*</span>}
+      </label>
+      {question.description && (
+        <p className="text-sm mb-3 opacity-70" style={{ color: textColor }}>
+          {question.description}
+        </p>
+      )}
+
+      {question.question_type === 'text' && (
+        <TextInput
+          value={value || ''}
+          onChange={onChange}
+          placeholder={question.text_placeholder || ''}
+          maxLength={question.text_max_length || 1000}
+          inputColor={inputColor}
+        />
+      )}
+
+      {(question.question_type === 'rating_star' || question.question_type === 'rating_number') && (
+        <RatingInput
+          type={question.question_type === 'rating_star' ? 'star' : 'number'}
+          value={value}
+          onChange={onChange}
+          min={question.rating_min || 1}
+          max={question.rating_max || 5}
+          labels={question.rating_labels || {}}
+          textColor={textColor}
+        />
+      )}
+
+      {(question.question_type === 'multiple_choice_single' || question.question_type === 'multiple_choice_multi') && (
+        <MultipleChoiceInput
+          options={question.options || []}
+          multi={question.question_type === 'multiple_choice_multi'}
+          allowOther={question.allow_other}
+          value={value}
+          onChange={onChange}
+          textColor={textColor}
+          inputColor={inputColor}
+        />
+      )}
+    </div>
+  );
+}

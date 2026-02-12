@@ -1,0 +1,157 @@
+/**
+ * Public Survey Submit API
+ *
+ * No authentication required - uses service role client.
+ * Derives account_id from survey_id (never trust client).
+ * Atomic response counting to prevent race conditions.
+ */
+
+import { NextRequest, NextResponse } from 'next/server';
+import { createServiceRoleClient } from '@/auth/providers/supabase';
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { survey_id, answers, respondent_name, respondent_email, respondent_phone, source_channel, utm_params } = body;
+
+    if (!survey_id) {
+      return NextResponse.json({ error: 'survey_id is required' }, { status: 400 });
+    }
+
+    if (!answers || !Array.isArray(answers) || answers.length === 0) {
+      return NextResponse.json({ error: 'answers are required' }, { status: 400 });
+    }
+
+    const supabase = createServiceRoleClient();
+
+    // Fetch survey to get account_id and validate
+    const { data: survey, error: surveyError } = await supabase
+      .from('surveys')
+      .select('id, account_id, status, free_responses_remaining, collect_respondent_info, require_respondent_email, one_response_per_email')
+      .eq('id', survey_id)
+      .single();
+
+    if (surveyError || !survey) {
+      return NextResponse.json({ error: 'Survey not found' }, { status: 404 });
+    }
+
+    if (survey.status !== 'active') {
+      return NextResponse.json({ error: 'This survey is not currently accepting responses' }, { status: 403 });
+    }
+
+    // Check one_response_per_email constraint
+    if (survey.one_response_per_email && respondent_email) {
+      const { data: existingResponse } = await supabase
+        .from('survey_responses')
+        .select('id')
+        .eq('survey_id', survey_id)
+        .eq('respondent_email', respondent_email)
+        .maybeSingle();
+
+      if (existingResponse) {
+        return NextResponse.json({ error: 'You have already submitted a response to this survey' }, { status: 409 });
+      }
+    }
+
+    // Validate required email
+    if (survey.require_respondent_email && !respondent_email) {
+      return NextResponse.json({ error: 'Email is required for this survey' }, { status: 400 });
+    }
+
+    // Determine if this is a free response or purchased
+    let isFreeResponse = false;
+
+    // Try to use free responses first (atomic decrement)
+    if (survey.free_responses_remaining > 0) {
+      const { data: updatedSurvey, error: decrementError } = await supabase
+        .rpc('decrement_free_responses', { survey_uuid: survey_id });
+
+      // If RPC doesn't exist yet, fall back to manual update
+      if (decrementError) {
+        const { data: updated } = await supabase
+          .from('surveys')
+          .update({ free_responses_remaining: survey.free_responses_remaining - 1 })
+          .eq('id', survey_id)
+          .gt('free_responses_remaining', 0)
+          .select('free_responses_remaining')
+          .single();
+
+        if (updated) {
+          isFreeResponse = true;
+        }
+      } else {
+        isFreeResponse = true;
+      }
+    }
+
+    // If not free, check purchased packs
+    if (!isFreeResponse) {
+      const { data: purchases } = await supabase
+        .from('survey_response_purchases')
+        .select('id, responses_purchased, responses_used')
+        .eq('survey_id', survey_id)
+        .order('created_at', { ascending: true });
+
+      let foundCapacity = false;
+      if (purchases) {
+        for (const purchase of purchases) {
+          if (purchase.responses_used < purchase.responses_purchased) {
+            // Increment usage
+            const { error: usageError } = await supabase
+              .from('survey_response_purchases')
+              .update({ responses_used: purchase.responses_used + 1 })
+              .eq('id', purchase.id)
+              .lt('responses_used', purchase.responses_purchased);
+
+            if (!usageError) {
+              foundCapacity = true;
+              break;
+            }
+          }
+        }
+      }
+
+      if (!foundCapacity) {
+        return NextResponse.json(
+          { error: 'This survey has reached its response limit. The survey owner needs to purchase more responses.' },
+          { status: 402 }
+        );
+      }
+    }
+
+    // Sanitize answers
+    const sanitizedAnswers = answers.map((a: any) => ({
+      question_id: a.question_id,
+      question_type: a.question_type,
+      answer: a.answer,
+    }));
+
+    // Insert response
+    const { data: response, error: insertError } = await supabase
+      .from('survey_responses')
+      .insert({
+        survey_id,
+        account_id: survey.account_id,
+        respondent_name: respondent_name || null,
+        respondent_email: respondent_email || null,
+        respondent_phone: respondent_phone || null,
+        answers: sanitizedAnswers,
+        source_channel: ['direct', 'qr', 'email', 'sms'].includes(source_channel) ? source_channel : 'direct',
+        utm_params: typeof utm_params === 'object' ? utm_params : {},
+        user_agent: request.headers.get('user-agent') || null,
+        is_free_response: isFreeResponse,
+      })
+      .select()
+      .single();
+
+    if (insertError) {
+      console.error('[SURVEY-SUBMIT] Insert error:', insertError);
+      return NextResponse.json({ error: 'Failed to submit response' }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true, id: response.id });
+  } catch (error) {
+    console.error('[SURVEY-SUBMIT] Unexpected error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}

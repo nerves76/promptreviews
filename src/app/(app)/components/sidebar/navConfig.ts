@@ -79,6 +79,12 @@ export const REVIEWS_SECTION: NavSection = {
       description: "Embed on your website",
     },
     {
+      path: "/dashboard/surveys",
+      label: "Surveys",
+      icon: "FaFileAlt",
+      description: "Create and manage surveys",
+    },
+    {
       path: "/dashboard/contacts",
       label: "Contacts",
       icon: "FaUsers",

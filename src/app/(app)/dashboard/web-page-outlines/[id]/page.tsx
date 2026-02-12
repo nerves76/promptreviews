@@ -232,8 +232,8 @@ export default function OutlineDetailPage() {
           regeneratingSection={regeneratingSection}
         />
 
-        {/* Side panels */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* SEO & competitor panels — stacked */}
+        <div className="space-y-6">
           <SEOMetadataPanel
             seo={outline.schema_markup as unknown as SEOMetadata}
           />

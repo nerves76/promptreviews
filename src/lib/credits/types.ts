@@ -36,7 +36,8 @@ export type FeatureType =
   | 'rss_auto_post'
   | 'scheduled_post'
   | 'review_import'
-  | 'web_page_outline';
+  | 'web_page_outline'
+  | 'survey_responses';
 
 export interface CreditBalance {
   accountId: string;

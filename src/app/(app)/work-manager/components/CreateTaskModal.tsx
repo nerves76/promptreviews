@@ -38,6 +38,8 @@ export default function CreateTaskModal({
   const [priority, setPriority] = useState<WMTaskPriority>("medium");
   const [dueDate, setDueDate] = useState("");
   const [assignedTo, setAssignedTo] = useState("");
+  const [timeEstimateHours, setTimeEstimateHours] = useState("");
+  const [timeEstimateMinutes, setTimeEstimateMinutes] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -50,6 +52,8 @@ export default function CreateTaskModal({
       setPriority("medium");
       setDueDate("");
       setAssignedTo("");
+      setTimeEstimateHours("");
+      setTimeEstimateMinutes("");
       setError(null);
     }
   }, [isOpen, defaultStatus]);
@@ -64,6 +68,10 @@ export default function CreateTaskModal({
     setError(null);
 
     try {
+      const h = parseInt(timeEstimateHours) || 0;
+      const m = parseInt(timeEstimateMinutes) || 0;
+      const totalMinutes = h * 60 + m;
+
       const response = await apiClient.post<{ task: WMTask }>("/work-manager/tasks", {
         board_id: boardId,
         title: title.trim(),
@@ -72,6 +80,7 @@ export default function CreateTaskModal({
         priority,
         due_date: dueDate || undefined,
         assigned_to: assignedTo || undefined,
+        ...(totalMinutes > 0 ? { time_estimate_minutes: totalMinutes } : {}),
       });
 
       onTaskCreated(response.task);
@@ -184,6 +193,41 @@ export default function CreateTaskModal({
             onChange={(e) => setDueDate(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-blue"
           />
+        </div>
+
+        {/* Time estimate */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-gray-700">
+            Time estimate
+          </label>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
+              <input
+                type="number"
+                min={0}
+                max={99}
+                value={timeEstimateHours}
+                onChange={(e) => setTimeEstimateHours(e.target.value)}
+                placeholder="0"
+                className="w-16 px-2 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-blue text-center"
+                aria-label="Hours"
+              />
+              <span className="text-sm text-gray-500">h</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <input
+                type="number"
+                min={0}
+                max={59}
+                value={timeEstimateMinutes}
+                onChange={(e) => setTimeEstimateMinutes(e.target.value)}
+                placeholder="0"
+                className="w-16 px-2 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-blue text-center"
+                aria-label="Minutes"
+              />
+              <span className="text-sm text-gray-500">m</span>
+            </div>
+          </div>
         </div>
 
         {/* Assignee */}
