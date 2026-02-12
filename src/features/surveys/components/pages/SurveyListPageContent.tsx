@@ -9,7 +9,6 @@ import { useSurveys } from '@/features/surveys/hooks/useSurveys';
 import { SurveyStatusBadge } from '@/features/surveys/components/SurveyStatusBadge';
 import { SurveyStatus } from '@/features/surveys/types';
 import { apiClient } from '@/utils/apiClient';
-import GlassSuccessModal from '@/app/(app)/components/GlassSuccessModal';
 import QRCodeModal from '@/app/(app)/components/QRCodeModal';
 
 const STATUS_TABS: { value: SurveyStatus | 'all'; label: string }[] = [
@@ -201,38 +200,75 @@ export function SurveyListPageContent({ basePath }: SurveyListPageContentProps) 
           </table>
         </div>
       )}
-      {/* Post-save success modal */}
-      <GlassSuccessModal
-        isOpen={showSaveModal}
-        onClose={() => setShowSaveModal(false)}
-        title="Survey saved!"
-        message="Share it with your audience using the options below."
-        iconName="FaCheckCircle"
-        dismissOnBackdrop
-        primaryAction={{
-          label: copySuccess ? 'Copied!' : 'Copy link',
-          onClick: handleCopySaveLink,
-          iconName: 'FaCopy',
-        }}
-        secondaryAction={{
-          label: 'Generate QR code',
-          onClick: () => {
-            setShowSaveModal(false);
-            setShowQR(true);
-          },
-          iconName: 'FaImage',
-        }}
-      >
-        {saveModalData?.url && (
-          <button
-            onClick={() => window.open(`/s/${saveModalData.slug}`, '_blank')}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-white/40 bg-white/20 px-5 py-3 text-sm font-semibold text-white transition-all hover:bg-white/30"
-          >
-            <Icon name="FaEye" className="h-4 w-4" size={16} />
-            Preview survey
-          </button>
-        )}
-      </GlassSuccessModal>
+      {/* Post-save success modal — matches Prompt Page style */}
+      {showSaveModal && saveModalData && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white/10 backdrop-blur-lg rounded-2xl shadow-2xl max-w-md w-full mx-4 relative z-50 border border-white/30">
+            <div className="flex justify-end p-4">
+              <button
+                onClick={() => setShowSaveModal(false)}
+                className="text-white/80 hover:text-white focus:outline-none"
+                aria-label="Close modal"
+              >
+                <Icon name="FaTimes" size={18} />
+              </button>
+            </div>
+
+            <div className="px-6 pb-6">
+              <div className="text-center mb-6">
+                <div className="mb-3 flex justify-center">
+                  <img
+                    src="/images/prompty-success.png"
+                    alt="Prompty celebrating"
+                    className="w-24 h-24 object-contain"
+                  />
+                </div>
+                <h3 className="text-lg font-medium text-white mb-2">
+                  Survey saved! 🎉
+                </h3>
+                <p className="text-sm text-white/90">
+                  Share it with your audience using the options below.
+                </p>
+              </div>
+
+              <div className="space-y-3">
+                <button
+                  onClick={handleCopySaveLink}
+                  className="w-full flex items-center justify-between p-3 bg-emerald-500/30 hover:bg-emerald-500/50 backdrop-blur-sm rounded-lg border border-emerald-300/30 transition-colors cursor-pointer"
+                >
+                  <span className="text-sm font-medium text-white">Get link</span>
+                  <span className="text-white text-sm font-medium">
+                    {copySuccess ? 'Copied!' : 'Copy'}
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setShowSaveModal(false);
+                    setShowQR(true);
+                  }}
+                  className="w-full flex items-center justify-between p-3 bg-blue-500/30 hover:bg-blue-500/50 backdrop-blur-sm rounded-lg border border-blue-300/30 transition-colors cursor-pointer"
+                >
+                  <span className="text-sm font-medium text-white">Generate QR code</span>
+                  <span className="text-white text-sm font-medium">Create</span>
+                </button>
+
+                {saveModalData.url && (
+                  <a
+                    href={`/s/${saveModalData.slug}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full flex items-center justify-between p-3 bg-amber-500/30 hover:bg-amber-500/50 backdrop-blur-sm rounded-lg border border-amber-300/30 transition-colors cursor-pointer"
+                  >
+                    <span className="text-sm font-medium text-white">View survey</span>
+                    <span className="text-white text-sm font-medium">Open</span>
+                  </a>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* QR Code Modal from save */}
       {showQR && saveModalData?.url && (
