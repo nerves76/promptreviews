@@ -31,6 +31,8 @@ export function SurveyListPageContent({ basePath }: SurveyListPageContentProps) 
   const [saveModalData, setSaveModalData] = useState<{ title: string; url: string; slug: string } | null>(null);
   const [copySuccess, setCopySuccess] = useState(false);
   const [showQR, setShowQR] = useState(false);
+  const [copyLinkId, setCopyLinkId] = useState<string | null>(null);
+  const [qrModal, setQrModal] = useState<{ open: boolean; url: string; clientName: string } | null>(null);
 
   // Check for post-save modal flag
   useEffect(() => {
@@ -126,72 +128,97 @@ export function SurveyListPageContent({ basePath }: SurveyListPageContentProps) 
           </Button>
         </div>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead>
+        <>
+        <p className="text-xs text-gray-500 mb-2 sm:hidden">← Scroll horizontally to see more →</p>
+        <div className="overflow-x-auto shadow sm:rounded-lg">
+          <table className="min-w-full divide-y divide-gray-300">
+            <thead className="bg-gray-50">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Responses</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Name</th>
+                <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Status</th>
+                <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Responses</th>
+                <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Edit</th>
+                <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Created</th>
+                <th className="relative py-3.5 pl-3 pr-4 sm:pr-6 text-sm font-semibold text-gray-900">Share</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
-              {surveys.map((survey) => (
-                <tr key={survey.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3">
+            <tbody className="bg-white divide-y divide-gray-200">
+              {surveys.map((survey, index) => (
+                <tr key={survey.id} className={index % 2 === 0 ? 'bg-white' : 'bg-blue-50'}>
+                  <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-900">
                     <button
                       onClick={() => router.push(`${basePath}/${survey.id}`)}
-                      className="text-sm font-medium text-gray-900 hover:text-slate-blue transition-colors text-left"
+                      className="font-medium text-gray-900 hover:text-slate-blue transition-colors text-left"
                     >
                       {survey.title}
                     </button>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="whitespace-nowrap px-3 py-4 text-sm">
                     <SurveyStatusBadge status={survey.status} />
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-600">
+                  <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-600">
                     {survey.response_count ?? 0}
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">
-                    {new Date(survey.created_at).toLocaleDateString()}
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center justify-end gap-1">
+                  <td className="whitespace-nowrap px-3 py-4 text-sm">
+                    <div className="flex gap-2 items-center">
+                      {survey.slug && (
+                        <a
+                          href={`/s/${survey.slug}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-slate-blue underline hover:text-slate-blue/80"
+                        >
+                          View
+                        </a>
+                      )}
                       <button
                         onClick={() => router.push(`${basePath}/${survey.id}`)}
-                        className="p-2 text-gray-400 hover:text-slate-blue transition-colors"
-                        aria-label="Edit survey"
-                        title="Edit"
+                        className="text-slate-blue underline hover:text-slate-blue/80"
                       >
-                        <Icon name="FaEdit" size={14} />
+                        Edit
                       </button>
-                      <button
-                        onClick={() => router.push(`${basePath}/${survey.id}/responses`)}
-                        className="p-2 text-gray-400 hover:text-slate-blue transition-colors"
-                        aria-label="View responses"
-                        title="Responses"
-                      >
-                        <Icon name="FaChartLine" size={14} />
-                      </button>
-                      <button
-                        onClick={() => handleDuplicate(survey.id)}
-                        className="p-2 text-gray-400 hover:text-slate-blue transition-colors"
-                        aria-label="Duplicate survey"
-                        title="Duplicate"
-                      >
-                        <Icon name="FaCopy" size={14} />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(survey.id)}
-                        disabled={deleting === survey.id}
-                        className="p-2 text-gray-400 hover:text-red-500 transition-colors disabled:opacity-50"
-                        aria-label="Delete survey"
-                        title="Delete"
-                      >
-                        <Icon name="FaTrash" size={14} />
-                      </button>
+                    </div>
+                  </td>
+                  <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                    {new Date(survey.created_at).toLocaleDateString()}
+                  </td>
+                  <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                    <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center justify-end">
+                      {survey.slug && (
+                        <button
+                          type="button"
+                          className="inline-flex items-center justify-center px-3 py-2 min-h-[44px] min-w-[44px] bg-purple-500/20 backdrop-blur-sm text-purple-800 rounded hover:bg-purple-500/30 text-sm font-medium shadow border border-white/30 whitespace-nowrap"
+                          title={copyLinkId === survey.id ? 'Copied!' : 'Copy link'}
+                          aria-label="Copy link"
+                          onClick={async () => {
+                            try {
+                              await navigator.clipboard.writeText(`${window.location.origin}/s/${survey.slug}`);
+                              setCopyLinkId(survey.id);
+                              setTimeout(() => setCopyLinkId(null), 2000);
+                            } catch {
+                              // Fallback silently
+                            }
+                          }}
+                        >
+                          <Icon name={copyLinkId === survey.id ? 'FaCheck' : 'FaLink'} className="w-4 h-4" size={16} />
+                        </button>
+                      )}
+                      {survey.slug && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setQrModal({
+                              open: true,
+                              url: `${window.location.origin}/s/${survey.slug}`,
+                              clientName: survey.title,
+                            });
+                          }}
+                          className="inline-flex items-center justify-center gap-1 px-3 py-2 min-h-[44px] bg-amber-500/20 backdrop-blur-sm text-amber-800 rounded hover:bg-amber-500/30 text-sm font-medium shadow border border-white/30 whitespace-nowrap"
+                        >
+                          <Icon name="FaImage" size={16} style={{ color: '#b45309' }} />
+                          QR code
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -199,6 +226,7 @@ export function SurveyListPageContent({ basePath }: SurveyListPageContentProps) 
             </tbody>
           </table>
         </div>
+        </>
       )}
       {/* Post-save success modal — matches Prompt Page style */}
       {showSaveModal && saveModalData && (
@@ -279,6 +307,14 @@ export function SurveyListPageContent({ basePath }: SurveyListPageContentProps) 
           clientName={saveModalData.title}
         />
       )}
+
+      {/* QR Code Modal from table row */}
+      <QRCodeModal
+        isOpen={qrModal?.open || false}
+        onClose={() => setQrModal(null)}
+        url={qrModal?.url || ''}
+        clientName={qrModal?.clientName || ''}
+      />
     </PageCard>
   );
 }
