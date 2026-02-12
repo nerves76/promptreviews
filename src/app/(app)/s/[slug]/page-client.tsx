@@ -209,9 +209,9 @@ export default function SurveyPageClient({ survey, questions, styleConfig }: Sur
           </div>
         </div>
 
-        {/* Form card */}
+        {/* Form card — full container width, matching prompt page form */}
         <div
-          className={`rounded-2xl p-6 sm:p-8 shadow-xl mt-6 mb-8 max-w-3xl mx-auto ${blurEnabled ? 'backdrop-blur-sm' : ''}`}
+          className={`rounded-2xl p-6 sm:p-8 shadow-xl mt-6 mb-8 ${blurEnabled ? 'backdrop-blur-sm' : ''}`}
           style={{
             backgroundColor: cardBg,
             border: cardBorder,

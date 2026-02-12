@@ -47,7 +47,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Template not found' }, { status: 404 });
     }
 
-    const surveyTitle = title?.trim() || 'Untitled survey';
+    const surveyTitle = title?.trim() || template.default_survey_title || 'Untitled survey';
+    const surveyDescription = template.default_survey_description || null;
     const slug = generateSlug(surveyTitle);
 
     // Create survey
@@ -57,7 +58,7 @@ export async function POST(request: NextRequest) {
         account_id: accountId,
         slug,
         title: surveyTitle,
-        description: null,
+        description: surveyDescription,
         template_id: template.id,
       })
       .select()
