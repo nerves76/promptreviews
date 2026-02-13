@@ -85,7 +85,7 @@ export function SurveyResponsesPageContent({ basePath, surveyId }: SurveyRespons
           <div className="flex items-center gap-2 flex-wrap">
             {quota && (
               <span className="text-sm text-gray-500 whitespace-nowrap">
-                {quota.total_remaining} remaining ({quota.total_used} used)
+                {quota.account_remaining.toLocaleString()} responses remaining ({quota.total_used.toLocaleString()} used)
               </span>
             )}
             <Button size="sm" variant="outline" onClick={() => setShowPackSelector(true)} className="whitespace-nowrap">

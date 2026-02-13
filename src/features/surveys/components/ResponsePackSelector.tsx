@@ -9,7 +9,7 @@ import { SurveyResponsePack } from '../types';
 interface ResponsePackSelectorProps {
   isOpen: boolean;
   onClose: () => void;
-  surveyId: string;
+  surveyId?: string;
   onPurchased: () => void;
 }
 
@@ -32,7 +32,10 @@ export function ResponsePackSelector({ isOpen, onClose, surveyId, onPurchased }:
     setPurchasing(packId);
     setError(null);
     try {
-      await apiClient.post(`/surveys/${surveyId}/purchase-responses`, { pack_id: packId });
+      const endpoint = surveyId
+        ? `/surveys/${surveyId}/purchase-responses`
+        : '/surveys/purchase-responses';
+      await apiClient.post(endpoint, { pack_id: packId });
       onPurchased();
       onClose();
     } catch (err: any) {

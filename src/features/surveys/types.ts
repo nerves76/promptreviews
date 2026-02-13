@@ -249,7 +249,7 @@ export interface QuestionSummary {
 }
 
 export interface ResponseQuota {
-  free_remaining: number;
+  account_remaining: number;
   purchased_remaining: number;
   total_remaining: number;
   total_used: number;

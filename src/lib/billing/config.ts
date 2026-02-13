@@ -97,6 +97,7 @@ export const PLAN_LIMITS = {
     contacts: 0,
     hasWorkflow: false,
     hasGoogleBusiness: true,
+    surveyResponses: 500,
   },
   builder: {
     maxUsers: 3,
@@ -105,6 +106,7 @@ export const PLAN_LIMITS = {
     contacts: 1000,
     hasWorkflow: true,
     hasGoogleBusiness: true,
+    surveyResponses: 2000,
   },
   maven: {
     maxUsers: 5,
@@ -113,6 +115,7 @@ export const PLAN_LIMITS = {
     contacts: 10000,
     hasWorkflow: true,
     hasGoogleBusiness: true,
+    surveyResponses: 10000,
   },
 };
 

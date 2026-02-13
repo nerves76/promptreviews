@@ -1,5 +1,5 @@
 /**
- * Survey Response Quota API - Check remaining quota
+ * Survey Response Quota API - Check remaining quota (account-level)
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -22,10 +22,10 @@ export async function GET(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: 'No valid account found' }, { status: 403 });
     }
 
-    // Get survey free responses
+    // Verify survey belongs to this account
     const { data: survey, error: surveyError } = await supabase
       .from('surveys')
-      .select('id, free_responses_remaining')
+      .select('id')
       .eq('id', id)
       .eq('account_id', accountId)
       .single();
@@ -34,7 +34,16 @@ export async function GET(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: 'Survey not found' }, { status: 404 });
     }
 
-    // Get purchased responses
+    // Get account-level remaining responses
+    const { data: account } = await supabase
+      .from('accounts')
+      .select('survey_responses_remaining')
+      .eq('id', accountId)
+      .single();
+
+    const accountRemaining = Math.max(0, account?.survey_responses_remaining ?? 0);
+
+    // Get per-survey purchased responses (backward compat)
     const { data: purchases } = await supabase
       .from('survey_response_purchases')
       .select('responses_purchased, responses_used')
@@ -42,27 +51,22 @@ export async function GET(request: NextRequest, context: RouteContext) {
       .eq('account_id', accountId);
 
     let purchasedRemaining = 0;
-    let totalUsed = 0;
-
     if (purchases) {
       for (const p of purchases) {
         purchasedRemaining += Math.max(0, p.responses_purchased - p.responses_used);
-        totalUsed += p.responses_used;
       }
     }
 
-    // Count total responses to add free used
+    // Count total responses for this survey
     const { count: totalResponses } = await supabase
       .from('survey_responses')
       .select('*', { count: 'exact', head: true })
       .eq('survey_id', id);
 
-    const freeUsed = (totalResponses ?? 0) - totalUsed;
-
     return NextResponse.json({
-      free_remaining: Math.max(0, survey.free_responses_remaining),
+      account_remaining: accountRemaining,
       purchased_remaining: purchasedRemaining,
-      total_remaining: Math.max(0, survey.free_responses_remaining) + purchasedRemaining,
+      total_remaining: accountRemaining + purchasedRemaining,
       total_used: totalResponses ?? 0,
     });
   } catch (error) {

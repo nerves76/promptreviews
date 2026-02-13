@@ -194,7 +194,7 @@ export function SurveyBuilderPageContent({ basePath, surveyId }: SurveyBuilderPa
 
           {quota && (
             <span className="text-xs text-gray-500 whitespace-nowrap">
-              {quota.total_remaining} responses remaining
+              {quota.account_remaining.toLocaleString()} responses remaining
             </span>
           )}
 

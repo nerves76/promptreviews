@@ -4,6 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 import { credit, ensureBalanceExists } from "@/lib/credits";
 import { syncAgencyFreeWorkspace, getAgenciesForClient } from "@/lib/billing/agencyIncentive";
 import { sendSubscriptionActivatedEmail, sendPaymentEmail } from "@/lib/onboarding-emails";
+import { getSurveyResponsesForPlan } from "@/auth/utils/planUtils";
 
 // Lazy initialization to avoid build-time env var access
 function getStripeClient() {
@@ -213,6 +214,7 @@ export async function POST(req: NextRequest) {
           max_users: maxUsers,
           max_locations: maxLocations,
           agncy_billing_owner: 'agency',
+          survey_responses_remaining: getSurveyResponsesForPlan(plan),
           ...(isPaidPlan ? { has_had_paid_plan: true } : {}),
         })
         .eq("id", clientAccountId)
@@ -255,6 +257,7 @@ export async function POST(req: NextRequest) {
           billing_period: billingPeriod,
           max_users: maxUsers,
           max_locations: maxLocations,
+          survey_responses_remaining: getSurveyResponsesForPlan(plan),
           ...(isPaidPlan ? { has_had_paid_plan: true } : {}),
         })
         .eq("stripe_customer_id", customerId)
@@ -324,6 +327,7 @@ export async function POST(req: NextRequest) {
               billing_period: billingPeriod,
               max_users: maxUsers,
               max_locations: maxLocations,
+              survey_responses_remaining: getSurveyResponsesForPlan(plan),
               ...(isPaidPlan ? { has_had_paid_plan: true } : {}),
             })
             .eq("email", email)
@@ -350,6 +354,7 @@ export async function POST(req: NextRequest) {
               billing_period: billingPeriod,
               max_users: maxUsers,
               max_locations: maxLocations,
+              survey_responses_remaining: getSurveyResponsesForPlan(plan),
               ...(isPaidPlan ? { has_had_paid_plan: true } : {}),
             })
             .eq("id", userId)

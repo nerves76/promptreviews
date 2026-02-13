@@ -543,6 +543,7 @@ model accounts {
   agncy_multi_location_pct                                            String?
   managing_agncy_id                                                   String?                           @db.Uuid
   agncy_billing_owner                                                 String?                           @default("client")
+  survey_responses_remaining                                          Int                               @default(100)
   account_events                                                      account_events[]
   account_invitations                                                 account_invitations[]
   account_users                                                       account_users[]

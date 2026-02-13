@@ -99,6 +99,22 @@ export function isPlanUpgrade(currentPlan: string | null, newPlan: string): bool
   return newLevel > currentLevel;
 }
 
+export function getSurveyResponsesForPlan(plan: string | null): number {
+  if (!plan) return 100;
+
+  const surveyResponseLimits: Record<string, number> = {
+    'no_plan': 100,
+    'free': 100,
+    'grower': 500,
+    'builder': 2000,
+    'accelerator': 2000,
+    'maven': 10000,
+    'enterprise': 50000,
+  };
+
+  return surveyResponseLimits[plan] || 100;
+}
+
 export function canAccessFeature(plan: string | null, feature: string): boolean {
   if (!plan || plan === 'no_plan') return false;
   

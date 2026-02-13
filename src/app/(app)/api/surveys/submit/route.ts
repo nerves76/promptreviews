@@ -68,34 +68,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Business name is required for this survey' }, { status: 400 });
     }
 
-    // Determine if this is a free response or purchased
-    let isFreeResponse = false;
+    // Determine response source: account pool → per-survey purchases → 402
+    let isAccountPoolResponse = false;
 
-    // Try to use free responses first (atomic decrement)
-    if (survey.free_responses_remaining > 0) {
-      const { data: updatedSurvey, error: decrementError } = await supabase
-        .rpc('decrement_free_responses', { survey_uuid: survey_id });
+    // 1. Try account-level pool first (atomic decrement)
+    const { data: decrementResult } = await supabase
+      .rpc('decrement_account_survey_responses', { account_uuid: survey.account_id });
 
-      // If RPC doesn't exist yet, fall back to manual update
-      if (decrementError) {
-        const { data: updated } = await supabase
-          .from('surveys')
-          .update({ free_responses_remaining: survey.free_responses_remaining - 1 })
-          .eq('id', survey_id)
-          .gt('free_responses_remaining', 0)
-          .select('free_responses_remaining')
-          .single();
-
-        if (updated) {
-          isFreeResponse = true;
-        }
-      } else {
-        isFreeResponse = true;
-      }
+    if (decrementResult !== null && decrementResult >= 0) {
+      isAccountPoolResponse = true;
     }
 
-    // If not free, check purchased packs
-    if (!isFreeResponse) {
+    // 2. Fallback: check per-survey purchased packs
+    if (!isAccountPoolResponse) {
       const { data: purchases } = await supabase
         .from('survey_response_purchases')
         .select('id, responses_purchased, responses_used')
@@ -106,7 +91,6 @@ export async function POST(request: NextRequest) {
       if (purchases) {
         for (const purchase of purchases) {
           if (purchase.responses_used < purchase.responses_purchased) {
-            // Increment usage
             const { error: usageError } = await supabase
               .from('survey_response_purchases')
               .update({ responses_used: purchase.responses_used + 1 })
@@ -150,7 +134,7 @@ export async function POST(request: NextRequest) {
         source_channel: ['direct', 'qr', 'email', 'sms'].includes(source_channel) ? source_channel : 'direct',
         utm_params: typeof utm_params === 'object' ? utm_params : {},
         user_agent: request.headers.get('user-agent') || null,
-        is_free_response: isFreeResponse,
+        is_free_response: isAccountPoolResponse,
       })
       .select()
       .single();
