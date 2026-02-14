@@ -323,12 +323,6 @@ export default function FeedItemsList({ feedId }: FeedItemsListProps) {
                     </>
                   )}
                 </button>
-                <a
-                  href="/dashboard/social-posting"
-                  className="text-xs text-slate-blue hover:underline"
-                >
-                  View queue →
-                </a>
               </>
             )}
           </div>
