@@ -24,8 +24,8 @@ type ServiceSupabase = SupabaseClient<any, any, any>;
 // Constants
 // ============================================
 
-// Maximum concurrent API requests to avoid rate limits while still being fast
-const MAX_CONCURRENT_REQUESTS = 3;
+// Maximum concurrent API requests - balance between speed and avoiding rate limits
+const MAX_CONCURRENT_REQUESTS = 5;
 
 // ============================================
 // Types
