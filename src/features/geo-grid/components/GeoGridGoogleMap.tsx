@@ -330,13 +330,11 @@ export function GeoGridGoogleMap({
 }: GeoGridGoogleMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
-  // Use union type for markers - can be either advanced or basic markers
-  const markersRef = useRef<(google.maps.marker.AdvancedMarkerElement | google.maps.Marker)[]>([]);
+  const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
   const circleRef = useRef<google.maps.Circle | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const [isMapReady, setIsMapReady] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [useAdvancedMarkers, setUseAdvancedMarkers] = useState(false);
 
   // Validate coordinates early
   const hasValidCoordinates = isValidCoordinates(center.lat, center.lng);
@@ -349,7 +347,6 @@ export function GeoGridGoogleMap({
   // Initialize Google Maps
   useEffect(() => {
     const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-    const mapId = process.env.NEXT_PUBLIC_GOOGLE_MAP_ID;
 
     if (!apiKey) {
       setLoadError('Google Maps API key not configured');
@@ -362,19 +359,12 @@ export function GeoGridGoogleMap({
       v: 'weekly',
     });
 
-    // Load required libraries - only load marker library if we have a Map ID
-    const librariesToLoad: Promise<google.maps.MapsLibrary | google.maps.MarkerLibrary>[] = [
+    // Load maps and marker libraries (AdvancedMarkerElement replaces deprecated Marker)
+    Promise.all([
       importLibrary('maps'),
-    ];
-
-    // Only load marker library if we have a Map ID (required for AdvancedMarkerElement)
-    if (mapId) {
-      librariesToLoad.push(importLibrary('marker'));
-    }
-
-    Promise.all(librariesToLoad)
+      importLibrary('marker'),
+    ])
       .then(() => {
-        setUseAdvancedMarkers(!!mapId);
         setIsLoaded(true);
       })
       .catch((err: Error) => {
@@ -416,13 +406,7 @@ export function GeoGridGoogleMap({
 
     // Clear existing markers
     markersRef.current.forEach((marker) => {
-      // Check for setMap first - basic Marker has this method
-      if ('setMap' in marker && typeof (marker as google.maps.Marker).setMap === 'function') {
-        (marker as google.maps.Marker).setMap(null);
-      } else if ('map' in marker) {
-        // AdvancedMarkerElement uses .map = null
-        (marker as google.maps.marker.AdvancedMarkerElement).map = null;
-      }
+      marker.map = null;
     });
     markersRef.current = [];
 
@@ -486,87 +470,52 @@ export function GeoGridGoogleMap({
         labelText = '?';
       }
 
-      if (useAdvancedMarkers) {
-        // Use AdvancedMarkerElement when Map ID is available
-        const markerContent = document.createElement('div');
-        markerContent.className = 'geo-grid-marker';
-        const showOpacity = !hasData && !isPreview; // Don't dim preview markers
-        markerContent.style.cssText = `
-          width: 36px;
-          height: 36px;
-          border-radius: 50%;
-          background-color: ${color};
-          border: 3px solid white;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          cursor: ${hasData && !isPreview ? 'pointer' : 'default'};
-          font-weight: bold;
-          font-size: ${labelText === '>20' ? '10px' : (labelText.length > 1 ? '10px' : '12px')};
-          color: white;
-          transition: transform 0.2s;
-          ${showOpacity ? 'opacity: 0.5;' : ''}
-        `;
-        markerContent.textContent = labelText;
+      // Use AdvancedMarkerElement (replaces deprecated google.maps.Marker)
+      const markerContent = document.createElement('div');
+      markerContent.className = 'geo-grid-marker';
+      const showOpacity = !hasData && !isPreview; // Don't dim preview markers
+      markerContent.style.cssText = `
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background-color: ${color};
+        border: 3px solid white;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: ${hasData && !isPreview ? 'pointer' : 'default'};
+        font-weight: bold;
+        font-size: ${labelText === '>20' ? '10px' : (labelText.length > 1 ? '10px' : '12px')};
+        color: white;
+        transition: transform 0.2s;
+        ${showOpacity ? 'opacity: 0.5;' : ''}
+      `;
+      markerContent.textContent = labelText;
 
-        // Add hover effect
-        markerContent.addEventListener('mouseenter', () => {
-          markerContent.style.transform = 'scale(1.2)';
+      // Add hover effect
+      markerContent.addEventListener('mouseenter', () => {
+        markerContent.style.transform = 'scale(1.2)';
+      });
+      markerContent.addEventListener('mouseleave', () => {
+        markerContent.style.transform = 'scale(1)';
+      });
+
+      const marker = new google.maps.marker.AdvancedMarkerElement({
+        map,
+        position: { lat: data.lat, lng: data.lng },
+        content: markerContent,
+        title: markerTitle,
+      });
+
+      // Add click handler
+      if (hasData && data.result && onMarkerClick && !isPreview) {
+        marker.addListener('click', () => {
+          onMarkerClick(data.point, data.result!);
         });
-        markerContent.addEventListener('mouseleave', () => {
-          markerContent.style.transform = 'scale(1)';
-        });
-
-        const marker = new google.maps.marker.AdvancedMarkerElement({
-          map,
-          position: { lat: data.lat, lng: data.lng },
-          content: markerContent,
-          title: markerTitle,
-        });
-
-        // Add click handler
-        if (hasData && data.result && onMarkerClick) {
-          marker.addListener('click', () => {
-            onMarkerClick(data.point, data.result!);
-          });
-        }
-
-        markersRef.current.push(marker);
-      } else {
-        // Use basic Marker when no Map ID available
-        // Create an SVG icon for the marker
-        const fontSize = labelText === '>20' ? '10' : (labelText.length > 1 ? '10' : '14');
-        const svgIcon = {
-          url: `data:image/svg+xml,${encodeURIComponent(`
-            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40">
-              <circle cx="20" cy="20" r="18" fill="${color}" stroke="white" stroke-width="3"/>
-              <text x="20" y="25" text-anchor="middle" fill="white" font-size="${fontSize}" font-weight="bold" font-family="Arial, sans-serif">${labelText}</text>
-            </svg>
-          `)}`,
-          scaledSize: new google.maps.Size(40, 40),
-          anchor: new google.maps.Point(20, 20),
-        };
-
-        const showOpacity = !hasData && !isPreview;
-        const marker = new google.maps.Marker({
-          map,
-          position: { lat: data.lat, lng: data.lng },
-          icon: svgIcon,
-          title: markerTitle,
-          cursor: hasData && !isPreview ? 'pointer' : 'default',
-          opacity: showOpacity ? 0.5 : 1,
-        });
-
-        // Add click handler (not for preview mode)
-        if (hasData && data.result && onMarkerClick && !isPreview) {
-          marker.addListener('click', () => {
-            onMarkerClick(data.point, data.result!);
-          });
-        }
-
-        markersRef.current.push(marker);
       }
+
+      markersRef.current.push(marker);
     });
 
     // Fit bounds to show all markers with padding
@@ -576,17 +525,13 @@ export function GeoGridGoogleMap({
     });
     map.fitBounds(bounds, { top: 50, right: 50, bottom: 50, left: 50 });
 
-  }, [isLoaded, center, radiusMiles, pointData, onMarkerClick, useAdvancedMarkers, viewAs, isPreview]);
+  }, [isLoaded, center, radiusMiles, pointData, onMarkerClick, viewAs, isPreview]);
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
       markersRef.current.forEach((marker) => {
-        if ('setMap' in marker && typeof (marker as google.maps.Marker).setMap === 'function') {
-          (marker as google.maps.Marker).setMap(null);
-        } else if ('map' in marker) {
-          (marker as google.maps.marker.AdvancedMarkerElement).map = null;
-        }
+        marker.map = null;
       });
       if (circleRef.current) {
         circleRef.current.setMap(null);
