@@ -403,13 +403,16 @@ export default function LocalRankingGridsPage() {
     setCheckingKeywordIds(new Set(keywordIds));
     try {
       const result = await runCheck(keywordIds);
+      if (result.error) {
+        console.error('[GeoGrid] Check errors:', result.error);
+      }
       if (result.success) {
         await refreshResults();
         const performed = result.checksPerformed || 0;
         const total = result.totalChecks || performed;
         const failed = total - performed;
         if (failed > 0) {
-          showError(`Grid check: ${performed} of ${total} succeeded, ${failed} failed. ${result.error ? result.error.split(',')[0] : ''}`, 15000);
+          showError(`Grid check: ${performed} of ${total} succeeded, ${failed} failed.`, 15000);
         } else {
           showSuccess(`Grid check complete! ${performed} checks performed.`, 10000);
         }
