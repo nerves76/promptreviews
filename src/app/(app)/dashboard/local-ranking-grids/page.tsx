@@ -784,8 +784,6 @@ export default function LocalRankingGridsPage() {
             trend={trend}
             isLoading={summaryLoading}
             lastCheckedAt={lastCheckedAt}
-            onRunCheck={handleRunCheck}
-            isCheckRunning={isCheckRunning}
             hasTargetBusiness={!!config?.targetPlaceId}
           />
 
@@ -794,7 +792,7 @@ export default function LocalRankingGridsPage() {
             <div>
             {/* Map Controls */}
             <div className="bg-white rounded-xl border-2 border-gray-200 p-4 mb-4">
-              {/* Row 1: Keyword selector and run button */}
+              {/* Row 1: Keyword selector, View As, and Run Check */}
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div className="flex flex-wrap items-center gap-4">
                   {/* Keyword Selector */}
@@ -857,6 +855,19 @@ export default function LocalRankingGridsPage() {
                     </div>
                   )}
                 </div>
+
+                {/* Run Check Button */}
+                <button
+                  onClick={handleRunCheck}
+                  disabled={isCheckRunning || !config?.targetPlaceId}
+                  title={!config?.targetPlaceId ? 'Connect your business first' : undefined}
+                  className="px-4 py-2 bg-slate-blue text-white text-sm font-medium rounded-lg hover:bg-slate-blue/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap"
+                >
+                  {isCheckRunning && (
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  )}
+                  {isCheckRunning ? 'Running...' : 'Run check'}
+                </button>
               </div>
 
               {/* Row 2: Grid info (read-only display) */}
