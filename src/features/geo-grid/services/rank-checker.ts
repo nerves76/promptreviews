@@ -64,46 +64,27 @@ interface CheckTaskResult {
 }
 
 /**
- * Process items in parallel with a concurrency limit
- * This dramatically speeds up checks while avoiding API rate limits
+ * Process items in parallel with a concurrency limit using a worker pool.
+ * Spawns N workers that each pull items from a shared queue sequentially,
+ * ensuring exactly `concurrency` requests are in-flight at any time.
  */
 async function processInParallel<T, R>(
   items: T[],
   processor: (item: T, index: number) => Promise<R>,
   concurrency: number = MAX_CONCURRENT_REQUESTS
 ): Promise<R[]> {
-  const results: R[] = [];
-  const executing: Promise<void>[] = [];
+  const results: R[] = new Array(items.length);
+  let nextIndex = 0;
 
-  for (let i = 0; i < items.length; i++) {
-    const item = items[i];
-
-    // Create a promise that processes the item and stores the result
-    const promise = processor(item, i).then((result) => {
-      results[i] = result;
-    });
-
-    executing.push(promise);
-
-    // If we've hit the concurrency limit, wait for one to finish
-    if (executing.length >= concurrency) {
-      await Promise.race(executing);
-      // Remove completed promises
-      for (let j = executing.length - 1; j >= 0; j--) {
-        // Check if promise is settled by racing with an immediate resolve
-        const settled = await Promise.race([
-          executing[j].then(() => true).catch(() => true),
-          Promise.resolve(false),
-        ]);
-        if (settled) {
-          executing.splice(j, 1);
-        }
-      }
+  async function worker() {
+    while (nextIndex < items.length) {
+      const index = nextIndex++;
+      results[index] = await processor(items[index], index);
     }
   }
 
-  // Wait for remaining promises
-  await Promise.all(executing);
+  const workerCount = Math.min(concurrency, items.length);
+  await Promise.all(Array.from({ length: workerCount }, () => worker()));
 
   return results;
 }
