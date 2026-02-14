@@ -164,6 +164,19 @@ export default function RssFeedsPage() {
   };
 
   // Toggle feed active/paused
+  const handleToggleAutoPost = async (feed: RssFeedSource) => {
+    try {
+      await apiClient.patch(`/rss-feeds/${feed.id}`, {
+        autoPost: !feed.autoPost,
+      });
+      setSuccess(feed.autoPost ? "Auto-posting disabled" : "Auto-posting enabled");
+      fetchFeeds();
+    } catch (err) {
+      console.error("Failed to toggle auto-post:", err);
+      setError("Failed to update feed");
+    }
+  };
+
   const handleToggleActive = async (feed: RssFeedSource) => {
     try {
       await apiClient.patch(`/rss-feeds/${feed.id}`, {
@@ -370,10 +383,30 @@ export default function RssFeedsPage() {
                     className="flex items-center justify-between mt-3 pt-3 border-t border-gray-200"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <span className="text-xs text-gray-500 sm:hidden">
-                      Last polled: {formatLastPolled(feed.lastPolledAt)}
-                    </span>
-                    <div className="flex items-center gap-2 ml-auto">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-500 sm:hidden">
+                        Last polled: {formatLastPolled(feed.lastPolledAt)}
+                      </span>
+                      <label className="flex items-center gap-2 cursor-pointer" title="Automatically schedule new feed items as posts">
+                        <button
+                          role="switch"
+                          aria-checked={feed.autoPost}
+                          aria-label="Auto-post new items"
+                          onClick={() => handleToggleAutoPost(feed)}
+                          className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                            feed.autoPost ? "bg-green-500" : "bg-gray-300"
+                          }`}
+                        >
+                          <span
+                            className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                              feed.autoPost ? "translate-x-[18px]" : "translate-x-[3px]"
+                            }`}
+                          />
+                        </button>
+                        <span className="text-xs text-gray-600 whitespace-nowrap">Auto-post</span>
+                      </label>
+                    </div>
+                    <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleProcessFeed(feed.id)}
                         className="px-3 py-1.5 text-xs font-medium text-slate-blue border border-slate-blue/30 hover:bg-slate-blue/5 rounded-lg transition-colors whitespace-nowrap disabled:opacity-50"
