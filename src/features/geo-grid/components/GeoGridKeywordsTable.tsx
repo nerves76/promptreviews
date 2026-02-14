@@ -389,11 +389,13 @@ export function GeoGridKeywordsTable({
           return new Date(r.checkedAt) > new Date(latest) ? r.checkedAt : latest;
         }, null as string | null);
 
-        // Aggregate competitors
+        // Aggregate competitors - use placeId as primary key (stable across grid points),
+        // fall back to name for entries without a placeId
         const competitorMap = new Map<
           string,
           {
             name: string;
+            placeId: string | null;
             positions: number[];
             rating: number | null;
             reviewCount: number | null;
@@ -404,10 +406,14 @@ export function GeoGridKeywordsTable({
 
         for (const result of keywordResults) {
           for (const competitor of result.topCompetitors) {
-            const key = competitor.name.toLowerCase();
+            const key = competitor.placeId || competitor.name.toLowerCase();
             const existing = competitorMap.get(key);
             if (existing) {
               existing.positions.push(competitor.position);
+              // Keep the longest name variant (usually the most complete)
+              if (competitor.name.length > existing.name.length) {
+                existing.name = competitor.name;
+              }
               if (competitor.rating !== null) existing.rating = competitor.rating;
               if (competitor.reviewCount !== null) existing.reviewCount = competitor.reviewCount;
               if (competitor.address) existing.address = competitor.address;
@@ -415,6 +421,7 @@ export function GeoGridKeywordsTable({
             } else {
               competitorMap.set(key, {
                 name: competitor.name,
+                placeId: competitor.placeId,
                 positions: [competitor.position],
                 rating: competitor.rating,
                 reviewCount: competitor.reviewCount,
@@ -718,13 +725,14 @@ export function GeoGridKeywordsTable({
                 </div>
               )}
               {canAddMore && (
-                <button
+                <Button
+                  size="sm"
                   onClick={() => setShowAddModal(true)}
-                  className="px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors flex items-center gap-1.5 whitespace-nowrap"
+                  className="whitespace-nowrap"
                 >
-                  <PlusIcon className="w-4 h-4" />
+                  <PlusIcon className="w-4 h-4 mr-1" />
                   Add keywords
-                </button>
+                </Button>
               )}
             </div>
           </div>
@@ -737,13 +745,13 @@ export function GeoGridKeywordsTable({
             <p className="text-gray-500">No keywords being tracked yet</p>
             <p className="text-sm text-gray-500 mb-4">Add keywords to track their local ranking</p>
             {canAddMore && (
-              <button
+              <Button
+                size="sm"
                 onClick={() => setShowAddModal(true)}
-                className="px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors inline-flex items-center gap-1.5"
               >
-                <PlusIcon className="w-4 h-4" />
+                <PlusIcon className="w-4 h-4 mr-1" />
                 Add your first keyword
-              </button>
+              </Button>
             )}
           </div>
         ) : (
