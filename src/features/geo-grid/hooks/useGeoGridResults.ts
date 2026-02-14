@@ -79,6 +79,7 @@ export interface UseGeoGridResultsReturn {
 export interface RunCheckResult {
   success: boolean;
   checksPerformed?: number;
+  totalChecks?: number;
   totalCost?: number;
   error?: string;
 }
@@ -156,6 +157,7 @@ export function useGeoGridResults(
         const response = await apiClient.post<{
           success: boolean;
           checksPerformed: number;
+          totalChecks: number;
           totalCost: number;
           errors?: string[];
         }>('/geo-grid/check', { configId, keywordIds });
@@ -168,6 +170,7 @@ export function useGeoGridResults(
         return {
           success: response.success,
           checksPerformed: response.checksPerformed,
+          totalChecks: response.totalChecks,
           totalCost: response.totalCost,
           error: response.errors?.join(', '),
         };

@@ -405,7 +405,14 @@ export default function LocalRankingGridsPage() {
       const result = await runCheck(keywordIds);
       if (result.success) {
         await refreshResults();
-        showSuccess(`Grid check complete! ${result.checksPerformed || 0} checks performed.`);
+        const performed = result.checksPerformed || 0;
+        const total = result.totalChecks || performed;
+        const failed = total - performed;
+        if (failed > 0) {
+          showSuccess(`Grid check complete! ${performed} of ${total} checks succeeded (${failed} failed).`, 6000);
+        } else {
+          showSuccess(`Grid check complete! ${performed} checks performed.`);
+        }
       } else if (result.error) {
         // Show user-friendly error messages
         if (result.error.includes('No target Place ID') || result.error.includes('Connect a Google Business')) {
@@ -492,7 +499,14 @@ export default function LocalRankingGridsPage() {
       const result = await runCheck(keywordIds);
       if (result.success) {
         await refreshResults();
-        showSuccess(`Grid check complete! ${result.checksPerformed || 0} checks performed.`);
+        const performed = result.checksPerformed || 0;
+        const total = result.totalChecks || performed;
+        const failed = total - performed;
+        if (failed > 0) {
+          showSuccess(`Grid check complete! ${performed} of ${total} checks succeeded (${failed} failed).`, 6000);
+        } else {
+          showSuccess(`Grid check complete! ${performed} checks performed.`);
+        }
       } else if (result.error) {
         if (result.error.includes('Insufficient credits')) {
           showError('Not enough credits for this grid check. Please add more credits.', 6000);

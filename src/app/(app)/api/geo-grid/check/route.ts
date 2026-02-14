@@ -266,6 +266,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: result.success,
       checksPerformed: result.checksPerformed,
+      totalChecks: result.totalChecks,
       totalCost: result.totalCost,
       creditsUsed: creditCost,
       creditsRemaining: updatedCreditCheck.balance.totalCredits,

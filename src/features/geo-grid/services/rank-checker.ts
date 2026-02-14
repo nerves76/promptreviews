@@ -41,6 +41,7 @@ export interface RankCheckOptions {
 export interface RankCheckBatchResult {
   success: boolean;
   checksPerformed: number;
+  totalChecks: number;
   totalCost: number;
   results: GGCheckResult[];
   errors: string[];
@@ -133,6 +134,7 @@ export async function runRankChecks(
     return {
       success: false,
       checksPerformed: 0,
+      totalChecks: 0,
       totalCost: 0,
       results: [],
       errors: ['Config is missing target Place ID. Connect a Google Business location first.'],
@@ -168,6 +170,7 @@ export async function runRankChecks(
     return {
       success: false,
       checksPerformed: 0,
+      totalChecks: 0,
       totalCost: 0,
       results: [],
       errors: [`Failed to fetch tracked keywords: ${keywordsError.message}`],
@@ -178,6 +181,7 @@ export async function runRankChecks(
     return {
       success: false,
       checksPerformed: 0,
+      totalChecks: 0,
       totalCost: 0,
       results: [],
       errors: ['No tracked keywords found. Add keywords to track first.'],
@@ -193,30 +197,6 @@ export async function runRankChecks(
   });
 
   // 3. Run checks for each keyword at each point
-  console.log(`📊 [GeoGrid] Checking ${trackedKeywords.length} keywords × ${gridPoints.length} points = ${trackedKeywords.length * gridPoints.length} total checks`);
-
-  let checkCount = 0;
-  const totalChecks = trackedKeywords.length * gridPoints.length;
-
-  const checksToInsert: Array<{
-    account_id: string;
-    config_id: string;
-    keyword_id: string;
-    search_query: string;
-    check_point: CheckPoint;
-    point_lat: number;
-    point_lng: number;
-    position: number | null;
-    position_bucket: string;
-    business_found: boolean;
-    top_competitors: object | null;
-    our_rating: number | null;
-    our_review_count: number | null;
-    our_place_id: string | null;
-    checked_at: string;
-    api_cost_usd: number;
-  }> = [];
-
   const checkedAt = new Date().toISOString();
 
   // Build list of all search terms to check
@@ -273,10 +253,13 @@ export async function runRankChecks(
   console.log(`📊 [GeoGrid] Checking ${searchTermsToCheck.length} search terms × ${gridPoints.length} points = ${actualTotalChecks} total checks (${MAX_CONCURRENT_REQUESTS} concurrent)`);
 
   // Process all checks in parallel with concurrency limit
+  // Each result is saved to DB IMMEDIATELY to prevent data loss on timeout
   let completedCount = 0;
-  const taskResults = await processInParallel<CheckTask, CheckTaskResult>(
+  let successfulInserts = 0;
+
+  await processInParallel<CheckTask, CheckTaskResult>(
     checkTasks,
-    async (task, index) => {
+    async (task) => {
       try {
         const result = await checkRankForBusiness({
           keyword: task.searchQuery,
@@ -287,12 +270,43 @@ export async function runRankChecks(
         });
 
         completedCount++;
-        console.log(`   [${completedCount}/${actualTotalChecks}] ✓ "${task.searchQuery}" at ${task.point.label}: ${result.position ?? 'not found'}`);
+
+        // Save result to DB immediately (incremental save prevents data loss on timeout)
+        const { error: insertErr } = await serviceSupabase
+          .from('gg_checks')
+          .insert({
+            account_id: config.accountId,
+            config_id: config.id,
+            keyword_id: task.keywordId,
+            search_query: task.searchQuery,
+            check_point: task.point.label,
+            point_lat: task.point.lat,
+            point_lng: task.point.lng,
+            position: result.position,
+            position_bucket: result.positionBucket,
+            business_found: result.businessFound,
+            top_competitors: result.topCompetitors.length > 0 ? result.topCompetitors : null,
+            our_rating: result.ourRating,
+            our_review_count: result.ourReviewCount,
+            our_place_id: targetPlaceId,
+            checked_at: checkedAt,
+            api_cost_usd: result.cost,
+          });
+
+        if (insertErr) {
+          errors.push(`DB save failed for "${task.searchQuery}" at ${task.point.label}: ${insertErr.message}`);
+        } else {
+          successfulInserts++;
+          totalCost += result.cost;
+        }
+
+        console.log(`   [${completedCount}/${actualTotalChecks}] ✓ "${task.searchQuery}" at ${task.point.label}: pos ${result.position ?? 'not found'}`);
 
         return { task, result };
       } catch (error) {
         completedCount++;
         const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+        errors.push(`"${task.searchQuery}" at ${task.point.label}: ${errorMsg}`);
         console.error(`   [${completedCount}/${actualTotalChecks}] ✗ "${task.searchQuery}" at ${task.point.label}: ${errorMsg}`);
         return { task, error: errorMsg };
       }
@@ -300,71 +314,15 @@ export async function runRankChecks(
     MAX_CONCURRENT_REQUESTS
   );
 
-  // Process results
-  for (const taskResult of taskResults) {
-    if (taskResult.result) {
-      const { task, result } = taskResult;
-      totalCost += result.cost;
-
-      checksToInsert.push({
-        account_id: config.accountId,
-        config_id: config.id,
-        keyword_id: task.keywordId,
-        search_query: task.searchQuery,
-        check_point: task.point.label,
-        point_lat: task.point.lat,
-        point_lng: task.point.lng,
-        position: result.position,
-        position_bucket: result.positionBucket,
-        business_found: result.businessFound,
-        top_competitors: result.topCompetitors.length > 0 ? result.topCompetitors : null,
-        our_rating: result.ourRating,
-        our_review_count: result.ourReviewCount,
-        our_place_id: targetPlaceId,
-        checked_at: checkedAt,
-        api_cost_usd: result.cost,
-      });
-    } else if (taskResult.error) {
-      errors.push(
-        `Failed to check "${taskResult.task.searchQuery}" at ${taskResult.task.point.label}: ${taskResult.error}`
-      );
-    }
+  // 4. Update config's last_checked_at
+  if (successfulInserts > 0) {
+    await serviceSupabase
+      .from('gg_configs')
+      .update({ last_checked_at: checkedAt, updated_at: checkedAt })
+      .eq('id', config.id);
   }
 
-  // 4. Insert results into database
-  if (checksToInsert.length > 0) {
-    const { data: insertedChecks, error: insertError } = await serviceSupabase
-      .from('gg_checks')
-      .insert(checksToInsert)
-      .select();
-
-    if (insertError) {
-      errors.push(`Failed to save check results: ${insertError.message}`);
-    } else if (insertedChecks) {
-      // Transform inserted rows to response format
-      for (const row of insertedChecks as any[]) {
-        const trackedKeyword = trackedKeywords.find(
-          (tk: any) => tk.keyword_id === row.keyword_id
-        );
-        const keyword = (trackedKeyword as any)?.keywords;
-
-        results.push(
-          transformCheckToResponse({
-            ...row,
-            keywords: keyword ? { phrase: keyword.phrase } : undefined,
-          } as any)
-        );
-      }
-    }
-  }
-
-  // 5. Update config's last_checked_at
-  await serviceSupabase
-    .from('gg_configs')
-    .update({ last_checked_at: checkedAt, updated_at: checkedAt })
-    .eq('id', config.id);
-
-  // 6. Track cost in ai_usage table
+  // 5. Track cost in ai_usage table
   if (totalCost > 0) {
     await serviceSupabase.from('ai_usage').insert({
       account_id: config.accountId,
@@ -377,11 +335,12 @@ export async function runRankChecks(
     });
   }
 
-  console.log(`✅ [GeoGrid] Check complete! ${checksToInsert.length} checks performed, ${errors.length} errors, $${totalCost.toFixed(4)} cost`);
+  console.log(`✅ [GeoGrid] Check complete! ${successfulInserts}/${actualTotalChecks} saved, ${errors.length} errors, $${totalCost.toFixed(4)} cost`);
 
   return {
-    success: errors.length === 0,
-    checksPerformed: checksToInsert.length,
+    success: successfulInserts > 0,
+    checksPerformed: successfulInserts,
+    totalChecks: actualTotalChecks,
     totalCost,
     results,
     errors,

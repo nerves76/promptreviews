@@ -207,16 +207,8 @@ export async function checkRankForBusiness(
   const searchResult = await searchGoogleMaps(searchParams);
 
   if (!searchResult.success) {
-    return {
-      position: null,
-      positionBucket: 'none',
-      businessFound: false,
-      ourRating: null,
-      ourReviewCount: null,
-      topCompetitors: [],
-      cost: searchResult.cost,
-      rawResponse: null,
-    };
+    // Throw so callers can distinguish "API failed" from "business not found"
+    throw new Error(searchResult.error || 'Google Maps search failed');
   }
 
   // Find our business in the results
@@ -225,12 +217,12 @@ export async function checkRankForBusiness(
   let ourReviewCount: number | null = null;
   let businessFound = false;
 
-  // Debug: log all results to help diagnose matching issues
-  console.log(`   🔍 [DataForSEO] Searching for Place ID: ${targetPlaceId}`);
-  console.log(`   🔍 [DataForSEO] Found ${searchResult.items.length} results:`);
-  for (const item of searchResult.items) {
-    const isMatch = item.place_id === targetPlaceId;
-    console.log(`      ${item.rank_absolute}. ${item.title} (${item.place_id})${isMatch ? ' ← MATCH!' : ''}`);
+  // Summary log (not per-item to avoid excessive output)
+  const matchedItem = searchResult.items.find(item => item.place_id === targetPlaceId);
+  if (matchedItem) {
+    console.log(`   🔍 [DataForSEO] Found business at position ${matchedItem.rank_absolute} of ${searchResult.items.length} results`);
+  } else {
+    console.log(`   🔍 [DataForSEO] Business not found in ${searchResult.items.length} results`);
   }
 
   for (const item of searchResult.items) {
@@ -244,10 +236,9 @@ export async function checkRankForBusiness(
     }
   }
 
-  // Get top 10 competitors (excluding our business)
+  // Get all competitors (excluding our business) up to API depth
   const topCompetitors: GGCompetitor[] = searchResult.items
     .filter((item) => item.place_id !== targetPlaceId)
-    .slice(0, 10)
     .map((item) => ({
       name: item.title,
       rating: item.rating?.value ?? null,

@@ -218,19 +218,30 @@ function calculatePointData(
     }
 
     // If viewing as a competitor (not own business), find their position in topCompetitors
+    // Match by placeId first, then fall back to name match for chains with multiple locations
     if (viewAs && !viewAs.isOwnBusiness) {
       let competitorPosition: number | null = null;
       let competitorResult: GGCheckResult | null = null;
       let hasCheckData = pointResults.length > 0; // We have check data for this point
+      const viewAsNameLower = viewAs.name.toLowerCase();
 
       for (const result of pointResults) {
-        const competitor = result.topCompetitors.find(
+        // First try exact placeId match
+        let competitor = result.topCompetitors.find(
           (c) => c.placeId === viewAs.placeId
         );
+        // Fall back to name match for chains with multiple locations
+        if (!competitor) {
+          competitor = result.topCompetitors.find(
+            (c) => c.name.toLowerCase() === viewAsNameLower
+          );
+        }
         if (competitor) {
-          competitorPosition = competitor.position;
-          competitorResult = result;
-          break;
+          // Use best (lowest) position if multiple results
+          if (competitorPosition === null || competitor.position < competitorPosition) {
+            competitorPosition = competitor.position;
+            competitorResult = result;
+          }
         }
         // Even if not found in competitors, we still have check data
         if (!competitorResult) {
@@ -238,14 +249,13 @@ function calculatePointData(
         }
       }
 
-      // If we have check data but competitor not in top 5, show as "not in top 5" (red/none)
-      // The result being set indicates we have data, position null means not in top 5
+      // If we have check data but competitor not found, show as "none" (red)
       return {
         point,
         lat: coords.lat,
         lng: coords.lng,
-        bucket: competitorPosition !== null ? positionToBucketLocal(competitorPosition) : (hasCheckData ? 'none' : 'none'),
-        position: competitorPosition, // null means "not in stored top 5"
+        bucket: competitorPosition !== null ? positionToBucketLocal(competitorPosition) : 'none',
+        position: competitorPosition, // null means not found in top 20 results
         result: competitorResult, // Set to indicate we have check data
       };
     }
@@ -471,7 +481,7 @@ export function GeoGridGoogleMap({
       } else if (data.position !== null) {
         labelText = String(data.position);
       } else if (hasData && viewAs && !viewAs.isOwnBusiness) {
-        labelText = '>10';
+        labelText = '>20';
       } else {
         labelText = '?';
       }
@@ -493,7 +503,7 @@ export function GeoGridGoogleMap({
           justify-content: center;
           cursor: ${hasData && !isPreview ? 'pointer' : 'default'};
           font-weight: bold;
-          font-size: ${labelText === '>10' ? '10px' : (labelText.length > 1 ? '10px' : '12px')};
+          font-size: ${labelText === '>20' ? '10px' : (labelText.length > 1 ? '10px' : '12px')};
           color: white;
           transition: transform 0.2s;
           ${showOpacity ? 'opacity: 0.5;' : ''}
@@ -526,7 +536,7 @@ export function GeoGridGoogleMap({
       } else {
         // Use basic Marker when no Map ID available
         // Create an SVG icon for the marker
-        const fontSize = labelText === '>10' ? '10' : (labelText.length > 1 ? '10' : '14');
+        const fontSize = labelText === '>20' ? '10' : (labelText.length > 1 ? '10' : '14');
         const svgIcon = {
           url: `data:image/svg+xml,${encodeURIComponent(`
             <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40">
@@ -650,7 +660,7 @@ export function GeoGridGoogleMap({
                     }}
                     title={`${point.toUpperCase()}: ${position !== null ? `#${position}` : 'No data'}`}
                   >
-                    {position !== null && position !== undefined ? (position > 10 ? '>10' : position) : '—'}
+                    {position !== null && position !== undefined ? (position > 20 ? '>20' : position) : '—'}
                   </div>
                 );
               })}
@@ -718,7 +728,7 @@ export function GeoGridGoogleMap({
                   Viewing as: {viewAs.name}
                 </p>
                 <p className="text-xs text-gray-500">
-                  &quot;&gt;10&quot; = not in top 10 stored competitors at that point
+                  &quot;&gt;20&quot; = not found in top 20 results at that point
                 </p>
               </div>
             )}
