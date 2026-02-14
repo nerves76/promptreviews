@@ -5,14 +5,6 @@
       "staging": true
     }
   },
-  "functions": {
-    "src/app/(app)/api/geo-grid/check/route.ts": {
-      "maxDuration": 300
-    },
-    "src/app/(app)/api/cron/run-scheduled-geogrids/route.ts": {
-      "maxDuration": 300
-    }
-  },
   "crons": [
     {
       "path": "/api/cron/send-trial-reminders",

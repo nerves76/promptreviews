@@ -15,6 +15,8 @@
  * Security: Uses CRON_SECRET for authorization.
  */
 
+export const maxDuration = 300;
+
 import { NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { logCronExecution, verifyCronSecret } from '@/lib/cronLogger';
