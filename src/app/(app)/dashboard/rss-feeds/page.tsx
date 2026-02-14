@@ -377,7 +377,7 @@ export default function RssFeedsPage() {
                       <button
                         onClick={() => handleProcessFeed(feed.id)}
                         className="px-3 py-1.5 text-xs font-medium text-slate-blue border border-slate-blue/30 hover:bg-slate-blue/5 rounded-lg transition-colors whitespace-nowrap disabled:opacity-50"
-                        title="Check for new feed items and auto-schedule them"
+                        title="Poll the RSS feed for new items"
                         disabled={
                           !feed.isActive || processingFeedId === feed.id
                         }
@@ -389,18 +389,18 @@ export default function RssFeedsPage() {
                               size={11}
                               className="inline mr-1.5 animate-spin"
                             />
-                            Scheduling...
+                            Checking...
                           </>
                         ) : (
-                          "Schedule new posts"
+                          "Check for new posts"
                         )}
                       </button>
                       <button
                         onClick={() => setBrowsingFeed(feed)}
-                        className="px-3 py-1.5 text-xs font-medium text-slate-blue border border-slate-blue/30 hover:bg-slate-blue/5 rounded-lg transition-colors whitespace-nowrap"
-                        title="Pick from existing feed items to schedule"
+                        className="px-3 py-1.5 text-xs font-medium text-white bg-slate-blue hover:bg-slate-blue/90 rounded-lg transition-colors whitespace-nowrap"
+                        title="Pick from feed items to schedule"
                       >
-                        Schedule existing posts
+                        Schedule posts
                       </button>
                       <div className="w-px h-5 bg-gray-200" />
                       <button
