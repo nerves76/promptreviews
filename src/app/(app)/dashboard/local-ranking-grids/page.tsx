@@ -409,9 +409,9 @@ export default function LocalRankingGridsPage() {
         const total = result.totalChecks || performed;
         const failed = total - performed;
         if (failed > 0) {
-          showSuccess(`Grid check complete! ${performed} of ${total} checks succeeded (${failed} failed).`, 6000);
+          showError(`Grid check: ${performed} of ${total} succeeded, ${failed} failed. ${result.error ? result.error.split(',')[0] : ''}`, 15000);
         } else {
-          showSuccess(`Grid check complete! ${performed} checks performed.`);
+          showSuccess(`Grid check complete! ${performed} checks performed.`, 10000);
         }
       } else if (result.error) {
         // Show user-friendly error messages
@@ -424,7 +424,7 @@ export default function LocalRankingGridsPage() {
         } else if (result.error.includes('disabled')) {
           showError('Grid tracking is currently disabled. Enable it in settings to run checks.', 6000);
         } else {
-          showError(result.error, 5000);
+          showError(result.error, 15000);
         }
       }
     } finally {
@@ -503,15 +503,15 @@ export default function LocalRankingGridsPage() {
         const total = result.totalChecks || performed;
         const failed = total - performed;
         if (failed > 0) {
-          showSuccess(`Grid check complete! ${performed} of ${total} checks succeeded (${failed} failed).`, 6000);
+          showError(`Grid check: ${performed} of ${total} succeeded, ${failed} failed. ${result.error ? result.error.split(',')[0] : ''}`, 15000);
         } else {
-          showSuccess(`Grid check complete! ${performed} checks performed.`);
+          showSuccess(`Grid check complete! ${performed} checks performed.`, 10000);
         }
       } else if (result.error) {
         if (result.error.includes('Insufficient credits')) {
           showError('Not enough credits for this grid check. Please add more credits.', 6000);
         } else {
-          showError(result.error, 5000);
+          showError(result.error, 15000);
         }
       }
     } finally {
