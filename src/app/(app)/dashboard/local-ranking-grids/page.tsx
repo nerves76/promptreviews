@@ -627,6 +627,35 @@ export default function LocalRankingGridsPage() {
           </div>
         </div>
 
+        {/* Grid Check Progress Banner */}
+        {isCheckRunning && (() => {
+          const numKeywords = checkingKeywordIds.size;
+          const numPoints = config?.checkPoints?.length || 0;
+          const totalChecks = numKeywords * numPoints;
+          const estimatedMinutes = Math.max(1, Math.ceil(totalChecks / 10));
+          return (
+            <div className="mb-4 p-4 rounded-lg bg-blue-50 border border-blue-200">
+              <div className="flex items-center gap-3">
+                <Icon name="FaSpinner" className="w-5 h-5 text-slate-blue animate-spin flex-shrink-0" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-slate-blue">
+                    Running grid check...
+                  </p>
+                  <p className="text-xs text-slate-blue/70">
+                    {numKeywords} {numKeywords === 1 ? 'keyword' : 'keywords'} × {numPoints} grid points
+                    {estimatedMinutes > 0 && ` · ~${estimatedMinutes} min estimated`}
+                  </p>
+                </div>
+                <div className="w-32">
+                  <div className="w-full bg-blue-200 rounded-full h-2 overflow-hidden">
+                    <div className="bg-slate-blue h-2 rounded-full animate-pulse" style={{ width: '100%' }} />
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+
         {/* Location & Connection Status - Combined header */}
         {config && (
           <div className="bg-white rounded-xl border-2 border-gray-200 p-4 mb-6">
