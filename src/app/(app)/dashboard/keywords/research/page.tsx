@@ -20,6 +20,7 @@ import { useKeywords } from '@/features/keywords/hooks/useKeywords';
 import { useAccountData } from '@/auth/hooks/granularAuthHooks';
 import { apiClient } from '@/utils/apiClient';
 import LocationPicker from '@/features/rank-tracking/components/LocationPicker';
+import { formatVolume } from '@/features/keywords/keywordUtils';
 
 interface SavedResearchResult {
   id: string;
@@ -469,7 +470,7 @@ export default function KeywordResearchPage() {
                 <div className="bg-white rounded-lg p-4">
                   <div className="text-sm text-gray-500">Monthly Volume</div>
                   <div className="text-2xl font-bold text-gray-900">
-                    {result.searchVolume?.toLocaleString() || '0'}
+                    {formatVolume(result.searchVolume ?? null)}
                   </div>
                 </div>
                 <div className="bg-white rounded-lg p-4">
@@ -506,7 +507,7 @@ export default function KeywordResearchPage() {
                           key={i}
                           className="flex-1 bg-slate-blue/20 hover:bg-slate-blue/40 rounded-t transition-colors"
                           style={{ height: `${Math.max(height, 4)}%` }}
-                          title={`${m.volume?.toLocaleString() || 0} searches`}
+                          title={`${formatVolume(m.volume ?? null)} searches`}
                         />
                       );
                     })}
@@ -550,14 +551,14 @@ export default function KeywordResearchPage() {
                               <span className="text-xs text-blue-600 font-medium">Local:</span>
                             )}
                             <span className={hasNationalComparison ? 'font-medium text-gray-900' : 'text-gray-500'}>
-                              {sug.searchVolume?.toLocaleString() || 0}/mo
+                              {formatVolume(sug.searchVolume ?? null)}/mo
                             </span>
                           </div>
                           {/* National volume (secondary, only if doing local search) */}
                           {hasNationalComparison && nationalData && (
                             <div className="flex items-center gap-1.5 text-gray-500">
                               <span className="text-xs">US:</span>
-                              <span>{nationalData.searchVolume?.toLocaleString() || 0}/mo</span>
+                              <span>{formatVolume(nationalData.searchVolume ?? null)}/mo</span>
                             </div>
                           )}
                           {sug.cpc && <span className="text-gray-500">${sug.cpc.toFixed(2)} - ${((sug.highTopOfPageBid || sug.cpc * 2) || sug.cpc).toFixed(2)}</span>}
@@ -656,7 +657,7 @@ export default function KeywordResearchPage() {
                     <div className="flex-1 min-w-0">
                       <div className="font-medium text-gray-900">{saved.term}</div>
                       <div className="flex items-center gap-3 text-sm text-gray-500 mt-0.5">
-                        <span>{saved.searchVolume?.toLocaleString() || 0}/mo</span>
+                        <span>{formatVolume(saved.searchVolume ?? null)}/mo</span>
                         {saved.cpc && <span>CPC: ${saved.cpc.toFixed(2)}</span>}
                         {saved.competitionLevel && (
                           <>
