@@ -165,11 +165,31 @@ export default function RssFeedsPage() {
 
   // Toggle feed active/paused
   const handleToggleAutoPost = async (feed: RssFeedSource) => {
+    // Turning off → always instant
+    if (feed.autoPost) {
+      try {
+        await apiClient.patch(`/rss-feeds/${feed.id}`, { autoPost: false });
+        setSuccess("Auto-posting disabled");
+        fetchFeeds();
+      } catch (err) {
+        console.error("Failed to toggle auto-post:", err);
+        setError("Failed to update feed");
+      }
+      return;
+    }
+
+    // Turning on → check if platforms are configured
+    const hasPlatforms = feed.targetLocations.length > 0 || feed.additionalPlatforms?.bluesky?.enabled;
+    if (!hasPlatforms) {
+      // No platforms configured, open edit modal to set up
+      setEditingFeed(feed);
+      return;
+    }
+
+    // Platforms configured → enable instantly
     try {
-      await apiClient.patch(`/rss-feeds/${feed.id}`, {
-        autoPost: !feed.autoPost,
-      });
-      setSuccess(feed.autoPost ? "Auto-posting disabled" : "Auto-posting enabled");
+      await apiClient.patch(`/rss-feeds/${feed.id}`, { autoPost: true });
+      setSuccess("Auto-posting enabled");
       fetchFeeds();
     } catch (err) {
       console.error("Failed to toggle auto-post:", err);
