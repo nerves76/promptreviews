@@ -5,6 +5,9 @@ import Icon from "@/components/Icon";
 import { apiClient } from "@/utils/apiClient";
 import { RssFeedItem, FeedDetailResponse } from "@/features/rss-feeds/types";
 
+type SortField = "title" | "publishedAt" | "status";
+type SortDirection = "asc" | "desc";
+
 interface FeedItemsListProps {
   feedId: string;
 }
@@ -19,6 +22,10 @@ export default function FeedItemsList({ feedId }: FeedItemsListProps) {
 
   // Selection state
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  // Sort state - default to most recent first
+  const [sortField, setSortField] = useState<SortField>("publishedAt");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
 
   // Add to queue state
   const [addingToQueue, setAddingToQueue] = useState(false);
@@ -49,6 +56,35 @@ export default function FeedItemsList({ feedId }: FeedItemsListProps) {
     () => items.filter((i) => i.status === "initial_sync"),
     [items]
   );
+
+  // Sorted items for display
+  const sortedItems = useMemo(() => {
+    const sorted = [...items].sort((a, b) => {
+      let cmp = 0;
+      switch (sortField) {
+        case "title":
+          cmp = (a.title || "").localeCompare(b.title || "");
+          break;
+        case "publishedAt":
+          cmp = new Date(a.publishedAt || 0).getTime() - new Date(b.publishedAt || 0).getTime();
+          break;
+        case "status":
+          cmp = (a.status || "").localeCompare(b.status || "");
+          break;
+      }
+      return sortDirection === "asc" ? cmp : -cmp;
+    });
+    return sorted;
+  }, [items, sortField, sortDirection]);
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDirection((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortField(field);
+      setSortDirection(field === "publishedAt" ? "desc" : "asc");
+    }
+  };
 
   const handleClearFailed = async () => {
     setClearing(true);
@@ -318,14 +354,14 @@ export default function FeedItemsList({ feedId }: FeedItemsListProps) {
           <thead>
             <tr className="text-left text-gray-500 border-b">
               <th className="pb-2 font-medium w-8"></th>
-              <th className="pb-2 font-medium">Title</th>
-              <th className="pb-2 font-medium">Published</th>
-              <th className="pb-2 font-medium">Status</th>
+              <SortableHeader field="title" label="Title" sortField={sortField} sortDirection={sortDirection} onSort={handleSort} />
+              <SortableHeader field="publishedAt" label="Published" sortField={sortField} sortDirection={sortDirection} onSort={handleSort} />
+              <SortableHeader field="status" label="Status" sortField={sortField} sortDirection={sortDirection} onSort={handleSort} />
               <th className="pb-2 font-medium w-24"></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {items.map((item) => (
+            {sortedItems.map((item) => (
               <tr key={item.id} className={`hover:bg-gray-50 ${selectedIds.has(item.id) ? "bg-blue-50" : ""}`}>
                 <td className="py-3 pr-2">
                   {item.status === "initial_sync" && (
@@ -401,5 +437,44 @@ export default function FeedItemsList({ feedId }: FeedItemsListProps) {
         </table>
       </div>
     </div>
+  );
+}
+
+function SortableHeader({
+  field,
+  label,
+  sortField,
+  sortDirection,
+  onSort,
+}: {
+  field: SortField;
+  label: string;
+  sortField: SortField;
+  sortDirection: SortDirection;
+  onSort: (field: SortField) => void;
+}) {
+  const isActive = sortField === field;
+  return (
+    <th className="pb-2 font-medium">
+      <button
+        onClick={() => onSort(field)}
+        className="flex items-center gap-1 hover:text-gray-900 transition-colors"
+        aria-label={`Sort by ${label}`}
+      >
+        {label}
+        <span className="inline-flex flex-col text-[8px] leading-none">
+          <Icon
+            name="FaChevronUp"
+            size={8}
+            className={isActive && sortDirection === "asc" ? "text-slate-blue" : "text-gray-300"}
+          />
+          <Icon
+            name="FaChevronDown"
+            size={8}
+            className={isActive && sortDirection === "desc" ? "text-slate-blue" : "text-gray-300"}
+          />
+        </span>
+      </button>
+    </th>
   );
 }

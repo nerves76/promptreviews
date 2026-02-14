@@ -56,7 +56,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       .from('rss_feed_items')
       .select('*')
       .eq('feed_source_id', id)
-      .order('discovered_at', { ascending: false })
+      .order('published_at', { ascending: false })
       .limit(200);
 
     const recentItems: RssFeedItem[] = (items || []).map((item) => ({
