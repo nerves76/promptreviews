@@ -25,7 +25,7 @@ type ServiceSupabase = SupabaseClient<any, any, any>;
 // ============================================
 
 // Maximum concurrent API requests to avoid rate limits while still being fast
-const MAX_CONCURRENT_REQUESTS = 8;
+const MAX_CONCURRENT_REQUESTS = 3;
 
 // ============================================
 // Types
@@ -261,13 +261,26 @@ export async function runRankChecks(
     checkTasks,
     async (task) => {
       try {
-        const result = await checkRankForBusiness({
-          keyword: task.searchQuery,
-          lat: task.point.lat,
-          lng: task.point.lng,
-          targetPlaceId: targetPlaceId,
-          languageCode,
-        });
+        let result;
+        try {
+          result = await checkRankForBusiness({
+            keyword: task.searchQuery,
+            lat: task.point.lat,
+            lng: task.point.lng,
+            targetPlaceId: targetPlaceId,
+            languageCode,
+          });
+        } catch (firstErr) {
+          // Retry once after a short delay
+          await new Promise((r) => setTimeout(r, 2000));
+          result = await checkRankForBusiness({
+            keyword: task.searchQuery,
+            lat: task.point.lat,
+            lng: task.point.lng,
+            targetPlaceId: targetPlaceId,
+            languageCode,
+          });
+        }
 
         completedCount++;
 
