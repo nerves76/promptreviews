@@ -73,11 +73,12 @@ export async function GET(request: NextRequest) {
     let verifiedReviews = 0;
 
     if (clientIds.length > 0) {
-      // Count review submissions from client accounts (reviews captured through the app)
+      // Count review submissions captured through Prompt Pages
       const { count: submissionCount, error: submissionError } = await supabase
         .from('review_submissions')
         .select('*', { count: 'exact', head: true })
-        .in('account_id', clientIds);
+        .in('account_id', clientIds)
+        .not('prompt_page_id', 'is', null);
 
       if (!submissionError && submissionCount) {
         totalReviews += submissionCount;

@@ -115,6 +115,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       .from('review_submissions')
       .select('*', { count: 'exact', head: true })
       .eq('account_id', clientId)
+      .not('prompt_page_id', 'is', null)
       .gte('created_at', thirtyDaysAgo.toISOString());
 
     // Get credits balance
