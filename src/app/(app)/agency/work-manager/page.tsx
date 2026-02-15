@@ -9,6 +9,7 @@ import WMStatusLabelEditor from "@/app/(app)/work-manager/components/WMStatusLab
 import CreateTaskModal from "@/app/(app)/work-manager/components/CreateTaskModal";
 import WorkManagerDetailsPanel from "@/app/(app)/work-manager/components/WorkManagerDetailsPanel";
 import ClientTaskBrowser from "./components/ClientTaskBrowser";
+import ScheduledHoursSummary from "./components/ScheduledHoursSummary";
 import BoardSelector, { BoardContext } from "./components/BoardSelector";
 import ClientBoardCreateTaskModal from "./components/ClientBoardCreateTaskModal";
 import WorkManagerTabs from "@/app/(app)/work-manager/components/WorkManagerTabs";
@@ -427,6 +428,11 @@ export default function AgencyWorkManagerPage() {
         </div>
       </div>
 
+      {/* Scheduled hours summary - agency board, board tab only */}
+      {isAgencyBoard && activeTab === "board" && (
+        <ScheduledHoursSummary tasks={tasks} />
+      )}
+
       {/* Content */}
       {board && (
         <div className="max-w-[1550px] mx-auto px-6 py-6">
@@ -503,6 +509,7 @@ export default function AgencyWorkManagerPage() {
           showTimeEntries={true}
           showTimeEntriesDetail={true}
           currentUserId={user?.id}
+          agencyTimeTracking={true}
         />
       )}
 
@@ -528,6 +535,7 @@ function TaskDetailsDrawer({
   showTimeEntries,
   showTimeEntriesDetail,
   currentUserId,
+  agencyTimeTracking,
 }: {
   task: WMTask;
   statusLabels: WMStatusLabels;
@@ -538,6 +546,7 @@ function TaskDetailsDrawer({
   showTimeEntries?: boolean;
   showTimeEntriesDetail?: boolean;
   currentUserId?: string;
+  agencyTimeTracking?: boolean;
 }) {
   useEffect(() => {
     const originalOverflow = document.body.style.overflow;
@@ -565,6 +574,7 @@ function TaskDetailsDrawer({
           showTimeEntries={showTimeEntries}
           showTimeEntriesDetail={showTimeEntriesDetail}
           currentUserId={currentUserId}
+          agencyTimeTracking={agencyTimeTracking}
         />
       </div>
     </div>
