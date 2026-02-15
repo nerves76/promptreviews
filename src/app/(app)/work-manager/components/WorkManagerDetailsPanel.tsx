@@ -307,20 +307,56 @@ export default function WorkManagerDetailsPanel({
 
       {/* Header section on glass card */}
       <div className="mx-4 p-4 bg-white/60 backdrop-blur-sm border border-gray-100/50 rounded-xl">
-        <div className="flex-1 min-w-0">
-          <p className="text-xs uppercase text-gray-500 mb-1">Task</p>
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            <p className="text-xs uppercase text-gray-500 mb-1">Task</p>
+            {isEditing ? (
+              <input
+                type="text"
+                value={editedTitle}
+                onChange={(e) => setEditedTitle(e.target.value)}
+                className="w-full text-xl font-semibold text-gray-900 border-b border-gray-300 focus:border-slate-blue focus:outline-none py-1 bg-transparent"
+                autoFocus
+              />
+            ) : (
+              <h2 className="text-xl font-semibold text-gray-900 truncate">
+                {task.title}
+              </h2>
+            )}
+          </div>
           {isEditing ? (
-            <input
-              type="text"
-              value={editedTitle}
-              onChange={(e) => setEditedTitle(e.target.value)}
-              className="w-full text-xl font-semibold text-gray-900 border-b border-gray-300 focus:border-slate-blue focus:outline-none py-1 bg-transparent"
-              autoFocus
-            />
+            <div className="flex items-center gap-2 flex-shrink-0 mt-4">
+              <button
+                type="button"
+                onClick={handleSave}
+                disabled={isSaving}
+                className="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-blue text-white rounded hover:bg-slate-blue/90 text-sm font-medium disabled:opacity-50 whitespace-nowrap"
+              >
+                {isSaving ? (
+                  <Icon name="FaSpinner" size={12} className="animate-spin" />
+                ) : (
+                  <Icon name="FaCheck" size={12} />
+                )}
+                Save
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsEditing(false)}
+                className="inline-flex items-center gap-2 px-3 py-1.5 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 text-sm font-medium whitespace-nowrap"
+              >
+                Cancel
+              </button>
+            </div>
           ) : (
-            <h2 className="text-xl font-semibold text-gray-900 truncate">
-              {task.title}
-            </h2>
+            <button
+              type="button"
+              onClick={() => setIsEditing(true)}
+              className="flex-shrink-0 mt-4 inline-flex items-center gap-2 px-3 py-1.5 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 text-sm font-medium whitespace-nowrap"
+              aria-label="Edit task"
+            >
+              <Icon name="FaEdit" size={12} />
+              Edit
+            </button>
           )}
         </div>
 
@@ -537,54 +573,19 @@ export default function WorkManagerDetailsPanel({
         <section className="p-5 bg-white/60 backdrop-blur-sm border border-gray-100/50 rounded-xl space-y-2">
           <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Actions</h3>
           <div className="flex flex-wrap gap-2">
-            {isEditing ? (
-              <>
-                <button
-                  type="button"
-                  onClick={handleSave}
-                  disabled={isSaving}
-                  className="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-blue text-white rounded hover:bg-slate-blue/90 text-sm font-medium disabled:opacity-50"
-                >
-                  {isSaving ? (
-                    <Icon name="FaSpinner" size={12} className="animate-spin" />
-                  ) : (
-                    <Icon name="FaCheck" size={12} />
-                  )}
-                  Save
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsEditing(false)}
-                  className="inline-flex items-center gap-2 px-3 py-1.5 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 text-sm font-medium"
-                >
-                  Cancel
-                </button>
-              </>
-            ) : (
-              <>
-                <button
-                  type="button"
-                  onClick={() => setIsEditing(true)}
-                  className="inline-flex items-center gap-2 px-3 py-1.5 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 text-sm font-medium"
-                >
-                  <Icon name="FaEdit" size={12} />
-                  Edit
-                </button>
-                <button
-                  type="button"
-                  onClick={handleDelete}
-                  disabled={isDeleting}
-                  className="inline-flex items-center gap-2 px-3 py-1.5 bg-red-100 text-red-700 rounded hover:bg-red-200 text-sm font-medium disabled:opacity-50"
-                >
-                  {isDeleting ? (
-                    <Icon name="FaSpinner" size={12} className="animate-spin" />
-                  ) : (
-                    <Icon name="FaTrash" size={12} />
-                  )}
-                  Delete
-                </button>
-              </>
-            )}
+            <button
+              type="button"
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="inline-flex items-center gap-2 px-3 py-1.5 bg-red-100 text-red-700 rounded hover:bg-red-200 text-sm font-medium disabled:opacity-50"
+            >
+              {isDeleting ? (
+                <Icon name="FaSpinner" size={12} className="animate-spin" />
+              ) : (
+                <Icon name="FaTrash" size={12} />
+              )}
+              Delete
+            </button>
           </div>
         </section>
 
