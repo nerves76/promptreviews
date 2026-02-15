@@ -14,9 +14,12 @@ import { buildSystemPrompt, buildUserPrompt } from './prompt';
 import {
   fetchTopCompetitors,
   scrapeCompetitorPages,
+  analyzeCommonTopics,
+  refineTopicsWithAI,
   buildCompetitorContext,
   buildCompetitorData,
 } from '@/features/web-page-outlines/services/competitorAnalysis';
+import type { CompetitorPageData } from '@/features/web-page-outlines/services/competitorAnalysis';
 import type {
   GenerateOutlineRequest,
   OutlineGenerationResult,
@@ -89,8 +92,19 @@ export async function POST(request: NextRequest) {
       const topUrls = await fetchTopCompetitors(keywordPhrase, userDomain);
       if (topUrls.length > 0) {
         const scraped = await scrapeCompetitorPages(topUrls);
-        competitorContext = buildCompetitorContext(keywordPhrase, scraped);
-        competitorData = buildCompetitorData(scraped);
+        const successfulScrapes = scraped.filter(
+          (c): c is CompetitorPageData => c.scraped
+        );
+
+        // Analyze topics once, refine with AI, then pass to both functions
+        let refinedTopics;
+        if (successfulScrapes.length >= 2) {
+          const rawTopics = analyzeCommonTopics(successfulScrapes);
+          refinedTopics = await refineTopicsWithAI(keywordPhrase, rawTopics);
+        }
+
+        competitorContext = buildCompetitorContext(keywordPhrase, scraped, refinedTopics);
+        competitorData = buildCompetitorData(scraped, refinedTopics);
 
         if (competitorContext) {
           console.log(`[web-page-outlines] Competitor context built (${competitorContext.length} chars)`);

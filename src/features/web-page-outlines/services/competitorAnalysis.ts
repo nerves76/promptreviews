@@ -6,6 +6,7 @@
  */
 
 import * as cheerio from 'cheerio';
+import OpenAI from 'openai';
 import { searchGoogleSerp } from '@/features/rank-tracking/api/dataforseo-serp-client';
 
 // --- Types ---
@@ -126,10 +127,12 @@ export async function scrapeCompetitorPages(
 /**
  * Format scraped competitor data into a concise text block for the AI prompt.
  * Returns empty string if no useful data was scraped.
+ * Accepts optional pre-computed topics (e.g. AI-refined) to avoid re-analyzing.
  */
 export function buildCompetitorContext(
   keyword: string,
-  competitors: CompetitorResult[]
+  competitors: CompetitorResult[],
+  precomputedTopics?: TopicCluster[]
 ): string {
   const successfulScrapes = competitors.filter(
     (c): c is CompetitorPageData => c.scraped
@@ -187,7 +190,7 @@ export function buildCompetitorContext(
 
   // Append topic analysis when 2+ pages were successfully scraped
   if (successfulScrapes.length >= 2) {
-    const clusters = analyzeCommonTopics(successfulScrapes);
+    const clusters = precomputedTopics ?? analyzeCommonTopics(successfulScrapes);
     const topicSection = formatTopicAnalysis(clusters, successfulScrapes.length);
     if (topicSection) {
       lines.push(topicSection);
@@ -200,10 +203,12 @@ export function buildCompetitorContext(
 /**
  * Build a persistable CompetitorData object from scraped results.
  * Includes topic clusters, competitor URLs, and word count target.
+ * Accepts optional pre-computed topics (e.g. AI-refined) to avoid re-analyzing.
  * Returns null if no successful scrapes.
  */
 export function buildCompetitorData(
-  competitors: CompetitorResult[]
+  competitors: CompetitorResult[],
+  precomputedTopics?: TopicCluster[]
 ): {
   urls: { url: string; title: string; wordCount: number }[];
   topics: {
@@ -226,15 +231,15 @@ export function buildCompetitorData(
     wordCount: c.estimatedWordCount,
   }));
 
-  const topics =
-    successfulScrapes.length >= 2
-      ? analyzeCommonTopics(successfulScrapes).map((c) => ({
-          topic: c.topic,
-          frequency: c.frequency,
-          examples: c.examples,
-          ...(c.sampleSnippet ? { sampleSnippet: c.sampleSnippet } : {}),
-        }))
-      : [];
+  const clusters = precomputedTopics ??
+    (successfulScrapes.length >= 2 ? analyzeCommonTopics(successfulScrapes) : []);
+
+  const topics = clusters.map((c) => ({
+    topic: c.topic,
+    frequency: c.frequency,
+    examples: c.examples,
+    ...(c.sampleSnippet ? { sampleSnippet: c.sampleSnippet } : {}),
+  }));
 
   const wordCountTarget = calculateWordCountTarget(competitors);
 
@@ -271,6 +276,78 @@ export function calculateWordCountTarget(
 }
 
 // --- Topic Analysis ---
+
+/**
+ * Common non-content headings found in navigation, footers, and sidebars.
+ * Matched case-insensitively against H2 text to filter before clustering.
+ */
+const BOILERPLATE_HEADINGS = new Set([
+  'quick links',
+  'useful links',
+  'helpful links',
+  'related links',
+  'important links',
+  'follow us',
+  'connect with us',
+  'stay connected',
+  'social media',
+  'my account',
+  'user account',
+  'account',
+  'sign in',
+  'log in',
+  'login',
+  'register',
+  'contact us',
+  'contact information',
+  'get in touch',
+  'reach us',
+  'newsletter',
+  'subscribe',
+  'sign up for updates',
+  'about us',
+  'about the author',
+  'share this',
+  'share this page',
+  'recent posts',
+  'recent articles',
+  'popular posts',
+  'related articles',
+  'related posts',
+  'categories',
+  'tags',
+  'archives',
+  'comments',
+  'leave a comment',
+  'leave a reply',
+  'site map',
+  'sitemap',
+  'privacy policy',
+  'terms of service',
+  'terms and conditions',
+  'cookie policy',
+  'disclaimer',
+  'legal',
+  'copyright',
+  'all rights reserved',
+  'breadcrumb',
+  'navigation',
+  'menu',
+  'search',
+  'search results',
+  'advertisement',
+  'sponsored',
+  'table of contents',
+]);
+
+/** Returns true if the heading looks like navigation/footer chrome rather than content. */
+function isBoilerplateHeading(heading: string): boolean {
+  const normalized = heading.toLowerCase().trim();
+  if (BOILERPLATE_HEADINGS.has(normalized)) return true;
+  // Also catch very short generic headings (1 word, common UI labels)
+  if (/^(menu|login|signup|search|share|home|back|next|previous|more)$/i.test(normalized)) return true;
+  return false;
+}
 
 interface TopicCluster {
   topic: string;
@@ -310,7 +387,7 @@ function extractSignificantWords(heading: string): string[] {
  *
  * Returns clusters sorted by frequency (descending), then alphabetically.
  */
-function analyzeCommonTopics(
+export function analyzeCommonTopics(
   competitors: CompetitorPageData[]
 ): TopicCluster[] {
   if (competitors.length < 2) return [];
@@ -325,6 +402,7 @@ function analyzeCommonTopics(
       snippetMap.set(sec.heading, sec.snippet);
     }
     for (const h2 of comp.h2s) {
+      if (isBoilerplateHeading(h2)) continue;
       const words = extractSignificantWords(h2);
       if (words.length > 0) {
         entries.push({ heading: h2, domain, words, snippet: snippetMap.get(h2) || '' });
@@ -467,6 +545,89 @@ function formatTopicAnalysis(
   return lines.join('\n').trim();
 }
 
+// --- AI Topic Refinement ---
+
+/**
+ * Use a lightweight AI model to filter out remaining non-content topics
+ * and produce clearer, more descriptive topic labels.
+ * Falls back to the original topics if the AI call fails.
+ */
+export async function refineTopicsWithAI(
+  keyword: string,
+  topics: TopicCluster[]
+): Promise<TopicCluster[]> {
+  if (topics.length === 0) return topics;
+
+  if (!process.env.OPENAI_API_KEY) {
+    console.log('[competitorAnalysis] No OpenAI key, skipping topic refinement');
+    return topics;
+  }
+
+  try {
+    const topicList = topics.map((t, i) => ({
+      index: i,
+      label: t.topic,
+      frequency: t.frequency,
+      headings: t.examples.map((e) => e.heading),
+      snippet: t.sampleSnippet || '',
+    }));
+
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        {
+          role: 'system',
+          content: `You clean up topic clusters extracted from competitor web pages for the keyword provided.
+
+Your job:
+1. REMOVE topics that are NOT actual content topics — navigation menus, footer links, user account sections, social media buttons, contact info blocks, cookie notices, legal pages, sidebar widgets, breadcrumbs, etc.
+2. IMPROVE topic labels to be clear and descriptive (e.g. "Certification requirements" instead of "certification / requirements", or "Athletic trainer vs personal trainer" instead of "additional / common").
+
+Return JSON: { "topics": [{ "index": <original index>, "label": "<improved label>" }] }
+
+Only include genuine content topics relevant to the keyword. Omit anything that is clearly site navigation or page chrome. Keep labels concise (2-5 words). Use sentence case.`,
+        },
+        {
+          role: 'user',
+          content: `Keyword: "${keyword}"\n\nTopic clusters:\n${JSON.stringify(topicList, null, 2)}`,
+        },
+      ],
+      response_format: { type: 'json_object' },
+      temperature: 0,
+      max_tokens: 500,
+    });
+
+    const content = completion.choices[0]?.message?.content;
+    if (!content) return topics;
+
+    const parsed: { topics: { index: number; label: string }[] } = JSON.parse(content);
+    if (!Array.isArray(parsed.topics)) return topics;
+
+    const refined: TopicCluster[] = [];
+    for (const item of parsed.topics) {
+      const original = topics[item.index];
+      if (original && item.label) {
+        refined.push({ ...original, topic: item.label });
+      }
+    }
+
+    if (refined.length === 0) return topics;
+
+    // Preserve original sort: frequency desc, then alphabetically
+    refined.sort((a, b) => b.frequency - a.frequency || a.topic.localeCompare(b.topic));
+
+    console.log(
+      `[competitorAnalysis] AI refined topics: ${topics.length} → ${refined.length} (removed ${topics.length - refined.length} non-content)`
+    );
+    return refined;
+  } catch (error) {
+    console.warn('[competitorAnalysis] AI topic refinement failed, using raw topics:', error);
+    return topics;
+  }
+}
+
 // --- Internal Helpers ---
 
 /**
@@ -494,8 +655,10 @@ async function scrapeOneUrl(url: string): Promise<CompetitorPageData> {
     const html = await response.text();
     const $ = cheerio.load(html);
 
-    // Remove scripts and styles before text extraction
+    // Remove scripts, styles, and non-content page chrome before text extraction
     $('script, style, noscript, iframe').remove();
+    $('nav, footer, header, aside').remove();
+    $('[role="navigation"], [role="banner"], [role="contentinfo"], [role="complementary"]').remove();
 
     const title = $('title').first().text().trim();
     const metaDescription =
