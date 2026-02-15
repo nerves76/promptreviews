@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient, createServiceRoleClient } from '@/auth/providers/supabase';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
+import { resolveTaskWithAgencyAccess } from '@/app/(app)/api/utils/resolveTaskWithAgencyAccess';
 
 /**
  * GET /api/work-manager/time-entries?taskId=xxx
@@ -29,15 +30,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'No valid account found' }, { status: 403 });
     }
 
-    // Verify task belongs to the selected account
-    const { data: task, error: taskError } = await supabaseAdmin
-      .from('wm_tasks')
-      .select('id, account_id')
-      .eq('id', taskId)
-      .eq('account_id', accountId)
-      .single();
+    // Verify task belongs to the selected account (or agency manages the task's account)
+    const task = await resolveTaskWithAgencyAccess(supabaseAdmin, taskId, accountId);
 
-    if (taskError || !task) {
+    if (!task) {
       return NextResponse.json({ error: 'Task not found' }, { status: 404 });
     }
 
@@ -140,15 +136,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No valid account found' }, { status: 403 });
     }
 
-    // Verify task belongs to the selected account
-    const { data: task, error: taskError } = await supabaseAdmin
-      .from('wm_tasks')
-      .select('id, account_id')
-      .eq('id', task_id)
-      .eq('account_id', accountId)
-      .single();
+    // Verify task belongs to the selected account (or agency manages the task's account)
+    const task = await resolveTaskWithAgencyAccess(supabaseAdmin, task_id, accountId);
 
-    if (taskError || !task) {
+    if (!task) {
       return NextResponse.json({ error: 'Task not found' }, { status: 404 });
     }
 
@@ -222,15 +213,20 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'No valid account found' }, { status: 403 });
     }
 
-    // Fetch entry and verify ownership + account
+    // Fetch entry and verify ownership + account (including agency access)
     const { data: entry, error: entryError } = await supabaseAdmin
       .from('wm_time_entries')
-      .select('id, account_id, created_by')
+      .select('id, account_id, created_by, task_id')
       .eq('id', entryId)
-      .eq('account_id', accountId)
       .single();
 
     if (entryError || !entry) {
+      return NextResponse.json({ error: 'Time entry not found' }, { status: 404 });
+    }
+
+    // Verify access: entry's account matches or agency manages the account
+    const task = await resolveTaskWithAgencyAccess(supabaseAdmin, entry.task_id, accountId);
+    if (!task) {
       return NextResponse.json({ error: 'Time entry not found' }, { status: 404 });
     }
 

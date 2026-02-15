@@ -31,6 +31,7 @@ interface WorkManagerDetailsPanelProps {
   showTimeEntries?: boolean;
   showTimeEntriesDetail?: boolean;
   currentUserId?: string;
+  agencyTimeTracking?: boolean;
 }
 
 export default function WorkManagerDetailsPanel({
@@ -43,6 +44,7 @@ export default function WorkManagerDetailsPanel({
   showTimeEntries = true,
   showTimeEntriesDetail = true,
   currentUserId,
+  agencyTimeTracking = false,
 }: WorkManagerDetailsPanelProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedTitle, setEditedTitle] = useState(task.title);
@@ -451,6 +453,7 @@ export default function WorkManagerDetailsPanel({
                 readOnly={isEditing}
                 totalOnly={!showTimeEntriesDetail}
                 currentUserId={currentUserId}
+                agencyOnly={agencyTimeTracking}
               />
             )}
           </section>

@@ -13,6 +13,7 @@ interface TimeEntriesSectionProps {
   readOnly?: boolean;
   totalOnly?: boolean;
   currentUserId?: string;
+  agencyOnly?: boolean;
 }
 
 export default function TimeEntriesSection({
@@ -22,6 +23,7 @@ export default function TimeEntriesSection({
   readOnly = false,
   totalOnly = false,
   currentUserId,
+  agencyOnly = false,
 }: TimeEntriesSectionProps) {
   const [isAdding, setIsAdding] = useState(false);
   const [hours, setHours] = useState("");
@@ -115,15 +117,23 @@ export default function TimeEntriesSection({
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h4 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-          <Icon name="FaClock" size={14} className="text-gray-500" />
-          Time spent
-          {totalMinutes > 0 && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700 whitespace-nowrap">
-              {formatTimeEstimate(totalMinutes)}
-            </span>
+        <div>
+          <h4 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+            <Icon name="FaClock" size={14} className="text-gray-500" />
+            Time spent
+            {totalMinutes > 0 && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700 whitespace-nowrap">
+                {formatTimeEstimate(totalMinutes)}
+              </span>
+            )}
+          </h4>
+          {agencyOnly && (
+            <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+              <Icon name="FaEyeSlash" size={10} />
+              Only visible to your agency
+            </p>
           )}
-        </h4>
+        </div>
         {!readOnly && !isAdding && (
           <button
             onClick={() => setIsAdding(true)}
