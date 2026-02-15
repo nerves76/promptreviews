@@ -23,6 +23,15 @@ export default function ScheduledHoursSummary({
 }: ScheduledHoursSummaryProps) {
   const [period, setPeriod] = useState<Period>("week");
 
+  // Check if any non-done task has a due date this month (superset of week)
+  const hasAnyScheduledTasks = useMemo(() => {
+    const now = new Date();
+    const monthInterval = { start: startOfMonth(now), end: endOfMonth(now) };
+    return tasks.some(
+      (t) => t.due_date && t.status !== "done" && isWithinInterval(parseISO(t.due_date), monthInterval)
+    );
+  }, [tasks]);
+
   const { estimated, logged, taskCount } = useMemo(() => {
     const now = new Date();
     const interval =
@@ -47,7 +56,7 @@ export default function ScheduledHoursSummary({
     return { estimated, logged, taskCount };
   }, [tasks, period]);
 
-  if (taskCount === 0) return null;
+  if (!hasAnyScheduledTasks) return null;
 
   return (
     <div className="max-w-[1550px] mx-auto px-6 pb-2">
