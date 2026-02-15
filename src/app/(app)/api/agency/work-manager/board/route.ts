@@ -146,7 +146,8 @@ export async function GET(request: NextRequest) {
       .select(`
         id, board_id, account_id, title, description, status, priority,
         due_date, assigned_to, sort_order, created_by, created_at, updated_at,
-        source_type, source_reference, linked_task_id, linked_account_id
+        source_type, source_reference, metadata, time_estimate_minutes,
+        linked_task_id, linked_account_id
       `)
       .eq('board_id', board.id)
       .order('sort_order', { ascending: true })
