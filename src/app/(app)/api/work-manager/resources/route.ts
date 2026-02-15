@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient, createServiceRoleClient } from '@/auth/providers/supabase';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
+import { resolveBoardWithAgencyAccess } from '@/app/(app)/api/utils/resolveBoardWithAgencyAccess';
 import { WMResourceCategory, WMTaskPriority } from '@/types/workManager';
 
 export async function GET(request: NextRequest) {
@@ -33,15 +34,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'No valid account found' }, { status: 403 });
     }
 
-    // Verify board belongs to the selected account
-    const { data: board, error: boardError } = await supabaseAdmin
-      .from('wm_boards')
-      .select('id, account_id')
-      .eq('id', boardId)
-      .eq('account_id', accountId)
-      .single();
+    // Verify board belongs to the selected account (or agency manages it)
+    const board = await resolveBoardWithAgencyAccess(supabaseAdmin, boardId, accountId);
 
-    if (boardError || !board) {
+    if (!board) {
       return NextResponse.json({ error: 'Board not found' }, { status: 404 });
     }
 
@@ -156,15 +152,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No valid account found' }, { status: 403 });
     }
 
-    // Verify board belongs to the selected account
-    const { data: board, error: boardError } = await supabaseAdmin
-      .from('wm_boards')
-      .select('id, account_id')
-      .eq('id', board_id)
-      .eq('account_id', accountId)
-      .single();
+    // Verify board belongs to the selected account (or agency manages it)
+    const board = await resolveBoardWithAgencyAccess(supabaseAdmin, board_id, accountId);
 
-    if (boardError || !board) {
+    if (!board) {
       return NextResponse.json({ error: 'Board not found' }, { status: 404 });
     }
 

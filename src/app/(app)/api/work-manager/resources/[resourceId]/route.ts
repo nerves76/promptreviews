@@ -9,6 +9,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient, createServiceRoleClient } from '@/auth/providers/supabase';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
+import { resolveResourceWithAgencyAccess } from '@/app/(app)/api/utils/resolveResourceWithAgencyAccess';
 import { WMResourceCategory, WMTaskPriority } from '@/types/workManager';
 
 interface RouteParams {
@@ -33,6 +34,13 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'No valid account found' }, { status: 403 });
     }
 
+    // Verify resource belongs to the account (or agency manages it)
+    const resolvedResource = await resolveResourceWithAgencyAccess(supabaseAdmin, resourceId, accountId);
+
+    if (!resolvedResource) {
+      return NextResponse.json({ error: 'Resource not found' }, { status: 404 });
+    }
+
     // Fetch resource with links and linked tasks
     const { data: resource, error: resourceError } = await supabaseAdmin
       .from('wm_resources')
@@ -47,7 +55,6 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         )
       `)
       .eq('id', resourceId)
-      .eq('account_id', accountId)
       .single();
 
     if (resourceError || !resource) {
@@ -109,15 +116,10 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'No valid account found' }, { status: 403 });
     }
 
-    // Verify resource belongs to the account
-    const { data: existingResource, error: fetchError } = await supabaseAdmin
-      .from('wm_resources')
-      .select('id, account_id')
-      .eq('id', resourceId)
-      .eq('account_id', accountId)
-      .single();
+    // Verify resource belongs to the account (or agency manages it)
+    const existingResource = await resolveResourceWithAgencyAccess(supabaseAdmin, resourceId, accountId);
 
-    if (fetchError || !existingResource) {
+    if (!existingResource) {
       return NextResponse.json({ error: 'Resource not found' }, { status: 404 });
     }
 
@@ -199,15 +201,10 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'No valid account found' }, { status: 403 });
     }
 
-    // Verify resource belongs to the account
-    const { data: existingResource, error: fetchError } = await supabaseAdmin
-      .from('wm_resources')
-      .select('id, account_id')
-      .eq('id', resourceId)
-      .eq('account_id', accountId)
-      .single();
+    // Verify resource belongs to the account (or agency manages it)
+    const existingResource = await resolveResourceWithAgencyAccess(supabaseAdmin, resourceId, accountId);
 
-    if (fetchError || !existingResource) {
+    if (!existingResource) {
       return NextResponse.json({ error: 'Resource not found' }, { status: 404 });
     }
 
