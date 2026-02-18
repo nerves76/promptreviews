@@ -15,7 +15,7 @@ export const TONE_OPTIONS: { value: OutlineTone; label: string; description: str
 
 // --- Page Purpose ---
 
-export type PagePurpose = 'service' | 'product' | 'location' | 'lead_capture' | 'informational' | 'about' | 'feature';
+export type PagePurpose = 'service' | 'product' | 'location' | 'lead_capture' | 'informational' | 'about' | 'feature' | 'blog_post';
 
 export const PAGE_PURPOSE_OPTIONS: { value: PagePurpose; label: string; description: string }[] = [
   { value: 'service', label: 'Service page', description: 'Showcase a specific service to attract customers' },
@@ -25,6 +25,7 @@ export const PAGE_PURPOSE_OPTIONS: { value: PagePurpose; label: string; descript
   { value: 'informational', label: 'Informational', description: 'Educational content to build authority' },
   { value: 'about', label: 'About / brand', description: 'Company story, mission, and team' },
   { value: 'feature', label: 'Feature page', description: 'Highlight a specific feature or capability in depth' },
+  { value: 'blog_post', label: 'Blog post', description: 'In-depth article to drive organic traffic and build authority' },
 ];
 
 // --- Outline Section Types ---
@@ -64,10 +65,10 @@ export interface FooterSection {
 export interface PageOutline {
   hero: HeroSection;
   intro: string;
-  benefits: BenefitCard[];
+  benefits?: BenefitCard[];
   bodySections: BodySection[];
   cta: CTASection;
-  faq: FAQItem[];
+  faq?: FAQItem[];
   footer: FooterSection;
 }
 

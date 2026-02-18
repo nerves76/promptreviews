@@ -30,14 +30,16 @@ function buildCsvData(outline: PageOutline, seo: SEOMetadata) {
   headers.push('Introduction');
   values.push(outline.intro);
 
-  // Benefits (dynamic)
-  outline.benefits.forEach((b, i) => {
-    const n = i + 1;
-    headers.push(`Benefit ${n} heading`);
-    values.push(b.heading);
-    headers.push(`Benefit ${n} description`);
-    values.push(b.description);
-  });
+  // Benefits (dynamic — only for non-blog outlines)
+  if (outline.benefits && outline.benefits.length > 0) {
+    outline.benefits.forEach((b, i) => {
+      const n = i + 1;
+      headers.push(`Benefit ${n} heading`);
+      values.push(b.heading);
+      headers.push(`Benefit ${n} description`);
+      values.push(b.description);
+    });
+  }
 
   // Body sections (dynamic)
   outline.bodySections.forEach((s, i) => {
@@ -56,14 +58,16 @@ function buildCsvData(outline: PageOutline, seo: SEOMetadata) {
   headers.push('CTA button text');
   values.push(outline.cta.buttonText);
 
-  // FAQ (dynamic)
-  outline.faq.forEach((f, i) => {
-    const n = i + 1;
-    headers.push(`FAQ ${n} question`);
-    values.push(f.question);
-    headers.push(`FAQ ${n} answer`);
-    values.push(f.answer);
-  });
+  // FAQ (dynamic — only for non-blog outlines)
+  if (outline.faq && outline.faq.length > 0) {
+    outline.faq.forEach((f, i) => {
+      const n = i + 1;
+      headers.push(`FAQ ${n} question`);
+      values.push(f.question);
+      headers.push(`FAQ ${n} answer`);
+      values.push(f.answer);
+    });
+  }
 
   // Footer
   headers.push('Footer');

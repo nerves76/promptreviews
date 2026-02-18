@@ -14,7 +14,7 @@ function extractAllText(outline: PageOutline): string {
   parts.push(outline.hero.subCopy);
   parts.push(outline.intro);
 
-  outline.benefits.forEach((b) => {
+  (outline.benefits ?? []).forEach((b) => {
     parts.push(b.heading);
     parts.push(b.description);
   });
@@ -28,7 +28,7 @@ function extractAllText(outline: PageOutline): string {
   parts.push(outline.cta.subCopy);
   parts.push(outline.cta.buttonText);
 
-  outline.faq.forEach((f) => {
+  (outline.faq ?? []).forEach((f) => {
     parts.push(f.question);
     parts.push(f.answer);
   });

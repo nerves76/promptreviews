@@ -30,24 +30,31 @@ const PURPOSE_INSTRUCTIONS: Record<PagePurpose, string> = {
     'This is an ABOUT/BRAND PAGE. Business info IS the primary content here. Lean heavily into company story, values, team, differentiators, and mission. The keyword should frame the narrative but the brand story drives the content.',
   feature:
     'This is a FEATURE PAGE. Focus on a specific feature or capability — what it does, how it works, the problem it solves, and why it matters. Use clear examples and use cases to demonstrate value. Business info supports credibility — reference it where it builds trust, but keep the feature front and center.',
+  blog_post:
+    'This is a BLOG POST / ARTICLE PAGE. Focus on delivering in-depth, valuable content that educates and engages the reader. Structure the content as a flowing article with 5-6 substantial sections. There are NO benefit cards and NO FAQ section — the article body IS the main content. Business info should be woven in subtly to establish credibility, not dominate the narrative.',
 };
 
 export function buildSystemPrompt(tone: OutlineTone, pagePurpose: PagePurpose): string {
-  return `You are an expert SEO content strategist. You produce structured web page outlines optimized for both search engines and AI systems like Google SGE.
+  const isBlogPost = pagePurpose === 'blog_post';
 
-Tone: ${TONE_INSTRUCTIONS[tone]}
-
-PAGE PURPOSE:
-${PURPOSE_INSTRUCTIONS[pagePurpose]}
-
-IMPORTANT — how to use business information:
-- The page purpose defines the PRIMARY focus of all content.
-- Business information is SUPPORTING CONTEXT — reference it naturally where relevant, but do not force it into every section.
-- The keyword + purpose should drive the content structure and messaging.
-
-You MUST return valid JSON matching this exact structure:
-
-{
+  const jsonSchema = isBlogPost
+    ? `{
+  "outline": {
+    "hero": { "h1": "string", "subCopy": "string" },
+    "intro": "string (opening paragraph, 2-3 sentences)",
+    "bodySections": [
+      { "h2": "string", "paragraphs": ["string", "string", "string"] }
+    ],
+    "cta": { "heading": "string", "subCopy": "string", "buttonText": "string" },
+    "footer": { "content": "string" }
+  },
+  "seo": {
+    "pageTitle": "string",
+    "metaDescription": "string",
+    "localBusinessSchema": { JSON-LD object }
+  }
+}`
+    : `{
   "outline": {
     "hero": { "h1": "string", "subCopy": "string" },
     "intro": "string (opening paragraph, 2-3 sentences)",
@@ -69,29 +76,53 @@ You MUST return valid JSON matching this exact structure:
     "localBusinessSchema": { JSON-LD object },
     "faqPageSchema": { JSON-LD object }
   }
-}
+}`;
 
-Rules:
-1. The H1 MUST be 8 words or fewer — short, punchy, and impactful. Include the primary keyword. Use the subCopy field for any supporting detail.
-2. Page title: use dashes (–) as separators, not bars (|). Keep under 60 characters.
-3. Meta description: 150-160 characters. Include the primary keyword.
-4. Generate exactly 3 benefit cards.
+  const contentRules = isBlogPost
+    ? `4. Generate 5-6 body sections with H2 headings. Each section should flow naturally into the next, forming a cohesive article. Include keyword variations naturally in H2s.
+5. Each body section should have 2-3 standalone paragraphs optimized for AI extraction.
+6. Footer: brief business info summary (1-2 sentences).
+7. LocalBusiness schema: use real business info fields provided (name, address, website).
+8. Do NOT include "benefits" or "faq" fields — blog posts use body sections only.`
+    : `4. Generate exactly 3 benefit cards.
 5. Generate 2-3 body sections with H2 headings. Include keyword variations naturally in H2s.
 6. Each body section should have 2-3 standalone paragraphs optimized for AI extraction.
 7. FAQ: generate 4-5 questions with 2-3 sentence answers each.
 8. Footer: brief business info summary (1-2 sentences).
 9. LocalBusiness schema: use real business info fields provided (name, address, website).
-10. FAQPage schema: generate from the FAQ section questions and answers.
+10. FAQPage schema: generate from the FAQ section questions and answers.`;
+
+  return `You are an expert SEO content strategist. You produce structured web page outlines optimized for both search engines and AI systems like Google SGE.
+
+Tone: ${TONE_INSTRUCTIONS[tone]}
+
+PAGE PURPOSE:
+${PURPOSE_INSTRUCTIONS[pagePurpose]}
+
+IMPORTANT — how to use business information:
+- The page purpose defines the PRIMARY focus of all content.
+- Business information is SUPPORTING CONTEXT — reference it naturally where relevant, but do not force it into every section.
+- The keyword + purpose should drive the content structure and messaging.
+
+You MUST return valid JSON matching this exact structure:
+
+${jsonSchema}
+
+Rules:
+1. The H1 MUST be 8 words or fewer — short, punchy, and impactful. Include the primary keyword. Use the subCopy field for any supporting detail.
+2. Page title: use dashes (–) as separators, not bars (|). Keep under 60 characters.
+3. Meta description: 150-160 characters. Include the primary keyword.
+${contentRules}
 11. Each paragraph should stand alone and make sense independently (AI optimization).
 12. Do NOT use generic filler. Every sentence should be specific to the business.
-13. If a competitive landscape with topic analysis is provided: topics marked "must-cover" are table stakes — your outline MUST include a body section or FAQ addressing each one. Topics marked "recommended" should be included when relevant. Use unique angles as inspiration for differentiation. Produce entirely original headings and content — do not copy competitor headings verbatim.
+13. If a competitive landscape with topic analysis is provided: topics marked "must-cover" are table stakes — your outline MUST include a body section${isBlogPost ? '' : ' or FAQ'} addressing each one. Topics marked "recommended" should be included when relevant. Use unique angles as inspiration for differentiation. Produce entirely original headings and content — do not copy competitor headings verbatim.
 
 Keyword density and natural language rules (CRITICAL — violating these triggers search engine over-optimization penalties):
 14. Target 1.5-2.5% exact-match keyword density (the optimal range is 1-3%). For a 400-word outline this means using the exact keyword phrase roughly 6-10 times total across all sections. Below 1% signals weak relevance; above 3% risks over-optimization. Count your keyword uses and adjust before finalizing.
 15. In addition to exact-match uses, also use synonyms, semantic variations, and related terms throughout the content. For example, if the keyword is "emergency plumber," alternate with "urgent plumbing service," "24-hour plumbing help," "same-day pipe repair," etc.
-16. Distribute exact keyword mentions across sections — do not cluster them. Place the exact keyword in the H1, intro, at least one H2, at least one FAQ question or answer, the meta description, and spread remaining uses across body paragraphs.
+16. Distribute exact keyword mentions across sections — do not cluster them. Place the exact keyword in the H1, intro, at least one H2, ${isBlogPost ? '' : 'at least one FAQ question or answer, '}the meta description, and spread remaining uses across body paragraphs.
 17. Write for topical depth and entity coverage rather than keyword repetition. Cover related concepts, processes, and questions that a searcher would expect to find on the page.
-18. If a recommended content length is provided in the competitive landscape, calibrate outline depth accordingly. For 2000+ word targets: generate 4-5 body sections with 3 paragraphs each. For under 1000 words: 2-3 sections with 2 paragraphs each. The outline itself won't reach the target word count, but should be proportionally deep enough for a writer to expand to that length.`;
+18. If a recommended content length is provided in the competitive landscape, calibrate outline depth accordingly. For 2000+ word targets: generate ${isBlogPost ? '6-7' : '4-5'} body sections with 3 paragraphs each. For under 1000 words: ${isBlogPost ? '4-5' : '2-3'} sections with 2 paragraphs each. The outline itself won't reach the target word count, but should be proportionally deep enough for a writer to expand to that length.`;
 }
 
 const PURPOSE_LABELS: Record<PagePurpose, string> = {
@@ -102,6 +133,7 @@ const PURPOSE_LABELS: Record<PagePurpose, string> = {
   informational: 'Informational page — focus on educating the reader thoroughly',
   about: 'About/brand page — focus on company story, values, and team',
   feature: 'Feature page — focus on a specific feature, how it works, and the problem it solves',
+  blog_post: 'Blog post — in-depth article with flowing sections to drive organic traffic and build authority',
 };
 
 export function buildUserPrompt(
@@ -157,11 +189,15 @@ export function buildSectionRegenerationPrompt(
   businessInfo: BusinessInfoForOutline,
   pagePurpose?: PagePurpose
 ): string {
+  const isBlogPost = pagePurpose === 'blog_post';
+
   const sectionInstructions: Record<string, string> = {
     hero: 'Generate a new hero section. The H1 must be 8 words or fewer — short, punchy, and include the primary keyword. Use subCopy for supporting detail.',
     intro: 'Generate a new opening paragraph (2-3 sentences) that hooks readers and includes the keyword naturally.',
     benefits: 'Generate 3 new benefit cards, each with a heading and 1-2 sentence description demonstrating expertise.',
-    bodySections: 'Generate 2-3 new body sections with H2 headings (include keyword variations) and 2-3 standalone paragraphs each.',
+    bodySections: isBlogPost
+      ? 'Generate 5-6 new body sections with H2 headings (include keyword variations) and 2-3 standalone paragraphs each. Sections should flow naturally as a cohesive article.'
+      : 'Generate 2-3 new body sections with H2 headings (include keyword variations) and 2-3 standalone paragraphs each.',
     cta: 'Generate a new CTA section with a compelling heading, supportive sub-copy, and action-oriented button text.',
     faq: 'Generate 4-5 new FAQ items with questions and 2-3 sentence answers relevant to the keyword and business.',
     footer: 'Generate new footer content (1-2 sentences) summarizing the business.',

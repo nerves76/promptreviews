@@ -101,19 +101,21 @@ export default function OutlinePreview({
             <IntroSection data={outline.intro} />
           </SectionWrapper>
 
-          <SectionWrapper
-            sectionKey="benefits"
-            label="Key benefits"
-            seoAnnotation="Benefit-focused content demonstrates expertise (E-E-A-T)."
-            helpTooltip="Benefit-focused content demonstrates expertise and builds trust (E-E-A-T), which Google rewards in rankings."
-            helpLabel="Learn about E-E-A-T signals"
-            outline={outline}
-            outlineId={outlineId}
-            onRegenerate={onRegenerate}
-            isRegenerating={regeneratingSection === "benefits"}
-          >
-            <BenefitsSection data={outline.benefits} />
-          </SectionWrapper>
+          {outline.benefits && outline.benefits.length > 0 && (
+            <SectionWrapper
+              sectionKey="benefits"
+              label="Key benefits"
+              seoAnnotation="Benefit-focused content demonstrates expertise (E-E-A-T)."
+              helpTooltip="Benefit-focused content demonstrates expertise and builds trust (E-E-A-T), which Google rewards in rankings."
+              helpLabel="Learn about E-E-A-T signals"
+              outline={outline}
+              outlineId={outlineId}
+              onRegenerate={onRegenerate}
+              isRegenerating={regeneratingSection === "benefits"}
+            >
+              <BenefitsSection data={outline.benefits} />
+            </SectionWrapper>
+          )}
 
           <SectionWrapper
             sectionKey="bodySections"
@@ -142,19 +144,21 @@ export default function OutlinePreview({
             <CTASection data={outline.cta} />
           </SectionWrapper>
 
-          <SectionWrapper
-            sectionKey="faq"
-            label="Frequently asked questions"
-            seoAnnotation="FAQ sections can trigger rich snippets in Google search results."
-            helpTooltip="FAQ sections can trigger rich snippets in Google search results, increasing visibility and click-through rates."
-            helpLabel="Learn about FAQ rich snippets"
-            outline={outline}
-            outlineId={outlineId}
-            onRegenerate={onRegenerate}
-            isRegenerating={regeneratingSection === "faq"}
-          >
-            <FAQSection data={outline.faq} />
-          </SectionWrapper>
+          {outline.faq && outline.faq.length > 0 && (
+            <SectionWrapper
+              sectionKey="faq"
+              label="Frequently asked questions"
+              seoAnnotation="FAQ sections can trigger rich snippets in Google search results."
+              helpTooltip="FAQ sections can trigger rich snippets in Google search results, increasing visibility and click-through rates."
+              helpLabel="Learn about FAQ rich snippets"
+              outline={outline}
+              outlineId={outlineId}
+              onRegenerate={onRegenerate}
+              isRegenerating={regeneratingSection === "faq"}
+            >
+              <FAQSection data={outline.faq} />
+            </SectionWrapper>
+          )}
 
           <SectionWrapper
             sectionKey="footer"

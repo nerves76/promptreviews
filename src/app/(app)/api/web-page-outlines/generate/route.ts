@@ -146,6 +146,15 @@ export async function POST(request: NextRequest) {
 
         const parsed: OutlineGenerationResult = JSON.parse(content);
 
+        // Blog posts: ensure benefits/faq are empty and strip faqPageSchema
+        if (pagePurpose === 'blog_post') {
+          parsed.outline.benefits = [];
+          parsed.outline.faq = [];
+          if (parsed.seo) {
+            delete (parsed.seo as unknown as Record<string, unknown>).faqPageSchema;
+          }
+        }
+
         // Log AI usage
         const usage = completion.usage;
         if (usage) {

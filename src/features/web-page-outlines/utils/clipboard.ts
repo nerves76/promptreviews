@@ -14,7 +14,7 @@ export function copySectionText(sectionKey: SectionKey, outline: PageOutline): s
     case 'intro':
       return outline.intro;
     case 'benefits':
-      return outline.benefits
+      return (outline.benefits ?? [])
         .map((b) => `**${b.heading}**\n${b.description}`)
         .join('\n\n');
     case 'bodySections':
@@ -24,7 +24,7 @@ export function copySectionText(sectionKey: SectionKey, outline: PageOutline): s
     case 'cta':
       return `## ${outline.cta.heading}\n${outline.cta.subCopy}\n\n[${outline.cta.buttonText}]`;
     case 'faq':
-      return outline.faq
+      return (outline.faq ?? [])
         .map((f) => `**Q: ${f.question}**\nA: ${f.answer}`)
         .join('\n\n');
     case 'footer':
@@ -50,12 +50,14 @@ export function copyFullOutline(outline: PageOutline): string {
   parts.push('');
 
   // Benefits
-  parts.push('## Key benefits');
-  outline.benefits.forEach((b) => {
-    parts.push(`### ${b.heading}`);
-    parts.push(b.description);
-    parts.push('');
-  });
+  if (outline.benefits && outline.benefits.length > 0) {
+    parts.push('## Key benefits');
+    outline.benefits.forEach((b) => {
+      parts.push(`### ${b.heading}`);
+      parts.push(b.description);
+      parts.push('');
+    });
+  }
 
   // Body sections
   outline.bodySections.forEach((s) => {
@@ -74,12 +76,14 @@ export function copyFullOutline(outline: PageOutline): string {
   parts.push('');
 
   // FAQ
-  parts.push('## Frequently asked questions');
-  outline.faq.forEach((f) => {
-    parts.push(`**Q: ${f.question}**`);
-    parts.push(`A: ${f.answer}`);
-    parts.push('');
-  });
+  if (outline.faq && outline.faq.length > 0) {
+    parts.push('## Frequently asked questions');
+    outline.faq.forEach((f) => {
+      parts.push(`**Q: ${f.question}**`);
+      parts.push(`A: ${f.answer}`);
+      parts.push('');
+    });
+  }
 
   // Footer
   if (outline.footer.content) {
