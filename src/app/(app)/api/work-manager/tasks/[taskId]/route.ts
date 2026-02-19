@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient, createServiceRoleClient } from '@/auth/providers/supabase';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
+import { resolveTaskWithAgencyAccess } from '@/app/(app)/api/utils/resolveTaskWithAgencyAccess';
 import { WMTaskStatus, WMTaskPriority } from '@/types/workManager';
 import { sendAssignmentNotificationEmail } from '@/lib/email/assignmentNotification';
 
@@ -29,12 +30,17 @@ export async function GET(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: 'No valid account found' }, { status: 403 });
     }
 
-    // Fetch the task and verify it belongs to the selected account
+    // Fetch the task, allowing agency access to client tasks
+    const resolvedTask = await resolveTaskWithAgencyAccess(supabaseAdmin, taskId, accountId);
+    if (!resolvedTask) {
+      return NextResponse.json({ error: 'Task not found' }, { status: 404 });
+    }
+
+    // Fetch full task data
     const { data: task, error: taskError } = await supabaseAdmin
       .from('wm_tasks')
       .select('*')
       .eq('id', taskId)
-      .eq('account_id', accountId)
       .single();
 
     if (taskError || !task) {
@@ -96,12 +102,16 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: 'No valid account found' }, { status: 403 });
     }
 
-    // Fetch the task and verify it belongs to the selected account
+    // Fetch the task, allowing agency access to client tasks
+    const resolvedTask = await resolveTaskWithAgencyAccess(supabaseAdmin, taskId, accountId);
+    if (!resolvedTask) {
+      return NextResponse.json({ error: 'Task not found' }, { status: 404 });
+    }
+
     const { data: task, error: taskError } = await supabaseAdmin
       .from('wm_tasks')
       .select('*')
       .eq('id', taskId)
-      .eq('account_id', accountId)
       .single();
 
     if (taskError || !task) {
@@ -278,15 +288,9 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: 'No valid account found' }, { status: 403 });
     }
 
-    // Fetch the task and verify it belongs to the selected account
-    const { data: task, error: taskError } = await supabaseAdmin
-      .from('wm_tasks')
-      .select('id, account_id')
-      .eq('id', taskId)
-      .eq('account_id', accountId)
-      .single();
-
-    if (taskError || !task) {
+    // Fetch the task, allowing agency access to client tasks
+    const task = await resolveTaskWithAgencyAccess(supabaseAdmin, taskId, accountId);
+    if (!task) {
       return NextResponse.json({ error: 'Task not found' }, { status: 404 });
     }
 

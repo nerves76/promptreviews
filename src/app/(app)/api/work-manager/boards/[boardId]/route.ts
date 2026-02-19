@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient, createServiceRoleClient } from '@/auth/providers/supabase';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
+import { resolveBoardWithAgencyAccess } from '@/app/(app)/api/utils/resolveBoardWithAgencyAccess';
 import { DEFAULT_WM_STATUS_LABELS, WMStatusLabels } from '@/types/workManager';
 
 interface RouteContext {
@@ -28,7 +29,13 @@ export async function GET(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: 'No valid account found' }, { status: 403 });
     }
 
-    // Fetch the board and verify it belongs to the selected account
+    // Verify access (direct ownership or agency management)
+    const resolvedBoard = await resolveBoardWithAgencyAccess(supabaseAdmin, boardId, accountId);
+    if (!resolvedBoard) {
+      return NextResponse.json({ error: 'Board not found' }, { status: 404 });
+    }
+
+    // Fetch the full board data using the resolved board's account_id
     const { data: board, error: boardError } = await supabaseAdmin
       .from('wm_boards')
       .select(`
@@ -50,7 +57,6 @@ export async function GET(request: NextRequest, context: RouteContext) {
         )
       `)
       .eq('id', boardId)
-      .eq('account_id', accountId)
       .single();
 
     if (boardError || !board) {
@@ -111,15 +117,9 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: 'No valid account found' }, { status: 403 });
     }
 
-    // Fetch the board and verify it belongs to the selected account
-    const { data: board, error: boardError } = await supabaseAdmin
-      .from('wm_boards')
-      .select('id, account_id')
-      .eq('id', boardId)
-      .eq('account_id', accountId)
-      .single();
-
-    if (boardError || !board) {
+    // Verify access (direct ownership or agency management)
+    const board = await resolveBoardWithAgencyAccess(supabaseAdmin, boardId, accountId);
+    if (!board) {
       return NextResponse.json({ error: 'Board not found' }, { status: 404 });
     }
 

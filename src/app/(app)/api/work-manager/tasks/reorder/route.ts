@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient, createServiceRoleClient } from '@/auth/providers/supabase';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
+import { resolveBoardWithAgencyAccess } from '@/app/(app)/api/utils/resolveBoardWithAgencyAccess';
 import { WMTaskStatus } from '@/types/workManager';
 
 /**
@@ -44,27 +45,42 @@ export async function PATCH(request: NextRequest) {
 
     const taskIds = updates.map((u: any) => u.id);
 
-    // Fetch all tasks and verify they belong to the selected account
+    // Fetch all tasks (without account filter - we verify access via board)
     const { data: tasks, error: tasksError } = await supabaseAdmin
       .from('wm_tasks')
       .select('id, account_id, board_id, status')
-      .in('id', taskIds)
-      .eq('account_id', accountId);
+      .in('id', taskIds);
 
     if (tasksError || !tasks || tasks.length === 0) {
       return NextResponse.json({ error: 'Tasks not found' }, { status: 404 });
     }
 
     if (tasks.length !== taskIds.length) {
-      return NextResponse.json({ error: 'Some tasks do not belong to the selected account' }, { status: 403 });
+      return NextResponse.json({ error: 'Some tasks not found' }, { status: 404 });
+    }
+
+    // Verify access: all tasks must be on the same board, and user must have access
+    const boardIds = [...new Set(tasks.map(t => t.board_id))];
+    if (boardIds.length !== 1) {
+      return NextResponse.json({ error: 'All tasks must belong to the same board' }, { status: 400 });
+    }
+
+    const resolvedBoard = await resolveBoardWithAgencyAccess(supabaseAdmin, boardIds[0], accountId);
+    if (!resolvedBoard) {
+      return NextResponse.json({ error: 'Board not found' }, { status: 404 });
     }
 
     // Track status changes for activity logging
-    const statusChanges: Array<{ taskId: string; accountId: string; from: string; to: string }> = [];
+    const statusChanges: Array<{ taskId: string; taskAccountId: string; from: string; to: string }> = [];
 
-    // Build a map of current task statuses
+    // Build maps of current task statuses and account IDs
     const currentStatuses = tasks.reduce((acc, t) => {
       acc[t.id] = t.status;
+      return acc;
+    }, {} as Record<string, string>);
+
+    const taskAccountIds = tasks.reduce((acc, t) => {
+      acc[t.id] = t.account_id;
       return acc;
     }, {} as Record<string, string>);
 
@@ -77,7 +93,7 @@ export async function PATCH(request: NextRequest) {
         if (currentStatus && currentStatus !== update.status) {
           statusChanges.push({
             taskId: update.id,
-            accountId,
+            taskAccountId: taskAccountIds[update.id],
             from: currentStatus,
             to: update.status,
           });
@@ -97,7 +113,7 @@ export async function PATCH(request: NextRequest) {
     if (statusChanges.length > 0) {
       const actionInserts = statusChanges.map(change => ({
         task_id: change.taskId,
-        account_id: change.accountId,
+        account_id: change.taskAccountId,
         activity_type: 'status_change' as const,
         metadata: { from: change.from, to: change.to },
         created_by: user.id,
