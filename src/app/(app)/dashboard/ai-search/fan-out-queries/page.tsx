@@ -74,6 +74,9 @@ export default function FanOutQueriesPage() {
   const [selectedProviders, setSelectedProviders] = useState<Set<LLMProvider>>(new Set(LLM_PROVIDERS));
   const [searchFilter, setSearchFilter] = useState('');
 
+  // Export state
+  const [isExporting, setIsExporting] = useState(false);
+
   // Sorting
   const [sortField, setSortField] = useState<SortField>('frequency');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
@@ -132,6 +135,27 @@ export default function FanOutQueriesPage() {
       }
       return next;
     });
+  }, []);
+
+  // Export to CSV
+  const handleExport = useCallback(async () => {
+    setIsExporting(true);
+    try {
+      const response = await apiClient.download('/llm-visibility/export-fan-out-queries');
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `fan-out-queries-${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('[FanOutQueriesPage] Export error:', err);
+    } finally {
+      setIsExporting(false);
+    }
   }, []);
 
   // Handle sort
@@ -341,9 +365,23 @@ export default function FanOutQueriesPage() {
                     ))}
                   </select>
                 </div>
-                <div className="text-sm text-gray-500">
-                  {filteredAndSorted.length} {filteredAndSorted.length === 1 ? 'query' : 'queries'}
-                  {searchFilter && ` matching "${searchFilter}"`}
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-gray-500">
+                    {filteredAndSorted.length} {filteredAndSorted.length === 1 ? 'query' : 'queries'}
+                    {searchFilter && ` matching "${searchFilter}"`}
+                  </span>
+                  <button
+                    onClick={handleExport}
+                    disabled={isExporting}
+                    className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium text-sm transition-colors whitespace-nowrap disabled:opacity-50"
+                  >
+                    {isExporting ? (
+                      <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Icon name="FaFileAlt" className="w-4 h-4" />
+                    )}
+                    Export CSV
+                  </button>
                 </div>
               </div>
 
