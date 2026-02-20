@@ -206,9 +206,9 @@ export default function FanOutQueriesPage() {
       return <Icon name="FaChevronDown" className="w-2.5 h-2.5 text-gray-500" />;
     }
     return sortDirection === 'asc' ? (
-      <Icon name="FaCaretUp" className="w-3 h-3 text-slate-blue" />
+      <Icon name="FaChevronUp" className="w-2.5 h-2.5 text-slate-blue" />
     ) : (
-      <Icon name="FaCaretDown" className="w-3 h-3 text-slate-blue" />
+      <Icon name="FaChevronDown" className="w-2.5 h-2.5 text-slate-blue" />
     );
   };
 
