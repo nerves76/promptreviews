@@ -1555,6 +1555,7 @@ export default function AISearchPage() {
           { label: 'LLM tracking', icon: 'FaSparkles', href: '/dashboard/ai-search', matchType: 'exact' },
           { label: 'Visibility opportunities', icon: 'FaGlobe', href: '/dashboard/ai-search/research-sources', matchType: 'exact' },
           { label: 'Competitors', icon: 'FaUsers', href: '/dashboard/ai-search/competitors', matchType: 'exact' },
+          { label: 'Fan-out queries', icon: 'FaSearch', href: '/dashboard/ai-search/fan-out-queries', matchType: 'exact' },
         ]}
       />
 
