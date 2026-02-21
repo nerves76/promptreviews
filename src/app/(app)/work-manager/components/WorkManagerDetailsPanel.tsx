@@ -456,24 +456,30 @@ export default function WorkManagerDetailsPanel({
         <div className="flex flex-wrap items-center gap-2 mt-3 text-xs">
         {isEditing ? (
           <>
-            <select
-              value={editedStatus}
-              onChange={(e) => setEditedStatus(e.target.value as WMTaskStatus)}
-              className="px-2 py-1 border border-gray-300 rounded text-sm"
-            >
-              {Object.entries(statusLabels).map(([key, label]) => (
-                <option key={key} value={key}>{label}</option>
-              ))}
-            </select>
-            <select
-              value={editedPriority}
-              onChange={(e) => setEditedPriority(e.target.value as WMTaskPriority)}
-              className="px-2 py-1 border border-gray-300 rounded text-sm"
-            >
-              {Object.entries(WM_PRIORITY_LABELS).map(([key, label]) => (
-                <option key={key} value={key}>{label}</option>
-              ))}
-            </select>
+            <label className="flex items-center gap-1.5 text-sm">
+              <span className="text-gray-500 font-medium">Column:</span>
+              <select
+                value={editedStatus}
+                onChange={(e) => setEditedStatus(e.target.value as WMTaskStatus)}
+                className="px-2 py-1 border border-gray-300 rounded text-sm"
+              >
+                {Object.entries(statusLabels).map(([key, label]) => (
+                  <option key={key} value={key}>{label}</option>
+                ))}
+              </select>
+            </label>
+            <label className="flex items-center gap-1.5 text-sm">
+              <span className="text-gray-500 font-medium">Priority:</span>
+              <select
+                value={editedPriority}
+                onChange={(e) => setEditedPriority(e.target.value as WMTaskPriority)}
+                className="px-2 py-1 border border-gray-300 rounded text-sm"
+              >
+                {Object.entries(WM_PRIORITY_LABELS).map(([key, label]) => (
+                  <option key={key} value={key}>{label}</option>
+                ))}
+              </select>
+            </label>
           </>
         ) : (
           <>
