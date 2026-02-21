@@ -1,0 +1,33 @@
+-- Remove "your" from library task titles for cleaner, more professional copy
+
+UPDATE wm_library_tasks SET title = 'Add review stars to search listings' WHERE title = 'Add review stars to your search listings';
+UPDATE wm_library_tasks SET title = 'Add trust signals throughout the site' WHERE title = 'Add trust signals throughout your site';
+UPDATE wm_library_tasks SET title = 'Add business to the main citation directories' WHERE title = 'Add your business to the main citation directories';
+UPDATE wm_library_tasks SET title = 'Answer questions on Quora related to area of expertise' WHERE title = 'Answer questions on Quora related to your expertise';
+UPDATE wm_library_tasks SET title = 'Appear on podcasts in the industry' WHERE title = 'Appear on podcasts in your industry';
+UPDATE wm_library_tasks SET title = 'Build a content hub around the main service' WHERE title = 'Build a content hub around your main service';
+UPDATE wm_library_tasks SET title = 'Claim and optimize LinkedIn company page' WHERE title = 'Claim and optimize your LinkedIn company page';
+UPDATE wm_library_tasks SET title = 'Claim and verify Google Business Profile' WHERE title = 'Claim and verify your Google Business Profile';
+UPDATE wm_library_tasks SET title = 'Create a content calendar for the blog' WHERE title = 'Create a content calendar for your blog';
+UPDATE wm_library_tasks SET title = 'Create location-specific content for the service area' WHERE title = 'Create location-specific content for your service area';
+UPDATE wm_library_tasks SET title = 'Design a visual infographic for the industry' WHERE title = 'Design a visual infographic for your industry';
+UPDATE wm_library_tasks SET title = 'Discover queries people use to find services like these' WHERE title = 'Discover queries people use to find your services';
+UPDATE wm_library_tasks SET title = 'Ensure the site is mobile-friendly' WHERE title = 'Ensure your site is mobile-friendly';
+UPDATE wm_library_tasks SET title = 'Expand the query list with fan-out suggestions' WHERE title = 'Expand your query list with fan-out suggestions';
+UPDATE wm_library_tasks SET title = 'Fix broken links pointing to the site' WHERE title = 'Fix broken links pointing to your site';
+UPDATE wm_library_tasks SET title = 'Fully optimize Google Business Profile' WHERE title = 'Fully optimize your Google Business Profile';
+UPDATE wm_library_tasks SET title = 'Get active on Reddit in relevant industry subreddits' WHERE title = 'Get active on Reddit in your industry subreddits';
+UPDATE wm_library_tasks SET title = 'Get customer testimonials mentioning the business by name' WHERE title = 'Get customer testimonials mentioning your business by name';
+UPDATE wm_library_tasks SET title = 'Identify visibility opportunities from AI sources' WHERE title = 'Identify your visibility opportunities from AI sources';
+UPDATE wm_library_tasks SET title = 'Improve titles for top-traffic pages' WHERE title = 'Improve titles for your top-traffic pages';
+UPDATE wm_library_tasks SET title = 'Optimize calls-to-action (CTAs)' WHERE title = 'Optimize your calls-to-action (CTAs)';
+UPDATE wm_library_tasks SET title = 'Optimize contact forms for conversions' WHERE title = 'Optimize your contact forms for conversions';
+UPDATE wm_library_tasks SET title = 'Optimize GBP Q&A section' WHERE title = 'Optimize your GBP Q&A section';
+UPDATE wm_library_tasks SET title = 'Optimize images with alt text and compression' WHERE title = 'Optimize your images with alt text and compression';
+UPDATE wm_library_tasks SET title = 'Research primary keywords' WHERE title = 'Research your primary keywords';
+UPDATE wm_library_tasks SET title = 'Run first AI visibility check' WHERE title = 'Run your first AI visibility check';
+UPDATE wm_library_tasks SET title = 'Update oldest blog posts with fresh content' WHERE title = 'Update your oldest blog posts with fresh content';
+UPDATE wm_library_tasks SET title = 'Write a comprehensive guide for the main topic' WHERE title = 'Write a comprehensive guide for your main topic';
+UPDATE wm_library_tasks SET title = 'Write comparison content for the industry' WHERE title = 'Write comparison content for your industry';
+UPDATE wm_library_tasks SET title = 'Write compelling title tags for main pages' WHERE title = 'Write compelling title tags for your main pages';
+UPDATE wm_library_tasks SET title = 'Write "How to Choose" guides for services offered' WHERE title = 'Write "How to Choose" guides for your services';
