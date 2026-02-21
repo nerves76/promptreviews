@@ -239,12 +239,12 @@ export default function LibraryBrowser({ isOpen, onClose, onTaskAdded }: Library
                               {pack.icon && <Icon name={pack.icon as any} size={14} />}
                               <span className="flex-1 truncate">{pack.name}</span>
                               {pack.task_count !== undefined && (
-                                <span className={`text-xs font-medium ${
+                                <span className={`text-xs font-medium whitespace-nowrap ${
                                   selectedNav.type === 'pack' && selectedNav.id === pack.id
                                     ? 'text-white/80'
                                     : 'text-white/60'
                                 }`}>
-                                  {pack.task_count}
+                                  {pack.task_count}{pack.time_estimate ? ` · ${pack.time_estimate}` : ''}
                                 </span>
                               )}
                             </button>
@@ -295,6 +295,15 @@ export default function LibraryBrowser({ isOpen, onClose, onTaskAdded }: Library
                         <h3 className="text-2xl font-bold text-white">{getNavLabel()}</h3>
                         {selectedPack?.description && (
                           <p className="text-sm text-white/70 mt-1 max-w-2xl">{selectedPack.description}</p>
+                        )}
+                        {selectedPack?.time_estimate && (
+                          <div className="flex items-center gap-2 mt-2">
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/15 text-white text-xs font-medium whitespace-nowrap">
+                              <Icon name="FaClock" size={11} />
+                              {selectedPack.time_estimate}
+                            </span>
+                            <span className="text-xs text-white/50">Based on a business with 50-200 pages</span>
+                          </div>
                         )}
                       </div>
 

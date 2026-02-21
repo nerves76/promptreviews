@@ -310,6 +310,7 @@ export interface WMLibraryPack {
   name: string;
   description: string | null;
   icon: string | null;
+  time_estimate: string | null;
   sort_order: number;
   is_active: boolean;
   task_count?: number; // Computed field from API
