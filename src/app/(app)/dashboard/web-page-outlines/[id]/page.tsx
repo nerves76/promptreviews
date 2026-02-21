@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { SubNav } from "@/app/(app)/components/SubNav";
 import Icon from "@/components/Icon";
 import { Button } from "@/app/(app)/components/ui/button";
@@ -35,12 +35,14 @@ export default function OutlineDetailPage() {
   const { toasts, closeToast, success, error: showError } = useToast();
   const router = useRouter();
   const params = useParams<{ id: string }>();
+  const searchParams = useSearchParams();
 
   const [outline, setOutline] = useState<WebPageOutlineRecord | null>(null);
   const [loading, setLoading] = useState(true);
   const [regeneratingSection, setRegeneratingSection] = useState<SectionKey | null>(null);
   const [creditBalance, setCreditBalance] = useState<number | null>(null);
   const [addingToWM, setAddingToWM] = useState(false);
+  const [showDisclaimer, setShowDisclaimer] = useState(searchParams.get("new") === "1");
 
   // Load outline
   const loadOutline = useCallback(async () => {
@@ -240,19 +242,28 @@ export default function OutlineDetailPage() {
           </div>
         </div>
 
-        {/* Make it human disclaimer */}
-        <div className="bg-white/10 backdrop-blur-sm border border-white/30 rounded-xl p-3 flex items-start gap-2 mb-6 max-w-[750px]">
-          <Icon
-            name="FaExclamationTriangle"
-            size={14}
-            className="text-white/70 mt-0.5 flex-shrink-0"
-          />
-          <p className="text-sm text-white/90">
-            <span className="font-semibold">Make it human:</span> We do not
-            recommend publishing AI content verbatim on your website. Instead,
-            think of this as a starting point and make it great!
-          </p>
-        </div>
+        {/* Make it human disclaimer — shown after generation, dismissable */}
+        {showDisclaimer && (
+          <div className="bg-white/10 backdrop-blur-sm border border-white/30 rounded-xl p-3 flex items-start gap-2 mb-6 max-w-[750px]">
+            <Icon
+              name="FaExclamationTriangle"
+              size={14}
+              className="text-white/70 mt-0.5 flex-shrink-0"
+            />
+            <p className="text-sm text-white/90 flex-1">
+              <span className="font-semibold">Make it human:</span> We do not
+              recommend publishing AI content verbatim on your website. Instead,
+              think of this as a starting point and make it great!
+            </p>
+            <button
+              onClick={() => setShowDisclaimer(false)}
+              className="flex-shrink-0 p-1 text-white/50 hover:text-white/80 transition-colors"
+              aria-label="Dismiss disclaimer"
+            >
+              <Icon name="FaTimes" size={12} />
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Preview + panels */}

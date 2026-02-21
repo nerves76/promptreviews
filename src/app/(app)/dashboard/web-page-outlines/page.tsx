@@ -285,7 +285,7 @@ export default function WebPageOutlinesPage() {
 
       if (result.success && result.outline) {
         success("Page plan generated successfully!");
-        router.push(`/dashboard/web-page-outlines/${result.outline.id}`);
+        router.push(`/dashboard/web-page-outlines/${result.outline.id}?new=1`);
       } else {
         throw new Error("Generation failed");
       }
