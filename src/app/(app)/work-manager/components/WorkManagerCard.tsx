@@ -10,6 +10,7 @@ interface WorkManagerCardProps {
   task: WMTask;
   isDragging?: boolean;
   onOpen?: (task: WMTask) => void;
+  onDelete?: (task: WMTask) => void;
   /** Client name for linked (pulled) tasks */
   clientName?: string | null;
   /** Current client-side status for linked tasks */
@@ -26,6 +27,7 @@ export default function WorkManagerCard({
   task,
   isDragging = false,
   onOpen,
+  onDelete,
   clientName,
   clientStatus,
   clientStatusLabels,
@@ -38,6 +40,14 @@ export default function WorkManagerCard({
       event.stopPropagation();
     }
     onOpen?.(task);
+  };
+
+  const handleDelete = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (confirm("Are you sure you want to delete this task?")) {
+      onDelete?.(task);
+    }
   };
 
   const priorityColors = WM_PRIORITY_COLORS[task.priority] || { bg: 'bg-gray-100', text: 'text-gray-700', border: 'border-gray-200' };
@@ -102,6 +112,18 @@ export default function WorkManagerCard({
         <Icon name="FaArrowRight" size={10} />
         Open
       </button>
+
+      {/* Delete button */}
+      {onDelete && (
+        <button
+          type="button"
+          onClick={handleDelete}
+          className="absolute bottom-2 right-2 inline-flex items-center gap-1 px-2 py-1 text-xs bg-white/80 text-gray-400 hover:text-red-500 rounded shadow opacity-0 group-hover:opacity-100 transition"
+          aria-label="Delete task"
+        >
+          <Icon name="FaTrash" size={10} />
+        </button>
+      )}
 
       <div className="space-y-2 pr-12">
         {/* Client badge for linked tasks */}

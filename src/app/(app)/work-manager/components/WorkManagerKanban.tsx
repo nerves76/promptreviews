@@ -24,6 +24,7 @@ interface WorkManagerKanbanProps {
   statusLabels: WMStatusLabels;
   onEditLabel: (status: keyof WMStatusLabels) => void;
   onTaskClick: (task: WMTask) => void;
+  onTaskDelete?: (task: WMTask) => void;
   onTasksReordered?: () => void;
   onAddTask?: (status: WMTaskStatus) => void;
   /** Optional handler for changing client-side status on linked agency tasks */
@@ -40,6 +41,7 @@ export default function WorkManagerKanban({
   statusLabels,
   onEditLabel,
   onTaskClick,
+  onTaskDelete,
   onTasksReordered,
   onAddTask,
   clientStatusChangeHandler,
@@ -221,6 +223,7 @@ export default function WorkManagerKanban({
         task={task}
         isDragging={snapshot.isDragging || draggedCardId === task.id}
         onOpen={onTaskClick}
+        onDelete={onTaskDelete}
         clientName={task.linked_task?.client_name}
         clientStatus={task.linked_task?.status as WMTaskStatus | undefined}
         clientStatusLabels={task.linked_task?.client_board_status_labels}

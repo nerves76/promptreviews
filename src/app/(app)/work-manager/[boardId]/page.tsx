@@ -197,6 +197,19 @@ export default function WorkManagerBoardPage() {
     setSelectedTask(null);
   };
 
+  // Handle delete directly from card
+  const handleCardDelete = async (task: WMTask) => {
+    try {
+      await apiClient.delete(`/work-manager/tasks/${task.id}`);
+      fetchTasks();
+      if (selectedTask?.id === task.id) {
+        setSelectedTask(null);
+      }
+    } catch (err) {
+      console.error("Failed to delete task:", err);
+    }
+  };
+
   const statusLabels = board?.status_labels || DEFAULT_WM_STATUS_LABELS;
 
   if (isLoading) {
@@ -300,6 +313,7 @@ export default function WorkManagerBoardPage() {
             statusLabels={statusLabels}
             onEditLabel={handleEditLabel}
             onTaskClick={handleTaskClick}
+            onTaskDelete={handleCardDelete}
             onTasksReordered={fetchTasks}
             onAddTask={handleAddTask}
             showTimeSpent={board?.show_time_to_client ?? false}
