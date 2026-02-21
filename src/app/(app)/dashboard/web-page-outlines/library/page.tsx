@@ -9,6 +9,7 @@ import { Pagination } from "@/components/Pagination";
 import { useAuthGuard } from "@/utils/authGuard";
 import { useAccountData } from "@/auth/hooks/granularAuthHooks";
 import { apiClient } from "@/utils/apiClient";
+import { useToast, ToastContainer } from "@/app/(app)/components/reviews/Toast";
 
 interface LibraryItem {
   id: string;
@@ -32,11 +33,13 @@ export default function WebPageOutlinesLibraryPage() {
   const { selectedAccountId } = useAccountData();
   const router = useRouter();
 
+  const { toasts, closeToast, success, error: showError } = useToast();
   const [outlines, setOutlines] = useState<LibraryItem[]>([]);
   const [totalItems, setTotalItems] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [addingToWMId, setAddingToWMId] = useState<string | null>(null);
 
   const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
 
@@ -86,8 +89,26 @@ export default function WebPageOutlinesLibraryPage() {
     }
   };
 
+  const handleAddToWorkManager = async (e: React.MouseEvent, item: LibraryItem) => {
+    e.stopPropagation();
+    setAddingToWMId(item.id);
+    try {
+      const result = await apiClient.post<{ task: { title: string }; board_id: string }>(
+        '/work-manager/tasks/from-outline',
+        { outline_id: item.id }
+      );
+      success(`Task created: ${result.task.title}`);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Failed to create task';
+      showError(msg);
+    } finally {
+      setAddingToWMId(null);
+    }
+  };
+
   return (
     <>
+      <ToastContainer toasts={toasts} onClose={closeToast} />
       <div className="px-4 sm:px-6 lg:px-8 pt-8 mt-8">
         <div className="max-w-7xl mx-auto flex flex-col items-center mb-3">
           <h1 className="text-3xl lg:text-4xl font-bold text-white mb-6">
@@ -167,6 +188,20 @@ export default function WebPageOutlinesLibraryPage() {
                     {item.tone} &middot; {item.business_name} &middot;{" "}
                     {new Date(item.created_at).toLocaleDateString()}
                   </p>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={(e) => handleAddToWorkManager(e, item)}
+                  disabled={addingToWMId === item.id}
+                  className="flex-shrink-0 p-2 rounded-lg text-gray-500 hover:text-slate-blue hover:bg-slate-blue/10 disabled:opacity-50 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
+                  aria-label={`Add ${item.keyword_phrase} to Work Manager`}
+                >
+                  <Icon
+                    name={addingToWMId === item.id ? "FaSpinner" : "FaBriefcase"}
+                    size={13}
+                    className={addingToWMId === item.id ? "animate-spin" : ""}
+                  />
                 </button>
 
                 <button

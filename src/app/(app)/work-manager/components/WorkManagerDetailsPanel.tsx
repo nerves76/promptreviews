@@ -367,8 +367,26 @@ export default function WorkManagerDetailsPanel({
 
   return (
     <div className="flex flex-col h-full backdrop-blur-sm">
-      {/* Close button */}
-      <div className="flex justify-end px-4 pt-4 pb-2">
+      {/* Top bar: delete (edit mode only) + close */}
+      <div className="flex items-center justify-between px-4 pt-4 pb-2">
+        {isEditing ? (
+          <button
+            type="button"
+            onClick={handleDelete}
+            disabled={isDeleting}
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-red-300 hover:text-red-200 hover:bg-red-500/20 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 whitespace-nowrap"
+            aria-label="Delete task"
+          >
+            {isDeleting ? (
+              <Icon name="FaSpinner" size={12} className="animate-spin" />
+            ) : (
+              <Icon name="FaTrash" size={12} />
+            )}
+            Delete
+          </button>
+        ) : (
+          <div />
+        )}
         <button
           type="button"
           onClick={onClose}
@@ -539,9 +557,12 @@ export default function WorkManagerDetailsPanel({
               </div>
             </div>
           ) : task.time_estimate_minutes ? (
-            <div className="flex items-center gap-2 text-sm text-gray-700">
-              <Icon name="FaClock" size={14} className="text-gray-500" />
-              <span>{formatTimeEstimate(task.time_estimate_minutes)}</span>
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 text-sm text-gray-700">
+                <Icon name="FaClock" size={14} className="text-gray-500" />
+                <span>{formatTimeEstimate(task.time_estimate_minutes)}</span>
+              </div>
+              <CalendarDropdown task={task} />
             </div>
           ) : (
             <p className="text-sm text-gray-500">No estimate</p>
@@ -642,29 +663,6 @@ export default function WorkManagerDetailsPanel({
             <p className="text-sm text-red-800">{error}</p>
           </div>
         )}
-
-        {/* Actions */}
-        <section className="p-5 bg-white/60 backdrop-blur-sm border border-gray-100/50 rounded-xl space-y-2">
-          <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Actions</h3>
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={handleDelete}
-              disabled={isDeleting}
-              className="inline-flex items-center gap-2 px-3 py-1.5 bg-red-100 text-red-700 rounded hover:bg-red-200 text-sm font-medium disabled:opacity-50"
-            >
-              {isDeleting ? (
-                <Icon name="FaSpinner" size={12} className="animate-spin" />
-              ) : (
-                <Icon name="FaTrash" size={12} />
-              )}
-              Delete
-            </button>
-            {task.time_estimate_minutes && task.time_estimate_minutes > 0 && (
-              <CalendarDropdown task={task} />
-            )}
-          </div>
-        </section>
 
         {/* Activity Timeline */}
         <section className="p-5 bg-white/60 backdrop-blur-sm border border-gray-100/50 rounded-xl space-y-3">

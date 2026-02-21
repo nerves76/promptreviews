@@ -40,6 +40,7 @@ export default function OutlineDetailPage() {
   const [loading, setLoading] = useState(true);
   const [regeneratingSection, setRegeneratingSection] = useState<SectionKey | null>(null);
   const [creditBalance, setCreditBalance] = useState<number | null>(null);
+  const [addingToWM, setAddingToWM] = useState(false);
 
   // Load outline
   const loadOutline = useCallback(async () => {
@@ -116,6 +117,23 @@ export default function OutlineDetailPage() {
     if (!outline?.competitor_data) return null;
     return outline.competitor_data as unknown as CompetitorData;
   }, [outline]);
+
+  const handleAddToWorkManager = async () => {
+    if (!outline) return;
+    setAddingToWM(true);
+    try {
+      const result = await apiClient.post<{ task: { title: string }; board_id: string }>(
+        '/work-manager/tasks/from-outline',
+        { outline_id: outline.id }
+      );
+      success(`Task created: ${result.task.title}`);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Failed to create task';
+      showError(msg);
+    } finally {
+      setAddingToWM(false);
+    }
+  };
 
   if (!selectedAccountId || loading) {
     return (
@@ -195,15 +213,31 @@ export default function OutlineDetailPage() {
             <span className="font-normal text-white/70">Keyword:</span> {outline.keyword_phrase}
           </h2>
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => router.push("/dashboard/web-page-outlines")}
-            className="whitespace-nowrap border-white/40 text-white hover:bg-white/10"
-          >
-            <Icon name="prompty" size={12} className="mr-1.5" />
-            Create new
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleAddToWorkManager}
+              disabled={addingToWM}
+              className="whitespace-nowrap border-white/40 text-white hover:bg-white/10"
+            >
+              <Icon
+                name={addingToWM ? "FaSpinner" : "FaBriefcase"}
+                size={12}
+                className={`mr-1.5${addingToWM ? " animate-spin" : ""}`}
+              />
+              Add to Work Manager
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => router.push("/dashboard/web-page-outlines")}
+              className="whitespace-nowrap border-white/40 text-white hover:bg-white/10"
+            >
+              <Icon name="prompty" size={12} className="mr-1.5" />
+              Create new
+            </Button>
+          </div>
         </div>
 
         {/* Make it human disclaimer */}

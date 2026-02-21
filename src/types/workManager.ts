@@ -10,7 +10,7 @@ export type WMTaskStatus = 'backlog' | 'todo' | 'in_progress' | 'review' | 'done
 export type WMTaskPriority = 'low' | 'medium' | 'high';
 
 // Source type for tracking where tasks originated
-export type WMTaskSourceType = 'manual' | 'gbp_suggestion' | 'library' | 'client_task' | 'visibility_opportunity';
+export type WMTaskSourceType = 'manual' | 'gbp_suggestion' | 'library' | 'client_task' | 'visibility_opportunity' | 'web_page_outline';
 
 // Action type enum matching database
 export type WMActionType =
