@@ -118,7 +118,7 @@ export default function HelpBubble({
         aria-label={label}
         type="button"
       >
-        <span className="text-blue-700 group-hover:text-blue-100 transition-colors duration-200 font-semibold" style={{ fontSize: `${iconSizes[size] * 0.7}px`, lineHeight: 1 }}>
+        <span className={`text-blue-700 ${isTooltipOnly ? '' : 'group-hover:text-blue-100'} transition-colors duration-200 font-semibold`} style={{ fontSize: `${iconSizes[size] * 0.7}px`, lineHeight: 1 }}>
           ?
         </span>
 
