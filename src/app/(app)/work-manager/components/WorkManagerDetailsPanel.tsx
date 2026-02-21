@@ -20,6 +20,7 @@ import {
 import MentionInput from "./MentionInput";
 import LinksSection from "./LinksSection";
 import TimeEntriesSection from "./TimeEntriesSection";
+import { ConfirmModal } from "@/app/(app)/components/ui/confirm-modal";
 
 interface WorkManagerDetailsPanelProps {
   task: WMTask;
@@ -135,6 +136,7 @@ export default function WorkManagerDetailsPanel({
   );
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Activity log
@@ -273,11 +275,7 @@ export default function WorkManagerDetailsPanel({
     }
   };
 
-  const handleDelete = async () => {
-    if (!confirm("Are you sure you want to delete this task? This action cannot be undone.")) {
-      return;
-    }
-
+  const handleDeleteConfirm = async () => {
     setIsDeleting(true);
     try {
       await apiClient.delete(`/work-manager/tasks/${task.id}`);
@@ -288,6 +286,7 @@ export default function WorkManagerDetailsPanel({
       setError(err.message || "Failed to delete task");
     } finally {
       setIsDeleting(false);
+      setShowDeleteConfirm(false);
     }
   };
 
@@ -372,7 +371,7 @@ export default function WorkManagerDetailsPanel({
         {isEditing ? (
           <button
             type="button"
-            onClick={handleDelete}
+            onClick={() => setShowDeleteConfirm(true)}
             disabled={isDeleting}
             className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-red-300 hover:text-red-200 hover:bg-red-500/20 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 whitespace-nowrap"
             aria-label="Delete task"
@@ -719,6 +718,17 @@ export default function WorkManagerDetailsPanel({
           )}
         </section>
       </div>
+
+      {/* Delete confirmation modal */}
+      <ConfirmModal
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={handleDeleteConfirm}
+        title="Delete task"
+        message={`Are you sure you want to delete "${task.title}"? This action cannot be undone.`}
+        confirmLabel="Delete"
+        isLoading={isDeleting}
+      />
     </div>
   );
 }

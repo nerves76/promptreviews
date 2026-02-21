@@ -14,6 +14,7 @@ import WorkManagerDetailsPanel from "../components/WorkManagerDetailsPanel";
 import LibraryBrowser from "../components/LibraryBrowser";
 import WorkManagerTabs from "../components/WorkManagerTabs";
 import ResourcesView from "../components/ResourcesView";
+import { ConfirmModal } from "@/app/(app)/components/ui/confirm-modal";
 import {
   WMBoard,
   WMTask,
@@ -47,6 +48,8 @@ export default function WorkManagerBoardPage() {
   const [createTaskDefaultStatus, setCreateTaskDefaultStatus] = useState<WMTaskStatus>("backlog");
   const [selectedTask, setSelectedTask] = useState<WMTask | null>(null);
   const [isLibraryOpen, setIsLibraryOpen] = useState(false);
+  const [taskToDelete, setTaskToDelete] = useState<WMTask | null>(null);
+  const [isDeletingCard, setIsDeletingCard] = useState(false);
 
   // Fetch board data
   const fetchBoard = useCallback(async () => {
@@ -197,16 +200,25 @@ export default function WorkManagerBoardPage() {
     setSelectedTask(null);
   };
 
-  // Handle delete directly from card
-  const handleCardDelete = async (task: WMTask) => {
+  // Handle delete directly from card (shows confirm modal)
+  const handleCardDeleteRequest = (task: WMTask) => {
+    setTaskToDelete(task);
+  };
+
+  const handleCardDeleteConfirm = async () => {
+    if (!taskToDelete) return;
+    setIsDeletingCard(true);
     try {
-      await apiClient.delete(`/work-manager/tasks/${task.id}`);
+      await apiClient.delete(`/work-manager/tasks/${taskToDelete.id}`);
       fetchTasks();
-      if (selectedTask?.id === task.id) {
+      if (selectedTask?.id === taskToDelete.id) {
         setSelectedTask(null);
       }
     } catch (err) {
       console.error("Failed to delete task:", err);
+    } finally {
+      setIsDeletingCard(false);
+      setTaskToDelete(null);
     }
   };
 
@@ -313,7 +325,7 @@ export default function WorkManagerBoardPage() {
             statusLabels={statusLabels}
             onEditLabel={handleEditLabel}
             onTaskClick={handleTaskClick}
-            onTaskDelete={handleCardDelete}
+            onTaskDelete={handleCardDeleteRequest}
             onTasksReordered={fetchTasks}
             onAddTask={handleAddTask}
             showTimeSpent={board?.show_time_to_client ?? false}
@@ -365,6 +377,17 @@ export default function WorkManagerBoardPage() {
         isOpen={isLibraryOpen}
         onClose={() => setIsLibraryOpen(false)}
         onTaskAdded={fetchTasks}
+      />
+
+      {/* Delete task confirmation */}
+      <ConfirmModal
+        isOpen={!!taskToDelete}
+        onClose={() => setTaskToDelete(null)}
+        onConfirm={handleCardDeleteConfirm}
+        title="Delete task"
+        message={`Are you sure you want to delete "${taskToDelete?.title}"? This action cannot be undone.`}
+        confirmLabel="Delete"
+        isLoading={isDeletingCard}
       />
     </div>
   );

@@ -16,6 +16,7 @@ import {
   WMTaskResourceLink,
 } from "@/types/workManager";
 import LinksSection from "./LinksSection";
+import { ConfirmModal } from "@/app/(app)/components/ui/confirm-modal";
 
 interface ResourceDetailsPanelProps {
   resource: WMResource;
@@ -37,6 +38,7 @@ export default function ResourceDetailsPanel({
   const [editedPriority, setEditedPriority] = useState<WMTaskPriority>(resource.priority);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Full resource data with links
@@ -98,13 +100,8 @@ export default function ResourceDetailsPanel({
     }
   };
 
-  const handleDelete = async () => {
-    if (!confirm("Are you sure you want to delete this resource? This action cannot be undone.")) {
-      return;
-    }
-
+  const handleDeleteConfirm = async () => {
     setIsDeleting(true);
-
     try {
       await apiClient.delete(`/work-manager/resources/${resource.id}`);
       onResourceDeleted();
@@ -113,6 +110,7 @@ export default function ResourceDetailsPanel({
       setError(err.message || "Failed to delete resource");
     } finally {
       setIsDeleting(false);
+      setShowDeleteConfirm(false);
     }
   };
 
@@ -323,7 +321,7 @@ export default function ResourceDetailsPanel({
                 </button>
                 <button
                   type="button"
-                  onClick={handleDelete}
+                  onClick={() => setShowDeleteConfirm(true)}
                   disabled={isDeleting}
                   className="inline-flex items-center gap-2 px-3 py-1.5 bg-red-100 text-red-700 rounded hover:bg-red-200 text-sm font-medium disabled:opacity-50"
                 >
@@ -339,6 +337,17 @@ export default function ResourceDetailsPanel({
           </div>
         </section>
       </div>
+
+      {/* Delete confirmation modal */}
+      <ConfirmModal
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={handleDeleteConfirm}
+        title="Delete resource"
+        message={`Are you sure you want to delete "${resource.title}"? This action cannot be undone.`}
+        confirmLabel="Delete"
+        isLoading={isDeleting}
+      />
     </div>
   );
 }

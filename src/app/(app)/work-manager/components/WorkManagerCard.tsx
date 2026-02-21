@@ -45,9 +45,7 @@ export default function WorkManagerCard({
   const handleDelete = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     event.stopPropagation();
-    if (confirm("Are you sure you want to delete this task?")) {
-      onDelete?.(task);
-    }
+    onDelete?.(task);
   };
 
   const priorityColors = WM_PRIORITY_COLORS[task.priority] || { bg: 'bg-gray-100', text: 'text-gray-700', border: 'border-gray-200' };
