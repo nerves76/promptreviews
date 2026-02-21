@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Icon from "@/components/Icon";
 import SectionWrapper from "./SectionWrapper";
 import {
@@ -12,8 +11,6 @@ import {
   FAQSection,
   FooterSection,
 } from "./sections";
-import { copyFullOutline } from "../utils/clipboard";
-import { exportOutlineAsCsv } from "../utils/csvExport";
 import type { PageOutline, SEOMetadata, SectionKey } from "../types";
 
 interface OutlinePreviewProps {
@@ -33,39 +30,8 @@ export default function OutlinePreview({
   onRegenerate,
   regeneratingSection,
 }: OutlinePreviewProps) {
-  const [allCopied, setAllCopied] = useState(false);
-
-  const handleCopyAll = async () => {
-    const text = copyFullOutline(outline);
-    await navigator.clipboard.writeText(text);
-    setAllCopied(true);
-    setTimeout(() => setAllCopied(false), 2000);
-  };
-
   return (
     <div>
-      {/* Copy all + Download CSV — always visible */}
-      <div className="flex justify-start gap-2 mb-2">
-        <button
-          type="button"
-          onClick={handleCopyAll}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] bg-white/90 border border-white/60 text-gray-700 hover:bg-white/90 transition-colors whitespace-nowrap shadow-sm"
-          aria-label="Copy all outline content"
-        >
-          <Icon name={allCopied ? "FaCheck" : "FaCopy"} size={10} />
-          {allCopied ? "Copied all" : "Copy all content"}
-        </button>
-        <button
-          type="button"
-          onClick={() => exportOutlineAsCsv(outline, seo, keyword)}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] bg-white/90 border border-white/60 text-gray-700 hover:bg-white/90 transition-colors whitespace-nowrap shadow-sm"
-          aria-label="Download outline as CSV"
-        >
-          <Icon name="FaSave" size={10} />
-          Download CSV
-        </button>
-      </div>
-
       {/* Hero — outside overflow-hidden so action buttons aren't clipped */}
       <SectionWrapper
         sectionKey="hero"

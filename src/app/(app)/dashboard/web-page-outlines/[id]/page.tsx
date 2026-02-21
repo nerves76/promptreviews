@@ -23,6 +23,8 @@ import type {
   WebPageOutlineRecord,
   RegenerateSectionResponse,
 } from "@/features/web-page-outlines/types";
+import { copyFullOutline } from "@/features/web-page-outlines/utils/clipboard";
+import { exportOutlineAsCsv } from "@/features/web-page-outlines/utils/csvExport";
 
 const SUB_NAV_ITEMS = [
   { label: "Create", icon: "FaRocket" as const, href: "/dashboard/web-page-outlines", matchType: "exact" as const },
@@ -43,6 +45,7 @@ export default function OutlineDetailPage() {
   const [creditBalance, setCreditBalance] = useState<number | null>(null);
   const [addingToWM, setAddingToWM] = useState(false);
   const [showDisclaimer, setShowDisclaimer] = useState(searchParams.get("new") === "1");
+  const [allCopied, setAllCopied] = useState(false);
 
   // Load outline
   const loadOutline = useCallback(async () => {
@@ -77,6 +80,23 @@ export default function OutlineDetailPage() {
     }
     fetchBalance();
   }, []);
+
+  const handleCopyAll = async () => {
+    if (!outline) return;
+    const text = copyFullOutline(outline.outline_json as unknown as PageOutline);
+    await navigator.clipboard.writeText(text);
+    setAllCopied(true);
+    setTimeout(() => setAllCopied(false), 2000);
+  };
+
+  const handleDownloadCsv = () => {
+    if (!outline) return;
+    exportOutlineAsCsv(
+      outline.outline_json as unknown as PageOutline,
+      outline.schema_markup as unknown as SEOMetadata,
+      outline.keyword_phrase
+    );
+  };
 
   // Regenerate a section
   const handleRegenerate = async (sectionKey: SectionKey) => {
@@ -219,6 +239,24 @@ export default function OutlineDetailPage() {
             <Button
               variant="outline"
               size="sm"
+              onClick={handleCopyAll}
+              className="whitespace-nowrap border-white/40 text-white hover:bg-white/10"
+            >
+              <Icon name={allCopied ? "FaCheck" : "FaCopy"} size={12} className="mr-1.5" />
+              {allCopied ? "Copied!" : "Copy all content"}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDownloadCsv}
+              className="whitespace-nowrap border-white/40 text-white hover:bg-white/10"
+            >
+              <Icon name="FaSave" size={12} className="mr-1.5" />
+              Download CSV
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
               onClick={handleAddToWorkManager}
               disabled={addingToWM}
               className="whitespace-nowrap border-white/40 text-white hover:bg-white/10"
@@ -229,15 +267,6 @@ export default function OutlineDetailPage() {
                 className={`mr-1.5${addingToWM ? " animate-spin" : ""}`}
               />
               Add to Work Manager
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => router.push("/dashboard/web-page-outlines")}
-              className="whitespace-nowrap border-white/40 text-white hover:bg-white/10"
-            >
-              <Icon name="prompty" size={12} className="mr-1.5" />
-              Create new
             </Button>
           </div>
         </div>
