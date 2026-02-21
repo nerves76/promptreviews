@@ -12,7 +12,7 @@ interface HeroSectionProps {
 export default function HeroSection({ data }: HeroSectionProps) {
   return (
     <div
-      className="relative px-8 sm:px-12 py-16 sm:py-20 text-center overflow-hidden min-h-[500px] sm:min-h-[600px] lg:min-h-[700px] flex items-center justify-center border-b border-white/30"
+      className="relative px-8 sm:px-12 py-16 sm:py-20 text-center overflow-hidden min-h-[280px] sm:min-h-[320px] lg:min-h-[360px] flex items-center justify-center border-b border-white/30"
     >
       {/* Decorative nav bar */}
       <nav className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-8 sm:px-12 py-5">
