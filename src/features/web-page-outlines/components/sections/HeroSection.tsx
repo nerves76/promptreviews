@@ -43,7 +43,7 @@ export default function HeroSection({ data }: HeroSectionProps) {
             className="opacity-80"
           />
         </div>
-        <h1 className="text-3xl sm:text-4xl lg:text-[2.75rem] font-bold text-white mb-4 leading-tight">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-4 leading-snug">
           {data.h1}
         </h1>
         <p className="text-white/90 text-lg sm:text-xl leading-relaxed">
