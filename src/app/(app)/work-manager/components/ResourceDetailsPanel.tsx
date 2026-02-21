@@ -131,8 +131,8 @@ export default function ResourceDetailsPanel({
   };
 
   const categoryLabel = WM_RESOURCE_CATEGORIES.find((c) => c.id === resource.category)?.label || resource.category;
-  const categoryColors = WM_RESOURCE_CATEGORY_COLORS[resource.category];
-  const priorityColors = WM_PRIORITY_COLORS[resource.priority];
+  const categoryColors = WM_RESOURCE_CATEGORY_COLORS[resource.category] || { bg: 'bg-gray-100', text: 'text-gray-700', border: 'border-gray-200' };
+  const priorityColors = WM_PRIORITY_COLORS[resource.priority] || { bg: 'bg-gray-100', text: 'text-gray-700', border: 'border-gray-200' };
 
   const links: WMLink[] = fullResource?.links || [];
   const linkedTasks: WMTaskResourceLink[] = fullResource?.linked_tasks || [];

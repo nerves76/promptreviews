@@ -311,7 +311,7 @@ export default function WorkManagerDetailsPanel({
     }
   };
 
-  const priorityColors = WM_PRIORITY_COLORS[task.priority];
+  const priorityColors = WM_PRIORITY_COLORS[task.priority] || { bg: 'bg-gray-100', text: 'text-gray-700', border: 'border-gray-200' };
 
   // Due date display
   let dueDateStatus: "overdue" | "today" | "upcoming" | "none" = "none";
@@ -490,7 +490,7 @@ export default function WorkManagerDetailsPanel({
             <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full border whitespace-nowrap ${priorityColors.bg} ${priorityColors.text} ${priorityColors.border}`}>
               {task.priority === "high" && <Icon name="FaCaretUp" size={10} />}
               {task.priority === "low" && <Icon name="FaCaretDown" size={10} />}
-              {WM_PRIORITY_LABELS[task.priority]}
+              {WM_PRIORITY_LABELS[task.priority] || 'Medium'}
             </span>
           </>
         )}

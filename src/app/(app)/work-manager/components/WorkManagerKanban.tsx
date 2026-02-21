@@ -97,7 +97,7 @@ export default function WorkManagerKanban({
         id: status,
         label: statusLabels[status],
         tasks: statusTasks,
-        color: WM_STATUS_COLORS[status],
+        color: WM_STATUS_COLORS[status] || 'bg-gray-500/70 backdrop-blur-sm',
       };
     });
   }, [localTasks, statusLabels]);

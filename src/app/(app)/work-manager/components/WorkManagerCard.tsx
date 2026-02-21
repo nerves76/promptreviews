@@ -40,8 +40,8 @@ export default function WorkManagerCard({
     onOpen?.(task);
   };
 
-  const priorityColors = WM_PRIORITY_COLORS[task.priority];
-  const priorityLabel = WM_PRIORITY_LABELS[task.priority];
+  const priorityColors = WM_PRIORITY_COLORS[task.priority] || { bg: 'bg-gray-100', text: 'text-gray-700', border: 'border-gray-200' };
+  const priorityLabel = WM_PRIORITY_LABELS[task.priority] || 'Medium';
 
   // Due date formatting
   let dueDateDisplay: React.ReactNode = null;

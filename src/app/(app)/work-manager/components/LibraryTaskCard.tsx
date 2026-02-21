@@ -21,8 +21,8 @@ export default function LibraryTaskCard({ task, onClick }: LibraryTaskCardProps)
   const difficultyInfo = WM_LIBRARY_DIFFICULTY.find(d => d.id === task.difficulty);
   const timeInfo = WM_LIBRARY_TIME_ESTIMATES.find(t => t.id === task.time_estimate);
 
-  const categoryColors = WM_LIBRARY_CATEGORY_COLORS[task.category];
-  const difficultyColors = WM_LIBRARY_DIFFICULTY_COLORS[task.difficulty];
+  const categoryColors = WM_LIBRARY_CATEGORY_COLORS[task.category] || { bg: 'bg-gray-100', text: 'text-gray-700' };
+  const difficultyColors = WM_LIBRARY_DIFFICULTY_COLORS[task.difficulty] || { bg: 'bg-gray-100', text: 'text-gray-700' };
 
   return (
     <button

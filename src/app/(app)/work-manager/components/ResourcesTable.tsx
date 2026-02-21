@@ -239,8 +239,8 @@ export default function ResourcesTable({
               </thead>
               <tbody>
                 {filteredAndSortedResources.map((resource, index) => {
-                  const categoryColors = WM_RESOURCE_CATEGORY_COLORS[resource.category];
-                  const priorityColors = WM_PRIORITY_COLORS[resource.priority];
+                  const categoryColors = WM_RESOURCE_CATEGORY_COLORS[resource.category] || { bg: 'bg-gray-100', text: 'text-gray-700', border: 'border-gray-200' };
+                  const priorityColors = WM_PRIORITY_COLORS[resource.priority] || { bg: 'bg-gray-100', text: 'text-gray-700', border: 'border-gray-200' };
                   const linksCount = resource.links?.length || 0;
                   const tasksCount = resource.linked_tasks?.length || 0;
 

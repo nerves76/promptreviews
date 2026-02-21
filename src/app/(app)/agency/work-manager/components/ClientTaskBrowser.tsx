@@ -233,7 +233,7 @@ export default function ClientTaskBrowser({
                         {tasks.map(task => {
                           const isLinked = task.already_linked;
                           const isSelected = selectedTaskIds.has(task.id);
-                          const priorityColors = WM_PRIORITY_COLORS[task.priority];
+                          const priorityColors = WM_PRIORITY_COLORS[task.priority] || { bg: 'bg-gray-100', text: 'text-gray-700', border: 'border-gray-200' };
 
                           return (
                             <label
@@ -257,7 +257,7 @@ export default function ClientTaskBrowser({
                                 <p className="text-sm font-medium text-gray-900 line-clamp-1">{task.title}</p>
                                 <div className="flex items-center gap-2 mt-1">
                                   <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium border ${priorityColors.bg} ${priorityColors.text} ${priorityColors.border}`}>
-                                    {WM_PRIORITY_LABELS[task.priority]}
+                                    {WM_PRIORITY_LABELS[task.priority] || 'Medium'}
                                   </span>
                                   {isLinked && (
                                     <span className="text-[10px] text-gray-500 italic">Already pulled</span>
