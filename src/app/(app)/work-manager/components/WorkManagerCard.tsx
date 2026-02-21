@@ -97,9 +97,9 @@ export default function WorkManagerCard({
   return (
     <div
       className={`
-        group relative bg-white border border-gray-200 rounded-lg shadow-lg
+        group relative bg-white/80 backdrop-blur-sm border border-white/60 rounded-lg shadow-lg
         transition-all duration-200 mb-3
-        ${isDragging ? "shadow-2xl rotate-2 scale-105 opacity-100" : "hover:shadow-xl"}
+        ${isDragging ? "shadow-2xl rotate-2 scale-105 !bg-white/90" : "hover:shadow-xl"}
         p-4 cursor-grab
       `}
     >
