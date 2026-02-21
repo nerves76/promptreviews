@@ -398,7 +398,7 @@ export default function WorkManagerDetailsPanel({
       </div>
 
       {/* Header section on glass card */}
-      <div className="mx-4 p-4 bg-white/60 backdrop-blur-sm border border-gray-100/50 rounded-xl">
+      <div className="mx-4 mb-4 p-4 bg-white/60 backdrop-blur-sm border border-gray-100/50 rounded-xl">
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
             <p className="text-xs uppercase text-gray-500 mb-1">Task</p>
