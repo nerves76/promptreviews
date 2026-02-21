@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { formatDistanceToNow, format, isPast, isToday } from "date-fns";
 import Icon, { IconName } from "@/components/Icon";
 import { apiClient } from "@/utils/apiClient";
@@ -32,6 +32,80 @@ interface WorkManagerDetailsPanelProps {
   showTimeEntriesDetail?: boolean;
   currentUserId?: string;
   agencyTimeTracking?: boolean;
+}
+
+function buildCalendarDetails(task: WMTask) {
+  return [
+    `Estimated time: ${formatTimeEstimate(task.time_estimate_minutes!)}`,
+    task.description || '',
+  ].filter(Boolean).join('\n\n');
+}
+
+function openGoogleCalendar(task: WMTask) {
+  const url = new URL('https://calendar.google.com/calendar/render');
+  url.searchParams.set('action', 'TEMPLATE');
+  url.searchParams.set('text', task.title);
+  url.searchParams.set('details', buildCalendarDetails(task));
+  window.open(url.toString(), '_blank', 'noopener');
+}
+
+function openOutlookCalendar(task: WMTask) {
+  const url = new URL('https://outlook.office.com/calendar/0/action/compose');
+  url.searchParams.set('subject', task.title);
+  url.searchParams.set('body', buildCalendarDetails(task));
+  window.open(url.toString(), '_blank', 'noopener');
+}
+
+function CalendarDropdown({ task }: { task: WMTask }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        aria-label="Block time on calendar"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+        className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 text-sm font-medium whitespace-nowrap"
+      >
+        <Icon name="FaCalendarAlt" size={12} />
+        Block on calendar
+        <Icon name="FaChevronDown" size={10} className={`transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {open && (
+        <div className="absolute left-0 bottom-full mb-1 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50 min-w-[180px]">
+          <button
+            type="button"
+            onClick={() => { openGoogleCalendar(task); setOpen(false); }}
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+          >
+            <Icon name="FaGoogle" size={14} className="text-gray-500" />
+            Google Calendar
+          </button>
+          <button
+            type="button"
+            onClick={() => { openOutlookCalendar(task); setOpen(false); }}
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+          >
+            <Icon name="FaCalendarAlt" size={14} className="text-gray-500" />
+            Outlook
+          </button>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function WorkManagerDetailsPanel({
@@ -586,6 +660,9 @@ export default function WorkManagerDetailsPanel({
               )}
               Delete
             </button>
+            {task.time_estimate_minutes && task.time_estimate_minutes > 0 && (
+              <CalendarDropdown task={task} />
+            )}
           </div>
         </section>
 
