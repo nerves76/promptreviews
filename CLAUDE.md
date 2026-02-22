@@ -340,6 +340,81 @@ export async function POST(request: NextRequest) {
 - File uploads: `validateFileUpload()` or `validateCsvUpload()`
 - Standard limits are defined in the `STRING_LIMITS` constant
 
+### Never Use `text-gray-400` for Readable Text
+```tsx
+// ❌ NEVER — Fails WCAG AA contrast (3.5:1 on white)
+<p className="text-gray-400">Some information</p>
+
+// ✅ ALWAYS — Passes WCAG AA (4.6:1 on white)
+<p className="text-gray-500">Some information</p>
+```
+- `text-gray-400` (#9ca3af) fails the 4.5:1 WCAG AA contrast ratio on white backgrounds
+- Use `text-gray-500` (#6b7280) minimum for any readable text, placeholders, or muted text
+- See the Brand Colors section for full text color guidelines
+
+### Never Statically Import Heavy Libraries — Use Dynamic Imports
+```typescript
+// ❌ NEVER — Adds ~850KB+ to the page bundle even if user never exports
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+
+// ✅ ALWAYS — Only loads when user triggers the action
+async function handleExportPDF() {
+  const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
+    import('jspdf'),
+    import('html2canvas'),
+  ]);
+  // Use jsPDF and html2canvas here...
+}
+```
+- Libraries over 100KB should be dynamically imported unless they're needed on every page load
+- Common heavy libraries: `jspdf` (~850KB), `html2canvas` (~400KB), `qrcode` (varies)
+- Dynamic imports work inside `async` functions — wrap in the click handler or action function
+
+### Use Centralized UI Components — Don't Recreate Inline
+The codebase has centralized UI components. Always use them instead of creating inline alternatives:
+
+| Component | Location | Use Instead Of |
+|-----------|----------|----------------|
+| `Badge` | `@/app/(app)/components/ui/badge` | Inline `<span className="px-2 py-1 rounded-full ...">` |
+| `LoadingSpinner` | `@/app/(app)/components/ui/loading-spinner` | Inline `<FaSpinner className="animate-spin" />` |
+| `ConfirmDialog` | `@/app/(app)/components/ui/confirm-dialog` | Custom `window.confirm()` or inline confirmation modals |
+| `Modal` | `@/app/(app)/components/ui/modal` | Custom dialog implementations |
+| `Button` | `@/app/(app)/components/ui/button` | Inline styled `<button>` elements |
+
+```tsx
+// ❌ NEVER — Inline spinner
+<FaSpinner className="animate-spin w-4 h-4" />
+
+// ✅ ALWAYS — Centralized component with accessibility
+import { LoadingSpinner } from '@/app/(app)/components/ui/loading-spinner';
+<LoadingSpinner size="sm" />
+
+// ❌ NEVER — window.confirm() or window.alert()
+if (window.confirm('Delete this item?')) { ... }
+
+// ✅ ALWAYS — ConfirmDialog component
+import { ConfirmDialog } from '@/app/(app)/components/ui/confirm-dialog';
+<ConfirmDialog isOpen={showConfirm} onConfirm={handleDelete} confirmVariant="danger" ... />
+```
+
+### Wrap Expensive List-Item Components in React.memo
+Components rendered inside `.map()` loops (list items, cards, table rows) should be wrapped in `React.memo` if they have non-trivial render cost:
+```tsx
+// ❌ Re-renders every item when parent state changes
+function ExpensiveCard({ item }: { item: Item }) {
+  return <div>...</div>;
+}
+
+// ✅ Only re-renders when props change
+const ExpensiveCard = React.memo(function ExpensiveCard({ item }: { item: Item }) {
+  return <div>...</div>;
+});
+```
+- Use the named function pattern (`React.memo(function Name() {...})`) for proper displayName
+- Already memoized: `Icon`, `StarRating`, `ShareButton`, `PageCard`, `Header`
+- Don't over-memoize: simple components with few props and cheap renders don't need it
+
 ## ⚠️ CRITICAL: Domain Information
 - **The correct domain is promptreviews.app** (NOT .com)
 - All email addresses should use @promptreviews.app
