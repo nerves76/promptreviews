@@ -13,7 +13,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { createServiceRoleClient } from '@/auth/providers/supabase';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
-import { isAdmin } from '@/auth/utils/admin';
+import { isAdmin } from '@/utils/admin';
 
 export interface AuthResult {
   success: boolean;

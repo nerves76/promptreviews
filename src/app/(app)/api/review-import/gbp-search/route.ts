@@ -13,6 +13,7 @@ import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 import { GoogleBusinessProfileClient } from '@/features/social-posting/platforms/google-business-profile/googleBusinessProfileClient';
 import { normalizeGbpReview } from '@/features/review-import/utils/normalize-gbp-review';
 import type { NormalizedReview, PreviewReview } from '@/features/review-import/types';
+import { decryptGbpToken } from '@/lib/crypto/gbpTokenHelpers';
 
 export const maxDuration = 30;
 
@@ -51,11 +52,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create GBP client and fetch reviews
+    // Create GBP client and fetch reviews (decrypt tokens from DB)
     const client = new GoogleBusinessProfileClient({
-      accessToken: gbpProfile.access_token,
-      refreshToken: gbpProfile.refresh_token,
+      accessToken: decryptGbpToken(gbpProfile.access_token),
+      refreshToken: decryptGbpToken(gbpProfile.refresh_token),
       expiresAt: new Date(gbpProfile.expires_at).getTime(),
+      accountId,
     });
 
     let rawReviews: any[];

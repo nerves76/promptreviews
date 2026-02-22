@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiClient } from '@/utils/apiClient';
+import { formatDate } from '@/utils/formatDate';
 import { useAuth } from '@/auth';
 import PageCard from '@/app/(app)/components/PageCard';
 import StandardLoader from '@/app/(app)/components/StandardLoader';
@@ -402,13 +403,7 @@ function StatBox({ label, value, valueColor = 'text-slate-blue' }: { label: stri
   );
 }
 
-function formatDate(dateStr: string): string {
-  try {
-    return new Date(dateStr).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-  } catch {
-    return dateStr;
-  }
-}
+// formatDate imported from @/utils/formatDate
 
 function calculateDomainAge(dateStr: string): string {
   try {

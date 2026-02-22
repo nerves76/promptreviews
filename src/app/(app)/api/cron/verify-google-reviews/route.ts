@@ -20,6 +20,7 @@ import { logCronExecution, verifyCronSecret } from '@/lib/cronLogger';
 import { findBestMatch } from '@/utils/reviewVerification';
 import { sendNotificationToAccount } from '@/utils/notifications';
 import { GoogleBusinessProfileClient } from '@/features/social-posting/platforms/google-business-profile/googleBusinessProfileClient';
+import { decryptGbpToken } from '@/lib/crypto/gbpTokenHelpers';
 import * as Sentry from '@sentry/nextjs';
 
 const supabase = createClient(
@@ -131,9 +132,10 @@ export async function GET(request: NextRequest) {
       let client: GoogleBusinessProfileClient;
       try {
         client = new GoogleBusinessProfileClient({
-          accessToken: gbpProfile.access_token,
-          refreshToken: gbpProfile.refresh_token ?? '',
+          accessToken: decryptGbpToken(gbpProfile.access_token),
+          refreshToken: decryptGbpToken(gbpProfile.refresh_token ?? ''),
           expiresAt: gbpProfile.expires_at ? new Date(gbpProfile.expires_at).getTime() : undefined,
+          accountId,
         });
       } catch (clientError) {
         console.error(`Failed to create GBP client for account ${accountId}:`, clientError);

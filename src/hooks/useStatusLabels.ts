@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/auth";
+import { apiClient } from "@/utils/apiClient";
 
 export interface StatusLabels {
   draft: string;
@@ -16,22 +17,6 @@ const DEFAULT_LABELS: StatusLabels = {
   follow_up: "Follow up",
   complete: "Complete",
 };
-
-// Helper to get selected account ID from localStorage
-function getSelectedAccountId(): string | null {
-  if (typeof window === 'undefined') return null;
-
-  try {
-    const userId = localStorage.getItem('promptreviews_last_user_id');
-    if (!userId) return null;
-
-    const accountKey = `promptreviews_selected_account_${userId}`;
-    return localStorage.getItem(accountKey);
-  } catch (error) {
-    console.error('Error reading selected account:', error);
-    return null;
-  }
-}
 
 /**
  * Hook to fetch and update custom status labels for the current account
@@ -54,26 +39,7 @@ export function useStatusLabels() {
       setIsLoading(true);
       setError(null);
 
-      const headers: HeadersInit = {
-        "Content-Type": "application/json",
-      };
-
-      // Add selected account header
-      const selectedAccountId = getSelectedAccountId();
-      if (selectedAccountId) {
-        headers["X-Selected-Account"] = selectedAccountId;
-      }
-
-      const response = await fetch("/api/account/status-labels", { headers });
-
-      if (!response.ok) {
-        // Silently use defaults if fetch fails (likely auth not ready)
-        setStatusLabels(DEFAULT_LABELS);
-        setIsLoading(false);
-        return;
-      }
-
-      const data = await response.json();
+      const data = await apiClient.get<{ labels: StatusLabels }>("/account/status-labels");
       setStatusLabels(data.labels || DEFAULT_LABELS);
     } catch (err) {
       // Only log errors if auth is initialized (suppress initial auth timing issues)
@@ -92,28 +58,7 @@ export function useStatusLabels() {
   const updateStatusLabels = useCallback(
     async (labels: StatusLabels): Promise<boolean> => {
       try {
-        const headers: HeadersInit = {
-          "Content-Type": "application/json",
-        };
-
-        // Add selected account header
-        const selectedAccountId = getSelectedAccountId();
-        if (selectedAccountId) {
-          headers["X-Selected-Account"] = selectedAccountId;
-        }
-
-        const response = await fetch("/api/account/status-labels", {
-          method: "PUT",
-          headers,
-          body: JSON.stringify({ labels }),
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || "Failed to update status labels");
-        }
-
-        const data = await response.json();
+        const data = await apiClient.put<{ labels: StatusLabels }>("/account/status-labels", { labels });
         setStatusLabels(data.labels);
         return true;
       } catch (err) {

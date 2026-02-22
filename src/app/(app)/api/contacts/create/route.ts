@@ -135,8 +135,9 @@ export async function POST(request: NextRequest) {
       message: "Contact created successfully"
     });
 
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Create contact error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'An unexpected error occurred';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 } 

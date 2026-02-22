@@ -6,13 +6,22 @@
 
 import { NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { logCronExecution, verifyCronSecret } from '@/lib/cronLogger';
+import { logCronExecution, verifyCronSecret, hasCompletedToday } from '@/lib/cronLogger';
 
 export async function GET(request: NextRequest) {
   const authError = verifyCronSecret(request);
   if (authError) return authError;
 
   return logCronExecution('calculate-daily-stats', async () => {
+    // Idempotency guard: skip if already completed today
+    const alreadyRan = await hasCompletedToday('calculate-daily-stats');
+    if (alreadyRan) {
+      return {
+        success: true,
+        summary: { skipped: true, reason: 'Already completed today' },
+      };
+    }
+
     const supabaseAdmin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!,
@@ -60,17 +69,26 @@ export async function GET(request: NextRequest) {
       .lt('created_at', `${today}T23:59:59Z`)
       .or("imported_from_google.is.null,imported_from_google.eq.false");
 
-    const { data: platformReviews } = await supabaseAdmin
-      .from('review_submissions')
-      .select('platform')
-      .or("imported_from_google.is.null,imported_from_google.eq.false");
-
+    // Count reviews by platform without loading all rows into memory.
+    // Query each known platform individually using count-only queries.
+    const knownPlatforms = [
+      'Google Business Profile',
+      'Yelp',
+      'Facebook',
+      'TripAdvisor',
+      'Other',
+    ];
     const reviewsByPlatform: Record<string, number> = {};
-    platformReviews?.forEach(r => {
-      if (r.platform) {
-        reviewsByPlatform[r.platform] = (reviewsByPlatform[r.platform] || 0) + 1;
+    for (const platform of knownPlatforms) {
+      const { count } = await supabaseAdmin
+        .from('review_submissions')
+        .select('id', { count: 'exact', head: true })
+        .eq('platform', platform)
+        .or("imported_from_google.is.null,imported_from_google.eq.false");
+      if (count && count > 0) {
+        reviewsByPlatform[platform] = count;
       }
-    });
+    }
 
     // Calculate feature usage
     const { count: widgetsTotal } = await supabaseAdmin

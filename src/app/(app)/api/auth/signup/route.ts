@@ -3,6 +3,7 @@ import { createServiceRoleClient } from '@/auth/providers/supabase';
 import { verifyTurnstileToken } from '@/lib/turnstile';
 import { applyRateLimit, createRateLimitResponse, RateLimits } from '@/app/(app)/api/middleware/rate-limit';
 import { sendAdminNewUserNotification } from '@/utils/emailTemplates';
+import { handleApiError } from "@/app/(app)/api/utils/errorResponse";
 
 export async function POST(request: NextRequest) {
   // Apply persistent rate limiting (Supabase-backed)
@@ -219,13 +220,7 @@ export async function POST(request: NextRequest) {
       }
     });
     
-  } catch (error: any) {
-    // Prefer explicit message; JSON.stringify(Error) is often {}
-    const errorMessage = (error && error.message) ? error.message : (typeof error === 'string' ? error : 'Internal server error');
-    console.error('❌ Signup exception:', errorMessage);
-    return NextResponse.json(
-      { error: errorMessage },
-      { status: 500 }
-    );
+  } catch (error: unknown) {
+    return handleApiError(error, 'signup');
   }
 }

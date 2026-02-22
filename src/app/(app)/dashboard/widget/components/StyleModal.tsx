@@ -6,7 +6,7 @@ import { DesignState } from './widgets/multi/index';
 interface StyleModalProps {
   isOpen: boolean;
   onClose: () => void;
-  selectedWidget: string | null;
+  selectedWidget: { id: string; name: string; type: string } | null;
   design: DesignState;
   onDesignChange: (design: DesignState) => void;
   onSaveDesign: () => void;

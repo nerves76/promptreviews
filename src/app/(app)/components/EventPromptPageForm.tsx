@@ -1,6 +1,7 @@
+// TODO: This is one of 11 PromptPageForm variants. See consolidation plan in CLAUDE.md
 /**
  * EventPromptPageForm component
- * 
+ *
  * Handles the event-specific prompt page form with all its sections:
  * - Customer details (for individual campaigns)
  * - Campaign name (for public campaigns)  

@@ -10,6 +10,7 @@ import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 import { GoogleBusinessProfileClient } from '@/features/social-posting/platforms/google-business-profile/googleBusinessProfileClient';
+import { decryptGbpToken } from '@/lib/crypto/gbpTokenHelpers';
 import crypto from 'crypto';
 
 function createSnapshotHash(data: Record<string, any>): string {
@@ -224,9 +225,10 @@ export async function POST(request: NextRequest) {
 
         if (gbpProfile?.access_token) {
           const client = new GoogleBusinessProfileClient({
-            accessToken: gbpProfile.access_token,
-            refreshToken: gbpProfile.refresh_token || undefined,
-            expiresAt: gbpProfile.expires_at ? new Date(gbpProfile.expires_at).getTime() : undefined
+            accessToken: decryptGbpToken(gbpProfile.access_token),
+            refreshToken: gbpProfile.refresh_token ? decryptGbpToken(gbpProfile.refresh_token) : '',
+            expiresAt: gbpProfile.expires_at ? new Date(gbpProfile.expires_at).getTime() : undefined,
+            accountId,
           });
 
           // Create snapshots for each location (in parallel, limited)

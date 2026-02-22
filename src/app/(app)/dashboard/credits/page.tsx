@@ -124,8 +124,8 @@ export default function CreditsPage() {
 
   const fetchBalance = useCallback(async () => {
     try {
-      const data = await apiClient.get("/credits/balance");
-      setBalance(data as CreditBalance);
+      const data = await apiClient.get<CreditBalance>("/credits/balance");
+      setBalance(data);
     } catch (error) {
       console.error("Failed to fetch balance:", error);
     }
@@ -133,8 +133,8 @@ export default function CreditsPage() {
 
   const fetchPacks = useCallback(async () => {
     try {
-      const data = await apiClient.get("/credits/packs");
-      setPacks((data as { packs: CreditPack[] }).packs || []);
+      const data = await apiClient.get<{ packs: CreditPack[] }>("/credits/packs");
+      setPacks(data.packs || []);
     } catch (error) {
       console.error("Failed to fetch packs:", error);
     }
@@ -142,10 +142,9 @@ export default function CreditsPage() {
 
   const fetchLedger = useCallback(async () => {
     try {
-      const data = await apiClient.get("/credits/ledger?limit=20");
-      const ledgerData = data as { entries: LedgerEntry[]; total: number };
-      setLedger(ledgerData.entries || []);
-      setLedgerTotal(ledgerData.total || 0);
+      const data = await apiClient.get<{ entries: LedgerEntry[]; total: number }>("/credits/ledger?limit=20");
+      setLedger(data.entries || []);
+      setLedgerTotal(data.total || 0);
     } catch (error) {
       console.error("Failed to fetch ledger:", error);
     }
@@ -166,11 +165,11 @@ export default function CreditsPage() {
   const handlePurchase = async (packId: string, recurring: boolean = false) => {
     setPurchasing(packId);
     try {
-      const data = await apiClient.post("/credits/checkout", {
+      const data = await apiClient.post<{ url: string }>("/credits/checkout", {
         packId,
         recurring,
       });
-      const { url } = data as { url: string };
+      const { url } = data;
       if (url) {
         window.location.href = url;
       }
@@ -185,8 +184,8 @@ export default function CreditsPage() {
   const handleManageSubscriptions = async () => {
     setOpeningPortal(true);
     try {
-      const data = await apiClient.post("/create-stripe-portal-session", {});
-      const { url } = data as { url: string };
+      const data = await apiClient.post<{ url: string }>("/create-stripe-portal-session", {});
+      const { url } = data;
       if (url) {
         window.location.href = url;
       }

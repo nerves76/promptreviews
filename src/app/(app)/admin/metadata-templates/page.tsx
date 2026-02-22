@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Icon from '@/components/Icon';
 import PageCard from '@/app/(app)/components/PageCard';
 import AppLoader from '@/app/(app)/components/AppLoader';
+import { apiClient } from '@/utils/apiClient';
 
 interface MetadataTemplate {
   id: string;
@@ -61,11 +62,7 @@ export default function MetadataTemplatesPage() {
   const fetchTemplates = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/metadata-templates');
-      if (!response.ok) {
-        throw new Error('Failed to fetch templates');
-      }
-      const data = await response.json();
+      const data = await apiClient.get<MetadataTemplate[]>('/metadata-templates');
       setTemplates(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch templates');
@@ -77,20 +74,10 @@ export default function MetadataTemplatesPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const url = editingTemplate
-        ? `/api/metadata-templates/${editingTemplate.id}`
-        : '/api/metadata-templates';
-      
-      const method = editingTemplate ? 'PUT' : 'POST';
-      
-      const response = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to ${editingTemplate ? 'update' : 'create'} template`);
+      if (editingTemplate) {
+        await apiClient.put(`/metadata-templates/${editingTemplate.id}`, formData);
+      } else {
+        await apiClient.post('/metadata-templates', formData);
       }
 
       await fetchTemplates();
@@ -121,16 +108,9 @@ export default function MetadataTemplatesPage() {
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this template?')) return;
-    
+
     try {
-      const response = await fetch(`/api/metadata-templates/${id}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete template');
-      }
-
+      await apiClient.delete(`/metadata-templates/${id}`);
       await fetchTemplates();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete template');

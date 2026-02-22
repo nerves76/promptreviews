@@ -162,10 +162,11 @@ export async function POST(request: NextRequest) {
       sessionId: session.id,
       url: session.url,
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('❌ [Credits] Checkout POST error:', error);
+    const message = error instanceof Error ? error.message : 'An unexpected error occurred';
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: message },
       { status: 500 }
     );
   }

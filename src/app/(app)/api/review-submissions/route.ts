@@ -7,9 +7,33 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import {
+  isValidUuid,
+  validateStringLength,
+  STRING_LIMITS,
+} from '@/app/(app)/api/utils/validation';
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type SupabaseServiceClient = { from: (table: string) => any };
 
-const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-const isValidUuid = (value?: string | null): value is string => !!value && UUID_REGEX.test(value);
+/** Max length constraints for review submission text fields */
+const FIELD_LENGTH_LIMITS: Record<string, number> = {
+  first_name: STRING_LIMITS.name,
+  last_name: STRING_LIMITS.name,
+  reviewer_name: STRING_LIMITS.name,
+  reviewer_role: STRING_LIMITS.name,
+  review_content: STRING_LIMITS.reviewText,
+  email: STRING_LIMITS.email,
+  phone: STRING_LIMITS.phone,
+  platform: STRING_LIMITS.name,
+  photo_url: STRING_LIMITS.url,
+  referrer_url: STRING_LIMITS.url,
+  entry_url: STRING_LIMITS.url,
+  source_channel: 100,
+  source_id: STRING_LIMITS.name,
+  review_type: 100,
+  prompt_page_type: 100,
+  emoji_sentiment_selection: 100,
+};
 
 // Fields that clients are allowed to submit
 const ALLOWED_FIELDS = new Set([
@@ -69,7 +93,7 @@ const BLOCKED_FIELDS = new Set([
  * Look up prompt page data including account_id and location info
  */
 async function getPromptPageData(
-  supabase: any,
+  supabase: SupabaseServiceClient,
   promptPageId: string
 ): Promise<{ accountId: string; locationName: string | null } | null> {
   const { data, error } = await supabase
@@ -135,6 +159,21 @@ export async function POST(request: NextRequest) {
     if (!promptPageData) {
       return NextResponse.json(
         { error: "Invalid prompt_page_id" },
+        { status: 400 }
+      );
+    }
+
+    // Enforce string length limits on text fields before processing
+    const lengthErrors: string[] = [];
+    for (const [field, maxLen] of Object.entries(FIELD_LENGTH_LIMITS)) {
+      if (body[field] !== undefined && body[field] !== null) {
+        const err = validateStringLength(body[field], field, maxLen);
+        if (err) lengthErrors.push(err);
+      }
+    }
+    if (lengthErrors.length > 0) {
+      return NextResponse.json(
+        { error: "Validation failed", details: lengthErrors },
         { status: 400 }
       );
     }
@@ -226,10 +265,11 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(submission);
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('[REVIEW-SUBMISSIONS] Unexpected error:', error);
+    const message = error instanceof Error ? error.message : 'An unexpected error occurred';
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: message },
       { status: 500 }
     );
   }

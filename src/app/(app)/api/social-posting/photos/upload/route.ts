@@ -7,6 +7,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient, createServiceRoleClient } from '@/auth/providers/supabase';
 import { GoogleBusinessProfileClient } from '@/features/social-posting/platforms/google-business-profile/googleBusinessProfileClient';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
+import { decryptGbpToken } from '@/lib/crypto/gbpTokenHelpers';
+import { validateFileUpload, validateStringLength, STRING_LIMITS } from '@/app/(app)/api/utils/validation';
 
 export async function POST(request: NextRequest) {
   try {
@@ -64,20 +66,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
+    // Validate file type (whitelist) and size (10MB limit)
+    const fileCheck = validateFileUpload(file, { fieldName: 'Photo' });
+    if (!fileCheck.valid) {
       return NextResponse.json(
-        { success: false, message: 'Only image files are allowed' },
+        { success: false, message: fileCheck.error },
         { status: 400 }
       );
     }
 
-    // Validate file size (10MB limit)
-    const maxSize = 10 * 1024 * 1024; // 10MB
-    if (file.size > maxSize) {
+    // Validate description length if provided
+    const descError = validateStringLength(description, 'description', STRING_LIMITS.description);
+    if (descError) {
       return NextResponse.json(
-        { success: false, message: 'File size must be less than 10MB' },
+        { success: false, message: descError },
         { status: 400 }
       );
     }
@@ -98,11 +100,12 @@ export async function POST(request: NextRequest) {
     }
 
 
-    // Create Google Business Profile client
+    // Create Google Business Profile client (decrypt tokens from DB)
     const gbpClient = new GoogleBusinessProfileClient({
-      accessToken: tokenData.access_token,
-      refreshToken: tokenData.refresh_token,
-      expiresAt: new Date(tokenData.expires_at).getTime()
+      accessToken: decryptGbpToken(tokenData.access_token),
+      refreshToken: decryptGbpToken(tokenData.refresh_token),
+      expiresAt: new Date(tokenData.expires_at).getTime(),
+      accountId,
     });
 
     // Get account ID from the location ID (need to fetch this)

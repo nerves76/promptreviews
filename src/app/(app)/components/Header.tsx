@@ -12,9 +12,6 @@ import { fetchOnboardingTasks } from "@/utils/onboardingTasks";
 import { apiClient } from '@/utils/apiClient';
 import PromptReviewsLogo from "@/app/(app)/dashboard/components/PromptReviewsLogo";
 import { AccountUtilityBar } from './AccountUtilityBar';
-// Desktop nav dropdowns moved to Sidebar component
-// import GetReviewsDropdown from './GetReviewsDropdown';
-// import YourBusinessDropdown from './YourBusinessDropdown';
 import { useAccountSelection } from '@/utils/accountSelectionHooks';
 import DropdownPortal from './DropdownPortal';
 import NotificationDropdown, { Notification } from './NotificationDropdown';
@@ -247,10 +244,10 @@ const Header = React.memo(function Header() {
     if (!hasBusiness) return;
     try {
       setNotificationsLoading(true);
-      const response = await apiClient.get('/notifications?limit=20') as {
+      const response = await apiClient.get<{
         notifications: Notification[];
         unreadCount: number;
-      };
+      }>('/notifications?limit=20');
       setNotifications(response.notifications || []);
       setUnreadCount(response.unreadCount || 0);
     } catch (error) {
@@ -264,9 +261,9 @@ const Header = React.memo(function Header() {
   const fetchCreditBalance = async () => {
     if (!hasBusiness) return;
     try {
-      const response = await apiClient.get('/credits/balance') as {
+      const response = await apiClient.get<{
         balance: { total: number };
-      };
+      }>('/credits/balance');
       setCreditBalance(response.balance?.total ?? null);
     } catch (error) {
       console.error('Error fetching credit balance:', error);

@@ -27,6 +27,8 @@ export class GoogleBusinessProfileClient {
   private accessToken: string;
   private refreshToken: string;
   private expiresAt: number;
+  /** Account ID used for server-side token refresh (avoids exposing tokens to clients) */
+  private accountId?: string;
   /**
    * Base configuration for the Google Business Profile client
    */
@@ -37,13 +39,14 @@ export class GoogleBusinessProfileClient {
   };
 
   constructor(
-    credentials: { accessToken: string; refreshToken: string; expiresAt?: number }, 
+    credentials: { accessToken: string; refreshToken: string; expiresAt?: number; accountId?: string },
     config?: Partial<GoogleBusinessProfileClientConfig>
   ) {
     this.accessToken = credentials.accessToken;
     this.refreshToken = credentials.refreshToken;
     this.expiresAt = credentials.expiresAt || Date.now() + 3600000; // 1 hour default
-    
+    this.accountId = credentials.accountId;
+
     // Update config with any provided overrides
     if (config) {
       this.config = {
@@ -56,98 +59,149 @@ export class GoogleBusinessProfileClient {
   }
 
   /**
-   * Ensures the access token is valid and refreshes it if necessary
+   * Ensures the access token is valid and refreshes it if necessary.
+   *
+   * Throws structured errors:
+   *   - GOOGLE_REAUTH_REQUIRED — permanent failure, user must reconnect
+   *   - GOOGLE_REFRESH_FAILED  — temporary failure, caller may retry later
    */
   private async ensureAccessTokenValid(): Promise<void> {
     const fiveMinutesFromNow = Date.now() + (5 * 60 * 1000);
     const isExpired = Date.now() >= this.expiresAt;
     const willExpireSoon = fiveMinutesFromNow >= this.expiresAt;
-    
-    
+
     if (isExpired || willExpireSoon) {
       try {
         await this.refreshAccessToken();
       } catch (refreshError: any) {
-        console.error('❌ Token refresh failed:', refreshError);
-        // If refresh token expired, throw a specific error
-        if (refreshError.message?.includes('REFRESH_TOKEN_EXPIRED') || 
-            refreshError.message?.includes('invalid_grant') || 
+        console.error('[GBP Client] Token refresh failed:', refreshError.message);
+
+        // Permanent failure — user must re-authenticate
+        if (refreshError.message?.includes('GOOGLE_REAUTH_REQUIRED') ||
+            refreshError.message?.includes('REFRESH_TOKEN_EXPIRED') ||
+            refreshError.message?.includes('invalid_grant') ||
             refreshError.message?.includes('requiresReauth')) {
           throw new Error('GOOGLE_REAUTH_REQUIRED: Please reconnect your Google Business Profile account');
         }
+
+        // Temporary failure — propagate so callers know it may be retryable
+        if (refreshError.message?.includes('GOOGLE_REFRESH_FAILED')) {
+          throw refreshError;
+        }
+
         throw refreshError;
       }
-    } else {
-
     }
   }
 
   /**
-   * Refreshes the access token using the refresh token
-   * Returns the new tokens if successful
+   * Refreshes the access token via the server-side refresh endpoint.
+   *
+   * SECURITY: The server endpoint handles all token storage and encryption.
+   * Tokens are never returned to the caller. The client-side expiresAt is
+   * updated based on the returned expiresIn value so the client knows when
+   * to trigger the next refresh, but the actual access token used for API
+   * calls is only accessible server-side from the database.
+   *
+   * ERROR HANDLING: The server returns structured error codes:
+   *   - TOKEN_EXPIRED  — refresh token is permanently invalid, user must re-auth
+   *   - REFRESH_FAILED — temporary failure, caller may retry later
+   *
+   * Returns a simplified result for backward compatibility with callers
+   * that check for a truthy response.
    */
   public async refreshAccessToken(): Promise<{ access_token: string; expires_in: number; refresh_token?: string } | null> {
     try {
 
       // Construct the correct URL based on environment
-      const baseUrl = typeof window !== 'undefined' 
-        ? window.location.origin 
+      const baseUrl = typeof window !== 'undefined'
+        ? window.location.origin
         : process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3002';
-      
+
       const refreshUrl = `${baseUrl}/api/auth/google/refresh-tokens`;
-  
+
+      // Build request body: prefer accountId, fall back to refreshToken for backward compat
+      const requestBody: Record<string, string> = {};
+      if (this.accountId) {
+        requestBody.accountId = this.accountId;
+      } else {
+        requestBody.refreshToken = this.refreshToken;
+      }
 
       // Call the server-side refresh endpoint
       const response = await fetch(refreshUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refreshToken: this.refreshToken }),
+        body: JSON.stringify(requestBody),
       });
-      
 
-      
-      if (!response.ok) {
+      // Parse response body regardless of status code for structured error info
+      let data: Record<string, any>;
+      try {
+        data = await response.json();
+      } catch {
         const errorText = await response.text();
-        console.error('❌ Token refresh response error:', errorText);
-        throw new Error(`HTTP ${response.status}: ${errorText}`);
+        console.error('[GBP Client] Token refresh returned non-JSON response:', errorText);
+        throw new Error(`REFRESH_FAILED: Server returned non-JSON response (HTTP ${response.status})`);
       }
-      
-      const data = await response.json();
 
+      // Handle structured error responses from the server
+      if (!response.ok || !data.success) {
+        const errorCode = data.error || 'UNKNOWN';
+        const errorMessage = data.message || 'Unknown error';
 
-      if (!data.success) {
-        if (data.error?.includes('REFRESH_TOKEN_EXPIRED') || data.requiresReauth) {
-          throw new Error('GOOGLE_REAUTH_REQUIRED: Please reconnect your Google Business Profile account');
+        console.error('[GBP Client] Token refresh failed:', {
+          errorCode,
+          errorMessage,
+          httpStatus: response.status,
+          requiresReauth: data.requiresReauth,
+        });
+
+        // TOKEN_EXPIRED: permanent failure — user must reconnect their Google account
+        if (errorCode === 'TOKEN_EXPIRED' || data.requiresReauth) {
+          throw new Error(
+            'GOOGLE_REAUTH_REQUIRED: Your Google connection has expired. Please reconnect your Google Business Profile account.'
+          );
         }
-        throw new Error(`Server-side token refresh failed: ${data.error || 'Unknown error'}`);
+
+        // REFRESH_FAILED: temporary failure — caller may retry later
+        if (errorCode === 'REFRESH_FAILED') {
+          throw new Error(
+            `GOOGLE_REFRESH_FAILED: ${errorMessage}`
+          );
+        }
+
+        // Fallback for any other error shape (legacy compatibility)
+        throw new Error(`Server-side token refresh failed: ${errorMessage}`);
       }
 
-      this.accessToken = data.accessToken;
-      this.expiresAt = Date.now() + data.expiresIn * 1000; // expiresIn is in seconds
-      this.refreshToken = data.refreshToken || this.refreshToken; // Refresh token might also be updated
+      // Update local expiry. The access token itself is now managed server-side
+      // and will be decrypted from the DB on the next API call.
+      this.expiresAt = Date.now() + data.expiresIn * 1000;
 
-      // Return the new tokens
+      // Return a minimal result for backward compatibility.
+      // Callers that check for access_token will still see a truthy value
+      // but should not rely on it being the actual Google token.
       return {
-        access_token: data.accessToken,
+        access_token: '[managed-server-side]',
         expires_in: data.expiresIn,
-        refresh_token: data.refreshToken
       };
 
     } catch (refreshError: any) {
-      if (refreshError.message?.includes('GOOGLE_REAUTH_REQUIRED')) {
-        throw refreshError; // Re-throw specific re-auth error
+      // Re-throw structured errors that callers should handle
+      if (refreshError.message?.includes('GOOGLE_REAUTH_REQUIRED') ||
+          refreshError.message?.includes('GOOGLE_REFRESH_FAILED')) {
+        throw refreshError;
       }
-      console.error('❌ Error during server-side token refresh:', refreshError);
-      
+      console.error('[GBP Client] Error during server-side token refresh:', refreshError);
+
       // Check if it's a network/URL error and provide helpful message
       if (refreshError.code === 'ERR_INVALID_URL' || refreshError.message?.includes('Failed to parse URL')) {
-        throw new Error('GOOGLE_REAUTH_REQUIRED: Token refresh endpoint unavailable. Please reconnect your Google Business Profile account');
+        throw new Error('GOOGLE_REAUTH_REQUIRED: Token refresh endpoint unavailable. Please reconnect your Google Business Profile account.');
       }
-      
-      throw new Error(`Failed to refresh access token: ${refreshError.message}`);
+
+      throw new Error(`GOOGLE_REFRESH_FAILED: Failed to refresh access token: ${refreshError.message}`);
     }
-    
-    return null; // Return null if refresh fails
   }
 
   // Note: Token saving is now handled by the server-side refresh endpoint
@@ -258,15 +312,16 @@ export class GoogleBusinessProfileClient {
     } catch (error: any) {
       console.error('❌ API request failed:', error);
 
-      // Handle specific errors that should trigger re-authentication
-      if (error.message?.includes('GOOGLE_REAUTH_REQUIRED') || 
-          error.message?.includes('token') || 
+      // Handle specific errors that should NOT be retried at this level
+      if (error.message?.includes('GOOGLE_REAUTH_REQUIRED') ||
+          error.message?.includes('GOOGLE_REFRESH_FAILED') ||
+          error.message?.includes('token') ||
           error.message?.includes('401')) {
-        throw error; // Re-throw auth errors as-is
+        throw error; // Re-throw auth/refresh errors as-is
       }
 
       // Handle retries for other errors
-      if (retryCount < this.config.retries && 
+      if (retryCount < this.config.retries &&
           !error.message?.includes('Invalid endpoint format') &&
           !error.message?.includes('CRITICAL ERROR')) {
         await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, retryCount)));

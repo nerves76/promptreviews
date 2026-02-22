@@ -10,7 +10,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import { createClient } from '@/auth/providers/supabase';
+import { createServerSupabaseClient } from '@/auth/providers/supabase';
+import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 
 // Initialize Stripe with proper error handling
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
@@ -40,28 +41,39 @@ export async function POST(request: NextRequest) {
       }, { status: 503 });
     }
 
-    const supabase = createClient();
+    const supabase = await createServerSupabaseClient();
 
     // ============================================
     // STEP 2: Authenticate user
     // ============================================
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError || !session) {
-      return NextResponse.json({ 
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
+      return NextResponse.json({
         error: 'Authentication required',
-        code: 'AUTH_REQUIRED' 
+        code: 'AUTH_REQUIRED'
       }, { status: 401 });
     }
 
-    const userId = session.user.id;
+    const userId = user.id;
 
     // ============================================
-    // STEP 3: Get subscription details from database
+    // STEP 3: Get account ID with proper isolation
+    // ============================================
+    const accountId = await getRequestAccountId(request, userId, supabase);
+    if (!accountId) {
+      return NextResponse.json({
+        error: 'No valid account found',
+        code: 'ACCOUNT_NOT_FOUND'
+      }, { status: 403 });
+    }
+
+    // ============================================
+    // STEP 4: Get subscription details from database
     // ============================================
     const { data: account, error: accountError } = await supabase
       .from('accounts')
       .select('stripe_subscription_id, stripe_customer_id, email, plan')
-      .eq('id', userId)
+      .eq('id', accountId)
       .single();
 
     if (accountError || !account) {
@@ -73,7 +85,7 @@ export async function POST(request: NextRequest) {
     }
 
     // ============================================
-    // STEP 4: Check if there's a subscription to cancel
+    // STEP 5: Check if there's a subscription to cancel
     // ============================================
     if (!account.stripe_subscription_id) {
       return NextResponse.json({ 
@@ -85,7 +97,7 @@ export async function POST(request: NextRequest) {
 
 
     // ============================================
-    // STEP 5: Cancel the Stripe subscription
+    // STEP 6: Cancel the Stripe subscription
     // ============================================
     try {
       // Cancel at period end to give user access until billing period ends
@@ -103,7 +115,7 @@ export async function POST(request: NextRequest) {
 
 
       // ============================================
-      // STEP 6: Update database with cancellation info
+      // STEP 7: Update database with cancellation info
       // ============================================
       const { error: updateError } = await supabase
         .from('accounts')
@@ -112,7 +124,7 @@ export async function POST(request: NextRequest) {
           subscription_cancel_at: (canceledSubscription as any).current_period_end ? new Date((canceledSubscription as any).current_period_end * 1000).toISOString() : null,
           updated_at: new Date().toISOString()
         })
-        .eq('id', userId);
+        .eq('id', accountId);
 
       if (updateError) {
         console.error('⚠️ Failed to update database after cancellation:', updateError);
@@ -120,7 +132,7 @@ export async function POST(request: NextRequest) {
       }
 
       // ============================================
-      // STEP 7: Return success with details
+      // STEP 8: Return success with details
       // ============================================
       return NextResponse.json({
         success: true,
@@ -138,7 +150,7 @@ export async function POST(request: NextRequest) {
       console.error('❌ Stripe cancellation failed:', stripeError);
       
       // ============================================
-      // STEP 8: Handle specific Stripe errors
+      // STEP 9: Handle specific Stripe errors
       // ============================================
       let errorMessage = 'Failed to cancel subscription';
       let errorCode = 'STRIPE_ERROR';
@@ -185,21 +197,27 @@ export async function DELETE(request: NextRequest) {
       }, { status: 503 });
     }
 
-    const supabase = createClient();
-    
+    const supabase = await createServerSupabaseClient();
+
     // Authenticate
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
-    const userId = session.user.id;
-    
+    const userId = user.id;
+
+    // Get account ID with proper isolation
+    const accountId = await getRequestAccountId(request, userId, supabase);
+    if (!accountId) {
+      return NextResponse.json({ error: 'No valid account found' }, { status: 403 });
+    }
+
     // Get subscription
     const { data: account } = await supabase
       .from('accounts')
       .select('stripe_subscription_id')
-      .eq('id', userId)
+      .eq('id', accountId)
       .single();
 
     if (!account?.stripe_subscription_id) {
@@ -230,7 +248,7 @@ export async function DELETE(request: NextRequest) {
         stripe_subscription_id: null,
         updated_at: new Date().toISOString()
       })
-      .eq('id', userId);
+      .eq('id', accountId);
 
     return NextResponse.json({
       success: true,

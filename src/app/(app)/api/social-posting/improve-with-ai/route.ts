@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/auth/providers/supabase';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
+import { validateStringLength, validateUrl, STRING_LIMITS, collectErrors } from '@/app/(app)/api/utils/validation';
 import OpenAI from 'openai';
 
 interface ImprovementRequest {
@@ -51,9 +52,22 @@ export async function POST(request: NextRequest) {
     const { currentContent, businessLocations, ctaType, ctaUrl, imageCount } = body;
 
     if (!currentContent?.trim()) {
-      return NextResponse.json({ 
-        success: false, 
-        message: 'Current content is required' 
+      return NextResponse.json({
+        success: false,
+        message: 'Current content is required'
+      }, { status: 400 });
+    }
+
+    // Validate string lengths to prevent abuse
+    const validationErrors = collectErrors(
+      validateStringLength(currentContent, 'currentContent', STRING_LIMITS.reviewText),
+      validateStringLength(ctaType, 'ctaType', STRING_LIMITS.name),
+      validateUrl(ctaUrl, 'ctaUrl'),
+    );
+    if (validationErrors.length > 0) {
+      return NextResponse.json({
+        success: false,
+        message: validationErrors.join('; ')
       }, { status: 400 });
     }
 
@@ -61,6 +75,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: false,
         message: 'Business locations are required for context'
+      }, { status: 400 });
+    }
+
+    // Validate businessLocations array length
+    if (businessLocations.length > 50) {
+      return NextResponse.json({
+        success: false,
+        message: 'Too many business locations'
       }, { status: 400 });
     }
 

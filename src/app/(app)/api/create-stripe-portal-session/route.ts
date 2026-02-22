@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import Stripe from "stripe";
 import { createServerSupabaseClient } from "@/auth/providers/supabase";
 import { getRequestAccountId } from "@/app/(app)/api/utils/getRequestAccountId";
 import { createStripeClient, BILLING_URLS, PORTAL_CONFIG } from "@/lib/billing/config";
@@ -15,18 +16,13 @@ export async function POST(req: NextRequest) {
     // Create Supabase server client with cookies from the request
     const supabase = await createServerSupabaseClient();
     
-    // For debugging - let's see what's happening
-    
-    // Get the current session (works better in API routes)
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    
-    
-    if (sessionError || !session?.user) {
-      console.error("❌ Portal API: Authentication failed:", sessionError?.message);
+    // Check authentication (getUser() validates JWT server-side, unlike getSession())
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      console.error("❌ Portal API: Authentication failed:", userError?.message);
       return NextResponse.json({ error: "User not authenticated" }, { status: 401 });
     }
-
-    const user = session.user;
 
     // Get the user's account using the proper utility function
     // This handles multiple account_user records correctly
@@ -68,23 +64,24 @@ export async function POST(req: NextRequest) {
     // This ensures users only see options relevant to their Prompt Reviews subscription
     const portalConfig = PORTAL_CONFIG.CURRENT;
     
-    const sessionParams: any = {
+    const sessionParams: Stripe.BillingPortal.SessionCreateParams = {
       customer: account.stripe_customer_id,
       return_url: returnUrl,
     };
-    
+
     // Only add configuration if we have one (for live mode, needs to be set in env)
     if (portalConfig) {
       sessionParams.configuration = portalConfig;
     } else {
       console.warn('⚠️ Portal API: No configuration specified, using default');
     }
-    
+
     const stripeSession = await stripe.billingPortal.sessions.create(sessionParams);
 
     return NextResponse.json({ url: stripeSession.url });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error creating Stripe portal session:", error);
-    return NextResponse.json({ error: "Failed to create portal session" }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'An unexpected error occurred';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

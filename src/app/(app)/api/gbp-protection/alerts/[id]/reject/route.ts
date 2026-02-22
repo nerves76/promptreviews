@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/auth/providers/supabase';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 import { GoogleBusinessProfileClient } from '@/features/social-posting/platforms/google-business-profile/googleBusinessProfileClient';
+import { decryptGbpToken } from '@/lib/crypto/gbpTokenHelpers';
 
 export async function POST(
   request: NextRequest,
@@ -59,9 +60,10 @@ export async function POST(
     if (alert.old_value !== null) {
       try {
         const client = new GoogleBusinessProfileClient({
-          accessToken: gbpProfile.access_token,
-          refreshToken: gbpProfile.refresh_token || undefined,
-          expiresAt: gbpProfile.expires_at ? new Date(gbpProfile.expires_at).getTime() : undefined
+          accessToken: decryptGbpToken(gbpProfile.access_token),
+          refreshToken: gbpProfile.refresh_token ? decryptGbpToken(gbpProfile.refresh_token) : '',
+          expiresAt: gbpProfile.expires_at ? new Date(gbpProfile.expires_at).getTime() : undefined,
+          accountId,
         });
 
         // Revert the change

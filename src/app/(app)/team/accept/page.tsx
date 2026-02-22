@@ -12,6 +12,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { CheckCircleIcon, XCircleIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import { useGlobalLoader } from '@/app/(app)/components/GlobalLoaderProvider';
 import AppLoader from "@/app/(app)/components/AppLoader";
+import { apiClient } from '@/utils/apiClient';
 
 interface InvitationData {
   id: string;
@@ -51,15 +52,10 @@ function TeamAcceptContent() {
 
     const fetchInvitation = async () => {
       try {
-        const response = await fetch(`/api/team/accept?token=${token}`);
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.error || 'Failed to fetch invitation');
-        }
+        const data = await apiClient.get<{ invitation: InvitationData }>(`/team/accept?token=${token}`);
 
         setInvitation(data.invitation);
-        
+
         // Check if invitation is expired
         if (new Date(data.invitation.expires_at) < new Date()) {
           setIsExpired(true);
@@ -82,36 +78,7 @@ function TeamAcceptContent() {
       setAccepting(true);
       setError(null);
 
-      const response = await fetch('/api/team/accept', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ token }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        // Handle account creation required error
-        if (data.error === 'Account creation required' && data.details?.requiresSignup) {
-          // Redirect to sign up with the invitation email pre-filled
-          const signUpUrl = `/auth/sign-up?email=${encodeURIComponent(invitation.email)}&invitation=${encodeURIComponent(token)}`;
-          router.push(signUpUrl);
-          return;
-        }
-        
-        // Handle email mismatch error - show logout option instead of error
-        if (data.error === 'Email address does not match invitation' && data.details) {
-          setEmailMismatch({
-            invitationEmail: data.details.invitationEmail,
-            currentUserEmail: data.details.currentUserEmail
-          });
-          return;
-        }
-        
-        throw new Error(data.error || 'Failed to accept invitation');
-      }
+      const data = await apiClient.post<any>('/team/accept', { token });
 
       setSuccess(true);
       
@@ -119,7 +86,25 @@ function TeamAcceptContent() {
       setTimeout(() => {
         router.push('/dashboard');
       }, 3000);
-    } catch (err) {
+    } catch (err: any) {
+      const responseBody = err?.responseBody;
+
+      // Handle account creation required error
+      if (responseBody?.error === 'Account creation required' && responseBody?.details?.requiresSignup) {
+        const signUpUrl = `/auth/sign-up?email=${encodeURIComponent(invitation.email)}&invitation=${encodeURIComponent(token)}`;
+        router.push(signUpUrl);
+        return;
+      }
+
+      // Handle email mismatch error - show logout option instead of error
+      if (responseBody?.error === 'Email address does not match invitation' && responseBody?.details) {
+        setEmailMismatch({
+          invitationEmail: responseBody.details.invitationEmail,
+          currentUserEmail: responseBody.details.currentUserEmail
+        });
+        return;
+      }
+
       setError(err instanceof Error ? err.message : 'Failed to accept invitation');
     } finally {
       setAccepting(false);

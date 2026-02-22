@@ -16,6 +16,7 @@ import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 import { GoogleBusinessProfileClient } from '@/features/social-posting/platforms/google-business-profile/googleBusinessProfileClient';
 import { GoogleReviewSyncService, ensureBusinessForAccount } from '@/features/google-reviews/reviewSyncService';
 import { KeywordMatchService } from '@/features/keywords/keywordMatchService';
+import { decryptGbpToken } from '@/lib/crypto/gbpTokenHelpers';
 import * as Sentry from '@sentry/nextjs';
 
 export async function POST(request: NextRequest) {
@@ -192,12 +193,13 @@ export async function POST(request: NextRequest) {
 
     const canonicalLocationId = locationRecord.location_id || locationId;
 
-    // Use the GoogleBusinessProfileClient for proper API handling
+    // Use the GoogleBusinessProfileClient for proper API handling (decrypt tokens from DB)
     console.log('🔍 Creating Google Business Profile client');
     const client = new GoogleBusinessProfileClient({
-      accessToken: platformData.access_token,
-      refreshToken: platformData.refresh_token || undefined,
+      accessToken: decryptGbpToken(platformData.access_token),
+      refreshToken: platformData.refresh_token ? decryptGbpToken(platformData.refresh_token) : '',
       expiresAt: platformData.expires_at ? new Date(platformData.expires_at).getTime() : undefined,
+      accountId,
     });
 
     const keywordMatcher = new KeywordMatchService(serviceSupabase, accountId);

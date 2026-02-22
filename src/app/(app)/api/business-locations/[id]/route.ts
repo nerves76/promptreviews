@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/auth/providers/supabase';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
+import { isValidUuid } from '@/app/(app)/api/utils/validation';
 
 interface Params {
   id: string;
@@ -16,7 +17,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<Pa
   try {
     const supabase = await createServerSupabaseClient();
     const locationId = (await params).id;
-    
+
+    if (!isValidUuid(locationId)) {
+      return NextResponse.json({ error: 'Invalid location ID format' }, { status: 400 });
+    }
+
     // Get authenticated user
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
@@ -75,7 +80,11 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<Pa
   try {
     const supabase = await createServerSupabaseClient();
     const locationId = (await params).id;
-    
+
+    if (!isValidUuid(locationId)) {
+      return NextResponse.json({ error: 'Invalid location ID format' }, { status: 400 });
+    }
+
     // Get authenticated user
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
@@ -190,7 +199,11 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   try {
     const supabase = await createServerSupabaseClient();
     const locationId = (await params).id;
-    
+
+    if (!isValidUuid(locationId)) {
+      return NextResponse.json({ error: 'Invalid location ID format' }, { status: 400 });
+    }
+
     // Get authenticated user
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {

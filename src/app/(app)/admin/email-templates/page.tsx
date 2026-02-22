@@ -8,7 +8,8 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { createClient } from "@/auth/providers/supabase";
+import DOMPurify from 'isomorphic-dompurify';
+import { apiClient } from '@/utils/apiClient';
 
 interface EmailTemplate {
   id: string;
@@ -22,8 +23,6 @@ interface EmailTemplate {
 }
 
 export default function EmailTemplatesPage() {
-  const supabase = createClient();
-
   const [templates, setTemplates] = useState<EmailTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -46,14 +45,8 @@ export default function EmailTemplatesPage() {
 
   const fetchTemplates = async () => {
     try {
-      const response = await fetch('/api/email-templates');
-      const data = await response.json();
-
-      if (response.ok) {
-        setTemplates(data.templates || []);
-      } else {
-        setError(data.error || 'Failed to fetch templates');
-      }
+      const data = await apiClient.get<{ templates?: EmailTemplate[]; error?: string }>('/email-templates');
+      setTemplates(data.templates || []);
     } catch (error) {
       setError('Error fetching templates');
     } finally {
@@ -77,34 +70,22 @@ export default function EmailTemplatesPage() {
     if (!editingTemplate) return;
 
     try {
-      const response = await fetch('/api/email-templates', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          id: editingTemplate.id,
-          updates: {
-            subject: formData.subject,
-            html_content: formData.html_content,
-            text_content: formData.text_content || null,
-            is_active: formData.is_active
-          }
-        }),
+      await apiClient.post('/email-templates', {
+        id: editingTemplate.id,
+        updates: {
+          subject: formData.subject,
+          html_content: formData.html_content,
+          text_content: formData.text_content || null,
+          is_active: formData.is_active
+        }
       });
 
-      const data = await response.json();
+      setSuccess('Template updated successfully');
+      setEditingTemplate(null);
+      fetchTemplates();
 
-      if (response.ok) {
-        setSuccess('Template updated successfully');
-        setEditingTemplate(null);
-        fetchTemplates();
-        
-        // Clear success message after 3 seconds
-        setTimeout(() => setSuccess(null), 3000);
-      } else {
-        setError(data.error || 'Failed to update template');
-      }
+      // Clear success message after 3 seconds
+      setTimeout(() => setSuccess(null), 3000);
     } catch (error) {
       setError('Error updating template');
     }
@@ -165,7 +146,7 @@ export default function EmailTemplatesPage() {
     return (
       <div className="border rounded-lg p-4 bg-gray-50">
         <h4 className="font-medium mb-2">Preview (with sample data)</h4>
-        <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: previewContent }} />
+        <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(previewContent) }} />
       </div>
     );
   };

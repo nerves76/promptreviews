@@ -319,9 +319,9 @@ export default function CommunityPage() {
       setBusinessName(initialBusinessName);
       setShowGuidelines(false);
       setRequireGuidelinesAcceptance(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error accepting guidelines:', error);
-      const errorMessage = error?.message || error?.toString() || 'Unknown error';
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       alert(`There was an error joining the community:\n\n${errorMessage}\n\nPlease try again or contact support.`);
     }
   };

@@ -11,14 +11,25 @@
 import { NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { GoogleBusinessProfileClient } from '@/features/social-posting/platforms/google-business-profile/googleBusinessProfileClient';
+import { decryptGbpToken } from '@/lib/crypto/gbpTokenHelpers';
 import { sendTemplatedEmail } from '@/utils/emailTemplates';
-import { logCronExecution, verifyCronSecret } from '@/lib/cronLogger';
+import { logCronExecution, verifyCronSecret, hasCompletedToday, shouldExitEarly } from '@/lib/cronLogger';
 
 export async function GET(request: NextRequest) {
   const authError = verifyCronSecret(request);
   if (authError) return authError;
 
   return logCronExecution('send-review-reminders', async () => {
+    // Idempotency guard: skip if already completed today
+    const alreadyRan = await hasCompletedToday('send-review-reminders');
+    if (alreadyRan) {
+      return {
+        success: true,
+        summary: { skipped: true, reason: 'Already completed today' },
+      };
+    }
+
+    const cronStartTime = Date.now();
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -54,7 +65,15 @@ export async function GET(request: NextRequest) {
     let errorCount = 0;
     let skippedCount = 0;
 
+    let exitedEarly = false;
     for (const userData of usersWithGBP) {
+      // Exit before Vercel 30s timeout (25s buffer)
+      if (shouldExitEarly(cronStartTime)) {
+        console.log(`[Review Reminders] Approaching timeout, processed ${successCount + skippedCount} of ${usersWithGBP.length} users`);
+        exitedEarly = true;
+        break;
+      }
+
       try {
         const userId = userData.user_id;
         const account = Array.isArray(userData.accounts) ? userData.accounts[0] : userData.accounts;
@@ -83,9 +102,10 @@ export async function GET(request: NextRequest) {
         }
 
         const gbpClient = new GoogleBusinessProfileClient({
-          accessToken: userData.access_token,
-          refreshToken: userData.refresh_token,
-          expiresAt: userData.expires_at ? new Date(userData.expires_at).getTime() : Date.now() + 3600000
+          accessToken: decryptGbpToken(userData.access_token),
+          refreshToken: decryptGbpToken(userData.refresh_token),
+          expiresAt: userData.expires_at ? new Date(userData.expires_at).getTime() : Date.now() + 3600000,
+          accountId: userData.account_id,
         });
 
         const unrespondedReviews = await gbpClient.getUnrespondedReviews();
@@ -194,12 +214,13 @@ export async function GET(request: NextRequest) {
     }
 
     return {
-      success: errorCount === 0,
+      success: !exitedEarly && errorCount === 0,
       summary: {
         total: usersWithGBP.length,
         sent: successCount,
         failed: errorCount,
-        skipped: skippedCount
+        skipped: skippedCount,
+        exitedEarly,
       }
     };
   });

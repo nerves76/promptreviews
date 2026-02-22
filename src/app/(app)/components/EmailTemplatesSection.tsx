@@ -64,9 +64,10 @@ export default function EmailTemplatesSection() {
         t.id === editingTemplate.id ? editingTemplate : t
       ));
       setEditingTemplate(null);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error saving template:', error);
-      alert('Error saving template: ' + (error.responseBody?.error || error.message));
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      alert('Error saving template: ' + message);
     } finally {
       setSaving(false);
     }
@@ -78,9 +79,10 @@ export default function EmailTemplatesSection() {
       const data = await apiClient.post<{ summary: { total: number; sent: number; failed: number; skipped?: number } }>('/send-trial-reminders');
       setReminderResults(data);
       alert(`Trial reminders sent! ${data.summary.sent} successful, ${data.summary.failed} failed.`);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error sending reminders:', error);
-      alert('Error sending reminders: ' + (error.responseBody?.error || error.message));
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      alert('Error sending reminders: ' + message);
     } finally {
       setSendingReminders(false);
     }

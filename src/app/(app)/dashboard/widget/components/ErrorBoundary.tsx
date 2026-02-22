@@ -84,8 +84,13 @@ export class ErrorBoundary extends Component<Props, State> {
                 Something went wrong
               </h2>
               <p className="mt-2 text-sm text-gray-600">
-                {this.state.error?.message || 'An unexpected error occurred'}
+                An unexpected error occurred. Please try again.
               </p>
+              {process.env.NODE_ENV !== 'production' && this.state.error && (
+                <pre className="mt-2 p-2 bg-gray-50 rounded text-xs text-left text-red-700 overflow-auto max-h-24 border border-gray-200">
+                  {this.state.error.message}
+                </pre>
+              )}
               {this.state.errorId && (
                 <p className="mt-2 text-xs text-gray-500">
                   Error ID: {this.state.errorId}

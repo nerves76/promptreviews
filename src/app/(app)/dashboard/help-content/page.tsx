@@ -6,6 +6,7 @@ import { useCoreAuth } from "@/auth/context/CoreAuthContext";
 import { Button } from "@/app/(app)/components/ui/button";
 import { Input } from "@/app/(app)/components/ui/input";
 import { apiClient } from "@/utils/apiClient";
+import { formatDateOrFallback } from "@/utils/formatDate";
 import PageCard from "@/app/(app)/components/PageCard";
 import StandardLoader from "@/app/(app)/components/StandardLoader";
 import HelpContentBreadcrumbs from "./components/HelpContentBreadcrumbs";
@@ -202,14 +203,7 @@ export default function HelpContentPage() {
     return 0;
   });
 
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return "-";
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  };
+  const formatDate = (dateString: string | null) => formatDateOrFallback(dateString, "-");
 
   if (authLoading) {
     return <StandardLoader isLoading={true} />;

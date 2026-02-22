@@ -27,6 +27,7 @@ import { cookies } from 'next/headers';
 import { GoogleBusinessProfileClient } from '@/features/social-posting/platforms/google-business-profile/googleBusinessProfileClient';
 import { hasValue } from '@/utils/dataFiltering';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
+import { decryptGbpToken } from '@/lib/crypto/gbpTokenHelpers';
 
 // Service role client for bypassing RLS when reading tokens
 const serviceSupabase = createClient(
@@ -117,11 +118,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create client
+    // Create client (decrypt tokens from DB)
     const client = new GoogleBusinessProfileClient({
-      accessToken: tokens.access_token,
-      refreshToken: tokens.refresh_token,
+      accessToken: decryptGbpToken(tokens.access_token),
+      refreshToken: decryptGbpToken(tokens.refresh_token),
       expiresAt: new Date(tokens.expires_at).getTime(),
+      accountId,
     });
 
     // Fetch location names from Google for better success messages

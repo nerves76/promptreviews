@@ -1,3 +1,4 @@
+// TODO: This is one of 11 PromptPageForm variants. See consolidation plan in CLAUDE.md
 "use client";
 import React from "react";
 import { useState, useEffect } from "react";

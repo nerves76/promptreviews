@@ -160,13 +160,9 @@ export async function generateAIReview(
       additional_ai_donts,
     );
 
-    const response = await fetch("/api/generate-review", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt, wordCountLimit }),
-    });
-    const data = await response.json();
-    if (!response.ok || !data.text) {
+    const { apiClient } = await import("@/utils/apiClient");
+    const data = await apiClient.post<{ text?: string; error?: string }>("/generate-review", { prompt, wordCountLimit });
+    if (!data.text) {
       throw new Error(data.error || "Failed to generate review");
     }
 

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient, createServiceRoleClient } from "@/auth/providers/supabase";
 import { getRequestAccountId } from "@/app/(app)/api/utils/getRequestAccountId";
 import { createStripeClient, PRICE_IDS } from "@/lib/billing/config";
+import { handleApiError } from "@/app/(app)/api/utils/errorResponse";
 
 
 export async function POST(req: NextRequest) {
@@ -116,11 +117,7 @@ export async function POST(req: NextRequest) {
       stripePriceId: currentStripePrice
     });
 
-  } catch (error: any) {
-    console.error("Error syncing subscription:", error);
-    return NextResponse.json(
-      { error: "Server error", message: error.message || "An unexpected error occurred" },
-      { status: 500 }
-    );
+  } catch (error: unknown) {
+    return handleApiError(error, 'sync-subscription');
   }
 }

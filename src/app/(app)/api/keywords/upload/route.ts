@@ -5,6 +5,7 @@ import { createServerSupabaseClient } from '@/auth/providers/supabase';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 import { normalizePhrase, calculateWordCount, DEFAULT_GROUP_NAME } from '@/features/keywords/keywordUtils';
 import { DEFAULT_AI_SEARCH_GROUP_NAME } from '@/lib/groupConstants';
+import { validateCsvUpload } from '@/app/(app)/api/utils/validation';
 
 // Service client for privileged operations
 const serviceSupabase = createClient(
@@ -40,6 +41,12 @@ export async function POST(request: NextRequest) {
 
     if (!file) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
+    }
+
+    // Validate file type and size
+    const fileCheck = validateCsvUpload(file, { fieldName: 'CSV file' });
+    if (!fileCheck.valid) {
+      return NextResponse.json({ error: fileCheck.error }, { status: 400 });
     }
 
     // Read and parse the CSV file

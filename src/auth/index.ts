@@ -30,7 +30,7 @@ export type {
 } from './types';
 
 // Utils
-export { isAdmin, ensureAdminForEmail, setAdminStatus, listAdmins } from './utils/admin';
+export { isAdmin, ensureAdminForEmail, setAdminStatus, listAdmins } from '@/utils/admin';
 export { 
   getUserAccounts,
   getAccountsForUser,

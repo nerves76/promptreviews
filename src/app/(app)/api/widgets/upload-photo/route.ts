@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { isValidUuid, validateUrl } from "@/app/(app)/api/utils/validation";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -12,6 +13,20 @@ export async function POST(req: NextRequest) {
 
     if (!reviewId || !widgetId || !photoUrl) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    }
+
+    // Validate UUID parameters
+    if (!isValidUuid(reviewId)) {
+      return NextResponse.json({ error: "Invalid reviewId format" }, { status: 400 });
+    }
+    if (!isValidUuid(widgetId)) {
+      return NextResponse.json({ error: "Invalid widgetId format" }, { status: 400 });
+    }
+
+    // Validate photoUrl
+    const urlError = validateUrl(photoUrl, 'photoUrl');
+    if (urlError) {
+      return NextResponse.json({ error: urlError }, { status: 400 });
     }
 
     // Update the review with the photo URL

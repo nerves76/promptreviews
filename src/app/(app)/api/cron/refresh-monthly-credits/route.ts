@@ -26,7 +26,7 @@
 
 import { NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { logCronExecution, verifyCronSecret } from '@/lib/cronLogger';
+import { logCronExecution, verifyCronSecret, hasCompletedToday, shouldExitEarly } from '@/lib/cronLogger';
 import {
   credit,
   getTierCredits,
@@ -38,6 +38,17 @@ export async function GET(request: NextRequest) {
   if (authError) return authError;
 
   return logCronExecution('refresh-monthly-credits', async () => {
+    // Idempotency guard: skip if already completed today
+    const alreadyRan = await hasCompletedToday('refresh-monthly-credits');
+    if (alreadyRan) {
+      return {
+        success: true,
+        summary: { skipped: true, reason: 'Already completed today' },
+      };
+    }
+
+    const cronStartTime = Date.now();
+
     // Check if today is the last day of the month
     // This cron runs on days 28-31, but we only process on the actual last day
     const now = new Date();
@@ -114,8 +125,16 @@ export async function GET(request: NextRequest) {
       maven: 500,
     };
 
-    // Process each account
+    // Process each account (with timeout protection)
+    let exitedEarly = false;
     for (const account of accounts || []) {
+      // Exit before Vercel 30s timeout (25s buffer)
+      if (shouldExitEarly(cronStartTime)) {
+        console.log(`⏱️ [Monthly Credits] Approaching timeout, stopping after ${results.processed + results.skipped} accounts`);
+        exitedEarly = true;
+        break;
+      }
+
       try {
         // Determine monthly credits in priority order:
         // 1. Custom allocation (if set)
@@ -313,12 +332,13 @@ export async function GET(request: NextRequest) {
     }
 
     return {
-      success: true,
+      success: !exitedEarly && results.errors === 0,
       summary: {
         total: accounts?.length || 0,
         processed: results.processed,
         skipped: results.skipped,
         errors: results.errors,
+        exitedEarly,
       },
     };
   });

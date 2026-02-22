@@ -14,6 +14,7 @@ import Icon from '@/components/Icon';
 import ReviewResponseGenerator from './ReviewResponseGenerator';
 import LocationPicker from '@/components/GoogleBusinessProfile/LocationPicker';
 import { apiClient } from '@/utils/apiClient';
+import { formatDate } from '@/utils/formatDate';
 
 interface GoogleBusinessLocation {
   id: string;
@@ -291,18 +292,7 @@ export default function ReviewManagement({ locations, isConnected }: ReviewManag
     }
   };
 
-  const formatDate = (dateString: string) => {
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-      });
-    } catch {
-      return 'Unknown date';
-    }
-  };
+  // formatDate imported from @/utils/formatDate
 
   const renderStars = (rating: number) => {
     return (

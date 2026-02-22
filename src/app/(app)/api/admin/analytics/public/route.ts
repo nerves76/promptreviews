@@ -77,59 +77,77 @@ export async function GET() {
     }
 
     // Fallback to slow path if analytics tables aren't available
+    // Uses count queries instead of fetching all rows
     if (!usedFastPath) {
       const now = new Date();
       const monthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
       const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
+      // Use count queries for totals instead of fetching all rows
       const [
-        { data: accounts },
-        { data: businesses },
-        { data: reviews },
-        { data: promptPages },
-        { data: widgets },
-        { data: gbpLocations }
+        { count: accountsCount },
+        { count: businessesCount },
+        { count: reviewsCount },
+        { count: promptPagesCount },
+        { count: widgetsCount },
+        { count: gbpLocationsCount },
+        { count: gbpPostsCount },
+        { count: reviewsThisMonthCount },
+        { count: reviewsThisWeekCount },
+        { count: newAccountsThisMonthCount },
+        { count: newBusinessesThisMonthCount },
       ] = await Promise.all([
-        supabaseAdmin.from('accounts').select('id, created_at, status').not('email', 'is', null),
-        supabaseAdmin.from('businesses').select('id, created_at'),
-        supabaseAdmin.from('review_submissions').select('id, created_at, platform, verified'),
-        supabaseAdmin.from('prompt_pages').select('id, created_at'),
-        supabaseAdmin.from('widgets').select('id, created_at'),
-        supabaseAdmin.from('google_business_locations').select('location_id').not('location_id', 'is', null)
+        supabaseAdmin.from('accounts').select('id', { count: 'exact', head: true }).not('email', 'is', null),
+        supabaseAdmin.from('businesses').select('id', { count: 'exact', head: true }),
+        supabaseAdmin.from('review_submissions').select('id', { count: 'exact', head: true }),
+        supabaseAdmin.from('prompt_pages').select('id', { count: 'exact', head: true }),
+        supabaseAdmin.from('widgets').select('id', { count: 'exact', head: true }),
+        supabaseAdmin.from('google_business_locations').select('location_id', { count: 'exact', head: true }).not('location_id', 'is', null),
+        supabaseAdmin.from('google_business_scheduled_posts').select('id', { count: 'exact', head: true }).eq('status', 'published'),
+        supabaseAdmin.from('review_submissions').select('id', { count: 'exact', head: true }).gte('created_at', monthAgo.toISOString()),
+        supabaseAdmin.from('review_submissions').select('id', { count: 'exact', head: true }).gte('created_at', weekAgo.toISOString()),
+        supabaseAdmin.from('accounts').select('id', { count: 'exact', head: true }).not('email', 'is', null).gte('created_at', monthAgo.toISOString()),
+        supabaseAdmin.from('businesses').select('id', { count: 'exact', head: true }).gte('created_at', monthAgo.toISOString()),
       ]);
 
-      // Count GBP posts
-      const { count: gbpPostsCount } = await supabaseAdmin
-        .from('google_business_scheduled_posts')
-        .select('id', { count: 'exact', head: true })
-        .eq('status', 'published');
+      // Fetch only account status fields for breakdown (minimal columns)
+      const { data: accounts } = await supabaseAdmin
+        .from('accounts')
+        .select('status')
+        .not('email', 'is', null);
 
-      // Calculate account status breakdown
       const accountsActive = accounts?.filter(a => a.status === 'active').length || 0;
       const accountsTrial = accounts?.filter(a => a.status === 'trial').length || 0;
       const accountsPaid = accounts?.filter(a => a.status === 'paid').length || 0;
 
-      // Calculate platform distribution
+      // Fetch only recent reviews for platform distribution (last 90 days, limited)
+      const ninetyDaysAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+      const { data: recentReviews } = await supabaseAdmin
+        .from('review_submissions')
+        .select('platform')
+        .gte('created_at', ninetyDaysAgo.toISOString())
+        .limit(1000);
+
       const platformCounts: Record<string, number> = {};
-      reviews?.forEach(review => {
+      recentReviews?.forEach((review: { platform: string }) => {
         const platform = review.platform || 'unknown';
         platformCounts[platform] = (platformCounts[platform] || 0) + 1;
       });
 
       analyticsData = {
-        totalUsers: accounts?.length || 0,
-        totalAccounts: accounts?.length || 0,
-        totalBusinesses: businesses?.length || 0,
-        totalReviews: reviews?.length || 0,
-        totalPromptPages: promptPages?.length || 0,
-        totalWidgets: widgets?.length || 0,
-        totalGbpLocations: new Set(gbpLocations?.map(l => l.location_id)).size || 0,
+        totalUsers: accountsCount || 0,
+        totalAccounts: accountsCount || 0,
+        totalBusinesses: businessesCount || 0,
+        totalReviews: reviewsCount || 0,
+        totalPromptPages: promptPagesCount || 0,
+        totalWidgets: widgetsCount || 0,
+        totalGbpLocations: gbpLocationsCount || 0,
         totalGbpPosts: gbpPostsCount || 0,
-        reviewsThisMonth: reviews?.filter(r => new Date(r.created_at) >= monthAgo).length || 0,
-        reviewsThisWeek: reviews?.filter(r => new Date(r.created_at) >= weekAgo).length || 0,
-        newUsersThisMonth: accounts?.filter(u => new Date(u.created_at) >= monthAgo).length || 0,
-        newAccountsThisMonth: accounts?.filter(a => new Date(a.created_at) >= monthAgo).length || 0,
-        newBusinessesThisMonth: businesses?.filter(b => new Date(b.created_at) >= monthAgo).length || 0,
+        reviewsThisMonth: reviewsThisMonthCount || 0,
+        reviewsThisWeek: reviewsThisWeekCount || 0,
+        newUsersThisMonth: newAccountsThisMonthCount || 0,
+        newAccountsThisMonth: newAccountsThisMonthCount || 0,
+        newBusinessesThisMonth: newBusinessesThisMonthCount || 0,
         accountsActive,
         accountsTrial,
         accountsPaid,

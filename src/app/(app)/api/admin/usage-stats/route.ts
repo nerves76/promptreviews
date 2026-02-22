@@ -64,19 +64,23 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // Get query params for date range
+    // Get query params for date range (default 30 days, max 365)
     const searchParams = request.nextUrl.searchParams;
-    const days = parseInt(searchParams.get('days') || '30', 10);
+    const days = Math.min(parseInt(searchParams.get('days') || '30', 10), 365);
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
 
     const serviceSupabase = createServiceRoleClient();
 
-    // 1. Get app-wide totals by feature type
+    // Max rows to fetch per query to prevent unbounded reads
+    const MAX_ROWS = 5000;
+
+    // 1. Get app-wide totals by feature type (with row limit)
     const { data: totalsData, error: totalsError } = await serviceSupabase
       .from('ai_usage')
-      .select('feature_type, cost_usd, total_tokens')
-      .gte('created_at', startDate.toISOString());
+      .select('feature_type, cost_usd, total_tokens, account_id')
+      .gte('created_at', startDate.toISOString())
+      .limit(MAX_ROWS);
 
     if (totalsError) {
       console.error('Error fetching totals:', totalsError);
@@ -100,58 +104,64 @@ export async function GET(request: NextRequest) {
     });
 
     // 2. Get top 5 accounts by cost for each feature type
+    // Re-use the totalsData we already have to avoid N+1 queries per feature type
     const featureTypes = Array.from(totalsMap.keys());
     const featureUsage: FeatureUsage[] = [];
 
-    for (const ft of featureTypes) {
-      // Query to get top accounts for this feature type
-      const { data: topAccountsData, error: topError } = await serviceSupabase
-        .from('ai_usage')
-        .select(`
-          account_id,
-          cost_usd
-        `)
-        .eq('feature_type', ft)
-        .gte('created_at', startDate.toISOString())
-        .not('account_id', 'is', null);
+    // Build per-feature account aggregation from the data we already fetched
+    // This avoids re-querying ai_usage for each feature type
+    const featureAccountMap = new Map<string, Map<string, { total_cost: number; total_requests: number }>>();
+    (totalsData || []).forEach((row: any) => {
+      const ft = row.feature_type || 'unknown';
+      const accId = row.account_id;
+      if (!accId) return;
 
-      if (topError) {
-        console.error(`Error fetching top accounts for ${ft}:`, topError);
-        continue;
+      if (!featureAccountMap.has(ft)) {
+        featureAccountMap.set(ft, new Map());
       }
+      const accountMap = featureAccountMap.get(ft)!;
+      const existing = accountMap.get(accId) || { total_cost: 0, total_requests: 0 };
+      existing.total_cost += parseFloat(row.cost_usd || '0');
+      existing.total_requests += 1;
+      accountMap.set(accId, existing);
+    });
 
-      // Aggregate by account
-      const accountTotals = new Map<string, { total_cost: number; total_requests: number }>();
-      (topAccountsData || []).forEach((row: any) => {
-        const accId = row.account_id;
-        const existing = accountTotals.get(accId) || { total_cost: 0, total_requests: 0 };
-        existing.total_cost += parseFloat(row.cost_usd || '0');
-        existing.total_requests += 1;
-        accountTotals.set(accId, existing);
-      });
-
-      // Sort by cost and take top 5
-      const sortedAccounts = Array.from(accountTotals.entries())
+    // Collect all top account IDs across all features for a single batch lookup
+    const allTopAccountIds = new Set<string>();
+    for (const ft of featureTypes) {
+      const accountMap = featureAccountMap.get(ft);
+      if (!accountMap) continue;
+      const sorted = Array.from(accountMap.entries())
         .sort((a, b) => b[1].total_cost - a[1].total_cost)
         .slice(0, 5);
+      sorted.forEach(([id]) => allTopAccountIds.add(id));
+    }
 
-      // Fetch account details for top accounts
-      const topAccountIds = sortedAccounts.map(([id]) => id);
-      let accountDetails: Record<string, { business_name: string | null; email: string | null }> = {};
+    // Single batch fetch for all account details
+    let accountDetails: Record<string, { business_name: string | null; email: string | null }> = {};
+    const accountIdList = Array.from(allTopAccountIds);
+    if (accountIdList.length > 0) {
+      const { data: accountsData } = await serviceSupabase
+        .from('accounts')
+        .select('id, business_name, email')
+        .in('id', accountIdList);
 
-      if (topAccountIds.length > 0) {
-        const { data: accountsData } = await serviceSupabase
-          .from('accounts')
-          .select('id, business_name, email')
-          .in('id', topAccountIds);
+      (accountsData || []).forEach((acc: any) => {
+        accountDetails[acc.id] = {
+          business_name: acc.business_name,
+          email: acc.email,
+        };
+      });
+    }
 
-        (accountsData || []).forEach((acc: any) => {
-          accountDetails[acc.id] = {
-            business_name: acc.business_name,
-            email: acc.email,
-          };
-        });
-      }
+    // Build feature usage results
+    for (const ft of featureTypes) {
+      const accountMap = featureAccountMap.get(ft);
+      const sortedAccounts = accountMap
+        ? Array.from(accountMap.entries())
+            .sort((a, b) => b[1].total_cost - a[1].total_cost)
+            .slice(0, 5)
+        : [];
 
       const topAccounts: TopAccount[] = sortedAccounts.map(([accountId, stats]) => ({
         account_id: accountId,

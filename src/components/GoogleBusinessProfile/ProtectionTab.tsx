@@ -9,6 +9,7 @@
 
 import { useState, useEffect } from 'react';
 import { apiClient } from '@/utils/apiClient';
+import { formatRelativeDate } from '@/utils/formatDate';
 import Icon, { IconName } from '@/components/Icon';
 import Link from 'next/link';
 
@@ -93,17 +94,9 @@ function formatValue(value: any): string {
   return String(value);
 }
 
+// formatDate using canonical formatRelativeDate from @/utils/formatDate
 function formatDate(dateString: string): string {
-  const date = new Date(dateString);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-  const diffDays = Math.floor(diffHours / 24);
-
-  if (diffHours < 1) return 'Just now';
-  if (diffHours < 24) return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
-  if (diffDays < 7) return `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
-  return date.toLocaleDateString();
+  return formatRelativeDate(dateString);
 }
 
 export default function ProtectionTab({ accountPlan }: ProtectionTabProps) {

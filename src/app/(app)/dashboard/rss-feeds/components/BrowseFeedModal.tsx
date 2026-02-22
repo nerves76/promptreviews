@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { Dialog } from "@headlessui/react";
 import Icon from "@/components/Icon";
 import { apiClient } from "@/utils/apiClient";
+import { formatDateOrFallback } from "@/utils/formatDate";
 import { BrowseFeedItem } from "@/app/(app)/api/rss-feeds/[id]/browse/route";
 
 interface BrowseFeedModalProps {
@@ -193,14 +194,7 @@ export default function BrowseFeedModal({
     }
   };
 
-  const formatDate = (dateStr: string | null) => {
-    if (!dateStr) return "Unknown date";
-    return new Date(dateStr).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
-  };
+  const formatDate = (dateStr: string | null) => formatDateOrFallback(dateStr, "Unknown date");
 
   // Get minimum date (tomorrow)
   const minDate = useMemo(() => {

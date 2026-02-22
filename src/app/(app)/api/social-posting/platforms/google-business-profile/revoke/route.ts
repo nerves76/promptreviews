@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
+import { decryptGbpToken } from '@/lib/crypto/gbpTokenHelpers';
 
 export async function POST(request: NextRequest) {
   try {
@@ -61,8 +62,8 @@ export async function POST(request: NextRequest) {
     let revokeMessage = '';
     
     if (tokenData?.access_token || tokenData?.refresh_token) {
-      // Try to revoke both tokens if available
-      const tokenToRevoke = tokenData.refresh_token || tokenData.access_token;
+      // Try to revoke both tokens if available (decrypt from DB first)
+      const tokenToRevoke = decryptGbpToken(tokenData.refresh_token || tokenData.access_token);
       
       
       try {

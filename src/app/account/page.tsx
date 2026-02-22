@@ -20,6 +20,7 @@ import { getUserOrMock } from "@/utils/supabase";
 import PageCard from "@/app/components/PageCard";
 import AppLoader from "@/app/components/AppLoader";
 import { trackEvent, GA_EVENTS } from "../../utils/analytics";
+import { apiClient } from "@/utils/apiClient";
 
 export default function AccountPage() {
   const router = useRouter();
@@ -79,31 +80,14 @@ export default function AccountPage() {
       setCreateAccountError(null);
       setCreateAccountSuccess(null);
 
-      // Get an access token for the API route
-      const { data: sessionData } = await supabase.auth.getSession();
-      const accessToken = sessionData.session?.access_token;
-      if (!accessToken) {
-        setCreateAccountError("Not authenticated");
-        return;
-      }
-
       // Use user's existing profile data as defaults
       const firstName = user?.user_metadata?.first_name || "";
       const lastName = user?.user_metadata?.last_name || "";
       const email = user?.email || "";
 
-      const res = await fetch("/api/accounts/create-additional", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({ firstName, lastName, email }),
-      });
-
-      const data = await res.json();
-      if (!res.ok || data?.error) {
-        throw new Error(data?.error || "Failed to create account");
+      const data = await apiClient.post<{ error?: string }>("/accounts/create-additional", { firstName, lastName, email });
+      if (data?.error) {
+        throw new Error(data.error);
       }
 
       setCreateAccountSuccess("Account created! Redirecting to setup…");
@@ -296,21 +280,18 @@ export default function AccountPage() {
                   <button
                     onClick={async () => {
                       setIsLoading(true);
-                      const res = await fetch(
-                        "/api/create-stripe-portal-session",
-                        {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({
-                            customerId: account.stripe_customer_id,
-                          }),
-                        },
-                      );
-                      const data = await res.json();
-                      setIsLoading(false);
-                      if (data.url) {
-                        window.location.href = data.url;
-                      } else {
+                      try {
+                        const data = await apiClient.post<{ url?: string }>("/create-stripe-portal-session", {
+                          customerId: account.stripe_customer_id,
+                        });
+                        setIsLoading(false);
+                        if (data.url) {
+                          window.location.href = data.url;
+                        } else {
+                          alert("Could not open billing portal.");
+                        }
+                      } catch {
+                        setIsLoading(false);
                         alert("Could not open billing portal.");
                       }
                     }}

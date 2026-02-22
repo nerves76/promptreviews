@@ -16,6 +16,330 @@ npx tsc --noEmit
 # If errors found, fix them, then commit
 ```
 
+## ⚠️ CRITICAL: Security Rules for All New Code
+
+These rules exist because past violations were found and fixed in a comprehensive audit. **Every rule here prevents a real bug that existed in this codebase.**
+
+### Never Commit Secrets or Environment Files
+- **NEVER create or commit** `.env.production`, `.env.vercel.tmp`, or any file containing real API keys/secrets
+- All secrets go in `.env.local` (gitignored) or Vercel environment variables
+- If you see a file with real keys (starts with `sk_live_`, `eyJ`, etc.), **stop and alert the user**
+- `.gitignore` already blocks `.env.production`, `.env.vercel*`, `.env.prod*`
+
+### Never Use `dangerouslySetInnerHTML` Without DOMPurify
+```tsx
+// ❌ NEVER — XSS vulnerability
+<div dangerouslySetInnerHTML={{ __html: userContent }} />
+
+// ✅ ALWAYS — Sanitize first
+import DOMPurify from 'isomorphic-dompurify';
+<div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(userContent) }} />
+```
+- The ONLY exception is hardcoded string literals (no user/DB content)
+- `isomorphic-dompurify` is already installed — always use it
+
+### Always Validate API Route Inputs
+Every API route that accepts user input MUST validate:
+```typescript
+// Email fields: format + header injection
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const HEADER_INJECTION_REGEX = /[\r\n]|%0[aAdD]/;
+
+// ❌ NEVER — Accepts anything
+const { email, subject } = await request.json();
+resend.emails.send({ to: email, subject });
+
+// ✅ ALWAYS — Validate first
+if (HEADER_INJECTION_REGEX.test(email)) return NextResponse.json({ error: 'Invalid email' }, { status: 400 });
+if (!EMAIL_REGEX.test(email.trim())) return NextResponse.json({ error: 'Invalid email format' }, { status: 400 });
+```
+- Validate ALL string inputs for injection characters
+- Validate email `from` fields are restricted to `@promptreviews.app`
+- Add length limits on text fields (subject: 500 chars, name: 200 chars)
+
+### Always Authenticate API Routes
+```typescript
+// ❌ NEVER — Unauthenticated endpoint
+export async function POST(request: NextRequest) {
+  const { id } = await request.json();
+  await supabase.from('table').update({ verified: true }).eq('id', id);
+}
+
+// ✅ ALWAYS — Check auth first
+export async function POST(request: NextRequest) {
+  const supabase = await createServerSupabaseClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const accountId = await getRequestAccountId(request, user.id, supabase);
+  if (!accountId) return NextResponse.json({ error: 'No account' }, { status: 403 });
+  // Now safe to proceed...
+}
+```
+- Exception: Public endpoints (review submission pages, embed widgets) — but still validate tokens/slugs
+- Cron endpoints MUST call `verifyCronSecret(request)` as the first line
+
+### Always Use `getUser()` — Never `getSession()` Alone for Auth
+```typescript
+// ❌ NEVER in API routes — doesn't validate JWT server-side
+const { data: { session } } = await supabase.auth.getSession();
+
+// ✅ ALWAYS — Validates JWT against Supabase
+const { data: { user } } = await supabase.auth.getUser();
+```
+- `getSession()` is ONLY acceptable for: reading access_token for external APIs (after getUser validates), debug/diagnostic endpoints, OAuth callback retry logic
+- If you need both user validation AND access_token, call getUser() first, then getSession()
+
+### Never Return Sensitive Tokens in API Responses
+```typescript
+// ❌ NEVER — Exposes tokens to the browser
+return NextResponse.json({ access_token: token, refresh_token: refreshToken });
+
+// ✅ ALWAYS — Return only status
+return NextResponse.json({ success: true, expiresIn: 3600 });
+```
+- OAuth tokens, API keys, and secrets must NEVER appear in API response bodies
+- Tokens stored in the database must be encrypted — use `encryptGbpToken()` / `decryptGbpToken()` from `@/lib/crypto/gbpTokenHelpers`
+- The encryption key env var is `GOOGLE_TOKEN_ENCRYPTION_KEY`
+
+### Never Hardcode Stripe Price IDs or Secrets
+```typescript
+// ❌ NEVER
+const priceId = 'price_1RT6s7LqwlpgZPtwjv65Q3xa';
+
+// ✅ ALWAYS — Use env vars with fallbacks
+const priceId = process.env.STRIPE_PRICE_BUILDER_MONTHLY || 'price_1RT6s7LqwlpgZPtwjv65Q3xa';
+if (!process.env.STRIPE_PRICE_BUILDER_MONTHLY) console.warn('Missing STRIPE_PRICE_BUILDER_MONTHLY env var');
+```
+- All Stripe price IDs must come from environment variables
+- Fallbacks to hardcoded values are OK temporarily but must log a warning
+
+### Never Write Unbounded Database Queries
+```typescript
+// ❌ NEVER — Loads all rows, gets slower as DB grows
+const { data } = await supabase.from('big_table').select('*');
+
+// ✅ ALWAYS — Add limits, date filters, or pagination
+const { data } = await supabase.from('big_table').select('*')
+  .gte('created_at', thirtyDaysAgo)
+  .limit(100);
+
+// ✅ For counts — use head: true (returns count without rows)
+const { count } = await supabase.from('big_table').select('id', { count: 'exact', head: true });
+```
+- Admin/analytics endpoints MUST have default date ranges (30 days) and row limits (1000)
+- List endpoints MUST support pagination via `limit`/`offset` or `page`/`pageSize`
+
+### Never Write N+1 Queries
+```typescript
+// ❌ NEVER — N queries in a loop
+for (const post of posts) {
+  const { data: author } = await supabase.from('profiles').select('*').eq('id', post.author_id).single();
+  post.author = author;
+}
+
+// ✅ ALWAYS — Batch query then map
+const authorIds = [...new Set(posts.map(p => p.author_id))];
+const { data: authors } = await supabase.from('profiles').select('*').in('id', authorIds);
+const authorMap = new Map(authors.map(a => [a.id, a]));
+posts.forEach(p => p.author = authorMap.get(p.author_id));
+```
+- Use `.in('id', [...ids])` for batch lookups
+- Use `Promise.all()` to run independent batch queries in parallel
+- Guard against empty arrays: `if (ids.length === 0) return [];`
+
+### Always Use `apiClient` for Authenticated Frontend API Calls
+```typescript
+// ❌ NEVER in authenticated client components
+const res = await fetch('/api/some-endpoint');
+
+// ✅ ALWAYS — Includes auth + account headers automatically
+import { apiClient } from '@/utils/apiClient';
+const data = await apiClient.get('/some-endpoint');
+```
+- Bare `fetch()` is ONLY acceptable in: public pages (no auth), auth pages (pre-login), embed components, test pages
+- `apiClient` automatically includes `Authorization` and `X-Selected-Account` headers
+
+### RLS Policies Must Never Allow `anon` Read Access to Tenant Data
+```sql
+-- ❌ NEVER — Anon can read all rows
+CREATE POLICY "read_all" ON tenant_table FOR SELECT TO anon USING (true);
+
+-- ✅ ALWAYS — Scoped to authenticated user's accounts
+CREATE POLICY "read_own" ON tenant_table FOR SELECT TO authenticated
+  USING (account_id IN (SELECT account_id FROM account_users WHERE user_id = auth.uid()));
+```
+- All tenant-scoped tables MUST have RLS policies restricted to `authenticated` role
+- The `anon` role should NEVER have SELECT access to tenant data
+
+### All Tenant-Scoped Tables Must Have `account_id NOT NULL`
+- New tables with tenant data MUST include `account_id UUID NOT NULL REFERENCES accounts(id) ON DELETE CASCADE`
+- Add an index: `CREATE INDEX idx_tablename_account_id ON tablename(account_id);`
+- Always filter queries by `account_id` — see the Account Isolation Rules section
+
+### Environment Variables Must Be Validated at Startup
+- Required env vars are validated in `src/lib/env.ts`, called from `src/instrumentation.ts`
+- When adding a new required env var: add it to the `REQUIRED_SERVER_VARS` or `REQUIRED_PUBLIC_VARS` array in `src/lib/env.ts`
+- When adding a new optional env var: add it to `OPTIONAL_VARS` array
+- Also add all new env vars to `.env.local.example`
+
+### OAuth/External API Token Refresh Must Have Retry + Error Codes
+Token refresh operations (e.g., Google OAuth) are prone to transient network failures. Silent failures cause cascading errors that are hard to debug.
+```typescript
+// ❌ NEVER — Single attempt, generic error, swallows failures
+try {
+  const tokens = await oauth2Client.refreshAccessToken();
+  await saveTokens(tokens);
+} catch (error) {
+  console.error('Refresh failed', error);
+  return NextResponse.json({ error: 'Token refresh failed' }, { status: 500 });
+}
+
+// ✅ ALWAYS — Retry + structured error codes + save rotated refresh tokens
+const MAX_RETRIES = 2;
+for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+  try {
+    const { credentials } = await oauth2Client.refreshAccessToken();
+    // If Google rotated the refresh token, encrypt and save the new one
+    if (credentials.refresh_token) {
+      const encrypted = encryptGbpToken(credentials.refresh_token);
+      await supabase.from('google_business_profiles')
+        .update({ encrypted_refresh_token: encrypted })
+        .eq('account_id', accountId);
+    }
+    return { accessToken: credentials.access_token };
+  } catch (error: any) {
+    if (attempt === MAX_RETRIES) {
+      const code = error?.response?.status === 400 ? 'TOKEN_EXPIRED' : 'REFRESH_FAILED';
+      return NextResponse.json({ error: code, message: 'Token refresh failed' }, { status: 401 });
+    }
+    await new Promise(r => setTimeout(r, 1000 * attempt)); // Backoff
+  }
+}
+```
+- Retry at least once on transient failures before giving up
+- Return structured error codes (`TOKEN_EXPIRED`, `REFRESH_FAILED`) not generic errors
+- Never silently swallow token refresh failures — always log and return a clear error
+- If Google returns a new `refresh_token` during rotation, encrypt and save it immediately
+
+### Cron Jobs Must Have Idempotency Guards + Timeout Protection
+Vercel Functions have a 30-second timeout. Cron jobs that run past this limit get killed silently. Jobs that lack idempotency guards can run twice and send duplicate emails/notifications.
+```typescript
+// ❌ NEVER — No auth, no idempotency, no timeout guard
+export async function GET(request: NextRequest) {
+  const accounts = await getActiveAccounts();
+  for (const account of accounts) {
+    await sendReminderEmail(account); // May timeout mid-loop, no duplicate protection
+  }
+  return NextResponse.json({ success: true });
+}
+
+// ✅ ALWAYS — Auth + idempotency + timeout protection
+import { verifyCronSecret } from '@/lib/verifyCronSecret';
+import { hasCompletedToday, logCronCompletion, shouldExitEarly } from '@/lib/cronLogger';
+
+export async function GET(request: NextRequest) {
+  verifyCronSecret(request); // MUST be first line
+
+  const startTime = Date.now();
+  const alreadyRan = await hasCompletedToday('reminder-emails');
+  if (alreadyRan) return NextResponse.json({ skipped: true, reason: 'already_completed_today' });
+
+  const accounts = await getActiveAccounts();
+  let processed = 0;
+  for (const account of accounts) {
+    if (shouldExitEarly(startTime)) break; // Exit before 30s timeout
+    await sendReminderEmail(account);
+    processed++;
+  }
+
+  await logCronCompletion('reminder-emails', { processed, total: accounts.length });
+  return NextResponse.json({ success: true, processed });
+}
+```
+- Use `hasCompletedToday()` / `hasCompletedThisMonth()` from `src/lib/cronLogger.ts` as the first check
+- Use `shouldExitEarly(startTime)` in processing loops to exit before the 30s Vercel timeout
+- All cron endpoints MUST call `verifyCronSecret(request)` as the first line
+- Log completion so the next invocation can skip if already done
+
+### All Tenant-Scoped Tables Must Have RLS Policies
+Every table with `account_id` needs Row Level Security policies. Missing policies mean the table is either wide-open or completely blocked, depending on whether RLS is enabled.
+```sql
+-- ❌ NEVER — Table with account_id but no RLS policies
+CREATE TABLE my_feature_data (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  account_id UUID NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+  data TEXT
+);
+ALTER TABLE my_feature_data ENABLE ROW LEVEL SECURITY;
+-- Oops: no policies = no access for anyone (or wide open if RLS not enabled)
+
+-- ✅ ALWAYS — Full policy set for authenticated + service_role bypass
+ALTER TABLE my_feature_data ENABLE ROW LEVEL SECURITY;
+
+-- Authenticated users: scoped to their accounts
+CREATE POLICY "Users can SELECT own account data" ON my_feature_data
+  FOR SELECT TO authenticated
+  USING (account_id IN (SELECT account_id FROM account_users WHERE user_id = auth.uid()));
+
+CREATE POLICY "Users can INSERT own account data" ON my_feature_data
+  FOR INSERT TO authenticated
+  WITH CHECK (account_id IN (SELECT account_id FROM account_users WHERE user_id = auth.uid()));
+
+CREATE POLICY "Users can UPDATE own account data" ON my_feature_data
+  FOR UPDATE TO authenticated
+  USING (account_id IN (SELECT account_id FROM account_users WHERE user_id = auth.uid()));
+
+CREATE POLICY "Users can DELETE own account data" ON my_feature_data
+  FOR DELETE TO authenticated
+  USING (account_id IN (SELECT account_id FROM account_users WHERE user_id = auth.uid()));
+
+-- Service role: bypass for server-side operations (cron, webhooks, admin)
+CREATE POLICY "Service role full access" ON my_feature_data
+  FOR ALL TO service_role USING (true) WITH CHECK (true);
+```
+- Every table with `account_id` needs SELECT/INSERT/UPDATE/DELETE policies for `authenticated` role
+- Every such table also needs a `service_role` bypass policy for server-side operations
+- Use the subquery pattern: `account_id IN (SELECT account_id FROM account_users WHERE user_id = auth.uid())`
+- Never grant `anon` access to tenant-scoped tables
+
+### All API Routes Must Validate Input Parameters
+Raw user input (UUIDs, slugs, strings, files) must be validated before use. Invalid inputs cause cryptic database errors and potential injection attacks.
+```typescript
+// ❌ NEVER — Trust user input directly
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const id = searchParams.get('id'); // Could be anything
+  const { data } = await supabase.from('table').select('*').eq('id', id);
+}
+
+// ✅ ALWAYS — Validate with centralized validators
+import { isValidUuid, validateSlug, validateStringLength } from '@/app/(app)/api/utils/validation';
+
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const id = searchParams.get('id');
+  if (!isValidUuid(id)) {
+    return NextResponse.json({ error: 'Invalid ID format' }, { status: 400 });
+  }
+  const { data } = await supabase.from('table').select('*').eq('id', id);
+}
+
+export async function POST(request: NextRequest) {
+  const body = await request.json();
+  const slugError = validateSlug(body.slug);
+  if (slugError) return NextResponse.json({ error: slugError }, { status: 400 });
+  const nameError = validateStringLength(body.name, 'Name', 1, STRING_LIMITS.NAME_MAX);
+  if (nameError) return NextResponse.json({ error: nameError }, { status: 400 });
+  // Safe to proceed...
+}
+```
+- Use validators from `src/app/(app)/api/utils/validation.ts`
+- UUID params: `isValidUuid()` / `validateUuid()`
+- Slugs: `validateSlug()`
+- String fields: `validateStringLength()` or `validateRequiredString()`
+- File uploads: `validateFileUpload()` or `validateCsvUpload()`
+- Standard limits are defined in the `STRING_LIMITS` constant
+
 ## ⚠️ CRITICAL: Domain Information
 - **The correct domain is promptreviews.app** (NOT .com)
 - All email addresses should use @promptreviews.app
@@ -324,6 +648,43 @@ Before submitting UI code:
 - The `npm run dev` command has been modified to run WITHOUT Turbopack
 - If server fails to load pages properly, ensure Turbopack is disabled
 
+## ⚠️ Known Duplication: PromptPageForm Variants
+
+There are **11 PromptPageForm variants** that share significant code. Each file has a
+`TODO` comment referencing this section. Consolidation is planned but deferred due to risk.
+
+### Current variants (all in `src/app/(app)/components/` unless noted)
+| File | Purpose |
+|------|---------|
+| `PromptPageForm.tsx` | Original / generic form |
+| `BasePromptPageForm.tsx` | Shared base with composition pattern |
+| `ServicePromptPageForm.tsx` | Service-type prompt pages |
+| `ServicePromptPageFormRefactored.tsx` | Refactored service form using BasePromptPageForm |
+| `UniversalPromptPageForm.tsx` | Universal prompt pages |
+| `EmployeePromptPageForm.tsx` | Employee-type prompt pages |
+| `EventPromptPageForm.tsx` | Event-type prompt pages |
+| `PhotoPromptPageForm.tsx` | Photo-type prompt pages |
+| `ProductPromptPageForm.tsx` | Product-type prompt pages |
+| `ReviewBuilderPromptPageForm.tsx` | Review Builder experience |
+| `dashboard/edit-prompt-page/[slug]/ServicePromptPageForm.tsx` | Legacy slug-based service form |
+
+### Consolidation plan
+1. **Phase 1 (done):** `BasePromptPageForm` + `ServicePromptPageFormRefactored` demonstrate the target architecture.
+2. **Phase 2:** Migrate remaining type-specific forms (`Employee`, `Event`, `Photo`, `Product`) to use `BasePromptPageForm`.
+3. **Phase 3:** Remove `PromptPageForm.tsx` (original) and `ServicePromptPageForm.tsx` once all pages are migrated.
+4. **Phase 4:** Remove the slug-based `ServicePromptPageForm.tsx` duplicate.
+
+### Why not consolidate now
+- Each variant has type-specific sections, validation, and feature toggles
+- Several are actively used in production routes
+- Risk of regression is high without comprehensive test coverage
+- `BasePromptPageForm` already provides the right abstraction to build on
+
+### Canonical date formatting utility
+When adding date formatting to new or existing code, import from `src/utils/formatDate.ts`
+instead of defining inline helpers. This file provides `formatDate`, `formatRelativeDate`,
+`formatDateWithWeekday`, and `formatDateOrFallback`.
+
 ## ⚠️ DEPLOYMENT TODO: API Key Security
 - **GOOGLE_MAPS_API_KEY is currently unrestricted** for local development
 - Before deploying geo-grid feature to production, restrict this key:
@@ -472,6 +833,19 @@ PromptReviews is a review management platform that allows businesses to collect,
 6. **Clear `.next` cache if build fails with JSON parse errors** - Run `rm -rf .next && npm run build`
 7. **Always include TypeScript generics with apiClient** - e.g., `apiClient.post<{ data: Type }>('/endpoint', payload)`
 8. **Close JSX tags when restructuring components** - Missed closing divs cause silent render failures
+9. **Never use `getSession()` for auth in API routes** - Use `getUser()` which validates the JWT server-side (see Security Rules)
+10. **Never use `dangerouslySetInnerHTML` without DOMPurify** - XSS vulnerability (see Security Rules)
+11. **Never hardcode Stripe price IDs** - Use env vars with fallbacks (see Security Rules)
+12. **Never write unbounded queries** - Always add `.limit()`, date filters, or pagination (see Security Rules)
+13. **Never return tokens in API responses** - Only return status/metadata, encrypt tokens at rest (see Security Rules)
+14. **Always validate API inputs** - Check for injection chars, valid formats, length limits (see Security Rules)
+15. **All new API routes need auth + account isolation** - `createServerSupabaseClient()` + `getUser()` + `getRequestAccountId()`
+16. **All cron endpoints need `verifyCronSecret()`** - First line of every cron handler
+17. **New env vars must be registered** - Add to `src/lib/env.ts` arrays AND `.env.local.example`
+18. **OAuth refresh must retry + return structured errors** — Use retry loop + `TOKEN_EXPIRED`/`REFRESH_FAILED` codes (see Security Rules)
+19. **Cron jobs need idempotency + timeout guards** — Use `hasCompletedToday()` + `shouldExitEarly()` from `src/lib/cronLogger.ts` (see Security Rules)
+20. **All tenant tables need RLS policies** — SELECT/INSERT/UPDATE/DELETE for `authenticated` + `service_role` bypass (see Security Rules)
+21. **All API inputs need validation** — Use validators from `src/app/(app)/api/utils/validation.ts` (see Security Rules)
 
 ## API Structure
 

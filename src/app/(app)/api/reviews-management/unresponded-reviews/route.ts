@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/auth/providers/supabase';
 import { GoogleBusinessProfileClient } from '@/features/social-posting/platforms/google-business-profile/googleBusinessProfileClient';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
+import { decryptGbpToken } from '@/lib/crypto/gbpTokenHelpers';
 
 export async function GET(request: NextRequest) {
   try {
@@ -59,11 +60,12 @@ export async function GET(request: NextRequest) {
     }
 
 
-    // Create Google Business Profile client
+    // Create Google Business Profile client (decrypt tokens from DB)
     const gbpClient = new GoogleBusinessProfileClient({
-      accessToken: tokenData.access_token,
-      refreshToken: tokenData.refresh_token,
-      expiresAt: tokenData.expires_at ? new Date(tokenData.expires_at).getTime() : Date.now() + 3600000
+      accessToken: decryptGbpToken(tokenData.access_token),
+      refreshToken: decryptGbpToken(tokenData.refresh_token),
+      expiresAt: tokenData.expires_at ? new Date(tokenData.expires_at).getTime() : Date.now() + 3600000,
+      accountId,
     });
 
     // Fetch unresponded reviews

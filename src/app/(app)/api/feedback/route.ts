@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { validateRequiredString, validateStringLength, STRING_LIMITS, collectErrors } from '@/app/(app)/api/utils/validation';
 
 // Initialize Supabase client with service role key for admin operations
 const supabase = createClient(
@@ -11,10 +12,15 @@ export async function POST(request: Request) {
   try {
     const { category, message, email } = await request.json();
 
-    // Validate required fields
-    if (!category || !message) {
+    // Validate required fields and string lengths
+    const validationErrors = collectErrors(
+      validateRequiredString(category, 'category', 100),
+      validateRequiredString(message, 'message', STRING_LIMITS.reviewText),
+      validateStringLength(email, 'email', STRING_LIMITS.email),
+    );
+    if (validationErrors.length > 0) {
       return NextResponse.json(
-        { error: 'Category and message are required' },
+        { error: 'Validation failed', details: validationErrors },
         { status: 400 }
       );
     }

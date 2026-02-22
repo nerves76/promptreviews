@@ -12,6 +12,7 @@ import { cookies } from 'next/headers';
 import { buildOverviewData } from '@/lib/googleBusiness/overviewAggregator';
 import { generateMockOverviewData } from '@/utils/googleBusinessProfile/overviewDataHelpers';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
+import { decryptGbpToken } from '@/lib/crypto/gbpTokenHelpers';
 
 export async function GET(request: NextRequest) {
   try {
@@ -75,8 +76,8 @@ export async function GET(request: NextRequest) {
     try {
       const overviewData = await buildOverviewData({
         tokens: {
-          accessToken: tokens.access_token,
-          refreshToken: tokens.refresh_token,
+          accessToken: decryptGbpToken(tokens.access_token),
+          refreshToken: tokens.refresh_token ? decryptGbpToken(tokens.refresh_token) : undefined,
           expiresAt: tokens.expires_at ? new Date(tokens.expires_at).getTime() : undefined,
         },
         locationId,

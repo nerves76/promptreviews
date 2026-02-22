@@ -11,13 +11,13 @@ export async function POST(request: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient();
 
-    // Check authentication
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError || !session) {
+    // Check authentication (getUser() validates JWT server-side, unlike getSession())
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
-    const userId = session.user.id;
+    const userId = user.id;
 
     // Force refresh the auth session
     const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();

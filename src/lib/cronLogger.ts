@@ -136,6 +136,98 @@ export async function logCronExecution(
 }
 
 /**
+ * Checks if a cron job has already completed successfully today.
+ * Use this as an idempotency guard to prevent double-execution.
+ *
+ * @param jobName - The cron job name (must match what's passed to logCronExecution)
+ * @returns true if the job already ran successfully today (UTC), false otherwise
+ */
+export async function hasCompletedToday(jobName: string): Promise<boolean> {
+  try {
+    const todayUTC = new Date().toISOString().split('T')[0];
+    const { data } = await supabaseAdmin
+      .from('cron_execution_logs')
+      .select('id')
+      .eq('job_name', jobName)
+      .eq('status', 'success')
+      .gte('started_at', `${todayUTC}T00:00:00Z`)
+      .limit(1);
+
+    return (data?.length ?? 0) > 0;
+  } catch (err) {
+    console.error(`[CronLogger] Error checking idempotency for ${jobName}:`, err);
+    // On error, allow the job to run (fail open)
+    return false;
+  }
+}
+
+/**
+ * Checks if a cron job has already completed successfully this month.
+ * Use for monthly cron jobs.
+ *
+ * @param jobName - The cron job name
+ * @returns true if the job already ran successfully this month (UTC)
+ */
+export async function hasCompletedThisMonth(jobName: string): Promise<boolean> {
+  try {
+    const now = new Date();
+    const firstOfMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+    const { data } = await supabaseAdmin
+      .from('cron_execution_logs')
+      .select('id')
+      .eq('job_name', jobName)
+      .eq('status', 'success')
+      .gte('started_at', firstOfMonth.toISOString())
+      .limit(1);
+
+    return (data?.length ?? 0) > 0;
+  } catch (err) {
+    console.error(`[CronLogger] Error checking monthly idempotency for ${jobName}:`, err);
+    return false;
+  }
+}
+
+/**
+ * Checks if a cron job has already completed successfully this hour.
+ * Use for hourly cron jobs.
+ *
+ * @param jobName - The cron job name
+ * @returns true if the job already ran successfully this hour (UTC)
+ */
+export async function hasCompletedThisHour(jobName: string): Promise<boolean> {
+  try {
+    const now = new Date();
+    const startOfHour = new Date(Date.UTC(
+      now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours()
+    ));
+    const { data } = await supabaseAdmin
+      .from('cron_execution_logs')
+      .select('id')
+      .eq('job_name', jobName)
+      .eq('status', 'success')
+      .gte('started_at', startOfHour.toISOString())
+      .limit(1);
+
+    return (data?.length ?? 0) > 0;
+  } catch (err) {
+    console.error(`[CronLogger] Error checking hourly idempotency for ${jobName}:`, err);
+    return false;
+  }
+}
+
+/**
+ * Returns true if the cron job should exit early to avoid Vercel timeout.
+ * Call this inside loops to break before the 30s hard limit.
+ *
+ * @param startTime - Date.now() captured at the beginning of the handler
+ * @param bufferMs - Safety buffer in ms (default 25000 = 25s, giving 5s buffer)
+ * @returns true if the job should stop processing and return early
+ */
+export function shouldExitEarly(startTime: number, bufferMs: number = 25000): boolean {
+  return Date.now() - startTime > bufferMs;
+}
+
+/**
  * Verifies the cron secret from the request header.
  * Returns null if valid, or a NextResponse error if invalid.
  */

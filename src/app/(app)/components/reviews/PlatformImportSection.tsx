@@ -4,6 +4,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { apiClient } from "@/utils/apiClient";
 import Icon from "@/components/Icon";
 import GbpLocationPicker from "./GbpLocationPicker";
+import { formatDate } from "@/utils/formatDate";
 
 interface SearchFieldConfig {
   key: string;
@@ -99,17 +100,7 @@ function truncateText(text: string, maxLength: number): string {
   return text.slice(0, maxLength).trimEnd() + "...";
 }
 
-function formatDate(dateStr: string): string {
-  try {
-    return new Date(dateStr).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  } catch {
-    return dateStr;
-  }
-}
+// formatDate imported from @/utils/formatDate
 
 export default function PlatformImportSection({ onSuccess, initialPlatform }: PlatformImportSectionProps) {
   const [platforms, setPlatforms] = useState<PlatformInfo[]>([]);

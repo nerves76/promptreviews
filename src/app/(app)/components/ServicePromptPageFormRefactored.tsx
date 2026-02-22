@@ -1,6 +1,7 @@
+// TODO: This is one of 11 PromptPageForm variants. See consolidation plan in CLAUDE.md
 /**
  * ServicePromptPageFormRefactored Component
- * 
+ *
  * A refactored version of ServicePromptPageForm that uses the new BasePromptPageForm
  * and shared feature components. This demonstrates the new architecture and shows
  * how much code can be reduced by using the shared components.

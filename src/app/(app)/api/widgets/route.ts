@@ -90,10 +90,11 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(widget, { status: 201 });
 
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Widget API error:', error);
+    const message = error instanceof Error ? error.message : 'An unexpected error occurred';
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: message },
       { status: 500 }
     );
   }
@@ -151,11 +152,12 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(widgets || []);
 
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Widget API error:', error);
+    const message = error instanceof Error ? error.message : 'An unexpected error occurred';
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: message },
       { status: 500 }
     );
   }
-} 
+}

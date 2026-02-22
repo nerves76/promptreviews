@@ -9,31 +9,23 @@ import { WidgetPreview } from "./components/WidgetPreview";
 import { StyleModal } from "./components/StyleModal";
 import { ReviewManagementModal } from "./components/ReviewManagementModal";
 import { DEFAULT_DESIGN, DesignState } from "./components/widgets/multi";
-import { useWidgets } from "./hooks/useWidgets";
-// import { useStableWidgetManager } from "./hooks/useStableWidgetManager";
-// import { useRefreshGuard } from "./hooks/useRefreshGuard";
-// import { useRefreshPrevention } from "./hooks/useRefreshPrevention";
+import { useWidgets, Widget } from "./hooks/useWidgets";
+
+/** A widget-like object that can be either a real Widget or a fake demo widget */
+type SelectedWidget = Widget | {
+  id: string;
+  name: string;
+  type: string;
+  theme: unknown;
+  reviews: unknown[];
+};
 
 export default function WidgetPage() {
   const { loading: authLoading, shouldRedirect } = useAuthGuard();
-  
-  // Enable refresh guard to monitor and prevent unwanted refreshes
-  // useRefreshGuard('WidgetPage');
-  
+
   const { widgets, loading, error, createWidget, deleteWidget, saveWidgetName, saveWidgetDesign, fetchWidgets, selectedAccount } = useWidgets();
-  // const { protectedOperation } = useStableWidgetManager();
-  const [selectedWidget, setSelectedWidget] = useState<any>(null);
-  const [selectedWidgetFull, setSelectedWidgetFull] = useState<any>(null);
-  
-  // Debug logging for component lifecycle
-  useEffect(() => {
-    return () => {
-    };
-  }, []);
-  
-  // Track when selectedWidgetFull changes
-  useEffect(() => {
-  }, [selectedWidgetFull]);
+  const [selectedWidget, setSelectedWidget] = useState<SelectedWidget | null>(null);
+  const [selectedWidgetFull, setSelectedWidgetFull] = useState<SelectedWidget | null>(null);
   
   // Clear selected widget when widgets list changes (e.g., after account switch)
   useEffect(() => {
@@ -110,14 +102,15 @@ export default function WidgetPage() {
     try {
       
       // apiClient now automatically includes X-Selected-Account header
-      const fullWidgetData = await apiClient.get(`/widgets/${widgetId}`);
-      
+      const fullWidgetData = await apiClient.get<Widget>(`/widgets/${widgetId}`);
+
       setSelectedWidgetFull(fullWidgetData);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('❌ WidgetPage: Error fetching full widget data:', error);
-      
+
       // If we get a 403, it means the widget doesn't belong to the current account
-      if (error?.status === 403 || error?.message?.includes('403')) {
+      const apiError = error as { status?: number; message?: string };
+      if (apiError?.status === 403 || apiError?.message?.includes('403')) {
         setSelectedWidget(null);
         setSelectedWidgetFull(null);
       }
@@ -309,7 +302,7 @@ export default function WidgetPage() {
   };
 
   // Handle widget selection from the list
-  const handleWidgetSelect = (widget: any) => {
+  const handleWidgetSelect = (widget: Widget) => {
     setSelectedWidget(widget);
     // Always fetch fresh data, even if the same widget is selected
     // This ensures updates from review changes are reflected
@@ -433,7 +426,7 @@ export default function WidgetPage() {
       <ReviewManagementModal
         isOpen={showReviewModal}
         onClose={() => setShowReviewModal(false)}
-        widgetId={selectedWidget?.id}
+        widgetId={selectedWidget?.id ?? null}
         accountId={selectedAccount?.account_id}
         design={design}
         onReviewsChange={() => {

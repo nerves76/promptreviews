@@ -189,8 +189,9 @@ export default function CommunicationButtons({
       // Callback to parent component
       onCommunicationSent?.();
 
-    } catch (error: any) {
-      throw new Error(error.message || 'Failed to record communication');
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to record communication';
+      throw new Error(message);
     } finally {
       setIsLoading(false);
     }
@@ -204,8 +205,9 @@ export default function CommunicationButtons({
       });
 
       onStatusUpdated?.(newStatus);
-    } catch (error: any) {
-      throw new Error(error.message || 'Failed to update prompt page status');
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to update prompt page status';
+      throw new Error(message);
     }
   };
 

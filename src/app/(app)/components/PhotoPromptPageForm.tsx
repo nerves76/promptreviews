@@ -1,6 +1,7 @@
+// TODO: This is one of 11 PromptPageForm variants. See consolidation plan in CLAUDE.md
 /**
  * PhotoPromptPageForm Component
- * 
+ *
  * Single-step form for creating photo prompt pages.
  * Handles form submission with save and publish in one action, similar to ServicePromptPageForm.
  * Includes all photo-specific features like falling stars, emoji sentiment, offers, etc.

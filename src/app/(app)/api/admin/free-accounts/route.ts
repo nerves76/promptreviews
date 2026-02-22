@@ -6,7 +6,7 @@
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { isAdmin as checkIsAdmin } from '@/auth/utils/admin';
+import { isAdmin as checkIsAdmin } from '@/utils/admin';
 import { withRateLimit, RateLimits } from '@/app/(app)/api/middleware/rate-limit';
 
 const supabaseAdmin: SupabaseClient = createClient(

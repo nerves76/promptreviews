@@ -1,9 +1,17 @@
 /**
- * Next.js instrumentation file for Sentry server-side initialization
- * This file initializes Sentry for server-side error tracking
+ * Next.js instrumentation file
+ *
+ * - Validates required environment variables at startup
+ * - Initializes Sentry for server-side error tracking (production only)
  */
 
+import { validateEnv } from '@/lib/env';
+
 export function register() {
+  // Validate environment variables early so missing vars surface as a clear
+  // startup error instead of cryptic runtime failures.
+  validateEnv();
+
   // Completely skip all Sentry code in development or when disabled
   if (process.env.DISABLE_SENTRY === 'true' || process.env.NODE_ENV === 'development') {
     console.log('📴 Sentry completely disabled - skipping all initialization');

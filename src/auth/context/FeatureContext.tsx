@@ -14,7 +14,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import { useCoreAuth } from './CoreAuthContext';
 import { useAccountBusiness } from './AccountBusinessContext';
-import { isAdmin as checkIsAdmin, ensureAdminForEmail } from '../utils/admin';
+import { isAdmin as checkIsAdmin, ensureAdminForEmail } from '@/utils/admin';
 import { getPlanDisplayName, getMaxContactsForPlan, getMaxLocationsForPlan } from '../utils/planUtils';
 
 interface FeatureState {

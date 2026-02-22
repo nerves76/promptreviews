@@ -6,6 +6,7 @@
  */
 
 import { createClient } from '@/auth/providers/supabase';
+import { apiClient } from '@/utils/apiClient';
 
 const supabase = createClient();
 
@@ -38,15 +39,9 @@ export async function fetchOnboardingTasks(accountId: string): Promise<TaskCompl
     // DEVELOPMENT MODE: Use API endpoint to bypass RLS issues
     if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined' && localStorage.getItem('dev_auth_bypass') === 'true') {
       try {
-        const response = await fetch(`/api/onboarding-tasks?account_id=${accountId}`);
-        const apiResult = await response.json();
-        if (response.ok) {
-          data = apiResult.tasks || [];
-          error = null;
-        } else {
-          data = [];
-          error = { message: apiResult.error || 'API error' };
-        }
+        const apiResult = await apiClient.get<{ tasks: { task_id: string; completed: boolean }[] }>(`/onboarding-tasks?account_id=${accountId}`);
+        data = apiResult.tasks || [];
+        error = null;
       } catch (err) {
         data = [];
         error = { message: err instanceof Error ? err.message : 'Unknown error' };
@@ -93,22 +88,13 @@ export async function markTaskAsCompleted(accountId: string, taskId: string): Pr
     // DEVELOPMENT MODE: Use API endpoint to bypass RLS issues
     if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined' && localStorage.getItem('dev_auth_bypass') === 'true') {
       try {
-        const response = await fetch('/api/onboarding-tasks', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            account_id: accountId,
-            task_id: taskId,
-            completed: true,
-            completed_at: new Date().toISOString()
-          })
+        await apiClient.post('/onboarding-tasks', {
+          account_id: accountId,
+          task_id: taskId,
+          completed: true,
+          completed_at: new Date().toISOString()
         });
-        const apiResult = await response.json();
-        if (!response.ok) {
-          error = { message: apiResult.error || 'API error' };
-        } else {
-          error = null;
-        }
+        error = null;
       } catch (err) {
         error = { message: err instanceof Error ? err.message : 'Unknown error' };
       }
@@ -153,22 +139,13 @@ export async function markTaskAsIncomplete(accountId: string, taskId: string): P
     // DEVELOPMENT MODE: Use API endpoint to bypass RLS issues
     if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined' && localStorage.getItem('dev_auth_bypass') === 'true') {
       try {
-        const response = await fetch('/api/onboarding-tasks', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            account_id: accountId,
-            task_id: taskId,
-            completed: false,
-            completed_at: null
-          })
+        await apiClient.post('/onboarding-tasks', {
+          account_id: accountId,
+          task_id: taskId,
+          completed: false,
+          completed_at: null
         });
-        const apiResult = await response.json();
-        if (!response.ok) {
-          error = { message: apiResult.error || 'API error' };
-        } else {
-          error = null;
-        }
+        error = null;
       } catch (err) {
         error = { message: err instanceof Error ? err.message : 'Unknown error' };
       }

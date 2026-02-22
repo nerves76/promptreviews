@@ -82,18 +82,21 @@ export default function PlanPage() {
 
   // Helper function to get price ID for a plan
   const getPriceId = (plan: string, billing: 'monthly' | 'annual' = 'monthly') => {
+    const BUILDER_MONTHLY = process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_BUILDER_MONTHLY || "price_1RT6s7LqwlpgZPtwjv65Q3xa";
+    const MAVEN_MONTHLY = process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_MAVEN_MONTHLY || "price_1RT6sVLqwlpgZPtwEZLKBQo7";
+
     const priceMap: { [key: string]: { monthly: string; annual: string } } = {
       grower: {
-        monthly: "price_1RT6s7LqwlpgZPtwjv65Q3xa", // Free trial, use builder price for first payment
-        annual: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_GROWER_ANNUAL || "price_1RT6s7LqwlpgZPtwjv65Q3xa"
+        monthly: BUILDER_MONTHLY, // Free trial, use builder price for first payment
+        annual: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_GROWER_ANNUAL || BUILDER_MONTHLY
       },
       builder: {
-        monthly: "price_1RT6s7LqwlpgZPtwjv65Q3xa",
-        annual: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_BUILDER_ANNUAL || "price_1RT6s7LqwlpgZPtwjv65Q3xa"
+        monthly: BUILDER_MONTHLY,
+        annual: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_BUILDER_ANNUAL || BUILDER_MONTHLY
       },
       maven: {
-        monthly: "price_1RT6sVLqwlpgZPtwEZLKBQo7",
-        annual: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_MAVEN_ANNUAL || "price_1RT6sVLqwlpgZPtwEZLKBQo7"
+        monthly: MAVEN_MONTHLY,
+        annual: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_MAVEN_ANNUAL || MAVEN_MONTHLY
       }
     };
     return priceMap[plan]?.[billing] || "";

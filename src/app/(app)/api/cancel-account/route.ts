@@ -21,13 +21,13 @@ export async function POST(request: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient();
 
-    // Check authentication
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError || !session) {
+    // Check authentication (getUser() validates JWT server-side, unlike getSession())
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
-    const userId = session.user.id;
+    const userId = user.id;
 
     // Parse request body
     const { confirm } = await request.json();
@@ -99,8 +99,9 @@ export async function POST(request: NextRequest) {
         let subscription;
         try {
           subscription = await stripeWithRetry.retrieveSubscription(account.stripe_subscription_id);
-        } catch (retrieveError: any) {
-          console.warn(`⚠️ Could not retrieve subscription: ${retrieveError.message}`);
+        } catch (retrieveError: unknown) {
+          const msg = retrieveError instanceof Error ? retrieveError.message : 'Unknown error';
+          console.warn(`⚠️ Could not retrieve subscription: ${msg}`);
           subscription = null;
         }
         
@@ -132,17 +133,19 @@ export async function POST(request: NextRequest) {
             // Note: We successfully cancelled the subscription in Stripe
             // The account will be soft-deleted below
               
-          } catch (cancelError: any) {
+          } catch (cancelError: unknown) {
             // CRITICAL: Could not cancel active subscription
-            console.error(`❌ CRITICAL: Could not cancel active subscription: ${cancelError.message}`);
-            stripeError = cancelError.message;
+            const msg = cancelError instanceof Error ? cancelError.message : 'Unknown error';
+            console.error(`❌ CRITICAL: Could not cancel active subscription: ${msg}`);
+            stripeError = msg;
             stripeSubscriptionCancelled = false;
           }
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         // Unexpected error - treat as failure to be safe
-        console.error(`❌ Unexpected error handling Stripe subscription: ${error.message}`);
-        stripeError = error.message;
+        const msg = error instanceof Error ? error.message : 'Unknown error';
+        console.error(`❌ Unexpected error handling Stripe subscription: ${msg}`);
+        stripeError = msg;
         stripeSubscriptionCancelled = false;
       }
       
@@ -195,10 +198,11 @@ export async function POST(request: NextRequest) {
       }
     }, { status: 200 });
 
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Account cancellation error:', error);
+    const message = error instanceof Error ? error.message : 'An unexpected error occurred';
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: message },
       { status: 500 }
     );
   }

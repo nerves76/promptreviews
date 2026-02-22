@@ -1,3 +1,4 @@
+// TODO: This is one of 11 PromptPageForm variants. See consolidation plan in CLAUDE.md
 import React, { useState, useEffect, forwardRef } from "react";
 import OfferToggle from "../components/OfferToggle";
 import {

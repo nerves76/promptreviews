@@ -1,13 +1,17 @@
+import { NextRequest } from 'next/server';
 import { runHealthCheck } from '@/lib/health/check';
-import { logCronExecution } from '@/lib/cronLogger';
+import { logCronExecution, verifyCronSecret } from '@/lib/cronLogger';
 import { sendResendEmail } from '@/utils/resend';
 
 const alertRecipients = (process.env.HEALTH_ALERT_EMAILS || '').split(',').map((value) => value.trim()).filter(Boolean);
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
-  // Note: health-monitor doesn't use verifyCronSecret since it may be called for health checks
+export async function GET(request: NextRequest) {
+  // Verify the request is from Vercel cron
+  const authError = verifyCronSecret(request);
+  if (authError) return authError;
+
   return logCronExecution('health-monitor', async () => {
     const result = await runHealthCheck();
 

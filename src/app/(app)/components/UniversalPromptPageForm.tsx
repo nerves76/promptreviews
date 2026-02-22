@@ -1,6 +1,7 @@
+// TODO: This is one of 11 PromptPageForm variants. See consolidation plan in CLAUDE.md
 /**
  * UniversalPromptPageForm component
- * 
+ *
  * Standardized Universal Prompt Page form that follows the same architecture as other prompt page types.
  * 
  * Features:

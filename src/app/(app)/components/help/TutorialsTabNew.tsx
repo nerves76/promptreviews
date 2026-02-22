@@ -10,6 +10,7 @@ import { apiClient } from '@/utils/apiClient';
 import { Tutorial } from './types';
 import { calculateRelevanceScore } from './contextMapper';
 import { trackEvent } from '@/utils/analytics';
+import DOMPurify from 'isomorphic-dompurify';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -724,7 +725,7 @@ export default function TutorialsTabNew({
                     style={{ margin: 0, padding: 0 }}
                   >
                     {isHtmlContent ? (
-                      <div dangerouslySetInnerHTML={{ __html: articleContent }} />
+                      <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(articleContent) }} />
                     ) : (
                       renderMarkdown(articleContent)
                     )}

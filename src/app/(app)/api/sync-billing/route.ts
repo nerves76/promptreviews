@@ -8,29 +8,30 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/auth/providers/supabase";
 import { syncAccountBilling, syncAllAccounts } from "@/lib/billing/sync";
+import { handleApiError } from "@/app/(app)/api/utils/errorResponse";
 
 export async function POST(req: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient();
     
-    // Check authentication
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    
-    if (sessionError || !session?.user) {
+    // Check authentication (getUser() validates JWT server-side, unlike getSession())
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+    if (userError || !user) {
       return NextResponse.json({ error: "Authentication required" }, { status: 401 });
     }
-    
+
     // Parse request body
     const body = await req.json().catch(() => ({}));
     const { accountId, syncAll = false } = body;
-    
+
     // If syncAll is true, sync all accounts (admin only)
     if (syncAll) {
       // Check if user is admin
       const { data: userAccount } = await supabase
         .from("accounts")
         .select("is_admin")
-        .eq("id", session.user.id)
+        .eq("id", user.id)
         .single();
       
       if (!userAccount?.is_admin) {
@@ -73,12 +74,8 @@ export async function POST(req: NextRequest) {
       accountId,
     });
     
-  } catch (error: any) {
-    console.error("Sync API error:", error);
-    return NextResponse.json({
-      error: "Internal server error",
-      message: error.message,
-    }, { status: 500 });
+  } catch (error: unknown) {
+    return handleApiError(error, 'sync-billing');
   }
 }
 

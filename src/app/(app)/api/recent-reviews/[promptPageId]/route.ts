@@ -12,6 +12,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
+import { isValidUuid } from '@/app/(app)/api/utils/validation';
 
 // Helper function to generate initials from names
 function generateInitials(firstName?: string, lastName?: string): string {
@@ -56,6 +57,10 @@ export async function GET(
     
     if (!promptPageId) {
       return NextResponse.json({ error: 'Missing prompt page ID' }, { status: 400 });
+    }
+
+    if (!isValidUuid(promptPageId)) {
+      return NextResponse.json({ error: 'Invalid prompt page ID format' }, { status: 400 });
     }
 
     // DEVELOPMENT MODE BYPASS - Return mock review data

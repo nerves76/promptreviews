@@ -19,12 +19,14 @@ find src -type f \( -name "*.ts" -o -name "*.tsx" \) -not -path "src/auth/*" -no
   -e "s|from '../../components/BusinessGuard'|from '../../auth/guards/BusinessGuard'|g" \
   {} +
 
-# Update admin utility imports
-find src -type f \( -name "*.ts" -o -name "*.tsx" \) -not -path "src/auth/*" -not -path "src/utils/admin.ts" -exec sed -i '' \
-  -e "s|from '@/utils/admin'|from '@/auth/utils/admin'|g" \
-  -e "s|from '../utils/admin'|from '../auth/utils/admin'|g" \
-  -e "s|from '../../utils/admin'|from '../../auth/utils/admin'|g" \
-  -e "s|from '../../../utils/admin'|from '../../../auth/utils/admin'|g" \
+# Update admin utility imports (canonical location: @/utils/admin)
+# Note: @/auth/utils/admin was a duplicate and has been removed.
+# This section now migrates any remaining references back to @/utils/admin.
+find src -type f \( -name "*.ts" -o -name "*.tsx" \) -not -path "src/utils/admin.ts" -exec sed -i '' \
+  -e "s|from '@/auth/utils/admin'|from '@/utils/admin'|g" \
+  -e "s|from '../auth/utils/admin'|from '../utils/admin'|g" \
+  -e "s|from '../../auth/utils/admin'|from '../../utils/admin'|g" \
+  -e "s|from '../../../auth/utils/admin'|from '../../../utils/admin'|g" \
   {} +
 
 # Update accountUtils imports

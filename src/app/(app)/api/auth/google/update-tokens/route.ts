@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
+import { encryptGbpToken } from '@/lib/crypto/gbpTokenHelpers';
 
 export async function POST(request: NextRequest) {
   try {
@@ -49,12 +50,12 @@ export async function POST(request: NextRequest) {
     }
 
 
-    // Update tokens in database
+    // Update tokens in database (encrypt before storing)
     const { error: updateError } = await supabase
       .from('google_business_profiles')
       .update({
-        access_token,
-        refresh_token,
+        access_token: encryptGbpToken(access_token),
+        refresh_token: encryptGbpToken(refresh_token),
         expires_at,
         updated_at: new Date().toISOString()
       })

@@ -348,24 +348,6 @@ export function BusinessProvider({ children }: { children: React.ReactNode }) {
     }
   }, [accountId, loadBusiness, loadBusinesses, clearBusinessCache]);
 
-  // DISABLED: Auto-refresh business data periodically
-  // This was causing PageCard to disappear every minute and users to lose typed content
-  // Business data is refreshed when needed through explicit user actions
-  // useEffect(() => {
-  //   if (!accountId) return;
-
-  //   const interval = setInterval(() => {
-  //     if (businessCacheTime) {
-  //       const cacheAge = Date.now() - businessCacheTime;
-  //       if (cacheAge > BUSINESS_CACHE_DURATION) {
-  //         loadBusiness();
-  //       }
-  //     }
-  //   }, 30000); // Check every 30 seconds
-
-  //   return () => clearInterval(interval);
-  // }, [accountId, businessCacheTime, loadBusiness]);
-
   const value: BusinessContextType = {
     // State
     business,

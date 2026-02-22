@@ -1,14 +1,137 @@
 /**
  * useComments Hook
  *
- * Custom hook for fetching and managing comments with full author info and reactions
+ * Custom hook for fetching and managing comments with full author info and reactions.
+ *
+ * Performance: Uses batch queries to avoid N+1 problem.
+ * Instead of 5 queries per comment, this uses 5 total batch queries
+ * regardless of the number of comments.
  */
 
 'use client';
 
 import { useState, useCallback } from 'react';
 import { createClient } from '@/auth/providers/supabase';
-import { Comment } from '../types/community';
+import { Comment, ReactionCount } from '../types/community';
+import { SupabaseClient } from '@supabase/supabase-js';
+
+/**
+ * Batch-enrich raw comments with author info and reactions.
+ * Reduces N+1 queries (5 per comment) to 5 total batch queries.
+ */
+async function enrichCommentsBatch(
+  rawComments: any[],
+  supabase: SupabaseClient
+): Promise<Comment[]> {
+  if (rawComments.length === 0) return [];
+
+  // Collect unique IDs for batch queries
+  const commentIds = rawComments.map((c) => c.id);
+  const authorIds = [...new Set(rawComments.map((c) => c.author_id))];
+  const accountIds = [...new Set(rawComments.map((c) => c.account_id))];
+
+  // Run all batch queries in parallel (5 queries total instead of 5 * N)
+  const [
+    { data: { user: currentUser } },
+    { data: profiles },
+    { data: businesses },
+    { data: adminData },
+    { data: allReactions },
+  ] = await Promise.all([
+    // 1. Get current user (once, not per-comment)
+    supabase.auth.getUser(),
+    // 2. Batch fetch all community profiles
+    supabase
+      .from('community_profiles')
+      .select('user_id, username, display_name_override, profile_photo_url')
+      .in('user_id', authorIds),
+    // 3. Batch fetch all businesses
+    supabase
+      .from('businesses')
+      .select('account_id, name, logo_url')
+      .in('account_id', accountIds),
+    // 4. Batch fetch admin status via admins table
+    supabase
+      .from('admins')
+      .select('account_id')
+      .in('account_id', accountIds),
+    // 5. Batch fetch all comment reactions
+    supabase
+      .from('comment_reactions')
+      .select('comment_id, reaction, user_id')
+      .in('comment_id', commentIds),
+  ]);
+
+  // Build lookup maps for O(1) access
+  const profileMap = new Map(
+    (profiles || []).map((p) => [p.user_id, p])
+  );
+
+  const businessMap = new Map<string, { name: string; logo_url: string | null }>();
+  for (const b of businesses || []) {
+    if (!businessMap.has(b.account_id)) {
+      businessMap.set(b.account_id, { name: b.name, logo_url: b.logo_url });
+    }
+  }
+
+  const adminAccountIds = new Set(
+    (adminData || []).map((a) => a.account_id)
+  );
+
+  // Group reactions by comment_id
+  const reactionsByComment = new Map<string, any[]>();
+  for (const r of allReactions || []) {
+    const list = reactionsByComment.get(r.comment_id) || [];
+    list.push(r);
+    reactionsByComment.set(r.comment_id, list);
+  }
+
+  // Assemble enriched comments
+  return rawComments.map((comment) => {
+    const profile = profileMap.get(comment.author_id);
+    const business = businessMap.get(comment.account_id);
+    const isAdmin = adminAccountIds.has(comment.account_id);
+
+    const author = profile
+      ? {
+          id: profile.user_id,
+          username: profile.username,
+          display_name: profile.display_name_override || profile.username,
+          business_name: business?.name || 'Unknown',
+          logo_url: business?.logo_url ?? undefined,
+          profile_photo_url: profile.profile_photo_url ?? undefined,
+          is_promptreviews_team: isAdmin,
+        }
+      : null;
+
+    // Build reaction counts from batch data
+    const commentReactions = reactionsByComment.get(comment.id) || [];
+    const reactionCounts: ReactionCount[] = [];
+    for (const r of commentReactions) {
+      const existing = reactionCounts.find((item) => item.emoji === r.reaction);
+      if (existing) {
+        existing.count++;
+        existing.users.push(r.user_id);
+      } else {
+        reactionCounts.push({ emoji: r.reaction, count: 1, users: [r.user_id] });
+      }
+    }
+
+    // Get current user's reactions from the batch data
+    const userReactions = currentUser
+      ? commentReactions
+          .filter((r: any) => r.user_id === currentUser.id)
+          .map((r: any) => r.reaction)
+      : [];
+
+    return {
+      ...comment,
+      author,
+      reaction_counts: reactionCounts,
+      user_reactions: userReactions,
+    };
+  });
+}
 
 export function useComments(postId: string) {
   const [comments, setComments] = useState<Comment[]>([]);
@@ -48,98 +171,12 @@ export function useComments(postId: string) {
         throw fetchError;
       }
 
-      // Transform the data to include proper author info and reactions
-      const commentsWithAuthors = await Promise.all(
-        (data || []).map(async (comment) => {
-          try {
-            // Get community profile for the author
-            const { data: profile, error: profileError } = await supabase
-              .from('community_profiles')
-              .select('user_id, username, display_name_override, profile_photo_url')
-              .eq('user_id', comment.author_id)
-              .single();
-
-            if (profileError) {
-              console.error('Profile fetch error for user', comment.author_id, profileError);
-              return { ...comment, author: null };
-            }
-
-            if (!profile) {
-              return { ...comment, author: null };
-            }
-
-            // Get business info from the businesses table using the comment's account_id
-            const { data: business } = await supabase
-              .from('businesses')
-              .select('name, logo_url')
-              .eq('account_id', comment.account_id)
-              .limit(1)
-              .single();
-
-            // Check if user is Prompt Reviews team
-            const { data: adminData } = await supabase
-              .from('admins')
-              .select('account_id')
-              .eq('account_id', comment.account_id)
-              .limit(1)
-              .single();
-
-            const authorInfo = {
-              id: profile.user_id,
-              username: profile.username,
-              display_name: profile.display_name_override || profile.username,
-              business_name: business?.name || 'Unknown',
-              logo_url: business?.logo_url,
-              profile_photo_url: profile.profile_photo_url,
-              is_promptreviews_team: !!adminData,
-            };
-
-            // Get reaction counts
-            const { data: reactionsData } = await supabase
-              .from('comment_reactions')
-              .select('reaction, user_id')
-              .eq('comment_id', comment.id);
-
-            // Group reactions by emoji and count
-            const reactionCounts = (reactionsData || []).reduce((acc: any[], r: any) => {
-              const existing = acc.find(item => item.emoji === r.reaction);
-              if (existing) {
-                existing.count++;
-                existing.users.push(r.user_id);
-              } else {
-                acc.push({ emoji: r.reaction, count: 1, users: [r.user_id] });
-              }
-              return acc;
-            }, []);
-
-            // Get current user's reactions
-            const { data: { user } } = await supabase.auth.getUser();
-            const userReactions = (reactionsData || [])
-              .filter((r: any) => r.user_id === user?.id)
-              .map((r: any) => r.reaction);
-
-            return {
-              ...comment,
-              author: authorInfo,
-              reaction_counts: reactionCounts,
-              user_reactions: userReactions,
-            };
-          } catch (commentError) {
-            console.error('Error processing comment author:', commentError);
-            return {
-              ...comment,
-              author: null,
-              reaction_counts: [],
-              user_reactions: [],
-            };
-          }
-        })
-      );
+      const commentsWithAuthors = await enrichCommentsBatch(data || [], supabase);
 
       setComments(commentsWithAuthors);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error fetching comments:', err);
-      setError(err as Error);
+      setError(err instanceof Error ? err : new Error('An unexpected error occurred'));
     } finally {
       setIsLoading(false);
     }

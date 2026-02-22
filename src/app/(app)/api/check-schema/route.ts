@@ -18,13 +18,14 @@ export async function GET() {
       }
     );
 
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError || !session?.user) {
+    // Validate JWT server-side with getUser() instead of getSession()
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
       return NextResponse.json({ error: "Authentication required" }, { status: 401 });
     }
 
     // Check if user is admin
-    const adminStatus = await isAdmin(session.user.id, supabase);
+    const adminStatus = await isAdmin(user.id, supabase);
     if (!adminStatus) {
       return NextResponse.json({ error: "Admin access required" }, { status: 403 });
     }
@@ -39,9 +40,9 @@ export async function GET() {
       return NextResponse.json({ error: "Failed to get schema info" }, { status: 500 });
     }
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       tables: tables.map(t => t.table_name),
-      user: session.user.email 
+      user: user.email
     });
   } catch (error) {
     console.error('Schema check error:', error);

@@ -1,6 +1,7 @@
+// TODO: This is one of 11 PromptPageForm variants. See consolidation plan in CLAUDE.md
 /**
  * BasePromptPageForm Component
- * 
+ *
  * A base form component that provides common state management and composition pattern
  * for all prompt page types. This component handles shared features and delegates
  * type-specific fields to child components.

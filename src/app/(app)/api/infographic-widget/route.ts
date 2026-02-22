@@ -1,5 +1,19 @@
 import { NextResponse } from 'next/server'
 
+/**
+ * OPTIONS handler for CORS preflight
+ */
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    },
+  })
+}
+
 export async function GET() {
   const embedScript = `
 (function() {
@@ -48,6 +62,8 @@ export async function GET() {
     headers: {
       'Content-Type': 'application/javascript',
       'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
       'Cache-Control': 'public, max-age=3600'
     }
   })

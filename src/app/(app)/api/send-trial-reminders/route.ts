@@ -8,7 +8,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { sendTrialReminderEmail } from '@/utils/emailTemplates';
-import { isAdmin } from '@/auth/utils/admin';
+import { isAdmin } from '@/utils/admin';
 
 export async function POST(request: NextRequest) {
   try {

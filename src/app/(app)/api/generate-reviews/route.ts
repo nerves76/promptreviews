@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient, createServiceRoleClient } from "@/auth/providers/supabase";
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
+import { isValidUuid } from '@/app/(app)/api/utils/validation';
 import OpenAI from "openai";
 
 export const dynamic = "force-dynamic";
@@ -37,6 +38,22 @@ export async function POST(request: Request) {
     if (!pageId || !platforms || !Array.isArray(platforms)) {
       return NextResponse.json(
         { error: "pageId and platforms array are required" },
+        { status: 400 },
+      );
+    }
+
+    // Validate pageId format
+    if (!isValidUuid(pageId)) {
+      return NextResponse.json(
+        { error: "pageId must be a valid UUID" },
+        { status: 400 },
+      );
+    }
+
+    // Validate platforms array length
+    if (platforms.length === 0 || platforms.length > 20) {
+      return NextResponse.json(
+        { error: "platforms must contain between 1 and 20 items" },
         { status: 400 },
       );
     }

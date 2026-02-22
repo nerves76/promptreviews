@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { createServiceRoleClient } from '@/auth/providers/supabase';
 import { GoogleBusinessProfileClient } from '@/features/social-posting/platforms/google-business-profile/googleBusinessProfileClient';
+import { decryptGbpToken } from '@/lib/crypto/gbpTokenHelpers';
 import type { GoogleBusinessScheduledMediaDescriptor } from '@/features/social-posting';
 import { logCronExecution, verifyCronSecret } from '@/lib/cronLogger';
 
@@ -474,9 +475,10 @@ async function processJob(
 
     tokens = tokenData;
     client = new GoogleBusinessProfileClient({
-      accessToken: tokens.access_token,
-      refreshToken: tokens.refresh_token,
+      accessToken: decryptGbpToken(tokens.access_token),
+      refreshToken: decryptGbpToken(tokens.refresh_token),
       expiresAt: tokens.expires_at ? new Date(tokens.expires_at).getTime() : Date.now() + 3600000,
+      accountId: job.account_id,
     });
   }
 

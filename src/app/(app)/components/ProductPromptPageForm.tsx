@@ -1,6 +1,7 @@
+// TODO: This is one of 11 PromptPageForm variants. See consolidation plan in CLAUDE.md
 /**
  * ProductPromptPageForm component
- * 
+ *
  * Main form component for creating/editing product prompt pages.
  * Now built using modular components for better maintainability.
  */

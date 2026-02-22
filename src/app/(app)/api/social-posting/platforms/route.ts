@@ -14,6 +14,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
+import { decryptGbpToken, encryptGbpToken } from '@/lib/crypto/gbpTokenHelpers';
 
 /**
  * API Route: GET /api/social-posting/platforms
@@ -132,33 +133,19 @@ export async function GET(request: NextRequest) {
               const { GoogleBusinessProfileClient } = await import('@/features/social-posting/platforms/google-business-profile/googleBusinessProfileClient');
               
               const client = new GoogleBusinessProfileClient({
-                accessToken: googleTokens.access_token,
-                refreshToken: googleTokens.refresh_token,
-                expiresAt: expiresAt
+                accessToken: decryptGbpToken(googleTokens.access_token),
+                refreshToken: decryptGbpToken(googleTokens.refresh_token),
+                expiresAt: expiresAt,
+                accountId,
               });
               
               const newTokens = await client.refreshAccessToken();
-              
+
               if (newTokens && newTokens.access_token) {
-                
-                // Update tokens in database
-                const { error: updateError } = await supabase
-                  .from('google_business_profiles')
-                  .update({
-                    access_token: newTokens.access_token,
-                    expires_at: new Date(Date.now() + (newTokens.expires_in || 3600) * 1000).toISOString(),
-                    updated_at: new Date().toISOString()
-                  })
-                  .eq('account_id', accountId);
-                
-                if (!updateError) {
-                  isGoogleConnected = true;
-                  googleConnectionError = null;
-                } else {
-                  console.error('❌ Failed to update tokens in database:', updateError);
-                  googleConnectionError = `Token refresh failed. Please reconnect to continue.`;
-                  isGoogleConnected = false;
-                }
+                // Token storage is now handled by the server-side refresh endpoint
+                // (encrypted and stored automatically)
+                isGoogleConnected = true;
+                googleConnectionError = null;
               } else {
                 googleConnectionError = `Google Business Profile tokens expired ${expiredTime} minutes ago. Please reconnect to continue.`;
                 isGoogleConnected = false;
@@ -325,45 +312,7 @@ export async function POST(request: NextRequest) {
   try {
     const { platformId, action } = await request.json();
     
-    // TODO: Implement postManager
-    // const adapter = postManager.getAdapter(platformId);
-    // if (!adapter) {
-    //   return NextResponse.json(
-    //     { success: false, error: 'Platform not found' },
-    //     { status: 404 }
-    //   );
-    // }
-    
-    // TODO: Implement adapter functionality
-    // let result = false;
-    
-    // switch (action) {
-    //   case 'connect':
-    //     result = await adapter.authenticate();
-    //     break;
-    //   case 'disconnect':
-    //     // TODO: Implement disconnect logic
-    //     break;
-    //   case 'refresh':
-    //     result = await adapter.refreshAuth();
-    //     break;
-    //   default:
-    //     return NextResponse.json(
-    //       { success: false, error: 'Invalid action' },
-    //       { status: 400 }
-    //     );
-    // }
-    
-    // return NextResponse.json({
-    //   success: result,
-    //   data: {
-    //     platformId,
-    //     action,
-    //     isConnected: adapter.isAuthenticated()
-    //   }
-    // });
-    
-    // Temporary response until adapter is implemented
+    // TODO: Implement platform management with postManager adapter
     return NextResponse.json({
       success: false,
       error: 'Platform management not yet implemented'

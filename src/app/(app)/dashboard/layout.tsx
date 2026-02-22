@@ -8,6 +8,7 @@ import { useGlobalLoader } from "@/app/(app)/components/GlobalLoaderProvider";
 import { trackEvent, GA_EVENTS } from "@/utils/analytics";
 import TrialBanner from "../components/TrialBanner";
 import Header from "../components/Header";
+import DashboardErrorBoundary from "../components/DashboardErrorBoundary";
 
 // Use the singleton Supabase client instead of creating a new instance
 // This prevents "Multiple GoTrueClient instances" warnings and ensures proper session persistence
@@ -59,25 +60,10 @@ export default function DashboardLayout({
     }
   }, [hasMounted, user, inviteAcceptedFlag, accountIdParam, router]);
 
-
-  // 🔧 SIMPLIFIED AUTH: Use AuthContext instead of independent auth checking
-  // AuthContext already handles all authentication, session management, and account loading
-  // This eliminates the race condition that caused infinite redirects
-
-
-
-  // DEBUG: Log authentication state (DISABLED - was causing infinite re-renders)
-  // useEffect(() => {
-  //   if (process.env.NODE_ENV === 'development') {
-  //   }
-  // }, [isInitialized, isLoading, user, accountLoading, account]);
-
   // Handle redirect to sign-in in useEffect to avoid render-time side effects
   // This must be called before any conditional returns to follow React hooks rules
   useEffect(() => {
     if (isInitialized && !user && hasMounted) {
-      if (process.env.NODE_ENV === 'development') {
-      }
       router.push('/auth/sign-in');
     }
   }, [isInitialized, user, hasMounted, router]);
@@ -187,7 +173,9 @@ export default function DashboardLayout({
   return (
     <div className="w-full min-h-screen pb-16 md:pb-24 lg:pb-32">
       <TrialBanner accountData={account} />
-      {children}
+      <DashboardErrorBoundary>
+        {children}
+      </DashboardErrorBoundary>
     </div>
   );
 }

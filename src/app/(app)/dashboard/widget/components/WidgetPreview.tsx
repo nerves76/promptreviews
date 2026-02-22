@@ -3,14 +3,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { DesignState } from './widgets/multi/index';
 
-// Temporarily use direct import to debug the issue
 import MultiWidget from './widgets/multi/MultiWidget';
-
-// Dynamically import widget components
-// const MultiWidget = dynamic(() => import('./widgets/multi/MultiWidget'), { 
-//   loading: () => <FiveStarSpinner />,
-//   ssr: false 
-// });
 const SingleWidget = dynamic(() => import('./widgets/single/SingleWidget'), {
   ssr: false 
 });

@@ -2,19 +2,15 @@
 
 import Icon from "@/components/Icon";
 import type { GoogleBusinessScheduledPost } from "@/features/social-posting";
+import { formatDateOrFallback } from "@/utils/formatDate";
 
 interface HistoryListProps {
   posts: GoogleBusinessScheduledPost[];
 }
 
+// formatDateTime using canonical formatDateOrFallback from @/utils/formatDate
 function formatDateTime(dateStr: string | null): string {
-  if (!dateStr) return "—";
-  const date = new Date(dateStr);
-  return date.toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+  return formatDateOrFallback(dateStr, "\u2014");
 }
 
 export default function HistoryList({ posts }: HistoryListProps) {

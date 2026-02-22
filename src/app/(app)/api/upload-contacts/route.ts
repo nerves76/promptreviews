@@ -4,6 +4,7 @@ import { parse } from "csv-parse/sync";
 import { checkAccountLimits } from "@/utils/accountLimits";
 import { authenticateApiRequest } from "@/utils/apiAuth";
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
+import { validateCsvUpload } from '@/app/(app)/api/utils/validation';
 
 export async function POST(request: NextRequest) {
   try {
@@ -36,6 +37,12 @@ export async function POST(request: NextRequest) {
 
     if (!file) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
+    }
+
+    // Validate file type and size
+    const fileCheck = validateCsvUpload(file, { fieldName: 'CSV file' });
+    if (!fileCheck.valid) {
+      return NextResponse.json({ error: fileCheck.error }, { status: 400 });
     }
 
     // Read and parse the CSV file

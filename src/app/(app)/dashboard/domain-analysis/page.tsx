@@ -10,6 +10,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { apiClient } from '@/utils/apiClient';
+import { formatDate } from '@/utils/formatDate';
 import { useAuth } from '@/auth';
 import PageCard, { PageCardHeader } from '@/app/(app)/components/PageCard';
 import StandardLoader from '@/app/(app)/components/StandardLoader';
@@ -936,17 +937,7 @@ function StatBox({
 // Helpers
 // ============================================
 
-function formatDate(dateStr: string): string {
-  try {
-    return new Date(dateStr).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
-  } catch {
-    return dateStr;
-  }
-}
+// formatDate imported from @/utils/formatDate
 
 function calculateDomainAge(dateStr: string): string {
   try {

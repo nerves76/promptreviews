@@ -174,20 +174,12 @@ export async function generateReviewResponse(
   const { sentiment, tone } = analyzeReviewSentiment(reviewText, starRating);
   
   try {
-    const response = await fetch('/api/generate-review', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        prompt,
-        user_id: null // This will be handled by the API endpoint
-      }),
+    const { apiClient } = await import('@/utils/apiClient');
+    const data = await apiClient.post<{ text?: string }>('/generate-review', {
+      prompt,
+      user_id: null // This will be handled by the API endpoint
     });
-    
-    if (!response.ok) {
-      throw new Error(`API request failed: ${response.status}`);
-    }
-    
-    const data = await response.json();
+
     if (!data.text) {
       throw new Error('No response generated');
     }

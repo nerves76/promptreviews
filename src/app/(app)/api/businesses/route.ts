@@ -9,6 +9,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/auth/providers/supabase";
 import { verifyAccountAuth } from "../middleware/auth";
 import { GLASSY_DEFAULTS } from "@/app/(app)/config/styleDefaults";
+import { isValidUuid, validateStringLength, STRING_LIMITS, collectErrors } from "@/app/(app)/api/utils/validation";
 
 export async function GET(request: NextRequest) {
   try {
@@ -67,7 +68,7 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json({ businesses: businesses || [] });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('[BUSINESSES] Unexpected error:', error);
     return NextResponse.json(
       { error: "Internal server error", details: error instanceof Error ? error.message : "Unknown error" },
@@ -105,6 +106,30 @@ export async function PUT(request: NextRequest) {
     if (!businessId) {
       return NextResponse.json(
         { error: "Missing required field: businessId" },
+        { status: 400 }
+      );
+    }
+
+    if (!isValidUuid(businessId)) {
+      return NextResponse.json(
+        { error: "Invalid businessId format" },
+        { status: 400 }
+      );
+    }
+
+    // Validate string lengths for key text fields
+    const lengthErrors = collectErrors(
+      validateStringLength(fieldsToUpdate.name, 'name', STRING_LIMITS.name),
+      validateStringLength(fieldsToUpdate.business_name, 'business_name', STRING_LIMITS.name),
+      validateStringLength(fieldsToUpdate.description, 'description', STRING_LIMITS.description),
+      validateStringLength(fieldsToUpdate.business_email, 'business_email', STRING_LIMITS.email),
+      validateStringLength(fieldsToUpdate.business_website, 'business_website', STRING_LIMITS.url),
+      validateStringLength(fieldsToUpdate.tagline, 'tagline', STRING_LIMITS.shortText),
+      validateStringLength(fieldsToUpdate.phone, 'phone', STRING_LIMITS.phone),
+    );
+    if (lengthErrors.length > 0) {
+      return NextResponse.json(
+        { error: "Validation failed", details: lengthErrors },
         { status: 400 }
       );
     }
@@ -180,7 +205,7 @@ export async function PUT(request: NextRequest) {
       success: true,
       business: updatedBusiness
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('[BUSINESSES PUT] Unexpected error:', error);
     return NextResponse.json(
       { error: "Internal server error", details: error instanceof Error ? error.message : "Unknown error" },
@@ -473,7 +498,15 @@ export async function POST(request: NextRequest) {
       }
     }
     // Move account metadata fetch after potential account creation
-    let accountRecord: any = null;
+    let accountRecord: {
+      is_additional_account?: boolean;
+      has_had_paid_plan?: boolean;
+      plan?: string;
+      trial_start?: string | null;
+      trial_end?: string | null;
+      max_users?: number;
+      max_locations?: number;
+    } | null = null;
 
     // DEVELOPMENT MODE BYPASS - Use existing account
     let bypassAccountValidation = false;
@@ -627,7 +660,7 @@ export async function POST(request: NextRequest) {
 
 
     // 🔧 CRITICAL FIX: Update accounts.business_name, promotion_code, and business_creation_complete flag
-    const accountUpdates: any = {
+    const accountUpdates: Record<string, string | boolean | null> = {
       business_name: name,
       business_creation_complete: true  // Mark that business creation is complete
     };
@@ -744,7 +777,7 @@ export async function POST(request: NextRequest) {
       business: business,
       accountId: accountId // Include account ID so frontend can update its state
     }, { status: 201 });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('[BUSINESSES] Unexpected error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     const errorStack = error instanceof Error ? error.stack : undefined;

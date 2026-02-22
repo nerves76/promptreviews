@@ -55,19 +55,23 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch logs' }, { status: 500 });
     }
 
-    // Get distinct job names for filter dropdown
+    // Get distinct job names for filter dropdown (limit to recent logs to avoid full table scan)
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
     const { data: jobNamesData } = await serviceSupabase
       .from('cron_execution_logs')
       .select('job_name')
-      .order('job_name');
+      .gte('started_at', thirtyDaysAgo)
+      .order('job_name')
+      .limit(500);
 
     const jobNames = [...new Set((jobNamesData || []).map((row: { job_name: string }) => row.job_name))];
 
-    // Get summary stats
+    // Get summary stats for last 24 hours (with limit)
     const { data: statsData } = await serviceSupabase
       .from('cron_execution_logs')
       .select('status')
-      .gte('started_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
+      .gte('started_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+      .limit(500);
 
     const stats = {
       last_24h: {

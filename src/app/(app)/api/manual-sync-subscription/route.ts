@@ -87,11 +87,21 @@ export async function POST(req: NextRequest) {
     let plan = account.plan; // default to current
     let billingPeriod = 'monthly';
     
-    // Map price IDs to plans
+    // Map price IDs to plans (loaded from env vars with hardcoded fallbacks)
+    const BUILDER_MONTHLY_PRICE = process.env.STRIPE_PRICE_BUILDER_MONTHLY || 'price_1RT6s7LqwlpgZPtwjv65Q3xa';
+    const MAVEN_MONTHLY_PRICE = process.env.STRIPE_PRICE_MAVEN_MONTHLY || 'price_1RT6sVLqwlpgZPtwEZLKBQo7';
+    const BUILDER_ANNUAL_PRICE = process.env.STRIPE_PRICE_BUILDER_ANNUAL;
+    const MAVEN_ANNUAL_PRICE = process.env.STRIPE_PRICE_MAVEN_ANNUAL;
+
+    if (!process.env.STRIPE_PRICE_BUILDER_MONTHLY || !process.env.STRIPE_PRICE_MAVEN_MONTHLY) {
+      console.warn('[manual-sync-subscription] Missing STRIPE_PRICE_*_MONTHLY env vars — using hardcoded fallbacks');
+    }
+
     const priceMap: { [key: string]: { plan: string, billing: 'monthly' | 'annual' } } = {
-      'price_1RT6s7LqwlpgZPtwjv65Q3xa': { plan: 'builder', billing: 'monthly' },
-      'price_1RT6sVLqwlpgZPtwEZLKBQo7': { plan: 'maven', billing: 'monthly' },
-      // Add annual price IDs if you have them
+      [BUILDER_MONTHLY_PRICE]: { plan: 'builder', billing: 'monthly' },
+      [MAVEN_MONTHLY_PRICE]: { plan: 'maven', billing: 'monthly' },
+      ...(BUILDER_ANNUAL_PRICE ? { [BUILDER_ANNUAL_PRICE]: { plan: 'builder', billing: 'annual' } } : {}),
+      ...(MAVEN_ANNUAL_PRICE ? { [MAVEN_ANNUAL_PRICE]: { plan: 'maven', billing: 'annual' } } : {}),
     };
     
     if (priceMap[priceId]) {

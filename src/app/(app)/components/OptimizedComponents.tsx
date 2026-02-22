@@ -14,7 +14,10 @@ const ErrorFallback = ({ error, resetErrorBoundary }: { error: Error; resetError
   return (
     <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
       <h3 className="text-red-800 font-medium">Something went wrong</h3>
-      <p className="text-red-600 text-sm mt-1">{error.message}</p>
+      <p className="text-red-600 text-sm mt-1">An unexpected error occurred. Please try again.</p>
+      {process.env.NODE_ENV !== 'production' && (
+        <p className="text-red-500 text-xs mt-1 font-mono">{error.message}</p>
+      )}
       <button
         onClick={resetErrorBoundary}
         className="mt-2 px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700"

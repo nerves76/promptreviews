@@ -10,9 +10,10 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/auth/providers/supabase';
-import { isAdmin } from '@/auth/utils/admin';
+import { isAdmin } from '@/utils/admin';
 import Icon from '@/components/Icon';
 import StandardLoader from '@/app/(app)/components/StandardLoader';
+import { apiClient } from '@/utils/apiClient';
 
 // Using singleton Supabase client from supabaseClient.ts
 
@@ -80,115 +81,27 @@ export default function AdminAnalyticsPage() {
 
   const loadAnalytics = async () => {
     try {
-      // Calculate date ranges
-      const now = new Date();
-      const monthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
-      const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      // Use the admin analytics API endpoint instead of direct client-side queries.
+      // The API uses optimized count queries and date-filtered fetches.
+      const data = await apiClient.get<any>('/admin/analytics');
 
-      // Fetch all data
-      const [
-        { data: users },
-        { data: businesses },
-        { data: reviews },
-        { data: promptPages },
-        { data: analyticsEvents }
-      ] = await Promise.all([
-        supabase.from('auth.users').select('id, created_at'),
-        supabase.from('businesses').select('id, created_at'),
-        supabase.from('review_submissions').select('id, created_at, platform, verified'),
-        supabase.from('prompt_pages').select('id, created_at'),
-        supabase.from('analytics_events').select('*')
-      ]);
-
-      // Process analytics data
       const analyticsData: AdminAnalytics = {
-        totalUsers: users?.length || 0,
-        totalBusinesses: businesses?.length || 0,
-        totalReviews: reviews?.length || 0,
-        totalPromptPages: promptPages?.length || 0,
-        reviewsThisMonth: reviews?.filter(r => new Date(r.created_at) >= monthAgo).length || 0,
-        reviewsThisWeek: reviews?.filter(r => new Date(r.created_at) >= weekAgo).length || 0,
-        newUsersThisMonth: users?.filter(u => new Date(u.created_at) >= monthAgo).length || 0,
-        newBusinessesThisMonth: businesses?.filter(b => new Date(b.created_at) >= monthAgo).length || 0,
-        topPlatforms: [],
-        recentActivity: [],
-        businessGrowth: [],
-        reviewTrends: []
+        totalUsers: data.totalUsers || 0,
+        totalBusinesses: data.totalBusinesses || 0,
+        totalReviews: data.totalReviews || 0,
+        totalPromptPages: data.totalPromptPages || 0,
+        reviewsThisMonth: data.reviewsThisMonth || 0,
+        reviewsThisWeek: data.reviewsThisWeek || 0,
+        newUsersThisMonth: data.newUsersThisMonth || 0,
+        newBusinessesThisMonth: data.newBusinessesThisMonth || 0,
+        topPlatforms: data.topPlatforms || [],
+        recentActivity: data.recentActivity || [],
+        businessGrowth: (data.businessGrowth || []).map((item: { date: string; count: number }) => ({
+          month: item.date,
+          count: item.count,
+        })),
+        reviewTrends: data.reviewTrends || [],
       };
-
-      // Calculate platform distribution
-      const platformCounts: Record<string, number> = {};
-      reviews?.forEach(review => {
-        platformCounts[review.platform] = (platformCounts[review.platform] || 0) + 1;
-      });
-      analyticsData.topPlatforms = Object.entries(platformCounts)
-        .map(([platform, count]) => ({ platform, count }))
-        .sort((a, b) => b.count - a.count)
-        .slice(0, 5);
-
-      // Calculate recent activity (last 7 days)
-      const activityMap: Record<string, { reviews: number; users: number }> = {};
-      for (let i = 6; i >= 0; i--) {
-        const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
-        const dateStr = date.toISOString().split('T')[0];
-        activityMap[dateStr] = { reviews: 0, users: 0 };
-      }
-
-      reviews?.forEach(review => {
-        const date = new Date(review.created_at).toISOString().split('T')[0];
-        if (activityMap[date]) {
-          activityMap[date].reviews++;
-        }
-      });
-
-      users?.forEach(user => {
-        const date = new Date(user.created_at).toISOString().split('T')[0];
-        if (activityMap[date]) {
-          activityMap[date].users++;
-        }
-      });
-
-      analyticsData.recentActivity = Object.entries(activityMap)
-        .map(([date, data]) => ({ date, ...data }))
-        .sort((a, b) => a.date.localeCompare(b.date));
-
-      // Calculate business growth (last 6 months)
-      const growthMap: Record<string, number> = {};
-      for (let i = 5; i >= 0; i--) {
-        const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-        const monthStr = date.toISOString().slice(0, 7);
-        growthMap[monthStr] = 0;
-      }
-
-      businesses?.forEach(business => {
-        const month = new Date(business.created_at).toISOString().slice(0, 7);
-        if (growthMap[month] !== undefined) {
-          growthMap[month]++;
-        }
-      });
-
-      analyticsData.businessGrowth = Object.entries(growthMap)
-        .map(([month, count]) => ({ month, count }))
-        .sort((a, b) => a.month.localeCompare(b.month));
-
-      // Calculate review trends (last 30 days)
-      const trendMap: Record<string, number> = {};
-      for (let i = 29; i >= 0; i--) {
-        const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
-        const dateStr = date.toISOString().split('T')[0];
-        trendMap[dateStr] = 0;
-      }
-
-      reviews?.forEach(review => {
-        const date = new Date(review.created_at).toISOString().split('T')[0];
-        if (trendMap[date] !== undefined) {
-          trendMap[date]++;
-        }
-      });
-
-      analyticsData.reviewTrends = Object.entries(trendMap)
-        .map(([date, count]) => ({ date, count }))
-        .sort((a, b) => a.date.localeCompare(b.date));
 
       setAnalytics(analyticsData);
     } catch (error) {

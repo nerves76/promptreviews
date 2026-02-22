@@ -31,6 +31,7 @@ import { createServerClient } from '@supabase/ssr';
 import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
+import { decryptGbpToken } from '@/lib/crypto/gbpTokenHelpers';
 
 export async function POST(request: NextRequest) {
   try {
@@ -97,8 +98,9 @@ export async function POST(request: NextRequest) {
       
       if (tokenData?.access_token) {
         
-        // Revoke the access token with Google
-        const revokeResponse = await fetch(`https://oauth2.googleapis.com/revoke?token=${tokenData.access_token}`, {
+        // Revoke the access token with Google (decrypt from DB first)
+        const decryptedToken = decryptGbpToken(tokenData.access_token);
+        const revokeResponse = await fetch(`https://oauth2.googleapis.com/revoke?token=${decryptedToken}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded',

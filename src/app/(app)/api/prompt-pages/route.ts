@@ -4,6 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 import { slugify } from "@/utils/slugify";
 import { getRequestAccountId } from "@/app/(app)/api/utils/getRequestAccountId";
 import { preparePromptPageData, validatePromptPageData } from "@/utils/promptPageDataMapping";
+import { validateStringLength, validateUrl, STRING_LIMITS, collectErrors } from "@/app/(app)/api/utils/validation";
 
 // Initialize Supabase client with service key for privileged operations
 const supabase = createClient(
@@ -41,6 +42,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Account not found. Please ensure you have completed the signup process.' },
         { status: 404 }
+      );
+    }
+
+    // Validate key text field lengths
+    const lengthErrors = collectErrors(
+      validateStringLength(body.client_name, 'client_name', STRING_LIMITS.name),
+      validateStringLength(body.title, 'title', STRING_LIMITS.name),
+      validateStringLength(body.product_description || body.outcomes, 'product_description', STRING_LIMITS.description),
+      validateStringLength(body.first_name, 'first_name', STRING_LIMITS.name),
+      validateStringLength(body.last_name, 'last_name', STRING_LIMITS.name),
+      validateStringLength(body.email, 'email', STRING_LIMITS.email),
+      validateStringLength(body.phone, 'phone', STRING_LIMITS.phone),
+      validateUrl(body.offer_url, 'offer_url'),
+    );
+    if (lengthErrors.length > 0) {
+      return NextResponse.json(
+        { error: "Validation failed", details: lengthErrors },
+        { status: 400 }
       );
     }
 
@@ -188,10 +207,11 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ data });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error in POST /api/prompt-pages:", error);
+    const message = error instanceof Error ? error.message : 'An unexpected error occurred';
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: message },
       { status: 500 },
     );
   }

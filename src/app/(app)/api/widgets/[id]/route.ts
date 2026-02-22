@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createServiceRoleClient } from '@/auth/providers/supabase';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
+import { isValidUuid } from '@/app/(app)/api/utils/validation';
 // Account ID utility already imported above
 import { createServerClient } from '@supabase/ssr';
 
@@ -57,6 +58,9 @@ export async function GET(
   const { id: widgetId } = await context.params;
   if (!widgetId) {
     return NextResponse.json({ error: 'Missing widget ID' }, { status: 400 });
+  }
+  if (!isValidUuid(widgetId)) {
+    return NextResponse.json({ error: 'Invalid widget ID format' }, { status: 400 });
   }
 
   try {
@@ -290,10 +294,13 @@ export async function PUT(
   if (!widgetId) {
     return NextResponse.json({ error: 'Missing widget ID' }, { status: 400 });
   }
+  if (!isValidUuid(widgetId)) {
+    return NextResponse.json({ error: 'Invalid widget ID format' }, { status: 400 });
+  }
 
   try {
     const body = await req.json();
-    
+
     // Get the user from the request headers
     const authHeader = req.headers.get('authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -303,17 +310,17 @@ export async function PUT(
     const token = authHeader.substring(7);
     const supabase = createAuthClient(token); // 🔧 CONSOLIDATED: Use request-scoped client
     const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
+
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    
+
     // Get account ID respecting client selection if provided
     const accountId = await getRequestAccountId(req, user.id, supabase);
     if (!accountId) {
       return NextResponse.json({ error: 'Account not found' }, { status: 404 });
     }
-    
+
     // Update widget and verify ownership using admin client to bypass RLS
     const { data: widget, error: updateError } = await supabaseAdmin
       .from('widgets')
@@ -349,6 +356,9 @@ export async function DELETE(
   if (!widgetId) {
     return NextResponse.json({ error: 'Missing widget ID' }, { status: 400 });
   }
+  if (!isValidUuid(widgetId)) {
+    return NextResponse.json({ error: 'Invalid widget ID format' }, { status: 400 });
+  }
 
   try {
     // Get the user from the request headers
@@ -360,17 +370,17 @@ export async function DELETE(
     const token = authHeader.substring(7);
     const supabase = createAuthClient(token); // 🔧 CONSOLIDATED: Use request-scoped client
     const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
+
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    
+
     // Get account ID respecting client selection if provided
     const accountId = await getRequestAccountId(req, user.id, supabase);
     if (!accountId) {
       return NextResponse.json({ error: 'Account not found' }, { status: 404 });
     }
-    
+
     // Delete widget and verify ownership using admin client to bypass RLS
     const { error: deleteError } = await supabaseAdmin
       .from('widgets')

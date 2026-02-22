@@ -130,14 +130,6 @@ export function resetClientInstance() {
 }
 
 /**
- * Legacy exports for backward compatibility
- *
- * DEPRECATED: Removed to prevent build-time errors
- * Use createClient() instead
- */
-// export const supabase = createClient(); // Commented out - was causing build errors
-
-/**
  * Clear authentication session
  * This removes all authentication cookies and resets the client state
  */

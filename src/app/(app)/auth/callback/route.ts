@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { sendWelcomeEmail } from "@/utils/resend-welcome";
 import { sendAdminNewUserNotification } from "@/utils/emailTemplates";
-import { ensureAdminForEmail } from '@/auth/utils/admin';
+import { ensureAdminForEmail } from '@/utils/admin';
 import { createServiceRoleClient } from '@/auth/providers/supabase';
 import { logUserLogin } from '@/utils/loginTracking';
 

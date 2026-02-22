@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/auth/providers/supabase';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 import { GoogleBusinessProfileClient } from '@/features/social-posting/platforms/google-business-profile/googleBusinessProfileClient';
+import { decryptGbpToken } from '@/lib/crypto/gbpTokenHelpers';
 import crypto from 'crypto';
 
 function createSnapshotHash(data: Record<string, any>): string {
@@ -58,11 +59,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'GBP connection not found' }, { status: 404 });
     }
 
-    // Get current location data from Google
+    // Get current location data from Google (decrypt tokens from DB)
     const client = new GoogleBusinessProfileClient({
-      accessToken: gbpProfile.access_token,
-      refreshToken: gbpProfile.refresh_token || undefined,
-      expiresAt: gbpProfile.expires_at ? new Date(gbpProfile.expires_at).getTime() : undefined
+      accessToken: decryptGbpToken(gbpProfile.access_token),
+      refreshToken: gbpProfile.refresh_token ? decryptGbpToken(gbpProfile.refresh_token) : '',
+      expiresAt: gbpProfile.expires_at ? new Date(gbpProfile.expires_at).getTime() : undefined,
+      accountId,
     });
 
     const currentData = await client.getLocationSnapshot(location_id);

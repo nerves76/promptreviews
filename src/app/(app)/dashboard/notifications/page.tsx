@@ -124,10 +124,10 @@ export default function NotificationsPage() {
       const params = new URLSearchParams();
       params.set("limit", "100"); // Fetch more for client-side filtering
 
-      const response = await apiClient.get(`/notifications?${params.toString()}`) as {
+      const response = await apiClient.get<{
         notifications: Notification[];
         unreadCount: number;
-      };
+      }>(`/notifications?${params.toString()}`);
       setNotifications(response.notifications || []);
     } catch (err) {
       console.error("Error fetching notifications:", err);

@@ -21,7 +21,6 @@ The authentication system has been reorganized into a modular structure for bett
 ├── types/             # TypeScript type definitions
 │   └── auth.types.ts       # All auth-related types
 ├── utils/             # Utility functions
-│   ├── admin.ts            # Admin role management
 │   ├── accounts.ts         # Multi-account management
 │   └── accountSelection.ts # Account switching logic
 └── index.ts           # Main module exports
@@ -50,7 +49,7 @@ import {
 ```typescript
 import { useAuth } from '@/auth/hooks';
 import { BusinessGuard } from '@/auth/guards/BusinessGuard';
-import { isAdmin } from '@/auth/utils/admin';
+import { isAdmin } from '@/utils/admin';
 ```
 
 ## Key Components
@@ -108,7 +107,7 @@ import { isAdmin } from '@/auth/utils/admin';
 ### Import Path Changes
 - `@/contexts/AuthContext` → `@/auth`
 - `@/components/BusinessGuard` → `@/auth/guards/BusinessGuard`
-- `@/utils/admin` → `@/auth/utils/admin`
+- `@/utils/admin` — canonical location (duplicate at `@/auth/utils/admin` has been removed)
 - `@/utils/accountUtils` → `@/auth/utils/accounts`
 - `@/utils/supabaseClient` → `@/auth/providers/supabase`
 

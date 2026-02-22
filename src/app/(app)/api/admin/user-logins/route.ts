@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient, createServiceRoleClient } from "@/auth/providers/supabase";
-import { isAdmin } from "@/auth/utils/admin";
+import { isAdmin } from "@/utils/admin";
 
 export const dynamic = "force-dynamic";
 

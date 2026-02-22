@@ -11,6 +11,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { withRateLimit, RateLimits, addRateLimitHeaders } from '@/app/(app)/api/middleware/rate-limit';
+import { validateSlug } from '@/app/(app)/api/utils/validation';
 
 // Create regular client for public access - respects RLS policies
 const supabaseAnon: SupabaseClient = createClient(
@@ -91,6 +92,12 @@ async function getHandler(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: "Slug is required" }, { status: 400 });
     }
 
+    // Validate slug format to prevent injection
+    const slugError = validateSlug(slug);
+    if (slugError) {
+      return NextResponse.json({ error: slugError }, { status: 400 });
+    }
+
     const { data: promptPage, error: promptError } = await supabaseService
       .from('prompt_pages')
       .select('*')
@@ -147,6 +154,12 @@ async function patchHandler(request: NextRequest, { params }: { params: Promise<
     const body = await request.json();
     if (!slug) {
       return NextResponse.json({ error: "Slug is required" }, { status: 400 });
+    }
+
+    // Validate slug format to prevent injection
+    const slugError = validateSlug(slug);
+    if (slugError) {
+      return NextResponse.json({ error: slugError }, { status: 400 });
     }
 
     const { data: promptPage, error } = await supabaseAnon

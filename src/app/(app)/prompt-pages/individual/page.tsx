@@ -314,10 +314,11 @@ export default function IndividualOutreach() {
           setLocationPromptPages(prev => [...prev, newPromptPage]);
         }
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error creating location:', error);
-      const body = error.responseBody || {};
-      throw new Error(body.message || body.error || error.message || 'Failed to create location');
+      const apiErr = error as { responseBody?: { message?: string; error?: string }; message?: string };
+      const body = apiErr.responseBody || {};
+      throw new Error(body.message || body.error || apiErr.message || 'Failed to create location');
     }
   };
 
@@ -329,10 +330,11 @@ export default function IndividualOutreach() {
       setLocations(prev => prev.map(loc =>
         loc.id === editingLocation.id ? data.location : loc
       ));
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error updating location:', error);
-      const body = error.responseBody || {};
-      throw new Error(body.message || body.error || error.message || 'Failed to update location');
+      const apiErr = error as { responseBody?: { message?: string; error?: string }; message?: string };
+      const body = apiErr.responseBody || {};
+      throw new Error(body.message || body.error || apiErr.message || 'Failed to update location');
     }
   };
 

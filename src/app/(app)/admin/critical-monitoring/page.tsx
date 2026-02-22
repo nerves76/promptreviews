@@ -6,8 +6,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createClient } from '@/auth/providers/supabase';
 import { performCriticalHealthCheck } from '@/utils/criticalFunctionMonitoring';
+import { apiClient } from '@/utils/apiClient';
 
 interface HealthStatus {
   status: 'healthy' | 'degraded' | 'critical';
@@ -49,24 +49,7 @@ export default function CriticalMonitoringDashboard() {
       setHealthStatus(health);
 
       // Get critical monitoring data from admin API (uses service role to bypass RLS)
-      const supabase = createClient();
-      const { data: { session } } = await supabase.auth.getSession();
-
-      if (!session?.access_token) {
-        throw new Error('No session found');
-      }
-
-      const response = await fetch('/api/admin/critical-monitoring', {
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch monitoring data');
-      }
-
-      const data = await response.json();
+      const data = await apiClient.get<{ errors?: CriticalError[]; healthData?: FunctionHealth[] }>('/admin/critical-monitoring');
 
       if (data.errors) setRecentErrors(data.errors);
       if (data.healthData) setFunctionHealth(data.healthData);

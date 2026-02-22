@@ -14,6 +14,7 @@ import { isAdmin } from "@/utils/admin";
 import { useRouter } from "next/navigation";
 import AppLoader from "@/app/(app)/components/AppLoader";
 import Icon from "@/components/Icon";
+import { apiClient } from '@/utils/apiClient';
 
 interface UserInfo {
   id: string;
@@ -146,26 +147,11 @@ export default function AdminPage() {
         return;
       }
 
-      // Get session only when needed for the token
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        setAnalyticsLoading(false);
-        return;
-      }
-
-      const response = await fetch('/api/admin/analytics', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
+      try {
+        const data = await apiClient.get<AdminAnalytics>('/admin/analytics');
         setAnalytics(data);
-      } else {
-        console.error('Failed to load analytics:', await response.text());
+      } catch (fetchErr) {
+        console.error('Failed to load analytics:', fetchErr);
       }
     } catch (error) {
       console.error('Error loading analytics:', error);
@@ -226,30 +212,9 @@ export default function AdminPage() {
     setError(null);
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        setError('No active session');
-        return;
-      }
-
-      const response = await fetch('/api/admin/delete-user', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email: userInfo.email }),
-      });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        setDeleteResult(result);
-        setUserInfo(null); // Clear user info after successful deletion
-      } else {
-        setError(result.error || 'Failed to delete user');
-      }
-
+      const result = await apiClient.post<DeleteResult>('/admin/delete-user', { email: userInfo.email });
+      setDeleteResult(result);
+      setUserInfo(null); // Clear user info after successful deletion
     } catch (error) {
       setError('Error deleting user: ' + (error instanceof Error ? error.message : 'Unknown error'));
     } finally {
@@ -272,33 +237,12 @@ export default function AdminPage() {
     setRepairResult(null);
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        setError('No active session');
-        return;
-      }
-
-      const response = await fetch('/api/admin/repair-users', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: repairEmail.trim() || undefined,
-          repair: repairMode === 'repair',
-          checkAll: repairEmail.trim() === ''
-        }),
+      const result = await apiClient.post<RepairResult>('/admin/repair-users', {
+        email: repairEmail.trim() || undefined,
+        repair: repairMode === 'repair',
+        checkAll: repairEmail.trim() === ''
       });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        setRepairResult(result);
-      } else {
-        setError(result.error || 'Failed to repair users');
-      }
-
+      setRepairResult(result);
     } catch (error) {
       setError('Error repairing users: ' + (error instanceof Error ? error.message : 'Unknown error'));
     } finally {
@@ -321,28 +265,8 @@ export default function AdminPage() {
     setCleanupResult(null);
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        setError('No active session');
-        return;
-      }
-
-             const response = await fetch('/api/admin/account-cleanup', {
-         method: 'GET',
-         headers: {
-           'Authorization': `Bearer ${session.access_token}`,
-           'Content-Type': 'application/json',
-         },
-       });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        setCleanupData(result);
-      } else {
-        setError(result.error || 'Failed to check eligible accounts');
-      }
-
+      const result = await apiClient.get<any>('/admin/account-cleanup');
+      setCleanupData(result);
     } catch (error) {
       setError('Error checking eligible accounts: ' + (error instanceof Error ? error.message : 'Unknown error'));
     } finally {
@@ -356,29 +280,8 @@ export default function AdminPage() {
     setCleanupResult(null);
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        setError('No active session');
-        return;
-      }
-
-             const response = await fetch('/api/admin/account-cleanup', {
-         method: 'POST',
-         headers: {
-           'Authorization': `Bearer ${session.access_token}`,
-           'Content-Type': 'application/json',
-         },
-         body: JSON.stringify({ confirm: !dryRun, dryRun }),
-       });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        setCleanupResult(result);
-      } else {
-        setError(result.error || 'Failed to perform cleanup');
-      }
-
+      const result = await apiClient.post<any>('/admin/account-cleanup', { confirm: !dryRun, dryRun });
+      setCleanupResult(result);
     } catch (error) {
       setError('Error performing cleanup: ' + (error instanceof Error ? error.message : 'Unknown error'));
     } finally {

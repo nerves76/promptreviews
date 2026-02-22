@@ -9,6 +9,7 @@ import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import { GoogleBusinessProfileClient } from '@/features/social-posting/platforms/google-business-profile/googleBusinessProfileClient';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
+import { decryptGbpToken } from '@/lib/crypto/gbpTokenHelpers';
 
 export async function POST(request: NextRequest) {
   try {
@@ -150,11 +151,12 @@ export async function POST(request: NextRequest) {
     }
 
 
-    // Create Google Business Profile client
+    // Create Google Business Profile client (decrypt tokens from DB)
     const client = new GoogleBusinessProfileClient({
-      accessToken: tokens.access_token,
-      refreshToken: tokens.refresh_token,
-      expiresAt: new Date(tokens.expires_at).getTime()
+      accessToken: decryptGbpToken(tokens.access_token),
+      refreshToken: decryptGbpToken(tokens.refresh_token),
+      expiresAt: new Date(tokens.expires_at).getTime(),
+      accountId,
     });
 
     try {

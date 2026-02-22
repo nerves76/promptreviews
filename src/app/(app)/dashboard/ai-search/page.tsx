@@ -326,13 +326,13 @@ export default function AISearchPage() {
     setError(null);
     try {
       // Fetch keywords with related questions
-      const keywordsData = await apiClient.get('/keywords') as {
+      const keywordsData = await apiClient.get<{
         keywords?: Array<{
           id: string;
           phrase: string;
           relatedQuestions?: Array<string | { id?: string; question: string; funnelStage?: string; groupId?: string | null; addedAt?: string }>;
         }>
-      };
+      }>('/keywords');
 
       const keywordsWithQuestions: KeywordWithQuestions[] = (keywordsData.keywords || [])
         .filter((k) => k.relatedQuestions && k.relatedQuestions.length > 0)

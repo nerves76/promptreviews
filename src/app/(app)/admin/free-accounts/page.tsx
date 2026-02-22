@@ -10,6 +10,7 @@
 import { useState, useEffect } from 'react';
 import { createClient } from "@/auth/providers/supabase";
 import Icon from '@/components/Icon';
+import { apiClient } from '@/utils/apiClient';
 
 interface FreeAccount {
   id: string;
@@ -73,28 +74,10 @@ export default function FreeAccountsPage() {
     setSuccess(null);
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        throw new Error('No active session');
-      }
-
-      const response = await fetch('/api/admin/free-accounts', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: email.trim(),
-          planLevel: planLevel,
-        }),
+      await apiClient.post<{ error?: string }>('/admin/free-accounts', {
+        email: email.trim(),
+        planLevel: planLevel,
       });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || 'Failed to create free account');
-      }
 
       setSuccess(`Successfully created free ${planLevel} account for ${email}`);
       setEmail('');

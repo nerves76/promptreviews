@@ -3,6 +3,7 @@
  */
 
 import type { GenerateImageResponse, DeleteImageResponse } from '@/types/review-share-images';
+import { apiClient } from '@/utils/apiClient';
 
 /**
  * Generate or retrieve share image for a review
@@ -16,37 +17,12 @@ export async function generateShareImage(
   } = {}
 ): Promise<GenerateImageResponse> {
   try {
-    const { regenerate = false, authToken } = options;
+    const { regenerate = false } = options;
 
-    const headers: HeadersInit = {
-      'Content-Type': 'application/json',
-    };
-
-    // Add auth token if provided
-    if (authToken) {
-      headers['Authorization'] = `Bearer ${authToken}`;
-    }
-
-    const response = await fetch('/api/review-shares/generate-image', {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({
-        review_id: reviewId,
-        regenerate,
-      }),
+    const data = await apiClient.post<GenerateImageResponse>('/review-shares/generate-image', {
+      review_id: reviewId,
+      regenerate,
     });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      console.error('Failed to generate share image:', data);
-      return {
-        success: false,
-        message: data.message || 'Failed to generate image',
-        fallback: true,
-        error: data.error,
-      };
-    }
 
     return data;
   } catch (error) {
@@ -69,29 +45,9 @@ export async function deleteShareImage(
   authToken?: string
 ): Promise<DeleteImageResponse> {
   try {
-    const headers: HeadersInit = {};
-
-    if (authToken) {
-      headers['Authorization'] = `Bearer ${authToken}`;
-    }
-
-    const response = await fetch(
-      `/api/review-shares/generate-image?reviewId=${reviewId}`,
-      {
-        method: 'DELETE',
-        headers,
-      }
+    const data = await apiClient.delete<DeleteImageResponse>(
+      `/review-shares/generate-image?reviewId=${reviewId}`
     );
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      return {
-        success: false,
-        message: data.message || 'Failed to delete images',
-        error: data.error,
-      };
-    }
 
     return data;
   } catch (error) {

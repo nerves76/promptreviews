@@ -166,9 +166,10 @@ export default function BusinessDescriptionAnalyzer({
         onAnalysisComplete?.(updatedAnalysis);
       }
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('❌ Keyword integration failed:', error);
-      setError(error.message || 'Failed to integrate keywords. Please try again.');
+      const message = error instanceof Error ? error.message : 'Failed to integrate keywords. Please try again.';
+      setError(message);
     } finally {
       setIsIntegrating(false);
     }

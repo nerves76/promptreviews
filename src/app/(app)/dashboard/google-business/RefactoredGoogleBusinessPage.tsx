@@ -795,14 +795,6 @@ export function RefactoredGoogleBusinessPage() {
     }
   }, [activeTab, selectedLocationId, isConnected, hasValidAccountId, overviewData, locations.length]);
 
-  // REMOVED: Auto-switch to overview tab - let users stay on the tab they choose
-  // This was causing confusion when users fetched locations and got moved away from Connect tab
-  // useEffect(() => {
-  //   if (isConnected && activeTab === 'connect' && locations.length > 0) {
-  //     changeTab('overview');
-  //   }
-  // }, [isConnected, activeTab, locations.length]);
-
   // Fetch social connections (Bluesky, LinkedIn) for cross-posting on create-post tab
   useEffect(() => {
     if (activeTab !== 'create-post' || !isConnected) return;

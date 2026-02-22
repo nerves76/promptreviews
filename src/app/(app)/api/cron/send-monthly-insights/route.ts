@@ -14,6 +14,7 @@ import { NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { logCronExecution, verifyCronSecret } from '@/lib/cronLogger';
 import { GoogleBusinessProfileClient } from '@/features/social-posting/platforms/google-business-profile/googleBusinessProfileClient';
+import { decryptGbpToken } from '@/lib/crypto/gbpTokenHelpers';
 import { sendTemplatedEmail } from '@/utils/emailTemplates';
 import { getAccountIdForUser } from '@/auth/utils/accounts';
 
@@ -127,11 +128,12 @@ export async function GET(request: NextRequest) {
           continue;
         }
 
-        // Create Google Business Profile client
+        // Create Google Business Profile client (decrypt tokens from DB)
         const gbpClient = new GoogleBusinessProfileClient({
-          accessToken: gbpCredentials.access_token,
-          refreshToken: gbpCredentials.refresh_token,
-          expiresAt: gbpCredentials.expires_at ? new Date(gbpCredentials.expires_at).getTime() : Date.now() + 3600000
+          accessToken: decryptGbpToken(gbpCredentials.access_token),
+          refreshToken: decryptGbpToken(gbpCredentials.refresh_token),
+          expiresAt: gbpCredentials.expires_at ? new Date(gbpCredentials.expires_at).getTime() : Date.now() + 3600000,
+          accountId: account.id,
         });
 
         // Collect metrics for each selected location

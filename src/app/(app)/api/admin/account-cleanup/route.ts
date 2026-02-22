@@ -8,7 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { deleteUserCompletely } from '@/utils/adminDelete';
-import { isAdmin as checkIsAdmin } from '@/auth/utils/admin';
+import { isAdmin as checkIsAdmin } from '@/utils/admin';
 import { withRateLimit, RateLimits } from '@/app/(app)/api/middleware/rate-limit';
 
 // Use service role client for admin operations

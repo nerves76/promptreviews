@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 import { createServerSupabaseClient, createServiceRoleClient } from "@/auth/providers/supabase";
 import { applyRateLimit, createRateLimitResponse, RateLimits } from "@/app/(app)/api/middleware/rate-limit";
+import { handleApiError } from "@/app/(app)/api/utils/errorResponse";
 
 export const dynamic = "force-dynamic";
 
@@ -179,11 +180,7 @@ IMPORTANT: Return only the enhanced review text without any quotes, formatting, 
     }
 
     return NextResponse.json({ text: completion.choices[0].message.content });
-  } catch (error) {
-    console.error("Error enhancing review:", error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : String(error) },
-      { status: 500 },
-    );
+  } catch (error: unknown) {
+    return handleApiError(error, 'enhance-review');
   }
 }

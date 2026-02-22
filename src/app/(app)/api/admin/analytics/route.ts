@@ -7,7 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { isAdmin } from '@/auth/utils/admin';
+import { isAdmin } from '@/utils/admin';
 
 // Service role client for admin operations
 const supabaseAdmin = createClient(
@@ -121,39 +121,57 @@ export async function GET(request: NextRequest) {
     }
 
     // Fallback to slow path if analytics tables aren't available
+    // Uses count queries and date-filtered queries instead of fetching all records
     if (!usedFastPath) {
       const now = new Date();
       const monthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
       const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 6, 1);
 
+      // Use count queries for totals instead of fetching all rows
       const [
-        { data: accounts },
-        { data: businesses },
-        { data: reviews },
-        { data: promptPages },
-        { data: widgets },
-        { data: gbpLocations },
+        { count: accountsCount },
+        { count: businessesCount },
+        { count: reviewsCount },
+        { count: promptPagesCount },
+        { count: widgetsCount },
+        { count: gbpLocationsCount },
         { count: reviewsCapturedCount },
-        { data: accountUsers }
+        { data: accountUsers },
+        { count: gbpPostsCount },
       ] = await Promise.all([
-        supabaseAdmin.from('accounts').select('id, created_at, subscription_status, plan, is_free_account, trial_end').not('email', 'is', null).is('deleted_at', null),
-        supabaseAdmin.from('businesses').select('id, created_at'),
-        supabaseAdmin.from('review_submissions').select('id, created_at, platform, verified'),
-        supabaseAdmin.from('prompt_pages').select('id, created_at'),
-        supabaseAdmin.from('widgets').select('id, created_at'),
-        supabaseAdmin.from('google_business_locations').select('location_id').not('location_id', 'is', null),
+        supabaseAdmin.from('accounts').select('id', { count: 'exact', head: true }).not('email', 'is', null).is('deleted_at', null),
+        supabaseAdmin.from('businesses').select('id', { count: 'exact', head: true }),
+        supabaseAdmin.from('review_submissions').select('id', { count: 'exact', head: true }),
+        supabaseAdmin.from('prompt_pages').select('id', { count: 'exact', head: true }),
+        supabaseAdmin.from('widgets').select('id', { count: 'exact', head: true }),
+        supabaseAdmin.from('google_business_locations').select('location_id', { count: 'exact', head: true }).not('location_id', 'is', null),
         supabaseAdmin.from('review_submissions').select('id', { count: 'exact', head: true }).not('prompt_page_id', 'is', null),
-        supabaseAdmin.from('account_users').select('user_id, accounts!inner(id)').is('accounts.deleted_at', null)
+        supabaseAdmin.from('account_users').select('user_id, accounts!inner(id)').is('accounts.deleted_at', null),
+        supabaseAdmin.from('google_business_scheduled_posts').select('id', { count: 'exact', head: true }).eq('status', 'published'),
       ]);
 
-      // Count GBP posts
-      const { count: gbpPostsCount } = await supabaseAdmin
-        .from('google_business_scheduled_posts')
-        .select('id', { count: 'exact', head: true })
-        .eq('status', 'published');
+      // Use count queries for time-based metrics instead of fetching all rows and filtering
+      const [
+        { count: reviewsThisMonthCount },
+        { count: reviewsThisWeekCount },
+        { count: newAccountsThisMonthCount },
+        { count: newBusinessesThisMonthCount },
+      ] = await Promise.all([
+        supabaseAdmin.from('review_submissions').select('id', { count: 'exact', head: true }).gte('created_at', monthAgo.toISOString()),
+        supabaseAdmin.from('review_submissions').select('id', { count: 'exact', head: true }).gte('created_at', weekAgo.toISOString()),
+        supabaseAdmin.from('accounts').select('id', { count: 'exact', head: true }).not('email', 'is', null).is('deleted_at', null).gte('created_at', monthAgo.toISOString()),
+        supabaseAdmin.from('businesses').select('id', { count: 'exact', head: true }).gte('created_at', monthAgo.toISOString()),
+      ]);
+
+      // Fetch only accounts needed for status breakdown (with limited columns)
+      const { data: accounts } = await supabaseAdmin
+        .from('accounts')
+        .select('subscription_status, is_free_account, trial_end')
+        .not('email', 'is', null)
+        .is('deleted_at', null);
 
       // Calculate account status breakdown
-      // subscription_status values: 'active', 'trialing', 'canceled', 'incomplete', 'past_due', null
       const accountsActive = accounts?.filter(a =>
         a.subscription_status === 'active' ||
         a.subscription_status === 'trialing' ||
@@ -167,14 +185,21 @@ export async function GET(request: NextRequest) {
         a.subscription_status === 'active' && !a.is_free_account
       ).length || 0;
 
-      // Calculate platform distribution
+      // Fetch only recent reviews for platform distribution (last 90 days max, limited to 1000)
+      const ninetyDaysAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+      const { data: recentReviews } = await supabaseAdmin
+        .from('review_submissions')
+        .select('platform')
+        .gte('created_at', ninetyDaysAgo.toISOString())
+        .limit(1000);
+
       const platformCounts: Record<string, number> = {};
-      reviews?.forEach(review => {
+      recentReviews?.forEach((review: { platform: string }) => {
         const platform = review.platform || 'unknown';
         platformCounts[platform] = (platformCounts[platform] || 0) + 1;
       });
 
-      // Calculate recent activity (last 7 days)
+      // Calculate recent activity (last 7 days) - fetch only last 7 days of data
       const activityMap: Record<string, { reviews: number; users: number }> = {};
       for (let i = 6; i >= 0; i--) {
         const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
@@ -182,14 +207,20 @@ export async function GET(request: NextRequest) {
         activityMap[dateStr] = { reviews: 0, users: 0 };
       }
 
-      reviews?.forEach((review: { created_at: string }) => {
+      const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      const [{ data: weekReviews }, { data: weekAccounts }] = await Promise.all([
+        supabaseAdmin.from('review_submissions').select('created_at').gte('created_at', sevenDaysAgo.toISOString()).limit(1000),
+        supabaseAdmin.from('accounts').select('created_at').not('email', 'is', null).is('deleted_at', null).gte('created_at', sevenDaysAgo.toISOString()).limit(1000),
+      ]);
+
+      weekReviews?.forEach((review: { created_at: string }) => {
         const date = new Date(review.created_at).toISOString().split('T')[0];
         if (activityMap[date]) {
           activityMap[date].reviews++;
         }
       });
 
-      accounts?.forEach((account: { created_at: string }) => {
+      weekAccounts?.forEach((account: { created_at: string }) => {
         const date = new Date(account.created_at).toISOString().split('T')[0];
         if (activityMap[date]) {
           activityMap[date].users++;
@@ -200,7 +231,7 @@ export async function GET(request: NextRequest) {
         .map(([date, data]) => ({ date, ...data }))
         .sort((a, b) => a.date.localeCompare(b.date));
 
-      // Calculate business growth (last 6 months)
+      // Calculate business growth (last 6 months) - fetch only last 6 months
       const growthMap: Record<string, number> = {};
       for (let i = 5; i >= 0; i--) {
         const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
@@ -208,7 +239,13 @@ export async function GET(request: NextRequest) {
         growthMap[monthStr] = 0;
       }
 
-      businesses?.forEach((business: { created_at: string }) => {
+      const { data: recentBusinesses } = await supabaseAdmin
+        .from('businesses')
+        .select('created_at')
+        .gte('created_at', sixMonthsAgo.toISOString())
+        .limit(1000);
+
+      recentBusinesses?.forEach((business: { created_at: string }) => {
         const month = new Date(business.created_at).toISOString().slice(0, 7);
         if (growthMap[month] !== undefined) {
           growthMap[month]++;
@@ -219,7 +256,7 @@ export async function GET(request: NextRequest) {
         .map(([month, count]) => ({ date: month, count }))
         .sort((a, b) => a.date.localeCompare(b.date));
 
-      // Calculate review trends (last 30 days)
+      // Calculate review trends (last 30 days) - fetch only last 30 days
       const trendMap: Record<string, number> = {};
       for (let i = 29; i >= 0; i--) {
         const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
@@ -227,7 +264,14 @@ export async function GET(request: NextRequest) {
         trendMap[dateStr] = 0;
       }
 
-      reviews?.forEach((review: { created_at: string }) => {
+      const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      const { data: monthReviews } = await supabaseAdmin
+        .from('review_submissions')
+        .select('created_at')
+        .gte('created_at', thirtyDaysAgo.toISOString())
+        .limit(1000);
+
+      monthReviews?.forEach((review: { created_at: string }) => {
         const date = new Date(review.created_at).toISOString().split('T')[0];
         if (trendMap[date] !== undefined) {
           trendMap[date]++;
@@ -242,19 +286,19 @@ export async function GET(request: NextRequest) {
 
       analyticsData = {
         totalUsers: uniqueUserIds.size || 0,
-        totalAccounts: accounts?.length || 0,
-        totalBusinesses: businesses?.length || 0,
-        totalReviews: reviews?.length || 0,
+        totalAccounts: accountsCount || 0,
+        totalBusinesses: businessesCount || 0,
+        totalReviews: reviewsCount || 0,
         reviewsCaptured: reviewsCapturedCount || 0,
-        totalPromptPages: promptPages?.length || 0,
-        totalWidgets: widgets?.length || 0,
-        totalGbpLocations: new Set(gbpLocations?.map(l => l.location_id)).size || 0,
+        totalPromptPages: promptPagesCount || 0,
+        totalWidgets: widgetsCount || 0,
+        totalGbpLocations: gbpLocationsCount || 0,
         totalGbpPosts: gbpPostsCount || 0,
-        reviewsThisMonth: reviews?.filter((r: { created_at: string }) => new Date(r.created_at) >= monthAgo).length || 0,
-        reviewsThisWeek: reviews?.filter((r: { created_at: string }) => new Date(r.created_at) >= weekAgo).length || 0,
-        newUsersThisMonth: accounts?.filter((u: { created_at: string }) => new Date(u.created_at) >= monthAgo).length || 0,
-        newAccountsThisMonth: accounts?.filter((a: { created_at: string }) => new Date(a.created_at) >= monthAgo).length || 0,
-        newBusinessesThisMonth: businesses?.filter((b: { created_at: string }) => new Date(b.created_at) >= monthAgo).length || 0,
+        reviewsThisMonth: reviewsThisMonthCount || 0,
+        reviewsThisWeek: reviewsThisWeekCount || 0,
+        newUsersThisMonth: newAccountsThisMonthCount || 0,
+        newAccountsThisMonth: newAccountsThisMonthCount || 0,
+        newBusinessesThisMonth: newBusinessesThisMonthCount || 0,
         accountsActive,
         accountsTrial,
         accountsPaid,
@@ -265,7 +309,7 @@ export async function GET(request: NextRequest) {
         reviewTrends
       };
 
-      console.log('⚠️  Using slow analytics path');
+      console.log('⚠️  Using slow analytics path (optimized with count queries)');
     }
 
     // Calculate platform distribution

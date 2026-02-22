@@ -1,7 +1,11 @@
 /**
  * useMentionableUsers Hook
  *
- * Search for users that can be mentioned in posts
+ * Search for users that can be mentioned in posts.
+ *
+ * Performance: Uses batch queries to avoid N+1 problem.
+ * Instead of 2 queries per profile (account_users + businesses),
+ * this uses 2 total batch queries after the initial search.
  */
 
 'use client';
@@ -39,36 +43,64 @@ export function useMentionableUsers() {
 
       if (profilesError) throw profilesError;
 
-      // Get business info for each user
-      const usersWithBusinessInfo = await Promise.all(
-        (profiles || []).map(async (profile) => {
-          // Get account info
-          const { data: accountUser } = await supabase
-            .from('account_users')
-            .select('account_id')
-            .eq('user_id', profile.user_id)
-            .limit(1)
-            .single();
+      if (!profiles || profiles.length === 0) {
+        setUsers([]);
+        setIsLoading(false);
+        return;
+      }
 
-          // Get business info
-          const { data: business } = await supabase
+      const userIds = profiles.map((p) => p.user_id);
+
+      // Batch fetch account_users and businesses in parallel (2 queries instead of 2 * N)
+      const [
+        { data: accountUsers },
+        // We'll fetch businesses after we have account IDs
+      ] = await Promise.all([
+        supabase
+          .from('account_users')
+          .select('user_id, account_id')
+          .in('user_id', userIds),
+      ]);
+
+      // Build user_id -> account_id map (take first account per user)
+      const userAccountMap = new Map<string, string>();
+      for (const au of accountUsers || []) {
+        if (!userAccountMap.has(au.user_id)) {
+          userAccountMap.set(au.user_id, au.account_id);
+        }
+      }
+
+      // Collect unique account IDs and batch fetch businesses
+      const accountIds = [...new Set(userAccountMap.values())];
+      const { data: businesses } = accountIds.length > 0
+        ? await supabase
             .from('businesses')
-            .select('name, logo_url')
-            .eq('account_id', accountUser?.account_id || '')
-            .limit(1)
-            .single();
+            .select('account_id, name, logo_url')
+            .in('account_id', accountIds)
+        : { data: [] };
 
-          return {
-            user_id: profile.user_id,
-            username: profile.username,
-            display_name: profile.display_name_override || profile.username,
-            business_name: business?.name || 'Unknown',
-            logo_url: business?.logo_url,
-          };
-        })
-      );
+      // Build account_id -> business map (take first business per account)
+      const businessMap = new Map<string, { name: string; logo_url: string | null }>();
+      for (const b of businesses || []) {
+        if (!businessMap.has(b.account_id)) {
+          businessMap.set(b.account_id, { name: b.name, logo_url: b.logo_url });
+        }
+      }
 
-      // Filter out users where business name also matches the query for better relevance
+      // Assemble results
+      const usersWithBusinessInfo: MentionableUser[] = profiles.map((profile) => {
+        const accountId = userAccountMap.get(profile.user_id);
+        const business = accountId ? businessMap.get(accountId) : undefined;
+
+        return {
+          user_id: profile.user_id,
+          username: profile.username,
+          display_name: profile.display_name_override || profile.username,
+          business_name: business?.name || 'Unknown',
+          logo_url: business?.logo_url ?? undefined,
+        };
+      });
+
       setUsers(usersWithBusinessInfo);
     } catch (error) {
       console.error('Error searching users:', error);

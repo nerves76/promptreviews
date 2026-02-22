@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { 
+import { errorResponse, handleApiError } from "@/app/(app)/api/utils/errorResponse";
+import {
   createStripeClient,
   PRICE_IDS,
   SUPABASE_CONFIG,
@@ -278,31 +279,26 @@ export async function POST(req: NextRequest) {
       }
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error previewing billing change:", error);
-    console.error("Error stack:", error.stack);
-    
+
+    const message = error instanceof Error ? error.message : '';
+
     // Check for specific error types
-    if (error.message?.includes('STRIPE_SECRET_KEY')) {
-      return NextResponse.json(
-        { error: "Configuration error", message: "Stripe is not properly configured. Please contact support." },
-        { status: 500 }
+    if (message.includes('STRIPE_SECRET_KEY')) {
+      return errorResponse(
+        "Stripe is not properly configured. Please contact support.",
+        500,
       );
     }
-    
-    if (error.message?.includes('SUPABASE')) {
-      return NextResponse.json(
-        { error: "Database error", message: "Unable to access account information. Please try again." },
-        { status: 500 }
+
+    if (message.includes('SUPABASE')) {
+      return errorResponse(
+        "Unable to access account information. Please try again.",
+        500,
       );
     }
-    
-    return NextResponse.json(
-      { 
-        error: "Server error", 
-        message: error.message || "An unexpected error occurred while previewing billing changes. Please try again." 
-      },
-      { status: 500 }
-    );
+
+    return handleApiError(error, 'preview-billing-change');
   }
 }

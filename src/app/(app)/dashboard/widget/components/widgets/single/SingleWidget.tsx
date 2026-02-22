@@ -1,9 +1,6 @@
 import React, { useEffect, useRef, useMemo } from 'react';
 import { WidgetData, DesignState } from './index';
 
-// Remove the incorrect CSS import - we'll load it dynamically
-// import '../../../../../../../public/widgets/single/single-widget.css';
-
 interface SingleWidgetProps {
   data: any;
   design?: DesignState;

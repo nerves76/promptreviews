@@ -21,9 +21,10 @@
 import { NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { GoogleBusinessProfileClient } from '@/features/social-posting/platforms/google-business-profile/googleBusinessProfileClient';
+import { decryptGbpToken } from '@/lib/crypto/gbpTokenHelpers';
 import { sendGbpProtectionAlertEmail } from '@/utils/emailTemplates';
 import { createGbpChangeNotification, shouldSendEmail } from '@/utils/notifications';
-import { logCronExecution, verifyCronSecret } from '@/lib/cronLogger';
+import { logCronExecution, verifyCronSecret, hasCompletedToday, shouldExitEarly } from '@/lib/cronLogger';
 import crypto from 'crypto';
 
 // Helper to create a hash for snapshot comparison
@@ -75,6 +76,17 @@ export async function GET(request: NextRequest) {
   if (authError) return authError;
 
   return logCronExecution('monitor-gbp-changes', async () => {
+    // Idempotency guard: skip if already completed today
+    const alreadyRan = await hasCompletedToday('monitor-gbp-changes');
+    if (alreadyRan) {
+      return {
+        success: true,
+        summary: { skipped: true, reason: 'Already completed today' },
+      };
+    }
+
+    const cronStartTime = Date.now();
+
     // Create Supabase client with service role key for admin access
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -128,8 +140,16 @@ export async function GET(request: NextRequest) {
     let totalEmailsSent = 0;
     let totalNotificationErrors = 0;
 
-    // Process each account with GBP connection
+    // Process each account with GBP connection (with timeout protection)
+    let exitedEarly = false;
     for (const profile of gbpProfiles || []) {
+      // Exit before Vercel 30s timeout (25s buffer)
+      if (shouldExitEarly(cronStartTime)) {
+        console.log(`[GBP Monitor] Approaching timeout after ${results.length} accounts, exiting early`);
+        exitedEarly = true;
+        break;
+      }
+
       const account = Array.isArray(profile.accounts) ? profile.accounts[0] : profile.accounts;
       if (!account) continue;
 
@@ -171,11 +191,12 @@ export async function GET(request: NextRequest) {
           continue;
         }
 
-        // Initialize GBP client
+        // Initialize GBP client (decrypt tokens from DB)
         const client = new GoogleBusinessProfileClient({
-          accessToken: profile.access_token,
-          refreshToken: profile.refresh_token || undefined,
-          expiresAt: profile.expires_at ? new Date(profile.expires_at).getTime() : undefined
+          accessToken: decryptGbpToken(profile.access_token),
+          refreshToken: profile.refresh_token ? decryptGbpToken(profile.refresh_token) : '',
+          expiresAt: profile.expires_at ? new Date(profile.expires_at).getTime() : undefined,
+          accountId: profile.account_id,
         });
 
         const accountChanges: Array<{
@@ -452,13 +473,14 @@ export async function GET(request: NextRequest) {
     }
 
     return {
-      success: true,
+      success: !exitedEarly,
       summary: {
         accountsProcessed: gbpProfiles?.length || 0,
         locationsChecked: totalLocationsChecked,
         changesDetected: totalChangesDetected,
         emailsSent: totalEmailsSent,
         notificationErrors: totalNotificationErrors,
+        exitedEarly,
       },
     };
   });

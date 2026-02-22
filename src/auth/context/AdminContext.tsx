@@ -12,7 +12,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import { useCoreAuth } from './CoreAuthContext';
 import { useAccount } from './AccountContext';
-import { isAdmin as checkIsAdmin, ensureAdminForEmail } from '../utils/admin';
+import { isAdmin as checkIsAdmin, ensureAdminForEmail } from '@/utils/admin';
 
 interface AdminState {
   // Admin status

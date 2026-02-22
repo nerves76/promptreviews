@@ -246,7 +246,7 @@ export default function AccountPage() {
     const fetchNotifPrefs = async () => {
       if (!account) return;
       try {
-        const response = await apiClient.get('/notifications/preferences') as { preferences: NotificationPreferences };
+        const response = await apiClient.get<{ preferences: NotificationPreferences }>('/notifications/preferences');
         setNotifPrefs(response.preferences);
       } catch (error) {
         console.error('Error fetching notification preferences:', error);

@@ -18,8 +18,6 @@ import { getAccountIdForUser, getAccountsForUser } from '../utils/accounts';
 import { selectBestAccount } from '../utils/accountSelection';
 import { Account } from '../types';
 
-// Don't create client at module level - create it inside the component
-// const supabase = createClient();
 
 interface AccountState {
   // Account data
@@ -369,31 +367,11 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
     }
   }, [isAuthenticated, user?.id]);
 
-  // Removed: Event listener for account switching - now using simple reload approach
-
-  // DISABLED: Auto-refresh account data periodically
-  // This was causing PageCard to disappear every minute and users to lose typed content
-  // Account data is refreshed when needed through explicit user actions or auth changes
-  // useEffect(() => {
-  //   if (!isAuthenticated) return;
-
-  //   const interval = setInterval(() => {
-  //     if (accountCacheTime) {
-  //       const cacheAge = Date.now() - accountCacheTime;
-  //       if (cacheAge > ACCOUNT_CACHE_DURATION) {
-  //         loadAccount();
-  //       }
-  //     }
-  //   }, 30000); // Check every 30 seconds
-
-  //   return () => clearInterval(interval);
-  // }, [isAuthenticated, accountCacheTime, loadAccount]);
-
   const value: AccountContextType = {
     // State
     accountId,
     account,
-    accounts: [], // Temporarily hardcode empty array to fix error
+    accounts,
     selectedAccountId,
     canSwitchAccounts,
     accountLoading,

@@ -18,7 +18,7 @@
 
 import { NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { logCronExecution, verifyCronSecret } from '@/lib/cronLogger';
+import { logCronExecution, verifyCronSecret, hasCompletedToday, shouldExitEarly } from '@/lib/cronLogger';
 import {
   calculateGeogridCost,
   getBalance,
@@ -54,6 +54,17 @@ export async function GET(request: NextRequest) {
   if (authError) return authError;
 
   return logCronExecution('send-credit-warnings', async () => {
+    // Idempotency guard: skip if already completed today
+    const alreadyRan = await hasCompletedToday('send-credit-warnings');
+    if (alreadyRan) {
+      return {
+        success: true,
+        summary: { skipped: true, reason: 'Already completed today' },
+      };
+    }
+
+    const cronStartTime = Date.now();
+
     // Create Supabase client with service role key
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -109,8 +120,15 @@ export async function GET(request: NextRequest) {
 
     console.log(`📊 [Credit Warnings] Found ${uniqueAccountIds.size} accounts with active schedules`);
 
-    // Check each account for low balance
+    // Check each account for low balance (with timeout protection)
+    let exitedEarly = false;
     for (const accountId of uniqueAccountIds) {
+      if (shouldExitEarly(cronStartTime)) {
+        console.log(`[Credit Warnings] Approaching timeout during low balance checks, exiting early`);
+        exitedEarly = true;
+        break;
+      }
+
       try {
         // Get account details
         const { data: account } = await supabase
@@ -206,17 +224,20 @@ export async function GET(request: NextRequest) {
     // =========================================================================
     // SECTION 2: Geo-Grid Upcoming Checks
     // =========================================================================
-    console.log('📍 [Credit Warnings] Checking geo-grid upcoming checks...');
+    if (shouldExitEarly(cronStartTime)) { exitedEarly = true; }
+    if (!exitedEarly) console.log('📍 [Credit Warnings] Checking geo-grid upcoming checks...');
 
-    const { data: upcomingGeoGrids } = await supabase
+    const upcomingGeoGrids = exitedEarly ? null : (await supabase
       .from('gg_configs')
       .select('*')
       .not('schedule_frequency', 'is', null)
       .eq('is_enabled', true)
       .gte('next_scheduled_at', now.toISOString())
-      .lte('next_scheduled_at', in24Hours.toISOString());
+      .lte('next_scheduled_at', in24Hours.toISOString())).data;
 
     for (const config of upcomingGeoGrids || []) {
+      if (shouldExitEarly(cronStartTime)) { exitedEarly = true; break; }
+
       try {
         // Skip if warned recently
         if (config.last_credit_warning_sent_at && new Date(config.last_credit_warning_sent_at) > cooldownTime) {
@@ -288,17 +309,20 @@ export async function GET(request: NextRequest) {
     // =========================================================================
     // SECTION 3: Rank Tracking Upcoming Checks
     // =========================================================================
-    console.log('📈 [Credit Warnings] Checking rank tracking upcoming checks...');
+    if (shouldExitEarly(cronStartTime)) { exitedEarly = true; }
+    if (!exitedEarly) console.log('📈 [Credit Warnings] Checking rank tracking upcoming checks...');
 
-    const { data: upcomingRankGroups } = await supabase
+    const upcomingRankGroups = exitedEarly ? null : (await supabase
       .from('rank_keyword_groups')
       .select('*')
       .not('schedule_frequency', 'is', null)
       .eq('is_enabled', true)
       .gte('next_scheduled_at', now.toISOString())
-      .lte('next_scheduled_at', in24Hours.toISOString());
+      .lte('next_scheduled_at', in24Hours.toISOString())).data;
 
     for (const group of upcomingRankGroups || []) {
+      if (shouldExitEarly(cronStartTime)) { exitedEarly = true; break; }
+
       try {
         // Skip if warned recently
         if (group.last_credit_warning_sent_at && new Date(group.last_credit_warning_sent_at) > cooldownTime) {
@@ -369,17 +393,20 @@ export async function GET(request: NextRequest) {
     // =========================================================================
     // SECTION 4: LLM Visibility Upcoming Checks
     // =========================================================================
-    console.log('🤖 [Credit Warnings] Checking LLM visibility upcoming checks...');
+    if (shouldExitEarly(cronStartTime)) { exitedEarly = true; }
+    if (!exitedEarly) console.log('🤖 [Credit Warnings] Checking LLM visibility upcoming checks...');
 
-    const { data: upcomingLLMSchedules } = await supabase
+    const upcomingLLMSchedules = exitedEarly ? null : (await supabase
       .from('llm_visibility_schedules')
       .select('*')
       .not('schedule_frequency', 'is', null)
       .eq('is_enabled', true)
       .gte('next_scheduled_at', now.toISOString())
-      .lte('next_scheduled_at', in24Hours.toISOString());
+      .lte('next_scheduled_at', in24Hours.toISOString())).data;
 
     for (const schedule of upcomingLLMSchedules || []) {
+      if (shouldExitEarly(cronStartTime)) { exitedEarly = true; break; }
+
       try {
         // Skip if warned recently
         if (schedule.last_credit_warning_sent_at && new Date(schedule.last_credit_warning_sent_at) > cooldownTime) {
@@ -452,17 +479,20 @@ export async function GET(request: NextRequest) {
     // =========================================================================
     // SECTION 5: Concept Schedule Upcoming Checks
     // =========================================================================
-    console.log('📋 [Credit Warnings] Checking concept schedule upcoming checks...');
+    if (shouldExitEarly(cronStartTime)) { exitedEarly = true; }
+    if (!exitedEarly) console.log('📋 [Credit Warnings] Checking concept schedule upcoming checks...');
 
-    const { data: upcomingConcepts } = await supabase
+    const upcomingConcepts = exitedEarly ? null : (await supabase
       .from('concept_schedules')
       .select('*')
       .not('schedule_frequency', 'is', null)
       .eq('is_enabled', true)
       .gte('next_scheduled_at', now.toISOString())
-      .lte('next_scheduled_at', in24Hours.toISOString());
+      .lte('next_scheduled_at', in24Hours.toISOString())).data;
 
     for (const schedule of upcomingConcepts || []) {
+      if (shouldExitEarly(cronStartTime)) { exitedEarly = true; break; }
+
       try {
         // Skip if warned recently
         if (schedule.last_credit_warning_sent_at && new Date(schedule.last_credit_warning_sent_at) > cooldownTime) {
@@ -538,17 +568,20 @@ export async function GET(request: NextRequest) {
     // =========================================================================
     // SECTION 6: Backlink Upcoming Checks
     // =========================================================================
-    console.log('🔗 [Credit Warnings] Checking backlink upcoming checks...');
+    if (shouldExitEarly(cronStartTime)) { exitedEarly = true; }
+    if (!exitedEarly) console.log('🔗 [Credit Warnings] Checking backlink upcoming checks...');
 
-    const { data: upcomingBacklinks } = await supabase
+    const upcomingBacklinks = exitedEarly ? null : (await supabase
       .from('backlink_domains')
       .select('*')
       .not('schedule_frequency', 'is', null)
       .eq('is_enabled', true)
       .gte('next_scheduled_at', now.toISOString())
-      .lte('next_scheduled_at', in24Hours.toISOString());
+      .lte('next_scheduled_at', in24Hours.toISOString())).data;
 
     for (const domain of upcomingBacklinks || []) {
+      if (shouldExitEarly(cronStartTime)) { exitedEarly = true; break; }
+
       try {
         // Skip if warned recently
         if (domain.last_credit_warning_sent_at && new Date(domain.last_credit_warning_sent_at) > cooldownTime) {
@@ -607,8 +640,12 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    if (exitedEarly) {
+      console.log(`[Credit Warnings] Exited early due to timeout, partial results returned`);
+    }
+
     return {
-      success: true,
+      success: !exitedEarly,
       summary: {
         lowBalanceWarnings: results.lowBalanceWarnings,
         upcomingWarnings: results.upcomingWarnings,
@@ -617,6 +654,7 @@ export async function GET(request: NextRequest) {
         skippedMaxWarnings: results.skippedMaxWarnings,
         skippedFreeAccount: results.skippedFreeAccount,
         errors: results.errors,
+        exitedEarly,
       },
     };
   });

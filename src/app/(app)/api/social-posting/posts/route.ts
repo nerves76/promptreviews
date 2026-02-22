@@ -10,6 +10,7 @@ import { GoogleBusinessProfileClient } from '@/features/social-posting/platforms
 import { createServerSupabaseClient } from '@/auth/providers/supabase';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 import type { UniversalPost, PlatformId } from '@/features/social-posting';
+import { decryptGbpToken } from '@/lib/crypto/gbpTokenHelpers';
 
 // LinkedIn target for multi-target posting (personal profile + organizations)
 interface LinkedInTarget {
@@ -74,11 +75,12 @@ export async function POST(request: NextRequest) {
     // Initialize adapters if not already registered or if tokens have changed
     const platformId: PlatformId = 'google-business-profile';
     if (!postManager.getAdapter(platformId)) {
-      // Create Google Business Profile client with actual user tokens
+      // Create Google Business Profile client (decrypt tokens from DB)
       const client = new GoogleBusinessProfileClient({
-        accessToken: tokens.access_token,
-        refreshToken: tokens.refresh_token,
-        expiresAt: new Date(tokens.expires_at).getTime()
+        accessToken: decryptGbpToken(tokens.access_token),
+        refreshToken: decryptGbpToken(tokens.refresh_token),
+        expiresAt: new Date(tokens.expires_at).getTime(),
+        accountId,
       });
 
       // Get the account ID from the tokens or stored data

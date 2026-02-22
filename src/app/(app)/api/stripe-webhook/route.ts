@@ -5,6 +5,7 @@ import { credit, ensureBalanceExists } from "@/lib/credits";
 import { syncAgencyFreeWorkspace, getAgenciesForClient } from "@/lib/billing/agencyIncentive";
 import { sendSubscriptionActivatedEmail, sendPaymentEmail } from "@/lib/onboarding-emails";
 import { getSurveyResponsesForPlan } from "@/auth/utils/planUtils";
+import { errorResponse } from "@/app/(app)/api/utils/errorResponse";
 
 // Lazy initialization to avoid build-time env var access
 function getStripeClient() {
@@ -35,11 +36,12 @@ export async function POST(req: NextRequest) {
     event = stripe.webhooks.constructEvent(rawBody, sig!, webhookSecret!);
     console.log("🔔 Received Stripe event:", event.type);
     console.log("📋 Event ID:", event.id);
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("❌ Stripe webhook signature verification failed:", err);
     console.error("❌ Received signature:", sig?.substring(0, 50) + "...");
+    const message = err instanceof Error ? err.message : "Internal server error";
     return NextResponse.json(
-      { error: err.message || "Internal server error" },
+      { error: message },
       { status: 500 },
     );
   }
@@ -49,6 +51,15 @@ export async function POST(req: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
   );
+
+  // NOTE: 3D Secure (SCA) is handled automatically by Stripe Checkout.
+  // This app exclusively uses Stripe Checkout (hosted payment page) for both
+  // subscription and one-time payments. Stripe's hosted checkout handles all
+  // 3DS/SCA challenges before completing the session, so there is no need to
+  // handle `payment_intent.requires_action` events here. If the payment flow
+  // ever migrates to Stripe Elements or custom PaymentIntents, a
+  // `requires_action` handler must be added both here and on the client side
+  // (using stripe.confirmCardPayment).
 
   // Handle checkout session completed (for new subscriptions from checkout)
   if (event.type === "checkout.session.completed") {
@@ -92,9 +103,9 @@ export async function POST(req: NextRequest) {
           });
 
           console.log(`✅ Granted ${creditsToGrant} credits to account ${accountId}`);
-        } catch (creditError: any) {
+        } catch (creditError: unknown) {
           // IdempotencyError means we already processed this - that's OK
-          if (creditError.name === 'IdempotencyError') {
+          if (creditError instanceof Error && creditError.name === 'IdempotencyError') {
             console.log("⚠️ Credit pack already processed (idempotency check):", session.id);
           } else {
             console.error("❌ Failed to grant credits:", creditError);
@@ -404,9 +415,10 @@ export async function POST(req: NextRequest) {
 
       if (updateResult.error) {
         console.error("Supabase update error:", updateResult.error.message);
-        return NextResponse.json(
-          { error: updateResult.error.message },
-          { status: 500 },
+        return errorResponse(
+          "Failed to update subscription",
+          500,
+          updateResult.error.message,
         );
       }
     }
@@ -475,8 +487,8 @@ export async function POST(req: NextRequest) {
             });
 
             console.log(`✅ Granted ${creditsToGrant} credits to account ${accountId} (subscription renewal)`);
-          } catch (creditError: any) {
-            if (creditError.name === 'IdempotencyError') {
+          } catch (creditError: unknown) {
+            if (creditError instanceof Error && creditError.name === 'IdempotencyError') {
               console.log("⚠️ Credit renewal already processed (idempotency check):", invoice.id);
             } else {
               console.error("❌ Failed to grant credits on renewal:", creditError);
@@ -507,9 +519,10 @@ export async function POST(req: NextRequest) {
 
     if (updateResult.error) {
       console.error("Supabase payment update error:", updateResult.error.message);
-      return NextResponse.json(
-        { error: updateResult.error.message },
-        { status: 500 },
+      return errorResponse(
+        "Failed to update payment status",
+        500,
+        updateResult.error.message,
       );
     }
 
@@ -598,8 +611,9 @@ export async function POST(req: NextRequest) {
             console.log("⚠️ No purchased credits to claw back");
           }
         }
-      } catch (clawBackError: any) {
-        if (clawBackError.code === '23505') {
+      } catch (clawBackError: unknown) {
+        const isUniqueViolation = clawBackError instanceof Error && 'code' in clawBackError && (clawBackError as { code: string }).code === '23505';
+        if (isUniqueViolation) {
           console.log("⚠️ Refund already processed (idempotency check):", charge.id);
         } else {
           console.error("❌ Failed to claw back credits:", clawBackError);

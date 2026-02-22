@@ -67,11 +67,8 @@ async function sendCriticalError(error: CriticalFunctionError): Promise<void> {
 
   // Send to our custom alerting endpoint
   try {
-    await fetch('/api/monitoring/critical-error', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(error)
-    });
+    const { apiClient } = await import('@/utils/apiClient');
+    await apiClient.post('/monitoring/critical-error', error);
   } catch (err) {
     console.error('Failed to send critical error alert:', err);
   }
@@ -85,11 +82,8 @@ async function sendCriticalError(error: CriticalFunctionError): Promise<void> {
  */
 async function trackCriticalSuccess(success: CriticalFunctionSuccess): Promise<void> {
   try {
-    await fetch('/api/monitoring/critical-success', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(success)
-    });
+    const { apiClient } = await import('@/utils/apiClient');
+    await apiClient.post('/monitoring/critical-success', success);
   } catch (err) {
     console.error('Failed to track critical success:', err);
   }
@@ -223,12 +217,12 @@ export async function performCriticalHealthCheck(): Promise<{
   
   // Test AI generation endpoint
   try {
+    const { apiClient } = await import('@/utils/apiClient');
     const start = Date.now();
-    const response = await fetch('/api/health/ai-generation', { method: 'GET' });
+    await apiClient.get('/health/ai-generation');
     checks.ai_generation = {
-      status: response.ok ? 'pass' : 'fail',
+      status: 'pass',
       duration: Date.now() - start,
-      message: response.ok ? undefined : `HTTP ${response.status}`
     };
   } catch (error) {
     checks.ai_generation = {
@@ -236,15 +230,15 @@ export async function performCriticalHealthCheck(): Promise<{
       message: error instanceof Error ? error.message : 'Unknown error'
     };
   }
-  
+
   // Test review tracking endpoint
   try {
+    const { apiClient } = await import('@/utils/apiClient');
     const start = Date.now();
-    const response = await fetch('/api/health/review-tracking', { method: 'GET' });
+    await apiClient.get('/health/review-tracking');
     checks.review_tracking = {
-      status: response.ok ? 'pass' : 'fail',
+      status: 'pass',
       duration: Date.now() - start,
-      message: response.ok ? undefined : `HTTP ${response.status}`
     };
   } catch (error) {
     checks.review_tracking = {

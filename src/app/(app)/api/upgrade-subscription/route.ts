@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { 
-  createStripeClient, 
+import { handleApiError } from "@/app/(app)/api/utils/errorResponse";
+import {
+  createStripeClient,
   PRICE_IDS, 
   SUPABASE_CONFIG,
   getPlanChangeType,
@@ -175,12 +176,8 @@ export async function POST(req: NextRequest) {
       subscriptionId: updatedSubscription.id,
       redirectUrl
     });
-  } catch (error: any) {
-    console.error("Stripe upgrade error:", error);
-    return NextResponse.json(
-      { error: error.message || "Internal server error" },
-      { status: 500 },
-    );
+  } catch (error: unknown) {
+    return handleApiError(error, 'upgrade-subscription');
   }
 }
 

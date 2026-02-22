@@ -9,6 +9,7 @@
 import { useState } from 'react';
 import { createClient } from "@/auth/providers/supabase";
 import Icon from '@/components/Icon';
+import { apiClient } from '@/utils/apiClient';
 
 interface AccountResult {
   id: string;
@@ -48,21 +49,9 @@ export default function CreditsAdminPage() {
     setResults([]);
 
     try {
-      // Use admin API endpoint which uses service role to bypass RLS
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('No active session');
-
-      const response = await fetch(`/api/admin/credits?search=${encodeURIComponent(searchQuery)}`, {
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || 'Search failed');
-      }
+      const result = await apiClient.get<{ accounts?: AccountResult[]; tierDefaults?: Record<string, number>; error?: string }>(
+        `/admin/credits?search=${encodeURIComponent(searchQuery)}`
+      );
 
       setResults(result.accounts || []);
       if (result.tierDefaults) {
@@ -90,26 +79,10 @@ export default function CreditsAdminPage() {
     setSuccess(null);
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('No active session');
-
-      const response = await fetch('/api/admin/credits', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          accountId: selectedAccount.id,
-          amount,
-        }),
+      await apiClient.post<{ error?: string }>('/admin/credits', {
+        accountId: selectedAccount.id,
+        amount,
       });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || 'Failed to add credits');
-      }
 
       setSuccess(`Successfully added ${amount} credits to ${selectedAccount.business_name || selectedAccount.email}`);
 

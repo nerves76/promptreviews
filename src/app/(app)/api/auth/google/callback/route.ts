@@ -9,6 +9,7 @@ import { createServerClient } from '@supabase/ssr';
 import { createClient, User } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import { getAccountIdForUser } from '@/auth/utils/accounts';
+import { encryptGbpToken } from '@/lib/crypto/gbpTokenHelpers';
 
 /**
  * OAuth Callback Route for Google Business Profile
@@ -414,8 +415,8 @@ export async function GET(request: NextRequest) {
     const upsertData = {
       user_id: user.id,
       account_id: accountId,
-      access_token: tokens.access_token,
-      refresh_token: tokens.refresh_token,
+      access_token: encryptGbpToken(tokens.access_token),
+      refresh_token: encryptGbpToken(tokens.refresh_token),
       expires_at: expiresAt.toISOString(),
       scopes: tokens.scope,
       google_email: googleEmail // Store which Google account is connected
@@ -472,7 +473,7 @@ export async function GET(request: NextRequest) {
     
     return response;
 
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('❌ Error in OAuth callback:', error);
     return NextResponse.redirect(
               new URL('/dashboard/google-business?tab=connect&error=callback_failed&message=Unexpected error during OAuth callback', request.url)

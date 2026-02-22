@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { createServerSupabaseClient } from '@/auth/providers/supabase';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
+import { isValidUuid } from '@/app/(app)/api/utils/validation';
 import {
   transformGroupToResponse,
   DEFAULT_GROUP_NAME,
@@ -24,6 +25,11 @@ interface RouteParams {
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
+
+    if (!isValidUuid(id)) {
+      return NextResponse.json({ error: 'Invalid group ID format' }, { status: 400 });
+    }
+
     const supabase = await createServerSupabaseClient();
     const { data: { user }, error: userError } = await supabase.auth.getUser();
 
@@ -90,6 +96,11 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
+
+    if (!isValidUuid(id)) {
+      return NextResponse.json({ error: 'Invalid group ID format' }, { status: 400 });
+    }
+
     const supabase = await createServerSupabaseClient();
     const { data: { user }, error: userError } = await supabase.auth.getUser();
 
@@ -226,6 +237,11 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
+
+    if (!isValidUuid(id)) {
+      return NextResponse.json({ error: 'Invalid group ID format' }, { status: 400 });
+    }
+
     const supabase = await createServerSupabaseClient();
     const { data: { user }, error: userError } = await supabase.auth.getUser();
 
