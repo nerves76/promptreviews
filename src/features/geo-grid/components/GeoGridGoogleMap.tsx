@@ -562,7 +562,7 @@ export function GeoGridGoogleMap({
                 <strong>To fix this:</strong> Go to Settings and use the &quot;Search for business&quot; feature to find your business and set up proper coordinates.
               </p>
             </div>
-            <p className="text-xs text-gray-400 mt-4">
+            <p className="text-xs text-gray-500 mt-4">
               Current coordinates: ({center.lat}, {center.lng})
             </p>
           </div>

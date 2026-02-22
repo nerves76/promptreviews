@@ -2135,7 +2135,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
             <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-sm relative text-center">
               <img
                 src="/images/prompty-success.png"
-                alt="Success"
+                alt="Review submitted successfully"
                 className="w-16 h-16 mx-auto mb-3"
               />
               <h3 className="text-lg font-bold text-gray-900 mb-1">Success!</h3>
@@ -2655,6 +2655,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                             ref={cameraInputRef}
                             style={{ display: "none" }}
                             onChange={handlePhotoChange}
+                            aria-label="Take a photo"
                           />
                           <input
                             type="file"
@@ -2662,12 +2663,13 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                             ref={fileInputRef}
                             style={{ display: "none" }}
                             onChange={handlePhotoChange}
+                            aria-label="Upload a photo"
                           />
                           {photoPreview && (
                             <div className="mt-4 text-center">
                               <img
                                 src={photoPreview}
-                                alt="Preview"
+                                alt="Photo preview for review submission"
                                 className="max-w-xs max-h-48 rounded border mx-auto"
                               />
                             </div>

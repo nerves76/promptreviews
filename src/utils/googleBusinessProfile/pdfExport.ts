@@ -4,9 +4,6 @@
  * Generates a PDF version of the overview page with charts and metrics
  */
 
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
-
 interface ExportOptions {
   filename?: string;
   locationName?: string;
@@ -59,6 +56,12 @@ export async function exportOverviewToPDF(
   } = options;
 
   try {
+    // Dynamically import heavy libraries (~1.2MB combined) - only loaded when user exports PDF
+    const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
+      import('jspdf'),
+      import('html2canvas'),
+    ]);
+
     // Load the logo
     const logoBase64 = await getLogoBase64();
 

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import PageCard, { PageCardHeader } from "@/app/(app)/components/PageCard";
 import Icon from "@/components/Icon";
+import { ConfirmDialog } from "@/app/(app)/components/ui/confirm-dialog";
 import HelpModal from "@/app/(app)/components/help/HelpModal";
 import { useAuthGuard } from "@/utils/authGuard";
 import { useAccountData } from "@/auth/hooks/granularAuthHooks";
@@ -35,6 +36,8 @@ export default function RssFeedsPage() {
   const [showFeedUrlHelp, setShowFeedUrlHelp] = useState(false);
   const [processingFeedId, setProcessingFeedId] = useState<string | null>(null);
   const [resettingFeedId, setResettingFeedId] = useState<string | null>(null);
+  const [feedToDelete, setFeedToDelete] = useState<string | null>(null);
+  const [isDeletingFeed, setIsDeletingFeed] = useState(false);
 
   // Fetch feeds
   const fetchFeeds = useCallback(async () => {
@@ -82,17 +85,23 @@ export default function RssFeedsPage() {
   };
 
   // Handle feed delete
-  const handleDeleteFeed = async (feedId: string) => {
-    if (!confirm("Are you sure you want to delete this feed?")) return;
+  const handleDeleteFeedClick = (feedId: string) => {
+    setFeedToDelete(feedId);
+  };
 
+  const handleConfirmDeleteFeed = async () => {
+    if (!feedToDelete) return;
+    setIsDeletingFeed(true);
     try {
-      await apiClient.delete(`/rss-feeds/${feedId}`);
+      await apiClient.delete(`/rss-feeds/${feedToDelete}`);
       setSuccess("Feed deleted successfully");
       fetchFeeds();
     } catch (err) {
       console.error("Failed to delete feed:", err);
       setError("Failed to delete feed");
     }
+    setIsDeletingFeed(false);
+    setFeedToDelete(null);
   };
 
   // Handle manual process
@@ -488,7 +497,7 @@ export default function RssFeedsPage() {
                         )}
                       </button>
                       <button
-                        onClick={() => handleDeleteFeed(feed.id)}
+                        onClick={() => handleDeleteFeedClick(feed.id)}
                         className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                         title="Delete feed"
                         aria-label="Delete feed"
@@ -603,6 +612,18 @@ export default function RssFeedsPage() {
         isOpen={showFeedUrlHelp}
         onClose={() => setShowFeedUrlHelp(false)}
         initialArticleId="rss-feeds/finding-feed-urls"
+      />
+
+      {/* Delete Feed Confirmation */}
+      <ConfirmDialog
+        isOpen={!!feedToDelete}
+        onClose={() => setFeedToDelete(null)}
+        onConfirm={handleConfirmDeleteFeed}
+        title="Delete feed"
+        message="Are you sure you want to delete this feed? This action cannot be undone."
+        confirmLabel="Delete"
+        confirmVariant="danger"
+        isLoading={isDeletingFeed}
       />
     </div>
   );

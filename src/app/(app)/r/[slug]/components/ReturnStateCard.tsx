@@ -185,7 +185,7 @@ export default function ReturnStateCard({
             <div className="text-center">
               <img
                 src="/images/prompty-success.png"
-                alt="Success"
+                alt="Review submitted successfully"
                 className="w-24 h-24 mx-auto mb-4"
               />
               <h2 className="text-2xl font-bold text-gray-900 mb-3">Success!</h2>

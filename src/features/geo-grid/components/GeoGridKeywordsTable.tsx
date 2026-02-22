@@ -882,7 +882,7 @@ export function GeoGridKeywordsTable({
                               {BUCKET_LABELS[group.bestBucket]}
                             </span>
                           ) : (
-                            <span className="text-gray-400 text-sm">—</span>
+                            <span className="text-gray-500 text-sm">—</span>
                           )}
                         </td>
                         <td className="px-4 py-3 text-gray-600">
@@ -920,7 +920,7 @@ export function GeoGridKeywordsTable({
                               </span>
                             </div>
                           ) : (
-                            <span className="text-gray-400 text-sm">—</span>
+                            <span className="text-gray-500 text-sm">—</span>
                           )}
                         </td>
                         <td className="px-4 py-3 text-center">

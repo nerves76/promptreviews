@@ -10,6 +10,7 @@
 import { useState, useEffect } from 'react';
 import { createClient } from "@/auth/providers/supabase";
 import Icon from '@/components/Icon';
+import { LoadingSpinner } from '@/app/(app)/components/ui/loading-spinner';
 import { apiClient } from '@/utils/apiClient';
 
 interface FreeAccount {
@@ -186,7 +187,7 @@ export default function FreeAccountsPage() {
           >
             {isSubmitting ? (
               <>
-                <Icon name="FaSpinner" className="animate-spin mr-2" />
+                <LoadingSpinner size="sm" className="mr-2" />
                 Creating Free Account...
               </>
             ) : (
@@ -210,7 +211,7 @@ export default function FreeAccountsPage() {
 
         {loading ? (
           <div className="p-8 text-center">
-            <Icon name="FaSpinner" className="animate-spin mx-auto mb-4 text-slate-blue" size={24} />
+            <LoadingSpinner size="md" className="mx-auto mb-4 text-slate-blue" />
             <p className="text-gray-600">Loading free accounts...</p>
           </div>
         ) : freeAccounts.length === 0 ? (

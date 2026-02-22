@@ -14,6 +14,7 @@ import { isAdmin } from "@/utils/admin";
 import { useRouter } from "next/navigation";
 import AppLoader from "@/app/(app)/components/AppLoader";
 import Icon from "@/components/Icon";
+import { ConfirmDialog } from '@/app/(app)/components/ui/confirm-dialog';
 import { apiClient } from '@/utils/apiClient';
 
 interface UserInfo {
@@ -777,43 +778,33 @@ export default function AdminPage() {
           )}
 
           {/* Confirmation Modal */}
-          {showConfirmation && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-white rounded-lg p-6 max-w-md mx-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Confirm deletion</h3>
-                <p className="text-gray-600 mb-6">
+          <ConfirmDialog
+            isOpen={showConfirmation}
+            onClose={() => setShowConfirmation(false)}
+            onConfirm={deleteUser}
+            title="Confirm deletion"
+            message={
+              <>
+                <p className="mb-3">
                   This action will permanently delete the user <strong>{userInfo?.email}</strong> and ALL associated data including:
                 </p>
-                <ul className="text-sm text-gray-600 mb-6 space-y-1">
-                  <li>• User account and authentication</li>
-                  <li>• All widgets and prompt pages</li>
-                  <li>• Business profiles and contacts</li>
-                  <li>• Review submissions and analytics</li>
-                  <li>• AI usage records</li>
-                  <li>• All related database records</li>
+                <ul className="text-sm text-gray-600 mb-3 space-y-1">
+                  <li>- User account and authentication</li>
+                  <li>- All widgets and prompt pages</li>
+                  <li>- Business profiles and contacts</li>
+                  <li>- Review submissions and analytics</li>
+                  <li>- AI usage records</li>
+                  <li>- All related database records</li>
                 </ul>
-                <p className="text-red-600 font-semibold mb-6">
+                <p className="text-red-600 font-semibold">
                   This action cannot be undone!
                 </p>
-                
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => setShowConfirmation(false)}
-                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={deleteUser}
-                    disabled={isDeleting}
-                    className="flex-1 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50"
-                  >
-                    {isDeleting ? 'Deleting...' : 'Delete permanently'}
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
+              </>
+            }
+            confirmLabel="Delete permanently"
+            confirmVariant="danger"
+            isLoading={isDeleting}
+          />
 
           {/* Delete Results */}
           {deleteResult && (

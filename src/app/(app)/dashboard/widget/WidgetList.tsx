@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { getUserOrMock } from "@/auth/providers/supabase";
 import { DraggableModal } from './components/DraggableModal';
 import { WidgetEditorForm } from './components/WidgetEditorForm';
@@ -7,6 +7,7 @@ import { ReviewManagementModal } from './components/ReviewManagementModal';
 import { WidgetTable } from './components/WidgetTable';
 import { StyleModal } from './components/StyleModal';
 import { DEFAULT_DESIGN, DesignState } from './components/widgets/multi';
+import { ConfirmDialog } from '@/app/(app)/components/ui/confirm-dialog';
 
 export default function WidgetList({
   onSelectWidget,
@@ -46,6 +47,8 @@ export default function WidgetList({
   const [selectedWidgetForReviews, setSelectedWidgetForReviews] = useState<string | null>(null);
   const [showStyleModal, setShowStyleModal] = useState(false);
   const [selectedWidgetForStyle, setSelectedWidgetForStyle] = useState<any>(null);
+  const [widgetToDelete, setWidgetToDelete] = useState<string | null>(null);
+  const [isDeletingWidget, setIsDeletingWidget] = useState(false);
 
   useEffect(() => {
     const handler = () => {
@@ -164,17 +167,23 @@ export default function WidgetList({
     }
   };
 
-  const handleDeleteWidget = async (widgetId: string) => {
-    if (!confirm('Are you sure you want to delete this widget?')) return;
-    
+  const handleDeleteWidget = useCallback((widgetId: string) => {
+    setWidgetToDelete(widgetId);
+  }, []);
+
+  const handleConfirmDeleteWidget = useCallback(async () => {
+    if (!widgetToDelete) return;
+    setIsDeletingWidget(true);
     try {
-      await deleteWidget(widgetId);
+      await deleteWidget(widgetToDelete);
       // Don't call fetchWidgets - deleteWidget already does it internally
     } catch (error) {
       console.error('Error deleting widget:', error);
       alert('Failed to delete widget. Please try again.');
     }
-  };
+    setIsDeletingWidget(false);
+    setWidgetToDelete(null);
+  }, [widgetToDelete, deleteWidget]);
 
   const handleEditStyle = (widget: any) => {
     setSelectedWidgetForStyle(widget);
@@ -294,6 +303,17 @@ export default function WidgetList({
           onResetDesign={handleResetDesign}
         />
       )}
+
+      <ConfirmDialog
+        isOpen={!!widgetToDelete}
+        onClose={() => setWidgetToDelete(null)}
+        onConfirm={handleConfirmDeleteWidget}
+        title="Delete widget"
+        message="Are you sure you want to delete this widget? This action cannot be undone."
+        confirmLabel="Delete"
+        confirmVariant="danger"
+        isLoading={isDeletingWidget}
+      />
     </div>
   );
 }

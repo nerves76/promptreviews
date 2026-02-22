@@ -96,7 +96,7 @@ export const PhotoUpload: React.FC<PhotoUploadProps> = ({
       {photoUploadError && <span className="text-xs text-red-600">{photoUploadError}</span>}
       {photoUrl && (
         <div className="mt-2">
-          <img src={photoUrl} alt="Uploaded" className="h-20 w-20 object-cover rounded" />
+          <img src={photoUrl} alt="Uploaded review photo" className="h-20 w-20 object-cover rounded" />
           <p className="text-xs text-gray-500 mt-1">Photo uploaded successfully</p>
         </div>
       )}

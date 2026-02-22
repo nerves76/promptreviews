@@ -21,7 +21,7 @@ interface ShareButtonProps {
   onShareError?: (error: string) => void;
 }
 
-export default function ShareButton({
+const ShareButton = React.memo(function ShareButton({
   review,
   shareUrl,
   productName,
@@ -116,4 +116,6 @@ export default function ShareButton({
       />
     </div>
   );
-}
+});
+
+export default ShareButton;

@@ -143,7 +143,7 @@ export default function OptimizationOpportunitiesEmbed({
                 </div>
                 <p className="text-xs text-gray-600">{opportunity.description}</p>
               </div>
-              <button className="ml-2 text-slate-blue hover:text-slate-700 transition-colors">
+              <button className="ml-2 text-slate-blue hover:text-slate-700 transition-colors" aria-label="View optimization details">
                 <Icon name="FaArrowRight" className="w-3 h-3" />
               </button>
             </div>

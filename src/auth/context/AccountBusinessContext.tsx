@@ -352,6 +352,9 @@ export function AccountBusinessProvider({ children }: { children: React.ReactNod
     } finally {
       setAccountLoading(false);
     }
+    // loadBusiness is used in the body but declared after this callback.
+    // It is safe because switchAccount is only called after all hooks are initialized.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id, clearCache, loadAccount, setAccountId]);
 
   // Refresh account data

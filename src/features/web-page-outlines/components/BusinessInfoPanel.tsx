@@ -95,7 +95,7 @@ export default function BusinessInfoPanel({
           <Icon
             name={isExpanded ? "FaChevronUp" : "FaChevronDown"}
             size={10}
-            className="text-gray-400"
+            className="text-gray-500"
           />
         </div>
       </button>
@@ -142,7 +142,7 @@ export default function BusinessInfoPanel({
               ) : (
                 <p className="text-sm text-gray-600 truncate">
                   {businessInfo[field.key] || (
-                    <span className="text-gray-400 italic">Not set</span>
+                    <span className="text-gray-500 italic">Not set</span>
                   )}
                 </p>
               )}

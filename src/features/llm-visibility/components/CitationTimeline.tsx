@@ -167,7 +167,7 @@ export function CitationTimeline({ question, keywordId, className = '' }: Citati
                     <div className="flex-shrink-0 w-28">
                       <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium ${colors.bg} ${colors.text}`}>
                         {LLM_PROVIDER_LABELS[provider]}
-                        <span className="text-gray-400">--</span>
+                        <span className="text-gray-500">--</span>
                       </span>
                     </div>
                     {/* Empty track */}
@@ -257,7 +257,7 @@ export function CitationTimeline({ question, keywordId, className = '' }: Citati
             <div className="flex-shrink-0 w-28" />
 
             {/* Date range display */}
-            <div className="flex items-center justify-between flex-1 text-[9px] text-gray-400">
+            <div className="flex items-center justify-between flex-1 text-[9px] text-gray-500">
               <span>{formatDate(dates[0])}</span>
               {dates.length > 1 && (
                 <span>{formatDate(dates[dates.length - 1])}</span>

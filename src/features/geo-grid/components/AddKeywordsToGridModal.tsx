@@ -320,7 +320,7 @@ export function AddKeywordsToGridModal({
                       </div>
                     </div>
                     {isTrackedElsewhere ? (
-                      <span className="ml-3 px-3 py-1.5 text-sm text-gray-400">
+                      <span className="ml-3 px-3 py-1.5 text-sm text-gray-500">
                         Already tracked
                       </span>
                     ) : (

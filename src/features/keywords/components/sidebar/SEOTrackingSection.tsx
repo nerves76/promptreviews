@@ -279,6 +279,7 @@ export function SEOTrackingSection({
                   }}
                   placeholder="e.g., portland plumber"
                   className="flex-1 px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-300 transition-all"
+                  aria-label="New search term"
                 />
                 <button
                   onClick={onAddSearchTerm}

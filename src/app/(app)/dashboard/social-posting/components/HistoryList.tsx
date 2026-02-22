@@ -1,6 +1,7 @@
 "use client";
 
 import Icon from "@/components/Icon";
+import { Badge } from "@/app/(app)/components/ui/badge";
 import type { GoogleBusinessScheduledPost } from "@/features/social-posting";
 import { formatDateOrFallback } from "@/utils/formatDate";
 
@@ -33,37 +34,29 @@ export default function HistoryList({ posts }: HistoryListProps) {
     switch (status) {
       case "completed":
         return (
-          <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-700 flex items-center gap-1">
+          <Badge variant="success" className="flex items-center gap-1">
             <Icon name="FaCheck" size={10} />
             Published
-          </span>
+          </Badge>
         );
       case "partial_success":
         return (
-          <span className="px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-700 flex items-center gap-1">
+          <Badge variant="warning" className="flex items-center gap-1">
             <Icon name="FaExclamationTriangle" size={10} />
             Partial
-          </span>
+          </Badge>
         );
       case "failed":
         return (
-          <span className="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-700 flex items-center gap-1">
+          <Badge variant="error" className="flex items-center gap-1">
             <Icon name="FaTimes" size={10} />
             Failed
-          </span>
+          </Badge>
         );
       case "cancelled":
-        return (
-          <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-600">
-            Cancelled
-          </span>
-        );
+        return <Badge>Cancelled</Badge>;
       default:
-        return (
-          <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-600">
-            {status}
-          </span>
-        );
+        return <Badge>{status}</Badge>;
     }
   };
 

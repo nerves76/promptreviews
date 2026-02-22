@@ -65,7 +65,7 @@ export default function SchemaMarkupViewer({ seo }: SchemaMarkupViewerProps) {
             <Icon
               name={showLocal ? "FaChevronUp" : "FaChevronDown"}
               size={10}
-              className="text-gray-400"
+              className="text-gray-500"
             />
           </div>
         </button>
@@ -100,7 +100,7 @@ export default function SchemaMarkupViewer({ seo }: SchemaMarkupViewerProps) {
             <Icon
               name={showFaq ? "FaChevronUp" : "FaChevronDown"}
               size={10}
-              className="text-gray-400"
+              className="text-gray-500"
             />
           </div>
         </button>

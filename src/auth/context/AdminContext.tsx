@@ -118,7 +118,9 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
       setAdminChecked(false);
       clearAdminCache();
     }
-  }, [isAuthenticated, account?.id]);
+    // Using account?.id instead of account to avoid re-running when non-id fields change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, account?.id, checkAdminStatus, clearAdminCache]);
 
   // Auto-refresh admin status periodically
   useEffect(() => {

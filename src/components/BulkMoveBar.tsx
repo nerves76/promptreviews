@@ -173,6 +173,7 @@ export function BulkMoveBar({
             <button
               onClick={onDeselectAll}
               className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors flex items-center gap-2"
+              aria-label="Clear selection"
             >
               <Icon name="FaTimes" className="w-4 h-4" />
               <span className="hidden sm:inline">Clear</span>

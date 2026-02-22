@@ -91,7 +91,7 @@ export default function KeywordSelector({
         <Icon
           name={isOpen ? "FaChevronUp" : "FaChevronDown"}
           size={12}
-          className="text-gray-400"
+          className="text-gray-500"
         />
       </button>
 

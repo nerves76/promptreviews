@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { apiClient } from "@/utils/apiClient";
 import Icon from "@/components/Icon";
+import { LoadingSpinner } from "@/app/(app)/components/ui/loading-spinner";
 import { Button } from "@/app/(app)/components/ui/button";
 import { Modal } from "@/app/(app)/components/ui/modal";
 import { Textarea } from "@/app/(app)/components/ui/textarea";
@@ -305,7 +306,7 @@ export default function OutreachTemplatesPage() {
 
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
-            <Icon name="FaSpinner" className="w-6 h-6 animate-spin text-slate-blue" />
+            <LoadingSpinner size="md" className="text-slate-blue" />
             <span className="ml-2 text-gray-600">Loading templates...</span>
           </div>
         ) : templates.length === 0 ? (
@@ -476,7 +477,7 @@ export default function OutreachTemplatesPage() {
           <Button onClick={handleSave} disabled={isSaving}>
             {isSaving ? (
               <>
-                <Icon name="FaSpinner" className="w-4 h-4 animate-spin mr-2" />
+                <LoadingSpinner size="sm" className="mr-2" />
                 Saving...
               </>
             ) : editingTemplate ? (

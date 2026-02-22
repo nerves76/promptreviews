@@ -5,6 +5,7 @@ import { useAuth } from "@/auth";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Icon from "@/components/Icon";
+import { LoadingSpinner } from "@/app/(app)/components/ui/loading-spinner";
 import PageCard, { PageCardHeader } from "@/app/(app)/components/PageCard";
 import { apiClient } from "@/utils/apiClient";
 import { Modal } from "@/app/(app)/components/ui/modal";
@@ -168,7 +169,7 @@ export default function AgencyAccessPage() {
     return (
       <PageCard>
         <div className="flex items-center justify-center py-12">
-          <Icon name="FaSpinner" className="animate-spin text-slate-blue w-8 h-8" size={32} />
+          <LoadingSpinner size="lg" className="text-slate-blue" />
         </div>
       </PageCard>
     );
@@ -393,7 +394,7 @@ export default function AgencyAccessPage() {
           >
             {actionLoading ? (
               <>
-                <Icon name="FaSpinner" className="animate-spin mr-2" size={14} />
+                <LoadingSpinner size="xs" className="mr-2" />
                 Removing...
               </>
             ) : (

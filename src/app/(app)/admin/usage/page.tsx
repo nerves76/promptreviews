@@ -140,6 +140,7 @@ export default function UsageAdminPage() {
             onClick={fetchUsageData}
             disabled={loading}
             className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+            aria-label="Refresh usage data"
           >
             <Icon name="FaRedo" className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} size={16} />
           </button>

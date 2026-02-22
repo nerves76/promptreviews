@@ -116,7 +116,7 @@ export default function WorkManagerCard({
         <button
           type="button"
           onClick={handleDelete}
-          className="absolute bottom-2 right-2 inline-flex items-center gap-1 px-2 py-1 text-xs bg-white/80 text-gray-400 hover:text-red-500 rounded shadow opacity-0 group-hover:opacity-100 transition"
+          className="absolute bottom-2 right-2 inline-flex items-center gap-1 px-2 py-1 text-xs bg-white/80 text-gray-500 hover:text-red-500 rounded shadow opacity-0 group-hover:opacity-100 transition"
           aria-label="Delete task"
         >
           <Icon name="FaTrash" size={10} />

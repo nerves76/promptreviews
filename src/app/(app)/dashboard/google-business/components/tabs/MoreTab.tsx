@@ -1,6 +1,7 @@
 'use client';
 
 import Icon from '@/components/Icon';
+import { Badge } from '@/app/(app)/components/ui/badge';
 import ButtonSpinner from '@/components/ButtonSpinner';
 
 interface MoreTabProps {
@@ -71,7 +72,7 @@ export function MoreTab({
             <Icon name="FaBoxOpen" className="w-6 h-6 text-slate-blue" />
             <h3 className="text-lg font-semibold text-gray-900">Products</h3>
           </div>
-          <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">Recommended</span>
+          <Badge variant="success">Recommended</Badge>
         </div>
 
         <p className="text-gray-700 mb-4">
@@ -103,7 +104,7 @@ export function MoreTab({
             <Icon name="FaQuestionCircle" className="w-6 h-6 text-purple-600" />
             <h3 className="text-lg font-semibold text-gray-900">Questions & Answers</h3>
           </div>
-          <span className="px-2 py-1 text-xs font-medium bg-purple-100 text-purple-800 rounded-full">High impact</span>
+          <Badge className="bg-purple-100 text-purple-800">High impact</Badge>
         </div>
 
         <p className="text-gray-700 mb-4">
@@ -150,7 +151,7 @@ export function MoreTab({
             <Icon name="FaCalendarAlt" className="w-6 h-6 text-blue-600" />
             <h3 className="text-lg font-semibold text-gray-900">Booking & Appointments</h3>
           </div>
-          <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">Integration required</span>
+          <Badge variant="info">Integration required</Badge>
         </div>
 
         <p className="text-gray-700 mb-4">
@@ -187,7 +188,7 @@ export function MoreTab({
             <Icon name="FaComments" className="w-6 h-6 text-green-600" />
             <h3 className="text-lg font-semibold text-gray-900">Messaging</h3>
           </div>
-          <span className="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">Mobile only</span>
+          <Badge variant="warning">Mobile only</Badge>
         </div>
 
         <p className="text-gray-700 mb-4">
@@ -224,7 +225,7 @@ export function MoreTab({
             <Icon name="FaTags" className="w-6 h-6 text-indigo-600" />
             <h3 className="text-lg font-semibold text-gray-900">Attributes</h3>
           </div>
-          <span className="px-2 py-1 text-xs font-medium bg-indigo-100 text-indigo-800 rounded-full">High value</span>
+          <Badge className="bg-indigo-100 text-indigo-800">High value</Badge>
         </div>
 
         <p className="text-gray-700 mb-4">
@@ -281,7 +282,7 @@ export function MoreTab({
             <Icon name="FaFileAlt" className="w-6 h-6 text-orange-600" />
             <h3 className="text-lg font-semibold text-gray-900">Menu (Restaurants Only)</h3>
           </div>
-          <span className="px-2 py-1 text-xs font-medium bg-orange-100 text-orange-800 rounded-full">Industry specific</span>
+          <Badge className="bg-orange-100 text-orange-800">Industry specific</Badge>
         </div>
 
         <p className="text-gray-700 mb-4">

@@ -121,6 +121,7 @@ export function SearchTermRow({
                 disabled={disabled}
                 className="p-1 text-gray-500 hover:text-blue-500 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 title="Set as primary"
+                aria-label="Set as primary keyword"
               >
                 <Icon name="FaStar" className="w-3 h-3" />
               </button>
@@ -131,6 +132,7 @@ export function SearchTermRow({
                 disabled={disabled}
                 className="p-1 text-gray-500 hover:text-red-500 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 title="Remove term"
+                aria-label="Remove search term"
               >
                 <Icon name="FaTimes" className="w-3 h-3" />
               </button>

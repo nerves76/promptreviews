@@ -66,7 +66,7 @@ export default function SEOMetadataPanel({ seo }: SEOMetadataPanelProps) {
             <button
               type="button"
               onClick={() => copyText(seo.pageTitle, setTitleCopied)}
-              className="flex-shrink-0 p-1 text-gray-400 hover:text-slate-blue transition-colors"
+              className="flex-shrink-0 p-1 text-gray-500 hover:text-slate-blue transition-colors"
               aria-label="Copy page title"
             >
               <Icon name={titleCopied ? "FaCheck" : "FaCopy"} size={12} />
@@ -95,7 +95,7 @@ export default function SEOMetadataPanel({ seo }: SEOMetadataPanelProps) {
             <button
               type="button"
               onClick={() => copyText(seo.metaDescription, setDescCopied)}
-              className="flex-shrink-0 p-1 text-gray-400 hover:text-slate-blue transition-colors"
+              className="flex-shrink-0 p-1 text-gray-500 hover:text-slate-blue transition-colors"
               aria-label="Copy meta description"
             >
               <Icon name={descCopied ? "FaCheck" : "FaCopy"} size={12} />

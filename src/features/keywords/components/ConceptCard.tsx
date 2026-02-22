@@ -603,7 +603,7 @@ export function ConceptCard({
                   placeholder="Concept name"
                   aria-label="Concept name"
                 />
-                <span className={`absolute right-2 top-1/2 -translate-y-1/2 text-[10px] ${editedName.length >= 45 ? 'text-amber-600' : 'text-gray-400'}`}>
+                <span className={`absolute right-2 top-1/2 -translate-y-1/2 text-[10px] ${editedName.length >= 45 ? 'text-amber-600' : 'text-gray-500'}`}>
                   {editedName.length}/50
                 </span>
               </div>
@@ -1004,11 +1004,13 @@ export function ConceptCard({
                   onKeyDown={(e) => e.key === 'Enter' && handleAddSearchTerm()}
                   placeholder="Add search term..."
                   className="flex-1 px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-300"
+                  aria-label="New search term"
                 />
                 <button
                   onClick={handleAddSearchTerm}
                   disabled={!newSearchTerm.trim()}
                   className="px-3 py-1.5 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-50"
+                  aria-label="Add search term"
                 >
                   <Icon name="FaPlus" className="w-3 h-3" />
                 </button>
@@ -1311,11 +1313,13 @@ export function ConceptCard({
                     onKeyDown={(e) => e.key === 'Enter' && handleAddQuestion()}
                     placeholder="Add AI visibility question..."
                     className="flex-1 px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-300"
+                    aria-label="New AI visibility question"
                   />
                   <button
                     onClick={handleAddQuestion}
                     disabled={!newQuestion.trim()}
                     className="px-3 py-1.5 text-sm text-purple-600 hover:bg-purple-50 rounded-lg transition-colors disabled:opacity-50"
+                    aria-label="Add question"
                   >
                     <Icon name="FaPlus" className="w-3 h-3" />
                   </button>
@@ -1450,11 +1454,13 @@ export function ConceptCard({
                     onKeyDown={(e) => e.key === 'Enter' && handleAddAlias()}
                     placeholder="Add alias..."
                     className="flex-1 px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-300"
+                    aria-label="New alias"
                   />
                   <button
                     onClick={handleAddAlias}
                     disabled={!newAlias.trim()}
                     className="px-3 py-1.5 text-sm text-amber-600 hover:bg-amber-50 rounded-lg transition-colors disabled:opacity-50"
+                    aria-label="Add alias"
                   >
                     <Icon name="FaPlus" className="w-3 h-3" />
                   </button>

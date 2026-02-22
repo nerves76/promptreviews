@@ -15,6 +15,7 @@ import { useAccountData } from '@/auth/hooks/granularAuthHooks';
 // Page-level loading uses the global overlay
 import { useGlobalLoader } from "@/app/(app)/components/GlobalLoaderProvider";
 import { apiClient } from '@/utils/apiClient';
+import { Badge } from '@/app/(app)/components/ui/badge';
 import OwnershipTransferBanner from './components/OwnershipTransferBanner';
 
 interface TeamMember {
@@ -1013,17 +1014,17 @@ export default function TeamPage() {
                       <option value="member">Member</option>
                     </select>
                   ) : (
-                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                      member.role === 'owner' 
-                        ? 'bg-purple-100 text-purple-800' 
+                    <Badge className={
+                      member.role === 'owner'
+                        ? 'bg-purple-100 text-purple-800'
                         : member.role === 'support'
                         ? 'bg-blue-100 text-blue-800'
                         : 'bg-gray-100 text-gray-800'
-                    }`}>
+                    }>
                       {member.role === 'support' ? '🛠️ Support' : member.role}
-                    </span>
+                    </Badge>
                   )}
-                  
+
                   {/* Transfer Ownership Button */}
                   {isOwner && !member.is_current_user && member.role !== 'owner' && member.role !== 'support' && !pendingTransfer && (
                     <button
@@ -1090,9 +1091,9 @@ export default function TeamPage() {
                 </div>
                 
                 <div className="flex items-center">
-                  <span className="px-3 py-1 text-xs font-medium rounded-full bg-indigo-100 text-indigo-800">
+                  <Badge className="bg-indigo-100 text-indigo-800">
                     🛠️ Support Team
-                  </span>
+                  </Badge>
                 </div>
               </div>
             ))}
@@ -1134,27 +1135,27 @@ export default function TeamPage() {
                 </div>
                 
                 <div className="flex items-center space-x-4">
-                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                    invitation.role === 'owner' 
-                      ? 'bg-purple-100 text-purple-800' 
+                  <Badge className={
+                    invitation.role === 'owner'
+                      ? 'bg-purple-100 text-purple-800'
                       : invitation.role === 'support'
                       ? 'bg-blue-100 text-blue-800'
                       : 'bg-gray-100 text-gray-800'
-                  }`}>
+                  }>
                     {invitation.role === 'support' ? '🛠️ Support' : invitation.role}
-                  </span>
+                  </Badge>
                   
                   {/* Enhanced invitation status indicators */}
                   {invitation.is_expired ? (
-                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                      <ClockIcon className="w-3 h-3 mr-1" />
+                    <Badge variant="error" className="inline-flex items-center gap-1">
+                      <ClockIcon className="w-3 h-3" />
                       Expired
-                    </span>
+                    </Badge>
                   ) : (
-                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                      <ClockIcon className="w-3 h-3 mr-1" />
+                    <Badge variant="warning" className="inline-flex items-center gap-1">
+                      <ClockIcon className="w-3 h-3" />
                       Pending
-                    </span>
+                    </Badge>
                   )}
                   
                   {/* Time remaining indicator */}
@@ -1277,9 +1278,9 @@ export default function TeamPage() {
                         Chris has been added to your team for development assistance, bug fixes, and technical support.
                       </p>
                       {chrisMember.role === 'support' && (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                        <Badge className="bg-purple-100 text-purple-800">
                           Support Role
-                        </span>
+                        </Badge>
                       )}
                       <p className="text-sm text-green-600 mt-2">
                         <strong>Note:</strong> Support members don't count against your team member limits.

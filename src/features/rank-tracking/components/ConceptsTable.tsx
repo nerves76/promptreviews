@@ -849,7 +849,7 @@ export default function ConceptsTable({
                     {truncateUrl(row.foundUrl, 25)}
                   </a>
                 ) : (
-                  <span className="text-gray-400">—</span>
+                  <span className="text-gray-500">—</span>
                 )}
               </td>
               <td className="py-3 px-4 text-center">
@@ -950,11 +950,11 @@ export default function ConceptsTable({
                     {!row.serpFeatures.aiOverviewPresent &&
                      !row.serpFeatures.featuredSnippetPresent &&
                      (row.serpFeatures.paaQuestionCount === null || row.serpFeatures.paaQuestionCount === 0) && (
-                      <span className="text-gray-400">—</span>
+                      <span className="text-gray-500">—</span>
                     )}
                   </div>
                 ) : (
-                  <span className="text-gray-400">—</span>
+                  <span className="text-gray-500">—</span>
                 )}
               </td>
               <td className="py-3 px-4 text-center">
@@ -996,7 +996,7 @@ export default function ConceptsTable({
                       <span className="whitespace-nowrap">{row.scheduleFrequency.charAt(0).toUpperCase() + row.scheduleFrequency.slice(1)}</span>
                     </span>
                   ) : (
-                    <span className="text-gray-400 hover:text-gray-600 flex items-center gap-1">
+                    <span className="text-gray-500 hover:text-gray-600 flex items-center gap-1">
                       <Icon name="FaCalendarAlt" className="w-2.5 h-2.5" />
                       <span>—</span>
                     </span>
@@ -1052,7 +1052,7 @@ export default function ConceptsTable({
                         e.stopPropagation();
                         onDelete(row.concept);
                       }}
-                      className="inline-flex items-center justify-center w-7 h-7 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                      className="inline-flex items-center justify-center w-7 h-7 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
                       title="Delete concept"
                       aria-label={`Delete ${row.conceptName}`}
                     >
@@ -1093,7 +1093,7 @@ export default function ConceptsTable({
                                 {historySummary.latestFoundUrl}
                               </a>
                             ) : (
-                              <span className="text-sm text-gray-400">No ranking found</span>
+                              <span className="text-sm text-gray-500">No ranking found</span>
                             )}
                           </div>
 
@@ -1104,7 +1104,7 @@ export default function ConceptsTable({
                               <ul className="space-y-1.5">
                                 {historySummary.topCompetitors.slice(0, 5).map((competitor, idx) => (
                                   <li key={idx} className="flex items-start gap-2 text-sm">
-                                    <span className="text-gray-400 font-medium w-5 flex-shrink-0">
+                                    <span className="text-gray-500 font-medium w-5 flex-shrink-0">
                                       #{competitor.position}
                                     </span>
                                     <a
@@ -1126,7 +1126,7 @@ export default function ConceptsTable({
                                 ))}
                               </ul>
                             ) : (
-                              <span className="text-sm text-gray-400">No competitor data</span>
+                              <span className="text-sm text-gray-500">No competitor data</span>
                             )}
                           </div>
                         </div>

@@ -102,7 +102,7 @@ export function AddKeywordConceptModal({
             <p className="text-xs text-gray-500">
               A short name to identify this keyword concept
             </p>
-            <span className={`text-xs ${name.length >= 45 ? 'text-amber-600' : 'text-gray-400'}`}>
+            <span className={`text-xs ${name.length >= 45 ? 'text-amber-600' : 'text-gray-500'}`}>
               {name.length}/50
             </span>
           </div>
@@ -122,12 +122,13 @@ export function AddKeywordConceptModal({
                   onChange={(e) => handleKeywordChange(index, e.target.value)}
                   placeholder={index === 0 ? "e.g., marketing consultant portland" : "Add another keyword..."}
                   className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-blue/50 focus:border-slate-blue/50 transition-all"
+                  aria-label={`Keyword ${index + 1}`}
                 />
                 {keywords.length > 1 && (
                   <button
                     type="button"
                     onClick={() => handleRemoveKeyword(index)}
-                    className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                    className="p-2 text-gray-500 hover:text-red-500 transition-colors"
                     aria-label="Remove keyword"
                   >
                     <Icon name="FaTimes" className="w-4 h-4" />

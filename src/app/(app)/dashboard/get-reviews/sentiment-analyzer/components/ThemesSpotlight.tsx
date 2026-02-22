@@ -7,7 +7,7 @@ interface ThemesSpotlightProps {
   themes: Theme[];
 }
 
-export default function ThemesSpotlight({ themes }: ThemesSpotlightProps) {
+const ThemesSpotlight = React.memo(function ThemesSpotlight({ themes }: ThemesSpotlightProps) {
   if (!themes || themes.length === 0) {
     return null;
   }
@@ -81,4 +81,6 @@ export default function ThemesSpotlight({ themes }: ThemesSpotlightProps) {
       </div>
     </div>
   );
-}
+});
+
+export default ThemesSpotlight;

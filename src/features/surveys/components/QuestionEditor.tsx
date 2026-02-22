@@ -32,7 +32,7 @@ export function QuestionEditor({ question, onChange, onRemove, index }: Question
           <span className="text-sm font-medium text-gray-500">Section header</span>
           <button
             onClick={onRemove}
-            className="text-gray-400 hover:text-red-500 transition-colors"
+            className="text-gray-500 hover:text-red-500 transition-colors"
             aria-label="Remove section header"
           >
             <Icon name="FaTrash" size={14} />
@@ -44,6 +44,7 @@ export function QuestionEditor({ question, onChange, onRemove, index }: Question
           onChange={(e) => updateField('question_text', e.target.value)}
           className="w-full p-2 border border-gray-300 rounded-md text-base font-semibold focus:ring-2 focus:ring-slate-blue focus:border-transparent mb-2"
           placeholder="Section title"
+          aria-label="Section title"
         />
         <input
           type="text"
@@ -51,6 +52,7 @@ export function QuestionEditor({ question, onChange, onRemove, index }: Question
           onChange={(e) => updateField('description', e.target.value || null)}
           className="w-full p-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-slate-blue focus:border-transparent"
           placeholder="Section description (optional)"
+          aria-label="Section description"
         />
       </div>
     );
@@ -62,7 +64,7 @@ export function QuestionEditor({ question, onChange, onRemove, index }: Question
         <span className="text-base font-semibold text-gray-900">Question {index + 1}</span>
         <button
           onClick={onRemove}
-          className="text-gray-400 hover:text-red-500 transition-colors"
+          className="text-gray-500 hover:text-red-500 transition-colors"
           aria-label={`Remove question ${index + 1}`}
         >
           <Icon name="FaTrash" size={14} />
@@ -138,13 +140,14 @@ export function QuestionEditor({ question, onChange, onRemove, index }: Question
                 }}
                 className="flex-1 p-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-slate-blue focus:border-transparent"
                 placeholder={`Option ${i + 1}`}
+                aria-label={`Option ${i + 1}`}
               />
               <button
                 onClick={() => {
                   const newOptions = (question.options || []).filter((_, idx) => idx !== i);
                   updateField('options', newOptions);
                 }}
-                className="text-gray-400 hover:text-red-500"
+                className="text-gray-500 hover:text-red-500"
                 aria-label={`Remove option ${i + 1}`}
               >
                 <Icon name="FaTimes" size={12} />

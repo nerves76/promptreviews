@@ -24,7 +24,6 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import QRCode from "qrcode";
 import React from "react";
 import { FALLING_STARS_ICONS, getFallingIcon } from "../../components/prompt-modules/fallingStarsConfig";
-import jsPDF from 'jspdf';
 
 export const QR_FRAME_SIZES = [
   { label: '4x6" (postcard)', width: 1200, height: 1800 },
@@ -977,16 +976,19 @@ export default function QRCodeGenerator({
 
   const downloadQRCode = useCallback(async () => {
     if (!canvasRef.current) return;
-    
+
     try {
+      // Dynamically import jsPDF only when downloading (~850KB)
+      const { default: jsPDF } = await import('jspdf');
+
       // Convert frame size from pixels at 300 DPI to inches
       const dpi = 300;
       const widthInches = frameSize.width / dpi;
       const heightInches = frameSize.height / dpi;
-      
+
       // Detect card types for PDF generation (redefined for this scope)
       const isTableTentPDF = frameSize.label.includes('Table Tent');
-      
+
       // Create PDF with standard letter size (8.5" x 11") for proper printing
       let pdf = new jsPDF({
         orientation: 'portrait',

@@ -7,7 +7,7 @@ interface ImprovementIdeasProps {
   ideas: ImprovementIdea[];
 }
 
-export default function ImprovementIdeas({ ideas }: ImprovementIdeasProps) {
+const ImprovementIdeas = React.memo(function ImprovementIdeas({ ideas }: ImprovementIdeasProps) {
   if (!ideas || ideas.length === 0) {
     return null;
   }
@@ -63,4 +63,6 @@ export default function ImprovementIdeas({ ideas }: ImprovementIdeasProps) {
       </div>
     </div>
   );
-}
+});
+
+export default ImprovementIdeas;

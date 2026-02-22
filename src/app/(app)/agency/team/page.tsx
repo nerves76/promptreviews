@@ -5,6 +5,7 @@ import { useAuth } from "@/auth";
 import { useAccountData } from "@/auth/hooks/granularAuthHooks";
 import { useRouter } from "next/navigation";
 import Icon from "@/components/Icon";
+import { LoadingSpinner } from "@/app/(app)/components/ui/loading-spinner";
 import { apiClient } from "@/utils/apiClient";
 import { Modal } from "@/app/(app)/components/ui/modal";
 import { Button } from "@/app/(app)/components/ui/button";
@@ -241,7 +242,7 @@ export default function AgencyTeamPage() {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-center py-12">
-          <Icon name="FaSpinner" className="animate-spin text-white w-8 h-8" size={32} />
+          <LoadingSpinner size="lg" className="text-white" />
         </div>
       </div>
     );
@@ -444,7 +445,7 @@ export default function AgencyTeamPage() {
                           className="flex items-center gap-1 px-2 py-1 text-xs text-white/70 hover:text-white hover:bg-white/10 rounded transition-colors disabled:opacity-50"
                         >
                           {loadingStates[`resend-${invitation.id}`] ? (
-                            <Icon name="FaSpinner" className="animate-spin" size={12} />
+                            <LoadingSpinner size="xs" />
                           ) : (
                             <Icon name="FaRedo" size={12} />
                           )}
@@ -458,7 +459,7 @@ export default function AgencyTeamPage() {
                           aria-label="Cancel invitation"
                         >
                           {loadingStates[`cancel-${invitation.id}`] ? (
-                            <Icon name="FaSpinner" className="animate-spin" size={14} />
+                            <LoadingSpinner size="xs" />
                           ) : (
                             <Icon name="FaTimes" size={14} />
                           )}
@@ -508,7 +509,7 @@ export default function AgencyTeamPage() {
                   >
                     {addingChris ? (
                       <>
-                        <Icon name="FaSpinner" className="animate-spin" size={14} />
+                        <LoadingSpinner size="xs" />
                         Adding...
                       </>
                     ) : (
@@ -739,7 +740,7 @@ export default function AgencyTeamPage() {
             <Button type="submit" disabled={actionLoading || !inviteEmail.trim()}>
               {actionLoading ? (
                 <>
-                  <Icon name="FaSpinner" className="animate-spin mr-2" size={14} />
+                  <LoadingSpinner size="xs" className="mr-2" />
                   Sending...
                 </>
               ) : (

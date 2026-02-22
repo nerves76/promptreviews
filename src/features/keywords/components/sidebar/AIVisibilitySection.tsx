@@ -231,6 +231,7 @@ export function AIVisibilitySection({
                   }}
                   placeholder="Type your question..."
                   className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-300 transition-all"
+                  aria-label="New AI visibility question"
                 />
                 <div className="flex items-center gap-2">
                   <div className="relative group flex-1">

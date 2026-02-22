@@ -81,7 +81,7 @@ export function SurveyBuilder({ questions, onChange }: SurveyBuilderProps) {
             <button
               onClick={() => moveQuestion(index, 'up')}
               disabled={index === 0}
-              className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
+              className="p-1 text-gray-500 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
               aria-label="Move question up"
             >
               <Icon name="FaChevronUp" size={12} />
@@ -89,7 +89,7 @@ export function SurveyBuilder({ questions, onChange }: SurveyBuilderProps) {
             <button
               onClick={() => moveQuestion(index, 'down')}
               disabled={index === questions.length - 1}
-              className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
+              className="p-1 text-gray-500 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
               aria-label="Move question down"
             >
               <Icon name="FaChevronDown" size={12} />

@@ -5,7 +5,7 @@ interface StarRatingProps {
   size?: number;
 }
 
-export default function StarRating({ rating, size = 16 }: StarRatingProps) {
+const StarRating = React.memo(function StarRating({ rating, size = 16 }: StarRatingProps) {
   // Generate stable IDs for gradients to prevent hydration mismatches
   const gradientIds = useMemo(() => {
     return Array.from({ length: 5 }, (_, i) => `half-star-gradient-${i + 1}-${rating}-${size}`);
@@ -47,4 +47,6 @@ export default function StarRating({ rating, size = 16 }: StarRatingProps) {
       {stars}
     </span>
   );
-} 
+});
+
+export default StarRating;

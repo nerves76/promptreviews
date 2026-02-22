@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Icon from "@/components/Icon";
+import { Badge } from "@/app/(app)/components/ui/badge";
 import { apiClient } from "@/utils/apiClient";
 import type { GoogleBusinessScheduledPost } from "@/features/social-posting";
 
@@ -66,24 +67,16 @@ export default function ScheduledList({
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "pending":
-        return (
-          <span className="px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-700">
-            Pending
-          </span>
-        );
+        return <Badge variant="warning">Pending</Badge>;
       case "processing":
         return (
-          <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-700 flex items-center gap-1">
+          <Badge variant="info" className="flex items-center gap-1">
             <Icon name="FaSpinner" size={10} className="animate-spin" />
             Processing
-          </span>
+          </Badge>
         );
       default:
-        return (
-          <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-600">
-            {status}
-          </span>
-        );
+        return <Badge>{status}</Badge>;
     }
   };
 

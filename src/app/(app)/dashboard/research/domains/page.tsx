@@ -10,8 +10,6 @@ import StandardLoader from '@/app/(app)/components/StandardLoader';
 import Icon from '@/components/Icon';
 import { useToast, ToastContainer } from '@/app/(app)/components/reviews/Toast';
 import { DomainAnalysisResult, DOMAIN_ANALYSIS_CREDIT_COST, PositionDistribution } from '@/features/domain-analysis/types';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 import ResearchSubnav from '../ResearchSubnav';
 
 interface CreditBalance {

@@ -30,7 +30,7 @@ export default function FAQSection({ data }: FAQSectionProps) {
             <Icon
               name={openIndex === i ? "FaChevronUp" : "FaChevronDown"}
               size={12}
-              className="text-gray-400 flex-shrink-0"
+              className="text-gray-500 flex-shrink-0"
             />
           </button>
           {openIndex === i && (

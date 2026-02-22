@@ -244,7 +244,7 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setAccountLoading(false);
     }
-  }, [user?.id, accountId]);
+  }, [user?.id, accountId, setAccountId, supabase]);
 
   // Switch to a different account
   const switchAccount = useCallback(async (newAccountId: string) => {
@@ -258,7 +258,7 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
         .from('account_users')
         .select('account_id, role')
         .eq('user_id', user.id);
-      
+
       const accountUser = userAccounts?.find((ua: any) => ua.account_id === newAccountId);
 
       if (verifyError || !accountUser) {
@@ -286,7 +286,7 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setAccountLoading(false);
     }
-  }, [user?.id, clearAccountCache, loadAccount]);
+  }, [user?.id, clearAccountCache, loadAccount, setAccountId, supabase]);
 
   // Refresh account data
   const refreshAccount = useCallback(async () => {
@@ -295,8 +295,10 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
   }, [clearAccountCache, loadAccount, loadAccounts]);
 
   /**
-   * Initialize account when authentication state changes
-   * Simplified to always read from localStorage without complex event handling
+   * Initialize account when authentication state changes.
+   * Intentionally only depends on isAuthenticated and user?.id to avoid
+   * infinite loops — loadAccount/loadAccounts update state that would
+   * re-trigger this effect if included as dependencies.
    */
   useEffect(() => {
     if (isAuthenticated && user?.id) {
@@ -365,6 +367,7 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
       setAccountLoading(false);
       setAccountsLoading(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, user?.id]);
 
   const value: AccountContextType = {

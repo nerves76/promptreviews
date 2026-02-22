@@ -17,8 +17,6 @@ import StandardLoader from '@/app/(app)/components/StandardLoader';
 import Icon from '@/components/Icon';
 import { useToast, ToastContainer } from '@/app/(app)/components/reviews/Toast';
 import { DomainAnalysisResult, DOMAIN_ANALYSIS_CREDIT_COST, PositionDistribution } from '@/features/domain-analysis/types';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 
 // ============================================
 // Types
@@ -301,6 +299,12 @@ export default function DomainAnalysisPage() {
     setExporting('pdf');
 
     try {
+      // Dynamically import heavy PDF libraries only when needed (~1.2MB)
+      const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
+        import('jspdf'),
+        import('html2canvas'),
+      ]);
+
       // Capture the results section
       const canvas = await html2canvas(resultsRef.current, {
         scale: 2,

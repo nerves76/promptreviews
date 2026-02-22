@@ -5,6 +5,7 @@ import { useAuth } from "@/auth";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Icon from "@/components/Icon";
+import { LoadingSpinner } from "@/app/(app)/components/ui/loading-spinner";
 import { apiClient } from "@/utils/apiClient";
 import { Modal } from "@/app/(app)/components/ui/modal";
 import { Button } from "@/app/(app)/components/ui/button";
@@ -265,7 +266,7 @@ export default function AgencyDashboardPage() {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-center py-12">
-          <Icon name="FaSpinner" className="animate-spin text-white w-8 h-8" size={32} />
+          <LoadingSpinner size="lg" className="text-white" />
         </div>
       </div>
     );
@@ -398,7 +399,7 @@ export default function AgencyDashboardPage() {
                 <div className="flex items-center gap-4">
                   <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center shadow-lg overflow-hidden">
                     {agencyLogo ? (
-                      <img src={agencyLogo} alt="" className="w-full h-full object-cover" />
+                      <img src={agencyLogo} alt={`${account.business_name || 'Agency'} logo`} className="w-full h-full object-cover" />
                     ) : (
                       <Icon name="FaBuilding" className="text-white" size={28} />
                     )}
@@ -471,7 +472,7 @@ export default function AgencyDashboardPage() {
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center overflow-hidden">
                     {client.logo_url ? (
-                      <img src={client.logo_url} alt="" className="w-full h-full object-cover" />
+                      <img src={client.logo_url} alt={`${client.business_name || 'Client'} logo`} className="w-full h-full object-cover" />
                     ) : (
                       <Icon name="FaBuilding" className="text-white/60" size={18} />
                     )}
@@ -526,7 +527,7 @@ export default function AgencyDashboardPage() {
                       className="flex items-center gap-1.5 px-3 py-1.5 bg-white/10 backdrop-blur-sm border border-white/20 text-white text-xs rounded-lg font-medium hover:bg-white/20 transition-colors whitespace-nowrap disabled:opacity-50"
                     >
                       {isSwitching ? (
-                        <Icon name="FaSpinner" className="animate-spin" size={12} />
+                        <LoadingSpinner size="xs" />
                       ) : (
                         <Icon name="FaArrowRight" size={12} />
                       )}
@@ -677,7 +678,7 @@ export default function AgencyDashboardPage() {
                   <Button type="submit" disabled={actionLoading || !newClientName.trim()}>
                     {actionLoading ? (
                       <>
-                        <Icon name="FaSpinner" className="animate-spin mr-2" size={14} />
+                        <LoadingSpinner size="xs" className="mr-2" />
                         Creating...
                       </>
                     ) : (
@@ -722,7 +723,7 @@ export default function AgencyDashboardPage() {
                   <Button type="submit" disabled={actionLoading || !linkEmail.trim()}>
                     {actionLoading ? (
                       <>
-                        <Icon name="FaSpinner" className="animate-spin mr-2" size={14} />
+                        <LoadingSpinner size="xs" className="mr-2" />
                         Sending...
                       </>
                     ) : (

@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useMemo } from "react";
 import Icon from "@/components/Icon";
+import { Badge } from "@/app/(app)/components/ui/badge";
+import { LoadingSpinner } from "@/app/(app)/components/ui/loading-spinner";
 import { apiClient } from "@/utils/apiClient";
 import { RssFeedItem, FeedDetailResponse } from "@/features/rss-feeds/types";
 
@@ -189,36 +191,16 @@ export default function FeedItemsList({ feedId }: FeedItemsListProps) {
   const getStatusBadge = (status: RssFeedItem["status"]) => {
     switch (status) {
       case "scheduled":
-        return (
-          <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-green-100 text-green-700">
-            Scheduled
-          </span>
-        );
+        return <Badge variant="success" size="sm">Scheduled</Badge>;
       case "skipped":
-        return (
-          <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-yellow-100 text-yellow-700">
-            Skipped
-          </span>
-        );
+        return <Badge variant="warning" size="sm">Skipped</Badge>;
       case "failed":
-        return (
-          <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-red-100 text-red-700">
-            Failed
-          </span>
-        );
+        return <Badge variant="error" size="sm">Failed</Badge>;
       case "initial_sync":
-        return (
-          <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-blue-100 text-blue-700">
-            Available
-          </span>
-        );
+        return <Badge variant="info" size="sm">Available</Badge>;
       case "pending":
       default:
-        return (
-          <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-gray-100 text-gray-600">
-            Pending
-          </span>
-        );
+        return <Badge size="sm">Pending</Badge>;
     }
   };
 
@@ -235,7 +217,7 @@ export default function FeedItemsList({ feedId }: FeedItemsListProps) {
   if (loading) {
     return (
       <div className="flex justify-center py-8">
-        <Icon name="FaSpinner" className="animate-spin text-slate-blue" size={24} />
+        <LoadingSpinner size="md" className="text-slate-blue" />
       </div>
     );
   }

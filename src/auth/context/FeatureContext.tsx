@@ -378,7 +378,8 @@ export function FeatureProvider({ children }: { children: React.ReactNode }) {
     ]);
   }, [clearCache, checkAdminStatus, refreshSubscription]);
 
-  // Initialize admin status on auth/account change
+  // Initialize admin status on auth/account change.
+  // Using account?.id instead of account to avoid re-running when non-id fields change.
   useEffect(() => {
     if (isAuthenticated && account) {
       checkAdminStatus();
@@ -387,6 +388,7 @@ export function FeatureProvider({ children }: { children: React.ReactNode }) {
       setAdminChecked(false);
       clearCache();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, account?.id, checkAdminStatus, clearCache]);
 
   // Refresh admin status when the user returns to the app (tab focus/visibility)

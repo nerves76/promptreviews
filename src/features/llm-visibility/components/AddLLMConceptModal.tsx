@@ -124,7 +124,7 @@ export function AddLLMConceptModal({
             <p className="text-xs text-gray-500">
               A short name to identify this concept
             </p>
-            <span className={`text-xs ${name.length >= 45 ? 'text-amber-600' : 'text-gray-400'}`}>
+            <span className={`text-xs ${name.length >= 45 ? 'text-amber-600' : 'text-gray-500'}`}>
               {name.length}/50
             </span>
           </div>
@@ -146,13 +146,14 @@ export function AddLLMConceptModal({
                       onChange={(e) => handleQuestionChange(index, e.target.value)}
                       placeholder={index === 0 ? "e.g., What's the best marketing agency in Portland?" : "Add another question..."}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-blue/50 focus:border-slate-blue/50 transition-all text-sm"
+                      aria-label={`Question ${index + 1}`}
                     />
                   </div>
                   {questions.length > 1 && (
                     <button
                       type="button"
                       onClick={() => handleRemoveQuestion(index)}
-                      className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                      className="p-2 text-gray-500 hover:text-red-500 transition-colors"
                       aria-label="Remove question"
                     >
                       <Icon name="FaTimes" className="w-4 h-4" />

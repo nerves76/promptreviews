@@ -346,13 +346,13 @@ export default function CheckLLMModal({
                     </div>
                     <div className="flex items-center gap-4 text-xs">
                       <div className="flex items-center gap-1.5">
-                        <Icon name="FaLink" className={`w-3 h-3 ${stats.cited > 0 ? 'text-green-600' : 'text-gray-400'}`} />
+                        <Icon name="FaLink" className={`w-3 h-3 ${stats.cited > 0 ? 'text-green-600' : 'text-gray-500'}`} />
                         <span className={stats.cited > 0 ? 'text-green-700 font-medium' : 'text-gray-500'}>
                           Cited: {stats.cited}/{totalRuns} ({citedPct}%)
                         </span>
                       </div>
                       <div className="flex items-center gap-1.5">
-                        <Icon name="FaCheckCircle" className={`w-3 h-3 ${stats.mentioned > 0 ? 'text-blue-600' : 'text-gray-400'}`} />
+                        <Icon name="FaCheckCircle" className={`w-3 h-3 ${stats.mentioned > 0 ? 'text-blue-600' : 'text-gray-500'}`} />
                         <span className={stats.mentioned > 0 ? 'text-blue-700 font-medium' : 'text-gray-500'}>
                           Mentioned: {stats.mentioned}/{totalRuns} ({mentionedPct}%)
                         </span>

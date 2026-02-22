@@ -6,9 +6,10 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import PageCard from '@/app/(app)/components/PageCard';
 import Icon from '@/components/Icon';
+import { ConfirmDialog } from '@/app/(app)/components/ui/confirm-dialog';
 import { useBacklinkDomains } from '@/features/backlinks/hooks';
 import { PlusIcon, ArrowPathIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { BACKLINK_CREDIT_COSTS } from '@/features/backlinks/utils/types';
@@ -33,6 +34,8 @@ export default function BacklinksPage() {
   const [isAdding, setIsAdding] = useState(false);
   const [checkingDomainId, setCheckingDomainId] = useState<string | null>(null);
   const [addError, setAddError] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleAddDomain = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,12 +62,17 @@ export default function BacklinksPage() {
     setCheckingDomainId(null);
   };
 
-  const handleDelete = async (domainId: string, domainName: string) => {
-    if (!confirm(`Delete ${domainName}? This will remove all backlink history.`)) {
-      return;
-    }
-    await deleteDomain(domainId);
-  };
+  const handleDeleteClick = useCallback((domainId: string, domainName: string) => {
+    setDeleteTarget({ id: domainId, name: domainName });
+  }, []);
+
+  const handleDeleteConfirm = useCallback(async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
+    await deleteDomain(deleteTarget.id);
+    setIsDeleting(false);
+    setDeleteTarget(null);
+  }, [deleteTarget, deleteDomain]);
 
   return (
     <>
@@ -126,7 +134,7 @@ export default function BacklinksPage() {
                 domain={domain}
                 isChecking={checkingDomainId === domain.id}
                 onCheck={() => handleRunCheck(domain.id)}
-                onDelete={() => handleDelete(domain.id, domain.domain)}
+                onDelete={() => handleDeleteClick(domain.id, domain.domain)}
               />
             ))}
           </div>
@@ -188,6 +196,18 @@ export default function BacklinksPage() {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation */}
+      <ConfirmDialog
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDeleteConfirm}
+        title="Delete domain"
+        message={`Delete ${deleteTarget?.name}? This will remove all backlink history.`}
+        confirmLabel="Delete"
+        confirmVariant="danger"
+        isLoading={isDeleting}
+      />
     </>
   );
 }
