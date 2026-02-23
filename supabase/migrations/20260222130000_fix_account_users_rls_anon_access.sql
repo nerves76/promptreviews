@@ -128,7 +128,7 @@ BEGIN
   FROM pg_policies
   WHERE tablename = 'account_users'
     AND schemaname = 'public'
-    AND roles @> ARRAY['anon'];
+    AND roles::text[] @> ARRAY['anon']::text[];
 
   IF v_anon_policies > 0 THEN
     RAISE WARNING 'SECURITY: Found % anon policies still on account_users after fix!', v_anon_policies;
