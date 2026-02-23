@@ -159,6 +159,45 @@ const data = await apiClient.get('/some-endpoint');
 - Bare `fetch()` is ONLY acceptable in: public pages (no auth), auth pages (pre-login), embed components, test pages
 - `apiClient` automatically includes `Authorization` and `X-Selected-Account` headers
 
+### Never Write Self-Referential RLS Policies on `account_users`
+The `account_users` table is referenced by subqueries in OTHER tables' RLS policies (e.g., the `accounts` table). If an `account_users` policy also subqueries `account_users`, it creates recursive RLS evaluation that PostgreSQL resolves by returning empty results — **breaking login entirely**.
+```sql
+-- ❌ NEVER — Self-referential subquery causes recursive RLS evaluation
+CREATE POLICY "bad_policy" ON account_users FOR SELECT TO authenticated
+  USING (
+    user_id = auth.uid()
+    OR account_id IN (SELECT account_id FROM account_users WHERE user_id = auth.uid())
+  );
+
+-- ❌ ALSO BAD — EXISTS on same table still recurses
+CREATE POLICY "also_bad" ON account_users FOR SELECT TO authenticated
+  USING (EXISTS (SELECT 1 FROM account_users au WHERE au.account_id = account_users.account_id AND au.user_id = auth.uid()));
+
+-- ✅ ALWAYS — Simple, non-recursive condition
+CREATE POLICY "good_policy" ON account_users FOR SELECT TO authenticated
+  USING (user_id = auth.uid());
+```
+- `account_users` policies must ONLY use direct column checks (`user_id = auth.uid()`)
+- NEVER subquery `account_users` from within an `account_users` policy
+- Teammates visibility is handled via `service_role` in API routes, not through RLS
+- When dropping a FOR ALL policy, you MUST create replacements for ALL operations (SELECT + INSERT + UPDATE + DELETE), not just SELECT
+
+### Never Drop RLS Policies Without Verifying What They Cover
+Before dropping any RLS policy, check if it's a `FOR ALL` policy (covers SELECT + INSERT + UPDATE + DELETE). If you drop a FOR ALL policy, you must create individual replacement policies for each operation.
+```sql
+-- ❌ NEVER — Drops FOR ALL policy but only replaces SELECT
+DROP POLICY IF EXISTS "old_for_all_policy" ON some_table;
+CREATE POLICY "new_select" ON some_table FOR SELECT TO authenticated USING (...);
+-- INSERT, UPDATE, DELETE are now BROKEN!
+
+-- ✅ ALWAYS — Replace all operations
+DROP POLICY IF EXISTS "old_for_all_policy" ON some_table;
+CREATE POLICY "new_select" ON some_table FOR SELECT TO authenticated USING (...);
+CREATE POLICY "new_insert" ON some_table FOR INSERT TO authenticated WITH CHECK (...);
+CREATE POLICY "new_update" ON some_table FOR UPDATE TO authenticated USING (...);
+CREATE POLICY "new_delete" ON some_table FOR DELETE TO authenticated USING (...);
+```
+
 ### RLS Policies Must Never Allow `anon` Read Access to Tenant Data
 ```sql
 -- ❌ NEVER — Anon can read all rows
