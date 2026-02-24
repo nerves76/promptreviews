@@ -13,7 +13,7 @@ export default function AppMain({
   loader?: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const { account } = useAuth();
+  const { account, accountLoading } = useAuth();
 
   // Routes that should be treated as public (no header/sidebar)
   // Note: /prompt-pages/outreach-templates is an authenticated dashboard page, not public
@@ -34,9 +34,11 @@ export default function AppMain({
     "/agency",
   ];
 
-  // Hide sidebar during onboarding (no plan yet) or on excluded paths
+  // Hide sidebar during onboarding (no plan yet) or on excluded paths.
+  // While account data is loading, default to showing the sidebar to prevent
+  // layout jumps (e.g., during account switching which triggers a page reload).
   const hasValidPlan = account?.plan && account.plan !== 'no_plan' && account.plan !== 'NULL';
-  const isOnboarding = !hasValidPlan && !account?.is_free_account;
+  const isOnboarding = !accountLoading && !hasValidPlan && !account?.is_free_account;
   const showSidebar = !isAuth && !isPublic && !isOnboarding && !noSidebarPaths.some(p => pathname.startsWith(p));
 
   if (isPublic) {
