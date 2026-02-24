@@ -332,6 +332,7 @@ export function GeoGridGoogleMap({
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
   const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
   const circleRef = useRef<google.maps.Circle | null>(null);
+  const hasFitBoundsRef = useRef(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const [isMapReady, setIsMapReady] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -343,6 +344,11 @@ export function GeoGridGoogleMap({
     () => calculatePointData(results, center, radiusMiles, selectedKeywordId, viewAs),
     [results, center, radiusMiles, selectedKeywordId, viewAs]
   );
+
+  // Reset fitBounds when grid config changes (new center or radius)
+  useEffect(() => {
+    hasFitBoundsRef.current = false;
+  }, [center.lat, center.lng, radiusMiles]);
 
   // Initialize Google Maps
   useEffect(() => {
@@ -520,12 +526,15 @@ export function GeoGridGoogleMap({
       markersRef.current.push(marker);
     });
 
-    // Fit bounds to show all markers with padding
-    const bounds = new google.maps.LatLngBounds();
-    pointData.forEach((data) => {
-      bounds.extend({ lat: data.lat, lng: data.lng });
-    });
-    map.fitBounds(bounds, { top: 50, right: 50, bottom: 50, left: 50 });
+    // Fit bounds only on initial load so user zoom is preserved
+    if (!hasFitBoundsRef.current) {
+      const bounds = new google.maps.LatLngBounds();
+      pointData.forEach((data) => {
+        bounds.extend({ lat: data.lat, lng: data.lng });
+      });
+      map.fitBounds(bounds, { top: 50, right: 50, bottom: 50, left: 50 });
+      hasFitBoundsRef.current = true;
+    }
 
   }, [isLoaded, center, radiusMiles, pointData, onMarkerClick, viewAs, isPreview]);
 
