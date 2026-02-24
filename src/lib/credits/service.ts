@@ -469,21 +469,24 @@ export async function getAllTierCredits(
 }
 
 /**
- * Calculate geo grid cost based on number of grid points
+ * Calculate geo grid cost based on grid points and keywords checked.
  *
- * Simplified formula: 1 credit per grid point (keywords don't affect cost)
+ * Formula: 1 credit per grid point per keyword.
  *
- * Examples:
- * - 5-point grid = 5 credits (any number of keywords)
+ * Examples (with 1 keyword):
+ * - 5-point grid = 5 credits
  * - 9-point grid = 9 credits
  * - 25-point grid = 25 credits
- * - 49-point grid = 49 credits
+ *
+ * Examples (with 4 keywords):
+ * - 5-point grid = 20 credits
+ * - 9-point grid = 36 credits
  *
  * @param gridPoints - Number of grid points (5, 9, 25, or 49)
- * @param _keywordCount - Deprecated, kept for backward compatibility but ignored
+ * @param keywordCount - Number of keywords being checked
  */
-export function calculateGeogridCost(gridPoints: number, _keywordCount: number = 1): number {
-  return gridPoints;
+export function calculateGeogridCost(gridPoints: number, keywordCount: number = 1): number {
+  return gridPoints * Math.max(keywordCount, 1);
 }
 
 /**
@@ -492,20 +495,20 @@ export function calculateGeogridCost(gridPoints: number, _keywordCount: number =
  * @param supabase - Supabase client
  * @param accountId - Account ID
  * @param gridPoints - Number of grid points (5, 9, 25, or 49)
- * @param _keywordCount - Deprecated, kept for backward compatibility but ignored
+ * @param keywordCount - Number of keywords being checked
  */
 export async function checkGeogridCredits(
   supabase: SupabaseClient,
   accountId: string,
   gridPoints: number,
-  _keywordCount: number = 1
+  keywordCount: number = 1
 ): Promise<{
   hasCredits: boolean;
   required: number;
   available: number;
   balance: CreditBalance;
 }> {
-  const required = calculateGeogridCost(gridPoints);
+  const required = calculateGeogridCost(gridPoints, keywordCount);
   const balance = await getBalance(supabase, accountId);
 
   return {

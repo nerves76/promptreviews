@@ -148,9 +148,9 @@ export async function calculateConceptScheduleCost(
     searchTermCount,
     baseCost: 0,
     cellCost: checkPointCount,
-    keywordCost: 0,
+    keywordCost: searchTermCount,
     cost: options.geoGridEnabled
-      ? calculateGeogridCost(checkPointCount)
+      ? calculateGeogridCost(checkPointCount, searchTermCount)
       : 0,
   };
 

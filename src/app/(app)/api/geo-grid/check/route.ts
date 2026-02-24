@@ -141,18 +141,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Calculate credit cost from check points (simplified: 1 credit per grid point)
+    // Calculate credit cost from check points × keywords
     const pointCount = config.checkPoints.length;
-    const creditCost = calculateGeogridCost(pointCount);
-
-    // Determine actual keyword count to check (for logging only)
     const actualKeywordCount = keywordIds?.length || keywordCount;
+    const creditCost = calculateGeogridCost(pointCount, actualKeywordCount);
 
     // Ensure balance record exists for this account
     await ensureBalanceExists(serviceSupabase, accountId);
 
     // Check if account has sufficient credits
-    const creditCheck = await checkGeogridCredits(serviceSupabase, accountId, pointCount);
+    const creditCheck = await checkGeogridCredits(serviceSupabase, accountId, pointCount, actualKeywordCount);
 
     if (!creditCheck.hasCredits) {
       console.log(`❌ [GeoGrid] Insufficient credits for account ${accountId}: need ${creditCheck.required}, have ${creditCheck.available}`);

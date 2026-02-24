@@ -128,9 +128,9 @@ export function KeywordScheduleModal({
     }
   };
 
-  // Calculate credit cost preview
+  // Calculate credit cost preview (single keyword schedule)
   const gridPoints = config?.checkPoints?.length || 5;
-  const creditCost = calculateGeogridCost(gridPoints);
+  const creditCost = calculateGeogridCost(gridPoints, 1);
 
   // Get inherited schedule description
   const inheritedSchedule = config?.scheduleFrequency

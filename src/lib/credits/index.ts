@@ -10,8 +10,8 @@
  * // Check balance
  * const balance = await getBalance(supabase, accountId);
  *
- * // Calculate cost for a 5x5 geo grid
- * const cost = calculateGeogridCost(5); // 35 credits
+ * // Calculate cost for a 5-point grid with 4 keywords
+ * const cost = calculateGeogridCost(5, 4); // 20 credits
  *
  * // Debit credits
  * await debit(supabase, accountId, cost, {

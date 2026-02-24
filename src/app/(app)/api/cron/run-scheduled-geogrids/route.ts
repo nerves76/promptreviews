@@ -148,9 +148,9 @@ export async function GET(request: NextRequest) {
           continue;
         }
 
-        // Calculate credit cost (simplified: just grid points)
+        // Calculate credit cost (grid points × keywords)
         const pointCount = config.checkPoints.length;
-        const creditCost = calculateGeogridCost(pointCount);
+        const creditCost = calculateGeogridCost(pointCount, keywordCount);
 
         // Ensure balance record exists
         await ensureBalanceExists(supabase, accountId);
@@ -386,9 +386,9 @@ export async function GET(request: NextRequest) {
 
           const config = transformConfigToResponse(configData);
 
-          // Calculate credit cost for single keyword (just grid points)
+          // Calculate credit cost for single keyword
           const pointCount = config.checkPoints.length;
-          const creditCost = calculateGeogridCost(pointCount);
+          const creditCost = calculateGeogridCost(pointCount, 1);
 
           // Ensure balance record exists
           await ensureBalanceExists(supabase, accountId);

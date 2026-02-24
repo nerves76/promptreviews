@@ -49,9 +49,9 @@ export function GeoGridScheduleSettings({
   const [error, setError] = useState<string | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
 
-  // Calculate estimated cost per run (simplified: 1 credit per grid point)
+  // Calculate estimated cost per run (grid points × keywords)
   const pointCount = config.checkPoints.length;
-  const estimatedCost = calculateGeogridCost(pointCount);
+  const estimatedCost = calculateGeogridCost(pointCount, keywordCount);
 
   // Check if balance is sufficient
   const hasInsufficientCredits = creditBalance !== undefined && creditBalance < estimatedCost;

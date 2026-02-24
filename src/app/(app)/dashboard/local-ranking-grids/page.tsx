@@ -367,11 +367,21 @@ export default function LocalRankingGridsPage() {
     }
   }, [loading, isAuthenticated, gbpJustConnected]); // Re-fetch when OAuth connection completes
 
-  // Calculate credit cost for a check (simplified: just grid points)
+  // Calculate credit cost for a scheduled check (all keywords)
+  const calculateScheduleCost = useMemo(() => {
+    if (!config) return 0;
+    const points = config.checkPoints?.length || 5;
+    const keywords = trackedKeywords.length || 1;
+    return points * keywords;
+  }, [config, trackedKeywords.length]);
+
+  // Calculate credit cost for the "Run now" modal (selected keywords only)
   const calculateCheckCost = useMemo(() => {
     if (!config) return 0;
-    return config.checkPoints?.length || 5;
-  }, [config]);
+    const points = config.checkPoints?.length || 5;
+    const keywords = selectedCheckKeywordIds.size || 1;
+    return points * keywords;
+  }, [config, selectedCheckKeywordIds.size]);
 
   // Check if a keyword is scheduled (either inheriting config schedule or has custom schedule)
   const isKeywordScheduled = useCallback((tk: typeof trackedKeywords[0]) => {
@@ -761,11 +771,11 @@ export default function LocalRankingGridsPage() {
                   </span>
                   <span className="text-gray-300">|</span>
                   <span>
-                    <span className="font-medium text-amber-700">{calculateCheckCost} credits</span>
+                    <span className="font-medium text-amber-700">{calculateScheduleCost} credits</span>
                     <span className="text-gray-500"> per check</span>
                   </span>
                   <span className="text-xs text-gray-500">
-                    ({config.checkPoints?.length || 0} grid points)
+                    ({config.checkPoints?.length || 0} pts × {trackedKeywords.length} keyword{trackedKeywords.length !== 1 ? 's' : ''})
                   </span>
                 </div>
                 <button
@@ -933,7 +943,7 @@ export default function LocalRankingGridsPage() {
             onRemoveKeyword={handleRemoveKeyword}
             onUpdateKeywordSchedule={handleUpdateKeywordSchedule}
             onCheckKeywords={handleCheckKeywords}
-            checkCreditCost={calculateCheckCost}
+            checkCreditCost={config?.checkPoints?.length || 5}
             isCheckRunning={isCheckRunning}
             checkingKeywordIds={checkingKeywordIds}
             maxKeywords={20}
@@ -1055,7 +1065,7 @@ export default function LocalRankingGridsPage() {
           <div className="flex items-center justify-between p-3 bg-amber-50 border border-amber-200 rounded-lg">
             <div>
               <p className="text-sm font-medium text-amber-800">Cost for this check</p>
-              <p className="text-xs text-amber-600">{config?.checkPoints?.length || 0} grid points = {config?.checkPoints?.length || 0} credits</p>
+              <p className="text-xs text-amber-600">{config?.checkPoints?.length || 0} grid points × {selectedCheckKeywordIds.size} keyword{selectedCheckKeywordIds.size !== 1 ? 's' : ''} = {calculateCheckCost} credits</p>
             </div>
             <span className="text-2xl font-bold text-amber-800">{calculateCheckCost}</span>
           </div>

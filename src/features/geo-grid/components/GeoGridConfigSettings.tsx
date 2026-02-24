@@ -35,9 +35,9 @@ export function GeoGridConfigSettings({
   const [error, setError] = useState<string | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
 
-  // Calculate cost estimates (cost = 10 + gridSize + keywordCount * 2)
-  const currentCost = 10 + currentGridSize + (keywordCount * 2);
-  const newCost = 10 + gridSize + (keywordCount * 2);
+  // Calculate cost estimates (grid points × keywords)
+  const currentCost = calculateGeogridCost(currentGridSize, keywordCount);
+  const newCost = calculateGeogridCost(gridSize, keywordCount);
   const costDifference = newCost - currentCost;
 
   // Track changes
@@ -83,7 +83,7 @@ export function GeoGridConfigSettings({
         </label>
         <div className="grid grid-cols-2 gap-3">
           {GRID_SIZE_OPTIONS.map((option) => {
-            const optionCost = 10 + option.value + (keywordCount * 2);
+            const optionCost = calculateGeogridCost(option.value, keywordCount);
             return (
               <button
                 key={option.value}
@@ -107,7 +107,7 @@ export function GeoGridConfigSettings({
           })}
         </div>
         <p className="mt-2 text-xs text-gray-500">
-          Cost per check: 10 base + points + (2 × {keywordCount} keywords)
+          Cost per check: grid points × {keywordCount} keyword{keywordCount !== 1 ? 's' : ''}
         </p>
       </div>
 
