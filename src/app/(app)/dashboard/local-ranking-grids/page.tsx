@@ -677,8 +677,8 @@ export default function LocalRankingGridsPage() {
           const numKeywords = checkingKeywordIds.size;
           const numPoints = config?.checkPoints?.length || 0;
           const totalChecks = numKeywords * numPoints;
-          // ~2s per check with 3 concurrent workers (500ms delay + API time)
-          const estimatedTotalSeconds = Math.max(5, Math.ceil((totalChecks / 3) * 2));
+          // ~3s per check with 2 concurrent workers (800ms delay + API time + retries)
+          const estimatedTotalSeconds = Math.max(5, Math.ceil((totalChecks / 2) * 3));
           const remainingSeconds = Math.max(0, estimatedTotalSeconds - checkElapsedSeconds);
           const progressPercent = Math.min(95, (checkElapsedSeconds / estimatedTotalSeconds) * 100);
 

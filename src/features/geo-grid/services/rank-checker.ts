@@ -25,10 +25,13 @@ type ServiceSupabase = SupabaseClient<any, any, any>;
 // ============================================
 
 // Maximum concurrent API requests - balance between speed and avoiding rate limits
-const MAX_CONCURRENT_REQUESTS = 3;
+const MAX_CONCURRENT_REQUESTS = 2;
 
 // Delay between requests per worker (ms) to avoid overwhelming the API
-const REQUEST_DELAY_MS = 500;
+const REQUEST_DELAY_MS = 800;
+
+// Maximum retry attempts per check
+const MAX_RETRIES = 3;
 
 // ============================================
 // Types
@@ -253,24 +256,30 @@ export async function runRankChecks(
     async (task) => {
       try {
         let result;
-        try {
-          result = await checkRankForBusiness({
-            keyword: task.searchQuery,
-            lat: task.point.lat,
-            lng: task.point.lng,
-            targetPlaceId: targetPlaceId,
-            languageCode,
-          });
-        } catch (firstErr) {
-          // Retry once after a short delay
-          await new Promise((r) => setTimeout(r, 2000));
-          result = await checkRankForBusiness({
-            keyword: task.searchQuery,
-            lat: task.point.lat,
-            lng: task.point.lng,
-            targetPlaceId: targetPlaceId,
-            languageCode,
-          });
+        let lastError: Error | null = null;
+
+        for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+          try {
+            result = await checkRankForBusiness({
+              keyword: task.searchQuery,
+              lat: task.point.lat,
+              lng: task.point.lng,
+              targetPlaceId: targetPlaceId,
+              languageCode,
+            });
+            break; // Success — exit retry loop
+          } catch (err) {
+            lastError = err instanceof Error ? err : new Error(String(err));
+            if (attempt < MAX_RETRIES) {
+              const backoff = 1000 * attempt + Math.random() * 500;
+              console.warn(`   ⚠️ Attempt ${attempt}/${MAX_RETRIES} failed for "${task.searchQuery}" at ${task.point.label}: ${lastError.message}. Retrying in ${Math.round(backoff)}ms...`);
+              await new Promise((r) => setTimeout(r, backoff));
+            }
+          }
+        }
+
+        if (!result) {
+          throw lastError || new Error('All retry attempts failed');
         }
 
         completedCount++;
