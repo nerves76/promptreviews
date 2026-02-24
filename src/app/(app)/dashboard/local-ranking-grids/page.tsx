@@ -86,6 +86,8 @@ export default function LocalRankingGridsPage() {
   const [googleBusinessLocation, setGoogleBusinessLocation] = useState<GoogleBusinessLocation | null>(null);
   const [isCheckRunning, setIsCheckRunning] = useState(false);
   const [checkingKeywordIds, setCheckingKeywordIds] = useState<Set<string>>(new Set());
+  const [checkStartTime, setCheckStartTime] = useState<number | null>(null);
+  const [checkElapsedSeconds, setCheckElapsedSeconds] = useState(0);
   const [showSettings, setShowSettings] = useState(false);
   const [isAddingNewLocation, setIsAddingNewLocation] = useState(false);
   const [selectedMapKeywordId, setSelectedMapKeywordId] = useState<string | null>(null);
@@ -367,6 +369,18 @@ export default function LocalRankingGridsPage() {
     }
   }, [loading, isAuthenticated, gbpJustConnected]); // Re-fetch when OAuth connection completes
 
+  // Timer for check progress countdown
+  useEffect(() => {
+    if (!checkStartTime) {
+      setCheckElapsedSeconds(0);
+      return;
+    }
+    const interval = setInterval(() => {
+      setCheckElapsedSeconds(Math.floor((Date.now() - checkStartTime) / 1000));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [checkStartTime]);
+
   // Calculate credit cost for a scheduled check (all keywords)
   const calculateScheduleCost = useMemo(() => {
     if (!config) return 0;
@@ -411,6 +425,7 @@ export default function LocalRankingGridsPage() {
     setShowRunCheckModal(false);
     setIsCheckRunning(true);
     setCheckingKeywordIds(new Set(keywordIds));
+    setCheckStartTime(Date.now());
     try {
       const result = await runCheck(keywordIds);
       if (result.error) {
@@ -443,6 +458,7 @@ export default function LocalRankingGridsPage() {
     } finally {
       setIsCheckRunning(false);
       setCheckingKeywordIds(new Set());
+      setCheckStartTime(null);
     }
   }, [selectedCheckKeywordIds, runCheck, refreshResults, showError, showSuccess]);
 
@@ -507,6 +523,7 @@ export default function LocalRankingGridsPage() {
   const handleCheckKeywords = useCallback(async (keywordIds: string[]) => {
     setIsCheckRunning(true);
     setCheckingKeywordIds(new Set(keywordIds));
+    setCheckStartTime(Date.now());
     try {
       // Run check for specific keywords
       const result = await runCheck(keywordIds);
@@ -530,6 +547,7 @@ export default function LocalRankingGridsPage() {
     } finally {
       setIsCheckRunning(false);
       setCheckingKeywordIds(new Set());
+      setCheckStartTime(null);
     }
   }, [runCheck, refreshResults, showError, showSuccess]);
 
@@ -659,25 +677,37 @@ export default function LocalRankingGridsPage() {
           const numKeywords = checkingKeywordIds.size;
           const numPoints = config?.checkPoints?.length || 0;
           const totalChecks = numKeywords * numPoints;
-          const estimatedMinutes = Math.max(1, Math.ceil(totalChecks / 10));
+          // ~2s per check with 3 concurrent workers (500ms delay + API time)
+          const estimatedTotalSeconds = Math.max(5, Math.ceil((totalChecks / 3) * 2));
+          const remainingSeconds = Math.max(0, estimatedTotalSeconds - checkElapsedSeconds);
+          const progressPercent = Math.min(95, (checkElapsedSeconds / estimatedTotalSeconds) * 100);
+
+          const formatTime = (seconds: number) => {
+            if (seconds <= 0) return 'finishing up...';
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            if (mins > 0) return `~${mins}m ${secs}s remaining`;
+            return `~${secs}s remaining`;
+          };
+
           return (
             <div className="mb-4 p-4 rounded-lg bg-blue-50 border border-blue-200">
               <div className="flex items-center gap-3">
                 <Icon name="FaSpinner" className="w-5 h-5 text-slate-blue animate-spin flex-shrink-0" />
                 <div className="flex-1">
                   <p className="text-sm font-medium text-slate-blue">
-                    Running grid check...
+                    Running grid check... {formatTime(remainingSeconds)}
                   </p>
                   <p className="text-xs text-slate-blue/70">
-                    {numKeywords} {numKeywords === 1 ? 'keyword' : 'keywords'} × {numPoints} grid points
-                    {estimatedMinutes > 0 && ` · ~${estimatedMinutes} min estimated`}
+                    {numKeywords} {numKeywords === 1 ? 'keyword' : 'keywords'} × {numPoints} grid points = {totalChecks} checks
                   </p>
                 </div>
-                <div className="w-32">
-                  <div className="w-full bg-blue-200 rounded-full h-2 overflow-hidden">
-                    <div className="bg-slate-blue h-2 rounded-full animate-pulse" style={{ width: '100%' }} />
-                  </div>
-                </div>
+              </div>
+              <div className="mt-2 w-full bg-blue-200 rounded-full h-2 overflow-hidden">
+                <div
+                  className="bg-slate-blue h-2 rounded-full transition-all duration-1000 ease-linear"
+                  style={{ width: `${progressPercent}%` }}
+                />
               </div>
             </div>
           );

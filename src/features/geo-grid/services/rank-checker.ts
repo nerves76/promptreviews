@@ -25,7 +25,10 @@ type ServiceSupabase = SupabaseClient<any, any, any>;
 // ============================================
 
 // Maximum concurrent API requests - balance between speed and avoiding rate limits
-const MAX_CONCURRENT_REQUESTS = 5;
+const MAX_CONCURRENT_REQUESTS = 3;
+
+// Delay between requests per worker (ms) to avoid overwhelming the API
+const REQUEST_DELAY_MS = 500;
 
 // ============================================
 // Types
@@ -71,13 +74,20 @@ interface CheckTaskResult {
 async function processInParallel<T, R>(
   items: T[],
   processor: (item: T, index: number) => Promise<R>,
-  concurrency: number = MAX_CONCURRENT_REQUESTS
+  concurrency: number = MAX_CONCURRENT_REQUESTS,
+  delay: number = REQUEST_DELAY_MS
 ): Promise<R[]> {
   const results: R[] = new Array(items.length);
   let nextIndex = 0;
 
   async function worker() {
+    let isFirst = true;
     while (nextIndex < items.length) {
+      // Stagger requests to avoid rate limits
+      if (!isFirst && delay > 0) {
+        await new Promise(r => setTimeout(r, delay));
+      }
+      isFirst = false;
       const index = nextIndex++;
       results[index] = await processor(items[index], index);
     }
