@@ -379,13 +379,15 @@ export function GeoGridGoogleMap({
 
     // Create map if not exists
     if (!mapInstanceRef.current) {
-      // Try to use Map ID from env, fall back to basic map if not available
-      const mapId = process.env.NEXT_PUBLIC_GOOGLE_MAP_ID;
+      // AdvancedMarkerElement requires a Map ID. Use custom ID from env,
+      // or fall back to Google's demo Map ID which enables Advanced Markers
+      // without needing a Cloud-configured map style.
+      const mapId = process.env.NEXT_PUBLIC_GOOGLE_MAP_ID || 'DEMO_MAP_ID';
 
       mapInstanceRef.current = new google.maps.Map(mapRef.current, {
         center: { lat: center.lat, lng: center.lng },
         zoom: 12,
-        ...(mapId ? { mapId } : {}),
+        mapId,
         disableDefaultUI: false,
         zoomControl: true,
         mapTypeControl: false,
