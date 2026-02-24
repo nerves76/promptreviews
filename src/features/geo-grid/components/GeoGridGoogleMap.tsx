@@ -466,7 +466,7 @@ export function GeoGridGoogleMap({
         labelText = data.point === 'center' ? '●' : data.point.toUpperCase();
       } else if (data.position !== null) {
         labelText = String(data.position);
-      } else if (hasData && viewAs && !viewAs.isOwnBusiness) {
+      } else if (hasData) {
         labelText = '>20';
       } else {
         labelText = '?';
