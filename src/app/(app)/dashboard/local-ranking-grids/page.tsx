@@ -677,17 +677,12 @@ export default function LocalRankingGridsPage() {
           const numKeywords = checkingKeywordIds.size;
           const numPoints = config?.checkPoints?.length || 0;
           const totalChecks = numKeywords * numPoints;
-          // ~3s per check with 2 concurrent workers (800ms delay + API time + retries)
-          const estimatedTotalSeconds = Math.max(5, Math.ceil((totalChecks / 2) * 3));
-          const remainingSeconds = Math.max(0, estimatedTotalSeconds - checkElapsedSeconds);
-          const progressPercent = Math.min(95, (checkElapsedSeconds / estimatedTotalSeconds) * 100);
 
-          const formatTime = (seconds: number) => {
-            if (seconds <= 0) return 'finishing up...';
+          const formatElapsed = (seconds: number) => {
             const mins = Math.floor(seconds / 60);
             const secs = seconds % 60;
-            if (mins > 0) return `~${mins}m ${secs}s remaining`;
-            return `~${secs}s remaining`;
+            if (mins > 0) return `${mins}m ${secs}s`;
+            return `${secs}s`;
           };
 
           return (
@@ -696,7 +691,7 @@ export default function LocalRankingGridsPage() {
                 <Icon name="FaSpinner" className="w-5 h-5 text-slate-blue animate-spin flex-shrink-0" />
                 <div className="flex-1">
                   <p className="text-sm font-medium text-slate-blue">
-                    Running grid check... {formatTime(remainingSeconds)}
+                    Running grid check... ({formatElapsed(checkElapsedSeconds)})
                   </p>
                   <p className="text-xs text-slate-blue/70">
                     {numKeywords} {numKeywords === 1 ? 'keyword' : 'keywords'} × {numPoints} grid points = {totalChecks} checks
@@ -704,10 +699,7 @@ export default function LocalRankingGridsPage() {
                 </div>
               </div>
               <div className="mt-2 w-full bg-blue-200 rounded-full h-2 overflow-hidden">
-                <div
-                  className="bg-slate-blue h-2 rounded-full transition-all duration-1000 ease-linear"
-                  style={{ width: `${progressPercent}%` }}
-                />
+                <div className="bg-slate-blue h-2 rounded-full w-full animate-pulse" />
               </div>
             </div>
           );
