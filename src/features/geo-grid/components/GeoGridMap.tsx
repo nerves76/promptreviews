@@ -38,6 +38,8 @@ interface PointData {
   bucket: PositionBucket;
   avgPosition: number | null;
   results: GGCheckResult[];
+  /** True if Google Maps returned local results at this point (even if our business wasn't among them) */
+  hasLocalResults: boolean;
 }
 
 // ============================================
@@ -116,12 +118,19 @@ function calculatePointData(
         ? foundResults.reduce((sum, r) => sum + (r.position || 0), 0) / foundResults.length
         : null;
 
+    // Check if any result at this point had local results from Google Maps
+    // (business found = obviously had results, or competitors present = had results but we weren't in them)
+    const hasLocalResults = pointResults.some(
+      (r) => r.businessFound || r.topCompetitors.length > 0
+    );
+
     pointMap.set(point, {
       point,
       position: POINT_POSITIONS[point],
       bucket: bestBucket,
       avgPosition,
       results: pointResults,
+      hasLocalResults,
     });
   }
 
@@ -166,11 +175,20 @@ export function GeoGridMap({
           const position = POINT_POSITIONS[point];
           const isCenter = point === 'center';
           const pointSize = isCenter ? sizeConfig.centerPoint : sizeConfig.point;
-          const bucketColor = data ? BUCKET_COLORS[data.bucket] : 'bg-gray-300';
 
-          const pointLabel = data
-            ? `${BUCKET_LABELS[data.bucket]}${data.avgPosition ? ` (avg #${Math.round(data.avgPosition)})` : ''}`
-            : 'No data';
+          // Distinguish "not in top 20" (red) from "no local results" (gray)
+          const isNoLocalResults = data && data.bucket === 'none' && !data.hasLocalResults;
+          const bucketColor = !data
+            ? 'bg-gray-300'
+            : isNoLocalResults
+              ? 'bg-gray-400'
+              : BUCKET_COLORS[data.bucket];
+
+          const pointLabel = !data
+            ? 'No data'
+            : isNoLocalResults
+              ? 'No local results'
+              : `${BUCKET_LABELS[data.bucket]}${data.avgPosition ? ` (avg #${Math.round(data.avgPosition)})` : ''}`;
 
           return (
             <button
@@ -192,11 +210,15 @@ export function GeoGridMap({
               title={pointLabel}
               aria-label={`Grid point ${point}: ${pointLabel}`}
             >
-              {data?.avgPosition && (
+              {data?.avgPosition ? (
                 <span className={`text-white font-bold ${sizeConfig.fontSize}`}>
                   {Math.round(data.avgPosition)}
                 </span>
-              )}
+              ) : data && data.bucket === 'none' && !isNoLocalResults ? (
+                <span className={`text-white font-bold ${sizeConfig.fontSize}`}>&gt;20</span>
+              ) : isNoLocalResults ? (
+                <span className={`text-white font-bold ${sizeConfig.fontSize}`}>–</span>
+              ) : null}
             </button>
           );
         })}
@@ -210,6 +232,10 @@ export function GeoGridMap({
             <span className="text-xs text-gray-600">{BUCKET_LABELS[bucket]}</span>
           </div>
         ))}
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-3 rounded-full bg-gray-400" />
+          <span className="text-xs text-gray-600">No local results</span>
+        </div>
       </div>
 
       {/* Radius info */}

@@ -50,6 +50,8 @@ interface PointData {
   bucket: PositionBucket;
   position: number | null;
   result: GGCheckResult | null;
+  /** True if Google Maps returned local results at this point (even if our business wasn't among them) */
+  hasLocalResults: boolean;
 }
 
 // ============================================
@@ -249,7 +251,11 @@ function calculatePointData(
         }
       }
 
-      // If we have check data but competitor not found, show as "none" (red)
+      // Check if any result at this point had local results
+      const hasLocalResults = pointResults.some(
+        (r) => r.businessFound || r.topCompetitors.length > 0
+      );
+
       return {
         point,
         lat: coords.lat,
@@ -257,6 +263,7 @@ function calculatePointData(
         bucket: competitorPosition !== null ? positionToBucketLocal(competitorPosition) : 'none',
         position: competitorPosition, // null means not found in top 20 results
         result: competitorResult, // Set to indicate we have check data
+        hasLocalResults,
       };
     }
 
@@ -286,6 +293,11 @@ function calculatePointData(
       bestResult = pointResults[0];
     }
 
+    // Check if any result at this point had local results
+    const hasLocalResults = pointResults.some(
+      (r) => r.businessFound || r.topCompetitors.length > 0
+    );
+
     return {
       point,
       lat: coords.lat,
@@ -293,6 +305,7 @@ function calculatePointData(
       bucket: bestBucket,
       position: bestPosition,
       result: bestResult,
+      hasLocalResults,
     };
   });
 }
@@ -439,30 +452,35 @@ export function GeoGridGoogleMap({
     pointData.forEach((data) => {
       const hasData = data.result !== null;
 
+      // Distinguish "not in top 20" (red) from "no local results" (gray)
+      const isNoLocalResults = hasData && data.bucket === 'none' && !data.hasLocalResults;
+
       // For preview mode, use blue neutral color; otherwise use bucket colors
       let color: string;
       if (isPreview) {
         color = '#3b82f6'; // blue-500 - neutral preview color
-      } else if (hasData) {
-        color = BUCKET_COLORS[data.bucket];
+      } else if (!hasData) {
+        color = '#9ca3af'; // gray - no data
+      } else if (isNoLocalResults) {
+        color = '#9ca3af'; // gray - no local results from Google Maps
       } else {
-        color = '#9ca3af'; // gray
+        color = BUCKET_COLORS[data.bucket];
       }
 
       // Build title/tooltip
       let markerTitle: string;
       if (isPreview) {
         markerTitle = `${data.point.toUpperCase()}: Check point`;
-      } else if (hasData) {
-        if (data.position !== null) {
-          markerTitle = `${data.point.toUpperCase()}: ${BUCKET_LABELS[data.bucket]} (#${data.position})`;
-        } else if (viewAs && !viewAs.isOwnBusiness) {
-          markerTitle = `${data.point.toUpperCase()}: Not in top 10 stored competitors`;
-        } else {
-          markerTitle = `${data.point.toUpperCase()}: ${BUCKET_LABELS[data.bucket]}`;
-        }
-      } else {
+      } else if (!hasData) {
         markerTitle = `${data.point.toUpperCase()}: No data`;
+      } else if (isNoLocalResults) {
+        markerTitle = `${data.point.toUpperCase()}: No local results`;
+      } else if (data.position !== null) {
+        markerTitle = `${data.point.toUpperCase()}: ${BUCKET_LABELS[data.bucket]} (#${data.position})`;
+      } else if (viewAs && !viewAs.isOwnBusiness) {
+        markerTitle = `${data.point.toUpperCase()}: Not in top 10 stored competitors`;
+      } else {
+        markerTitle = `${data.point.toUpperCase()}: ${BUCKET_LABELS[data.bucket]}`;
       }
 
       // Build label text
@@ -472,6 +490,8 @@ export function GeoGridGoogleMap({
         labelText = data.point === 'center' ? '●' : data.point.toUpperCase();
       } else if (data.position !== null) {
         labelText = String(data.position);
+      } else if (isNoLocalResults) {
+        labelText = '–';
       } else if (hasData) {
         labelText = '>20';
       } else {
@@ -643,6 +663,13 @@ export function GeoGridGoogleMap({
                 <span className="text-xs text-gray-600">{BUCKET_LABELS[bucket]}</span>
               </div>
             ))}
+            <div className="flex items-center gap-2">
+              <div
+                className="w-4 h-4 rounded-full border-2 border-white shadow"
+                style={{ backgroundColor: '#9ca3af' }}
+              />
+              <span className="text-xs text-gray-600">No local results</span>
+            </div>
           </div>
         </div>
       </div>
@@ -698,6 +725,13 @@ export function GeoGridGoogleMap({
                   <span className="text-xs text-gray-600">{BUCKET_LABELS[bucket]}</span>
                 </div>
               ))}
+              <div className="flex items-center gap-2">
+                <div
+                  className="w-4 h-4 rounded-full border-2 border-white shadow"
+                  style={{ backgroundColor: '#9ca3af' }}
+                />
+                <span className="text-xs text-gray-600">No local results</span>
+              </div>
             </div>
           </>
         )}
