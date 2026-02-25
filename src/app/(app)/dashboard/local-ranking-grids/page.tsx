@@ -427,33 +427,57 @@ export default function LocalRankingGridsPage() {
     setIsCheckRunning(true);
     setCheckingKeywordIds(new Set(keywordIds));
     setCheckStartTime(Date.now());
+
+    // Process one keyword at a time to avoid Vercel function timeouts.
+    // Each keyword × grid points fits well within the 60s limit.
+    let totalPerformed = 0;
+    let totalChecks = 0;
+    let hadError = false;
+    let lastError = '';
+
     try {
-      const result = await runCheck(keywordIds);
-      if (result.error) {
-        console.error('[GeoGrid] Check errors:', result.error);
-      }
-      if (result.success) {
-        await refreshResults();
-        const performed = result.checksPerformed || 0;
-        const total = result.totalChecks || performed;
-        const failed = total - performed;
-        if (failed > 0) {
-          showError(`Grid check: ${performed} of ${total} succeeded, ${failed} failed.`, 15000);
-        } else {
-          showSuccess(`Grid check complete! ${performed} checks performed.`, 10000);
+      for (const kwId of keywordIds) {
+        const result = await runCheck([kwId]);
+        totalPerformed += result.checksPerformed || 0;
+        totalChecks += result.totalChecks || (result.checksPerformed || 0);
+
+        if (result.error) {
+          console.error('[GeoGrid] Check error for keyword:', kwId, result.error);
+          hadError = true;
+          lastError = result.error;
+
+          // Stop on blocking errors (credits, config issues)
+          if (result.error.includes('Insufficient credits') ||
+              result.error.includes('No target Place ID') ||
+              result.error.includes('Connect a Google Business') ||
+              result.error.includes('No geo grid configuration') ||
+              result.error.includes('disabled')) {
+            break;
+          }
         }
-      } else if (result.error) {
+      }
+
+      if (totalPerformed > 0) {
+        await refreshResults();
+      }
+
+      const failed = totalChecks - totalPerformed;
+      if (totalPerformed > 0 && failed === 0 && !hadError) {
+        showSuccess(`Grid check complete! ${totalPerformed} checks performed.`, 10000);
+      } else if (totalPerformed > 0 && failed > 0) {
+        showError(`Grid check: ${totalPerformed} of ${totalChecks} succeeded, ${failed} failed.`, 15000);
+      } else if (hadError) {
         // Show user-friendly error messages
-        if (result.error.includes('No target Place ID') || result.error.includes('Connect a Google Business')) {
+        if (lastError.includes('No target Place ID') || lastError.includes('Connect a Google Business')) {
           showError('Please connect a Google Business location first before running grid checks.', 8000);
-        } else if (result.error.includes('No geo grid configuration')) {
+        } else if (lastError.includes('No geo grid configuration')) {
           showError('Please set up your grid configuration first.', 6000);
-        } else if (result.error.includes('Insufficient credits')) {
+        } else if (lastError.includes('Insufficient credits')) {
           showError('Not enough credits for this grid check. Please add more credits.', 6000);
-        } else if (result.error.includes('disabled')) {
+        } else if (lastError.includes('disabled')) {
           showError('Grid tracking is currently disabled. Enable it in settings to run checks.', 6000);
         } else {
-          showError(result.error, 15000);
+          showError(lastError, 15000);
         }
       }
     } finally {
