@@ -54,6 +54,8 @@ const BUCKET_COLORS: Record<PositionBucket, { bg: string; text: string; border: 
   none: { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200' },
 };
 
+const NO_RESULTS_COLORS = { bg: 'bg-gray-50', text: 'text-gray-600', border: 'border-gray-200' };
+
 const BUCKET_LABELS: Record<PositionBucket, string> = {
   top3: 'Top 3',
   top10: 'Top 10',
@@ -135,7 +137,8 @@ function CompetitorRow({
 export function GeoGridPointModal({ isOpen, onClose, result, point }: GeoGridPointModalProps) {
   if (!result || !point) return null;
 
-  const bucketStyle = BUCKET_COLORS[result.positionBucket];
+  const isNoLocalResults = !result.businessFound && result.topCompetitors.length === 0;
+  const bucketStyle = isNoLocalResults ? NO_RESULTS_COLORS : BUCKET_COLORS[result.positionBucket];
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
@@ -197,14 +200,14 @@ export function GeoGridPointModal({ isOpen, onClose, result, point }: GeoGridPoi
                         <div>
                           <p className="text-sm text-gray-600">Your Ranking</p>
                           <p className={`text-2xl font-bold ${bucketStyle.text}`}>
-                            {result.position !== null ? `#${result.position}` : 'Not Found'}
+                            {result.position !== null ? `#${result.position}` : isNoLocalResults ? 'N/A' : 'Not in top 20'}
                           </p>
                         </div>
                       </div>
                       <span
-                        className={`px-3 py-1 rounded-full text-sm font-medium ${bucketStyle.bg} ${bucketStyle.text} border ${bucketStyle.border}`}
+                        className={`px-3 py-1 rounded-full text-sm font-medium whitespace-nowrap ${bucketStyle.bg} ${bucketStyle.text} border ${bucketStyle.border}`}
                       >
-                        {BUCKET_LABELS[result.positionBucket]}
+                        {isNoLocalResults ? 'No local results' : BUCKET_LABELS[result.positionBucket]}
                       </span>
                     </div>
                   </div>
@@ -227,7 +230,7 @@ export function GeoGridPointModal({ isOpen, onClose, result, point }: GeoGridPoi
                   )}
 
                   {/* Competitors */}
-                  {result.topCompetitors.length > 0 && (
+                  {result.topCompetitors.length > 0 ? (
                     <div>
                       <div className="flex items-center gap-2 mb-3">
                         <UserGroupIcon className="w-5 h-5 text-gray-500" />
@@ -238,6 +241,15 @@ export function GeoGridPointModal({ isOpen, onClose, result, point }: GeoGridPoi
                           <CompetitorRow key={index} competitor={competitor} index={index} />
                         ))}
                       </div>
+                    </div>
+                  ) : !result.businessFound && (
+                    <div className="bg-gray-50 rounded-lg p-4 text-center">
+                      <p className="text-sm text-gray-600">
+                        No Google Maps results for this keyword at this location.
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        This can happen with niche keywords or at points far from populated areas.
+                      </p>
                     </div>
                   )}
 
