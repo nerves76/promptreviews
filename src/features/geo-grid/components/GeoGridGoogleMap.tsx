@@ -271,7 +271,7 @@ function calculatePointData(
     // Get best result for this point (if multiple keywords, use the best ranking)
     let bestBucket: PositionBucket = 'none';
     let bestPosition: number | null = null;
-    let bestResult: GGCheckResult | null = null;
+    let bestResult: GGCheckResult | null = pointResults[0] || null;
 
     for (const result of pointResults) {
       if (
