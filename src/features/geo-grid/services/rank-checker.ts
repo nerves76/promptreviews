@@ -33,6 +33,10 @@ const REQUEST_DELAY_MS = 800;
 // Maximum retry attempts per check
 const MAX_RETRIES = 3;
 
+// Time budget for processing. Vercel Pro allows 60s; leave headroom for
+// DB writes, summary generation, and the HTTP response.
+const MAX_EXECUTION_MS = 45_000;
+
 // ============================================
 // Types
 // ============================================
@@ -78,14 +82,20 @@ async function processInParallel<T, R>(
   items: T[],
   processor: (item: T, index: number) => Promise<R>,
   concurrency: number = MAX_CONCURRENT_REQUESTS,
-  delay: number = REQUEST_DELAY_MS
-): Promise<R[]> {
+  delay: number = REQUEST_DELAY_MS,
+  deadline?: number
+): Promise<{ results: R[]; processedCount: number }> {
   const results: R[] = new Array(items.length);
   let nextIndex = 0;
+  let processedCount = 0;
 
   async function worker() {
     let isFirst = true;
     while (nextIndex < items.length) {
+      // Stop accepting new tasks if we're past the time budget
+      if (deadline && Date.now() >= deadline) {
+        break;
+      }
       // Stagger requests to avoid rate limits
       if (!isFirst && delay > 0) {
         await new Promise(r => setTimeout(r, delay));
@@ -93,13 +103,14 @@ async function processInParallel<T, R>(
       isFirst = false;
       const index = nextIndex++;
       results[index] = await processor(items[index], index);
+      processedCount++;
     }
   }
 
   const workerCount = Math.min(concurrency, items.length);
   await Promise.all(Array.from({ length: workerCount }, () => worker()));
 
-  return results;
+  return { results, processedCount };
 }
 
 // ============================================
@@ -246,12 +257,14 @@ export async function runRankChecks(
   const actualTotalChecks = checkTasks.length;
   console.log(`📊 [GeoGrid] Checking ${searchTermsToCheck.length} search terms × ${gridPoints.length} points = ${actualTotalChecks} total checks (${MAX_CONCURRENT_REQUESTS} concurrent)`);
 
-  // Process all checks in parallel with concurrency limit
-  // Each result is saved to DB IMMEDIATELY to prevent data loss on timeout
+  // Process checks with concurrency limit and a time budget.
+  // Each result is saved to DB IMMEDIATELY so nothing is lost if we
+  // stop early due to the deadline.
+  const deadline = Date.now() + MAX_EXECUTION_MS;
   let completedCount = 0;
   let successfulInserts = 0;
 
-  await processInParallel<CheckTask, CheckTaskResult>(
+  const { processedCount } = await processInParallel<CheckTask, CheckTaskResult>(
     checkTasks,
     async (task) => {
       try {
@@ -324,8 +337,16 @@ export async function runRankChecks(
         return { task, error: errorMsg };
       }
     },
-    MAX_CONCURRENT_REQUESTS
+    MAX_CONCURRENT_REQUESTS,
+    REQUEST_DELAY_MS,
+    deadline
   );
+
+  if (processedCount < actualTotalChecks) {
+    const skipped = actualTotalChecks - processedCount;
+    console.warn(`⏱️ [GeoGrid] Time budget reached — ${processedCount}/${actualTotalChecks} processed, ${skipped} skipped`);
+    errors.push(`Time limit reached: ${skipped} of ${actualTotalChecks} checks were not completed. Run again to finish remaining checks.`);
+  }
 
   // 4. Update config's last_checked_at
   if (successfulInserts > 0) {
