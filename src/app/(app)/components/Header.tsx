@@ -58,8 +58,9 @@ const Header = React.memo(function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [mobileYourBusinessOpen, setMobileYourBusinessOpen] = useState(false);
   const [mobileGetReviewsOpen, setMobileGetReviewsOpen] = useState(false);
+  const [mobileGoogleBizOpen, setMobileGoogleBizOpen] = useState(false);
+  const [mobileSeoOpen, setMobileSeoOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const notificationsButtonRef = useRef<HTMLButtonElement>(null);
   const accountButtonRef = useRef<HTMLButtonElement>(null);
@@ -448,8 +449,9 @@ const Header = React.memo(function Header() {
     } else {
       document.body.style.overflow = '';
       // Reset collapsible sections when menu closes
-      setMobileYourBusinessOpen(false);
       setMobileGetReviewsOpen(false);
+      setMobileGoogleBizOpen(false);
+      setMobileSeoOpen(false);
     }
     return () => {
       document.body.style.overflow = '';
@@ -692,13 +694,14 @@ const Header = React.memo(function Header() {
           width="auto"
           style={{
             top: 80,
-            left: 16,
-            right: 16,
+            left: 0,
+            right: 0,
             maxHeight: 'calc(100vh - 96px)',
-            zIndex: 2147483647
+            zIndex: 2147483647,
+            borderRadius: 0
           }}
         >
-          <div className="px-2 pt-2 pb-3 space-y-1 flex flex-col">
+          <div className="px-3 pt-2 pb-3 space-y-1 flex flex-col">
                 {/* Credits Badge - Mobile */}
                 {hasBusiness && creditBalance !== null && (
                   <Link
@@ -717,348 +720,146 @@ const Header = React.memo(function Header() {
                   </Link>
                 )}
 
+                {/* ── Top nav items ── */}
                 <Link
                   href={hasBusiness ? "/dashboard" : "#"}
-                  onClick={(e) => {
-                    if (!hasBusiness) {
-                      e.preventDefault();
-                      router.push("/dashboard/create-business");
-                      setMenuOpen(false);
-                    } else {
-                      setMenuOpen(false);
-                    }
-                  }}
-                  className={`${
-                    isActive("/dashboard")
-                      ? "bg-white/20 text-white"
-                      : hasBusiness
-                        ? "text-white hover:bg-white/10"
-                        : "text-gray-500 cursor-not-allowed"
-                  } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
+                  onClick={(e) => { if (!hasBusiness) { e.preventDefault(); router.push("/dashboard/create-business"); } setMenuOpen(false); }}
+                  className={`${isActive("/dashboard") ? "bg-white/20 text-white" : hasBusiness ? "text-white hover:bg-white/10" : "text-gray-500 cursor-not-allowed"} block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
                 >
                   Dashboard
                 </Link>
+                <Link
+                  href={hasBusiness ? "/dashboard/business-profile" : "#"}
+                  onClick={(e) => { if (!hasBusiness) { e.preventDefault(); router.push("/dashboard/create-business"); } setMenuOpen(false); }}
+                  className={`${isActive("/dashboard/business-profile") ? "bg-white/20 text-white" : hasBusiness ? "text-white hover:bg-white/10" : "text-gray-500 cursor-not-allowed"} flex items-center gap-2 px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
+                >
+                  Business Profile
+                  {hasBusiness && businessProfileLoaded && !businessProfileCompleted && (
+                    <span className="bg-yellow-400 text-yellow-900 text-xs px-2 py-0.5 rounded-full font-bold animate-pulse">Start here!</span>
+                  )}
+                </Link>
+                {!hasMultipleAccounts && hasWorkManagerBoard && (
+                  <Link href="/work-manager" onClick={() => setMenuOpen(false)} className={`${isActive("/work-manager") ? "bg-white/20 text-white" : "text-white hover:bg-white/10"} block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}>
+                    Work Manager
+                  </Link>
+                )}
+                <Link href="/community" onClick={() => setMenuOpen(false)} className={`${isActive("/community") ? "bg-white/20 text-white" : "text-white hover:bg-white/10"} block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}>
+                  Community
+                </Link>
+                <Link
+                  href={hasBusiness ? "/dashboard/integrations" : "#"}
+                  onClick={(e) => { if (!hasBusiness) { e.preventDefault(); router.push("/dashboard/create-business"); } setMenuOpen(false); }}
+                  className={`${isActive("/dashboard/integrations") ? "bg-white/20 text-white" : hasBusiness ? "text-white hover:bg-white/10" : "text-gray-500 cursor-not-allowed"} block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
+                >
+                  Connect
+                </Link>
+
+                <div className="border-t border-white/10 my-2" />
+
                 {!businessLoading && (
                   <>
-                    {/* Your Business Section - Collapsible */}
-                    <div className={`${!hasBusiness ? 'opacity-50' : ''}`}>
-                      <button
-                        onClick={() => hasBusiness && setMobileYourBusinessOpen(!mobileYourBusinessOpen)}
-                        className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 ${
-                          hasBusiness ? 'text-white hover:bg-white/10' : 'text-gray-500 cursor-not-allowed'
-                        }`}
-                      >
-                        <span className="flex items-center gap-2">
-                          Your business
-                          {hasBusiness && businessProfileLoaded && !businessProfileCompleted && (
-                            <span className="bg-yellow-400 text-yellow-900 text-xs px-2 py-0.5 rounded-full font-bold animate-pulse">
-                              Start here!
-                            </span>
-                          )}
-                        </span>
-                        {hasBusiness && (
-                          <Icon
-                            name="FaChevronDown"
-                            className={`w-3 h-3 transition-transform duration-200 ${mobileYourBusinessOpen ? 'rotate-180' : ''}`}
-                            size={12}
-                          />
-                        )}
-                      </button>
-                      {mobileYourBusinessOpen && (
-                      <div className="space-y-1 pl-3 mt-1">
-                        <Link
-                          href={hasBusiness ? "/dashboard/business-profile" : "#"}
-                          onClick={(e) => {
-                            if (!hasBusiness) {
-                              e.preventDefault();
-                              router.push("/dashboard/create-business");
-                              setMenuOpen(false);
-                            } else {
-                              setMenuOpen(false);
-                            }
-                          }}
-                          className={`${
-                            isActive("/dashboard/business-profile")
-                              ? "bg-white/20 text-white"
-                              : hasBusiness
-                                ? "text-white hover:bg-white/10"
-                                : "text-gray-500 cursor-not-allowed"
-                          } block px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200`}
-                        >
-                          Business Profile
-                        </Link>
-                        <Link
-                          href={hasBusiness ? "/dashboard/local-ranking-grids" : "#"}
-                          onClick={(e) => {
-                            if (!hasBusiness) {
-                              e.preventDefault();
-                              router.push("/dashboard/create-business");
-                              setMenuOpen(false);
-                            } else {
-                              setMenuOpen(false);
-                            }
-                          }}
-                          className={`${
-                            isActive("/dashboard/local-ranking-grids")
-                              ? "bg-white/20 text-white"
-                              : hasBusiness
-                                ? "text-white hover:bg-white/10"
-                                : "text-gray-500 cursor-not-allowed"
-                          } block px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200`}
-                        >
-                          Local Ranking Grids
-                        </Link>
-                        <Link
-                          href={hasBusiness ? "/dashboard/keywords/rank-tracking" : "#"}
-                          onClick={(e) => {
-                            if (!hasBusiness) {
-                              e.preventDefault();
-                              router.push("/dashboard/create-business");
-                              setMenuOpen(false);
-                            } else {
-                              setMenuOpen(false);
-                            }
-                          }}
-                          className={`${
-                            isActive("/dashboard/keywords/rank-tracking")
-                              ? "bg-white/20 text-white"
-                              : hasBusiness
-                                ? "text-white hover:bg-white/10"
-                                : "text-gray-500 cursor-not-allowed"
-                          } block px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200`}
-                        >
-                          Rank Tracking
-                        </Link>
-                      </div>
-                      )}
-                    </div>
-                    {/* Get Reviews Section - Collapsible */}
+                    {/* ── Get Reviews section ── */}
                     <div className={`${!hasBusiness ? 'opacity-50' : ''}`}>
                       <button
                         onClick={() => hasBusiness && setMobileGetReviewsOpen(!mobileGetReviewsOpen)}
-                        className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 ${
-                          hasBusiness ? 'text-white hover:bg-white/10' : 'text-gray-500 cursor-not-allowed'
-                        }`}
+                        className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 ${hasBusiness ? 'text-white hover:bg-white/10' : 'text-gray-500 cursor-not-allowed'}`}
                       >
                         <span>Get reviews</span>
-                        {hasBusiness && (
-                          <Icon
-                            name="FaChevronDown"
-                            className={`w-3 h-3 transition-transform duration-200 ${mobileGetReviewsOpen ? 'rotate-180' : ''}`}
-                            size={12}
-                          />
-                        )}
+                        {hasBusiness && <Icon name="FaChevronDown" className={`w-3 h-3 transition-transform duration-200 ${mobileGetReviewsOpen ? 'rotate-180' : ''}`} size={12} />}
                       </button>
                       {mobileGetReviewsOpen && (
                       <div className="space-y-1 pl-3 mt-1">
-                        <Link
-                          href={hasBusiness ? "/prompt-pages" : "#"}
-                          onClick={(e) => {
-                            if (!hasBusiness) {
-                              e.preventDefault();
-                              router.push("/dashboard/create-business");
-                              setMenuOpen(false);
-                            } else {
-                              setMenuOpen(false);
-                            }
-                          }}
-                          className={`${
-                            isActive("/prompt-pages")
-                              ? "bg-white/20 text-white"
-                              : hasBusiness 
-                                ? "text-white hover:bg-white/10"
-                                : "text-gray-500 cursor-not-allowed"
-                          } block px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200`}
-                        >
+                        <Link href={hasBusiness ? "/prompt-pages" : "#"} onClick={(e) => { if (!hasBusiness) { e.preventDefault(); router.push("/dashboard/create-business"); } setMenuOpen(false); }} className={`${isActive("/prompt-pages") ? "bg-white/20 text-white" : hasBusiness ? "text-white hover:bg-white/10" : "text-gray-500 cursor-not-allowed"} block px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200`}>
                           Prompt Pages
                         </Link>
-                        <Link
-                          href={hasBusiness ? "/dashboard/widget" : "#"}
-                          onClick={(e) => {
-                            if (!hasBusiness) {
-                              e.preventDefault();
-                              router.push("/dashboard/create-business");
-                              setMenuOpen(false);
-                            } else {
-                              setMenuOpen(false);
-                            }
-                          }}
-                          className={`${
-                            isActive("/dashboard/widget")
-                              ? "bg-white/20 text-white"
-                              : hasBusiness 
-                                ? "text-white hover:bg-white/10"
-                                : "text-gray-500 cursor-not-allowed"
-                          } block px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200`}
-                        >
-                          Widgets
+                        <Link href={hasBusiness ? "/prompt-pages?tab=campaign" : "#"} onClick={(e) => { if (!hasBusiness) { e.preventDefault(); router.push("/dashboard/create-business"); } setMenuOpen(false); }} className={`${isActive("/prompt-pages?tab=campaign") ? "bg-white/20 text-white" : hasBusiness ? "text-white hover:bg-white/10" : "text-gray-500 cursor-not-allowed"} block px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200`}>
+                          Campaigns
                         </Link>
-                        <Link
-                          href={hasBusiness ? "/dashboard/contacts" : "#"}
-                          onClick={(e) => {
-                            if (!hasBusiness) {
-                              e.preventDefault();
-                              router.push("/dashboard/create-business");
-                              setMenuOpen(false);
-                            } else {
-                              setMenuOpen(false);
-                            }
-                          }}
-                          className={`${
-                            isActive("/dashboard/contacts")
-                              ? "bg-white/20 text-white"
-                              : hasBusiness 
-                                ? "text-white hover:bg-white/10"
-                                : "text-gray-500 cursor-not-allowed"
-                          } block px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200`}
-                        >
-                          Contacts
-                        </Link>
-                        <Link
-                          href={hasBusiness ? "/dashboard/reviews" : "#"}
-                          onClick={(e) => {
-                            if (!hasBusiness) {
-                              e.preventDefault();
-                              router.push("/dashboard/create-business");
-                              setMenuOpen(false);
-                            } else {
-                              setMenuOpen(false);
-                            }
-                          }}
-                          className={`${
-                            isActive("/dashboard/reviews")
-                              ? "bg-white/20 text-white"
-                              : hasBusiness
-                                ? "text-white hover:bg-white/10"
-                                : "text-gray-500 cursor-not-allowed"
-                          } block px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200`}
-                        >
+                        <Link href={hasBusiness ? "/dashboard/reviews" : "#"} onClick={(e) => { if (!hasBusiness) { e.preventDefault(); router.push("/dashboard/create-business"); } setMenuOpen(false); }} className={`${isActive("/dashboard/reviews") ? "bg-white/20 text-white" : hasBusiness ? "text-white hover:bg-white/10" : "text-gray-500 cursor-not-allowed"} block px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200`}>
                           Reviews
                         </Link>
-                        <Link
-                          href={hasBusiness ? "/dashboard/review-import" : "#"}
-                          onClick={(e) => {
-                            if (!hasBusiness) {
-                              e.preventDefault();
-                              router.push("/dashboard/create-business");
-                              setMenuOpen(false);
-                            } else {
-                              setMenuOpen(false);
-                            }
-                          }}
-                          className={`${
-                            isActive("/dashboard/review-import")
-                              ? "bg-white/20 text-white"
-                              : hasBusiness
-                                ? "text-white hover:bg-white/10"
-                                : "text-gray-500 cursor-not-allowed"
-                          } block px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200`}
-                        >
-                          Review import
+                        <Link href={hasBusiness ? "/dashboard/review-import" : "#"} onClick={(e) => { if (!hasBusiness) { e.preventDefault(); router.push("/dashboard/create-business"); } setMenuOpen(false); }} className={`${isActive("/dashboard/review-import") ? "bg-white/20 text-white" : hasBusiness ? "text-white hover:bg-white/10" : "text-gray-500 cursor-not-allowed"} block px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200`}>
+                          Review Import
                         </Link>
-                        <Link
-                          href={hasBusiness ? "/dashboard/get-reviews/sentiment-analyzer" : "#"}
-                          onClick={(e) => {
-                            if (!hasBusiness) {
-                              e.preventDefault();
-                              router.push("/dashboard/create-business");
-                              setMenuOpen(false);
-                            } else {
-                              setMenuOpen(false);
-                            }
-                          }}
-                          className={`${
-                            isActive("/dashboard/get-reviews/sentiment-analyzer")
-                              ? "bg-white/20 text-white"
-                              : hasBusiness
-                                ? "text-white hover:bg-white/10"
-                                : "text-gray-500 cursor-not-allowed"
-                          } block px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200`}
-                        >
+                        <Link href={hasBusiness ? "/dashboard/widget" : "#"} onClick={(e) => { if (!hasBusiness) { e.preventDefault(); router.push("/dashboard/create-business"); } setMenuOpen(false); }} className={`${isActive("/dashboard/widget") ? "bg-white/20 text-white" : hasBusiness ? "text-white hover:bg-white/10" : "text-gray-500 cursor-not-allowed"} block px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200`}>
+                          Widgets
+                        </Link>
+                        <Link href={hasBusiness ? "/dashboard/surveys" : "#"} onClick={(e) => { if (!hasBusiness) { e.preventDefault(); router.push("/dashboard/create-business"); } setMenuOpen(false); }} className={`${isActive("/dashboard/surveys") ? "bg-white/20 text-white" : hasBusiness ? "text-white hover:bg-white/10" : "text-gray-500 cursor-not-allowed"} block px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200`}>
+                          Surveys
+                        </Link>
+                        <Link href={hasBusiness ? "/dashboard/contacts" : "#"} onClick={(e) => { if (!hasBusiness) { e.preventDefault(); router.push("/dashboard/create-business"); } setMenuOpen(false); }} className={`${isActive("/dashboard/contacts") ? "bg-white/20 text-white" : hasBusiness ? "text-white hover:bg-white/10" : "text-gray-500 cursor-not-allowed"} block px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200`}>
+                          Contacts
+                        </Link>
+                        <Link href={hasBusiness ? "/dashboard/get-reviews/sentiment-analyzer" : "#"} onClick={(e) => { if (!hasBusiness) { e.preventDefault(); router.push("/dashboard/create-business"); } setMenuOpen(false); }} className={`${isActive("/dashboard/get-reviews/sentiment-analyzer") ? "bg-white/20 text-white" : hasBusiness ? "text-white hover:bg-white/10" : "text-gray-500 cursor-not-allowed"} block px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200`}>
                           Sentiment Analyzer
+                        </Link>
+                        <Link href={hasBusiness ? "/dashboard/analytics" : "#"} onClick={(e) => { if (!hasBusiness) { e.preventDefault(); router.push("/dashboard/create-business"); } setMenuOpen(false); }} className={`${isActive("/dashboard/analytics") ? "bg-white/20 text-white" : hasBusiness ? "text-white hover:bg-white/10" : "text-gray-500 cursor-not-allowed"} block px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200`}>
+                          Analytics
                         </Link>
                       </div>
                       )}
                     </div>
 
-                    {/* Always show Google Biz nav item - access control handled within the page */}
-                  {(
-                                              <Link
-                          href={hasBusiness ? "/dashboard/google-business" : "#"}
-                          onClick={(e) => {
-                            if (!hasBusiness) {
-                              e.preventDefault();
-                              router.push("/dashboard/create-business");
-                              setMenuOpen(false);
-                            } else {
-                              setMenuOpen(false);
-                            }
-                          }}
-                          className={`${
-                            isActive("/dashboard/google-business")
-                              ? "bg-white/20 text-white"
-                              : hasBusiness
-                                ? "text-white hover:bg-white/10"
-                                : "text-gray-500 cursor-not-allowed"
-                          } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
-                        >
-                          Google biz
-                        </Link>
-                    )}
-
-                    <Link
-                      href="/community"
-                      onClick={() => setMenuOpen(false)}
-                      className={`${
-                        isActive("/community")
-                          ? "bg-white/20 text-white"
-                          : "text-white hover:bg-white/10"
-                      } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
-                    >
-                      Community
-                    </Link>
-
-                    {/* Work Manager - Only show for single-account users with a board */}
-                    {!hasMultipleAccounts && hasWorkManagerBoard && (
-                      <Link
-                        href="/work-manager"
-                        onClick={() => setMenuOpen(false)}
-                        className={`${
-                          isActive("/work-manager")
-                            ? "bg-white/20 text-white"
-                            : "text-white hover:bg-white/10"
-                        } flex items-center gap-2 px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
+                    {/* ── Google Business section ── */}
+                    <div className={`${!hasBusiness ? 'opacity-50' : ''}`}>
+                      <button
+                        onClick={() => hasBusiness && setMobileGoogleBizOpen(!mobileGoogleBizOpen)}
+                        className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 ${hasBusiness ? 'text-white hover:bg-white/10' : 'text-gray-500 cursor-not-allowed'}`}
                       >
-                        <Icon name="FaBars" size={14} />
-                        Work Manager
-                      </Link>
-                    )}
+                        <span>Google Business</span>
+                        {hasBusiness && <Icon name="FaChevronDown" className={`w-3 h-3 transition-transform duration-200 ${mobileGoogleBizOpen ? 'rotate-180' : ''}`} size={12} />}
+                      </button>
+                      {mobileGoogleBizOpen && (
+                      <div className="space-y-1 pl-3 mt-1">
+                        <Link href={hasBusiness ? "/dashboard/google-business" : "#"} onClick={(e) => { if (!hasBusiness) { e.preventDefault(); router.push("/dashboard/create-business"); } setMenuOpen(false); }} className={`${isActive("/dashboard/google-business") ? "bg-white/20 text-white" : hasBusiness ? "text-white hover:bg-white/10" : "text-gray-500 cursor-not-allowed"} block px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200`}>
+                          Google Business Profile
+                        </Link>
+                        <Link href={hasBusiness ? "/dashboard/social-posting" : "#"} onClick={(e) => { if (!hasBusiness) { e.preventDefault(); router.push("/dashboard/create-business"); } setMenuOpen(false); }} className={`${isActive("/dashboard/social-posting") ? "bg-white/20 text-white" : hasBusiness ? "text-white hover:bg-white/10" : "text-gray-500 cursor-not-allowed"} block px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200`}>
+                          Post Scheduling
+                        </Link>
+                        <Link href={hasBusiness ? "/dashboard/rss-feeds" : "#"} onClick={(e) => { if (!hasBusiness) { e.preventDefault(); router.push("/dashboard/create-business"); } setMenuOpen(false); }} className={`${isActive("/dashboard/rss-feeds") ? "bg-white/20 text-white" : hasBusiness ? "text-white hover:bg-white/10" : "text-gray-500 cursor-not-allowed"} block px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200`}>
+                          RSS Feeds
+                        </Link>
+                      </div>
+                      )}
+                    </div>
 
-                    {/* Social Posting temporarily hidden until feature is ready
-                    <Link
-                      href={hasBusiness ? "/dashboard/google-business" : "#"}
-                      onClick={(e) => {
-                        if (!hasBusiness) {
-                          e.preventDefault();
-                          router.push("/dashboard/create-business");
-                          setMenuOpen(false);
-                        } else {
-                          setMenuOpen(false);
-                        }
-                      }}
-                      className={`${
-                        isActive("/dashboard/google-business")
-                          ? "bg-slate-blue/10 text-slate-blue"
-                          : hasBusiness 
-                            ? "text-blue-900 hover:bg-slate-blue/10 hover:text-slate-blue"
-                            : "text-blue-400 cursor-not-allowed"
-                      } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
-                    >
-                      Social Posting
-                    </Link>
-                    */}
+                    {/* ── SEO & AI Visibility section ── */}
+                    <div className={`${!hasBusiness ? 'opacity-50' : ''}`}>
+                      <button
+                        onClick={() => hasBusiness && setMobileSeoOpen(!mobileSeoOpen)}
+                        className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 ${hasBusiness ? 'text-white hover:bg-white/10' : 'text-gray-500 cursor-not-allowed'}`}
+                      >
+                        <span>SEO & AI Visibility</span>
+                        {hasBusiness && <Icon name="FaChevronDown" className={`w-3 h-3 transition-transform duration-200 ${mobileSeoOpen ? 'rotate-180' : ''}`} size={12} />}
+                      </button>
+                      {mobileSeoOpen && (
+                      <div className="space-y-1 pl-3 mt-1">
+                        <Link href={hasBusiness ? "/dashboard/research" : "#"} onClick={(e) => { if (!hasBusiness) { e.preventDefault(); router.push("/dashboard/create-business"); } setMenuOpen(false); }} className={`${isActive("/dashboard/research") ? "bg-white/20 text-white" : hasBusiness ? "text-white hover:bg-white/10" : "text-gray-500 cursor-not-allowed"} block px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200`}>
+                          Research
+                        </Link>
+                        <Link href={hasBusiness ? "/dashboard/keywords" : "#"} onClick={(e) => { if (!hasBusiness) { e.preventDefault(); router.push("/dashboard/create-business"); } setMenuOpen(false); }} className={`${isActive("/dashboard/keywords") ? "bg-white/20 text-white" : hasBusiness ? "text-white hover:bg-white/10" : "text-gray-500 cursor-not-allowed"} block px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200`}>
+                          Keyword Concepts
+                        </Link>
+                        <Link href={hasBusiness ? "/dashboard/local-ranking-grids" : "#"} onClick={(e) => { if (!hasBusiness) { e.preventDefault(); router.push("/dashboard/create-business"); } setMenuOpen(false); }} className={`${isActive("/dashboard/local-ranking-grids") ? "bg-white/20 text-white" : hasBusiness ? "text-white hover:bg-white/10" : "text-gray-500 cursor-not-allowed"} block px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200`}>
+                          Local Ranking Grids
+                        </Link>
+                        <Link href={hasBusiness ? "/dashboard/ai-search" : "#"} onClick={(e) => { if (!hasBusiness) { e.preventDefault(); router.push("/dashboard/create-business"); } setMenuOpen(false); }} className={`${isActive("/dashboard/ai-search") ? "bg-white/20 text-white" : hasBusiness ? "text-white hover:bg-white/10" : "text-gray-500 cursor-not-allowed"} block px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200`}>
+                          LLM Visibility
+                        </Link>
+                        <Link href={hasBusiness ? "/dashboard/keywords/rank-tracking" : "#"} onClick={(e) => { if (!hasBusiness) { e.preventDefault(); router.push("/dashboard/create-business"); } setMenuOpen(false); }} className={`${isActive("/dashboard/keywords/rank-tracking") ? "bg-white/20 text-white" : hasBusiness ? "text-white hover:bg-white/10" : "text-gray-500 cursor-not-allowed"} block px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200`}>
+                          Rank Tracking
+                        </Link>
+                        <Link href={hasBusiness ? "/dashboard/web-page-outlines" : "#"} onClick={(e) => { if (!hasBusiness) { e.preventDefault(); router.push("/dashboard/create-business"); } setMenuOpen(false); }} className={`${isActive("/dashboard/web-page-outlines") ? "bg-white/20 text-white" : hasBusiness ? "text-white hover:bg-white/10" : "text-gray-500 cursor-not-allowed"} block px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200`}>
+                          Web Page Planner
+                        </Link>
+                      </div>
+                      )}
+                    </div>
                   </>
                 )}
+
+                <div className="border-t border-white/10 my-2" />
                 {user ? (
                   <>
                     <Link
@@ -1081,27 +882,6 @@ const Header = React.memo(function Header() {
                       } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
                     >
                       Account
-                    </Link>
-                    <Link
-                      href={hasBusiness ? "/dashboard/analytics" : "#"}
-                      onClick={(e) => {
-                        if (!hasBusiness) {
-                          e.preventDefault();
-                          router.push("/dashboard/create-business");
-                          setMenuOpen(false);
-                        } else {
-                          setMenuOpen(false);
-                        }
-                      }}
-                      className={`${
-                        isActive("/dashboard/analytics")
-                          ? "bg-white/20 text-white"
-                          : hasBusiness 
-                            ? "text-white hover:bg-white/10"
-                            : "text-gray-500 cursor-not-allowed"
-                      } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
-                    >
-                      Analytics
                     </Link>
                     <Link
                       href={hasBusiness ? "/dashboard/plan" : "#"}
