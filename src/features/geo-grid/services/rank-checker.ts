@@ -24,18 +24,21 @@ type ServiceSupabase = SupabaseClient<any, any, any>;
 // Constants
 // ============================================
 
-// Maximum concurrent API requests - balance between speed and avoiding rate limits
-const MAX_CONCURRENT_REQUESTS = 2;
+// Maximum concurrent API requests - balance between speed and avoiding rate limits.
+// Checks run in background serverless functions (not inline HTTP handlers) so we
+// can afford higher concurrency.
+const MAX_CONCURRENT_REQUESTS = 3;
 
 // Delay between requests per worker (ms) to avoid overwhelming the API
-const REQUEST_DELAY_MS = 800;
+const REQUEST_DELAY_MS = 500;
 
 // Maximum retry attempts per check
 const MAX_RETRIES = 3;
 
-// Time budget for processing. Vercel Pro allows 60s; leave headroom for
-// DB writes, summary generation, and the HTTP response.
-const MAX_EXECUTION_MS = 45_000;
+// Default time budget for processing. Used by the scheduled cron which may
+// process multiple configs sequentially. Callers can override via
+// RankCheckOptions.maxExecutionMs for longer budgets.
+const MAX_EXECUTION_MS = 120_000;
 
 // ============================================
 // Types

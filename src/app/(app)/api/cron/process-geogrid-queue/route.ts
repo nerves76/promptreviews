@@ -19,11 +19,12 @@ import { generateDailySummary } from '@/features/geo-grid/services/summary-aggre
 import { transformConfigToResponse } from '@/features/geo-grid/utils/transforms';
 import { refundFeature } from '@/lib/credits';
 
-// Time budget for the entire invocation — leave 60s headroom for cleanup
-const INVOCATION_BUDGET_MS = 240_000;
+// Time budget for the entire invocation — leave 30s headroom before maxDuration=300
+const INVOCATION_BUDGET_MS = 270_000;
 
-// Time budget per job — generous for background processing
-const PER_JOB_BUDGET_MS = 210_000;
+// Time budget per job — generous for background processing.
+// With 3 concurrent workers and 500ms delay, 108 checks (4 keywords) takes ~2 min.
+const PER_JOB_BUDGET_MS = 250_000;
 
 // Mark jobs as stale if stuck in 'processing' for over 10 minutes
 const STALE_JOB_MS = 10 * 60 * 1000;
