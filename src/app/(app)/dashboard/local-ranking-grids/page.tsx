@@ -40,6 +40,7 @@ import { ArrowLeftIcon, Cog6ToothIcon } from '@heroicons/react/24/outline';
 import LocationSelector from '@/components/LocationSelector';
 import { Modal } from '@/app/(app)/components/ui/modal';
 import { Button } from '@/app/(app)/components/ui/button';
+import { SubNav } from '@/app/(app)/components/SubNav';
 
 // ============================================
 // Types
@@ -650,6 +651,15 @@ export default function LocalRankingGridsPage() {
     <>
       {/* Toast notifications */}
       <ToastContainer toasts={toasts} onClose={closeToast} />
+
+      {/* Sub Navigation */}
+      <SubNav
+        items={[
+          { label: 'Grid', icon: 'FaMapMarker', href: '/dashboard/local-ranking-grids', matchType: 'exact' },
+          { label: 'Compare', icon: 'FaUsers', href: '/dashboard/local-ranking-grids/compare', matchType: 'exact' },
+        ]}
+        className="mb-4"
+      />
 
       <PageCard
         icon={<Icon name="FaMapMarker" className="w-8 h-8 text-slate-blue" size={32} />}
