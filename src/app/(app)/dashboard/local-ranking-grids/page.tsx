@@ -694,7 +694,12 @@ export default function LocalRankingGridsPage() {
                     Running grid check... ({formatElapsed(checkElapsedSeconds)})
                   </p>
                   <p className="text-xs text-slate-blue/70">
-                    {numKeywords} {numKeywords === 1 ? 'keyword' : 'keywords'} × {numPoints} grid points = {totalChecks} checks — typically takes 1–5 minutes
+                    {numKeywords} {numKeywords === 1 ? 'keyword' : 'keywords'} × {numPoints} grid points = {totalChecks} checks — typically takes {(() => {
+                      // ~10s avg per check with 2 concurrent workers
+                      const lowMin = Math.max(1, Math.ceil((totalChecks / 2 * 5) / 60));
+                      const highMin = Math.max(lowMin + 1, Math.ceil((totalChecks / 2 * 20) / 60));
+                      return `${lowMin}–${highMin} minutes`;
+                    })()}
                   </p>
                 </div>
               </div>
