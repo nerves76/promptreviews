@@ -791,8 +791,8 @@ export default function LocalRankingGridsPage() {
               </div>
             </div>
 
-            {/* Schedule info row - only show if scheduling is enabled */}
-            {config.isEnabled && (
+            {/* Schedule info row - only show if scheduling is enabled and a frequency is set */}
+            {config.isEnabled && config.scheduleFrequency && (
               <div className="flex flex-wrap items-center justify-between gap-3 mt-3 pt-3 border-t border-gray-200 text-sm">
                 <div className="flex items-center gap-2 text-gray-600">
                   <Icon name="FaClock" className="w-4 h-4 text-blue-500" size={16} />
