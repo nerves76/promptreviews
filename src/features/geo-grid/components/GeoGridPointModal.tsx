@@ -248,7 +248,7 @@ export function GeoGridPointModal({ isOpen, onClose, result, point }: GeoGridPoi
                         No Google Maps results for this keyword at this location.
                       </p>
                       <p className="text-xs text-gray-500 mt-1">
-                        This can happen with niche keywords or at points far from populated areas.
+                        This can happen with keywords with unclear local intent or at points far from populated areas.
                       </p>
                     </div>
                   )}
