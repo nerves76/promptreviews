@@ -72,19 +72,21 @@ export async function GET(request: NextRequest) {
     // own serverless function and don't block each other.
     console.log('📋 [AllBatches] Dispatching all batch processors in parallel...');
 
-    const [llmBatch, rankBatch, conceptChecks, analysisBatch] = await Promise.all([
+    const [llmBatch, rankBatch, conceptChecks, analysisBatch, geogridQueue] = await Promise.all([
       fireInternalEndpoint('/api/cron/process-llm-batch', cronSecret),
       fireInternalEndpoint('/api/cron/process-rank-batch', cronSecret),
       fireInternalEndpoint('/api/cron/process-concept-checks', cronSecret),
       fireInternalEndpoint('/api/cron/process-analysis-batch', cronSecret),
+      fireInternalEndpoint('/api/cron/process-geogrid-queue', cronSecret),
     ]);
 
-    const results = { llmBatch, rankBatch, conceptChecks, analysisBatch };
+    const results = { llmBatch, rankBatch, conceptChecks, analysisBatch, geogridQueue };
 
     console.log(`📋 [AllBatches] LLM: ${llmBatch.message}`);
     console.log(`📋 [AllBatches] Rank: ${rankBatch.message}`);
     console.log(`📋 [AllBatches] Concept: ${conceptChecks.message}`);
     console.log(`📋 [AllBatches] Analysis: ${analysisBatch.message}`);
+    console.log(`📋 [AllBatches] GeoGrid: ${geogridQueue.message}`);
 
     const allSuccessful = Object.values(results).every(r => r.success);
 

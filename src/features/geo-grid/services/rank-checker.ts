@@ -46,6 +46,8 @@ export interface RankCheckOptions {
   keywordIds?: string[];
   /** Override language code (default: 'en') */
   languageCode?: string;
+  /** Override the default execution time budget (ms). Use a higher value for background/cron processing. */
+  maxExecutionMs?: number;
 }
 
 export interface RankCheckBatchResult {
@@ -260,7 +262,7 @@ export async function runRankChecks(
   // Process checks with concurrency limit and a time budget.
   // Each result is saved to DB IMMEDIATELY so nothing is lost if we
   // stop early due to the deadline.
-  const deadline = Date.now() + MAX_EXECUTION_MS;
+  const deadline = Date.now() + (options.maxExecutionMs ?? MAX_EXECUTION_MS);
   let completedCount = 0;
   let successfulInserts = 0;
 

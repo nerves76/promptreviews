@@ -1,12 +1,10 @@
-export const maxDuration = 300;
+export const maxDuration = 30;
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { createServerSupabaseClient } from '@/auth/providers/supabase';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 import { transformConfigToResponse } from '@/features/geo-grid/utils/transforms';
-import { runRankChecks } from '@/features/geo-grid/services/rank-checker';
-import { generateDailySummary } from '@/features/geo-grid/services/summary-aggregator';
 import {
   calculateGeogridCost,
   checkGeogridCredits,
@@ -26,19 +24,33 @@ const serviceSupabase = createClient(
 const MAX_COST_PER_RUN_USD = 5.0;
 
 /**
+ * Fire-and-forget: trigger the background processor immediately.
+ * Falls back to the every-minute cron if this fails.
+ */
+function fireProcessGeogridQueue() {
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.promptreviews.app';
+  const cronSecret = process.env.CRON_SECRET || '';
+
+  fetch(`${baseUrl}/api/cron/process-geogrid-queue`, {
+    method: 'GET',
+    headers: { 'Authorization': `Bearer ${cronSecret}` },
+    signal: AbortSignal.timeout(5000),
+  }).catch(() => {
+    // Swallow errors — the cron will pick it up within a minute
+  });
+}
+
+/**
  * POST /api/geo-grid/check
- * Trigger a manual rank check for the account's geo grid.
+ * Queue a manual rank check for the account's geo grid.
  *
  * Body (optional):
  * - configId: string - Specific config to check (default: first config)
  * - keywordIds: string[] - Specific keywords to check (default: all tracked)
  *
- * This endpoint:
- * 1. Validates the config exists and has a target Place ID
- * 2. Runs rank checks for all tracked keywords at all grid points
- * 3. Stores results in gg_checks table
- * 4. Tracks API cost in ai_usage table
- * 5. Generates a daily summary
+ * This endpoint validates, debits credits, creates a background job,
+ * and returns immediately. The actual checks are processed by
+ * /api/cron/process-geogrid-queue.
  */
 export async function POST(request: NextRequest) {
   try {
@@ -174,7 +186,7 @@ export async function POST(request: NextRequest) {
     const checkId = `${Date.now()}-${Math.random().toString(36).substring(7)}`;
     const idempotencyKey = `geo_grid:${accountId}:${checkId}`;
 
-    // Debit credits before running the check
+    // Debit credits before creating the job
     console.log(`💳 [GeoGrid] Debiting ${creditCost} credits for account ${accountId} (${pointCount} points, ${actualKeywordCount} keywords)`);
     try {
       await debit(serviceSupabase, accountId, creditCost, {
@@ -225,53 +237,43 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Run rank checks
-    console.log(`🔍 [GeoGrid] Starting rank checks for account ${accountId}`);
-    console.log(`   Keywords: ${keywordIds?.length || keywordCount}, Points: ${pointCount}`);
-    console.log(`   Credit cost: ${creditCost}, Est. API cost: $${estimatedApiCost.toFixed(4)}`);
+    // Create background job
+    console.log(`📋 [GeoGrid] Queuing check job for account ${accountId}: ${actualKeywordCount} keywords, ${pointCount} points`);
+    const { data: job, error: jobError } = await serviceSupabase
+      .from('gg_check_jobs')
+      .insert({
+        account_id: accountId,
+        config_id: config.id,
+        keyword_ids: keywordIds || [],
+        status: 'pending',
+        credits_used: creditCost,
+        credits_idempotency_key: idempotencyKey,
+      })
+      .select('id')
+      .single();
 
-    let result;
-    try {
-      result = await runRankChecks(config, serviceSupabase, { keywordIds });
-    } catch (runError) {
-      // Refund credits on failure
-      console.error(`❌ [GeoGrid] Rank check failed, refunding ${creditCost} credits`);
+    if (jobError || !job) {
+      // Refund credits if job creation fails
+      console.error('❌ [GeoGrid] Failed to create check job:', jobError);
       await refundFeature(serviceSupabase, accountId, creditCost, idempotencyKey, {
         featureType: 'geo_grid',
-        featureMetadata: { reason: 'check_failed', error: String(runError) },
-        description: 'Refund: Geo grid check failed',
+        featureMetadata: { reason: 'job_creation_failed' },
+        description: 'Refund: Failed to create check job',
       });
-      throw runError;
-    }
-
-    console.log(`✅ [GeoGrid] Rank checks complete. Checks: ${result.checksPerformed}, Cost: $${result.totalCost.toFixed(4)}`);
-
-    // Generate daily summary
-    if (result.checksPerformed > 0) {
-      const summaryResult = await generateDailySummary(
-        config.id,
-        accountId,
-        serviceSupabase,
-        { force: true }
+      return NextResponse.json(
+        { error: 'Failed to queue check job' },
+        { status: 500 }
       );
-
-      if (!summaryResult.success && !summaryResult.alreadyExists) {
-        console.error('❌ [GeoGrid] Failed to generate daily summary:', summaryResult.error);
-      }
     }
 
-    // Get updated balance after debit
-    const updatedCreditCheck = await checkGeogridCredits(serviceSupabase, accountId, pointCount);
+    // Fire-and-forget: trigger processor immediately (cron is fallback)
+    fireProcessGeogridQueue();
 
     return NextResponse.json({
-      success: result.success,
-      checksPerformed: result.checksPerformed,
-      totalChecks: result.totalChecks,
-      totalCost: result.totalCost,
+      queued: true,
+      jobId: job.id,
       creditsUsed: creditCost,
-      creditsRemaining: updatedCreditCheck.balance.totalCredits,
-      results: result.results,
-      errors: result.errors.length > 0 ? result.errors : undefined,
+      message: 'Check queued. Processing will begin shortly.',
     });
   } catch (error) {
     console.error('❌ [GeoGrid] Check POST error:', error);

@@ -129,7 +129,6 @@ export default function LocalRankingGridsPage() {
     summary: currentSummary,
     lastCheckedAt,
     isLoading: resultsLoading,
-    runCheck,
     refresh: refreshResults,
   } = useGeoGridResults({ configId: selectedConfigId });
   const { trend, isLoading: summaryLoading } = useGeoGridSummary({ configId: selectedConfigId });
@@ -415,6 +414,60 @@ export default function LocalRankingGridsPage() {
     setShowRunCheckModal(true);
   }, [trackedKeywords, isKeywordScheduled]);
 
+  // Queue a check job and poll until complete
+  const queueAndPollCheck = useCallback(async (keywordIds: string[]) => {
+    // 1. Queue the job
+    const response = await apiClient.post<{
+      queued?: boolean;
+      jobId?: string;
+      error?: string;
+      message?: string;
+    }>('/geo-grid/check', { configId: selectedConfigId, keywordIds });
+
+    if (!response.queued || !response.jobId) {
+      throw new Error(response.error || response.message || 'Failed to queue check');
+    }
+
+    // 2. Poll until complete
+    const jobId = response.jobId;
+    const pollInterval = 3000;
+    const maxPollTime = 10 * 60 * 1000; // 10 minutes max
+    const pollStart = Date.now();
+
+    while (Date.now() - pollStart < maxPollTime) {
+      await new Promise(r => setTimeout(r, pollInterval));
+
+      const status = await apiClient.get<{
+        status: string;
+        checksPerformed: number;
+        totalChecks: number;
+        error?: string;
+      }>(`/geo-grid/check-status?jobId=${jobId}`);
+
+      if (status.status === 'complete') {
+        return {
+          success: true,
+          checksPerformed: status.checksPerformed,
+          totalChecks: status.totalChecks,
+          error: status.error,
+        };
+      }
+
+      if (status.status === 'failed') {
+        return {
+          success: false,
+          checksPerformed: status.checksPerformed,
+          totalChecks: status.totalChecks,
+          error: status.error || 'Check failed',
+        };
+      }
+
+      // Still pending or processing — continue polling
+    }
+
+    return { success: false, checksPerformed: 0, totalChecks: 0, error: 'Check timed out waiting for results' };
+  }, [selectedConfigId]);
+
   // Confirm and execute the check for selected keywords
   const confirmRunCheck = useCallback(async () => {
     const keywordIds = Array.from(selectedCheckKeywordIds);
@@ -428,64 +481,47 @@ export default function LocalRankingGridsPage() {
     setCheckingKeywordIds(new Set(keywordIds));
     setCheckStartTime(Date.now());
 
-    // Process one keyword at a time to avoid Vercel function timeouts.
-    // Each keyword × grid points fits well within the 60s limit.
-    let totalPerformed = 0;
-    let totalChecks = 0;
-    let hadError = false;
-    let lastError = '';
-
     try {
-      for (const kwId of keywordIds) {
-        const result = await runCheck([kwId]);
-        totalPerformed += result.checksPerformed || 0;
-        totalChecks += result.totalChecks || (result.checksPerformed || 0);
+      const result = await queueAndPollCheck(keywordIds);
 
-        if (result.error) {
-          console.error('[GeoGrid] Check error for keyword:', kwId, result.error);
-          hadError = true;
-          lastError = result.error;
+      await refreshResults();
 
-          // Stop on blocking errors (credits, config issues)
-          if (result.error.includes('Insufficient credits') ||
-              result.error.includes('No target Place ID') ||
-              result.error.includes('Connect a Google Business') ||
-              result.error.includes('No geo grid configuration') ||
-              result.error.includes('disabled')) {
-            break;
-          }
+      if (result.success) {
+        const performed = result.checksPerformed || 0;
+        const total = result.totalChecks || performed;
+        const failed = total - performed;
+
+        if (failed > 0) {
+          showError(`Grid check: ${performed} of ${total} succeeded, ${failed} failed.`, 15000);
+        } else {
+          showSuccess(`Grid check complete! ${performed} checks performed.`, 10000);
         }
-      }
-
-      if (totalPerformed > 0) {
-        await refreshResults();
-      }
-
-      const failed = totalChecks - totalPerformed;
-      if (totalPerformed > 0 && failed === 0 && !hadError) {
-        showSuccess(`Grid check complete! ${totalPerformed} checks performed.`, 10000);
-      } else if (totalPerformed > 0 && failed > 0) {
-        showError(`Grid check: ${totalPerformed} of ${totalChecks} succeeded, ${failed} failed.`, 15000);
-      } else if (hadError) {
-        // Show user-friendly error messages
-        if (lastError.includes('No target Place ID') || lastError.includes('Connect a Google Business')) {
+      } else if (result.error) {
+        if (result.error.includes('No target Place ID') || result.error.includes('Connect a Google Business')) {
           showError('Please connect a Google Business location first before running grid checks.', 8000);
-        } else if (lastError.includes('No geo grid configuration')) {
+        } else if (result.error.includes('No geo grid configuration')) {
           showError('Please set up your grid configuration first.', 6000);
-        } else if (lastError.includes('Insufficient credits')) {
+        } else if (result.error.includes('Insufficient credits')) {
           showError('Not enough credits for this grid check. Please add more credits.', 6000);
-        } else if (lastError.includes('disabled')) {
+        } else if (result.error.includes('disabled')) {
           showError('Grid tracking is currently disabled. Enable it in settings to run checks.', 6000);
         } else {
-          showError(lastError, 15000);
+          showError(result.error, 15000);
         }
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Failed to run check';
+      if (msg.includes('Insufficient credits')) {
+        showError('Not enough credits for this grid check. Please add more credits.', 6000);
+      } else {
+        showError(msg, 15000);
       }
     } finally {
       setIsCheckRunning(false);
       setCheckingKeywordIds(new Set());
       setCheckStartTime(null);
     }
-  }, [selectedCheckKeywordIds, runCheck, refreshResults, showError, showSuccess]);
+  }, [selectedCheckKeywordIds, queueAndPollCheck, refreshResults, showError, showSuccess]);
 
   // Handle cancelling geo-grid schedule
   const handleCancelSchedule = useCallback(async () => {
@@ -550,15 +586,16 @@ export default function LocalRankingGridsPage() {
     setCheckingKeywordIds(new Set(keywordIds));
     setCheckStartTime(Date.now());
     try {
-      // Run check for specific keywords
-      const result = await runCheck(keywordIds);
+      const result = await queueAndPollCheck(keywordIds);
+
+      await refreshResults();
+
       if (result.success) {
-        await refreshResults();
         const performed = result.checksPerformed || 0;
         const total = result.totalChecks || performed;
         const failed = total - performed;
         if (failed > 0) {
-          showError(`Grid check: ${performed} of ${total} succeeded, ${failed} failed. ${result.error ? result.error.split(',')[0] : ''}`, 15000);
+          showError(`Grid check: ${performed} of ${total} succeeded, ${failed} failed.`, 15000);
         } else {
           showSuccess(`Grid check complete! ${performed} checks performed.`, 10000);
         }
@@ -569,12 +606,15 @@ export default function LocalRankingGridsPage() {
           showError(result.error, 15000);
         }
       }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Failed to run check';
+      showError(msg, 15000);
     } finally {
       setIsCheckRunning(false);
       setCheckingKeywordIds(new Set());
       setCheckStartTime(null);
     }
-  }, [runCheck, refreshResults, showError, showSuccess]);
+  }, [queueAndPollCheck, refreshResults, showError, showSuccess]);
 
   // Handle refreshing available keywords after new ones are created
   const handleKeywordsCreated = useCallback(async () => {
@@ -728,12 +768,7 @@ export default function LocalRankingGridsPage() {
                     Running grid check... ({formatElapsed(checkElapsedSeconds)})
                   </p>
                   <p className="text-xs text-slate-blue/70">
-                    {numKeywords} {numKeywords === 1 ? 'keyword' : 'keywords'} × {numPoints} grid points = {totalChecks} checks — typically takes {(() => {
-                      // ~10s avg per check with 2 concurrent workers
-                      const lowMin = Math.max(1, Math.ceil((totalChecks / 2 * 5) / 60));
-                      const highMin = Math.max(lowMin + 1, Math.ceil((totalChecks / 2 * 20) / 60));
-                      return `${lowMin}–${highMin} minutes`;
-                    })()}
+                    {numKeywords} {numKeywords === 1 ? 'keyword' : 'keywords'} × {numPoints} grid points = {totalChecks} checks — processing in background, typically 1–3 minutes
                   </p>
                 </div>
               </div>
