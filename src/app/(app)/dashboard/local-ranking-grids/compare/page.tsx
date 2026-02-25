@@ -19,6 +19,7 @@ import {
   GGCheckResult,
   GGCompetitor,
 } from '@/features/geo-grid';
+import LocationSelector from '@/components/LocationSelector';
 
 // ============================================
 // Types
@@ -186,7 +187,14 @@ export default function ComparePageClient() {
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
 
   // Data hooks
-  const { config, isLoading: configLoading } = useGeoGridConfig();
+  const {
+    configs,
+    config,
+    selectedConfigId,
+    selectConfig,
+    plan,
+    isLoading: configLoading,
+  } = useGeoGridConfig();
   const { results, isLoading: resultsLoading } = useGeoGridResults({
     configId: config?.id,
     mode: 'current',
@@ -296,10 +304,28 @@ export default function ComparePageClient() {
             <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">
               Compare competitors
             </h1>
-            <p className="text-gray-600 text-base max-w-lg mt-0 mb-4">
+            <p className="text-gray-600 text-base max-w-lg mt-0 mb-0">
               See how your business stacks up against competitors found in your grid checks.
             </p>
           </div>
+          {plan === 'maven' && configs.length > 1 && (
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-gray-700 whitespace-nowrap">Location:</span>
+              <div className="w-64">
+                <LocationSelector
+                  locations={configs.map(c => ({
+                    id: c.id,
+                    name: c.locationName || c.googleBusinessLocation?.location_name || (c.targetPlaceId ? 'Location' : 'Setup incomplete'),
+                    address: c.googleBusinessLocation?.address || (!c.targetPlaceId ? 'Click to complete setup' : null),
+                  }))}
+                  selectedId={selectedConfigId}
+                  onSelect={selectConfig}
+                  showAddButton={false}
+                  placeholder="Select a location"
+                />
+              </div>
+            </div>
+          )}
         </div>
 
         {isLoading ? (
