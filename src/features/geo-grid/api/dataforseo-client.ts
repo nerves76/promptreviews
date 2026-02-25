@@ -107,9 +107,10 @@ export async function searchGoogleMaps(params: MapsSearchParams): Promise<MapsSe
     depth: MAX_RESULTS_DEPTH,
   }));
 
-  // Add timeout for API calls (30 seconds)
+  // DataForSEO live endpoints can take up to 120s (error 50401).
+  // 90s gives them room to complete without hitting our own timeout.
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 30000);
+  const timeout = setTimeout(() => controller.abort(), 90000);
 
   try {
     const response = await fetch(`${DATAFORSEO_API_BASE}${GOOGLE_MAPS_ENDPOINT}`, {
@@ -156,11 +157,12 @@ export async function searchGoogleMaps(params: MapsSearchParams): Promise<MapsSe
     }
 
     if (task.status_code !== 20000) {
+      console.error(`❌ [DataForSEO] Task error ${task.status_code}: ${task.status_message} (keyword: "${keyword}")`);
       return {
         success: false,
         cost: task.cost || 0,
         items: [],
-        error: `Task failed: ${task.status_message}`,
+        error: `Task failed [${task.status_code}]: ${task.status_message}`,
       };
     }
 
@@ -177,16 +179,16 @@ export async function searchGoogleMaps(params: MapsSearchParams): Promise<MapsSe
 
     // Handle timeout specifically
     if (error instanceof Error && error.name === 'AbortError') {
-      console.error('❌ [DataForSEO] Request timeout (30s)');
+      console.error(`❌ [DataForSEO] Request timeout (90s) for keyword "${keyword}" at ${locationCoordinate}`);
       return {
         success: false,
         cost: 0,
         items: [],
-        error: 'Request timeout (30 seconds)',
+        error: 'Request timeout (90 seconds)',
       };
     }
 
-    console.error('❌ [DataForSEO] Request failed:', error);
+    console.error(`❌ [DataForSEO] Request failed for keyword "${keyword}":`, error);
     return {
       success: false,
       cost: 0,
