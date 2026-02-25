@@ -694,7 +694,7 @@ export default function LocalRankingGridsPage() {
                     Running grid check... ({formatElapsed(checkElapsedSeconds)})
                   </p>
                   <p className="text-xs text-slate-blue/70">
-                    {numKeywords} {numKeywords === 1 ? 'keyword' : 'keywords'} × {numPoints} grid points = {totalChecks} checks
+                    {numKeywords} {numKeywords === 1 ? 'keyword' : 'keywords'} × {numPoints} grid points = {totalChecks} checks — typically takes 1–5 minutes
                   </p>
                 </div>
               </div>
