@@ -27,17 +27,25 @@ const MAX_COST_PER_RUN_USD = 5.0;
  * Fire-and-forget: trigger the background processor immediately.
  * Falls back to the every-minute cron if this fails.
  */
-function fireProcessGeogridQueue() {
+/**
+ * Trigger the background processor. Awaited so the HTTP request is
+ * actually sent before the serverless function is frozen. The processor
+ * runs in its own function with its own timeout — we just need the
+ * request to leave our process. 5s abort keeps this fast.
+ */
+async function fireProcessGeogridQueue(): Promise<void> {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.promptreviews.app';
   const cronSecret = process.env.CRON_SECRET || '';
 
-  fetch(`${baseUrl}/api/cron/process-geogrid-queue`, {
-    method: 'GET',
-    headers: { 'Authorization': `Bearer ${cronSecret}` },
-    signal: AbortSignal.timeout(5000),
-  }).catch(() => {
-    // Swallow errors — the cron will pick it up within a minute
-  });
+  try {
+    await fetch(`${baseUrl}/api/cron/process-geogrid-queue`, {
+      method: 'GET',
+      headers: { 'Authorization': `Bearer ${cronSecret}` },
+      signal: AbortSignal.timeout(5000),
+    });
+  } catch {
+    // AbortError (timeout) or network error — the cron picks it up within a minute
+  }
 }
 
 /**
@@ -266,8 +274,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Fire-and-forget: trigger processor immediately (cron is fallback)
-    fireProcessGeogridQueue();
+    // Trigger processor immediately (cron every minute is fallback)
+    await fireProcessGeogridQueue();
 
     return NextResponse.json({
       queued: true,

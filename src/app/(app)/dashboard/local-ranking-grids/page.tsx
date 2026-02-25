@@ -417,6 +417,7 @@ export default function LocalRankingGridsPage() {
   // Queue a check job and poll until complete
   const queueAndPollCheck = useCallback(async (keywordIds: string[]) => {
     // 1. Queue the job
+    console.log('[GeoGrid] Queuing check for keywords:', keywordIds);
     const response = await apiClient.post<{
       queued?: boolean;
       jobId?: string;
@@ -427,6 +428,8 @@ export default function LocalRankingGridsPage() {
     if (!response.queued || !response.jobId) {
       throw new Error(response.error || response.message || 'Failed to queue check');
     }
+
+    console.log('[GeoGrid] Job queued:', response.jobId);
 
     // 2. Poll until complete
     const jobId = response.jobId;
@@ -445,6 +448,7 @@ export default function LocalRankingGridsPage() {
       }>(`/geo-grid/check-status?jobId=${jobId}`);
 
       if (status.status === 'complete') {
+        console.log('[GeoGrid] Job complete:', status.checksPerformed, '/', status.totalChecks, 'checks');
         return {
           success: true,
           checksPerformed: status.checksPerformed,
@@ -454,6 +458,7 @@ export default function LocalRankingGridsPage() {
       }
 
       if (status.status === 'failed') {
+        console.error('[GeoGrid] Job failed:', status.error);
         return {
           success: false,
           checksPerformed: status.checksPerformed,
@@ -465,6 +470,7 @@ export default function LocalRankingGridsPage() {
       // Still pending or processing — continue polling
     }
 
+    console.error('[GeoGrid] Poll timed out after 10 minutes');
     return { success: false, checksPerformed: 0, totalChecks: 0, error: 'Check timed out waiting for results' };
   }, [selectedConfigId]);
 
