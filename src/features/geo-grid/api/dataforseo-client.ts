@@ -156,6 +156,18 @@ export async function searchGoogleMaps(params: MapsSearchParams): Promise<MapsSe
       };
     }
 
+    // 40102 = "No Search Results" — Google Maps returned nothing for this
+    // keyword at this location. This is valid data (not an error), so treat
+    // it as a successful search with zero results.
+    if (task.status_code === 40102) {
+      console.log(`ℹ️ [DataForSEO] No search results for "${keyword}" at ${locationCoordinate} (40102)`);
+      return {
+        success: true,
+        cost: task.cost || 0,
+        items: [],
+      };
+    }
+
     if (task.status_code !== 20000) {
       console.error(`❌ [DataForSEO] Task error ${task.status_code}: ${task.status_message} (keyword: "${keyword}")`);
       return {
