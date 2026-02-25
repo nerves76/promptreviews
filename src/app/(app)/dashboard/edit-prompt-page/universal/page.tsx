@@ -522,7 +522,7 @@ export default function UniversalEditPromptPage() {
       topRightAction={saveButton}
     >
       <div className="flex flex-col mt-0 md:mt-[3px] mb-4">
-        <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-blue mt-0 mb-2">
           Universal Prompt Page
         </h1>
         <p className="text-gray-600 text-base max-w-md mt-0 mb-6">

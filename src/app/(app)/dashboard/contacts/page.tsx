@@ -951,11 +951,11 @@ export default function UploadContactsPage() {
   return (
     <PageCard icon={<Icon name="FaUsers" className="w-8 h-8 text-slate-blue" size={32} />}>
       <div className="w-full mx-auto relative" style={{ maxWidth: 1000 }}>
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-3">
           <div className="flex flex-col">
-                            <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">Contacts</h1>
+                            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-blue mt-0 mb-2">Contacts</h1>
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-3 flex-wrap">
             <button
               onClick={handleFindDuplicates}
               disabled={findingDuplicates || contacts.length < 2}

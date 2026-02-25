@@ -675,6 +675,14 @@ const Header = React.memo(function Header() {
             </div>
           </div>
         </div>
+        {/* Mobile Menu Backdrop */}
+        {menuOpen && (
+          <div
+            className="fixed inset-0 bg-black/50 z-[2147483646] md:hidden"
+            onClick={() => setMenuOpen(false)}
+            aria-hidden="true"
+          />
+        )}
         {/* Mobile Menu Dropdown - Rendered in Portal */}
         <DropdownPortal
           isOpen={menuOpen}

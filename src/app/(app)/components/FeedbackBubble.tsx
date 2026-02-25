@@ -54,7 +54,7 @@ export default function FeedbackBubble() {
       {/* Floating Help Button with Glass Effect */}
       <button
         onClick={() => setIsModalOpen(true)}
-        className="fixed bottom-6 right-6 z-50 w-14 h-14 backdrop-blur-md bg-white/10 border border-white/20 text-white rounded-full shadow-lg hover:shadow-xl hover:bg-white/20 hover:-translate-y-0.5 hover:scale-105 transition-all duration-200 flex items-center justify-center group"
+        className="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-50 w-14 h-14 backdrop-blur-md bg-white/10 border border-white/20 text-white rounded-full shadow-lg hover:shadow-xl hover:bg-white/20 hover:-translate-y-0.5 hover:scale-105 transition-all duration-200 flex items-center justify-center group"
         style={{
           background: 'rgba(99, 102, 241, 0.15)',
           backdropFilter: 'blur(10px)',

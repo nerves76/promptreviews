@@ -319,7 +319,7 @@ function SignUpContent() {
     return (
       <div className="min-h-screen">
         <SimpleMarketingNav />
-        <div className="flex flex-col justify-center items-center py-8">
+        <div className="flex flex-col justify-center items-center py-8 px-4">
           <div className="p-8 rounded-2xl shadow-2xl text-center bg-white/90 backdrop-blur-sm border-2 border-white max-w-md w-full">
             <h2 className="text-2xl font-bold mb-4 text-slate-blue">
               Account created! ✓
@@ -341,9 +341,9 @@ function SignUpContent() {
   return (
     <div className="min-h-screen">
       <SimpleMarketingNav />
-      <div className="flex flex-col justify-center items-center py-8">
+      <div className="flex flex-col justify-center items-center py-8 px-4">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
-          <h1 className="mt-6 text-center text-3xl font-extrabold text-white">
+          <h1 className="mt-6 text-center text-xl sm:text-2xl md:text-3xl font-extrabold text-white">
             {invitationToken ? 'Join the team' : 'Create your account'}
           </h1>
           <p className="mt-2 text-center text-sm text-white">
@@ -549,7 +549,7 @@ export default function SignUpPage() {
     <Suspense fallback={
       <div className="min-h-screen">
         <SimpleMarketingNav />
-        <div className="flex flex-col justify-center items-center py-8">
+        <div className="flex flex-col justify-center items-center py-8 px-4">
                       <div className="p-8 rounded-2xl shadow-2xl text-center bg-white/90 backdrop-blur-sm border-2 border-white max-w-md w-full">
             <div className="animate-pulse">
               <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>

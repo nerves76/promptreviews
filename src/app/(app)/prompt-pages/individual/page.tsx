@@ -486,10 +486,10 @@ export default function IndividualOutreach() {
       <div className="min-h-screen flex flex-col items-start px-4 sm:px-0">
         <PageCard icon={<span className="text-3xl font-bold align-middle text-slate-blue" style={{ fontFamily: 'Inter, sans-serif' }}>[P]</span>}>
           <div className="flex flex-col gap-2">
-            <div className="flex items-start justify-between mt-2 mb-4">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mt-2 mb-4 gap-2">
               <div className="flex flex-col mt-0 md:mt-[3px]">
                 <div className="flex items-center gap-3 mb-2">
-                  <h1 className="text-4xl font-bold text-slate-blue mt-0">Individual outreach</h1>
+                  <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-blue mt-0">Individual outreach</h1>
                   <Icon name="FaUserCircle" className="w-8 h-8 text-slate-blue" size={32} />
                 </div>
                 <p className="text-gray-600 text-base max-w-md mt-0 mb-10">Create personalized prompt pages for specific customers and clients.</p>

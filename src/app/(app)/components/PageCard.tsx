@@ -48,7 +48,7 @@ export function PageCardHeader({
 }: PageCardHeaderProps) {
   const isLarge = variant === "large";
   const HeadingTag = isLarge ? "h1" : "h2";
-  const headingSize = isLarge ? "text-4xl" : "text-2xl";
+  const headingSize = isLarge ? "text-2xl sm:text-3xl md:text-4xl" : "text-2xl";
 
   return (
     <div className={`flex flex-col sm:flex-row sm:items-start sm:justify-between ${marginBottom} w-full gap-4 ${className}`}>

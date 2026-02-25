@@ -241,9 +241,9 @@ export default function SignIn() {
   return (
     <div className="min-h-screen">
       <SimpleMarketingNav />
-      <div className="flex flex-col justify-center items-center pt-8 pb-16">
+      <div className="flex flex-col justify-center items-center pt-8 pb-16 px-4">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
-          <h1 className="mt-6 text-center text-3xl font-extrabold text-white">
+          <h1 className="mt-6 text-center text-xl sm:text-2xl md:text-3xl font-extrabold text-white">
             Welcome back
           </h1>
           <p className="mt-2 text-center text-sm text-white">

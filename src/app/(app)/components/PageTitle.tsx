@@ -28,9 +28,9 @@ export default function PageTitle({
   className = ""
 }: PageTitleProps) {
   return (
-    <div className={`flex items-start justify-between mt-2 mb-4 ${className}`}>
+    <div className={`flex flex-col sm:flex-row sm:items-start sm:justify-between mt-2 mb-4 gap-2 ${className}`}>
       <div className="flex flex-col mt-0 md:mt-[3px]">
-        <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-blue mt-0 mb-2">
           {title}
         </h1>
         {subCopy && (

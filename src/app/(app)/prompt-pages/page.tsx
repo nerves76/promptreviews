@@ -947,9 +947,9 @@ function PromptPagesContent() {
             <div className="max-w-7xl mx-auto mb-12">
               <div className="max-w-[800px] rounded-2xl p-6 bg-white/10 backdrop-blur-md border border-white/30 flex items-center gap-4 shadow-lg relative">
                 <div className="flex-1">
-                  <div className="flex items-center justify-between mb-1">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-1 gap-2">
                     <div className="flex items-center gap-2">
-                      <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+                      <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white flex items-center gap-3">
                         <Icon name="FaGlobe" className="w-8 h-8 text-white" size={32} />
                         Universal Prompt Page
                       </h2>
@@ -980,7 +980,7 @@ function PromptPagesContent() {
                       <button
                         type="button"
                         onClick={() => handleCopyLink()}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-white/20 backdrop-blur-sm text-white rounded hover:bg-white/30 text-sm font-medium border border-white/30 h-9 align-middle whitespace-nowrap transition-colors"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-white/90 text-gray-800 rounded hover:bg-white text-sm font-medium shadow-sm h-9 align-middle whitespace-nowrap transition-colors"
                       >
                         <Icon name="FaLink" className="w-4 h-4" size={16} />
                         Copy link
@@ -996,7 +996,7 @@ function PromptPagesContent() {
                             showNfcText: universalPromptPage?.nfc_text_enabled ?? false,
                           });
                         }}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-white/20 backdrop-blur-sm text-white rounded hover:bg-white/30 text-sm font-medium border border-white/30 h-9 align-middle whitespace-nowrap transition-colors"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-white/90 text-gray-800 rounded hover:bg-white text-sm font-medium shadow-sm h-9 align-middle whitespace-nowrap transition-colors"
                       >
                         <Icon name="MdDownload" className="w-4 h-4" size={16} />
                         QR code
@@ -1023,7 +1023,7 @@ function PromptPagesContent() {
                               initialTab: 'sms'
                             });
                           }}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 bg-white/20 backdrop-blur-sm text-white rounded hover:bg-white/30 text-sm font-medium border border-white/30 h-9 align-middle whitespace-nowrap transition-colors"
+                          className="inline-flex items-center gap-1 px-3 py-1.5 bg-white/90 text-gray-800 rounded hover:bg-white text-sm font-medium shadow-sm h-9 align-middle whitespace-nowrap transition-colors"
                         >
                           <Icon name="FaMobile" className="w-4 h-4" size={16} />
                           Send SMS
@@ -1038,7 +1038,7 @@ function PromptPagesContent() {
                             initialTab: 'email'
                           });
                         }}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-white/20 backdrop-blur-sm text-white rounded hover:bg-white/30 text-sm font-medium border border-white/30 h-9 align-middle whitespace-nowrap transition-colors"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-white/90 text-gray-800 rounded hover:bg-white text-sm font-medium shadow-sm h-9 align-middle whitespace-nowrap transition-colors"
                       >
                         <Icon name="FaEnvelope" className="w-4 h-4" size={16} />
                         Send email

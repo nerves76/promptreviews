@@ -111,7 +111,7 @@ export function AccountUtilityBar() {
               onClick={() => setIsOpen(!isOpen)}
               className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-white/10 hover:bg-white/20 transition-colors text-white font-medium"
             >
-              <span className="max-w-[200px] truncate">
+              <span className="max-w-[120px] sm:max-w-[200px] truncate">
                 {getAccountDisplayName(selectedAccount)}
               </span>
               <Icon
@@ -133,7 +133,7 @@ export function AccountUtilityBar() {
                     // Switch to the agency account and navigate to /agency
                     switchAccount(userAgencyAccount.account_id, '/agency');
                   }}
-                  className="flex items-center gap-1.5 text-amber-300 hover:text-amber-200 transition-colors font-medium"
+                  className="hidden sm:flex items-center gap-1.5 text-amber-300 hover:text-amber-200 transition-colors font-medium"
                 >
                   <Icon name="FaBriefcase" className="w-3 h-3" size={12} />
                   <span>Agency dashboard</span>
@@ -141,7 +141,7 @@ export function AccountUtilityBar() {
               ) : (
                 <Link
                   href="/agency"
-                  className="flex items-center gap-1.5 text-amber-300 hover:text-amber-200 transition-colors font-medium"
+                  className="hidden sm:flex items-center gap-1.5 text-amber-300 hover:text-amber-200 transition-colors font-medium"
                 >
                   <Icon name="FaBriefcase" className="w-3 h-3" size={12} />
                   <span>Agency dashboard</span>
@@ -149,7 +149,7 @@ export function AccountUtilityBar() {
               )
             )}
             {hasMultipleAccounts && (
-              <span className="text-white/70">
+              <span className="hidden sm:inline text-white/70">
                 {availableAccounts.length} accounts
               </span>
             )}

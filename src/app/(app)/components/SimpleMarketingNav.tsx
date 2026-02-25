@@ -9,7 +9,7 @@ export default function SimpleMarketingNav() {
   const isAuthPage = pathname?.startsWith('/auth');
   
   return (
-    <nav className={`w-full z-50 sticky top-0 ${isAuthPage ? 'bg-transparent' : 'bg-white shadow-sm'}`}>
+    <nav className={`w-full z-50 sticky top-0 ${isAuthPage ? 'bg-gradient-to-b from-black/30 to-transparent backdrop-blur-sm' : 'bg-white shadow-sm'}`}>
       <div className="mx-auto max-w-[1000px] w-full flex items-center justify-between px-4 py-3">
         <Link href="/" className="flex items-center">
           <span className="h-16 w-auto flex items-center" aria-label="PromptReviews Logo">

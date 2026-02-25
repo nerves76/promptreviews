@@ -482,7 +482,7 @@ const DashboardContent = React.memo(function DashboardContent({
   return (
     <>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 w-full gap-2 relative">
-        <h1 className="text-4xl font-bold flex items-center gap-3 text-slate-blue pt-2">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold flex items-center gap-3 text-slate-blue pt-2">
           Dashboard
         </h1>
       </div>
@@ -616,9 +616,9 @@ const DashboardContent = React.memo(function DashboardContent({
               {universalPromptPage && (
                 <div className="rounded-lg p-6 bg-blue-50 border border-blue-200 flex items-center gap-4 shadow relative">
                   <div className="flex-1">
-                    <div className="flex items-center justify-between mb-1">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-1 gap-2">
                       <div className="flex items-center gap-2">
-                        <h2 className="text-2xl font-bold text-slate-blue flex items-center gap-3">
+                        <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-slate-blue flex items-center gap-3">
                           <Icon name="FaGlobe" className="w-7 h-7 text-slate-blue" size={28} />
                           Universal Prompt Page
                         </h2>
@@ -723,19 +723,19 @@ const DashboardContent = React.memo(function DashboardContent({
       {/* Game Card */}
       <div className="mb-8 mt-8">
         <div className="rounded-lg p-6 bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 shadow">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-3">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-600 rounded-lg flex items-center justify-center">
+              <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-600 rounded-lg flex items-center justify-center shrink-0">
                 <span className="text-2xl">🎮</span>
               </div>
               <div>
-                <h3 className="text-xl font-bold text-slate-900">Get Found Online: The Game</h3>
+                <h3 className="text-lg sm:text-xl font-bold text-slate-900">Get Found Online: The Game</h3>
                 <p className="text-sm text-slate-600">Take a break and play!</p>
               </div>
             </div>
             <Link
               href="/game"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-blue-600 text-white rounded-lg hover:from-purple-600 hover:to-blue-700 transition-all duration-200 font-medium"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-blue-600 text-white rounded-lg hover:from-purple-600 hover:to-blue-700 transition-all duration-200 font-medium whitespace-nowrap self-start sm:self-auto"
             >
               <span>Play Game</span>
               <span>→</span>

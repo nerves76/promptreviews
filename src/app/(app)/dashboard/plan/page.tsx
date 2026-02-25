@@ -997,16 +997,16 @@ export default function PlanPage() {
       <div className="min-h-screen text-white flex flex-col">
         <div className="max-w-2xl mx-auto w-full px-6 pt-12">
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold mb-4 text-white">Agency plan</h1>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 text-white">Agency plan</h1>
             <p className="text-xl text-white/70">
               Your agency account includes full access to manage client accounts.
             </p>
           </div>
 
           <div className="bg-white/10 backdrop-blur-sm rounded-xl p-8 mb-8">
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-3">
               <div>
-                <h2 className="text-2xl font-semibold text-white">Agency trial</h2>
+                <h2 className="text-xl sm:text-2xl font-semibold text-white">Agency trial</h2>
                 <p className="text-white/70 mt-1">
                   {daysRemaining > 0
                     ? `${daysRemaining} day${daysRemaining !== 1 ? 's' : ''} remaining`
@@ -1052,7 +1052,7 @@ export default function PlanPage() {
         {/* Header */}
         <div className="max-w-6xl mx-auto w-full px-6 pt-12">
               <div className="text-center mb-12">
-                <h1 className="text-5xl font-bold mb-4 text-white">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-4 text-white">
                   Choose your plan
                 </h1>
                 <p className="text-xl text-gray-300 max-w-2xl mx-auto">

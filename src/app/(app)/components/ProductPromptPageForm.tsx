@@ -578,9 +578,9 @@ export default function ProductPromptPageForm({
       onSubmit={handleFormSubmit}
     >
       {/* Page Header with Title and Save Button */}
-      <div className="flex justify-between items-start mt-0 md:mt-[3px] mb-4">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mt-0 md:mt-[3px] mb-4 gap-2">
         <div className="flex flex-col">
-          <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-blue mt-0 mb-2">
             {pageTitle}
           </h1>
           <p className="text-gray-600 text-base max-w-md mt-0 mb-10">
