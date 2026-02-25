@@ -714,8 +714,14 @@ export default function LocalRankingGridsPage() {
                 </div>
               </div>
               <div className="mt-2 w-full bg-blue-200 rounded-full h-2 overflow-hidden">
-                <div className="bg-slate-blue h-2 rounded-full w-full animate-pulse" />
+                <div className="bg-slate-blue h-2 rounded-full w-1/3 animate-[indeterminate_1.5s_ease-in-out_infinite]" style={{ animation: 'indeterminate 1.5s ease-in-out infinite' }} />
               </div>
+              <style jsx>{`
+                @keyframes indeterminate {
+                  0% { transform: translateX(-100%); }
+                  100% { transform: translateX(300%); }
+                }
+              `}</style>
             </div>
           );
         })()}
