@@ -69,7 +69,7 @@ const BUCKET_LABELS: Record<PositionBucket, string> = {
   top3: 'Top 3',
   top10: 'Top 10',
   top20: 'Top 20',
-  none: 'Not Found',
+  none: 'Not in top 20',
 };
 
 // Map legacy check points to their position relative to center
