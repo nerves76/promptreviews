@@ -64,7 +64,6 @@ export function SubNav({ items, maxWidth, className = '' }: SubNavProps) {
       <nav
         className={`
           flex overflow-x-auto scrollbar-hide
-          sm:flex
           bg-white/10 backdrop-blur-sm border border-white/30
           rounded-full p-1 shadow-lg
           ${maxWidth ? maxWidth : 'w-auto'}
@@ -90,7 +89,6 @@ export function SubNav({ items, maxWidth, className = '' }: SubNavProps) {
                 rounded-full
                 flex items-center justify-center gap-2
                 flex-shrink-0
-                sm:flex-1
                 active:scale-95
                 cursor-pointer
                 relative

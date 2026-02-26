@@ -236,7 +236,7 @@ export default function AgencyLayout({
       {/* Agency navigation */}
       <div className="flex justify-center w-full z-20 px-4 relative isolate mt-4 mb-6">
         <nav
-          className="flex bg-white/10 backdrop-blur-sm border border-white/30 rounded-full p-1 shadow-lg isolate"
+          className="flex overflow-x-auto scrollbar-hide bg-white/10 backdrop-blur-sm border border-white/30 rounded-full p-1 shadow-lg isolate"
           role="navigation"
           aria-label="Agency navigation"
           style={{ WebkitBackfaceVisibility: 'hidden' }}
@@ -254,6 +254,7 @@ export default function AgencyLayout({
                   transition-all duration-200
                   rounded-full
                   flex items-center justify-center gap-2
+                  flex-shrink-0
                   active:scale-95
                   cursor-pointer
                   relative
