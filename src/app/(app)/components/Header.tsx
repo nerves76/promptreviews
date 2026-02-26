@@ -694,11 +694,11 @@ const Header = React.memo(function Header() {
           width="auto"
           style={{
             top: 80,
-            left: 0,
-            right: 0,
+            left: 16,
+            right: 16,
             maxHeight: 'calc(100vh - 96px)',
             zIndex: 2147483647,
-            borderRadius: 0
+            borderRadius: 16
           }}
         >
           <div className="px-3 pt-2 pb-3 space-y-1 flex flex-col">
