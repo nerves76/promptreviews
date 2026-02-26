@@ -698,7 +698,7 @@ const Header = React.memo(function Header() {
             right: 16,
             maxHeight: 'calc(100vh - 96px)',
             zIndex: 2147483647,
-            borderRadius: 16
+            borderRadius: 8
           }}
         >
           <div className="px-3 pt-2 pb-3 space-y-1 flex flex-col">
