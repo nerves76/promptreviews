@@ -77,7 +77,7 @@ const DropdownPortal = forwardRef<HTMLDivElement, DropdownPortalProps>(
     }
 
     const defaultStyle: React.CSSProperties = {
-      width: `${safeWidth}px`,
+      ...(width === 'auto' ? {} : { width: `${safeWidth}px` }),
       maxWidth: `calc(100vw - ${viewportPadding * 2}px)`,
       maxHeight: `calc(100vh - ${topPos + viewportPadding}px)`,
       overflowY: 'auto' as const,
