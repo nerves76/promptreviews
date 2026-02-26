@@ -110,12 +110,17 @@ export default function AgencyLayout({
     if (path === "/agency/surveys") {
       return pathname === "/agency/surveys" || pathname.startsWith("/agency/surveys/");
     }
+    // Contracts is active for /agency/contracts and all sub-pages
+    if (path === "/agency/contracts") {
+      return pathname === "/agency/contracts" || pathname.startsWith("/agency/contracts/");
+    }
     return false;
   };
 
   const navItems: { href: string; label: string; icon: IconName }[] = [
     { href: '/agency', label: 'Dashboard', icon: 'FaChartLine' },
     { href: '/agency/surveys', label: 'Surveys', icon: 'FaFileAlt' },
+    { href: '/agency/contracts', label: 'Contracts', icon: 'FaBriefcase' },
     { href: '/agency/work-manager', label: 'Work Manager', icon: 'FaTools' },
     { href: '/agency/team', label: 'Team', icon: 'FaUserPlus' },
     { href: '/agency/notifications', label: 'Notifications', icon: 'FaBell' },
