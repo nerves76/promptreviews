@@ -214,6 +214,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
             media_paths: mediaPaths.length > 0 ? mediaPaths : [],
             additional_platforms: feedSource.additionalPlatforms || {},
             status: 'pending',
+            source_type: 'rss_manual',
           })
           .select('id')
           .single();

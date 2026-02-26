@@ -202,7 +202,7 @@ export async function POST(request: NextRequest) {
         .from('rss_feed_items')
         .update({
           scheduled_post_id: scheduled.id,
-          status: 'scheduled',
+          status: 'queued',
           processed_at: new Date().toISOString(),
         })
         .eq('id', rssItem.id);

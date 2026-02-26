@@ -345,6 +345,7 @@ async function createScheduledPost(
     media_paths: mediaPaths.length > 0 ? mediaPaths : [],
     additional_platforms: feedSource.additionalPlatforms || {},
     status: 'pending' as const,
+    source_type: 'rss_auto',
   };
 
   console.log('[RSS] Creating scheduled post with payload:', JSON.stringify(insertPayload, null, 2));
@@ -396,7 +397,7 @@ async function createFeedItem(
   supabase: SupabaseClient,
   feedSourceId: string,
   item: ParsedFeedItem,
-  status: 'pending' | 'scheduled' | 'skipped' | 'failed' | 'initial_sync',
+  status: 'pending' | 'scheduled' | 'queued' | 'skipped' | 'failed' | 'initial_sync',
   skipReason: string | null = null,
   errorMessage: string | null = null,
   scheduledPostId: string | null = null

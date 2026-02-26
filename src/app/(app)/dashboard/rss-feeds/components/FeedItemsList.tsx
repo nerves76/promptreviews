@@ -192,6 +192,8 @@ export default function FeedItemsList({ feedId }: FeedItemsListProps) {
     switch (status) {
       case "scheduled":
         return <Badge variant="success" size="sm">Scheduled</Badge>;
+      case "queued":
+        return <Badge variant="info" size="sm">In queue</Badge>;
       case "skipped":
         return <Badge variant="warning" size="sm">Skipped</Badge>;
       case "failed":
@@ -384,15 +386,17 @@ export default function FeedItemsList({ feedId }: FeedItemsListProps) {
                   </div>
                 </td>
                 <td className="py-3">
-                  {item.status === "scheduled" && (
+                  {(item.status === "scheduled" || item.status === "queued") && (
                     <button
                       onClick={() => handleUnschedule(item.id)}
                       disabled={unschedulingId === item.id}
                       className="px-2 py-1 text-xs text-red-600 hover:bg-red-50 rounded transition-colors disabled:opacity-50"
-                      title="Unschedule this item"
+                      title={item.status === "queued" ? "Remove from queue" : "Unschedule this item"}
                     >
                       {unschedulingId === item.id ? (
                         <Icon name="FaSpinner" size={12} className="animate-spin" />
+                      ) : item.status === "queued" ? (
+                        "Remove"
                       ) : (
                         "Unschedule"
                       )}
@@ -400,10 +404,10 @@ export default function FeedItemsList({ feedId }: FeedItemsListProps) {
                   )}
                   {item.scheduledPostId && (
                     <a
-                      href="/dashboard/social-posting"
+                      href={`/dashboard/social-posting${item.status === "queued" ? "?tab=drafts" : ""}`}
                       className="block text-xs text-slate-blue hover:underline"
                     >
-                      View in queue
+                      {item.status === "queued" ? "View in drafts" : "View in queue"}
                     </a>
                   )}
                 </td>

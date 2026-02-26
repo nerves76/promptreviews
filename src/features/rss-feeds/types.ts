@@ -48,7 +48,7 @@ export interface RssFeedItem {
   processedAt: string | null;
 }
 
-export type RssFeedItemStatus = 'pending' | 'scheduled' | 'skipped' | 'failed' | 'initial_sync';
+export type RssFeedItemStatus = 'pending' | 'scheduled' | 'queued' | 'skipped' | 'failed' | 'initial_sync';
 
 // ============================================================================
 // Nested Types

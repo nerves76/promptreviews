@@ -29,6 +29,8 @@ export class GoogleBusinessProfileClient {
   private expiresAt: number;
   /** Account ID used for server-side token refresh (avoids exposing tokens to clients) */
   private accountId?: string;
+  /** Optional callback to re-read fresh tokens from the DB after a server-side refresh */
+  private onTokenRefreshed?: () => Promise<{ accessToken: string; expiresAt: number } | null>;
   /**
    * Base configuration for the Google Business Profile client
    */
@@ -40,12 +42,14 @@ export class GoogleBusinessProfileClient {
 
   constructor(
     credentials: { accessToken: string; refreshToken: string; expiresAt?: number; accountId?: string },
-    config?: Partial<GoogleBusinessProfileClientConfig>
+    config?: Partial<GoogleBusinessProfileClientConfig>,
+    options?: { onTokenRefreshed?: () => Promise<{ accessToken: string; expiresAt: number } | null> }
   ) {
     this.accessToken = credentials.accessToken;
     this.refreshToken = credentials.refreshToken;
     this.expiresAt = credentials.expiresAt || Date.now() + 3600000; // 1 hour default
     this.accountId = credentials.accountId;
+    this.onTokenRefreshed = options?.onTokenRefreshed;
 
     // Update config with any provided overrides
     if (config) {
@@ -178,6 +182,17 @@ export class GoogleBusinessProfileClient {
       // Update local expiry. The access token itself is now managed server-side
       // and will be decrypted from the DB on the next API call.
       this.expiresAt = Date.now() + data.expiresIn * 1000;
+
+      // Re-read fresh tokens from DB if callback is provided (server-side/cron context).
+      // This is critical because after refresh, the DB has the new encrypted access token
+      // but this client instance still holds the old decrypted one.
+      if (this.onTokenRefreshed) {
+        const freshTokens = await this.onTokenRefreshed();
+        if (freshTokens) {
+          this.accessToken = freshTokens.accessToken;
+          this.expiresAt = freshTokens.expiresAt;
+        }
+      }
 
       // Return a minimal result for backward compatibility.
       // Callers that check for access_token will still see a truthy value

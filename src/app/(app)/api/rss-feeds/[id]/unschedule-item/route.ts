@@ -73,23 +73,23 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Item not found' }, { status: 404 });
     }
 
-    if (item.status !== 'scheduled') {
+    if (item.status !== 'scheduled' && item.status !== 'queued') {
       return NextResponse.json(
-        { error: 'Item is not scheduled' },
+        { error: 'Item is not scheduled or queued' },
         { status: 400 }
       );
     }
 
     // Delete the scheduled post if it exists
     if (item.scheduled_post_id) {
-      // First check if the post exists and is still pending
+      // First check if the post exists and is still pending/draft
       const { data: post } = await supabase
         .from('google_business_scheduled_posts')
         .select('id, status')
         .eq('id', item.scheduled_post_id)
         .single();
 
-      if (post && post.status === 'pending') {
+      if (post && (post.status === 'pending' || post.status === 'draft')) {
         // Delete associated results first
         await supabase
           .from('google_business_scheduled_post_results')

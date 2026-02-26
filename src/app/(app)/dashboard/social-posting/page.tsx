@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import PageCard, { PageCardHeader } from "@/app/(app)/components/PageCard";
 import Icon from "@/components/Icon";
 import GlobalOverlayLoader from "@/app/(app)/components/GlobalOverlayLoader";
@@ -15,6 +16,8 @@ import CreatePostModal, { type PlatformData } from "./components/CreatePostModal
 
 type TabType = "scheduled" | "drafts" | "history";
 
+const VALID_TABS: TabType[] = ["scheduled", "drafts", "history"];
+
 interface ScheduledDataResponse {
   success: boolean;
   data?: {
@@ -28,8 +31,12 @@ interface ScheduledDataResponse {
 export default function SocialPostingPage() {
   useAuthGuard();
   const { selectedAccountId } = useAccountData();
+  const searchParams = useSearchParams();
 
-  const [activeTab, setActiveTab] = useState<TabType>("scheduled");
+  const tabParam = searchParams.get("tab") as TabType | null;
+  const initialTab = tabParam && VALID_TABS.includes(tabParam) ? tabParam : "scheduled";
+
+  const [activeTab, setActiveTab] = useState<TabType>(initialTab);
   const [drafts, setDrafts] = useState<GoogleBusinessScheduledPost[]>([]);
   const [upcoming, setUpcoming] = useState<GoogleBusinessScheduledPost[]>([]);
   const [past, setPast] = useState<GoogleBusinessScheduledPost[]>([]);

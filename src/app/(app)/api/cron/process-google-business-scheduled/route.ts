@@ -3,7 +3,7 @@ import { createServiceRoleClient } from '@/auth/providers/supabase';
 import { GoogleBusinessProfileClient } from '@/features/social-posting/platforms/google-business-profile/googleBusinessProfileClient';
 import { decryptGbpToken } from '@/lib/crypto/gbpTokenHelpers';
 import type { GoogleBusinessScheduledMediaDescriptor } from '@/features/social-posting';
-import { logCronExecution, verifyCronSecret } from '@/lib/cronLogger';
+import { logCronExecution, verifyCronSecret, shouldExitEarly } from '@/lib/cronLogger';
 
 const RATE_DELAY_MS = Number(process.env.GBP_SCHEDULED_RATE_DELAY_MS ?? 5000);
 const MAX_JOBS_PER_RUN = Number(process.env.GBP_SCHEDULED_MAX_JOBS ?? 25);
@@ -474,12 +474,30 @@ async function processJob(
     }
 
     tokens = tokenData;
-    client = new GoogleBusinessProfileClient({
-      accessToken: decryptGbpToken(tokens.access_token),
-      refreshToken: decryptGbpToken(tokens.refresh_token),
-      expiresAt: tokens.expires_at ? new Date(tokens.expires_at).getTime() : Date.now() + 3600000,
-      accountId: job.account_id,
-    });
+    client = new GoogleBusinessProfileClient(
+      {
+        accessToken: decryptGbpToken(tokens.access_token),
+        refreshToken: decryptGbpToken(tokens.refresh_token),
+        expiresAt: tokens.expires_at ? new Date(tokens.expires_at).getTime() : Date.now() + 3600000,
+        accountId: job.account_id,
+      },
+      undefined,
+      {
+        // After server-side token refresh, re-read the fresh access token from DB
+        onTokenRefreshed: async () => {
+          const { data: fresh } = await supabaseAdmin
+            .from('google_business_profiles')
+            .select('access_token, expires_at')
+            .eq('account_id', job.account_id)
+            .maybeSingle();
+          if (!fresh) return null;
+          return {
+            accessToken: decryptGbpToken(fresh.access_token),
+            expiresAt: fresh.expires_at ? new Date(fresh.expires_at).getTime() : Date.now() + 3600000,
+          };
+        },
+      }
+    );
   }
 
   const { data: resultRows, error: resultsError } = await supabaseAdmin
@@ -883,6 +901,7 @@ export async function GET(request: NextRequest) {
   if (authError) return authError;
 
   return logCronExecution('process-google-business-scheduled', async () => {
+    const startTime = Date.now();
     const supabaseAdmin = createServiceRoleClient();
     const today = new Date().toISOString().split('T')[0];
 
@@ -917,11 +936,19 @@ export async function GET(request: NextRequest) {
       return { success: false, error: 'Failed to load scheduled jobs' };
     }
 
+    console.log(`[Cron] Found ${jobs?.length ?? 0} pending scheduled posts for date <= ${today}`);
+
     const summaries = [] as Array<Awaited<ReturnType<typeof processJob>>>;
     let totalSuccess = 0;
     let totalFailed = 0;
 
     for (const job of jobs ?? []) {
+      // Exit early before Vercel 30s timeout - remaining jobs will be picked up next run
+      if (shouldExitEarly(startTime)) {
+        console.log(`[Cron] Exiting early to avoid timeout after processing ${summaries.length} jobs`);
+        break;
+      }
+
       try {
         const summary = await processJob(job as ScheduledJobRecord, supabaseAdmin);
         summaries.push(summary);
@@ -957,6 +984,7 @@ export async function GET(request: NextRequest) {
       success: true,
       summary: {
         jobsProcessed: summaries.length,
+        totalJobsFound: jobs?.length ?? 0,
         totalSuccess,
         totalFailed,
       },

@@ -415,11 +415,9 @@ export async function GET(request: NextRequest) {
       if (mapped.status === 'draft') {
         drafts.push(mapped);
       } else if (mapped.status === 'pending' || mapped.status === 'processing') {
-        if (mapped.scheduledDate && mapped.scheduledDate >= today) {
-          upcoming.push(mapped);
-        } else {
-          past.push(mapped);
-        }
+        // Always show pending/processing posts in "Scheduled" tab - even if the
+        // scheduled date is in the past (cron may not have processed them yet)
+        upcoming.push(mapped);
       } else {
         // completed, partial_success, failed
         past.push(mapped);
