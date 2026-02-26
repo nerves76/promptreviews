@@ -758,6 +758,7 @@ const Header = React.memo(function Header() {
 
                 {!businessLoading && (
                   <>
+                    <div className="px-3 pt-1 pb-1 text-xs font-semibold uppercase tracking-wider text-white/40">Features</div>
                     {/* ── Get Reviews section ── */}
                     <div className={`${!hasBusiness ? 'opacity-50' : ''}`}>
                       <button
