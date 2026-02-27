@@ -6,6 +6,7 @@ import { apiClient } from '@/utils/apiClient';
 import { Button } from '@/app/(app)/components/ui/button';
 import Icon from '@/components/Icon';
 import { Proposal, ProposalLineItem, ProposalCustomSection } from '../types';
+import { formatSowNumber } from '../sowHelpers';
 import { ProposalLineItemsEditor } from './ProposalLineItemsEditor';
 import { ProposalCustomSectionsEditor } from './ProposalCustomSectionsEditor';
 import { ContactSearchModal } from './ContactSearchModal';
@@ -22,7 +23,14 @@ export function ProposalEditor({ proposal, mode, basePath }: ProposalEditorProps
   const [error, setError] = useState<string | null>(null);
   const [showContactSearch, setShowContactSearch] = useState(false);
 
+  // SOW prefix state
+  const [sowPrefix, setSowPrefix] = useState('');
+  const [sowPrefixLocked, setSowPrefixLocked] = useState(false);
+  const [sowPrefixLoading, setSowPrefixLoading] = useState(true);
+  const [savingSowPrefix, setSavingSowPrefix] = useState(false);
+
   // Form state
+  const [showSowNumber, setShowSowNumber] = useState(proposal?.show_sow_number ?? true);
   const [title, setTitle] = useState(proposal?.title || '');
   const [proposalDate, setProposalDate] = useState(
     proposal?.proposal_date || new Date().toISOString().split('T')[0]
@@ -43,6 +51,22 @@ export function ProposalEditor({ proposal, mode, basePath }: ProposalEditorProps
     Array.isArray(proposal?.line_items) ? proposal.line_items : []
   );
 
+  // Fetch SOW prefix on mount
+  useEffect(() => {
+    async function fetchSowPrefix() {
+      try {
+        const data = await apiClient.get<{ sow_prefix: string | null; locked: boolean }>('/proposals/sow-prefix');
+        setSowPrefix(data.sow_prefix || '');
+        setSowPrefixLocked(data.locked);
+      } catch {
+        // Non-critical — prefix just won't show
+      } finally {
+        setSowPrefixLoading(false);
+      }
+    }
+    fetchSowPrefix();
+  }, []);
+
   // Sync when proposal loads (edit mode)
   useEffect(() => {
     if (proposal && mode === 'edit') {
@@ -56,11 +80,30 @@ export function ProposalEditor({ proposal, mode, basePath }: ProposalEditorProps
       setContactId(proposal.contact_id || null);
       setShowPricing(proposal.show_pricing ?? true);
       setShowTerms(proposal.show_terms ?? false);
+      setShowSowNumber(proposal.show_sow_number ?? true);
       setTermsContent(proposal.terms_content || '');
       setCustomSections(Array.isArray(proposal.custom_sections) ? proposal.custom_sections : []);
       setLineItems(Array.isArray(proposal.line_items) ? proposal.line_items : []);
     }
   }, [proposal, mode]);
+
+  const handleSaveSowPrefix = async () => {
+    if (!sowPrefix.trim() || !/^\d{1,10}$/.test(sowPrefix.trim())) {
+      setError('SOW prefix must be 1-10 digits (numbers only)');
+      return false;
+    }
+    setSavingSowPrefix(true);
+    try {
+      await apiClient.post('/proposals/sow-prefix', { sow_prefix: sowPrefix.trim() });
+      setSowPrefixLocked(false); // Will become locked after first contract is saved
+      return true;
+    } catch (err: any) {
+      setError(err.message || 'Failed to save SOW prefix');
+      return false;
+    } finally {
+      setSavingSowPrefix(false);
+    }
+  };
 
   const handleSave = async () => {
     if (!title.trim()) {
@@ -68,10 +111,25 @@ export function ProposalEditor({ proposal, mode, basePath }: ProposalEditorProps
       return;
     }
 
+    // If no prefix set yet, require it before creating a contract
+    if (mode === 'create' && !sowPrefixLocked && !sowPrefix.trim()) {
+      setError('Please set a SOW prefix before creating a contract');
+      return;
+    }
+
     setSaving(true);
     setError(null);
 
     try {
+      // Save prefix first if it hasn't been saved yet
+      if (sowPrefix.trim() && !sowPrefixLocked) {
+        const prefixSaved = await handleSaveSowPrefix();
+        if (!prefixSaved) {
+          setSaving(false);
+          return;
+        }
+      }
+
       const payload = {
         title: title.trim(),
         proposal_date: proposalDate,
@@ -83,6 +141,7 @@ export function ProposalEditor({ proposal, mode, basePath }: ProposalEditorProps
         contact_id: contactId,
         show_pricing: showPricing,
         show_terms: showTerms,
+        show_sow_number: showSowNumber,
         terms_content: termsContent || null,
         custom_sections: customSections,
         line_items: lineItems,
@@ -182,6 +241,76 @@ export function ProposalEditor({ proposal, mode, basePath }: ProposalEditorProps
           className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-1 disabled:bg-gray-100"
         />
       </div>
+
+      {/* SOW number */}
+      {!sowPrefixLoading && (
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-sm font-medium text-gray-700">SOW number</h3>
+            {mode === 'edit' && proposal?.sow_number != null && sowPrefix && (
+              <span className="text-lg font-semibold text-gray-900">
+                {formatSowNumber(sowPrefix, proposal.sow_number)}
+              </span>
+            )}
+          </div>
+
+          {/* Prefix input — editable only before first contract */}
+          <div className="flex items-start gap-3">
+            <div className="flex-1">
+              <label htmlFor="sow-prefix" className="block text-xs text-gray-500 mb-1">
+                Prefix {!sowPrefixLocked && <span className="text-red-500">*</span>}
+              </label>
+              <input
+                id="sow-prefix"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                value={sowPrefix}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                  setSowPrefix(val);
+                }}
+                placeholder="e.g. 031"
+                disabled={sowPrefixLocked || !!isReadOnly}
+                className="w-32 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-1 disabled:bg-gray-100"
+              />
+            </div>
+            <div className="flex-1 text-xs text-gray-500 pt-5">
+              {sowPrefixLocked ? (
+                <span className="flex items-center gap-1">
+                  <Icon name="FaLock" size={10} />
+                  Prefix is locked after the first contract
+                </span>
+              ) : (
+                <span className="flex items-center gap-1">
+                  <Icon name="FaExclamationTriangle" size={10} className="text-amber-500" />
+                  Choose carefully — this cannot be changed later
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Preview of what the SOW will look like */}
+          {sowPrefix && mode === 'create' && (
+            <p className="mt-2 text-xs text-gray-500">
+              Next contract will be SOW #{sowPrefix}...
+            </p>
+          )}
+
+          {/* Show/hide toggle */}
+          {!isReadOnly && (
+            <label className="flex items-center gap-2 cursor-pointer mt-3">
+              <input
+                type="checkbox"
+                checked={showSowNumber}
+                onChange={(e) => setShowSowNumber(e.target.checked)}
+                className="rounded border-gray-300 text-slate-blue focus:ring-slate-blue"
+              />
+              <span className="text-sm text-gray-700">Show SOW number on contract</span>
+            </label>
+          )}
+        </div>
+      )}
 
       {/* Dates */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

@@ -83,18 +83,27 @@ async function getProposalData(token: string) {
       .eq('proposal_id', proposal.id)
       .maybeSingle();
 
-    // Fetch business styling
+    // Fetch business styling and SOW prefix
     let businessProfile = null;
+    let sowPrefix: string | null = null;
     if (proposal.account_id) {
-      const { data: business } = await supabase
-        .from('businesses')
-        .select('*')
-        .eq('account_id', proposal.account_id)
-        .maybeSingle();
+      const [{ data: business }, { data: account }] = await Promise.all([
+        supabase
+          .from('businesses')
+          .select('*')
+          .eq('account_id', proposal.account_id)
+          .maybeSingle(),
+        supabase
+          .from('accounts')
+          .select('sow_prefix')
+          .eq('id', proposal.account_id)
+          .single(),
+      ]);
       businessProfile = business;
+      sowPrefix = account?.sow_prefix || null;
     }
 
-    return { proposal, signature, businessProfile };
+    return { proposal, signature, businessProfile, sowPrefix };
   } catch (error) {
     console.error('Error fetching proposal data:', error);
     return null;
@@ -109,7 +118,7 @@ export default async function ProposalPage({ params }: { params: Promise<{ token
     notFound();
   }
 
-  const { proposal, signature, businessProfile } = data;
+  const { proposal, signature, businessProfile, sowPrefix } = data;
 
   // Build style config from business profile or defaults
   const styleConfig = {
@@ -138,6 +147,7 @@ export default async function ProposalPage({ params }: { params: Promise<{ token
       signature={signature}
       styleConfig={styleConfig}
       token={token}
+      sowPrefix={sowPrefix}
     />
   );
 }

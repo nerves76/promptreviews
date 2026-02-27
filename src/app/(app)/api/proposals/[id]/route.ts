@@ -93,7 +93,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
     const allowedFields = [
       'title', 'proposal_date', 'expiration_date',
       'client_first_name', 'client_last_name', 'client_email', 'client_company', 'contact_id',
-      'show_pricing', 'show_terms', 'terms_content',
+      'show_pricing', 'show_terms', 'show_sow_number', 'terms_content',
       'custom_sections', 'line_items',
       'is_template', 'template_name', 'status',
     ];

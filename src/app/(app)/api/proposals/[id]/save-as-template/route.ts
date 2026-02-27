@@ -72,6 +72,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
         status: 'draft',
         is_template: true,
         template_name: templateName || original.title,
+        sow_number: null,
       })
       .select()
       .single();

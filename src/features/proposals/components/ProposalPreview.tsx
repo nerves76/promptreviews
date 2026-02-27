@@ -1,14 +1,16 @@
 'use client';
 
 import { Proposal, ProposalLineItem, ProposalCustomSection } from '../types';
+import { formatSowNumber } from '../sowHelpers';
 
 interface ProposalPreviewProps {
   proposal: Proposal;
   id?: string;
   textColor?: string;
+  sowPrefix?: string | null;
 }
 
-export function ProposalPreview({ proposal, id, textColor }: ProposalPreviewProps) {
+export function ProposalPreview({ proposal, id, textColor, sowPrefix }: ProposalPreviewProps) {
   const color = textColor || '#1f2937';
   const mutedColor = textColor ? `${textColor}B3` : '#6b7280'; // 70% opacity
 
@@ -28,6 +30,9 @@ export function ProposalPreview({ proposal, id, textColor }: ProposalPreviewProp
       <div>
         <h2 className="text-2xl font-bold" style={{ color }}>{proposal.title}</h2>
         <div className="flex flex-wrap gap-x-6 gap-y-1 mt-2 text-sm" style={{ color: mutedColor }}>
+          {proposal.show_sow_number && proposal.sow_number != null && sowPrefix && (
+            <span className="font-medium">SOW #{formatSowNumber(sowPrefix, proposal.sow_number)}</span>
+          )}
           <span>Date: {new Date(proposal.proposal_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
           {proposal.expiration_date && (
             <span>Expires: {new Date(proposal.expiration_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>

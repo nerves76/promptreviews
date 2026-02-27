@@ -84,6 +84,8 @@ export interface Proposal {
   custom_sections: ProposalCustomSection[];
   line_items: ProposalLineItem[];
   status: ProposalStatus;
+  sow_number?: number | null;
+  show_sow_number: boolean;
   is_template: boolean;
   template_name?: string | null;
   sent_at?: string | null;
@@ -124,6 +126,7 @@ export interface CreateProposalRequest {
   terms_content?: string;
   custom_sections?: ProposalCustomSection[];
   line_items?: ProposalLineItem[];
+  show_sow_number?: boolean;
   is_template?: boolean;
   template_name?: string;
 }

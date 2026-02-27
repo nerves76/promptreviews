@@ -7,6 +7,7 @@ import crypto from 'crypto';
 import { createServerSupabaseClient } from '@/auth/providers/supabase';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 import { isValidUuid } from '@/app/(app)/api/utils/validation';
+import { getNextSowNumber } from '@/features/proposals/sowHelpers';
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -42,6 +43,18 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
     const token = crypto.randomBytes(32).toString('hex');
 
+    // Generate new SOW number for the duplicate if account has a prefix
+    let sowNumber: number | null = null;
+    const { data: account } = await supabase
+      .from('accounts')
+      .select('sow_prefix')
+      .eq('id', accountId)
+      .single();
+
+    if (account?.sow_prefix) {
+      sowNumber = await getNextSowNumber(supabase, accountId);
+    }
+
     const { data: newProposal, error: createError } = await supabase
       .from('proposals')
       .insert({
@@ -63,11 +76,13 @@ export async function POST(request: NextRequest, context: RouteContext) {
         business_website: original.business_website,
         show_pricing: original.show_pricing,
         show_terms: original.show_terms,
+        show_sow_number: original.show_sow_number ?? true,
         terms_content: original.terms_content,
         custom_sections: original.custom_sections,
         line_items: original.line_items,
         status: 'draft',
         is_template: false,
+        sow_number: sowNumber,
       })
       .select()
       .single();

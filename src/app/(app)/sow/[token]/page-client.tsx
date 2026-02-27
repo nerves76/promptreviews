@@ -33,6 +33,7 @@ interface ProposalPageClientProps {
   signature: { signer_name: string; signer_email: string; signed_at: string } | null;
   styleConfig: StyleConfig;
   token: string;
+  sowPrefix?: string | null;
 }
 
 function getCardBorderStyle(config: StyleConfig) {
@@ -45,7 +46,7 @@ function getCardBorderStyle(config: StyleConfig) {
   return `${width}px solid rgba(${r}, ${g}, ${b}, ${config.cardBorderTransparency ?? 0.5})`;
 }
 
-export default function ProposalPageClient({ proposal, signature, styleConfig, token }: ProposalPageClientProps) {
+export default function ProposalPageClient({ proposal, signature, styleConfig, token, sowPrefix }: ProposalPageClientProps) {
   const [signerName, setSignerName] = useState('');
   const [signerEmail, setSignerEmail] = useState('');
   const [signatureImage, setSignatureImage] = useState<string | null>(null);
@@ -221,6 +222,7 @@ export default function ProposalPageClient({ proposal, signature, styleConfig, t
             proposal={proposal}
             id="proposal-preview-content"
             textColor={styleConfig.cardText}
+            sowPrefix={sowPrefix}
           />
 
           {/* Signature section */}

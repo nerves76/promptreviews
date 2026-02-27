@@ -7,6 +7,7 @@ import crypto from 'crypto';
 import { createServerSupabaseClient } from '@/auth/providers/supabase';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 import { isValidUuid } from '@/app/(app)/api/utils/validation';
+import { getNextSowNumber } from '@/features/proposals/sowHelpers';
 
 export async function POST(request: NextRequest) {
   try {
@@ -43,6 +44,18 @@ export async function POST(request: NextRequest) {
 
     const token = crypto.randomBytes(32).toString('hex');
 
+    // Generate SOW number if account has a prefix
+    let sowNumber: number | null = null;
+    const { data: account } = await supabase
+      .from('accounts')
+      .select('sow_prefix')
+      .eq('id', accountId)
+      .single();
+
+    if (account?.sow_prefix) {
+      sowNumber = await getNextSowNumber(supabase, accountId);
+    }
+
     // Snapshot fresh business info
     const { data: business } = await supabase
       .from('businesses')
@@ -76,6 +89,7 @@ export async function POST(request: NextRequest) {
         line_items: template.line_items,
         status: 'draft',
         is_template: false,
+        sow_number: sowNumber,
       })
       .select()
       .single();

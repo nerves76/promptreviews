@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import PageCard, { PageCardHeader } from '@/app/(app)/components/PageCard';
 import { Button } from '@/app/(app)/components/ui/button';
@@ -8,6 +8,7 @@ import Icon from '@/components/Icon';
 import { useProposals } from '@/features/proposals/hooks/useProposals';
 import { ProposalStatus, PROPOSAL_STATUS_LABELS, PROPOSAL_STATUS_COLORS } from '@/features/proposals/types';
 import { ProposalStatusBadge } from '@/features/proposals/components/ProposalStatusBadge';
+import { formatSowNumber } from '@/features/proposals/sowHelpers';
 import { apiClient } from '@/utils/apiClient';
 import { useToast, ToastContainer } from '@/app/(app)/components/reviews/Toast';
 
@@ -28,6 +29,19 @@ export default function ContractsPage() {
   const [deleting, setDeleting] = useState<string | null>(null);
   const [copyLinkId, setCopyLinkId] = useState<string | null>(null);
   const { toasts, closeToast, success, error: showError } = useToast();
+  const [sowPrefix, setSowPrefix] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchPrefix() {
+      try {
+        const data = await apiClient.get<{ sow_prefix: string | null }>('/proposals/sow-prefix');
+        setSowPrefix(data.sow_prefix);
+      } catch {
+        // Non-critical
+      }
+    }
+    fetchPrefix();
+  }, []);
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this contract? This cannot be undone.')) return;
@@ -123,6 +137,7 @@ export default function ContractsPage() {
             <table className="min-w-full divide-y divide-gray-300">
               <thead className="bg-gray-50">
                 <tr>
+                  {sowPrefix && <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">SOW #</th>}
                   <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Title</th>
                   <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Client</th>
                   <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Status</th>
@@ -134,6 +149,11 @@ export default function ContractsPage() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {proposals.map((proposal, index) => (
                   <tr key={proposal.id} className={index % 2 === 0 ? 'bg-white' : 'bg-blue-50'}>
+                    {sowPrefix && (
+                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 font-mono">
+                        {proposal.sow_number != null ? formatSowNumber(sowPrefix, proposal.sow_number) : '—'}
+                      </td>
+                    )}
                     <td className="whitespace-nowrap px-3 py-4 text-sm">
                       <button
                         onClick={() => router.push(`${basePath}/${proposal.id}`)}

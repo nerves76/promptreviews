@@ -7,6 +7,7 @@ import crypto from 'crypto';
 import { createServerSupabaseClient } from '@/auth/providers/supabase';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 import { validateRequiredString, validateStringLength, STRING_LIMITS } from '@/app/(app)/api/utils/validation';
+import { getNextSowNumber } from '@/features/proposals/sowHelpers';
 
 export async function GET(request: NextRequest) {
   try {
@@ -86,6 +87,21 @@ export async function POST(request: NextRequest) {
 
     // Generate unique token
     const token = crypto.randomBytes(32).toString('hex');
+    const isTemplate = body.is_template ?? false;
+
+    // For non-template proposals, generate SOW number if account has a prefix
+    let sowNumber: number | null = null;
+    if (!isTemplate) {
+      const { data: account } = await supabase
+        .from('accounts')
+        .select('sow_prefix')
+        .eq('id', accountId)
+        .single();
+
+      if (account?.sow_prefix) {
+        sowNumber = await getNextSowNumber(supabase, accountId);
+      }
+    }
 
     // Snapshot business info
     const { data: business } = await supabase
@@ -115,11 +131,13 @@ export async function POST(request: NextRequest) {
         business_website: business?.website || null,
         show_pricing: body.show_pricing ?? true,
         show_terms: body.show_terms ?? false,
+        show_sow_number: body.show_sow_number ?? true,
         terms_content: body.terms_content || null,
         custom_sections: body.custom_sections || [],
         line_items: body.line_items || [],
-        is_template: body.is_template ?? false,
+        is_template: isTemplate,
         template_name: body.template_name?.trim() || null,
+        sow_number: sowNumber,
       })
       .select()
       .single();

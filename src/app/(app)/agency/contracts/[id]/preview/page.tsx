@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useState } from 'react';
+import { use, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import PageCard, { PageCardHeader } from '@/app/(app)/components/PageCard';
 import { Button } from '@/app/(app)/components/ui/button';
@@ -17,6 +17,19 @@ export default function PreviewContractPage({ params }: { params: Promise<{ id: 
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
   const [sendSuccess, setSendSuccess] = useState(false);
+  const [sowPrefix, setSowPrefix] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchPrefix() {
+      try {
+        const data = await apiClient.get<{ sow_prefix: string | null }>('/proposals/sow-prefix');
+        setSowPrefix(data.sow_prefix);
+      } catch {
+        // Non-critical
+      }
+    }
+    fetchPrefix();
+  }, []);
 
   const handleSend = async () => {
     if (!proposal) return;
@@ -111,7 +124,7 @@ export default function PreviewContractPage({ params }: { params: Promise<{ id: 
 
       {/* Preview area with white background for PDF rendering */}
       <div className="bg-white border border-gray-200 rounded-lg p-8">
-        <ProposalPreview proposal={proposal} id="proposal-preview-content" />
+        <ProposalPreview proposal={proposal} id="proposal-preview-content" sowPrefix={sowPrefix} />
       </div>
 
       {/* Signature info if signed */}
