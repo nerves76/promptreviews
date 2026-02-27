@@ -70,7 +70,8 @@ export async function POST(request: NextRequest) {
       custom_sections: proposal.custom_sections,
       line_items: proposal.line_items,
       terms_content: proposal.terms_content,
-      client_name: proposal.client_name,
+      client_first_name: proposal.client_first_name,
+      client_last_name: proposal.client_last_name,
       client_email: proposal.client_email,
     });
     const documentHash = createHash('sha256').update(content).digest('hex');

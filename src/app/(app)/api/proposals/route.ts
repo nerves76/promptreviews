@@ -72,8 +72,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate optional string fields
-    const clientNameError = validateStringLength(body.client_name, 'Client name', STRING_LIMITS.name);
-    if (clientNameError) return NextResponse.json({ error: clientNameError }, { status: 400 });
+    const firstNameError = validateStringLength(body.client_first_name, 'Client first name', STRING_LIMITS.name);
+    if (firstNameError) return NextResponse.json({ error: firstNameError }, { status: 400 });
+
+    const lastNameError = validateStringLength(body.client_last_name, 'Client last name', STRING_LIMITS.name);
+    if (lastNameError) return NextResponse.json({ error: lastNameError }, { status: 400 });
 
     const clientEmailError = validateStringLength(body.client_email, 'Client email', STRING_LIMITS.email);
     if (clientEmailError) return NextResponse.json({ error: clientEmailError }, { status: 400 });
@@ -99,7 +102,8 @@ export async function POST(request: NextRequest) {
         title: body.title.trim(),
         proposal_date: body.proposal_date || new Date().toISOString().split('T')[0],
         expiration_date: body.expiration_date || null,
-        client_name: body.client_name?.trim() || null,
+        client_first_name: body.client_first_name?.trim() || null,
+        client_last_name: body.client_last_name?.trim() || null,
         client_email: body.client_email?.trim() || null,
         client_company: body.client_company?.trim() || null,
         contact_id: body.contact_id || null,

@@ -36,13 +36,15 @@ export function ProposalPreview({ proposal, id, textColor }: ProposalPreviewProp
       </div>
 
       {/* Client info */}
-      {(proposal.client_name || proposal.client_email || proposal.client_company) && (
+      {(proposal.client_first_name || proposal.client_last_name || proposal.client_email || proposal.client_company) && (
         <div>
           <h3 className="text-sm font-semibold uppercase tracking-wide mb-2" style={{ color: mutedColor }}>
             Prepared for
           </h3>
           <div className="text-sm space-y-0.5" style={{ color }}>
-            {proposal.client_name && <p className="font-medium">{proposal.client_name}</p>}
+            {(proposal.client_first_name || proposal.client_last_name) && (
+              <p className="font-medium">{[proposal.client_first_name, proposal.client_last_name].filter(Boolean).join(' ')}</p>
+            )}
             {proposal.client_company && <p>{proposal.client_company}</p>}
             {proposal.client_email && <p>{proposal.client_email}</p>}
           </div>

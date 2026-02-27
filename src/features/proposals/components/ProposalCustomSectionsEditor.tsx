@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { ProposalCustomSection } from '../types';
 import { SavedSectionsModal } from './SavedSectionsModal';
+import { SaveSectionModal } from './SaveSectionModal';
 import Icon from '@/components/Icon';
-import { apiClient } from '@/utils/apiClient';
 
 interface ProposalCustomSectionsEditorProps {
   sections: ProposalCustomSection[];
@@ -17,8 +17,7 @@ function generateId() {
 
 export function ProposalCustomSectionsEditor({ sections, onChange }: ProposalCustomSectionsEditorProps) {
   const [showImportModal, setShowImportModal] = useState(false);
-  const [savingId, setSavingId] = useState<string | null>(null);
-  const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
+  const [saveTarget, setSaveTarget] = useState<ProposalCustomSection | null>(null);
 
   const addSection = () => {
     const newSection: ProposalCustomSection = {
@@ -48,27 +47,6 @@ export function ProposalCustomSectionsEditor({ sections, onChange }: ProposalCus
     const updated = [...sections];
     [updated[index], updated[newIndex]] = [updated[newIndex], updated[index]];
     onChange(updated.map((s, i) => ({ ...s, position: i })));
-  };
-
-  const saveSection = async (section: ProposalCustomSection) => {
-    if (!section.title.trim()) return;
-    const name = prompt('Name for this saved section:', section.title);
-    if (!name) return;
-
-    setSavingId(section.id);
-    try {
-      await apiClient.post('/proposals/section-templates', {
-        name: name.trim(),
-        title: section.title,
-        body: section.body,
-      });
-      setSaveSuccess(section.id);
-      setTimeout(() => setSaveSuccess(null), 2000);
-    } catch (err: any) {
-      console.error('[SaveSection] Failed:', err?.message || err);
-    } finally {
-      setSavingId(null);
-    }
   };
 
   const handleImport = (title: string, body: string) => {
@@ -116,19 +94,13 @@ export function ProposalCustomSectionsEditor({ sections, onChange }: ProposalCus
             />
             <button
               type="button"
-              onClick={() => saveSection(section)}
-              disabled={!section.title.trim() || savingId === section.id}
+              onClick={() => setSaveTarget(section)}
+              disabled={!section.title.trim()}
               className="p-1.5 text-gray-400 hover:text-slate-blue transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
               aria-label="Save section to library"
               title="Save to library"
             >
-              {saveSuccess === section.id ? (
-                <Icon name="FaCheck" size={14} className="text-green-600" />
-              ) : savingId === section.id ? (
-                <Icon name="FaSpinner" size={14} className="animate-spin" />
-              ) : (
-                <Icon name="FaBookmark" size={14} />
-              )}
+              <Icon name="FaSave" size={14} />
             </button>
             <button
               type="button"
@@ -164,7 +136,7 @@ export function ProposalCustomSectionsEditor({ sections, onChange }: ProposalCus
           onClick={() => setShowImportModal(true)}
           className="flex items-center gap-1.5 text-sm text-slate-blue hover:text-slate-blue/80 font-medium transition-colors"
         >
-          <Icon name="FaBookmark" size={12} />
+          <Icon name="FaSave" size={12} />
           Import saved section
         </button>
       </div>
@@ -173,6 +145,14 @@ export function ProposalCustomSectionsEditor({ sections, onChange }: ProposalCus
         isOpen={showImportModal}
         onClose={() => setShowImportModal(false)}
         onImport={handleImport}
+      />
+
+      <SaveSectionModal
+        isOpen={!!saveTarget}
+        onClose={() => setSaveTarget(null)}
+        defaultName={saveTarget?.title || ''}
+        sectionTitle={saveTarget?.title || ''}
+        sectionBody={saveTarget?.body || ''}
       />
     </div>
   );

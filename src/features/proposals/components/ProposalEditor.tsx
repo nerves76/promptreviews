@@ -28,7 +28,8 @@ export function ProposalEditor({ proposal, mode, basePath }: ProposalEditorProps
     proposal?.proposal_date || new Date().toISOString().split('T')[0]
   );
   const [expirationDate, setExpirationDate] = useState(proposal?.expiration_date || '');
-  const [clientName, setClientName] = useState(proposal?.client_name || '');
+  const [clientFirstName, setClientFirstName] = useState(proposal?.client_first_name || '');
+  const [clientLastName, setClientLastName] = useState(proposal?.client_last_name || '');
   const [clientEmail, setClientEmail] = useState(proposal?.client_email || '');
   const [clientCompany, setClientCompany] = useState(proposal?.client_company || '');
   const [contactId, setContactId] = useState<string | null>(proposal?.contact_id || null);
@@ -48,7 +49,8 @@ export function ProposalEditor({ proposal, mode, basePath }: ProposalEditorProps
       setTitle(proposal.title);
       setProposalDate(proposal.proposal_date || new Date().toISOString().split('T')[0]);
       setExpirationDate(proposal.expiration_date || '');
-      setClientName(proposal.client_name || '');
+      setClientFirstName(proposal.client_first_name || '');
+      setClientLastName(proposal.client_last_name || '');
       setClientEmail(proposal.client_email || '');
       setClientCompany(proposal.client_company || '');
       setContactId(proposal.contact_id || null);
@@ -74,7 +76,8 @@ export function ProposalEditor({ proposal, mode, basePath }: ProposalEditorProps
         title: title.trim(),
         proposal_date: proposalDate,
         expiration_date: expirationDate || null,
-        client_name: clientName.trim() || null,
+        client_first_name: clientFirstName.trim() || null,
+        client_last_name: clientLastName.trim() || null,
         client_email: clientEmail.trim() || null,
         client_company: clientCompany.trim() || null,
         contact_id: contactId,
@@ -115,7 +118,9 @@ export function ProposalEditor({ proposal, mode, basePath }: ProposalEditorProps
 
   const handleContactSelect = (contact: { id: string; name: string; email: string; company?: string | null }) => {
     setContactId(contact.id);
-    setClientName(contact.name);
+    const contactParts = (contact.name || '').split(' ');
+    setClientFirstName(contactParts[0] || '');
+    setClientLastName(contactParts.slice(1).join(' ') || '');
     setClientEmail(contact.email);
     setClientCompany(contact.company || '');
   };
@@ -197,15 +202,27 @@ export function ProposalEditor({ proposal, mode, basePath }: ProposalEditorProps
             </button>
           )}
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
           <div>
-            <label htmlFor="client-name" className="block text-xs text-gray-500 mb-1">Name</label>
+            <label htmlFor="client-first-name" className="block text-xs text-gray-500 mb-1">First name</label>
             <input
-              id="client-name"
+              id="client-first-name"
               type="text"
-              value={clientName}
-              onChange={(e) => setClientName(e.target.value)}
-              placeholder="Client name"
+              value={clientFirstName}
+              onChange={(e) => setClientFirstName(e.target.value)}
+              placeholder="First"
+              disabled={!!isReadOnly}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-1 disabled:bg-gray-100"
+            />
+          </div>
+          <div>
+            <label htmlFor="client-last-name" className="block text-xs text-gray-500 mb-1">Last name</label>
+            <input
+              id="client-last-name"
+              type="text"
+              value={clientLastName}
+              onChange={(e) => setClientLastName(e.target.value)}
+              placeholder="Last"
               disabled={!!isReadOnly}
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-1 disabled:bg-gray-100"
             />

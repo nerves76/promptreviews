@@ -67,7 +67,8 @@ export interface Proposal {
   title: string;
   proposal_date: string;
   expiration_date?: string | null;
-  client_name?: string | null;
+  client_first_name?: string | null;
+  client_last_name?: string | null;
   client_email?: string | null;
   client_company?: string | null;
   contact_id?: string | null;
@@ -113,7 +114,8 @@ export interface CreateProposalRequest {
   title: string;
   proposal_date?: string;
   expiration_date?: string | null;
-  client_name?: string;
+  client_first_name?: string;
+  client_last_name?: string;
   client_email?: string;
   client_company?: string;
   contact_id?: string | null;

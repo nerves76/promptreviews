@@ -67,7 +67,7 @@ export default function PreviewContractPage({ params }: { params: Promise<{ id: 
     <PageCard icon={<Icon name="FaBriefcase" size={24} className="text-slate-blue" />}>
       <PageCardHeader
         title="Contract preview"
-        description={`Status: ${proposal.status}${proposal.client_name ? ` — for ${proposal.client_name}` : ''}`}
+        description={`Status: ${proposal.status}${(proposal.client_first_name || proposal.client_last_name) ? ` — for ${[proposal.client_first_name, proposal.client_last_name].filter(Boolean).join(' ')}` : ''}`}
         actions={
           <div className="flex gap-2">
             <Button variant="secondary" onClick={() => router.push(`/agency/contracts/${proposal.id}`)} className="whitespace-nowrap">

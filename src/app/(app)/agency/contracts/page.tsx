@@ -143,7 +143,7 @@ export default function ContractsPage() {
                       </button>
                     </td>
                     <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-600">
-                      {proposal.client_name || proposal.client_email || '—'}
+                      {[proposal.client_first_name, proposal.client_last_name].filter(Boolean).join(' ') || proposal.client_email || '—'}
                     </td>
                     <td className="whitespace-nowrap px-3 py-4 text-sm">
                       <ProposalStatusBadge status={proposal.status} />

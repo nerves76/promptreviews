@@ -62,7 +62,7 @@ export function ProposalLineItemsEditor({ lineItems, onChange }: ProposalLineIte
                     type="number"
                     min="0"
                     step="1"
-                    value={item.quantity}
+                    value={item.quantity || ''}
                     onChange={(e) => updateItem(item.id, 'quantity', parseFloat(e.target.value) || 0)}
                     className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-1"
                     aria-label="Quantity"
@@ -75,7 +75,7 @@ export function ProposalLineItemsEditor({ lineItems, onChange }: ProposalLineIte
                       type="number"
                       min="0"
                       step="0.01"
-                      value={item.unit_price}
+                      value={item.unit_price || ''}
                       onChange={(e) => updateItem(item.id, 'unit_price', parseFloat(e.target.value) || 0)}
                       className="w-full border border-gray-300 rounded pl-6 pr-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-1"
                       aria-label="Unit price"
