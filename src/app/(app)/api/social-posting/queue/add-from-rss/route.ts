@@ -176,7 +176,13 @@ export async function POST(request: NextRequest) {
         scheduled_date: null, // Draft - no date yet
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone, // Default timezone
         selected_locations: feed.target_locations || [],
-        media_paths: [], // Could add image handling later
+        media_paths: rssItem.image_url ? [{
+          bucket: 'external',
+          path: rssItem.image_url,
+          publicUrl: rssItem.image_url,
+          mime: 'image/jpeg',
+          size: 0,
+        }] : [],
         additional_platforms: feed.additional_platforms || {},
         status: 'draft' as const,
         queue_order: nextOrder,

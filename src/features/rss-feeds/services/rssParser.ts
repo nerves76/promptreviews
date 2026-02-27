@@ -41,7 +41,7 @@ export async function parseFeed(feedUrl: string): Promise<ParsedFeed> {
       guid: extractGuid(item),
       title: item.title || '',
       description: extractDescription(item),
-      link: item.link || '',
+      link: extractBestLink(item),
       pubDate: item.pubDate ? new Date(item.pubDate) : null,
       // Use item image if available, otherwise fall back to feed image
       imageUrl: extractImageUrl(item) || feedImage,
@@ -122,6 +122,42 @@ function extractFeedImage(feed: any): string | null {
  * Extract the unique identifier for a feed item
  * Prefers guid, falls back to link
  */
+/**
+ * Extract the best link for the item.
+ * Some podcast RSS feeds (e.g. Buzzsprout) set <link> to the podcast homepage
+ * rather than an episode-specific page. When the link looks like a homepage,
+ * try to construct an episode URL from the enclosure.
+ */
+function extractBestLink(item: Parser.Item): string {
+  const link = item.link || '';
+
+  // If the link has a meaningful path (not just / or /episodes), use it as-is
+  try {
+    const url = new URL(link);
+    const path = url.pathname.replace(/\/$/, '');
+    if (path && path !== '/episodes') {
+      return link;
+    }
+  } catch {
+    // Not a valid URL, return whatever we have
+    return link;
+  }
+
+  // Try to build an episode link from the Buzzsprout enclosure URL
+  // Format: https://www.buzzsprout.com/{podcastId}/episodes/{episodeSlug}.mp3
+  // Episode page: https://www.buzzsprout.com/{podcastId}/{episodeSlug}
+  const enclosure = (item as Record<string, unknown>).enclosure as { url?: string } | undefined;
+  const enclosureUrl = enclosure?.url || '';
+  const buzzsproutMatch = enclosureUrl.match(
+    /buzzsprout\.com\/(\d+)\/episodes\/([^.]+)/
+  );
+  if (buzzsproutMatch) {
+    return `https://www.buzzsprout.com/${buzzsproutMatch[1]}/${buzzsproutMatch[2]}`;
+  }
+
+  return link;
+}
+
 function extractGuid(item: Parser.Item): string {
   // Check for explicit guid
   if (item.guid) {
