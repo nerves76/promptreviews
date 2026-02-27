@@ -26,6 +26,7 @@ export default function FeedItemsList({ feedId }: FeedItemsListProps) {
   const [schedulingItemId, setSchedulingItemId] = useState<string | null>(null);
   const [scheduleDate, setScheduleDate] = useState("");
   const [schedulingInProgress, setSchedulingInProgress] = useState(false);
+  const [publishingItemId, setPublishingItemId] = useState<string | null>(null);
 
   // Selection state
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -174,6 +175,57 @@ export default function FeedItemsList({ feedId }: FeedItemsListProps) {
     tomorrow.setDate(tomorrow.getDate() + 1);
     setScheduleDate(tomorrow.toISOString().split("T")[0]);
     setSchedulingItemId(itemId);
+  };
+
+  const handlePublishNow = async (itemId: string) => {
+    setPublishingItemId(itemId);
+    try {
+      // Step 1: Schedule for today
+      const today = new Date().toISOString().split("T")[0];
+      const scheduleResult = await apiClient.post<{
+        success: boolean;
+        postId?: string;
+        error?: string;
+      }>(`/rss-feeds/${feedId}/schedule-single-item`, {
+        itemId,
+        scheduledDate: today,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      });
+
+      if (!scheduleResult.success || !scheduleResult.postId) {
+        alert(scheduleResult.error || "Failed to create post");
+        return;
+      }
+
+      // Step 2: Trigger immediate processing
+      const processResult = await apiClient.post<{
+        success: boolean;
+        postStatus?: string;
+        error?: string;
+      }>("/social-posting/process-now", {
+        postId: scheduleResult.postId,
+      });
+
+      if (processResult.success) {
+        const status = processResult.postStatus;
+        if (status === "completed") {
+          setClearMessage("Post published successfully");
+        } else if (status === "failed") {
+          setClearMessage("Error: Post failed to publish. Check your GBP connection.");
+        } else {
+          setClearMessage(`Post status: ${status}`);
+        }
+      } else {
+        setClearMessage(`Error: ${processResult.error || "Failed to publish"}`);
+      }
+      setTimeout(() => setClearMessage(null), 5000);
+      await fetchItems();
+    } catch (err: any) {
+      console.error("Failed to publish item:", err);
+      alert(err.message || "Failed to publish post");
+    } finally {
+      setPublishingItemId(null);
+    }
   };
 
   const toggleSelect = (id: string) => {
@@ -394,7 +446,7 @@ export default function FeedItemsList({ feedId }: FeedItemsListProps) {
               <SortableHeader field="publishedAt" label="Published" sortField={sortField} sortDirection={sortDirection} onSort={handleSort} />
               <SortableHeader field="scheduledDate" label="Scheduled for" sortField={sortField} sortDirection={sortDirection} onSort={handleSort} />
               <SortableHeader field="status" label="Status" sortField={sortField} sortDirection={sortDirection} onSort={handleSort} />
-              <th className="pb-2 font-medium w-24"></th>
+              <th className="pb-2 font-medium">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
@@ -448,18 +500,8 @@ export default function FeedItemsList({ feedId }: FeedItemsListProps) {
                   </div>
                 </td>
                 <td className="py-3">
-                  {/* Schedule button for available/queued items */}
-                  {(item.status === "initial_sync" || item.status === "queued") && schedulingItemId !== item.id && (
-                    <button
-                      onClick={() => openSchedulePicker(item.id)}
-                      className="px-2 py-1 text-xs font-medium text-slate-blue hover:bg-slate-blue/10 rounded transition-colors whitespace-nowrap"
-                    >
-                      <Icon name="FaCalendarAlt" size={10} className="inline mr-1" />
-                      Schedule
-                    </button>
-                  )}
-                  {/* Inline date picker */}
-                  {schedulingItemId === item.id && (
+                  {/* Inline date picker when scheduling */}
+                  {schedulingItemId === item.id ? (
                     <div className="flex items-center gap-1">
                       <input
                         type="date"
@@ -486,31 +528,65 @@ export default function FeedItemsList({ feedId }: FeedItemsListProps) {
                         <Icon name="FaTimes" size={10} />
                       </button>
                     </div>
-                  )}
-                  {/* Unschedule/remove for scheduled/queued items */}
-                  {(item.status === "scheduled" || item.status === "queued") && schedulingItemId !== item.id && (
-                    <button
-                      onClick={() => handleUnschedule(item.id)}
-                      disabled={unschedulingId === item.id}
-                      className="px-2 py-1 text-xs text-red-600 hover:bg-red-50 rounded transition-colors disabled:opacity-50"
-                      title={item.status === "queued" ? "Remove from queue" : "Unschedule this item"}
-                    >
-                      {unschedulingId === item.id ? (
-                        <Icon name="FaSpinner" size={12} className="animate-spin" />
-                      ) : item.status === "queued" ? (
-                        "Remove"
-                      ) : (
-                        "Unschedule"
+                  ) : (
+                    <div className="flex items-center gap-2 overflow-x-auto">
+                      {/* Action buttons for available/queued items */}
+                      {(item.status === "initial_sync" || item.status === "queued") && (
+                        <>
+                          <button
+                            onClick={() => handlePublishNow(item.id)}
+                            disabled={publishingItemId === item.id}
+                            className="px-2 py-1 text-xs font-medium text-white bg-green-600 hover:bg-green-700 rounded transition-colors disabled:opacity-50 whitespace-nowrap"
+                          >
+                            {publishingItemId === item.id ? (
+                              <>
+                                <Icon name="FaSpinner" size={10} className="inline mr-1 animate-spin" />
+                                Publishing...
+                              </>
+                            ) : (
+                              <>
+                                <Icon name="FaRocket" size={10} className="inline mr-1" />
+                                Publish now
+                              </>
+                            )}
+                          </button>
+                          <button
+                            onClick={() => openSchedulePicker(item.id)}
+                            disabled={publishingItemId === item.id}
+                            className="px-2 py-1 text-xs font-medium text-slate-blue border border-slate-blue/30 hover:bg-slate-blue/10 rounded transition-colors whitespace-nowrap"
+                          >
+                            <Icon name="FaCalendarAlt" size={10} className="inline mr-1" />
+                            Schedule
+                          </button>
+                        </>
                       )}
-                    </button>
-                  )}
-                  {item.scheduledPostId && item.status === "scheduled" && (
-                    <a
-                      href="/dashboard/social-posting"
-                      className="block text-xs text-slate-blue hover:underline"
-                    >
-                      View in queue
-                    </a>
+                      {/* Unschedule/remove for scheduled/queued items */}
+                      {(item.status === "scheduled" || item.status === "queued") && (
+                        <button
+                          onClick={() => handleUnschedule(item.id)}
+                          disabled={unschedulingId === item.id}
+                          className="px-2 py-1 text-xs text-red-600 hover:bg-red-50 rounded transition-colors disabled:opacity-50 whitespace-nowrap"
+                          title={item.status === "queued" ? "Remove from queue" : "Unschedule this item"}
+                        >
+                          {unschedulingId === item.id ? (
+                            <Icon name="FaSpinner" size={12} className="animate-spin" />
+                          ) : item.status === "queued" ? (
+                            "Remove"
+                          ) : (
+                            "Unschedule"
+                          )}
+                        </button>
+                      )}
+                      {/* View link for scheduled items */}
+                      {item.scheduledPostId && item.status === "scheduled" && (
+                        <a
+                          href="/dashboard/social-posting"
+                          className="text-xs text-slate-blue hover:underline whitespace-nowrap"
+                        >
+                          View in queue
+                        </a>
+                      )}
+                    </div>
                   )}
                 </td>
               </tr>
