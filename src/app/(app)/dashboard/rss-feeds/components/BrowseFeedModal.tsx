@@ -55,6 +55,7 @@ export default function BrowseFeedModal({
     return tomorrow.toISOString().split("T")[0];
   });
   const [intervalDays, setIntervalDays] = useState(7); // Default weekly
+  const [scheduleOrder, setScheduleOrder] = useState<"oldest" | "newest">("oldest");
   const [timezone, setTimezone] = useState(() => {
     try {
       return Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -107,20 +108,18 @@ export default function BrowseFeedModal({
 
   const insufficientCredits = creditBalance !== null && selectedGuids.size > creditBalance;
 
-  // Get selected items in chronological order (oldest first) so earliest
-  // schedule dates are assigned to the oldest content
-  const selectedItemsChronological = useMemo(() => {
-    return items
-      .filter((item) => selectedGuids.has(item.guid))
-      .slice()
-      .reverse();
-  }, [items, selectedGuids]);
+  // Get selected items in the chosen schedule order
+  const selectedItemsOrdered = useMemo(() => {
+    const filtered = items.filter((item) => selectedGuids.has(item.guid));
+    // Items arrive newest-first from the API; reverse for oldest-first
+    return scheduleOrder === "oldest" ? filtered.slice().reverse() : filtered;
+  }, [items, selectedGuids, scheduleOrder]);
 
   // Calculate scheduled dates for preview
   const scheduledDates = useMemo(() => {
     const dates: string[] = [];
 
-    for (let i = 0; i < selectedItemsChronological.length; i++) {
+    for (let i = 0; i < selectedItemsOrdered.length; i++) {
       const date = new Date(startDate);
       date.setDate(date.getDate() + intervalDays * i);
       dates.push(
@@ -131,7 +130,7 @@ export default function BrowseFeedModal({
       );
     }
     return dates;
-  }, [selectedItemsChronological, startDate, intervalDays]);
+  }, [selectedItemsOrdered, startDate, intervalDays]);
 
   // Toggle item selection
   const toggleItem = (guid: string) => {
@@ -164,7 +163,7 @@ export default function BrowseFeedModal({
       const response = await apiClient.post<ScheduleResponse>(
         `/rss-feeds/${feedId}/schedule-items`,
         {
-          items: selectedItemsChronological.map((item) => ({
+          items: selectedItemsOrdered.map((item) => ({
             guid: item.guid,
             title: item.title,
             description: item.description,
@@ -252,7 +251,7 @@ export default function BrowseFeedModal({
                   <h4 className="font-medium text-gray-900 mb-3">
                     Schedule settings
                   </h4>
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                     <div>
                       <label className="block text-sm text-gray-600 mb-1">
                         Start date
@@ -287,6 +286,19 @@ export default function BrowseFeedModal({
                         </select>
                         <span className="text-sm text-gray-600">days</span>
                       </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-600 mb-1">
+                        Order
+                      </label>
+                      <select
+                        value={scheduleOrder}
+                        onChange={(e) => setScheduleOrder(e.target.value as "oldest" | "newest")}
+                        className="w-full border border-gray-300 px-3 py-2 rounded-lg text-sm focus:ring-2 focus:ring-slate-blue focus:border-transparent"
+                      >
+                        <option value="oldest">Oldest first</option>
+                        <option value="newest">Newest first</option>
+                      </select>
                     </div>
                     <div>
                       <label className="block text-sm text-gray-600 mb-1">
