@@ -51,16 +51,37 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Feed not found' }, { status: 404 });
     }
 
-    // Fetch all items for this feed (up to 200), join scheduled_date from linked post
-    const { data: items } = await supabase
+    // Fetch all items for this feed (up to 200)
+    const { data: items, error: itemsError } = await supabase
       .from('rss_feed_items')
-      .select('*, google_business_scheduled_posts(scheduled_date, status)')
+      .select('*')
       .eq('feed_source_id', id)
       .order('published_at', { ascending: false })
       .limit(200);
 
+    if (itemsError) {
+      console.error('[RSS Feeds] Error fetching items:', itemsError);
+    }
+
+    // Batch-fetch scheduled dates for items that have a linked post
+    const postIds = (items || [])
+      .map((item) => item.scheduled_post_id)
+      .filter((id): id is string => !!id);
+
+    const postMap = new Map<string, { scheduled_date: string | null; status: string }>();
+    if (postIds.length > 0) {
+      const { data: posts } = await supabase
+        .from('google_business_scheduled_posts')
+        .select('id, scheduled_date, status')
+        .in('id', postIds);
+
+      (posts || []).forEach((p) => {
+        postMap.set(p.id, { scheduled_date: p.scheduled_date, status: p.status });
+      });
+    }
+
     const recentItems: RssFeedItem[] = (items || []).map((item) => {
-      const linkedPost = item.google_business_scheduled_posts as { scheduled_date: string | null; status: string } | null;
+      const linkedPost = item.scheduled_post_id ? postMap.get(item.scheduled_post_id) : null;
       return {
         id: item.id,
         feedSourceId: item.feed_source_id,
