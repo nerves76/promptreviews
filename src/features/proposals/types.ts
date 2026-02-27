@@ -95,6 +95,18 @@ export interface Proposal {
   signature?: ProposalSignature | null;
 }
 
+// --- Section Templates ---
+
+export interface ProposalSectionTemplate {
+  id: string;
+  account_id: string;
+  name: string;
+  title: string;
+  body: string;
+  created_at: string;
+  updated_at: string;
+}
+
 // --- API Request Types ---
 
 export interface CreateProposalRequest {
