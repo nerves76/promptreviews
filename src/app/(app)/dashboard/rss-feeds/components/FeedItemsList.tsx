@@ -310,8 +310,7 @@ export default function FeedItemsList({ feedId }: FeedItemsListProps) {
     return new Date(date).toLocaleDateString(undefined, {
       month: "short",
       day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
+      year: "numeric",
     });
   };
 
