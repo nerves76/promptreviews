@@ -582,6 +582,7 @@ model accounts {
   gbp_change_alerts                                                   gbp_change_alerts[]
   gbp_location_snapshots                                              gbp_location_snapshots[]
   gbp_protection_settings                                             gbp_protection_settings?
+  gg_check_jobs                                                       gg_check_jobs[]
   gg_checks                                                           gg_checks[]
   gg_configs                                                          gg_configs[]
   gg_daily_summary                                                    gg_daily_summary[]
@@ -604,6 +605,9 @@ model accounts {
   ownership_transfer_requests                                         ownership_transfer_requests[]
   posts                                                               posts[]
   prompt_pages                                                        prompt_pages[]
+  proposal_section_templates                                          proposal_section_templates[]
+  proposal_signatures                                                 proposal_signatures[]
+  proposals                                                           proposals[]
   rank_batch_runs                                                     rank_batch_runs[]
   rank_checks                                                         rank_checks[]
   rank_discovery_usage                                                rank_discovery_usage[]
@@ -628,6 +632,7 @@ model accounts {
   surveys_surveys_target_client_account_idToaccounts                  surveys[]                         @relation("surveys_target_client_account_idToaccounts")
   trial_reminder_logs                                                 trial_reminder_logs[]
   web_page_outlines                                                   web_page_outlines[]
+  widget_reviews                                                      widget_reviews[]
   widgets                                                             widgets[]
   wm_boards                                                           wm_boards?
   wm_resources                                                        wm_resources[]
@@ -1149,6 +1154,8 @@ model communication_records {
   @@index([prompt_page_id], map: "idx_communication_records_prompt_page_id")
   @@index([sent_at], map: "idx_communication_records_sent_at")
   @@index([status], map: "idx_communication_records_status")
+  @@index([account_id, created_at(sort: Desc)], map: "idx_communication_records_account_created")
+  @@index([contact_id, created_at(sort: Desc)], map: "idx_communication_records_contact_created")
   @@schema("public")
 }
 
@@ -1233,6 +1240,7 @@ model contacts {
   accounts              accounts                @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   follow_up_reminders   follow_up_reminders[]
   prompt_pages          prompt_pages[]
+  proposals             proposals[]
   review_submissions    review_submissions[]
 
   @@index([account_id])
@@ -1912,6 +1920,7 @@ model notifications {
   @@index([created_at(sort: Desc)], map: "idx_notifications_created_at")
   @@index([type], map: "idx_notifications_type")
   @@index([user_id], map: "idx_notifications_user_id")
+  @@index([account_id, created_at(sort: Desc)], map: "idx_notifications_account_created")
   @@schema("public")
 }
 
@@ -2266,6 +2275,7 @@ model prompt_pages {
   @@index([phone])
   @@index([last_contact_at], map: "idx_prompt_pages_last_contact_at")
   @@index([assigned_to], map: "idx_prompt_pages_assigned_to")
+  @@index([account_id, created_at(sort: Desc)], map: "idx_prompt_pages_account_created")
   @@schema("public")
 }
 
@@ -2515,6 +2525,9 @@ model review_submissions {
   @@index([verified], map: "idx_review_submissions_verified")
   @@index([widget_id], map: "idx_review_submissions_widget_id")
   @@index([business_location_id], map: "idx_review_submissions_business_location_id")
+  @@index([account_id, created_at(sort: Desc)], map: "idx_review_submissions_account_created")
+  @@index([account_id, platform, created_at(sort: Desc)], map: "idx_review_submissions_account_platform_created")
+  @@index([prompt_page_id, created_at(sort: Desc)], map: "idx_review_submissions_page_created")
   @@schema("public")
 }
 
@@ -2637,6 +2650,8 @@ model widget_reviews {
   ip_address                String?
   review_group_id           String?   @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   photo_url                 String?
+  account_id                String?   @db.Uuid
+  accounts                  accounts? @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   widgets                   widgets   @relation(fields: [widget_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([business_id], map: "idx_widget_reviews_business_id")
@@ -2650,6 +2665,9 @@ model widget_reviews {
   @@index([verified], map: "idx_widget_reviews_verified")
   @@index([widget_id], map: "idx_widget_reviews_widget_id")
   @@index([widget_id, verified], map: "idx_widget_reviews_widget_verified")
+  @@index([account_id], map: "idx_widget_reviews_account_id")
+  @@index([account_id, widget_id], map: "idx_widget_reviews_account_widget")
+  @@index([widget_id, order_index], map: "idx_widget_reviews_widget_order")
   @@schema("public")
 }
 
@@ -2681,6 +2699,7 @@ model widgets {
   @@index([theme], map: "idx_widgets_theme", type: Gin)
   @@index([type], map: "idx_widgets_type")
   @@index([widget_type], map: "idx_widgets_widget_type")
+  @@index([account_id, created_at(sort: Desc)], map: "idx_widgets_account_created")
   @@schema("public")
 }
 
@@ -2742,6 +2761,7 @@ model credit_ledger {
   @@index([created_at(sort: Desc)], map: "idx_credit_ledger_created_at")
   @@index([feature_type], map: "idx_credit_ledger_feature_type")
   @@index([transaction_type], map: "idx_credit_ledger_transaction_type")
+  @@index([account_id, created_at(sort: Desc)], map: "idx_credit_ledger_account_created")
   @@schema("public")
 }
 
@@ -2840,6 +2860,7 @@ model gg_configs {
   last_scheduled_run_at       DateTime?                  @db.Timestamptz(6)
   last_credit_warning_sent_at DateTime?                  @db.Timestamptz(6)
   location_name               String?
+  gg_check_jobs               gg_check_jobs[]
   gg_checks                   gg_checks[]
   accounts                    accounts                   @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   google_business_locations   google_business_locations? @relation(fields: [google_business_location_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
@@ -4604,6 +4625,111 @@ model wm_time_entries {
 
   @@index([account_id], map: "idx_wm_time_entries_account_id")
   @@index([task_id], map: "idx_wm_time_entries_task_id")
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model gg_check_jobs {
+  id                      String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  account_id              String     @db.Uuid
+  config_id               String     @db.Uuid
+  keyword_ids             Json       @default("[]")
+  status                  String     @default("pending")
+  checks_performed        Int        @default(0)
+  total_checks            Int        @default(0)
+  total_cost              Decimal    @default(0) @db.Decimal(10, 4)
+  credits_used            Int        @default(0)
+  credits_idempotency_key String?
+  error                   String?
+  created_at              DateTime   @default(now()) @db.Timestamptz(6)
+  started_at              DateTime?  @db.Timestamptz(6)
+  completed_at            DateTime?  @db.Timestamptz(6)
+  accounts                accounts   @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  gg_configs              gg_configs @relation(fields: [config_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([account_id], map: "idx_gg_check_jobs_account_id")
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model proposal_section_templates {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  account_id String   @db.Uuid
+  name       String
+  title      String
+  body       String   @default("")
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @default(now()) @db.Timestamptz(6)
+  accounts   accounts @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([account_id, name], map: "idx_proposal_section_templates_account_name")
+  @@index([account_id], map: "idx_proposal_section_templates_account_id")
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model proposal_signatures {
+  id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  proposal_id         String    @db.Uuid
+  account_id          String    @db.Uuid
+  signer_name         String
+  signer_email        String
+  signature_image_url String
+  ip_address          String?
+  user_agent          String?
+  document_hash       String
+  accepted_terms      Boolean?  @default(true)
+  signed_at           DateTime  @default(now()) @db.Timestamptz(6)
+  accounts            accounts  @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  proposals           proposals @relation(fields: [proposal_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([account_id], map: "idx_proposal_signatures_account_id")
+  @@index([proposal_id], map: "idx_proposal_signatures_proposal_id")
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model proposals {
+  id                  String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  account_id          String                @db.Uuid
+  token               String                @unique
+  title               String
+  proposal_date       DateTime              @default(dbgenerated("CURRENT_DATE")) @db.Date
+  expiration_date     DateTime?             @db.Date
+  client_name         String?
+  client_email        String?
+  client_company      String?
+  contact_id          String?               @db.Uuid
+  business_name       String?
+  business_email      String?
+  business_phone      String?
+  business_address    String?
+  business_logo_url   String?
+  business_website    String?
+  show_pricing        Boolean?              @default(true)
+  show_terms          Boolean?              @default(false)
+  terms_content       String?
+  custom_sections     Json?                 @default("[]")
+  line_items          Json?                 @default("[]")
+  status              String                @default("draft")
+  is_template         Boolean?              @default(false)
+  template_name       String?
+  sent_at             DateTime?             @db.Timestamptz(6)
+  viewed_at           DateTime?             @db.Timestamptz(6)
+  accepted_at         DateTime?             @db.Timestamptz(6)
+  declined_at         DateTime?             @db.Timestamptz(6)
+  created_at          DateTime              @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime              @default(now()) @db.Timestamptz(6)
+  proposal_signatures proposal_signatures[]
+  accounts            accounts              @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  contacts            contacts?             @relation(fields: [contact_id], references: [id], onUpdate: NoAction)
+
+  @@index([account_id], map: "idx_proposals_account_id")
+  @@index([account_id, status], map: "idx_proposals_account_status")
+  @@index([contact_id], map: "idx_proposals_contact_id")
+  @@index([token], map: "idx_proposals_token")
   @@schema("public")
 }
 
