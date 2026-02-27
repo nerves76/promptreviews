@@ -127,6 +127,29 @@ export function ProposalEditor({ proposal, mode, basePath }: ProposalEditorProps
 
   const isReadOnly = proposal && !['draft', 'sent'].includes(proposal.status);
 
+  const actionButtons = !isReadOnly ? (
+    <div className="flex items-center justify-end gap-3">
+      <Button variant="secondary" onClick={() => router.push(basePath)} className="whitespace-nowrap">
+        Cancel
+      </Button>
+      {mode === 'edit' && proposal && (
+        <Button variant="secondary" onClick={handleSaveAsTemplate} className="whitespace-nowrap">
+          Save as template
+        </Button>
+      )}
+      <Button onClick={handleSave} disabled={saving} className="whitespace-nowrap">
+        {saving ? (
+          <>
+            <Icon name="FaSpinner" size={14} className="animate-spin mr-2" />
+            Saving...
+          </>
+        ) : (
+          'Save'
+        )}
+      </Button>
+    </div>
+  ) : null;
+
   return (
     <div className="space-y-6">
       {error && (
@@ -140,6 +163,9 @@ export function ProposalEditor({ proposal, mode, basePath }: ProposalEditorProps
           This contract cannot be edited because it has been {proposal?.status}.
         </div>
       )}
+
+      {/* Top actions */}
+      {actionButtons}
 
       {/* Title */}
       <div>
@@ -348,30 +374,10 @@ export function ProposalEditor({ proposal, mode, basePath }: ProposalEditorProps
         </div>
       )}
 
-      {/* Actions */}
-      {!isReadOnly && (
-        <div className="flex items-center gap-3 pt-4 border-t border-gray-200">
-          <Button onClick={handleSave} disabled={saving} className="whitespace-nowrap">
-            {saving ? (
-              <>
-                <Icon name="FaSpinner" size={14} className="animate-spin mr-2" />
-                Saving...
-              </>
-            ) : (
-              <>
-                <Icon name="FaSave" size={14} className="mr-2" />
-                {mode === 'create' ? 'Create contract' : 'Save changes'}
-              </>
-            )}
-          </Button>
-          {mode === 'edit' && proposal && (
-            <Button variant="secondary" onClick={handleSaveAsTemplate} className="whitespace-nowrap">
-              Save as template
-            </Button>
-          )}
-          <Button variant="secondary" onClick={() => router.push(basePath)} className="whitespace-nowrap">
-            Cancel
-          </Button>
+      {/* Bottom actions */}
+      {actionButtons && (
+        <div className="pt-4 border-t border-gray-200">
+          {actionButtons}
         </div>
       )}
 
