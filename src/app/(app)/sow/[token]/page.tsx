@@ -11,6 +11,7 @@ import { createServiceRoleClient } from '@/auth/providers/supabase';
 import { Metadata } from 'next';
 import { GLASSY_DEFAULTS } from '@/app/(app)/config/styleDefaults';
 import ProposalPageClient from './page-client';
+import { sendNotificationToAccount } from '@/utils/notifications';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -74,6 +75,16 @@ async function getProposalData(token: string) {
         })
         .eq('id', proposal.id);
       proposal.status = 'viewed';
+
+      // Notify account users that the contract was viewed (fire and forget)
+      if (proposal.account_id) {
+        const clientName = [proposal.client_first_name, proposal.client_last_name].filter(Boolean).join(' ') || 'Your client';
+        sendNotificationToAccount(proposal.account_id, 'proposal_viewed', {
+          clientName,
+          proposalTitle: proposal.title,
+          proposalId: proposal.id,
+        }).catch((err) => console.error('[PROPOSALS] Viewed notification error:', err));
+      }
     }
 
     // Fetch signature if exists

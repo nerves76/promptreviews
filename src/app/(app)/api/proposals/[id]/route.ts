@@ -82,12 +82,16 @@ export async function PUT(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: 'Contract not found' }, { status: 404 });
     }
 
-    // Only allow updates when draft or sent
-    if (!['draft', 'sent'].includes(existing.status)) {
-      return NextResponse.json({ error: 'Cannot edit a contract that has been accepted or declined' }, { status: 400 });
+    const body = await request.json();
+
+    // Allow status changes on any contract, but restrict content edits
+    const isStatusOnlyUpdate = Object.keys(body).length === 1 && body.status !== undefined;
+    const contentEditable = ['draft', 'sent', 'viewed', 'on_hold'].includes(existing.status);
+
+    if (!isStatusOnlyUpdate && !contentEditable) {
+      return NextResponse.json({ error: 'Cannot edit a contract that has been won, lost, or expired. You can still change the status.' }, { status: 400 });
     }
 
-    const body = await request.json();
     const updateData: Record<string, any> = { updated_at: new Date().toISOString() };
 
     const allowedFields = [

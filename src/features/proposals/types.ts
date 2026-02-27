@@ -4,15 +4,16 @@
 
 // --- Proposal Status ---
 
-export type ProposalStatus = 'draft' | 'sent' | 'viewed' | 'accepted' | 'declined' | 'expired';
+export type ProposalStatus = 'draft' | 'sent' | 'viewed' | 'accepted' | 'declined' | 'expired' | 'on_hold';
 
 export const PROPOSAL_STATUS_LABELS: Record<ProposalStatus, string> = {
   draft: 'Draft',
   sent: 'Sent',
   viewed: 'Viewed',
-  accepted: 'Accepted',
-  declined: 'Declined',
+  accepted: 'Won',
+  declined: 'Lost',
   expired: 'Expired',
+  on_hold: 'On hold',
 };
 
 export const PROPOSAL_STATUS_COLORS: Record<ProposalStatus, string> = {
@@ -22,7 +23,17 @@ export const PROPOSAL_STATUS_COLORS: Record<ProposalStatus, string> = {
   accepted: 'bg-green-100 text-green-700',
   declined: 'bg-red-100 text-red-700',
   expired: 'bg-amber-100 text-amber-700',
+  on_hold: 'bg-orange-100 text-orange-700',
 };
+
+/** Statuses that the user can manually set from the editor */
+export const USER_SETTABLE_STATUSES: { value: ProposalStatus; label: string }[] = [
+  { value: 'draft', label: 'Draft' },
+  { value: 'sent', label: 'Sent' },
+  { value: 'on_hold', label: 'On hold' },
+  { value: 'accepted', label: 'Won' },
+  { value: 'declined', label: 'Lost' },
+];
 
 // --- Line Items ---
 

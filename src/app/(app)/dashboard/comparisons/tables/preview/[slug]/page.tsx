@@ -236,11 +236,7 @@ export default function PreviewTablePage({ params }: { params: Promise<{ slug: s
       <div className="p-4 md:p-8 lg:p-12">
         <div className="max-w-6xl mx-auto">
           {/* Glass card container */}
-          <div className="relative overflow-hidden rounded-3xl border border-white/30 bg-white/10 shadow-[0_25px_60px_rgba(15,23,42,0.35)] backdrop-blur-2xl">
-            {/* Decorative gradient overlay */}
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/20 via-white/5 to-transparent" />
-            <div className="pointer-events-none absolute -top-32 -right-32 h-64 w-64 rounded-full bg-indigo-300/20 blur-3xl" />
-            <div className="pointer-events-none absolute -bottom-32 -left-32 h-64 w-64 rounded-full bg-pink-300/20 blur-3xl" />
+          <div className="relative overflow-hidden rounded-3xl border border-white/30 shadow-[0_25px_60px_rgba(15,23,42,0.35)]">
 
             {/* Table content */}
             <div className="relative z-10 overflow-x-auto">

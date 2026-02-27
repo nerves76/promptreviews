@@ -31,7 +31,9 @@ export type NotificationType =
   | 'service_error'
   | 'batch_run_completed'
   | 'review_import_completed'
-  | 'survey_response_submitted';
+  | 'survey_response_submitted'
+  | 'proposal_viewed'
+  | 'proposal_signed';
 
 export interface NotificationData {
   [key: string]: any;
@@ -426,6 +428,42 @@ export const NOTIFICATION_REGISTRY: Record<NotificationType, NotificationConfig>
       respondentLabel: data.respondentName || data.respondentEmail || 'Anonymous',
       responseCount: data.responseCount ?? '—',
       responsesUrl: `${baseUrl}/dashboard/surveys/${data.surveyId}/responses`,
+      accountUrl: `${baseUrl}/dashboard/account`,
+      year: new Date().getFullYear(),
+    }),
+  },
+
+  'proposal_viewed': {
+    inAppPrefField: 'in_app_proposal_activity',
+    emailPrefField: 'email_proposal_activity',
+    emailTemplate: 'proposal_viewed',
+    getTitle: () => 'Contract viewed',
+    getMessage: (data) => `${data.clientName || 'Your client'} viewed your contract: ${data.proposalTitle || 'Untitled'}`,
+    actionLabel: 'View contract',
+    getEmailVariables: (data, baseUrl) => ({
+      firstName: data.firstName || 'there',
+      clientName: data.clientName || 'Your client',
+      proposalTitle: data.proposalTitle || 'Untitled',
+      contractUrl: `${baseUrl}/agency/contracts/${data.proposalId}/preview`,
+      accountUrl: `${baseUrl}/dashboard/account`,
+      year: new Date().getFullYear(),
+    }),
+  },
+
+  'proposal_signed': {
+    inAppPrefField: 'in_app_proposal_activity',
+    emailPrefField: 'email_proposal_activity',
+    emailTemplate: 'proposal_signed',
+    getTitle: () => 'Contract signed!',
+    getMessage: (data) => `${data.signerName || 'Your client'} signed your contract: ${data.proposalTitle || 'Untitled'}`,
+    actionLabel: 'View contract',
+    getEmailVariables: (data, baseUrl) => ({
+      firstName: data.firstName || 'there',
+      signerName: data.signerName || 'Your client',
+      signerEmail: data.signerEmail || '',
+      proposalTitle: data.proposalTitle || 'Untitled',
+      signedAt: data.signedAt || new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+      contractUrl: `${baseUrl}/agency/contracts/${data.proposalId}/preview`,
       accountUrl: `${baseUrl}/dashboard/account`,
       year: new Date().getFullYear(),
     }),

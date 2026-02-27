@@ -7,6 +7,7 @@ import { Button } from '@/app/(app)/components/ui/button';
 import Icon from '@/components/Icon';
 import { useProposal } from '@/features/proposals/hooks/useProposal';
 import { ProposalPreview } from '@/features/proposals/components/ProposalPreview';
+import { PROPOSAL_STATUS_LABELS } from '@/features/proposals/types';
 import { exportProposalToPdf } from '@/features/proposals/utils/pdfExport';
 import { apiClient } from '@/utils/apiClient';
 
@@ -80,7 +81,7 @@ export default function PreviewContractPage({ params }: { params: Promise<{ id: 
     <PageCard icon={<Icon name="FaBriefcase" size={24} className="text-slate-blue" />}>
       <PageCardHeader
         title="Contract preview"
-        description={`Status: ${proposal.status}${(proposal.client_first_name || proposal.client_last_name) ? ` — for ${[proposal.client_first_name, proposal.client_last_name].filter(Boolean).join(' ')}` : ''}`}
+        description={`Status: ${PROPOSAL_STATUS_LABELS[proposal.status] || proposal.status}${(proposal.client_first_name || proposal.client_last_name) ? ` — for ${[proposal.client_first_name, proposal.client_last_name].filter(Boolean).join(' ')}` : ''}`}
         actions={
           <div className="flex gap-2">
             <Button variant="secondary" onClick={() => router.push(`/agency/contracts/${proposal.id}`)} className="whitespace-nowrap">
@@ -91,7 +92,7 @@ export default function PreviewContractPage({ params }: { params: Promise<{ id: 
               <Icon name="FaFileAlt" size={14} className="mr-2" />
               Download PDF
             </Button>
-            {['draft', 'sent'].includes(proposal.status) && (
+            {['draft', 'sent', 'viewed', 'on_hold'].includes(proposal.status) && (
               <Button onClick={handleSend} disabled={sending} className="whitespace-nowrap">
                 {sending ? (
                   <>

@@ -5,7 +5,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createHash } from 'crypto';
 import { createServiceRoleClient } from '@/auth/providers/supabase';
-import { sendResendEmail } from '@/utils/resend';
+import { sendNotificationToAccount } from '@/utils/notifications';
 import { validateRequiredString, STRING_LIMITS } from '@/app/(app)/api/utils/validation';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -127,28 +127,15 @@ export async function POST(request: NextRequest) {
       })
       .eq('id', proposal.id);
 
-    // Send acceptance notification to business (fire and forget)
-    if (proposal.business_email) {
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.promptreviews.app';
-      sendResendEmail({
-        to: proposal.business_email,
-        subject: `${signer_name.trim()} accepted your proposal: ${proposal.title}`,
-        html: `
-          <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #16a34a; margin-bottom: 8px;">Proposal accepted!</h2>
-            <p style="color: #4b5563; font-size: 16px;"><strong>${signer_name.trim()}</strong> (${signer_email.trim()}) has signed your proposal: <strong>${proposal.title}</strong></p>
-            <p style="color: #6b7280; font-size: 14px;">Signed on ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
-            <div style="margin: 24px 0;">
-              <a href="${appUrl}/agency/contracts/${proposal.id}" style="display: inline-block; background-color: #2E4A7D; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">
-                View in dashboard
-              </a>
-            </div>
-            <p style="color: #9ca3af; font-size: 12px;">
-              Sent via <a href="https://promptreviews.app" style="color: #2E4A7D;">Prompt Reviews</a>
-            </p>
-          </div>
-        `,
-      }).catch((err) => console.error('[PROPOSALS] Acceptance email error:', err));
+    // Send signed notification via notification system (in-app + templated email)
+    if (proposal.account_id) {
+      sendNotificationToAccount(proposal.account_id, 'proposal_signed', {
+        signerName: signer_name.trim(),
+        signerEmail: signer_email.trim(),
+        proposalTitle: proposal.title,
+        proposalId: proposal.id,
+        signedAt: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+      }).catch((err) => console.error('[PROPOSALS] Signed notification error:', err));
     }
 
     return NextResponse.json({ success: true });

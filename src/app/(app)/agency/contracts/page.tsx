@@ -26,8 +26,9 @@ const STATUS_OPTIONS: { value: ProposalStatus | 'all'; label: string }[] = [
   { value: 'draft', label: 'Draft' },
   { value: 'sent', label: 'Sent' },
   { value: 'viewed', label: 'Viewed' },
-  { value: 'accepted', label: 'Accepted' },
-  { value: 'declined', label: 'Declined' },
+  { value: 'on_hold', label: 'On hold' },
+  { value: 'accepted', label: 'Won' },
+  { value: 'declined', label: 'Lost' },
 ];
 
 export default function ContractsPage() {

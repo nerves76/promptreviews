@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { apiClient } from '@/utils/apiClient';
 import { Button } from '@/app/(app)/components/ui/button';
 import Icon from '@/components/Icon';
-import { Proposal, ProposalLineItem, ProposalCustomSection } from '../types';
+import { Proposal, ProposalLineItem, ProposalCustomSection, ProposalStatus, USER_SETTABLE_STATUSES, PROPOSAL_STATUS_LABELS } from '../types';
 import { formatSowNumber } from '../sowHelpers';
 import { ProposalLineItemsEditor } from './ProposalLineItemsEditor';
 import { ProposalCustomSectionsEditor } from './ProposalCustomSectionsEditor';
@@ -60,6 +60,7 @@ export function ProposalEditor({ proposal, mode, basePath }: ProposalEditorProps
   const [lineItems, setLineItems] = useState<ProposalLineItem[]>(
     Array.isArray(proposal?.line_items) ? proposal.line_items : []
   );
+  const [status, setStatus] = useState<ProposalStatus>(proposal?.status || 'draft');
 
   // Fetch SOW prefix on mount
   useEffect(() => {
@@ -94,6 +95,7 @@ export function ProposalEditor({ proposal, mode, basePath }: ProposalEditorProps
       setTermsContent(proposal.terms_content || '');
       setCustomSections(Array.isArray(proposal.custom_sections) ? proposal.custom_sections : []);
       setLineItems(Array.isArray(proposal.line_items) ? proposal.line_items : []);
+      setStatus(proposal.status || 'draft');
     }
   }, [proposal, mode]);
 
@@ -233,12 +235,24 @@ export function ProposalEditor({ proposal, mode, basePath }: ProposalEditorProps
     }
   };
 
+  const handleStatusChange = async (newStatus: ProposalStatus) => {
+    setStatus(newStatus);
+    if (mode === 'edit' && proposal) {
+      try {
+        await apiClient.put(`/proposals/${proposal.id}`, { status: newStatus });
+      } catch (err: any) {
+        setError(err.message || 'Failed to update status');
+        setStatus(proposal.status); // revert
+      }
+    }
+  };
+
   const handleClearContact = () => {
     setContactId(null);
     // Don't clear the name fields — user may want to keep them
   };
 
-  const isReadOnly = proposal && !['draft', 'sent'].includes(proposal.status);
+  const isReadOnly = proposal && !['draft', 'sent', 'viewed', 'on_hold'].includes(status);
 
   const actionButtons = !isReadOnly ? (
     <div className="flex items-center justify-end gap-3">
@@ -273,12 +287,35 @@ export function ProposalEditor({ proposal, mode, basePath }: ProposalEditorProps
 
       {isReadOnly && (
         <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-700">
-          This contract cannot be edited because it has been {proposal?.status}.
+          This contract cannot be edited because its status is {PROPOSAL_STATUS_LABELS[status]}. Change status to edit.
         </div>
       )}
 
       {/* Top actions */}
       {actionButtons}
+
+      {/* Status selector (edit mode only) */}
+      {mode === 'edit' && proposal && (
+        <div>
+          <label htmlFor="proposal-status" className="block text-sm font-medium text-gray-700 mb-1">
+            Status
+          </label>
+          <select
+            id="proposal-status"
+            value={status}
+            onChange={(e) => handleStatusChange(e.target.value as ProposalStatus)}
+            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-1 w-40"
+          >
+            {USER_SETTABLE_STATUSES.map((opt) => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+            {/* Show current status if it's not in the user-settable list (e.g. viewed, expired) */}
+            {!USER_SETTABLE_STATUSES.some((s) => s.value === status) && (
+              <option value={status}>{PROPOSAL_STATUS_LABELS[status]}</option>
+            )}
+          </select>
+        </div>
+      )}
 
       {/* Title */}
       <div>
