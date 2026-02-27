@@ -107,12 +107,20 @@ export default function BrowseFeedModal({
 
   const insufficientCredits = creditBalance !== null && selectedGuids.size > creditBalance;
 
+  // Get selected items in chronological order (oldest first) so earliest
+  // schedule dates are assigned to the oldest content
+  const selectedItemsChronological = useMemo(() => {
+    return items
+      .filter((item) => selectedGuids.has(item.guid))
+      .slice()
+      .reverse();
+  }, [items, selectedGuids]);
+
   // Calculate scheduled dates for preview
   const scheduledDates = useMemo(() => {
     const dates: string[] = [];
-    const selectedItems = items.filter((item) => selectedGuids.has(item.guid));
 
-    for (let i = 0; i < selectedItems.length; i++) {
+    for (let i = 0; i < selectedItemsChronological.length; i++) {
       const date = new Date(startDate);
       date.setDate(date.getDate() + intervalDays * i);
       dates.push(
@@ -123,7 +131,7 @@ export default function BrowseFeedModal({
       );
     }
     return dates;
-  }, [selectedGuids, startDate, intervalDays, items]);
+  }, [selectedItemsChronological, startDate, intervalDays]);
 
   // Toggle item selection
   const toggleItem = (guid: string) => {
@@ -153,14 +161,10 @@ export default function BrowseFeedModal({
     setScheduleError(null);
 
     try {
-      const selectedItems = items.filter((item) =>
-        selectedGuids.has(item.guid)
-      );
-
       const response = await apiClient.post<ScheduleResponse>(
         `/rss-feeds/${feedId}/schedule-items`,
         {
-          items: selectedItems.map((item) => ({
+          items: selectedItemsChronological.map((item) => ({
             guid: item.guid,
             title: item.title,
             description: item.description,
