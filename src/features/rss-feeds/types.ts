@@ -42,6 +42,8 @@ export interface RssFeedItem {
   publishedAt: string | null;
   status: RssFeedItemStatus;
   scheduledPostId: string | null;
+  scheduledDate: string | null;
+  postStatus: string | null;
   skipReason: string | null;
   errorMessage: string | null;
   discoveredAt: string;

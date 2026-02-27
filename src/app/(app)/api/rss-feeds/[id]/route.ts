@@ -51,30 +51,35 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Feed not found' }, { status: 404 });
     }
 
-    // Fetch all items for this feed (up to 200)
+    // Fetch all items for this feed (up to 200), join scheduled_date from linked post
     const { data: items } = await supabase
       .from('rss_feed_items')
-      .select('*')
+      .select('*, google_business_scheduled_posts(scheduled_date, status)')
       .eq('feed_source_id', id)
       .order('published_at', { ascending: false })
       .limit(200);
 
-    const recentItems: RssFeedItem[] = (items || []).map((item) => ({
-      id: item.id,
-      feedSourceId: item.feed_source_id,
-      itemGuid: item.item_guid,
-      itemUrl: item.item_url,
-      title: item.title,
-      description: item.description,
-      imageUrl: item.image_url,
-      publishedAt: item.published_at,
-      status: item.status,
-      scheduledPostId: item.scheduled_post_id,
-      skipReason: item.skip_reason,
-      errorMessage: item.error_message,
-      discoveredAt: item.discovered_at,
-      processedAt: item.processed_at,
-    }));
+    const recentItems: RssFeedItem[] = (items || []).map((item) => {
+      const linkedPost = item.google_business_scheduled_posts as { scheduled_date: string | null; status: string } | null;
+      return {
+        id: item.id,
+        feedSourceId: item.feed_source_id,
+        itemGuid: item.item_guid,
+        itemUrl: item.item_url,
+        title: item.title,
+        description: item.description,
+        imageUrl: item.image_url,
+        publishedAt: item.published_at,
+        status: item.status,
+        scheduledPostId: item.scheduled_post_id,
+        scheduledDate: linkedPost?.scheduled_date ?? null,
+        postStatus: linkedPost?.status ?? null,
+        skipReason: item.skip_reason,
+        errorMessage: item.error_message,
+        discoveredAt: item.discovered_at,
+        processedAt: item.processed_at,
+      };
+    });
 
     return NextResponse.json({
       success: true,

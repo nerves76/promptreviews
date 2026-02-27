@@ -7,7 +7,7 @@ import { LoadingSpinner } from "@/app/(app)/components/ui/loading-spinner";
 import { apiClient } from "@/utils/apiClient";
 import { RssFeedItem, FeedDetailResponse } from "@/features/rss-feeds/types";
 
-type SortField = "title" | "publishedAt" | "status";
+type SortField = "title" | "publishedAt" | "scheduledDate" | "status";
 type SortDirection = "asc" | "desc";
 
 interface FeedItemsListProps {
@@ -69,6 +69,9 @@ export default function FeedItemsList({ feedId }: FeedItemsListProps) {
           break;
         case "publishedAt":
           cmp = new Date(a.publishedAt || 0).getTime() - new Date(b.publishedAt || 0).getTime();
+          break;
+        case "scheduledDate":
+          cmp = new Date(a.scheduledDate || 0).getTime() - new Date(b.scheduledDate || 0).getTime();
           break;
         case "status":
           cmp = (a.status || "").localeCompare(b.status || "");
@@ -216,6 +219,17 @@ export default function FeedItemsList({ feedId }: FeedItemsListProps) {
     });
   };
 
+  const formatScheduledDate = (date: string | null) => {
+    if (!date) return "—";
+    // scheduled_date is YYYY-MM-DD, parse as local date to avoid timezone shift
+    const [year, month, day] = date.split("-").map(Number);
+    return new Date(year, month - 1, day).toLocaleDateString(undefined, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center py-8">
@@ -334,6 +348,7 @@ export default function FeedItemsList({ feedId }: FeedItemsListProps) {
               <th className="pb-2 font-medium w-8"></th>
               <SortableHeader field="title" label="Title" sortField={sortField} sortDirection={sortDirection} onSort={handleSort} />
               <SortableHeader field="publishedAt" label="Published" sortField={sortField} sortDirection={sortDirection} onSort={handleSort} />
+              <SortableHeader field="scheduledDate" label="Scheduled for" sortField={sortField} sortDirection={sortDirection} onSort={handleSort} />
               <SortableHeader field="status" label="Status" sortField={sortField} sortDirection={sortDirection} onSort={handleSort} />
               <th className="pb-2 font-medium w-24"></th>
             </tr>
@@ -374,6 +389,9 @@ export default function FeedItemsList({ feedId }: FeedItemsListProps) {
                   </div>
                 </td>
                 <td className="py-3 pr-4 text-gray-600">{formatDate(item.publishedAt)}</td>
+                <td className="py-3 pr-4 text-gray-600">
+                  {item.scheduledDate ? formatScheduledDate(item.scheduledDate) : "—"}
+                </td>
                 <td className="py-3 pr-4">
                   <div className="flex flex-col gap-1">
                     {getStatusBadge(item.status)}
