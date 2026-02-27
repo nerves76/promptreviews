@@ -146,14 +146,9 @@ const routeContextMap: Record<string, RouteContext> = {
     helpTopics: ['sentiment-analysis', 'review-trends', 'insights']
   },
   '/dashboard/social-posting': {
-    keywords: ['social', 'posting', 'google', 'posts', 'schedule', 'publish'],
+    keywords: ['social', 'posting', 'google', 'posts', 'schedule', 'publish', 'rss', 'feeds', 'syndication', 'content', 'automation'],
     pageName: 'Post Scheduling',
-    helpTopics: ['social-posts', 'scheduling', 'google-posts']
-  },
-  '/dashboard/rss-feeds': {
-    keywords: ['rss', 'feeds', 'syndication', 'content', 'automation'],
-    pageName: 'RSS Feeds',
-    helpTopics: ['rss-setup', 'content-syndication', 'automation']
+    helpTopics: ['social-posts', 'scheduling', 'google-posts', 'rss-setup', 'content-syndication', 'automation']
   },
   '/dashboard/backlinks': {
     keywords: ['backlinks', 'seo', 'domains', 'link-building', 'authority'],

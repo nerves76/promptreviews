@@ -134,7 +134,7 @@ export default function ContentQueue({
           scheduling.
         </p>
         <a
-          href="/dashboard/rss-feeds"
+          href="/dashboard/social-posting?view=rss"
           className="px-4 py-2 text-sm font-medium text-white bg-slate-blue rounded-lg hover:bg-slate-blue/90 inline-flex items-center"
         >
           <Icon name="FaLink" size={14} className="mr-2" />

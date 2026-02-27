@@ -129,13 +129,6 @@ export const GOOGLE_BUSINESS_SECTION: NavSection = {
       description: "Queue and schedule posts",
       requiresBusiness: true,
     },
-    {
-      path: "/dashboard/rss-feeds",
-      label: "RSS Feeds",
-      icon: "FaRss",
-      description: "Auto post from RSS to GBP, LinkedIn, and Blue Sky.",
-      requiresBusiness: true,
-    },
   ],
 };
 

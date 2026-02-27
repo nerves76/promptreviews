@@ -818,9 +818,6 @@ const Header = React.memo(function Header() {
                         <Link href={hasBusiness ? "/dashboard/social-posting" : "#"} onClick={(e) => { if (!hasBusiness) { e.preventDefault(); router.push("/dashboard/create-business"); } setMenuOpen(false); }} className={`${isActive("/dashboard/social-posting") ? "bg-white/20 text-white" : hasBusiness ? "text-white hover:bg-white/10" : "text-gray-500 cursor-not-allowed"} block px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200`}>
                           Post Scheduling
                         </Link>
-                        <Link href={hasBusiness ? "/dashboard/rss-feeds" : "#"} onClick={(e) => { if (!hasBusiness) { e.preventDefault(); router.push("/dashboard/create-business"); } setMenuOpen(false); }} className={`${isActive("/dashboard/rss-feeds") ? "bg-white/20 text-white" : hasBusiness ? "text-white hover:bg-white/10" : "text-gray-500 cursor-not-allowed"} block px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200`}>
-                          RSS Feeds
-                        </Link>
                       </div>
                       )}
                     </div>

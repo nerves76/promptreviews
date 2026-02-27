@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, lazy, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import PageCard, { PageCardHeader } from "@/app/(app)/components/PageCard";
 import Icon from "@/components/Icon";
@@ -14,8 +14,12 @@ import ScheduledList from "./components/ScheduledList";
 import HistoryList from "./components/HistoryList";
 import CreatePostModal, { type PlatformData } from "./components/CreatePostModal";
 
+const RssFeedsContent = lazy(() => import("@/app/(app)/dashboard/rss-feeds/components/RssFeedsContent"));
+
+type ViewType = "posts" | "rss";
 type TabType = "scheduled" | "drafts" | "history";
 
+const VALID_VIEWS: ViewType[] = ["posts", "rss"];
 const VALID_TABS: TabType[] = ["scheduled", "drafts", "history"];
 
 interface ScheduledDataResponse {
@@ -33,9 +37,14 @@ export default function SocialPostingPage() {
   const { selectedAccountId } = useAccountData();
   const searchParams = useSearchParams();
 
+  const viewParam = searchParams.get("view") as ViewType | null;
   const tabParam = searchParams.get("tab") as TabType | null;
+
+  // If view=rss, show RSS. If tab param present without view, show posts. Default: posts.
+  const initialView = viewParam && VALID_VIEWS.includes(viewParam) ? viewParam : "posts";
   const initialTab = tabParam && VALID_TABS.includes(tabParam) ? tabParam : "scheduled";
 
+  const [activeView, setActiveView] = useState<ViewType>(initialView);
   const [activeTab, setActiveTab] = useState<TabType>(initialTab);
   const [drafts, setDrafts] = useState<GoogleBusinessScheduledPost[]>([]);
   const [upcoming, setUpcoming] = useState<GoogleBusinessScheduledPost[]>([]);
@@ -47,6 +56,33 @@ export default function SocialPostingPage() {
   const [loadingPlatforms, setLoadingPlatforms] = useState(false);
   const [platformData, setPlatformData] = useState<PlatformData | null>(null);
   const [editingPost, setEditingPost] = useState<GoogleBusinessScheduledPost | null>(null);
+
+  // Sync view/tab to URL
+  const updateUrl = useCallback((view: ViewType, tab?: TabType) => {
+    const params = new URLSearchParams();
+    if (view === "rss") {
+      params.set("view", "rss");
+    } else if (tab && tab !== "scheduled") {
+      params.set("tab", tab);
+    }
+    const qs = params.toString();
+    const url = `/dashboard/social-posting${qs ? `?${qs}` : ""}`;
+    window.history.replaceState(null, "", url);
+  }, []);
+
+  const handleViewChange = (view: ViewType) => {
+    setActiveView(view);
+    if (view === "rss") {
+      updateUrl("rss");
+    } else {
+      updateUrl("posts", activeTab);
+    }
+  };
+
+  const handleTabChange = (tab: TabType) => {
+    setActiveTab(tab);
+    updateUrl("posts", tab);
+  };
 
   // Fetch all scheduled data
   const fetchData = useCallback(async () => {
@@ -73,8 +109,10 @@ export default function SocialPostingPage() {
   }, [selectedAccountId]);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    if (activeView === "posts") {
+      fetchData();
+    }
+  }, [fetchData, activeView]);
 
   // Clear messages after 5 seconds
   useEffect(() => {
@@ -298,129 +336,191 @@ export default function SocialPostingPage() {
       >
         <PageCardHeader
           title="Post scheduling"
-          description="Manage scheduled posts for Google Business Profile, Bluesky, and LinkedIn."
+          description={
+            activeView === "rss"
+              ? "Automatically post content from your blog, podcasts, Reddit, YouTube and more."
+              : "Manage scheduled posts for Google Business Profile, Bluesky, and LinkedIn."
+          }
           iconClearance={false}
           actions={
-            <button
-              onClick={handleCreatePost}
-              disabled={loadingPlatforms}
-              className="flex items-center gap-2 px-4 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-blue/90 transition-colors whitespace-nowrap disabled:opacity-50"
-            >
-              <Icon name="FaPlus" size={14} />
-              Create post
-            </button>
+            activeView === "posts" ? (
+              <button
+                onClick={handleCreatePost}
+                disabled={loadingPlatforms}
+                className="flex items-center gap-2 px-4 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-blue/90 transition-colors whitespace-nowrap disabled:opacity-50"
+              >
+                <Icon name="FaPlus" size={14} />
+                Create post
+              </button>
+            ) : undefined
           }
         />
 
-        {/* Messages */}
-        {error && (
-          <div className="mb-6 p-4 bg-red-50 text-red-700 rounded-md text-base font-medium border border-red-200">
-            {error}
-          </div>
-        )}
-        {success && (
-          <div className="mb-6 p-4 bg-green-50 text-green-700 rounded-md text-base font-medium border border-green-200">
-            {success}
-          </div>
-        )}
-
-        {/* Tabs */}
-        <div className="border-b border-gray-200 mb-6">
-          <nav className="-mb-px flex space-x-8">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`
-                  py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap
-                  ${
-                    activeTab === tab.id
-                      ? "border-slate-blue text-slate-blue"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  }
-                `}
-              >
-                {tab.label}
-                {tab.count > 0 && (
-                  <span
-                    className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
-                      activeTab === tab.id
-                        ? "bg-slate-blue/10 text-slate-blue"
-                        : "bg-gray-100 text-gray-600"
-                    }`}
-                  >
-                    {tab.count}
-                  </span>
-                )}
-              </button>
-            ))}
+        {/* View switcher */}
+        <div className="border-b border-gray-200 mb-4">
+          <nav className="-mb-px flex space-x-6">
+            <button
+              onClick={() => handleViewChange("posts")}
+              className={`
+                py-3 px-1 border-b-2 font-medium text-sm whitespace-nowrap flex items-center gap-2
+                ${
+                  activeView === "posts"
+                    ? "border-slate-blue text-slate-blue"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }
+              `}
+            >
+              <Icon name="FaCalendarAlt" size={14} />
+              Posts
+            </button>
+            <button
+              onClick={() => handleViewChange("rss")}
+              className={`
+                py-3 px-1 border-b-2 font-medium text-sm whitespace-nowrap flex items-center gap-2
+                ${
+                  activeView === "rss"
+                    ? "border-slate-blue text-slate-blue"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }
+              `}
+            >
+              <Icon name="FaRss" size={14} />
+              RSS feeds
+            </button>
           </nav>
         </div>
 
-        {/* Loading state */}
-        {loading && (
-          <div className="flex justify-center py-12">
-            <Icon
-              name="FaSpinner"
-              className="w-8 h-8 text-slate-blue animate-spin"
-              size={32}
-            />
-          </div>
+        {/* Posts view */}
+        {activeView === "posts" && (
+          <>
+            {/* Messages */}
+            {error && (
+              <div className="mb-6 p-4 bg-red-50 text-red-700 rounded-md text-base font-medium border border-red-200">
+                {error}
+              </div>
+            )}
+            {success && (
+              <div className="mb-6 p-4 bg-green-50 text-green-700 rounded-md text-base font-medium border border-green-200">
+                {success}
+              </div>
+            )}
+
+            {/* Sub-tabs */}
+            <div className="border-b border-gray-200 mb-6">
+              <nav className="-mb-px flex space-x-8">
+                {tabs.map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => handleTabChange(tab.id)}
+                    className={`
+                      py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap
+                      ${
+                        activeTab === tab.id
+                          ? "border-slate-blue text-slate-blue"
+                          : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                      }
+                    `}
+                  >
+                    {tab.label}
+                    {tab.count > 0 && (
+                      <span
+                        className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
+                          activeTab === tab.id
+                            ? "bg-slate-blue/10 text-slate-blue"
+                            : "bg-gray-100 text-gray-600"
+                        }`}
+                      >
+                        {tab.count}
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </nav>
+            </div>
+
+            {/* Loading state */}
+            {loading && (
+              <div className="flex justify-center py-12">
+                <Icon
+                  name="FaSpinner"
+                  className="w-8 h-8 text-slate-blue animate-spin"
+                  size={32}
+                />
+              </div>
+            )}
+
+            {/* Tab content */}
+            {!loading && activeTab === "scheduled" && (
+              <ScheduledList
+                posts={upcoming}
+                onCancelComplete={() => {
+                  setSuccess("Post cancelled");
+                  fetchData();
+                }}
+                onError={handleError}
+                onEditPost={handleEditPost}
+              />
+            )}
+
+            {!loading && activeTab === "drafts" && (
+              <ContentQueue
+                drafts={drafts}
+                onScheduleComplete={handleScheduleComplete}
+                onReorderComplete={handleReorderComplete}
+                onError={handleError}
+                onEditDraft={handleEditPost}
+              />
+            )}
+
+            {!loading && activeTab === "history" && (
+              <HistoryList posts={past} />
+            )}
+
+            {/* Help info */}
+            <div className="mt-8 p-4 bg-blue-50 rounded-lg">
+              <h4 className="font-medium text-blue-900 mb-2">How it works</h4>
+              <ul className="text-sm text-blue-800 space-y-1">
+                <li>
+                  <Icon name="FaCheck" size={12} className="inline mr-2" />
+                  <a href="/dashboard/integrations" className="underline hover:text-blue-900">Connect your accounts</a> to enable posting
+                </li>
+                <li>
+                  <Icon name="FaCheck" size={12} className="inline mr-2" />
+                  RSS feeds automatically schedule posts based on your settings
+                </li>
+                <li>
+                  <Icon name="FaCheck" size={12} className="inline mr-2" />
+                  Create posts manually or save as drafts for later
+                </li>
+                <li>
+                  <Icon name="FaCheck" size={12} className="inline mr-2" />
+                  Posts are published daily at 1 PM UTC
+                </li>
+                <li>
+                  <Icon name="FaCheck" size={12} className="inline mr-2" />
+                  Each post uses 1 credit when scheduled
+                </li>
+              </ul>
+            </div>
+          </>
         )}
 
-        {/* Tab content */}
-        {!loading && activeTab === "scheduled" && (
-          <ScheduledList
-            posts={upcoming}
-            onCancelComplete={() => {
-              setSuccess("Post cancelled");
-              fetchData();
-            }}
-            onError={handleError}
-            onEditPost={handleEditPost}
-          />
+        {/* RSS feeds view */}
+        {activeView === "rss" && selectedAccountId && (
+          <Suspense
+            fallback={
+              <div className="flex justify-center py-12">
+                <Icon
+                  name="FaSpinner"
+                  className="w-8 h-8 text-slate-blue animate-spin"
+                  size={32}
+                />
+              </div>
+            }
+          >
+            <RssFeedsContent selectedAccountId={selectedAccountId} />
+          </Suspense>
         )}
-
-        {!loading && activeTab === "drafts" && (
-          <ContentQueue
-            drafts={drafts}
-            onScheduleComplete={handleScheduleComplete}
-            onReorderComplete={handleReorderComplete}
-            onError={handleError}
-            onEditDraft={handleEditPost}
-          />
-        )}
-
-        {!loading && activeTab === "history" && (
-          <HistoryList posts={past} />
-        )}
-
-        {/* Help info */}
-        <div className="mt-8 p-4 bg-blue-50 rounded-lg">
-          <h4 className="font-medium text-blue-900 mb-2">How it works</h4>
-          <ul className="text-sm text-blue-800 space-y-1">
-            <li>
-              <Icon name="FaCheck" size={12} className="inline mr-2" />
-              <a href="/dashboard/integrations" className="underline hover:text-blue-900">Connect your accounts</a> to enable posting
-            </li>
-            <li>
-              <Icon name="FaCheck" size={12} className="inline mr-2" />
-              RSS feeds automatically schedule posts based on your settings
-            </li>
-            <li>
-              <Icon name="FaCheck" size={12} className="inline mr-2" />
-              Create posts manually or save as drafts for later
-            </li>
-            <li>
-              <Icon name="FaCheck" size={12} className="inline mr-2" />
-              Posts are published daily at 1 PM UTC
-            </li>
-            <li>
-              <Icon name="FaCheck" size={12} className="inline mr-2" />
-              Each post uses 1 credit when scheduled
-            </li>
-          </ul>
-        </div>
       </PageCard>
 
       {/* Full-page loading overlay */}

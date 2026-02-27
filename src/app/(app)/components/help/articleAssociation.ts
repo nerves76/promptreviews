@@ -135,17 +135,10 @@ const articleAssociations: ArticleAssociation[] = [
   },
   {
     appPage: '/dashboard/social-posting',
-    articles: ['google-business/scheduling', 'google-biz-optimizer/optimization/posts'],
-    keywords: ['social', 'posting', 'schedule', 'publish'],
+    articles: ['google-business/scheduling', 'google-biz-optimizer/optimization/posts', 'rss-feeds/finding-feed-urls'],
+    keywords: ['social', 'posting', 'schedule', 'publish', 'rss', 'feeds', 'syndication'],
     priority: 'high',
-    userActions: ['create_post', 'schedule_post', 'page_view']
-  },
-  {
-    appPage: '/dashboard/rss-feeds',
-    articles: ['rss-feeds/finding-feed-urls', 'google-business/scheduling'],
-    keywords: ['rss', 'feeds', 'syndication'],
-    priority: 'low',
-    userActions: ['view_rss', 'page_view']
+    userActions: ['create_post', 'schedule_post', 'view_rss', 'page_view']
   },
   {
     appPage: '/dashboard/backlinks',
