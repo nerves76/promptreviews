@@ -22,6 +22,11 @@ export default function FeedItemsList({ feedId }: FeedItemsListProps) {
   const [clearMessage, setClearMessage] = useState<string | null>(null);
   const [unschedulingId, setUnschedulingId] = useState<string | null>(null);
 
+  // Inline scheduling state
+  const [schedulingItemId, setSchedulingItemId] = useState<string | null>(null);
+  const [scheduleDate, setScheduleDate] = useState("");
+  const [schedulingInProgress, setSchedulingInProgress] = useState(false);
+
   // Selection state
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
@@ -130,6 +135,45 @@ export default function FeedItemsList({ feedId }: FeedItemsListProps) {
     } finally {
       setUnschedulingId(null);
     }
+  };
+
+  const handleScheduleSingle = async (itemId: string) => {
+    if (!scheduleDate) return;
+
+    setSchedulingInProgress(true);
+    try {
+      const result = await apiClient.post<{ success: boolean; error?: string }>(
+        `/rss-feeds/${feedId}/schedule-single-item`,
+        {
+          itemId,
+          scheduledDate: scheduleDate,
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        }
+      );
+
+      if (result.success) {
+        setSchedulingItemId(null);
+        setScheduleDate("");
+        setClearMessage("Post scheduled");
+        setTimeout(() => setClearMessage(null), 3000);
+        await fetchItems();
+      } else {
+        alert(result.error || "Failed to schedule post");
+      }
+    } catch (err: any) {
+      console.error("Failed to schedule item:", err);
+      alert(err.message || "Failed to schedule post");
+    } finally {
+      setSchedulingInProgress(false);
+    }
+  };
+
+  const openSchedulePicker = (itemId: string) => {
+    // Default to tomorrow
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    setScheduleDate(tomorrow.toISOString().split("T")[0]);
+    setSchedulingItemId(itemId);
   };
 
   const toggleSelect = (id: string) => {
@@ -404,7 +448,47 @@ export default function FeedItemsList({ feedId }: FeedItemsListProps) {
                   </div>
                 </td>
                 <td className="py-3">
-                  {(item.status === "scheduled" || item.status === "queued") && (
+                  {/* Schedule button for available/queued items */}
+                  {(item.status === "initial_sync" || item.status === "queued") && schedulingItemId !== item.id && (
+                    <button
+                      onClick={() => openSchedulePicker(item.id)}
+                      className="px-2 py-1 text-xs font-medium text-slate-blue hover:bg-slate-blue/10 rounded transition-colors whitespace-nowrap"
+                    >
+                      <Icon name="FaCalendarAlt" size={10} className="inline mr-1" />
+                      Schedule
+                    </button>
+                  )}
+                  {/* Inline date picker */}
+                  {schedulingItemId === item.id && (
+                    <div className="flex items-center gap-1">
+                      <input
+                        type="date"
+                        value={scheduleDate}
+                        onChange={(e) => setScheduleDate(e.target.value)}
+                        min={new Date().toISOString().split("T")[0]}
+                        className="px-1.5 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-slate-blue focus:border-slate-blue"
+                      />
+                      <button
+                        onClick={() => handleScheduleSingle(item.id)}
+                        disabled={schedulingInProgress || !scheduleDate}
+                        className="px-2 py-1 text-xs font-medium text-white bg-slate-blue rounded hover:bg-slate-blue/90 transition-colors disabled:opacity-50 whitespace-nowrap"
+                      >
+                        {schedulingInProgress ? (
+                          <Icon name="FaSpinner" size={10} className="animate-spin" />
+                        ) : (
+                          <Icon name="FaCheck" size={10} />
+                        )}
+                      </button>
+                      <button
+                        onClick={() => { setSchedulingItemId(null); setScheduleDate(""); }}
+                        className="px-1 py-1 text-xs text-gray-500 hover:text-gray-700"
+                      >
+                        <Icon name="FaTimes" size={10} />
+                      </button>
+                    </div>
+                  )}
+                  {/* Unschedule/remove for scheduled/queued items */}
+                  {(item.status === "scheduled" || item.status === "queued") && schedulingItemId !== item.id && (
                     <button
                       onClick={() => handleUnschedule(item.id)}
                       disabled={unschedulingId === item.id}
@@ -420,12 +504,12 @@ export default function FeedItemsList({ feedId }: FeedItemsListProps) {
                       )}
                     </button>
                   )}
-                  {item.scheduledPostId && (
+                  {item.scheduledPostId && item.status === "scheduled" && (
                     <a
-                      href={`/dashboard/social-posting${item.status === "queued" ? "?tab=drafts" : ""}`}
+                      href="/dashboard/social-posting"
                       className="block text-xs text-slate-blue hover:underline"
                     >
-                      {item.status === "queued" ? "View in drafts" : "View in queue"}
+                      View in queue
                     </a>
                   )}
                 </td>
