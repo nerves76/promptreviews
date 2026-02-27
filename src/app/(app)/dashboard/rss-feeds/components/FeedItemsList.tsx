@@ -307,22 +307,14 @@ export default function FeedItemsList({ feedId }: FeedItemsListProps) {
 
   const formatDate = (date: string | null) => {
     if (!date) return "—";
-    return new Date(date).toLocaleDateString(undefined, {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
+    const d = new Date(date);
+    return `${String(d.getMonth() + 1).padStart(2, "0")}/${String(d.getDate()).padStart(2, "0")}/${String(d.getFullYear()).slice(-2)}`;
   };
 
   const formatScheduledDate = (date: string | null) => {
     if (!date) return "—";
-    // scheduled_date is YYYY-MM-DD, parse as local date to avoid timezone shift
     const [year, month, day] = date.split("-").map(Number);
-    return new Date(year, month - 1, day).toLocaleDateString(undefined, {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
+    return `${String(month).padStart(2, "0")}/${String(day).padStart(2, "0")}/${String(year).slice(-2)}`;
   };
 
   if (loading) {
