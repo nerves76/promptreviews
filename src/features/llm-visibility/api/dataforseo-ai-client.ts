@@ -6,6 +6,7 @@
  *
  * API Documentation:
  * - ChatGPT Scraper: https://docs.dataforseo.com/v3/ai_optimization-chat_gpt-llm_scraper-live-advanced/
+ * - Gemini Scraper: https://docs.dataforseo.com/v3/ai_optimization/gemini/llm_scraper/live/advanced/
  * - LLM Responses: https://docs.dataforseo.com/v3/ai_optimization/llm_responses/live/
  * - SERP (AI Overview): https://docs.dataforseo.com/v3/serp/google/organic/live/advanced/
  */
@@ -27,27 +28,25 @@ const DATAFORSEO_API_BASE = 'https://api.dataforseo.com/v3';
 // ChatGPT Scraper - scrapes actual ChatGPT search results
 const CHATGPT_SCRAPER_ENDPOINT = '/ai_optimization/chat_gpt/llm_scraper/live/advanced';
 
+// Gemini Scraper - scrapes actual Gemini search results
+const GEMINI_SCRAPER_ENDPOINT = '/ai_optimization/gemini/llm_scraper/live/advanced';
+
 // Google SERP - for AI Overview extraction
 const SERP_ENDPOINT = '/serp/google/organic/live/advanced';
 
 // LLM Responses - queries LLMs directly via DataForSEO
-const LLM_RESPONSES_ENDPOINTS: Record<Exclude<LLMProvider, 'chatgpt' | 'ai_overview'>, string> = {
+const LLM_RESPONSES_ENDPOINTS: Record<Exclude<LLMProvider, 'chatgpt' | 'gemini' | 'ai_overview'>, string> = {
   claude: '/ai_optimization/claude/llm_responses/live',
-  gemini: '/ai_optimization/gemini/llm_responses/live',
   perplexity: '/ai_optimization/perplexity/llm_responses/live',
 };
 
 // Provider-specific request configurations
 // model_name is REQUIRED for all LLM Response APIs
-// web_search MUST be true for Claude/Gemini to return citations
+// web_search MUST be true for Claude to return citations
 // See: https://docs.dataforseo.com/v3/ai_optimization/
-const PROVIDER_CONFIGS: Record<Exclude<LLMProvider, 'chatgpt' | 'ai_overview'>, Record<string, any>> = {
+const PROVIDER_CONFIGS: Record<Exclude<LLMProvider, 'chatgpt' | 'gemini' | 'ai_overview'>, Record<string, any>> = {
   claude: {
     model_name: 'claude-sonnet-4-0', // Latest Claude Sonnet model
-    web_search: true, // Required to get citations
-  },
-  gemini: {
-    model_name: 'gemini-2.0-flash', // Latest Gemini Flash model
     web_search: true, // Required to get citations
   },
   perplexity: {
@@ -184,6 +183,32 @@ interface ChatGPTScraperResult {
   brand_entities?: any[];
   items?: any[];
   fan_out_queries?: string[];
+}
+
+// Gemini Scraper specific response
+interface GeminiScraperResult {
+  keyword: string;
+  location_code: number;
+  language_code: string;
+  check_url: string;
+  datetime: string;
+  markdown?: string;
+  sources?: Array<{
+    domain: string;
+    url?: string;
+    title?: string;
+    snippet?: string;
+  }>;
+  items?: Array<{
+    type: string; // gemini_text, gemini_table, gemini_images
+    original_text?: string;
+    sources?: Array<{
+      domain: string;
+      url?: string;
+      title?: string;
+      snippet?: string;
+    }>;
+  }>;
 }
 
 // LLM Responses specific result
@@ -546,14 +571,191 @@ export async function checkChatGPTVisibility(params: {
 }
 
 // ============================================
-// LLM Responses API (Claude, Gemini, Perplexity)
+// Gemini Visibility Check (via Scraper API)
+// ============================================
+
+/**
+ * Check visibility in Gemini search results using the Scraper API.
+ *
+ * This scrapes Gemini's web UI and returns structured data about
+ * which sources are cited in the response. Supports location and language targeting.
+ *
+ * Cost: ~$0.004 per query
+ */
+export async function checkGeminiScraperVisibility(params: {
+  question: string;
+  targetDomain: string;
+  businessName?: string | null;
+  locationCode?: number;
+  languageCode?: string;
+}): Promise<LLMCheckResult> {
+  const {
+    question,
+    targetDomain,
+    businessName = null,
+    locationCode = 2840, // US
+    languageCode = 'en',
+  } = params;
+
+  const requestBody = [
+    {
+      keyword: question,
+      location_code: locationCode,
+      language_code: languageCode,
+    },
+  ];
+
+  try {
+    const data = await makeDataForSEORequest(
+      GEMINI_SCRAPER_ENDPOINT,
+      requestBody,
+      `Gemini check: "${question.substring(0, 50)}..."`
+    );
+
+    const task = data.tasks?.[0];
+    if (!task) {
+      return createErrorResult('gemini', question, 'No task returned from API');
+    }
+
+    if (task.status_code !== 20000) {
+      const friendlyError = getDataForSEOErrorMessage(task.status_code, task.status_message, 'gemini');
+      return createErrorResult('gemini', question, friendlyError, task.cost);
+    }
+
+    const result = task.result?.[0] as GeminiScraperResult | undefined;
+    if (!result) {
+      return createErrorResult('gemini', question, 'No result in task', task.cost);
+    }
+
+    // Debug: Log available fields in the result
+    console.log(`🔍 [DataForSEO AI] Gemini result fields: ${Object.keys(result).join(', ')}`);
+    console.log(`🔍 [DataForSEO AI] sources: ${result.sources?.length ?? 'undefined'}, items: ${result.items?.length ?? 'undefined'}, markdown: ${result.markdown ? 'yes' : 'no'}`);
+    if (result.items && Array.isArray(result.items)) {
+      const itemTypes = result.items.map((item) => `${item.type || 'unknown'}(sources:${item.sources?.length ?? 0})`);
+      console.log(`🔍 [DataForSEO AI] items detail: ${itemTypes.join(', ')}`);
+    }
+
+    // Extract citations from sources array
+    // Sources can appear at top-level result.sources AND/OR inside items[].sources
+    const citations: LLMCitation[] = [];
+    let domainCited = false;
+    let citationPosition: number | null = null;
+    let citationUrl: string | null = null;
+
+    // Collect all sources: top-level first, then from items as fallback
+    const allSources: Array<{ domain: string; url?: string; title?: string; snippet?: string }> = [];
+
+    if (result.sources && Array.isArray(result.sources) && result.sources.length > 0) {
+      allSources.push(...result.sources);
+    }
+
+    // Also extract sources from items (gemini_text, gemini_table, gemini_images)
+    if (allSources.length === 0 && result.items && Array.isArray(result.items)) {
+      const seenUrls = new Set<string>();
+      for (const item of result.items) {
+        if (item.sources && Array.isArray(item.sources)) {
+          for (const source of item.sources) {
+            const key = source.url || source.domain || '';
+            if (key && !seenUrls.has(key)) {
+              seenUrls.add(key);
+              allSources.push(source);
+            }
+          }
+        }
+      }
+      if (allSources.length > 0) {
+        console.log(`🔍 [DataForSEO AI] Extracted ${allSources.length} sources from items[] (top-level was empty)`);
+      }
+    }
+
+    for (let i = 0; i < allSources.length; i++) {
+      const source = allSources[i];
+      const domain = source.domain || extractDomain(source.url || '');
+      const isOurs = isDomainMatch(domain, targetDomain);
+
+      citations.push({
+        domain,
+        url: source.url || null,
+        title: source.title || null,
+        position: i + 1,
+        isOurs,
+      });
+
+      if (isOurs && !domainCited) {
+        domainCited = true;
+        citationPosition = i + 1;
+        citationUrl = source.url || null;
+      }
+    }
+
+    // Extract full response text for brand checking
+    let fullResponseText: string | null = null;
+    if (result.markdown) {
+      fullResponseText = result.markdown;
+    } else if (result.items && result.items.length > 0) {
+      const textParts: string[] = [];
+      for (const item of result.items) {
+        if (item.original_text) {
+          textParts.push(item.original_text);
+        }
+      }
+      if (textParts.length > 0) {
+        fullResponseText = textParts.join('\n\n');
+      }
+    }
+
+    // Check for brand mention in FULL response text
+    const brandMentioned = checkBrandMentioned(fullResponseText, businessName);
+
+    // Extract snippet - centered around brand mention if found
+    const responseSnippet = extractSnippet(fullResponseText, businessName);
+
+    // Clean and store full response (with fluff removed)
+    const fullResponse = cleanLLMResponse(fullResponseText);
+
+    console.log(
+      `🤖 [DataForSEO AI] Gemini: ${citations.length} citations, ` +
+      `domain cited: ${domainCited}${citationPosition ? ` (position ${citationPosition})` : ''}, ` +
+      `brand mentioned: ${brandMentioned}, ` +
+      `cost: $${task.cost}`
+    );
+
+    return {
+      success: true,
+      provider: 'gemini',
+      question,
+      domainCited,
+      brandMentioned,
+      citationPosition,
+      citationUrl,
+      totalCitations: citations.length,
+      citations,
+      mentionedBrands: [], // Gemini Scraper doesn't provide brand_entities
+      responseSnippet,
+      fullResponse,
+      searchResults: [], // Gemini Scraper doesn't provide search_results
+      fanOutQueries: [], // Gemini Scraper doesn't provide fan_out_queries
+      cost: task.cost || 0,
+    };
+  } catch (error) {
+    console.error('❌ [DataForSEO AI] checkGeminiScraperVisibility failed:', error);
+    return createErrorResult(
+      'gemini',
+      question,
+      error instanceof Error ? error.message : 'Unknown error'
+    );
+  }
+}
+
+// ============================================
+// LLM Responses API (Claude, Perplexity)
 // ============================================
 
 /**
  * Check visibility using the LLM Responses API.
  *
  * This queries the LLM directly with web search enabled to get citations.
- * Works for Claude, Gemini, and Perplexity.
+ * Works for Claude and Perplexity.
  *
  * Cost: ~$0.0006 base + provider token costs (~$0.002-0.003 total)
  */
@@ -561,7 +763,7 @@ export async function checkLLMResponseVisibility(params: {
   question: string;
   targetDomain: string;
   businessName?: string | null;
-  provider: Exclude<LLMProvider, 'chatgpt' | 'ai_overview'>;
+  provider: Exclude<LLMProvider, 'chatgpt' | 'gemini' | 'ai_overview'>;
 }): Promise<LLMCheckResult> {
   const { question, targetDomain, businessName = null, provider } = params;
 
@@ -922,13 +1124,17 @@ export async function checkLLMVisibility(params: {
     return checkChatGPTVisibility(params);
   }
 
+  if (provider === 'gemini') {
+    return checkGeminiScraperVisibility(params);
+  }
+
   if (provider === 'ai_overview') {
     return checkAIOverviewVisibility(params);
   }
 
   return checkLLMResponseVisibility({
     ...params,
-    provider: provider as Exclude<LLMProvider, 'chatgpt' | 'ai_overview'>,
+    provider: provider as Exclude<LLMProvider, 'chatgpt' | 'gemini' | 'ai_overview'>,
   });
 }
 
@@ -1226,12 +1432,13 @@ function cleanLLMResponse(
  *
  * These are approximate costs based on DataForSEO pricing:
  * - ChatGPT Scraper: ~$0.004 per query
- * - LLM Responses (Claude/Gemini/Perplexity): ~$0.0006 + token costs (~$0.002-0.003)
+ * - Gemini Scraper: ~$0.004 per query
+ * - LLM Responses (Claude/Perplexity): ~$0.0006 + token costs (~$0.002-0.003)
  */
 export const ESTIMATED_COSTS: Record<LLMProvider, number> = {
   chatgpt: 0.004,
   claude: 0.003,
-  gemini: 0.002,
+  gemini: 0.004,
   perplexity: 0.003,
   ai_overview: 0.0012,
 };

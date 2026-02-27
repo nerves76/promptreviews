@@ -36,12 +36,12 @@ export const LLM_PROVIDER_SHORT_LABELS: Record<LLMProvider, string> = {
 };
 
 // Model names used by DataForSEO API
-// ChatGPT uses scraper (web UI), others use specific model versions
+// ChatGPT and Gemini use scrapers (web UI), others use specific model versions
 // AI Overviews uses Google SERP API
 export const LLM_PROVIDER_MODELS: Record<LLMProvider, string> = {
   chatgpt: 'Web UI', // Uses ChatGPT web interface scraper
   claude: 'Sonnet 4', // claude-sonnet-4-0
-  gemini: 'Flash 2.0', // gemini-2.0-flash
+  gemini: 'Web UI', // Uses Gemini web interface scraper
   perplexity: 'Sonar', // sonar model
   ai_overview: 'Google SERP', // Google SERP API with AI Overview
 };
@@ -88,7 +88,7 @@ export const LLM_PROVIDER_COLORS: Record<
 export const LLM_CREDIT_COSTS: Record<LLMProvider, number> = {
   chatgpt: 3, // DataForSEO: ~$0.004, Revenue: $0.006
   claude: 3, // DataForSEO: ~$0.003, Revenue: $0.006
-  gemini: 2, // DataForSEO: ~$0.002, Revenue: $0.004
+  gemini: 2, // DataForSEO: ~$0.004, Revenue: $0.004
   perplexity: 3, // DataForSEO: ~$0.003, Revenue: $0.006
   ai_overview: 2, // DataForSEO: ~$0.0012, Revenue: $0.004
 };
