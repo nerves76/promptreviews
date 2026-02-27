@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiClient } from '@/utils/apiClient';
 import { Button } from '@/app/(app)/components/ui/button';
@@ -9,7 +9,13 @@ import { Proposal, ProposalLineItem, ProposalCustomSection } from '../types';
 import { formatSowNumber } from '../sowHelpers';
 import { ProposalLineItemsEditor } from './ProposalLineItemsEditor';
 import { ProposalCustomSectionsEditor } from './ProposalCustomSectionsEditor';
-import { ContactSearchModal } from './ContactSearchModal';
+
+interface ContactSuggestion {
+  id: string;
+  name: string;
+  email: string;
+  company?: string | null;
+}
 
 interface ProposalEditorProps {
   proposal?: Proposal | null;
@@ -21,7 +27,11 @@ export function ProposalEditor({ proposal, mode, basePath }: ProposalEditorProps
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showContactSearch, setShowContactSearch] = useState(false);
+
+  // Contact autocomplete state
+  const [contactSuggestions, setContactSuggestions] = useState<ContactSuggestion[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const suggestionsRef = useRef<HTMLDivElement>(null);
 
   // SOW prefix state
   const [sowPrefix, setSowPrefix] = useState('');
@@ -86,6 +96,54 @@ export function ProposalEditor({ proposal, mode, basePath }: ProposalEditorProps
       setLineItems(Array.isArray(proposal.line_items) ? proposal.line_items : []);
     }
   }, [proposal, mode]);
+
+  // Debounced contact search when typing name fields
+  useEffect(() => {
+    const query = `${clientFirstName} ${clientLastName}`.trim();
+    if (query.length < 2 || contactId) {
+      setContactSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      try {
+        const data = await apiClient.get<{ contacts: ContactSuggestion[] }>(
+          `/contacts/search?q=${encodeURIComponent(query)}`
+        );
+        const results = data.contacts || [];
+        setContactSuggestions(results);
+        setShowSuggestions(results.length > 0);
+      } catch {
+        setContactSuggestions([]);
+        setShowSuggestions(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [clientFirstName, clientLastName, contactId]);
+
+  // Close suggestions on click outside
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (suggestionsRef.current && !suggestionsRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleSelectSuggestion = (contact: ContactSuggestion) => {
+    setContactId(contact.id);
+    const parts = (contact.name || '').split(' ');
+    setClientFirstName(parts[0] || '');
+    setClientLastName(parts.slice(1).join(' ') || '');
+    setClientEmail(contact.email || '');
+    setClientCompany(contact.company || '');
+    setShowSuggestions(false);
+    setContactSuggestions([]);
+  };
 
   const handleSaveSowPrefix = async () => {
     if (!sowPrefix.trim() || !/^\d{1,10}$/.test(sowPrefix.trim())) {
@@ -175,13 +233,9 @@ export function ProposalEditor({ proposal, mode, basePath }: ProposalEditorProps
     }
   };
 
-  const handleContactSelect = (contact: { id: string; name: string; email: string; company?: string | null }) => {
-    setContactId(contact.id);
-    const contactParts = (contact.name || '').split(' ');
-    setClientFirstName(contactParts[0] || '');
-    setClientLastName(contactParts.slice(1).join(' ') || '');
-    setClientEmail(contact.email);
-    setClientCompany(contact.company || '');
+  const handleClearContact = () => {
+    setContactId(null);
+    // Don't clear the name fields — user may want to keep them
   };
 
   const isReadOnly = proposal && !['draft', 'sent'].includes(proposal.status);
@@ -343,18 +397,23 @@ export function ProposalEditor({ proposal, mode, basePath }: ProposalEditorProps
       </div>
 
       {/* Client info */}
-      <div>
+      <div className="relative" ref={suggestionsRef}>
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-sm font-medium text-gray-700">Client information</h3>
-          {!isReadOnly && (
-            <button
-              type="button"
-              onClick={() => setShowContactSearch(true)}
-              className="text-xs text-slate-blue hover:text-slate-blue/80 font-medium flex items-center gap-1"
-            >
-              <Icon name="FaSearch" size={10} />
-              Link to contact
-            </button>
+          {contactId && (
+            <span className="text-xs text-gray-500 flex items-center gap-1">
+              <Icon name="FaLink" size={10} className="text-green-500" />
+              Linked to contact
+              {!isReadOnly && (
+                <button
+                  type="button"
+                  onClick={handleClearContact}
+                  className="ml-1 text-red-500 hover:text-red-600 underline"
+                >
+                  Unlink
+                </button>
+              )}
+            </span>
           )}
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
@@ -364,9 +423,11 @@ export function ProposalEditor({ proposal, mode, basePath }: ProposalEditorProps
               id="client-first-name"
               type="text"
               value={clientFirstName}
-              onChange={(e) => setClientFirstName(e.target.value)}
+              onChange={(e) => { setClientFirstName(e.target.value); if (contactId) setContactId(null); }}
+              onFocus={() => { if (contactSuggestions.length > 0) setShowSuggestions(true); }}
               placeholder="First"
               disabled={!!isReadOnly}
+              autoComplete="off"
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-1 disabled:bg-gray-100"
             />
           </div>
@@ -376,9 +437,11 @@ export function ProposalEditor({ proposal, mode, basePath }: ProposalEditorProps
               id="client-last-name"
               type="text"
               value={clientLastName}
-              onChange={(e) => setClientLastName(e.target.value)}
+              onChange={(e) => { setClientLastName(e.target.value); if (contactId) setContactId(null); }}
+              onFocus={() => { if (contactSuggestions.length > 0) setShowSuggestions(true); }}
               placeholder="Last"
               disabled={!!isReadOnly}
+              autoComplete="off"
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-1 disabled:bg-gray-100"
             />
           </div>
@@ -407,17 +470,26 @@ export function ProposalEditor({ proposal, mode, basePath }: ProposalEditorProps
             />
           </div>
         </div>
-        {contactId && (
-          <p className="mt-1 text-xs text-gray-500">
-            Linked to contact
-            <button
-              type="button"
-              onClick={() => { setContactId(null); }}
-              className="ml-2 text-red-500 hover:text-red-600 underline"
-            >
-              Unlink
-            </button>
-          </p>
+
+        {/* Contact suggestions dropdown */}
+        {showSuggestions && contactSuggestions.length > 0 && (
+          <div className="absolute z-20 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+            <div className="px-3 py-1.5 text-xs text-gray-500 border-b border-gray-100">
+              Matching contacts
+            </div>
+            {contactSuggestions.map((contact) => (
+              <button
+                key={contact.id}
+                type="button"
+                onClick={() => handleSelectSuggestion(contact)}
+                className="w-full text-left px-3 py-2 hover:bg-gray-50 transition-colors text-sm"
+              >
+                <span className="font-medium text-gray-900">{contact.name}</span>
+                {contact.email && <span className="text-gray-500 ml-2">{contact.email}</span>}
+                {contact.company && <span className="text-gray-500 ml-2">· {contact.company}</span>}
+              </button>
+            ))}
+          </div>
         )}
       </div>
 
@@ -510,12 +582,6 @@ export function ProposalEditor({ proposal, mode, basePath }: ProposalEditorProps
         </div>
       )}
 
-      {/* Contact search modal */}
-      <ContactSearchModal
-        isOpen={showContactSearch}
-        onClose={() => setShowContactSearch(false)}
-        onSelect={handleContactSelect}
-      />
     </div>
   );
 }
