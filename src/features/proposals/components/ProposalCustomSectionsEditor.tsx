@@ -23,6 +23,16 @@ export function ProposalCustomSectionsEditor({ sections, onChange }: ProposalCus
   const [saveTarget, setSaveTarget] = useState<ProposalCustomSection | null>(null);
   const [enhanceTarget, setEnhanceTarget] = useState<ProposalCustomSection | null>(null);
   const [reviewPickerTarget, setReviewPickerTarget] = useState<string | null>(null);
+  const [collapsedIds, setCollapsedIds] = useState<Set<string>>(new Set());
+
+  const toggleCollapsed = (id: string) => {
+    setCollapsedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   const addSection = () => {
     const newSection: ProposalCustomSection = {
@@ -107,7 +117,18 @@ export function ProposalCustomSectionsEditor({ sections, onChange }: ProposalCus
       {sections.map((section, index) => (
         <div key={section.id} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
           {/* Header row — shared between text and reviews sections */}
-          <div className="flex items-center gap-2 mb-3">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => toggleCollapsed(section.id)}
+              className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+              aria-label={collapsedIds.has(section.id) ? 'Expand section' : 'Collapse section'}
+            >
+              <Icon
+                name={collapsedIds.has(section.id) ? 'FaChevronRight' : 'FaChevronDown'}
+                size={12}
+              />
+            </button>
             <div className="flex flex-col gap-0.5">
               <button
                 type="button"
@@ -128,20 +149,30 @@ export function ProposalCustomSectionsEditor({ sections, onChange }: ProposalCus
                 <Icon name="FaChevronDown" size={10} />
               </button>
             </div>
-            <input
-              type="text"
-              value={section.title}
-              onChange={(e) => updateSection(section.id, 'title', e.target.value)}
-              placeholder={isReviewsSection(section) ? 'Reviews section title' : 'Section title'}
-              className="flex-1 border border-gray-300 rounded px-3 py-1.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-1"
-              aria-label="Section title"
-            />
+            {collapsedIds.has(section.id) ? (
+              <button
+                type="button"
+                onClick={() => toggleCollapsed(section.id)}
+                className="flex-1 text-left text-sm font-medium text-gray-900 truncate py-1.5 hover:text-slate-blue transition-colors cursor-pointer"
+              >
+                {section.title || (isReviewsSection(section) ? 'Reviews section' : 'Untitled section')}
+              </button>
+            ) : (
+              <input
+                type="text"
+                value={section.title}
+                onChange={(e) => updateSection(section.id, 'title', e.target.value)}
+                placeholder={isReviewsSection(section) ? 'Reviews section title' : 'Section title'}
+                className="flex-1 border border-gray-300 rounded px-3 py-1.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-1"
+                aria-label="Section title"
+              />
+            )}
             {isReviewsSection(section) && (section.reviews?.length ?? 0) > 0 && (
               <span className="text-xs text-gray-500 bg-gray-200 px-2 py-0.5 rounded-full whitespace-nowrap">
                 {section.reviews!.length} review{section.reviews!.length === 1 ? '' : 's'}
               </span>
             )}
-            {isReviewsSection(section) && (
+            {!collapsedIds.has(section.id) && isReviewsSection(section) && (
               <div className="flex items-center rounded-md border border-gray-200 overflow-hidden" role="group" aria-label="Review display style">
                 <button
                   type="button"
@@ -163,7 +194,7 @@ export function ProposalCustomSectionsEditor({ sections, onChange }: ProposalCus
                 </button>
               </div>
             )}
-            {!isReviewsSection(section) && (
+            {!collapsedIds.has(section.id) && !isReviewsSection(section) && (
               <button
                 type="button"
                 onClick={() => setSaveTarget(section)}
@@ -185,77 +216,82 @@ export function ProposalCustomSectionsEditor({ sections, onChange }: ProposalCus
             </button>
           </div>
 
-          {/* Reviews section body */}
-          {isReviewsSection(section) ? (
-            <div className="space-y-2">
-              {(section.reviews || []).map((review) => (
-                <div
-                  key={review.id}
-                  className="flex items-start gap-3 p-3 bg-white rounded-lg border border-gray-200"
-                >
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <StarRating rating={review.star_rating} size={13} />
-                      <span className="text-sm font-medium text-gray-900">{review.reviewer_name}</span>
-                      {review.platform && (
-                        <span className="text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded whitespace-nowrap">
-                          {review.platform}
-                        </span>
-                      )}
+          {/* Section body — hidden when collapsed */}
+          {!collapsedIds.has(section.id) && (
+            <div className="mt-3">
+              {/* Reviews section body */}
+              {isReviewsSection(section) ? (
+                <div className="space-y-2">
+                  {(section.reviews || []).map((review) => (
+                    <div
+                      key={review.id}
+                      className="flex items-start gap-3 p-3 bg-white rounded-lg border border-gray-200"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <StarRating rating={review.star_rating} size={13} />
+                          <span className="text-sm font-medium text-gray-900">{review.reviewer_name}</span>
+                          {review.platform && (
+                            <span className="text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded whitespace-nowrap">
+                              {review.platform}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-600 line-clamp-2">{review.review_content}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removeReview(section.id, review.id)}
+                        className="p-1 text-gray-400 hover:text-red-500 transition-colors flex-shrink-0"
+                        aria-label={`Remove review from ${review.reviewer_name}`}
+                      >
+                        <Icon name="FaTimes" size={12} />
+                      </button>
                     </div>
-                    <p className="text-sm text-gray-600 line-clamp-2">{review.review_content}</p>
-                  </div>
+                  ))}
                   <button
                     type="button"
-                    onClick={() => removeReview(section.id, review.id)}
-                    className="p-1 text-gray-400 hover:text-red-500 transition-colors flex-shrink-0"
-                    aria-label={`Remove review from ${review.reviewer_name}`}
+                    onClick={() => setReviewPickerTarget(section.id)}
+                    className="flex items-center gap-1.5 text-sm text-slate-blue hover:text-slate-blue/80 font-medium transition-colors mt-2"
                   >
-                    <Icon name="FaTimes" size={12} />
+                    <Icon name="FaPlus" size={12} />
+                    Add reviews
                   </button>
                 </div>
-              ))}
-              <button
-                type="button"
-                onClick={() => setReviewPickerTarget(section.id)}
-                className="flex items-center gap-1.5 text-sm text-slate-blue hover:text-slate-blue/80 font-medium transition-colors mt-2"
-              >
-                <Icon name="FaPlus" size={12} />
-                Add reviews
-              </button>
+              ) : (
+                /* Text section body */
+                <>
+                  <input
+                    type="text"
+                    value={section.subtitle || ''}
+                    onChange={(e) => updateSection(section.id, 'subtitle', e.target.value)}
+                    placeholder="Subtitle (optional)"
+                    className="w-full border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-1 mb-2"
+                    aria-label="Section subtitle"
+                  />
+                  <div className="flex justify-end mb-1">
+                    <button
+                      type="button"
+                      onClick={() => setEnhanceTarget(section)}
+                      disabled={section.body.trim().length < 10}
+                      className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-slate-blue hover:bg-slate-blue/10 rounded-md transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                      aria-label="Enhance section with AI"
+                    >
+                      <Icon name="prompty" size={16} className="text-slate-blue" />
+                      Enhance with AI
+                    </button>
+                  </div>
+                  <textarea
+                    value={section.body}
+                    onChange={(e) => updateSection(section.id, 'body', e.target.value)}
+                    placeholder="Section content..."
+                    rows={4}
+                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-1 resize-y"
+                    aria-label="Section content"
+                  />
+                </>
+              )}
             </div>
-          ) : (
-            /* Text section body */
-            <>
-              <input
-                type="text"
-                value={section.subtitle || ''}
-                onChange={(e) => updateSection(section.id, 'subtitle', e.target.value)}
-                placeholder="Subtitle (optional)"
-                className="w-full border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-1 mb-2"
-                aria-label="Section subtitle"
-              />
-              <div className="flex justify-end mb-1">
-                <button
-                  type="button"
-                  onClick={() => setEnhanceTarget(section)}
-                  disabled={section.body.trim().length < 10}
-                  className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-slate-blue hover:bg-slate-blue/10 rounded-md transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                  aria-label="Enhance section with AI"
-                >
-                  <Icon name="prompty" size={16} className="text-slate-blue" />
-                  Enhance with AI
-                </button>
-              </div>
-              <textarea
-                value={section.body}
-                onChange={(e) => updateSection(section.id, 'body', e.target.value)}
-                placeholder="Section content..."
-                rows={4}
-                className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-1 resize-y"
-                aria-label="Section content"
-              />
-            </>
           )}
         </div>
       ))}
